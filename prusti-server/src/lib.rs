@@ -16,9 +16,6 @@ extern crate log;
 extern crate futures;
 extern crate lru;
 extern crate prusti_common;
-extern crate serde;
-extern crate serde_derive;
-extern crate serde_json;
 
 mod service;
 mod verifier_runner;
