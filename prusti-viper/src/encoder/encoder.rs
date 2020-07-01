@@ -1308,10 +1308,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let function = if self.is_trusted(proc_def_id) {
                 pure_function_encoder.encode_bodyless_function()
             } else {
-                pure_function_encoder.encode_function()
+                let pure_function = pure_function_encoder.encode_function();
+                self.patch_pure_post_with_mirror_call(pure_function)
             };
-
-            let function = self.patch_pure_post_with_mirror_call(function);
 
             self.log_vir_program_before_viper(function.to_string());
             self.pure_functions.borrow_mut().insert(key, function);
