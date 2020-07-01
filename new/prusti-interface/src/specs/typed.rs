@@ -5,6 +5,7 @@ use rustc_middle::ty::{TyCtxt, TyKind};
 use std::collections::HashMap;
 
 pub use common::{ExpressionId, SpecType, SpecificationId};
+use crate::specs::Node;
 
 /// A specification that has no types associated with it.
 pub type Specification<'tcx> = common::Specification<ExpressionId, BodyId, TyKind<'tcx>>;
@@ -30,12 +31,12 @@ pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, TyKind<'tcx>>;
 pub type Trigger = common::Trigger<ExpressionId, BodyId>;
 
 pub trait StructuralToTyped<'tcx, Target> {
-    fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>, tcx: TyCtxt<'tcx>) -> Target;
+    fn to_typed(self, typed_expressions: &HashMap<String, Node>, tcx: TyCtxt<'tcx>) -> Target;
 }
 
 impl<'tcx> StructuralToTyped<'tcx, Expression> for json::Expression {
-    fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>, tcx: TyCtxt<'tcx>) -> Expression {
-        let body_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
+    fn to_typed(self, typed_expressions: &HashMap<String, Node>, tcx: TyCtxt<'tcx>) -> Expression {
+        let body_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)].body_id;
         Expression {
             spec_id: self.spec_id,
             id: self.expr_id,
@@ -45,7 +46,7 @@ impl<'tcx> StructuralToTyped<'tcx, Expression> for json::Expression {
 }
 
 impl<'tcx> StructuralToTyped<'tcx, TriggerSet> for json::TriggerSet {
-    fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>, tcx: TyCtxt<'tcx>) -> TriggerSet {
+    fn to_typed(self, typed_expressions: &HashMap<String, Node>, tcx: TyCtxt<'tcx>) -> TriggerSet {
         common::TriggerSet(
             self.0
                 .into_iter()
@@ -56,7 +57,7 @@ impl<'tcx> StructuralToTyped<'tcx, TriggerSet> for json::TriggerSet {
 }
 
 impl<'tcx> StructuralToTyped<'tcx, Trigger> for json::Trigger {
-    fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>, tcx: TyCtxt<'tcx>) -> Trigger {
+    fn to_typed(self, typed_expressions: &HashMap<String, Node>, tcx: TyCtxt<'tcx>) -> Trigger {
         common::Trigger(
             self.0
                 .into_iter()
@@ -67,47 +68,29 @@ impl<'tcx> StructuralToTyped<'tcx, Trigger> for json::Trigger {
 }
 
 impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
-    fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>, tcx: TyCtxt<'tcx>) -> ForAllVars<'tcx> {
-        let (body, _) = tcx.mir_validated(
-            typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)].hir_id.owner
-        );
-        let body = body.steal();
+    fn to_typed(self, typed_expressions: &HashMap<String, Node>, tcx: TyCtxt<'tcx>) -> ForAllVars<'tcx> {
+        let hir_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)].hir_id;
+        let local_id = tcx.hir().local_def_id(hir_id);
+        let (body, _) = tcx.mir_validated(local_id);
+        let body = body.borrow();
 
-        let last_idx = body.local_decls.last().unwrap();
-        let last = body.local_decls.get(last_idx).unwrap();
-        if let TyKind::Closure(_, substs) = last.ty.kind {
-            if let TyKind::FnPtr(fnptr) = substs.type_at(1).kind {
-                let args = fnptr.no_bound_vars().unwrap().inputs()[0];
-                if let TyKind::Tuple(items) = args.kind {
-                    assert!(items.len() == self.count);
-                    let mut vars = vec![];
-                    for item in items {
-                        vars.push(item.expect_ty().kind.clone());
-                    }
-                    return ForAllVars {
-                        spec_id: self.spec_id,
-                        id: self.expr_id,
-                        vars
-                    };
-                }
-                else {
-                    unreachable!();
-                }
-            }
-            else {
-                unreachable!();
+        let mut vars = vec![];
+        for local_decl in body.local_decls.iter() {
+            if local_decl.local_info.is_some() {
+                vars.push(local_decl.ty.kind.clone())
             }
         }
-        else {
-            unreachable!();
+        assert_eq!(vars.len(), self.count);
+        return ForAllVars {
+            spec_id: self.spec_id,
+            id: self.expr_id,
+            vars
         }
-
-
     }
 }
 
 impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind {
-    fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>, tcx: TyCtxt<'tcx>) -> AssertionKind<'tcx> {
+    fn to_typed(self, typed_expressions: &HashMap<String, Node>, tcx: TyCtxt<'tcx>) -> AssertionKind<'tcx> {
         use json::AssertionKind::*;
         match self {
             Expr(expr) => AssertionKind::Expr(expr.to_typed(typed_expressions, tcx)),
@@ -130,7 +113,7 @@ impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind 
 }
 
 impl<'tcx> StructuralToTyped<'tcx, Assertion<'tcx>> for json::Assertion {
-    fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>, tcx: TyCtxt<'tcx>) -> Assertion<'tcx> {
+    fn to_typed(self, typed_expressions: &HashMap<String, Node>, tcx: TyCtxt<'tcx>) -> Assertion<'tcx> {
         Assertion {
             kind: box self.kind.to_typed(typed_expressions, tcx),
         }

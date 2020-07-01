@@ -17,11 +17,16 @@ struct SpecItem {
     specification: JsonAssertion,
 }
 
+pub struct Node {
+    pub hir_id: rustc_hir::hir_id::HirId,
+    pub body_id: rustc_hir::BodyId
+}
+
 pub struct SpecCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
     spec_items: Vec<SpecItem>,
     current_spec_item: Option<SpecItem>,
-    typed_expressions: HashMap<String, rustc_hir::BodyId>,
+    typed_expressions: HashMap<String, Node>,
 }
 
 impl<'tcx> SpecCollector<'tcx> {
@@ -78,7 +83,7 @@ impl<'tcx> SpecCollector<'tcx> {
 
 fn reconstruct_typed_assertion<'tcx>(
     assertion: JsonAssertion,
-    typed_expressions: &HashMap<String, rustc_hir::BodyId>,
+    typed_expressions: &HashMap<String, Node>,
     tcx: TyCtxt<'tcx>
 ) -> typed::Assertion<'tcx> {
     assertion.to_typed(typed_expressions, tcx)
@@ -208,7 +213,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         if self.current_spec_item.is_some() {
             if read_attr("spec_id", fn_kind.attrs()).is_none() {
                 let expr_id = read_attr("expr_id", fn_kind.attrs()).unwrap();
-                self.typed_expressions.insert(expr_id, body_id);
+                self.typed_expressions.insert(expr_id, Node {hir_id: id, body_id});
             }
         }
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
