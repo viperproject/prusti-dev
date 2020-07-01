@@ -15,8 +15,10 @@ fn test1() {}
 fn test2() {}
 
 fn test3() {
-    for _ in 0..2 {
-        invariant!(true)
+    let mut curr = 0;
+    while curr < 2 {
+        invariant!(true);
+        curr += 1;
     }
 }
 
