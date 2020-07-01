@@ -233,11 +233,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let procedure_trait_contract = self
                         .encoder
                         .get_procedure_contract_for_def(assoc_item.def_id);
-                    let (proc_pre_specs, proc_post_specs) = {
+                    let (mut proc_pre_specs, mut proc_post_specs) = {
                         if let typed::SpecificationSet::Procedure(spec) =
                             &mut self.mut_contract().specification
                         {
-                            (&mut spec.pres, &mut spec.posts)
+                            (spec.pres.clone(), spec.posts.clone())
                         } else {
                             unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
                         }
