@@ -19,7 +19,7 @@ use log::trace;
 /// +   `is_prefix(x.f.g, x.f) == true`
 /// +   `is_prefix(x.f, x.f.g) == false`
 pub fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
-    if place.local != potential_prefix.local || place.projection.len() > potential_prefix.projection.len() {
+    if place.local != potential_prefix.local || place.projection.len() < potential_prefix.projection.len() {
         false
     } else {
         place.projection.iter().zip(potential_prefix.projection.iter()).all(|(e1, e2)| e1 == e2)
@@ -34,51 +34,88 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
     place: &mir::Place<'tcx>,
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    without_element: Option<usize>,
+    without_field: Option<usize>,
 ) -> Vec<mir::Place<'tcx>> {
     let mut places = Vec::new();
-    // match place.ty(mir, tcx) {
-    //     mir::tcx::PlaceTy::Ty { ty: base_ty } => match base_ty.sty {
-    //         ty::TyAdt(def, substs) => {
-    //             assert!(
-    //                 def.variants.len() == 1,
-    //                 "Only structs can be expanded. Got def={:?}.",
-    //                 def
-    //             );
-    //             for (index, field_def) in def.variants[0].fields.iter().enumerate() {
-    //                 if Some(index) != without_element {
-    //                     let field = mir::Field::new(index);
-    //                     places.push(place.clone().field(field, field_def.ty(tcx, substs)));
-    //                 }
-    //             }
-    //         }
-    //         ty::TyTuple(slice) => {
-    //             for (index, ty) in slice.iter().enumerate() {
-    //                 if Some(index) != without_element {
-    //                     let field = mir::Field::new(index);
-    //                     places.push(place.clone().field(field, ty));
-    //                 }
-    //             }
-    //         }
-    //         ty::TyRef(_region, _ty, _) => match without_element {
-    //             Some(without_element) => {
-    //                 assert_eq!(
-    //                     without_element, 0,
-    //                     "References have only a single “field”."
-    //                 );
-    //             }
-    //             None => {
-    //                 places.push(place.clone().deref());
-    //             }
-    //         },
-    //         ref ty => {
-    //             unimplemented!("ty={:?}", ty);
-    //         }
-    //     },
-    //     mir::tcx::PlaceTy::Downcast { .. } => {}
-    // }
-    unimplemented!();
+    let typ = place.ty(mir, tcx);
+    if typ.variant_index.is_some() {
+        unimplemented!("We do not support downcast yet.");
+    }
+    match typ.ty.kind {
+        ty::Adt(def, substs) => {
+            assert!(
+                def.is_struct(),
+                "Only structs can be expanded. Got def={:?}.",
+                def
+            );
+            let variant = def.non_enum_variant();
+            for (index, field_def) in variant.fields.iter().enumerate() {
+                if Some(index) != without_field {
+                    let field = mir::Field::new(index);
+                    let field_place = tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
+                    places.push(field_place);
+                }
+            }
+        }
+        ty::Tuple(slice) => {
+            for (index, arg) in slice.iter().enumerate() {
+                if Some(index) != without_field {
+                    let field = mir::Field::new(index);
+                    let field_place = tcx.mk_place_field(*place, field, arg.expect_ty());
+                    places.push(field_place);
+                }
+            }
+        }
+        ty::Ref(_region, _ty, _) => match without_field {
+            Some(without_field) => {
+                assert_eq!(
+                    without_field, 0,
+                    "References have only a single “field”."
+                );
+            }
+            None => {
+                places.push(tcx.mk_place_deref(*place));
+            }
+        },
+        ref ty => {
+            unimplemented!("ty={:?}", ty);
+        }
+    }
     places
+}
+
+/// Expand `current_place` one level down by following the `guide_place`.
+/// Returns the new `current_place` and a vector containing other places that
+/// could have resulted from the expansion.
+fn expand_one_level<'tcx>(
+    mir: &mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    current_place: mir::Place<'tcx>,
+    guide_place: mir::Place<'tcx>,
+) -> (mir::Place<'tcx>, Vec<mir::Place<'tcx>>) {
+    let index = current_place.projection.len();
+    match guide_place.projection[index] {
+        mir::ProjectionElem::Field(projected_field, field_ty) => {
+            let places =
+                expand_struct_place(&current_place, mir, tcx, Some(projected_field.index()));
+            let new_current_place = tcx.mk_place_field(current_place, projected_field, field_ty);
+            (new_current_place, places)
+        }
+        mir::ProjectionElem::Downcast(_symbol, variant) => {
+            let kind = &current_place.ty(mir, tcx).ty.kind;
+            if let ty::TyKind::Adt(adt, _) = kind {
+                (tcx.mk_place_downcast(current_place, adt, variant), Vec::new())
+            } else {
+                unreachable!();
+            }
+        }
+        mir::ProjectionElem::Deref => {
+            (tcx.mk_place_deref(current_place), Vec::new())
+        }
+        elem => {
+            unimplemented!("elem = {:?}", elem);
+        }
+    }
 }
 
 /// Subtract the `subtrahend` place from the `minuend` place. The
@@ -104,50 +141,20 @@ pub fn expand<'a, 'tcx: 'a>(
         minuend,
         subtrahend
     );
-    // let mut place_set = Vec::new();
-    // fn expand_recursively<'a, 'tcx: 'a>(
-    //     place_set: &mut Vec<mir::Place<'tcx>>,
-    //     mir: &mir::Body<'tcx>,
-    //     tcx: TyCtxt<'tcx>,
-    //     minuend: &mir::Place<'tcx>,
-    //     subtrahend: &mir::Place<'tcx>,
-    // ) {
-    //     trace!(
-    //         "[enter] expand_recursively minuend={:?} subtrahend={:?}",
-    //         minuend,
-    //         subtrahend
-    //     );
-    //     if minuend != subtrahend {
-    //         match subtrahend {
-    //             mir::Place::Projection(box mir::Projection { base, elem }) => {
-    //                 // We just recurse until both paths become equal.
-    //                 expand_recursively(place_set, mir, tcx, minuend, base);
-    //                 match elem {
-    //                     mir::ProjectionElem::Field(projected_field, _field_ty) => {
-    //                         let places =
-    //                             expand_struct_place(base, mir, tcx, Some(projected_field.index()));
-    //                         place_set.extend(places);
-    //                     }
-    //                     mir::ProjectionElem::Downcast(_def, _variant) => {}
-    //                     mir::ProjectionElem::Deref => {}
-    //                     elem => {
-    //                         unimplemented!("elem = {:?}", elem);
-    //                     }
-    //                 }
-    //             }
-    //             _ => unreachable!(),
-    //         }
-    //     }
-    // };
-    // expand_recursively(&mut place_set, mir, tcx, minuend, subtrahend);
-    // trace!(
-    //     "[exit] expand minuend={:?} subtrahend={:?} place_set={:?}",
-    //     minuend,
-    //     subtrahend,
-    //     place_set
-    // );
-    // place_set
-    unimplemented!();
+    let mut place_set = Vec::new();
+    let mut minuend = *minuend;
+    while minuend.projection.len() < subtrahend.projection.len() {
+        let (new_minuend, places) = expand_one_level(mir, tcx, minuend, *subtrahend);
+        minuend = new_minuend;
+        place_set.extend(places);
+    }
+    trace!(
+        "[exit] expand minuend={:?} subtrahend={:?} place_set={:?}",
+        minuend,
+        subtrahend,
+        place_set
+    );
+    place_set
 }
 
 /// Try to collapse all places in `places` by following the
@@ -159,20 +166,32 @@ pub fn collapse<'a, 'tcx: 'a>(
     places: &mut HashSet<mir::Place<'tcx>>,
     guide_place: &mir::Place<'tcx>,
 ) {
-    // let mut guide_place = guide_place.clone();
-    // while let mir::Place::Projection(box mir::Projection { base, elem: _ }) = guide_place {
-    //     let expansion = expand_struct_place(&base, mir, tcx, None);
-    //     if expansion.iter().all(|place| places.contains(place)) {
-    //         for place in expansion {
-    //             places.remove(&place);
-    //         }
-    //         places.insert(base.clone());
-    //     } else {
-    //         return;
-    //     }
-    //     guide_place = base;
-    // }
-    unimplemented!();
+    let mut guide_place = guide_place.clone();
+    fn recurse<'tcx>(
+        mir: &mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+        places: &mut HashSet<mir::Place<'tcx>>,
+        current_place: mir::Place<'tcx>,
+        guide_place: mir::Place<'tcx>,
+    ) {
+        if current_place == guide_place {
+            return;
+        } else {
+            let (new_current_place, mut expansion) = expand_one_level(
+                mir, tcx, current_place, guide_place);
+            recurse(mir, tcx, places, new_current_place, guide_place);
+            expansion.push(new_current_place);
+            if expansion.iter().all(|place| places.contains(place)) {
+                for place in expansion {
+                    places.remove(&place);
+                }
+                places.insert(current_place);
+            } else {
+                return;
+            }
+        }
+    }
+    recurse(mir, tcx, places, guide_place.local.into(), guide_place);
 }
 
 #[derive(Debug)]
