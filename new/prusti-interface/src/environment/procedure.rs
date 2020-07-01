@@ -200,7 +200,7 @@ fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
             None => vec![],
         },
 
-        TerminatorKind::FalseEdges {
+        TerminatorKind::FalseEdge {
             ref real_target, ..
         } => vec![*real_target],
 

@@ -178,17 +178,17 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
                 mir::TerminatorKind::SwitchInt { ref discr, .. } => {
                     self.apply_operand_effect(&mut place_set, discr);
                 }
-                mir::TerminatorKind::Drop { ref location, .. } => {
-                    self.set_place_uninitialised(&mut place_set, location);
+                mir::TerminatorKind::Drop { ref place, .. } => {
+                    self.set_place_uninitialised(&mut place_set, place);
                 }
                 mir::TerminatorKind::DropAndReplace {
-                    ref location,
+                    ref place,
                     ref value,
                     ..
                 } => {
-                    self.set_place_uninitialised(&mut place_set, location);
+                    self.set_place_uninitialised(&mut place_set, place);
                     self.apply_operand_effect(&mut place_set, value);
-                    self.set_place_initialised(&mut place_set, location);
+                    self.set_place_initialised(&mut place_set, place);
                 }
                 mir::TerminatorKind::Call {
                     ref func,
