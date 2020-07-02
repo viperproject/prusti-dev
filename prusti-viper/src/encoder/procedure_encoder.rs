@@ -23,7 +23,7 @@ use prusti_common::vir::fixes::fix_ghost_vars;
 use prusti_common::vir::optimisations::methods::{
     remove_empty_if, remove_trivial_assertions, remove_unused_vars,
 };
-use prusti_common::vir::{self, CfgBlockIndex, Successor, collect_assigned_vars, Expr, Type, UnaryOpKind};
+use prusti_common::vir::{self, CfgBlockIndex, Successor, collect_assigned_vars, Expr, Type};
 use prusti_common::vir::{ExprIterator, FoldingBehaviour};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
@@ -1685,8 +1685,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         if target_span > default_target_span {
                             let guard_pos = target_guard.pos().clone();
                             cfg_targets = vec![(
-                                Expr::UnaryOp(UnaryOpKind::Not, box target_guard, guard_pos),
-                                default_target
+                                target_guard.negate().set_pos(guard_pos),
+                                default_target,
                             )];
                             default_target = target;
                         } else {
