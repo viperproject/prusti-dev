@@ -202,11 +202,11 @@ fn run_verification_core_proof(group_name: &str) {
 
 #[test]
 fn test_runner() {
-    // Test the error messages of the parser
+    // Test the parsing of specifications. Doesn't run the verifier.
     println!("[parse]");
     run_no_verification("parse");
 
-    // Test the error messages of the type-checking of specifications
+    // Test the type-checking of specifications. Doesn't run the verifier.
     println!("[typecheck]");
     run_no_verification("typecheck");
 
@@ -214,15 +214,15 @@ fn test_runner() {
     println!("[filter]");
     run_filter("filter");
 
-    // Test the verifier
+    // Test the verifier.
     println!("[verify]");
     run_verification("verify");
 
-    // Test the verifier with overflow checks enabled
+    // Test the verifier with overflow checks enabled.
     println!("[verify_overflow]");
     run_verification_overflow("verify_overflow");
 
-    // Test the verifier with panic checks disabled (i.e. verify only the core proof)
+    // Test the verifier with panic checks disabled (i.e. verify only the core proof).
     println!("[core_proof]");
     run_verification_core_proof("core_proof");
 }
