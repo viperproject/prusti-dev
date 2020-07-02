@@ -32,13 +32,12 @@ pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, TyKind<'tcx>>;
 pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
 
 pub trait StructuralToTyped<'tcx, Target> {
-    fn to_typed(self, typed_expressions: &HashMap<String, HirId>, tcx: TyCtxt<'tcx>) -> Target;
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> Target;
 }
 
 impl<'tcx> StructuralToTyped<'tcx, Expression> for json::Expression {
-    fn to_typed(self, typed_expressions: &HashMap<String, HirId>, tcx: TyCtxt<'tcx>) -> Expression {
-        let hir_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
-        let local_id = tcx.hir().local_def_id(hir_id);
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> Expression {
+        let local_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
         Expression {
             spec_id: self.spec_id,
             id: self.expr_id,
@@ -48,7 +47,7 @@ impl<'tcx> StructuralToTyped<'tcx, Expression> for json::Expression {
 }
 
 impl<'tcx> StructuralToTyped<'tcx, TriggerSet> for json::TriggerSet {
-    fn to_typed(self, typed_expressions: &HashMap<String, HirId>, tcx: TyCtxt<'tcx>) -> TriggerSet {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> TriggerSet {
         common::TriggerSet(
             self.0
                 .into_iter()
@@ -59,7 +58,7 @@ impl<'tcx> StructuralToTyped<'tcx, TriggerSet> for json::TriggerSet {
 }
 
 impl<'tcx> StructuralToTyped<'tcx, Trigger> for json::Trigger {
-    fn to_typed(self, typed_expressions: &HashMap<String, HirId>, tcx: TyCtxt<'tcx>) -> Trigger {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> Trigger {
         common::Trigger(
             self.0
                 .into_iter()
@@ -70,9 +69,8 @@ impl<'tcx> StructuralToTyped<'tcx, Trigger> for json::Trigger {
 }
 
 impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
-    fn to_typed(self, typed_expressions: &HashMap<String, HirId>, tcx: TyCtxt<'tcx>) -> ForAllVars<'tcx> {
-        let hir_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
-        let local_id = tcx.hir().local_def_id(hir_id);
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> ForAllVars<'tcx> {
+        let local_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
         let (body, _) = tcx.mir_validated(local_id);
         let body = body.borrow();
 
@@ -93,7 +91,7 @@ impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
 }
 
 impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind {
-    fn to_typed(self, typed_expressions: &HashMap<String, HirId>, tcx: TyCtxt<'tcx>) -> AssertionKind<'tcx> {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> AssertionKind<'tcx> {
         use json::AssertionKind::*;
         match self {
             Expr(expr) => AssertionKind::Expr(expr.to_typed(typed_expressions, tcx)),
@@ -116,7 +114,7 @@ impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind 
 }
 
 impl<'tcx> StructuralToTyped<'tcx, Assertion<'tcx>> for json::Assertion {
-    fn to_typed(self, typed_expressions: &HashMap<String, HirId>, tcx: TyCtxt<'tcx>) -> Assertion<'tcx> {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> Assertion<'tcx> {
         Assertion {
             kind: box self.kind.to_typed(typed_expressions, tcx),
         }
