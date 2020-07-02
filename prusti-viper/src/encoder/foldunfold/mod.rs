@@ -729,7 +729,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Action
                             .and_then(|opt_pctxt| {
                                 opt_pctxt.as_ref().map(|pctxt| {
                                     let mut acc = pctxt.state().display_acc();
-                                    let mut pred = pctxt.state().display_acc();
+                                    let mut pred = pctxt.state().display_pred();
                                     if !self.foldunfold_state_filter.is_empty() {
                                         let filter = &self.foldunfold_state_filter;
                                         acc = acc

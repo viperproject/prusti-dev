@@ -260,7 +260,7 @@ impl LocalVar {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq, Hash)]
 pub struct Field {
     pub name: String,
     pub typ: Type,
@@ -291,21 +291,6 @@ impl Field {
             Type::TypedRef(ref name) => Some(name.clone()),
             _ => None,
         }
-    }
-}
-
-impl PartialEq for Field {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && self.typ == other.typ
-    }
-}
-
-impl Eq for Field {}
-
-impl Hash for Field {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.name.hash(state);
-        self.typ.hash(state);
     }
 }
 
