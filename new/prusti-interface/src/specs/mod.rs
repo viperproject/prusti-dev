@@ -4,6 +4,7 @@ use rustc_hir::intravisit;
 use rustc_middle::hir::map::Map;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
+use rustc_hir::hir_id::HirId;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
@@ -17,16 +18,11 @@ struct SpecItem {
     specification: JsonAssertion,
 }
 
-pub struct Node {
-    pub hir_id: rustc_hir::hir_id::HirId,
-    pub body_id: rustc_hir::BodyId
-}
-
 pub struct SpecCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
     spec_items: Vec<SpecItem>,
     current_spec_item: Option<SpecItem>,
-    typed_expressions: HashMap<String, Node>,
+    typed_expressions: HashMap<String, HirId>,
 }
 
 impl<'tcx> SpecCollector<'tcx> {
@@ -83,7 +79,7 @@ impl<'tcx> SpecCollector<'tcx> {
 
 fn reconstruct_typed_assertion<'tcx>(
     assertion: JsonAssertion,
-    typed_expressions: &HashMap<String, Node>,
+    typed_expressions: &HashMap<String, HirId>,
     tcx: TyCtxt<'tcx>
 ) -> typed::Assertion<'tcx> {
     assertion.to_typed(typed_expressions, tcx)
@@ -213,7 +209,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         if self.current_spec_item.is_some() {
             if read_attr("spec_id", fn_kind.attrs()).is_none() {
                 let expr_id = read_attr("expr_id", fn_kind.attrs()).unwrap();
-                self.typed_expressions.insert(expr_id, Node {hir_id: id, body_id});
+                self.typed_expressions.insert(expr_id, id);
             }
         }
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
