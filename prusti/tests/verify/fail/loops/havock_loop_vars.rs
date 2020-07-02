@@ -18,7 +18,7 @@ fn test() {
         } else {
             z = Some(x);
         }
-        //assert!(false);
+        assert!(false); //~ ERROR might not hold
     }
 }
 
