@@ -75,12 +75,17 @@ impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
         let body = body.borrow();
 
         let vars: Vec<TyKind> = body
-            .local_decls
-            .iter()
-            .filter(|x| x.is_user_variable())
-            .map(|x| x.ty.kind.clone())
+            .args_iter()
+            .skip(1)
+            .map(|arg| body.local_decls
+                           .get(arg)
+                           .unwrap()
+                           .ty
+                           .kind
+                           .clone())
             .collect();
 
+        assert!(body.arg_count-1 == self.count);
         assert_eq!(vars.len(), self.count);
         return ForAllVars {
             spec_id: self.spec_id,
