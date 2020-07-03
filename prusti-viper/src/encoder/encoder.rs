@@ -183,6 +183,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn get_viper_program(&self) -> vir::Program {
         vir::Program {
+            domains: self.get_used_viper_domains(),
             fields: self.get_used_viper_fields(),
             builtin_methods: self.get_used_builtin_methods(),
             methods: self.get_used_viper_methods(),

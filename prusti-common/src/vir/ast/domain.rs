@@ -7,7 +7,7 @@
 use std::fmt;
 use vir::ast::*;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Domain {
     pub name: String,
     pub functions: Vec<DomainFunc>,
@@ -82,7 +82,7 @@ impl WithIdentifier for DomainFunc {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DomainAxiom {
     pub name: String,
     pub expr: Expr,

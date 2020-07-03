@@ -18,7 +18,7 @@ pub trait ToViperDecl<'v, T> {
 
 impl<'v> ToViper<'v, viper::Program<'v>> for Program {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Program<'v> {
-        let domains: Vec<viper::Domain> = vec![];
+        let domains = self.domains.to_viper(ast);
         let fields = self.fields.to_viper(ast);
 
         let mut viper_methods: Vec<_> = self.methods.iter().map(|m| m.to_viper(ast)).collect();
@@ -428,18 +428,14 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     return_type.to_viper(ast),
                     pos.to_viper(ast),
                 )
-            },
-            &Expr::DomainFuncApp(
-                ref function,
-                ref args,
-                ref _pos,
-            ) => {
+            }
+            &Expr::DomainFuncApp(ref function, ref args, ref _pos) => {
                 ast.domain_func_app(
                     function.to_viper(ast),
                     &args.to_viper(ast),
                     &[], // TODO not necessary so far
                 )
-            },
+            }
             /* TODO use once DomainFuncApp has been updated
             &Expr::DomainFuncApp(
                 ref function_name,
@@ -460,13 +456,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 )
             },
             */
-
             &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
-                ast.inhale_exhale_pred(
-                    inhale_expr.to_viper(ast),
-                    exhale_expr.to_viper(ast)
-                )
-            },
+                ast.inhale_exhale_pred(inhale_expr.to_viper(ast), exhale_expr.to_viper(ast))
+            }
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)
@@ -589,14 +581,9 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
 
 impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for &'a DomainAxiom {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::NamedDomainAxiom<'v> {
-        ast.named_domain_axiom(
-            &self.name,
-            self.expr.to_viper(ast),
-            &self.domain_name,
-        )
+        ast.named_domain_axiom(&self.name, self.expr.to_viper(ast), &self.domain_name)
     }
 }
-
 
 // Vectors
 
