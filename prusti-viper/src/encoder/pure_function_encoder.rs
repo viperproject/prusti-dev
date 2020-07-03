@@ -178,7 +178,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                     self.mir.return_ty(),
                 )
                 .into_iter()
-                .map(|p| p.set_default_pos(res_value_range_pos.clone()))
+                .map(|p| p.set_default_pos(res_value_range_pos))
                 .collect();
             postcondition.extend(return_bounds);
 
@@ -830,7 +830,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             } else {
                                 // We are encoding a pure function, so all failures should
                                 // be unreachable.
-                                unreachable_expr(pos.clone())
+                                unreachable_expr(pos)
                             };
                             vir::Expr::ite(viper_guard.clone(), expr.clone(), failure_result)
                         })

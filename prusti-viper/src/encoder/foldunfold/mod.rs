@@ -454,7 +454,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     read_access = read_access.replace_place(&original_place, place);
                 }
                 maybe_original_place = Some(original_place);
-                let stmt = vir::Stmt::Exhale(read_access, self.method_pos.clone());
+                let stmt = vir::Stmt::Exhale(read_access, self.method_pos);
                 let new_stmts = self.replace_stmt(
                     curr_block.statements.len(),
                     &stmt,
@@ -657,7 +657,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         vir::Stmt::Inhale(patch_expr(label, expr), *folding)
                     }
                     vir::Stmt::Exhale(expr, pos) => {
-                        vir::Stmt::Exhale(patch_expr(label, expr), pos.clone())
+                        vir::Stmt::Exhale(patch_expr(label, expr), *pos)
                     }
                     vir::Stmt::Fold(ref pred_name, ref args, perm_amount, variant, pos) => {
                         vir::Stmt::Fold(
@@ -665,7 +665,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                             patch_args(label, args),
                             *perm_amount,
                             variant.clone(),
-                            pos.clone(),
+                            *pos,
                         )
                     }
                     vir::Stmt::Unfold(ref pred_name, ref args, perm_amount, variant) => {
@@ -1109,12 +1109,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Action
                         predicate_name.clone(),
                         box place.clone(),
                         vir::PermAmount::Remaining,
-                        place.pos().clone(),
+                        place.pos(),
                     );
                     pctxt
                         .log_mut()
                         .log_convertion_to_read(borrow, access.clone());
-                    let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
+                    let stmt = vir::Stmt::Exhale(access, self.method_pos);
                     pctxt.apply_stmt(&stmt);
                     stmts.push(stmt);
                 }
@@ -1409,7 +1409,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
         );
         lhs_state.replace_places(|place| {
-            let pos = place.pos().clone();
+            let pos = place.pos();
             place.old("lhs").set_pos(pos)
         });
         debug!("State of lhs of magic wand: {}", lhs_state);
@@ -1435,7 +1435,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
         );
         new_lhs_state.replace_places(|place| {
-            let pos = place.pos().clone();
+            let pos = place.pos();
             place.old("lhs").set_pos(pos)
         });
         debug!("New state of lhs of magic wand: {}", new_lhs_state);
