@@ -483,52 +483,53 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         field
     }
 
-    // pub fn encode_discriminant_func_app(
-    //     &self,
-    //     place: vir::Expr,
-    //     adt_def: &ty::AdtDef,
-    // ) -> vir::Expr {
-    //     let typ = place.get_type().clone();
-    //     let mut name = typ.name();
-    //     name.push_str("$$discriminant$$");
-    //     let self_local_var = vir::LocalVar::new("self", typ);
-    //     self.type_discriminant_funcs
-    //         .borrow_mut()
-    //         .entry(name.clone())
-    //         .or_insert_with(|| {
-    //             let predicate_name = place.get_type().name();
-    //             let precondition = vir::Expr::predicate_access_predicate(
-    //                 predicate_name,
-    //                 self_local_var.clone().into(),
-    //                 vir::PermAmount::Read,
-    //             );
-    //             let result = vir::LocalVar::new("__result", vir::Type::Int);
-    //             let postcondition = compute_discriminant_bounds(
-    //                 adt_def, self.env.tcx(), &result.into());
-    //             let discr_field = self.encode_discriminant_field();
-    //             let self_local_var_expr: vir::Expr = self_local_var.clone().into();
-    //             let function = vir::Function {
-    //                 name: name.clone(),
-    //                 formal_args: vec![self_local_var.clone()],
-    //                 return_type: vir::Type::Int,
-    //                 pres: vec![precondition],
-    //                 posts: vec![postcondition],
-    //                 body: Some(self_local_var_expr.field(discr_field)),
-    //             };
-    //             let final_function = foldunfold::add_folding_unfolding_to_function(
-    //                 function,
-    //                 self.get_used_viper_predicates_map(),
-    //             );
-    //             final_function
-    //         });
-    //     vir::Expr::FuncApp(
-    //         name,
-    //         vec![place],
-    //         vec![self_local_var],
-    //         vir::Type::Int,
-    //         vir::Position::default(),
-    //     )
-    // }
+    pub fn encode_discriminant_func_app(
+        &self,
+        place: vir::Expr,
+        adt_def: &ty::AdtDef,
+    ) -> vir::Expr {
+        // let typ = place.get_type().clone();
+        // let mut name = typ.name();
+        // name.push_str("$$discriminant$$");
+        // let self_local_var = vir::LocalVar::new("self", typ);
+        // self.type_discriminant_funcs
+        //     .borrow_mut()
+        //     .entry(name.clone())
+        //     .or_insert_with(|| {
+        //         let predicate_name = place.get_type().name();
+        //         let precondition = vir::Expr::predicate_access_predicate(
+        //             predicate_name,
+        //             self_local_var.clone().into(),
+        //             vir::PermAmount::Read,
+        //         );
+        //         let result = vir::LocalVar::new("__result", vir::Type::Int);
+        //         let postcondition = compute_discriminant_bounds(
+        //             adt_def, self.env.tcx(), &result.into());
+        //         let discr_field = self.encode_discriminant_field();
+        //         let self_local_var_expr: vir::Expr = self_local_var.clone().into();
+        //         let function = vir::Function {
+        //             name: name.clone(),
+        //             formal_args: vec![self_local_var.clone()],
+        //             return_type: vir::Type::Int,
+        //             pres: vec![precondition],
+        //             posts: vec![postcondition],
+        //             body: Some(self_local_var_expr.field(discr_field)),
+        //         };
+        //         let final_function = foldunfold::add_folding_unfolding_to_function(
+        //             function,
+        //             self.get_used_viper_predicates_map(),
+        //         );
+        //         final_function
+        //     });
+        // vir::Expr::FuncApp(
+        //     name,
+        //     vec![place],
+        //     vec![self_local_var],
+        //     vir::Type::Int,
+        //     vir::Position::default(),
+        // )
+        unimplemented!();
+    }
 
     // fn encode_memory_eq_tuple(
     //     &self,
@@ -793,15 +794,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.builtin_methods.borrow()[&method_kind].clone()
     }
 
-    // pub fn encode_builtin_method_use(&self, method_kind: BuiltinMethodKind) -> String {
-    //     trace!("encode_builtin_method_use({:?})", method_kind);
-    //     if !self.builtin_methods.borrow().contains_key(&method_kind) {
-    //         // Trigger encoding of definition
-    //         self.encode_builtin_method_def(method_kind);
-    //     }
-    //     let builtin_encoder = BuiltinEncoder::new();
-    //     builtin_encoder.encode_builtin_method_name(method_kind)
-    // }
+    pub fn encode_builtin_method_use(&self, method_kind: BuiltinMethodKind) -> String {
+        trace!("encode_builtin_method_use({:?})", method_kind);
+        if !self.builtin_methods.borrow().contains_key(&method_kind) {
+            // Trigger encoding of definition
+            self.encode_builtin_method_def(method_kind);
+        }
+        let builtin_encoder = BuiltinEncoder::new();
+        builtin_encoder.encode_builtin_method_name(method_kind)
+    }
 
     // pub fn encode_builtin_function_def(&self, function_kind: BuiltinFunctionKind) -> vir::Function {
     //     trace!("encode_builtin_function_def({:?})", function_kind);

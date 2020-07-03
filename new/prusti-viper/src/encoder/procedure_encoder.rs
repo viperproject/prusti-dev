@@ -5,11 +5,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::borrows::ProcedureContract;
-// use crate::encoder::builtin_encoder::BuiltinMethodKind;
+use crate::encoder::builtin_encoder::BuiltinMethodKind;
 // use crate::encoder::errors::PanicCause;
 use crate::encoder::errors::{EncodingError, ErrorCtxt};
 // use crate::encoder::foldunfold;
-// use crate::encoder::initialisation::InitInfo;
+use crate::encoder::initialisation::InitInfo;
 use crate::encoder::loop_encoder::LoopEncoder;
 use crate::encoder::mir_encoder::MirEncoder;
 use crate::encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
@@ -17,7 +17,7 @@ use crate::encoder::mir_successor::MirSuccessor;
 // use crate::encoder::optimiser;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
-// use prusti_common::utils::to_string::ToString;
+use prusti_common::utils::to_string::ToString;
 use prusti_common::vir::borrows::Borrow;
 use prusti_common::vir::fixes::fix_ghost_vars;
 use prusti_common::vir::optimisations::methods::{
@@ -41,13 +41,14 @@ use prusti_interface::environment::Procedure;
 use rustc_middle::mir;
 // use rustc::mir::TerminatorKind;
 use rustc_middle::ty;
-// use rustc::ty::layout;
-// use rustc::ty::layout::IntegerExt;
+use rustc_middle::ty::layout;
+use rustc_target::abi::Integer;
+use rustc_middle::ty::layout::IntegerExt;
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
 use std::collections::HashMap;
 use std::collections::HashSet;
-// use syntax::attr::SignedInt;
+use rustc_attr::IntType::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
 use prusti_interface::specs::typed;
 use ::log::{trace, debug};
@@ -62,7 +63,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     cfg_method: vir::CfgMethod,
     // locals: LocalVariableManager<'tcx>,
     loop_encoder: LoopEncoder<'p, 'tcx>,
-    // auxiliary_local_vars: HashMap<String, vir::Type>,
+    auxiliary_local_vars: HashMap<String, vir::Type>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     // check_panics: bool,
     check_fold_unfold_state: bool,
@@ -83,8 +84,8 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     // /// A map that stores local variables used to preserve the value of a place accross the loop
     // /// when we cannot do that by using permissions.
     // pure_var_for_preserving_value_map: HashMap<BasicBlockIndex, HashMap<vir::Expr, vir::LocalVar>>,
-    // /// Information about which places are definitely initialised.
-    // init_info: InitInfo,
+    /// Information about which places are definitely initialised.
+    init_info: InitInfo,
     // /// Mapping from old expressions to ghost variables with which they were replaced.
     old_to_ghost_var: HashMap<vir::Expr, vir::Expr>,
     /// Ghost variables used inside package statements.
@@ -99,7 +100,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let def_id = procedure.get_id();
         let tcx = encoder.env().tcx();
         let mir_encoder = MirEncoder::new(encoder, mir, def_id);
-        // let init_info = InitInfo::new(mir, tcx, def_id, &mir_encoder);
+        let init_info = InitInfo::new(mir, tcx, def_id, &mir_encoder);
 
         let cfg_method = vir::CfgMethod::new(
             // method name
@@ -122,7 +123,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             cfg_method,
             // locals: LocalVariableManager::new(&mir.local_decls),
             loop_encoder: LoopEncoder::new(procedure, tcx),
-            // auxiliary_local_vars: HashMap::new(),
+            auxiliary_local_vars: HashMap::new(),
             mir_encoder: mir_encoder,
             // check_panics: config::check_panics(),
             check_fold_unfold_state: config::check_foldunfold_state(),
@@ -135,7 +136,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             magic_wand_apply_post: HashMap::new(),
             procedure_contracts: HashMap::new(),
             // pure_var_for_preserving_value_map: HashMap::new(),
-            // init_info: init_info,
+            init_info: init_info,
             old_to_ghost_var: HashMap::new(),
             old_ghost_vars: HashMap::new(),
         }
@@ -384,7 +385,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     //         .collect();
     //     for local in local_vars.iter() {
     //         let local_ty = self.locals.get_type(*local);
-    //         if let ty::TypeVariants::TyClosure(..) = local_ty.sty {
+    //         if let ty::TyKind::Closure(..) = local_ty.kind {
     //             // Do not encode closures
     //             continue;
     //         }
@@ -1010,17 +1011,17 @@ unimplemented!();
             stmt.kind, stmt.source_info.span
         );
 
-        // let mut stmts = vec![vir::Stmt::comment(format!("[mir] {:?}", stmt))];
+        let mut stmts = vec![vir::Stmt::comment(format!("[mir] {:?}", stmt))];
 
         // let encoding_stmts = match stmt.kind {
         //     mir::StatementKind::StorageDead(_)
         //     | mir::StatementKind::StorageLive(_)
-        //     | mir::StatementKind::EndRegion(_)
-        //     | mir::StatementKind::ReadForMatch(_)
-        //     | mir::StatementKind::UserAssertTy(_, _)
+        //     // | mir::StatementKind::EndRegion(_)
+        //     // | mir::StatementKind::ReadForMatch(_)
+        //     // | mir::StatementKind::UserAssertTy(_, _)
         //     | mir::StatementKind::Nop => vec![],
 
-        //     mir::StatementKind::Assign(ref lhs, ref rhs) => {
+        //     mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
         //         let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs);
         //         match rhs {
         //             &mir::Rvalue::Use(ref operand) => {
@@ -1553,14 +1554,14 @@ unimplemented!();
     //             let mut cfg_targets: Vec<(vir::Expr, BasicBlockIndex)> = vec![];
 
     //             // Use a local variable for the discriminant (see issue #57)
-    //             let discr_var = match switch_ty.sty {
-    //                 ty::TypeVariants::TyBool => {
+    //             let discr_var = match switch_ty.kind {
+    //                 ty::TyKind::Bool => {
     //                     self.cfg_method.add_fresh_local_var(vir::Type::Bool)
     //                 }
 
-    //                 ty::TypeVariants::TyInt(_)
-    //                 | ty::TypeVariants::TyUint(_)
-    //                 | ty::TypeVariants::TyChar => {
+    //                 ty::TyKind::Int(_)
+    //                 | ty::TyKind::Uint(_)
+    //                 | ty::TyKind::Char => {
     //                     self.cfg_method.add_fresh_local_var(vir::Type::Int)
     //                 }
 
@@ -1580,8 +1581,8 @@ unimplemented!();
     //             for (i, &value) in values.iter().enumerate() {
     //                 let target = targets[i as usize];
     //                 // Convert int to bool, if required
-    //                 let viper_guard = match switch_ty.sty {
-    //                     ty::TypeVariants::TyBool => {
+    //                 let viper_guard = match switch_ty.kind {
+    //                     ty::TyKind::Bool => {
     //                         if value == 0 {
     //                             // If discr is 0 (false)
     //                             vir::Expr::not(discr_var.clone().into())
@@ -1591,9 +1592,9 @@ unimplemented!();
     //                         }
     //                     }
 
-    //                     ty::TypeVariants::TyInt(_)
-    //                     | ty::TypeVariants::TyUint(_)
-    //                     | ty::TypeVariants::TyChar => vir::Expr::eq_cmp(
+    //                     ty::TyKind::Int(_)
+    //                     | ty::TyKind::Uint(_)
+    //                     | ty::TyKind::Char => vir::Expr::eq_cmp(
     //                         discr_var.clone().into(),
     //                         self.encoder.encode_int_cast(value, switch_ty),
     //                     ),
@@ -2062,7 +2063,7 @@ unimplemented!();
     //                 // So, we `assume false` after the function call
     //                 stmts_after.push(vir::Stmt::Inhale(false.into(), vir::FoldingBehaviour::Stmt));
     //                 // Return a dummy local variable
-    //                 let never_ty = self.encoder.env().tcx().mk_ty(ty::TypeVariants::TyNever);
+    //                 let never_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Never);
     //                 (self.locals.get_fresh(never_ty), None)
     //             }
     //         }
@@ -2331,14 +2332,14 @@ unimplemented!();
     //     for operand in args.iter() {
     //         let operand_ty = self.mir_encoder.get_operand_ty(operand);
     //         let operand_place = self.mir_encoder.encode_operand_place(operand);
-    //         match (operand_place, &operand_ty.sty) {
+    //         match (operand_place, &operand_ty.kind) {
     //             (
     //                 Some(ref place),
-    //                 ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
+    //                 ty::TyKind::RawPtr(ty::TypeAndMut {
     //                     ty: ref inner_ty, ..
     //                 }),
     //             )
-    //             | (Some(ref place), ty::TypeVariants::TyRef(_, ref inner_ty, _)) => {
+    //             | (Some(ref place), ty::TyKind::Ref(_, ref inner_ty, _)) => {
     //                 let ref_field = self.encoder.encode_dereference_field(inner_ty);
     //                 let ref_place = place.clone().field(ref_field);
     //                 stmts.extend(self.encode_transfer_permissions(
@@ -2384,11 +2385,11 @@ unimplemented!();
     // /// Encode permissions that are implicitly carried by the given local variable.
     // fn encode_local_variable_permission(&self, local: Local) -> vir::Expr {
     //     match self.locals.get_type(local).sty {
-    //         ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
+    //         ty::TyKind::RawPtr(ty::TypeAndMut {
     //             ref ty,
     //             mutbl: mutability,
     //         })
-    //         | ty::TypeVariants::TyRef(_, ref ty, mutability) => {
+    //         | ty::TyKind::Ref(_, ref ty, mutability) => {
     //             // Use unfolded references.
     //             let encoded_local = self.encode_prusti_local(local);
     //             let field = self.encoder.encode_dereference_field(ty);
@@ -3318,7 +3319,7 @@ unimplemented!();
     //             }
     //             let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place);
     //             debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
-    //             if let ty::TypeVariants::TyClosure(..) = ty.sty {
+    //             if let ty::TyKind::Closure(..) = ty.kind {
     //                 // Do not encode closures
     //                 continue;
     //             }
@@ -3354,9 +3355,9 @@ unimplemented!();
     //                     }) = mir_place
     //                     {
     //                         let (_, ref_ty, _) = self.mir_encoder.encode_place(base);
-    //                         match ref_ty.sty {
-    //                             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl, .. })
-    //                             | ty::TypeVariants::TyRef(_, _, mutbl) => {
+    //                         match ref_ty.kind {
+    //                             ty::TyKind::RawPtr(ty::TypeAndMut { mutbl, .. })
+    //                             | ty::TyKind::Ref(_, _, mutbl) => {
     //                                 if def_init {
     //                                     equalities.push(self.construct_value_preserving_equality(
     //                                         loop_head,
@@ -3372,9 +3373,9 @@ unimplemented!();
     //                             ref x => unreachable!("{:?}", x),
     //                         }
     //                     }
-    //                     match ty.sty {
-    //                         ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, mutbl })
-    //                         | ty::TypeVariants::TyRef(_, ref ty, mutbl) => {
+    //                     match ty.kind {
+    //                         ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, mutbl })
+    //                         | ty::TyKind::Ref(_, ref ty, mutbl) => {
     //                             debug!(
     //                                 "encode_loop_invariant_permissions \
     //                                  mir_place={:?} mutability={:?} \
@@ -3725,162 +3726,164 @@ unimplemented!();
     //     }
     // }
 
-    // /// Return type:
-    // /// - `Vec<vir::Stmt>`: the statements that encode the assignment of `operand` to `lhs`
-    // fn encode_assign_operand(
-    //     &mut self,
-    //     lhs: &vir::Expr,
-    //     operand: &mir::Operand<'tcx>,
-    //     location: mir::Location,
-    // ) -> Vec<vir::Stmt> {
-    //     debug!(
-    //         "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})",
-    //         lhs, operand, location
-    //     );
-    //     let stmts = match operand {
-    //         &mir::Operand::Move(ref place) => {
-    //             let (src, ty, _) = self.mir_encoder.encode_place(place);
-    //             let mut stmts = match ty.sty {
-    //                 ty::TypeVariants::TyRawPtr(..) | ty::TypeVariants::TyRef(..) => {
-    //                     // Reborrow.
-    //                     let field = self.encoder.encode_value_field(ty);
-    //                     let mut alloc_stmts = self.prepare_assign_target(
-    //                         lhs.clone(),
-    //                         field.clone(),
-    //                         location,
-    //                         vir::AssignKind::Move,
-    //                     );
-    //                     alloc_stmts.push(vir::Stmt::Assign(
-    //                         lhs.clone().field(field.clone()),
-    //                         src.field(field),
-    //                         vir::AssignKind::Move,
-    //                     ));
-    //                     alloc_stmts
-    //                 }
-    //                 _ => {
-    //                     // Just move.
-    //                     let move_assign =
-    //                         vir::Stmt::Assign(lhs.clone(), src, vir::AssignKind::Move);
-    //                     vec![move_assign]
-    //                 }
-    //             };
+    /// Return type:
+    /// - `Vec<vir::Stmt>`: the statements that encode the assignment of `operand` to `lhs`
+    fn encode_assign_operand(
+        &mut self,
+        lhs: &vir::Expr,
+        operand: &mir::Operand<'tcx>,
+        location: mir::Location,
+    ) -> Vec<vir::Stmt> {
+        debug!(
+            "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})",
+            lhs, operand, location
+        );
+        let stmts = match operand {
+            &mir::Operand::Move(ref place) => {
+                let (src, ty, _) = self.mir_encoder.encode_place(place);
+                let mut stmts = match ty.kind {
+                    ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => {
+                        // Reborrow.
+                        let field = self.encoder.encode_value_field(ty);
+                        let mut alloc_stmts = self.prepare_assign_target(
+                            lhs.clone(),
+                            field.clone(),
+                            location,
+                            vir::AssignKind::Move,
+                        );
+                        alloc_stmts.push(vir::Stmt::Assign(
+                            lhs.clone().field(field.clone()),
+                            src.field(field),
+                            vir::AssignKind::Move,
+                        ));
+                        alloc_stmts
+                    }
+                    _ => {
+                        // Just move.
+                        let move_assign =
+                            vir::Stmt::Assign(lhs.clone(), src, vir::AssignKind::Move);
+                        vec![move_assign]
+                    }
+                };
 
-    //             // Store a label for this state
-    //             let label = self.cfg_method.get_fresh_label_name();
-    //             debug!("Current loc {:?} has label {}", location, label);
-    //             self.label_after_location.insert(location, label.clone());
-    //             stmts.push(vir::Stmt::Label(label.clone()));
+                // Store a label for this state
+                let label = self.cfg_method.get_fresh_label_name();
+                debug!("Current loc {:?} has label {}", location, label);
+                self.label_after_location.insert(location, label.clone());
+                stmts.push(vir::Stmt::Label(label.clone()));
 
-    //             stmts
-    //         }
+                stmts
+            }
 
-    //         &mir::Operand::Copy(ref place) => {
-    //             let (src, ty, _) = self.mir_encoder.encode_place(place);
+            &mir::Operand::Copy(ref place) => {
+                let (src, ty, _) = self.mir_encoder.encode_place(place);
 
-    //             let mut stmts = if self.mir_encoder.is_reference(ty) {
-    //                 let loan = self.polonius_info().get_loan_at_location(location);
-    //                 let ref_field = self.encoder.encode_value_field(ty);
-    //                 let mut stmts = self.prepare_assign_target(
-    //                     lhs.clone(),
-    //                     ref_field.clone(),
-    //                     location,
-    //                     vir::AssignKind::SharedBorrow(loan.into()),
-    //                 );
-    //                 stmts.push(vir::Stmt::Assign(
-    //                     lhs.clone().field(ref_field.clone()),
-    //                     src.field(ref_field),
-    //                     vir::AssignKind::SharedBorrow(loan.into()),
-    //                 ));
-    //                 stmts
-    //             } else {
-    //                 self.encode_copy2(src, lhs.clone(), ty, location)
-    //             };
+                let mut stmts = if self.mir_encoder.is_reference(ty) {
+                    let loan = self.polonius_info().get_loan_at_location(location);
+                    let ref_field = self.encoder.encode_value_field(ty);
+                    let mut stmts = self.prepare_assign_target(
+                        lhs.clone(),
+                        ref_field.clone(),
+                        location,
+                        vir::AssignKind::SharedBorrow(loan.into()),
+                    );
+                    stmts.push(vir::Stmt::Assign(
+                        lhs.clone().field(ref_field.clone()),
+                        src.field(ref_field),
+                        vir::AssignKind::SharedBorrow(loan.into()),
+                    ));
+                    stmts
+                } else {
+                    self.encode_copy2(src, lhs.clone(), ty, location)
+                };
 
-    //             // Store a label for this state
-    //             let label = self.cfg_method.get_fresh_label_name();
-    //             debug!("Current loc {:?} has label {}", location, label);
-    //             self.label_after_location.insert(location, label.clone());
-    //             stmts.push(vir::Stmt::Label(label.clone()));
+                // Store a label for this state
+                let label = self.cfg_method.get_fresh_label_name();
+                debug!("Current loc {:?} has label {}", location, label);
+                self.label_after_location.insert(location, label.clone());
+                stmts.push(vir::Stmt::Label(label.clone()));
 
-    //             stmts
-    //         }
+                stmts
+            }
 
-    //         &mir::Operand::Constant(box mir::Constant {
-    //             ty, ref literal, ..
-    //         }) => {
-    //             let field = self.encoder.encode_value_field(ty);
-    //             let mut stmts = self.prepare_assign_target(
-    //                 lhs.clone(),
-    //                 field.clone(),
-    //                 location,
-    //                 vir::AssignKind::Copy,
-    //             );
-    //             // Initialize the constant
-    //             match literal {
-    //                 mir::Literal::Value { value } => {
-    //                     let const_val = self.encoder.encode_const_expr(value);
-    //                     // Initialize value of lhs
-    //                     stmts.push(vir::Stmt::Assign(
-    //                         lhs.clone().field(field),
-    //                         const_val,
-    //                         vir::AssignKind::Copy,
-    //                     ));
-    //                 }
-    //                 mir::Literal::Promoted { index } => {
-    //                     trace!("promoted constant literal {:?}: {:?}", index, ty);
-    //                     trace!("{:?}", self.mir.promoted[*index].basic_blocks());
-    //                     trace!(
-    //                         "{:?}",
-    //                         self.mir.promoted[*index]
-    //                             .basic_blocks()
-    //                             .into_iter()
-    //                             .next()
-    //                             .unwrap()
-    //                             .statements[0]
-    //                     );
-    //                     // TODO: call eval_const
-    //                     debug!(
-    //                         "Encoding of promoted constant literal '{:?}: {:?}' is incomplete",
-    //                         index, ty
-    //                     );
-    //                     // Workaround: do not initialize values
-    //                 }
-    //             }
-    //             stmts
-    //         }
-    //     };
-    //     debug!(
-    //         "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?}) = {}",
-    //         lhs,
-    //         operand,
-    //         location,
-    //         vir::stmts_to_str(&stmts)
-    //     );
-    //     stmts
-    // }
+            _ => unimplemented!("FIXME: Uncomment bellow."),
+            // &mir::Operand::Constant(box mir::Constant {
+            //     ty, ref literal, ..
+            // }) => {
+            //     let field = self.encoder.encode_value_field(ty);
+            //     let mut stmts = self.prepare_assign_target(
+            //         lhs.clone(),
+            //         field.clone(),
+            //         location,
+            //         vir::AssignKind::Copy,
+            //     );
+            //     // Initialize the constant
+            //     match literal {
+            //         mir::Literal::Value { value } => {
+            //             let const_val = self.encoder.encode_const_expr(value);
+            //             // Initialize value of lhs
+            //             stmts.push(vir::Stmt::Assign(
+            //                 lhs.clone().field(field),
+            //                 const_val,
+            //                 vir::AssignKind::Copy,
+            //             ));
+            //         }
+            //         mir::Literal::Promoted { index } => {
+            //             trace!("promoted constant literal {:?}: {:?}", index, ty);
+            //             trace!("{:?}", self.mir.promoted[*index].basic_blocks());
+            //             trace!(
+            //                 "{:?}",
+            //                 self.mir.promoted[*index]
+            //                     .basic_blocks()
+            //                     .into_iter()
+            //                     .next()
+            //                     .unwrap()
+            //                     .statements[0]
+            //             );
+            //             // TODO: call eval_const
+            //             debug!(
+            //                 "Encoding of promoted constant literal '{:?}: {:?}' is incomplete",
+            //                 index, ty
+            //             );
+            //             // Workaround: do not initialize values
+            //         }
+            //     }
+            //     stmts
+            // }
+        };
+        debug!(
+            "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?}) = {}",
+            lhs,
+            operand,
+            location,
+            vir::stmts_to_str(&stmts)
+        );
+        stmts
+    }
 
-    // fn encode_assign_binary_op(
-    //     &mut self,
-    //     op: mir::BinOp,
-    //     left: &mir::Operand<'tcx>,
-    //     right: &mir::Operand<'tcx>,
-    //     encoded_lhs: vir::Expr,
-    //     ty: ty::Ty<'tcx>,
-    //     location: mir::Location,
-    // ) -> Vec<vir::Stmt> {
-    //     trace!(
-    //         "[enter] encode_assign_binary_op(op={:?}, left={:?}, right={:?})",
-    //         op,
-    //         left,
-    //         right
-    //     );
-    //     let encoded_left = self.mir_encoder.encode_operand_expr(left);
-    //     let encoded_right = self.mir_encoder.encode_operand_expr(right);
-    //     let encoded_value =
-    //         self.mir_encoder
-    //             .encode_bin_op_expr(op, encoded_left, encoded_right, ty);
-    //     self.encode_copy_value_assign(encoded_lhs, encoded_value, ty, location)
-    // }
+    fn encode_assign_binary_op(
+        &mut self,
+        op: mir::BinOp,
+        left: &mir::Operand<'tcx>,
+        right: &mir::Operand<'tcx>,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+        location: mir::Location,
+    ) -> Vec<vir::Stmt> {
+        trace!(
+            "[enter] encode_assign_binary_op(op={:?}, left={:?}, right={:?})",
+            op,
+            left,
+            right
+        );
+        // let encoded_left = self.mir_encoder.encode_operand_expr(left);
+        // let encoded_right = self.mir_encoder.encode_operand_expr(right);
+        // let encoded_value =
+        //     self.mir_encoder
+        //         .encode_bin_op_expr(op, encoded_left, encoded_right, ty);
+        // self.encode_copy_value_assign(encoded_lhs, encoded_value, ty, location)
+        unimplemented!();
+    }
 
     // fn encode_copy_value_assign(
     //     &mut self,
@@ -3893,95 +3896,96 @@ unimplemented!();
     //     self.encode_copy_value_assign2(encoded_lhs, encoded_rhs, field, location)
     // }
 
-    // fn encode_assign_checked_binary_op(
-    //     &mut self,
-    //     op: mir::BinOp,
-    //     left: &mir::Operand<'tcx>,
-    //     right: &mir::Operand<'tcx>,
-    //     encoded_lhs: vir::Expr,
-    //     ty: ty::Ty<'tcx>,
-    //     location: mir::Location,
-    // ) -> Vec<vir::Stmt> {
-    //     trace!(
-    //         "[enter] encode_assign_checked_binary_op(op={:?}, left={:?}, right={:?})",
-    //         op,
-    //         left,
-    //         right
-    //     );
-    //     let operand_ty = if let ty::TypeVariants::TyTuple(ref types) = ty.sty {
-    //         types[0].clone()
-    //     } else {
-    //         unreachable!()
-    //     };
-    //     let encoded_left = self.mir_encoder.encode_operand_expr(left);
-    //     let encoded_right = self.mir_encoder.encode_operand_expr(right);
-    //     let encoded_value = self.mir_encoder.encode_bin_op_expr(
-    //         op,
-    //         encoded_left.clone(),
-    //         encoded_right.clone(),
-    //         operand_ty,
-    //     );
-    //     let encoded_check =
-    //         self.mir_encoder
-    //             .encode_bin_op_check(op, encoded_left, encoded_right, operand_ty);
-    //     let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty {
-    //         x
-    //     } else {
-    //         unreachable!()
-    //     };
-    //     let value_field = self
-    //         .encoder
-    //         .encode_raw_ref_field("tuple_0".to_string(), field_types[0]);
-    //     let value_field_value = self.encoder.encode_value_field(field_types[0]);
-    //     let check_field = self
-    //         .encoder
-    //         .encode_raw_ref_field("tuple_1".to_string(), field_types[1]);
-    //     let check_field_value = self.encoder.encode_value_field(field_types[1]);
-    //     let mut stmts = if !self
-    //         .init_info
-    //         .is_vir_place_accessible(&encoded_lhs, location)
-    //     {
-    //         let mut alloc_stmts = self.encode_havoc(&encoded_lhs);
-    //         let mut inhale_acc = |place| {
-    //             alloc_stmts.push(vir::Stmt::Inhale(
-    //                 vir::Expr::acc_permission(place, vir::PermAmount::Write),
-    //                 vir::FoldingBehaviour::Stmt,
-    //             ));
-    //         };
-    //         inhale_acc(encoded_lhs.clone().field(value_field.clone()));
-    //         inhale_acc(
-    //             encoded_lhs
-    //                 .clone()
-    //                 .field(value_field.clone())
-    //                 .field(value_field_value.clone()),
-    //         );
-    //         inhale_acc(encoded_lhs.clone().field(check_field.clone()));
-    //         inhale_acc(
-    //             encoded_lhs
-    //                 .clone()
-    //                 .field(check_field.clone())
-    //                 .field(check_field_value.clone()),
-    //         );
-    //         alloc_stmts
-    //     } else {
-    //         Vec::with_capacity(2)
-    //     };
-    //     // Initialize lhs.field
-    //     stmts.push(vir::Stmt::Assign(
-    //         encoded_lhs
-    //             .clone()
-    //             .field(value_field)
-    //             .field(value_field_value),
-    //         encoded_value,
-    //         vir::AssignKind::Copy,
-    //     ));
-    //     stmts.push(vir::Stmt::Assign(
-    //         encoded_lhs.field(check_field).field(check_field_value),
-    //         encoded_check,
-    //         vir::AssignKind::Copy,
-    //     ));
-    //     stmts
-    // }
+    fn encode_assign_checked_binary_op(
+        &mut self,
+        op: mir::BinOp,
+        left: &mir::Operand<'tcx>,
+        right: &mir::Operand<'tcx>,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+        location: mir::Location,
+    ) -> Vec<vir::Stmt> {
+        trace!(
+            "[enter] encode_assign_checked_binary_op(op={:?}, left={:?}, right={:?})",
+            op,
+            left,
+            right
+        );
+        // let operand_ty = if let ty::TyKind::Tuple(ref types) = ty.kind {
+        //     types[0].clone()
+        // } else {
+        //     unreachable!()
+        // };
+        // let encoded_left = self.mir_encoder.encode_operand_expr(left);
+        // let encoded_right = self.mir_encoder.encode_operand_expr(right);
+        // let encoded_value = self.mir_encoder.encode_bin_op_expr(
+        //     op,
+        //     encoded_left.clone(),
+        //     encoded_right.clone(),
+        //     operand_ty,
+        // );
+        // let encoded_check =
+        //     self.mir_encoder
+        //         .encode_bin_op_check(op, encoded_left, encoded_right, operand_ty);
+        // let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind {
+        //     x
+        // } else {
+        //     unreachable!()
+        // };
+        // let value_field = self
+        //     .encoder
+        //     .encode_raw_ref_field("tuple_0".to_string(), field_types[0]);
+        // let value_field_value = self.encoder.encode_value_field(field_types[0]);
+        // let check_field = self
+        //     .encoder
+        //     .encode_raw_ref_field("tuple_1".to_string(), field_types[1]);
+        // let check_field_value = self.encoder.encode_value_field(field_types[1]);
+        // let mut stmts = if !self
+        //     .init_info
+        //     .is_vir_place_accessible(&encoded_lhs, location)
+        // {
+        //     let mut alloc_stmts = self.encode_havoc(&encoded_lhs);
+        //     let mut inhale_acc = |place| {
+        //         alloc_stmts.push(vir::Stmt::Inhale(
+        //             vir::Expr::acc_permission(place, vir::PermAmount::Write),
+        //             vir::FoldingBehaviour::Stmt,
+        //         ));
+        //     };
+        //     inhale_acc(encoded_lhs.clone().field(value_field.clone()));
+        //     inhale_acc(
+        //         encoded_lhs
+        //             .clone()
+        //             .field(value_field.clone())
+        //             .field(value_field_value.clone()),
+        //     );
+        //     inhale_acc(encoded_lhs.clone().field(check_field.clone()));
+        //     inhale_acc(
+        //         encoded_lhs
+        //             .clone()
+        //             .field(check_field.clone())
+        //             .field(check_field_value.clone()),
+        //     );
+        //     alloc_stmts
+        // } else {
+        //     Vec::with_capacity(2)
+        // };
+        // // Initialize lhs.field
+        // stmts.push(vir::Stmt::Assign(
+        //     encoded_lhs
+        //         .clone()
+        //         .field(value_field)
+        //         .field(value_field_value),
+        //     encoded_value,
+        //     vir::AssignKind::Copy,
+        // ));
+        // stmts.push(vir::Stmt::Assign(
+        //     encoded_lhs.field(check_field).field(check_field_value),
+        //     encoded_check,
+        //     vir::AssignKind::Copy,
+        // ));
+        // stmts
+        unimplemented!();
+    }
 
     // fn encode_assign_unary_op(
     //     &mut self,
@@ -4051,8 +4055,8 @@ unimplemented!();
     //         location
     //     );
     //     let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src);
-    //     match src_ty.sty {
-    //         ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
+    //     match src_ty.kind {
+    //         ty::TyKind::Adt(ref adt_def, _) if !adt_def.is_box() => {
     //             let num_variants = adt_def.variants.len();
     //             // Initialize `lhs.int_field`
     //             // Note: in our encoding an enumeration with just one variant has
@@ -4068,7 +4072,7 @@ unimplemented!();
     //             }
     //         }
 
-    //         ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) => {
+    //         ty::TyKind::Int(_) | ty::TyKind::Uint(_) => {
     //             let value_field = self.encoder.encode_value_field(src_ty);
     //             let discr_value: vir::Expr =
     //                 self.translate_maybe_borrowed_place(location, encoded_src.field(value_field));
@@ -4141,93 +4145,93 @@ unimplemented!();
     //     self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
     // }
 
-    // pub fn get_auxiliary_local_var(&mut self, suffix: &str, vir_type: vir::Type) -> vir::LocalVar {
-    //     let name = format!("_aux_{}_{}", suffix, vir_type.name());
-    //     if self.auxiliary_local_vars.contains_key(&name) {
-    //         assert_eq!(self.auxiliary_local_vars[&name], vir_type);
-    //     } else {
-    //         self.cfg_method.add_local_var(&name, vir_type.clone());
-    //         self.auxiliary_local_vars
-    //             .insert(name.clone(), vir_type.clone());
-    //     }
-    //     vir::LocalVar::new(name, vir_type)
-    // }
+    pub fn get_auxiliary_local_var(&mut self, suffix: &str, vir_type: vir::Type) -> vir::LocalVar {
+        let name = format!("_aux_{}_{}", suffix, vir_type.name());
+        if self.auxiliary_local_vars.contains_key(&name) {
+            assert_eq!(self.auxiliary_local_vars[&name], vir_type);
+        } else {
+            self.cfg_method.add_local_var(&name, vir_type.clone());
+            self.auxiliary_local_vars
+                .insert(name.clone(), vir_type.clone());
+        }
+        vir::LocalVar::new(name, vir_type)
+    }
 
-    // fn encode_havoc(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
-    //     debug!("Encode havoc {:?}", dst);
-    //     let havoc_ref_method_name = self
-    //         .encoder
-    //         .encode_builtin_method_use(BuiltinMethodKind::HavocRef);
-    //     if let &vir::Expr::Local(ref dst_local_var, ref _pos) = dst {
-    //         vec![vir::Stmt::MethodCall(
-    //             havoc_ref_method_name,
-    //             vec![],
-    //             vec![dst_local_var.clone()],
-    //         )]
-    //     } else {
-    //         let tmp_var = self.get_auxiliary_local_var("havoc", dst.get_type().clone());
-    //         vec![
-    //             vir::Stmt::MethodCall(havoc_ref_method_name, vec![], vec![tmp_var.clone()]),
-    //             vir::Stmt::Assign(dst.clone().into(), tmp_var.into(), vir::AssignKind::Move),
-    //         ]
-    //     }
-    // }
+    fn encode_havoc(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
+        debug!("Encode havoc {:?}", dst);
+        let havoc_ref_method_name = self
+            .encoder
+            .encode_builtin_method_use(BuiltinMethodKind::HavocRef);
+        if let &vir::Expr::Local(ref dst_local_var, ref _pos) = dst {
+            vec![vir::Stmt::MethodCall(
+                havoc_ref_method_name,
+                vec![],
+                vec![dst_local_var.clone()],
+            )]
+        } else {
+            let tmp_var = self.get_auxiliary_local_var("havoc", dst.get_type().clone());
+            vec![
+                vir::Stmt::MethodCall(havoc_ref_method_name, vec![], vec![tmp_var.clone()]),
+                vir::Stmt::Assign(dst.clone().into(), tmp_var.into(), vir::AssignKind::Move),
+            ]
+        }
+    }
 
-    // /// Havoc and assume permission on fields
-    // fn encode_havoc_and_allocation(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
-    //     debug!("Encode havoc and allocation {:?}", dst);
+    /// Havoc and assume permission on fields
+    fn encode_havoc_and_allocation(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
+        debug!("Encode havoc and allocation {:?}", dst);
 
-    //     let mut stmts = vec![];
-    //     // Havoc `dst`
-    //     stmts.extend(self.encode_havoc(dst));
-    //     // Allocate `dst`
-    //     stmts.push(vir::Stmt::Inhale(
-    //         self.mir_encoder
-    //             .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
-    //             .unwrap(),
-    //         vir::FoldingBehaviour::Stmt,
-    //     ));
-    //     stmts
-    // }
+        let mut stmts = vec![];
+        // Havoc `dst`
+        stmts.extend(self.encode_havoc(dst));
+        // Allocate `dst`
+        stmts.push(vir::Stmt::Inhale(
+            self.mir_encoder
+                .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
+                .unwrap(),
+            vir::FoldingBehaviour::Stmt,
+        ));
+        stmts
+    }
 
-    // /// Prepare the ``dst`` to be copy target:
-    // ///
-    // /// 1.  Havoc and allocate if it is not yet allocated.
-    // fn prepare_assign_target(
-    //     &mut self,
-    //     dst: vir::Expr,
-    //     field: vir::Field,
-    //     location: mir::Location,
-    //     vir_assign_kind: vir::AssignKind,
-    // ) -> Vec<vir::Stmt> {
-    //     trace!(
-    //         "[enter] prepare_assign_target(dst={}, field={}, location={:?})",
-    //         dst,
-    //         field,
-    //         location
-    //     );
-    //     if !self.init_info.is_vir_place_accessible(&dst, location) {
-    //         let mut alloc_stmts = self.encode_havoc(&dst);
-    //         let dst_field = dst.clone().field(field.clone());
-    //         let acc = vir::Expr::acc_permission(dst_field, vir::PermAmount::Write);
-    //         alloc_stmts.push(vir::Stmt::Inhale(acc, vir::FoldingBehaviour::Stmt));
-    //         match vir_assign_kind {
-    //             vir::AssignKind::Copy => {
-    //                 if field.typ.is_ref() {
-    //                     unimplemented!("Inhale the predicate rooted at dst_field.");
-    //                 }
-    //             }
-    //             vir::AssignKind::Move
-    //             | vir::AssignKind::MutableBorrow(_)
-    //             | vir::AssignKind::SharedBorrow(_) => {}
-    //             vir::AssignKind::Ghost => unreachable!(),
-    //         }
-    //         debug!("alloc_stmts = {}", alloc_stmts.iter().to_string());
-    //         alloc_stmts
-    //     } else {
-    //         Vec::with_capacity(1)
-    //     }
-    // }
+    /// Prepare the ``dst`` to be copy target:
+    ///
+    /// 1.  Havoc and allocate if it is not yet allocated.
+    fn prepare_assign_target(
+        &mut self,
+        dst: vir::Expr,
+        field: vir::Field,
+        location: mir::Location,
+        vir_assign_kind: vir::AssignKind,
+    ) -> Vec<vir::Stmt> {
+        trace!(
+            "[enter] prepare_assign_target(dst={}, field={}, location={:?})",
+            dst,
+            field,
+            location
+        );
+        if !self.init_info.is_vir_place_accessible(&dst, location) {
+            let mut alloc_stmts = self.encode_havoc(&dst);
+            let dst_field = dst.clone().field(field.clone());
+            let acc = vir::Expr::acc_permission(dst_field, vir::PermAmount::Write);
+            alloc_stmts.push(vir::Stmt::Inhale(acc, vir::FoldingBehaviour::Stmt));
+            match vir_assign_kind {
+                vir::AssignKind::Copy => {
+                    if field.typ.is_ref() {
+                        unimplemented!("Inhale the predicate rooted at dst_field.");
+                    }
+                }
+                vir::AssignKind::Move
+                | vir::AssignKind::MutableBorrow(_)
+                | vir::AssignKind::SharedBorrow(_) => {}
+                vir::AssignKind::Ghost => unreachable!(),
+            }
+            debug!("alloc_stmts = {}", alloc_stmts.iter().to_string());
+            alloc_stmts
+        } else {
+            Vec::with_capacity(1)
+        }
+    }
 
     // /// Encode value copy assignment. Havoc and allocate the target if necessary.
     // fn encode_copy_value_assign2(
@@ -4304,130 +4308,131 @@ unimplemented!();
     //     stmts
     // }
 
-    // fn encode_copy2(
-    //     &mut self,
-    //     src: vir::Expr,
-    //     dst: vir::Expr,
-    //     self_ty: ty::Ty<'tcx>,
-    //     location: mir::Location,
-    // ) -> Vec<vir::Stmt> {
-    //     let stmts = match self_ty.sty {
-    //         ty::TypeVariants::TyBool
-    //         | ty::TypeVariants::TyInt(_)
-    //         | ty::TypeVariants::TyUint(_)
-    //         | ty::TypeVariants::TyChar => {
-    //             self.encode_copy_primitive_value(src, dst, self_ty, location)
-    //         }
-    //         ty::TypeVariants::TyAdt(adt_def, _subst) if !adt_def.is_box() => {
-    //             self.encode_deep_copy_adt(src, dst, self_ty)
-    //         }
-    //         ty::TypeVariants::TyTuple(elems) => self.encode_deep_copy_tuple(src, dst, elems),
-    //         ty::TypeVariants::TyParam(_) => {
-    //             let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
-    //             let eq = self.encoder.encode_memory_eq_func_app(
-    //                 src,
-    //                 dst,
-    //                 self_ty,
-    //                 vir::Position::default(),
-    //             );
-    //             stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
-    //             stmts
-    //         }
+    fn encode_copy2(
+        &mut self,
+        src: vir::Expr,
+        dst: vir::Expr,
+        self_ty: ty::Ty<'tcx>,
+        location: mir::Location,
+    ) -> Vec<vir::Stmt> {
+        // let stmts = match self_ty.kind {
+        //     ty::TyKind::Bool
+        //     | ty::TyKind::Int(_)
+        //     | ty::TyKind::Uint(_)
+        //     | ty::TyKind::Char => {
+        //         self.encode_copy_primitive_value(src, dst, self_ty, location)
+        //     }
+        //     ty::TyKind::Adt(adt_def, _subst) if !adt_def.is_box() => {
+        //         self.encode_deep_copy_adt(src, dst, self_ty)
+        //     }
+        //     ty::TyKind::Tuple(elems) => self.encode_deep_copy_tuple(src, dst, elems),
+        //     ty::TyKind::Param(_) => {
+        //         let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
+        //         let eq = self.encoder.encode_memory_eq_func_app(
+        //             src,
+        //             dst,
+        //             self_ty,
+        //             vir::Position::default(),
+        //         );
+        //         stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
+        //         stmts
+        //     }
 
-    //         ref x => unimplemented!("{:?}", x),
-    //     };
-    //     stmts
-    // }
+        //     ref x => unimplemented!("{:?}", x),
+        // };
+        // stmts
+        unimplemented!();
+    }
 
-    // fn encode_assign_aggregate(
-    //     &mut self,
-    //     dst: &vir::Expr,
-    //     ty: ty::Ty<'tcx>,
-    //     aggregate: &mir::AggregateKind<'tcx>,
-    //     operands: &Vec<mir::Operand<'tcx>>,
-    //     location: mir::Location,
-    // ) -> Vec<vir::Stmt> {
-    //     debug!(
-    //         "[enter] encode_assign_aggregate({:?}, {:?})",
-    //         aggregate, operands
-    //     );
-    //     let mut stmts = self.encode_havoc_and_allocation(dst);
-    //     // Initialize values
-    //     match aggregate {
-    //         &mir::AggregateKind::Tuple => {
-    //             let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty {
-    //                 x
-    //             } else {
-    //                 unreachable!()
-    //             };
-    //             for (field_num, operand) in operands.iter().enumerate() {
-    //                 let field_name = format!("tuple_{}", field_num);
-    //                 let encoded_field = self
-    //                     .encoder
-    //                     .encode_raw_ref_field(field_name, field_types[field_num]);
-    //                 stmts.extend(self.encode_assign_operand(
-    //                     &dst.clone().field(encoded_field),
-    //                     operand,
-    //                     location,
-    //                 ));
-    //             }
-    //             stmts
-    //         }
+    fn encode_assign_aggregate(
+        &mut self,
+        dst: &vir::Expr,
+        ty: ty::Ty<'tcx>,
+        aggregate: &mir::AggregateKind<'tcx>,
+        operands: &Vec<mir::Operand<'tcx>>,
+        location: mir::Location,
+    ) -> Vec<vir::Stmt> {
+        debug!(
+            "[enter] encode_assign_aggregate({:?}, {:?})",
+            aggregate, operands
+        );
+        let mut stmts = self.encode_havoc_and_allocation(dst);
+        // Initialize values
+        match aggregate {
+            &mir::AggregateKind::Tuple => {
+                let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind {
+                    x
+                } else {
+                    unreachable!()
+                };
+                for (field_num, operand) in operands.iter().enumerate() {
+                    let field_name = format!("tuple_{}", field_num);
+                    let encoded_field = self
+                        .encoder
+                        .encode_raw_ref_field(field_name, field_types[field_num].expect_ty());
+                    stmts.extend(self.encode_assign_operand(
+                        &dst.clone().field(encoded_field),
+                        operand,
+                        location,
+                    ));
+                }
+                stmts
+            }
 
-    //         &mir::AggregateKind::Adt(adt_def, variant_index, subst, _) => {
-    //             let num_variants = adt_def.variants.len();
-    //             let variant_def = &adt_def.variants[variant_index];
-    //             let mut dst_base = dst.clone();
-    //             if num_variants != 1 {
-    //                 // An enum.
-    //                 let tcx = self.encoder.env().tcx();
-    //                 // Handle *signed* discriminats
-    //                 let discr_value: vir::Expr = if let SignedInt(ity) = adt_def.repr.discr_type() {
-    //                     let bit_size =
-    //                         layout::Integer::from_attr(self.encoder.env().tcx(), SignedInt(ity))
-    //                             .size()
-    //                             .bits();
-    //                     let shift = 128 - bit_size;
-    //                     let unsigned_discr =
-    //                         adt_def.discriminant_for_variant(tcx, variant_index).val;
-    //                     let casted_discr = unsigned_discr as i128;
-    //                     // sign extend the raw representation to be an i128
-    //                     ((casted_discr << shift) >> shift).into()
-    //                 } else {
-    //                     adt_def
-    //                         .discriminant_for_variant(tcx, variant_index)
-    //                         .val
-    //                         .into()
-    //                 };
-    //                 // dst was havocked, so it is safe to assume the equality here.
-    //                 let discriminant = self
-    //                     .encoder
-    //                     .encode_discriminant_func_app(dst.clone(), adt_def);
-    //                 stmts.push(vir::Stmt::Inhale(
-    //                     vir::Expr::eq_cmp(discriminant, discr_value),
-    //                     vir::FoldingBehaviour::Stmt,
-    //                 ));
-    //                 let variant_name = &variant_def.name.as_str();
-    //                 dst_base = dst_base.variant(variant_name);
-    //             }
-    //             for (field_index, field) in variant_def.fields.iter().enumerate() {
-    //                 let operand = &operands[field_index];
-    //                 let field_name = &field.ident.as_str();
-    //                 let tcx = self.encoder.env().tcx();
-    //                 let field_ty = field.ty(tcx, subst);
-    //                 let encoded_field = self.encoder.encode_struct_field(field_name, field_ty);
-    //                 stmts.extend(self.encode_assign_operand(
-    //                     &dst_base.clone().field(encoded_field),
-    //                     operand,
-    //                     location,
-    //                 ));
-    //             }
-    //             stmts
-    //         }
+            &mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) => {
+                let num_variants = adt_def.variants.len();
+                let variant_def = &adt_def.variants[variant_index];
+                let mut dst_base = dst.clone();
+                if num_variants != 1 {
+                    // An enum.
+                    let tcx = self.encoder.env().tcx();
+                    // Handle *signed* discriminats
+                    let discr_value: vir::Expr = if let SignedInt(ity) = adt_def.repr.discr_type() {
+                        let bit_size =
+                            Integer::from_attr(&self.encoder.env().tcx(), SignedInt(ity))
+                                .size()
+                                .bits();
+                        let shift = 128 - bit_size;
+                        let unsigned_discr =
+                            adt_def.discriminant_for_variant(tcx, variant_index).val;
+                        let casted_discr = unsigned_discr as i128;
+                        // sign extend the raw representation to be an i128
+                        ((casted_discr << shift) >> shift).into()
+                    } else {
+                        adt_def
+                            .discriminant_for_variant(tcx, variant_index)
+                            .val
+                            .into()
+                    };
+                    // dst was havocked, so it is safe to assume the equality here.
+                    let discriminant = self
+                        .encoder
+                        .encode_discriminant_func_app(dst.clone(), adt_def);
+                    stmts.push(vir::Stmt::Inhale(
+                        vir::Expr::eq_cmp(discriminant, discr_value),
+                        vir::FoldingBehaviour::Stmt,
+                    ));
+                    let variant_name = &variant_def.ident.as_str();
+                    dst_base = dst_base.variant(variant_name);
+                }
+                for (field_index, field) in variant_def.fields.iter().enumerate() {
+                    let operand = &operands[field_index];
+                    let field_name = &field.ident.as_str();
+                    let tcx = self.encoder.env().tcx();
+                    let field_ty = field.ty(tcx, subst);
+                    let encoded_field = self.encoder.encode_struct_field(field_name, field_ty);
+                    stmts.extend(self.encode_assign_operand(
+                        &dst_base.clone().field(encoded_field),
+                        operand,
+                        location,
+                    ));
+                }
+                stmts
+            }
 
-    //         ref x => unimplemented!("{:?}", x),
-    //     }
-    // }
+            ref x => unimplemented!("{:?}", x),
+        }
+    }
 
     // fn check_vir(&self) {
     //     let mut encoded_mir_locals = HashSet::new();

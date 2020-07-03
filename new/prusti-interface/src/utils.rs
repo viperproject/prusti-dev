@@ -87,7 +87,7 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
 /// Expand `current_place` one level down by following the `guide_place`.
 /// Returns the new `current_place` and a vector containing other places that
 /// could have resulted from the expansion.
-fn expand_one_level<'tcx>(
+pub fn expand_one_level<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     current_place: mir::Place<'tcx>,
