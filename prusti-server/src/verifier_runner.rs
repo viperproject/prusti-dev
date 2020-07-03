@@ -29,8 +29,11 @@ impl<'v> VerifierRunner<'v> {
     where
         F: FnOnce(VerifierRunner) -> Res,
     {
+        let mut stopwatch = Stopwatch::start("prusti-server", "jvm attachment");
         let context = verifier_builder.new_verification_context();
+        stopwatch.start_next("verifier startup");
         let runner = VerifierRunner::new(&context, backend_config);
+        stopwatch.finish();
         body(runner)
     }
 
