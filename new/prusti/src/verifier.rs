@@ -11,7 +11,7 @@ use rustc_middle::ty::TyCtxt;
 use std::time::Instant;
 use prusti_interface::config::ConfigFlags;
 
-pub fn verify(flags: ConfigFlags, tcx: TyCtxt, spec: typed::SpecificationMap) {
+pub fn verify<'tcx>(flags: ConfigFlags, tcx: TyCtxt<'tcx>, spec: typed::SpecificationMap<'tcx>) {
     trace!("[verify] enter");
 
     let env = Environment::new(tcx);

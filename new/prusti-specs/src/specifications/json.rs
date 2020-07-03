@@ -1,6 +1,7 @@
 use super::untyped;
 use serde::{Deserialize, Serialize};
-use super::preparser::Arg;
+use super::common;
+
 
 #[derive(Serialize, Deserialize)]
 pub struct Expression {
@@ -15,7 +16,7 @@ pub enum AssertionKind {
     Expr(Expression),
     And(Vec<Assertion>),
     Implies(Assertion, Assertion),
-    // ForAll(ForAllVars, TriggerSet, Assertion),
+    ForAll(ForAllVars, Assertion, TriggerSet),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -25,13 +26,16 @@ pub struct Assertion {
 
 #[derive(Serialize, Deserialize)]
 pub struct ForAllVars {
-
+    pub spec_id: untyped::SpecificationId,
+    pub expr_id: untyped::ExpressionId,
+    pub count: usize,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct TriggerSet {
+pub struct Trigger(pub Vec<Expression>);
 
-}
+#[derive(Serialize, Deserialize)]
+pub struct TriggerSet(pub Vec<Trigger>);
 
 trait ToStructure<T> {
     fn to_structure(&self) -> T;
@@ -43,6 +47,37 @@ impl ToStructure<Expression> for untyped::Expression {
             spec_id: self.spec_id.clone(),
             expr_id: self.id.clone(),
         }
+    }
+}
+
+impl ToStructure<ForAllVars> for common::ForAllVars<untyped::ExpressionId, untyped::Arg> {
+    fn to_structure(&self) -> ForAllVars {
+        ForAllVars {
+            spec_id: self.spec_id.clone(),
+            count: self.vars.len(),
+            expr_id: self.id.clone(),
+        }
+    }
+}
+
+impl ToStructure<TriggerSet> for untyped::TriggerSet {
+    fn to_structure(&self) -> TriggerSet {
+        TriggerSet(self.0.clone()
+                         .into_iter()
+                         .map(|x| x.to_structure())
+                         .collect()
+        )
+    }
+}
+
+impl ToStructure<Trigger> for common::Trigger<common::ExpressionId, syn::Expr> {
+    fn to_structure(&self) -> Trigger {
+        Trigger(self.0
+                    .clone()
+                    .into_iter()
+                    .map(|x| x.to_structure())
+                    .collect()
+        )
     }
 }
 
@@ -62,11 +97,11 @@ impl ToStructure<AssertionKind> for untyped::AssertionKind {
                 lhs.to_structure(),
                 rhs.to_structure()
             ),
-            // ForAll(vars, triggers, body) => AssertionKind::ForAll(
-            //     vars.to_structure(),
-            //     triggers.to_structure(),
-            //     body.to_structure()
-            // ),
+            ForAll(vars, triggers, body) => AssertionKind::ForAll(
+                vars.to_structure(),
+                body.to_structure(),
+                triggers.to_structure(),
+            ),
             x => {
                 unimplemented!("{:?}", x);
             }

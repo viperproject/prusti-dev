@@ -64,12 +64,6 @@ impl std::convert::TryFrom<String> for SpecificationId {
     }
 }
 
-// impl ToTokens for SpecificationId {
-//     fn to_tokens(&self, tokens: &mut TokenStream) {
-//         self.0.to_tokens(tokens)
-//     }
-// }
-
 impl SpecificationId {
     pub fn dummy() -> Self {
         Self(Uuid::nil())
@@ -184,6 +178,9 @@ impl<EID, ET> IntoIterator for TriggerSet<EID, ET> {
 #[derive(Debug, Clone)]
 /// A sequence of variables used in the forall.
 pub struct ForAllVars<EID, AT> {
+    /// Identifier of the specification to which this sequence of variables
+    /// belongs.
+    pub spec_id: SpecificationId,
     /// Unique id for this sequence of variables.
     pub id: EID,
     /// Variables.

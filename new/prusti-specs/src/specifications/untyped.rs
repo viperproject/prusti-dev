@@ -1,6 +1,6 @@
 use super::common::{self, ExpressionIdGenerator};
-use proc_macro2::TokenStream;
-use quote::quote_spanned;
+use proc_macro2::{TokenStream, Span, Spacing, Punct, Ident, TokenTree};
+use quote::{quote_spanned, ToTokens, TokenStreamExt};
 use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
@@ -76,7 +76,7 @@ impl AssignExpressionId<Expression> for common::Expression<(), syn::Expr> {
         id_generator: &mut ExpressionIdGenerator,
     ) -> Expression {
         Expression {
-            spec_id: spec_id,
+            spec_id,
             id: id_generator.generate(),
             expr: self.expr,
         }
@@ -90,6 +90,7 @@ impl AssignExpressionId<ForAllVars<ExpressionId, Arg>> for common::ForAllVars<()
         id_generator: &mut ExpressionIdGenerator,
     ) -> ForAllVars<ExpressionId, Arg> {
         ForAllVars {
+            spec_id,
             id: id_generator.generate(),
             vars: self.vars
         }
@@ -116,6 +117,7 @@ impl AssignExpressionId<TriggerSet> for common::TriggerSet<(), syn::Expr> {
     }
 }
 
+
 impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, Arg> {
     fn assign_id(
         self,
@@ -134,11 +136,11 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
                 lhs.assign_id(spec_id, id_generator),
                 rhs.assign_id(spec_id, id_generator)
             ),
-            // ForAll(vars, triggers, body) => ForAll(
-            //     vars.assign_id(spec_id, id_generator),
-            //     triggers.assign_id(spec_id, id_generator),
-            //     body.assign_id(spec_id, id_generator)
-            // ),
+            ForAll(vars, triggers, body) => ForAll(
+                vars.assign_id(spec_id, id_generator),
+                triggers.assign_id(spec_id, id_generator),
+                body.assign_id(spec_id, id_generator)
+            ),
             x => unimplemented!("{:?}", x),
         }
     }
@@ -187,13 +189,28 @@ impl EncodeTypeCheck for Specification {
 
 impl EncodeTypeCheck for TriggerSet {
     fn encode_type_check(&self, tokens: &mut TokenStream) {
-        self.0
-            .iter()
-            .for_each(|x| x.0
-                .iter()
-                .for_each(|y| y.encode_type_check(tokens)
-                )
-            );
+        for trigger_tuple in &self.0 {
+            for trigger in &trigger_tuple.0 {
+                let span = trigger.expr.span();
+                let expr = &trigger.expr;
+                let identifier = format!("{}_{}", trigger.spec_id, trigger.id);
+                let typeck_call = quote_spanned! { span =>
+                    #[prusti::expr_id = #identifier]
+                    || {
+                        #expr;
+                    };
+                };
+                tokens.extend(typeck_call);
+            }
+        }
+    }
+}
+
+impl ToTokens for Arg {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.name.to_tokens(tokens);
+        tokens.append(Punct::new(':', Spacing::Alone));
+        self.typ.to_tokens(tokens);
     }
 }
 
@@ -212,11 +229,23 @@ impl EncodeTypeCheck for Assertion {
                 lhs.encode_type_check(tokens);
                 rhs.encode_type_check(tokens);
             }
-            // AssertionKind::ForAll(vars, triggers, body) => {
-            //     // vars.encode_type_check(tokens);
-            //     triggers.encode_type_check(tokens);
-            //     body.encode_type_check(tokens);
-            // }
+            AssertionKind::ForAll(vars, triggers, body) => {
+                let vec_of_vars = &vars.vars;
+                let span = Span::call_site();
+                let identifier = format!("{}_{}", vars.spec_id, vars.id);
+
+                let mut nested_assertion = TokenStream::new();
+                body.encode_type_check(&mut nested_assertion);
+                triggers.encode_type_check(&mut nested_assertion);
+
+                let typeck_call = quote_spanned! { span =>
+                    #[prusti::expr_id = #identifier]
+                    |#(#vec_of_vars),*| {
+                        #nested_assertion
+                    };
+                };
+                tokens.extend(typeck_call);
+            }
             x => {
                 unimplemented!("{:?}", x);
             }

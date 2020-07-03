@@ -50,7 +50,7 @@ use std::convert::TryInto;
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
-    spec: &'v typed::SpecificationMap,
+    spec: &'v typed::SpecificationMap<'tcx>,
     error_manager: RefCell<ErrorManager<'tcx>>,
     procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
@@ -89,7 +89,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
-    pub fn new(env: &'v Environment<'tcx>, spec: &'v typed::SpecificationMap) -> Self {
+    pub fn new(env: &'v Environment<'tcx>, spec: &'v typed::SpecificationMap<'tcx>) -> Self {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         let vir_program_before_foldunfold_writer = RefCell::new(
@@ -177,7 +177,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.env
     }
 
-    pub fn spec(&self) -> &'v typed::SpecificationMap {
+    pub fn spec(&self) -> &'v typed::SpecificationMap<'tcx> {
         self.spec
     }
 
@@ -340,7 +340,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         opt_spec_id
     }
 
-    pub fn get_spec_by_def_id(&self, def_id: DefId) -> Option<&typed::SpecificationSet> {
+    pub fn get_spec_by_def_id(&self, def_id: DefId) -> Option<&typed::SpecificationSet<'tcx>> {
         // Currently, we don't support specifications for external functions.
         // Since we have a collision of PRUSTI_SPEC_ATTR between different crates, we manually check
         // that the def_id does not point to an external crate.

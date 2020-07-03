@@ -7,24 +7,10 @@
 
 use prusti_contracts::*;
 
-#[requires(true)]
+#[requires(1 == 1 && 1 != 2)]
 fn test1() {}
 
-#[ensures(true)]
+#[ensures(1 == 1 || 1 == 2)]
 fn test2() {}
-
-fn test3() {
-    for _ in 0..2 {
-        invariant!(true)
-    }
-}
-
-#[requires(true)]
-#[ensures(true)]
-fn test4() {
-    for _ in 0..2 {
-        invariant!(true)
-    }
-}
 
 fn main() {}

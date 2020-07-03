@@ -20,6 +20,8 @@ pub struct ConfigFlags {
     pub print_collected_verfication_items: bool,
     /// Should Prusti skip the verification part.
     pub skip_verify: bool,
+    /// Should Prusti hide the UUIDs of expressions and specifications.
+    pub hide_uuids: bool,
 }
 
 lazy_static! {

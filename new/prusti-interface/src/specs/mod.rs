@@ -4,6 +4,7 @@ use rustc_hir::intravisit;
 use rustc_middle::hir::map::Map;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
+use rustc_hir::def_id::LocalDefId;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
@@ -21,7 +22,7 @@ pub struct SpecCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
     spec_items: Vec<SpecItem>,
     current_spec_item: Option<SpecItem>,
-    typed_expressions: HashMap<String, rustc_hir::BodyId>,
+    typed_expressions: HashMap<String, LocalDefId>,
 }
 
 impl<'tcx> SpecCollector<'tcx> {
@@ -33,8 +34,9 @@ impl<'tcx> SpecCollector<'tcx> {
             typed_expressions: HashMap::new(),
         }
     }
-    pub fn determine_typed_procedure_specs(self) -> typed::SpecificationMap {
+    pub fn determine_typed_procedure_specs(self) -> typed::SpecificationMap<'tcx> {
         let typed_expressions = self.typed_expressions;
+        let tcx = self.tcx;
         self.spec_items
             .into_iter()
             .map(|spec_item| {
@@ -44,6 +46,7 @@ impl<'tcx> SpecCollector<'tcx> {
                             pres: vec![reconstruct_typed_assertion(
                                 spec_item.specification,
                                 &typed_expressions,
+                                tcx
                             )],
                             posts: Vec::new(),
                         })
@@ -54,6 +57,7 @@ impl<'tcx> SpecCollector<'tcx> {
                             posts: vec![reconstruct_typed_assertion(
                                 spec_item.specification,
                                 &typed_expressions,
+                                tcx
                             )],
                         })
                     }
@@ -62,6 +66,7 @@ impl<'tcx> SpecCollector<'tcx> {
                             invariant: vec![reconstruct_typed_assertion(
                                 spec_item.specification,
                                 &typed_expressions,
+                                tcx
                             )],
                         })
                     }
@@ -74,9 +79,10 @@ impl<'tcx> SpecCollector<'tcx> {
 
 fn reconstruct_typed_assertion<'tcx>(
     assertion: JsonAssertion,
-    typed_expressions: &HashMap<String, rustc_hir::BodyId>,
-) -> typed::Assertion {
-    assertion.to_typed(typed_expressions)
+    typed_expressions: &HashMap<String, LocalDefId>,
+    tcx: TyCtxt<'tcx>
+) -> typed::Assertion<'tcx> {
+    assertion.to_typed(typed_expressions, tcx)
 }
 
 /// Check if `prusti::spec_only` is among the attributes.
@@ -203,7 +209,8 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         if self.current_spec_item.is_some() {
             if read_attr("spec_id", fn_kind.attrs()).is_none() {
                 let expr_id = read_attr("expr_id", fn_kind.attrs()).unwrap();
-                self.typed_expressions.insert(expr_id, body_id);
+                let local_id = self.tcx.hir().local_def_id(id);
+                self.typed_expressions.insert(expr_id, local_id);
             }
         }
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);

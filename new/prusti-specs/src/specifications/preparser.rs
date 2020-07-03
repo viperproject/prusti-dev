@@ -230,8 +230,8 @@ impl ParserStream {
 /// The representation of an argument to `forall` (for example `a: i32`)
 #[derive(Debug, Clone)]
 pub struct Arg {
-    name: syn::Ident,
-    typ: syn::Type
+    pub name: syn::Ident,
+    pub typ: syn::Type
 }
 
 impl Parse for Arg {
@@ -397,6 +397,9 @@ impl Parser {
                 return Err(self.error_expected_or());
             }
             let token_stream = stream.create_stream_until("|");
+            if token_stream.is_empty() {
+                return Err(self.error_no_quantifier_arguments());
+            }
             let all_args: ForAllArgs = syn::parse2(token_stream)?;
             if !stream.check_and_consume_operator("|") {
                 return Err(self.error_expected_or());
@@ -462,6 +465,7 @@ impl Parser {
             let conjunct = AssertionWithoutId {
                 kind: Box::new(common::AssertionKind::ForAll(
                     ForAllVars {
+                        spec_id: common::SpecificationId::dummy(),
                         id: (),
                         vars
                     },
@@ -598,7 +602,8 @@ impl Parser {
             let mut stream = ParserStream::from_token_stream(token_stream);
             // raise a better error when seeing implication as part of a Rust expression
             if stream.contains_operator("==>") {
-                return Err(self.error_expected_expr_without_implication(stream.span));
+                self.input.span = stream.span;
+                return Err(self.error_expected_expr_without_implication());
             }
             return Err(err);
         }
@@ -613,8 +618,8 @@ impl Parser {
         });
         Ok(())
     }
-    fn error_expected_expr_without_implication(&self, span: Span) -> syn::Error {
-        syn::Error::new(span,
+    fn error_expected_expr_without_implication(&self) -> syn::Error {
+        syn::Error::new(self.input.span,
                         "`==>` cannot be part of Rust expression")
     }
     fn error_expected_assertion(&self) -> syn::Error {
@@ -640,5 +645,8 @@ impl Parser {
     }
     fn error_ambiguous_expression(&self) -> syn::Error {
         syn::Error::new(self.input.span, "found `||` and `&&` in the same subexpression")
+    }
+    fn error_no_quantifier_arguments(&self) -> syn::Error {
+        syn::Error::new(self.input.span, "a quantifier must have at least one argument")
     }
 }

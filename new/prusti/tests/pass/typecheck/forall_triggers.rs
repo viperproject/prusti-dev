@@ -7,24 +7,16 @@
 
 use prusti_contracts::*;
 
-#[requires(true)]
+#[requires(forall(|a: i32| true, triggers=[(a == a,)]))]
 fn test1() {}
 
-#[ensures(true)]
+#[requires(forall(|a: i32| forall(|b: i32| true), triggers=[(a == a && true,)]))]
 fn test2() {}
 
-fn test3() {
-    for _ in 0..2 {
-        invariant!(true)
-    }
-}
+#[requires(forall(|a: i32| forall(|b: i32| true, triggers=[(a == a,)]), triggers=[(a == a,)]))]
+fn test3() {}
 
-#[requires(true)]
-#[ensures(true)]
-fn test4() {
-    for _ in 0..2 {
-        invariant!(true)
-    }
-}
+#[requires(forall(|a: i32| forall(|b: i32| true, triggers=[(a == b,)]), triggers=[(a == a && true,)]))]
+fn test4() {}
 
 fn main() {}

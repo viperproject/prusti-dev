@@ -56,4 +56,5 @@ fn run_tests(mode: &str, path: &str) {
 
 fn test_runner(_tests: &[&()]) {
     run_tests("ui", "tests/pass/parse");
+    run_tests("ui", "tests/pass/typecheck");
 }

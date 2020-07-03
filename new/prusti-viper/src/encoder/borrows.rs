@@ -67,7 +67,7 @@ impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
 /// procedure calls before translating call targets.
 /// TODO: Move to some properly named module.
 #[derive(Clone, Debug)]
-pub struct ProcedureContractGeneric<L, P>
+pub struct ProcedureContractGeneric<'tcx, L, P>
 where
     L: fmt::Debug,
     P: fmt::Debug,
@@ -90,10 +90,10 @@ where
     /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
     pub borrow_infos: Vec<BorrowInfo<P>>,
     /// The functional specification: precondition and postcondition
-    pub specification: typed::SpecificationSet,
+    pub specification: typed::SpecificationSet<'tcx>,
 }
 
-impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
+impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'_, L, P> {
     pub fn functional_precondition(&self) -> &[typed::Assertion] {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
             &spec.pres
@@ -139,12 +139,12 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
 }
 
 /// Procedure contract as it is defined in MIR.
-pub type ProcedureContractMirDef<'tcx> = ProcedureContractGeneric<mir::Local, mir::Place<'tcx>>;
+pub type ProcedureContractMirDef<'tcx> = ProcedureContractGeneric<'tcx, mir::Local, mir::Place<'tcx>>;
 
 /// Specialized procedure contract for use in translation.
-pub type ProcedureContract<'tcx> = ProcedureContractGeneric<places::Local, places::Place<'tcx>>;
+pub type ProcedureContract<'tcx> = ProcedureContractGeneric<'tcx, places::Local, places::Place<'tcx>>;
 
-impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<L, P> {
+impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<'_, L, P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "ProcedureContract {{")?;
         writeln!(f, "IN:")?;
@@ -381,7 +381,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     tcx: TyCtxt<'tcx>,
-    specification: typed::SpecificationSet,
+    specification: typed::SpecificationSet<'tcx>,
     maybe_tymap: Option<&HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
 ) -> ProcedureContractMirDef<'tcx>
 where
