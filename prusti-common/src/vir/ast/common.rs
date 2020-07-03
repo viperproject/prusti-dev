@@ -16,15 +16,15 @@ pub trait WithIdentifier {
 }
 
 /// The identifier of a statement. Used in error reporting.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Position {
     line: i32,
     column: i32,
-    id: String,
+    id: u64,
 }
 
 impl Position {
-    pub fn new(line: i32, column: i32, id: String) -> Self {
+    pub fn new(line: i32, column: i32, id: u64) -> Self {
         Position { line, column, id }
     }
 
@@ -36,18 +36,18 @@ impl Position {
         self.column
     }
 
-    pub fn id(&self) -> String {
-        self.id.to_string()
+    pub fn id(&self) -> u64 {
+        self.id
     }
 
     pub fn is_default(&self) -> bool {
-        self.line == 0 && self.column == 0 && self.id == "no-position"
+        self.line == 0 && self.column == 0 && self.id == 0
     }
 }
 
 impl Default for Position {
     fn default() -> Self {
-        Position::new(0, 0, "no-position".to_string())
+        Position::new(0, 0, 0)
     }
 }
 
@@ -57,7 +57,7 @@ mod tests {
 
     #[test]
     fn test_default_position() {
-        assert!(!Position::new(123, 234, "123123123".to_string()).is_default());
+        assert!(!Position::new(123, 234, 345).is_default());
         assert!(Position::default().is_default());
     }
 }

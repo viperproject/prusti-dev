@@ -20,7 +20,7 @@ pub trait ToViperDecl<'v, T> {
 
 impl<'v> ToViper<'v, viper::Position<'v>> for Position {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Position<'v> {
-        ast.identifier_position(self.line(), self.column(), self.id())
+        ast.identifier_position(self.line(), self.column(), self.id().to_string())
     }
 }
 
@@ -64,7 +64,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             &Stmt::Comment(ref comment) => ast.comment(&comment),
             &Stmt::Label(ref label) => ast.label(&label, &[]),
             &Stmt::Inhale(ref expr, _) => {
-                let fake_position = Position::new(0, 0, "inhale".to_string());
+                let fake_position = Position::default();
                 ast.inhale(expr.to_viper(ast), fake_position.to_viper(ast))
             }
             &Stmt::Exhale(ref expr, ref pos) => {
@@ -75,7 +75,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 ast.assert(expr.to_viper(ast), pos.to_viper(ast))
             }
             &Stmt::MethodCall(ref method_name, ref args, ref targets) => {
-                let fake_position = Position::new(0, 0, "method_call".to_string());
+                let fake_position = Position::default();
                 ast.method_call(
                     &method_name,
                     &args.to_viper(ast),
@@ -130,7 +130,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                         expr.compute_footprint(perm)
                             .into_iter()
                             .map(|access| {
-                                let fake_position = Position::new(0, 0, "fold_assert".to_string());
+                                let fake_position = Position::default();
                                 let assert =
                                     Stmt::Assert(access, FoldingBehaviour::None, fake_position);
                                 assert.to_viper(ast)
@@ -210,7 +210,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 } else {
                     unreachable!()
                 };
-                let position = ast.identifier_position(pos.line(), pos.column(), &pos.id());
+                let position = ast.identifier_position(pos.line(), pos.column(), &pos.id().to_string());
                 let apply = ast.apply(wand.to_viper(ast), position);
                 ast.seqn(&[inhale, apply], &[])
             }
