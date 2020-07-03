@@ -901,7 +901,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Action
                         stmts.push(vir::Stmt::Assert(
                             pctxt.state().as_vir_expr(),
                             vir::FoldingBehaviour::Expr,
-                            vir::Position::new(0, 0, "check fold/unfold state".to_string()),
+                            vir::Position::default(),
                         ));
                     }
                 }
@@ -1199,7 +1199,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Action
             stmts.push(vir::Stmt::Assert(
                 pctxt.state().as_vir_expr(),
                 vir::FoldingBehaviour::Expr,
-                vir::Position::new(0, 0, "check fold/unfold state".to_string()),
+                vir::Position::default(),
             ));
         }
 
