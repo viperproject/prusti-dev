@@ -1482,7 +1482,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             box lhs.clone(),
             box rhs.clone(),
             Some(loan.into()),
-            pos.clone(),
+            pos,
         );
         stmts.push(vir::Stmt::Inhale(magic_wand, vir::FoldingBehaviour::Stmt));
         // Emit the apply statement.
@@ -1617,6 +1617,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::AssignKind::Copy,
                 ));
 
+                let guard_is_bool = match switch_ty.sty {
+                    ty::TypeVariants::TyBool => true,
+                    _ => false
+                };
+
                 for (i, &value) in values.iter().enumerate() {
                     let target = targets[i as usize];
                     // Convert int to bool, if required
@@ -1642,7 +1647,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     };
                     cfg_targets.push((viper_guard, target))
                 }
-                let default_target = targets[values.len()];
+                let mut default_target = targets[values.len()];
                 let mut kill_default_target = false;
 
                 // Is the target an unreachable block?
@@ -1675,6 +1680,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let last_target = cfg_targets.pop().unwrap();
                     (stmts, MirSuccessor::GotoSwitch(cfg_targets, last_target.1))
                 } else {
+                    // Reorder the targets such that Silicon explores branches in the order that we want
+                    if guard_is_bool && cfg_targets.len() == 1 {
+                        let (target_guard, target) = cfg_targets.pop().unwrap();
+                        let target_span = self.mir_encoder.get_span_of_basic_block(target);
+                        let default_target_span = self.mir_encoder.get_span_of_basic_block(default_target);
+                        if target_span > default_target_span {
+                            let guard_pos = target_guard.pos();
+                            cfg_targets = vec![(
+                                target_guard.negate().set_pos(guard_pos),
+                                default_target,
+                            )];
+                            default_target = target;
+                        } else {
+                            // Undo the pop
+                            cfg_targets.push((target_guard, target));
+                        }
+                    }
                     (stmts, MirSuccessor::GotoSwitch(cfg_targets, default_target))
                 }
             }
@@ -2221,18 +2243,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts.push(vir::Stmt::Assert(
             replace_fake_exprs(pre_func_spec),
             vir::FoldingBehaviour::Stmt, // TODO: Should be Expr.
-            pos.clone(),
+            pos,
         ));
         stmts.push(vir::Stmt::Assert(
             replace_fake_exprs(pre_invs_spec),
             vir::FoldingBehaviour::Stmt,
-            pos.clone(),
+            pos,
         ));
         let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
         assert!(!pos.is_default());
         stmts.push(vir::Stmt::Exhale(
             pre_perm_spec.remove_read_permissions(),
-            pos.clone(),
+            pos,
         ));
 
         // Move all read permissions that are taken by magic wands into pre
@@ -2667,7 +2689,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Weakening assertion must be put before inhaling the precondition, otherwise the weakening
         // soundness check becomes trivially satisfied.
         if let Some(weakening_spec) = weakening_spec {
-            let pos = weakening_spec.pos().clone();
+            let pos = weakening_spec.pos();
             self.cfg_method.add_stmt(
                 start_cfg_block,
                 vir::Stmt::Assert(weakening_spec, FoldingBehaviour::Expr, pos),
@@ -3009,7 +3031,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 pos: vir::Position,
             ) -> vir::Expr {
                 let base = self.fold_boxed(base);
-                let expr = vir::Expr::LabelledOld(label.clone(), base, pos.clone());
+                let expr = vir::Expr::LabelledOld(label.clone(), base, pos);
                 debug!(
                     "replace_old_places_with_ghost_vars({:?}, {})",
                     self.label, expr
@@ -3093,7 +3115,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
                 })
                 .filter_perm_conjunction();
-            stmts.extend(self.encode_obtain(current_lhs, pos.clone()));
+            stmts.extend(self.encode_obtain(current_lhs, pos));
 
             // lhs must be phrased in terms of post state.
             let post_label = post_label.to_string();
@@ -3116,7 +3138,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let predicate =
                         vir::Expr::pred_permission(old_deref_place, vir::PermAmount::Write)
                             .unwrap();
-                    package_stmts.extend(self.encode_obtain(predicate, pos.clone()));
+                    package_stmts.extend(self.encode_obtain(predicate, pos));
                 }
             }
 
@@ -3232,7 +3254,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     )
                     .unwrap();
                 for stmt in self
-                    .encode_obtain(deref_pred, type_inv_pos.clone())
+                    .encode_obtain(deref_pred, type_inv_pos)
                     .drain(..)
                 {
                     self.cfg_method.add_stmt(return_cfg_block, stmt);
@@ -3282,7 +3304,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .mir_encoder
             .encode_place_predicate_permission(encoded_return_expr.clone(), vir::PermAmount::Write)
             .unwrap();
-        let obtain_return_stmt = vir::Stmt::Obtain(return_pred, type_inv_pos.clone());
+        let obtain_return_stmt = vir::Stmt::Obtain(return_pred, type_inv_pos);
         self.cfg_method
             .add_stmt(return_cfg_block, obtain_return_stmt);
 
@@ -3290,7 +3312,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         if let Some(strengthening_spec) = strengthening_spec {
             let patched_strengthening_spec =
                 self.replace_old_places_with_ghost_vars(None, strengthening_spec);
-            let pos = patched_strengthening_spec.pos().clone();
+            let pos = patched_strengthening_spec.pos();
             self.cfg_method.add_stmt(
                 return_cfg_block,
                 vir::Stmt::Assert(patched_strengthening_spec, FoldingBehaviour::Expr, pos),
@@ -3323,18 +3345,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         assert!(!perm_pos.is_default());
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Exhale(patched_type_spec, perm_pos.clone()),
+            vir::Stmt::Exhale(patched_type_spec, perm_pos),
         );
         if let Some(access) = return_type_spec {
             self.cfg_method.add_stmt(
                 return_cfg_block,
-                vir::Stmt::Exhale(access, perm_pos.clone()),
+                vir::Stmt::Exhale(access, perm_pos),
             );
         }
         for magic_wand in magic_wands {
             self.cfg_method.add_stmt(
                 return_cfg_block,
-                vir::Stmt::Exhale(magic_wand, perm_pos.clone()),
+                vir::Stmt::Exhale(magic_wand, perm_pos),
             );
         }
     }
@@ -3716,7 +3738,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
         assert!(!assert_pos.is_default());
         let obtain_predicates = permissions.iter().map(|p| {
-            vir::Stmt::Obtain(p.clone(), assert_pos.clone()) // TODO: Use a better position.
+            vir::Stmt::Obtain(p.clone(), assert_pos) // TODO: Use a better position.
         });
         stmts.extend(obtain_predicates);
 
@@ -3729,7 +3751,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts.push(vir::Stmt::Assert(
             equalities_expr,
             vir::FoldingBehaviour::Expr,
-            exhale_pos.clone(),
+            exhale_pos,
         ));
         let permission_expr = permissions.into_iter().conjoin();
         stmts.push(vir::Stmt::Exhale(permission_expr, exhale_pos));

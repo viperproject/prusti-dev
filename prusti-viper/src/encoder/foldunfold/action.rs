@@ -33,12 +33,12 @@ pub enum Action {
 impl Action {
     pub fn to_stmt(&self) -> vir::Stmt {
         match self {
-            Action::Fold(ref pred, ref args, perm_amount, ref variant, ref pos) => vir::Stmt::Fold(
+            Action::Fold(ref pred, ref args, perm_amount, ref variant, pos) => vir::Stmt::Fold(
                 pred.clone(),
                 args.clone(),
                 *perm_amount,
                 variant.clone(),
-                pos.clone(),
+                *pos,
             ),
             Action::Unfold(ref pred, ref args, perm_amount, ref variant) => {
                 vir::Stmt::Unfold(pred.clone(), args.clone(), *perm_amount, variant.clone())

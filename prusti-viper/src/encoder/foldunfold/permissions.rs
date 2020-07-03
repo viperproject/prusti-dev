@@ -73,7 +73,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 let perms = expr.get_required_permissions(predicates);
                 perms
                     .into_iter()
-                    .map(|perm| perm.set_default_pos(pos.clone()))
+                    .map(|perm| perm.set_default_pos(*pos))
                     .collect()
             }
 

@@ -123,7 +123,7 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
         }
     });
     for (arg, (name, perm_amount, variant)) in unfoldings {
-        let position = expr.pos().clone();
+        let position = expr.pos();
         expr = ast::Expr::Unfolding(
             name,
             vec![arg],

@@ -89,11 +89,11 @@ impl vir::ExprFolder for Optimizer {
         let mut replacer = Replacer::new(&variables);
         let replaced_body = replacer.fold_boxed(body);
         debug!("replaced body: {}", replaced_body);
-        let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos.clone());
+        let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos);
 
         if replacer.counter > 0 {
             for (expr, variable) in replacer.map {
-                forall = vir::Expr::LetExpr(variable, box expr, box forall, pos.clone());
+                forall = vir::Expr::LetExpr(variable, box expr, box forall, pos);
             }
             debug!("replaced quantifier: {}", forall);
         }
@@ -134,7 +134,7 @@ impl vir::ExprFolder for Replacer {
         expr: Box<vir::Expr>,
         pos: vir::Position,
     ) -> vir::Expr {
-        let original_expr = vir::Expr::LabelledOld(label, expr.clone(), pos.clone());
+        let original_expr = vir::Expr::LabelledOld(label, expr.clone(), pos);
         if expr.is_place() {
             if let Some(local) = self.map.get(&original_expr) {
                 vir::Expr::Local(local.clone(), pos)
@@ -157,7 +157,7 @@ impl vir::ExprFolder for Replacer {
     ) -> vir::Expr {
         let folded_first = self.fold_boxed(first);
         let folded_second = self.fold_boxed(second);
-        let original_expr = vir::Expr::BinOp(kind, folded_first, folded_second, pos.clone());
+        let original_expr = vir::Expr::BinOp(kind, folded_first, folded_second, pos);
         if (kind == vir::BinOpKind::Add
             || kind == vir::BinOpKind::Sub
             || kind == vir::BinOpKind::Mul
@@ -204,13 +204,13 @@ impl vir::ExprFolder for UnfoldingExtractor {
         let replaced_body = self.fold_boxed(body);
         self.in_quantifier = false;
 
-        let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos.clone());
+        let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos);
 
         let unfoldings = mem::replace(&mut self.unfoldings, HashMap::new());
 
         for ((name, args), (perm_amount, variant, _)) in unfoldings {
             forall =
-                vir::Expr::Unfolding(name, args, box forall, perm_amount, variant, pos.clone());
+                vir::Expr::Unfolding(name, args, box forall, perm_amount, variant, pos);
         }
         debug!("replaced quantifier: {}", forall);
 

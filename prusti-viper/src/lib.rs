@@ -31,7 +31,6 @@ extern crate rustc_mir;
 extern crate serde;
 extern crate syntax;
 extern crate syntax_pos;
-extern crate uuid;
 extern crate viper;
 
 #[cfg(debug_assertions)]

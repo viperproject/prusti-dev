@@ -218,7 +218,7 @@ impl Stmt {
         pos: Position,
     ) -> Self {
         Stmt::PackageMagicWand(
-            Expr::MagicWand(box lhs, box rhs, None, pos.clone()),
+            Expr::MagicWand(box lhs, box rhs, None, pos),
             stmts,
             label,
             vars,
@@ -257,7 +257,7 @@ impl Stmt {
 
     // Replace all Position::default() positions in expressions with `pos`
     pub fn set_default_expr_pos(self, pos: Position) -> Self {
-        self.map_expr(|e| e.set_default_pos(pos.clone()))
+        self.map_expr(|e| e.set_default_pos(pos))
     }
 }
 
