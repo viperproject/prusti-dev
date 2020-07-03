@@ -34,9 +34,22 @@ jobs:
       uses: actions/checkout@v2
     - name: Prepare environment
       run: .github/workflows/prepare-environment.sh
-    - name: Run cargo tests
+    - name: Run cargo tests, enabling profiling
       run: cargo test --all --verbose
-    - name: Run tests with prusti-rustc
+      env:
+        CARGO_INCREMENTAL: 0
+        RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code
+        RUSTDOCFLAGS: -Cpanic=abort
+    - name: Run tests with prusti-rustc, enabling debug dumps
       run: |
         ./target/debug/prusti-rustc prusti/tests/verify/pass/no-annotations/assert-true.rs
         ! ./target/debug/prusti-rustc prusti/tests/verify/fail/no-annotations/assert-false.rs
+      env:
+        PRUSTI_DUMP_DEBUG_INFO: true
+        PRUSTI_DUMP_VIPER_PROGRAM: true
+    - name: Collect and upload coverage to Coveralls
+      run: |
+        curl -L https://github.com/mozilla/grcov/releases/latest/download/grcov-linux-x86_64.tar.bz2 | tar jxf -
+        zip -0 ccov.zip $(find . \( -name "prusti*.gc*" -or -name "viper*.gc*" -or -name "jni_gen*.gc*" \) -print)
+        ./grcov ccov.zip --llvm --branch --ignore-not-existing -t lcov --ignore "/*" -o lcov.info
+        bash <(curl -s https://codecov.io/bash) -f lcov.info
