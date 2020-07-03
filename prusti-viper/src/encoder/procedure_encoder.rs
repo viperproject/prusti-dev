@@ -1614,6 +1614,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::AssignKind::Copy,
                 ));
 
+                let guard_is_bool = match switch_ty.sty {
+                    ty::TypeVariants::TyBool => true,
+                    _ => false
+                };
+
                 for (i, &value) in values.iter().enumerate() {
                     let target = targets[i as usize];
                     // Convert int to bool, if required
@@ -1639,7 +1644,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     };
                     cfg_targets.push((viper_guard, target))
                 }
-                let default_target = targets[values.len()];
+                let mut default_target = targets[values.len()];
                 let mut kill_default_target = false;
 
                 // Is the target an unreachable block?
@@ -1672,6 +1677,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let last_target = cfg_targets.pop().unwrap();
                     (stmts, MirSuccessor::GotoSwitch(cfg_targets, last_target.1))
                 } else {
+                    // Reorder the targets such that Silicon explores branches in the order that we want
+                    if guard_is_bool && cfg_targets.len() == 1 {
+                        let (target_guard, target) = cfg_targets.pop().unwrap();
+                        let target_span = self.mir_encoder.get_span_of_basic_block(target);
+                        let default_target_span = self.mir_encoder.get_span_of_basic_block(default_target);
+                        if target_span > default_target_span {
+                            let guard_pos = target_guard.pos().clone();
+                            cfg_targets = vec![(
+                                target_guard.negate().set_pos(guard_pos),
+                                default_target,
+                            )];
+                            default_target = target;
+                        } else {
+                            // Undo the pop
+                            cfg_targets.push((target_guard, target));
+                        }
+                    }
                     (stmts, MirSuccessor::GotoSwitch(cfg_targets, default_target))
                 }
             }

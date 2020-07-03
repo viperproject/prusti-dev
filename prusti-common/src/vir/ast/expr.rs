@@ -884,6 +884,14 @@ impl Expr {
         }
     }
 
+    pub fn negate(self) -> Self {
+        if let Expr::UnaryOp(UnaryOpKind::Not, box inner_expr, _pos) = self {
+            inner_expr
+        } else {
+            Expr::not(self)
+        }
+    }
+
     pub fn map_labels<F>(self, f: F) -> Self
     where
         F: Fn(String) -> Option<String>,
