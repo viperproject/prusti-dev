@@ -241,27 +241,27 @@ impl fmt::Display for Const {
 }
 
 impl Expr {
-    pub fn pos(&self) -> &Position {
-        match self {
-            Expr::Local(_, ref p) => p,
-            Expr::Variant(_, _, ref p) => p,
-            Expr::Field(_, _, ref p) => p,
-            Expr::AddrOf(_, _, ref p) => p,
-            Expr::Const(_, ref p) => p,
-            Expr::LabelledOld(_, _, ref p) => p,
-            Expr::MagicWand(_, _, _, ref p) => p,
-            Expr::PredicateAccessPredicate(_, _, _, ref p) => p,
-            Expr::FieldAccessPredicate(_, _, ref p) => p,
-            Expr::UnaryOp(_, _, ref p) => p,
-            Expr::BinOp(_, _, _, ref p) => p,
-            Expr::Unfolding(_, _, _, _, _, ref p) => p,
-            Expr::Cond(_, _, _, ref p) => p,
-            Expr::ForAll(_, _, _, ref p) => p,
-            Expr::LetExpr(_, _, _, ref p) => p,
-            Expr::FuncApp(_, _, _, _, ref p) => p,
-            Expr::DomainFuncApp(_, _, ref p) => p,
-            // TODO Expr::DomainFuncApp(_, _, _, _, _, ref p) => p,
-            Expr::InhaleExhale(_, _, ref p) => p,
+    pub fn pos(&self) -> Position {
+        *match self {
+            Expr::Local(_, p) => p,
+            Expr::Variant(_, _, p) => p,
+            Expr::Field(_, _, p) => p,
+            Expr::AddrOf(_, _, p) => p,
+            Expr::Const(_, p) => p,
+            Expr::LabelledOld(_, _, p) => p,
+            Expr::MagicWand(_, _, _, p) => p,
+            Expr::PredicateAccessPredicate(_, _, _, p) => p,
+            Expr::FieldAccessPredicate(_, _, p) => p,
+            Expr::UnaryOp(_, _, p) => p,
+            Expr::BinOp(_, _, _, p) => p,
+            Expr::Unfolding(_, _, _, _, _, p) => p,
+            Expr::Cond(_, _, _, p) => p,
+            Expr::ForAll(_, _, _, p) => p,
+            Expr::LetExpr(_, _, _, p) => p,
+            Expr::FuncApp(_, _, _, _, p) => p,
+            Expr::DomainFuncApp(_, _, p) => p,
+            // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
+            Expr::InhaleExhale(_, _, p) => p,
         }
     }
 
@@ -302,7 +302,7 @@ impl Expr {
             fn fold(&mut self, e: Expr) -> Expr {
                 let expr = default_fold_expr(self, e);
                 if expr.pos().is_default() {
-                    expr.set_pos(self.new_pos.clone())
+                    expr.set_pos(self.new_pos)
                 } else {
                     expr
                 }
@@ -312,7 +312,7 @@ impl Expr {
     }
 
     pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, perm: PermAmount) -> Self {
-        let pos = place.pos().clone();
+        let pos = place.pos();
         Expr::PredicateAccessPredicate(name.to_string(), box place, perm, pos)
     }
 
@@ -438,7 +438,7 @@ impl Expr {
     /// Create `unfolding T(arg) in body` where `T` is the type of `arg`.
     pub fn wrap_in_unfolding(arg: Expr, body: Expr) -> Expr {
         let type_name = arg.get_type().name();
-        let pos = body.pos().clone();
+        let pos = body.pos();
         Expr::Unfolding(type_name, vec![arg], box body, PermAmount::Read, None, pos)
     }
 
@@ -513,12 +513,12 @@ impl Expr {
         match self {
             Expr::Variant(ref base, ref variant, ref pos) => {
                 let (base_base, mut components) = base.explode_place();
-                components.push(PlaceComponent::Variant(variant.clone(), pos.clone()));
+                components.push(PlaceComponent::Variant(variant.clone(), *pos));
                 (base_base, components)
             }
             Expr::Field(ref base, ref field, ref pos) => {
                 let (base_base, mut components) = base.explode_place();
-                components.push(PlaceComponent::Field(field.clone(), pos.clone()));
+                components.push(PlaceComponent::Field(field.clone(), *pos));
                 (base_base, components)
             }
             _ => (self.clone(), vec![]),

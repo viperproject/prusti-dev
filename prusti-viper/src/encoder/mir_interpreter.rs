@@ -258,7 +258,7 @@ impl MultiExprBackwardInterpreterState {
             let deref_target = sub_target
                 .clone()
                 .field(deref_field.clone())
-                .set_pos(pos.clone());
+                .set_pos(*pos);
             self.substitute_place(&deref_target, base_replacement.clone());
         }
 

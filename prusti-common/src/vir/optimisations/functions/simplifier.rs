@@ -161,17 +161,17 @@ impl ExprFolder for ExprSimplifier {
                     ast::BinOpKind::Implies,
                     simplified_guard.clone(),
                     simplified_then,
-                    pos.clone(),
+                    pos,
                 ),
                 box ast::Expr::BinOp(
                     ast::BinOpKind::Implies,
                     box ast::Expr::UnaryOp(
                         ast::UnaryOpKind::Not,
                         simplified_guard,
-                        pos.clone(),
+                        pos,
                     ),
                     simplified_else,
-                    pos.clone(),
+                    pos,
                 ),
                 pos,
             )

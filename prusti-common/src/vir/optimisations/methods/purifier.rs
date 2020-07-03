@@ -267,7 +267,7 @@ impl VarPurifier {
                 .get(&var)
                 .expect(&format!("key: {}", var))
                 .clone();
-            ast::Expr::Local(replacement, pos.clone())
+            ast::Expr::Local(replacement, *pos)
         } else {
             unreachable!()
         }
