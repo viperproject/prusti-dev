@@ -11,6 +11,7 @@ use encoder::{
     foldunfold, places,
     procedure_encoder::ProcedureEncoder,
     pure_function_encoder::PureFunctionEncoder,
+    snapshot_encoder::{Snapshot, SnapshotEncoder},
     spec_encoder::SpecEncoder,
     stub_function_encoder::StubFunctionEncoder,
     stub_procedure_encoder::StubProcedureEncoder,
@@ -36,7 +37,8 @@ use std::{
     ops::AddAssign,
 };
 use syntax::ast;
-use viper;
+
+const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v Environment<'r, 'a, 'tcx>,
@@ -61,6 +63,8 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     type_discriminant_funcs: RefCell<HashMap<String, vir::Function>>,
     memory_eq_funcs: RefCell<HashMap<String, Option<vir::Function>>>,
     fields: RefCell<HashMap<String, vir::Field>>,
+    snapshots: RefCell<HashMap<String, Box<Snapshot>>>,
+    snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
@@ -125,6 +129,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
             typaram_repl: RefCell::new(Vec::new()),
+            snapshots: RefCell::new(HashMap::new()),
+            snap_mirror_funcs: RefCell::new(HashMap::new()),
             encoding_errors_counter: RefCell::new(0),
         }
     }
@@ -198,8 +204,29 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         *self.encoding_errors_counter.borrow()
     }
 
-    pub fn get_used_viper_domains(&self) -> Vec<viper::Domain<'v>> {
-        vec![]
+    pub fn get_used_viper_domains(&self) -> Vec<vir::Domain> {
+        let mirrors = self
+            .snap_mirror_funcs
+            .borrow()
+            .values()
+            .filter_map(|f| f.clone())
+            .collect();
+
+        let mut domains: Vec<vir::Domain> = self
+            .snapshots
+            .borrow()
+            .values()
+            .into_iter()
+            .filter_map(|s| s.get_domain())
+            .collect();
+        domains.push(vir::Domain {
+            name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
+            functions: mirrors,
+            axioms: vec![],
+            type_vars: vec![],
+        });
+        domains.sort_by_key(|d| d.get_identifier());
+        domains
     }
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
@@ -230,6 +257,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
         for function in self.memory_eq_funcs.borrow().values() {
             functions.push(function.as_ref().unwrap().clone());
+        }
+        for snap in self.snapshots.borrow().values() {
+            for function in snap.get_functions() {
+                functions.push(function);
+            }
         }
         functions.sort_by_key(|f| f.get_identifier());
         functions
@@ -570,6 +602,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let mut conjuncts = Vec::new();
         if num_variants == 1 {
             // A struct.
+            // TODO this should eventually be replaced by using snapshots?
+            // conjuncts.push(self.encode_adt_snap_eq_call(first, second));
             let variant_def = &adt_def.variants[0];
             for field in &variant_def.fields {
                 let field_name = &field.ident.as_str();
@@ -947,6 +981,37 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
+    pub fn encode_snapshot(&self, ty: &ty::Ty<'tcx>) -> Box<Snapshot> {
+        let ty = self.dereference_ty(ty);
+        let predicate_name = self.encode_type_predicate_use(ty);
+        if !self.snapshots.borrow().contains_key(&predicate_name) {
+            let encoder = SnapshotEncoder::new(self, ty, predicate_name.to_string());
+            let snapshot = encoder.encode();
+            self.snapshots
+                .borrow_mut()
+                .insert(predicate_name.to_string(), Box::new(snapshot));
+        }
+        self.snapshots.borrow()[&predicate_name].clone()
+    }
+
+    fn dereference_ty<'b>(&self, ty: &'b ty::Ty<'tcx>) -> &'b ty::Ty<'tcx> {
+        match ty.sty {
+            ty::TypeVariants::TyRef(_, ref val_ty, _) => self.dereference_ty(val_ty),
+            _ => ty,
+        }
+    }
+
+    pub fn encode_snapshot_use(&self, predicate_name: String) -> Box<Snapshot> {
+        if !self.snapshots.borrow().contains_key(&predicate_name) {
+            if !self.predicate_types.borrow().contains_key(&predicate_name) {
+                unreachable!(); // some type has not been encoded before.
+            }
+            let ty = self.predicate_types.borrow()[&predicate_name];
+            return self.encode_snapshot(&ty);
+        }
+        self.snapshots.borrow()[&predicate_name].clone()
+    }
+
     pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
         // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
         if !self.type_invariant_names.borrow().contains_key(&ty.sty) {
@@ -958,8 +1023,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             // Trigger encoding of definition
             self.encode_type_invariant_def(ty);
         }
-        let invariant_name = self.type_invariant_names.borrow()[&ty.sty].clone();
-        invariant_name
+        self.type_invariant_names.borrow()[&ty.sty].clone()
     }
 
     pub fn encode_type_invariant_def(&self, ty: ty::Ty<'tcx>) -> vir::Function {
@@ -1257,8 +1321,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let function = if self.is_trusted(proc_def_id) {
                 pure_function_encoder.encode_bodyless_function()
             } else {
-                pure_function_encoder.encode_function()
+                let pure_function = pure_function_encoder.encode_function();
+                self.patch_pure_post_with_mirror_call(pure_function)
             };
+
             self.log_vir_program_before_viper(function.to_string());
             self.pure_functions.borrow_mut().insert(key, function);
         }
@@ -1269,6 +1335,119 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             tymap_stack.pop();
         }
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
+    }
+
+    fn patch_pure_post_with_mirror_call(&self, function: vir::Function) -> vir::Function {
+        // use function identifier to be more robust in the presence of generics
+        let mirror = self.encode_pure_snapshot_mirror(function.get_identifier().clone(), &function);
+        if mirror.is_none() {
+            return function;
+        }
+        let mirror = mirror.unwrap();
+
+        let mut mirror_args = vec![];
+        for func_arg in &function.formal_args {
+            let arg = vir::Expr::Local(func_arg.clone(), vir::Position::default());
+            match &func_arg.typ {
+                vir::Type::TypedRef(name) => {
+                    mirror_args.push(
+                        self.encode_snapshot_use(name.to_string())
+                            .get_snap_call(arg),
+                    );
+                }
+                _ => mirror_args.push(arg),
+            }
+        }
+
+        let mut posts = function.posts.clone();
+        posts.push(vir::Expr::InhaleExhale(
+            Box::new(vir::Expr::BinOp(
+                vir::BinOpKind::EqCmp,
+                Box::new(
+                    vir::Expr::Local(
+                        vir::LocalVar::new("__result", function.return_type.clone()),
+                        vir::Position::default(),
+                    )
+                ),
+                Box::new(
+                    vir::Expr::DomainFuncApp(
+                        mirror.clone(),
+                        mirror_args,
+                        vir::Position::default(),
+                    )
+                    /* TODO
+                    vir::Expr::DomainFuncApp(
+                        mirror.name,
+                        mirror_args,
+                        mirror.formal_args,
+                        mirror.return_type,
+                        mirror.domain_name,
+                        vir::Position::default(),
+                    )
+                     */
+                ), vir::Position::default(),
+            )),
+            Box::new(
+                vir::Expr::Const(vir::Const::Bool(true), vir::Position::default())
+            ),
+            vir::Position::default()
+        ));
+        vir::Function { posts, ..function }
+    }
+
+    pub fn encode_pure_snapshot_mirror(
+        &self,
+        pure_func_name: String,
+        pure_function: &vir::Function,
+    ) -> Option<vir::DomainFunc> {
+        if !self
+            .snap_mirror_funcs
+            .borrow()
+            .contains_key(&pure_func_name)
+        {
+            if !pure_function.formal_args.iter().all(|a| match &a.typ {
+                vir::Type::TypedRef(name) => {
+                    self.encode_snapshot_use(name.to_string()).is_defined()
+                }
+                _ => true,
+            }) {
+                self.snap_mirror_funcs
+                    .borrow_mut()
+                    .insert(pure_func_name.to_string(), None);
+            } else {
+                let formal_args = pure_function
+                    .formal_args
+                    .iter()
+                    .map(|a| {
+                        vir::LocalVar::new(
+                            a.name.to_string(),
+                            match &a.typ {
+                                vir::Type::TypedRef(name) => {
+                                    self.encode_snapshot_use(name.to_string()).get_type()
+                                }
+                                t => t.clone(),
+                            },
+                        )
+                    })
+                    .collect();
+
+                let mirror_function = vir::DomainFunc {
+                    name: format!("mirror${}", pure_function.name.clone()),
+                    formal_args,
+                    return_type: pure_function.return_type.clone(),
+                    unique: false,
+                    domain_name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
+                };
+                self.snap_mirror_funcs
+                    .borrow_mut()
+                    .insert(pure_func_name.to_string(), Some(mirror_function));
+            }
+        }
+        self.snap_mirror_funcs.borrow()[&pure_func_name].clone()
+    }
+
+    pub fn get_item_name(&self, proc_def_id: ProcedureDefId) -> String {
+        self.env.get_item_name(proc_def_id)
     }
 
     /// Encode the use (call) of a pure function, returning the name of the
@@ -1306,7 +1485,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
         let procedure = self.env.get_procedure(proc_def_id);
-
         let encoder = StubFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
 
         // If we haven't seen this particular stub before, generate and insert it.

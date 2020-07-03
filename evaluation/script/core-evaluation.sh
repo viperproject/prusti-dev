@@ -54,7 +54,7 @@ info "Using evaluation_log_file='$evaluation_log_file'"
 	# "$DIR/whitelist-crates.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv"
 
 	"$DIR/verify-crates-coarse-grained.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv" \
-		"supported-procedures.csv" "$((TIMEOUT * 2))"
+		"supported-procedures.csv" "$((TIMEOUT * 3))"
 
 	# PRUSTI_CHECK_PANICS=true PRUSTI_CHECK_BINARY_OPERATIONS=true \
 	# "$DIR/verify-crates-fine-grained.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv" \

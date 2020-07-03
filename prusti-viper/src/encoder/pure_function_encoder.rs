@@ -626,29 +626,43 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             state.substitute_value(&lhs_value, encoded_rhs);
                             state
                         }
-
                         // simple function call
                         _ => {
                             let is_pure_function =
                                 self.encoder.env().has_attribute_name(def_id, "pure");
-
-                            let (function_name, return_type) = if is_pure_function {
-                                self.encoder.encode_pure_function_use(def_id)
+                            let ((function_name, return_type), is_cmp_call) = if is_pure_function {
+                                (self.encoder.encode_pure_function_use(def_id), false)
                             } else {
-                                self.encoder.encode_stub_pure_function_use(def_id)
+                                // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
+                                // function
+                                if self.encoder.get_item_name(def_id).eq("std::cmp::PartialEq::eq") {
+                                    let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                    let snapshot = self.encoder.encode_snapshot(&arg_ty);
+                                    if snapshot.is_defined() {
+                                        let eq_func_name = snapshot.get_equals_func_name();
+                                        ((eq_func_name, vir::Type::Bool), true)
+                                    } else {
+                                        (self.encoder.encode_stub_pure_function_use(def_id), false)
+                                    }
+                                } else {
+                                    (self.encoder.encode_stub_pure_function_use(def_id), false)
+                                }
+
                             };
-                            if is_pure_function {
+                            if is_pure_function{
                                 trace!("Encoding pure function call '{}'", function_name);
                             } else {
                                 trace!("Encoding stub pure function call '{}'", function_name);
-                                self.encoder
-                                    .register_encoding_error(EncodingError::incorrect(
-                                        format!(
-                                        "use of impure function {:?} in assertion is not allowed",
-                                        func_proc_name
-                                    ),
-                                        term.source_info.span,
-                                    ));
+                                if !is_cmp_call {
+                                    self.encoder
+                                        .register_encoding_error(EncodingError::incorrect(
+                                            format!(
+                                                "use of impure function {:?} in assertion is not allowed",
+                                                func_proc_name
+                                            ),
+                                            term.source_info.span,
+                                        ));
+                                }
                             }
 
                             let formal_args: Vec<vir::LocalVar> = args

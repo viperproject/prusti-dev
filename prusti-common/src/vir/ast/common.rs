@@ -4,12 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::cmp::Ordering;
-use std::collections::HashMap;
-use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::mem::discriminant;
-use std::ops;
+use std::{
+    cmp::Ordering,
+    collections::HashMap,
+    fmt,
+    hash::{Hash, Hasher},
+    mem::discriminant,
+    ops,
+};
 
 pub trait WithIdentifier {
     fn get_identifier(&self) -> String;
@@ -130,9 +132,10 @@ impl PartialOrd for PermAmount {
 
 impl Ord for PermAmount {
     fn cmp(&self, other: &PermAmount) -> Ordering {
-        self.partial_cmp(other).expect(
-            &format!("Undefined comparison between {:?} and {:?}", self, other)
-        )
+        self.partial_cmp(other).expect(&format!(
+            "Undefined comparison between {:?} and {:?}",
+            self, other
+        ))
     }
 }
 
@@ -143,6 +146,7 @@ pub enum Type {
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
+    Domain(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -150,6 +154,7 @@ pub enum TypeId {
     Int,
     Bool,
     Ref,
+    Domain,
 }
 
 impl fmt::Display for Type {
@@ -159,6 +164,7 @@ impl fmt::Display for Type {
             &Type::Bool => write!(f, "Bool"),
             //&Type::Ref => write!(f, "Ref"),
             &Type::TypedRef(ref name) => write!(f, "Ref({})", name),
+            &Type::Domain(ref name) => write!(f, "Domain({})", name),
         }
     }
 }
@@ -177,6 +183,7 @@ impl Type {
             &Type::Bool => "bool".to_string(),
             &Type::Int => "int".to_string(),
             &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
+            &Type::Domain(ref pred_name) => format!("{}", pred_name),
         }
     }
 
@@ -195,14 +202,13 @@ impl Type {
     /// substitution.
     pub fn patch(self, substs: &HashMap<String, String>) -> Self {
         match self {
-            Type::Bool => Type::Bool,
-            Type::Int => Type::Int,
             Type::TypedRef(mut predicate_name) => {
                 for (typ, subst) in substs {
                     predicate_name = predicate_name.replace(typ, subst);
                 }
                 Type::TypedRef(predicate_name)
             }
+            typ => typ,
         }
     }
 
@@ -211,6 +217,7 @@ impl Type {
             Type::Bool => TypeId::Bool,
             Type::Int => TypeId::Int,
             Type::TypedRef(_) => TypeId::Ref,
+            Type::Domain(_) => TypeId::Domain,
         }
     }
 }
@@ -256,7 +263,7 @@ impl LocalVar {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
     pub typ: Type,
@@ -287,21 +294,6 @@ impl Field {
             Type::TypedRef(ref name) => Some(name.clone()),
             _ => None,
         }
-    }
-}
-
-impl PartialEq for Field {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && self.typ == other.typ
-    }
-}
-
-impl Eq for Field {}
-
-impl Hash for Field {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.name.hash(state);
-        self.typ.hash(state);
     }
 }
 

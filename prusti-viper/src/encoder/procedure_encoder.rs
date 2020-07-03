@@ -10,7 +10,7 @@ use encoder::{
     errors::{EncodingError, ErrorCtxt, PanicCause},
     foldunfold,
     initialisation::InitInfo,
-    loop_encoder::LoopEncoder,
+    loop_encoder::{LoopEncoder, LoopEncoderError},
     mir_encoder::{MirEncoder, POSTCONDITION_LABEL, PRECONDITION_LABEL},
     mir_successor::MirSuccessor,
     optimizer,
@@ -27,7 +27,7 @@ use prusti_common::{
         collect_assigned_vars,
         fixes::fix_ghost_vars,
         optimizations::methods::{remove_empty_if, remove_trivial_assertions, remove_unused_vars},
-        CfgBlockIndex, ExprIterator, FoldingBehaviour, Successor,
+        CfgBlockIndex, Expr, ExprIterator, FoldingBehaviour, Successor, Type,
     },
 };
 use prusti_interface::{
@@ -96,6 +96,8 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     old_to_ghost_var: HashMap<vir::Expr, vir::Expr>,
     /// Ghost variables used inside package statements.
     old_ghost_vars: HashMap<String, vir::Type>,
+    /// For each loop head, the block at whose end the loop invariant holds
+    cached_loop_invariant_block: HashMap<BasicBlockIndex, BasicBlockIndex>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -145,6 +147,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             init_info: init_info,
             old_to_ghost_var: HashMap::new(),
             old_ghost_vars: HashMap::new(),
+            cached_loop_invariant_block: HashMap::new(),
         }
     }
 
@@ -169,19 +172,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             }
 
-            PoloniusInfoError::ReborrowingDagHasNoMagicWands(location) => EncodingError::internal(
-                "error in processing expiring borrows (ReborrowingDagHasNoMagicWands)",
-                self.mir.source_info(location).span,
-            ),
+            PoloniusInfoError::ReborrowingDagHasNoMagicWands(location) => {
+                EncodingError::unsupported(
+                    "the creation of loans in this loop is not yet supported \
+                    (ReborrowingDagHasNoMagicWands)",
+                    self.mir.source_info(location).span,
+                )
+            }
 
-            PoloniusInfoError::MultipleMagicWandsPerLoop(location) => EncodingError::internal(
-                "error in processing expiring borrows (MultipleMagicWandsPerLoop)",
+            PoloniusInfoError::MultipleMagicWandsPerLoop(location) => EncodingError::unsupported(
+                "the creation of loans in this loop is not yet supported \
+                    (MultipleMagicWandsPerLoop)",
                 self.mir.source_info(location).span,
             ),
 
             PoloniusInfoError::MagicWandHasNoRepresentativeLoan(location) => {
-                EncodingError::internal(
-                    "error in processing expiring borrows (MagicWandHasNoRepresentativeLoan)",
+                EncodingError::unsupported(
+                    "the creation of loans in this loop is not yet supported \
+                    (MagicWandHasNoRepresentativeLoan)",
                     self.mir.source_info(location).span,
                 )
             }
@@ -311,9 +319,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 .add_formal_return(&name, vir::Type::TypedRef(type_name))
         }
 
+        // Preprocess loops
+        for bbi in self.procedure.get_reachable_nonspec_cfg_blocks() {
+            if self.loop_encoder.loops().is_loop_head(bbi) {
+                match self.loop_encoder.get_loop_invariant_block(bbi) {
+                    Err(LoopEncoderError::LoopInvariantInBranch(loop_head)) => {
+                        return Err(EncodingError::incorrect(
+                            "the loop invariant cannot be in a conditional branch of the loop",
+                            self.get_loop_span(loop_head),
+                        ));
+                    }
+                    Ok(loop_inv_bbi) => {
+                        self.cached_loop_invariant_block.insert(bbi, loop_inv_bbi);
+                    }
+                }
+            }
+        }
+
         // Load Polonius info
         self.polonius_info = Some(
-            PoloniusInfo::new(&self.procedure).map_err(|err| self.translate_polonius_error(err))?,
+            PoloniusInfo::new(&self.procedure, &self.cached_loop_invariant_block)
+                .map_err(|err| self.translate_polonius_error(err))?,
         );
 
         // Initialize CFG blocks
@@ -403,7 +429,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 .add_local_var(&var_name, vir::Type::TypedRef(type_name));
         }
 
-        self.check_vir();
+        self.check_vir()?;
         let method_name = self.cfg_method.name();
         let source_path = self.encoder.env().source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
@@ -498,8 +524,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let is_loop_head = loop_info.is_loop_head(curr_bb);
                 if curr_loop_depth == group_loop_depth + 1 && is_loop_head {
                     // Encode a nested loop
-                    let nested_loop: Vec<_> = loop_info.get_loop_body(curr_bb).to_vec();
-                    self.encode_loop(label_prefix, &nested_loop, return_block)?
+                    self.encode_loop(label_prefix, curr_bb, return_block)?
                 } else {
                     debug_assert!(curr_loop_depth > group_loop_depth + 1 || !is_loop_head);
                     // Skip the inner block of a nested loop
@@ -577,16 +602,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_loop(
         &mut self,
         label_prefix: &str,
-        blocks: &[BasicBlockIndex],
+        loop_head: BasicBlockIndex,
         return_block: CfgBlockIndex,
     ) -> Result<(CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
-        debug_assert!(blocks.len() > 1);
         let loop_info = self.loop_encoder.loops();
-        let loop_head = blocks[0];
+        debug_assert!(loop_info.is_loop_head(loop_head));
         trace!("encode_loop: {:?}", loop_head);
         debug_assert!(loop_info.is_loop_head(loop_head));
-        let loop_depth = loop_info.get_loop_head_depth(loop_head);
         let loop_label_prefix = format!("{}loop{}", label_prefix, loop_head.index());
+        let loop_depth = loop_info.get_loop_head_depth(loop_head);
 
         let loop_body: Vec<BasicBlockIndex> = loop_info
             .get_loop_body(loop_head)
@@ -598,17 +622,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Identify important blocks
         let loop_exit_blocks = loop_info.get_loop_exit_blocks(loop_head);
         let loop_exit_blocks_set: HashSet<_> = loop_exit_blocks.iter().cloned().collect();
-        let before_invariant_block: BasicBlockIndex = loop_body
-            .iter()
-            .find(|&&bb| {
-                loop_info.get_loop_depth(bb) == loop_depth
-                    && self.mir[bb].terminator().successors().any(|&succ_bb| {
-                        self.procedure.is_reachable_block(succ_bb)
-                            && self.procedure.is_spec_block(succ_bb)
-                    })
-            })
-            .cloned()
-            .unwrap_or_else(|| loop_exit_blocks.get(0).cloned().unwrap_or(loop_head));
+        let before_invariant_block: BasicBlockIndex = self.cached_loop_invariant_block[&loop_head];
         let before_inv_block_pos = loop_body
             .iter()
             .position(|&bb| bb == before_invariant_block)
@@ -620,18 +634,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .cloned()
             .collect();
         // Heuristic: pick the first exit block before the invariant.
-        // Note that this does not allow having break/return/continue statements in the loop guard.
-        if exit_blocks_before_inv.len() > 1 {
-            return Err(EncodingError::incorrect(
-                "'break', 'continue', 'return', and panic statements are not allowed before the \
-                loop invariant",
-                exit_blocks_before_inv
-                    .iter()
-                    .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
-                    .collect::<Vec<_>>(),
-            ));
-        }
-        let opt_loop_guard_switch = exit_blocks_before_inv.get(0).cloned();
+        // An infinite loop will have no exit blocks, so we have to use an Option here
+        let opt_loop_guard_switch = exit_blocks_before_inv.last().cloned();
         let after_guard_block_pos = opt_loop_guard_switch
             .and_then(|loop_guard_switch| {
                 loop_body
@@ -652,9 +656,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 "{:?} is conditional branch in loop {:?}",
                 before_invariant_block, loop_head
             );
+            let loop_head_span = self.mir_encoder.get_span_of_basic_block(loop_head);
             return Err(EncodingError::incorrect(
                 "the loop invariant cannot be in a conditional branch of the loop",
-                self.mir_encoder.get_span_of_basic_block(loop_head),
+                loop_body
+                    .iter()
+                    .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
+                    .filter(|&span| span.contains(loop_head_span))
+                    .min()
+                    .unwrap(),
             ));
         }
 
@@ -856,6 +866,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vir::Type::Int => BuiltinMethodKind::HavocInt,
                 vir::Type::Bool => BuiltinMethodKind::HavocBool,
                 vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
+                vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
             };
             let stmt = vir::Stmt::MethodCall(
                 self.encoder.encode_builtin_method_use(builtin_method),
@@ -1876,10 +1887,57 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
                     }
 
+                    "core::cmp::PartialEq::eq" => {
+                        assert!(args.len() == 2);
+                        debug!("Encoding call of PartialEq::eq");
+
+                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+
+                        let snapshot = self.encoder.encode_snapshot(&arg_ty);
+                        if snapshot.is_defined() {
+                            let arg_exprs = vec![
+                                self.mir_encoder.encode_operand_expr(&args[0]),
+                                self.mir_encoder.encode_operand_expr(&args[1]),
+                            ];
+                            let return_type = vir::Type::Bool;
+                            let function_name = snapshot.get_equals_func_name();
+
+                            stmts.extend(self.encode_specified_pure_function_call(
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                function_name,
+                                arg_exprs,
+                                return_type,
+                            ));
+                        } else {
+                            // the equality check involves some unsupported feature;
+                            // treat it as any other function
+                            stmts.extend(self.encode_impure_function_call(
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                def_id,
+                            )?);
+                        }
+                    }
+
                     _ => {
                         let is_pure_function =
                             self.encoder.env().has_attribute_name(def_id, "pure");
                         if is_pure_function {
+                            let (function_name, _) = self.encoder.encode_pure_function_use(def_id);
+                            debug!("Encoding pure function call '{}'", function_name);
+                            assert!(destination.is_some());
+
+                            let mut arg_exprs = vec![];
+                            for operand in args.iter() {
+                                let arg_expr = self.mir_encoder.encode_operand_expr(operand);
+                                arg_exprs.push(arg_expr);
+                            }
+
                             stmts.extend(self.encode_pure_function_call(
                                 location,
                                 term.source_info.span,
@@ -2294,12 +2352,34 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
 
-        let mut stmts = vec![];
         let mut arg_exprs = vec![];
         for operand in args.iter() {
             let arg_expr = self.mir_encoder.encode_operand_expr(operand);
             arg_exprs.push(arg_expr);
         }
+
+        self.encode_specified_pure_function_call(
+            location,
+            call_site_span,
+            args,
+            destination,
+            function_name,
+            arg_exprs,
+            return_type,
+        )
+    }
+
+    fn encode_specified_pure_function_call(
+        &mut self,
+        location: mir::Location,
+        call_site_span: Span,
+        args: &[mir::Operand<'tcx>],
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+        function_name: String,
+        arg_exprs: Vec<Expr>,
+        return_type: Type,
+    ) -> Vec<vir::Stmt> {
+        let mut stmts = vec![];
 
         let formal_args: Vec<vir::LocalVar> = args
             .iter()
@@ -3304,16 +3384,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )
     }
 
-    /// `drop_read_references` – should we add permissions to read
-    /// references? We drop permissions of read references from the
-    /// exhale before the loop and inhale after the loop so that
-    /// the knowledge about their values is not havocked.
+    /// Arguments:
+    /// * `loop_head`: the loop head block, which identifies a loop.
+    /// * `loop_inv`: the block at whose end the loop invariant should hold.
+    /// * `drop_read_references`: should we add permissions to read
+    ///   references? We drop permissions of read references from the
+    ///   exhale before the loop and inhale after the loop so that
+    ///   the knowledge about their values is not havocked.
     ///
-    /// The first vector contains permissions and the second value
-    /// preserving equalities.
+    /// Result:
+    /// * The first vector contains permissions.
+    /// * The second vector contains value preserving equalities.
     fn encode_loop_invariant_permissions(
         &mut self,
         loop_head: BasicBlockIndex,
+        loop_inv: BasicBlockIndex,
         drop_read_references: bool,
     ) -> (Vec<vir::Expr>, Vec<vir::Expr>) {
         trace!(
@@ -3322,16 +3407,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             loop_head,
             drop_read_references
         );
-        let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head);
+        let permissions_forest = self
+            .loop_encoder
+            .compute_loop_invariant(loop_head, loop_inv);
         debug!("permissions_forest: {:?}", permissions_forest);
         let loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
         let enclosing_permission_forest = if loops.len() > 1 {
             let next_to_last = loops.len() - 2;
             let enclosing_loop_head = loops[next_to_last];
-            Some(
-                self.loop_encoder
-                    .compute_loop_invariant(enclosing_loop_head),
-            )
+            Some(self.loop_encoder.compute_loop_invariant(
+                enclosing_loop_head,
+                self.cached_loop_invariant_block[&enclosing_loop_head],
+            ))
         } else {
             None
         };
@@ -3586,7 +3673,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.pure_var_for_preserving_value_map
                 .insert(loop_head, HashMap::new());
         }
-        let (permissions, equalities) = self.encode_loop_invariant_permissions(loop_head, true);
+        let (permissions, equalities) =
+            self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true);
         let (func_spec, func_spec_span) =
             self.encode_loop_invariant_specs(loop_head, loop_inv_block);
 
@@ -3659,7 +3747,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             loop_head,
             after_loop
         );
-        let (permissions, equalities) = self.encode_loop_invariant_permissions(loop_head, true);
+        let (permissions, equalities) =
+            self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true);
         let (func_spec, _func_spec_span) =
             self.encode_loop_invariant_specs(loop_head, loop_inv_block);
 
@@ -4455,11 +4544,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn check_vir(&self) {
-        let mut encoded_mir_locals = HashSet::new();
-        for local in self.mir.local_decls.indices() {
-            encoded_mir_locals.insert(self.mir_encoder.encode_local(local));
+    fn check_vir(&self) -> Result<()> {
+        if self.cfg_method.has_loops() {
+            return Err(EncodingError::internal(
+                "The Viper encoding contains unexpected loops in the CFG",
+                self.mir.span,
+            ));
         }
+        Ok(())
     }
 
     fn get_label_after_location(&mut self, location: mir::Location) -> &str {
@@ -4469,6 +4561,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             location
         );
         &self.label_after_location[&location]
+    }
+
+    fn get_loop_span(&self, loop_head: mir::BasicBlock) -> Span {
+        let loop_info = self.loop_encoder.loops();
+        debug_assert!(loop_info.is_loop_head(loop_head));
+        let loop_body = loop_info.get_loop_body(loop_head);
+        let loop_head_span = self.mir_encoder.get_span_of_basic_block(loop_head);
+        loop_body
+            .iter()
+            .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
+            .filter(|&span| span.contains(loop_head_span))
+            .min()
+            .unwrap()
     }
 }
 

@@ -117,10 +117,19 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vir::Type::TypedRef(type_name)
             }
 
-            ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unreachable!(),
+            ty::TypeVariants::TyAdt(_, _)
+            | ty::TypeVariants::TyTuple(_) => {
+                let snapshot = self.encoder.encode_snapshot(&self.ty);
+                if snapshot.is_defined() {
+                    snapshot.get_type()
+                } else {
+                    unreachable!()
+                }
+            },
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
-                unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
+            ty::TypeVariants::TyParam(_) => {
+                let type_name = self.encoder.encode_type_predicate_use(self.ty);
+                vir::Type::TypedRef(type_name)
             }
 
             ref x => unimplemented!("{:?}", x),

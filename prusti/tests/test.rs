@@ -145,7 +145,6 @@ fn run_verification(group_name: &str) {
     // information with the expected one.
     set_var("PRUSTI_TEST", "true");
 
-    set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "false");
     set_var("PRUSTI_DUMP_DEBUG_INFO", "false");
     set_var("PRUSTI_DUMP_BORROWCK_INFO", "false");
     set_var("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true");
@@ -179,15 +178,6 @@ fn run_verification(group_name: &str) {
         run_tests(&config);
     }
 
-    let path: PathBuf = ["tests", group_name, "pass-overflow"].iter().collect();
-    if path.exists() {
-        config.mode = common::Mode::RunPass;
-        config.src_base = path;
-        set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "true");
-        run_tests(&config);
-        set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "false");
-    }
-
     let path: PathBuf = ["tests", group_name, "fail"].iter().collect();
     if path.exists() {
         config.mode = common::Mode::CompileFail;
@@ -195,23 +185,25 @@ fn run_verification(group_name: &str) {
         run_tests(&config);
     }
 
-    let path: PathBuf = ["tests", group_name, "fail-overflow"].iter().collect();
-    if path.exists() {
-        config.mode = common::Mode::CompileFail;
-        config.src_base = path;
-        set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "true");
-        run_tests(&config);
-        set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "false");
-    }
-
     remove_var("PRUSTI_FULL_COMPILATION");
     remove_var("PRUSTI_TEST");
-    remove_var("PRUSTI_CHECK_BINARY_OPERATIONS");
     remove_var("PRUSTI_DUMP_DEBUG_INFO");
     remove_var("PRUSTI_DUMP_BORROWCK_INFO");
     remove_var("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT");
     remove_var("PRUSTI_REPORT_SUPPORT_STATUS");
     remove_var("PRUSTI_QUIET");
+}
+
+fn run_verification_overflow(group_name: &str) {
+    set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "true");
+    run_verification(group_name);
+    remove_var("PRUSTI_CHECK_BINARY_OPERATIONS");
+}
+
+fn run_verification_core_proof(group_name: &str) {
+    set_var("PRUSTI_CHECK_PANICS", "false");
+    run_verification(group_name);
+    remove_var("PRUSTI_CHECK_PANICS");
 }
 
 #[test]
@@ -220,15 +212,27 @@ fn test_runner() {
     let server_address = ServerSideService::spawn_off_thread();
     set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
 
-    // Test the error messages of the parser
+    // Test the parsing of specifications. Doesn't run the verifier.
+    println!("[parse]");
     run_no_verification("parse");
 
-    // Test the error messages of the type-checking of specifications
+    // Test the type-checking of specifications. Doesn't run the verifier.
+    println!("[typecheck]");
     run_no_verification("typecheck");
 
     // Test the error messages of prusti-filter
+    println!("[filter]");
     run_filter("filter");
 
-    // Test the error messages of the verifier
+    // Test the verifier.
+    println!("[verify]");
     run_verification("verify");
+
+    // Test the verifier with overflow checks enabled.
+    println!("[verify_overflow]");
+    run_verification_overflow("verify_overflow");
+
+    // Test the verifier with panic checks disabled (i.e. verify only the core proof).
+    println!("[core_proof]");
+    run_verification_core_proof("core_proof");
 }
