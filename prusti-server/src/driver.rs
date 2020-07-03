@@ -6,13 +6,16 @@
 
 extern crate clap;
 extern crate env_logger;
+extern crate log;
 extern crate prusti_server;
 
 use clap::{App, Arg};
 use prusti_server::{PrustiServer, ServerSideService};
 
 fn main() {
-    env_logger::init();
+    env_logger::init_from_env(
+        env_logger::Env::new().filter_or("RUST_LOG", "info"), // seems to be the cleanest way to set an overridable default for this
+    );
 
     let matches = App::new("Prusti Server")
         .arg(
