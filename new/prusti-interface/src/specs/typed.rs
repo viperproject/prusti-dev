@@ -4,7 +4,6 @@ use rustc_hir::BodyId;
 use rustc_hir::def_id::LocalDefId;
 use rustc_middle::ty::{TyCtxt, TyKind};
 use std::collections::HashMap;
-use rustc_hir::hir_id::HirId;
 
 pub use common::{ExpressionId, SpecType, SpecificationId};
 
@@ -74,6 +73,9 @@ impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
         let (body, _) = tcx.mir_validated(local_id);
         let body = body.borrow();
 
+        // the first argument to the node is the closure itself and the
+        // following ones are the variables; therefore, we need to skip
+        // the first one
         let vars: Vec<TyKind> = body
             .args_iter()
             .skip(1)

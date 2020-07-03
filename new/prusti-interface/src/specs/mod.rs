@@ -4,7 +4,6 @@ use rustc_hir::intravisit;
 use rustc_middle::hir::map::Map;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
-use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::LocalDefId;
 use std::collections::HashMap;
 use std::convert::TryInto;
