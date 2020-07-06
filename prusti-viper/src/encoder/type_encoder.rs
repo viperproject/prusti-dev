@@ -138,7 +138,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
 
-            ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => unreachable!(),
+            ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => unreachable!("ty: {:?}", self.ty),
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);

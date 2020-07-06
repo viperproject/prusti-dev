@@ -40,8 +40,9 @@ use rustc_middle::ty;
 use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use std::io::Write;
-// use std::mem;
+use std::mem;
 // use syntax::ast;
+use rustc_ast::ast;
 // use viper;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
@@ -62,8 +63,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     // /// where a pure function is required.
     // stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
     type_predicate_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
-    // type_invariant_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
-    // type_tag_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
+    // type_invariant_names: RefCell<HashMap<ty::TyKind<'x>, String>>,
+    // type_tag_names: RefCell<HashMap<ty::TyKind<'x>, String>>,
     predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
     type_predicates: RefCell<HashMap<String, vir::Predicate>>,
     // type_invariants: RefCell<HashMap<String, vir::Function>>,
@@ -608,24 +609,24 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     self_ty: ty::Ty<'tcx>
     // ) -> Option<vir::Expr> {
     //     let eq = match self_ty.kind {
-    //         ty::TypeVariants::TyBool
-    //         | ty::TypeVariants::TyInt(_)
-    //         | ty::TypeVariants::TyUint(_)
-    //         | ty::TypeVariants::TyChar => {
+    //         ty::TyKind::Bool
+    //         | ty::TyKind::Int(_)
+    //         | ty::TyKind::Uint(_)
+    //         | ty::TyKind::Char => {
     //             let field = self.encode_value_field(self_ty);
     //             let first_field = first.clone().field(field.clone());
     //             let second_field = second.clone().field(field);
     //             Some(vir::Expr::eq_cmp(first_field, second_field))
     //         }
-    //         ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
+    //         ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
     //             // TODO: If adt_def contains fields of unsupported type,
     //             // we should return None.
     //             Some(self.encode_memory_eq_adt(first.clone(), second.clone(), adt_def, subst))
     //         }
-    //         ty::TypeVariants::TyTuple(elems) => {
+    //         ty::TyKind::Tuple(elems) => {
     //             Some(self.encode_memory_eq_tuple(first.clone(), second.clone(), elems))
     //         }
-    //         ty::TypeVariants::TyParam(_) => {
+    //         ty::TyKind::Param(_) => {
     //             None
     //         },
 
@@ -982,148 +983,115 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     self.type_tags.borrow()[&tag_name].clone()
     // }
 
-    // pub fn encode_const_expr(&self, value: &ty::Const<'tcx>) -> vir::Expr {
-    //     trace!("encode_const_expr {:?}", value);
-    //     let scalar_value = match value.val {
-    //         ConstVal::Value(ref value) => value
-    //             .to_scalar()
-    //             .expect(&format!("Unsupported const: {:?}", value)),
-    //         ConstVal::Unevaluated(def_id, substs) => {
-    //             let tcx = self.env().tcx();
-    //             let param_env = tcx.param_env(def_id);
-    //             let cid = GlobalId {
-    //                 instance: ty::Instance::new(def_id, substs),
-    //                 promoted: None,
-    //             };
-    //             if let Ok(const_value) = tcx.const_eval(param_env.and(cid)) {
-    //                 if let ConstVal::Value(ref value) = const_value.val {
-    //                     value
-    //                         .to_scalar()
-    //                         .expect(&format!("Unsupported const: {:?}", value))
-    //                 } else {
-    //                     unreachable!()
-    //                 }
-    //             } else {
-    //                 panic!("Constant evaluation of {:?} failed", value.val)
-    //             }
-    //         }
-    //     };
+    pub fn encode_const_expr(&self, ty: &ty::TyS<'tcx>, value: &ty::ConstKind<'tcx>) -> vir::Expr {
+        trace!("encode_const_expr {:?}", value);
+        let scalar_value = match value {
+            ty::ConstKind::Value(ref value) => value
+                .try_to_scalar()
+                .expect(&format!("Unsupported const: {:?}", value)),
+            // FIXME: Implement support for unevaluated constants.
+            // ConstVal::Unevaluated(def_id, substs) => {
+            //     let tcx = self.env().tcx();
+            //     let param_env = tcx.param_env(def_id);
+            //     let cid = GlobalId {
+            //         instance: ty::Instance::new(def_id, substs),
+            //         promoted: None,
+            //     };
+            //     if let Ok(const_value) = tcx.const_eval(param_env.and(cid)) {
+            //         if let ConstVal::Value(ref value) = const_value.val {
+            //             value
+            //                 .to_scalar()
+            //                 .expect(&format!("Unsupported const: {:?}", value))
+            //         } else {
+            //             unreachable!()
+            //         }
+            //     } else {
+            //         panic!("Constant evaluation of {:?} failed", value.val)
+            //     }
+            // }
+            _ => unimplemented!(),
+        };
 
-    //     let usize_bits = mem::size_of::<usize>() * 8;
+            fn with_sign(unsigned_val: u128, bit_size: u64) -> i128 {
+            // Handle *signed* integers
+            let shift = 128 - bit_size;
+            let casted_val = unsigned_val as i128;
+            // sign extend the raw representation to be an i128
+            ((casted_val << shift) >> shift).into()
+        }
 
-    //     fn with_sign(unsigned_val: u128, bit_size: u64) -> i128 {
-    //         // Handle *signed* integers
-    //         let shift = 128 - bit_size;
-    //         let casted_val = unsigned_val as i128;
-    //         // sign extend the raw representation to be an i128
-    //         ((casted_val << shift) >> shift).into()
-    //     }
-
-    //     let expr = match value.ty.kind {
-    //         ty::TypeVariants::TyBool => scalar_value.to_bool().ok().unwrap().into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I8) => (with_sign(
-    //             scalar_value
-    //                 .to_bits(ty::layout::Size::from_bits(8))
-    //                 .ok()
-    //                 .unwrap(),
-    //             8,
-    //         ) as i8)
-    //             .into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I16) => (with_sign(
-    //             scalar_value
-    //                 .to_bits(ty::layout::Size::from_bits(16))
-    //                 .ok()
-    //                 .unwrap(),
-    //             16,
-    //         ) as i16)
-    //             .into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I32) => (with_sign(
-    //             scalar_value
-    //                 .to_bits(ty::layout::Size::from_bits(32))
-    //                 .ok()
-    //                 .unwrap(),
-    //             32,
-    //         ) as i32)
-    //             .into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I64) => (with_sign(
-    //             scalar_value
-    //                 .to_bits(ty::layout::Size::from_bits(64))
-    //                 .ok()
-    //                 .unwrap(),
-    //             64,
-    //         ) as i64)
-    //             .into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I128) => (with_sign(
-    //             scalar_value
-    //                 .to_bits(ty::layout::Size::from_bits(128))
-    //                 .ok()
-    //                 .unwrap(),
-    //             128,
-    //         ) as i128)
-    //             .into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::Isize) => (with_sign(
-    //             scalar_value
-    //                 .to_bits(ty::layout::Size::from_bits(usize_bits as u64))
-    //                 .ok()
-    //                 .unwrap(),
-    //             usize_bits as u64,
-    //         ) as i128)
-    //             .into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U8) => (scalar_value
-    //             .to_bits(ty::layout::Size::from_bits(8))
-    //             .ok()
-    //             .unwrap() as u8)
-    //             .into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U16) => (scalar_value
-    //             .to_bits(ty::layout::Size::from_bits(16))
-    //             .ok()
-    //             .unwrap() as u16)
-    //             .into(),
-    //         ty::TypeVariants::TyChar | ty::TypeVariants::TyUint(ast::UintTy::U32) => (scalar_value
-    //             .to_bits(ty::layout::Size::from_bits(32))
-    //             .ok()
-    //             .unwrap()
-    //             as u32)
-    //             .into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U64) => (scalar_value
-    //             .to_bits(ty::layout::Size::from_bits(64))
-    //             .ok()
-    //             .unwrap() as u64)
-    //             .into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U128) => (scalar_value
-    //             .to_bits(ty::layout::Size::from_bits(128))
-    //             .ok()
-    //             .unwrap() as u128)
-    //             .into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::Usize) => (scalar_value
-    //             .to_bits(ty::layout::Size::from_bits(usize_bits as u64))
-    //             .ok()
-    //             .unwrap() as u128)
-    //             .into(),
-    //         ref x => unimplemented!("{:?}", x),
-    //     };
-    //     debug!("encode_const_expr {:?} --> {:?}", value, expr);
-    //     expr
-    // }
+        let expr = match ty.kind {
+            ty::TyKind::Bool => scalar_value.to_bool().unwrap().into(),
+            ty::TyKind::Char => scalar_value.to_char().unwrap().into(),
+            ty::TyKind::Int(ast::IntTy::I8) => scalar_value.to_i8().unwrap().into(),
+            ty::TyKind::Int(ast::IntTy::I16) => scalar_value.to_i16().unwrap().into(),
+            ty::TyKind::Int(ast::IntTy::I32) => scalar_value.to_i32().unwrap().into(),
+            ty::TyKind::Int(ast::IntTy::I64) => scalar_value.to_i64().unwrap().into(),
+            ty::TyKind::Int(ast::IntTy::I128) => {
+                match scalar_value {
+                    mir::interpret::Scalar::Raw { data, .. } => {
+                        let val: i128 = with_sign(data, 128).try_into().unwrap();
+                        val.into()
+                    },
+                    _ => unimplemented!(),
+                }
+            },
+            ty::TyKind::Int(ast::IntTy::Isize) => {
+                match scalar_value {
+                    mir::interpret::Scalar::Raw { data, .. } => {
+                        let isize_bits = mem::size_of::<isize>() * 8;
+                        let val: isize = with_sign(data, isize_bits.try_into().unwrap()).try_into().unwrap();
+                        val.into()
+                    },
+                    _ => unimplemented!(),
+                }
+            },
+            ty::TyKind::Uint(ast::UintTy::U8) => scalar_value.to_u8().unwrap().into(),
+            ty::TyKind::Uint(ast::UintTy::U16) => scalar_value.to_u16().unwrap().into(),
+            ty::TyKind::Uint(ast::UintTy::U32) => scalar_value.to_u32().unwrap().into(),
+            ty::TyKind::Uint(ast::UintTy::U64) => scalar_value.to_u64().unwrap().into(),
+            ty::TyKind::Uint(ast::UintTy::U128) => {
+                match scalar_value {
+                    mir::interpret::Scalar::Raw { data, .. } => {
+                        let val: u128 = data;
+                        val.into()
+                    },
+                    _ => unimplemented!(),
+                }
+            },
+            ty::TyKind::Uint(ast::UintTy::Usize) => {
+                match scalar_value {
+                    mir::interpret::Scalar::Raw { data, .. } => {
+                        let val: usize = data.try_into().unwrap();
+                        val.into()
+                    },
+                    _ => unimplemented!(),
+                }
+            }
+            ref x => unimplemented!("{:?}", x),
+        };
+        debug!("encode_const_expr {:?} --> {:?}", value, expr);
+        expr
+    }
 
     // pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> vir::Expr {
     //     trace!("encode_int_cast {:?} as {:?}", value, ty);
 
     //     let expr = match ty.kind {
-    //         ty::TypeVariants::TyBool => (value != 0).into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I8) => (value as i8).into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I16) => (value as i16).into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I32) => (value as i32).into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I64) => (value as i64).into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I128) => (value as i128).into(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::Isize) => (value as isize).into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U8) => (value as u8).into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U16) => (value as u16).into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U32) => (value as u32).into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U64) => (value as u64).into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U128) => (value as u128).into(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::Usize) => (value as usize).into(),
-    //         ty::TypeVariants::TyChar => value.into(),
+    //         ty::TyKind::Bool => (value != 0).into(),
+    //         ty::TyKind::Int(ast::IntTy::I8) => (value as i8).into(),
+    //         ty::TyKind::Int(ast::IntTy::I16) => (value as i16).into(),
+    //         ty::TyKind::Int(ast::IntTy::I32) => (value as i32).into(),
+    //         ty::TyKind::Int(ast::IntTy::I64) => (value as i64).into(),
+    //         ty::TyKind::Int(ast::IntTy::I128) => (value as i128).into(),
+    //         ty::TyKind::Int(ast::IntTy::Isize) => (value as isize).into(),
+    //         ty::TyKind::Uint(ast::UintTy::U8) => (value as u8).into(),
+    //         ty::TyKind::Uint(ast::UintTy::U16) => (value as u16).into(),
+    //         ty::TyKind::Uint(ast::UintTy::U32) => (value as u32).into(),
+    //         ty::TyKind::Uint(ast::UintTy::U64) => (value as u64).into(),
+    //         ty::TyKind::Uint(ast::UintTy::U128) => (value as u128).into(),
+    //         ty::TyKind::Uint(ast::UintTy::Usize) => (value as usize).into(),
+    //         ty::TyKind::Char => value.into(),
     //         ref x => unimplemented!("{:?}", x),
     //     };
     //     debug!("encode_int_cast {:?} as {:?} --> {:?}", value, ty, expr);

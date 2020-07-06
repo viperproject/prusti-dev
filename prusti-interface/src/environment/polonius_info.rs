@@ -773,16 +773,16 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 //         self.get_loans_dying_at(location, true)
 //     }
 
-//     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
-//     pub fn get_all_active_loans(
-//         &self,
-//         location: mir::Location,
-//     ) -> (Vec<facts::Loan>, Vec<facts::Loan>) {
-//         let mut loans = self.get_active_loans(location, false);
-//         let zombie_loans = self.get_active_loans(location, true);
-//         loans.extend(zombie_loans.iter().cloned());
-//         (loans, zombie_loans)
-//     }
+    /// Get loans including the zombies ``(all_loans, zombie_loans)``.
+    pub fn get_all_active_loans(
+        &self,
+        location: mir::Location,
+    ) -> (Vec<facts::Loan>, Vec<facts::Loan>) {
+        let mut loans = self.get_active_loans(location, false);
+        let zombie_loans = self.get_active_loans(location, true);
+        loans.extend(zombie_loans.iter().cloned());
+        (loans, zombie_loans)
+    }
 
     fn get_borrow_live_at(&self, zombie: bool) -> &FxHashMap<facts::PointIndex, Vec<facts::Loan>> {
         if zombie {
