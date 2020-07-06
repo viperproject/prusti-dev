@@ -46,9 +46,13 @@ jobs:
       env:
         PRUSTI_DUMP_DEBUG_INFO: true
         PRUSTI_DUMP_VIPER_PROGRAM: true
-    - name: Collect and upload coverage to Coveralls
+    - name: Collect coverage
       run: |
-        curl -L https://github.com/mozilla/grcov/releases/latest/download/grcov-linux-x86_64.tar.bz2 | tar jxf -
-        zip -0 ccov.zip $(find . \( -name "prusti*.gc*" -or -name "viper*.gc*" -or -name "jni_gen*.gc*" \) -print)
+        curl -sL https://github.com/mozilla/grcov/releases/latest/download/grcov-linux-x86_64.tar.bz2 | tar jxf -
+        zip -q0 ccov.zip $(find . \( -name "prusti*.gc*" -or -name "viper*.gc*" -or -name "jni_gen*.gc*" \) -print)
         ./grcov ccov.zip --llvm --branch --ignore-not-existing -t lcov --ignore "/*" -o lcov.info
-        bash <(curl -s https://codecov.io/bash) -f lcov.info
+    - name: Upload coverage to Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: lcov.info

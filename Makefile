@@ -47,10 +47,11 @@ build:
 release:
 	$(SET_ENV_VARS) cargo build --release --all $(CARGO_ARGS)
 
-test-deep: clean-nested
+release-profile:
 	$(SET_ENV_VARS) \
-	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
-	cargo test --all
+	CARGO_INCREMENTAL=0 \
+	RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Cinline-threshold=0 -Clink-dead-code" \
+	cargo build --release --all
 
 test: build clean-nested
 	$(SET_ENV_VARS) \
@@ -64,11 +65,10 @@ test-viper-crate: build clean-nested
 	$(SET_ENV_VARS) \
 	cargo test -p viper
 
-build-profile:
+test-deep: clean-nested
 	$(SET_ENV_VARS) \
-	CARGO_INCREMENTAL=0 \
-	RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads" \
-	cargo build --all
+	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
+	cargo test --all
 
 bench:
 	$(SET_ENV_VARS) cargo bench --all
@@ -79,15 +79,6 @@ run: build
 		-L $(COMPILER_PATH)/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
 		$(RUN_FILE)
-
-run-flamegraph: build
-	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
-    perf record -F 99 --call-graph=dwarf,32000 \
-	$(PRUSTI_DRIVER) \
-		-L $(COMPILER_PATH)/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
-		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
-		$(RUN_FILE)
-	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
 
 run-release: release
 	$(SET_RELEASE_ENV_VARS) RUST_LOG=$(RUST_LOG) \
