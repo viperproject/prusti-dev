@@ -12,7 +12,7 @@ use std::hash::{Hash, Hasher};
 use std::mem;
 use std::mem::discriminant;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Expr {
     /// A local var
     Local(LocalVar, Position),
@@ -56,13 +56,13 @@ pub enum PlaceComponent {
     Variant(Field, Position),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum UnaryOpKind {
     Not,
     Minus,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum BinOpKind {
     EqCmp,
     NeCmp,
@@ -80,7 +80,7 @@ pub enum BinOpKind {
     Implies,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
     Int(i64),

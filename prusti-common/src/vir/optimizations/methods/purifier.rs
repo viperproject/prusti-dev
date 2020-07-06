@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//! Optimisation that purifies heap allocated local variables into pure
+//! Optimization that purifies heap allocated local variables into pure
 //! local variables.
 //!
 //! For example, `_1.val_int` will become `_1i` where `_1i` is of type Int.

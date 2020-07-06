@@ -8,7 +8,7 @@ use vir::ast::*;
 use std::collections::HashMap;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Function {
     pub name: String,
     pub formal_args: Vec<LocalVar>,

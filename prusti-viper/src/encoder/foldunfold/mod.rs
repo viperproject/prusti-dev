@@ -5,23 +5,26 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use self::path_ctxt::*;
-use encoder::foldunfold::action::Action;
-use encoder::foldunfold::perm::*;
-use encoder::foldunfold::permissions::*;
-use encoder::foldunfold::semantics::ApplyOnState;
-use encoder::Encoder;
-use prusti_common::utils::to_string::ToString;
-use prusti_common::vir;
-use prusti_common::vir::borrows::Borrow;
-use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
-use prusti_common::vir::{ExprFolder, FallibleExprFolder, PermAmount};
-use prusti_common::config;
-use prusti_common::report;
+use encoder::{
+    foldunfold::{action::Action, perm::*, permissions::*, semantics::ApplyOnState},
+    Encoder,
+};
+use prusti_common::{
+    config, report,
+    utils::to_string::ToString,
+    vir,
+    vir::{
+        borrows::Borrow, CfgBlockIndex, CfgReplacer, CheckNoOpAction, ExprFolder,
+        FallibleExprFolder, PermAmount,
+    },
+};
 use rustc::mir;
-use std;
-use std::collections::{HashMap, HashSet};
-use std::mem;
-use std::ops::Deref;
+use std::{
+    self,
+    collections::{HashMap, HashSet},
+    mem,
+    ops::Deref,
+};
 
 mod action;
 mod borrows;

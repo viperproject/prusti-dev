@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//! An optimisation that pulls `unfolding` expressions as much up as
+//! An optimization that pulls `unfolding` expressions as much up as
 //! possible in this way hoping to reduce the number of unfolds. We
 //! cannot pull unfolding if:
 //!
@@ -19,18 +19,18 @@ use std::collections::{HashMap, HashSet};
 use std::mem;
 
 
-pub trait FoldingOptimiser {
-    fn optimise(self) -> Self;
+pub trait FoldingOptimizer {
+    fn optimize(self) -> Self;
 }
 
-impl FoldingOptimiser for cfg::CfgMethod {
-    fn optimise(mut self) -> Self {
+impl FoldingOptimizer for cfg::CfgMethod {
+    fn optimize(mut self) -> Self {
         let mut sentinel_stmt = ast::Stmt::Comment(String::from("moved out stmt"));
-        let mut optimiser = StmtOptimiser {};
+        let mut optimizer = StmtOptimizer {};
         for block in &mut self.basic_blocks {
             for stmt in &mut block.stmts {
                 mem::swap(&mut sentinel_stmt, stmt);
-                sentinel_stmt = ast::StmtFolder::fold(&mut optimiser, sentinel_stmt);
+                sentinel_stmt = ast::StmtFolder::fold(&mut optimizer, sentinel_stmt);
                 mem::swap(&mut sentinel_stmt, stmt);
             }
         }
@@ -38,36 +38,36 @@ impl FoldingOptimiser for cfg::CfgMethod {
     }
 }
 
-impl FoldingOptimiser for ast::Function {
-    fn optimise(mut self) -> Self {
-        trace!("[enter] FoldingOptimiser function_name={}", self.name);
-        self.body = self.body.map(|e| e.optimise());
-        trace!("[exit] FoldingOptimiser function_name={}", self.name);
+impl FoldingOptimizer for ast::Function {
+    fn optimize(mut self) -> Self {
+        trace!("[enter] FoldingOptimizer function_name={}", self.name);
+        self.body = self.body.map(|e| e.optimize());
+        trace!("[exit] FoldingOptimizer function_name={}", self.name);
         self
     }
 }
 
-impl FoldingOptimiser for ast::Expr {
-    fn optimise(self) -> Self {
-        trace!("[enter] FoldingOptimiser::optimise = \n{}", self);
-        let mut optimiser = ExprOptimiser {
+impl FoldingOptimizer for ast::Expr {
+    fn optimize(self) -> Self {
+        trace!("[enter] FoldingOptimizer::optimize = \n{}", self);
+        let mut optimizer = ExprOptimizer {
             unfoldings: HashMap::new(),
             requirements: HashSet::new(),
         };
-        let new_expr = ast::ExprFolder::fold(&mut optimiser, self);
-        let r = restore_unfoldings(optimiser.get_unfoldings(), new_expr);
-        trace!("[exit] FoldingOptimiser::optimise = \n{}", r);
+        let new_expr = ast::ExprFolder::fold(&mut optimizer, self);
+        let r = restore_unfoldings(optimizer.get_unfoldings(), new_expr);
+        trace!("[exit] FoldingOptimizer::optimize = \n{}", r);
         r
     }
 }
 
-struct StmtOptimiser {
+struct StmtOptimizer {
 }
 
-impl ast::StmtFolder for StmtOptimiser {
+impl ast::StmtFolder for StmtOptimizer {
     fn fold_inhale(&mut self, expr: ast::Expr, folding: ast::FoldingBehaviour) -> ast::Stmt {
         let new_expr = if folding == ast::FoldingBehaviour::Expr {
-            expr.optimise()
+            expr.optimize()
         } else {
             expr
         };
@@ -78,14 +78,14 @@ impl ast::StmtFolder for StmtOptimiser {
 type UnfoldingMap = HashMap<ast::Expr, (String, ast::PermAmount, ast::MaybeEnumVariantIndex)>;
 type RequirementSet = HashSet<ast::Expr>;
 
-struct ExprOptimiser {
+struct ExprOptimizer {
     /// Predicate argument → (predicate name, amount, enum index).
     unfoldings: UnfoldingMap,
     /// Unfolding requirements: how deeply a specific place should be unfolded.
     requirements: RequirementSet,
 }
 
-impl ExprOptimiser {
+impl ExprOptimizer {
     fn get_unfoldings(&mut self) -> UnfoldingMap {
         mem::replace(&mut self.unfoldings, HashMap::new())
     }
@@ -328,7 +328,7 @@ fn merge_requirements_and_unfoldings2(
     }
 }
 
-impl ast::ExprFolder for ExprOptimiser {
+impl ast::ExprFolder for ExprOptimizer {
 
     fn fold(&mut self, expr: ast::Expr) -> ast::Expr {
         match expr {

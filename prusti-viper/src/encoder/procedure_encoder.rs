@@ -4,51 +4,60 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::borrows::ProcedureContract;
-use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::errors::PanicCause;
-use encoder::errors::{EncodingError, ErrorCtxt};
-use encoder::foldunfold;
-use encoder::initialisation::InitInfo;
-use encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
-use encoder::mir_encoder::MirEncoder;
-use encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
-use encoder::mir_successor::MirSuccessor;
-use encoder::optimiser;
-use encoder::places::{Local, LocalVariableManager, Place};
-use encoder::Encoder;
-use prusti_common::utils::to_string::ToString;
-use prusti_common::vir::borrows::Borrow;
-use prusti_common::vir::fixes::fix_ghost_vars;
-use prusti_common::vir::optimisations::methods::{
-    remove_empty_if, remove_trivial_assertions, remove_unused_vars,
+use encoder::{
+    borrows::ProcedureContract,
+    builtin_encoder::BuiltinMethodKind,
+    errors::{EncodingError, ErrorCtxt, PanicCause},
+    foldunfold,
+    initialisation::InitInfo,
+    loop_encoder::{LoopEncoder, LoopEncoderError},
+    mir_encoder::{MirEncoder, POSTCONDITION_LABEL, PRECONDITION_LABEL},
+    mir_successor::MirSuccessor,
+    optimizer,
+    places::{Local, LocalVariableManager, Place},
+    Encoder,
 };
-use prusti_common::vir::{self, CfgBlockIndex, Successor, collect_assigned_vars, Expr, Type};
-use prusti_common::vir::{ExprIterator, FoldingBehaviour};
-use prusti_common::config;
-use prusti_interface::data::ProcedureDefId;
-use prusti_interface::environment::borrowck::facts;
-use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo, PoloniusInfoError};
-use prusti_interface::environment::polonius_info::{
-    ReborrowingDAG, ReborrowingDAGNode, ReborrowingKind, ReborrowingZombity,
+use prusti_common::{
+    config,
+    report::log,
+    utils::to_string::ToString,
+    vir::{
+        self,
+        borrows::Borrow,
+        collect_assigned_vars,
+        fixes::fix_ghost_vars,
+        optimizations::methods::{remove_empty_if, remove_trivial_assertions, remove_unused_vars},
+        CfgBlockIndex, Expr, ExprIterator, FoldingBehaviour, Successor, Type,
+    },
 };
-use prusti_interface::environment::BasicBlockIndex;
-use prusti_interface::environment::PermissionKind;
-use prusti_interface::environment::Procedure;
-use prusti_common::report::log;
-use prusti_interface::specifications::*;
-use rustc::hir::Mutability;
-use rustc::mir;
-use rustc::mir::TerminatorKind;
-use rustc::ty;
-use rustc::ty::layout;
-use rustc::ty::layout::IntegerExt;
+use prusti_interface::{
+    data::ProcedureDefId,
+    environment::{
+        borrowck::facts,
+        polonius_info::{
+            LoanPlaces, PoloniusInfo, PoloniusInfoError, ReborrowingDAG, ReborrowingDAGNode,
+            ReborrowingKind, ReborrowingZombity,
+        },
+        BasicBlockIndex, PermissionKind, Procedure,
+    },
+    specifications::*,
+};
+use rustc::{
+    hir::Mutability,
+    mir,
+    mir::TerminatorKind,
+    ty,
+    ty::{layout, layout::IntegerExt},
+};
 use rustc_data_structures::indexed_vec::Idx;
-use std;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use syntax::attr::SignedInt;
-use syntax::codemap::{MultiSpan, Span};
+use std::{
+    self,
+    collections::{HashMap, HashSet},
+};
+use syntax::{
+    attr::SignedInt,
+    codemap::{MultiSpan, Span},
+};
 
 type Result<T> = std::result::Result<T, EncodingError>;
 
@@ -171,13 +180,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             }
 
-            PoloniusInfoError::MultipleMagicWandsPerLoop(location) => {
-                EncodingError::unsupported(
-                    "the creation of loans in this loop is not yet supported \
+            PoloniusInfoError::MultipleMagicWandsPerLoop(location) => EncodingError::unsupported(
+                "the creation of loans in this loop is not yet supported \
                     (MultipleMagicWandsPerLoop)",
-                    self.mir.source_info(location).span,
-                )
-            }
+                self.mir.source_info(location).span,
+            ),
 
             PoloniusInfoError::MagicWandHasNoRepresentativeLoan(location) => {
                 EncodingError::unsupported(
@@ -331,10 +338,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Load Polonius info
         self.polonius_info = Some(
-            PoloniusInfo::new(
-                &self.procedure,
-                &self.cached_loop_invariant_block,
-            ).map_err(|err| self.translate_polonius_error(err))?,
+            PoloniusInfo::new(&self.procedure, &self.cached_loop_invariant_block)
+                .map_err(|err| self.translate_polonius_error(err))?,
         );
 
         // Initialize CFG blocks
@@ -474,7 +479,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Do some optimizations
         let final_method = if config::simplify_encoding() {
-            optimiser::rewrite(remove_trivial_assertions(remove_unused_vars(
+            optimizer::rewrite(remove_trivial_assertions(remove_unused_vars(
                 remove_empty_if(fixed_method),
             )))
         } else {
@@ -658,7 +663,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     .iter()
                     .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
                     .filter(|&span| span.contains(loop_head_span))
-                    .min().unwrap(),
+                    .min()
+                    .unwrap(),
             ));
         }
 
@@ -867,10 +873,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vec![],
                 vec![var],
             );
-            self.cfg_method.add_stmt(
-                inv_pre_block,
-                stmt
-            );
+            self.cfg_method.add_stmt(inv_pre_block, stmt);
         }
 
         // Done. Phew!
@@ -1928,7 +1931,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 destination,
                                 function_name,
                                 arg_exprs,
-                                return_type
+                                return_type,
                             ));
                         } else {
                             // the equality check involves some unsupported feature;
@@ -1947,9 +1950,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let is_pure_function =
                             self.encoder.env().has_attribute_name(def_id, "pure");
                         if is_pure_function {
-
-                            let (function_name, _) =
-                                self.encoder.encode_pure_function_use(def_id);
+                            let (function_name, _) = self.encoder.encode_pure_function_use(def_id);
                             debug!("Encoding pure function call '{}'", function_name);
                             assert!(destination.is_some());
 
@@ -2373,7 +2374,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
 
-
         let mut arg_exprs = vec![];
         for operand in args.iter() {
             let arg_expr = self.mir_encoder.encode_operand_expr(operand);
@@ -2387,7 +2387,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             destination,
             function_name,
             arg_exprs,
-            return_type
+            return_type,
         )
     }
 
@@ -2400,8 +2400,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         function_name: String,
         arg_exprs: Vec<Expr>,
         return_type: Type,
-    )-> Vec<vir::Stmt> {
-
+    ) -> Vec<vir::Stmt> {
         let mut stmts = vec![];
 
         let formal_args: Vec<vir::LocalVar> = args
@@ -2465,8 +2464,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (
                     Some(ref place),
                     ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
-                                                   ty: ref inner_ty, ..
-                                               }),
+                        ty: ref inner_ty, ..
+                    }),
                 )
                 | (Some(ref place), ty::TypeVariants::TyRef(_, ref inner_ty, _)) => {
                     let ref_field = self.encoder.encode_dereference_field(inner_ty);
@@ -3430,19 +3429,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             loop_head,
             drop_read_references
         );
-        let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head, loop_inv);
+        let permissions_forest = self
+            .loop_encoder
+            .compute_loop_invariant(loop_head, loop_inv);
         debug!("permissions_forest: {:?}", permissions_forest);
         let loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
         let enclosing_permission_forest = if loops.len() > 1 {
             let next_to_last = loops.len() - 2;
             let enclosing_loop_head = loops[next_to_last];
-            Some(
-                self.loop_encoder
-                    .compute_loop_invariant(
-                        enclosing_loop_head,
-                        self.cached_loop_invariant_block[&enclosing_loop_head],
-                    ),
-            )
+            Some(self.loop_encoder.compute_loop_invariant(
+                enclosing_loop_head,
+                self.cached_loop_invariant_block[&enclosing_loop_head],
+            ))
         } else {
             None
         };
@@ -3697,7 +3695,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.pure_var_for_preserving_value_map
                 .insert(loop_head, HashMap::new());
         }
-        let (permissions, equalities) = self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true);
+        let (permissions, equalities) =
+            self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true);
         let (func_spec, func_spec_span) =
             self.encode_loop_invariant_specs(loop_head, loop_inv_block);
 
@@ -3770,7 +3769,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             loop_head,
             after_loop
         );
-        let (permissions, equalities) = self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true);
+        let (permissions, equalities) =
+            self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true);
         let (func_spec, _func_spec_span) =
             self.encode_loop_invariant_specs(loop_head, loop_inv_block);
 
@@ -4594,7 +4594,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .iter()
             .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
             .filter(|&span| span.contains(loop_head_span))
-            .min().unwrap()
+            .min()
+            .unwrap()
     }
 }
 

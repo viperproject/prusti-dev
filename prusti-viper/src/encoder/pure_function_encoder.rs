@@ -4,25 +4,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::borrows::{compute_procedure_contract, ProcedureContract};
-use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::errors::PanicCause;
-use encoder::errors::{EncodingError, ErrorCtxt};
-use encoder::foldunfold;
-use encoder::mir_encoder::MirEncoder;
-use encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
-use encoder::mir_interpreter::{
-    run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+use encoder::{
+    borrows::{compute_procedure_contract, ProcedureContract},
+    builtin_encoder::BuiltinFunctionKind,
+    errors::{EncodingError, ErrorCtxt, PanicCause},
+    foldunfold,
+    mir_encoder::{MirEncoder, PRECONDITION_LABEL, WAND_LHS_LABEL},
+    mir_interpreter::{
+        run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+    },
+    Encoder,
 };
-use encoder::Encoder;
-use prusti_common::vir;
-use prusti_common::vir::ExprIterator;
-use prusti_common::config;
+use prusti_common::{config, vir, vir::ExprIterator};
 use prusti_interface::specifications::SpecificationSet;
-use rustc::hir;
-use rustc::hir::def_id::DefId;
-use rustc::mir;
-use rustc::ty;
+use rustc::{hir, hir::def_id::DefId, mir, ty};
 use std::collections::HashMap;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
@@ -221,7 +216,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             .log_vir_program_before_foldunfold(function.to_string());
 
         if config::simplify_encoding() {
-            function = vir::optimisations::functions::Simplifier::simplify(function);
+            function = vir::optimizations::functions::Simplifier::simplify(function);
         }
 
         // Add folding/unfolding

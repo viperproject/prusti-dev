@@ -4,19 +4,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::cmp::Ordering;
-use std::collections::HashMap;
-use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::mem::discriminant;
-use std::ops;
+use std::{
+    cmp::Ordering,
+    collections::HashMap,
+    fmt,
+    hash::{Hash, Hasher},
+    mem::discriminant,
+    ops,
+};
 
 pub trait WithIdentifier {
     fn get_identifier(&self) -> String;
 }
 
 /// The identifier of a statement. Used in error reporting.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Position {
     line: i32,
     column: i32,
@@ -63,7 +65,7 @@ mod tests {
 }
 
 /// The permission amount.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum PermAmount {
     Read,
     Write,
@@ -130,13 +132,14 @@ impl PartialOrd for PermAmount {
 
 impl Ord for PermAmount {
     fn cmp(&self, other: &PermAmount) -> Ordering {
-        self.partial_cmp(other).expect(
-            &format!("Undefined comparison between {:?} and {:?}", self, other)
-        )
+        self.partial_cmp(other).expect(&format!(
+            "Undefined comparison between {:?} and {:?}",
+            self, other
+        ))
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Type {
     Int,
     Bool,
@@ -204,7 +207,7 @@ impl Type {
                     predicate_name = predicate_name.replace(typ, subst);
                 }
                 Type::TypedRef(predicate_name)
-            },
+            }
             typ => typ,
         }
     }
@@ -233,7 +236,7 @@ impl Hash for Type {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct LocalVar {
     pub name: String,
     pub typ: Type,
@@ -260,7 +263,7 @@ impl LocalVar {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
     pub typ: Type,

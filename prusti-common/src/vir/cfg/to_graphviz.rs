@@ -6,8 +6,7 @@
 
 use config;
 use std::io::Write;
-use vir;
-use vir::cfg::method::*;
+use vir::{self, cfg::method::*};
 
 fn escape_html<S: ToString>(s: S) -> String {
     s.to_string()

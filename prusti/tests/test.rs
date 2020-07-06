@@ -1,8 +1,12 @@
 extern crate compiletest_rs;
+extern crate prusti_server;
 
 use compiletest_rs::{common, run_tests, Config};
-use std::env::{remove_var, set_var, var};
-use std::path::PathBuf;
+use prusti_server::ServerSideService;
+use std::{
+    env::{remove_var, set_var, var},
+    path::PathBuf,
+};
 
 fn get_prusti_rustc_path() -> PathBuf {
     let local_prusti_rustc_path: PathBuf = if cfg!(windows) {
@@ -11,7 +15,9 @@ fn get_prusti_rustc_path() -> PathBuf {
         ["target", "debug", "prusti-rustc"].iter().collect()
     };
     let workspace_prusti_rustc_path: PathBuf = if cfg!(windows) {
-        ["..", "target", "debug", "prusti-rustc.exe"].iter().collect()
+        ["..", "target", "debug", "prusti-rustc.exe"]
+            .iter()
+            .collect()
     } else {
         ["..", "target", "debug", "prusti-rustc"].iter().collect()
     };
@@ -202,6 +208,10 @@ fn run_verification_core_proof(group_name: &str) {
 
 #[test]
 fn test_runner() {
+    // spawn server process as child (so it stays around until main function terminates)
+    let server_address = ServerSideService::spawn_off_thread();
+    set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
+
     // Test the parsing of specifications. Doesn't run the verifier.
     println!("[parse]");
     run_no_verification("parse");

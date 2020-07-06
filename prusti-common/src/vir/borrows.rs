@@ -9,7 +9,7 @@ use std::collections::{HashMap, VecDeque};
 use std::fmt;
 
 /// The method-unique borrow identifier.
-#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash)]
+#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct Borrow(usize);
 
 impl From<usize> for Borrow {
@@ -88,11 +88,14 @@ impl fmt::Debug for Node {
 
 /// Reborrowing directed acyclic graph (DAG). It should not be mutated
 /// after it is constructed. For construction use `DAGBuilder`.
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DAG {
     /// Mapping from borrows to their node indices.
+    #[serde(skip)]
     borrow_indices: HashMap<Borrow, usize>,
+    #[serde(skip)]
     nodes: Vec<Node>,
+    #[serde(skip)]
     borrowed_places: Vec<Expr>,
 }
 

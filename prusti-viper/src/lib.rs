@@ -8,6 +8,7 @@
 #![feature(box_patterns)]
 #![feature(nll)]
 #![feature(box_syntax)]
+#![feature(custom_attribute)]
 #![feature(iterator_flatten)]
 #![deny(unreachable_patterns)]
 #![deny(unused_mut)]
@@ -22,10 +23,12 @@ extern crate num_traits;
 extern crate prusti_common;
 extern crate prusti_filter;
 extern crate prusti_interface;
+extern crate prusti_server;
 extern crate regex;
 extern crate rustc;
 extern crate rustc_data_structures;
 extern crate rustc_mir;
+extern crate serde;
 extern crate syntax;
 extern crate syntax_pos;
 extern crate viper;
@@ -34,6 +37,6 @@ extern crate viper;
 #[macro_use]
 extern crate pretty_assertions;
 
-mod encoder;
+pub mod encoder;
 mod utils;
 pub mod verifier;

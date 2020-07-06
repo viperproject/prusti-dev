@@ -5,10 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use config;
-use viper;
-use viper::AstFactory;
-use vir::ast::*;
-use vir::borrows::borrow_id;
+use viper::{self, AstFactory};
+use vir::{ast::*, borrows::borrow_id, Program};
 
 pub trait ToViper<'v, T> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> T;
@@ -16,6 +14,53 @@ pub trait ToViper<'v, T> {
 
 pub trait ToViperDecl<'v, T> {
     fn to_viper_decl(&self, ast: &AstFactory<'v>) -> T;
+}
+
+impl<'v> ToViper<'v, viper::Program<'v>> for Program {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Program<'v> {
+        let domains = self.domains.to_viper(ast);
+        let fields = self.fields.to_viper(ast);
+
+        let mut viper_methods: Vec<_> = self.methods.iter().map(|m| m.to_viper(ast)).collect();
+        viper_methods.extend(self.builtin_methods.iter().map(|m| m.to_viper(ast)));
+        if config::verify_only_preamble() {
+            viper_methods = Vec::new();
+        }
+
+        let mut viper_functions: Vec<_> = self.functions.iter().map(|f| f.to_viper(ast)).collect();
+        let predicates = self.viper_predicates.to_viper(ast);
+
+        info!(
+            "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",
+            domains.len(),
+            fields.len(),
+            viper_functions.len(),
+            predicates.len(),
+            viper_methods.len()
+        );
+
+        // Add a function that represents the symbolic read permission amount.
+        viper_functions.push(ast.function(
+            "read$",
+            &[],
+            ast.perm_type(),
+            &[],
+            &[
+                ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
+                ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm()),
+            ],
+            ast.no_position(),
+            None,
+        ));
+
+        ast.program(
+            &domains,
+            &fields,
+            &viper_functions,
+            &predicates,
+            &viper_methods,
+        )
+    }
 }
 
 impl<'v> ToViper<'v, viper::Position<'v>> for Position {
@@ -383,18 +428,14 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     return_type.to_viper(ast),
                     pos.to_viper(ast),
                 )
-            },
-            &Expr::DomainFuncApp(
-                ref function,
-                ref args,
-                ref _pos,
-            ) => {
+            }
+            &Expr::DomainFuncApp(ref function, ref args, ref _pos) => {
                 ast.domain_func_app(
                     function.to_viper(ast),
                     &args.to_viper(ast),
                     &[], // TODO not necessary so far
                 )
-            },
+            }
             /* TODO use once DomainFuncApp has been updated
             &Expr::DomainFuncApp(
                 ref function_name,
@@ -415,13 +456,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 )
             },
             */
-
             &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
-                ast.inhale_exhale_pred(
-                    inhale_expr.to_viper(ast),
-                    exhale_expr.to_viper(ast)
-                )
-            },
+                ast.inhale_exhale_pred(inhale_expr.to_viper(ast), exhale_expr.to_viper(ast))
+            }
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)
@@ -453,6 +490,9 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
         match self {
             Predicate::Struct(p) => p.to_viper(ast),
             Predicate::Enum(p) => p.to_viper(ast),
+            Predicate::Bodyless(name, this) => {
+                ast.predicate(name, &[this.to_viper_decl(ast)], None)
+            }
         }
     }
 }
@@ -541,14 +581,9 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
 
 impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for &'a DomainAxiom {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::NamedDomainAxiom<'v> {
-        ast.named_domain_axiom(
-            &self.name,
-            self.expr.to_viper(ast),
-            &self.domain_name,
-        )
+        ast.named_domain_axiom(&self.name, self.expr.to_viper(ast), &self.domain_name)
     }
 }
-
 
 // Vectors
 

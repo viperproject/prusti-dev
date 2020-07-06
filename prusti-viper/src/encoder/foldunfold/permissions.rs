@@ -4,14 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::places_utils::{union, union3};
-use encoder::foldunfold::perm::Perm::*;
-use encoder::foldunfold::perm::*;
-use prusti_common::vir;
-use prusti_common::vir::PermAmount;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::iter::FromIterator;
+use super::{
+    perm::{Perm::*, *},
+    places_utils::{union, union3},
+};
+use prusti_common::{vir, vir::PermAmount};
+use std::{
+    collections::{HashMap, HashSet},
+    iter::FromIterator,
+};
 
 pub trait RequiredPermissionsGetter {
     /// Returns the permissions required for the expression to be well-defined
@@ -453,6 +454,7 @@ impl PredicatePermissionsGetter for vir::Predicate {
                     p.get_all_permissions()
                 }
             }
+            vir::Predicate::Bodyless(_, _) => HashSet::new(),
         };
         perms
     }

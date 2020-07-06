@@ -6,11 +6,12 @@
 
 use config;
 use std::collections::HashMap;
-use viper;
-use viper::AstFactory;
-use vir::ast::Position;
-use vir::cfg::method::*;
-use vir::to_viper::{ToViper, ToViperDecl};
+use viper::{self, AstFactory};
+use vir::{
+    ast::Position,
+    cfg::method::*,
+    to_viper::{ToViper, ToViperDecl},
+};
 
 impl<'v> ToViper<'v, viper::Method<'v>> for CfgMethod {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {

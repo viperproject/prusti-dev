@@ -4,27 +4,29 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::foldunfold;
-use encoder::spec_encoder::SpecEncoder;
-use encoder::utils::range_extract;
-use encoder::utils::PlusOne;
-use encoder::Encoder;
-use prusti_common::vir;
-use prusti_common::vir::ExprFolder;
-use prusti_common::vir::ExprIterator;
-use prusti_common::config;
+use encoder::{
+    foldunfold,
+    spec_encoder::SpecEncoder,
+    utils::{range_extract, PlusOne},
+    Encoder,
+};
+use prusti_common::{
+    config, vir,
+    vir::{ExprFolder, ExprIterator},
+};
 use prusti_interface::specifications::*;
-use rustc::middle::const_val::ConstVal;
-use rustc::ty;
-use rustc::ty::layout;
-use rustc::ty::layout::IntegerExt;
+use rustc::{
+    middle::const_val::ConstVal,
+    ty,
+    ty::{layout, layout::IntegerExt},
+};
 use rustc_data_structures::indexed_vec::Idx;
-use std;
-use std::collections::hash_map::DefaultHasher;
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
-use syntax::ast;
-use syntax::attr::SignedInt;
+use std::{
+    self,
+    collections::{hash_map::DefaultHasher, HashMap},
+    hash::{Hash, Hasher},
+};
+use syntax::{ast, attr::SignedInt};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,

@@ -9,6 +9,7 @@ else
 endif
 
 RUST_LOG ?= prusti=info
+# TODO: remove for testing
 RUST_TEST_THREADS ?= 1
 JAVA_HOME ?= /usr/lib/jvm/default-java
 RUN_FILE ?= prusti/tests/verify/pass/no-annotations/assert-true.rs
@@ -58,6 +59,10 @@ test: build clean-nested
 test-examples: build clean-nested
 	$(SET_ENV_VARS) \
 	cargo test -p prusti
+
+test-viper-crate: build clean-nested
+	$(SET_ENV_VARS) \
+	cargo test -p viper
 
 build-profile:
 	$(SET_ENV_VARS) \
