@@ -17,9 +17,9 @@ use std::time::Instant;
 use viper::{self, VerificationBackend, Viper};
 use std::path::PathBuf;
 use std::fs::{create_dir_all, canonicalize};
-// use std::ffi::OsString;
+use std::ffi::OsString;
 use prusti_interface::specs::typed;
-use ::log::info;
+use ::log::{info, debug};
 
 /// A verifier builder is an object that lives entire program's
 /// lifetime, has no mutable state, and is responsible for constructing
@@ -274,78 +274,77 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             ast.program(&domains, &fields, &viper_functions, &predicates, &viper_methods)
         };
 
-//         if config::dump_viper_program() {
-//             // Dump Viper program
-//             let source_path = self.env.source_path();
-//             let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-//             let mut dump_path = PathBuf::from("viper_program");
-//             let num_parents = config::num_parents_for_dumps();
-//             if num_parents > 0 {
-//                 // Take `num_parents` parent folders and add them to `dump_path`
-//                 let mut components = vec![];
-//                 if let Some(abs_parent_path) = canonicalize(&source_path).ok().and_then(
-//                     |full_path| full_path.parent().map(|parent| parent.to_path_buf())
-//                 ) {
-//                     components.extend(
-//                         abs_parent_path.ancestors()
-//                             .flat_map(|path| path.file_name())
-//                             .take(num_parents as usize)
-//                             .map(|x| x.to_os_string())
-//                             .collect::<Vec<_>>()
-//                             .into_iter()
-//                             .rev()
-//                     );
-//                 } else {
-//                     components.push(OsString::from("io_error"))
-//                 }
-//                 for component in components {
-//                     dump_path.push(component);
-//                 }
-//             }
-//             info!("Dumping Viper program to the {:?} folder", dump_path);
-//             log::report(
-//                 dump_path.to_str().unwrap(),
-//                 format!("{}.vpr", source_filename),
-//                 self.ast_utils.pretty_print(program),
-//             );
-//         }
+        if config::dump_viper_program() {
+            // Dump Viper program
+            let source_path = self.env.source_path();
+            let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+            let mut dump_path = PathBuf::from("viper_program");
+            let num_parents = config::num_parents_for_dumps();
+            if num_parents > 0 {
+                // Take `num_parents` parent folders and add them to `dump_path`
+                let mut components = vec![];
+                if let Some(abs_parent_path) = canonicalize(&source_path).ok().and_then(
+                    |full_path| full_path.parent().map(|parent| parent.to_path_buf())
+                ) {
+                    components.extend(
+                        abs_parent_path.ancestors()
+                            .flat_map(|path| path.file_name())
+                            .take(num_parents as usize)
+                            .map(|x| x.to_os_string())
+                            .collect::<Vec<_>>()
+                            .into_iter()
+                            .rev()
+                    );
+                } else {
+                    components.push(OsString::from("io_error"))
+                }
+                for component in components {
+                    dump_path.push(component);
+                }
+            }
+            info!("Dumping Viper program to the {:?} folder", dump_path);
+            log::report(
+                dump_path.to_str().unwrap(),
+                format!("{}.vpr", source_filename),
+                self.ast_utils.pretty_print(program),
+            );
+        }
 
-//         let duration = start.elapsed();
-//         info!(
-//             "Construction of JVM objects successful ({}.{} seconds)",
-//             duration.as_secs(),
-//             duration.subsec_millis() / 10
-//         );
-//         let start = Instant::now();
+        let duration = start.elapsed();
+        info!(
+            "Construction of JVM objects successful ({}.{} seconds)",
+            duration.as_secs(),
+            duration.subsec_millis() / 10
+        );
+        let start = Instant::now();
 
-//         let verification_result: viper::VerificationResult = self.verifier.verify(program);
+        let verification_result: viper::VerificationResult = self.verifier.verify(program);
 
-//         let duration = start.elapsed();
-//         info!(
-//             "Verification complete ({}.{} seconds)",
-//             duration.as_secs(),
-//             duration.subsec_millis() / 10
-//         );
+        let duration = start.elapsed();
+        info!(
+            "Verification complete ({}.{} seconds)",
+            duration.as_secs(),
+            duration.subsec_millis() / 10
+        );
 
-//         let verification_errors = match verification_result {
-//             viper::VerificationResult::Failure(errors) => errors,
-//             _ => vec![],
-//         };
+        let verification_errors = match verification_result {
+            viper::VerificationResult::Failure(errors) => errors,
+            _ => vec![],
+        };
 
-//         if encoding_errors_count == 0 && verification_errors.is_empty() {
-//             VerificationResult::Success
-//         } else {
-//             let error_manager = self.encoder.error_manager();
+        if encoding_errors_count == 0 && verification_errors.is_empty() {
+            VerificationResult::Success
+        } else {
+            let error_manager = self.encoder.error_manager();
 
-//             for verification_error in verification_errors {
-//                 debug!("Verification error: {:?}", verification_error);
-//                 let prusti_error = error_manager.translate_verification_error(&verification_error);
-//                 debug!("Prusti error: {:?}", prusti_error);
-//                 prusti_error.emit(self.env);
-//             }
-//             VerificationResult::Failure
-//         }
-        unimplemented!();
+            for verification_error in verification_errors {
+                debug!("Verification error: {:?}", verification_error);
+                let prusti_error = error_manager.translate_verification_error(&verification_error);
+                debug!("Prusti error: {:?}", prusti_error);
+                prusti_error.emit(self.env);
+            }
+            VerificationResult::Failure
+        }
     }
 
     pub fn invalidate_all(&mut self) {
