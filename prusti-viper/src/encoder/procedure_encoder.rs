@@ -503,43 +503,41 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             unresolved_edges.extend(curr_edges);
         }
 
-        // // Return unresolved CFG edges
-        // let group_head = ordered_group_blocks.get(0).map(|bb| {
-        //     debug_assert!(
-        //         bb_map.contains_key(bb),
-        //         "Block {:?} (depth: {}, loop head: {}) has not been encoded \
-        //         (group_loop_depth: {}, ordered_group_blocks: {:?})",
-        //         bb,
-        //         self.loop_encoder.loops().get_loop_depth(*bb),
-        //         self.loop_encoder.loops().is_loop_head(*bb),
-        //         group_loop_depth,
-        //         ordered_group_blocks,
-        //     );
-        //     bb_map[bb]
-        // });
-        // let still_unresolved_edges =
-        //     self.encode_unresolved_edges(unresolved_edges, |bb| bb_map.get(&bb).cloned())?;
-        // Ok((group_head, still_unresolved_edges))
-
-        unimplemented!()
+        // Return unresolved CFG edges
+        let group_head = ordered_group_blocks.get(0).map(|bb| {
+            debug_assert!(
+                bb_map.contains_key(bb),
+                "Block {:?} (depth: {}, loop head: {}) has not been encoded \
+                (group_loop_depth: {}, ordered_group_blocks: {:?})",
+                bb,
+                self.loop_encoder.loops().get_loop_depth(*bb),
+                self.loop_encoder.loops().is_loop_head(*bb),
+                group_loop_depth,
+                ordered_group_blocks,
+            );
+            bb_map[bb]
+        });
+        let still_unresolved_edges =
+            self.encode_unresolved_edges(unresolved_edges, |bb| bb_map.get(&bb).cloned())?;
+        Ok((group_head, still_unresolved_edges))
     }
 
-    // fn encode_unresolved_edges<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
-    //     &mut self,
-    //     mut unresolved_edges: Vec<(CfgBlockIndex, BasicBlockIndex)>,
-    //     resolver: F,
-    // ) -> Result<Vec<(CfgBlockIndex, BasicBlockIndex)>> {
-    //     let mut still_unresolved_edges: Vec<_> = vec![];
-    //     for (curr_block, target) in unresolved_edges.drain(..) {
-    //         if let Some(target_block) = resolver(target) {
-    //             self.cfg_method
-    //                 .set_successor(curr_block, Successor::Goto(target_block));
-    //         } else {
-    //             still_unresolved_edges.push((curr_block, target));
-    //         }
-    //     }
-    //     Ok(still_unresolved_edges)
-    // }
+    fn encode_unresolved_edges<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+        &mut self,
+        mut unresolved_edges: Vec<(CfgBlockIndex, BasicBlockIndex)>,
+        resolver: F,
+    ) -> Result<Vec<(CfgBlockIndex, BasicBlockIndex)>> {
+        let mut still_unresolved_edges: Vec<_> = vec![];
+        for (curr_block, target) in unresolved_edges.drain(..) {
+            if let Some(target_block) = resolver(target) {
+                self.cfg_method
+                    .set_successor(curr_block, Successor::Goto(target_block));
+            } else {
+                still_unresolved_edges.push((curr_block, target));
+            }
+        }
+        Ok(still_unresolved_edges)
+    }
 
     /// Encodes a loop.
     ///
