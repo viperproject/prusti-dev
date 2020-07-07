@@ -281,47 +281,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         }
     }
 
-//     pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Expr {
-//         let (encoded_place, place_ty, _) = self.encode_place(place);
-//         let value_field = self.encoder.encode_value_field(place_ty);
-//         encoded_place.field(value_field)
-//     }
+    pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Expr {
+        let (encoded_place, place_ty, _) = self.encode_place(place);
+        let value_field = self.encoder.encode_value_field(place_ty);
+        encoded_place.field(value_field)
+    }
 
     /// Returns an `vir::Expr` that corresponds to the value of the operand
     pub fn encode_operand_expr(&self, operand: &mir::Operand<'tcx>) -> vir::Expr {
         trace!("Encode operand expr {:?}", operand);
-        // match operand {
-        //     &mir::Operand::Constant(box mir::Constant {
-        //         literal: mir::Literal::Value { value },
-        //         ..
-        //     }) => self.encoder.encode_const_expr(value),
-        //     &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
-        //         let val_place = self.eval_place(&place);
-        //         val_place.into()
-        //     }
-        //     &mir::Operand::Constant(box mir::Constant {
-        //         ty,
-        //         literal: mir::Literal::Promoted { .. },
-        //         ..
-        //     }) => {
-        //         debug!("Incomplete encoding of promoted literal {:?}", operand);
+        match operand {
+            &mir::Operand::Constant(box mir::Constant {
+                literal: ty::Const { ty, val },
+                ..
+            }) => self.encoder.encode_const_expr(ty, val),
+            &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
+                let val_place = self.eval_place(&place);
+                val_place.into()
+            }
+            // FIXME: Check whether the commented out code is necessary.
+            // &mir::Operand::Constant(box mir::Constant {
+            //     ty,
+            //     literal: mir::Literal::Promoted { .. },
+            //     ..
+            // }) => {
+            //     debug!("Incomplete encoding of promoted literal {:?}", operand);
 
-        //         // Generate a function call that leaves the expression undefined.
-        //         let encoded_type = self.encoder.encode_value_type(ty);
-        //         let function_name =
-        //             self.encoder
-        //                 .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
-        //                     encoded_type.clone(),
-        //                 ));
-        //         let pos = self.encoder.error_manager().register(
-        //             // TODO: use a proper span
-        //             self.mir.span,
-        //             ErrorCtxt::PureFunctionCall,
-        //         );
-        //         vir::Expr::func_app(function_name, vec![], vec![], encoded_type, pos)
-        //     }
-        // }
-        unimplemented!();
+            //     // Generate a function call that leaves the expression undefined.
+            //     let encoded_type = self.encoder.encode_value_type(ty);
+            //     let function_name =
+            //         self.encoder
+            //             .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
+            //                 encoded_type.clone(),
+            //             ));
+            //     let pos = self.encoder.error_manager().register(
+            //         // TODO: use a proper span
+            //         self.mir.span,
+            //         ErrorCtxt::PureFunctionCall,
+            //     );
+            //     vir::Expr::func_app(function_name, vec![], vec![], encoded_type, pos)
+            // }
+        }
     }
 
     pub fn get_operand_ty(&self, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
@@ -354,32 +354,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 //         }
 //     }
 
-//     pub fn encode_bin_op_expr(
-//         &self,
-//         op: mir::BinOp,
-//         left: vir::Expr,
-//         right: vir::Expr,
-//         ty: ty::Ty<'tcx>,
-//     ) -> vir::Expr {
-//         let is_bool = ty.sty == ty::TyKind::Bool;
-//         match op {
-//             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
-//             mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
-//             mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
-//             mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
-//             mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
-//             mir::BinOp::Le => vir::Expr::le_cmp(left, right),
-//             mir::BinOp::Add => vir::Expr::add(left, right),
-//             mir::BinOp::Sub => vir::Expr::sub(left, right),
-//             mir::BinOp::Rem => vir::Expr::rem(left, right),
-//             mir::BinOp::Div => vir::Expr::div(left, right),
-//             mir::BinOp::Mul => vir::Expr::mul(left, right),
-//             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
-//             mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
-//             mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
-//             x => unimplemented!("{:?}", x),
-//         }
-//     }
+    pub fn encode_bin_op_expr(
+        &self,
+        op: mir::BinOp,
+        left: vir::Expr,
+        right: vir::Expr,
+        ty: ty::Ty<'tcx>,
+    ) -> vir::Expr {
+        let is_bool = ty.kind == ty::TyKind::Bool;
+        match op {
+            mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
+            mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
+            mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
+            mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
+            mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
+            mir::BinOp::Le => vir::Expr::le_cmp(left, right),
+            mir::BinOp::Add => vir::Expr::add(left, right),
+            mir::BinOp::Sub => vir::Expr::sub(left, right),
+            mir::BinOp::Rem => vir::Expr::rem(left, right),
+            mir::BinOp::Div => vir::Expr::div(left, right),
+            mir::BinOp::Mul => vir::Expr::mul(left, right),
+            mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
+            mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
+            mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
+            x => unimplemented!("{:?}", x),
+        }
+    }
 
     pub fn encode_unary_op_expr(&self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {
         match op {

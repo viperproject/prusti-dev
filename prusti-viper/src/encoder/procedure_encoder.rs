@@ -3896,13 +3896,12 @@ unimplemented!();
             left,
             right
         );
-        // let encoded_left = self.mir_encoder.encode_operand_expr(left);
-        // let encoded_right = self.mir_encoder.encode_operand_expr(right);
-        // let encoded_value =
-        //     self.mir_encoder
-        //         .encode_bin_op_expr(op, encoded_left, encoded_right, ty);
-        // self.encode_copy_value_assign(encoded_lhs, encoded_value, ty, location)
-        unimplemented!();
+        let encoded_left = self.mir_encoder.encode_operand_expr(left);
+        let encoded_right = self.mir_encoder.encode_operand_expr(right);
+        let encoded_value =
+            self.mir_encoder
+                .encode_bin_op_expr(op, encoded_left, encoded_right, ty);
+        self.encode_copy_value_assign(encoded_lhs, encoded_value, ty, location)
     }
 
     fn encode_copy_value_assign(
