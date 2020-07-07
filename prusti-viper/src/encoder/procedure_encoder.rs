@@ -84,7 +84,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
         HashMap<mir::Location, (ProcedureContract<'tcx>, HashMap<vir::Expr, vir::Expr>)>,
     // /// A map that stores local variables used to preserve the value of a place accross the loop
     // /// when we cannot do that by using permissions.
-    // pure_var_for_preserving_value_map: HashMap<BasicBlockIndex, HashMap<vir::Expr, vir::LocalVar>>,
+    pure_var_for_preserving_value_map: HashMap<BasicBlockIndex, HashMap<vir::Expr, vir::LocalVar>>,
     /// Information about which places are definitely initialised.
     init_info: InitInfo,
     // /// Mapping from old expressions to ghost variables with which they were replaced.
@@ -136,7 +136,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             magic_wand_at_location: HashMap::new(),
             magic_wand_apply_post: HashMap::new(),
             procedure_contracts: HashMap::new(),
-            // pure_var_for_preserving_value_map: HashMap::new(),
+            pure_var_for_preserving_value_map: HashMap::new(),
             init_info: init_info,
             old_to_ghost_var: HashMap::new(),
             old_ghost_vars: HashMap::new(),
@@ -573,148 +573,148 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         blocks: &[BasicBlockIndex],
         return_block: CfgBlockIndex,
     ) -> Result<(CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
-        // debug_assert!(blocks.len() > 1);
-        // let loop_info = self.loop_encoder.loops();
-        // let loop_head = blocks[0];
-        // trace!("encode_loop: {:?}", loop_head);
-        // debug_assert!(loop_info.is_loop_head(loop_head));
-        // let loop_depth = loop_info.get_loop_head_depth(loop_head);
-        // let loop_label_prefix = format!("{}loop{}", label_prefix, loop_head.index());
+        debug_assert!(blocks.len() > 1);
+        let loop_info = self.loop_encoder.loops();
+        let loop_head = blocks[0];
+        trace!("encode_loop: {:?}", loop_head);
+        debug_assert!(loop_info.is_loop_head(loop_head));
+        let loop_depth = loop_info.get_loop_head_depth(loop_head);
+        let loop_label_prefix = format!("{}loop{}", label_prefix, loop_head.index());
 
-        // let loop_body: Vec<BasicBlockIndex> = loop_info
-        //     .get_loop_body(loop_head)
-        //     .iter()
-        //     .filter(|&&bb| !self.procedure.is_spec_block(bb))
-        //     .cloned()
-        //     .collect();
+        let loop_body: Vec<BasicBlockIndex> = loop_info
+            .get_loop_body(loop_head)
+            .iter()
+            .filter(|&&bb| !self.procedure.is_spec_block(bb))
+            .cloned()
+            .collect();
 
-        // // Identify important blocks
-        // let loop_exit_blocks = loop_info.get_loop_exit_blocks(loop_head);
-        // let loop_exit_blocks_set: HashSet<_> = loop_exit_blocks.iter().cloned().collect();
-        // let before_invariant_block: BasicBlockIndex = loop_body
-        //     .iter()
-        //     .find(|&&bb| {
-        //         loop_info.get_loop_depth(bb) == loop_depth
-        //             && self.mir[bb].terminator().successors().any(|&succ_bb| {
-        //                 self.procedure.is_reachable_block(succ_bb)
-        //                     && self.procedure.is_spec_block(succ_bb)
-        //             })
-        //     })
-        //     .cloned()
-        //     .unwrap_or_else(|| loop_exit_blocks.get(0).cloned().unwrap_or(loop_head));
-        // let before_inv_block_pos = loop_body
-        //     .iter()
-        //     .position(|&bb| bb == before_invariant_block)
-        //     .unwrap();
-        // let after_inv_block_pos = 1 + before_inv_block_pos;
-        // let exit_blocks_before_inv: Vec<_> = loop_body[0..after_inv_block_pos]
-        //     .iter()
-        //     .filter(|&bb| loop_exit_blocks_set.contains(bb))
-        //     .cloned()
-        //     .collect();
-        // // Heuristic: pick the first exit block before the invariant.
-        // // Note that this does not allow having break/return/continue statements in the loop guard.
-        // if exit_blocks_before_inv.len() > 1 {
-        //     return Err(EncodingError::incorrect(
-        //         "'break', 'continue', 'return', and panic statements are not allowed before the \
-        //         loop invariant",
-        //         exit_blocks_before_inv
-        //             .iter()
-        //             .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
-        //             .collect::<Vec<_>>(),
-        //     ));
-        // }
-        // let opt_loop_guard_switch = exit_blocks_before_inv.get(0).cloned();
-        // let after_guard_block_pos = opt_loop_guard_switch
-        //     .and_then(|loop_guard_switch| {
-        //         loop_body
-        //             .iter()
-        //             .position(|&bb| bb == loop_guard_switch)
-        //             .map(|x| x + 1)
-        //     })
-        //     .unwrap_or(0);
-        // let after_guard_block = loop_body[after_guard_block_pos];
-        // let after_inv_block = loop_body[after_inv_block_pos];
+        // Identify important blocks
+        let loop_exit_blocks = loop_info.get_loop_exit_blocks(loop_head);
+        let loop_exit_blocks_set: HashSet<_> = loop_exit_blocks.iter().cloned().collect();
+        let before_invariant_block: BasicBlockIndex = loop_body
+            .iter()
+            .find(|&&bb| {
+                loop_info.get_loop_depth(bb) == loop_depth
+                    && self.mir[bb].terminator().successors().any(|&succ_bb| {
+                        self.procedure.is_reachable_block(succ_bb)
+                            && self.procedure.is_spec_block(succ_bb)
+                    })
+            })
+            .cloned()
+            .unwrap_or_else(|| loop_exit_blocks.get(0).cloned().unwrap_or(loop_head));
+        let before_inv_block_pos = loop_body
+            .iter()
+            .position(|&bb| bb == before_invariant_block)
+            .unwrap();
+        let after_inv_block_pos = 1 + before_inv_block_pos;
+        let exit_blocks_before_inv: Vec<_> = loop_body[0..after_inv_block_pos]
+            .iter()
+            .filter(|&bb| loop_exit_blocks_set.contains(bb))
+            .cloned()
+            .collect();
+        // Heuristic: pick the first exit block before the invariant.
+        // Note that this does not allow having break/return/continue statements in the loop guard.
+        if exit_blocks_before_inv.len() > 1 {
+            return Err(EncodingError::incorrect(
+                "'break', 'continue', 'return', and panic statements are not allowed before the \
+                loop invariant",
+                exit_blocks_before_inv
+                    .iter()
+                    .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
+                    .collect::<Vec<_>>(),
+            ));
+        }
+        let opt_loop_guard_switch = exit_blocks_before_inv.get(0).cloned();
+        let after_guard_block_pos = opt_loop_guard_switch
+            .and_then(|loop_guard_switch| {
+                loop_body
+                    .iter()
+                    .position(|&bb| bb == loop_guard_switch)
+                    .map(|x| x + 1)
+            })
+            .unwrap_or(0);
+        let after_guard_block = loop_body[after_guard_block_pos];
+        let after_inv_block = loop_body[after_inv_block_pos];
 
-        // trace!("opt_loop_guard_switch: {:?}", opt_loop_guard_switch);
-        // trace!("before_invariant_block: {:?}", before_invariant_block);
-        // trace!("after_guard_block: {:?}", after_guard_block);
-        // trace!("after_inv_block: {:?}", after_inv_block);
-        // if loop_info.is_conditional_branch(loop_head, before_invariant_block) {
-        //     debug!(
-        //         "{:?} is conditional branch in loop {:?}",
-        //         before_invariant_block, loop_head
-        //     );
-        //     return Err(EncodingError::incorrect(
-        //         "the loop invariant cannot be in a conditional branch of the loop",
-        //         self.mir_encoder.get_span_of_basic_block(loop_head),
-        //     ));
-        // }
+        trace!("opt_loop_guard_switch: {:?}", opt_loop_guard_switch);
+        trace!("before_invariant_block: {:?}", before_invariant_block);
+        trace!("after_guard_block: {:?}", after_guard_block);
+        trace!("after_inv_block: {:?}", after_inv_block);
+        if loop_info.is_conditional_branch(loop_head, before_invariant_block) {
+            debug!(
+                "{:?} is conditional branch in loop {:?}",
+                before_invariant_block, loop_head
+            );
+            return Err(EncodingError::incorrect(
+                "the loop invariant cannot be in a conditional branch of the loop",
+                self.mir_encoder.get_span_of_basic_block(loop_head),
+            ));
+        }
 
-    //     // Split the blocks such that:
-    //     // * G is loop_guard_evaluation, starting (if nonempty) with loop_head
-    //     // * B1 is loop_body_before_inv, starting with after_guard_block (which could be loop_head)
-    //     // * B2 is loop_body_after_inv, starting with after_inv_block
-    //     let loop_guard_evaluation = &loop_body[0..after_guard_block_pos];
-    //     let loop_body_before_inv = &loop_body[after_guard_block_pos..after_inv_block_pos];
-    //     let loop_body_after_inv = &loop_body[after_inv_block_pos..];
+        // Split the blocks such that:
+        // * G is loop_guard_evaluation, starting (if nonempty) with loop_head
+        // * B1 is loop_body_before_inv, starting with after_guard_block (which could be loop_head)
+        // * B2 is loop_body_after_inv, starting with after_inv_block
+        let loop_guard_evaluation = &loop_body[0..after_guard_block_pos];
+        let loop_body_before_inv = &loop_body[after_guard_block_pos..after_inv_block_pos];
+        let loop_body_after_inv = &loop_body[after_inv_block_pos..];
 
-    //     // The main path in the encoding is: start -> G -> B1 -> havoc -> B2 -> G -> B1 -> end
-    //     // We are going to build the encoding left to right.
-    //     let mut heads = vec![];
+        // The main path in the encoding is: start -> G -> B1 -> havoc -> B2 -> G -> B1 -> end
+        // We are going to build the encoding left to right.
+        let mut heads = vec![];
 
-    //     // Build the "start" CFG block (*start* - G - B1 - havoc - B2 - G - B1 - end)
-    //     let start_block = self.cfg_method.add_block(
-    //         &format!("{}_start", loop_label_prefix),
-    //         vec![],
-    //         vec![vir::Stmt::comment(format!(
-    //             "========== {}_start ==========",
-    //             loop_label_prefix
-    //         ))],
-    //     );
-    //     heads.push(Some(start_block));
+        // Build the "start" CFG block (*start* - G - B1 - havoc - B2 - G - B1 - end)
+        let start_block = self.cfg_method.add_block(
+            &format!("{}_start", loop_label_prefix),
+            vec![],
+            vec![vir::Stmt::comment(format!(
+                "========== {}_start ==========",
+                loop_label_prefix
+            ))],
+        );
+        heads.push(Some(start_block));
 
-    //     // Encode the first G group (start - *G* - B1 - havoc - B2 - G - B1 - end)
-    //     let (first_g_head, first_g_edges) = self.encode_blocks_group(
-    //         &format!("{}_group1_", loop_label_prefix),
-    //         loop_guard_evaluation,
-    //         loop_depth,
-    //         return_block,
-    //     )?;
-    //     heads.push(first_g_head);
+        // Encode the first G group (start - *G* - B1 - havoc - B2 - G - B1 - end)
+        let (first_g_head, first_g_edges) = self.encode_blocks_group(
+            &format!("{}_group1_", loop_label_prefix),
+            loop_guard_evaluation,
+            loop_depth,
+            return_block,
+        )?;
+        heads.push(first_g_head);
 
-    //     // Encode the first B1 group (start - G - *B1* - havoc - B2 - G - B1 - end)
-    //     let (first_b1_head, first_b1_edges) = self.encode_blocks_group(
-    //         &format!("{}_group2_", loop_label_prefix),
-    //         loop_body_before_inv,
-    //         loop_depth,
-    //         return_block,
-    //     )?;
-    //     heads.push(first_b1_head);
+        // Encode the first B1 group (start - G - *B1* - havoc - B2 - G - B1 - end)
+        let (first_b1_head, first_b1_edges) = self.encode_blocks_group(
+            &format!("{}_group2_", loop_label_prefix),
+            loop_body_before_inv,
+            loop_depth,
+            return_block,
+        )?;
+        heads.push(first_b1_head);
 
-    //     // Build the "havock" CFG block (start - G - B1 - *havock* - B2 - G - B1 - end)
-    //     // (1) checks the loop invariant on entry
-    //     // (2) havocks the invariant and the local variables.
-    //     let havock_block = self.cfg_method.add_block(
-    //         &format!("{}_havock", loop_label_prefix),
-    //         vec![],
-    //         vec![vir::Stmt::comment(format!(
-    //             "========== {}_havoc ==========",
-    //             loop_label_prefix
-    //         ))],
-    //     );
-    //     {
-    //         let stmts =
-    //             self.encode_loop_invariant_exhale_stmts(loop_head, before_invariant_block, false);
-    //         self.cfg_method.add_stmts(havock_block, stmts);
-    //     }
-    //     // TODO: havoc local variables
-    //     {
-    //         let stmts =
-    //             self.encode_loop_invariant_inhale_stmts(loop_head, before_invariant_block, false);
-    //         self.cfg_method.add_stmts(havock_block, stmts);
-    //     }
-    //     heads.push(Some(havock_block));
+        // Build the "havock" CFG block (start - G - B1 - *havock* - B2 - G - B1 - end)
+        // (1) checks the loop invariant on entry
+        // (2) havocks the invariant and the local variables.
+        let havock_block = self.cfg_method.add_block(
+            &format!("{}_havock", loop_label_prefix),
+            vec![],
+            vec![vir::Stmt::comment(format!(
+                "========== {}_havoc ==========",
+                loop_label_prefix
+            ))],
+        );
+        {
+            let stmts =
+                self.encode_loop_invariant_exhale_stmts(loop_head, before_invariant_block, false);
+            self.cfg_method.add_stmts(havock_block, stmts);
+        }
+        // TODO: havoc local variables
+        {
+            let stmts =
+                self.encode_loop_invariant_inhale_stmts(loop_head, before_invariant_block, false);
+            self.cfg_method.add_stmts(havock_block, stmts);
+        }
+        heads.push(Some(havock_block));
 
     //     // Encode the last B2 group (start - G - B1 - havoc - *B2* - G - B1 - end)
     //     let (last_b2_head, last_b2_edges) = self.encode_blocks_group(
@@ -3275,24 +3275,24 @@ unimplemented!();
     //     )
     // }
 
-    // /// `drop_read_references` – should we add permissions to read
-    // /// references? We drop permissions of read references from the
-    // /// exhale before the loop and inhale after the loop so that
-    // /// the knowledge about their values is not havocked.
-    // ///
-    // /// The first vector contains permissions and the second value
-    // /// preserving equalities.
-    // fn encode_loop_invariant_permissions(
-    //     &mut self,
-    //     loop_head: BasicBlockIndex,
-    //     drop_read_references: bool,
-    // ) -> (Vec<vir::Expr>, Vec<vir::Expr>) {
-    //     trace!(
-    //         "[enter] encode_loop_invariant_permissions \
-    //          loop_head={:?} drop_read_references={}",
-    //         loop_head,
-    //         drop_read_references
-    //     );
+    /// `drop_read_references` – should we add permissions to read
+    /// references? We drop permissions of read references from the
+    /// exhale before the loop and inhale after the loop so that
+    /// the knowledge about their values is not havocked.
+    ///
+    /// The first vector contains permissions and the second value
+    /// preserving equalities.
+    fn encode_loop_invariant_permissions(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        drop_read_references: bool,
+    ) -> (Vec<vir::Expr>, Vec<vir::Expr>) {
+        trace!(
+            "[enter] encode_loop_invariant_permissions \
+             loop_head={:?} drop_read_references={}",
+            loop_head,
+            drop_read_references
+        );
     //     let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head);
     //     debug!("permissions_forest: {:?}", permissions_forest);
     //     let loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
@@ -3441,40 +3441,41 @@ unimplemented!();
     //             .collect::<String>()
     //     );
     //     (permissions, equalities)
-    // }
+    unimplemented!()
+    }
 
-    // /// Get the basic blocks that encode the specification of a loop invariant
-    // fn get_loop_spec_blocks(&self, loop_head: BasicBlockIndex) -> Vec<BasicBlockIndex> {
-    //     let mut res = vec![];
-    //     for bbi in self.procedure.get_reachable_cfg_blocks() {
-    //         if Some(loop_head) == self.loop_encoder.get_loop_head(bbi)
-    //             && self.procedure.is_spec_block(bbi)
-    //         {
-    //             res.push(bbi)
-    //         } else {
-    //             debug!(
-    //                 "bbi {:?} has head {:?} and 'is spec' is {}",
-    //                 bbi,
-    //                 self.loop_encoder.get_loop_head(bbi),
-    //                 self.procedure.is_spec_block(bbi)
-    //             );
-    //         }
-    //     }
-    //     res
-    // }
+    /// Get the basic blocks that encode the specification of a loop invariant
+    fn get_loop_spec_blocks(&self, loop_head: BasicBlockIndex) -> Vec<BasicBlockIndex> {
+        let mut res = vec![];
+        for bbi in self.procedure.get_reachable_cfg_blocks() {
+            if Some(loop_head) == self.loop_encoder.get_loop_head(bbi)
+                && self.procedure.is_spec_block(bbi)
+            {
+                res.push(bbi)
+            } else {
+                debug!(
+                    "bbi {:?} has head {:?} and 'is spec' is {}",
+                    bbi,
+                    self.loop_encoder.get_loop_head(bbi),
+                    self.procedure.is_spec_block(bbi)
+                );
+            }
+        }
+        res
+    }
 
-    // /// Encode the functional specification of a loop
-    // fn encode_loop_invariant_specs(
-    //     &self,
-    //     loop_head: BasicBlockIndex,
-    //     loop_inv_block: BasicBlockIndex,
-    // ) -> (Vec<vir::Expr>, MultiSpan) {
-    //     let spec_blocks = self.get_loop_spec_blocks(loop_head);
-    //     trace!(
-    //         "loop head {:?} has spec blocks {:?}",
-    //         loop_head,
-    //         spec_blocks
-    //     );
+    /// Encode the functional specification of a loop
+    fn encode_loop_invariant_specs(
+        &self,
+        loop_head: BasicBlockIndex,
+        loop_inv_block: BasicBlockIndex,
+    ) -> (Vec<vir::Expr>, MultiSpan) {
+        let spec_blocks = self.get_loop_spec_blocks(loop_head);
+        trace!(
+            "loop head {:?} has spec blocks {:?}",
+            loop_head,
+            spec_blocks
+        );
 
     //     let mut spec_ids = vec![];
     //     for bbi in spec_blocks {
@@ -3539,122 +3540,123 @@ unimplemented!();
     //     }
 
     //     (encoded_specs, MultiSpan::from_spans(encoded_spec_spans))
-    // }
+    unimplemented!();
+    }
 
-    // fn encode_loop_invariant_exhale_stmts(
-    //     &mut self,
-    //     loop_head: BasicBlockIndex,
-    //     loop_inv_block: BasicBlockIndex,
-    //     after_loop_iteration: bool,
-    // ) -> Vec<vir::Stmt> {
-    //     trace!(
-    //         "[enter] encode_loop_invariant_exhale_stmts loop_head={:?} \
-    //          after_loop_iteration={}",
-    //         loop_head,
-    //         after_loop_iteration
-    //     );
-    //     if !after_loop_iteration {
-    //         self.pure_var_for_preserving_value_map
-    //             .insert(loop_head, HashMap::new());
-    //     }
-    //     let (permissions, equalities) = self.encode_loop_invariant_permissions(loop_head, true);
-    //     let (func_spec, func_spec_span) =
-    //         self.encode_loop_invariant_specs(loop_head, loop_inv_block);
+    fn encode_loop_invariant_exhale_stmts(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        loop_inv_block: BasicBlockIndex,
+        after_loop_iteration: bool,
+    ) -> Vec<vir::Stmt> {
+        trace!(
+            "[enter] encode_loop_invariant_exhale_stmts loop_head={:?} \
+             after_loop_iteration={}",
+            loop_head,
+            after_loop_iteration
+        );
+        if !after_loop_iteration {
+            self.pure_var_for_preserving_value_map
+                .insert(loop_head, HashMap::new());
+        }
+        let (permissions, equalities) = self.encode_loop_invariant_permissions(loop_head, true);
+        let (func_spec, func_spec_span) =
+            self.encode_loop_invariant_specs(loop_head, loop_inv_block);
 
-    //     // TODO: use different positions, and generate different error messages, for the exhale
-    //     // before the loop and after the loop body
+        // TODO: use different positions, and generate different error messages, for the exhale
+        // before the loop and after the loop body
 
-    //     let assert_pos = self.encoder.error_manager().register(
-    //         // TODO: choose a proper error span
-    //         func_spec_span.clone(),
-    //         if after_loop_iteration {
-    //             ErrorCtxt::AssertLoopInvariantAfterIteration
-    //         } else {
-    //             ErrorCtxt::AssertLoopInvariantOnEntry
-    //         },
-    //     );
+        let assert_pos = self.encoder.error_manager().register(
+            // TODO: choose a proper error span
+            func_spec_span.clone(),
+            if after_loop_iteration {
+                ErrorCtxt::AssertLoopInvariantAfterIteration
+            } else {
+                ErrorCtxt::AssertLoopInvariantOnEntry
+            },
+        );
 
-    //     let exhale_pos = self.encoder.error_manager().register(
-    //         // TODO: choose a proper error span
-    //         func_spec_span,
-    //         if after_loop_iteration {
-    //             ErrorCtxt::ExhaleLoopInvariantAfterIteration
-    //         } else {
-    //             ErrorCtxt::ExhaleLoopInvariantOnEntry
-    //         },
-    //     );
+        let exhale_pos = self.encoder.error_manager().register(
+            // TODO: choose a proper error span
+            func_spec_span,
+            if after_loop_iteration {
+                ErrorCtxt::ExhaleLoopInvariantAfterIteration
+            } else {
+                ErrorCtxt::ExhaleLoopInvariantOnEntry
+            },
+        );
 
-    //     let mut stmts = vec![vir::Stmt::comment(format!(
-    //         "Assert and exhale the loop invariant of block {:?}",
-    //         loop_head
-    //     ))];
-    //     if !after_loop_iteration {
-    //         for (place, field) in &self.pure_var_for_preserving_value_map[&loop_head] {
-    //             stmts.push(vir::Stmt::Assign(
-    //                 field.into(),
-    //                 place.clone(),
-    //                 vir::AssignKind::Ghost,
-    //             ));
-    //         }
-    //     }
-    //     assert!(!assert_pos.is_default());
-    //     let obtain_predicates = permissions.iter().map(|p| {
-    //         vir::Stmt::Obtain(p.clone(), assert_pos.clone()) // TODO: Use a better position.
-    //     });
-    //     stmts.extend(obtain_predicates);
+        let mut stmts = vec![vir::Stmt::comment(format!(
+            "Assert and exhale the loop invariant of block {:?}",
+            loop_head
+        ))];
+        if !after_loop_iteration {
+            for (place, field) in &self.pure_var_for_preserving_value_map[&loop_head] {
+                stmts.push(vir::Stmt::Assign(
+                    field.into(),
+                    place.clone(),
+                    vir::AssignKind::Ghost,
+                ));
+            }
+        }
+        assert!(!assert_pos.is_default());
+        let obtain_predicates = permissions.iter().map(|p| {
+            vir::Stmt::Obtain(p.clone(), assert_pos.clone()) // TODO: Use a better position.
+        });
+        stmts.extend(obtain_predicates);
 
-    //     stmts.push(vir::Stmt::Assert(
-    //         func_spec.into_iter().conjoin(),
-    //         vir::FoldingBehaviour::Expr,
-    //         assert_pos,
-    //     ));
-    //     let equalities_expr = equalities.into_iter().conjoin();
-    //     stmts.push(vir::Stmt::Assert(
-    //         equalities_expr,
-    //         vir::FoldingBehaviour::Expr,
-    //         exhale_pos.clone(),
-    //     ));
-    //     let permission_expr = permissions.into_iter().conjoin();
-    //     stmts.push(vir::Stmt::Exhale(permission_expr, exhale_pos));
-    //     stmts
-    // }
+        stmts.push(vir::Stmt::Assert(
+            func_spec.into_iter().conjoin(),
+            vir::FoldingBehaviour::Expr,
+            assert_pos,
+        ));
+        let equalities_expr = equalities.into_iter().conjoin();
+        stmts.push(vir::Stmt::Assert(
+            equalities_expr,
+            vir::FoldingBehaviour::Expr,
+            exhale_pos.clone(),
+        ));
+        let permission_expr = permissions.into_iter().conjoin();
+        stmts.push(vir::Stmt::Exhale(permission_expr, exhale_pos));
+        stmts
+    }
 
-    // fn encode_loop_invariant_inhale_stmts(
-    //     &mut self,
-    //     loop_head: BasicBlockIndex,
-    //     loop_inv_block: BasicBlockIndex,
-    //     after_loop: bool,
-    // ) -> Vec<vir::Stmt> {
-    //     trace!(
-    //         "[enter] encode_loop_invariant_inhale_stmts loop_head={:?} after_loop={}",
-    //         loop_head,
-    //         after_loop
-    //     );
-    //     let (permissions, equalities) = self.encode_loop_invariant_permissions(loop_head, true);
-    //     let (func_spec, _func_spec_span) =
-    //         self.encode_loop_invariant_specs(loop_head, loop_inv_block);
+    fn encode_loop_invariant_inhale_stmts(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        loop_inv_block: BasicBlockIndex,
+        after_loop: bool,
+    ) -> Vec<vir::Stmt> {
+        trace!(
+            "[enter] encode_loop_invariant_inhale_stmts loop_head={:?} after_loop={}",
+            loop_head,
+            after_loop
+        );
+        let (permissions, equalities) = self.encode_loop_invariant_permissions(loop_head, true);
+        let (func_spec, _func_spec_span) =
+            self.encode_loop_invariant_specs(loop_head, loop_inv_block);
 
-    //     let permission_expr = permissions.into_iter().conjoin();
-    //     let equality_expr = equalities.into_iter().conjoin();
+        let permission_expr = permissions.into_iter().conjoin();
+        let equality_expr = equalities.into_iter().conjoin();
 
-    //     let mut stmts = vec![vir::Stmt::comment(format!(
-    //         "Inhale the loop invariant of block {:?}",
-    //         loop_head
-    //     ))];
-    //     stmts.push(vir::Stmt::Inhale(
-    //         permission_expr,
-    //         vir::FoldingBehaviour::Stmt,
-    //     ));
-    //     stmts.push(vir::Stmt::Inhale(
-    //         equality_expr,
-    //         vir::FoldingBehaviour::Expr,
-    //     ));
-    //     stmts.push(vir::Stmt::Inhale(
-    //         func_spec.into_iter().conjoin(),
-    //         vir::FoldingBehaviour::Expr,
-    //     ));
-    //     stmts
-    // }
+        let mut stmts = vec![vir::Stmt::comment(format!(
+            "Inhale the loop invariant of block {:?}",
+            loop_head
+        ))];
+        stmts.push(vir::Stmt::Inhale(
+            permission_expr,
+            vir::FoldingBehaviour::Stmt,
+        ));
+        stmts.push(vir::Stmt::Inhale(
+            equality_expr,
+            vir::FoldingBehaviour::Expr,
+        ));
+        stmts.push(vir::Stmt::Inhale(
+            func_spec.into_iter().conjoin(),
+            vir::FoldingBehaviour::Expr,
+        ));
+        stmts
+    }
 
     // TODO: What is this?
     fn encode_prusti_local(&self, local: Local) -> vir::LocalVar {
