@@ -1489,21 +1489,21 @@ unimplemented!();
         Ok(stmts)
     }
 
-    // fn encode_expiring_borrows_between(
-    //     &mut self,
-    //     begin_loc: mir::Location,
-    //     end_loc: mir::Location,
-    // ) -> Result<Vec<vir::Stmt>> {
-    //     debug!(
-    //         "encode_expiring_borrows_beteewn '{:?}' '{:?}'",
-    //         begin_loc, end_loc
-    //     );
-    //     let (all_dying_loans, zombie_loans) = self
-    //         .polonius_info()
-    //         .get_all_loans_dying_between(begin_loc, end_loc);
-    //     // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
-    //     self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
-    // }
+    fn encode_expiring_borrows_between(
+        &mut self,
+        begin_loc: mir::Location,
+        end_loc: mir::Location,
+    ) -> Result<Vec<vir::Stmt>> {
+        debug!(
+            "encode_expiring_borrows_beteewn '{:?}' '{:?}'",
+            begin_loc, end_loc
+        );
+        let (all_dying_loans, zombie_loans) = self
+            .polonius_info()
+            .get_all_loans_dying_between(begin_loc, end_loc);
+        // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
+    }
 
     fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Result<Vec<vir::Stmt>> {
         debug!("encode_expiring_borrows_at '{:?}'", location);
@@ -1949,36 +1949,35 @@ unimplemented!();
         destination: BasicBlockIndex,
         force_block: bool,
     ) -> Result<Option<CfgBlockIndex>> {
-        // let source_loc = mir::Location {
-        //     block: source,
-        //     statement_index: self.mir[source].statements.len(),
-        // };
-        // let destination_loc = mir::Location {
-        //     block: destination,
-        //     statement_index: 0,
-        // };
-        // let stmts = self.encode_expiring_borrows_between(source_loc, destination_loc)?;
+        let source_loc = mir::Location {
+            block: source,
+            statement_index: self.mir[source].statements.len(),
+        };
+        let destination_loc = mir::Location {
+            block: destination,
+            statement_index: 0,
+        };
+        let stmts = self.encode_expiring_borrows_between(source_loc, destination_loc)?;
 
-        // if force_block || !stmts.is_empty() {
-        //     let edge_label = self.cfg_method.get_fresh_label_name();
-        //     let edge_block = self.cfg_method.add_block(
-        //         &edge_label,
-        //         vec![],
-        //         vec![
-        //             vir::Stmt::comment(format!("========== {} ==========", edge_label)),
-        //             vir::Stmt::comment(format!("MIR edge {:?} --> {:?}", source, destination)),
-        //         ],
-        //     );
-        //     if !stmts.is_empty() {
-        //         self.cfg_method
-        //             .add_stmt(edge_block, vir::Stmt::comment("Expire borrows"));
-        //         self.cfg_method.add_stmts(edge_block, stmts);
-        //     }
-        //     Ok(Some(edge_block))
-        // } else {
-        //     Ok(None)
-        // }
-        unimplemented!();
+        if force_block || !stmts.is_empty() {
+            let edge_label = self.cfg_method.get_fresh_label_name();
+            let edge_block = self.cfg_method.add_block(
+                &edge_label,
+                vec![],
+                vec![
+                    vir::Stmt::comment(format!("========== {} ==========", edge_label)),
+                    vir::Stmt::comment(format!("MIR edge {:?} --> {:?}", source, destination)),
+                ],
+            );
+            if !stmts.is_empty() {
+                self.cfg_method
+                    .add_stmt(edge_block, vir::Stmt::comment("Expire borrows"));
+                self.cfg_method.add_stmts(edge_block, stmts);
+            }
+            Ok(Some(edge_block))
+        } else {
+            Ok(None)
+        }
     }
 
     fn encode_impure_function_call(
