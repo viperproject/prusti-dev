@@ -846,8 +846,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 Ok(result) => result,
                 Err(error) => {
                     self.register_encoding_error(error);
-                    unimplemented!();
-                    // StubProcedureEncoder::new(self, &procedure).encode()
+                    StubProcedureEncoder::new(self, &procedure).encode()
                 },
             };
             // self.log_vir_program_before_viper(method.to_string());
