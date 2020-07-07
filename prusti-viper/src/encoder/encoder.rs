@@ -241,9 +241,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     predicates
     // }
 
-    // pub fn get_used_viper_predicates_map(&self) -> HashMap<String, vir::Predicate> {
-    //     self.type_predicates.borrow().clone()
-    // }
+    pub fn get_used_viper_predicates_map(&self) -> HashMap<String, vir::Predicate> {
+        self.type_predicates.borrow().clone()
+    }
 
     // pub fn get_used_builtin_methods(&self) -> Vec<vir::BodylessMethod> {
     //     self.builtin_methods.borrow().values().cloned().collect()

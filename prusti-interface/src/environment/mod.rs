@@ -12,12 +12,12 @@ use rustc_middle::ty::{self, TyCtxt};
 use std::path::PathBuf;
 
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
-// use rustc::hir;
+use rustc_hir as hir;
 // use rustc::hir::def_id::DefId;
 // use rustc::ty;
 // use rustc::ty::TyCtxt;
 // use rustc_driver::driver;
-// use std::collections::HashSet;
+use std::collections::HashSet;
 // use syntax::attr;
 // use syntax_pos::FileName;
 // use syntax_pos::MultiSpan;
@@ -198,20 +198,20 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self.tcx(), proc_def_id)
     }
 
-    // /// Get all relevant trait declarations for some type.
-    // pub fn get_traits_decls_for_type(&self, ty: &ty::Ty<'tcx>) -> HashSet<DefId> {
-    //     let mut res = HashSet::new();
-    //     let krate = hir::def_id::LOCAL_CRATE;
-    //     let traits = self.tcx().all_traits(krate);
-    //     for trait_id in traits.iter() {
-    //         self.tcx().for_each_relevant_impl(*trait_id, ty, |impl_id| {
-    //             if let Some(relevant_trait_id) = self.tcx().trait_id_of_impl(impl_id) {
-    //                 res.insert(relevant_trait_id.clone());
-    //             }
-    //         });
-    //     }
-    //     res
-    // }
+    /// Get all relevant trait declarations for some type.
+    pub fn get_traits_decls_for_type(&self, ty: &ty::Ty<'tcx>) -> HashSet<DefId> {
+        let mut res = HashSet::new();
+        let krate = hir::def_id::LOCAL_CRATE;
+        let traits = self.tcx().all_traits(krate);
+        for trait_id in traits.iter() {
+            self.tcx().for_each_relevant_impl(*trait_id, ty, |impl_id| {
+                if let Some(relevant_trait_id) = self.tcx().trait_id_of_impl(impl_id) {
+                    res.insert(relevant_trait_id.clone());
+                }
+            });
+        }
+        res
+    }
 
     /// Get an associated item by name.
     pub fn get_assoc_item(&self, id: DefId, name: Symbol) -> Option<ty::AssocItem> {

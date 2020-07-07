@@ -7,13 +7,14 @@
 //! The log keeps track of actions performed by the fold-unfold algorithm so that they can be
 //! undone when restoring borrowed permissions.
 
-use encoder::foldunfold::action::Action;
-use encoder::foldunfold::perm::Perm;
-use encoder::foldunfold::FoldUnfoldError;
+use crate::encoder::foldunfold::action::Action;
+use crate::encoder::foldunfold::perm::Perm;
+use crate::encoder::foldunfold::FoldUnfoldError;
 use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use log::trace;
 
 // Note: Now every PathCtxt has its own EventLog, because a Borrow no longer unique
 // (e.g. we duplicate the evaluation of the loop condition in the encoding of loops).

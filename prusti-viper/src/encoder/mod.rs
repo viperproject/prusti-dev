@@ -10,7 +10,7 @@ mod borrows;
 mod builtin_encoder;
 mod encoder;
 mod errors;
-// mod foldunfold;
+mod foldunfold;
 mod initialisation;
 mod loop_encoder;
 mod mir_encoder;

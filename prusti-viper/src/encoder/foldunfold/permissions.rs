@@ -5,13 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::places_utils::{union, union3};
-use encoder::foldunfold::perm::Perm::*;
-use encoder::foldunfold::perm::*;
+use crate::encoder::foldunfold::perm::Perm::*;
+use crate::encoder::foldunfold::perm::*;
 use prusti_common::vir;
 use prusti_common::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
+use log::{trace, debug};
 
 pub trait RequiredPermissionsGetter {
     /// Returns the permissions required for the expression to be well-defined

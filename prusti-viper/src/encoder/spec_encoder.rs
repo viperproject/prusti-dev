@@ -61,23 +61,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         }
     }
 
-//     // TODO; useful for when we're using 'encode_assertion' only
-//     pub fn new_simple(
-//         encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-//         target_args: &'p [vir::Expr],
-//     ) -> Self {
-//         trace!("SpecEncoder simple constructor");
+    // TODO; useful for when we're using 'encode_assertion' only
+    pub fn new_simple(
+        encoder: &'p Encoder<'v, 'tcx>,
+        target_args: &'p [vir::Expr],
+    ) -> Self {
+        trace!("SpecEncoder simple constructor");
 
-//         SpecEncoder {
-//             encoder,
-//             mir: None,
-//             target_label: &"",
-//             target_args,
-//             target_return: None,
-//             targets_are_values: false,
-//             stop_at_bbi: None,
-//         }
-//     }
+        SpecEncoder {
+            encoder,
+            mir: None,
+            target_label: &"",
+            target_args,
+            target_return: None,
+            targets_are_values: false,
+            stop_at_bbi: None,
+        }
+    }
 
 //     fn encode_hir_field(&self, base_place: vir::Expr, field_expr: &hir::Expr) -> vir::Expr {
 //         trace!("encode_hir_field: {:?}", field_expr);
