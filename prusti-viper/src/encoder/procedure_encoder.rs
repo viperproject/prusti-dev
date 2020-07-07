@@ -1017,6 +1017,7 @@ unimplemented!();
             // | mir::StatementKind::EndRegion(_)
             // | mir::StatementKind::ReadForMatch(_)
             // | mir::StatementKind::UserAssertTy(_, _)
+            | mir::StatementKind::FakeRead(_, _)    // FIXME
             | mir::StatementKind::Nop => vec![],
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
