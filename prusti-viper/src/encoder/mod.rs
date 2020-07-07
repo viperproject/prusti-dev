@@ -16,7 +16,7 @@ mod loop_encoder;
 mod mir_encoder;
 mod mir_successor;
 // mod mir_interpreter;
-// mod optimiser;
+mod optimiser;
 mod places;
 mod procedure_encoder;
 // mod pure_function_encoder;

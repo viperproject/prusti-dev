@@ -83,7 +83,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
         )>,
     >,
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
-    // vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
+    vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
     vir_program_before_viper_writer: RefCell<Box<Write>>,
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
@@ -133,25 +133,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             fields: RefCell::new(HashMap::new()),
             closure_instantiations: HashMap::new(),
             encoding_queue: RefCell::new(vec![]),
-            // vir_program_before_foldunfold_writer,
+            vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
             typaram_repl: RefCell::new(Vec::new()),
             encoding_errors_counter: RefCell::new(0),
         }
     }
 
-    // pub fn log_vir_program_before_foldunfold<S: ToString>(&self, program: S) {
-    //     let mut writer = self.vir_program_before_foldunfold_writer.borrow_mut();
-    //     writer
-    //         .write_all(program.to_string().as_bytes())
-    //         .ok()
-    //         .unwrap();
-    //     writer
-    //         .write_all("\n\n".to_string().as_bytes())
-    //         .ok()
-    //         .unwrap();
-    //     writer.flush().ok().unwrap();
-    // }
+    pub fn log_vir_program_before_foldunfold<S: ToString>(&self, program: S) {
+        let mut writer = self.vir_program_before_foldunfold_writer.borrow_mut();
+        writer
+            .write_all(program.to_string().as_bytes())
+            .ok()
+            .unwrap();
+        writer
+            .write_all("\n\n".to_string().as_bytes())
+            .ok()
+            .unwrap();
+        writer.flush().ok().unwrap();
+    }
 
     pub fn log_vir_program_before_viper<S: ToString>(&self, program: S) {
         let mut writer = self.vir_program_before_viper_writer.borrow_mut();

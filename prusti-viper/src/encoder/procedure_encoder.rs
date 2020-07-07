@@ -8,13 +8,13 @@ use crate::encoder::borrows::ProcedureContract;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::PanicCause;
 use crate::encoder::errors::{EncodingError, ErrorCtxt};
-// use crate::encoder::foldunfold;
+use crate::encoder::foldunfold;
 use crate::encoder::initialisation::InitInfo;
 use crate::encoder::loop_encoder::LoopEncoder;
 use crate::encoder::mir_encoder::MirEncoder;
 use crate::encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
 use crate::encoder::mir_successor::MirSuccessor;
-// use crate::encoder::optimiser;
+use crate::encoder::optimiser;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
 use prusti_common::utils::to_string::ToString;
@@ -379,91 +379,90 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Encode postcondition
         self.encode_postconditions(return_cfg_block, postcondition_strengthening);
 
-    //     let local_vars: Vec<_> = self
-    //         .locals
-    //         .iter()
-    //         .filter(|local| !self.locals.is_return(*local))
-    //         .collect();
-    //     for local in local_vars.iter() {
-    //         let local_ty = self.locals.get_type(*local);
-    //         if let ty::TyKind::Closure(..) = local_ty.kind {
-    //             // Do not encode closures
-    //             continue;
-    //         }
-    //         let type_name = self.encoder.encode_type_predicate_use(local_ty);
-    //         let var_name = self.locals.get_name(*local);
-    //         self.cfg_method
-    //             .add_local_var(&var_name, vir::Type::TypedRef(type_name));
-    //     }
+        let local_vars: Vec<_> = self
+            .locals
+            .iter()
+            .filter(|local| !self.locals.is_return(*local))
+            .collect();
+        for local in local_vars.iter() {
+            let local_ty = self.locals.get_type(*local);
+            if let ty::TyKind::Closure(..) = local_ty.kind {
+                // Do not encode closures
+                continue;
+            }
+            let type_name = self.encoder.encode_type_predicate_use(local_ty);
+            let var_name = self.locals.get_name(*local);
+            self.cfg_method
+                .add_local_var(&var_name, vir::Type::TypedRef(type_name));
+        }
 
-    //     self.check_vir();
-    //     let method_name = self.cfg_method.name();
-    //     let source_path = self.encoder.env().source_path();
-    //     let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+        self.check_vir();
+        let method_name = self.cfg_method.name();
+        let source_path = self.encoder.env().source_path();
+        let source_filename = source_path.file_name().unwrap().to_str().unwrap();
 
-    //     self.encoder
-    //         .log_vir_program_before_foldunfold(self.cfg_method.to_string());
+        self.encoder
+            .log_vir_program_before_foldunfold(self.cfg_method.to_string());
 
-    //     // Dump initial CFG
-    //     if config::dump_debug_info() {
-    //         log::report_with_writer(
-    //             "graphviz_method_before_foldunfold",
-    //             format!("{}.{}.dot", source_filename, method_name),
-    //             |writer| self.cfg_method.to_graphviz(writer),
-    //         );
-    //     }
+        // Dump initial CFG
+        if config::dump_debug_info() {
+            prusti_common::report::log::report_with_writer(
+                "graphviz_method_before_foldunfold",
+                format!("{}.{}.dot", source_filename, method_name),
+                |writer| self.cfg_method.to_graphviz(writer),
+            );
+        }
 
-    //     // Add fold/unfold
-    //     let loan_locations = self
-    //         .polonius_info()
-    //         .loan_locations()
-    //         .iter()
-    //         .map(|(loan, location)| (loan.into(), *location))
-    //         .collect();
-    //     let method_pos = self
-    //         .encoder
-    //         .error_manager()
-    //         .register(self.mir.span, ErrorCtxt::Unexpected);
-    //     let method_with_fold_unfold = foldunfold::add_fold_unfold(
-    //         self.encoder,
-    //         self.cfg_method,
-    //         &loan_locations,
-    //         &self.cfg_blocks_map,
-    //         method_pos,
-    //     )
-    //     .map_err(|foldunfold_error| {
-    //         EncodingError::internal(
-    //             format!(
-    //                 "generating fold-unfold Viper statements failed ({:?})",
-    //                 foldunfold_error
-    //             ),
-    //             mir_span,
-    //         )
-    //     })?;
+        // Add fold/unfold
+        let loan_locations = self
+            .polonius_info()
+            .loan_locations()
+            .iter()
+            .map(|(loan, location)| (loan.into(), *location))
+            .collect();
+        let method_pos = self
+            .encoder
+            .error_manager()
+            .register(self.mir.span, ErrorCtxt::Unexpected);
+        let method_with_fold_unfold = foldunfold::add_fold_unfold(
+            self.encoder,
+            self.cfg_method,
+            &loan_locations,
+            &self.cfg_blocks_map,
+            method_pos,
+        )
+        .map_err(|foldunfold_error| {
+            EncodingError::internal(
+                format!(
+                    "generating fold-unfold Viper statements failed ({:?})",
+                    foldunfold_error
+                ),
+                mir_span,
+            )
+        })?;
 
-    //     // Fix variable declarations.
-    //     let fixed_method = fix_ghost_vars(method_with_fold_unfold);
+        // Fix variable declarations.
+        let fixed_method = fix_ghost_vars(method_with_fold_unfold);
 
-    //     // Do some optimizations
-    //     let final_method = if config::simplify_encoding() {
-    //         optimiser::rewrite(remove_trivial_assertions(remove_unused_vars(
-    //             remove_empty_if(fixed_method),
-    //         )))
-    //     } else {
-    //         fixed_method
-    //     };
+        // Do some optimizations
+        let final_method = if config::simplify_encoding() {
+            optimiser::rewrite(remove_trivial_assertions(remove_unused_vars(
+                remove_empty_if(fixed_method),
+            )))
+        } else {
+            fixed_method
+        };
 
-    //     // Dump final CFG
-    //     if config::dump_debug_info() {
-    //         log::report_with_writer(
-    //             "graphviz_method_before_viper",
-    //             format!("{}.{}.dot", source_filename, method_name),
-    //             |writer| final_method.to_graphviz(writer),
-    //         );
-    //     }
+        // Dump final CFG
+        if config::dump_debug_info() {
+            prusti_common::report::log::report_with_writer(
+                "graphviz_method_before_viper",
+                format!("{}.{}.dot", source_filename, method_name),
+                |writer| final_method.to_graphviz(writer),
+            );
+        }
 
-    //     Ok(final_method)
-    unimplemented!();
+        Ok(final_method)
     }
 
     /// Encodes a topologically ordered group of blocks.
@@ -2860,19 +2859,18 @@ unimplemented!();
             self.wrap_arguments_into_old(assertion, pre_label, contract, &encoded_args)
         });
 
-    //     (
-    //         type_spec.into_iter().conjoin(),
-    //         return_perm,
-    //         invs_spec.into_iter().conjoin(),
-    //         func_spec
-    //             .into_iter()
-    //             .conjoin()
-    //             .set_default_pos(func_spec_pos),
-    //         magic_wands,
-    //         read_transfer,
-    //         strengthening_spec,
-    //     )
-    unimplemented!();
+        (
+            type_spec.into_iter().conjoin(),
+            return_perm,
+            invs_spec.into_iter().conjoin(),
+            func_spec
+                .into_iter()
+                .conjoin()
+                .set_default_pos(func_spec_pos),
+            magic_wands,
+            read_transfer,
+            strengthening_spec,
+        )
     }
 
     /// Modelling move as simple assignment on Viper level has a consequence
@@ -4455,12 +4453,12 @@ unimplemented!();
         }
     }
 
-    // fn check_vir(&self) {
-    //     let mut encoded_mir_locals = HashSet::new();
-    //     for local in self.mir.local_decls.indices() {
-    //         encoded_mir_locals.insert(self.mir_encoder.encode_local(local));
-    //     }
-    // }
+    fn check_vir(&self) {
+        let mut encoded_mir_locals = HashSet::new();
+        for local in self.mir.local_decls.indices() {
+            encoded_mir_locals.insert(self.mir_encoder.encode_local(local));
+        }
+    }
 
     fn get_label_after_location(&mut self, location: mir::Location) -> &str {
         debug_assert!(
