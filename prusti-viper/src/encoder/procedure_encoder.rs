@@ -6,7 +6,7 @@
 
 use crate::encoder::borrows::ProcedureContract;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-// use crate::encoder::errors::PanicCause;
+use crate::encoder::errors::PanicCause;
 use crate::encoder::errors::{EncodingError, ErrorCtxt};
 // use crate::encoder::foldunfold;
 use crate::encoder::initialisation::InitInfo;
@@ -65,7 +65,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     loop_encoder: LoopEncoder<'p, 'tcx>,
     auxiliary_local_vars: HashMap<String, vir::Type>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
-    // check_panics: bool,
+    check_panics: bool,
     check_fold_unfold_state: bool,
     polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
     procedure_contract: Option<ProcedureContract<'tcx>>,
@@ -125,7 +125,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_encoder: LoopEncoder::new(procedure, tcx),
             auxiliary_local_vars: HashMap::new(),
             mir_encoder: mir_encoder,
-            // check_panics: config::check_panics(),
+            check_panics: config::check_panics(),
             check_fold_unfold_state: config::check_foldunfold_state(),
             polonius_info: None,
             procedure_contract: None,
@@ -1535,415 +1535,412 @@ unimplemented!();
                 (stmts, MirSuccessor::Return)
             }
 
-    //         TerminatorKind::Goto { target } => (stmts, MirSuccessor::Goto(target)),
+            TerminatorKind::Goto { target } => (stmts, MirSuccessor::Goto(target)),
 
-    //         TerminatorKind::SwitchInt {
-    //             ref targets,
-    //             ref discr,
-    //             ref values,
-    //             switch_ty,
-    //         } => {
-    //             trace!(
-    //                 "SwitchInt ty '{:?}', discr '{:?}', values '{:?}'",
-    //                 switch_ty,
-    //                 discr,
-    //                 values
-    //             );
+            TerminatorKind::SwitchInt {
+                ref targets,
+                ref discr,
+                ref values,
+                switch_ty,
+            } => {
+                trace!(
+                    "SwitchInt ty '{:?}', discr '{:?}', values '{:?}'",
+                    switch_ty,
+                    discr,
+                    values
+                );
 
-    //             let mut cfg_targets: Vec<(vir::Expr, BasicBlockIndex)> = vec![];
+                let mut cfg_targets: Vec<(vir::Expr, BasicBlockIndex)> = vec![];
 
-    //             // Use a local variable for the discriminant (see issue #57)
-    //             let discr_var = match switch_ty.kind {
-    //                 ty::TyKind::Bool => {
-    //                     self.cfg_method.add_fresh_local_var(vir::Type::Bool)
-    //                 }
+                // Use a local variable for the discriminant (see issue #57)
+                let discr_var = match switch_ty.kind {
+                    ty::TyKind::Bool => {
+                        self.cfg_method.add_fresh_local_var(vir::Type::Bool)
+                    }
 
-    //                 ty::TyKind::Int(_)
-    //                 | ty::TyKind::Uint(_)
-    //                 | ty::TyKind::Char => {
-    //                     self.cfg_method.add_fresh_local_var(vir::Type::Int)
-    //                 }
+                    ty::TyKind::Int(_)
+                    | ty::TyKind::Uint(_)
+                    | ty::TyKind::Char => {
+                        self.cfg_method.add_fresh_local_var(vir::Type::Int)
+                    }
 
-    //                 ref x => unreachable!("{:?}", x),
-    //             };
-    //             let encoded_discr = self.mir_encoder.encode_operand_expr(discr);
-    //             stmts.push(vir::Stmt::Assign(
-    //                 discr_var.clone().into(),
-    //                 if encoded_discr.is_place() {
-    //                     self.translate_maybe_borrowed_place(location, encoded_discr)
-    //                 } else {
-    //                     encoded_discr
-    //                 },
-    //                 vir::AssignKind::Copy,
-    //             ));
+                    ref x => unreachable!("{:?}", x),
+                };
+                let encoded_discr = self.mir_encoder.encode_operand_expr(discr);
+                stmts.push(vir::Stmt::Assign(
+                    discr_var.clone().into(),
+                    if encoded_discr.is_place() {
+                        self.translate_maybe_borrowed_place(location, encoded_discr)
+                    } else {
+                        encoded_discr
+                    },
+                    vir::AssignKind::Copy,
+                ));
 
-    //             for (i, &value) in values.iter().enumerate() {
-    //                 let target = targets[i as usize];
-    //                 // Convert int to bool, if required
-    //                 let viper_guard = match switch_ty.kind {
-    //                     ty::TyKind::Bool => {
-    //                         if value == 0 {
-    //                             // If discr is 0 (false)
-    //                             vir::Expr::not(discr_var.clone().into())
-    //                         } else {
-    //                             // If discr is not 0 (true)
-    //                             discr_var.clone().into()
-    //                         }
-    //                     }
+                for (i, &value) in values.iter().enumerate() {
+                    let target = targets[i as usize];
+                    // Convert int to bool, if required
+                    let viper_guard = match switch_ty.kind {
+                        ty::TyKind::Bool => {
+                            if value == 0 {
+                                // If discr is 0 (false)
+                                vir::Expr::not(discr_var.clone().into())
+                            } else {
+                                // If discr is not 0 (true)
+                                discr_var.clone().into()
+                            }
+                        }
 
-    //                     ty::TyKind::Int(_)
-    //                     | ty::TyKind::Uint(_)
-    //                     | ty::TyKind::Char => vir::Expr::eq_cmp(
-    //                         discr_var.clone().into(),
-    //                         self.encoder.encode_int_cast(value, switch_ty),
-    //                     ),
+                        ty::TyKind::Int(_)
+                        | ty::TyKind::Uint(_)
+                        | ty::TyKind::Char => vir::Expr::eq_cmp(
+                            discr_var.clone().into(),
+                            self.encoder.encode_int_cast(value, switch_ty),
+                        ),
 
-    //                     ref x => unreachable!("{:?}", x),
-    //                 };
-    //                 cfg_targets.push((viper_guard, target))
-    //             }
-    //             let default_target = targets[values.len()];
-    //             let mut kill_default_target = false;
+                        ref x => unreachable!("{:?}", x),
+                    };
+                    cfg_targets.push((viper_guard, target))
+                }
+                let default_target = targets[values.len()];
+                let mut kill_default_target = false;
 
-    //             // Is the target an unreachable block?
-    //             if let mir::TerminatorKind::Unreachable = self.mir[default_target].terminator().kind
-    //             {
-    //                 stmts.push(vir::Stmt::comment(format!(
-    //                     "Ignore default target {:?}, as the compiler marked it as unreachable.",
-    //                     default_target
-    //                 )));
-    //                 kill_default_target = true;
-    //             };
+                // Is the target an unreachable block?
+                if let mir::TerminatorKind::Unreachable = self.mir[default_target].terminator().kind
+                {
+                    stmts.push(vir::Stmt::comment(format!(
+                        "Ignore default target {:?}, as the compiler marked it as unreachable.",
+                        default_target
+                    )));
+                    kill_default_target = true;
+                };
 
-    //             // Is the target a specification block?
-    //             if self.procedure.is_spec_block(default_target) {
-    //                 debug_assert!(format!("{:?}", discr) == "const false");
-    //                 debug_assert!(term.source_info.span.lo().0 == 0);
-    //                 debug_assert!(term.source_info.span.hi().0 == 0);
+                // Is the target a specification block?
+                if self.procedure.is_spec_block(default_target) {
+                    debug_assert!(format!("{:?}", discr) == "const false");
+                    debug_assert!(term.source_info.span.lo().0 == 0);
+                    debug_assert!(term.source_info.span.hi().0 == 0);
 
-    //                 stmts.push(vir::Stmt::comment(format!(
-    //                     "Ignore default target {:?}, as it is only used by Prusti to type-check \
-    //                     a loop invariant.",
-    //                     default_target
-    //                 )));
-    //                 kill_default_target = true;
-    //             };
+                    stmts.push(vir::Stmt::comment(format!(
+                        "Ignore default target {:?}, as it is only used by Prusti to type-check \
+                        a loop invariant.",
+                        default_target
+                    )));
+                    kill_default_target = true;
+                };
 
-    //             if kill_default_target {
-    //                 // Use the last conditional target as default. We could also assume or assert
-    //                 // that the switch is exhaustive and never hits the default.
-    //                 let last_target = cfg_targets.pop().unwrap();
-    //                 (stmts, MirSuccessor::GotoSwitch(cfg_targets, last_target.1))
-    //             } else {
-    //                 (stmts, MirSuccessor::GotoSwitch(cfg_targets, default_target))
-    //             }
-    //         }
+                if kill_default_target {
+                    // Use the last conditional target as default. We could also assume or assert
+                    // that the switch is exhaustive and never hits the default.
+                    let last_target = cfg_targets.pop().unwrap();
+                    (stmts, MirSuccessor::GotoSwitch(cfg_targets, last_target.1))
+                } else {
+                    (stmts, MirSuccessor::GotoSwitch(cfg_targets, default_target))
+                }
+            }
 
-    //         TerminatorKind::Unreachable => {
-    //             // Asserting `false` here does not work. See issue #158
-    //             //let pos = self.encoder.error_manager().register(
-    //             //    term.source_info.span,
-    //             //    ErrorCtxt::UnreachableTerminator
-    //             //);
-    //             //stmts.push(
-    //             //    vir::Stmt::Inhale(false.into())
-    //             //);
-    //             (stmts, MirSuccessor::Kill)
-    //         }
+            TerminatorKind::Unreachable => {
+                // Asserting `false` here does not work. See issue #158
+                //let pos = self.encoder.error_manager().register(
+                //    term.source_info.span,
+                //    ErrorCtxt::UnreachableTerminator
+                //);
+                //stmts.push(
+                //    vir::Stmt::Inhale(false.into())
+                //);
+                (stmts, MirSuccessor::Kill)
+            }
 
-    //         TerminatorKind::Abort => {
-    //             let pos = self
-    //                 .encoder
-    //                 .error_manager()
-    //                 .register(term.source_info.span, ErrorCtxt::AbortTerminator);
-    //             stmts.push(vir::Stmt::Assert(
-    //                 false.into(),
-    //                 vir::FoldingBehaviour::Stmt,
-    //                 pos,
-    //             ));
-    //             (stmts, MirSuccessor::Kill)
-    //         }
+            TerminatorKind::Abort => {
+                let pos = self
+                    .encoder
+                    .error_manager()
+                    .register(term.source_info.span, ErrorCtxt::AbortTerminator);
+                stmts.push(vir::Stmt::Assert(
+                    false.into(),
+                    vir::FoldingBehaviour::Stmt,
+                    pos,
+                ));
+                (stmts, MirSuccessor::Kill)
+            }
 
-    //         TerminatorKind::Drop { target, .. } => (stmts, MirSuccessor::Goto(target)),
+            TerminatorKind::Drop { target, .. } => (stmts, MirSuccessor::Goto(target)),
 
-    //         TerminatorKind::FalseEdges { real_target, .. } => {
-    //             (stmts, MirSuccessor::Goto(real_target))
-    //         }
+            TerminatorKind::FalseEdge { real_target, .. } => {
+                (stmts, MirSuccessor::Goto(real_target))
+            }
 
-    //         TerminatorKind::FalseUnwind { real_target, .. } => {
-    //             (stmts, MirSuccessor::Goto(real_target))
-    //         }
+            TerminatorKind::FalseUnwind { real_target, .. } => {
+                (stmts, MirSuccessor::Goto(real_target))
+            }
 
-    //         TerminatorKind::DropAndReplace {
-    //             target,
-    //             location: ref lhs,
-    //             ref value,
-    //             ..
-    //         } => {
-    //             let (encoded_lhs, _, _) = self.mir_encoder.encode_place(lhs);
-    //             stmts.extend(self.encode_assign_operand(&encoded_lhs, value, location));
-    //             (stmts, MirSuccessor::Goto(target))
-    //         }
+            TerminatorKind::DropAndReplace {
+                target,
+                place: ref lhs,
+                ref value,
+                ..
+            } => {
+                let (encoded_lhs, _, _) = self.mir_encoder.encode_place(lhs);
+                stmts.extend(self.encode_assign_operand(&encoded_lhs, value, location));
+                (stmts, MirSuccessor::Goto(target))
+            }
 
-    //         TerminatorKind::Call {
-    //             ref args,
-    //             ref destination,
-    //             func:
-    //                 mir::Operand::Constant(box mir::Constant {
-    //                     literal:
-    //                         mir::Literal::Value {
-    //                             value:
-    //                                 ty::Const {
-    //                                     ty:
-    //                                         &ty::TyS {
-    //                                             sty: ty::TyFnDef(def_id, substs),
-    //                                             ..
-    //                                         },
-    //                                     ..
-    //                                 },
-    //                         },
-    //                     ..
-    //                 }),
-    //             ..
-    //         } => {
-    //             let full_func_proc_name: &str =
-    //                 &self.encoder.env().tcx().absolute_item_path_str(def_id);
+            TerminatorKind::Call {
+                ref args,
+                ref destination,
+                func:
+                    mir::Operand::Constant(box mir::Constant {
+                        literal:
+                            ty::Const {
+                                ty: ty::TyS {
+                                        kind: ty::TyKind::FnDef(def_id, substs),
+                                        ..
+                                    },
+                                val: _
+                            },
+                        ..
+                    }),
+                ..
+            } => {
+                let def_id = *def_id;
+                let full_func_proc_name: &str =
+                    &self.encoder.env().tcx().def_path_str(def_id);
+                    // &self.encoder.env().tcx().absolute_item_path_str(def_id);
 
-    //             let own_substs =
-    //                 ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), def_id);
+                let own_substs =
+                    ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
 
-    //             {
-    //                 // FIXME; hideous monstrosity...
-    //                 let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-    //                 let mut tymap = HashMap::new();
+                {
+                    // FIXME; hideous monstrosity...
+                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                    let mut tymap = HashMap::new();
 
-    //                 for (kind1, kind2) in own_substs.iter().zip(substs) {
-    //                     if let (
-    //                         ty::subst::UnpackedKind::Type(ty1),
-    //                         ty::subst::UnpackedKind::Type(ty2),
-    //                     ) = (kind1.unpack(), kind2.unpack())
-    //                     {
-    //                         tymap.insert(ty1, ty2);
-    //                     }
-    //                 }
-    //                 tymap_stack.push(tymap);
-    //             }
+                    for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
+                        if let (
+                            ty::subst::GenericArgKind::Type(ty1),
+                            ty::subst::GenericArgKind::Type(ty2),
+                        ) = (kind1.unpack(), kind2.unpack())
+                        {
+                            tymap.insert(ty1, ty2);
+                        }
+                    }
+                    tymap_stack.push(tymap);
+                }
 
-    //             match full_func_proc_name {
-    //                 "std::rt::begin_panic" | "std::panicking::begin_panic" => {
-    //                     // This is called when a Rust assertion fails
-    //                     // args[0]: message
-    //                     // args[1]: position of failing assertions
+                match full_func_proc_name {
+                    "std::rt::begin_panic" | "std::panicking::begin_panic" => {
+                        // This is called when a Rust assertion fails
+                        // args[0]: message
+                        // args[1]: position of failing assertions
 
-    //                     // Example of args[0]: 'const "internal error: entered unreachable code"'
-    //                     let panic_message = format!("{:?}", args[0]);
+                        // Example of args[0]: 'const "internal error: entered unreachable code"'
+                        let panic_message = format!("{:?}", args[0]);
 
-    //                     // Pattern match on the macro that generated the panic
-    //                     // TODO: use a better approach to match macros
-    //                     let macro_backtrace = term.source_info.span.macro_backtrace();
-    //                     debug!("macro_backtrace: {:?}", macro_backtrace);
+                        // Pattern match on the macro that generated the panic
+                        // TODO: use a better approach to match macros
+                        let macro_backtrace: Vec<_> = term.source_info.span.macro_backtrace().collect();
+                        debug!("macro_backtrace: {:?}", macro_backtrace);
 
-    //                     let panic_cause = if !macro_backtrace.is_empty() {
-    //                         let macro_name = term.source_info.span.macro_backtrace()[0]
-    //                             .macro_decl_name
-    //                             .clone();
-    //                         // HACK to match the filename of the span
-    //                         let def_site_span = format!(
-    //                             "{:?}",
-    //                             term.source_info.span.macro_backtrace()[0].def_site_span
-    //                         );
+                        let panic_cause = if !macro_backtrace.is_empty() {
+                            let macro_name = macro_backtrace[0]
+                                .macro_def_id
+                                .unwrap();
+                            // HACK to match the filename of the span
+                            let def_site_span = format!(
+                                "{:?}",
+                                macro_backtrace[0].def_site
+                            );
 
-    //                         match macro_name.as_str() {
-    //                             "panic!" if def_site_span.contains("<panic macros>") => {
-    //                                 if macro_backtrace.len() > 1 {
-    //                                     let second_macro_name =
-    //                                         term.source_info.span.macro_backtrace()[1]
-    //                                             .macro_decl_name
-    //                                             .clone();
-    //                                     // HACK to match the filename of the span
-    //                                     let second_def_site_span = format!(
-    //                                         "{:?}",
-    //                                         term.source_info.span.macro_backtrace()[1]
-    //                                             .def_site_span
-    //                                     );
+                            match self.encoder.env().tcx().def_path_str(macro_name).as_str() {
+                                "panic!" if def_site_span.contains("<panic macros>") => {
+                                    if macro_backtrace.len() > 1 {
+                                        let second_macro_name =
+                                            macro_backtrace[1]
+                                                .macro_def_id
+                                                .unwrap();
+                                        // HACK to match the filename of the span
+                                        let second_def_site_span = format!(
+                                            "{:?}",
+                                            macro_backtrace[1]
+                                                .def_site
+                                        );
 
-    //                                     match second_macro_name.as_str() {
-    //                                         "panic!"
-    //                                             if second_def_site_span
-    //                                                 .contains("<panic macros>") =>
-    //                                         {
-    //                                             PanicCause::Panic
-    //                                         }
-    //                                         "assert!" if second_def_site_span == "None" => {
-    //                                             PanicCause::Assert
-    //                                         }
-    //                                         "unreachable!"
-    //                                             if second_def_site_span
-    //                                                 .contains("<unreachable macros>") =>
-    //                                         {
-    //                                             PanicCause::Unreachable
-    //                                         }
-    //                                         "unimplemented!"
-    //                                             if second_def_site_span
-    //                                                 .contains("<unimplemented macros>") =>
-    //                                         {
-    //                                             PanicCause::Unimplemented
-    //                                         }
-    //                                         _ => PanicCause::Panic,
-    //                                     }
-    //                                 } else {
-    //                                     PanicCause::Panic
-    //                                 }
-    //                             }
-    //                             _ => PanicCause::Unknown,
-    //                         }
-    //                     } else {
-    //                         // Something else called panic!()
-    //                         PanicCause::Unknown
-    //                     };
-    //                     let pos = self
-    //                         .encoder
-    //                         .error_manager()
-    //                         .register(term.source_info.span, ErrorCtxt::Panic(panic_cause));
+                                        match self.encoder.env().tcx().def_path_str(second_macro_name).as_str() {
+                                            "panic!"
+                                                if second_def_site_span
+                                                    .contains("<panic macros>") =>
+                                            {
+                                                PanicCause::Panic
+                                            }
+                                            "assert!" if second_def_site_span == "None" => {
+                                                PanicCause::Assert
+                                            }
+                                            "unreachable!"
+                                                if second_def_site_span
+                                                    .contains("<unreachable macros>") =>
+                                            {
+                                                PanicCause::Unreachable
+                                            }
+                                            "unimplemented!"
+                                                if second_def_site_span
+                                                    .contains("<unimplemented macros>") =>
+                                            {
+                                                PanicCause::Unimplemented
+                                            }
+                                            _ => PanicCause::Panic,
+                                        }
+                                    } else {
+                                        PanicCause::Panic
+                                    }
+                                }
+                                _ => PanicCause::Unknown,
+                            }
+                        } else {
+                            // Something else called panic!()
+                            PanicCause::Unknown
+                        };
+                        let pos = self
+                            .encoder
+                            .error_manager()
+                            .register(term.source_info.span, ErrorCtxt::Panic(panic_cause));
 
-    //                     if self.check_panics {
-    //                         stmts.push(vir::Stmt::comment(format!(
-    //                             "Rust panic - {}",
-    //                             panic_message
-    //                         )));
-    //                         stmts.push(vir::Stmt::Assert(
-    //                             false.into(),
-    //                             vir::FoldingBehaviour::Stmt,
-    //                             pos,
-    //                         ));
-    //                     } else {
-    //                         debug!("Absence of panic will not be checked")
-    //                     }
-    //                 }
+                        if self.check_panics {
+                            stmts.push(vir::Stmt::comment(format!(
+                                "Rust panic - {}",
+                                panic_message
+                            )));
+                            stmts.push(vir::Stmt::Assert(
+                                false.into(),
+                                vir::FoldingBehaviour::Stmt,
+                                pos,
+                            ));
+                        } else {
+                            debug!("Absence of panic will not be checked")
+                        }
+                    }
 
-    //                 "<std::boxed::Box<T>>::new" => {
-    //                     // This is the initialization of a box
-    //                     // args[0]: value to put in the box
-    //                     assert_eq!(args.len(), 1);
+                    "<std::boxed::Box<T>>::new" => {
+                        // This is the initialization of a box
+                        // args[0]: value to put in the box
+                        assert_eq!(args.len(), 1);
 
-    //                     let &(ref target_place, _) = destination.as_ref().unwrap();
-    //                     let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place);
-    //                     let boxed_ty = dest_ty.boxed_ty();
-    //                     let ref_field = self.encoder.encode_dereference_field(boxed_ty);
+                        let &(ref target_place, _) = destination.as_ref().unwrap();
+                        let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place);
+                        let boxed_ty = dest_ty.boxed_ty();
+                        let ref_field = self.encoder.encode_dereference_field(boxed_ty);
 
-    //                     let box_content = dst.clone().field(ref_field.clone());
+                        let box_content = dst.clone().field(ref_field.clone());
 
-    //                     stmts.extend(self.prepare_assign_target(
-    //                         dst,
-    //                         ref_field,
-    //                         location,
-    //                         vir::AssignKind::Move,
-    //                     ));
+                        stmts.extend(self.prepare_assign_target(
+                            dst,
+                            ref_field,
+                            location,
+                            vir::AssignKind::Move,
+                        ));
 
-    //                     // Allocate `box_content`
-    //                     stmts.extend(self.encode_havoc_and_allocation(&box_content));
+                        // Allocate `box_content`
+                        stmts.extend(self.encode_havoc_and_allocation(&box_content));
 
-    //                     // Initialize `box_content`
-    //                     stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
-    //                 }
+                        // Initialize `box_content`
+                        stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
+                    }
 
-    //                 _ => {
-    //                     let is_pure_function =
-    //                         self.encoder.env().has_attribute_name(def_id, "pure");
-    //                     if is_pure_function {
-    //                         stmts.extend(self.encode_pure_function_call(
-    //                             location,
-    //                             term.source_info.span,
-    //                             args,
-    //                             destination,
-    //                             def_id,
-    //                         ));
-    //                     } else {
-    //                         stmts.extend(self.encode_impure_function_call(
-    //                             location,
-    //                             term.source_info.span,
-    //                             args,
-    //                             destination,
-    //                             def_id,
-    //                         )?);
-    //                     }
-    //                 }
-    //             }
+                    _ => {
+                        let is_pure_function =
+                            self.encoder.env().has_attribute_name(def_id, "pure");
+                        if is_pure_function {
+                            stmts.extend(self.encode_pure_function_call(
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                def_id,
+                            ));
+                        } else {
+                            stmts.extend(self.encode_impure_function_call(
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                def_id,
+                            )?);
+                        }
+                    }
+                }
 
-    //             // FIXME; hideous monstrosity...
-    //             {
-    //                 let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-    //                 tymap_stack.pop();
-    //             }
+                // FIXME; hideous monstrosity...
+                {
+                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                    tymap_stack.pop();
+                }
 
-    //             if let &Some((_, target)) = destination {
-    //                 (stmts, MirSuccessor::Goto(target))
-    //             } else {
-    //                 // Encode unreachability
-    //                 //stmts.push(
-    //                 //    vir::Stmt::Inhale(false.into())
-    //                 //);
-    //                 (stmts, MirSuccessor::Kill)
-    //             }
-    //         }
+                if let &Some((_, target)) = destination {
+                    (stmts, MirSuccessor::Goto(target))
+                } else {
+                    // Encode unreachability
+                    //stmts.push(
+                    //    vir::Stmt::Inhale(false.into())
+                    //);
+                    (stmts, MirSuccessor::Kill)
+                }
+            }
 
-    //         TerminatorKind::Call { .. } => {
-    //             // Other kind of calls?
-    //             unimplemented!();
-    //         }
+            TerminatorKind::Call { .. } => {
+                // Other kind of calls?
+                unimplemented!();
+            }
 
-    //         TerminatorKind::Assert {
-    //             ref cond,
-    //             expected,
-    //             target,
-    //             ref msg,
-    //             ..
-    //         } => {
-    //             trace!("Assert cond '{:?}', expected '{:?}'", cond, expected);
+            TerminatorKind::Assert {
+                ref cond,
+                expected,
+                target,
+                ref msg,
+                ..
+            } => {
+                trace!("Assert cond '{:?}', expected '{:?}'", cond, expected);
 
-    //             // Use local variables in the switch/if (see GitLab issue #57)
-    //             let cond_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
-    //             stmts.push(vir::Stmt::Assign(
-    //                 cond_var.clone().into(),
-    //                 self.mir_encoder.encode_operand_expr(cond),
-    //                 vir::AssignKind::Copy,
-    //             ));
+                // Use local variables in the switch/if (see GitLab issue #57)
+                let cond_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
+                stmts.push(vir::Stmt::Assign(
+                    cond_var.clone().into(),
+                    self.mir_encoder.encode_operand_expr(cond),
+                    vir::AssignKind::Copy,
+                ));
 
-    //             let viper_guard = if expected {
-    //                 cond_var.into()
-    //             } else {
-    //                 vir::Expr::not(cond_var.into())
-    //             };
+                let viper_guard = if expected {
+                    cond_var.into()
+                } else {
+                    vir::Expr::not(cond_var.into())
+                };
 
-    //             // Check or assume the assertion
-    //             stmts.push(vir::Stmt::comment(format!(
-    //                 "Rust assertion: {}",
-    //                 msg.description()
-    //             )));
-    //             if self.check_panics {
-    //                 stmts.push(vir::Stmt::Assert(
-    //                     viper_guard,
-    //                     vir::FoldingBehaviour::Stmt,
-    //                     self.encoder.error_manager().register(
-    //                         term.source_info.span,
-    //                         ErrorCtxt::AssertTerminator(msg.description().to_string()),
-    //                     ),
-    //                 ));
-    //             } else {
-    //                 stmts.push(vir::Stmt::comment("This assertion will not be checked"));
-    //                 stmts.push(vir::Stmt::Inhale(viper_guard, vir::FoldingBehaviour::Stmt));
-    //             };
+                // Check or assume the assertion
+                stmts.push(vir::Stmt::comment(format!(
+                    "Rust assertion: {}",
+                    msg.description()
+                )));
+                if self.check_panics {
+                    stmts.push(vir::Stmt::Assert(
+                        viper_guard,
+                        vir::FoldingBehaviour::Stmt,
+                        self.encoder.error_manager().register(
+                            term.source_info.span,
+                            ErrorCtxt::AssertTerminator(msg.description().to_string()),
+                        ),
+                    ));
+                } else {
+                    stmts.push(vir::Stmt::comment("This assertion will not be checked"));
+                    stmts.push(vir::Stmt::Inhale(viper_guard, vir::FoldingBehaviour::Stmt));
+                };
 
-    //             (stmts, MirSuccessor::Goto(target))
-    //         }
+                (stmts, MirSuccessor::Goto(target))
+            }
 
-    //         TerminatorKind::Resume
-    //         | TerminatorKind::Yield { .. }
-    //         | TerminatorKind::GeneratorDrop => unimplemented!("{:?}", term.kind),
-    _ => unimplemented!(),
+            TerminatorKind::Resume
+            | TerminatorKind::Yield { .. }
+            | TerminatorKind::GeneratorDrop
+            | TerminatorKind::InlineAsm { .. } => unimplemented!("{:?}", term.kind),
         };
-    //     Ok(result)
-    unimplemented!();
+        Ok(result)
     }
 
     /// Encode an edge of the MIR graph
@@ -1985,14 +1982,14 @@ unimplemented!();
         unimplemented!();
     }
 
-    // fn encode_impure_function_call(
-    //     &mut self,
-    //     location: mir::Location,
-    //     call_site_span: Span,
-    //     args: &[mir::Operand<'tcx>],
-    //     destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
-    //     called_def_id: ProcedureDefId,
-    // ) -> Result<Vec<vir::Stmt>> {
+    fn encode_impure_function_call(
+        &mut self,
+        location: mir::Location,
+        call_site_span: rustc_span::Span,
+        args: &[mir::Operand<'tcx>],
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+        called_def_id: ProcedureDefId,
+    ) -> Result<Vec<vir::Stmt>> {
     //     let full_func_proc_name = &self
     //         .encoder
     //         .env()
@@ -2254,16 +2251,17 @@ unimplemented!();
     //         .insert(location, (procedure_contract, fake_exprs));
 
     //     Ok(stmts)
-    // }
+    unimplemented!();
+    }
 
-    // fn encode_pure_function_call(
-    //     &mut self,
-    //     location: mir::Location,
-    //     call_site_span: Span,
-    //     args: &[mir::Operand<'tcx>],
-    //     destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
-    //     called_def_id: ProcedureDefId,
-    // ) -> Vec<vir::Stmt> {
+    fn encode_pure_function_call(
+        &mut self,
+        location: mir::Location,
+        call_site_span: rustc_span::Span,
+        args: &[mir::Operand<'tcx>],
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+        called_def_id: ProcedureDefId,
+    ) -> Vec<vir::Stmt> {
     //     let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id);
     //     debug!("Encoding pure function call '{}'", function_name);
     //     assert!(destination.is_some());
@@ -2380,7 +2378,8 @@ unimplemented!();
     //     */
 
     //     stmts
-    // }
+    unimplemented!();
+    }
 
     // /// Encode permissions that are implicitly carried by the given local variable.
     // fn encode_local_variable_permission(&self, local: Local) -> vir::Expr {

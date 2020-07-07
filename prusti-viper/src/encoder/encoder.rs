@@ -1074,29 +1074,29 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         expr
     }
 
-    // pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> vir::Expr {
-    //     trace!("encode_int_cast {:?} as {:?}", value, ty);
+    pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> vir::Expr {
+        trace!("encode_int_cast {:?} as {:?}", value, ty);
 
-    //     let expr = match ty.kind {
-    //         ty::TyKind::Bool => (value != 0).into(),
-    //         ty::TyKind::Int(ast::IntTy::I8) => (value as i8).into(),
-    //         ty::TyKind::Int(ast::IntTy::I16) => (value as i16).into(),
-    //         ty::TyKind::Int(ast::IntTy::I32) => (value as i32).into(),
-    //         ty::TyKind::Int(ast::IntTy::I64) => (value as i64).into(),
-    //         ty::TyKind::Int(ast::IntTy::I128) => (value as i128).into(),
-    //         ty::TyKind::Int(ast::IntTy::Isize) => (value as isize).into(),
-    //         ty::TyKind::Uint(ast::UintTy::U8) => (value as u8).into(),
-    //         ty::TyKind::Uint(ast::UintTy::U16) => (value as u16).into(),
-    //         ty::TyKind::Uint(ast::UintTy::U32) => (value as u32).into(),
-    //         ty::TyKind::Uint(ast::UintTy::U64) => (value as u64).into(),
-    //         ty::TyKind::Uint(ast::UintTy::U128) => (value as u128).into(),
-    //         ty::TyKind::Uint(ast::UintTy::Usize) => (value as usize).into(),
-    //         ty::TyKind::Char => value.into(),
-    //         ref x => unimplemented!("{:?}", x),
-    //     };
-    //     debug!("encode_int_cast {:?} as {:?} --> {:?}", value, ty, expr);
-    //     expr
-    // }
+        let expr = match ty.kind {
+            ty::TyKind::Bool => (value != 0).into(),
+            ty::TyKind::Int(ast::IntTy::I8) => (value as i8).into(),
+            ty::TyKind::Int(ast::IntTy::I16) => (value as i16).into(),
+            ty::TyKind::Int(ast::IntTy::I32) => (value as i32).into(),
+            ty::TyKind::Int(ast::IntTy::I64) => (value as i64).into(),
+            ty::TyKind::Int(ast::IntTy::I128) => (value as i128).into(),
+            ty::TyKind::Int(ast::IntTy::Isize) => (value as isize).into(),
+            ty::TyKind::Uint(ast::UintTy::U8) => (value as u8).into(),
+            ty::TyKind::Uint(ast::UintTy::U16) => (value as u16).into(),
+            ty::TyKind::Uint(ast::UintTy::U32) => (value as u32).into(),
+            ty::TyKind::Uint(ast::UintTy::U64) => (value as u64).into(),
+            ty::TyKind::Uint(ast::UintTy::U128) => (value as u128).into(),
+            ty::TyKind::Uint(ast::UintTy::Usize) => (value as usize).into(),
+            ty::TyKind::Char => value.into(),
+            ref x => unimplemented!("{:?}", x),
+        };
+        debug!("encode_int_cast {:?} as {:?} --> {:?}", value, ty, expr);
+        expr
+    }
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
         // Rule: the rhs must always have an even number of "$"
