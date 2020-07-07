@@ -94,7 +94,7 @@ where
 }
 
 impl<'tcx, L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'tcx, L, P> {
-    pub fn functional_precondition(&self) -> &[typed::Assertion] {
+    pub fn functional_precondition(&self) -> &[typed::Assertion<'tcx>] {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
             &spec.pres
         } else {

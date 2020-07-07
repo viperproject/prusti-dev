@@ -366,14 +366,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ));
         }
 
-    //     // Set the first CFG block
-    //     self.cfg_method.set_successor(
-    //         start_cfg_block,
-    //         Successor::Goto(opt_body_head.unwrap_or(return_cfg_block)),
-    //     );
+        // Set the first CFG block
+        self.cfg_method.set_successor(
+            start_cfg_block,
+            Successor::Goto(opt_body_head.unwrap_or(return_cfg_block)),
+        );
 
-    //     // Encode preconditions
-    //     self.encode_preconditions(start_cfg_block, precondition_weakening);
+        // Encode preconditions
+        self.encode_preconditions(start_cfg_block, precondition_weakening);
 
     //     // Encode postcondition
     //     self.encode_postconditions(return_cfg_block, postcondition_strengthening);
@@ -2410,21 +2410,21 @@ unimplemented!();
     //     }
     // }
 
-    // /// Encode the precondition with three expressions:
-    // /// - one for the type encoding
-    // /// - one for the type invariants
-    // /// - one for the functional specification.
-    // fn encode_precondition_expr(
-    //     &self,
-    //     contract: &ProcedureContract<'tcx>,
-    //     precondition_weakening: Option<typed::Assertion>,
-    // ) -> (
-    //     vir::Expr,
-    //     Vec<vir::Expr>,
-    //     vir::Expr,
-    //     vir::Expr,
-    //     Option<vir::Expr>,
-    // ) {
+    /// Encode the precondition with three expressions:
+    /// - one for the type encoding
+    /// - one for the type invariants
+    /// - one for the functional specification.
+    fn encode_precondition_expr(
+        &self,
+        contract: &ProcedureContract<'tcx>,
+        precondition_weakening: Option<typed::Assertion>,
+    ) -> (
+        vir::Expr,
+        Vec<vir::Expr>,
+        vir::Expr,
+        vir::Expr,
+        Option<vir::Expr>,
+    ) {
     //     let borrow_infos = &contract.borrow_infos;
     //     let maybe_blocked_paths = if !borrow_infos.is_empty() {
     //         assert_eq!(
@@ -2528,51 +2528,52 @@ unimplemented!();
     //         func_spec.into_iter().conjoin(),
     //         precondition_weakening,
     //     )
-    // }
+    unimplemented!();
+    }
 
-    // /// Encode precondition inhale on the definition side.
-    // fn encode_preconditions(
-    //     &mut self,
-    //     start_cfg_block: CfgBlockIndex,
-    //     precondition_weakening: Option<typed::Assertion>,
-    // ) {
-    //     self.cfg_method
-    //         .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-    //     let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
-    //         self.encode_precondition_expr(self.procedure_contract(), precondition_weakening);
-    //     self.cfg_method.add_stmt(
-    //         start_cfg_block,
-    //         vir::Stmt::Inhale(type_spec, vir::FoldingBehaviour::Stmt),
-    //     );
-    //     self.cfg_method.add_stmt(
-    //         start_cfg_block,
-    //         vir::Stmt::Inhale(
-    //             mandatory_type_spec.into_iter().conjoin(),
-    //             vir::FoldingBehaviour::Stmt,
-    //         ),
-    //     );
-    //     self.cfg_method.add_stmt(
-    //         start_cfg_block,
-    //         vir::Stmt::Inhale(invs_spec, vir::FoldingBehaviour::Stmt),
-    //     );
-    //     // Weakening assertion must be put before inhaling the precondition, otherwise the weakening
-    //     // soundness check becomes trivially satisfied.
-    //     if let Some(weakening_spec) = weakening_spec {
-    //         let pos = weakening_spec.pos().clone();
-    //         self.cfg_method.add_stmt(
-    //             start_cfg_block,
-    //             vir::Stmt::Assert(weakening_spec, FoldingBehaviour::Expr, pos),
-    //         );
-    //     }
-    //     self.cfg_method.add_stmt(
-    //         start_cfg_block,
-    //         vir::Stmt::Inhale(func_spec, vir::FoldingBehaviour::Expr),
-    //     );
-    //     self.cfg_method.add_stmt(
-    //         start_cfg_block,
-    //         vir::Stmt::Label(PRECONDITION_LABEL.to_string()),
-    //     );
-    // }
+    /// Encode precondition inhale on the definition side.
+    fn encode_preconditions(
+        &mut self,
+        start_cfg_block: CfgBlockIndex,
+        precondition_weakening: Option<typed::Assertion>,
+    ) {
+        self.cfg_method
+            .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
+        let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
+            self.encode_precondition_expr(self.procedure_contract(), precondition_weakening);
+        self.cfg_method.add_stmt(
+            start_cfg_block,
+            vir::Stmt::Inhale(type_spec, vir::FoldingBehaviour::Stmt),
+        );
+        self.cfg_method.add_stmt(
+            start_cfg_block,
+            vir::Stmt::Inhale(
+                mandatory_type_spec.into_iter().conjoin(),
+                vir::FoldingBehaviour::Stmt,
+            ),
+        );
+        self.cfg_method.add_stmt(
+            start_cfg_block,
+            vir::Stmt::Inhale(invs_spec, vir::FoldingBehaviour::Stmt),
+        );
+        // Weakening assertion must be put before inhaling the precondition, otherwise the weakening
+        // soundness check becomes trivially satisfied.
+        if let Some(weakening_spec) = weakening_spec {
+            let pos = weakening_spec.pos().clone();
+            self.cfg_method.add_stmt(
+                start_cfg_block,
+                vir::Stmt::Assert(weakening_spec, FoldingBehaviour::Expr, pos),
+            );
+        }
+        self.cfg_method.add_stmt(
+            start_cfg_block,
+            vir::Stmt::Inhale(func_spec, vir::FoldingBehaviour::Expr),
+        );
+        self.cfg_method.add_stmt(
+            start_cfg_block,
+            vir::Stmt::Label(PRECONDITION_LABEL.to_string()),
+        );
+    }
 
     /// Encode the magic wand used in the postcondition with its
     /// functional specification. Returns (lhs, rhs).
