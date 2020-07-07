@@ -25,8 +25,10 @@ fn test3() {
 #[requires(true)]
 #[ensures(true)]
 fn test4() {
-    for _ in 0..2 {
-        invariant!(true)
+    let mut curr = 0;
+    while curr < 2 {
+        invariant!(true);
+        curr += 1;
     }
 }
 
