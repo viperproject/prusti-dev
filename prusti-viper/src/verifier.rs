@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// use encoder::vir::{self, optimisations, ToViper, ToViperDecl};
+use prusti_common::vir::{self, optimisations, ToViper, ToViperDecl};
 use crate::encoder::Encoder;
 // use prusti_filter::validators::Validator;
 use prusti_interface::config;
@@ -195,84 +195,84 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         }
         self.encoder.process_encoding_queue();
 
-//         let encoding_errors_count = self.encoder.count_encoding_errors();
+        let encoding_errors_count = self.encoder.count_encoding_errors();
 
-//         let duration = start.elapsed();
-//         info!(
-//             "Encoding to Viper successful ({}.{} seconds)",
-//             duration.as_secs(),
-//             duration.subsec_millis() / 10
-//         );
-//         let start = Instant::now();
+        let duration = start.elapsed();
+        info!(
+            "Encoding to Viper successful ({}.{} seconds)",
+            duration.as_secs(),
+            duration.subsec_millis() / 10
+        );
+        let start = Instant::now();
 
-//         let program = {
-//             let ast = &self.ast_factory;
+        let program = {
+            let ast = &self.ast_factory;
 
-//             let domains = self.encoder.get_used_viper_domains();
-//             let fields = self.encoder.get_used_viper_fields().to_viper(ast);
-//             let builtin_methods = self.encoder.get_used_builtin_methods();
-//             let mut methods = self.encoder.get_used_viper_methods();
-//             let mut functions = self.encoder.get_used_viper_functions();
-//             if config::simplify_encoding() {
-//                 let (new_methods, new_functions) = optimisations::functions::inline_constant_functions(
-//                     methods, functions);
-//                 methods = new_methods
-//                     .into_iter()
-//                     .map(|m| {
-//                         let purified = optimisations::methods::purify_vars(m);
-//                         optimisations::folding::FoldingOptimiser::optimise(purified)
-//                     })
-//                     .collect();
-//                 functions = new_functions
-//                     .into_iter()
-//                     .map(|f| {
-//                         optimisations::folding::FoldingOptimiser::optimise(f)
-//                     })
-//                     .collect();
-//             }
-//             let mut viper_functions: Vec<_> = functions.into_iter().map(|f| f.to_viper(ast)).collect();
-//             let mut viper_methods: Vec<_> = methods.into_iter().map(|m| m.to_viper(ast)).collect();
-//             viper_methods.extend(builtin_methods.into_iter().map(|m| m.to_viper(ast)));
-//             let mut predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
-//             if config::verify_only_preamble() {
-//                 viper_methods = Vec::new();
-//             }
+            let domains = self.encoder.get_used_viper_domains();
+            let fields = self.encoder.get_used_viper_fields().to_viper(ast);
+            let builtin_methods = self.encoder.get_used_builtin_methods();
+            let mut methods = self.encoder.get_used_viper_methods();
+            let mut functions = self.encoder.get_used_viper_functions();
+            if config::simplify_encoding() {
+                let (new_methods, new_functions) = optimisations::functions::inline_constant_functions(
+                    methods, functions);
+                methods = new_methods
+                    .into_iter()
+                    .map(|m| {
+                        let purified = optimisations::methods::purify_vars(m);
+                        optimisations::folding::FoldingOptimiser::optimise(purified)
+                    })
+                    .collect();
+                functions = new_functions
+                    .into_iter()
+                    .map(|f| {
+                        optimisations::folding::FoldingOptimiser::optimise(f)
+                    })
+                    .collect();
+            }
+            let mut viper_functions: Vec<_> = functions.into_iter().map(|f| f.to_viper(ast)).collect();
+            let mut viper_methods: Vec<_> = methods.into_iter().map(|m| m.to_viper(ast)).collect();
+            viper_methods.extend(builtin_methods.into_iter().map(|m| m.to_viper(ast)));
+            let mut predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
+            if config::verify_only_preamble() {
+                viper_methods = Vec::new();
+            }
 
-//             info!(
-//                 "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",
-//                 domains.len(), fields.len(), viper_functions.len(), predicates.len(),
-//                 viper_methods.len()
-//             );
+            info!(
+                "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",
+                domains.len(), fields.len(), viper_functions.len(), predicates.len(),
+                viper_methods.len()
+            );
 
-//             // Add a function that represents the symbolic read permission amount.
-//             viper_functions.push(ast.function(
-//                 "read$",
-//                 &[],
-//                 ast.perm_type(),
-//                 &[],
-//                 &[
-//                     ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
-//                     ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm()),
-//                 ],
-//                 ast.no_position(),
-//                 None,
-//             ));
+            // Add a function that represents the symbolic read permission amount.
+            viper_functions.push(ast.function(
+                "read$",
+                &[],
+                ast.perm_type(),
+                &[],
+                &[
+                    ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
+                    ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm()),
+                ],
+                ast.no_position(),
+                None,
+            ));
 
-//             // Add a predicate that represents the dead loan token.
-//             predicates.push(
-//                 ast.predicate(
-//                     "DeadBorrowToken$",
-//                     &[vir::LocalVar {
-//                         name: "borrow".to_string(),
-//                         typ: vir::Type::Int,
-//                     }
-//                         .to_viper_decl(ast)],
-//                     None,
-//                 ),
-//             );
+            // Add a predicate that represents the dead loan token.
+            predicates.push(
+                ast.predicate(
+                    "DeadBorrowToken$",
+                    &[vir::LocalVar {
+                        name: "borrow".to_string(),
+                        typ: vir::Type::Int,
+                    }
+                        .to_viper_decl(ast)],
+                    None,
+                ),
+            );
 
-//             ast.program(&domains, &fields, &viper_functions, &predicates, &viper_methods)
-//         };
+            ast.program(&domains, &fields, &viper_functions, &predicates, &viper_methods)
+        };
 
 //         if config::dump_viper_program() {
 //             // Dump Viper program
