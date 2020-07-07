@@ -4272,62 +4272,63 @@ unimplemented!();
         stmts
     }
 
-    // /// Copy a primitive value such as an integer. Allocate the target
-    // /// if necessary.
-    // fn encode_copy_primitive_value(
-    //     &mut self,
-    //     src: vir::Expr,
-    //     dst: vir::Expr,
-    //     ty: ty::Ty<'tcx>,
-    //     location: mir::Location,
-    // ) -> Vec<vir::Stmt> {
-    //     let field = self.encoder.encode_value_field(ty);
-    //     self.encode_copy_value_assign2(dst, src.field(field.clone()), field, location)
-    // }
+    /// Copy a primitive value such as an integer. Allocate the target
+    /// if necessary.
+    fn encode_copy_primitive_value(
+        &mut self,
+        src: vir::Expr,
+        dst: vir::Expr,
+        ty: ty::Ty<'tcx>,
+        location: mir::Location,
+    ) -> Vec<vir::Stmt> {
+        let field = self.encoder.encode_value_field(ty);
+        self.encode_copy_value_assign2(dst, src.field(field.clone()), field, location)
+    }
 
-    // fn encode_deep_copy_adt(
-    //     &mut self,
-    //     src: vir::Expr,
-    //     dst: vir::Expr,
-    //     self_ty: ty::Ty<'tcx>,
-    // ) -> Vec<vir::Stmt> {
-    //     let mut stmts = self.encode_havoc(&dst);
-    //     let pred = vir::Expr::pred_permission(dst.clone(), vir::PermAmount::Write).unwrap();
-    //     stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
-    //     let eq =
-    //         self.encoder
-    //             .encode_memory_eq_func_app(src, dst, self_ty, vir::Position::default());
-    //     stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
-    //     stmts
-    // }
+    fn encode_deep_copy_adt(
+        &mut self,
+        src: vir::Expr,
+        dst: vir::Expr,
+        self_ty: ty::Ty<'tcx>,
+    ) -> Vec<vir::Stmt> {
+        let mut stmts = self.encode_havoc(&dst);
+        let pred = vir::Expr::pred_permission(dst.clone(), vir::PermAmount::Write).unwrap();
+        stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
+        let eq =
+            self.encoder
+                .encode_memory_eq_func_app(src, dst, self_ty, vir::Position::default());
+        stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
+        stmts
+    }
 
-    // fn encode_deep_copy_tuple(
-    //     &mut self,
-    //     src: vir::Expr,
-    //     dst: vir::Expr,
-    //     elems: &ty::Slice<&'tcx ty::TyS<'tcx>>,
-    // ) -> Vec<vir::Stmt> {
-    //     let mut stmts = self.encode_havoc(&dst);
-    //     for (field_num, ty) in elems.iter().enumerate() {
-    //         let field_name = format!("tuple_{}", field_num);
-    //         let field = self.encoder.encode_raw_ref_field(field_name, ty);
-    //         let dst_field = dst.clone().field(field.clone());
-    //         let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
-    //         let pred =
-    //             vir::Expr::pred_permission(dst_field.clone(), vir::PermAmount::Write).unwrap();
-    //         stmts.push(vir::Stmt::Inhale(acc, vir::FoldingBehaviour::Stmt));
-    //         stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
-    //         let src_field = src.clone().field(field.clone());
-    //         let eq = self.encoder.encode_memory_eq_func_app(
-    //             src_field,
-    //             dst_field,
-    //             ty,
-    //             vir::Position::default(),
-    //         );
-    //         stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
-    //     }
-    //     stmts
-    // }
+    fn encode_deep_copy_tuple(
+        &mut self,
+        src: vir::Expr,
+        dst: vir::Expr,
+        elems: ty::subst::SubstsRef<'tcx>,
+    ) -> Vec<vir::Stmt> {
+        let mut stmts = self.encode_havoc(&dst);
+        for (field_num, arg) in elems.iter().enumerate() {
+            let ty = arg.expect_ty();
+            let field_name = format!("tuple_{}", field_num);
+            let field = self.encoder.encode_raw_ref_field(field_name, ty);
+            let dst_field = dst.clone().field(field.clone());
+            let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
+            let pred =
+                vir::Expr::pred_permission(dst_field.clone(), vir::PermAmount::Write).unwrap();
+            stmts.push(vir::Stmt::Inhale(acc, vir::FoldingBehaviour::Stmt));
+            stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
+            let src_field = src.clone().field(field.clone());
+            let eq = self.encoder.encode_memory_eq_func_app(
+                src_field,
+                dst_field,
+                ty,
+                vir::Position::default(),
+            );
+            stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
+        }
+        stmts
+    }
 
     fn encode_copy2(
         &mut self,
@@ -4336,33 +4337,32 @@ unimplemented!();
         self_ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> Vec<vir::Stmt> {
-        // let stmts = match self_ty.kind {
-        //     ty::TyKind::Bool
-        //     | ty::TyKind::Int(_)
-        //     | ty::TyKind::Uint(_)
-        //     | ty::TyKind::Char => {
-        //         self.encode_copy_primitive_value(src, dst, self_ty, location)
-        //     }
-        //     ty::TyKind::Adt(adt_def, _subst) if !adt_def.is_box() => {
-        //         self.encode_deep_copy_adt(src, dst, self_ty)
-        //     }
-        //     ty::TyKind::Tuple(elems) => self.encode_deep_copy_tuple(src, dst, elems),
-        //     ty::TyKind::Param(_) => {
-        //         let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
-        //         let eq = self.encoder.encode_memory_eq_func_app(
-        //             src,
-        //             dst,
-        //             self_ty,
-        //             vir::Position::default(),
-        //         );
-        //         stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
-        //         stmts
-        //     }
+        let stmts = match self_ty.kind {
+            ty::TyKind::Bool
+            | ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char => {
+                self.encode_copy_primitive_value(src, dst, self_ty, location)
+            }
+            ty::TyKind::Adt(adt_def, _subst) if !adt_def.is_box() => {
+                self.encode_deep_copy_adt(src, dst, self_ty)
+            }
+            ty::TyKind::Tuple(elems) => self.encode_deep_copy_tuple(src, dst, elems),
+            ty::TyKind::Param(_) => {
+                let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
+                let eq = self.encoder.encode_memory_eq_func_app(
+                    src,
+                    dst,
+                    self_ty,
+                    vir::Position::default(),
+                );
+                stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
+                stmts
+            }
 
-        //     ref x => unimplemented!("{:?}", x),
-        // };
-        // stmts
-        unimplemented!();
+            ref x => unimplemented!("{:?}", x),
+        };
+        stmts
     }
 
     fn encode_assign_aggregate(
