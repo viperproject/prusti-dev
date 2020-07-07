@@ -37,9 +37,9 @@ use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Procedure;
 // use prusti_common::report::log;
 // use prusti_interface::specifications::*;
-// use rustc::hir::Mutability;
+use rustc_middle::mir::Mutability;
 use rustc_middle::mir;
-// use rustc::mir::TerminatorKind;
+use rustc_middle::mir::TerminatorKind;
 use rustc_middle::ty;
 use rustc_middle::ty::layout;
 use rustc_target::abi::Integer;
@@ -61,7 +61,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     procedure: &'p Procedure<'p, 'tcx>,
     mir: &'p mir::Body<'tcx>,
     cfg_method: vir::CfgMethod,
-    // locals: LocalVariableManager<'tcx>,
+    locals: LocalVariableManager<'tcx>,
     loop_encoder: LoopEncoder<'p, 'tcx>,
     auxiliary_local_vars: HashMap<String, vir::Type>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
@@ -121,7 +121,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             procedure,
             mir,
             cfg_method,
-            // locals: LocalVariableManager::new(&mir.local_decls),
+            locals: LocalVariableManager::new(&mir.local_decls),
             loop_encoder: LoopEncoder::new(procedure, tcx),
             auxiliary_local_vars: HashMap::new(),
             mir_encoder: mir_encoder,
@@ -1179,22 +1179,22 @@ unimplemented!();
         stmts
     }
 
-    // fn encode_obtain(&mut self, expr: vir::Expr, pos: vir::Position) -> Vec<vir::Stmt> {
-    //     let mut stmts = vec![];
+    fn encode_obtain(&mut self, expr: vir::Expr, pos: vir::Position) -> Vec<vir::Stmt> {
+        let mut stmts = vec![];
 
-    //     stmts.push(vir::Stmt::Obtain(expr.clone(), pos));
+        stmts.push(vir::Stmt::Obtain(expr.clone(), pos));
 
-    //     if self.check_fold_unfold_state {
-    //         let pos = self.encoder.error_manager().register(
-    //             // TODO: use a better span
-    //             self.mir.span,
-    //             ErrorCtxt::Unexpected,
-    //         );
-    //         stmts.push(vir::Stmt::Assert(expr, vir::FoldingBehaviour::Expr, pos));
-    //     }
+        if self.check_fold_unfold_state {
+            let pos = self.encoder.error_manager().register(
+                // TODO: use a better span
+                self.mir.span,
+                ErrorCtxt::Unexpected,
+            );
+            stmts.push(vir::Stmt::Assert(expr, vir::FoldingBehaviour::Expr, pos));
+        }
 
-    //     stmts
-    // }
+        stmts
+    }
 
     /// A borrow is mutable if it was a MIR unique borrow, a move of
     /// a borrow, or a argument of a function.
@@ -1517,23 +1517,23 @@ unimplemented!();
         term: &mir::Terminator<'tcx>,
         location: mir::Location,
     ) -> Result<(Vec<vir::Stmt>, MirSuccessor)> {
-    //     debug!(
-    //         "Encode terminator '{:?}', span: {:?}",
-    //         term.kind, term.source_info.span
-    //     );
-    //     let mut stmts: Vec<vir::Stmt> = vec![vir::Stmt::comment(format!("[mir] {:?}", term.kind))];
+        debug!(
+            "Encode terminator '{:?}', span: {:?}",
+            term.kind, term.source_info.span
+        );
+        let mut stmts: Vec<vir::Stmt> = vec![vir::Stmt::comment(format!("[mir] {:?}", term.kind))];
 
-    //     let result = match term.kind {
-    //         TerminatorKind::Return => {
-    //             // Package magic wands, if there is any
-    //             stmts.extend(self.encode_package_end_of_method(
-    //                 PRECONDITION_LABEL,
-    //                 POSTCONDITION_LABEL,
-    //                 location,
-    //             )?);
+        let result = match term.kind {
+            TerminatorKind::Return => {
+                // Package magic wands, if there is any
+                stmts.extend(self.encode_package_end_of_method(
+                    PRECONDITION_LABEL,
+                    POSTCONDITION_LABEL,
+                    location,
+                )?);
 
-    //             (stmts, MirSuccessor::Return)
-    //         }
+                (stmts, MirSuccessor::Return)
+            }
 
     //         TerminatorKind::Goto { target } => (stmts, MirSuccessor::Goto(target)),
 
@@ -1940,7 +1940,8 @@ unimplemented!();
     //         TerminatorKind::Resume
     //         | TerminatorKind::Yield { .. }
     //         | TerminatorKind::GeneratorDrop => unimplemented!("{:?}", term.kind),
-    //     };
+    _ => unimplemented!(),
+        };
     //     Ok(result)
     unimplemented!();
     }
@@ -2576,146 +2577,146 @@ unimplemented!();
     //     );
     // }
 
-    // /// Encode the magic wand used in the postcondition with its
-    // /// functional specification. Returns (lhs, rhs).
-    // fn encode_postcondition_magic_wand(
-    //     &self,
-    //     contract: &ProcedureContract<'tcx>,
-    //     pre_label: &str,
-    //     post_label: &str,
-    // ) -> Option<(vir::Expr, vir::Expr)> {
-    //     // Encode args and return.
-    //     let encoded_args: Vec<vir::Expr> = contract
-    //         .args
-    //         .iter()
-    //         .map(|local| self.encode_prusti_local(*local).into())
-    //         .collect();
-    //     let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
+    /// Encode the magic wand used in the postcondition with its
+    /// functional specification. Returns (lhs, rhs).
+    fn encode_postcondition_magic_wand(
+        &self,
+        contract: &ProcedureContract<'tcx>,
+        pre_label: &str,
+        post_label: &str,
+    ) -> Option<(vir::Expr, vir::Expr)> {
+        // Encode args and return.
+        let encoded_args: Vec<vir::Expr> = contract
+            .args
+            .iter()
+            .map(|local| self.encode_prusti_local(*local).into())
+            .collect();
+        let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
 
-    //     // Encode magic wands
-    //     let borrow_infos = &contract.borrow_infos;
-    //     if !borrow_infos.is_empty() {
-    //         assert_eq!(
-    //             borrow_infos.len(),
-    //             1,
-    //             "We can have at most one magic wand in the postcondition."
-    //         );
-    //         let borrow_info = &borrow_infos[0];
-    //         let mut pledges = contract.pledges();
-    //         assert!(
-    //             pledges.len() <= 1,
-    //             "There can be at most one pledge in the function postcondition."
-    //         );
-    //         debug!("borrow_info {:?}", borrow_info);
-    //         let encode_place_perm = |place, mutability, label| {
-    //             let perm_amount = match mutability {
-    //                 Mutability::MutImmutable => vir::PermAmount::Read,
-    //                 Mutability::MutMutable => vir::PermAmount::Write,
-    //             };
-    //             let (place_expr, place_ty, _) = self.encode_generic_place(place);
-    //             let vir_access =
-    //                 vir::Expr::pred_permission(place_expr.clone().old(label), perm_amount).unwrap();
-    //             let inv = self
-    //                 .encoder
-    //                 .encode_invariant_func_app(place_ty, place_expr.old(label));
-    //             vir::Expr::and(vir_access, inv)
-    //         };
-    //         let mut lhs: Vec<_> = borrow_info
-    //             .blocking_paths
-    //             .iter()
-    //             .map(|(place, mutability)| encode_place_perm(place, *mutability, post_label))
-    //             .collect();
-    //         let mut rhs: Vec<_> = borrow_info
-    //             .blocked_paths
-    //             .iter()
-    //             .map(|(place, mutability)| encode_place_perm(place, *mutability, pre_label))
-    //             .collect();
-    //         if let Some((reference, body_lhs, body_rhs)) = pledges.pop() {
-    //             debug!(
-    //                 "pledge reference={:?} lhs={:?} rhs={:?}",
-    //                 reference, body_lhs, body_rhs
-    //             );
-    //             assert!(
-    //                 reference.is_none(),
-    //                 "The reference should be none in postcondition."
-    //             );
-    //             let mut assertion_lhs = self.encoder.encode_assertion(
-    //                 &body_lhs,
-    //                 &self.mir,
-    //                 pre_label,
-    //                 &encoded_args,
-    //                 Some(&encoded_return),
-    //                 false,
-    //                 None,
-    //                 ErrorCtxt::GenericExpression,
-    //             );
-    //             let mut assertion_rhs = self.encoder.encode_assertion(
-    //                 &body_rhs,
-    //                 &self.mir,
-    //                 pre_label,
-    //                 &encoded_args,
-    //                 Some(&encoded_return),
-    //                 false,
-    //                 None,
-    //                 ErrorCtxt::GenericExpression,
-    //             );
-    //             assertion_lhs =
-    //                 self.wrap_arguments_into_old(assertion_lhs, pre_label, contract, &encoded_args);
-    //             assertion_rhs =
-    //                 self.wrap_arguments_into_old(assertion_rhs, pre_label, contract, &encoded_args);
-    //             let ty = self.locals.get_type(contract.returned_value);
-    //             let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_return.clone(), ty);
-    //             let original_expr = encoded_deref;
-    //             let old_expr = vir::Expr::labelled_old(post_label, original_expr.clone());
-    //             // TODO ??
-    //             assertion_lhs = assertion_lhs.replace_place(&original_expr, &old_expr);
-    //             assertion_lhs = assertion_lhs.remove_redundant_old();
-    //             assertion_rhs = assertion_rhs.replace_place(&original_expr, &old_expr);
-    //             assertion_rhs = assertion_rhs.remove_redundant_old();
-    //             lhs.push(assertion_lhs);
-    //             rhs.push(assertion_rhs);
-    //         }
-    //         let lhs = lhs.into_iter().conjoin();
-    //         let rhs = rhs.into_iter().conjoin();
-    //         Some((lhs, rhs))
-    //     } else {
-    //         None
-    //     }
-    // }
+        // Encode magic wands
+        let borrow_infos = &contract.borrow_infos;
+        if !borrow_infos.is_empty() {
+            assert_eq!(
+                borrow_infos.len(),
+                1,
+                "We can have at most one magic wand in the postcondition."
+            );
+            let borrow_info = &borrow_infos[0];
+            let mut pledges = contract.pledges();
+            assert!(
+                pledges.len() <= 1,
+                "There can be at most one pledge in the function postcondition."
+            );
+            debug!("borrow_info {:?}", borrow_info);
+            let encode_place_perm = |place, mutability, label| {
+                let perm_amount = match mutability {
+                    Mutability::Not => vir::PermAmount::Read,
+                    Mutability::Mut => vir::PermAmount::Write,
+                };
+                let (place_expr, place_ty, _) = self.encode_generic_place(place);
+                let vir_access =
+                    vir::Expr::pred_permission(place_expr.clone().old(label), perm_amount).unwrap();
+                let inv = self
+                    .encoder
+                    .encode_invariant_func_app(place_ty, place_expr.old(label));
+                vir::Expr::and(vir_access, inv)
+            };
+            let mut lhs: Vec<_> = borrow_info
+                .blocking_paths
+                .iter()
+                .map(|(place, mutability)| encode_place_perm(place, *mutability, post_label))
+                .collect();
+            let mut rhs: Vec<_> = borrow_info
+                .blocked_paths
+                .iter()
+                .map(|(place, mutability)| encode_place_perm(place, *mutability, pre_label))
+                .collect();
+            if let Some((reference, body_lhs, body_rhs)) = pledges.pop() {
+                debug!(
+                    "pledge reference={:?} lhs={:?} rhs={:?}",
+                    reference, body_lhs, body_rhs
+                );
+                assert!(
+                    reference.is_none(),
+                    "The reference should be none in postcondition."
+                );
+                let mut assertion_lhs = self.encoder.encode_assertion(
+                    &body_lhs,
+                    &self.mir,
+                    pre_label,
+                    &encoded_args,
+                    Some(&encoded_return),
+                    false,
+                    None,
+                    ErrorCtxt::GenericExpression,
+                );
+                let mut assertion_rhs = self.encoder.encode_assertion(
+                    &body_rhs,
+                    &self.mir,
+                    pre_label,
+                    &encoded_args,
+                    Some(&encoded_return),
+                    false,
+                    None,
+                    ErrorCtxt::GenericExpression,
+                );
+                assertion_lhs =
+                    self.wrap_arguments_into_old(assertion_lhs, pre_label, contract, &encoded_args);
+                assertion_rhs =
+                    self.wrap_arguments_into_old(assertion_rhs, pre_label, contract, &encoded_args);
+                let ty = self.locals.get_type(contract.returned_value);
+                let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_return.clone(), ty);
+                let original_expr = encoded_deref;
+                let old_expr = vir::Expr::labelled_old(post_label, original_expr.clone());
+                // TODO ??
+                assertion_lhs = assertion_lhs.replace_place(&original_expr, &old_expr);
+                assertion_lhs = assertion_lhs.remove_redundant_old();
+                assertion_rhs = assertion_rhs.replace_place(&original_expr, &old_expr);
+                assertion_rhs = assertion_rhs.remove_redundant_old();
+                lhs.push(assertion_lhs);
+                rhs.push(assertion_rhs);
+            }
+            let lhs = lhs.into_iter().conjoin();
+            let rhs = rhs.into_iter().conjoin();
+            Some((lhs, rhs))
+        } else {
+            None
+        }
+    }
 
-    // /// Wrap function arguments used in the postcondition into ``old``:
-    // ///
-    // /// +   For references wrap the base ``_1.var_ref``.
-    // /// +   For non-references wrap the entire place into old.
-    // fn wrap_arguments_into_old(
-    //     &self,
-    //     mut assertion: vir::Expr,
-    //     pre_label: &str,
-    //     contract: &ProcedureContract<'tcx>,
-    //     encoded_args: &[vir::Expr],
-    // ) -> vir::Expr {
-    //     for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
-    //         let ty = self.locals.get_type(arg);
-    //         if self.mir_encoder.is_reference(ty) {
-    //             // If the argument is a reference, we wrap _1.val_ref into old.
-    //             let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
-    //             let original_expr = encoded_deref;
-    //             let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
-    //             assertion = assertion.replace_place(&original_expr, &old_expr);
-    //         } else {
-    //             // If the argument is not a reference, we wrap entire path into old.
-    //             assertion = assertion.fold_places(|place| {
-    //                 let base: vir::Expr = place.get_base().into();
-    //                 if encoded_arg == &base {
-    //                     place.old(pre_label)
-    //                 } else {
-    //                     place
-    //                 }
-    //             });
-    //         }
-    //     }
-    //     assertion.remove_redundant_old()
-    // }
+    /// Wrap function arguments used in the postcondition into ``old``:
+    ///
+    /// +   For references wrap the base ``_1.var_ref``.
+    /// +   For non-references wrap the entire place into old.
+    fn wrap_arguments_into_old(
+        &self,
+        mut assertion: vir::Expr,
+        pre_label: &str,
+        contract: &ProcedureContract<'tcx>,
+        encoded_args: &[vir::Expr],
+    ) -> vir::Expr {
+        for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
+            let ty = self.locals.get_type(arg);
+            if self.mir_encoder.is_reference(ty) {
+                // If the argument is a reference, we wrap _1.val_ref into old.
+                let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
+                let original_expr = encoded_deref;
+                let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
+                assertion = assertion.replace_place(&original_expr, &old_expr);
+            } else {
+                // If the argument is not a reference, we wrap entire path into old.
+                assertion = assertion.fold_places(|place| {
+                    let base: vir::Expr = place.get_base().into();
+                    if encoded_arg == &base {
+                        place.old(pre_label)
+                    } else {
+                        place
+                    }
+                });
+            }
+        }
+        assertion.remove_redundant_old()
+    }
 
     // /// Encode the postcondition with three expressions:
     // /// - one for the type encoding
@@ -2938,112 +2939,112 @@ unimplemented!();
         vir::ExprFolder::fold(&mut replacer, expr)
     }
 
-    // /// Encode the package statement of magic wands at the end of the method
-    // fn encode_package_end_of_method(
-    //     &mut self,
-    //     pre_label: &str,
-    //     post_label: &str,
-    //     location: mir::Location,
-    // ) -> Result<Vec<vir::Stmt>> {
-    //     debug!("encode_package_end_of_method '{:?}'", location);
-    //     let mut stmts = Vec::new();
+    /// Encode the package statement of magic wands at the end of the method
+    fn encode_package_end_of_method(
+        &mut self,
+        pre_label: &str,
+        post_label: &str,
+        location: mir::Location,
+    ) -> Result<Vec<vir::Stmt>> {
+        debug!("encode_package_end_of_method '{:?}'", location);
+        let mut stmts = Vec::new();
 
-    //     // Package magic wand(s)
-    //     if let Some((lhs, rhs)) =
-    //         self.encode_postcondition_magic_wand(self.procedure_contract(), pre_label, post_label)
-    //     {
-    //         let pos = self
-    //             .encoder
-    //             .error_manager()
-    //             .register(self.mir.span, ErrorCtxt::PackageMagicWandForPostcondition);
+        // Package magic wand(s)
+        if let Some((lhs, rhs)) =
+            self.encode_postcondition_magic_wand(self.procedure_contract(), pre_label, post_label)
+        {
+            let pos = self
+                .encoder
+                .error_manager()
+                .register(self.mir.span, ErrorCtxt::PackageMagicWandForPostcondition);
 
-    //         let blocker = mir::RETURN_PLACE;
-    //         // TODO: Check if it really is always start and not the mid point.
-    //         let start_point = self
-    //             .polonius_info()
-    //             .get_point(location, facts::PointType::Start);
+            let blocker = mir::RETURN_PLACE;
+            // TODO: Check if it really is always start and not the mid point.
+            let start_point = self
+                .polonius_info()
+                .get_point(location, facts::PointType::Start);
 
-    //         let mut package_stmts =
-    //             if let Some(region) = self.polonius_info().variable_regions.get(&blocker) {
-    //                 let (all_loans, zombie_loans) = self
-    //                     .polonius_info()
-    //                     .get_all_loans_kept_alive_by(start_point, *region);
-    //                 self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)?
-    //             } else {
-    //                 unreachable!(); // Really?
-    //             };
+            let mut package_stmts =
+                if let Some(region) = self.polonius_info().variable_regions.get(&blocker) {
+                    let (all_loans, zombie_loans) = self
+                        .polonius_info()
+                        .get_all_loans_kept_alive_by(start_point, *region);
+                    self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)?
+                } else {
+                    unreachable!(); // Really?
+                };
 
-    //         // We need to make sure that the lhs of the magic wand is
-    //         // fully folded before the label.
-    //         // To do so, we need to use the lhs without functional specification.
-    //         let current_lhs = lhs
-    //             .clone()
-    //             .map_labels(|label| {
-    //                 if label == post_label {
-    //                     None
-    //                 } else {
-    //                     Some(label)
-    //                 }
-    //             })
-    //             .filter_perm_conjunction();
-    //         stmts.extend(self.encode_obtain(current_lhs, pos.clone()));
+            // We need to make sure that the lhs of the magic wand is
+            // fully folded before the label.
+            // To do so, we need to use the lhs without functional specification.
+            let current_lhs = lhs
+                .clone()
+                .map_labels(|label| {
+                    if label == post_label {
+                        None
+                    } else {
+                        Some(label)
+                    }
+                })
+                .filter_perm_conjunction();
+            stmts.extend(self.encode_obtain(current_lhs, pos.clone()));
 
-    //         // lhs must be phrased in terms of post state.
-    //         let post_label = post_label.to_string();
-    //         stmts.push(vir::Stmt::Label(post_label.clone()));
+            // lhs must be phrased in terms of post state.
+            let post_label = post_label.to_string();
+            stmts.push(vir::Stmt::Label(post_label.clone()));
 
-    //         // Make the deref of reference arguments to be folded (see issue #47)
-    //         package_stmts.push(vir::Stmt::comment("Fold predicates for &mut args"));
-    //         for arg_index in self.mir.args_iter() {
-    //             let arg_ty = self.mir.local_decls[arg_index].ty;
-    //             if self.mir_encoder.is_reference(arg_ty) {
-    //                 let encoded_arg = self.mir_encoder.encode_local(arg_index);
-    //                 let (deref_place, ..) =
-    //                     self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
-    //                 let old_deref_place = deref_place.clone().old(&pre_label);
-    //                 package_stmts.extend(self.encode_transfer_permissions(
-    //                     deref_place,
-    //                     old_deref_place.clone(),
-    //                     location,
-    //                 ));
-    //                 let predicate =
-    //                     vir::Expr::pred_permission(old_deref_place, vir::PermAmount::Write)
-    //                         .unwrap();
-    //                 package_stmts.extend(self.encode_obtain(predicate, pos.clone()));
-    //             }
-    //         }
+            // Make the deref of reference arguments to be folded (see issue #47)
+            package_stmts.push(vir::Stmt::comment("Fold predicates for &mut args"));
+            for arg_index in self.mir.args_iter() {
+                let arg_ty = self.mir.local_decls[arg_index].ty;
+                if self.mir_encoder.is_reference(arg_ty) {
+                    let encoded_arg = self.mir_encoder.encode_local(arg_index);
+                    let (deref_place, ..) =
+                        self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
+                    let old_deref_place = deref_place.clone().old(&pre_label);
+                    package_stmts.extend(self.encode_transfer_permissions(
+                        deref_place,
+                        old_deref_place.clone(),
+                        location,
+                    ));
+                    let predicate =
+                        vir::Expr::pred_permission(old_deref_place, vir::PermAmount::Write)
+                            .unwrap();
+                    package_stmts.extend(self.encode_obtain(predicate, pos.clone()));
+                }
+            }
 
-    //         // The fold-unfold algorithm will fill the body of the package statement
-    //         let vars: Vec<_> = self
-    //             .old_ghost_vars
-    //             .iter()
-    //             .map(|(name, typ)| vir::LocalVar::new(name.clone(), typ.clone()))
-    //             .collect();
-    //         stmts.push(vir::Stmt::package_magic_wand(
-    //             lhs,
-    //             rhs,
-    //             package_stmts,
-    //             post_label.clone(),
-    //             vars,
-    //             pos,
-    //         ));
+            // The fold-unfold algorithm will fill the body of the package statement
+            let vars: Vec<_> = self
+                .old_ghost_vars
+                .iter()
+                .map(|(name, typ)| vir::LocalVar::new(name.clone(), typ.clone()))
+                .collect();
+            stmts.push(vir::Stmt::package_magic_wand(
+                lhs,
+                rhs,
+                package_stmts,
+                post_label.clone(),
+                vars,
+                pos,
+            ));
 
-    //         // We need to transfer all permissions from old[post](lhs) to lhs.
-    //         let borrow_infos = &self.procedure_contract().borrow_infos;
-    //         assert_eq!(
-    //             borrow_infos.len(),
-    //             1,
-    //             "We can have at most one magic wand in the postcondition."
-    //         );
-    //         for (path, _) in borrow_infos[0].blocking_paths.clone().iter() {
-    //             let (encoded_place, _, _) = self.encode_generic_place(path);
-    //             let old_place = encoded_place.clone().old(post_label.clone());
-    //             stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
-    //         }
-    //     }
+            // We need to transfer all permissions from old[post](lhs) to lhs.
+            let borrow_infos = &self.procedure_contract().borrow_infos;
+            assert_eq!(
+                borrow_infos.len(),
+                1,
+                "We can have at most one magic wand in the postcondition."
+            );
+            for (path, _) in borrow_infos[0].blocking_paths.clone().iter() {
+                let (encoded_place, _, _) = self.encode_generic_place(path);
+                let old_place = encoded_place.clone().old(post_label.clone());
+                stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
+            }
+        }
 
-    //     Ok(stmts)
-    // }
+        Ok(stmts)
+    }
 
     // /// Encode postcondition exhale on the definition side.
     // fn encode_postconditions(
@@ -3658,14 +3659,14 @@ unimplemented!();
     //     stmts
     // }
 
-    // // TODO: What is this?
-    // fn encode_prusti_local(&self, local: Local) -> vir::LocalVar {
-    //     let var_name = self.locals.get_name(local);
-    //     let type_name = self
-    //         .encoder
-    //         .encode_type_predicate_use(self.locals.get_type(local));
-    //     vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
-    // }
+    // TODO: What is this?
+    fn encode_prusti_local(&self, local: Local) -> vir::LocalVar {
+        let var_name = self.locals.get_name(local);
+        let type_name = self
+            .encoder
+            .encode_type_predicate_use(self.locals.get_type(local));
+        vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
+    }
 
     // /// Returns
     // /// - `vir::Expr`: the place of the projection;

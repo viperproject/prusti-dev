@@ -732,36 +732,36 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         self.interner.get_point_index(&point)
     }
 
-//     pub fn get_all_loans_kept_alive_by(
-//         &self,
-//         point: facts::PointIndex,
-//         region: facts::Region,
-//     ) -> (Vec<facts::Loan>, Vec<facts::Loan>) {
-//         let mut loans =
-//             self.get_loans_kept_alive_by(point, region, &self.borrowck_out_facts.restricts);
-//         let zombie_loans =
-//             self.get_loans_kept_alive_by(point, region, &self.additional_facts.zombie_requires);
-//         loans.extend(zombie_loans.iter().cloned());
-//         (loans, zombie_loans)
-//     }
+    pub fn get_all_loans_kept_alive_by(
+        &self,
+        point: facts::PointIndex,
+        region: facts::Region,
+    ) -> (Vec<facts::Loan>, Vec<facts::Loan>) {
+        let mut loans =
+            self.get_loans_kept_alive_by(point, region, &self.borrowck_out_facts.restricts);
+        let zombie_loans =
+            self.get_loans_kept_alive_by(point, region, &self.additional_facts.zombie_requires);
+        loans.extend(zombie_loans.iter().cloned());
+        (loans, zombie_loans)
+    }
 
-//     /// Get loans that are kept alive by the given region.
-//     fn get_loans_kept_alive_by(
-//         &self,
-//         point: facts::PointIndex,
-//         region: facts::Region,
-//         restricts_map: &FxHashMap<
-//             facts::PointIndex,
-//             BTreeMap<facts::Region, BTreeSet<facts::Loan>>,
-//         >,
-//     ) -> Vec<facts::Loan> {
-//         restricts_map
-//             .get(&point)
-//             .as_ref()
-//             .and_then(|restricts| restricts.get(&region))
-//             .map(|loans| loans.iter().cloned().collect())
-//             .unwrap_or(Vec::new())
-//     }
+    /// Get loans that are kept alive by the given region.
+    fn get_loans_kept_alive_by(
+        &self,
+        point: facts::PointIndex,
+        region: facts::Region,
+        restricts_map: &FxHashMap<
+            facts::PointIndex,
+            BTreeMap<facts::Region, BTreeSet<facts::Loan>>,
+        >,
+    ) -> Vec<facts::Loan> {
+        restricts_map
+            .get(&point)
+            .as_ref()
+            .and_then(|restricts| restricts.get(&region))
+            .map(|loans| loans.iter().cloned().collect())
+            .unwrap_or(Vec::new())
+    }
 
 //     /// Get loans that dye at the given location.
 //     pub(crate) fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {

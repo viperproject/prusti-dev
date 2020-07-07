@@ -15,7 +15,7 @@ use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
 // use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 // use crate::encoder::stub_function_encoder::StubFunctionEncoder;
-// use crate::encoder::spec_encoder::SpecEncoder;
+use crate::encoder::spec_encoder::SpecEncoder;
 use crate::encoder::type_encoder::{
     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use prusti_common::vir;
@@ -63,12 +63,12 @@ pub struct Encoder<'v, 'tcx: 'v> {
     // /// where a pure function is required.
     // stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
     type_predicate_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
-    // type_invariant_names: RefCell<HashMap<ty::TyKind<'x>, String>>,
-    // type_tag_names: RefCell<HashMap<ty::TyKind<'x>, String>>,
+    type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
+    type_tag_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
     type_predicates: RefCell<HashMap<String, vir::Predicate>>,
-    // type_invariants: RefCell<HashMap<String, vir::Function>>,
-    // type_tags: RefCell<HashMap<String, vir::Function>>,
+    type_invariants: RefCell<HashMap<String, vir::Function>>,
+    type_tags: RefCell<HashMap<String, vir::Function>>,
     // type_discriminant_funcs: RefCell<HashMap<String, vir::Function>>,
     // memory_eq_funcs: RefCell<HashMap<String, Option<vir::Function>>>,
     fields: RefCell<HashMap<String, vir::Field>>,
@@ -122,12 +122,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             // pure_functions: RefCell::new(HashMap::new()),
             // stub_pure_functions: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
-            // type_invariant_names: RefCell::new(HashMap::new()),
-            // type_tag_names: RefCell::new(HashMap::new()),
+            type_invariant_names: RefCell::new(HashMap::new()),
+            type_tag_names: RefCell::new(HashMap::new()),
             predicate_types: RefCell::new(HashMap::new()),
             type_predicates: RefCell::new(HashMap::new()),
-            // type_invariants: RefCell::new(HashMap::new()),
-            // type_tags: RefCell::new(HashMap::new()),
+            type_invariants: RefCell::new(HashMap::new()),
+            type_tags: RefCell::new(HashMap::new()),
             // type_discriminant_funcs: RefCell::new(HashMap::new()),
             // memory_eq_funcs: RefCell::new(HashMap::new()),
             fields: RefCell::new(HashMap::new()),
@@ -872,32 +872,32 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     type_encoder.encode_bounds(var)
     // }
 
-    // pub fn encode_assertion(
-    //     &self,
-    //     assertion: &TypedAssertion,
-    //     mir: &mir::Body<'tcx>,
-    //     label: &str,
-    //     encoded_args: &[vir::Expr],
-    //     encoded_return: Option<&vir::Expr>,
-    //     targets_are_values: bool,
-    //     stop_at_bbi: Option<mir::BasicBlock>,
-    //     error: ErrorCtxt,
-    // ) -> vir::Expr {
-    //     trace!("encode_assertion {:?}", assertion);
-    //     let spec_encoder = SpecEncoder::new(
-    //         self,
-    //         mir,
-    //         label,
-    //         encoded_args,
-    //         encoded_return,
-    //         targets_are_values,
-    //         stop_at_bbi,
-    //     );
-    //     spec_encoder.encode_assertion(assertion).set_default_pos(
-    //         self.error_manager()
-    //             .register(assertion.get_spans(), error),
-    //     )
-    // }
+    pub fn encode_assertion(
+        &self,
+        assertion: &typed::Assertion<'tcx>,
+        mir: &mir::Body<'tcx>,
+        label: &str,
+        encoded_args: &[vir::Expr],
+        encoded_return: Option<&vir::Expr>,
+        targets_are_values: bool,
+        stop_at_bbi: Option<mir::BasicBlock>,
+        error: ErrorCtxt,
+    ) -> vir::Expr {
+        trace!("encode_assertion {:?}", assertion);
+        let spec_encoder = SpecEncoder::new(
+            self,
+            mir,
+            label,
+            encoded_args,
+            encoded_return,
+            targets_are_values,
+            stop_at_bbi,
+        );
+        spec_encoder.encode_assertion(assertion).set_default_pos(
+            self.error_manager()
+                .register(typed::Spanned::get_spans(assertion, self.env().tcx()), error),
+        )
+    }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {
         if !self.type_predicate_names.borrow().contains_key(&ty.kind) {
@@ -932,56 +932,56 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
-    // pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
-    //     // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
-    //     if !self.type_invariant_names.borrow().contains_key(&ty.kind) {
-    //         let type_encoder = TypeEncoder::new(self, ty);
-    //         let result = type_encoder.encode_invariant_use();
-    //         self.type_invariant_names
-    //             .borrow_mut()
-    //             .insert(ty.kind.clone(), result);
-    //         // Trigger encoding of definition
-    //         self.encode_type_invariant_def(ty);
-    //     }
-    //     let invariant_name = self.type_invariant_names.borrow()[&ty.kind].clone();
-    //     invariant_name
-    // }
+    pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
+        // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
+        if !self.type_invariant_names.borrow().contains_key(&ty.kind) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let result = type_encoder.encode_invariant_use();
+            self.type_invariant_names
+                .borrow_mut()
+                .insert(ty.kind.clone(), result);
+            // Trigger encoding of definition
+            self.encode_type_invariant_def(ty);
+        }
+        let invariant_name = self.type_invariant_names.borrow()[&ty.kind].clone();
+        invariant_name
+    }
 
-    // pub fn encode_type_invariant_def(&self, ty: ty::Ty<'tcx>) -> vir::Function {
-    //     let invariant_name = self.encode_type_invariant_use(ty);
-    //     if !self.type_invariants.borrow().contains_key(&invariant_name) {
-    //         let type_encoder = TypeEncoder::new(self, ty);
-    //         let invariant = type_encoder.encode_invariant_def();
-    //         self.type_invariants
-    //             .borrow_mut()
-    //             .insert(invariant_name.clone(), invariant);
-    //     }
-    //     self.type_invariants.borrow()[&invariant_name].clone()
-    // }
+    pub fn encode_type_invariant_def(&self, ty: ty::Ty<'tcx>) -> vir::Function {
+        let invariant_name = self.encode_type_invariant_use(ty);
+        if !self.type_invariants.borrow().contains_key(&invariant_name) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let invariant = type_encoder.encode_invariant_def();
+            self.type_invariants
+                .borrow_mut()
+                .insert(invariant_name.clone(), invariant);
+        }
+        self.type_invariants.borrow()[&invariant_name].clone()
+    }
 
-    // pub fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
-    //     if !self.type_tag_names.borrow().contains_key(&ty.kind) {
-    //         let type_encoder = TypeEncoder::new(self, ty);
-    //         let result = type_encoder.encode_tag_use();
-    //         self.type_tag_names
-    //             .borrow_mut()
-    //             .insert(ty.kind.clone(), result);
-    //         // Trigger encoding of definition
-    //         self.encode_type_tag_def(ty);
-    //     }
-    //     let tag_name = self.type_tag_names.borrow()[&ty.kind].clone();
-    //     tag_name
-    // }
+    pub fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
+        if !self.type_tag_names.borrow().contains_key(&ty.kind) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let result = type_encoder.encode_tag_use();
+            self.type_tag_names
+                .borrow_mut()
+                .insert(ty.kind.clone(), result);
+            // Trigger encoding of definition
+            self.encode_type_tag_def(ty);
+        }
+        let tag_name = self.type_tag_names.borrow()[&ty.kind].clone();
+        tag_name
+    }
 
-    // pub fn encode_type_tag_def(&self, ty: ty::Ty<'tcx>) -> vir::Function {
-    //     let tag_name = self.encode_type_tag_use(ty);
-    //     if !self.type_tags.borrow().contains_key(&tag_name) {
-    //         let type_encoder = TypeEncoder::new(self, ty);
-    //         let tag = type_encoder.encode_tag_def();
-    //         self.type_tags.borrow_mut().insert(tag_name.clone(), tag);
-    //     }
-    //     self.type_tags.borrow()[&tag_name].clone()
-    // }
+    pub fn encode_type_tag_def(&self, ty: ty::Ty<'tcx>) -> vir::Function {
+        let tag_name = self.encode_type_tag_use(ty);
+        if !self.type_tags.borrow().contains_key(&tag_name) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let tag = type_encoder.encode_tag_def();
+            self.type_tags.borrow_mut().insert(tag_name.clone(), tag);
+        }
+        self.type_tags.borrow()[&tag_name].clone()
+    }
 
     pub fn encode_const_expr(&self, ty: &ty::TyS<'tcx>, value: &ty::ConstKind<'tcx>) -> vir::Expr {
         trace!("encode_const_expr {:?}", value);
@@ -1124,30 +1124,30 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         final_name
     }
 
-    // pub fn encode_invariant_func_app(&self, ty: ty::Ty<'tcx>, encoded_arg: vir::Expr) -> vir::Expr {
-    //     let type_pred = self.encode_type_predicate_use(ty);
-    //     vir::Expr::FuncApp(
-    //         self.encode_type_invariant_use(ty),
-    //         vec![encoded_arg],
-    //         // TODO ?
-    //         vec![vir::LocalVar::new("self", vir::Type::TypedRef(type_pred))],
-    //         vir::Type::Bool,
-    //         // TODO
-    //         vir::Position::default(),
-    //     )
-    // }
+    pub fn encode_invariant_func_app(&self, ty: ty::Ty<'tcx>, encoded_arg: vir::Expr) -> vir::Expr {
+        let type_pred = self.encode_type_predicate_use(ty);
+        vir::Expr::FuncApp(
+            self.encode_type_invariant_use(ty),
+            vec![encoded_arg],
+            // TODO ?
+            vec![vir::LocalVar::new("self", vir::Type::TypedRef(type_pred))],
+            vir::Type::Bool,
+            // TODO
+            vir::Position::default(),
+        )
+    }
 
-    // pub fn encode_tag_func_app(&self, ty: ty::Ty<'tcx>) -> vir::Expr {
-    //     vir::Expr::FuncApp(
-    //         self.encode_type_tag_use(ty),
-    //         vec![],
-    //         // TODO ?
-    //         vec![],
-    //         vir::Type::Int,
-    //         // TODO
-    //         vir::Position::default(),
-    //     )
-    // }
+    pub fn encode_tag_func_app(&self, ty: ty::Ty<'tcx>) -> vir::Expr {
+        vir::Expr::FuncApp(
+            self.encode_type_tag_use(ty),
+            vec![],
+            // TODO ?
+            vec![],
+            vir::Type::Int,
+            // TODO
+            vir::Position::default(),
+        )
+    }
 
     // /// Encode either a pure function body or a specification assertion (stored in the given MIR).
     // /// `is_encoding_assertion` marks that we are translating a specification assertion.
@@ -1326,15 +1326,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         result
     }
 
-    // /// Convert a potential type parameter to a concrete type.
-    // pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-    //     // TODO: creating each time a current_tymap might be slow. This can be optimized.
-    //     if let Some(replaced_ty) = self.current_tymap().get(&ty) {
-    //         trace!("resolve_typaram({:?}) ==> {:?}", ty, replaced_ty);
-    //         return replaced_ty
-    //     }
-    //     ty
-    // }
+    /// Convert a potential type parameter to a concrete type.
+    pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+        // TODO: creating each time a current_tymap might be slow. This can be optimized.
+        if let Some(replaced_ty) = self.current_tymap().get(&ty) {
+            trace!("resolve_typaram({:?}) ==> {:?}", ty, replaced_ty);
+            return replaced_ty
+        }
+        ty
+    }
 
     /// Merges the stack of type maps into a single map.
     pub fn current_tymap(&self) -> HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>> {

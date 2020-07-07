@@ -2,33 +2,77 @@ use prusti_specs::specifications::common;
 use prusti_specs::specifications::json;
 use rustc_hir::BodyId;
 use rustc_hir::def_id::LocalDefId;
-use rustc_middle::ty::{TyCtxt, TyKind};
+use rustc_middle::{mir, ty::{self, TyCtxt}};
+use rustc_span::Span;
 use std::collections::HashMap;
 
 pub use common::{ExpressionId, SpecType, SpecificationId};
 
 /// A specification that has no types associated with it.
-pub type Specification<'tcx> = common::Specification<ExpressionId, LocalDefId, TyKind<'tcx>>;
+pub type Specification<'tcx> = common::Specification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A set of untyped specifications associated with a single element.
-pub type SpecificationSet<'tcx> = common::SpecificationSet<ExpressionId, LocalDefId, TyKind<'tcx>>;
+pub type SpecificationSet<'tcx> = common::SpecificationSet<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A set of untyped specifications associated with a loop.
-pub type LoopSpecification<'tcx> = common::LoopSpecification<ExpressionId, LocalDefId, TyKind<'tcx>>;
+pub type LoopSpecification<'tcx> = common::LoopSpecification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A set of untyped specifications associated with a procedure.
-pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<ExpressionId, LocalDefId, TyKind<'tcx>>;
+pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A map of untyped specifications for a specific crate.
 pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, SpecificationSet<'tcx>>;
 /// An assertion that has no types associated with it.
-pub type Assertion<'tcx> = common::Assertion<ExpressionId, LocalDefId, TyKind<'tcx>>;
+pub type Assertion<'tcx> = common::Assertion<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// An assertion kind that has no types associated with it.
-pub type AssertionKind<'tcx> = common::AssertionKind<ExpressionId, LocalDefId, TyKind<'tcx>>;
+pub type AssertionKind<'tcx> = common::AssertionKind<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// An expression that has no types associated with it.
 pub type Expression = common::Expression<ExpressionId, LocalDefId>;
 /// A trigger set that has no types associated with it.
 pub type TriggerSet = common::TriggerSet<ExpressionId, LocalDefId>;
 /// For all variables that have no types associated with it.
-pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, TyKind<'tcx>>;
+pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
 /// A trigger that has no types associated with it.
 pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
+
+pub trait Spanned<'tcx> {
+    fn get_spans(&self, tcx: TyCtxt<'tcx>) -> Vec<Span>;
+}
+
+impl<'tcx> Spanned<'tcx> for Expression {
+    fn get_spans(&self, tcx: TyCtxt<'tcx>) -> Vec<Span> {
+        vec![tcx.def_span(self.expr)]
+    }
+}
+
+impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
+    fn get_spans(&self, tcx: TyCtxt<'tcx>) -> Vec<Span> {
+        match *self.kind {
+            AssertionKind::Expr(ref assertion_expr) => assertion_expr.get_spans(tcx),
+            AssertionKind::And(ref assertions) => {
+                assertions
+                    .iter()
+                    .flat_map(|a| a.get_spans(tcx))
+                    .collect()
+            }
+            AssertionKind::Implies(ref lhs, ref rhs) => {
+                let mut spans = lhs.get_spans(tcx);
+                spans.extend(rhs.get_spans(tcx));
+                spans
+            }
+            AssertionKind::ForAll(ref _vars, ref _trigger_set, ref body) => {
+                // FIXME: include the variables
+                body.get_spans(tcx)
+            }
+            AssertionKind::Pledge(ref _reference, ref lhs, ref rhs) => {
+                // FIXME: include the reference
+                let mut spans = lhs.get_spans(tcx);
+                spans.extend(rhs.get_spans(tcx));
+                spans
+            }
+            AssertionKind::TypeCond(ref _vars, ref body) => {
+                // FIXME: include the conditions
+                body.get_spans(tcx)
+            }
+        }
+    }
+}
 
 pub trait StructuralToTyped<'tcx, Target> {
     fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> Target;
@@ -76,15 +120,14 @@ impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
         // the first argument to the node is the closure itself and the
         // following ones are the variables; therefore, we need to skip
         // the first one
-        let vars: Vec<TyKind> = body
+        let vars: Vec<(mir::Local, ty::Ty)> = body
             .args_iter()
             .skip(1)
-            .map(|arg| body.local_decls
+            .map(|arg| (arg, body.local_decls
                            .get(arg)
                            .unwrap()
                            .ty
-                           .kind
-                           .clone())
+                           .clone()))
             .collect();
 
         assert!(body.arg_count-1 == self.count);

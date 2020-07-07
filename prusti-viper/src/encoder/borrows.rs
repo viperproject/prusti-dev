@@ -93,7 +93,7 @@ where
     pub specification: typed::SpecificationSet<'tcx>,
 }
 
-impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'_, L, P> {
+impl<'tcx, L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'tcx, L, P> {
     pub fn functional_precondition(&self) -> &[typed::Assertion] {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
             &spec.pres
@@ -102,7 +102,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'_, L, P> {
         }
     }
 
-    pub fn functional_postcondition(&self) -> &[typed::Assertion] {
+    pub fn functional_postcondition(&self) -> &[typed::Assertion<'tcx>] {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
             &spec.posts
         } else {
@@ -110,32 +110,32 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'_, L, P> {
         }
     }
 
-//     pub fn pledges(&self) -> Vec<(Option<TypedExpression>, TypedAssertion, TypedAssertion)> {
-//         let mut pledges = Vec::new();
-//         fn check_assertion(
-//             assertion: &TypedAssertion,
-//             pledges: &mut Vec<(Option<TypedExpression>, TypedAssertion, TypedAssertion)>,
-//         ) {
-//             match assertion.kind.as_ref() {
-//                 AssertionKind::Expr(_)
-//                 | AssertionKind::Implies(_, _)
-//                 | AssertionKind::TypeCond(_, _)
-//                 | AssertionKind::ForAll(_, _, _) => {}
-//                 AssertionKind::And(ref assertions) => {
-//                     for assertion in assertions {
-//                         check_assertion(assertion, pledges);
-//                     }
-//                 }
-//                 AssertionKind::Pledge(ref reference, ref lhs, ref rhs) => {
-//                     pledges.push((reference.clone(), lhs.clone(), rhs.clone()));
-//                 }
-//             };
-//         }
-//         for item in self.functional_postcondition() {
-//             check_assertion(&item.assertion, &mut pledges);
-//         }
-//         pledges
-//     }
+    pub fn pledges(&self) -> Vec<(Option<typed::Expression>, typed::Assertion<'tcx>, typed::Assertion<'tcx>)> {
+        let mut pledges = Vec::new();
+        fn check_assertion<'tcx>(
+            assertion: &typed::Assertion<'tcx>,
+            pledges: &mut Vec<(Option<typed::Expression>, typed::Assertion<'tcx>, typed::Assertion<'tcx>)>,
+        ) {
+            match assertion.kind.as_ref() {
+                typed::AssertionKind::Expr(_)
+                | typed::AssertionKind::Implies(_, _)
+                | typed::AssertionKind::TypeCond(_, _)
+                | typed::AssertionKind::ForAll(_, _, _) => {}
+                typed::AssertionKind::And(ref assertions) => {
+                    for assertion in assertions {
+                        check_assertion(assertion, pledges);
+                    }
+                }
+                typed::AssertionKind::Pledge(ref reference, ref lhs, ref rhs) => {
+                    pledges.push((reference.clone(), lhs.clone(), rhs.clone()));
+                }
+            };
+        }
+        for assertion in self.functional_postcondition() {
+            check_assertion(assertion, &mut pledges);
+        }
+        pledges
+    }
 }
 
 /// Procedure contract as it is defined in MIR.
