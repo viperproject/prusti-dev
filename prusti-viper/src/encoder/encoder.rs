@@ -849,10 +849,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     StubProcedureEncoder::new(self, &procedure).encode()
                 },
             };
-            // self.log_vir_program_before_viper(method.to_string());
-            // self.procedures.borrow_mut().insert(def_id, method);
+            self.log_vir_program_before_viper(method.to_string());
+            self.procedures.borrow_mut().insert(def_id, method);
         }
-        unimplemented!();
         self.procedures.borrow()[&def_id].clone()
     }
 
