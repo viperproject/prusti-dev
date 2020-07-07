@@ -50,6 +50,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use rustc_attr::IntType::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
+use rustc_span::MultiSpan;
 use prusti_interface::specs::typed;
 use ::log::{trace, debug};
 
@@ -2379,36 +2380,36 @@ unimplemented!();
     unimplemented!();
     }
 
-    // /// Encode permissions that are implicitly carried by the given local variable.
-    // fn encode_local_variable_permission(&self, local: Local) -> vir::Expr {
-    //     match self.locals.get_type(local).sty {
-    //         ty::TyKind::RawPtr(ty::TypeAndMut {
-    //             ref ty,
-    //             mutbl: mutability,
-    //         })
-    //         | ty::TyKind::Ref(_, ref ty, mutability) => {
-    //             // Use unfolded references.
-    //             let encoded_local = self.encode_prusti_local(local);
-    //             let field = self.encoder.encode_dereference_field(ty);
-    //             let place = vir::Expr::from(encoded_local).field(field);
-    //             let perm_amount = match mutability {
-    //                 Mutability::MutMutable => vir::PermAmount::Write,
-    //                 Mutability::MutImmutable => vir::PermAmount::Read,
-    //             };
-    //             vir::Expr::and(
-    //                 vir::Expr::acc_permission(place.clone(), vir::PermAmount::Write),
-    //                 vir::Expr::pred_permission(place, perm_amount).unwrap(),
-    //             )
-    //         }
-    //         _ => self
-    //             .mir_encoder
-    //             .encode_place_predicate_permission(
-    //                 self.encode_prusti_local(local).into(),
-    //                 vir::PermAmount::Write,
-    //             )
-    //             .unwrap(),
-    //     }
-    // }
+    /// Encode permissions that are implicitly carried by the given local variable.
+    fn encode_local_variable_permission(&self, local: Local) -> vir::Expr {
+        match self.locals.get_type(local).kind {
+            ty::TyKind::RawPtr(ty::TypeAndMut {
+                ref ty,
+                mutbl: mutability,
+            })
+            | ty::TyKind::Ref(_, ref ty, mutability) => {
+                // Use unfolded references.
+                let encoded_local = self.encode_prusti_local(local);
+                let field = self.encoder.encode_dereference_field(ty);
+                let place = vir::Expr::from(encoded_local).field(field);
+                let perm_amount = match mutability {
+                    Mutability::Mut => vir::PermAmount::Write,
+                    Mutability::Not => vir::PermAmount::Read,
+                };
+                vir::Expr::and(
+                    vir::Expr::acc_permission(place.clone(), vir::PermAmount::Write),
+                    vir::Expr::pred_permission(place, perm_amount).unwrap(),
+                )
+            }
+            _ => self
+                .mir_encoder
+                .encode_place_predicate_permission(
+                    self.encode_prusti_local(local).into(),
+                    vir::PermAmount::Write,
+                )
+                .unwrap(),
+        }
+    }
 
     /// Encode the precondition with three expressions:
     /// - one for the type encoding
@@ -2417,7 +2418,7 @@ unimplemented!();
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
-        precondition_weakening: Option<typed::Assertion>,
+        precondition_weakening: Option<typed::Assertion<'tcx>>,
     ) -> (
         vir::Expr,
         Vec<vir::Expr>,
@@ -2425,117 +2426,116 @@ unimplemented!();
         vir::Expr,
         Option<vir::Expr>,
     ) {
-    //     let borrow_infos = &contract.borrow_infos;
-    //     let maybe_blocked_paths = if !borrow_infos.is_empty() {
-    //         assert_eq!(
-    //             borrow_infos.len(),
-    //             1,
-    //             "We can have at most one magic wand in the postcondition."
-    //         );
-    //         let borrow_info = &borrow_infos[0];
-    //         Some(&borrow_info.blocked_paths)
-    //     } else {
-    //         None
-    //     };
-    //     // Type spec in which read permissions can be removed.
-    //     let mut type_spec = Vec::new();
-    //     // Type spec containing the read permissions that must be exhaled because they were
-    //     // moved into a magic wand.
-    //     let mut mandatory_type_spec = Vec::new();
-    //     fn is_blocked(maybe_blocked_paths: Option<&Vec<(Place, Mutability)>>, arg: Local) -> bool {
-    //         if let Some(blocked_paths) = maybe_blocked_paths {
-    //             for (blocked_place, _) in blocked_paths {
-    //                 if blocked_place.is_root(arg) {
-    //                     return true;
-    //                 }
-    //             }
-    //         }
-    //         false
-    //     }
-    //     for local in &contract.args {
-    //         let mut add = |access: vir::Expr| {
-    //             if is_blocked(maybe_blocked_paths, *local)
-    //                 && access.get_perm_amount() == vir::PermAmount::Read
-    //             {
-    //                 mandatory_type_spec.push(access);
-    //             } else {
-    //                 type_spec.push(access);
-    //             }
-    //         };
-    //         let access = self.encode_local_variable_permission(*local);
-    //         match access {
-    //             vir::Expr::BinOp(vir::BinOpKind::And, box access1, box access2, _) => {
-    //                 add(access1);
-    //                 add(access2);
-    //             }
-    //             _ => add(access),
-    //         };
-    //     }
+        let borrow_infos = &contract.borrow_infos;
+        let maybe_blocked_paths = if !borrow_infos.is_empty() {
+            assert_eq!(
+                borrow_infos.len(),
+                1,
+                "We can have at most one magic wand in the postcondition."
+            );
+            let borrow_info = &borrow_infos[0];
+            Some(&borrow_info.blocked_paths)
+        } else {
+            None
+        };
+        // Type spec in which read permissions can be removed.
+        let mut type_spec = Vec::new();
+        // Type spec containing the read permissions that must be exhaled because they were
+        // moved into a magic wand.
+        let mut mandatory_type_spec = Vec::new();
+        fn is_blocked(maybe_blocked_paths: Option<&Vec<(Place, Mutability)>>, arg: Local) -> bool {
+            if let Some(blocked_paths) = maybe_blocked_paths {
+                for (blocked_place, _) in blocked_paths {
+                    if blocked_place.is_root(arg) {
+                        return true;
+                    }
+                }
+            }
+            false
+        }
+        for local in &contract.args {
+            let mut add = |access: vir::Expr| {
+                if is_blocked(maybe_blocked_paths, *local)
+                    && access.get_perm_amount() == vir::PermAmount::Read
+                {
+                    mandatory_type_spec.push(access);
+                } else {
+                    type_spec.push(access);
+                }
+            };
+            let access = self.encode_local_variable_permission(*local);
+            match access {
+                vir::Expr::BinOp(vir::BinOpKind::And, box access1, box access2, _) => {
+                    add(access1);
+                    add(access2);
+                }
+                _ => add(access),
+            };
+        }
 
-    //     let mut invs_spec: Vec<vir::Expr> = vec![];
+        let mut invs_spec: Vec<vir::Expr> = vec![];
 
-    //     for arg in contract.args.iter() {
-    //         invs_spec.push(self.encoder.encode_invariant_func_app(
-    //             self.locals.get_type(*arg),
-    //             self.encode_prusti_local(*arg).into(),
-    //         ));
-    //     }
+        for arg in contract.args.iter() {
+            invs_spec.push(self.encoder.encode_invariant_func_app(
+                self.locals.get_type(*arg),
+                self.encode_prusti_local(*arg).into(),
+            ));
+        }
 
-    //     let mut func_spec: Vec<vir::Expr> = vec![];
+        let mut func_spec: Vec<vir::Expr> = vec![];
 
-    //     // Encode functional specification
-    //     let encoded_args: Vec<vir::Expr> = contract
-    //         .args
-    //         .iter()
-    //         .map(|local| self.encode_prusti_local(*local).into())
-    //         .collect();
-    //     let func_precondition = contract.functional_precondition();
-    //     for item in func_precondition {
-    //         // FIXME
-    //         let value = self.encoder.encode_assertion(
-    //             &item.assertion,
-    //             &self.mir,
-    //             &"",
-    //             &encoded_args,
-    //             None,
-    //             false,
-    //             None,
-    //             ErrorCtxt::GenericExpression,
-    //         );
-    //         func_spec.push(value);
-    //     }
-    //     let precondition_weakening = precondition_weakening.map(|pw| {
-    //         self.encoder.encode_assertion(
-    //             &pw,
-    //             &self.mir,
-    //             &"",
-    //             &encoded_args,
-    //             None,
-    //             false,
-    //             None,
-    //             ErrorCtxt::AssertMethodPreconditionWeakening(MultiSpan::from_spans(
-    //                 func_precondition
-    //                     .iter()
-    //                     .flat_map(|ts| ts.assertion.get_spans())
-    //                     .collect(),
-    //             )),
-    //         )
-    //     });
-    //     (
-    //         type_spec.into_iter().conjoin(),
-    //         mandatory_type_spec,
-    //         invs_spec.into_iter().conjoin(),
-    //         func_spec.into_iter().conjoin(),
-    //         precondition_weakening,
-    //     )
-    unimplemented!();
+        // Encode functional specification
+        let encoded_args: Vec<vir::Expr> = contract
+            .args
+            .iter()
+            .map(|local| self.encode_prusti_local(*local).into())
+            .collect();
+        let func_precondition = contract.functional_precondition();
+        for assertion in func_precondition {
+            // FIXME
+            let value = self.encoder.encode_assertion(
+                &assertion,
+                &self.mir,
+                &"",
+                &encoded_args,
+                None,
+                false,
+                None,
+                ErrorCtxt::GenericExpression,
+            );
+            func_spec.push(value);
+        }
+        let precondition_weakening = precondition_weakening.map(|pw| {
+            self.encoder.encode_assertion(
+                &pw,
+                &self.mir,
+                &"",
+                &encoded_args,
+                None,
+                false,
+                None,
+                ErrorCtxt::AssertMethodPreconditionWeakening(MultiSpan::from_spans(
+                    func_precondition
+                        .iter()
+                        .flat_map(|ts| typed::Spanned::get_spans(ts, self.encoder.env().tcx()))
+                        .collect(),
+                )),
+            )
+        });
+        (
+            type_spec.into_iter().conjoin(),
+            mandatory_type_spec,
+            invs_spec.into_iter().conjoin(),
+            func_spec.into_iter().conjoin(),
+            precondition_weakening,
+        )
     }
 
     /// Encode precondition inhale on the definition side.
     fn encode_preconditions(
         &mut self,
         start_cfg_block: CfgBlockIndex,
-        precondition_weakening: Option<typed::Assertion>,
+        precondition_weakening: Option<typed::Assertion<'tcx>>,
     ) {
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
