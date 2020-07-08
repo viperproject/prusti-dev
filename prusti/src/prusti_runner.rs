@@ -16,20 +16,20 @@ use std::{
 
 /// Add arguments required by Prusti, then run the compiler with Prusti callbacks
 pub fn run_prusti(mut args: Vec<String>) -> (CompileResult, Option<Session>) {
-    let header = vec![
-        r"  __          __        __  ___             ",
-        r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ",
-        r" |      /\   |  \ \__/ .__/  |       /\   | ",
-    ];
-    user::message(header[0]);
+    user::message(r"  __          __        __  ___             ");
+    user::message(r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ");
+    user::message(r" |      /\   |  \ \__/ .__/  |       /\   | ");
+    user::message(r"");
     user::message(format!(
-        "{} Hash:  {}",
-        header[1],
-        option_env!("GIT_HASH").unwrap_or("<unknown>")
+        "Commit hash: {}",
+        option_env!("COMMIT_HASH").unwrap_or("<unknown>")
     ));
     user::message(format!(
-        "{} Build: {}",
-        header[2],
+        "Commit time: {}",
+        option_env!("COMMIT_TIME").unwrap_or("<unknown>")
+    ));
+    user::message(format!(
+        "Build time: {}",
         option_env!("BUILD_TIME").unwrap_or("<unknown>")
     ));
     user::message(r"");
