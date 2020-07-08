@@ -89,7 +89,7 @@ run-release: release
 
 run-release-profile: release
 	$(SET_RELEASE_ENV_VARS) RUST_LOG=$(RUST_LOG) \
-    valgrind --tool=callgrind --vex-iropt-register-updates=allregs-at-mem-access \
+    valgrind --tool=callgrind \
 	$(PRUSTI_DRIVER_RELEASE) \
 		-L $(COMPILER_PATH)/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ./target/release/deps/libprusti_contracts-*.rlib) \
