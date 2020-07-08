@@ -4,8 +4,8 @@ Prusti-dev
 ==========
 
 [![Test](https://github.com/viperproject/prusti-dev/workflows/Test/badge.svg)](https://github.com/viperproject/prusti-dev/actions?query=workflow%3ATest+branch%3Amaster)
-[![Test](https://github.com/viperproject/prusti-dev/workflows/Test%20on%20top%20crates/badge.svg)](https://github.com/viperproject/prusti-dev/actions?query=workflow%3A"Test+on+top+crates"+branch%3Amaster)
-[![Coverage Status](https://coveralls.io/repos/github/viperproject/prusti-dev/badge.svg)](https://coveralls.io/github/viperproject/prusti-dev)
+[![Test on crates](https://github.com/viperproject/prusti-dev/workflows/Test%20on%20crates/badge.svg)](https://github.com/viperproject/prusti-dev/actions?query=workflow%3A"Test+on+crates"+branch%3Amaster)
+[![Test coverage](https://coveralls.io/repos/github/viperproject/prusti-dev/badge.svg)](https://coveralls.io/github/viperproject/prusti-dev)
 
 [Prusti](http://www.pm.inf.ethz.ch/research/prusti.html) is a prototype verifier for Rust,
 built upon the the [Viper verification infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
