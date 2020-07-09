@@ -10,6 +10,12 @@ mod private {
     /// A macro for writing a postcondition on a function.
     pub use prusti_contracts_impl::ensures;
 
+    /// A macro for writing a pledge on a function.
+    pub use prusti_contracts_impl::after_expiry;
+
+    /// A macro for writing a conditional pledge on a function.
+    pub use prusti_contracts_impl::after_expiry_if;
+
     /// A macro for writing a loop invariant.
     #[proc_macro_hack]
     pub use prusti_contracts_impl::invariant;
@@ -24,6 +30,12 @@ mod private {
 
     /// A macro for writing a postcondition on a function.
     pub use prusti_contracts_internal::ensures;
+
+    /// A macro for writing a pledge on a function.
+    pub use prusti_contracts_internal::after_expiry;
+
+    /// A macro for writing a conditional pledge on a function.
+    pub use prusti_contracts_internal::after_expiry_if;
 
     /// A macro for writing a loop invariant.
     #[proc_macro_hack]

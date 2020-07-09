@@ -14,6 +14,16 @@ pub fn ensures(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
 
+#[proc_macro_attribute]
+pub fn after_expiry(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
+#[proc_macro_attribute]
+pub fn after_expiry_if(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
 #[proc_macro_hack]
 pub fn invariant(_tokens: TokenStream) -> TokenStream {
     (quote! { () }).into()

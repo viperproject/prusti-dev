@@ -126,9 +126,6 @@ impl<'tcx, L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'tcx, L, P> {
                         check_assertion(assertion, pledges);
                     }
                 }
-                typed::AssertionKind::Pledge(ref reference, ref lhs, ref rhs) => {
-                    pledges.push((reference.clone(), lhs.clone(), rhs.clone()));
-                }
             };
         }
         for assertion in self.functional_postcondition() {

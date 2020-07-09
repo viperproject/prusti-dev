@@ -204,16 +204,18 @@ pub enum AssertionKind<EID, ET, AT> {
         TriggerSet<EID, ET>,
         Assertion<EID, ET, AT>,
     ),
-    /// Pledge after_expiry<reference>(rhs)
-    ///     or after_expiry_if<reference>(lhs,rhs)
-    Pledge(
-        /// The blocking reference used in a loop. None for postconditions.
-        Option<Expression<EID, ET>>,
-        /// The body lhs.
-        Assertion<EID, ET, AT>,
-        /// The body rhs.
-        Assertion<EID, ET, AT>,
-    ),
+}
+
+#[derive(Debug, Clone)]
+/// Pledge `after_expiry(ref => rhs)`
+///     or `after_expiry_if(ref => lhs, rhs)`
+pub struct Pledge<EID, ET, AT> {
+    /// The ref.
+    pub reference: Option<Expression<EID, ET>>,
+    /// The body lhs.
+    pub lhs: Option<Assertion<EID, ET, AT>>,
+    /// The body rhs.
+    pub rhs: Assertion<EID, ET, AT>,
 }
 
 #[derive(Debug, Clone)]

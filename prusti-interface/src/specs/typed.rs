@@ -60,12 +60,6 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                 // FIXME: include the variables
                 body.get_spans(tcx)
             }
-            AssertionKind::Pledge(ref _reference, ref lhs, ref rhs) => {
-                // FIXME: include the reference
-                let mut spans = lhs.get_spans(tcx);
-                spans.extend(rhs.get_spans(tcx));
-                spans
-            }
             AssertionKind::TypeCond(ref _vars, ref body) => {
                 // FIXME: include the conditions
                 body.get_spans(tcx)
