@@ -10,7 +10,7 @@ use prusti_common::verification_service::*;
 use futures::Future;
 use std::{
     io,
-    net::{Ipv4Addr, SocketAddr, SocketAddrV4},
+    net::{Ipv4Addr, SocketAddr},
     sync::{mpsc, Arc},
     thread,
 };
@@ -49,10 +49,7 @@ impl ServerSideService {
     }
 
     pub fn listen_on_port(self, port: u16) -> Result<(), io::Error> {
-        let handle = self.listen(
-            SocketAddrV4::new(Ipv4Addr::localhost(), port),
-            server::Options::default(),
-        )?;
+        let handle = self.listen((Ipv4Addr::localhost(), port), server::Options::default())?;
         assert_eq!(handle.addr().port(), port);
         info!("Prusti Server now listening on port {}", port);
         handle.run();
