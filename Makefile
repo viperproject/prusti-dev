@@ -64,6 +64,10 @@ test-viper-crate: build clean-nested
 	$(SET_ENV_VARS) \
 	cargo test -p viper
 
+test-server-crate: build clean-nested
+	$(SET_ENV_VARS) \
+	cargo test -p prusti-server
+
 build-profile:
 	$(SET_ENV_VARS) \
 	CARGO_INCREMENTAL=0 \
