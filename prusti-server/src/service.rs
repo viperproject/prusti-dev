@@ -7,22 +7,16 @@
 use super::PrustiServer;
 use prusti_common::verification_service::*;
 
-use futures::Future;
+use futures::{self, Future};
+use reqwest::{self, Client, Url, UrlError};
 use std::{
-    io,
     net::{Ipv4Addr, SocketAddr},
     sync::{mpsc, Arc},
     thread,
 };
-use tarpc::{
-    sync::{client, client::ClientExt, server},
-    util::Never,
-};
+use tokio;
 use viper::VerificationResult;
-
-service! {
-    rpc verify(request: VerificationRequest) -> VerificationResult;
-}
+use warp::{self, Filter};
 
 #[derive(Clone)]
 pub struct ServerSideService {
@@ -39,52 +33,98 @@ impl ServerSideService {
     pub fn spawn_off_thread() -> SocketAddr {
         let (sender, receiver) = mpsc::channel();
         thread::spawn(move || {
-            let handle = ServerSideService::new(PrustiServer::new())
-                .listen("localhost:0", server::Options::default())
-                .unwrap();
-            sender.send(handle.addr()).unwrap();
-            handle.run();
+            ServerSideService::new(PrustiServer::new()).listen_on_ephemeral_port(
+                0, // ask system for port
+                |address| sender.send(address).unwrap(),
+            );
         });
         receiver.recv().unwrap()
     }
 
-    pub fn listen_on_port(self, port: u16) -> Result<(), io::Error> {
-        let handle = self.listen((Ipv4Addr::localhost(), port), server::Options::default())?;
-        assert_eq!(handle.addr().port(), port);
-        info!("Prusti Server now listening on port {}", port);
-        handle.run();
-        Ok(())
+    pub fn listen_on_port(self, port: u16) {
+        self.listen_on_ephemeral_port(port, |address| {
+            if port == 0 {
+                return;
+            }
+            assert_eq!(
+                address.port(),
+                port,
+                "Server could not bind to port {}",
+                port
+            )
+        });
     }
-}
 
-impl SyncService for ServerSideService {
-    fn verify(&self, request: VerificationRequest) -> Result<VerificationResult, Never> {
+    fn listen_on_ephemeral_port<F>(self, port: u16, address_callback: F)
+    where
+        F: FnOnce(SocketAddr),
+    {
+        let clone = self.clone();
+        let json_verify = warp::path("json")
+            .and(warp::path("verify"))
+            .and(warp::path::end())
+            .and(warp::body::json())
+            .map(move |request: VerificationRequest| clone.verify(request))
+            .map(|response| warp::reply::json(&response));
+        // TODO: bincode endpoint
+
+        info!("Prusti Server binding to port {}", port);
+        let (address, server_handle) =
+            warp::serve(json_verify).bind_ephemeral((Ipv4Addr::localhost(), port));
+        address_callback(address);
+
+        info!("Prusti Server starting on port {}", address.port());
+        tokio::run(futures::lazy(move || {
+            warp::spawn(server_handle);
+            info!("Prusti Server launched!");
+            Ok(())
+        }));
+    }
+
+    fn verify(&self, request: VerificationRequest) -> VerificationResult {
         info!("Handling verification request for {}", request.program_name);
-        Ok(self
-            .server
+        self.server
             .run_verifier_async(request)
             .wait()
-            .expect("verification task canceled—this should not be possible!"))
+            .expect("verification task canceled—this should not be possible!")
     }
 }
 
 pub struct PrustiServerConnection {
-    client: SyncClient,
+    client: Client,
+    server_url: Url,
 }
 
 impl PrustiServerConnection {
-    pub fn new_from_string(server_address: String) -> Self {
-        Self::new(server_address.parse().unwrap())
+    pub fn new<S: ToString>(server_address: S) -> Result<Self, UrlError> {
+        let mut address = server_address.to_string();
+        if !address.starts_with("http") {
+            address = format!("http://{}", address);
+        }
+        Ok(Self {
+            client: Client::new(),
+            server_url: Url::parse(address.as_str())?,
+        })
     }
 
-    pub fn new(server_address: SocketAddr) -> Self {
-        let client = SyncClient::connect(server_address, client::Options::default()).unwrap();
-        Self { client }
+    pub fn verify_checked(
+        &self,
+        request: VerificationRequest,
+    ) -> reqwest::Result<VerificationResult> {
+        Ok(self
+            .client
+            .post(self.server_url.join("json/verify").unwrap())
+            .json(&request)
+            .send()?
+            .error_for_status()?
+            .json()?)
     }
 }
 
 impl VerificationService for PrustiServerConnection {
+    /// panics if the verification request fails
     fn verify(&self, request: VerificationRequest) -> VerificationResult {
-        self.client.verify(request).unwrap()
+        self.verify_checked(request)
+            .expect("Verification request to server failed!")
     }
 }

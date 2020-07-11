@@ -9,12 +9,11 @@ use prusti_common::{
     vir::*,
 };
 use prusti_server::{PrustiServerConnection, ServerSideService};
-use std::net::SocketAddr;
 use viper::VerificationResult;
 
 lazy_static! {
     // only start the jvm & server once
-    static ref SERVER_ADDRESS: SocketAddr = ServerSideService::spawn_off_thread();
+    static ref SERVER_ADDRESS: String = ServerSideService::spawn_off_thread().to_string();
 }
 
 #[test]
@@ -52,7 +51,8 @@ fn process_program<F>(configure: F) -> VerificationResult
 where
     F: FnOnce(&mut Program),
 {
-    let service = PrustiServerConnection::new(*SERVER_ADDRESS);
+    let service =
+        PrustiServerConnection::new(SERVER_ADDRESS.clone()).expect("Could not connect to server!");
 
     let mut program = Program {
         domains: vec![],

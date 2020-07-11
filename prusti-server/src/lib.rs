@@ -4,18 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#![feature(plugin, use_extern_macros, proc_macro_path_invoc)]
 #![feature(ip_constructors)]
-#![plugin(tarpc_plugins)]
 
-#[macro_use]
-extern crate tarpc;
+extern crate reqwest;
 extern crate viper;
+extern crate warp;
 #[macro_use]
 extern crate log;
 extern crate futures;
 extern crate lru;
 extern crate prusti_common;
+extern crate tokio;
 
 mod service;
 mod verifier_runner;
