@@ -1,13 +1,21 @@
 extern crate prusti_common;
 extern crate prusti_server;
 extern crate viper;
+#[macro_use]
+extern crate lazy_static;
 
 use prusti_common::{
     verification_service::{VerificationRequest, VerificationService},
     vir::*,
 };
 use prusti_server::{PrustiServerConnection, ServerSideService};
+use std::net::SocketAddr;
 use viper::VerificationResult;
+
+lazy_static! {
+    // only start the jvm & server once
+    static ref SERVER_ADDRESS: SocketAddr = ServerSideService::spawn_off_thread();
+}
 
 #[test]
 fn consistency_error() {
@@ -27,12 +35,24 @@ fn consistency_error() {
     }
 }
 
+#[test]
+fn empty_program() {
+    let result = process_program(|_| ());
+
+    match result {
+        VerificationResult::Success() => (),
+        other => panic!(
+            "empty program not verified successfully, instead found {:?}",
+            other
+        ),
+    }
+}
+
 fn process_program<F>(configure: F) -> VerificationResult
 where
     F: FnOnce(&mut Program),
 {
-    let server_address = ServerSideService::spawn_off_thread();
-    let service = PrustiServerConnection::new(server_address);
+    let service = PrustiServerConnection::new(*SERVER_ADDRESS);
 
     let mut program = Program {
         domains: vec![],
