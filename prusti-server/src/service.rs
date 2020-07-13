@@ -102,7 +102,7 @@ impl PrustiServerConnection {
             address = format!("http://{}", address);
         }
         Ok(Self {
-            client: Client::new(),
+            client: Client::builder().timeout(None).build().unwrap(),
             server_url: Url::parse(address.as_str())?,
         })
     }
