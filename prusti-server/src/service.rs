@@ -5,8 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::PrustiServer;
-use prusti_common::verification_service::*;
+use prusti_common::{config, verification_service::*};
 
+use bincode;
 use futures::{self, Future};
 use reqwest::{self, Client, Url, UrlError};
 use std::{
@@ -16,7 +17,7 @@ use std::{
 };
 use tokio;
 use viper::VerificationResult;
-use warp::{self, Filter};
+use warp::{self, Buf, Filter};
 
 #[derive(Clone)]
 pub struct ServerSideService {
@@ -66,11 +67,30 @@ impl ServerSideService {
             .and(warp::body::json())
             .map(move |request: VerificationRequest| clone.verify(request))
             .map(|response| warp::reply::json(&response));
-        // TODO: bincode endpoint
+
+        let clone = self.clone();
+        let bincode_verify = warp::path("bincode")
+            .and(warp::path("verify"))
+            .and(warp::path::end())
+            .and(warp::body::concat())
+            .and_then(|buf: warp::body::FullBody| {
+                bincode::deserialize(&buf.bytes()).map_err(|err| {
+                    info!("request bincode body error: {}", err);
+                    warp::reject::custom(err)
+                })
+            })
+            .map(move |request: VerificationRequest| clone.verify(request))
+            .map(|result| {
+                warp::http::Response::new(
+                    bincode::serialize(&result).expect("could not encode verification result"),
+                )
+            });
+
+        let endpoints = json_verify.or(bincode_verify);
 
         info!("Prusti Server binding to port {}", port);
         let (address, server_handle) =
-            warp::serve(json_verify).bind_ephemeral((Ipv4Addr::localhost(), port));
+            warp::serve(endpoints).bind_ephemeral((Ipv4Addr::localhost(), port));
         address_callback(address);
 
         info!("Prusti Server starting on port {}", address.port());
@@ -112,13 +132,24 @@ impl PrustiServerConnection {
         &self,
         request: VerificationRequest,
     ) -> reqwest::Result<VerificationResult> {
-        Ok(self
-            .client
-            .post(self.server_url.join("json/verify").unwrap())
-            .json(&request)
-            .send()?
-            .error_for_status()?
-            .json()?)
+        let use_json = config::json_communication();
+        let base = self.client.post(
+            self.server_url
+                .join(if use_json { "json/" } else { "bincode/" })
+                .unwrap()
+                .join("verify/")
+                .unwrap(),
+        );
+        let response = if use_json {
+            base.json(&request).send()?.error_for_status()?.json()?
+        } else {
+            let raw = base
+                .body(bincode::serialize(&request).expect("error encoding verification request"))
+                .send()?
+                .error_for_status()?;
+            bincode::deserialize_from(raw).expect("error decoding verification result")
+        };
+        Ok(response)
     }
 }
 

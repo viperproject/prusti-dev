@@ -38,6 +38,7 @@ lazy_static! {
         settings.set_default("ERROR_ON_PARTIALLY_SUPPORTED", false).unwrap();
         settings.set_default("NO_VERIFY", false).unwrap();
         settings.set_default("FULL_COMPILATION", false).unwrap();
+        settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("SERVER_MAX_STORED_VERIFIERS", 8).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
@@ -193,6 +194,11 @@ pub fn server_max_stored_verifiers() -> usize {
 /// e.g. "127.0.0.1:2468"
 pub fn server_address() -> Option<String> {
     SETTINGS.read().unwrap().get("SERVER_ADDRESS").ok()
+}
+
+/// If true, communication with the server will be encoded as json and not the default of bincode.
+pub fn json_communication() -> bool {
+    read_setting("JSON_COMMUNICATION")
 }
 
 /// Disable mangling of generated Viper names.

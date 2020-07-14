@@ -11,6 +11,7 @@ extern crate viper;
 extern crate warp;
 #[macro_use]
 extern crate log;
+extern crate bincode;
 extern crate futures;
 extern crate lru;
 extern crate prusti_common;
