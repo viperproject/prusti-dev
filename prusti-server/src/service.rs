@@ -77,6 +77,7 @@ impl ServerSideService {
         tokio::run(futures::lazy(move || {
             warp::spawn(server_handle);
             info!("Prusti Server launched!");
+            println!("port: {}", address.port()); // stdout, for use in other applications
             Ok(())
         }));
     }
