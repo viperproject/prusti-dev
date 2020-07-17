@@ -3293,19 +3293,19 @@ unimplemented!();
             loop_head,
             drop_read_references
         );
-    //     let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head);
-    //     debug!("permissions_forest: {:?}", permissions_forest);
-    //     let loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
-    //     let enclosing_permission_forest = if loops.len() > 1 {
-    //         let next_to_last = loops.len() - 2;
-    //         let enclosing_loop_head = loops[next_to_last];
-    //         Some(
-    //             self.loop_encoder
-    //                 .compute_loop_invariant(enclosing_loop_head),
-    //         )
-    //     } else {
-    //         None
-    //     };
+        let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head);
+        debug!("permissions_forest: {:?}", permissions_forest);
+        let loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
+        let enclosing_permission_forest = if loops.len() > 1 {
+            let next_to_last = loops.len() - 2;
+            let enclosing_loop_head = loops[next_to_last];
+            Some(
+                self.loop_encoder
+                    .compute_loop_invariant(enclosing_loop_head),
+            )
+        } else {
+            None
+        };
 
     //     let mut permissions = Vec::new();
     //     let mut equalities = Vec::new();

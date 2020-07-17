@@ -1033,7 +1033,14 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     /// Convert a facts::Loan to LoanPlaces<'tcx> (if possible)
     pub fn get_loan_places(&self, loan: &facts::Loan) -> Option<LoanPlaces<'tcx>> {
-        let loan_location = self.loan_position[loan];
+        let loan_location = if let Some(loan_location) = self.loan_position.get(loan) {
+            loan_location
+        } else {
+            // FIXME: Returning None here instead of panicking is probably
+            // wrong. We do not have the location of place holder loans that are
+            // created for lifetimes mentioned in function arguments.
+            return None;
+        };
         let mir_block = &self.mir[loan_location.block];
         if loan_location.statement_index < mir_block.statements.len() {
             let mir_stmt = &mir_block.statements[loan_location.statement_index];
@@ -1041,7 +1048,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 mir::StatementKind::Assign(box (ref lhs_place, ref rvalue)) => Some(LoanPlaces {
                     dest: lhs_place.clone(),
                     source: rvalue.clone(),
-                    location: loan_location,
+                    location: *loan_location,
                 }),
 
                 ref x => {

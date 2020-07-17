@@ -64,7 +64,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
         self.loops().get_enclosing_loop_heads(bbi)
     }
 
-    pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'tcx> {
+    pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'p, 'tcx> {
         assert!(self.is_loop_head(bb));
 
         // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
@@ -108,7 +108,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
 
         // Construct the permission forest.
         let forest =
-            PermissionForest::new(&write_leaves, &mut_borrow_leaves, &read_leaves, &all_places);
+            PermissionForest::new(self.procedure.get_mir(), self.tcx, &write_leaves, &mut_borrow_leaves, &read_leaves, &all_places);
 
         forest
     }

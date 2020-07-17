@@ -124,6 +124,10 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
             );
             use rustc_middle::mir::visit::PlaceContext::*;
             let access_kind = match context {
+                MutatingUse(mir::visit::MutatingUseContext::Store) => PlaceAccessKind::Store,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Copy) => PlaceAccessKind::Read,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Move) => PlaceAccessKind::Move,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) => PlaceAccessKind::Read,
                 // Store => PlaceAccessKind::Store,
                 // Copy => PlaceAccessKind::Read,
                 // Move => PlaceAccessKind::Move,

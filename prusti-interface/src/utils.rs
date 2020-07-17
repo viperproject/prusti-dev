@@ -213,25 +213,22 @@ pub struct VecPlace<'tcx> {
 }
 
 impl<'tcx> VecPlace<'tcx> {
-    pub fn new(place: &mir::Place<'tcx>) -> VecPlace<'tcx> {
+    pub fn new(
+        mir: &mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+        place: &mir::Place<'tcx>
+    ) -> VecPlace<'tcx> {
         let mut vec_place = Self {
             components: Vec::new(),
         };
-        // fn unroll_place<'tcx>(vec_place: &mut VecPlace<'tcx>, current: &mir::Place<'tcx>) {
-        //     match current {
-        //         mir::Place::Local(_) => {}
-        //         mir::Place::Projection(box mir::Projection { base, .. }) => {
-        //             unroll_place(vec_place, base);
-        //         }
-        //         _ => unimplemented!(),
-        //     }
-        //     vec_place.components.push(VecPlaceComponent {
-        //         place: current.clone(),
-        //     });
-        // }
-        // unroll_place(&mut vec_place, place);
-        // vec_place
-        unimplemented!();
+        let mut prefix: mir::Place = place.local.into();
+        vec_place.components.push(VecPlaceComponent { place: prefix });
+        while prefix.projection.len() < place.projection.len() {
+            let (new_prefix, _) = expand_one_level(mir, tcx, prefix, *place);
+            prefix = new_prefix;
+            vec_place.components.push(VecPlaceComponent { place: prefix });
+        }
+        vec_place
     }
     pub fn iter<'a>(&'a self) -> impl DoubleEndedIterator<Item = &'a VecPlaceComponent<'tcx>> {
         self.components.iter()
