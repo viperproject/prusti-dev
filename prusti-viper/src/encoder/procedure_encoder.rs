@@ -3923,80 +3923,79 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             left,
             right
         );
-        // let operand_ty = if let ty::TyKind::Tuple(ref types) = ty.kind {
-        //     types[0].clone()
-        // } else {
-        //     unreachable!()
-        // };
-        // let encoded_left = self.mir_encoder.encode_operand_expr(left);
-        // let encoded_right = self.mir_encoder.encode_operand_expr(right);
-        // let encoded_value = self.mir_encoder.encode_bin_op_expr(
-        //     op,
-        //     encoded_left.clone(),
-        //     encoded_right.clone(),
-        //     operand_ty,
-        // );
-        // let encoded_check =
-        //     self.mir_encoder
-        //         .encode_bin_op_check(op, encoded_left, encoded_right, operand_ty);
-        // let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind {
-        //     x
-        // } else {
-        //     unreachable!()
-        // };
-        // let value_field = self
-        //     .encoder
-        //     .encode_raw_ref_field("tuple_0".to_string(), field_types[0]);
-        // let value_field_value = self.encoder.encode_value_field(field_types[0]);
-        // let check_field = self
-        //     .encoder
-        //     .encode_raw_ref_field("tuple_1".to_string(), field_types[1]);
-        // let check_field_value = self.encoder.encode_value_field(field_types[1]);
-        // let mut stmts = if !self
-        //     .init_info
-        //     .is_vir_place_accessible(&encoded_lhs, location)
-        // {
-        //     let mut alloc_stmts = self.encode_havoc(&encoded_lhs);
-        //     let mut inhale_acc = |place| {
-        //         alloc_stmts.push(vir::Stmt::Inhale(
-        //             vir::Expr::acc_permission(place, vir::PermAmount::Write),
-        //             vir::FoldingBehaviour::Stmt,
-        //         ));
-        //     };
-        //     inhale_acc(encoded_lhs.clone().field(value_field.clone()));
-        //     inhale_acc(
-        //         encoded_lhs
-        //             .clone()
-        //             .field(value_field.clone())
-        //             .field(value_field_value.clone()),
-        //     );
-        //     inhale_acc(encoded_lhs.clone().field(check_field.clone()));
-        //     inhale_acc(
-        //         encoded_lhs
-        //             .clone()
-        //             .field(check_field.clone())
-        //             .field(check_field_value.clone()),
-        //     );
-        //     alloc_stmts
-        // } else {
-        //     Vec::with_capacity(2)
-        // };
-        // // Initialize lhs.field
-        // stmts.push(vir::Stmt::Assign(
-        //     encoded_lhs
-        //         .clone()
-        //         .field(value_field)
-        //         .field(value_field_value),
-        //     encoded_value,
-        //     vir::AssignKind::Copy,
-        // ));
-        // stmts.push(vir::Stmt::Assign(
-        //     encoded_lhs.field(check_field).field(check_field_value),
-        //     encoded_check,
-        //     vir::AssignKind::Copy,
-        // ));
-        // stmts
-        unimplemented!();
+        let operand_ty = if let ty::TyKind::Tuple(ref types) = ty.kind {
+            types[0].clone()
+        } else {
+            unreachable!()
+        };
+        let encoded_left = self.mir_encoder.encode_operand_expr(left);
+        let encoded_right = self.mir_encoder.encode_operand_expr(right);
+        let encoded_value = self.mir_encoder.encode_bin_op_expr(
+            op,
+            encoded_left.clone(),
+            encoded_right.clone(),
+            operand_ty.expect_ty(),
+        );
+        let encoded_check =
+            self.mir_encoder
+                .encode_bin_op_check(op, encoded_left, encoded_right, operand_ty.expect_ty());
+        let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind {
+            x
+        } else {
+            unreachable!()
+        };
+        let value_field = self
+            .encoder
+            .encode_raw_ref_field("tuple_0".to_string(), field_types[0].expect_ty());
+        let value_field_value = self.encoder.encode_value_field(field_types[0].expect_ty());
+        let check_field = self
+            .encoder
+            .encode_raw_ref_field("tuple_1".to_string(), field_types[1].expect_ty());
+        let check_field_value = self.encoder.encode_value_field(field_types[1].expect_ty());
+        let mut stmts = if !self
+            .init_info
+            .is_vir_place_accessible(&encoded_lhs, location)
+        {
+            let mut alloc_stmts = self.encode_havoc(&encoded_lhs);
+            let mut inhale_acc = |place| {
+                alloc_stmts.push(vir::Stmt::Inhale(
+                    vir::Expr::acc_permission(place, vir::PermAmount::Write),
+                    vir::FoldingBehaviour::Stmt,
+                ));
+            };
+            inhale_acc(encoded_lhs.clone().field(value_field.clone()));
+            inhale_acc(
+                encoded_lhs
+                    .clone()
+                    .field(value_field.clone())
+                    .field(value_field_value.clone()),
+            );
+            inhale_acc(encoded_lhs.clone().field(check_field.clone()));
+            inhale_acc(
+                encoded_lhs
+                    .clone()
+                    .field(check_field.clone())
+                    .field(check_field_value.clone()),
+            );
+            alloc_stmts
+        } else {
+            Vec::with_capacity(2)
+        };
+        // Initialize lhs.field
+        stmts.push(vir::Stmt::Assign(
+            encoded_lhs
+                .clone()
+                .field(value_field)
+                .field(value_field_value),
+            encoded_value,
+            vir::AssignKind::Copy,
+        ));
+        stmts.push(vir::Stmt::Assign(
+            encoded_lhs.field(check_field).field(check_field_value),
+            encoded_check,
+            vir::AssignKind::Copy,
+        ));
+        stmts
     }
 
     fn encode_assign_unary_op(

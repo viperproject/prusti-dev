@@ -8,7 +8,7 @@ use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::ErrorCtxt;
 use crate::encoder::Encoder;
 use prusti_common::vir;
-// use prusti_common::config;
+use prusti_common::config;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
 // use rustc_data_structures::indexed_vec::Idx;
@@ -388,90 +388,90 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         }
     }
 
-//     /// Returns `true` is an overflow happened
-//     pub fn encode_bin_op_check(
-//         &self,
-//         op: mir::BinOp,
-//         left: vir::Expr,
-//         right: vir::Expr,
-//         ty: ty::Ty<'tcx>,
-//     ) -> vir::Expr {
-//         if !op.is_checkable() || !config::check_binary_operations() {
-//             false.into()
-//         } else {
-//             let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty);
+    /// Returns `true` is an overflow happened
+    pub fn encode_bin_op_check(
+        &self,
+        op: mir::BinOp,
+        left: vir::Expr,
+        right: vir::Expr,
+        ty: ty::Ty<'tcx>,
+    ) -> vir::Expr {
+        if !op.is_checkable() || !config::check_binary_operations() {
+            false.into()
+        } else {
+            let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty);
 
-//             match op {
-//                 mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.sty {
-//                     // Unsigned
-//                     ty::TyKind::Uint(ast::UintTy::U8) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::u8::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::u8::MAX.into()),
-//                     ),
-//                     ty::TyKind::Uint(ast::UintTy::U16) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::u16::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::u16::MAX.into()),
-//                     ),
-//                     ty::TyKind::Uint(ast::UintTy::U32) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::u32::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::u32::MAX.into()),
-//                     ),
-//                     ty::TyKind::Uint(ast::UintTy::U64) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::u64::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::u64::MAX.into()),
-//                     ),
-//                     ty::TyKind::Uint(ast::UintTy::U128) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::u128::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::u128::MAX.into()),
-//                     ),
-//                     ty::TyKind::Uint(ast::UintTy::Usize) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::usize::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::usize::MAX.into()),
-//                     ),
-//                     // Signed
-//                     ty::TyKind::Int(ast::IntTy::I8) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::i8::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::i8::MAX.into()),
-//                     ),
-//                     ty::TyKind::Int(ast::IntTy::I16) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::i16::MIN.into()),
-//                     ),
-//                     ty::TyKind::Int(ast::IntTy::I32) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::i32::MAX.into()),
-//                     ),
-//                     ty::TyKind::Int(ast::IntTy::I64) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::i64::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::i64::MAX.into()),
-//                     ),
-//                     ty::TyKind::Int(ast::IntTy::I128) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::i128::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::i128::MAX.into()),
-//                     ),
-//                     ty::TyKind::Int(ast::IntTy::Isize) => vir::Expr::or(
-//                         vir::Expr::lt_cmp(result.clone(), std::isize::MIN.into()),
-//                         vir::Expr::gt_cmp(result, std::isize::MAX.into()),
-//                     ),
+            match op {
+                mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.kind {
+                    // Unsigned
+                    ty::TyKind::Uint(ast::UintTy::U8) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::u8::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::u8::MAX.into()),
+                    ),
+                    ty::TyKind::Uint(ast::UintTy::U16) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::u16::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::u16::MAX.into()),
+                    ),
+                    ty::TyKind::Uint(ast::UintTy::U32) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::u32::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::u32::MAX.into()),
+                    ),
+                    ty::TyKind::Uint(ast::UintTy::U64) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::u64::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::u64::MAX.into()),
+                    ),
+                    ty::TyKind::Uint(ast::UintTy::U128) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::u128::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::u128::MAX.into()),
+                    ),
+                    ty::TyKind::Uint(ast::UintTy::Usize) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::usize::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::usize::MAX.into()),
+                    ),
+                    // Signed
+                    ty::TyKind::Int(ast::IntTy::I8) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::i8::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i8::MAX.into()),
+                    ),
+                    ty::TyKind::Int(ast::IntTy::I16) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i16::MIN.into()),
+                    ),
+                    ty::TyKind::Int(ast::IntTy::I32) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i32::MAX.into()),
+                    ),
+                    ty::TyKind::Int(ast::IntTy::I64) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::i64::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i64::MAX.into()),
+                    ),
+                    ty::TyKind::Int(ast::IntTy::I128) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::i128::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i128::MAX.into()),
+                    ),
+                    ty::TyKind::Int(ast::IntTy::Isize) => vir::Expr::or(
+                        vir::Expr::lt_cmp(result.clone(), std::isize::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::isize::MAX.into()),
+                    ),
 
-//                     _ => {
-//                         debug!(
-//                             "Encoding of bin op check '{:?}' is incomplete for type {:?}",
-//                             op, ty
-//                         );
-//                         false.into()
-//                     }
-//                 },
+                    _ => {
+                        debug!(
+                            "Encoding of bin op check '{:?}' is incomplete for type {:?}",
+                            op, ty
+                        );
+                        false.into()
+                    }
+                },
 
-//                 mir::BinOp::Shl | mir::BinOp::Shr => {
-//                     debug!("Encoding of bin op check '{:?}' is incomplete", op);
-//                     false.into()
-//                 }
+                mir::BinOp::Shl | mir::BinOp::Shr => {
+                    debug!("Encoding of bin op check '{:?}' is incomplete", op);
+                    false.into()
+                }
 
-//                 _ => unreachable!("{:?}", op),
-//             }
-//         }
-//     }
+                _ => unreachable!("{:?}", op),
+            }
+        }
+    }
 
     pub fn encode_cast_expr(
         &self,
