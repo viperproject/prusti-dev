@@ -717,125 +717,124 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         heads.push(Some(havock_block));
 
-    //     // Encode the last B2 group (start - G - B1 - havoc - *B2* - G - B1 - end)
-    //     let (last_b2_head, last_b2_edges) = self.encode_blocks_group(
-    //         &format!("{}_group3_", loop_label_prefix),
-    //         loop_body_after_inv,
-    //         loop_depth,
-    //         return_block,
-    //     )?;
-    //     heads.push(last_b2_head);
+        // Encode the last B2 group (start - G - B1 - havoc - *B2* - G - B1 - end)
+        let (last_b2_head, last_b2_edges) = self.encode_blocks_group(
+            &format!("{}_group3_", loop_label_prefix),
+            loop_body_after_inv,
+            loop_depth,
+            return_block,
+        )?;
+        heads.push(last_b2_head);
 
-    //     // Encode the last G group (start - G - B1 - havoc - B2 - *G* - B1 - end)
-    //     let (last_g_head, last_g_edges) = self.encode_blocks_group(
-    //         &format!("{}_group4_", loop_label_prefix),
-    //         loop_guard_evaluation,
-    //         loop_depth,
-    //         return_block,
-    //     )?;
-    //     heads.push(last_g_head);
+        // Encode the last G group (start - G - B1 - havoc - B2 - *G* - B1 - end)
+        let (last_g_head, last_g_edges) = self.encode_blocks_group(
+            &format!("{}_group4_", loop_label_prefix),
+            loop_guard_evaluation,
+            loop_depth,
+            return_block,
+        )?;
+        heads.push(last_g_head);
 
-    //     // Encode the last B1 group (start - G - B1 - havoc - B2 - G - *B1* - end)
-    //     let (last_b1_head, last_b1_edges) = self.encode_blocks_group(
-    //         &format!("{}_group5_", loop_label_prefix),
-    //         loop_body_before_inv,
-    //         loop_depth,
-    //         return_block,
-    //     )?;
-    //     heads.push(last_b1_head);
+        // Encode the last B1 group (start - G - B1 - havoc - B2 - G - *B1* - end)
+        let (last_b1_head, last_b1_edges) = self.encode_blocks_group(
+            &format!("{}_group5_", loop_label_prefix),
+            loop_body_before_inv,
+            loop_depth,
+            return_block,
+        )?;
+        heads.push(last_b1_head);
 
-    //     // Build the "end" CFG block (start - G - B1 - havoc - B2 - G - B1 - *end*)
-    //     // (1) checks the invariant after one loop iteration
-    //     // (2) kills the program path with an `assume false`
-    //     let end_body_block = self.cfg_method.add_block(
-    //         &format!("{}_end_body", loop_label_prefix),
-    //         vec![],
-    //         vec![vir::Stmt::comment(format!(
-    //             "========== {}_end_body ==========",
-    //             loop_label_prefix
-    //         ))],
-    //     );
-    //     {
-    //         let stmts =
-    //             self.encode_loop_invariant_exhale_stmts(loop_head, before_invariant_block, true);
-    //         self.cfg_method.add_stmts(end_body_block, stmts);
-    //     }
-    //     self.cfg_method.add_stmt(
-    //         end_body_block,
-    //         vir::Stmt::Inhale(false.into(), vir::FoldingBehaviour::Stmt),
-    //     );
-    //     heads.push(Some(end_body_block));
+        // Build the "end" CFG block (start - G - B1 - havoc - B2 - G - B1 - *end*)
+        // (1) checks the invariant after one loop iteration
+        // (2) kills the program path with an `assume false`
+        let end_body_block = self.cfg_method.add_block(
+            &format!("{}_end_body", loop_label_prefix),
+            vec![],
+            vec![vir::Stmt::comment(format!(
+                "========== {}_end_body ==========",
+                loop_label_prefix
+            ))],
+        );
+        {
+            let stmts =
+                self.encode_loop_invariant_exhale_stmts(loop_head, before_invariant_block, true);
+            self.cfg_method.add_stmts(end_body_block, stmts);
+        }
+        self.cfg_method.add_stmt(
+            end_body_block,
+            vir::Stmt::Inhale(false.into(), vir::FoldingBehaviour::Stmt),
+        );
+        heads.push(Some(end_body_block));
 
-    //     // We are going to link the unresolved edges.
-    //     let mut still_unresolved_edges = vec![];
+        // We are going to link the unresolved edges.
+        let mut still_unresolved_edges = vec![];
 
-    //     // Link edges of "start" (*start* - G - B1 - havoc - B2 - G - B1 - end)
-    //     let following_block = heads[1..].iter().find(|x| x.is_some()).unwrap().unwrap();
-    //     self.cfg_method
-    //         .set_successor(start_block, vir::Successor::Goto(following_block));
+        // Link edges of "start" (*start* - G - B1 - havoc - B2 - G - B1 - end)
+        let following_block = heads[1..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        self.cfg_method
+            .set_successor(start_block, vir::Successor::Goto(following_block));
 
-    //     // Link edges from the first G group (start - *G* - B1 - havoc - B2 - G - B1 - end)
-    //     let following_block = heads[2..].iter().find(|x| x.is_some()).unwrap().unwrap();
-    //     still_unresolved_edges.extend(self.encode_unresolved_edges(first_g_edges, |bb| {
-    //         if bb == after_guard_block {
-    //             Some(following_block)
-    //         } else {
-    //             None
-    //         }
-    //     })?);
+        // Link edges from the first G group (start - *G* - B1 - havoc - B2 - G - B1 - end)
+        let following_block = heads[2..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        still_unresolved_edges.extend(self.encode_unresolved_edges(first_g_edges, |bb| {
+            if bb == after_guard_block {
+                Some(following_block)
+            } else {
+                None
+            }
+        })?);
 
-    //     // Link edges from the first B1 group (start - G - *B1* - havoc - B2 - G - B1 - end)
-    //     let following_block = heads[3..].iter().find(|x| x.is_some()).unwrap().unwrap();
-    //     still_unresolved_edges.extend(self.encode_unresolved_edges(first_b1_edges, |bb| {
-    //         if bb == after_inv_block {
-    //             Some(following_block)
-    //         } else {
-    //             None
-    //         }
-    //     })?);
+        // Link edges from the first B1 group (start - G - *B1* - havoc - B2 - G - B1 - end)
+        let following_block = heads[3..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        still_unresolved_edges.extend(self.encode_unresolved_edges(first_b1_edges, |bb| {
+            if bb == after_inv_block {
+                Some(following_block)
+            } else {
+                None
+            }
+        })?);
 
-    //     // Link edges of "havock" (start - G - B1 - *havock* - B2 - G - B1 - end)
-    //     let following_block = heads[4..].iter().find(|x| x.is_some()).unwrap().unwrap();
-    //     self.cfg_method
-    //         .set_successor(havock_block, vir::Successor::Goto(following_block));
+        // Link edges of "havock" (start - G - B1 - *havock* - B2 - G - B1 - end)
+        let following_block = heads[4..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        self.cfg_method
+            .set_successor(havock_block, vir::Successor::Goto(following_block));
 
-    //     // Link edges from the last B2 group (start - G - B1 - havoc - *B2* - G - B1 - end)
-    //     let following_block = heads[5..].iter().find(|x| x.is_some()).unwrap().unwrap();
-    //     still_unresolved_edges.extend(self.encode_unresolved_edges(last_b2_edges, |bb| {
-    //         if bb == loop_head {
-    //             Some(following_block)
-    //         } else {
-    //             None
-    //         }
-    //     })?);
+        // Link edges from the last B2 group (start - G - B1 - havoc - *B2* - G - B1 - end)
+        let following_block = heads[5..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        still_unresolved_edges.extend(self.encode_unresolved_edges(last_b2_edges, |bb| {
+            if bb == loop_head {
+                Some(following_block)
+            } else {
+                None
+            }
+        })?);
 
-    //     // Link edges from the last G group (start - G - B1 - havoc - B2 - *G* - B1 - end)
-    //     let following_block = heads[6..].iter().find(|x| x.is_some()).unwrap().unwrap();
-    //     still_unresolved_edges.extend(self.encode_unresolved_edges(last_g_edges, |bb| {
-    //         if bb == after_guard_block {
-    //             Some(following_block)
-    //         } else {
-    //             None
-    //         }
-    //     })?);
+        // Link edges from the last G group (start - G - B1 - havoc - B2 - *G* - B1 - end)
+        let following_block = heads[6..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        still_unresolved_edges.extend(self.encode_unresolved_edges(last_g_edges, |bb| {
+            if bb == after_guard_block {
+                Some(following_block)
+            } else {
+                None
+            }
+        })?);
 
-    //     // Link edges from the last B1 group (start - G - B1 - havoc - B2 - G - *B1* - end)
-    //     let following_block = heads[7..].iter().find(|x| x.is_some()).unwrap().unwrap();
-    //     still_unresolved_edges.extend(self.encode_unresolved_edges(last_b1_edges, |bb| {
-    //         if bb == after_inv_block {
-    //             Some(following_block)
-    //         } else {
-    //             None
-    //         }
-    //     })?);
+        // Link edges from the last B1 group (start - G - B1 - havoc - B2 - G - *B1* - end)
+        let following_block = heads[7..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        still_unresolved_edges.extend(self.encode_unresolved_edges(last_b1_edges, |bb| {
+            if bb == after_inv_block {
+                Some(following_block)
+            } else {
+                None
+            }
+        })?);
 
-    //     // Link edges of "end" (start - G - B1 - havoc - B2 - G - B1 - *end*)
-    //     self.cfg_method
-    //         .set_successor(end_body_block, vir::Successor::Return);
+        // Link edges of "end" (start - G - B1 - havoc - B2 - G - B1 - *end*)
+        self.cfg_method
+            .set_successor(end_body_block, vir::Successor::Return);
 
-    //     // Done. Phew!
-    //     Ok((start_block, still_unresolved_edges))
-unimplemented!();
+        // Done. Phew!
+        Ok((start_block, still_unresolved_edges))
 }
 
     /// Encode a block.
