@@ -33,8 +33,9 @@ use prusti_interface::environment::polonius_info::{
     ReborrowingDAG, ReborrowingDAGNode, ReborrowingKind, ReborrowingZombity,
 };
 use prusti_interface::environment::BasicBlockIndex;
-// use prusti_interface::environment::PermissionKind;
+use prusti_interface::environment::PermissionKind;
 use prusti_interface::environment::Procedure;
+use prusti_interface::utils;
 // use prusti_common::report::log;
 // use prusti_interface::specifications::*;
 use rustc_middle::mir::Mutability;
@@ -3230,50 +3231,50 @@ unimplemented!();
         }
     }
 
-    // fn get_pure_var_for_preserving_value(
-    //     &mut self,
-    //     loop_head: BasicBlockIndex,
-    //     place: &vir::Expr,
-    // ) -> vir::LocalVar {
-    //     let loop_map = self
-    //         .pure_var_for_preserving_value_map
-    //         .get_mut(&loop_head)
-    //         .unwrap();
-    //     if let Some(local_var) = loop_map.get(place) {
-    //         local_var.clone()
-    //     } else {
-    //         let mut counter = 0;
-    //         let mut name = format!("_preserve${}", counter);
-    //         while self.auxiliary_local_vars.contains_key(&name) {
-    //             counter += 1;
-    //             name = format!("_preserve${}", counter);
-    //         }
-    //         let vir_type = vir::Type::TypedRef(String::from("AuxRef"));
-    //         self.cfg_method.add_local_var(&name, vir_type.clone());
-    //         self.auxiliary_local_vars
-    //             .insert(name.clone(), vir_type.clone());
-    //         let var = vir::LocalVar::new(name, vir_type);
-    //         loop_map.insert(place.clone(), var.clone());
-    //         var
-    //     }
-    // }
+    fn get_pure_var_for_preserving_value(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        place: &vir::Expr,
+    ) -> vir::LocalVar {
+        let loop_map = self
+            .pure_var_for_preserving_value_map
+            .get_mut(&loop_head)
+            .unwrap();
+        if let Some(local_var) = loop_map.get(place) {
+            local_var.clone()
+        } else {
+            let mut counter = 0;
+            let mut name = format!("_preserve${}", counter);
+            while self.auxiliary_local_vars.contains_key(&name) {
+                counter += 1;
+                name = format!("_preserve${}", counter);
+            }
+            let vir_type = vir::Type::TypedRef(String::from("AuxRef"));
+            self.cfg_method.add_local_var(&name, vir_type.clone());
+            self.auxiliary_local_vars
+                .insert(name.clone(), vir_type.clone());
+            let var = vir::LocalVar::new(name, vir_type);
+            loop_map.insert(place.clone(), var.clone());
+            var
+        }
+    }
 
-    // /// Since the loop invariant is taking all permission from the
-    // /// outer context, we need to preserve values of references by
-    // /// saving them in local variables.
-    // fn construct_value_preserving_equality(
-    //     &mut self,
-    //     loop_head: BasicBlockIndex,
-    //     place: &vir::Expr,
-    // ) -> vir::Expr {
-    //     let tmp_var = self.get_pure_var_for_preserving_value(loop_head, place);
-    //     vir::Expr::BinOp(
-    //         vir::BinOpKind::EqCmp,
-    //         box tmp_var.into(),
-    //         box place.clone(),
-    //         vir::Position::default(),
-    //     )
-    // }
+    /// Since the loop invariant is taking all permission from the
+    /// outer context, we need to preserve values of references by
+    /// saving them in local variables.
+    fn construct_value_preserving_equality(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        place: &vir::Expr,
+    ) -> vir::Expr {
+        let tmp_var = self.get_pure_var_for_preserving_value(loop_head, place);
+        vir::Expr::BinOp(
+            vir::BinOpKind::EqCmp,
+            box tmp_var.into(),
+            box place.clone(),
+            vir::Position::default(),
+        )
+    }
 
     /// `drop_read_references` – should we add permissions to read
     /// references? We drop permissions of read references from the
@@ -3307,141 +3308,137 @@ unimplemented!();
             None
         };
 
-    //     let mut permissions = Vec::new();
-    //     let mut equalities = Vec::new();
-    //     for tree in permissions_forest.get_trees().iter() {
-    //         for (kind, mir_place) in tree.get_permissions().into_iter() {
-    //             if kind.is_none() {
-    //                 continue;
-    //             }
-    //             let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place);
-    //             debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
-    //             if let ty::TyKind::Closure(..) = ty.kind {
-    //                 // Do not encode closures
-    //                 continue;
-    //             }
-    //             match kind {
-    //                 // Gives read permission to this node. It must not be a leaf node.
-    //                 PermissionKind::ReadNode => {
-    //                     let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Read);
-    //                     permissions.push(perm);
-    //                 }
+        let mut permissions = Vec::new();
+        let mut equalities = Vec::new();
+        for tree in permissions_forest.get_trees().iter() {
+            for (kind, mir_place) in tree.get_permissions().into_iter() {
+                if kind.is_none() {
+                    continue;
+                }
+                let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place);
+                debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
+                if let ty::TyKind::Closure(..) = ty.kind {
+                    // Do not encode closures
+                    continue;
+                }
+                match kind {
+                    // Gives read permission to this node. It must not be a leaf node.
+                    PermissionKind::ReadNode => {
+                        let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Read);
+                        permissions.push(perm);
+                    }
 
-    //                 // Gives write permission to this node. It must not be a leaf node.
-    //                 PermissionKind::WriteNode => {
-    //                     let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write);
-    //                     permissions.push(perm);
-    //                 }
+                    // Gives write permission to this node. It must not be a leaf node.
+                    PermissionKind::WriteNode => {
+                        let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write);
+                        permissions.push(perm);
+                    }
 
-    //                 // Gives read or write permission to the entire
-    //                 // subtree including this node. This must be a leaf
-    //                 // node.
-    //                 PermissionKind::ReadSubtree | PermissionKind::WriteSubtree => {
-    //                     let perm_amount = match kind {
-    //                         PermissionKind::WriteSubtree => vir::PermAmount::Write,
-    //                         PermissionKind::ReadSubtree => vir::PermAmount::Read,
-    //                         _ => unreachable!(),
-    //                     };
-    //                     let def_init = self
-    //                         .loop_encoder
-    //                         .is_definitely_initialised(&mir_place, loop_head);
-    //                     debug!("    perm_amount={} def_init={}", perm_amount, def_init);
-    //                     if let mir::Place::Projection(box mir::Projection {
-    //                         elem: mir::ProjectionElem::Deref,
-    //                         ref base,
-    //                     }) = mir_place
-    //                     {
-    //                         let (_, ref_ty, _) = self.mir_encoder.encode_place(base);
-    //                         match ref_ty.kind {
-    //                             ty::TyKind::RawPtr(ty::TypeAndMut { mutbl, .. })
-    //                             | ty::TyKind::Ref(_, _, mutbl) => {
-    //                                 if def_init {
-    //                                     equalities.push(self.construct_value_preserving_equality(
-    //                                         loop_head,
-    //                                         &encoded_place,
-    //                                     ));
-    //                                 }
-    //                                 if drop_read_references {
-    //                                     if mutbl == Mutability::MutImmutable {
-    //                                         continue;
-    //                                     }
-    //                                 }
-    //                             }
-    //                             ref x => unreachable!("{:?}", x),
-    //                         }
-    //                     }
-    //                     match ty.kind {
-    //                         ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, mutbl })
-    //                         | ty::TyKind::Ref(_, ref ty, mutbl) => {
-    //                             debug!(
-    //                                 "encode_loop_invariant_permissions \
-    //                                  mir_place={:?} mutability={:?} \
-    //                                  drop_read_references={}",
-    //                                 mir_place, mutbl, drop_read_references
-    //                             );
-    //                             // Use unfolded references.
-    //                             let field = self.encoder.encode_dereference_field(ty);
-    //                             let field_place = vir::Expr::from(encoded_place).field(field);
-    //                             permissions.push(vir::Expr::acc_permission(
-    //                                 field_place.clone(),
-    //                                 perm_amount,
-    //                             ));
-    //                             if def_init {
-    //                                 equalities.push(self.construct_value_preserving_equality(
-    //                                     loop_head,
-    //                                     &field_place,
-    //                                 ));
-    //                             }
-    //                             if def_init
-    //                                 && !(mutbl == Mutability::MutImmutable && drop_read_references)
-    //                             {
-    //                                 permissions.push(
-    //                                     vir::Expr::pred_permission(field_place, perm_amount)
-    //                                         .unwrap(),
-    //                                 );
-    //                             }
-    //                         }
-    //                         _ => {
-    //                             permissions.push(
-    //                                 vir::Expr::pred_permission(encoded_place, perm_amount).unwrap(),
-    //                             );
-    //                             if let Some(forest) = &enclosing_permission_forest {
-    //                                 for child_place in forest.get_children(&mir_place) {
-    //                                     // If the forest contains the place, but that place is a
-    //                                     // regular node (either ReadNode or WriteNode), that means
-    //                                     // that we will lose information about the children of that
-    //                                     // place after the loop and we need to preserve it via local
-    //                                     // variables.
-    //                                     let (encoded_child, _, _) =
-    //                                         self.mir_encoder.encode_place(&child_place);
-    //                                     equalities.push(self.construct_value_preserving_equality(
-    //                                         loop_head,
-    //                                         &encoded_child,
-    //                                     ));
-    //                                 }
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //                 // This should be repalced with WriteNode and
-    //                 // WriteSubtree before this point.
-    //                 PermissionKind::WriteNodeAndSubtree => unreachable!(),
-    //                 // Give no permission to this node and the entire subtree. This
-    //                 // must be a leaf node.
-    //                 PermissionKind::None => unreachable!(),
-    //             };
-    //         }
-    //     }
+                    // Gives read or write permission to the entire
+                    // subtree including this node. This must be a leaf
+                    // node.
+                    PermissionKind::ReadSubtree | PermissionKind::WriteSubtree => {
+                        let perm_amount = match kind {
+                            PermissionKind::WriteSubtree => vir::PermAmount::Write,
+                            PermissionKind::ReadSubtree => vir::PermAmount::Read,
+                            _ => unreachable!(),
+                        };
+                        let def_init = self
+                            .loop_encoder
+                            .is_definitely_initialised(&mir_place, loop_head);
+                        debug!("    perm_amount={} def_init={}", perm_amount, def_init);
+                        if let Some(base) = utils::try_pop_deref(self.encoder.env().tcx(), mir_place)
+                        {
+                            let (_, ref_ty, _) = self.mir_encoder.encode_place(&base);
+                            match ref_ty.kind {
+                                ty::TyKind::RawPtr(ty::TypeAndMut { mutbl, .. })
+                                | ty::TyKind::Ref(_, _, mutbl) => {
+                                    if def_init {
+                                        equalities.push(self.construct_value_preserving_equality(
+                                            loop_head,
+                                            &encoded_place,
+                                        ));
+                                    }
+                                    if drop_read_references {
+                                        if mutbl == Mutability::Not {
+                                            continue;
+                                        }
+                                    }
+                                }
+                                ref x => unreachable!("{:?}", x),
+                            }
+                        }
+                        match ty.kind {
+                            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, mutbl })
+                            | ty::TyKind::Ref(_, ref ty, mutbl) => {
+                                debug!(
+                                    "encode_loop_invariant_permissions \
+                                     mir_place={:?} mutability={:?} \
+                                     drop_read_references={}",
+                                    mir_place, mutbl, drop_read_references
+                                );
+                                // Use unfolded references.
+                                let field = self.encoder.encode_dereference_field(ty);
+                                let field_place = vir::Expr::from(encoded_place).field(field);
+                                permissions.push(vir::Expr::acc_permission(
+                                    field_place.clone(),
+                                    perm_amount,
+                                ));
+                                if def_init {
+                                    equalities.push(self.construct_value_preserving_equality(
+                                        loop_head,
+                                        &field_place,
+                                    ));
+                                }
+                                if def_init
+                                    && !(mutbl == Mutability::Not && drop_read_references)
+                                {
+                                    permissions.push(
+                                        vir::Expr::pred_permission(field_place, perm_amount)
+                                            .unwrap(),
+                                    );
+                                }
+                            }
+                            _ => {
+                                permissions.push(
+                                    vir::Expr::pred_permission(encoded_place, perm_amount).unwrap(),
+                                );
+                                if let Some(forest) = &enclosing_permission_forest {
+                                    for child_place in forest.get_children(&mir_place) {
+                                        // If the forest contains the place, but that place is a
+                                        // regular node (either ReadNode or WriteNode), that means
+                                        // that we will lose information about the children of that
+                                        // place after the loop and we need to preserve it via local
+                                        // variables.
+                                        let (encoded_child, _, _) =
+                                            self.mir_encoder.encode_place(&child_place);
+                                        equalities.push(self.construct_value_preserving_equality(
+                                            loop_head,
+                                            &encoded_child,
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // This should be repalced with WriteNode and
+                    // WriteSubtree before this point.
+                    PermissionKind::WriteNodeAndSubtree => unreachable!(),
+                    // Give no permission to this node and the entire subtree. This
+                    // must be a leaf node.
+                    PermissionKind::None => unreachable!(),
+                };
+            }
+        }
 
-    //     trace!(
-    //         "[exit] encode_loop_invariant_permissions permissions={}",
-    //         permissions
-    //             .iter()
-    //             .map(|p| format!("{}, ", p))
-    //             .collect::<String>()
-    //     );
-    //     (permissions, equalities)
-    unimplemented!()
+        trace!(
+            "[exit] encode_loop_invariant_permissions permissions={}",
+            permissions
+                .iter()
+                .map(|p| format!("{}, ", p))
+                .collect::<String>()
+        );
+        (permissions, equalities)
     }
 
     /// Get the basic blocks that encode the specification of a loop invariant

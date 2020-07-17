@@ -118,6 +118,31 @@ pub fn expand_one_level<'tcx>(
     }
 }
 
+/// Pop the last projection from the place and return the new place with the popped element.
+pub fn try_pop_one_level<'tcx>(tcx: TyCtxt<'tcx>, place: mir::Place<'tcx>) -> Option<(mir::PlaceElem<'tcx>, mir::Place<'tcx>)> {
+    if place.projection.len() > 0 {
+        let last_index = place.projection.len()-1;
+        let new_place = mir::Place {
+            local: place.local,
+            projection: tcx.intern_place_elems(&place.projection[..last_index]),
+        };
+        Some((place.projection[last_index], new_place))
+    } else {
+        None
+    }
+}
+
+/// Pop the last element from the place if it is a dereference.
+pub fn try_pop_deref<'tcx>(tcx: TyCtxt<'tcx>, place: mir::Place<'tcx>) -> Option<mir::Place<'tcx>> {
+    try_pop_one_level(tcx, place).and_then(|(elem, base)| {
+        if let mir::ProjectionElem::Deref = elem {
+            Some(base)
+        } else {
+            None
+        }
+    })
+}
+
 /// Subtract the `subtrahend` place from the `minuend` place. The
 /// subtraction is defined as set minus between `minuend` place replaced
 /// with a set of places that are unrolled up to the same level as
