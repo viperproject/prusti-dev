@@ -141,6 +141,7 @@ impl<'tcx> Environment<'tcx> {
         visitor.get_annotated_procedures()
     }
 
+    // TODO: Use encoder.get_opt_spec_id instead.
     // pub fn get_attr(&self, def_id: ProcedureDefId, name: &str) -> Option<String> {
     //     let tcx = self.tcx();
     //     let opt_node_id = tcx.hir.as_local_node_id(def_id);

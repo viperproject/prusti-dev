@@ -3474,70 +3474,67 @@ unimplemented!();
             spec_blocks
         );
 
-    //     let mut spec_ids = vec![];
-    //     for bbi in spec_blocks {
-    //         for stmt in &self.mir.basic_blocks()[bbi].statements {
-    //             if let mir::StatementKind::Assign(
-    //                 _,
-    //                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
-    //             ) = stmt.kind
-    //             {
-    //                 debug!("cl_def_id: {:?}", cl_def_id);
-    //                 if let Some(attr) = self
-    //                     .encoder
-    //                     .env()
-    //                     .get_attr(cl_def_id, "__PRUSTI_LOOP_SPEC_ID")
-    //                 {
-    //                     let spec_id: u64 = attr.parse().unwrap();
-    //                     spec_ids.push(SpecID::from(spec_id));
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     trace!("spec_ids: {:?}", spec_ids);
-    //     assert!(spec_ids.len() <= 1, "a loop has multiple specification ids");
+        let mut spec_ids = vec![];
+        for bbi in spec_blocks {
+            for stmt in &self.mir.basic_blocks()[bbi].statements {
+                if let mir::StatementKind::Assign(box (
+                    _,
+                    mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
+                )) = stmt.kind
+                {
+                    debug!("cl_def_id: {:?}", cl_def_id);
+                    if let Some(spec_id) = self
+                        .encoder
+                        .get_opt_spec_id(cl_def_id)
+                    {
+                        spec_ids.push(spec_id);
+                    }
+                }
+            }
+        }
+        trace!("spec_ids: {:?}", spec_ids);
+        assert!(spec_ids.len() <= 1, "a loop has multiple specification ids");
 
-    //     let mut encoded_specs = vec![];
-    //     let mut encoded_spec_spans = vec![];
-    //     if !spec_ids.is_empty() {
-    //         let encoded_args: Vec<vir::Expr> = self
-    //             .mir
-    //             .args_iter()
-    //             .map(|local| self.mir_encoder.encode_local(local).into())
-    //             .collect();
-    //         for spec_id in &spec_ids {
-    //             let spec_set = self.encoder.spec().get(spec_id).unwrap();
-    //             match spec_set {
-    //                 SpecificationSet::Loop(ref specs) => {
-    //                     for spec in specs.iter() {
-    //                         // TODO: Mmm... are these parameters correct?
-    //                         let encoded_spec = self.encoder.encode_assertion(
-    //                             &spec.assertion,
-    //                             self.mir,
-    //                             PRECONDITION_LABEL,
-    //                             &encoded_args,
-    //                             None,
-    //                             false,
-    //                             Some(loop_inv_block),
-    //                             ErrorCtxt::GenericExpression,
-    //                         );
-    //                         let spec_spans = spec.assertion.get_spans();
-    //                         let spec_pos = self
-    //                             .encoder
-    //                             .error_manager()
-    //                             .register_span(spec_spans.clone());
-    //                         encoded_specs.push(encoded_spec.set_default_pos(spec_pos));
-    //                         encoded_spec_spans.extend(spec_spans);
-    //                     }
-    //                 }
-    //                 ref x => unreachable!("{:?}", x),
-    //             }
-    //         }
-    //         trace!("encoded_specs: {:?}", encoded_specs);
-    //     }
+        let mut encoded_specs = vec![];
+        let mut encoded_spec_spans = vec![];
+        if !spec_ids.is_empty() {
+            let encoded_args: Vec<vir::Expr> = self
+                .mir
+                .args_iter()
+                .map(|local| self.mir_encoder.encode_local(local).into())
+                .collect();
+            for spec_id in &spec_ids {
+                let spec_set = self.encoder.spec().get(spec_id).unwrap();
+                match spec_set {
+                    typed::SpecificationSet::Loop(ref specs) => {
+                        for assertion in specs.invariant.iter() {
+                            // TODO: Mmm... are these parameters correct?
+                            let encoded_spec = self.encoder.encode_assertion(
+                                &assertion,
+                                self.mir,
+                                PRECONDITION_LABEL,
+                                &encoded_args,
+                                None,
+                                false,
+                                Some(loop_inv_block),
+                                ErrorCtxt::GenericExpression,
+                            );
+                            let spec_spans = typed::Spanned::get_spans(assertion, self.encoder.env().tcx());
+                            let spec_pos = self
+                                .encoder
+                                .error_manager()
+                                .register_span(spec_spans.clone());
+                            encoded_specs.push(encoded_spec.set_default_pos(spec_pos));
+                            encoded_spec_spans.extend(spec_spans);
+                        }
+                    }
+                    ref x => unreachable!("{:?}", x),
+                }
+            }
+            trace!("encoded_specs: {:?}", encoded_specs);
+        }
 
-    //     (encoded_specs, MultiSpan::from_spans(encoded_spec_spans))
-    unimplemented!();
+        (encoded_specs, MultiSpan::from_spans(encoded_spec_spans))
     }
 
     fn encode_loop_invariant_exhale_stmts(
