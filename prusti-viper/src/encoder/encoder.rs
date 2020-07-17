@@ -307,6 +307,35 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     }
     // }
 
+    /// Is the closure specified with the `def_id` is spec only?
+    pub fn is_spec_closure(&self, def_id: DefId) -> bool {
+        use rustc_ast::ast;
+        self
+            .env()
+            .tcx()
+            .get_attrs(def_id)
+            .iter()
+            .any(|attr|
+                match &attr.kind {
+                    ast::AttrKind::Normal(ast::AttrItem {
+                        path: ast::Path { span: _, segments },
+                        args: ast::MacArgs::Empty,
+                    }) => {
+                        segments.len() == 2
+                        && segments[0]
+                            .ident
+                            .name
+                            .with(|attr_name| attr_name == "prusti")
+                        && segments[1]
+                            .ident
+                            .name
+                            .with(|attr_name| attr_name == "spec_only")
+                    },
+                    _ => false,
+                }
+            )
+    }
+
     pub fn get_opt_spec_id(&self, def_id: DefId) -> Option<SpecificationId> {
         use rustc_ast::ast;
         let opt_spec_id = self

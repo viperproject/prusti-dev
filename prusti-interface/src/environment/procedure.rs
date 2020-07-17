@@ -277,40 +277,7 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
             trace!("MIR block {:?} is a loop head", source);
         }
         for target in get_normal_targets(term) {
-            trace!("Try target {:?} of {:?}", target, source);
-            // Skip the following "if false"
-            let target_term = &mir[target].terminator();
-            let span = target_term.source_info.span;
-            trace!(
-                "target_term {:?} span=({:?}, {:?})",
-                target_term,
-                span.lo(),
-                span.hi()
-            );
-            if let TerminatorKind::SwitchInt {
-                ref discr,
-                ref values,
-                ref targets,
-                ..
-            } = target_term.kind
-            {
-                trace!("target_term is a SwitchInt");
-                trace!("discr: '{:?}'", discr);
-                // Specification guard has its span set to (0, 0) position.
-                if format!("{:?}", discr) == "const false" && span.lo().0 == 0 && span.hi().0 == 0 {
-                    // Some assumptions
-                    assert_eq!(values[0], 0 as u128);
-                    assert_eq!(values.len(), 1);
-
-                    // Do not visit the 'then' branch.
-                    // So, it will not be put into nonspec_basic_blocks.
-                    debug!(
-                        "MIR block {:?} is the head of a specification branch",
-                        targets[1]
-                    );
-                    visited.insert(targets[1]);
-                }
-            }
+            // FIXME: Filtering is broken.
             if !visited.contains(&target) {
                 to_visit.push(target);
             }

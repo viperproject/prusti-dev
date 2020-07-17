@@ -195,6 +195,7 @@ impl EncodeTypeCheck for TriggerSet {
                 let expr = &trigger.expr;
                 let identifier = format!("{}_{}", trigger.spec_id, trigger.id);
                 let typeck_call = quote_spanned! { span =>
+                    #[prusti::spec_only]
                     #[prusti::expr_id = #identifier]
                     || {
                         #expr;
@@ -259,6 +260,7 @@ impl EncodeTypeCheck for Expression {
         let expr = &self.expr;
         let identifier = format!("{}_{}", self.spec_id, self.id);
         let typeck_call = quote_spanned! { span =>
+            #[prusti::spec_only]
             #[prusti::expr_id = #identifier]
             || -> bool {
                 #expr

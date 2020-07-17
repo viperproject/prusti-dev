@@ -4443,6 +4443,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 stmts
             }
 
+            &mir::AggregateKind::Closure(def_id, _substs) => {
+                assert!(self.encoder.is_spec_closure(def_id), "closure: {:?}", def_id);
+                // Specification only. Just ignore in the encoding.
+                // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
+                Vec::new()
+            }
+
             ref x => unimplemented!("{:?}", x),
         }
     }
