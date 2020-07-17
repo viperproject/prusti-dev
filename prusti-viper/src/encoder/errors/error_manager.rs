@@ -127,10 +127,13 @@ impl<'tcx> ErrorManager<'tcx>
                 .codemap
                 .span_to_lines(primary_span.source_callsite())
                 .unwrap();
-            let first_line_info = lines_info.lines.get(0).unwrap();
-            let line = first_line_info.line_index as i32 + 1;
-            let column = first_line_info.start_col.0 as i32 + 1;
-            Position::new(line, column, pos_id.clone())
+            if let Some(first_line_info) = lines_info.lines.get(0) {
+                let line = first_line_info.line_index as i32 + 1;
+                let column = first_line_info.start_col.0 as i32 + 1;
+                Position::new(line, column, pos_id.clone())
+            } else {
+                Position::new(0, 0, pos_id.clone())
+            }
         } else {
             Position::new(0, 0, pos_id.clone())
         };
