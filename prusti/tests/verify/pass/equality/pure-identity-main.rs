@@ -12,9 +12,8 @@ fn get_value(x: A) -> A {
 
 fn main() {
     let x = A { i: 17 };
- //   let y = A { i: 17 };
+    let y = A { i: 17 };
     let z = get_value(x);
-    
-//    assert!(y == z);
+    assert!(y == z);
 }
 

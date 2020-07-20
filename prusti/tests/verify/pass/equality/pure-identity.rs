@@ -12,7 +12,6 @@ fn get_value(x: A) -> A {
 
 fn test(x: A) {
     let zx = get_value(x);
-    //let zy = get_value(x);
 }
 
 fn main() {
