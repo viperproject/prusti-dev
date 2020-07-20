@@ -303,6 +303,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             .collect();
         let encoded_return = self.encode_local(contract.returned_value.clone().into());
         debug!("encoded_return: {:?}", encoded_return);
+
+        // TODO CMFIXME: If the pure function returns a snapshot we have to patch the postconditions
+        if encoded_return.typ != self.encode_function_return_type() {
+            warn!("Attaching specifications to pure functions returning Copy types is not properly supported yet");
+        }
+
         for item in contract.functional_postcondition() {
             let encoded_postcond = self.encoder.encode_assertion(
                 &item.assertion,
@@ -327,12 +333,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             .register(self.mir.span, ErrorCtxt::GenericExpression);
 
         // Fix return variable
-        /* TODO CMFIXME: This is a bit tricky; we are returning a snapshot but the postcondition does not know about this...
-        let pure_fn_return_variable =
+        /*let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_return_type());
         post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos)
          */
+        // TODO CMFIXME: the version below is a workaround to check the whole encoding;
+        // TODO it is certainly not what we want once postconditions have been patched
         let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_ref_return_type());
         post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
