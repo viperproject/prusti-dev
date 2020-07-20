@@ -2379,7 +2379,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         arg_exprs: Vec<Expr>,
         return_type: Type,
     )-> Vec<vir::Stmt> {
-
         let mut stmts = vec![];
 
         let formal_args: Vec<vir::LocalVar> = args
@@ -2397,8 +2396,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .encoder
             .error_manager()
             .register(call_site_span, ErrorCtxt::PureFunctionCall);
+
         let func_call =
-            vir::Expr::func_app(function_name, arg_exprs, formal_args, return_type, pos);
+            vir::Expr::func_app(function_name, arg_exprs, formal_args, return_type.clone(), pos);
 
         let label = self.cfg_method.get_fresh_label_name();
         stmts.push(vir::Stmt::Label(label.clone()));
@@ -2413,6 +2413,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .mir_encoder
             .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
             .unwrap();
+
         stmts.push(vir::Stmt::Inhale(
             type_predicate,
             vir::FoldingBehaviour::Stmt,
@@ -2423,10 +2424,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
             None => unreachable!(),
         };
-        stmts.push(vir::Stmt::Inhale(
-            vir::Expr::eq_cmp(target_value.into(), func_call),
-            vir::FoldingBehaviour::Stmt,
-        ));
+
+        // TODO CMFIXME: check whether we return a snapshot; use a more elegant mechanism
+        if target_value.get_type().clone() == return_type {
+            stmts.push(vir::Stmt::Inhale(
+                vir::Expr::eq_cmp(target_value.into(), func_call),
+                vir::FoldingBehaviour::Stmt,
+            ));
+        } else {
+            let predicate_name = target_value.get_type().name();
+            let snapshot = self.encoder.encode_snapshot_use(predicate_name);
+            let snap_call = snapshot.get_snap_call(target_place);
+            stmts.push(vir::Stmt::Inhale(
+                vir::Expr::eq_cmp(snap_call.clone(), func_call),
+                vir::FoldingBehaviour::Stmt,
+            ));
+        }
 
         // Store a label for permissions got back from the call
         debug!(

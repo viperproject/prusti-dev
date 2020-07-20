@@ -66,9 +66,8 @@ pub fn add_folding_unfolding_to_function(
     for pre in &function.pres {
         pctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone(), vir::FoldingBehaviour::Expr));
     }
-
     // Add appropriate unfolding around expressions
-    Ok(vir::Function {
+    let result = Ok(vir::Function {
         pres: function
             .pres
             .into_iter()
@@ -84,7 +83,8 @@ pub fn add_folding_unfolding_to_function(
             .map(|e| add_folding_unfolding_to_expr(e, &pctxt))
             .map_or(Ok(None), |r| r.map(Some))?,
         ..function
-    })
+    });
+    result
 }
 
 pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(

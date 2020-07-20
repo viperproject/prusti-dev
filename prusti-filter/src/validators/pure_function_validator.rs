@@ -106,6 +106,9 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyUint(_) => {} // OK
 
+            ty::TypeVariants::TyAdt(_, _)
+            | ty::TypeVariants::TyTuple(_) => {} // TODO CMFIXME partially supported
+
             _ => unsupported!(
                 self,
                 span,

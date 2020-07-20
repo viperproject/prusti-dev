@@ -75,7 +75,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     pub fn encode_function(&self) -> vir::Function {
         let function_name = self.encode_function_name();
         debug!("Encode pure function {}", function_name);
-
         let mut state = run_backward_interpretation(self.mir, &self.interpreter)
             .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
 
@@ -96,7 +95,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             function_name, body_expr
         );
 
-        self.encode_function_given_body(Some(body_expr))
+        // TODO CMFIXME: use better mechanism for detecting functions returning snapshots
+        if self.encode_function_return_type() != self.encode_function_ref_return_type() {
+            let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+            let snapshot = self.encoder.encode_snapshot(&ty);
+            let body_expr = snapshot.get_snap_call(body_expr);
+            self.encode_function_given_body(Some(body_expr))
+        } else {
+            self.encode_function_given_body(Some(body_expr))
+        }
+
+        // TODO CMFIXME self.encode_function_given_body(Some(body_expr))
     }
 
     pub fn encode_bodyless_function(&self) -> vir::Function {
@@ -156,7 +165,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 let mir_type = self.interpreter.mir_encoder().get_local_ty(local);
                 let var_type = self
                     .encoder
-                    .encode_value_type(self.encoder.resolve_typaram(mir_type));
+                    .encode_ref_value_type(self.encoder.resolve_typaram(mir_type));
                 let var_type = var_type.patch(&subst_strings);
                 vir::LocalVar::new(var_name, var_type)
             })
@@ -318,8 +327,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             .register(self.mir.span, ErrorCtxt::GenericExpression);
 
         // Fix return variable
+        /* TODO CMFIXME: This is a bit tricky; we are returning a snapshot but the postcondition does not know about this...
         let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_return_type());
+        post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
+            .set_default_pos(postcondition_pos)
+         */
+        let pure_fn_return_variable =
+            vir::LocalVar::new("__result", self.encode_function_ref_return_type());
         post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos)
     }
@@ -328,7 +343,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let var_name = self.interpreter.mir_encoder().encode_local_var_name(local);
         let var_type = self
             .encoder
-            .encode_value_type(self.interpreter.mir_encoder().get_local_ty(local));
+            .encode_ref_value_type(self.interpreter.mir_encoder().get_local_ty(local));
         vir::LocalVar::new(var_name, var_type)
     }
 
@@ -339,6 +354,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     pub fn encode_function_return_type(&self) -> vir::Type {
         let ty = self.encoder.resolve_typaram(self.mir.return_ty());
         self.encoder.encode_value_type(ty)
+    }
+
+    pub fn encode_function_ref_return_type(&self) -> vir::Type {
+        let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+        self.encoder.encode_ref_value_type(ty)
     }
 }
 
@@ -395,7 +415,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
         // Generate a function call that leaves the expression undefined.
         let unreachable_expr = |pos| {
-            let encoded_type = self.encoder.encode_value_type(self.mir.return_ty());
+            let encoded_type = self.encoder.encode_ref_value_type(self.mir.return_ty());
             let function_name =
                 self.encoder
                     .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
@@ -406,7 +426,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
         // Generate a function call that leaves the expression undefined.
         let undef_expr = |pos| {
-            let encoded_type = self.encoder.encode_value_type(self.mir.return_ty());
+            let encoded_type = self.encoder.encode_ref_value_type(self.mir.return_ty());
             let function_name = self
                 .encoder
                 .encode_builtin_function_use(BuiltinFunctionKind::Undefined(encoded_type.clone()));
@@ -462,6 +482,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 let return_type = self.encoder.encode_type(self.mir.return_ty());
                 let return_var = vir::LocalVar::new(format!("{}_0", self.namespace), return_type);
                 let field = self.encoder.encode_value_field(self.mir.return_ty());
+
                 MultiExprBackwardInterpreterState::new_single(
                     vir::Expr::local(return_var.into()).field(field).into(),
                 )
@@ -636,7 +657,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             let is_pure_function =
                                 self.encoder.env().has_attribute_name(def_id, "pure");
                             let ((function_name, return_type), is_cmp_call) = if is_pure_function {
-                                (self.encoder.encode_pure_function_use(def_id), false)
+                                (self.encoder.encode_pure_function_use(def_id), false) // TODO CMFIXME remove the boolean flag
                             } else {
                                 // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
                                 // function
@@ -652,7 +673,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 } else {
                                     (self.encoder.encode_stub_pure_function_use(def_id), false)
                                 }
-
                             };
                             if is_pure_function{
                                 trace!("Encoding pure function call '{}'", function_name);

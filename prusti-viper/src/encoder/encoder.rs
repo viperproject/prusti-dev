@@ -447,6 +447,17 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         contract.to_call_site_contract(args, target)
     }
 
+    // TODO CMFIXME: there may be a better way but right now we check this
+    pub fn has_value_field(&self, ty: ty::Ty<'tcx>) -> bool {
+        match ty.sty {
+            ty::TypeVariants::TyAdt(_, _)
+            | ty::TypeVariants::TyTuple(_) => {
+                false
+            }
+            _ => true
+        }
+    }
+
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_encoder = TypeEncoder::new(self, ty);
         let field = type_encoder.encode_value_field();
@@ -888,6 +899,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             self.procedures.borrow_mut().insert(def_id, method);
         }
         self.procedures.borrow()[&def_id].clone()
+    }
+
+    // TODO CMFIXME: added as we have different variants here...
+    pub fn encode_ref_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
+        let type_encoder = TypeEncoder::new(self, ty);
+        type_encoder.encode_ref_value_type()
     }
 
     pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
@@ -1397,6 +1414,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                                        pure_func_name: String,
                                        pure_function: &vir::Function)
                                        -> Option<vir::DomainFunc> {
+        if let vir::Type::Domain(_) = pure_function.return_type {
+            return None; // no need for mirrors if the function already returns a snapshot
+        }
         if !self.snap_mirror_funcs.borrow().contains_key(&pure_func_name) {
             if !pure_function.formal_args.iter().all(
                 |a| match &a.typ {
