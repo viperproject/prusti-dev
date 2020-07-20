@@ -1,6 +1,6 @@
 extern crate prusti_contracts;
 
-#[derive(Clone,PartialEq,Eq)]
+#[derive(Clone,Copy,PartialEq,Eq)]
 struct A {
     i: i32,
 }
