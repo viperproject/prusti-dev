@@ -4,14 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::places_utils::{union, union3};
-use encoder::foldunfold::perm::Perm::*;
-use encoder::foldunfold::perm::*;
-use prusti_common::vir;
-use prusti_common::vir::PermAmount;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::iter::FromIterator;
+use super::{
+    perm::{Perm::*, *},
+    places_utils::{union, union3},
+};
+use prusti_common::{vir, vir::PermAmount};
+use std::{
+    collections::{HashMap, HashSet},
+    iter::FromIterator,
+};
 
 pub trait RequiredPermissionsGetter {
     /// Returns the permissions required for the expression to be well-defined
@@ -21,21 +22,17 @@ pub trait RequiredPermissionsGetter {
     ) -> HashSet<Perm>;
 }
 
-impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<&'a A> {
+impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for &'a A {
     /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
         predicates: &HashMap<String, vir::Predicate>,
     ) -> HashSet<Perm> {
-        self.iter().fold(HashSet::new(), |res, x| {
-            res.union(&x.get_required_permissions(predicates))
-                .cloned()
-                .collect()
-        })
+        (*self).get_required_permissions(predicates)
     }
 }
 
-impl RequiredPermissionsGetter for Vec<vir::Expr> {
+impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<A> {
     /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
@@ -72,7 +69,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 let perms = expr.get_required_permissions(predicates);
                 perms
                     .into_iter()
-                    .map(|perm| perm.set_default_pos(pos.clone()))
+                    .map(|perm| perm.set_default_pos(*pos))
                     .collect()
             }
 
@@ -156,6 +153,12 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
             &vir::Stmt::ExpireBorrows(ref _dag) => {
                 HashSet::new() // TODO: #133
+            }
+
+            &vir::Stmt::If(_, ref then, ref elze) => {
+                then.get_required_permissions(predicates)
+                    .union(&elze.get_required_permissions(predicates))
+                    .cloned().collect()
             }
 
             ref x => unimplemented!("{}", x),
@@ -453,6 +456,7 @@ impl PredicatePermissionsGetter for vir::Predicate {
                     p.get_all_permissions()
                 }
             }
+            vir::Predicate::Bodyless(_, _) => HashSet::new(),
         };
         perms
     }

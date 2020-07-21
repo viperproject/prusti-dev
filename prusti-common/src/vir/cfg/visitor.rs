@@ -53,16 +53,16 @@ pub trait CfgReplacer<
     /// not being able to see that two locations are the same inside the
     /// package statement. The minimal example that illustrates the issue:
     ///
-    /// ```rust
-    /// // pub struct ListNode {
-    /// //     next: Option<Box<ListNode>>,
-    /// // }
-    /// // pub fn test5(list: &mut ListNode) -> &mut ListNode {
-    /// //     match list.next {
-    /// //         Some(box ref mut node) => test5(node),
-    /// //         None => list,
-    /// //     }
-    /// // }
+    /// ```rust,ignore
+    /// pub struct ListNode {
+    ///     next: Option<Box<ListNode>>,
+    /// }
+    /// pub fn test5(list: &mut ListNode) -> &mut ListNode {
+    ///     match list.next {
+    ///         Some(box ref mut node) => test5(node),
+    ///         None => list,
+    ///     }
+    /// }
     /// ```
     fn replace_stmt(
         &mut self,

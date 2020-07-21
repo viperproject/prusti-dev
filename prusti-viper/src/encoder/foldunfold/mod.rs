@@ -5,23 +5,26 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use self::path_ctxt::*;
-use encoder::foldunfold::action::Action;
-use encoder::foldunfold::perm::*;
-use encoder::foldunfold::permissions::*;
-use encoder::foldunfold::semantics::ApplyOnState;
-use encoder::Encoder;
-use prusti_common::utils::to_string::ToString;
-use prusti_common::vir;
-use prusti_common::vir::borrows::Borrow;
-use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
-use prusti_common::vir::{ExprFolder, FallibleExprFolder, PermAmount};
-use prusti_common::config;
-use prusti_common::report;
+use encoder::{
+    foldunfold::{action::Action, perm::*, permissions::*, semantics::ApplyOnState},
+    Encoder,
+};
+use prusti_common::{
+    config, report,
+    utils::to_string::ToString,
+    vir,
+    vir::{
+        borrows::Borrow, CfgBlockIndex, CfgReplacer, CheckNoOpAction, ExprFolder,
+        FallibleExprFolder, PermAmount,
+    },
+};
 use rustc::mir;
-use std;
-use std::collections::{HashMap, HashSet};
-use std::mem;
-use std::ops::Deref;
+use std::{
+    self,
+    collections::{HashMap, HashSet},
+    mem,
+    ops::Deref,
+};
 
 mod action;
 mod borrows;
@@ -454,7 +457,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     read_access = read_access.replace_place(&original_place, place);
                 }
                 maybe_original_place = Some(original_place);
-                let stmt = vir::Stmt::Exhale(read_access, self.method_pos.clone());
+                let stmt = vir::Stmt::Exhale(read_access, self.method_pos);
                 let new_stmts = self.replace_stmt(
                     curr_block.statements.len(),
                     &stmt,
@@ -550,6 +553,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             stmts.push(vir::Stmt::If(
                 block.guard.clone(),
                 self.patch_places(&block.statements, label),
+                vec![]
             ));
             for ((from, to), statements) in &cfg.edges {
                 if *from == i {
@@ -560,6 +564,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     stmts.push(vir::Stmt::If(
                         condition,
                         self.patch_places(statements, label),
+                        vec![]
                     ));
                 }
             }
@@ -657,7 +662,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         vir::Stmt::Inhale(patch_expr(label, expr), *folding)
                     }
                     vir::Stmt::Exhale(expr, pos) => {
-                        vir::Stmt::Exhale(patch_expr(label, expr), pos.clone())
+                        vir::Stmt::Exhale(patch_expr(label, expr), *pos)
                     }
                     vir::Stmt::Fold(ref pred_name, ref args, perm_amount, variant, pos) => {
                         vir::Stmt::Fold(
@@ -665,7 +670,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                             patch_args(label, args),
                             *perm_amount,
                             variant.clone(),
-                            pos.clone(),
+                            *pos,
                         )
                     }
                     vir::Stmt::Unfold(ref pred_name, ref args, perm_amount, variant) => {
@@ -729,7 +734,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Action
                             .and_then(|opt_pctxt| {
                                 opt_pctxt.as_ref().map(|pctxt| {
                                     let mut acc = pctxt.state().display_acc();
-                                    let mut pred = pctxt.state().display_acc();
+                                    let mut pred = pctxt.state().display_pred();
                                     if !self.foldunfold_state_filter.is_empty() {
                                         let filter = &self.foldunfold_state_filter;
                                         acc = acc
@@ -901,7 +906,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Action
                         stmts.push(vir::Stmt::Assert(
                             pctxt.state().as_vir_expr(),
                             vir::FoldingBehaviour::Expr,
-                            vir::Position::new(0, 0, "check fold/unfold state".to_string()),
+                            vir::Position::default(),
                         ));
                     }
                 }
@@ -1109,12 +1114,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Action
                         predicate_name.clone(),
                         box place.clone(),
                         vir::PermAmount::Remaining,
-                        place.pos().clone(),
+                        place.pos(),
                     );
                     pctxt
                         .log_mut()
                         .log_convertion_to_read(borrow, access.clone());
-                    let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
+                    let stmt = vir::Stmt::Exhale(access, self.method_pos);
                     pctxt.apply_stmt(&stmt);
                     stmts.push(stmt);
                 }
@@ -1199,7 +1204,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Action
             stmts.push(vir::Stmt::Assert(
                 pctxt.state().as_vir_expr(),
                 vir::FoldingBehaviour::Expr,
-                vir::Position::new(0, 0, "check fold/unfold state".to_string()),
+                vir::Position::default(),
             ));
         }
 
@@ -1409,7 +1414,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
         );
         lhs_state.replace_places(|place| {
-            let pos = place.pos().clone();
+            let pos = place.pos();
             place.old("lhs").set_pos(pos)
         });
         debug!("State of lhs of magic wand: {}", lhs_state);
@@ -1435,7 +1440,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
         );
         new_lhs_state.replace_places(|place| {
-            let pos = place.pos().clone();
+            let pos = place.pos();
             place.old("lhs").set_pos(pos)
         });
         debug!("New state of lhs of magic wand: {}", new_lhs_state);

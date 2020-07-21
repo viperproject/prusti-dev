@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::errors::ErrorCtxt;
+use encoder::errors::{ErrorCtxt, PanicCause::Unimplemented};
 use encoder::Encoder;
 use prusti_common::vir;
 use prusti_common::config;
@@ -69,12 +69,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         self.mir.local_decls[local].ty
     }
 
-    pub fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
+    pub fn encode_local(&self, local: mir::Local) -> Result<vir::LocalVar, ErrorCtxt> {
         let var_name = self.encode_local_var_name(local);
         let type_name = self
             .encoder
-            .encode_type_predicate_use(self.get_local_ty(local));
-        vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
+            .encode_type_predicate_use(self.get_local_ty(local))?;
+        Ok(vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name)))
     }
 
     /// Returns
@@ -84,20 +84,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
+    ) -> Result<(vir::Expr, ty::Ty<'tcx>, Option<usize>), ErrorCtxt> {
         trace!("Encode place {:?}", place);
         match place {
-            &mir::Place::Local(local) => (
-                self.encode_local(local).into(),
+            &mir::Place::Local(local) => Ok((
+                self.encode_local(local)?.into(),
                 self.get_local_ty(local),
                 None,
-            ),
+            )),
 
             &mir::Place::Projection(ref place_projection) => {
-                self.encode_projection(place_projection, None)
+                Ok(self.encode_projection(place_projection, None))
             }
 
-            x => unimplemented!("{:?}", x),
+            x => {
+                debug!("Unimplemented! {:?}", x);
+                Err(ErrorCtxt::Panic(Unimplemented))
+            },
         }
     }
 
@@ -114,7 +117,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         trace!("Encode projection {:?}", place_projection);
 
         let (encoded_base, base_ty, opt_variant_index) =
-            encoded_base_place.unwrap_or(self.encode_place(&place_projection.base));
+            // will panic if attempting to encode unsupported type
+            encoded_base_place.unwrap_or(self.encode_place(&place_projection.base).unwrap());
 
         trace!("place_projection: {:?}", place_projection);
         trace!("base_ty: {:?}", base_ty);
@@ -267,7 +271,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Expr {
-        let (encoded_place, place_ty, _) = self.encode_place(place);
+        let (encoded_place, place_ty, _) = self.encode_place(place);  // will panic if attempting to encode unsupported type
         if self.encoder.has_value_field(place_ty) {
             let value_field = self.encoder.encode_value_field(place_ty);
             encoded_place.field(value_field)
@@ -316,7 +320,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         debug!("Get operand ty {:?}", operand);
         match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
-                let (_, ty, _) = self.encode_place(place);
+                let (_, ty, _) = self.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
                 ty
             }
             &mir::Operand::Constant(box mir::Constant { ty, .. }) => ty,
@@ -332,7 +336,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 self.encoder.encode_value_type(ty)
             }
             &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
-                let (encoded_place, place_ty, _) = self.encode_place(place);
+                let (encoded_place, place_ty, _) = self.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
                 let place_ty = self.encoder.resolve_typaram(place_ty);
                 let value_field = self.encoder.encode_value_field(place_ty);
                 let val_place = encoded_place.field(value_field);
@@ -606,7 +610,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         debug!("Encode operand place {:?}", operand);
         match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
-                let (src, _, _) = self.encode_place(place);
+                let (src, _, _) = self.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
                 Some(src)
             }
 

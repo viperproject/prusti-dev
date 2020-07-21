@@ -7,7 +7,6 @@
 #![deny(unused_imports)]
 #![deny(dead_code)]
 #![deny(warnings)]
-
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]
@@ -19,7 +18,6 @@ extern crate rustc;
 extern crate syntax;
 
 extern crate serde;
-extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 

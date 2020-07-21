@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc::mir;
-use rustc::ty::Ty;
+use rustc::{mir, ty::Ty};
 use rustc_data_structures::indexed_vec::{Idx, IndexVec, IntoIdx};
 use std::{iter, ops};
 

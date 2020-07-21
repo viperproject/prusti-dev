@@ -209,7 +209,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             );
             vir::Type::Int
         } else {
-            let type_name = self.encoder.encode_type_predicate_use(&var_ty);
+            // will panic if attempting to encode unsupported type
+            let type_name = self.encoder.encode_type_predicate_use(&var_ty).unwrap();
             vir::Type::TypedRef(type_name)
         };
 
@@ -232,7 +233,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 match place {
                     vir::Expr::AddrOf(box base, _typ, _) => base,
                     _ => {
-                        let type_name: String = self.encoder.encode_type_predicate_use(base_ty);
+                        // will panic if attempting to encode unsupported type
+                        let type_name: String = self.encoder.encode_type_predicate_use(base_ty).unwrap();
                         place.field(vir::Field::new("val_ref", vir::Type::TypedRef(type_name)))
                     }
                 }
@@ -461,7 +463,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             // Take the first local variable, that is the closure.
             // The closure is a record containing all the captured variables.
             let closure_local = curr_mir.local_decls.indices().skip(1).next().unwrap();
-            let closure_var = curr_mir_encoder.encode_local(closure_local);
+            // will panic if attempting to encode unsupported type
+            let closure_var = curr_mir_encoder.encode_local(closure_local).unwrap();
             let closure_ty = &curr_mir.local_decls[closure_local].ty;
             let should_closure_be_dereferenced = curr_mir_encoder.can_be_dereferenced(closure_ty);
             let (deref_closure_var, deref_closure_ty) = if should_closure_be_dereferenced {
@@ -539,7 +542,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 for local_arg_index in outer_mir.args_iter().skip(1) {
                     let local_arg = &outer_mir.local_decls[local_arg_index];
                     if let Some(var_name) = local_arg.name {
-                        let encoded_arg = outer_mir_encoder.encode_local(local_arg_index);
+                        // will panic if attempting to encode unsupported type
+                        let encoded_arg = outer_mir_encoder.encode_local(local_arg_index).unwrap();
                         let value_field = self.encoder.encode_value_field(local_arg.ty);
                         let value_type = self.encoder.encode_value_type(local_arg.ty);
                         let proper_var = vir::LocalVar::new(var_name.to_string(), value_type);
@@ -594,7 +598,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
         for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
             let local_ty = curr_mir.local_decls[local].ty;
-            let spec_local = curr_mir_encoder.encode_local(local);
+            // will panic if attempting to encode unsupported type
+            let spec_local = curr_mir_encoder.encode_local(local).unwrap();
             let spec_local_place: vir::Expr = if self.targets_are_values {
                 if self.encoder.has_value_field(local_ty) { // TODO CMFIXME: don't use a field for copy types
                     let value_field = self.encoder.encode_value_field(local_ty);
@@ -611,7 +616,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         if let Some(target_return) = self.target_return {
             let fake_return_local = curr_mir.args_iter().last().unwrap();
             let fake_return_ty = curr_mir.local_decls[fake_return_local].ty;
-            let spec_fake_return = curr_mir_encoder.encode_local(fake_return_local);
+            // will panic if attempting to encode unsupported type
+            let spec_fake_return = curr_mir_encoder.encode_local(fake_return_local).unwrap();
 
             /*match self.target_return_value {
                 Some(target_return_value) => {

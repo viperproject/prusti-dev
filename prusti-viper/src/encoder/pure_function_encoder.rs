@@ -4,25 +4,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::borrows::{compute_procedure_contract, ProcedureContract};
-use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::errors::PanicCause;
-use encoder::errors::{EncodingError, ErrorCtxt};
-use encoder::foldunfold;
-use encoder::mir_encoder::MirEncoder;
-use encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
-use encoder::mir_interpreter::{
-    run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+use encoder::{
+    borrows::{compute_procedure_contract, ProcedureContract},
+    builtin_encoder::BuiltinFunctionKind,
+    errors::{EncodingError, ErrorCtxt, PanicCause},
+    foldunfold,
+    mir_encoder::{MirEncoder, PRECONDITION_LABEL, WAND_LHS_LABEL},
+    mir_interpreter::{
+        run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+    },
+    Encoder,
 };
-use encoder::Encoder;
-use prusti_common::vir;
-use prusti_common::vir::{ExprIterator, ExprFolder};
-use prusti_common::config;
+use prusti_common::{config, vir, vir::ExprIterator};
 use prusti_interface::specifications::SpecificationSet;
-use rustc::hir;
-use rustc::hir::def_id::DefId;
-use rustc::mir;
-use rustc::ty;
+use rustc::{hir, hir::def_id::DefId, mir, ty};
 use std::collections::HashMap;
 use encoder::snapshot_encoder::Snapshot;
 
@@ -84,7 +79,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
             let value_field = self.encoder.encode_value_field(arg_ty);
             let target_place: vir::Expr =
-                vir::Expr::local(self.interpreter.mir_encoder().encode_local(arg))
+                // will panic if attempting to encode unsupported type
+                vir::Expr::local(self.interpreter.mir_encoder().encode_local(arg).unwrap())
                     .field(value_field);
             let new_place: vir::Expr = self.encode_local(arg).into();
             state.substitute_place(&target_place, new_place);
@@ -189,7 +185,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                     self.mir.return_ty(),
                 )
                 .into_iter()
-                .map(|p| p.set_default_pos(res_value_range_pos.clone()))
+                .map(|p| p.set_default_pos(res_value_range_pos))
                 .collect();
             postcondition.extend(return_bounds);
 
@@ -232,7 +228,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             .log_vir_program_before_foldunfold(function.to_string());
 
         if config::simplify_encoding() {
-            function = vir::optimisations::functions::Simplifier::simplify(function);
+            function = vir::optimizations::functions::Simplifier::simplify(function);
         }
 
         // Add folding/unfolding
@@ -722,7 +718,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
                 let state = if destination.is_some() {
                     let (ref lhs_place, target_block) = destination.as_ref().unwrap();
-                    let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place);
+                    let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place).unwrap(); // will panic if attempting to encode unsupported type
                     let lhs_value = encoded_lhs
                         .clone()
                         .field(self.encoder.encode_value_field(ty));
@@ -963,7 +959,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             } else {
                                 // We are encoding a pure function, so all failures should
                                 // be unreachable.
-                                unreachable_expr(pos.clone())
+                                unreachable_expr(pos)
                             };
                             vir::Expr::ite(viper_guard.clone(), expr.clone(), failure_result)
                         })
@@ -995,7 +991,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
             }
 
             mir::StatementKind::Assign(ref lhs, ref rhs) => {
-                let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs);
+                // will panic if attempting to encode unsupported type
+                let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs).unwrap();
 
                 if !state.use_place(&encoded_lhs) {
                     // If the lhs is not mentioned in our state, do nothing
@@ -1192,7 +1189,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     &mir::Rvalue::NullaryOp(_op, ref _op_ty) => unimplemented!(),
 
                     &mir::Rvalue::Discriminant(ref src) => {
-                        let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src);
+                        // will panic if attempting to encode unsupported type
+                        let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src).unwrap();
                         match src_ty.sty {
                             ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
                                 let num_variants = adt_def.variants.len();
@@ -1233,7 +1231,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, ref place)
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, ref place)
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
-                        let encoded_place = self.mir_encoder.encode_place(place).0;
+                        // will panic if attempting to encode unsupported type
+                        let encoded_place = self.mir_encoder.encode_place(place).unwrap().0;
                         let encoded_ref = match encoded_place {
                             vir::Expr::Field(
                                 box ref base,

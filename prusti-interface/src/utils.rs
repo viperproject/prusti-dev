@@ -66,10 +66,7 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
             }
             ty::TyRef(_region, _ty, _) => match without_element {
                 Some(without_element) => {
-                    assert_eq!(
-                        without_element, 0,
-                        "References have only a single “field”."
-                    );
+                    assert_eq!(without_element, 0, "References have only a single “field”.");
                 }
                 None => {
                     places.push(place.clone().deref());

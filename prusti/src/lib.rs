@@ -44,7 +44,6 @@
 #![feature(rustc_private)]
 #![feature(macro_vis_matcher)]
 #![feature(try_from)]
-#![feature(nll)]
 
 extern crate getopts;
 #[macro_use]
@@ -58,6 +57,7 @@ extern crate rustc_driver;
 extern crate rustc_errors;
 extern crate syntax;
 extern crate syntax_pos;
+extern crate viper;
 
 pub mod compiler_calls;
 pub mod driver_utils;

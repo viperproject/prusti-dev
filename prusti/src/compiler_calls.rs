@@ -5,24 +5,25 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use getopts;
+use prusti_common::Stopwatch;
 use prusti_interface;
-use rustc;
-use rustc::session;
+use rustc::{self, session};
 use rustc_codegen_utils::codegen_backend::CodegenBackend;
 use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_errors;
-use std;
-use std::cell::Cell;
-use std::path::PathBuf;
-use std::rc::Rc;
-use std::sync::{Arc,Mutex};
-use std::time::Instant;
+use std::{
+    self,
+    cell::Cell,
+    path::PathBuf,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 use syntax::ast;
 use typeck;
 use verifier;
 
-use prusti_interface::trait_register::TraitRegister;
 use prusti_common::config;
+use prusti_interface::trait_register::TraitRegister;
 
 pub struct RegisterCalls {
     default: Box<RustcDefaultCalls>,
@@ -33,7 +34,7 @@ impl RegisterCalls {
     pub fn from_register(register: Arc<Mutex<TraitRegister>>) -> Self {
         Self {
             default: Box::new(RustcDefaultCalls),
-            register: register
+            register: register,
         }
     }
 }
@@ -83,25 +84,20 @@ impl<'a> CompilerCalls<'a> for RegisterCalls {
         sess: &session::Session,
         matches: &getopts::Matches,
     ) -> driver::CompileController<'a> {
-        let mut control = self.default.build_controller(sess, matches);
         let register = self.register.clone();
+        let mut control = self.default.build_controller(sess, matches);
 
         // build register
         let old_after_parse_callback =
             std::mem::replace(&mut control.after_parse.callback, box |_| {});
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
-            let start = Instant::now();
 
+            let stopwatch = Stopwatch::start("prusti", "trait register build");
             prusti_interface::parser::register_attributes(state);
             prusti_interface::parser::register_traits(state, register.clone());
+            stopwatch.finish();
 
-            let duration = start.elapsed();
-            info!(
-                "Trait register build successful ({}.{} seconds)",
-                duration.as_secs(),
-                duration.subsec_millis() / 10
-            );
             trace!("[after_parse.callback] exit");
             old_after_parse_callback(state);
         };
@@ -120,7 +116,7 @@ impl PrustiCompilerCalls {
     pub fn from_register(register: Arc<Mutex<TraitRegister>>) -> Self {
         Self {
             default: Box::new(RustcDefaultCalls),
-            register: register
+            register: register,
         }
     }
 }
@@ -134,7 +130,6 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         descriptions: &rustc_errors::registry::Registry,
         output: session::config::ErrorOutputType,
     ) -> Compilation {
-
         self.default
             .early_callback(matches, sopts, cfg, descriptions, output)
     }
@@ -171,8 +166,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         sess: &session::Session,
         matches: &getopts::Matches,
     ) -> driver::CompileController<'a> {
-        let mut control = self.default.build_controller(sess, matches);
         let register = self.register.clone();
+        let mut control = self.default.build_controller(sess, matches);
         //control.make_glob_map = ???
         //control.keep_ast = true;
 
@@ -183,18 +178,12 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             std::mem::replace(&mut control.after_parse.callback, box |_| {});
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
-            let start = Instant::now();
-
+            let stopwatch = Stopwatch::start("prusti", "annotation parsing");
             prusti_interface::parser::register_attributes(state);
-            let untyped_specifications = prusti_interface::parser::rewrite_crate(state, register.clone());
+            let untyped_specifications =
+                prusti_interface::parser::rewrite_crate(state, register.clone());
             put_specifications.set(Some(untyped_specifications));
-
-            let duration = start.elapsed();
-            info!(
-                "Parsing of annotations successful ({}.{} seconds)",
-                duration.as_secs(),
-                duration.subsec_millis() / 10
-            );
+            stopwatch.finish();
             trace!("[after_parse.callback] exit");
             old_after_parse_callback(state);
         };
@@ -203,18 +192,12 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             std::mem::replace(&mut control.after_analysis.callback, box |_| {});
         control.after_analysis.callback = box move |state| {
             trace!("[after_analysis.callback] enter");
-            let start = Instant::now();
 
+            let stopwatch = Stopwatch::start("prusti", "annotation type-checking");
             let untyped_specifications = get_specifications.replace(None).unwrap();
             let typed_specifications = typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);
-
-            let duration = start.elapsed();
-            info!(
-                "Type-checking of annotations successful ({}.{} seconds)",
-                duration.as_secs(),
-                duration.subsec_millis() / 10
-            );
+            stopwatch.finish();
 
             // Call the verifier
             if !config::no_verify() {

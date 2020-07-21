@@ -12,12 +12,11 @@ use jni::objects::JObject;
 use jni::JNIEnv;
 use jni_utils::JniUtils;
 use std::marker::PhantomData;
-use std::time::Instant;
+use std::path::PathBuf;
 use verification_backend::VerificationBackend;
 use verification_result::VerificationError;
 use verification_result::VerificationResult;
 use viper_sys::wrappers::viper::*;
-use std::path::PathBuf;
 
 pub mod state {
     pub struct Uninitialized;
@@ -44,22 +43,15 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
         let verifier_instance = jni.unwrap_result(match backend {
             VerificationBackend::Silicon => {
                 let reporter = if let Some(real_report_path) = report_path {
-                    jni.unwrap_result(
-                        silver::reporter::CSVReporter::with(env).new(
-                            jni.new_string("csv_reporter"),
-                            jni.new_string(real_report_path.to_str().unwrap()),
-                        )
-                    )
+                    jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
+                        jni.new_string("csv_reporter"),
+                        jni.new_string(real_report_path.to_str().unwrap()),
+                    ))
                 } else {
-                    jni.unwrap_result(
-                        silver::reporter::NoopReporter_object::with(env).singleton()
-                    )
+                    jni.unwrap_result(silver::reporter::NoopReporter_object::with(env).singleton())
                 };
-                let plugin_aware_reporter = jni.unwrap_result(
-                    silver::plugin::PluginAwareReporter::with(&env).new(
-                        reporter
-                    )
-                );
+                let plugin_aware_reporter = jni
+                    .unwrap_result(silver::plugin::PluginAwareReporter::with(&env).new(reporter));
                 let utils = JniUtils::new(env);
                 let debug_info = utils.new_seq(&[]);
                 silicon::Silicon::with(env).new(plugin_aware_reporter, debug_info)
@@ -130,37 +122,28 @@ impl<'a> Verifier<'a, state::Started> {
             ast_utils.pretty_print(program)
         );
 
-        let start_consistency_checks = Instant::now();
-        let consistency_errors = ast_utils.check_consistency(program);
-        let duration = start_consistency_checks.elapsed();
-        debug!(
-            "Viper consistency checks took {}.{} seconds",
-            duration.as_secs(),
-            duration.subsec_millis() / 10
+        run_timed!("Viper consistency checks", debug,
+            let consistency_errors = ast_utils.check_consistency(program);
         );
 
         if !consistency_errors.is_empty() {
-            error!(
+            debug!(
                 "The provided Viper program has {} consistency errors.",
                 consistency_errors.len()
             );
-            for error in consistency_errors {
-                error!("{}", self.jni.to_string(error));
-            }
-            panic!("Consistency errors. The encoded Viper program is incorrect.");
+            return VerificationResult::ConsistencyErrors(
+                consistency_errors
+                    .into_iter()
+                    .map(|e| self.jni.to_string(e))
+                    .collect(),
+            );
         }
 
-        let start_verification = Instant::now();
-        let viper_result = self.jni.unwrap_result(
-            self.verifier_wrapper
-                .call_verify(self.verifier_instance, program.to_jobject()),
-        );
-        let duration = start_verification.elapsed();
-
-        debug!(
-            "Viper verification took {}.{} seconds",
-            duration.as_secs(),
-            duration.subsec_millis() / 10
+        run_timed!("Viper verification", debug,
+            let viper_result = self.jni.unwrap_result(
+                self.verifier_wrapper
+                    .call_verify(self.verifier_instance, program.to_jobject()),
+            );
         );
         debug!(
             "Viper verification result: {}",

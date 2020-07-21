@@ -4,10 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use vir::ast::*;
 use std::fmt;
+use vir::ast::*;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Domain {
     pub name: String,
     pub functions: Vec<DomainFunc>,
@@ -49,13 +49,12 @@ impl fmt::Display for Domain {
     }
 }
 
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DomainFunc {
     pub name: String,
     pub formal_args: Vec<LocalVar>,
     pub return_type: Type,
-    pub unique: bool, 
+    pub unique: bool,
     pub domain_name: String,
 }
 
@@ -83,7 +82,7 @@ impl WithIdentifier for DomainFunc {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DomainAxiom {
     pub name: String,
     pub expr: Expr,

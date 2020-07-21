@@ -4,15 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::mir_encoder::MirEncoder;
-use encoder::Encoder;
-use prusti_common::vir;
-use prusti_common::vir::Successor;
-use prusti_common::config;
+use encoder::{mir_encoder::MirEncoder, Encoder};
+use prusti_common::{config, report::log, vir, vir::Successor};
 use prusti_interface::environment::Procedure;
-use prusti_common::report::log;
-use rustc::hir::def_id::DefId;
-use rustc::mir;
+use rustc::{hir::def_id::DefId, mir};
 
 pub struct StubProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -59,7 +54,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubProcedureEncoder<'p, 'v, 'r, 'a, 
             let name = self.mir_encoder.encode_local_var_name(local);
             let type_name = self
                 .encoder
-                .encode_type_predicate_use(self.mir_encoder.get_local_ty(local));
+                .encode_type_predicate_use(self.mir_encoder.get_local_ty(local)).unwrap(); // will panic if attempting to encode unsupported type
             cfg_method.add_formal_return(&name, vir::Type::TypedRef(type_name))
         }
 
