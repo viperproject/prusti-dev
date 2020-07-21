@@ -1431,7 +1431,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     vir::Type::TypedRef(name) => {
                         self.encode_snapshot_use(name.to_string()).is_defined()
                     }
-                    _ => true, ,
+                    _ => true,
                 }) {
                 self.snap_mirror_funcs
                     .borrow_mut()

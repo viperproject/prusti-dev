@@ -15,7 +15,7 @@ use encoder::{
     },
     Encoder,
 };
-use prusti_common::{config, vir, vir::ExprIterator};
+use prusti_common::{config, vir, vir::ExprIterator, vir::ExprFolder};
 use prusti_interface::specifications::SpecificationSet;
 use rustc::{hir, hir::def_id::DefId, mir, ty};
 use std::collections::HashMap;
@@ -101,8 +101,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         } else {
             self.encode_function_given_body(Some(body_expr))
         }
-
-        // TODO CMFIXME self.encode_function_given_body(Some(body_expr))
     }
 
     pub fn encode_bodyless_function(&self) -> vir::Function {

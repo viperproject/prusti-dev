@@ -151,7 +151,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             ty::TypeVariants::TyRef(_, ref ty, _) => {
-                let type_name = self.encoder.encode_type_predicate_use(ty);
+                let type_name = self.encoder.encode_type_predicate_use(ty).ok().unwrap();
                 vir::Type::TypedRef(type_name)
             }
 
@@ -159,7 +159,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             | ty::TypeVariants::TyTuple(_) => {
                 let snapshot = self.encoder.encode_snapshot(&self.ty);
                 if snapshot.is_defined() {
-                    let type_name = self.encoder.encode_type_predicate_use(self.ty);
+                    let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
                     vir::Type::TypedRef(type_name)
                 } else {
                     unreachable!()
@@ -167,7 +167,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             },
 
             ty::TypeVariants::TyParam(_) => {
-                let type_name = self.encoder.encode_type_predicate_use(self.ty);
+                let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
                 vir::Type::TypedRef(type_name)
             }
 
@@ -192,7 +192,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ty::TypeVariants::TyAdt(_, _) // TODO CMFIXME notice that the field is a reference, not a snapshot
             | ty::TypeVariants::TyTuple(_) => {
-                let type_name = self.encoder.encode_type_predicate_use(self.ty);
+                let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
 

@@ -271,7 +271,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Expr {
-        let (encoded_place, place_ty, _) = self.encode_place(place);  // will panic if attempting to encode unsupported type
+        let (encoded_place, place_ty, _) = self.encode_place(place).ok().unwrap();  // will panic if attempting to encode unsupported type
         if self.encoder.has_value_field(place_ty) {
             let value_field = self.encoder.encode_value_field(place_ty);
             encoded_place.field(value_field)
