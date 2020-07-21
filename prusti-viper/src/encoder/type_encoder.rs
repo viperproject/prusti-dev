@@ -9,6 +9,7 @@ use encoder::{
     spec_encoder::SpecEncoder,
     utils::{range_extract, PlusOne},
     Encoder,
+    errors::{ErrorCtxt, PanicCause::Unimplemented},
 };
 use prusti_common::{
     config, vir,
@@ -100,7 +101,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_type(self) -> vir::Type {
         debug!("Encode type '{:?}'", self.ty);
-        vir::Type::TypedRef(self.encode_predicate_use())
+        // will panic if attempting to encode unsupported type
+        vir::Type::TypedRef(self.encode_predicate_use().unwrap())
     }
 
     pub fn encode_value_type(self) -> vir::Type {
@@ -113,7 +115,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             ty::TypeVariants::TyRef(_, ref ty, _) => {
-                let type_name = self.encoder.encode_type_predicate_use(ty);
+                // will panic if attempting to encode unsupported type
+                let type_name = self.encoder.encode_type_predicate_use(ty).unwrap();
                 vir::Type::TypedRef(type_name)
             }
 
@@ -128,7 +131,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             },
 
             ty::TypeVariants::TyParam(_) => {
-                let type_name = self.encoder.encode_type_predicate_use(self.ty);
+                // will panic if attempting to encode unsupported type
+                let type_name = self.encoder.encode_type_predicate_use(self.ty).unwrap();
                 vir::Type::TypedRef(type_name)
             }
 
@@ -146,7 +150,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             ty::TypeVariants::TyRef(_, ref ty, _) => {
-                let type_name = self.encoder.encode_type_predicate_use(ty);
+                // will panic if attempting to encode unsupported type
+                let type_name = self.encoder.encode_type_predicate_use(ty).unwrap();
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
 
@@ -206,7 +211,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_predicate_def(self) -> Vec<vir::Predicate> {
         debug!("Encode type predicate '{:?}'", self.ty);
-        let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
+        // will panic if attempting to encode unsupported type
+        let predicate_name = self.encoder.encode_type_predicate_use(self.ty).unwrap();
         let typ = vir::Type::TypedRef(predicate_name.clone());
 
         match self.ty.sty {
@@ -360,10 +366,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_predicate_use(self) -> String {
+    pub fn encode_predicate_use(self) -> Result<String, ErrorCtxt> {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
-        match self.ty.sty {
+        Ok(match self.ty.sty {
             ty::TypeVariants::TyBool => "bool".to_string(),
 
             ty::TypeVariants::TyInt(ast::IntTy::I8) => "i8".to_string(),
@@ -384,7 +390,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. })
             | ty::TypeVariants::TyRef(_, ref ty, _) => {
-                format!("ref${}", self.encoder.encode_type_predicate_use(ty))
+                format!("ref${}", self.encoder.encode_type_predicate_use(ty)?)
             }
 
             ty::TypeVariants::TyAdt(adt_def, subst) => {
@@ -399,7 +405,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         composed_name.push("_sep_".to_string());
                     }
                     if let ty::subst::UnpackedKind::Type(ty) = kind.unpack() {
-                        composed_name.push(self.encoder.encode_type_predicate_use(ty))
+                        composed_name.push(self.encoder.encode_type_predicate_use(ty)?)
                     }
                 }
                 composed_name.push("_end_".to_string()); // makes generics "less fragile"
@@ -407,11 +413,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             ty::TypeVariants::TyTuple(elems) => {
-                let elem_predicate_names: Vec<String> = elems
+                let elem_predicate_names: Result<Vec<String>, ErrorCtxt> = elems
                     .iter()
-                    .map(|ty| self.encoder.encode_type_predicate_use(ty))
+                    .map(|ty| match self.encoder.encode_type_predicate_use(ty) {
+                        Ok(result) => Ok(result),
+                        Err(error) => return Err(error),
+                    })
                     .collect();
-                format!("tuple{}${}", elems.len(), elem_predicate_names.join("$"))
+                format!("tuple{}${}", elems.len(), elem_predicate_names?.join("$"))
             }
 
             ty::TypeVariants::TyNever => "never".to_string(),
@@ -425,7 +434,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 };
                 format!(
                     "array${}${}",
-                    self.encoder.encode_type_predicate_use(elem_ty),
+                    self.encoder.encode_type_predicate_use(elem_ty)?,
                     scalar_size
                         .to_bits(ty::layout::Size::from_bits(64))
                         .ok()
@@ -434,7 +443,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             ty::TypeVariants::TySlice(array_ty) => {
-                format!("slice${}", self.encoder.encode_type_predicate_use(array_ty))
+                format!("slice${}", self.encoder.encode_type_predicate_use(array_ty)?)
             }
 
             ty::TypeVariants::TyClosure(def_id, closure_subst) => {
@@ -458,14 +467,18 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 format!("__TYPARAM__${}$__", param_ty.name.as_str())
             }
 
-            ref x => unimplemented!("{:?}", x),
-        }
+            ref x => {
+                debug!("Unimplemented! {:?}", x);
+                return Err(ErrorCtxt::Panic(Unimplemented));
+            }
+        })
     }
 
     pub fn encode_invariant_def(self) -> vir::Function {
         debug!("[enter] encode_invariant_def({:?})", self.ty);
 
-        let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
+        // will panic if attempting to encode unsupported type
+        let predicate_name = self.encoder.encode_type_predicate_use(self.ty).unwrap();
         let self_local_var =
             vir::LocalVar::new("self", vir::Type::TypedRef(predicate_name.clone()));
 
@@ -620,7 +633,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_invariant_use(self) -> String {
         debug!("Encode type invariant name '{:?}'", self.ty);
-        format!("{}$inv", self.encode_predicate_use())
+        // will panic if attempting to encode unsupported type
+        format!("{}$inv", self.encode_predicate_use().unwrap())
     }
 
     pub fn encode_tag_def(self) -> vir::Function {
@@ -661,7 +675,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_tag_use(self) -> String {
         debug!("Encode type tag name '{:?}'", self.ty);
-        format!("{}$tag", self.encode_predicate_use())
+        format!("{}$tag", self.encode_predicate_use().unwrap()) // will panic if attempting to encode unsupported type
     }
 }
 
