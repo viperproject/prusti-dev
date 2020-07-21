@@ -158,6 +158,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let mut precondition = vec![patched_type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)];
 
+        println!("\nCM: postcondition: {:?}", postcondition[0]);
+
         let formal_args: Vec<_> = self
             .mir
             .args_iter()
