@@ -22,21 +22,17 @@ pub trait RequiredPermissionsGetter {
     ) -> HashSet<Perm>;
 }
 
-impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<&'a A> {
+impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for &'a A {
     /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
         predicates: &HashMap<String, vir::Predicate>,
     ) -> HashSet<Perm> {
-        self.iter().fold(HashSet::new(), |res, x| {
-            res.union(&x.get_required_permissions(predicates))
-                .cloned()
-                .collect()
-        })
+        (*self).get_required_permissions(predicates)
     }
 }
 
-impl RequiredPermissionsGetter for Vec<vir::Expr> {
+impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<A> {
     /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
@@ -157,6 +153,12 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
             &vir::Stmt::ExpireBorrows(ref _dag) => {
                 HashSet::new() // TODO: #133
+            }
+
+            &vir::Stmt::If(_, ref then, ref elze) => {
+                then.get_required_permissions(predicates)
+                    .union(&elze.get_required_permissions(predicates))
+                    .cloned().collect()
             }
 
             ref x => unimplemented!("{}", x),

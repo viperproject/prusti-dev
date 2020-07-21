@@ -553,6 +553,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             stmts.push(vir::Stmt::If(
                 block.guard.clone(),
                 self.patch_places(&block.statements, label),
+                vec![]
             ));
             for ((from, to), statements) in &cfg.edges {
                 if *from == i {
@@ -563,6 +564,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     stmts.push(vir::Stmt::If(
                         condition,
                         self.patch_places(statements, label),
+                        vec![]
                     ));
                 }
             }
