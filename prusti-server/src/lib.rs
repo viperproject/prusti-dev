@@ -13,7 +13,6 @@ extern crate warp;
 extern crate log;
 extern crate bincode;
 extern crate futures;
-extern crate lru;
 extern crate num_cpus;
 extern crate prusti_common;
 extern crate tokio;
