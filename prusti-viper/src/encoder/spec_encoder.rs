@@ -596,11 +596,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             let local_ty = curr_mir.local_decls[local].ty;
             let spec_local = curr_mir_encoder.encode_local(local);
             let spec_local_place: vir::Expr = if self.targets_are_values {
-                let value_field = self.encoder.encode_value_field(local_ty);
-                vir::Expr::local(spec_local).field(value_field)
+                if self.encoder.has_value_field(local_ty) { // TODO CMFIXME: don't use a field for copy types
+                    let value_field = self.encoder.encode_value_field(local_ty);
+                    vir::Expr::local(spec_local).field(value_field)
+                } else {
+                    spec_local.into()
+                }
             } else {
                 spec_local.into()
             };
+
             encoded_expr = encoded_expr.replace_place(&spec_local_place, target_arg);
         }
         if let Some(target_return) = self.target_return {

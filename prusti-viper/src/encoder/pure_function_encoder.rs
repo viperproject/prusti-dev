@@ -154,6 +154,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
         let (type_precondition, func_precondition) = self.encode_precondition_expr(&contract);
         let patched_type_precondition = type_precondition.patch_types(&subst_strings);
+
         let mut precondition = vec![patched_type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)];
 
@@ -234,12 +235,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         }
 
         // Add folding/unfolding
+        // TODO CMFIXME: hack to avoid crashing if fold/unfold fails for debugging purposes
+        /*
         foldunfold::add_folding_unfolding_to_function(
             function,
             self.encoder.get_used_viper_predicates_map(),
         )
         .ok()
         .unwrap() // TODO: return a result
+        */
+        let fufunction = foldunfold::add_folding_unfolding_to_function(
+            function.clone(),
+            self.encoder.get_used_viper_predicates_map(),
+        ).ok();
+        match fufunction {
+            Some(func) => func,
+            None => {
+                function
+            },
+        }
     }
 
     /// Encode the precondition with two expressions:
@@ -304,8 +318,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let encoded_return = self.encode_local(contract.returned_value.clone().into());
         debug!("encoded_return: {:?}", encoded_return);
 
+        let result_is_snap = encoded_return.typ != self.encode_function_return_type();
+
         // TODO CMFIXME: If the pure function returns a snapshot we have to patch the postconditions
-        if encoded_return.typ != self.encode_function_return_type() {
+        if result_is_snap {
             warn!("Attaching specifications to pure functions returning Copy types is not properly supported yet");
         }
 
@@ -321,7 +337,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 ErrorCtxt::GenericExpression,
             );
             debug_assert!(!encoded_postcond.pos().is_default());
-            func_spec.push(encoded_postcond);
+            if result_is_snap { // TODO CMFIXME
+                let patched_postcond = encoded_postcond;
+                func_spec.push(patched_postcond);
+            } else {
+                func_spec.push(encoded_postcond);
+            }
         }
 
         let post = func_spec.into_iter().conjoin();
@@ -333,17 +354,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             .register(self.mir.span, ErrorCtxt::GenericExpression);
 
         // Fix return variable
-        /*let pure_fn_return_variable =
+        let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_return_type());
-        post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
+        post.replace_place(&encoded_return.clone().into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos)
-         */
         // TODO CMFIXME: the version below is a workaround to check the whole encoding;
         // TODO it is certainly not what we want once postconditions have been patched
-        let pure_fn_return_variable =
+        /*let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_ref_return_type());
         post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
-            .set_default_pos(postcondition_pos)
+            .set_default_pos(postcondition_pos)*/
     }
 
     fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
@@ -724,7 +744,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 return_type,
                                 pos,
                             );
-
                             let mut state = states[&target_block].clone();
                             state.substitute_value(&lhs_value, encoded_rhs);
                             state
