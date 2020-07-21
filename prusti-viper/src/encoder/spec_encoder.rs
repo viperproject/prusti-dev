@@ -632,8 +632,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }*/
 
             let spec_fake_return_place: vir::Expr = if self.targets_are_values {
-                let value_field = self.encoder.encode_value_field(fake_return_ty);
-                vir::Expr::local(spec_fake_return).field(value_field)
+                if self.encoder.has_value_field(fake_return_ty) { // TODO CMFIXME: don't use a field for copy types
+                    let value_field = self.encoder.encode_value_field(fake_return_ty);
+                    vir::Expr::local(spec_fake_return).field(value_field)
+                } else {
+                    spec_fake_return.clone().into()
+                }
             } else {
                 spec_fake_return.clone().into()
             };

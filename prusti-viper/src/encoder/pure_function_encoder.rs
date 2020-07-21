@@ -158,8 +158,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let mut precondition = vec![patched_type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)];
 
-        println!("\nCM: postcondition: {:?}", postcondition[0]);
-
         let formal_args: Vec<_> = self
             .mir
             .args_iter()
@@ -358,6 +356,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         // Fix return variable
         let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_return_type());
+
         post.replace_place(&encoded_return.clone().into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos)
         // TODO CMFIXME: the version below is a workaround to check the whole encoding;
