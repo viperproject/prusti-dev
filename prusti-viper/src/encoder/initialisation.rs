@@ -13,6 +13,7 @@ use rustc::hir::def_id::DefId;
 use rustc::{mir, ty};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use encoder::errors::ErrorCtxt;
 
 pub struct InitInfo {
     //mir_acc_before_block: HashMap<mir::BasicBlock, HashSet<mir::Place<'tcx>>>,
@@ -54,17 +55,22 @@ fn contains_prefix(set: &HashSet<vir::Expr>, place: &vir::Expr) -> bool {
 fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
     map: &HashMap<T, HashSet<mir::Place<'tcx>>>,
     mir_encoder: &MirEncoder<'_, '_, '_, 'tcx, '_>,
-) -> HashMap<T, HashSet<vir::Expr>> {
+) -> Result<HashMap<T, HashSet<vir::Expr>>, ErrorCtxt> {
     map.iter()
         .map(|(loc, set)| {
-            let new_set = set
+            let new_set: Result<HashSet<vir::Expr>, ErrorCtxt> = set
                 .iter()
                 .map(|place| {
-                    let (encoded_place, _, _) = mir_encoder.encode_place(place);
-                    encoded_place
+                    match mir_encoder.encode_place(place) {
+                        Err(error) => Err(error),
+                        Ok(result) => Ok(result.0)
+                    }
                 })
                 .collect();
-            (loc.clone(), new_set)
+            match new_set {
+                Err(error) => Err(error),
+                Ok(result) => Ok((loc.clone(), result))
+            }
         })
         .collect()
 }
@@ -75,7 +81,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> InitInfo {
         tcx: ty::TyCtxt<'p, 'tcx, 'tcx>,
         def_id: DefId,
         mir_encoder: &MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
-    ) -> Self {
+    ) -> Result<Self, ErrorCtxt> {
         let def_path = tcx.hir.def_path(def_id);
         let initialisation = compute_definitely_initialized(&mir, tcx, def_path);
         let mir_acc_before_block: HashMap<_, _> = initialisation
@@ -88,14 +94,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> InitInfo {
             .into_iter()
             .map(|(location, place_set)| (location, explode(place_set)))
             .collect();
-        let vir_acc_before_block = convert_to_vir(&mir_acc_before_block, mir_encoder);
-        let vir_acc_after_statement = convert_to_vir(&mir_acc_after_statement, mir_encoder);
-        Self {
+        let vir_acc_before_block = convert_to_vir(&mir_acc_before_block, mir_encoder)?;
+        let vir_acc_after_statement = convert_to_vir(&mir_acc_after_statement, mir_encoder)?;
+        Ok(Self {
             //mir_acc_before_block,
             //mir_acc_after_statement,
             vir_acc_before_block,
             vir_acc_after_statement,
-        }
+        })
     }
 
     /// Is the ``place`` accessible (it is a prefix of a definitely

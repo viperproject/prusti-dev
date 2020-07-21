@@ -1,0 +1,39 @@
+name: Test on crates
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+
+env:
+  RUST_BACKTRACE: 1
+  PRUSTI_ASSERT_TIMEOUT: 60000
+  TOP_CRATES_DIR: "../top-crates"
+
+jobs:
+
+  top-crates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Prepare environment
+        run: .github/workflows/prepare-environment.sh
+      - name: Compile Prusti in release mode
+        run: cargo build --all --release
+      - name: Download top crates
+        run: |
+          mkdir -p "$TOP_CRATES_DIR"
+          ./evaluation/script/download-top-20.sh "$TOP_CRATES_DIR"
+          ./evaluation/script/set-cargo-lock.sh "$TOP_CRATES_DIR"
+      - name: Compile crates with standard rustc
+        run: ./evaluation/script/compile-crates.sh "$TOP_CRATES_DIR"
+      - name: Run Prusti on the top crates
+        run: ./evaluation/script/core-evaluation.sh "$TOP_CRATES_DIR"
+      - name: Check outcome
+        run: |
+          if grep "^[^,]*,false," "$TOP_CRATES_DIR"/coarse-grained-verification-report.csv; then
+              echo "Prusti failed on some crates"
+              exit 2
+          fi

@@ -109,7 +109,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             }
         }
         info!(
-            "Out of {} functions, {} are not fully supported and has been skipped.",
+            "Out of {} functions, {} are not fully supported and have been skipped.",
             task.procedures.len(),
             skipped_functions_count,
         );

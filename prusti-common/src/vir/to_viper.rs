@@ -213,15 +213,17 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             ));
                             ast.seqn(stmts.as_slice(), &[])
                         }
-                        &Stmt::If(ref guard, ref then_stmts) => {
-                            let stmts: Vec<_> = then_stmts
-                                .iter()
+                        &Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
+                            let then_stmts: Vec<_> = then_stmts.iter()
+                                .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
+                                .collect();
+                            let else_stmts: Vec<_> = else_stmts.iter()
                                 .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
                                 .collect();
                             ast.if_stmt(
                                 guard.to_viper(ast),
-                                ast.seqn(&stmts, &[]),
-                                ast.seqn(&[], &[]),
+                                ast.seqn(&then_stmts, &[]),
+                                ast.seqn(&else_stmts, &[]),
                             )
                         }
                         _ => stmt.to_viper(ast),
@@ -263,10 +265,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::If(ref guard, ref then_stmts) => ast.if_stmt(
+            &Stmt::If(ref guard, ref then_stmts, ref else_stmts) => ast.if_stmt(
                 guard.to_viper(ast),
                 ast.seqn(&then_stmts.to_viper(ast), &[]),
-                ast.seqn(&[], &[]),
+                ast.seqn(&else_stmts.to_viper(ast), &[]),
             ),
         }
     }

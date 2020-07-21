@@ -476,7 +476,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_raw_ref_field(&self, viper_field_name: String, ty: ty::Ty<'tcx>) -> vir::Field {
-        let type_name = self.encode_type_predicate_use(ty);
+        let type_name = self.encode_type_predicate_use(ty).unwrap(); // will panic if attempting to encode unsupported type
         self.fields
             .borrow_mut()
             .entry(viper_field_name.clone())
@@ -691,7 +691,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         // Mark that we started encoding this function to avoid infinite recursion.
         self.memory_eq_funcs.borrow_mut().insert(name.clone(), None);
 
-        let type_name = self.encode_type_predicate_use(self_ty);
+        let type_name = self.encode_type_predicate_use(self_ty).unwrap(); // will panic if attempting to encode unsupported type
         let typ = vir::Type::TypedRef(type_name.clone());
         let first_local_var = vir::LocalVar::new("self", typ.clone());
         let second_local_var = vir::LocalVar::new("other", typ);
@@ -881,7 +881,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         builtin_encoder.encode_builtin_function_name(&function_kind)
     }
 
-    pub fn encode_procedure(&self, def_id: ProcedureDefId) -> vir::CfgMethod {
+    pub fn encode_procedure(&self, def_id: ProcedureDefId) -> Result<vir::CfgMethod, EncodingError> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
             !self.env.has_attribute_name(def_id, "pure"),
@@ -895,7 +895,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         );
         if !self.procedures.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
-            let method = match ProcedureEncoder::new(self, &procedure).encode() {
+            let proc_encoder = ProcedureEncoder::new(self, &procedure)?;
+            let method = match proc_encoder.encode() {
                 Ok(result) => result,
                 Err(error) => {
                     self.register_encoding_error(error);
@@ -905,7 +906,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             self.log_vir_program_before_viper(method.to_string());
             self.procedures.borrow_mut().insert(def_id, method);
         }
-        self.procedures.borrow()[&def_id].clone()
+        Ok(self.procedures.borrow()[&def_id].clone())
     }
 
     pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
@@ -949,10 +950,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             .set_default_pos(self.error_manager().register(assertion.get_spans(), error))
     }
 
-    pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {
+    pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> Result<String, ErrorCtxt> {
         if !self.type_predicate_names.borrow().contains_key(&ty.sty) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let result = type_encoder.encode_predicate_use();
+            let result = type_encoder.encode_predicate_use()?;
             self.type_predicate_names
                 .borrow_mut()
                 .insert(ty.sty.clone(), result);
@@ -963,11 +964,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.predicate_types
             .borrow_mut()
             .insert(predicate_name.clone(), ty);
-        predicate_name
+        Ok(predicate_name)
     }
 
     pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> vir::Predicate {
-        let predicate_name = self.encode_type_predicate_use(ty);
+        let predicate_name = self.encode_type_predicate_use(ty).unwrap();
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
             let predicates = type_encoder.encode_predicate_def();
@@ -984,7 +985,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_snapshot(&self, ty: &ty::Ty<'tcx>) -> Box<Snapshot> {
         let ty = self.dereference_ty(ty);
-        let predicate_name = self.encode_type_predicate_use(ty);
+        let predicate_name = self.encode_type_predicate_use(ty).unwrap(); // will panic if attempting to encode unsupported type
         if !self.snapshots.borrow().contains_key(&predicate_name) {
             let encoder = SnapshotEncoder::new(self, ty, predicate_name.to_string());
             let snapshot = encoder.encode();
@@ -1238,7 +1239,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_invariant_func_app(&self, ty: ty::Ty<'tcx>, encoded_arg: vir::Expr) -> vir::Expr {
-        let type_pred = self.encode_type_predicate_use(ty);
+        let type_pred = self.encode_type_predicate_use(ty).unwrap(); // will panic if attempting to encode unsupported type
         vir::Expr::FuncApp(
             self.encode_type_invariant_use(ty),
             vec![encoded_arg],
@@ -1531,7 +1532,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                         proc_def_id
                     );
                 } else {
-                    self.encode_procedure(proc_def_id);
+                    if let Err(error) = self.encode_procedure(proc_def_id) {
+                        self.register_encoding_error(error);
+                        debug!("Error encoding function: {:?}", proc_def_id);
+                    }
                 }
             }
         }
