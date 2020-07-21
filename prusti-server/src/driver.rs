@@ -10,7 +10,7 @@ extern crate log;
 extern crate prusti_server;
 
 use clap::{App, Arg};
-use prusti_server::{PrustiServer, ServerSideService};
+use prusti_server::ServerSideService;
 
 fn main() {
     env_logger::init_from_env(
@@ -35,6 +35,6 @@ fn main() {
         .parse()
         .expect("Invalid port provided");
 
-    let service = ServerSideService::new(PrustiServer::new());
+    let service = ServerSideService::new();
     service.listen_on_port(port);
 }

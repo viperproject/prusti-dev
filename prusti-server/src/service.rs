@@ -9,6 +9,7 @@ use prusti_common::{config, verification_service::*};
 
 use bincode;
 use futures::{self, Future};
+use num_cpus;
 use reqwest::{self, Client, Url, UrlError};
 use std::{
     net::{Ipv4Addr, SocketAddr},
@@ -22,19 +23,28 @@ use warp::{self, Buf, Filter};
 #[derive(Clone)]
 pub struct ServerSideService {
     server: Arc<PrustiServer>,
+    max_concurrency: usize,
 }
 
 impl ServerSideService {
-    pub fn new(server: PrustiServer) -> Self {
+    pub fn new() -> Self {
+        let max_concurrency = config::server_max_concurrency().unwrap_or_else(num_cpus::get);
+
+        let cache_size = config::server_max_stored_verifiers().unwrap_or(max_concurrency);
+        if cache_size < max_concurrency {
+            warn!("PRUSTI_SERVER_MAX_STORED_VERIFIERS is lower than PRUSTI_SERVER_MAX_CONCURRENCY—you probably don't want to do this, since it means the server will likely have to keep creating new verifiers, reducing the performance gained from reuse.");
+        }
+
         Self {
-            server: Arc::new(server),
+            max_concurrency,
+            server: Arc::new(PrustiServer::new(cache_size)),
         }
     }
 
     pub fn spawn_off_thread() -> SocketAddr {
         let (sender, receiver) = mpsc::channel();
         thread::spawn(move || {
-            ServerSideService::new(PrustiServer::new()).listen_on_ephemeral_port(
+            ServerSideService::new().listen_on_ephemeral_port(
                 0, // ask system for port
                 |address| sender.send(address).unwrap(),
             );
@@ -94,12 +104,20 @@ impl ServerSideService {
         address_callback(address);
 
         info!("Prusti Server starting on port {}", address.port());
-        tokio::run(futures::lazy(move || {
+        let mut runtime = tokio::runtime::Builder::new()
+            .name_prefix("prusti-server-")
+            .core_threads(self.max_concurrency)
+            .build()
+            .expect("could not construct Tokio runtime!");
+
+        runtime.spawn(futures::lazy(move || {
             warp::spawn(server_handle);
             info!("Prusti Server launched!");
             println!("port: {}", address.port()); // stdout, for use in other applications
             Ok(())
         }));
+
+        thread::park();
     }
 
     fn verify(&self, request: VerificationRequest) -> VerificationResult {

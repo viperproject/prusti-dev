@@ -14,6 +14,7 @@ extern crate log;
 extern crate bincode;
 extern crate futures;
 extern crate lru;
+extern crate num_cpus;
 extern crate prusti_common;
 extern crate tokio;
 
@@ -22,9 +23,7 @@ mod verifier_runner;
 mod verifier_thread;
 
 use lru::LruCache;
-use prusti_common::{
-    config, verification_context::VerifierBuilder, verification_service::*, Stopwatch,
-};
+use prusti_common::{verification_context::VerifierBuilder, verification_service::*, Stopwatch};
 pub use service::*;
 use std::sync::{Arc, RwLock};
 pub use verifier_runner::*;
@@ -36,12 +35,12 @@ pub struct PrustiServer {
 }
 
 impl PrustiServer {
-    pub fn new() -> PrustiServer {
+    pub fn new(cache_size: usize) -> PrustiServer {
         let stopwatch = Stopwatch::start("prusti-server", "JVM startup");
         let verifier_builder = Arc::new(VerifierBuilder::new());
         stopwatch.finish();
 
-        let thread_cache = LruCache::new(config::server_max_stored_verifiers());
+        let thread_cache = LruCache::new(cache_size);
         PrustiServer {
             verifier_builder,
             threads: RwLock::new(thread_cache),
