@@ -4,11 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::PrustiServer;
+use super::{PrustiServer, RemoteVerificationResult};
 use prusti_common::{config, verification_service::*};
 
 use bincode;
-use futures::{self, Future};
+use futures::{self};
 use num_cpus;
 use reqwest::{self, Client, Url, UrlError};
 use std::{
@@ -120,12 +120,9 @@ impl ServerSideService {
         thread::park();
     }
 
-    fn verify(&self, request: VerificationRequest) -> VerificationResult {
+    fn verify(&self, request: VerificationRequest) -> RemoteVerificationResult {
         info!("Handling verification request for {}", request.program_name);
-        self.server
-            .run_verifier_async(request)
-            .wait()
-            .expect("verification task canceled—this should not be possible!")
+        self.server.run_verifier(request)
     }
 }
 
@@ -149,7 +146,7 @@ impl PrustiServerConnection {
     pub fn verify_checked(
         &self,
         request: VerificationRequest,
-    ) -> reqwest::Result<VerificationResult> {
+    ) -> reqwest::Result<RemoteVerificationResult> {
         let use_json = config::json_communication();
         let base = self.client.post(
             self.server_url
@@ -176,5 +173,6 @@ impl VerificationService for PrustiServerConnection {
     fn verify(&self, request: VerificationRequest) -> VerificationResult {
         self.verify_checked(request)
             .expect("Verification request to server failed!")
+            .expect("Server panicked while processing request!")
     }
 }
