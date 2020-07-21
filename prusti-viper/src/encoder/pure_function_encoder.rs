@@ -381,6 +381,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             result_var: vir::Expr,
             snapshot: Box<Snapshot>,
         }
+        impl PostSnapshotPatcher {
+            fn patch_cmp_call(&self, args: Vec<vir::Expr>, cmp: vir::BinOpKind) -> vir::Expr {
+                assert_eq!(args.len(), 2);
+                let mut patched_args : Vec<_> = args.into_iter().map(
+                    |a| if a == self.result_var {
+                        a
+                    } else {
+                        self.snapshot.get_snap_call(a)
+                    }
+                ).collect();
+                vir::Expr::BinOp(
+                    cmp,
+                    box patched_args.pop().unwrap(),
+                    box patched_args.pop().unwrap(),
+                    vir::Position::default()
+                )
+            }
+        }
         impl ExprFolder for PostSnapshotPatcher {
             fn fold_func_app(
                 &mut self,
@@ -393,19 +411,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
                 if args.contains(&self.result_var) {
                     match name.as_str() {
-                        "equals$" => {
-                            assert_eq!(args.len(), 2);
-                            let mut patched_args : Vec<_> = args.into_iter().map(
-                                |a| if a == self.result_var {
-                                    a
-                                } else {
-                                    self.snapshot.get_snap_call(a)
-                                }
-                            ).collect();
-                            return vir::Expr::eq_cmp(
-                                patched_args.pop().unwrap(),
-                                patched_args.pop().unwrap()
-                            );
+                        "equals$" => { // TODO CMFIXME use constant
+                            return self.patch_cmp_call(args, vir::BinOpKind::EqCmp);
+                        }
+                        "not_equals$" => { // TODO CMFIXME use constant
+                            return self.patch_cmp_call(args, vir::BinOpKind::NeCmp);
                         }
                         _ => {} // proceed with default
                     }
@@ -752,17 +762,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             } else {
                                 // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
                                 // function
-                                if self.encoder.get_item_name(def_id).eq("std::cmp::PartialEq::eq") {
-                                    let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                    let snapshot = self.encoder.encode_snapshot(&arg_ty);
-                                    if snapshot.is_defined() {
-                                        let eq_func_name = snapshot.get_equals_func_name();
-                                        ((eq_func_name, vir::Type::Bool), true)
-                                    } else {
+                                match self.encoder.get_item_name(def_id).as_str() {
+                                    "std::cmp::PartialEq::eq" => {
+                                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                        let snapshot = self.encoder.encode_snapshot(&arg_ty);
+                                        if snapshot.is_defined() {
+                                            let eq_func_name = snapshot.get_equals_func_name();
+                                            ((eq_func_name, vir::Type::Bool), true)
+                                        } else {
+                                            (self.encoder.encode_stub_pure_function_use(def_id), false)
+                                        }
+                                    }
+                                    "std::cmp::PartialEq::ne" => { // TODO CMFIXME: reduce code duplication
+                                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                        let snapshot = self.encoder.encode_snapshot(&arg_ty);
+                                        if snapshot.is_defined() {
+                                            let eq_func_name = snapshot.get_not_equals_func_name();
+                                            ((eq_func_name, vir::Type::Bool), true)
+                                        } else {
+                                            (self.encoder.encode_stub_pure_function_use(def_id), false)
+                                        }
+                                    }
+                                    _ => {
                                         (self.encoder.encode_stub_pure_function_use(def_id), false)
                                     }
-                                } else {
-                                    (self.encoder.encode_stub_pure_function_use(def_id), false)
                                 }
                             };
                             if is_pure_function{

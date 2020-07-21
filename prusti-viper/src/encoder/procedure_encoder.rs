@@ -1921,6 +1921,44 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                     }
 
+                    // TODO CMFIXME reduce code duplication with previous case
+                    "core::cmp::PartialEq::ne" => {
+                        assert!(args.len() == 2);
+                        debug!("Encoding call of PartialEq::ne");
+
+                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+
+                        let snapshot = self.encoder.encode_snapshot(&arg_ty);
+                        if snapshot.is_defined() {
+                            let arg_exprs = vec![
+                                self.mir_encoder.encode_operand_expr(&args[0]),
+                                self.mir_encoder.encode_operand_expr(&args[1]),
+                            ];
+                            let return_type = vir::Type::Bool;
+                            let function_name = snapshot.get_not_equals_func_name();
+
+                            stmts.extend(self.encode_specified_pure_function_call(
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                function_name,
+                                arg_exprs,
+                                return_type
+                            ));
+                        } else {
+                            // the equality check involves some unsupported feature;
+                            // treat it as any other function
+                            stmts.extend(self.encode_impure_function_call(
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                def_id,
+                            )?);
+                        }
+                    }
+
                     _ => {
                         let is_pure_function =
                             self.encoder.env().has_attribute_name(def_id, "pure");

@@ -14,6 +14,7 @@ const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
 const SNAPSHOT_CONS: &str = "cons$";
 const SNAPSHOT_GET: &str = "snap$";
 pub const SNAPSHOT_EQUALS: &str = "equals$";
+pub const SNAPSHOT_NOT_EQUALS: &str = "not_equals$";
 const SNAPSHOT_ARG: &str = "_arg";
 const SNAPSHOT_LEFT: &str = "_left";
 const SNAPSHOT_RIGHT: &str = "_right";
@@ -30,6 +31,8 @@ pub struct SnapshotDomain {
     pub domain: vir::Domain,
     pub equals_func: vir::Function,
     pub equals_func_ref: vir::Function,
+    pub not_equals_func: vir::Function,
+    pub not_equals_func_ref: vir::Function,
 }
 
 impl SnapshotDomain {
@@ -84,6 +87,8 @@ impl Snapshot {
         if let Some(s) = &self.snap_domain {
             res.push(s.equals_func.clone());
             res.push(s.equals_func_ref.clone());
+            res.push(s.not_equals_func.clone());
+            res.push(s.not_equals_func_ref.clone());
         }
         res
     }
@@ -104,6 +109,10 @@ impl Snapshot {
 
     pub fn get_equals_func_name(&self) -> String {
         SNAPSHOT_EQUALS.to_string()
+    }
+
+    pub fn get_not_equals_func_name(&self) -> String {
+        SNAPSHOT_NOT_EQUALS.to_string()
     }
 
     pub fn get_snap_call(&self, arg: vir::Expr) -> vir::Expr {
@@ -284,6 +293,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             domain: self.encode_domain(),
             equals_func: self.encode_equals_func(),
             equals_func_ref: self.encode_equals_func_ref(),
+            not_equals_func: self.encode_not_equals_func(),
+            not_equals_func_ref: self.encode_not_equals_func_ref(),
         }
     }
 
@@ -341,8 +352,15 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vec![cons_fun]
     }
     pub fn encode_equals_func(&self) -> vir::Function {
+        self.encode_cmp_func(SNAPSHOT_EQUALS.to_string(), vir::BinOpKind::EqCmp)
+    }
+    pub fn encode_not_equals_func(&self) -> vir::Function {
+        self.encode_cmp_func(SNAPSHOT_NOT_EQUALS.to_string(), vir::BinOpKind::NeCmp)
+    }
+
+    fn encode_cmp_func(&self, name: String, cmp: vir::BinOpKind) -> vir::Function {
         vir::Function {
-            name: SNAPSHOT_EQUALS.to_string(),
+            name,
             formal_args: vec![
                 self.encode_snap_arg_var(SNAPSHOT_LEFT),
                 self.encode_snap_arg_var(SNAPSHOT_RIGHT),
@@ -358,7 +376,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ],
             posts: vec![],
             body: Some(vir::Expr::BinOp(
-                vir::BinOpKind::EqCmp,
+                cmp,
                 Box::new(self.encode_value_snapshot_call(SNAPSHOT_LEFT)),
                 Box::new(self.encode_value_snapshot_call(SNAPSHOT_RIGHT)),
                 vir::Position::default(),
@@ -482,6 +500,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_equals_func_ref(&self) -> vir::Function {
+        self.encode_cmp_func_ref(SNAPSHOT_EQUALS.to_string(), vir::BinOpKind::EqCmp)
+    }
+
+    pub fn encode_not_equals_func_ref(&self) -> vir::Function {
+        self.encode_cmp_func_ref(SNAPSHOT_NOT_EQUALS.to_string(),vir::BinOpKind::NeCmp)
+    }
+
+    fn encode_cmp_func_ref(&self, name: String, cmp: vir::BinOpKind) -> vir::Function {
         let arg_type = vir::Type::TypedRef(
             format!("ref${}", self.predicate_name)
         );
@@ -491,7 +517,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let arg_right = self.get_ref_field(formal_right.clone());
 
         vir::Function {
-            name: SNAPSHOT_EQUALS.to_string(),
+            name,
             formal_args: vec![formal_left.clone(), formal_right.clone()],
             return_type: vir::Type::Bool,
             pres: vec![
@@ -502,7 +528,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ],
             posts: vec![],
             body: Some(vir::Expr::BinOp(
-                vir::BinOpKind::EqCmp,
+                cmp,
                 Box::new(self.encode_ref_snapshot_call(SNAPSHOT_LEFT)),
                 Box::new(self.encode_ref_snapshot_call(SNAPSHOT_RIGHT)),
                 vir::Position::default(),
