@@ -16,7 +16,7 @@ use encoder::mir_interpreter::{
 };
 use encoder::Encoder;
 use prusti_common::vir;
-use prusti_common::vir::ExprIterator;
+use prusti_common::vir::{ExprIterator, ExprFolder};
 use prusti_common::config;
 use prusti_interface::specifications::SpecificationSet;
 use rustc::hir;
@@ -24,6 +24,7 @@ use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
 use std::collections::HashMap;
+use encoder::snapshot_encoder::Snapshot;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -357,14 +358,76 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_return_type());
 
-        post.replace_place(&encoded_return.clone().into(), &pure_fn_return_variable.into())
-            .set_default_pos(postcondition_pos)
+        let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.clone().into())
+            .set_default_pos(postcondition_pos);
+
+        if result_is_snap {
+            // TODO CMFIXME: patch all expressions involving __result
+            self.patch_post_for_snapshot_returns(post, pure_fn_return_variable)
+        } else {
+            post
+        }
         // TODO CMFIXME: the version below is a workaround to check the whole encoding;
         // TODO it is certainly not what we want once postconditions have been patched
         /*let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_ref_return_type());
         post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos)*/
+    }
+
+    // TODO CMFIXME: walk post and fix all cases in which result is now a snapshot
+    fn patch_post_for_snapshot_returns(&self, post: vir::Expr, result: vir::LocalVar) -> vir::Expr {
+        struct PostSnapshotPatcher {
+            result_var: vir::Expr,
+            snapshot: Box<Snapshot>,
+        }
+        impl ExprFolder for PostSnapshotPatcher {
+            fn fold_func_app(
+                &mut self,
+                name: String,
+                args: Vec<vir::Expr>,
+                formal_args: Vec<vir::LocalVar>,
+                return_type: vir::Type,
+                pos: vir::Position,
+            ) -> vir::Expr {
+
+                if args.contains(&self.result_var) {
+                    match name.as_str() {
+                        "equals$" => {
+                            assert_eq!(args.len(), 2);
+                            let mut patched_args : Vec<_> = args.into_iter().map(
+                                |a| if a == self.result_var {
+                                    a
+                                } else {
+                                    self.snapshot.get_snap_call(a)
+                                }
+                            ).collect();
+                            return vir::Expr::eq_cmp(
+                                patched_args.pop().unwrap(),
+                                patched_args.pop().unwrap()
+                            );
+                        }
+                        _ => {} // proceed with default
+                    }
+                }
+
+                // default
+                vir::Expr::FuncApp(
+                    name,
+                    args.into_iter().map(|e| self.fold(e)).collect(),
+                    formal_args,
+                    return_type,
+                    pos
+                )
+            }
+        }
+        let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+        let snapshot = self.encoder.encode_snapshot(&ty);
+        let mut patcher = PostSnapshotPatcher {
+            result_var: vir::Expr::local(result),
+            snapshot,
+        };
+        patcher.fold(post)
     }
 
     fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
