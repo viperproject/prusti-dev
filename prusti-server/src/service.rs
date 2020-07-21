@@ -29,8 +29,9 @@ pub struct ServerSideService {
 impl ServerSideService {
     pub fn new() -> Self {
         // FIXME: since viper seems to dislike using verifiers in parallel, this is what we're doing to ensure correctness for now.
-        // eventually, we should fix the root cause, lock specific parts, or instantiate multiple JVMs
-        let max_concurrency = 1; // config::server_max_concurrency().unwrap_or_else(num_cpus::get);
+        // Eventually, we should lock only specific parts, instantiate multiple JVMs, or even address the root cause.
+        let _max_concurrency = config::server_max_concurrency().unwrap_or_else(num_cpus::get);
+        let max_concurrency = 1;
 
         let cache_size = config::server_max_stored_verifiers().unwrap_or(max_concurrency);
         if cache_size < max_concurrency {
