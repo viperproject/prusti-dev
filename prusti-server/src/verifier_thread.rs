@@ -24,6 +24,7 @@ struct VerificationRequest {
 }
 
 pub struct VerifierThread {
+    pub backend_config: ViperBackendConfig,
     request_sender: Mutex<mpsc::Sender<VerificationRequest>>,
 }
 
@@ -36,15 +37,17 @@ impl VerifierThread {
             backend_config.backend
         ));
 
+        let config = backend_config.clone();
         builder
             .spawn(move || {
-                VerifierRunner::with_runner(&verifier_builder, &backend_config, |runner| {
+                VerifierRunner::with_runner(&verifier_builder, &config, |runner| {
                     Self::listen_for_requests(runner, request_receiver)
                 });
             })
             .unwrap();
 
         Self {
+            backend_config: backend_config,
             request_sender: Mutex::new(request_sender),
         }
     }
@@ -56,7 +59,7 @@ impl VerifierThread {
         while let Ok(request) = request_receiver.recv() {
             let result = runner.verify(request.program, request.program_name.as_str());
             request.sender.send(result).unwrap_or_else(|err| {
-                panic!(
+                error!(
                     "verifier thread attempting to send result to dropped receiver: {:?}",
                     err
                 );

@@ -133,32 +133,36 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             .to_str()
             .unwrap()
             .to_owned();
-        let verification_result: viper::VerificationResult =
-            if let Some(server_address) = config::server_address() {
-                let server_address = if server_address == "MOCK" {
-                    ServerSideService::spawn_off_thread()
-                } else {
-                    server_address.parse().unwrap_or_else(|e| {
-                        panic!("Invalid server address: {} (error: {})", server_address, e)
-                    })
-                };
-                info!("Connecting to Prusti server at {}", server_address);
-                let service = PrustiServerConnection::new(server_address);
-
-                let request = VerificationRequest {
-                    program,
-                    program_name,
-                    backend_config: Default::default(),
-                };
-                service.verify(request)
+        let verification_result: viper::VerificationResult = if let Some(server_address) =
+            config::server_address()
+        {
+            let server_address = if server_address == "MOCK" {
+                ServerSideService::spawn_off_thread().to_string()
             } else {
-                let mut stopwatch = Stopwatch::start("prusti-viper", "JVM startup");
-                let verifier_builder = VerifierBuilder::new();
-                stopwatch.start_next("running verifier");
-                VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
-                    runner.verify(program, program_name.as_str())
-                })
+                server_address
             };
+            info!("Connecting to Prusti server at {}", server_address);
+            let service = PrustiServerConnection::new(&server_address).unwrap_or_else(|error| {
+                panic!(
+                    "Could not parse server address ({}) due to {:?}",
+                    server_address, error
+                )
+            });
+
+            let request = VerificationRequest {
+                program,
+                program_name,
+                backend_config: Default::default(),
+            };
+            service.verify(request)
+        } else {
+            let mut stopwatch = Stopwatch::start("prusti-viper", "JVM startup");
+            let verifier_builder = VerifierBuilder::new();
+            stopwatch.start_next("running verifier");
+            VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
+                runner.verify(program, program_name.as_str())
+            })
+        };
 
         stopwatch.finish();
 
