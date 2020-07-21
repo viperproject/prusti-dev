@@ -324,10 +324,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_domain(&self) -> vir::Domain {
+        let domain_name = self.encode_domain_name();
+        let cons_func = self.encode_domain_cons(&domain_name);
+        let cons_axiom_injectivity = self.encode_cons_injectivity(&domain_name, &cons_func);
+
         vir::Domain {
-            name: self.encode_domain_name(),
-            functions: self.encode_domain_cons(),
-            axioms: vec![],
+            name: domain_name,
+            functions: vec![cons_func],
+            axioms: vec![cons_axiom_injectivity],
             type_vars: vec![]
         }
     }
@@ -340,20 +344,81 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         )
     }
 
-    fn encode_domain_cons(&self) -> Vec<vir::DomainFunc> {
-        let domain_name = self.encode_domain_name();
-        let cons_fun = vir::DomainFunc {
+    fn encode_domain_cons(&self, domain_name: &String) -> vir::DomainFunc {
+        vir::DomainFunc {
             name: SNAPSHOT_CONS.to_string(),
             formal_args: self.encode_domain_cons_formal_args(),
-            return_type: vir::Type::Domain(domain_name.clone()),
+            return_type: vir::Type::Domain(domain_name.to_string()),
             unique: false,
-            domain_name,
-        };
-        vec![cons_fun]
+            domain_name: domain_name.to_string(),
+        }
     }
+
+    fn encode_cons_injectivity(&self, domain_name: &String, cons_func: &vir::DomainFunc) -> vir::DomainAxiom {
+        let (lhs_args, lhs_call) = self.encode_injectivity_args_call(
+            cons_func,
+            "_1".to_string()
+        );
+
+        let (rhs_args, rhs_call) = self.encode_injectivity_args_call(
+            cons_func,
+            "_2".to_string()
+        );
+
+        let mut vars = Vec::new();
+        vars.extend(lhs_args.iter().cloned());
+        vars.extend(rhs_args.iter().cloned());
+
+        let conjunction = vir::ExprIterator::conjoin(
+            &mut lhs_args.into_iter().zip(rhs_args.into_iter()).map(
+                |(l,r)| vir::Expr::eq_cmp(
+                    vir::Expr::local(l.clone()),
+                    vir::Expr::local(r.clone())
+                )
+            )
+        );
+
+        let trigger = vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()]);
+
+        vir::DomainAxiom {
+            name: "injectivity".to_string(),
+            expr: vir::Expr::forall(
+                vars,
+                vec![trigger],
+                vir::Expr::implies(
+                    vir::Expr::eq_cmp(
+                        lhs_call,
+                        rhs_call
+                    ),
+                    conjunction
+                )
+            ),
+            domain_name: domain_name.to_string()
+        }
+    }
+
+    fn encode_injectivity_args_call(&self, cons_func: &vir::DomainFunc, suffix: String)
+        -> (Vec<vir::LocalVar>, vir::Expr){
+        let args: Vec<_> = cons_func.formal_args.iter().map(
+            |v| vir::LocalVar::new(
+                format!("{}{}", v.name.to_string(), suffix),
+                v.typ.clone()
+            )
+        ).collect();
+
+        let call = vir::Expr::DomainFuncApp(
+            cons_func.clone(),
+            args.iter().map(|v| vir::Expr::local(v.clone())).collect(),
+            vir::Position::default()
+        );
+
+        (args, call)
+    }
+
     pub fn encode_equals_func(&self) -> vir::Function {
         self.encode_cmp_func(SNAPSHOT_EQUALS.to_string(), vir::BinOpKind::EqCmp)
     }
+
     pub fn encode_not_equals_func(&self) -> vir::Function {
         self.encode_cmp_func(SNAPSHOT_NOT_EQUALS.to_string(), vir::BinOpKind::NeCmp)
     }
