@@ -381,7 +381,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let trigger = vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()]);
 
         vir::DomainAxiom {
-            name: "injectivity".to_string(),
+            name: format!("{}$injectivity", domain_name.to_string()),
             expr: vir::Expr::forall(
                 vars,
                 vec![trigger],
