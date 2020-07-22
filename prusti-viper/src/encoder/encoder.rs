@@ -63,7 +63,8 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     type_discriminant_funcs: RefCell<HashMap<String, vir::Function>>,
     memory_eq_funcs: RefCell<HashMap<String, Option<vir::Function>>>,
     fields: RefCell<HashMap<String, vir::Field>>,
-    snapshots: RefCell<HashMap<String, Box<Snapshot>>>,
+    snapshots: RefCell<HashMap<String, Box<Snapshot>>>, // maps predicate names to snapshots
+    type_snapshots: RefCell<HashMap<String, String>>, // maps snapshot names to predicate names
     snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
@@ -130,6 +131,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vir_program_before_viper_writer,
             typaram_repl: RefCell::new(Vec::new()),
             snapshots: RefCell::new(HashMap::new()),
+            type_snapshots: RefCell::new(HashMap::new()),
             snap_mirror_funcs: RefCell::new(HashMap::new()),
             encoding_errors_counter: RefCell::new(0),
         }
@@ -1006,6 +1008,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.snapshots.borrow().contains_key(&predicate_name) {
             let encoder = SnapshotEncoder::new(self, ty, predicate_name.to_string());
             let snapshot = encoder.encode();
+            self.type_snapshots
+                .borrow_mut()
+                .insert(snapshot.get_type().name().to_string(), predicate_name.to_string());
             self.snapshots
                 .borrow_mut()
                 .insert(predicate_name.to_string(), Box::new(snapshot));
@@ -1028,6 +1033,15 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let ty = self.predicate_types.borrow()[&predicate_name];
             return self.encode_snapshot(&ty);
         }
+        self.snapshots.borrow()[&predicate_name].clone()
+    }
+
+    // TODO CMFIXME
+    pub fn get_snapshot(&self, snapshot_name: String) -> Box<Snapshot> {
+        // fails if we have not encoded a snapshot with that name before
+        // should be safe as we should never construct a snapshot name outside
+        // of the snapshot encoder.
+        let predicate_name = self.type_snapshots.borrow()[&snapshot_name].to_string();
         self.snapshots.borrow()[&predicate_name].clone()
     }
 

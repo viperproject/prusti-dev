@@ -352,48 +352,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_return_type());
 
-        let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.clone().into())
+        let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos);
 
         if result_is_snap {
             // TODO CMFIXME: patch all expressions involving __result
-            self.patch_post_for_snapshot_returns(post, pure_fn_return_variable)
+            self.patch_post_for_snapshot_returns(post)
         } else {
             post
         }
-        // TODO CMFIXME: the version below is a workaround to check the whole encoding;
-        // TODO it is certainly not what we want once postconditions have been patched
-        /*let pure_fn_return_variable =
-            vir::LocalVar::new("__result", self.encode_function_ref_return_type());
-        post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
-            .set_default_pos(postcondition_pos)*/
     }
 
     // TODO CMFIXME: walk post and fix all cases in which result is now a snapshot
-    fn patch_post_for_snapshot_returns(&self, post: vir::Expr, result: vir::LocalVar) -> vir::Expr {
-        struct PostSnapshotPatcher {
-            result_var: vir::Expr,
-            snapshot: Box<Snapshot>,
+    fn patch_post_for_snapshot_returns(&self, post: vir::Expr) -> vir::Expr {
+        struct PostSnapshotPatcher<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
+            encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
         }
-        impl PostSnapshotPatcher {
-            fn patch_cmp_call(&self, args: Vec<vir::Expr>, cmp: vir::BinOpKind) -> vir::Expr {
-                assert_eq!(args.len(), 2);
-                let mut patched_args : Vec<_> = args.into_iter().map(
-                    |a| if a == self.result_var {
-                        a
-                    } else {
-                        self.snapshot.get_snap_call(a)
-                    }
-                ).collect();
-                vir::Expr::BinOp(
-                    cmp,
-                    box patched_args.pop().unwrap(),
-                    box patched_args.pop().unwrap(),
-                    vir::Position::default()
-                )
-            }
-        }
-        impl ExprFolder for PostSnapshotPatcher {
+
+        impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ExprFolder for PostSnapshotPatcher<'p, 'v, 'r, 'a, 'tcx> {
             fn fold_func_app(
                 &mut self,
                 name: String,
@@ -403,7 +379,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 pos: vir::Position,
             ) -> vir::Expr {
 
-                if args.contains(&self.result_var) {
+                // TODO CMFIXME: generalize this to cover other snapshots as well
+
+                if args.iter().any(|a| self.has_snap_type(a)) {
                     match name.as_str() {
                         "equals$" => { // TODO CMFIXME use constant
                             return self.patch_cmp_call(args, vir::BinOpKind::EqCmp);
@@ -425,11 +403,47 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 )
             }
         }
-        let ty = self.encoder.resolve_typaram(self.mir.return_ty());
-        let snapshot = self.encoder.encode_snapshot(&ty);
+
+        impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PostSnapshotPatcher<'p, 'v, 'r, 'a, 'tcx> {
+            fn patch_cmp_call(&self, args: Vec<vir::Expr>, cmp: vir::BinOpKind) -> vir::Expr {
+                assert_eq!(args.len(), 2);
+                let lhs = args[0].clone();
+                let rhs = args[1].clone();
+                vir::Expr::BinOp(
+                    cmp,
+                    box if self.has_snap_type(&args[0]) {
+                        lhs
+                    } else {
+                        self.get_snapshot(&args[1]).get_snap_call(lhs)
+                    },
+                    box if self.has_snap_type(&args[1]) {
+                        rhs
+                    } else {
+                        self.get_snapshot(&args[0]).get_snap_call(rhs)
+                    },
+                    vir::Position::default()
+                )
+            }
+
+            fn has_snap_type(&self, expr: &vir::Expr) -> bool {
+                match expr.get_type() {
+                    vir::Type::Domain(_) => true,
+                    _ => false,
+                }
+            }
+
+            fn get_snapshot(&self, expr: &vir::Expr) -> Box<Snapshot> {
+                match expr.get_type() {
+                    vir::Type::Domain(snapshot_name) => {
+                        self.encoder.get_snapshot(snapshot_name.to_string())
+                    },
+                    _ => unreachable!(),
+                }
+            }
+        }
+
         let mut patcher = PostSnapshotPatcher {
-            result_var: vir::Expr::local(result),
-            snapshot,
+            encoder: self.encoder,
         };
         patcher.fold(post)
     }
