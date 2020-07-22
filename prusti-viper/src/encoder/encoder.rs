@@ -1004,13 +1004,22 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_snapshot(&self, ty: &ty::Ty<'tcx>) -> Box<Snapshot> {
         let ty = self.dereference_ty(ty);
-        let predicate_name = self.encode_type_predicate_use(ty).unwrap(); // will panic if attempting to encode unsupported type
+        // will panic if attempting to encode unsupported type
+        let predicate_name = self.encode_type_predicate_use(ty).unwrap();
         if !self.snapshots.borrow().contains_key(&predicate_name) {
-            let encoder = SnapshotEncoder::new(self, ty, predicate_name.to_string());
+            let encoder = SnapshotEncoder::new(
+                self, ty,
+                predicate_name.to_string()
+            );
             let snapshot = encoder.encode();
-            self.type_snapshots
-                .borrow_mut()
-                .insert(snapshot.get_type().name().to_string(), predicate_name.to_string());
+            if snapshot.is_defined() {
+                self.type_snapshots
+                    .borrow_mut()
+                    .insert(
+                        snapshot.get_type().name().to_string(),
+                        predicate_name.to_string()
+                    );
+            }
             self.snapshots
                 .borrow_mut()
                 .insert(predicate_name.to_string(), Box::new(snapshot));
