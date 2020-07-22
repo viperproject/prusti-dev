@@ -12,8 +12,14 @@ rustup component add llvm-tools-preview
 
 Compiling:
 ```bash
-cd new
+export JAVA_HOME=/usr/lib/jvm/default-java
+export LD_LIBRARY_PATH=/usr/lib/jvm/default-java/lib/server/
 cargo build
+```
+
+Running tests:
+```bash
+cargo test
 ```
 
 ## Design
