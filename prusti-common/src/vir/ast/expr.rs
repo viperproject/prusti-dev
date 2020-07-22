@@ -841,8 +841,9 @@ impl Expr {
         res
     }
 
+    /// Returns the type of the expression.
+    /// For function applications, the return type is provided.
     pub fn get_type(&self) -> &Type {
-        // TODO CMFIXME: why is this needed? debug_assert!(self.is_place());
         match self {
             &Expr::Local(LocalVar { ref typ, .. }, _)
             | &Expr::Variant(_, Field { ref typ, .. }, _)
