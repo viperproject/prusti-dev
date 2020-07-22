@@ -7,7 +7,7 @@
 use encoder::{borrows::{compute_procedure_contract, ProcedureContract}, builtin_encoder::BuiltinFunctionKind, errors::{EncodingError, ErrorCtxt, PanicCause}, foldunfold, mir_encoder::{MirEncoder, PRECONDITION_LABEL, WAND_LHS_LABEL}, mir_interpreter::{
     run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
 }, Encoder, snapshot_encoder};
-use prusti_common::{config, vir, vir::ExprIterator, vir::ExprFolder};
+use prusti_common::{config, vir, vir::ExprIterator, vir::ExprFolder, vir::compute_identifier};
 use prusti_interface::specifications::SpecificationSet;
 use rustc::{hir, hir::def_id::DefId, mir, ty};
 use std::collections::HashMap;
@@ -370,7 +370,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 return_type: vir::Type,
                 pos: vir::Position,
             ) -> vir::Expr {
-
                 // patch function calls that internally use snapshots
                 if args.iter().any(|a| self.has_snap_type(a)) {
                     match name.as_str() {
@@ -380,14 +379,51 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                         snapshot_encoder::SNAPSHOT_EQUALS => {
                             return self.patch_cmp_call(args, vir::BinOpKind::EqCmp);
                         }
-                        snapshot_encoder::SNAPSHOT_NOT_EQUALS => { // TODO CMFIXME use constant
+                        snapshot_encoder::SNAPSHOT_NOT_EQUALS => {
                             return self.patch_cmp_call(args, vir::BinOpKind::NeCmp);
                         }
-                        _ => {} // proceed with default
+                        _ => {
+                            // we need to rectify cases in which there is a mismatch between the
+                            // functions formal arguments (which do not involve snapshots)
+                            // and its actual arguments (which may involve snapshots)
+                            let found_mismatch = formal_args
+                                .iter()
+                                .zip(args.iter())
+                                .any(|(f, a)| f.typ != *a.get_type());
+
+                            if found_mismatch {
+                                let mirror_func = self.encoder.encode_pure_snapshot_mirror(
+                                    compute_identifier(&name, &formal_args, &return_type),
+                                    &formal_args,
+                                    &return_type
+                                ).unwrap(); // TODO CMFIXME fails if unsupported
+
+                                let patched_args = args
+                                    .into_iter()
+                                    .map(|a|
+                                        match a.get_type() {
+                                            vir::Type::TypedRef(predicate_name) => {
+                                                self.encoder
+                                                    .encode_snapshot_use(
+                                                        predicate_name.to_string()
+                                                    )
+                                                    .get_snap_call(a)
+                                            }
+                                            _ => a,
+                                        }
+                                    )
+                                    .collect();
+
+                                return vir::Expr::DomainFuncApp(
+                                    mirror_func,
+                                    patched_args,
+                                    pos,
+                                );
+                            }
+                        }
                     }
                 }
 
-                // default: nothing to do
                 vir::Expr::FuncApp(
                     name,
                     args.into_iter().map(|e| self.fold(e)).collect(),

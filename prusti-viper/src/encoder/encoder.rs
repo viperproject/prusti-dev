@@ -1381,7 +1381,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     fn patch_pure_post_with_mirror_call(&self, function: vir::Function) -> vir::Function {
         // use function identifier to be more robust in the presence of generics
-        let mirror = self.encode_pure_snapshot_mirror(function.get_identifier().clone(), &function);
+        let mirror = self.encode_pure_snapshot_mirror(
+            function.get_identifier().to_string(),
+            &function.formal_args,
+            &function.return_type,
+        );
         if mirror.is_none() {
             return function;
         }
@@ -1439,9 +1443,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_pure_snapshot_mirror(&self,
                                        pure_func_name: String,
-                                       pure_function: &vir::Function)
+                                       pure_formal_args: &Vec<vir::LocalVar>,
+                                       pure_return_type: &vir::Type)
                                        -> Option<vir::DomainFunc> {
-        if let vir::Type::Domain(_) = pure_function.return_type {
+        if let vir::Type::Domain(_) = pure_return_type {
             return None; // no need for mirrors if the function already returns a snapshot
         }
         if !self
@@ -1449,7 +1454,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             .borrow()
             .contains_key(&pure_func_name)
         {
-            if !pure_function.formal_args.iter().all(
+            if !pure_formal_args.iter().all(
                 |a| match &a.typ {
                     vir::Type::TypedRef(name) => {
                         self.encode_snapshot_use(name.to_string()).is_defined()
@@ -1460,8 +1465,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     .borrow_mut()
                     .insert(pure_func_name.to_string(), None);
             } else {
-                let formal_args = pure_function
-                    .formal_args
+                let formal_args = pure_formal_args
                     .iter()
                     .map(|a| {
                         vir::LocalVar::new(
@@ -1477,9 +1481,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     .collect();
 
                 let mirror_function = vir::DomainFunc {
-                    name: format!("mirror${}", pure_function.name.clone()),
+                    name: format!("mirror${}", pure_func_name.to_string()),
                     formal_args,
-                    return_type: pure_function.return_type.clone(),
+                    return_type: pure_return_type.clone(),
                     unique: false,
                     domain_name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
                 };
