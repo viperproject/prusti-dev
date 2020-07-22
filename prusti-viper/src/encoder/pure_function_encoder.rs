@@ -381,7 +381,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                         snapshot_encoder::SNAPSHOT_NOT_EQUALS => {
                             return self.patch_cmp_call(args, vir::BinOpKind::NeCmp);
                         }
-                        _ => { // TODO CMFIXME: two cases: snaps as arguments and snap as return type (not covered yet)
+                        _ => {
                             // TODO CMFIXME refactor into its own function
                             // we need to rectify cases in which there is a mismatch between the
                             // functions formal arguments (which do not involve snapshots)
