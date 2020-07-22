@@ -4,17 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::{
-    borrows::{compute_procedure_contract, ProcedureContract},
-    builtin_encoder::BuiltinFunctionKind,
-    errors::{EncodingError, ErrorCtxt, PanicCause},
-    foldunfold,
-    mir_encoder::{MirEncoder, PRECONDITION_LABEL, WAND_LHS_LABEL},
-    mir_interpreter::{
-        run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
-    },
-    Encoder,
-};
+use encoder::{borrows::{compute_procedure_contract, ProcedureContract}, builtin_encoder::BuiltinFunctionKind, errors::{EncodingError, ErrorCtxt, PanicCause}, foldunfold, mir_encoder::{MirEncoder, PRECONDITION_LABEL, WAND_LHS_LABEL}, mir_interpreter::{
+    run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+}, Encoder, snapshot_encoder};
 use prusti_common::{config, vir, vir::ExprIterator, vir::ExprFolder};
 use prusti_interface::specifications::SpecificationSet;
 use rustc::{hir, hir::def_id::DefId, mir, ty};
@@ -363,7 +355,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         }
     }
 
-    // TODO CMFIXME: walk post and fix all cases in which result is now a snapshot
+    // TODO CMFIXME: fix all cases in which we implicitly use snapshots in specs
     fn patch_post_for_snapshot_returns(&self, post: vir::Expr) -> vir::Expr {
         struct PostSnapshotPatcher<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
             encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -379,21 +371,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 pos: vir::Position,
             ) -> vir::Expr {
 
-                // TODO CMFIXME: generalize this to cover other snapshots as well
-
+                // patch function calls that internally use snapshots
                 if args.iter().any(|a| self.has_snap_type(a)) {
                     match name.as_str() {
-                        "equals$" => { // TODO CMFIXME use constant
+                        // equalities, e.g. PartialEq::eq(__result, x), need to be patched as __result
+                        // is now a snapshot whereas x is not; the desired result is
+                        // __result == snapshot(x)
+                        snapshot_encoder::SNAPSHOT_EQUALS => {
                             return self.patch_cmp_call(args, vir::BinOpKind::EqCmp);
                         }
-                        "not_equals$" => { // TODO CMFIXME use constant
+                        snapshot_encoder::SNAPSHOT_NOT_EQUALS => { // TODO CMFIXME use constant
                             return self.patch_cmp_call(args, vir::BinOpKind::NeCmp);
                         }
                         _ => {} // proceed with default
                     }
                 }
 
-                // default
+                // default: nothing to do
                 vir::Expr::FuncApp(
                     name,
                     args.into_iter().map(|e| self.fold(e)).collect(),
