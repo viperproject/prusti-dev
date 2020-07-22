@@ -307,11 +307,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
         let result_is_snap = encoded_return.typ != self.encode_function_return_type();
 
-        // TODO CMFIXME: If the pure function returns a snapshot we have to patch the postconditions
-        if result_is_snap {
-            warn!("Attaching specifications to pure functions returning Copy types is not properly supported yet");
-        }
-
         for item in contract.functional_postcondition() {
             let encoded_postcond = self.encoder.encode_assertion(
                 &item.assertion,
@@ -383,6 +378,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                             return self.patch_cmp_call(args, vir::BinOpKind::NeCmp);
                         }
                         _ => {
+                            // TODO CMFIXME refactor into its own function
                             // we need to rectify cases in which there is a mismatch between the
                             // functions formal arguments (which do not involve snapshots)
                             // and its actual arguments (which may involve snapshots)
@@ -400,16 +396,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
                                 let patched_args = args
                                     .into_iter()
-                                    .map(|a|
-                                        match a.get_type() {
-                                            vir::Type::TypedRef(predicate_name) => {
-                                                self.encoder
-                                                    .encode_snapshot_use(
-                                                        predicate_name.to_string()
-                                                    )
-                                                    .get_snap_call(a)
+                                    .map(|a| // TODO CMFIXME simplify
+                                        if a.is_place() { // for constants
+                                            match a.get_type() {
+                                                vir::Type::TypedRef(predicate_name) => {
+                                                    let snapshot = self.encoder
+                                                        .encode_snapshot_use(
+                                                            predicate_name.to_string()
+                                                        );
+                                                    if snapshot.is_defined() {
+                                                        snapshot.get_snap_call(a)
+                                                    } else {
+                                                        a
+                                                    }
+                                                }
+                                                _ => a,
                                             }
-                                            _ => a,
+                                        } else {
+                                            a
                                         }
                                     )
                                     .collect();
@@ -456,9 +460,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             }
 
             fn has_snap_type(&self, expr: &vir::Expr) -> bool {
-                match expr.get_type() {
-                    vir::Type::Domain(_) => true,
-                    _ => false,
+                if expr.is_place() {
+                    match expr.get_type() {
+                        vir::Type::Domain(_) => true,
+                        _ => false,
+                    }
+                } else {
+                    false
                 }
             }
 
