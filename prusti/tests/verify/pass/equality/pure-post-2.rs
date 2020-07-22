@@ -6,9 +6,9 @@ struct A {
 }
 
 #[pure]
-#[ensures="result == x"]
-fn get_value(x: A, y: A) -> A {
-    x
+#[ensures="result == _x"]
+fn get_value(_x: A, _y: A) -> A {
+    _x
 }
 
 fn main() {

@@ -6,13 +6,13 @@ struct A {
 }
 
 #[pure]
-fn pos(_x: A) -> bool {
-    _x.i > 0
+fn id(_x: A) -> A {
+    _x
 }
 
 #[pure]
-#[requires="pos(_x) && pos(_y)"]
-#[ensures="pos(result) && pos(_x) && pos(_y)"]
+#[requires="_x == _y"]
+#[ensures="result == id(_y)"]
 fn first(_x: A, _y: A) -> A {
     _x
 }

@@ -6,10 +6,10 @@ struct A {
 }
 
 #[pure]
-#[requires="x == y"]
-#[ensures="x == y"]
-fn get_value(x: A, y: A) -> A {
-    x
+#[requires="_x == _y"]
+#[ensures="_x == _y"]
+fn get_value(_x: A, _y: A) -> A {
+    _x
 }
 
 fn main() {

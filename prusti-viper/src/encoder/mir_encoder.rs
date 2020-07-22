@@ -272,12 +272,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Expr {
         let (encoded_place, place_ty, _) = self.encode_place(place).ok().unwrap();  // will panic if attempting to encode unsupported type
-        if self.encoder.has_value_field(place_ty) {
-            let value_field = self.encoder.encode_value_field(place_ty);
-            encoded_place.field(value_field)
-        } else {
-            encoded_place
-        }
+        self.encoder.encode_value_expr(encoded_place, place_ty)
     }
 
     /// Returns an `vir::Expr` that corresponds to the value of the operand
@@ -338,8 +333,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
                 let (encoded_place, place_ty, _) = self.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
                 let place_ty = self.encoder.resolve_typaram(place_ty);
-                let value_field = self.encoder.encode_value_field(place_ty);
-                let val_place = encoded_place.field(value_field);
+                let val_place = self.encoder.encode_value_expr(encoded_place, place_ty);
                 val_place.get_type().clone()
             }
         }

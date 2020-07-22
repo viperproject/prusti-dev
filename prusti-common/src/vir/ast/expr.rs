@@ -588,6 +588,13 @@ impl Expr {
         }
     }
 
+    pub fn is_call(&self) -> bool {
+        match self {
+            Expr::FuncApp(..) | Expr::DomainFuncApp(..) => true,
+            _ => false,
+        }
+    }
+
     /// How many parts this place has? Used for ordering places.
     pub fn place_depth(&self) -> u32 {
         match self {
@@ -835,7 +842,7 @@ impl Expr {
     }
 
     pub fn get_type(&self) -> &Type {
-        debug_assert!(self.is_place());
+        // TODO CMFIXME: why is this needed? debug_assert!(self.is_place());
         match self {
             &Expr::Local(LocalVar { ref typ, .. }, _)
             | &Expr::Variant(_, Field { ref typ, .. }, _)
@@ -846,7 +853,13 @@ impl Expr {
             &Expr::LabelledOld(_, box ref base, _)
             | &Expr::Unfolding(_, _, box ref base, _, _, _) => {
                 base.get_type()
-            }
+            },
+            &Expr::FuncApp(_, _, _, ref typ, _) => {
+                &typ
+            },
+            &Expr::DomainFuncApp(ref func, _, _) => {
+                &func.return_type
+            },
             _ => panic!(),
         }
     }

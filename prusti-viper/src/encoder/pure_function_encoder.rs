@@ -69,11 +69,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         // Fix arguments
         for arg in self.mir.args_iter() {
             let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
-            let value_field = self.encoder.encode_value_field(arg_ty);
-            let target_place: vir::Expr =
+
+            // TODO CMFIXME let value_field = self.encoder.encode_value_field(arg_ty);
+            // let target_place: vir::Expr =
                 // will panic if attempting to encode unsupported type
-                vir::Expr::local(self.interpreter.mir_encoder().encode_local(arg).unwrap())
-                    .field(value_field);
+             //   vir::Expr::local(self.interpreter.mir_encoder().encode_local(arg).unwrap())
+               //     .field(value_field);
+            let target_place = self.encoder.encode_value_expr(vir::Expr::local(self.interpreter.mir_encoder().encode_local(arg).unwrap()), arg_ty);
             let new_place: vir::Expr = self.encode_local(arg).into();
             state.substitute_place(&target_place, new_place);
         }
@@ -365,6 +367,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 return_type: vir::Type,
                 pos: vir::Position,
             ) -> vir::Expr {
+                let args : Vec<_> = args.into_iter().map(|e| self.fold(e)).collect();
+
                 // patch function calls that internally use snapshots
                 if args.iter().any(|a| self.has_snap_type(a)) {
                     match name.as_str() {
@@ -377,7 +381,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                         snapshot_encoder::SNAPSHOT_NOT_EQUALS => {
                             return self.patch_cmp_call(args, vir::BinOpKind::NeCmp);
                         }
-                        _ => {
+                        _ => { // TODO CMFIXME: two cases: snaps as arguments and snap as return type (not covered yet)
                             // TODO CMFIXME refactor into its own function
                             // we need to rectify cases in which there is a mismatch between the
                             // functions formal arguments (which do not involve snapshots)
@@ -387,7 +391,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                                 .zip(args.iter())
                                 .any(|(f, a)| f.typ != *a.get_type());
 
-                            if found_mismatch {
+                            if found_mismatch { // TODO CMFIXME: using mirrors is not enough when dealing with nested calls
                                 let mirror_func = self.encoder.encode_pure_snapshot_mirror(
                                     compute_identifier(&name, &formal_args, &return_type),
                                     &formal_args,
@@ -430,7 +434,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
                 vir::Expr::FuncApp(
                     name,
-                    args.into_iter().map(|e| self.fold(e)).collect(),
+                    args,
                     formal_args,
                     return_type,
                     pos
@@ -441,26 +445,37 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PostSnapshotPatcher<'p, 'v, 'r, 'a, 'tcx> {
             fn patch_cmp_call(&self, args: Vec<vir::Expr>, cmp: vir::BinOpKind) -> vir::Expr {
                 assert_eq!(args.len(), 2);
-                let lhs = args[0].clone();
-                let rhs = args[1].clone();
+                let lhs_is_snap = self.has_snap_type(&args[0]);
+                let rhs_is_snap = self.has_snap_type(&args[1]);
+
+                let (lhs, rhs) = if (lhs_is_snap && rhs_is_snap)
+                    || (!lhs_is_snap && !rhs_is_snap) {
+                    (
+                        args[0].clone(),
+                        args[1].clone()
+                    )
+                } else if lhs_is_snap /* && !rhs_is_snap */ {
+                    (
+                        args[0].clone(),
+                        self.get_snapshot(&args[0]).get_snap_call(args[1].clone())
+                    )
+                } else /* rhs_is_snap && !lhs_is_snap */ {
+                    (
+                        self.get_snapshot(&args[1]).get_snap_call(args[0].clone()),
+                        args[1].clone()
+                    )
+                };
+
                 vir::Expr::BinOp(
                     cmp,
-                    box if self.has_snap_type(&args[0]) {
-                        lhs
-                    } else {
-                        self.get_snapshot(&args[1]).get_snap_call(lhs)
-                    },
-                    box if self.has_snap_type(&args[1]) {
-                        rhs
-                    } else {
-                        self.get_snapshot(&args[0]).get_snap_call(rhs)
-                    },
+                    box lhs,
+                    box rhs,
                     vir::Position::default()
                 )
             }
 
             fn has_snap_type(&self, expr: &vir::Expr) -> bool {
-                if expr.is_place() {
+                if expr.is_place() || expr.is_call() {
                     match expr.get_type() {
                         vir::Type::Domain(_) => true,
                         _ => false,
@@ -628,10 +643,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 trace!("Return type: {:?}", self.mir.return_ty());
                 let return_type = self.encoder.encode_type(self.mir.return_ty());
                 let return_var = vir::LocalVar::new(format!("{}_0", self.namespace), return_type);
-                let field = self.encoder.encode_value_field(self.mir.return_ty());
-
                 MultiExprBackwardInterpreterState::new_single(
-                    vir::Expr::local(return_var.into()).field(field).into(),
+                    self.encoder.encode_value_expr(
+                        vir::Expr::local(return_var.into()),
+                        self.mir.return_ty()
+                    )
                 )
             }
 
@@ -769,9 +785,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 let state = if destination.is_some() {
                     let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                     let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place).unwrap(); // will panic if attempting to encode unsupported type
-                    let lhs_value = encoded_lhs
-                        .clone()
-                        .field(self.encoder.encode_value_field(ty));
+                    let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty);
                     let encoded_args: Vec<vir::Expr> = args
                         .iter()
                         .map(|arg| self.mir_encoder.encode_operand_expr(arg))
@@ -1056,9 +1070,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     | ty::TypeVariants::TyUint(..)
                     | ty::TypeVariants::TyRawPtr(..)
                     | ty::TypeVariants::TyRef(..) => Some(
-                        encoded_lhs
-                            .clone()
-                            .field(self.encoder.encode_value_field(ty)),
+                        self.encoder.encode_value_expr(
+                            encoded_lhs.clone(),
+                            ty
+                        ),
                     ),
                     _ => None,
                 };
@@ -1105,10 +1120,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                             // Substitute a place of a value with an expression
                                             let rhs_expr =
                                                 self.mir_encoder.encode_operand_expr(operand);
-                                            let value_field =
-                                                self.encoder.encode_value_field(field_ty);
                                             state.substitute_value(
-                                                &field_place.field(value_field),
+                                                &self.encoder.encode_value_expr(field_place, field_ty),
                                                 rhs_expr,
                                             );
                                         }
@@ -1148,10 +1161,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                             // Substitute a place of a value with an expression
                                             let rhs_expr =
                                                 self.mir_encoder.encode_operand_expr(operand);
-                                            let value_field =
-                                                self.encoder.encode_value_field(field_ty);
                                             state.substitute_value(
-                                                &field_place.field(value_field),
+                                                &self.encoder.encode_value_expr(field_place, field_ty),
                                                 rhs_expr,
                                             );
                                         }

@@ -478,6 +478,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
+    // TODO CMFIXME: a workaround for copy types
+    pub fn encode_value_expr(&self, base: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
+        if self.has_value_field(ty) {
+            let value_field = self.encode_value_field(ty);
+            base.field(value_field)
+        } else {
+            base
+        }
+    }
+
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_encoder = TypeEncoder::new(self, ty);
         let field = type_encoder.encode_value_field();
@@ -1446,9 +1456,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                                        pure_formal_args: &Vec<vir::LocalVar>,
                                        pure_return_type: &vir::Type)
                                        -> Option<vir::DomainFunc> {
+        // TODO CMFIXME: no we actually want mirrors even in these cases!
+        /*
         if let vir::Type::Domain(_) = pure_return_type {
             return None; // no need for mirrors if the function already returns a snapshot
-        }
+        }*/
         if !self
             .snap_mirror_funcs
             .borrow()

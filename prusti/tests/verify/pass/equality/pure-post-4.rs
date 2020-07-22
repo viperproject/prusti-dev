@@ -7,18 +7,18 @@ struct A {
 
 #[pure]
 #[trusted]
-#[ensures="x == result"]
-fn first(x: A, y: A) -> A {
-    x
+#[ensures="_x == result"]
+fn first(_x: A, _y: A) -> A {
+    _x
 }
 
 fn main() {
 
-    let a = A { i: 17 };
-    let b = A { i: 42 };
+    let _a = A { i: 17 };
+    let _b = A { i: 42 };
 
-    let u = first(a,b);
-    assert!(u == a);
+    let _u = first(_a, _b);
+    assert!(_u == _a);
     
     // assert!(u == b); // fails
 }

@@ -1,6 +1,6 @@
 fn main() {
 
-    let a = ();
-    let b = ();
-    assert!(a == b);
+    let _a = ();
+    let _b = ();
+    assert!(_a == _b);
 }

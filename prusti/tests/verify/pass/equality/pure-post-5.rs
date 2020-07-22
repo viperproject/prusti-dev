@@ -6,10 +6,10 @@ struct A {
 }
 
 #[pure]
-#[requires="x != y"]
-#[ensures="result != y"]
-fn first(x: A, y: A) -> A {
-    x
+#[requires="_x != _y"]
+#[ensures="result != _y"]
+fn first(_x: A, _y: A) -> A {
+    _x
 }
 
 fn main() {

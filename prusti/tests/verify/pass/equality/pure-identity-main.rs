@@ -6,14 +6,14 @@ struct A {
 }
 
 #[pure]
-fn get_value(x: A) -> A {
-    x
+fn get_value(_x: A) -> A {
+    _x
 }
 
 fn main() {
-    let x = A { i: 17 };
-    let y = A { i: 17 };
-    let z = get_value(x);
-    assert!(y == z);
+    let _x = A { i: 17 };
+    let _y = A { i: 17 };
+    let _z = get_value(_x);
+    assert!(_y == _z);
 }
 

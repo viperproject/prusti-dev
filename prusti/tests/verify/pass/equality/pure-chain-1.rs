@@ -6,15 +6,15 @@ struct A {
 }
 
 #[pure]
-fn pos(x: A) -> bool {
-    x.i > 0
+fn pos(_x: A) -> bool {
+    _x.i > 0
 }
 
 #[pure]
-#[requires="pos(x) && pos(y)"]
+#[requires="pos(_x) && pos(_y)"]
 #[ensures="pos(result)"]
-fn first(x: A, y: A) -> A {
-    x
+fn first(_x: A, _y: A) -> A {
+    _x
 }
 
 fn main() {

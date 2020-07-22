@@ -6,12 +6,12 @@ struct A {
 }
 
 #[pure]
-fn get_value(x: A) -> A {
-    x
+fn get_value(_x: A) -> A {
+    _x
 }
 
-fn test(x: A) {
-    let zx = get_value(x);
+fn test(_x: A) {
+    let _zx = get_value(_x);
 }
 
 fn main() {

@@ -8,15 +8,15 @@ struct A {
 }
 
 #[pure]
-fn get_value(x: &A) -> i32 {
-    x.i + x.t.0 + x.t.1
+fn get_value(_x: &A) -> i32 {
+    _x.i + _x.t.0 + _x.t.1
 }
 
 
-#[requires="x == y"]
-#[ensures="result == 2*get_value(x)"]
-fn test_eq_propagation(x: &A, y: &A) -> i32 {
-    get_value(x) + get_value(y)
+#[requires="_x == _y"]
+#[ensures="result == 2*get_value(_x)"]
+fn test_eq_propagation(_x: &A, _y: &A) -> i32 {
+    get_value(_x) + get_value(_y)
 }
 
 fn main() {
