@@ -19,7 +19,7 @@ cargo build
 
 Running tests:
 ```bash
-cargo test
+cargo test -- --test-threads=1
 ```
 
 ## Design
