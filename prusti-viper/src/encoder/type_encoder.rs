@@ -140,21 +140,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    // TODO CMFIXME: added; remove duplucation
-    pub fn encode_ref_value_type(self) -> vir::Type {
+
+    /// provides the type of the underlying value or a reference in case of composed
+    /// data structures
+    pub fn encode_value_or_ref_type(self) -> vir::Type {
         debug!("Encode ref value type '{:?}'", self.ty);
         match self.ty.sty {
-            ty::TypeVariants::TyBool => vir::Type::Bool,
-
-            ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) | ty::TypeVariants::TyChar => {
-                vir::Type::Int
-            }
-
-            ty::TypeVariants::TyRef(_, ref ty, _) => {
-                let type_name = self.encoder.encode_type_predicate_use(ty).ok().unwrap();
-                vir::Type::TypedRef(type_name)
-            }
-
             ty::TypeVariants::TyAdt(_, _)
             | ty::TypeVariants::TyTuple(_) => {
                 let snapshot = self.encoder.encode_snapshot(&self.ty);
@@ -166,12 +157,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }
             },
 
-            ty::TypeVariants::TyParam(_) => {
-                let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
-                vir::Type::TypedRef(type_name)
-            }
-
-            ref x => unimplemented!("{:?}", x),
+            _ => self.encode_value_type(),
         }
     }
 
@@ -190,8 +176,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
 
-            ty::TypeVariants::TyAdt(_, _) // TODO CMFIXME notice that the field is a reference, not a snapshot
+            // For composed data structures, we typically use a snapshot rather than a field.
+            // To unify how parameters are passed to functions, we treat them like a reference.
+            ty::TypeVariants::TyAdt(_, _)
             | ty::TypeVariants::TyTuple(_) => {
+                // will panic if attempting to encode unsupported type
                 let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }

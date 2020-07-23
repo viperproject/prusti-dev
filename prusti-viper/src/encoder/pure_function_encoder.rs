@@ -69,13 +69,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         // Fix arguments
         for arg in self.mir.args_iter() {
             let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
-
-            // TODO CMFIXME let value_field = self.encoder.encode_value_field(arg_ty);
-            // let target_place: vir::Expr =
-                // will panic if attempting to encode unsupported type
-             //   vir::Expr::local(self.interpreter.mir_encoder().encode_local(arg).unwrap())
-               //     .field(value_field);
-            let target_place = self.encoder.encode_value_expr(vir::Expr::local(self.interpreter.mir_encoder().encode_local(arg).unwrap()), arg_ty);
+            let target_place = self.encoder.encode_value_expr(
+                vir::Expr::local(
+                    self.interpreter
+                        .mir_encoder()
+                        .encode_local(arg)
+                        .unwrap()
+                ),
+                arg_ty
+            );
             let new_place: vir::Expr = self.encode_local(arg).into();
             state.substitute_place(&target_place, new_place);
         }
@@ -155,7 +157,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 let mir_type = self.interpreter.mir_encoder().get_local_ty(local);
                 let var_type = self
                     .encoder
-                    .encode_ref_value_type(self.encoder.resolve_typaram(mir_type));
+                    .encode_value_or_ref_type(self.encoder.resolve_typaram(mir_type));
                 let var_type = var_type.patch(&subst_strings);
                 vir::LocalVar::new(var_name, var_type)
             })
@@ -207,7 +209,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             postcondition
         );
 
-        // TODO CMFIXME patch postcondition
         let postcondition = postcondition
             .into_iter()
             .map(
@@ -285,7 +286,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             type_spec.into_iter().conjoin(),
             func_spec
                 .into_iter()
-                .map( // TODO CMFIXME
+                .map(
                     |post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post)
                 ).conjoin(),
         )
@@ -335,9 +336,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos);
 
-        // TODO CMFIXME check if a patch is needed to improve performance
-        // For testing purposes, I prefer to apply it always for now as
-        // it may reveal unexpected corner cases
         SnapshotSpecPatcher::new(self.encoder).patch_spec(post)
     }
 
@@ -345,7 +343,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let var_name = self.interpreter.mir_encoder().encode_local_var_name(local);
         let var_type = self
             .encoder
-            .encode_ref_value_type(self.interpreter.mir_encoder().get_local_ty(local));
+            .encode_value_or_ref_type(self.interpreter.mir_encoder().get_local_ty(local));
         vir::LocalVar::new(var_name, var_type)
     }
 
@@ -360,7 +358,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
     pub fn encode_function_ref_return_type(&self) -> vir::Type {
         let ty = self.encoder.resolve_typaram(self.mir.return_ty());
-        self.encoder.encode_ref_value_type(ty)
+        self.encoder.encode_value_or_ref_type(ty)
     }
 }
 
@@ -417,7 +415,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
         // Generate a function call that leaves the expression undefined.
         let unreachable_expr = |pos| {
-            let encoded_type = self.encoder.encode_ref_value_type(self.mir.return_ty());
+            let encoded_type = self.encoder.encode_value_or_ref_type(self.mir.return_ty());
             let function_name =
                 self.encoder
                     .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
@@ -428,7 +426,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
         // Generate a function call that leaves the expression undefined.
         let undef_expr = |pos| {
-            let encoded_type = self.encoder.encode_ref_value_type(self.mir.return_ty());
+            let encoded_type = self.encoder.encode_value_or_ref_type(self.mir.return_ty());
             let function_name = self
                 .encoder
                 .encode_builtin_function_use(BuiltinFunctionKind::Undefined(encoded_type.clone()));

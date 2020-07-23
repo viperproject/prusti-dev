@@ -2721,7 +2721,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
             func_spec
-                .into_iter() // TODO CMFIXME: patch specs to account for copy types
+                .into_iter()
                 .map(|spec| SnapshotSpecPatcher::new(self.encoder).patch_spec(spec))
                 .conjoin(),
             precondition_weakening,

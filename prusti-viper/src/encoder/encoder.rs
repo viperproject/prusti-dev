@@ -467,24 +467,19 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         contract.to_call_site_contract(args, target)
     }
 
-    // TODO CMFIXME: there may be a better way but right now we check this
-    pub fn has_value_field(&self, ty: ty::Ty<'tcx>) -> bool {
+    /// Encodes a value in a field if the base expression is a reference or
+    /// a primitive types.
+    /// For composed data structures, the base expression is returned.
+    pub fn encode_value_expr(&self, base: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
         match ty.sty {
             ty::TypeVariants::TyAdt(_, _)
             | ty::TypeVariants::TyTuple(_) => {
-                false
+                base // don't use a field for tuples and ADTs
             }
-            _ => true
-        }
-    }
-
-    // TODO CMFIXME: a workaround for copy types
-    pub fn encode_value_expr(&self, base: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
-        if self.has_value_field(ty) {
-            let value_field = self.encode_value_field(ty);
-            base.field(value_field)
-        } else {
-            base
+            _ => {
+                let value_field = self.encode_value_field(ty);
+                base.field(value_field)
+            }
         }
     }
 
@@ -931,11 +926,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
         Ok(self.procedures.borrow()[&def_id].clone())
     }
-
-    // TODO CMFIXME: added as we have different variants here...
-    pub fn encode_ref_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
+    
+    pub fn encode_value_or_ref_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
         let type_encoder = TypeEncoder::new(self, ty);
-        type_encoder.encode_ref_value_type()
+        type_encoder.encode_value_or_ref_type()
     }
 
     pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
@@ -1055,7 +1049,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.snapshots.borrow()[&predicate_name].clone()
     }
 
-    // TODO CMFIXME
     pub fn get_snapshot(&self, snapshot_name: String) -> Box<Snapshot> {
         // fails if we have not encoded a snapshot with that name before
         // should be safe as we should never construct a snapshot name outside
@@ -1456,13 +1449,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                                        pure_formal_args: &Vec<vir::LocalVar>,
                                        pure_return_type: &vir::Type)
                                        -> Option<vir::DomainFunc> {
-        // TODO CMFIXME: no we actually want mirrors even in these cases!
-        /*
-        if let vir::Type::Domain(_) = pure_return_type {
-            return None; // no need for mirrors if the function already returns a snapshot
-        }*/
-        if !self
-            .snap_mirror_funcs
+        if !self.snap_mirror_funcs
             .borrow()
             .contains_key(&pure_func_name)
         {

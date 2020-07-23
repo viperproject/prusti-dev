@@ -928,16 +928,16 @@ impl Expr {
         debug_assert!(target.is_place());
         //assert_eq!(target.get_type(), replacement.get_type());
         if replacement.is_place() {
-            /* TODO CMFIXME: disabled as target and replacement may differ for copy types
             assert!(
-                target.get_type() == replacement.get_type(),
+                // for copy types references are replaced by snapshots
+                target.get_type() == replacement.get_type()
+                    || replacement.get_type().is_domain(),
                 "Cannot substitute '{}' with '{}', because they have incompatible types '{}' and '{}'",
                 target,
                 replacement,
                 target.get_type(),
                 replacement.get_type()
             );
-             */
         }
         struct PlaceReplacer<'a> {
             target: &'a Expr,

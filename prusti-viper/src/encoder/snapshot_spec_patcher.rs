@@ -31,6 +31,38 @@ struct PostSnapshotPatcher<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
 }
 
+impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ExprFolder for PostSnapshotPatcher<'p, 'v, 'r, 'a, 'tcx> {
+    fn fold_func_app(
+        &mut self,
+        name: String,
+        args: Vec<vir::Expr>,
+        formal_args: Vec<vir::LocalVar>,
+        return_type: vir::Type,
+        pos: vir::Position,
+    ) -> vir::Expr {
+        let args : Vec<_> = args.into_iter().map(|e| self.fold(e)).collect();
+        // patch function calls that internally use snapshots
+        if args.iter().any(|a| self.has_snap_type(a)) {
+            match name.as_str() {
+                // equalities, e.g. PartialEq::eq(__result, x), need to be patched as __result
+                // is now a snapshot whereas x is not; the desired result is
+                // __result == snapshot(x)
+                snapshot_encoder::SNAPSHOT_EQUALS => {
+                    self.patch_cmp_call(args, vir::BinOpKind::EqCmp)
+                }
+                snapshot_encoder::SNAPSHOT_NOT_EQUALS => {
+                    self.patch_cmp_call(args, vir::BinOpKind::NeCmp)
+                }
+                _ => {
+                    self.patch_func_app(name, args, formal_args, return_type, pos)
+                }
+            }
+        } else {
+            self.default_fold_func_app(name, args, formal_args, return_type, pos)
+        }
+    }
+}
+
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PostSnapshotPatcher<'p, 'v, 'r, 'a, 'tcx> {
     fn patch_cmp_call(&self, args: Vec<vir::Expr>, cmp: vir::BinOpKind) -> vir::Expr {
         assert_eq!(args.len(), 2);
@@ -82,10 +114,44 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PostSnapshotPatcher<'p, 'v, 'r, 'a, '
             _ => unreachable!(),
         }
     }
-}
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ExprFolder for PostSnapshotPatcher<'p, 'v, 'r, 'a, 'tcx> {
-    fn fold_func_app(
+    fn patch_func_app_with_mirror(
+        &mut self,
+        mirror_func: vir::DomainFunc,
+        args: Vec<vir::Expr>,
+        pos: vir::Position
+    ) -> vir::Expr {
+        let patched_args = args
+            .into_iter()
+            .map(|a|
+                if a.is_place() { // for constants
+                    match a.get_type() {
+                        vir::Type::TypedRef(predicate_name) => {
+                            let snapshot = self.encoder
+                                .encode_snapshot_use(
+                                    predicate_name.to_string()
+                                );
+                            if snapshot.is_defined() {
+                                snapshot.get_snap_call(a)
+                            } else {
+                                a
+                            }
+                        }
+                        _ => a,
+                    }
+                } else {
+                    a
+                }
+            ).collect();
+
+        vir::Expr::DomainFuncApp(
+            mirror_func,
+            patched_args,
+            pos,
+        )
+    }
+
+    fn patch_func_app(
         &mut self,
         name: String,
         args: Vec<vir::Expr>,
@@ -93,71 +159,38 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ExprFolder for PostSnapshotPatcher<'p
         return_type: vir::Type,
         pos: vir::Position,
     ) -> vir::Expr {
-        let args : Vec<_> = args.into_iter().map(|e| self.fold(e)).collect();
+        // we need to rectify cases in which there is a mismatch between the
+        // functions formal arguments (which do not involve snapshots)
+        // and its actual arguments (which may involve snapshots)
+        let found_mismatch = formal_args
+            .iter()
+            .zip(args.iter())
+            .any(|(f, a)| f.typ != *a.get_type());
 
-        // patch function calls that internally use snapshots
-        if args.iter().any(|a| self.has_snap_type(a)) {
-            match name.as_str() {
-                // equalities, e.g. PartialEq::eq(__result, x), need to be patched as __result
-                // is now a snapshot whereas x is not; the desired result is
-                // __result == snapshot(x)
-                snapshot_encoder::SNAPSHOT_EQUALS => {
-                    return self.patch_cmp_call(args, vir::BinOpKind::EqCmp);
-                }
-                snapshot_encoder::SNAPSHOT_NOT_EQUALS => {
-                    return self.patch_cmp_call(args, vir::BinOpKind::NeCmp);
-                }
-                _ => {
-                    // TODO CMFIXME refactor into its own function
-                    // we need to rectify cases in which there is a mismatch between the
-                    // functions formal arguments (which do not involve snapshots)
-                    // and its actual arguments (which may involve snapshots)
-                    let found_mismatch = formal_args
-                        .iter()
-                        .zip(args.iter())
-                        .any(|(f, a)| f.typ != *a.get_type());
-
-                    if found_mismatch { // TODO CMFIXME: using mirrors is not enough when dealing with nested calls
-                        let mirror_func = self.encoder.encode_pure_snapshot_mirror(
-                            compute_identifier(&name, &formal_args, &return_type),
-                            &formal_args,
-                            &return_type
-                        ).unwrap(); // TODO CMFIXME fails if unsupported
-
-                        let patched_args = args
-                            .into_iter()
-                            .map(|a| // TODO CMFIXME simplify
-                                if a.is_place() { // for constants
-                                    match a.get_type() {
-                                        vir::Type::TypedRef(predicate_name) => {
-                                            let snapshot = self.encoder
-                                                .encode_snapshot_use(
-                                                    predicate_name.to_string()
-                                                );
-                                            if snapshot.is_defined() {
-                                                snapshot.get_snap_call(a)
-                                            } else {
-                                                a
-                                            }
-                                        }
-                                        _ => a,
-                                    }
-                                } else {
-                                    a
-                                }
-                            )
-                            .collect();
-
-                        return vir::Expr::DomainFuncApp(
-                            mirror_func,
-                            patched_args,
-                            pos,
-                        );
-                    }
-                }
+        if found_mismatch {
+            let encoded_mirror_func = self.encoder.encode_pure_snapshot_mirror(
+                compute_identifier(&name, &formal_args, &return_type),
+                &formal_args,
+                &return_type
+            );
+            if let Some(mirror_func) = encoded_mirror_func {
+                self.patch_func_app_with_mirror(mirror_func, args, pos)
+            } else {
+                self.default_fold_func_app(name, args, formal_args, return_type, pos)
             }
+        } else {
+            self.default_fold_func_app(name, args, formal_args, return_type, pos)
         }
+    }
 
+    fn default_fold_func_app(
+        &mut self,
+        name: String,
+        args: Vec<vir::Expr>,
+        formal_args: Vec<vir::LocalVar>,
+        return_type: vir::Type,
+        pos: vir::Position,
+    ) -> vir::Expr {
         vir::Expr::FuncApp(
             name,
             args,
