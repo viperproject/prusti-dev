@@ -87,7 +87,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             "Pure function {} has been encoded with expr: {}",
             function_name, body_expr
         );
-        
+
         // if the function returns a snapshot, we take a snapshot of the body
         if self.encode_function_return_type().is_domain() {
             let ty = self.encoder.resolve_typaram(self.mir.return_ty());
