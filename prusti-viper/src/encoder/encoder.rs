@@ -926,7 +926,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
         Ok(self.procedures.borrow()[&def_id].clone())
     }
-    
+
     pub fn encode_value_or_ref_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_value_or_ref_type()
@@ -1521,6 +1521,30 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             pure_function_encoder.encode_function_name(),
             pure_function_encoder.encode_function_return_type(),
         )
+    }
+
+    /// Encode the use (call) of either a comparison (equality or disequality)
+    /// returning the name of the encoded function and its type.
+    /// If the comparison is not supported, a stub function will be encoded
+    pub fn encode_cmp_pure_function_use(
+        &self,
+        proc_def_id: ProcedureDefId,
+        arg_ty: ty::Ty<'tcx>, // type arguments
+        is_equality: bool // true = equality, false = disequality
+    ) -> (String, vir::Type) {
+        let snapshot = self.encode_snapshot(&arg_ty);
+        if snapshot.is_defined() {
+            (
+                if is_equality {
+                    snapshot.get_equals_func_name()
+                } else {
+                    snapshot.get_not_equals_func_name()
+                },
+                vir::Type::Bool
+            )
+        } else {
+            self.encode_stub_pure_function_use(proc_def_id)
+        }
     }
 
     /// Encode the use (call) of a stub pure function, returning the name of the

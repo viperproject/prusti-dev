@@ -87,9 +87,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             "Pure function {} has been encoded with expr: {}",
             function_name, body_expr
         );
-
-        // TODO CMFIXME: use better mechanism for detecting functions returning snapshots
-        if self.encode_function_return_type() != self.encode_function_ref_return_type() {
+        
+        // if the function returns a snapshot, we take a snapshot of the body
+        if self.encode_function_return_type().is_domain() {
             let ty = self.encoder.resolve_typaram(self.mir.return_ty());
             let snapshot = self.encoder.encode_snapshot(&ty);
             let body_expr = snapshot.get_snap_call(body_expr);
@@ -653,36 +653,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                         }
                         // simple function call
                         _ => {
+                            let mut is_cmp_call = false;
                             let is_pure_function =
                                 self.encoder.env().has_attribute_name(def_id, "pure");
-                            let ((function_name, return_type), is_cmp_call) = if is_pure_function {
-                                (self.encoder.encode_pure_function_use(def_id), false) // TODO CMFIXME remove the boolean flag
+                            let (function_name, return_type) = if is_pure_function {
+                                self.encoder.encode_pure_function_use(def_id)
                             } else {
                                 // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
                                 // function
                                 match self.encoder.get_item_name(def_id).as_str() {
                                     "std::cmp::PartialEq::eq" => {
                                         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                        let snapshot = self.encoder.encode_snapshot(&arg_ty);
-                                        if snapshot.is_defined() {
-                                            let eq_func_name = snapshot.get_equals_func_name();
-                                            ((eq_func_name, vir::Type::Bool), true)
-                                        } else {
-                                            (self.encoder.encode_stub_pure_function_use(def_id), false)
-                                        }
+                                        is_cmp_call = true;
+                                        self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, true)
                                     }
-                                    "std::cmp::PartialEq::ne" => { // TODO CMFIXME: reduce code duplication
+                                    "std::cmp::PartialEq::ne" => {
                                         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                        let snapshot = self.encoder.encode_snapshot(&arg_ty);
-                                        if snapshot.is_defined() {
-                                            let eq_func_name = snapshot.get_not_equals_func_name();
-                                            ((eq_func_name, vir::Type::Bool), true)
-                                        } else {
-                                            (self.encoder.encode_stub_pure_function_use(def_id), false)
-                                        }
+                                        is_cmp_call = true;
+                                        self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, false)
                                     }
                                     _ => {
-                                        (self.encoder.encode_stub_pure_function_use(def_id), false)
+                                        self.encoder.encode_stub_pure_function_use(def_id)
                                     }
                                 }
                             };

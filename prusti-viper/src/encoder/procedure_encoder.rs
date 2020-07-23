@@ -2497,18 +2497,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             None => unreachable!(),
         };
 
-        // TODO CMFIXME: check whether we return a snapshot; use a more elegant mechanism
-        if target_value.get_type().clone() == return_type {
-            stmts.push(vir::Stmt::Inhale(
-                vir::Expr::eq_cmp(target_value.into(), func_call),
-                vir::FoldingBehaviour::Stmt,
-            ));
-        } else {
+        if return_type.is_domain() {
             let predicate_name = target_value.get_type().name();
             let snapshot = self.encoder.encode_snapshot_use(predicate_name);
             let snap_call = snapshot.get_snap_call(target_place);
             stmts.push(vir::Stmt::Inhale(
                 vir::Expr::eq_cmp(snap_call.clone(), func_call),
+                vir::FoldingBehaviour::Stmt,
+            ));
+        } else {
+            stmts.push(vir::Stmt::Inhale(
+                vir::Expr::eq_cmp(target_value.into(), func_call),
                 vir::FoldingBehaviour::Stmt,
             ));
         }
