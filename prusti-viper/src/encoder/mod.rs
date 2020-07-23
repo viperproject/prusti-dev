@@ -8,7 +8,6 @@ pub use self::{encoder::Encoder, errors::PrustiError};
 
 mod borrows;
 mod builtin_encoder;
-mod snapshot_encoder;
 mod encoder;
 mod errors;
 mod foldunfold;
@@ -21,6 +20,8 @@ mod optimizer;
 mod places;
 mod procedure_encoder;
 mod pure_function_encoder;
+mod snapshot_encoder;
+mod snapshot_spec_patcher;
 mod spec_encoder;
 mod stub_function_encoder;
 mod stub_procedure_encoder;

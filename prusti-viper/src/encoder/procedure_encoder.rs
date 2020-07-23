@@ -58,6 +58,7 @@ use syntax::{
     attr::SignedInt,
     codemap::{MultiSpan, Span},
 };
+use encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 
 type Result<T> = std::result::Result<T, EncodingError>;
 
@@ -2719,7 +2720,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             type_spec.into_iter().conjoin(),
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
-            func_spec.into_iter().conjoin(),
+            func_spec
+                .into_iter() // TODO CMFIXME: patch specs to account for copy types
+                .map(|spec| SnapshotSpecPatcher::new(self.encoder).patch_spec(spec))
+                .conjoin(),
             precondition_weakening,
         )
     }
@@ -2867,8 +2871,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 lhs.push(assertion_lhs);
                 rhs.push(assertion_rhs);
             }
-            let lhs = lhs.into_iter().conjoin();
-            let rhs = rhs.into_iter().conjoin();
+            let lhs = lhs
+                .into_iter()
+                .conjoin();
+            let rhs = rhs
+                .into_iter()
+                .conjoin();
             Some((lhs, rhs))
         } else {
             None
@@ -3053,14 +3061,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.wrap_arguments_into_old(assertion, pre_label, contract, &encoded_args)
         });
 
+        let full_func_spec = func_spec
+            .into_iter()
+            .map( // patch type mismatches for specs involving pure functions returning copy types
+                |spec| SnapshotSpecPatcher::new(self.encoder).patch_spec(spec)
+            ).conjoin()
+            .set_default_pos(func_spec_pos);
+
         (
             type_spec.into_iter().conjoin(),
             return_perm,
             invs_spec.into_iter().conjoin(),
-            func_spec
-                .into_iter()
-                .conjoin()
-                .set_default_pos(func_spec_pos),
+            full_func_spec,
             magic_wands,
             read_transfer,
             strengthening_spec,

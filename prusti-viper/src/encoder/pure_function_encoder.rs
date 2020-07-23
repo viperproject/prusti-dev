@@ -6,12 +6,12 @@
 
 use encoder::{borrows::{compute_procedure_contract, ProcedureContract}, builtin_encoder::BuiltinFunctionKind, errors::{EncodingError, ErrorCtxt, PanicCause}, foldunfold, mir_encoder::{MirEncoder, PRECONDITION_LABEL, WAND_LHS_LABEL}, mir_interpreter::{
     run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
-}, Encoder, snapshot_encoder};
-use prusti_common::{config, vir, vir::ExprIterator, vir::ExprFolder, vir::compute_identifier};
+}, Encoder};
+use prusti_common::{config, vir, vir::ExprIterator};
 use prusti_interface::specifications::SpecificationSet;
 use rustc::{hir, hir::def_id::DefId, mir, ty};
 use std::collections::HashMap;
-use encoder::snapshot_encoder::Snapshot;
+use encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -207,6 +207,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             postcondition
         );
 
+        // TODO CMFIXME patch postcondition
+        let postcondition = postcondition
+            .into_iter()
+            .map(
+                |post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post)
+            ).collect();
+
         let mut function = vir::Function {
             name: function_name.clone(),
             formal_args,
@@ -224,25 +231,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         }
 
         // Add folding/unfolding
-        // TODO CMFIXME: hack to avoid crashing if fold/unfold fails for debugging purposes
-        /*
         foldunfold::add_folding_unfolding_to_function(
             function,
             self.encoder.get_used_viper_predicates_map(),
         )
         .ok()
         .unwrap() // TODO: return a result
-        */
-        let fufunction = foldunfold::add_folding_unfolding_to_function(
-            function.clone(),
-            self.encoder.get_used_viper_predicates_map(),
-        ).ok();
-        match fufunction {
-            Some(func) => func,
-            None => {
-                function
-            },
-        }
     }
 
     /// Encode the precondition with two expressions:
@@ -289,7 +283,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
         (
             type_spec.into_iter().conjoin(),
-            func_spec.into_iter().conjoin(),
+            func_spec
+                .into_iter()
+                .map( // TODO CMFIXME
+                    |post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post)
+                ).conjoin(),
         )
     }
 
@@ -307,8 +305,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let encoded_return = self.encode_local(contract.returned_value.clone().into());
         debug!("encoded_return: {:?}", encoded_return);
 
-        let result_is_snap = encoded_return.typ != self.encode_function_return_type();
-
         for item in contract.functional_postcondition() {
             let encoded_postcond = self.encoder.encode_assertion(
                 &item.assertion,
@@ -321,12 +317,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 ErrorCtxt::GenericExpression,
             );
             debug_assert!(!encoded_postcond.pos().is_default());
-            if result_is_snap { // TODO CMFIXME
-                let patched_postcond = encoded_postcond;
-                func_spec.push(patched_postcond);
-            } else {
-                func_spec.push(encoded_postcond);
-            }
+            func_spec.push(encoded_postcond);
         }
 
         let post = func_spec.into_iter().conjoin();
@@ -344,161 +335,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos);
 
-        if result_is_snap {
-            // TODO CMFIXME: patch all expressions involving __result
-            self.patch_post_for_snapshot_returns(post)
-        } else {
-            post
-        }
-    }
-
-    // TODO CMFIXME: fix all cases in which we implicitly use snapshots in specs
-    fn patch_post_for_snapshot_returns(&self, post: vir::Expr) -> vir::Expr {
-        struct PostSnapshotPatcher<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-            encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-        }
-
-        impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ExprFolder for PostSnapshotPatcher<'p, 'v, 'r, 'a, 'tcx> {
-            fn fold_func_app(
-                &mut self,
-                name: String,
-                args: Vec<vir::Expr>,
-                formal_args: Vec<vir::LocalVar>,
-                return_type: vir::Type,
-                pos: vir::Position,
-            ) -> vir::Expr {
-                let args : Vec<_> = args.into_iter().map(|e| self.fold(e)).collect();
-
-                // patch function calls that internally use snapshots
-                if args.iter().any(|a| self.has_snap_type(a)) {
-                    match name.as_str() {
-                        // equalities, e.g. PartialEq::eq(__result, x), need to be patched as __result
-                        // is now a snapshot whereas x is not; the desired result is
-                        // __result == snapshot(x)
-                        snapshot_encoder::SNAPSHOT_EQUALS => {
-                            return self.patch_cmp_call(args, vir::BinOpKind::EqCmp);
-                        }
-                        snapshot_encoder::SNAPSHOT_NOT_EQUALS => {
-                            return self.patch_cmp_call(args, vir::BinOpKind::NeCmp);
-                        }
-                        _ => {
-                            // TODO CMFIXME refactor into its own function
-                            // we need to rectify cases in which there is a mismatch between the
-                            // functions formal arguments (which do not involve snapshots)
-                            // and its actual arguments (which may involve snapshots)
-                            let found_mismatch = formal_args
-                                .iter()
-                                .zip(args.iter())
-                                .any(|(f, a)| f.typ != *a.get_type());
-
-                            if found_mismatch { // TODO CMFIXME: using mirrors is not enough when dealing with nested calls
-                                let mirror_func = self.encoder.encode_pure_snapshot_mirror(
-                                    compute_identifier(&name, &formal_args, &return_type),
-                                    &formal_args,
-                                    &return_type
-                                ).unwrap(); // TODO CMFIXME fails if unsupported
-
-                                let patched_args = args
-                                    .into_iter()
-                                    .map(|a| // TODO CMFIXME simplify
-                                        if a.is_place() { // for constants
-                                            match a.get_type() {
-                                                vir::Type::TypedRef(predicate_name) => {
-                                                    let snapshot = self.encoder
-                                                        .encode_snapshot_use(
-                                                            predicate_name.to_string()
-                                                        );
-                                                    if snapshot.is_defined() {
-                                                        snapshot.get_snap_call(a)
-                                                    } else {
-                                                        a
-                                                    }
-                                                }
-                                                _ => a,
-                                            }
-                                        } else {
-                                            a
-                                        }
-                                    )
-                                    .collect();
-
-                                return vir::Expr::DomainFuncApp(
-                                    mirror_func,
-                                    patched_args,
-                                    pos,
-                                );
-                            }
-                        }
-                    }
-                }
-
-                vir::Expr::FuncApp(
-                    name,
-                    args,
-                    formal_args,
-                    return_type,
-                    pos
-                )
-            }
-        }
-
-        impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PostSnapshotPatcher<'p, 'v, 'r, 'a, 'tcx> {
-            fn patch_cmp_call(&self, args: Vec<vir::Expr>, cmp: vir::BinOpKind) -> vir::Expr {
-                assert_eq!(args.len(), 2);
-                let lhs_is_snap = self.has_snap_type(&args[0]);
-                let rhs_is_snap = self.has_snap_type(&args[1]);
-
-                let (lhs, rhs) = if (lhs_is_snap && rhs_is_snap)
-                    || (!lhs_is_snap && !rhs_is_snap) {
-                    (
-                        args[0].clone(),
-                        args[1].clone()
-                    )
-                } else if lhs_is_snap /* && !rhs_is_snap */ {
-                    (
-                        args[0].clone(),
-                        self.get_snapshot(&args[0]).get_snap_call(args[1].clone())
-                    )
-                } else /* rhs_is_snap && !lhs_is_snap */ {
-                    (
-                        self.get_snapshot(&args[1]).get_snap_call(args[0].clone()),
-                        args[1].clone()
-                    )
-                };
-
-                vir::Expr::BinOp(
-                    cmp,
-                    box lhs,
-                    box rhs,
-                    vir::Position::default()
-                )
-            }
-
-            fn has_snap_type(&self, expr: &vir::Expr) -> bool {
-                if expr.is_place() || expr.is_call() {
-                    match expr.get_type() {
-                        vir::Type::Domain(_) => true,
-                        _ => false,
-                    }
-                } else {
-                    false
-                }
-            }
-
-            fn get_snapshot(&self, expr: &vir::Expr) -> Box<Snapshot> {
-                match expr.get_type() {
-                    vir::Type::Domain(snapshot_name) => {
-                        self.encoder.get_snapshot(snapshot_name.to_string())
-                    },
-                    _ => unreachable!(),
-                }
-            }
-        }
-
-        let mut patcher = PostSnapshotPatcher {
-            encoder: self.encoder,
-        };
-        patcher.fold(post)
+        // TODO CMFIXME check if a patch is needed to improve performance
+        // For testing purposes, I prefer to apply it always for now as
+        // it may reveal unexpected corner cases
+        SnapshotSpecPatcher::new(self.encoder).patch_spec(post)
     }
 
     fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
