@@ -4,37 +4,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::borrows::{compute_procedure_contract, ProcedureContract};
-use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::errors::PanicCause;
-use encoder::errors::{EncodingError, ErrorCtxt};
-use encoder::foldunfold;
-use encoder::mir_encoder::MirEncoder;
-use encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
-use encoder::mir_interpreter::{
+use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract};
+use crate::encoder::builtin_encoder::BuiltinFunctionKind;
+use crate::encoder::errors::PanicCause;
+use crate::encoder::errors::{EncodingError, ErrorCtxt};
+use crate::encoder::foldunfold;
+use crate::encoder::mir_encoder::MirEncoder;
+use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
+use crate::encoder::mir_interpreter::{
     run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
 };
-use encoder::Encoder;
+use crate::encoder::Encoder;
 use prusti_common::vir;
 use prusti_common::vir::ExprIterator;
 use prusti_common::config;
-use prusti_interface::specifications::SpecificationSet;
-use rustc::hir;
-use rustc::hir::def_id::DefId;
+use prusti_interface::specs::typed;
+use rustc_hir as hir;
+use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
-use rustc::ty;
+use rustc_middle::ty;
 use std::collections::HashMap;
+use log::{debug, trace};
 
-pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+pub struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: DefId,
     mir: &'p mir::Body<'tcx>,
-    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>,
+    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'tcx>,
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     pub fn new(
-        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
         mir: &'p mir::Body<'tcx>,
         is_encoding_assertion: bool,
@@ -129,7 +130,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 Some(fun_spec) => fun_spec.clone(),
                 None => {
                     debug!("Procedure {:?} has no specification", self.proc_def_id);
-                    SpecificationSet::Procedure(vec![], vec![])
+                    typed::SpecificationSet::Procedure(typed::ProcedureSpecification::empty())
                 }
             };
             let tymap = self.encoder.current_tymap();
@@ -190,13 +191,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 precondition.extend(bounds);
             }
         } else if config::encode_unsigned_num_constraint() {
-            if let ty::TypeVariants::TyUint(_) = self.mir.return_ty().sty {
+            if let ty::TyKind::Uint(_) = self.mir.return_ty().kind {
                 let expr = vir::Expr::le_cmp(0.into(), pure_fn_return_variable.into());
                 postcondition.push(expr.set_default_pos(res_value_range_pos));
             }
             for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
                 let typ = self.interpreter.mir_encoder().get_local_ty(local);
-                if let ty::TypeVariants::TyUint(_) = typ.sty {
+                if let ty::TyKind::Uint(_) = typ.kind {
                     precondition.push(vir::Expr::le_cmp(0.into(), formal_arg.into()));
                 }
             }
@@ -242,8 +243,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     ) -> (vir::Expr, vir::Expr) {
         let type_spec = contract.args.iter().flat_map(|&local| {
             let local_ty = self.interpreter.mir_encoder().get_local_ty(local.into());
-            let fraction = if let ty::TypeVariants::TyRef(_, _, hir::Mutability::MutImmutable) =
-                local_ty.sty
+            let fraction = if let ty::TyKind::Ref(_, _, hir::Mutability::Not) =
+                local_ty.kind
             {
                 vir::PermAmount::Read
             } else {
@@ -264,7 +265,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         for item in contract.functional_precondition() {
             debug!("Encode spec item: {:?}", item);
             func_spec.push(self.encoder.encode_assertion(
-                &item.assertion,
+                &item,
                 &self.mir,
                 &"",
                 &encoded_args,
@@ -296,7 +297,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         debug!("encoded_return: {:?}", encoded_return);
         for item in contract.functional_postcondition() {
             let encoded_postcond = self.encoder.encode_assertion(
-                &item.assertion,
+                &item,
                 &self.mir,
                 &"",
                 &encoded_args,
@@ -342,10 +343,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     }
 }
 
-pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
     mir: &'p mir::Body<'tcx>,
-    mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
+    mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     namespace: String,
     /// True if the encoder is currently encoding an assertion and not a pure function body. This
     /// flag is used to distinguish when assert terminators should be translated into `false` and
@@ -357,9 +358,9 @@ pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 't
 /// XXX: This encoding works backward, but there is the risk of generating expressions whose length
 /// is exponential in the number of branches. If this becomes a problem, consider doing a forward
 /// encoding (keeping path conditions expressions).
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
     pub(super) fn new(
-        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        encoder: &'p Encoder<'v, 'tcx>,
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
         namespace: String,
@@ -374,13 +375,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionBackwardInterpreter<'p, '
         }
     }
 
-    pub(super) fn mir_encoder(&self) -> &MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
+    pub(super) fn mir_encoder(&self) -> &MirEncoder<'p, 'v, 'tcx> {
         &self.mir_encoder
     }
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
-    for PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>
+impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
+    for PureFunctionBackwardInterpreter<'p, 'v, 'tcx>
 {
     type State = MultiExprBackwardInterpreterState;
 
@@ -391,7 +392,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
         states: HashMap<mir::BasicBlock, &Self::State>,
     ) -> Self::State {
         trace!("apply_terminator {:?}, states: {:?}", term, states);
-        use rustc::mir::TerminatorKind;
+        use rustc_middle::mir::TerminatorKind;
 
         // Generate a function call that leaves the expression undefined.
         let unreachable_expr = |pos| {
@@ -442,7 +443,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 states[target].clone()
             }
 
-            TerminatorKind::FalseEdges {
+            TerminatorKind::FalseEdge {
                 ref real_target, ..
             } => {
                 assert_eq!(states.len(), 2);
@@ -484,8 +485,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 for (i, &value) in values.iter().enumerate() {
                     let target = targets[i as usize];
                     // Convert int to bool, if required
-                    let viper_guard = match switch_ty.sty {
-                        ty::TypeVariants::TyBool => {
+                    let viper_guard = match switch_ty.kind {
+                        ty::TyKind::Bool => {
                             if value == 0 {
                                 // If discr is 0 (false)
                                 vir::Expr::not(discr_val.clone().into())
@@ -495,7 +496,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             }
                         }
 
-                        ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) => {
+                        ty::TyKind::Int(_) | ty::TyKind::Uint(_) => {
                             vir::Expr::eq_cmp(
                                 discr_val.clone().into(),
                                 self.encoder.encode_int_cast(value, switch_ty),
@@ -559,37 +560,35 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 func:
                     mir::Operand::Constant(box mir::Constant {
                         literal:
-                            mir::Literal::Value {
-                                value:
-                                    ty::Const {
-                                        ty:
-                                            &ty::TyS {
-                                                sty: ty::TyFnDef(def_id, substs),
-                                                ..
-                                            },
-                                        ..
-                                    },
+                            ty::Const {
+                                ty: ty::TyS {
+                                    kind: ty::TyKind::FnDef(def_id, substs),
+                                    ..
+                                },
+                                val: _,
                             },
                         ..
                     }),
                 ..
             } => {
+                let def_id = *def_id;
                 let full_func_proc_name: &str =
-                    &self.encoder.env().tcx().absolute_item_path_str(def_id);
+                    &self.encoder.env().tcx().def_path_str(def_id);
+                    // &self.encoder.env().tcx().absolute_item_path_str(def_id);
                 let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
                 let own_substs =
-                    ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), def_id);
+                    ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
 
                 {
                     // FIXME; hideous monstrosity...
                     let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
                     let mut tymap = HashMap::new();
 
-                    for (kind1, kind2) in own_substs.iter().zip(substs) {
+                    for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
                         if let (
-                            ty::subst::UnpackedKind::Type(ty1),
-                            ty::subst::UnpackedKind::Type(ty2),
+                            ty::subst::GenericArgKind::Type(ty1),
+                            ty::subst::GenericArgKind::Type(ty2),
                         ) = (kind1.unpack(), kind2.unpack())
                         {
                             tymap.insert(ty1, ty2);
@@ -690,6 +689,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                         }
                     }
                 } else {
+                    // FIXME: Refactor the common code with the procedure encoder.
+
                     // Encoding of a non-terminating function call
                     let error_ctxt = match full_func_proc_name {
                         "std::rt::begin_panic" | "std::panicking::begin_panic" => {
@@ -699,34 +700,34 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
                             // Pattern match on the macro that generated the panic
                             // TODO: use a better approach to match macros
-                            let macro_backtrace = term.source_info.span.macro_backtrace();
+                            let macro_backtrace: Vec<_> = term.source_info.span.macro_backtrace().collect();
                             debug!("macro_backtrace: {:?}", macro_backtrace);
 
                             let panic_cause = if !macro_backtrace.is_empty() {
-                                let macro_name = term.source_info.span.macro_backtrace()[0]
-                                    .macro_decl_name
-                                    .clone();
+                                let macro_name = macro_backtrace[0]
+                                    .macro_def_id
+                                    .unwrap();
                                 // HACK to match the filename of the span
                                 let def_site_span = format!(
                                     "{:?}",
-                                    term.source_info.span.macro_backtrace()[0].def_site_span
+                                    macro_backtrace[0].def_site
                                 );
 
-                                match macro_name.as_str() {
+                                match self.encoder.env().tcx().def_path_str(macro_name).as_str() {
                                     "panic!" if def_site_span.contains("<panic macros>") => {
                                         if macro_backtrace.len() > 1 {
                                             let second_macro_name =
-                                                term.source_info.span.macro_backtrace()[1]
-                                                    .macro_decl_name
-                                                    .clone();
+                                                macro_backtrace[1]
+                                                    .macro_def_id
+                                                    .unwrap();
                                             // HACK to match the filename of the span
                                             let second_def_site_span = format!(
                                                 "{:?}",
-                                                term.source_info.span.macro_backtrace()[1]
-                                                    .def_site_span
+                                                macro_backtrace[1]
+                                                    .def_site
                                             );
 
-                                            match second_macro_name.as_str() {
+                                            match self.encoder.env().tcx().def_path_str(second_macro_name).as_str() {
                                                 "panic!"
                                                     if second_def_site_span
                                                         .contains("<panic macros>") =>
@@ -824,7 +825,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 )
             }
 
-            TerminatorKind::Yield { .. } | TerminatorKind::GeneratorDrop => {
+            TerminatorKind::Yield { .. } |
+            TerminatorKind::GeneratorDrop |
+            TerminatorKind::InlineAsm { .. } => {
                 unimplemented!("{:?}", term.kind)
             }
         }
@@ -842,12 +845,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
         match stmt.kind {
             mir::StatementKind::StorageLive(..)
             | mir::StatementKind::StorageDead(..)
-            | mir::StatementKind::ReadForMatch(..)
-            | mir::StatementKind::EndRegion(..) => {
+            | mir::StatementKind::FakeRead(_, _)    // FIXME
+            // | mir::StatementKind::ReadForMatch(..)
+            // | mir::StatementKind::EndRegion(..)
+             => {
                 // Nothing to do
             }
 
-            mir::StatementKind::Assign(ref lhs, ref rhs) => {
+            mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
                 let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs);
 
                 if !state.use_place(&encoded_lhs) {
@@ -856,12 +861,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     return;
                 }
 
-                let opt_lhs_value_place = match ty.sty {
-                    ty::TypeVariants::TyBool
-                    | ty::TypeVariants::TyInt(..)
-                    | ty::TypeVariants::TyUint(..)
-                    | ty::TypeVariants::TyRawPtr(..)
-                    | ty::TypeVariants::TyRef(..) => Some(
+                let opt_lhs_value_place = match ty.kind {
+                    ty::TyKind::Bool
+                    | ty::TyKind::Int(..)
+                    | ty::TyKind::Uint(..)
+                    | ty::TyKind::RawPtr(..)
+                    | ty::TyKind::Ref(..) => Some(
                         encoded_lhs
                             .clone()
                             .field(self.encoder.encode_value_field(ty)),
@@ -890,7 +895,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                         debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
                         match aggregate.as_ref() {
                             &mir::AggregateKind::Tuple => {
-                                let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty {
+                                let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind {
                                     x
                                 } else {
                                     unreachable!()
@@ -899,7 +904,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                     let field_name = format!("tuple_{}", field_num);
                                     let field_ty = field_types[field_num];
                                     let encoded_field =
-                                        self.encoder.encode_raw_ref_field(field_name, field_ty);
+                                        self.encoder.encode_raw_ref_field(field_name, field_ty.expect_ty());
                                     let field_place = encoded_lhs.clone().field(encoded_field);
 
                                     match self.mir_encoder.encode_operand_place(operand) {
@@ -912,7 +917,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                             let rhs_expr =
                                                 self.mir_encoder.encode_operand_expr(operand);
                                             let value_field =
-                                                self.encoder.encode_value_field(field_ty);
+                                                self.encoder.encode_value_field(field_ty.expect_ty());
                                             state.substitute_value(
                                                 &field_place.field(value_field),
                                                 rhs_expr,
@@ -922,7 +927,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 }
                             }
 
-                            &mir::AggregateKind::Adt(adt_def, variant_index, subst, _) => {
+                            &mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) => {
                                 let num_variants = adt_def.variants.len();
                                 let variant_def = &adt_def.variants[variant_index];
                                 let mut encoded_lhs_variant = encoded_lhs.clone();
@@ -930,10 +935,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                     let discr_field = self.encoder.encode_discriminant_field();
                                     state.substitute_value(
                                         &encoded_lhs.clone().field(discr_field),
-                                        variant_index.into(),
+                                        variant_index.index().into(),
                                     );
                                     encoded_lhs_variant =
-                                        encoded_lhs_variant.variant(&variant_def.name.as_str());
+                                        encoded_lhs_variant.variant(&variant_def.ident.as_str());
                                 }
                                 for (field_index, field) in variant_def.fields.iter().enumerate() {
                                     let operand = &operands[field_index];
@@ -984,7 +989,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     }
 
                     &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
-                        let operand_ty = if let ty::TypeVariants::TyTuple(ref types) = ty.sty {
+                        let operand_ty = if let ty::TyKind::Tuple(ref types) = ty.kind {
                             types[0].clone()
                         } else {
                             unreachable!()
@@ -997,28 +1002,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             op,
                             encoded_left.clone(),
                             encoded_right.clone(),
-                            operand_ty,
+                            operand_ty.expect_ty(),
                         );
                         let encoded_check = self.mir_encoder.encode_bin_op_check(
                             op,
                             encoded_left,
                             encoded_right,
-                            operand_ty,
+                            operand_ty.expect_ty(),
                         );
 
-                        let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty {
+                        let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind {
                             x
                         } else {
                             unreachable!()
                         };
                         let value_field = self
                             .encoder
-                            .encode_raw_ref_field("tuple_0".to_string(), field_types[0]);
-                        let value_field_value = self.encoder.encode_value_field(field_types[0]);
+                            .encode_raw_ref_field("tuple_0".to_string(), field_types[0].expect_ty());
+                        let value_field_value = self.encoder.encode_value_field(field_types[0].expect_ty());
                         let check_field = self
                             .encoder
-                            .encode_raw_ref_field("tuple_1".to_string(), field_types[1]);
-                        let check_field_value = self.encoder.encode_value_field(field_types[1]);
+                            .encode_raw_ref_field("tuple_1".to_string(), field_types[1].expect_ty());
+                        let check_field_value = self.encoder.encode_value_field(field_types[1].expect_ty());
 
                         let lhs_value = encoded_lhs
                             .clone()
@@ -1046,8 +1051,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
                     &mir::Rvalue::Discriminant(ref src) => {
                         let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src);
-                        match src_ty.sty {
-                            ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
+                        match src_ty.kind {
+                            ty::TyKind::Adt(ref adt_def, _) if !adt_def.is_box() => {
                                 let num_variants = adt_def.variants.len();
 
                                 let discr_value: vir::Expr = if num_variants == 0 {

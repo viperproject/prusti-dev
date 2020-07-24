@@ -376,18 +376,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
     fn encode_expression(&self, assertion_expr: &typed::Expression) -> vir::Expr {
         debug!("encode_expression {:?}", assertion_expr);
-//         let tcx = self.encoder.env().tcx();
+        let tcx = self.encoder.env().tcx();
 
 //         // Find the MIR of the first closure that encodes the assertions
 //         let mut curr_node_id = assertion_expr.expr.id;
 //         for _ in 0..1 {
 //             curr_node_id = tcx.hir.get_parent_node(curr_node_id);
 //         }
-//         let mut curr_def_id = tcx.hir.local_def_id(curr_node_id);
-//         let mut curr_namespace = "_pure".to_string();
+        // let mut curr_def_id = tcx.hir.local_def_id(curr_node_id);
+        let mut curr_def_id = assertion_expr.expr;
+        let mut curr_namespace = "_pure".to_string();
 
-//         // Encode the expression
-//         let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id, true);
+        // Encode the expression
+        let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id.to_def_id(), true);
 
 //         // For each of the enclosing closures, replace with the variables captured in the closure.
 //         // We support at most 1000 nested closures (arbitrarily chosen).

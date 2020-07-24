@@ -3482,12 +3482,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )) = stmt.kind
                 {
                     debug!("cl_def_id: {:?}", cl_def_id);
-                    if let Some(spec_id) = self
-                        .encoder
-                        .get_opt_spec_id(cl_def_id)
-                    {
-                        spec_ids.push(spec_id);
-                    }
+                    unimplemented!();
+                    // if let Some(spec_id) = self
+                    //     .encoder
+                    //     .get_opt_spec_id(cl_def_id)
+                    // {
+                    //     spec_ids.push(spec_id);
+                    // }
                 }
             }
         }

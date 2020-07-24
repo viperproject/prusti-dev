@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;
 use std::marker::Sized;
+use log::trace;
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {
@@ -73,7 +74,7 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
         heads.insert(curr_bb, curr_state);
 
         // Put the preceding basic blocks
-        for &pred_bb in mir.predecessors_for(curr_bb).iter() {
+        for &pred_bb in mir.predecessors()[curr_bb].iter() {
             if let Some(ref term) = basic_blocks[pred_bb].terminator {
                 if term.successors().all(|succ_bb| heads.contains_key(succ_bb)) {
                     pending_blocks.push(pred_bb);
@@ -170,7 +171,7 @@ pub fn run_backward_interpretation_point_to_point<
 
         if curr_bb != initial_bbi {
             // Put the preceding basic blocks
-            for &pred_bb in mir.predecessors_for(curr_bb).iter() {
+            for &pred_bb in mir.predecessors()[curr_bb].iter() {
                 // Note: here we don't check that all the successors of `pred_bb` has been visited.
                 // It's a known limitation, because this is the point-to-point interpretation.
                 // Use `run_backward_interpretation` if the check is important.

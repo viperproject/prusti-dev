@@ -4,22 +4,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::mir_encoder::MirEncoder;
-use encoder::Encoder;
+use crate::encoder::mir_encoder::MirEncoder;
+use crate::encoder::Encoder;
 use prusti_common::vir;
-use rustc::hir::def_id::DefId;
+use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
+use log::{trace, debug};
 
-pub struct StubFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
     mir: &'p mir::Body<'tcx>,
-    mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
+    mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     proc_def_id: DefId,
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubFunctionEncoder<'p, 'v, 'r, 'a, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
     pub fn new(
-        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        encoder: &'p Encoder<'v, 'tcx>,
         proc_def_id: DefId,
         mir: &'p mir::Body<'tcx>,
     ) -> Self {
