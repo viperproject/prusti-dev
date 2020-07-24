@@ -19,7 +19,8 @@ cargo build
 
 Running tests:
 ```bash
-cargo test -- --test-threads=1
+export RUST_TEST_THREADS=1
+cargo test
 ```
 
 ## Design
