@@ -601,11 +601,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             // will panic if attempting to encode unsupported type
             let spec_local = curr_mir_encoder.encode_local(local).unwrap();
             let spec_local_place: vir::Expr = if self.targets_are_values {
-                let value_field = self.encoder.encode_value_field(local_ty);
-                vir::Expr::local(spec_local).field(value_field)
+                self.encoder.encode_value_expr(vir::Expr::local(spec_local), local_ty)
             } else {
                 spec_local.into()
             };
+
             encoded_expr = encoded_expr.replace_place(&spec_local_place, target_arg);
         }
         if let Some(target_return) = self.target_return {
@@ -633,8 +633,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }*/
 
             let spec_fake_return_place: vir::Expr = if self.targets_are_values {
-                let value_field = self.encoder.encode_value_field(fake_return_ty);
-                vir::Expr::local(spec_fake_return).field(value_field)
+                self.encoder.encode_value_expr(
+                    vir::Expr::local(spec_fake_return),
+                    fake_return_ty
+                )
             } else {
                 spec_fake_return.clone().into()
             };

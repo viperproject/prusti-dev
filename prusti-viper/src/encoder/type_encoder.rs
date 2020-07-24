@@ -140,6 +140,27 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+
+    /// provides the type of the underlying value or a reference in case of composed
+    /// data structures
+    pub fn encode_value_or_ref_type(self) -> vir::Type {
+        debug!("Encode ref value type '{:?}'", self.ty);
+        match self.ty.sty {
+            ty::TypeVariants::TyAdt(_, _)
+            | ty::TypeVariants::TyTuple(_) => {
+                let snapshot = self.encoder.encode_snapshot(&self.ty);
+                if snapshot.is_defined() {
+                    let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
+                    vir::Type::TypedRef(type_name)
+                } else {
+                    unreachable!()
+                }
+            },
+
+            _ => self.encode_value_type(),
+        }
+    }
+
     pub fn encode_value_field(self) -> vir::Field {
         trace!("Encode value field for type '{:?}'", self.ty);
         match self.ty.sty {
@@ -155,7 +176,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
 
-            ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unreachable!(),
+            // For composed data structures, we typically use a snapshot rather than a field.
+            // To unify how parameters are passed to functions, we treat them like a reference.
+            ty::TypeVariants::TyAdt(_, _)
+            | ty::TypeVariants::TyTuple(_) => {
+                // will panic if attempting to encode unsupported type
+                let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
+                vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
+            }
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);

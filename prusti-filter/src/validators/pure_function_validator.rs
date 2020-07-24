@@ -106,6 +106,10 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyUint(_) => {} // OK
 
+            // TODO we currently only support Copy types even though this is not validated here
+            ty::TypeVariants::TyAdt(_, _)
+            | ty::TypeVariants::TyTuple(_) => {}
+
             _ => unsupported!(
                 self,
                 span,

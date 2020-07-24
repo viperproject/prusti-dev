@@ -58,6 +58,7 @@ use syntax::{
     attr::SignedInt,
     codemap::{MultiSpan, Span},
 };
+use encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 
 type Result<T> = std::result::Result<T, EncodingError>;
 
@@ -1956,6 +1957,44 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                     }
 
+                    // TODO CMFIXME reduce code duplication with previous case
+                    "core::cmp::PartialEq::ne" => {
+                        assert!(args.len() == 2);
+                        debug!("Encoding call of PartialEq::ne");
+
+                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+
+                        let snapshot = self.encoder.encode_snapshot(&arg_ty);
+                        if snapshot.is_defined() {
+                            let arg_exprs = vec![
+                                self.mir_encoder.encode_operand_expr(&args[0]),
+                                self.mir_encoder.encode_operand_expr(&args[1]),
+                            ];
+                            let return_type = vir::Type::Bool;
+                            let function_name = snapshot.get_not_equals_func_name();
+
+                            stmts.extend(self.encode_specified_pure_function_call(
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                function_name,
+                                arg_exprs,
+                                return_type
+                            ));
+                        } else {
+                            // the equality check involves some unsupported feature;
+                            // treat it as any other function
+                            stmts.extend(self.encode_impure_function_call(
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                def_id,
+                            )?);
+                        }
+                    }
+
                     _ => {
                         let is_pure_function =
                             self.encoder.env().has_attribute_name(def_id, "pure");
@@ -2429,8 +2468,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .encoder
             .error_manager()
             .register(call_site_span, ErrorCtxt::PureFunctionCall);
+
         let func_call =
-            vir::Expr::func_app(function_name, arg_exprs, formal_args, return_type, pos);
+            vir::Expr::func_app(function_name, arg_exprs, formal_args, return_type.clone(), pos);
 
         let label = self.cfg_method.get_fresh_label_name();
         stmts.push(vir::Stmt::Label(label.clone()));
@@ -2445,6 +2485,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .mir_encoder
             .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
             .unwrap();
+
         stmts.push(vir::Stmt::Inhale(
             type_predicate,
             vir::FoldingBehaviour::Stmt,
@@ -2455,10 +2496,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
             None => unreachable!(),
         };
-        stmts.push(vir::Stmt::Inhale(
-            vir::Expr::eq_cmp(target_value.into(), func_call),
-            vir::FoldingBehaviour::Stmt,
-        ));
+
+        if return_type.is_domain() {
+            let predicate_name = target_value.get_type().name();
+            let snapshot = self.encoder.encode_snapshot_use(predicate_name);
+            let snap_call = snapshot.get_snap_call(target_place);
+            stmts.push(vir::Stmt::Inhale(
+                vir::Expr::eq_cmp(snap_call.clone(), func_call),
+                vir::FoldingBehaviour::Stmt,
+            ));
+        } else {
+            stmts.push(vir::Stmt::Inhale(
+                vir::Expr::eq_cmp(target_value.into(), func_call),
+                vir::FoldingBehaviour::Stmt,
+            ));
+        }
 
         // Store a label for permissions got back from the call
         debug!(
@@ -2667,7 +2719,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             type_spec.into_iter().conjoin(),
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
-            func_spec.into_iter().conjoin(),
+            func_spec
+                .into_iter()
+                .map(|spec| SnapshotSpecPatcher::new(self.encoder).patch_spec(spec))
+                .conjoin(),
             precondition_weakening,
         )
     }
@@ -2815,8 +2870,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 lhs.push(assertion_lhs);
                 rhs.push(assertion_rhs);
             }
-            let lhs = lhs.into_iter().conjoin();
-            let rhs = rhs.into_iter().conjoin();
+            let lhs = lhs
+                .into_iter()
+                .conjoin();
+            let rhs = rhs
+                .into_iter()
+                .conjoin();
             Some((lhs, rhs))
         } else {
             None
@@ -3001,14 +3060,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.wrap_arguments_into_old(assertion, pre_label, contract, &encoded_args)
         });
 
+        let full_func_spec = func_spec
+            .into_iter()
+            .map( // patch type mismatches for specs involving pure functions returning copy types
+                |spec| SnapshotSpecPatcher::new(self.encoder).patch_spec(spec)
+            ).conjoin()
+            .set_default_pos(func_spec_pos);
+
         (
             type_spec.into_iter().conjoin(),
             return_perm,
             invs_spec.into_iter().conjoin(),
-            func_spec
-                .into_iter()
-                .conjoin()
-                .set_default_pos(func_spec_pos),
+            full_func_spec,
             magic_wands,
             read_transfer,
             strengthening_spec,

@@ -4,21 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::{
-    borrows::{compute_procedure_contract, ProcedureContract},
-    builtin_encoder::BuiltinFunctionKind,
-    errors::{EncodingError, ErrorCtxt, PanicCause},
-    foldunfold,
-    mir_encoder::{MirEncoder, PRECONDITION_LABEL, WAND_LHS_LABEL},
-    mir_interpreter::{
-        run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
-    },
-    Encoder,
-};
+use encoder::{borrows::{compute_procedure_contract, ProcedureContract}, builtin_encoder::BuiltinFunctionKind, errors::{EncodingError, ErrorCtxt, PanicCause}, foldunfold, mir_encoder::{MirEncoder, PRECONDITION_LABEL, WAND_LHS_LABEL}, mir_interpreter::{
+    run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+}, Encoder};
 use prusti_common::{config, vir, vir::ExprIterator};
 use prusti_interface::specifications::SpecificationSet;
 use rustc::{hir, hir::def_id::DefId, mir, ty};
 use std::collections::HashMap;
+use encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -70,18 +63,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     pub fn encode_function(&self) -> vir::Function {
         let function_name = self.encode_function_name();
         debug!("Encode pure function {}", function_name);
-
         let mut state = run_backward_interpretation(self.mir, &self.interpreter)
             .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
 
         // Fix arguments
         for arg in self.mir.args_iter() {
             let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
-            let value_field = self.encoder.encode_value_field(arg_ty);
-            let target_place: vir::Expr =
-                // will panic if attempting to encode unsupported type
-                vir::Expr::local(self.interpreter.mir_encoder().encode_local(arg).unwrap())
-                    .field(value_field);
+            let target_place = self.encoder.encode_value_expr(
+                vir::Expr::local(
+                    self.interpreter
+                        .mir_encoder()
+                        .encode_local(arg)
+                        .unwrap()
+                ),
+                arg_ty
+            );
             let new_place: vir::Expr = self.encode_local(arg).into();
             state.substitute_place(&target_place, new_place);
         }
@@ -92,7 +88,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             function_name, body_expr
         );
 
-        self.encode_function_given_body(Some(body_expr))
+        // if the function returns a snapshot, we take a snapshot of the body
+        if self.encode_function_return_type().is_domain() {
+            let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+            let snapshot = self.encoder.encode_snapshot(&ty);
+            let body_expr = snapshot.get_snap_call(body_expr);
+            self.encode_function_given_body(Some(body_expr))
+        } else {
+            self.encode_function_given_body(Some(body_expr))
+        }
     }
 
     pub fn encode_bodyless_function(&self) -> vir::Function {
@@ -141,6 +145,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
         let (type_precondition, func_precondition) = self.encode_precondition_expr(&contract);
         let patched_type_precondition = type_precondition.patch_types(&subst_strings);
+
         let mut precondition = vec![patched_type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)];
 
@@ -152,7 +157,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 let mir_type = self.interpreter.mir_encoder().get_local_ty(local);
                 let var_type = self
                     .encoder
-                    .encode_value_type(self.encoder.resolve_typaram(mir_type));
+                    .encode_value_or_ref_type(self.encoder.resolve_typaram(mir_type));
                 let var_type = var_type.patch(&subst_strings);
                 vir::LocalVar::new(var_name, var_type)
             })
@@ -203,6 +208,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             "Some postcondition has no position: {:?}",
             postcondition
         );
+
+        let postcondition = postcondition
+            .into_iter()
+            .map(
+                |post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post)
+            ).collect();
 
         let mut function = vir::Function {
             name: function_name.clone(),
@@ -273,7 +284,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
         (
             type_spec.into_iter().conjoin(),
-            func_spec.into_iter().conjoin(),
+            func_spec
+                .into_iter()
+                .map(
+                    |post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post)
+                ).conjoin(),
         )
     }
 
@@ -290,6 +305,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             .collect();
         let encoded_return = self.encode_local(contract.returned_value.clone().into());
         debug!("encoded_return: {:?}", encoded_return);
+
         for item in contract.functional_postcondition() {
             let encoded_postcond = self.encoder.encode_assertion(
                 &item.assertion,
@@ -316,15 +332,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         // Fix return variable
         let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_return_type());
-        post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
-            .set_default_pos(postcondition_pos)
+
+        let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
+            .set_default_pos(postcondition_pos);
+
+        SnapshotSpecPatcher::new(self.encoder).patch_spec(post)
     }
 
     fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
         let var_name = self.interpreter.mir_encoder().encode_local_var_name(local);
         let var_type = self
             .encoder
-            .encode_value_type(self.interpreter.mir_encoder().get_local_ty(local));
+            .encode_value_or_ref_type(self.interpreter.mir_encoder().get_local_ty(local));
         vir::LocalVar::new(var_name, var_type)
     }
 
@@ -335,6 +354,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     pub fn encode_function_return_type(&self) -> vir::Type {
         let ty = self.encoder.resolve_typaram(self.mir.return_ty());
         self.encoder.encode_value_type(ty)
+    }
+
+    pub fn encode_function_ref_return_type(&self) -> vir::Type {
+        let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+        self.encoder.encode_value_or_ref_type(ty)
     }
 }
 
@@ -391,7 +415,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
         // Generate a function call that leaves the expression undefined.
         let unreachable_expr = |pos| {
-            let encoded_type = self.encoder.encode_value_type(self.mir.return_ty());
+            let encoded_type = self.encoder.encode_value_or_ref_type(self.mir.return_ty());
             let function_name =
                 self.encoder
                     .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
@@ -402,7 +426,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
         // Generate a function call that leaves the expression undefined.
         let undef_expr = |pos| {
-            let encoded_type = self.encoder.encode_value_type(self.mir.return_ty());
+            let encoded_type = self.encoder.encode_value_or_ref_type(self.mir.return_ty());
             let function_name = self
                 .encoder
                 .encode_builtin_function_use(BuiltinFunctionKind::Undefined(encoded_type.clone()));
@@ -457,9 +481,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 trace!("Return type: {:?}", self.mir.return_ty());
                 let return_type = self.encoder.encode_type(self.mir.return_ty());
                 let return_var = vir::LocalVar::new(format!("{}_0", self.namespace), return_type);
-                let field = self.encoder.encode_value_field(self.mir.return_ty());
                 MultiExprBackwardInterpreterState::new_single(
-                    vir::Expr::local(return_var.into()).field(field).into(),
+                    self.encoder.encode_value_expr(
+                        vir::Expr::local(return_var.into()),
+                        self.mir.return_ty()
+                    )
                 )
             }
 
@@ -597,9 +623,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 let state = if destination.is_some() {
                     let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                     let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place).unwrap(); // will panic if attempting to encode unsupported type
-                    let lhs_value = encoded_lhs
-                        .clone()
-                        .field(self.encoder.encode_value_field(ty));
+                    let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty);
                     let encoded_args: Vec<vir::Expr> = args
                         .iter()
                         .map(|arg| self.mir_encoder.encode_operand_expr(arg))
@@ -629,26 +653,29 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                         }
                         // simple function call
                         _ => {
+                            let mut is_cmp_call = false;
                             let is_pure_function =
                                 self.encoder.env().has_attribute_name(def_id, "pure");
-                            let ((function_name, return_type), is_cmp_call) = if is_pure_function {
-                                (self.encoder.encode_pure_function_use(def_id), false)
+                            let (function_name, return_type) = if is_pure_function {
+                                self.encoder.encode_pure_function_use(def_id)
                             } else {
                                 // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
                                 // function
-                                if self.encoder.get_item_name(def_id).eq("std::cmp::PartialEq::eq") {
-                                    let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                    let snapshot = self.encoder.encode_snapshot(&arg_ty);
-                                    if snapshot.is_defined() {
-                                        let eq_func_name = snapshot.get_equals_func_name();
-                                        ((eq_func_name, vir::Type::Bool), true)
-                                    } else {
-                                        (self.encoder.encode_stub_pure_function_use(def_id), false)
+                                match self.encoder.get_item_name(def_id).as_str() {
+                                    "std::cmp::PartialEq::eq" => {
+                                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                        is_cmp_call = true;
+                                        self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, true)
                                     }
-                                } else {
-                                    (self.encoder.encode_stub_pure_function_use(def_id), false)
+                                    "std::cmp::PartialEq::ne" => {
+                                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                        is_cmp_call = true;
+                                        self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, false)
+                                    }
+                                    _ => {
+                                        self.encoder.encode_stub_pure_function_use(def_id)
+                                    }
                                 }
-
                             };
                             if is_pure_function{
                                 trace!("Encoding pure function call '{}'", function_name);
@@ -693,7 +720,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 return_type,
                                 pos,
                             );
-
                             let mut state = states[&target_block].clone();
                             state.substitute_value(&lhs_value, encoded_rhs);
                             state
@@ -873,9 +899,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     | ty::TypeVariants::TyUint(..)
                     | ty::TypeVariants::TyRawPtr(..)
                     | ty::TypeVariants::TyRef(..) => Some(
-                        encoded_lhs
-                            .clone()
-                            .field(self.encoder.encode_value_field(ty)),
+                        self.encoder.encode_value_expr(
+                            encoded_lhs.clone(),
+                            ty
+                        ),
                     ),
                     _ => None,
                 };
@@ -922,10 +949,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                             // Substitute a place of a value with an expression
                                             let rhs_expr =
                                                 self.mir_encoder.encode_operand_expr(operand);
-                                            let value_field =
-                                                self.encoder.encode_value_field(field_ty);
                                             state.substitute_value(
-                                                &field_place.field(value_field),
+                                                &self.encoder.encode_value_expr(field_place, field_ty),
                                                 rhs_expr,
                                             );
                                         }
@@ -965,10 +990,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                             // Substitute a place of a value with an expression
                                             let rhs_expr =
                                                 self.mir_encoder.encode_operand_expr(operand);
-                                            let value_field =
-                                                self.encoder.encode_value_field(field_ty);
                                             state.substitute_value(
-                                                &field_place.field(value_field),
+                                                &self.encoder.encode_value_expr(field_place, field_ty),
                                                 rhs_expr,
                                             );
                                         }
