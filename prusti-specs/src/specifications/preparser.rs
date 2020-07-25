@@ -2,15 +2,13 @@
 /// parses the resulting Rust expressions, and then assembles the composite
 /// Prusti assertion.
 
-use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree, Ident};
+use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree};
 use std::collections::VecDeque;
 use std::mem;
-use syn::parse::{ParseBuffer, ParseStream, Parse};
-use syn::{self, Token, PatType, Pat, Error};
-use quote::ToTokens;
+use syn::parse::{ParseStream, Parse};
+use syn::{self, Token, Error};
 
 use super::common;
-use crate::specifications::common::AssertionKind::ForAll;
 use crate::specifications::common::{ForAllVars, TriggerSet, Trigger};
 use syn::spanned::Spanned;
 
@@ -290,7 +288,7 @@ pub struct Parser {
 
 impl Parser {
     pub fn from_token_stream(tokens: TokenStream) -> Self {
-        let mut input = ParserStream::from_token_stream(tokens);
+        let input = ParserStream::from_token_stream(tokens);
         Self {
             input,
             conjuncts: Vec::new(),

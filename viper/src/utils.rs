@@ -41,7 +41,7 @@ macro_rules! run_timed {
     ($desc:expr, $log_level:ident, $($s:stmt;)*) => {
         $log_level!("Starting: {}", $desc);
         let start = ::std::time::Instant::now();
-        $($s;)*
+        $($s)*
         let duration = start.elapsed();
         $log_level!(
             "Completed: {} ({}.{} seconds)",

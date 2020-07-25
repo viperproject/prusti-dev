@@ -1,14 +1,13 @@
 //! A module that invokes the verifier `prusti-viper`
 
 use crate::specs::typed;
-use log::{debug, info, trace, warn};
+use log::{debug, trace, warn};
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
     environment::Environment,
 };
 use prusti_viper::verifier::Verifier;
 use rustc_middle::ty::TyCtxt;
-use std::time::Instant;
 use prusti_interface::config::ConfigFlags;
 use prusti_common::report::user;
 

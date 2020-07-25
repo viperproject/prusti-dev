@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 extern crate compiletest_rs;
 
 use compiletest_rs::{common, run_tests, Config};
