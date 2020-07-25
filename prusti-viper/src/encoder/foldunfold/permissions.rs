@@ -22,21 +22,17 @@ pub trait RequiredPermissionsGetter {
     ) -> HashSet<Perm>;
 }
 
-impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<&'a A> {
+impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for &'a A {
     /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
         predicates: &HashMap<String, vir::Predicate>,
     ) -> HashSet<Perm> {
-        self.iter().fold(HashSet::new(), |res, x| {
-            res.union(&x.get_required_permissions(predicates))
-                .cloned()
-                .collect()
-        })
+        (*self).get_required_permissions(predicates)
     }
 }
 
-impl RequiredPermissionsGetter for Vec<vir::Expr> {
+impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<A> {
     /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
@@ -73,7 +69,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 let perms = expr.get_required_permissions(predicates);
                 perms
                     .into_iter()
-                    .map(|perm| perm.set_default_pos(pos.clone()))
+                    .map(|perm| perm.set_default_pos(*pos))
                     .collect()
             }
 
@@ -157,6 +153,12 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
             &vir::Stmt::ExpireBorrows(ref _dag) => {
                 HashSet::new() // TODO: #133
+            }
+
+            &vir::Stmt::If(_, ref then, ref elze) => {
+                then.get_required_permissions(predicates)
+                    .union(&elze.get_required_permissions(predicates))
+                    .cloned().collect()
             }
 
             ref x => unimplemented!("{}", x),
@@ -311,6 +313,10 @@ impl RequiredPermissionsGetter for vir::Expr {
                     .collect::<Vec<_>>()
                     .get_required_permissions(predicates)
             }
+
+            vir::Expr::DomainFuncApp(..) => HashSet::new(),
+
+            vir::Expr::InhaleExhale(..) => HashSet::new(),
         };
         trace!(
             "[exit] get_required_permissions(expr={}): {:#?}",
@@ -337,7 +343,9 @@ impl ExprPermissionsGetter for vir::Expr {
             | vir::Expr::AddrOf(_, _, _)
             | vir::Expr::LabelledOld(_, _, _)
             | vir::Expr::Const(_, _)
-            | vir::Expr::FuncApp(..) => HashSet::new(),
+            | vir::Expr::FuncApp(..)
+            | vir::Expr::DomainFuncApp(..)
+            | vir::Expr::InhaleExhale(..) => HashSet::new(),
 
             vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {
                 assert_eq!(args.len(), 1);
@@ -448,6 +456,7 @@ impl PredicatePermissionsGetter for vir::Predicate {
                     p.get_all_permissions()
                 }
             }
+            vir::Predicate::Bodyless(_, _) => HashSet::new(),
         };
         perms
     }

@@ -242,8 +242,6 @@ impl ApplyOnState for vir::Stmt {
 
                 // Restore permissions from the `lhs` to the `rhs`
 
-                // This is the creation of a mutable borrow
-
                 // In Prusti, lose permission from the lhs and rhs
                 state.remove_pred_matching(|p| p.has_prefix(&lhs_place));
                 state.remove_acc_matching(|p| p.has_proper_prefix(&lhs_place) && !p.is_local());

@@ -22,11 +22,12 @@ use std::fmt;
 use std::hash::Hash;
 use std::path::Path;
 use std::str::FromStr;
+use serde::{Serialize, Deserialize};
 
 /// Macro for declaring index types for referencing interned facts.
 macro_rules! index_type {
     ($typ:ident, $debug_str:ident) => {
-        #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash)]
+        #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
         pub struct $typ(usize);
 
         impl From<usize> for $typ {

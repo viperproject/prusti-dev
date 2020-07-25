@@ -7,7 +7,7 @@
 use vir::ast::*;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Trigger(Vec<Expr>);
 
 impl fmt::Display for Trigger {

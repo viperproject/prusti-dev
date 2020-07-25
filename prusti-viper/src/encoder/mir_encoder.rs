@@ -71,12 +71,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         self.mir.local_decls[local].ty
     }
 
-    pub fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
+    pub fn encode_local(&self, local: mir::Local) -> Result<vir::LocalVar, ErrorCtxt> {
         let var_name = self.encode_local_var_name(local);
         let type_name = self
             .encoder
-            .encode_type_predicate_use(self.get_local_ty(local));
-        vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
+            .encode_type_predicate_use(self.get_local_ty(local))?;
+        Ok(vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name)))
     }
 
     /// Returns
@@ -86,18 +86,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
+    ) -> Result<(vir::Expr, ty::Ty<'tcx>, Option<usize>), ErrorCtxt> {
         trace!("Encode place {:?}", place);
-        if place.projection.is_empty() {
+        let result = if place.projection.is_empty() {
             let local = place.local;
             (
-                self.encode_local(local).into(),
+                self.encode_local(local)?.into(),
                 self.get_local_ty(local),
                 None,
             )
         } else {
             self.encode_projection(place.projection.len(), *place, None)
-        }
+        };
+        Ok(result)
     }
 
     /// - `encoded_base_place`: optionally, the already encoded place (otherwise
@@ -121,7 +122,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 if index == 1 {
                     let local = place.local;
                     (
-                        self.encode_local(local).into(),
+                        self.encode_local(local).unwrap().into(),
                         self.get_local_ty(local),
                         None,
                     )
@@ -282,9 +283,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Expr {
-        let (encoded_place, place_ty, _) = self.encode_place(place);
-        let value_field = self.encoder.encode_value_field(place_ty);
-        encoded_place.field(value_field)
+        let (encoded_place, place_ty, _) = self.encode_place(place).ok().unwrap();  // will panic if attempting to encode unsupported type
+        self.encoder.encode_value_expr(encoded_place, place_ty)
     }
 
     /// Returns an `vir::Expr` that corresponds to the value of the operand
@@ -621,7 +621,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         debug!("Encode operand place {:?}", operand);
         match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
-                let (src, _, _) = self.encode_place(place);
+                let (src, _, _) = self.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
                 Some(src)
             }
 

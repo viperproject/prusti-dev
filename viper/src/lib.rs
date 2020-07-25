@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![deny(unused_must_use)]
-
 #![recursion_limit = "1024"]
 
 #[macro_use]
@@ -15,11 +14,14 @@ extern crate jni;
 extern crate log;
 extern crate uuid;
 extern crate viper_sys;
+#[macro_use]
+extern crate serde_derive;
 
 mod ast_factory;
 mod ast_utils;
 pub mod errors;
 mod jni_utils;
+#[macro_use]
 pub mod utils;
 mod verification_backend;
 mod verification_context;

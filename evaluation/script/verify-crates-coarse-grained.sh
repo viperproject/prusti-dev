@@ -60,8 +60,9 @@ info "Report: '$verification_report'"
 
 info "Run verification on $(cat "$CRATES_LIST_PATH" | wc -l) crates"
 
-# Make sure that the "standard" compilation uses the same compiler flags as Prusti uses
-export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts" # "-C overflow-check=yes"
+# Make sure that the "standard" compilation uses the same compiler flags as Prusti uses.
+# Also, hide warning messages.
+export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts -Awarnings" # "-C overflow-check=yes"
 export POLONIUS_ALGORITHM="Naive"
 export RUST_BACKTRACE=1
 export PRUSTI_FULL_COMPILATION=true

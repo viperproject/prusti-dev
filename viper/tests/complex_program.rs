@@ -17,14 +17,16 @@ fn success_with_complex_program() {
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast = verification_context.new_ast_factory();
 
+    let wrapper_type = ast.domain_type(
+        "Wrapper",
+        &[(ast.type_var("T"), ast.type_var("T"))],
+        &[ast.type_var("T")],
+    );
+
     let wrap_domain_function = ast.domain_func(
         "wrap",
         &[ast.local_var_decl("x", ast.type_var("T"))],
-        ast.domain_type(
-            "Wrapper",
-            &[(ast.type_var("T"), ast.type_var("T"))],
-            &[ast.type_var("T")],
-        ),
+        wrapper_type,
         false,
         "Wrapper",
     );
@@ -33,11 +35,7 @@ fn success_with_complex_program() {
         "unwrap",
         &[ast.local_var_decl(
             "x",
-            ast.domain_type(
-                "Wrapper",
-                &[(ast.type_var("T"), ast.type_var("T"))],
-                &[ast.type_var("T")],
-            ),
+            wrapper_type,
         )],
         ast.type_var("T"),
         false,
@@ -63,6 +61,23 @@ fn success_with_complex_program() {
                         )],
                         &[(ast.type_var("T"), ast.type_var("T"))],
                     ),
+                    /* TODO
+                    ast.domain_func_app(
+                        "unwrap",
+                        &[ast.domain_func_app(
+                            "wrap",
+                            &[ast.local_var("x", ast.type_var("T"))],
+                            &[(ast.type_var("T"), ast.type_var("T"))],
+                            wrapper_type,
+                            "Wrapper",
+                            vir::Position::default(),
+                        )],
+                        &[(ast.type_var("T"), ast.type_var("T"))],
+                        wrapper_type,
+                        "Wrapper",
+                        vir::Position::default(),
+                    ),
+                     */
                     ast.local_var("x", ast.type_var("T")),
                 ),
             ),

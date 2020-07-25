@@ -9,6 +9,7 @@ else
 endif
 
 RUST_LOG ?= prusti=info
+# TODO: remove for testing
 RUST_TEST_THREADS ?= 1
 JAVA_HOME ?= /usr/lib/jvm/default-java
 RUN_FILE ?= prusti/tests/verify/pass/no-annotations/assert-true.rs
@@ -46,10 +47,11 @@ build:
 release:
 	$(SET_ENV_VARS) cargo build --release --all $(CARGO_ARGS)
 
-test-deep: clean-nested
+release-profile:
 	$(SET_ENV_VARS) \
-	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
-	cargo test --all
+	CARGO_INCREMENTAL=0 \
+	RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Cinline-threshold=0 -Clink-dead-code" \
+	cargo build --release --all
 
 test: build clean-nested
 	$(SET_ENV_VARS) \
@@ -59,11 +61,18 @@ test-examples: build clean-nested
 	$(SET_ENV_VARS) \
 	cargo test -p prusti
 
-build-profile:
+test-viper-crate: build clean-nested
 	$(SET_ENV_VARS) \
-	CARGO_INCREMENTAL=0 \
-	RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads" \
-	cargo build --all
+	cargo test -p viper
+
+test-server-crate: build clean-nested
+	$(SET_ENV_VARS) \
+	cargo test -p prusti-server
+
+test-deep: clean-nested
+	$(SET_ENV_VARS) \
+	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
+	cargo test --all
 
 bench:
 	$(SET_ENV_VARS) cargo bench --all
@@ -75,15 +84,6 @@ run: build
 		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
 		$(RUN_FILE)
 
-run-flamegraph: build
-	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
-    perf record -F 99 --call-graph=dwarf,32000 \
-	$(PRUSTI_DRIVER) \
-		-L $(COMPILER_PATH)/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
-		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
-		$(RUN_FILE)
-	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
-
 run-release: release
 	$(SET_RELEASE_ENV_VARS) RUST_LOG=$(RUST_LOG) \
 	$(PRUSTI_DRIVER_RELEASE) \
@@ -93,7 +93,7 @@ run-release: release
 
 run-release-profile: release
 	$(SET_RELEASE_ENV_VARS) RUST_LOG=$(RUST_LOG) \
-    valgrind --tool=callgrind --vex-iropt-register-updates=allregs-at-mem-access \
+    valgrind --tool=callgrind \
 	$(PRUSTI_DRIVER_RELEASE) \
 		-L $(COMPILER_PATH)/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ./target/release/deps/libprusti_contracts-*.rlib) \

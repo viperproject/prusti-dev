@@ -387,7 +387,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mut curr_def_id = assertion_expr.expr.to_def_id();
         let mut curr_namespace = "_pure".to_string();
 
-        // Encode the expression
         let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id, true);
 
         // For each of the enclosing closures, replace with the variables captured in the closure.
@@ -454,7 +453,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             // Take the first local variable, that is the closure.
             // The closure is a record containing all the captured variables.
             let closure_local = curr_mir.local_decls.indices().skip(1).next().unwrap();
-            let closure_var = curr_mir_encoder.encode_local(closure_local);
+            // will panic if attempting to encode unsupported type
+            let closure_var = curr_mir_encoder.encode_local(closure_local).unwrap();
             let closure_ty = &curr_mir.local_decls[closure_local].ty;
             let should_closure_be_dereferenced = curr_mir_encoder.can_be_dereferenced(closure_ty);
             let (deref_closure_var, deref_closure_ty) = if should_closure_be_dereferenced {
@@ -595,19 +595,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         }
         for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
             let local_ty = curr_mir.local_decls[local].ty;
-            let spec_local = curr_mir_encoder.encode_local(local);
+            // will panic if attempting to encode unsupported type
+            let spec_local = curr_mir_encoder.encode_local(local).unwrap();
             let spec_local_place: vir::Expr = if self.targets_are_values {
-                let value_field = self.encoder.encode_value_field(local_ty);
-                vir::Expr::local(spec_local).field(value_field)
+                self.encoder.encode_value_expr(vir::Expr::local(spec_local), local_ty)
             } else {
                 spec_local.into()
             };
+
             encoded_expr = encoded_expr.replace_place(&spec_local_place, target_arg);
         }
         if let Some(target_return) = self.target_return {
             let fake_return_local = curr_mir.args_iter().last().unwrap();
             let fake_return_ty = curr_mir.local_decls[fake_return_local].ty;
-            let spec_fake_return = curr_mir_encoder.encode_local(fake_return_local);
+            // will panic if attempting to encode unsupported type
+            let spec_fake_return = curr_mir_encoder.encode_local(fake_return_local).unwrap();
 
             /*match self.target_return_value {
                 Some(target_return_value) => {
@@ -628,8 +630,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             }*/
 
             let spec_fake_return_place: vir::Expr = if self.targets_are_values {
-                let value_field = self.encoder.encode_value_field(fake_return_ty);
-                vir::Expr::local(spec_fake_return).field(value_field)
+                self.encoder.encode_value_expr(
+                    vir::Expr::local(spec_fake_return),
+                    fake_return_ty
+                )
             } else {
                 spec_fake_return.clone().into()
             };

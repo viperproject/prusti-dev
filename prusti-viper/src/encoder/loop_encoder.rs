@@ -11,6 +11,11 @@ use prusti_interface::environment::place_set::PlaceSet;
 use prusti_interface::environment::{BasicBlockIndex, PermissionForest, ProcedureLoops, Procedure};
 use prusti_interface::utils;
 use rustc_middle::{mir, ty};
+use log::{trace, debug};
+
+pub enum LoopEncoderError {
+    LoopInvariantInBranch(BasicBlockIndex),
+}
 
 pub struct LoopEncoder<'p, 'tcx: 'p> {
     procedure: &'p Procedure<'p, 'tcx>,
@@ -64,7 +69,11 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
         self.loops().get_enclosing_loop_heads(bbi)
     }
 
-    pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'p, 'tcx> {
+    pub fn compute_loop_invariant(
+        &self,
+        bb: BasicBlockIndex,
+        bb_inv: BasicBlockIndex
+    ) -> PermissionForest<'p, 'tcx> {
         assert!(self.is_loop_head(bb));
 
         // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
@@ -92,7 +101,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
             self.loops().compute_read_and_write_leaves(
                 bb,
                 self.mir(),
-                Some(self.initialization.get_before_block(bb)),
+                Some(self.initialization.get_before_block(bb_inv)),
             );
 
         let mut all_places = PlaceSet::new();
@@ -119,5 +128,46 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
             .get_before_block(bbi)
             .iter()
             .any(|def_init_place| utils::is_prefix(place, def_init_place))
+    }
+
+    /// Return the block at whose end the loop invariant holds
+    pub fn get_loop_invariant_block(
+        &self,
+        loop_head: BasicBlockIndex
+    ) -> Result<BasicBlockIndex, LoopEncoderError> {
+        trace!("get_loop_special_blocks: {:?}", loop_head);
+        let loop_info = self.loops();
+        debug_assert!(loop_info.is_loop_head(loop_head));
+        let loop_depth = loop_info.get_loop_head_depth(loop_head);
+
+        let loop_body: Vec<BasicBlockIndex> = loop_info
+            .get_loop_body(loop_head)
+            .iter()
+            .filter(|&&bb| !self.procedure.is_spec_block(bb))
+            .cloned()
+            .collect();
+
+        let loop_exit_blocks = loop_info.get_loop_exit_blocks(loop_head);
+        let before_invariant_block: BasicBlockIndex = loop_body
+            .iter()
+            .find(|&&bb| {
+                loop_info.get_loop_depth(bb) == loop_depth
+                    && self.mir()[bb].terminator().successors().any(|&succ_bb| {
+                        self.procedure.is_reachable_block(succ_bb)
+                            && self.procedure.is_spec_block(succ_bb)
+                    })
+            })
+            .cloned()
+            .unwrap_or_else(|| loop_exit_blocks.get(0).cloned().unwrap_or(loop_head));
+
+        if loop_info.is_conditional_branch(loop_head, before_invariant_block) {
+            debug!(
+                "{:?} is conditional branch in loop {:?}",
+                before_invariant_block, loop_head
+            );
+            return Err(LoopEncoderError::LoopInvariantInBranch(loop_head));
+        }
+
+        Ok(before_invariant_block)
     }
 }

@@ -6,11 +6,12 @@
 
 use config;
 use std::collections::HashMap;
-use viper;
-use viper::AstFactory;
-use vir::ast::Position;
-use vir::cfg::method::*;
-use vir::to_viper::{ToViper, ToViperDecl};
+use viper::{self, AstFactory};
+use vir::{
+    ast::Position,
+    cfg::method::*,
+    to_viper::{ToViper, ToViperDecl},
+};
 
 impl<'v> ToViper<'v, viper::Method<'v>> for CfgMethod {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
@@ -124,7 +125,7 @@ impl CfgMethod {
 
         for label in config::delete_basic_blocks() {
             let (index, block) = remaining_blocks.remove(&label).unwrap();
-            let fake_position = Position::new(0, 0, "deleted".to_string());
+            let fake_position = Position::default();
             let stmts: Vec<viper::Stmt> = vec![
                 ast.label(&label, &block.invs.to_viper(ast)),
                 ast.inhale(

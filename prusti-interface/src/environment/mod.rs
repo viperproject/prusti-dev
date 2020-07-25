@@ -123,6 +123,25 @@ impl<'tcx> Environment<'tcx> {
         diagnostic.emit();
     }
 
+    /// Emits an error message.
+    pub fn span_warn_with_help_and_note<S: Into<MultiSpan> + Clone>(
+        &self,
+        sp: S,
+        msg: &str,
+        help: &Option<String>,
+        note: &Option<(String, S)>
+    ) {
+        let mut diagnostic = self.tcx.sess.struct_warn(msg);
+        diagnostic.set_span(sp);
+        if let Some(help_msg) = help {
+            diagnostic.help(help_msg);
+        }
+        if let Some((note_msg, note_sp)) = note {
+            diagnostic.span_note(note_sp.clone(), note_msg);
+        }
+        diagnostic.emit();
+    }
+
     /// Returns true if an error has been emitted
     pub fn has_errors(&self) -> bool {
         self.tcx.sess.has_errors()

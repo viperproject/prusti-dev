@@ -1,0 +1,43 @@
+name: Test coverage
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  RUST_BACKTRACE: 1
+  RUST_TEST_THREADS: 1
+  PRUSTI_ASSERT_TIMEOUT: 60000
+
+jobs:
+
+  full-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v2
+    - name: Prepare environment
+      run: .github/workflows/prepare-environment.sh
+    - name: Run cargo tests, enabling profiling
+      run: cargo test --all --verbose
+      env:
+        CARGO_INCREMENTAL: 0
+        RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads
+    - name: Run tests with prusti-rustc, enabling debug dumps
+      run: |
+        ./target/debug/prusti-rustc prusti/tests/verify/pass/no-annotations/assert-true.rs
+        ! ./target/debug/prusti-rustc prusti/tests/verify/fail/no-annotations/assert-false.rs
+      env:
+        PRUSTI_DUMP_DEBUG_INFO: true
+        PRUSTI_DUMP_VIPER_PROGRAM: true
+    - name: Collect coverage
+      run: |
+        curl -sL https://github.com/mozilla/grcov/releases/latest/download/grcov-linux-x86_64.tar.bz2 | tar jxf -
+        zip -q0 ccov.zip $(find . \( -name "prusti*.gc*" -or -name "viper*.gc*" -or -name "jni_gen*.gc*" \) -print)
+        ./grcov ccov.zip --llvm --branch --ignore-not-existing -t lcov --ignore "/*" -o lcov.info
+    - name: Upload coverage to Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: lcov.info

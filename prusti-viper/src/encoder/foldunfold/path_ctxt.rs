@@ -613,7 +613,7 @@ impl<'a> PathCtxt<'a> {
                 );
 
                 for fold_req_place in &places_in_pred {
-                    let pos = req.get_place().pos().clone();
+                    let pos = req.get_place().pos();
                     let new_req_place = fold_req_place.clone().set_default_pos(pos);
                     let obtain_result = self.obtain(&new_req_place, false)?;
                     match obtain_result {
@@ -631,7 +631,7 @@ impl<'a> PathCtxt<'a> {
                     .map(|perm| perm.update_perm_amount(perm_amount))
                     .collect();
 
-                let pos = req.get_place().pos().clone();
+                let pos = req.get_place().pos();
                 let fold_action = Action::Fold(
                     predicate_name.clone(),
                     vec![req.get_place().clone().into()],

@@ -6,8 +6,7 @@
 
 use config_crate::{Config, Environment, File};
 use serde::Deserialize;
-use std::env;
-use std::sync::RwLock;
+use std::{env, sync::RwLock};
 
 lazy_static! {
     // Is this RwLock<..> necessary?
@@ -28,7 +27,6 @@ lazy_static! {
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("DUMP_VIPER_PROGRAM", false).unwrap();
         settings.set_default("FOLDUNFOLD_STATE_FILTER", "").unwrap();
-        settings.set_default("NUM_PARENTS_FOR_DUMPS", 0).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
         settings.set_default::<Vec<String>>("EXTRA_JVM_ARGS", vec![]).unwrap();
         settings.set_default::<Vec<String>>("EXTRA_VERIFIER_ARGS", vec![]).unwrap();
@@ -37,6 +35,10 @@ lazy_static! {
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
         settings.set_default("SKIP_UNSUPPORTED_FUNCTIONS", false).unwrap();
+        settings.set_default("ERROR_ON_PARTIALLY_SUPPORTED", false).unwrap();
+        settings.set_default("NO_VERIFY", false).unwrap();
+        settings.set_default("FULL_COMPILATION", false).unwrap();
+        settings.set_default("JSON_COMMUNICATION", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
@@ -69,11 +71,18 @@ pub fn dump() -> String {
     format!("{:?}", SETTINGS.read().unwrap())
 }
 
+fn read_optional_setting<T>(name: &'static str) -> Option<T>
+where
+    T: Deserialize<'static>,
+{
+    SETTINGS.read().unwrap().get(name).ok()
+}
+
 fn read_setting<T>(name: &'static str) -> T
 where
     T: Deserialize<'static>,
 {
-    SETTINGS.read().unwrap().get(name).unwrap()
+    read_optional_setting(name).unwrap()
 }
 
 /// Generate additional, *slow*, checks for the foldunfold algorithm
@@ -129,11 +138,6 @@ pub fn foldunfold_state_filter() -> String {
     read_setting("FOLDUNFOLD_STATE_FILTER")
 }
 
-/// How many parent folders should be used to disambiguate the Viper dumps (and other debug files)?
-pub fn num_parents_for_dumps() -> u64 {
-    read_setting("NUM_PARENTS_FOR_DUMPS")
-}
-
 /// In which folder should we sore log/dumps?
 pub fn log_dir() -> String {
     read_setting("LOG_DIR")
@@ -184,6 +188,39 @@ pub fn report_support_status() -> bool {
     read_setting("REPORT_SUPPORT_STATUS")
 }
 
+/**
+The maximum amount of instantiated viper verifiers the server will keep around for reuse.
+
+If not set, this defaults to `SERVER_MAX_CONCURRENT_VERIFICATION_OPERATIONS`.
+It also doesn't make much sense to set this to less than that, since then the server will likely have to keep creating new verifiers, reducing the performance gained from reuse.
+
+**Note:** This does _not_ limit how many verification requests the server handles concurrently, only the size of what is essentially its verifier cache.
+*/
+pub fn server_max_stored_verifiers() -> Option<usize> {
+    // TODO: default to below in prusti-server
+    // TODO: warn if lower than below
+    read_optional_setting("SERVER_MAX_STORED_VERIFIERS")
+}
+
+/// The maximum amount of verification requests the server will work on concurrently.
+///
+/// If not set, this defaults to the number of (logical) cores on the system
+pub fn server_max_concurrency() -> Option<usize> {
+    read_optional_setting("SERVER_MAX_CONCURRENCY")
+}
+
+/// When set, Prusti will connect to this server and use it for its verification backend (i.e. the things using the JVM/Viper).
+/// Set to "MOCK" to run the server off-thread, effectively mocking connecting to a server without having to start it up separately.
+/// e.g. "127.0.0.1:2468"
+pub fn server_address() -> Option<String> {
+    read_optional_setting("SERVER_ADDRESS")
+}
+
+/// If true, communication with the server will be encoded as json and not the default of bincode.
+pub fn json_communication() -> bool {
+    read_setting("JSON_COMMUNICATION")
+}
+
 /// Disable mangling of generated Viper names.
 ///
 /// **Note:** This is very likely to result in invalid programs being
@@ -224,4 +261,20 @@ pub fn delete_basic_blocks() -> Vec<String> {
 /// Skip functions that are unsupported or partially supported
 pub fn skip_unsupported_functions() -> bool {
     read_setting("SKIP_UNSUPPORTED_FUNCTIONS")
+}
+
+/// Raise error messages even for partially supported language features.
+/// Note: this overrides SKIP_UNSUPPORTED_FUNCTIONS
+pub fn error_on_partially_supported() -> bool {
+    read_setting("ERROR_ON_PARTIALLY_SUPPORTED")
+}
+
+/// Skip the verification
+pub fn no_verify() -> bool {
+    read_setting("NO_VERIFY")
+}
+
+/// Continue the compilation and generate the binary after Prusti terminates
+pub fn full_compilation() -> bool {
+    read_setting("FULL_COMPILATION")
 }

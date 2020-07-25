@@ -6,8 +6,6 @@
 
 //! Fix the potentially broken encoding.
 
-mod ghost_vars;
-mod loops;
-
 pub use self::ghost_vars::fix_ghost_vars;
-pub use self::loops::havoc_assigned_locals;
+
+mod ghost_vars;

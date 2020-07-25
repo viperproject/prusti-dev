@@ -489,17 +489,17 @@ impl State {
     /// permission is already in the state, for example, if the variable
     /// was assigned again as `x` in the following example:
     ///
-    /// ```rust
-    /// // pub fn test2(cond1: bool, mut a: ListNode) {
-    /// //     let mut x = &mut a;
-    /// //     if cond1 {
-    /// //         x = match x.next {
-    /// //             Some(box ref mut node) => node,
-    /// //             None => x,
-    /// //         };
-    /// //     } // a.value is dropped during the merge.
-    /// //     x.value.g.f = 4;
-    /// // }
+    /// ```rust,ignore
+    /// pub fn test2(cond1: bool, mut a: ListNode) {
+    ///     let mut x = &mut a;
+    ///     if cond1 {
+    ///         x = match x.next {
+    ///             Some(box ref mut node) => node,
+    ///             None => x,
+    ///         };
+    ///     } // a.value is dropped during the merge.
+    ///     x.value.g.f = 4;
+    /// }
     /// ```
     /// In such a case, the function keeps the most generic variant of
     /// permissions.

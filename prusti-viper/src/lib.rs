@@ -47,6 +47,6 @@ extern crate lazy_static;
 // #[macro_use]
 // extern crate pretty_assertions;
 
-mod encoder;
+pub mod encoder;
 mod utils;
 pub mod verifier;

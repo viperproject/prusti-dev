@@ -5,10 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use config;
-use viper;
-use viper::AstFactory;
-use vir::ast::*;
-use vir::borrows::borrow_id;
+use viper::{self, AstFactory};
+use vir::{ast::*, borrows::borrow_id, Program};
 
 pub trait ToViper<'v, T> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> T;
@@ -18,9 +16,56 @@ pub trait ToViperDecl<'v, T> {
     fn to_viper_decl(&self, ast: &AstFactory<'v>) -> T;
 }
 
+impl<'v> ToViper<'v, viper::Program<'v>> for Program {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Program<'v> {
+        let domains = self.domains.to_viper(ast);
+        let fields = self.fields.to_viper(ast);
+
+        let mut viper_methods: Vec<_> = self.methods.iter().map(|m| m.to_viper(ast)).collect();
+        viper_methods.extend(self.builtin_methods.iter().map(|m| m.to_viper(ast)));
+        if config::verify_only_preamble() {
+            viper_methods = Vec::new();
+        }
+
+        let mut viper_functions: Vec<_> = self.functions.iter().map(|f| f.to_viper(ast)).collect();
+        let predicates = self.viper_predicates.to_viper(ast);
+
+        info!(
+            "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",
+            domains.len(),
+            fields.len(),
+            viper_functions.len(),
+            predicates.len(),
+            viper_methods.len()
+        );
+
+        // Add a function that represents the symbolic read permission amount.
+        viper_functions.push(ast.function(
+            "read$",
+            &[],
+            ast.perm_type(),
+            &[],
+            &[
+                ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
+                ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm()),
+            ],
+            ast.no_position(),
+            None,
+        ));
+
+        ast.program(
+            &domains,
+            &fields,
+            &viper_functions,
+            &predicates,
+            &viper_methods,
+        )
+    }
+}
+
 impl<'v> ToViper<'v, viper::Position<'v>> for Position {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Position<'v> {
-        ast.identifier_position(self.line(), self.column(), self.id())
+        ast.identifier_position(self.line(), self.column(), self.id().to_string())
     }
 }
 
@@ -31,6 +76,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             &Type::Bool => ast.bool_type(),
             //&Type::Ref |
             &Type::TypedRef(_) => ast.ref_type(),
+            &Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
         }
     }
 }
@@ -63,7 +109,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             &Stmt::Comment(ref comment) => ast.comment(&comment),
             &Stmt::Label(ref label) => ast.label(&label, &[]),
             &Stmt::Inhale(ref expr, _) => {
-                let fake_position = Position::new(0, 0, "inhale".to_string());
+                let fake_position = Position::default();
                 ast.inhale(expr.to_viper(ast), fake_position.to_viper(ast))
             }
             &Stmt::Exhale(ref expr, ref pos) => {
@@ -74,7 +120,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 ast.assert(expr.to_viper(ast), pos.to_viper(ast))
             }
             &Stmt::MethodCall(ref method_name, ref args, ref targets) => {
-                let fake_position = Position::new(0, 0, "method_call".to_string());
+                let fake_position = Position::default();
                 ast.method_call(
                     &method_name,
                     &args.to_viper(ast),
@@ -129,7 +175,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                         expr.compute_footprint(perm)
                             .into_iter()
                             .map(|access| {
-                                let fake_position = Position::new(0, 0, "fold_assert".to_string());
+                                let fake_position = Position::default();
                                 let assert =
                                     Stmt::Assert(access, FoldingBehaviour::None, fake_position);
                                 assert.to_viper(ast)
@@ -167,15 +213,17 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             ));
                             ast.seqn(stmts.as_slice(), &[])
                         }
-                        &Stmt::If(ref guard, ref then_stmts) => {
-                            let stmts: Vec<_> = then_stmts
-                                .iter()
+                        &Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
+                            let then_stmts: Vec<_> = then_stmts.iter()
+                                .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
+                                .collect();
+                            let else_stmts: Vec<_> = else_stmts.iter()
                                 .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
                                 .collect();
                             ast.if_stmt(
                                 guard.to_viper(ast),
-                                ast.seqn(&stmts, &[]),
-                                ast.seqn(&[], &[]),
+                                ast.seqn(&then_stmts, &[]),
+                                ast.seqn(&else_stmts, &[]),
                             )
                         }
                         _ => stmt.to_viper(ast),
@@ -209,7 +257,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 } else {
                     unreachable!()
                 };
-                let position = ast.identifier_position(pos.line(), pos.column(), &pos.id());
+                let position = ast.identifier_position(pos.line(), pos.column(), &pos.id().to_string());
                 let apply = ast.apply(wand.to_viper(ast), position);
                 ast.seqn(&[inhale, apply], &[])
             }
@@ -217,10 +265,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::If(ref guard, ref then_stmts) => ast.if_stmt(
+            &Stmt::If(ref guard, ref then_stmts, ref else_stmts) => ast.if_stmt(
                 guard.to_viper(ast),
                 ast.seqn(&then_stmts.to_viper(ast), &[]),
-                ast.seqn(&[], &[]),
+                ast.seqn(&else_stmts.to_viper(ast), &[]),
             ),
         }
     }
@@ -383,6 +431,36 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(ast),
                 )
             }
+            &Expr::DomainFuncApp(ref function, ref args, ref _pos) => {
+                ast.domain_func_app(
+                    function.to_viper(ast),
+                    &args.to_viper(ast),
+                    &[], // TODO not necessary so far
+                )
+            }
+            /* TODO use once DomainFuncApp has been updated
+            &Expr::DomainFuncApp(
+                ref function_name,
+                ref args,
+                ref formal_args,
+                ref return_type,
+                ref domain_name,
+                ref pos,
+            ) => {
+                let identifier = compute_identifier(function_name, formal_args, return_type);
+                ast.domain_func_app(
+                    &identifier,
+                    &args.to_viper(ast),
+                    &[], // not necessary so far
+                    return_type.to_viper(ast),
+                    domain_name,
+                    pos.to_viper(ast),
+                )
+            },
+            */
+            &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
+                ast.inhale_exhale_pred(inhale_expr.to_viper(ast), exhale_expr.to_viper(ast))
+            }
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)
@@ -414,6 +492,9 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
         match self {
             Predicate::Struct(p) => p.to_viper(ast),
             Predicate::Enum(p) => p.to_viper(ast),
+            Predicate::Bodyless(name, this) => {
+                ast.predicate(name, &[this.to_viper_decl(ast)], None)
+            }
         }
     }
 }
@@ -477,6 +558,35 @@ impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a Function {
     }
 }
 
+impl<'a, 'v> ToViper<'v, viper::Domain<'v>> for &'a Domain {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Domain<'v> {
+        ast.domain(
+            &self.name,
+            &self.functions.to_viper(ast),
+            &self.axioms.to_viper(ast),
+            &self.type_vars.to_viper(ast),
+        )
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::DomainFunc<'v> {
+        ast.domain_func(
+            &self.get_identifier(),
+            &self.formal_args.to_viper_decl(ast),
+            self.return_type.to_viper(ast),
+            self.unique,
+            &self.domain_name,
+        )
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for &'a DomainAxiom {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::NamedDomainAxiom<'v> {
+        ast.named_domain_axiom(&self.name, self.expr.to_viper(ast), &self.domain_name)
+    }
+}
+
 // Vectors
 
 impl<'v> ToViper<'v, Vec<viper::Field<'v>>> for Vec<Field> {
@@ -500,6 +610,30 @@ impl<'v, 'a, 'b> ToViper<'v, Vec<viper::Trigger<'v>>> for (&'a Vec<Trigger>, &'b
 impl<'v> ToViperDecl<'v, Vec<viper::LocalVarDecl<'v>>> for Vec<LocalVar> {
     fn to_viper_decl(&self, ast: &AstFactory<'v>) -> Vec<viper::LocalVarDecl<'v>> {
         self.iter().map(|x| x.to_viper_decl(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::Domain<'v>>> for Vec<Domain> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Domain<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::DomainFunc<'v>>> for Vec<DomainFunc> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::DomainFunc<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::NamedDomainAxiom<'v>>> for Vec<DomainAxiom> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::NamedDomainAxiom<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::Type<'v>>> for Vec<Type> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Type<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
     }
 }
 

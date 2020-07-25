@@ -5,7 +5,7 @@ from graphviz import Digraph
 BASE_DIR_NAME = "prusti-dev"
 
 cwd = Path(os.getcwd()).parts
-BASE_PATH = Path("/".join(cwd[:cwd.index(BASE_DIR_NAME)+1])[1:])
+BASE_PATH = os.path.join(*cwd[:cwd.index(BASE_DIR_NAME)+1])
 
 # search for registered Cargo.toml and packages in the project
 cargo_tomls = []

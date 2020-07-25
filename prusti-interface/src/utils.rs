@@ -65,7 +65,7 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
                     places.push(field_place);
                 }
             }
-        }
+        },
         ty::Ref(_region, _ty, _) => match without_field {
             Some(without_field) => {
                 assert_eq!(

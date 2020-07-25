@@ -4,27 +4,29 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::cmp::Ordering;
-use std::collections::HashMap;
-use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::mem::discriminant;
-use std::ops;
+use std::{
+    cmp::Ordering,
+    collections::HashMap,
+    fmt,
+    hash::{Hash, Hasher},
+    mem::discriminant,
+    ops,
+};
 
 pub trait WithIdentifier {
     fn get_identifier(&self) -> String;
 }
 
 /// The identifier of a statement. Used in error reporting.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Position {
     line: i32,
     column: i32,
-    id: String,
+    id: u64,
 }
 
 impl Position {
-    pub fn new(line: i32, column: i32, id: String) -> Self {
+    pub fn new(line: i32, column: i32, id: u64) -> Self {
         Position { line, column, id }
     }
 
@@ -36,18 +38,18 @@ impl Position {
         self.column
     }
 
-    pub fn id(&self) -> String {
-        self.id.to_string()
+    pub fn id(&self) -> u64 {
+        self.id
     }
 
     pub fn is_default(&self) -> bool {
-        self.line == 0 && self.column == 0 && self.id == "no-position"
+        self.line == 0 && self.column == 0 && self.id == 0
     }
 }
 
 impl Default for Position {
     fn default() -> Self {
-        Position::new(0, 0, "no-position".to_string())
+        Position::new(0, 0, 0)
     }
 }
 
@@ -57,13 +59,13 @@ mod tests {
 
     #[test]
     fn test_default_position() {
-        assert!(!Position::new(123, 234, "123123123".to_string()).is_default());
+        assert!(!Position::new(123, 234, 345).is_default());
         assert!(Position::default().is_default());
     }
 }
 
 /// The permission amount.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum PermAmount {
     Read,
     Write,
@@ -130,19 +132,21 @@ impl PartialOrd for PermAmount {
 
 impl Ord for PermAmount {
     fn cmp(&self, other: &PermAmount) -> Ordering {
-        self.partial_cmp(other).expect(
-            &format!("Undefined comparison between {:?} and {:?}", self, other)
-        )
+        self.partial_cmp(other).expect(&format!(
+            "Undefined comparison between {:?} and {:?}",
+            self, other
+        ))
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Type {
     Int,
     Bool,
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
+    Domain(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -150,6 +154,7 @@ pub enum TypeId {
     Int,
     Bool,
     Ref,
+    Domain,
 }
 
 impl fmt::Display for Type {
@@ -159,6 +164,7 @@ impl fmt::Display for Type {
             &Type::Bool => write!(f, "Bool"),
             //&Type::Ref => write!(f, "Ref"),
             &Type::TypedRef(ref name) => write!(f, "Ref({})", name),
+            &Type::Domain(ref name) => write!(f, "Domain({})", name),
         }
     }
 }
@@ -172,11 +178,19 @@ impl Type {
         }
     }
 
+    pub fn is_domain(&self) -> bool {
+        match self {
+            &Type::Domain(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn name(&self) -> String {
         match self {
             &Type::Bool => "bool".to_string(),
             &Type::Int => "int".to_string(),
             &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
+            &Type::Domain(ref pred_name) => format!("{}", pred_name),
         }
     }
 
@@ -195,14 +209,13 @@ impl Type {
     /// substitution.
     pub fn patch(self, substs: &HashMap<String, String>) -> Self {
         match self {
-            Type::Bool => Type::Bool,
-            Type::Int => Type::Int,
             Type::TypedRef(mut predicate_name) => {
                 for (typ, subst) in substs {
                     predicate_name = predicate_name.replace(typ, subst);
                 }
                 Type::TypedRef(predicate_name)
             }
+            typ => typ,
         }
     }
 
@@ -211,6 +224,7 @@ impl Type {
             Type::Bool => TypeId::Bool,
             Type::Int => TypeId::Int,
             Type::TypedRef(_) => TypeId::Ref,
+            Type::Domain(_) => TypeId::Domain,
         }
     }
 }
@@ -229,7 +243,7 @@ impl Hash for Type {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct LocalVar {
     pub name: String,
     pub typ: Type,
@@ -256,7 +270,7 @@ impl LocalVar {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
     pub typ: Type,
@@ -287,21 +301,6 @@ impl Field {
             Type::TypedRef(ref name) => Some(name.clone()),
             _ => None,
         }
-    }
-}
-
-impl PartialEq for Field {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && self.typ == other.typ
-    }
-}
-
-impl Eq for Field {}
-
-impl Hash for Field {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.name.hash(state);
-        self.typ.hash(state);
     }
 }
 

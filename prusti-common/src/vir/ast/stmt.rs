@@ -9,7 +9,7 @@ use super::super::cfg::CfgBlockIndex;
 use vir::ast::*;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Stmt {
     Comment(String),
     Label(String),
@@ -50,11 +50,11 @@ pub enum Stmt {
     /// Expire borrows given in the reborrowing DAG.
     ExpireBorrows(ReborrowingDAG),
     /// An `if` statement: the guard and the 'then' branch.
-    If(Expr, Vec<Stmt>),
+    If(Expr, Vec<Stmt>, Vec<Stmt>),
 }
 
 /// What folding behaviour should be used?
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum FoldingBehaviour {
     /// Use `fold` and `unfold` statements.
     Stmt,
@@ -64,7 +64,7 @@ pub enum FoldingBehaviour {
     None,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AssignKind {
     /// Encodes a Rust copy.
     /// This assignment can be used iff the Viper type of the `lhs` and `rhs` is *not* Ref.
@@ -181,15 +181,24 @@ impl fmt::Display for Stmt {
 
             Stmt::ExpireBorrows(dag) => writeln!(f, "expire_borrows {:?}", dag),
 
-            Stmt::If(ref guard, ref then_stmts) => {
-                write!(f, "if {} {{", guard)?;
-                if !then_stmts.is_empty() {
-                    write!(f, "\n")?;
+            Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
+                fn write_stmt(f: &mut fmt::Formatter, stmt: &Stmt) -> fmt::Result {
+                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))
                 }
-                for stmt in then_stmts.iter() {
-                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
+                fn write_block(f: &mut fmt::Formatter, stmts: &[Stmt]) -> fmt::Result {
+                    write!(f, "{{")?;
+                    if !stmts.is_empty() {
+                        write!(f, "\n")?;
+                    }
+                    for stmt in stmts.iter() {
+                        write_stmt(f, stmt)?;
+                    }
+                    write!(f, "}}")
                 }
-                write!(f, "}}")
+                write!(f, "if {} ", guard)?;
+                write_block(f, then_stmts)?;
+                write!(f, " else ")?;
+                write_block(f, else_stmts)
             }
 
             ref x => unimplemented!("{:?}", x),
@@ -218,7 +227,7 @@ impl Stmt {
         pos: Position,
     ) -> Self {
         Stmt::PackageMagicWand(
-            Expr::MagicWand(box lhs, box rhs, None, pos.clone()),
+            Expr::MagicWand(box lhs, box rhs, None, pos),
             stmts,
             label,
             vars,
@@ -257,7 +266,7 @@ impl Stmt {
 
     // Replace all Position::default() positions in expressions with `pos`
     pub fn set_default_expr_pos(self, pos: Position) -> Self {
-        self.map_expr(|e| e.set_default_pos(pos.clone()))
+        self.map_expr(|e| e.set_default_pos(pos))
     }
 }
 
@@ -280,7 +289,7 @@ pub trait StmtFolder {
             Stmt::PackageMagicWand(w, s, l, v, p) => self.fold_package_magic_wand(w, s, l, v, p),
             Stmt::ApplyMagicWand(w, p) => self.fold_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.fold_expire_borrows(d),
-            Stmt::If(g, t) => self.fold_if(g, t),
+            Stmt::If(g, t, e) => self.fold_if(g, t, e),
         }
     }
 
@@ -394,10 +403,11 @@ pub trait StmtFolder {
         Stmt::ExpireBorrows(dag)
     }
 
-    fn fold_if(&mut self, g: Expr, t: Vec<Stmt>) -> Stmt {
+    fn fold_if(&mut self, g: Expr, t: Vec<Stmt>, e: Vec<Stmt>) -> Stmt {
         Stmt::If(
             self.fold_expr(g),
             t.into_iter().map(|x| self.fold(x)).collect(),
+            e.into_iter().map(|x| self.fold(x)).collect(),
         )
     }
 }
@@ -427,7 +437,7 @@ pub trait FallibleStmtFolder {
             }
             Stmt::ApplyMagicWand(w, p) => self.fallible_fold_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.fallible_fold_expire_borrows(d),
-            Stmt::If(g, t) => self.fallible_fold_if(g, t),
+            Stmt::If(g, t, e) => self.fallible_fold_if(g, t, e),
         }
     }
 
@@ -576,10 +586,14 @@ pub trait FallibleStmtFolder {
         Ok(Stmt::ExpireBorrows(dag))
     }
 
-    fn fallible_fold_if(&mut self, g: Expr, t: Vec<Stmt>) -> Result<Stmt, Self::Error> {
+    fn fallible_fold_if(&mut self,
+        g: Expr, t: Vec<Stmt>,
+        e: Vec<Stmt>
+    ) -> Result<Stmt, Self::Error> {
         Ok(Stmt::If(
             self.fallible_fold_expr(g)?,
             t.into_iter().map(|x| self.fallible_fold(x)).collect::<Result<_, _>>()?,
+            e.into_iter().map(|x| self.fallible_fold(x)).collect::<Result<_, _>>()?,
         ))
     }
 }
@@ -603,7 +617,7 @@ pub trait StmtWalker {
             Stmt::PackageMagicWand(w, s, l, v, p) => self.walk_package_magic_wand(w, s, l, v, p),
             Stmt::ApplyMagicWand(w, p) => self.walk_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.walk_expire_borrows(d),
-            Stmt::If(g, t) => self.walk_if(g, t),
+            Stmt::If(g, t, e) => self.walk_if(g, t, e),
         }
     }
 
@@ -710,9 +724,12 @@ pub trait StmtWalker {
 
     fn walk_nested_cfg(&mut self, _entry: &CfgBlockIndex, _exit: &CfgBlockIndex) {}
 
-    fn walk_if(&mut self, g: &Expr, t: &Vec<Stmt>) {
+    fn walk_if(&mut self, g: &Expr, t: &Vec<Stmt>, e: &Vec<Stmt>) {
         self.walk_expr(g);
         for s in t {
+            self.walk(s);
+        }
+        for s in e {
             self.walk(s);
         }
     }

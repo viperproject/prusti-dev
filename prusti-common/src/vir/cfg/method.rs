@@ -12,22 +12,27 @@ use vir::ast::*;
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgMethod {
+    // TODO: extract logic using (most) skipped fields to CfgMethodBuilder
+    #[serde(skip)]
     pub(super) uuid: Uuid,
     pub(super) method_name: String,
     pub(in super::super) formal_arg_count: usize,
     pub(in super::super) formal_returns: Vec<LocalVar>,
     pub(in super::super) local_vars: Vec<LocalVar>,
     pub(super) labels: HashSet<String>,
+    #[serde(skip)]
     pub(super) reserved_labels: HashSet<String>,
     pub basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
     pub(super) basic_blocks_labels: Vec<String>,
+    #[serde(skip)]
     fresh_var_index: i32,
+    #[serde(skip)]
     fresh_label_index: i32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgBlock {
     // FIXME: Hack, should be pub(super).
     pub(super) invs: Vec<Expr>,
@@ -35,7 +40,7 @@ pub struct CfgBlock {
     pub(in super::super) successor: Successor,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Successor {
     Undefined,
     Return,
@@ -43,8 +48,9 @@ pub enum Successor {
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
 }
 
-#[derive(PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(PartialEq, Eq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct CfgBlockIndex {
+    #[serde(skip)]
     pub(super) method_uuid: Uuid,
     pub(in super::super) block_index: usize,
 }
@@ -320,6 +326,39 @@ impl CfgMethod {
     #[allow(dead_code)]
     pub fn get_block_label(&self, index: CfgBlockIndex) -> &str {
         &self.basic_blocks_labels[index.block_index]
+    }
+
+    pub fn has_loops(&self) -> bool {
+        let mut in_degree = vec![0; self.basic_blocks.len()];
+
+        for index in 0..self.basic_blocks.len() {
+            for succ in self.basic_blocks[index].successor.get_following() {
+                in_degree[succ.index()] += 1;
+            }
+        }
+
+        let mut queue = VecDeque::new();
+        for index in 0..self.basic_blocks.len() {
+            if in_degree[index] == 0 {
+                queue.push_back(index);
+            }
+        }
+
+        let mut visited_count = 0;
+
+        while let Some(curr_index) = queue.pop_front() {
+            for succ in self.basic_blocks[curr_index].successor.get_following() {
+                in_degree[succ.index()] -= 1;
+
+                if in_degree[succ.index()] == 0 {
+                    queue.push_back(succ.index());
+                }
+            }
+            visited_count += 1;
+        }
+
+        debug_assert!(visited_count <= self.basic_blocks.len());
+        visited_count != self.basic_blocks.len()
     }
 
     pub fn get_topological_sort(&self) -> Vec<CfgBlockIndex> {

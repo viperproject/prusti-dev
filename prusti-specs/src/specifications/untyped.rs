@@ -1,5 +1,5 @@
 use super::common::{self, ExpressionIdGenerator};
-use proc_macro2::{TokenStream, Span, Spacing, Punct, Ident, TokenTree};
+use proc_macro2::{TokenStream, Span, Spacing, Punct};
 use quote::{quote_spanned, ToTokens, TokenStreamExt};
 use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream};

@@ -8,7 +8,6 @@ use prusti_common::vir::Position;
 use std::collections::HashMap;
 use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
-use uuid::Uuid;
 use viper::VerificationError;
 use crate::encoder::errors::PrustiError;
 use log::debug;
@@ -95,11 +94,11 @@ pub enum ErrorCtxt {
 
 /// The error manager
 #[derive(Clone)]
-pub struct ErrorManager<'tcx>
- {
+pub struct ErrorManager<'tcx> {
     codemap: &'tcx SourceMap,
-    source_span: HashMap<String, MultiSpan>,
-    error_contexts: HashMap<String, ErrorCtxt>,
+    source_span: HashMap<u64, MultiSpan>,
+    error_contexts: HashMap<u64, ErrorCtxt>,
+    next_pos_id: u64,
 }
 
 impl<'tcx> ErrorManager<'tcx>
@@ -109,6 +108,7 @@ impl<'tcx> ErrorManager<'tcx>
             codemap,
             source_span: HashMap::new(),
             error_contexts: HashMap::new(),
+            next_pos_id: 1,
         }
     }
 
@@ -120,7 +120,8 @@ impl<'tcx> ErrorManager<'tcx>
 
     pub fn register_span<T: Into<MultiSpan>>(&mut self, span: T) -> Position {
         let span = span.into();
-        let pos_id = Uuid::new_v4().to_hyphenated().to_string();
+        let pos_id = self.next_pos_id;
+        self.next_pos_id += 1;
         debug!("Register position {:?} at span {:?}", pos_id, span);
         let pos = if let Some(primary_span) = span.primary_span() {
             let lines_info = self
@@ -135,7 +136,7 @@ impl<'tcx> ErrorManager<'tcx>
                 Position::new(0, 0, pos_id.clone())
             }
         } else {
-            Position::new(0, 0, pos_id.clone())
+            Position::new(0, 0, pos_id)
         };
         self.source_span.insert(pos_id, span);
         pos
@@ -148,24 +149,50 @@ impl<'tcx> ErrorManager<'tcx>
 
     pub fn translate_verification_error(&self, ver_error: &VerificationError) -> PrustiError {
         debug!("Verification error: {:?}", ver_error);
-        let pos_id = &ver_error.pos_id;
-        let opt_error_span = pos_id
-            .as_ref()
-            .and_then(|pos_id| self.source_span.get(pos_id));
-        let opt_cause_span = ver_error
-            .reason_pos_id
-            .as_ref()
-            .and_then(|reason_pos_id| {
-                let res = self.source_span.get(reason_pos_id);
-                if res.is_none() {
-                    debug!("Unregistered reason position: {:?}", reason_pos_id);
+        let opt_pos_id: Option<u64> = match ver_error.pos_id {
+            Some(ref viper_pos_id) => {
+                match viper_pos_id.parse() {
+                    Ok(pos_id) => Some(pos_id),
+                    Err(err) => {
+                        return PrustiError::internal(
+                            format!(
+                                "unexpected Viper position '{}': {}",
+                                viper_pos_id, err
+                            ),
+                            MultiSpan::new()
+                        );
+                    }
                 }
-                res
-            });
+            }
+            None => None
+        };
+        let opt_reason_pos_id: Option<u64> = match ver_error.reason_pos_id {
+            Some(ref viper_reason_pos_id) => {
+                match viper_reason_pos_id.parse() {
+                    Ok(reason_pos_id) => Some(reason_pos_id),
+                    Err(err) => {
+                        return PrustiError::internal(
+                            format!(
+                                "unexpected Viper reason position '{}': {}",
+                                viper_reason_pos_id, err
+                            ),
+                            MultiSpan::new()
+                        );
+                    }
+                }
+            }
+            None => None
+        };
 
-        let opt_error_ctxt = pos_id
-            .as_ref()
-            .and_then(|pos_id| self.error_contexts.get(pos_id));
+        let opt_error_ctxt = opt_pos_id.and_then(|pos_id| self.error_contexts.get(&pos_id));
+        let opt_error_span = opt_pos_id.and_then(|pos_id| self.source_span.get(&pos_id));
+        let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
+            let res = self.source_span.get(&reason_pos_id);
+            if res.is_none() {
+                debug!("Unregistered reason position: {:?}", reason_pos_id);
+            }
+            res
+        });
 
         let (error_span, error_ctxt) = if let Some(error_ctxt) = opt_error_ctxt {
             debug_assert!(opt_error_span.is_some());
@@ -179,7 +206,7 @@ impl<'tcx> ErrorManager<'tcx>
                 opt_cause_span.cloned().unwrap_or_else(|| MultiSpan::new())
             };
 
-            match pos_id {
+            match opt_pos_id {
                 Some(ref pos_id) => {
                     return PrustiError::internal(
                         format!(
@@ -271,7 +298,7 @@ impl<'tcx> ErrorManager<'tcx>
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
-                PrustiError::verification("loop invariant might not hold on entry.", error_span)
+                PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
@@ -283,20 +310,20 @@ impl<'tcx> ErrorManager<'tcx>
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => {
-                PrustiError::verification("loop invariant might not hold on entry.", error_span)
+                PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
                 PrustiError::verification(
-                    "loop invariant might not hold at the end of a loop iteration.",
+                    "loop invariant might not hold after a loop iteration that preserves the loop condition.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => {
                 PrustiError::verification(
-                    "loop invariant might not hold at the end of a loop iteration.",
+                    "loop invariant might not hold after a loop iteration that preserves the loop condition.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }

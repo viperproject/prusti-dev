@@ -12,7 +12,7 @@ use std::hash::{Hash, Hasher};
 use std::mem;
 use std::mem::discriminant;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Expr {
     /// A local var
     Local(LocalVar, Position),
@@ -41,6 +41,12 @@ pub enum Expr {
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
+    /// Domain function application: function_name, args, formal_args, return_type, domain_name, Viper position (unused)
+    DomainFuncApp(DomainFunc, Vec<Expr>, Position),
+    // TODO use version below once providing a return type is supported in silver
+    // DomainFuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, String, Position),
+    /// Inhale Exhale: inhale expression, exhale expression, Viper position (unused)
+    InhaleExhale(Box<Expr>, Box<Expr>, Position),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -50,13 +56,13 @@ pub enum PlaceComponent {
     Variant(Field, Position),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum UnaryOpKind {
     Not,
     Minus,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum BinOpKind {
     EqCmp,
     NeCmp,
@@ -74,7 +80,7 @@ pub enum BinOpKind {
     Implies,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
     Int(i64),
@@ -160,6 +166,36 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(", "),
             ),
+            /* TODO include once the def. of DomainFuncApp changes
+            Expr::DomainFuncApp(ref name, ref args, ref params, ref typ, ref domain_name, ref _pos) => write!(
+                f,
+                "{}::{}<{},{}>({})",
+                domain_name,
+                name,
+                params
+                    .iter()
+                    .map(|p| p.typ.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                typ.to_string(),
+                args.iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
+            ),
+             */
+            Expr::DomainFuncApp(ref function, ref args, ref _pos) => write!(
+                f,
+                "{}({})",
+                function.name,
+                args.iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
+            ),
+
+            Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) =>
+                write!(f, "[({}), ({})]", inhale_expr, exhale_expr),
         }
     }
 }
@@ -205,24 +241,27 @@ impl fmt::Display for Const {
 }
 
 impl Expr {
-    pub fn pos(&self) -> &Position {
-        match self {
-            Expr::Local(_, ref p) => p,
-            Expr::Variant(_, _, ref p) => p,
-            Expr::Field(_, _, ref p) => p,
-            Expr::AddrOf(_, _, ref p) => p,
-            Expr::Const(_, ref p) => p,
-            Expr::LabelledOld(_, _, ref p) => p,
-            Expr::MagicWand(_, _, _, ref p) => p,
-            Expr::PredicateAccessPredicate(_, _, _, ref p) => p,
-            Expr::FieldAccessPredicate(_, _, ref p) => p,
-            Expr::UnaryOp(_, _, ref p) => p,
-            Expr::BinOp(_, _, _, ref p) => p,
-            Expr::Unfolding(_, _, _, _, _, ref p) => p,
-            Expr::Cond(_, _, _, ref p) => p,
-            Expr::ForAll(_, _, _, ref p) => p,
-            Expr::LetExpr(_, _, _, ref p) => p,
-            Expr::FuncApp(_, _, _, _, ref p) => p,
+    pub fn pos(&self) -> Position {
+        *match self {
+            Expr::Local(_, p) => p,
+            Expr::Variant(_, _, p) => p,
+            Expr::Field(_, _, p) => p,
+            Expr::AddrOf(_, _, p) => p,
+            Expr::Const(_, p) => p,
+            Expr::LabelledOld(_, _, p) => p,
+            Expr::MagicWand(_, _, _, p) => p,
+            Expr::PredicateAccessPredicate(_, _, _, p) => p,
+            Expr::FieldAccessPredicate(_, _, p) => p,
+            Expr::UnaryOp(_, _, p) => p,
+            Expr::BinOp(_, _, _, p) => p,
+            Expr::Unfolding(_, _, _, _, _, p) => p,
+            Expr::Cond(_, _, _, p) => p,
+            Expr::ForAll(_, _, _, p) => p,
+            Expr::LetExpr(_, _, _, p) => p,
+            Expr::FuncApp(_, _, _, _, p) => p,
+            Expr::DomainFuncApp(_, _, p) => p,
+            // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
+            Expr::InhaleExhale(_, _, p) => p,
         }
     }
 
@@ -248,6 +287,9 @@ impl Expr {
             Expr::ForAll(x, y, z, _) => Expr::ForAll(x, y, z, pos),
             Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
             Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
+            Expr::DomainFuncApp(x,y,_) => Expr::DomainFuncApp(x,y,pos),
+            // TODO Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
+            Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
         }
     }
 
@@ -260,7 +302,7 @@ impl Expr {
             fn fold(&mut self, e: Expr) -> Expr {
                 let expr = default_fold_expr(self, e);
                 if expr.pos().is_default() {
-                    expr.set_pos(self.new_pos.clone())
+                    expr.set_pos(self.new_pos)
                 } else {
                     expr
                 }
@@ -270,7 +312,7 @@ impl Expr {
     }
 
     pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, perm: PermAmount) -> Self {
-        let pos = place.pos().clone();
+        let pos = place.pos();
         Expr::PredicateAccessPredicate(name.to_string(), box place, perm, pos)
     }
 
@@ -396,7 +438,7 @@ impl Expr {
     /// Create `unfolding T(arg) in body` where `T` is the type of `arg`.
     pub fn wrap_in_unfolding(arg: Expr, body: Expr) -> Expr {
         let type_name = arg.get_type().name();
-        let pos = body.pos().clone();
+        let pos = body.pos();
         Expr::Unfolding(type_name, vec![arg], box body, PermAmount::Read, None, pos)
     }
 
@@ -471,12 +513,12 @@ impl Expr {
         match self {
             Expr::Variant(ref base, ref variant, ref pos) => {
                 let (base_base, mut components) = base.explode_place();
-                components.push(PlaceComponent::Variant(variant.clone(), pos.clone()));
+                components.push(PlaceComponent::Variant(variant.clone(), *pos));
                 (base_base, components)
             }
             Expr::Field(ref base, ref field, ref pos) => {
                 let (base_base, mut components) = base.explode_place();
-                components.push(PlaceComponent::Field(field.clone(), pos.clone()));
+                components.push(PlaceComponent::Field(field.clone(), *pos));
                 (base_base, components)
             }
             _ => (self.clone(), vec![]),
@@ -542,6 +584,13 @@ impl Expr {
     pub fn is_variant(&self) -> bool {
         match self {
             Expr::Variant(..) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_call(&self) -> bool {
+        match self {
+            Expr::FuncApp(..) | Expr::DomainFuncApp(..) => true,
             _ => false,
         }
     }
@@ -792,8 +841,9 @@ impl Expr {
         res
     }
 
+    /// Returns the type of the expression.
+    /// For function applications, the return type is provided.
     pub fn get_type(&self) -> &Type {
-        debug_assert!(self.is_place());
         match self {
             &Expr::Local(LocalVar { ref typ, .. }, _)
             | &Expr::Variant(_, Field { ref typ, .. }, _)
@@ -804,7 +854,13 @@ impl Expr {
             &Expr::LabelledOld(_, box ref base, _)
             | &Expr::Unfolding(_, _, box ref base, _, _, _) => {
                 base.get_type()
-            }
+            },
+            &Expr::FuncApp(_, _, _, ref typ, _) => {
+                &typ
+            },
+            &Expr::DomainFuncApp(ref func, _, _) => {
+                &func.return_type
+            },
             _ => panic!(),
         }
     }
@@ -842,6 +898,14 @@ impl Expr {
         }
     }
 
+    pub fn negate(self) -> Self {
+        if let Expr::UnaryOp(UnaryOpKind::Not, box inner_expr, _pos) = self {
+            inner_expr
+        } else {
+            Expr::not(self)
+        }
+    }
+
     pub fn map_labels<F>(self, f: F) -> Self
     where
         F: Fn(String) -> Option<String>,
@@ -865,7 +929,9 @@ impl Expr {
         //assert_eq!(target.get_type(), replacement.get_type());
         if replacement.is_place() {
             assert!(
-                target.get_type() == replacement.get_type(),
+                // for copy types references are replaced by snapshots
+                target.get_type() == replacement.get_type()
+                    || replacement.get_type().is_domain(),
                 "Cannot substitute '{}' with '{}', because they have incompatible types '{}' and '{}'",
                 target,
                 replacement,
@@ -1012,7 +1078,9 @@ impl Expr {
                     | Expr::LabelledOld(..)
                     | Expr::ForAll(..)
                     | Expr::LetExpr(..)
-                    | Expr::FuncApp(..) => true.into(),
+                    | Expr::FuncApp(..)
+                    | Expr::DomainFuncApp(..)
+                    | Expr::InhaleExhale(..) => true.into(),
                 }
             }
         }
@@ -1226,8 +1294,13 @@ impl Hash for Expr {
             }
             Expr::LetExpr(ref var, box ref def, box ref expr, _) => (var, def, expr).hash(state),
             Expr::FuncApp(ref name, ref args, _, _, _) => (name, args).hash(state),
+            Expr::DomainFuncApp(ref function, ref args, _) => (&function.name, args).hash(state),
+            // TODO Expr::DomainFuncApp(ref name, ref args, _, _, ref domain_name ,_) => (name, args, domain_name).hash(state),
             Expr::Unfolding(ref name, ref args, box ref base, perm, ref variant, _) => {
                 (name, args, base, perm, variant).hash(state)
+            }
+            Expr::InhaleExhale(box ref inhale_expr, box ref exhale_expr, _) => {
+                (inhale_expr, exhale_expr).hash(state)
             }
         }
     }

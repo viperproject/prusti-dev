@@ -15,7 +15,7 @@ use std::collections::BTreeSet;
 use std::fmt;
 use log::trace;
 
-#[derive(PartialEq, Eq, Hash, Clone, Ord, PartialOrd)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Ord, PartialOrd)]
 pub struct Assignment {
     pub target: mir::Local,
     pub location: mir::Location,
@@ -38,9 +38,13 @@ impl AssignmentSet {
             set: BTreeSet::new(),
         }
     }
-    fn union(set1: &Self, set2: &Self) -> Self {
+    fn union(sets: Vec<&Self>) -> Self {
+        let mut union_set = BTreeSet::new();
+        for set in &sets {
+            union_set.extend(set.iter())
+        }
         Self {
-            set: set1.set.union(&set2.set).cloned().collect(),
+            set: union_set,
         }
     }
     fn replace(&mut self, local: mir::Local, location: mir::Location) {
@@ -194,13 +198,12 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         trace!("[enter] merge_effects bb={:?}", bb);
         let set = {
             let sets = &self.mir.predecessors()[bb];
-            let sets = sets.iter();
-            let mut sets = sets.map(|&predecessor| self.get_set_after_block(predecessor));
-            if let Some(first) = sets.next() {
-                sets.fold(first, |acc, set| AssignmentSet::union(&acc, &set))
-            } else {
+            if sets.is_empty() {
                 return;
             }
+            AssignmentSet::union(
+                sets.iter().map(|&predecessor| self.get_set_after_block(predecessor)).collect()
+            )
         };
         let changed = {
             let old_set = &self.result.before_block[&bb];
@@ -291,13 +294,13 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         }
     }
     /// Return the set after the given basic block.
-    fn get_set_after_block(&self, bb: mir::BasicBlock) -> AssignmentSet {
+    fn get_set_after_block(&self, bb: mir::BasicBlock) -> &AssignmentSet {
         let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
         let location = mir::Location {
             block: bb,
             statement_index: statements.len(),
         };
-        self.result.after_statement[&location].clone()
+        &self.result.after_statement[&location]
     }
 }
 

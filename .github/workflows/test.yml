@@ -2,15 +2,46 @@ name: Test
 
 on:
   push:
-    branches: [ '*' ]
+    branches: [ '**' ]
   pull_request:
-    branches: [ '*' ]
+    branches: [ '**' ]
 
 env:
   RUST_BACKTRACE: 1
+  RUST_TEST_THREADS: 1
+  PRUSTI_ASSERT_TIMEOUT: 60000
 
 jobs:
-  build:
+
+  quick-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v2
+    - name: Prepare environment
+      run: .github/workflows/prepare-environment.sh
+    - name: Build with cargo
+      run: cargo build --all --verbose
+    - name: Run cargo tests
+      run: cargo test -p prusti --verbose
+      env:
+        TESTNAME: quick/
+
+  full-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v2
+    - name: Prepare environment
+      run: .github/workflows/prepare-environment.sh
+    - name: Run cargo tests
+      run: cargo test --all --verbose
+    - name: Run tests with prusti-rustc
+      run: |
+        ./target/debug/prusti-rustc prusti/tests/verify/pass/no-annotations/assert-true.rs
+        ! ./target/debug/prusti-rustc prusti/tests/verify/fail/no-annotations/assert-false.rs
+
+  rustc-update:
     runs-on: ubuntu-latest
     steps:
     - name: Check out the repo

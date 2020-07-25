@@ -244,8 +244,7 @@ pub struct ProcedureLoops {
     pub ordered_loop_bodies: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// A map from loop bodies to the ordered vector of enclosing loop heads (from outer to inner).
     enclosing_loop_heads: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
-    /// A map from loop heads to the ordered blocks from which an CFG edge exits from the loop.
-    /// Note that only some special exit edges are considered.
+    /// A map from loop heads to the ordered blocks from which a CFG edge exits from the loop.
     loop_exit_blocks: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// A map from loop heads to the nonconditional blocks (i.e. those that are always executed
     /// in any loop iteration).
@@ -326,8 +325,6 @@ impl ProcedureLoops {
         // They are those blocks in the loop that:
         // 1. have a SwitchInt terminator
         // 2. have an out-edge that exists from the loop
-        // 3. are always executed when executing a loop iteration (i.e. are not in a branch)
-        // NOTE: this still doesn't handle return/break/continue in loop guards!
         let mut loop_exit_blocks = HashMap::new();
         let mut nonconditional_loop_blocks = HashMap::new();
         for &loop_head in loop_heads.iter() {
@@ -344,19 +341,21 @@ impl ProcedureLoops {
             for &curr_bb in ordered_loop_body {
                 debug_assert!(border.contains(&curr_bb));
 
-                if border.len() == 1 && !reached_back_edge {
+                if !reached_back_edge {
                     nonconditional_blocks.push(curr_bb);
-                    let term = mir[curr_bb].terminator();
-                    let is_switch_int = match term.kind {
-                        mir::TerminatorKind::SwitchInt { .. } => true,
-                        _ => false
-                    };
-                    let has_exit_edge = term.successors().any(
-                        |&bb| get_loop_depth(bb) < loop_head_depth
-                    );
-                    if is_switch_int && has_exit_edge {
-                        exit_blocks.push(curr_bb);
-                    }
+                }
+
+                // Decide if this block has an exit edge
+                let term = mir[curr_bb].terminator();
+                let is_switch_int = match term.kind {
+                    mir::TerminatorKind::SwitchInt { .. } => true,
+                    _ => false
+                };
+                let has_exit_edge = term.successors().any(
+                    |&bb| get_loop_depth(bb) < loop_head_depth
+                );
+                if is_switch_int && has_exit_edge {
+                    exit_blocks.push(curr_bb);
                 }
 
                 border.remove(&curr_bb);
@@ -474,8 +473,7 @@ impl ProcedureLoops {
         self.dominators.is_dominated_by(block, loop_head)
     }
 
-    /// Compute what paths that come from the outside of the loop are accessed
-    /// inside the loop.
+    /// Compute what paths that are accessed inside the loop.
     fn compute_used_paths<'a, 'tcx: 'a>(
         &self,
         loop_head: BasicBlockIndex,

@@ -8,7 +8,7 @@ use vir::ast::*;
 use std::collections::HashMap;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Function {
     pub name: String,
     pub formal_args: Vec<LocalVar>,
@@ -73,6 +73,7 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
             Type::Int => "$int$",
             Type::Bool => "$bool$",
             Type::TypedRef(ref name) => name,
+            Type::Domain(ref name) => name,
         }
     }
     for arg in formal_args {

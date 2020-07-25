@@ -13,8 +13,8 @@ struct Number<S> {
 impl<X> Number<X> {
     #[requires="X == Neg ~~> self.i < 0"]
     #[requires="X == Pos ~~> self.i > 0"]
-    #[ensures="X == Neg ~~> self.i < 0"]
-    #[ensures="X == Pos ~~> self.i > 0"] //~ ERROR postcondition might not hold
+    #[ensures="X == Neg ~~> self.i < 0"] //~ ERROR postcondition might not hold
+    #[ensures="X == Pos ~~> self.i > 0"]
     #[ensures="self.i >= -1 && self.i <= 1"]
     fn to_sign(&mut self) {
         if self.i <= -1 {
