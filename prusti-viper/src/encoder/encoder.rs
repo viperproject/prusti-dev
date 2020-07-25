@@ -291,21 +291,21 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.closure_instantiations = closure_instantiations;
     }
 
-    // pub fn get_closure_instantiations(
-    //     &self,
-    //     closure_def_id: DefId,
-    // ) -> Vec<(
-    //     ProcedureDefId,
-    //     mir::BasicBlock,
-    //     usize,
-    //     Vec<mir::Operand<'tcx>>,
-    // )> {
-    //     trace!("Get closure instantiations for {:?}", closure_def_id);
-    //     match self.closure_instantiations.get(&closure_def_id) {
-    //         Some(result) => result.clone(),
-    //         None => vec![],
-    //     }
-    // }
+    pub fn get_closure_instantiations(
+        &self,
+        closure_def_id: DefId,
+    ) -> Vec<(
+        ProcedureDefId,
+        mir::BasicBlock,
+        usize,
+        Vec<mir::Operand<'tcx>>,
+    )> {
+        trace!("Get closure instantiations for {:?}", closure_def_id);
+        match self.closure_instantiations.get(&closure_def_id) {
+            Some(result) => result.clone(),
+            None => vec![],
+        }
+    }
 
     /// Is the closure specified with the `def_id` is spec only?
     pub fn is_spec_closure(&self, def_id: DefId) -> bool {

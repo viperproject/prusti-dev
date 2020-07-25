@@ -23,7 +23,7 @@ pub fn requires(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let spec_id_str = spec_id.to_string();
     let assertion = handle_result!(rewriter.parse_assertion(spec_id, attr));
     let spec_item =
-        handle_result!(rewriter.generate_spec_item_fn("pre", spec_id, assertion, &item));
+        handle_result!(rewriter.generate_spec_item_fn(rewriter::SpecItemType::Precondition, spec_id, assertion, &item));
     quote! {
         #spec_item
         #[prusti::pre_spec_id_ref = #spec_id_str]
@@ -38,7 +38,7 @@ pub fn ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let spec_id_str = spec_id.to_string();
     let assertion = handle_result!(rewriter.parse_assertion(spec_id, attr));
     let spec_item =
-        handle_result!(rewriter.generate_spec_item_fn("post", spec_id, assertion, &item));
+        handle_result!(rewriter.generate_spec_item_fn(rewriter::SpecItemType::Postcondition, spec_id, assertion, &item));
     quote! {
         #spec_item
         #[prusti::post_spec_id_ref = #spec_id_str]

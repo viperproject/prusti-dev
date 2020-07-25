@@ -9,6 +9,22 @@ pub(crate) struct AstRewriter {
     spec_id_generator: SpecificationIdGenerator,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SpecItemType {
+    Precondition,
+    Postcondition,
+}
+
+impl std::fmt::Display for SpecItemType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SpecItemType::Precondition => write!(f, "pre"),
+            SpecItemType::Postcondition => write!(f, "post"),
+        }
+
+    }
+}
+
 impl AstRewriter {
     pub(crate) fn new() -> Self {
         Self {
@@ -50,7 +66,7 @@ impl AstRewriter {
     /// `spec_type` should be either `"pre"` or `"post"`.
     pub fn generate_spec_item_fn(
         &mut self,
-        spec_type: &str,
+        spec_type: SpecItemType,
         spec_id: untyped::SpecificationId,
         assertion: untyped::Assertion,
         item: &syn::ItemFn,
@@ -79,6 +95,20 @@ impl AstRewriter {
         };
         spec_item.sig.generics = item.sig.generics.clone();
         spec_item.sig.inputs = item.sig.inputs.clone();
+        if spec_type == SpecItemType::Postcondition {
+            let output_ty = match &item.sig.output {
+                syn::ReturnType::Default => syn::parse_quote!{ () },
+                syn::ReturnType::Type(_, ty) => ty.clone(),
+            };
+            spec_item.sig.inputs.push_value(syn::FnArg::Typed(
+                syn::PatType {
+                    attrs: Vec::new(),
+                    pat: box syn::parse_quote! { result },
+                    colon_token: syn::Token![:](item.sig.output.span()),
+                    ty: output_ty,
+                }
+            ))
+        }
         Ok(syn::Item::Fn(spec_item))
     }
     /// Generate statements for checking the given loop invariant.
