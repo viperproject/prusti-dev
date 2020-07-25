@@ -175,7 +175,6 @@ impl ParserStream {
             }
             else {
                 return false;
-                unreachable!();
             }
         }
         return false;
