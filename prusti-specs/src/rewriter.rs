@@ -100,14 +100,15 @@ impl AstRewriter {
                 syn::ReturnType::Default => syn::parse_quote!{ () },
                 syn::ReturnType::Type(_, ty) => ty.clone(),
             };
-            spec_item.sig.inputs.push_value(syn::FnArg::Typed(
+            let fn_arg = syn::FnArg::Typed(
                 syn::PatType {
                     attrs: Vec::new(),
                     pat: box syn::parse_quote! { result },
                     colon_token: syn::Token![:](item.sig.output.span()),
                     ty: output_ty,
                 }
-            ))
+            );
+            spec_item.sig.inputs.push(fn_arg);
         }
         Ok(syn::Item::Fn(spec_item))
     }
