@@ -113,7 +113,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         place: mir::Place<'tcx>,
         encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>,
     ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
-        trace!("Encode projection {}: {:?}", index, place.projection);
+        trace!("Encode projection {}: {:?}", index, place);
 
         assert!(index >= 1, "place: {:?} index: {}", place, index);
 
@@ -177,34 +177,42 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         (encoded_projection, field_ty, None)
                     }
 
-                    // ty::TyKind::Closure(def_id, ref closure_subst) => {
-                    // FIXME
-                    //     debug!("closure_subst {:?}", closure_subst);
-                    //     let tcx = self.encoder.env().tcx();
-                    //     let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
-                    //     let field_ty = closure_subst
-                    //         .upvar_tys(def_id, tcx)
-                    //         .nth(field.index())
-                    //         .unwrap();
+                    ty::TyKind::Closure(def_id, ref closure_subst) => {
+                        debug!("def_id={:?} closure_subst {:?}", def_id, closure_subst);
 
-                    //     let encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
-                    //         let freevar = &freevars[field.index()];
-                    //         let field_name = format!("closure_{}", field.index());
-                    //         let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
-                    //         let res = encoded_base.field(encoded_field);
-                    //         let var_name = tcx.hir.name(freevar.var_id()).to_string();
-                    //         trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
-                    //         res
-                    //     });
+                        let closure_subst = closure_subst.as_closure();
+                        debug!("Closure subst: {:?}", closure_subst);
 
-                    //     let encoded_field_type = self.encoder.encode_type(field_ty);
-                    //     debug!("Rust closure projection {:?}", place_projection);
-                    //     debug!("encoded_projection: {:?}", encoded_projection);
+                        let tcx = self.encoder.env().tcx();
+                        // let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
+                        // let field_ty = closure_subst
+                        //     .upvar_tys(def_id, tcx)
+                        //     .nth(field.index())
+                        //     .unwrap();
+                        let field_ty = closure_subst.upvar_tys().nth(field.index()).unwrap();
 
-                    //     assert_eq!(encoded_projection.get_type(), &encoded_field_type);
+                        let field_name = format!("closure_{}", field.index());
+                        let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
+                        let encoded_projection = encoded_base.field(encoded_field);
 
-                    //     (encoded_projection, field_ty, None)
-                    // }
+                        // let encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
+                        //     let freevar = &freevars[field.index()];
+                        //     let field_name = format!("closure_{}", field.index());
+                        //     let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
+                        //     let res = encoded_base.field(encoded_field);
+                        //     let var_name = tcx.hir.name(freevar.var_id()).to_string();
+                        //     trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
+                        //     res
+                        // });
+
+                        let encoded_field_type = self.encoder.encode_type(field_ty);
+                        // debug!("Rust closure projection {:?}", place_projection);
+                        debug!("encoded_projection: {:?}", encoded_projection);
+
+                        assert_eq!(encoded_projection.get_type(), &encoded_field_type);
+
+                        (encoded_projection, field_ty, None)
+                    }
 
                     ref x => unimplemented!("{:?}", x),
                 }

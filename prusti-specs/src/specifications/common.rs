@@ -5,7 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
-use std::fmt::Display;
+use std::fmt::{Display, Debug};
 use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -284,4 +284,44 @@ impl<EID, ET, AT> SpecificationSet<EID, ET, AT> {
             SpecificationSet::Struct(ref invs) => invs.is_empty(),
         }
     }
+}
+
+impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<EID, ET, AT> {
+    /// Trait implementation method refinement
+    /// Choosing alternative C as discussed in
+    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+    /// pp 19-23
+    ///
+    /// In other words, any pre-/post-condition provided by `other` will overwrite any provided by
+    /// `self`.
+    pub fn refine(&self, other: &Self) -> Self {
+        let mut pres = vec![];
+        let mut posts = vec![];
+        let (ref_pre, ref_post) = {
+            if let SpecificationSet::Procedure(ProcedureSpecification { ref pres, ref posts}) = other {
+                (pres, posts)
+            } else {
+                unreachable!("Unexpected: {:?}", other)
+            }
+        };
+        let (base_pre, base_post) = {
+            if let SpecificationSet::Procedure(ProcedureSpecification { ref pres, ref posts}) = self {
+                (pres, posts)
+            } else {
+                unreachable!("Unexpected: {:?}", self)
+            }
+        };
+        if ref_pre.is_empty() {
+            pres.append(&mut base_pre.clone());
+        } else {
+            pres.append(&mut ref_pre.clone());
+        }
+        if ref_post.is_empty() {
+            posts.append(&mut base_post.clone());
+        } else {
+            posts.append(&mut ref_post.clone());
+        }
+        SpecificationSet::Procedure(ProcedureSpecification { pres, posts })
+    }
+
 }

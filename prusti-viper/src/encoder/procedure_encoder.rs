@@ -2145,269 +2145,269 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
     ) -> Result<Vec<vir::Stmt>> {
-        // let full_func_proc_name = &self
-        //     .encoder
-        //     .env()
-        //     .tcx()
-        //     .absolute_item_path_str(called_def_id);
-        // debug!("Encoding non-pure function call '{}'", full_func_proc_name);
+        let full_func_proc_name = &self
+            .encoder
+            .env()
+            .tcx()
+            .def_path_str(called_def_id);
+            // .absolute_item_path_str(called_def_id);
+        debug!("Encoding non-pure function call '{}'", full_func_proc_name);
 
-        // let mut stmts = vec![];
-        // let mut stmts_after: Vec<vir::Stmt> = vec![];
-        // let mut fake_exprs: HashMap<vir::Expr, vir::Expr> = HashMap::new();
-        // let mut fake_vars = vec![];
-        // let mut const_arg_vars: HashSet<vir::Expr> = HashSet::new();
-        // let mut type_invs: HashMap<String, vir::Function> = HashMap::new();
-        // let mut constant_args = Vec::new();
+        let mut stmts = vec![];
+        let mut stmts_after: Vec<vir::Stmt> = vec![];
+        let mut fake_exprs: HashMap<vir::Expr, vir::Expr> = HashMap::new();
+        let mut fake_vars = vec![];
+        let mut const_arg_vars: HashSet<vir::Expr> = HashSet::new();
+        let mut type_invs: HashMap<String, vir::Function> = HashMap::new();
+        let mut constant_args = Vec::new();
 
-        // for operand in args.iter() {
-        //     let arg_ty = self.mir_encoder.get_operand_ty(operand);
-        //     let fake_arg = self.locals.get_fresh(arg_ty);
-        //     fake_vars.push(fake_arg.clone());
-        //     let encoded_local = self.encode_prusti_local(fake_arg);
-        //     let fake_arg_place = vir::Expr::local(encoded_local);
-        //     debug!("fake_arg: {:?} {}", fake_arg, fake_arg_place);
-        //     let inv_name = self.encoder.encode_type_invariant_use(arg_ty);
-        //     let arg_inv = self.encoder.encode_type_invariant_def(arg_ty);
-        //     type_invs.insert(inv_name, arg_inv);
-        //     match self.mir_encoder.encode_operand_place(operand) {
-        //         Some(place) => {
-        //             debug!("fake_arg: {} {}", fake_arg_place, place);
-        //             fake_exprs.insert(fake_arg_place, place.into());
-        //         }
-        //         None => {
-        //             // We have a constant.
-        //             constant_args.push(fake_arg_place.clone());
-        //             let arg_val_expr = self.mir_encoder.encode_operand_expr(operand);
-        //             debug!("arg_val_expr: {} {}", fake_arg_place, arg_val_expr);
-        //             let val_field = self.encoder.encode_value_field(arg_ty);
-        //             fake_exprs.insert(fake_arg_place.clone().field(val_field), arg_val_expr);
-        //             let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
-        //             if in_loop {
-        //                 const_arg_vars.insert(fake_arg_place);
-        //                 return Err(EncodingError::unsupported(
-        //                     format!(
-        //                         "please use a local variable as argument for function '{}', not a \
-        //                         constant, when calling the function from a loop",
-        //                         full_func_proc_name
-        //                     ),
-        //                     call_site_span,
-        //                 ));
-        //             }
-        //         }
-        //     }
-        // }
+        for operand in args.iter() {
+            let arg_ty = self.mir_encoder.get_operand_ty(operand);
+            let fake_arg = self.locals.get_fresh(arg_ty);
+            fake_vars.push(fake_arg.clone());
+            let encoded_local = self.encode_prusti_local(fake_arg);
+            let fake_arg_place = vir::Expr::local(encoded_local);
+            debug!("fake_arg: {:?} {}", fake_arg, fake_arg_place);
+            let inv_name = self.encoder.encode_type_invariant_use(arg_ty);
+            let arg_inv = self.encoder.encode_type_invariant_def(arg_ty);
+            type_invs.insert(inv_name, arg_inv);
+            match self.mir_encoder.encode_operand_place(operand) {
+                Some(place) => {
+                    debug!("fake_arg: {} {}", fake_arg_place, place);
+                    fake_exprs.insert(fake_arg_place, place.into());
+                }
+                None => {
+                    // We have a constant.
+                    constant_args.push(fake_arg_place.clone());
+                    let arg_val_expr = self.mir_encoder.encode_operand_expr(operand);
+                    debug!("arg_val_expr: {} {}", fake_arg_place, arg_val_expr);
+                    let val_field = self.encoder.encode_value_field(arg_ty);
+                    fake_exprs.insert(fake_arg_place.clone().field(val_field), arg_val_expr);
+                    let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
+                    if in_loop {
+                        const_arg_vars.insert(fake_arg_place);
+                        return Err(EncodingError::unsupported(
+                            format!(
+                                "please use a local variable as argument for function '{}', not a \
+                                constant, when calling the function from a loop",
+                                full_func_proc_name
+                            ),
+                            call_site_span,
+                        ));
+                    }
+                }
+            }
+        }
 
-        // let (fake_target_local, real_target) = {
-        //     match destination.as_ref() {
-        //         Some((ref target_place, _)) => {
-        //             // will panic if attempting to encode unsupported type
-        //             let (encoded_dst, ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
-        //             let fake_target = self.locals.get_fresh(ty);
-        //             fake_exprs.insert(
-        //                 vir::Expr::local(self.encode_prusti_local(fake_target)),
-        //                 encoded_dst.clone().into(),
-        //             );
-        //             (fake_target, Some(encoded_dst))
-        //         }
-        //         None => {
-        //             // The return type is Never
-        //             // This means that the function call never returns
-        //             // So, we `assume false` after the function call
-        //             stmts_after.push(vir::Stmt::Inhale(false.into(), vir::FoldingBehaviour::Stmt));
-        //             // Return a dummy local variable
-        //             let never_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Never);
-        //             (self.locals.get_fresh(never_ty), None)
-        //         }
-        //     }
-        // };
+        let (fake_target_local, real_target) = {
+            match destination.as_ref() {
+                Some((ref target_place, _)) => {
+                    // will panic if attempting to encode unsupported type
+                    let (encoded_dst, ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                    let fake_target = self.locals.get_fresh(ty);
+                    fake_exprs.insert(
+                        vir::Expr::local(self.encode_prusti_local(fake_target)),
+                        encoded_dst.clone().into(),
+                    );
+                    (fake_target, Some(encoded_dst))
+                }
+                None => {
+                    // The return type is Never
+                    // This means that the function call never returns
+                    // So, we `assume false` after the function call
+                    stmts_after.push(vir::Stmt::Inhale(false.into(), vir::FoldingBehaviour::Stmt));
+                    // Return a dummy local variable
+                    let never_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Never);
+                    (self.locals.get_fresh(never_ty), None)
+                }
+            }
+        };
 
-        // let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
-        //     for (fake_arg, arg_expr) in fake_exprs.iter() {
-        //         expr = expr
-        //             .fold_expr(|orig_expr| {
-        //                 // Inline or skip usages of constant parameters
-        //                 // See issue #85
-        //                 match orig_expr {
-        //                     vir::Expr::FuncApp(ref name, ref args, _, _, _) => {
-        //                         if args.len() == 1
-        //                             && args[0].is_local()
-        //                             && const_arg_vars.contains(&args[0])
-        //                         {
-        //                             // Inline type invariant
-        //                             type_invs[name].inline_body(args.clone())
-        //                         } else {
-        //                             orig_expr
-        //                         }
-        //                     }
-        //                     vir::Expr::PredicateAccessPredicate(_, ref arg, _, _) => {
-        //                         if arg.is_local() && const_arg_vars.contains(arg) {
-        //                             // Skip predicate permission
-        //                             true.into()
-        //                         } else {
-        //                             orig_expr
-        //                         }
-        //                     }
+        let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
+            for (fake_arg, arg_expr) in fake_exprs.iter() {
+                expr = expr
+                    .fold_expr(|orig_expr| {
+                        // Inline or skip usages of constant parameters
+                        // See issue #85
+                        match orig_expr {
+                            vir::Expr::FuncApp(ref name, ref args, _, _, _) => {
+                                if args.len() == 1
+                                    && args[0].is_local()
+                                    && const_arg_vars.contains(&args[0])
+                                {
+                                    // Inline type invariant
+                                    type_invs[name].inline_body(args.clone())
+                                } else {
+                                    orig_expr
+                                }
+                            }
+                            vir::Expr::PredicateAccessPredicate(_, ref arg, _, _) => {
+                                if arg.is_local() && const_arg_vars.contains(arg) {
+                                    // Skip predicate permission
+                                    true.into()
+                                } else {
+                                    orig_expr
+                                }
+                            }
 
-        //                     x => x,
-        //                 }
-        //             })
-        //             .replace_place(&fake_arg, arg_expr);
-        //     }
-        //     expr
-        // };
+                            x => x,
+                        }
+                    })
+                    .replace_place(&fake_arg, arg_expr);
+            }
+            expr
+        };
 
-        // let procedure_contract = {
-        //     self.encoder.get_procedure_contract_for_call(
-        //         called_def_id,
-        //         &fake_vars,
-        //         fake_target_local,
-        //     )
-        // };
+        let procedure_contract = {
+            self.encoder.get_procedure_contract_for_call(
+                called_def_id,
+                &fake_vars,
+                fake_target_local,
+            )
+        };
 
-        // // Store a label for the pre state
-        // let pre_label = self.cfg_method.get_fresh_label_name();
-        // stmts.push(vir::Stmt::Label(pre_label.clone()));
+        // Store a label for the pre state
+        let pre_label = self.cfg_method.get_fresh_label_name();
+        stmts.push(vir::Stmt::Label(pre_label.clone()));
 
-        // // Havoc and inhale variables that store constants
-        // for constant_arg in &constant_args {
-        //     stmts.extend(self.encode_havoc_and_allocation(constant_arg));
-        // }
+        // Havoc and inhale variables that store constants
+        for constant_arg in &constant_args {
+            stmts.extend(self.encode_havoc_and_allocation(constant_arg));
+        }
 
-        // // Encode precondition.
-        // let (
-        //     pre_type_spec,
-        //     pre_mandatory_type_spec,
-        //     pre_invs_spec,
-        //     pre_func_spec,
-        //     _, // We don't care about verifying that the weakening is valid,
-        //        // since it isn't the task of the caller
-        // ) = self.encode_precondition_expr(&procedure_contract, None);
-        // let pos = self
-        //     .encoder
-        //     .error_manager()
-        //     .register(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
-        // stmts.push(vir::Stmt::Assert(
-        //     replace_fake_exprs(pre_func_spec),
-        //     vir::FoldingBehaviour::Stmt, // TODO: Should be Expr.
-        //     pos,
-        // ));
-        // stmts.push(vir::Stmt::Assert(
-        //     replace_fake_exprs(pre_invs_spec),
-        //     vir::FoldingBehaviour::Stmt,
-        //     pos,
-        // ));
-        // let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
-        // assert!(!pos.is_default());
-        // stmts.push(vir::Stmt::Exhale(
-        //     pre_perm_spec.remove_read_permissions(),
-        //     pos,
-        // ));
+        // Encode precondition.
+        let (
+            pre_type_spec,
+            pre_mandatory_type_spec,
+            pre_invs_spec,
+            pre_func_spec,
+            _, // We don't care about verifying that the weakening is valid,
+               // since it isn't the task of the caller
+        ) = self.encode_precondition_expr(&procedure_contract, None);
+        let pos = self
+            .encoder
+            .error_manager()
+            .register(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
+        stmts.push(vir::Stmt::Assert(
+            replace_fake_exprs(pre_func_spec),
+            vir::FoldingBehaviour::Stmt, // TODO: Should be Expr.
+            pos,
+        ));
+        stmts.push(vir::Stmt::Assert(
+            replace_fake_exprs(pre_invs_spec),
+            vir::FoldingBehaviour::Stmt,
+            pos,
+        ));
+        let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
+        assert!(!pos.is_default());
+        stmts.push(vir::Stmt::Exhale(
+            pre_perm_spec.remove_read_permissions(),
+            pos,
+        ));
 
-        // // Move all read permissions that are taken by magic wands into pre
-        // // state and exhale only before the magic wands are inhaled. In this
-        // // way we can have specifications that link shared reference arguments
-        // // and shared reference result.
-        // let pre_mandatory_perms: Vec<_> = pre_mandatory_type_spec
-        //     .into_iter()
-        //     .map(&replace_fake_exprs)
-        //     .collect();
-        // let mut pre_mandatory_perms_old = Vec::new();
-        // for perm in pre_mandatory_perms {
-        //     let from_place = perm.get_place().unwrap().clone();
-        //     let to_place = from_place.clone().old(pre_label.clone());
-        //     let old_perm = perm.replace_place(&from_place, &to_place);
-        //     stmts.push(vir::Stmt::TransferPerm(from_place, to_place, true));
-        //     pre_mandatory_perms_old.push(old_perm);
-        // }
-        // let pre_mandatory_perm_spec = pre_mandatory_perms_old.into_iter().conjoin();
+        // Move all read permissions that are taken by magic wands into pre
+        // state and exhale only before the magic wands are inhaled. In this
+        // way we can have specifications that link shared reference arguments
+        // and shared reference result.
+        let pre_mandatory_perms: Vec<_> = pre_mandatory_type_spec
+            .into_iter()
+            .map(&replace_fake_exprs)
+            .collect();
+        let mut pre_mandatory_perms_old = Vec::new();
+        for perm in pre_mandatory_perms {
+            let from_place = perm.get_place().unwrap().clone();
+            let to_place = from_place.clone().old(pre_label.clone());
+            let old_perm = perm.replace_place(&from_place, &to_place);
+            stmts.push(vir::Stmt::TransferPerm(from_place, to_place, true));
+            pre_mandatory_perms_old.push(old_perm);
+        }
+        let pre_mandatory_perm_spec = pre_mandatory_perms_old.into_iter().conjoin();
 
-        // // Havoc the content of the lhs, if there is one
-        // if let Some(ref target_place) = real_target {
-        //     stmts.extend(self.encode_havoc(target_place));
-        // }
+        // Havoc the content of the lhs, if there is one
+        if let Some(ref target_place) = real_target {
+            stmts.extend(self.encode_havoc(target_place));
+        }
 
-        // // Store a label for permissions got back from the call
-        // debug!(
-        //     "Procedure call location {:?} has label {}",
-        //     location, pre_label
-        // );
-        // self.label_after_location
-        //     .insert(location, pre_label.clone());
+        // Store a label for permissions got back from the call
+        debug!(
+            "Procedure call location {:?} has label {}",
+            location, pre_label
+        );
+        self.label_after_location
+            .insert(location, pre_label.clone());
 
-        // // Store a label for the post state
-        // let post_label = self.cfg_method.get_fresh_label_name();
+        // Store a label for the post state
+        let post_label = self.cfg_method.get_fresh_label_name();
 
-        // let loan = self.polonius_info().get_call_loan_at_location(location);
-        // let (
-        //     post_type_spec,
-        //     return_type_spec,
-        //     post_invs_spec,
-        //     post_func_spec,
-        //     magic_wands,
-        //     read_transfer,
-        //     _, // We don't care about verifying that the strengthening is valid,
-        //        // since it isn't the task of the caller
-        // ) = self.encode_postcondition_expr(
-        //     &procedure_contract,
-        //     None,
-        //     &pre_label,
-        //     &post_label,
-        //     Some((location, &fake_exprs)),
-        //     real_target.is_none(),
-        //     loan,
-        //     false,
-        // );
-        // // We inhale the magic wand just before applying it because we need
-        // // a magic wand that depends on the current value of ghost variables.
-        // let _magic_wands: Vec<_> = magic_wands
-        //     .into_iter()
-        //     .map(|magic_wand| {
-        //         self.replace_old_places_with_ghost_vars(Some(&post_label), magic_wand)
-        //     })
-        //     .collect();
+        let loan = self.polonius_info().get_call_loan_at_location(location);
+        let (
+            post_type_spec,
+            return_type_spec,
+            post_invs_spec,
+            post_func_spec,
+            magic_wands,
+            read_transfer,
+            _, // We don't care about verifying that the strengthening is valid,
+               // since it isn't the task of the caller
+        ) = self.encode_postcondition_expr(
+            &procedure_contract,
+            None,
+            &pre_label,
+            &post_label,
+            Some((location, &fake_exprs)),
+            real_target.is_none(),
+            loan,
+            false,
+        );
+        // We inhale the magic wand just before applying it because we need
+        // a magic wand that depends on the current value of ghost variables.
+        let _magic_wands: Vec<_> = magic_wands
+            .into_iter()
+            .map(|magic_wand| {
+                self.replace_old_places_with_ghost_vars(Some(&post_label), magic_wand)
+            })
+            .collect();
 
-        // let post_perm_spec = replace_fake_exprs(post_type_spec);
-        // stmts.push(vir::Stmt::Inhale(
-        //     post_perm_spec.remove_read_permissions(),
-        //     vir::FoldingBehaviour::Stmt,
-        // ));
-        // if let Some(access) = return_type_spec {
-        //     stmts.push(vir::Stmt::Inhale(
-        //         replace_fake_exprs(access),
-        //         vir::FoldingBehaviour::Stmt,
-        //     ));
-        // }
-        // for (from_place, to_place) in read_transfer {
-        //     stmts.push(vir::Stmt::TransferPerm(
-        //         replace_fake_exprs(from_place),
-        //         replace_fake_exprs(to_place),
-        //         true,
-        //     ));
-        // }
-        // stmts.push(vir::Stmt::Inhale(
-        //     replace_fake_exprs(post_invs_spec),
-        //     vir::FoldingBehaviour::Stmt,
-        // ));
-        // stmts.push(vir::Stmt::Inhale(
-        //     replace_fake_exprs(post_func_spec),
-        //     vir::FoldingBehaviour::Expr,
-        // ));
+        let post_perm_spec = replace_fake_exprs(post_type_spec);
+        stmts.push(vir::Stmt::Inhale(
+            post_perm_spec.remove_read_permissions(),
+            vir::FoldingBehaviour::Stmt,
+        ));
+        if let Some(access) = return_type_spec {
+            stmts.push(vir::Stmt::Inhale(
+                replace_fake_exprs(access),
+                vir::FoldingBehaviour::Stmt,
+            ));
+        }
+        for (from_place, to_place) in read_transfer {
+            stmts.push(vir::Stmt::TransferPerm(
+                replace_fake_exprs(from_place),
+                replace_fake_exprs(to_place),
+                true,
+            ));
+        }
+        stmts.push(vir::Stmt::Inhale(
+            replace_fake_exprs(post_invs_spec),
+            vir::FoldingBehaviour::Stmt,
+        ));
+        stmts.push(vir::Stmt::Inhale(
+            replace_fake_exprs(post_func_spec),
+            vir::FoldingBehaviour::Expr,
+        ));
 
-        // // Exhale the permissions that were moved into magic wands.
-        // assert!(!pos.is_default());
-        // stmts.push(vir::Stmt::Exhale(pre_mandatory_perm_spec, pos));
+        // Exhale the permissions that were moved into magic wands.
+        assert!(!pos.is_default());
+        stmts.push(vir::Stmt::Exhale(pre_mandatory_perm_spec, pos));
 
-        // // Emit the label and magic wands
-        // stmts.push(vir::Stmt::Label(post_label.clone()));
+        // Emit the label and magic wands
+        stmts.push(vir::Stmt::Label(post_label.clone()));
 
-        // stmts.extend(stmts_after);
+        stmts.extend(stmts_after);
 
-        // self.procedure_contracts
-        //     .insert(location, (procedure_contract, fake_exprs));
+        self.procedure_contracts
+            .insert(location, (procedure_contract, fake_exprs));
 
-        // Ok(stmts)
-        unimplemented!();
+        Ok(stmts)
     }
 
     fn encode_pure_function_call(

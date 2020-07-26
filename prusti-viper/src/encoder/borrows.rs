@@ -163,13 +163,14 @@ impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<'_,
     }
 }
 
-// fn get_place_root<'tcx>(place: &mir::Place<'tcx>) -> mir::Local {
-//     match place {
-//         &mir::Place::Local(local) => local,
-//         &mir::Place::Projection(ref projection) => get_place_root(&projection.base),
-//         _ => unimplemented!(),
-//     }
-// }
+fn get_place_root<'tcx>(place: &mir::Place<'tcx>) -> mir::Local {
+    // match place {
+    //     &mir::Place::Local(local) => local,
+    //     &mir::Place::Projection(ref projection) => get_place_root(&projection.base),
+    //     _ => unimplemented!(),
+    // }
+    place.local
+}
 
 impl<'tcx> ProcedureContractMirDef<'tcx> {
     /// Specialize to the definition site contract.
@@ -204,45 +205,45 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
         }
     }
 
-//     /// Specialize to the call site contract.
-//     pub fn to_call_site_contract(
-//         &self,
-//         args: &Vec<places::Local>,
-//         target: places::Local,
-//     ) -> ProcedureContract<'tcx> {
-//         assert_eq!(self.args.len(), args.len());
-//         let mut substitutions = HashMap::new();
-//         substitutions.insert(self.returned_value, target);
-//         for (from, to) in self.args.iter().zip(args) {
-//             substitutions.insert(*from, *to);
-//         }
-//         let substitute = |(place, mutability): &(_, Mutability)| {
-//             let root = &get_place_root(place);
-//             let substitute_place = places::Place::SubstitutedPlace {
-//                 substituted_root: *substitutions.get(root).unwrap(),
-//                 place: place.clone(),
-//             };
-//             (substitute_place, *mutability)
-//         };
-//         let borrow_infos = self
-//             .borrow_infos
-//             .iter()
-//             .map(|info| BorrowInfo {
-//                 region: info.region,
-//                 blocking_paths: info.blocking_paths.iter().map(&substitute).collect(),
-//                 blocked_paths: info.blocked_paths.iter().map(&substitute).collect(),
-//             })
-//             .collect();
-//         let returned_refs = self.returned_refs.iter().map(&substitute).collect();
-//         let result = ProcedureContract {
-//             args: args.clone(),
-//             returned_refs: returned_refs,
-//             returned_value: target,
-//             borrow_infos,
-//             specification: self.specification.clone(),
-//         };
-//         result
-//     }
+    /// Specialize to the call site contract.
+    pub fn to_call_site_contract(
+        &self,
+        args: &Vec<places::Local>,
+        target: places::Local,
+    ) -> ProcedureContract<'tcx> {
+        assert_eq!(self.args.len(), args.len());
+        let mut substitutions = HashMap::new();
+        substitutions.insert(self.returned_value, target);
+        for (from, to) in self.args.iter().zip(args) {
+            substitutions.insert(*from, *to);
+        }
+        let substitute = |(place, mutability): &(_, Mutability)| {
+            let root = &get_place_root(place);
+            let substitute_place = places::Place::SubstitutedPlace {
+                substituted_root: *substitutions.get(root).unwrap(),
+                place: place.clone(),
+            };
+            (substitute_place, *mutability)
+        };
+        let borrow_infos = self
+            .borrow_infos
+            .iter()
+            .map(|info| BorrowInfo {
+                region: info.region,
+                blocking_paths: info.blocking_paths.iter().map(&substitute).collect(),
+                blocked_paths: info.blocked_paths.iter().map(&substitute).collect(),
+            })
+            .collect();
+        let returned_refs = self.returned_refs.iter().map(&substitute).collect();
+        let result = ProcedureContract {
+            args: args.clone(),
+            returned_refs: returned_refs,
+            returned_value: target,
+            borrow_infos,
+            specification: self.specification.clone(),
+        };
+        result
+    }
 }
 
 pub struct BorrowInfoCollectingVisitor<'tcx> {

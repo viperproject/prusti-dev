@@ -86,6 +86,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
             mir::BasicBlock,
             usize,
             Vec<mir::Operand<'tcx>>,
+            Vec<ty::Ty<'tcx>>,
         )>,
     >,
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
@@ -324,7 +325,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
             trace!("Collecting closure instantiations for mir {:?}", mir_def_id);
             let (mir, _) = tcx.mir_validated(mir_def_id);
-            for (bb_index, bb_data) in mir.borrow().basic_blocks().iter_enumerated() {
+            let mir = &*mir.borrow();
+            for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
                 for (stmt_index, stmt) in bb_data.statements.iter().enumerate() {
                     if let mir::StatementKind::Assign(
                         box (
@@ -337,9 +339,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     ) = stmt.kind
                     {
                         trace!("Found closure instantiation: {:?}", stmt);
+                        let operand_tys = operands.iter().map(|operand| operand.ty(mir, tcx)).collect();
                         let instantiations =
                             closure_instantiations.entry(cl_def_id).or_insert(vec![]);
-                        instantiations.push((mir_def_id.to_def_id(), bb_index, stmt_index, operands.clone()))
+                        instantiations.push((mir_def_id.to_def_id(), bb_index, stmt_index, operands.clone(), operand_tys))
                     }
                 }
             }
@@ -356,6 +359,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         mir::BasicBlock,
         usize,
         Vec<mir::Operand<'tcx>>,
+        Vec<ty::Ty<'tcx>>,
     )> {
         trace!("Get closure instantiations for {:?}", closure_def_id);
         match self.closure_instantiations.get(&closure_def_id) {
@@ -486,28 +490,28 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         args: &Vec<places::Local>,
         target: places::Local,
     ) -> ProcedureContract<'tcx> {
-    //     // get specification on trait declaration method or inherent impl
-    //     let fun_spec = if let Some(spec) = self.get_spec_by_def_id(proc_def_id) {
-    //         spec.clone()
-    //     } else {
-    //         debug!("Procedure {:?} has no specification", proc_def_id);
-    //         SpecificationSet::Procedure(vec![], vec![])
-    //     };
+        // get specification on trait declaration method or inherent impl
+        let fun_spec = if let Some(spec) = self.get_spec_by_def_id(proc_def_id) {
+            spec.clone()
+        } else {
+            debug!("Procedure {:?} has no specification", proc_def_id);
+            typed::SpecificationSet::Procedure(typed::ProcedureSpecification::empty())
+        };
 
-    //     let tymap = self.typaram_repl.borrow_mut();
+        let tymap = self.typaram_repl.borrow_mut();
 
-    //     assert!(tymap.len() == 1, "tymap.len() = {}, but should be 1", tymap.len());
+        assert_eq!(tymap.len(), 1, "tymap.len() = {}, but should be 1", tymap.len());
 
-    //     // get receiver object base type
-    //     let mut impl_spec = SpecificationSet::Procedure(vec![], vec![]);
+        // get receiver object base type
+        let mut impl_spec = typed::SpecificationSet::Procedure(typed::ProcedureSpecification::empty());
 
-    //     let mut self_ty = None;
+        // let mut self_ty = None;
 
-    //     for (key, val) in tymap[0].iter() {
-    //         if key.is_self() {
-    //             self_ty = Some(val.clone());
-    //         }
-    //     }
+        // for (key, val) in tymap[0].iter() {
+        //     if key.is_self() {   // FIXME: This check does not work anymore.
+        //         self_ty = Some(val.clone());
+        //     }
+        // }
 
     //     if let Some(ty) = self_ty {
     //         if let Some(id) = self.env().tcx().trait_of_item(proc_def_id) {
@@ -526,13 +530,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //         }
     //     }
 
-    //     // merge specifications
-    //     let final_spec = fun_spec.refine(&impl_spec);
+        // merge specifications
+        let final_spec = fun_spec.refine(&impl_spec);
 
-    //     let contract =
-    //         compute_procedure_contract(proc_def_id, self.env().tcx(), final_spec, Some(&tymap[0]));
-    //     contract.to_call_site_contract(args, target)
-        unimplemented!();
+        let contract =
+            compute_procedure_contract(proc_def_id, self.env().tcx(), final_spec, Some(&tymap[0]));
+        contract.to_call_site_contract(args, target)
     }
 
     /// Encodes a value in a field if the base expression is a reference or

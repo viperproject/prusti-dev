@@ -392,7 +392,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         // For each of the enclosing closures, replace with the variables captured in the closure.
         // We support at most 1000 nested closures (arbitrarily chosen).
         for closure_counter in 0..1000 {
-            let (outer_def_id, outer_bb_index, outer_stmt_index, captured_operands) = {
+            let (outer_def_id, outer_bb_index, outer_stmt_index, captured_operands, captured_operand_tys) = {
                 let mut instantiations = self.encoder.get_closure_instantiations(curr_def_id);
                 if instantiations.is_empty() {
                     // `curr_def_id` is not a closure and there are no captured variables
@@ -474,11 +474,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 };
             // let captured_tys: Vec<ty::Ty> = closure_subst.upvar_tys(curr_def_id, tcx).collect();
             // let captured_tys: Vec<ty::Ty> = closure_subst.iter().map(|arg| arg.expect_ty()).collect();
-            let captured_tys: Vec<ty::Ty> = captured_operands.iter().map(
-                |operand| {
-                    operand.ty(curr_mir, self.encoder.env().tcx())
-                })
-                .collect();
+            let captured_tys = captured_operand_tys;
             trace!("captured_tys: {:?}", captured_tys);
             assert_eq!(captured_tys.len(), captured_operands.len());
 
