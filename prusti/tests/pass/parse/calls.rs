@@ -32,4 +32,22 @@ fn test_max2() {
     assert!(z == 5);
 }
 
+#[ensures(
+
+    true && (true ==>
+
+        result == 3     // test that we get correct span information
+            )
+
+    && (true || false)
+
+        )
+
+    ]
+fn test_max3() -> i32 {
+    let a = 4;
+    let b = 3;
+    max(a, b)
+}
+
 fn main() {}
