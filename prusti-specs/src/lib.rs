@@ -46,6 +46,13 @@ pub fn ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     }
 }
 
+pub fn pure(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    quote! {
+        #[prusti::pure]
+        #tokens
+    }
+}
+
 pub fn invariant(tokens: TokenStream) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();

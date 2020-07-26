@@ -2418,26 +2418,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
     ) -> Vec<vir::Stmt> {
-    //     let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id);
-    //     debug!("Encoding pure function call '{}'", function_name);
-    //     assert!(destination.is_some());
+        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id);
+        debug!("Encoding pure function call '{}'", function_name);
+        assert!(destination.is_some());
 
-    //     let mut arg_exprs = vec![];
-    //     for operand in args.iter() {
-    //         let arg_expr = self.mir_encoder.encode_operand_expr(operand);
-    //         arg_exprs.push(arg_expr);
-    //     }
+        let mut arg_exprs = vec![];
+        for operand in args.iter() {
+            let arg_expr = self.mir_encoder.encode_operand_expr(operand);
+            arg_exprs.push(arg_expr);
+        }
 
-    //     self.encode_specified_pure_function_call(
-    //         location,
-    //         call_site_span,
-    //         args,
-    //         destination,
-    //         function_name,
-    //         arg_exprs,
-    //         return_type,
-    //     )
-        unimplemented!();
+        self.encode_specified_pure_function_call(
+            location,
+            call_site_span,
+            args,
+            destination,
+            function_name,
+            arg_exprs,
+            return_type,
+        )
     }
 
     fn encode_specified_pure_function_call(
@@ -2450,127 +2449,126 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         arg_exprs: Vec<Expr>,
         return_type: Type,
     ) -> Vec<vir::Stmt> {
-    //     let mut stmts = vec![];
+        let mut stmts = vec![];
 
-    //     let formal_args: Vec<vir::LocalVar> = args
-    //         .iter()
-    //         .enumerate()
-    //         .map(|(i, arg)| {
-    //             vir::LocalVar::new(
-    //                 format!("x{}", i),
-    //                 self.mir_encoder.encode_operand_expr_type(arg),
-    //             )
-    //         })
-    //         .collect();
+        let formal_args: Vec<vir::LocalVar> = args
+            .iter()
+            .enumerate()
+            .map(|(i, arg)| {
+                vir::LocalVar::new(
+                    format!("x{}", i),
+                    self.mir_encoder.encode_operand_expr_type(arg),
+                )
+            })
+            .collect();
 
-    //     let pos = self
-    //         .encoder
-    //         .error_manager()
-    //         .register(call_site_span, ErrorCtxt::PureFunctionCall);
+        let pos = self
+            .encoder
+            .error_manager()
+            .register(call_site_span, ErrorCtxt::PureFunctionCall);
 
-    //     let func_call =
-    //         vir::Expr::func_app(function_name, arg_exprs, formal_args, return_type.clone(), pos);
+        let func_call =
+            vir::Expr::func_app(function_name, arg_exprs, formal_args, return_type.clone(), pos);
 
-    //     let label = self.cfg_method.get_fresh_label_name();
-    //     stmts.push(vir::Stmt::Label(label.clone()));
+        let label = self.cfg_method.get_fresh_label_name();
+        stmts.push(vir::Stmt::Label(label.clone()));
 
-    //     // Havoc the content of the lhs
-    //     let (target_place, _target_ty, _) = match destination.as_ref() {
-    //         Some((ref dst, _)) => self.mir_encoder.encode_place(dst).unwrap(), // will panic if attempting to encode unsupported type
-    //         None => unreachable!(),
-    //     };
-    //     stmts.extend(self.encode_havoc(&target_place));
-    //     let type_predicate = self
-    //         .mir_encoder
-    //         .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
-    //         .unwrap();
+        // Havoc the content of the lhs
+        let (target_place, _target_ty, _) = match destination.as_ref() {
+            Some((ref dst, _)) => self.mir_encoder.encode_place(dst).unwrap(), // will panic if attempting to encode unsupported type
+            None => unreachable!(),
+        };
+        stmts.extend(self.encode_havoc(&target_place));
+        let type_predicate = self
+            .mir_encoder
+            .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
+            .unwrap();
 
-    //     stmts.push(vir::Stmt::Inhale(
-    //         type_predicate,
-    //         vir::FoldingBehaviour::Stmt,
-    //     ));
+        stmts.push(vir::Stmt::Inhale(
+            type_predicate,
+            vir::FoldingBehaviour::Stmt,
+        ));
 
-    //     // Initialize the lhs
-    //     let target_value = match destination.as_ref() {
-    //         Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
-    //         None => unreachable!(),
-    //     };
+        // Initialize the lhs
+        let target_value = match destination.as_ref() {
+            Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
+            None => unreachable!(),
+        };
 
-    //     if return_type.is_domain() {
-    //         let predicate_name = target_value.get_type().name();
-    //         let snapshot = self.encoder.encode_snapshot_use(predicate_name);
-    //         let snap_call = snapshot.get_snap_call(target_place);
-    //         stmts.push(vir::Stmt::Inhale(
-    //             vir::Expr::eq_cmp(snap_call.clone(), func_call),
-    //             vir::FoldingBehaviour::Stmt,
-    //         ));
-    //     } else {
-    //         stmts.push(vir::Stmt::Inhale(
-    //             vir::Expr::eq_cmp(target_value.into(), func_call),
-    //             vir::FoldingBehaviour::Stmt,
-    //         ));
-    //     }
+        if return_type.is_domain() {
+            let predicate_name = target_value.get_type().name();
+            let snapshot = self.encoder.encode_snapshot_use(predicate_name);
+            let snap_call = snapshot.get_snap_call(target_place);
+            stmts.push(vir::Stmt::Inhale(
+                vir::Expr::eq_cmp(snap_call.clone(), func_call),
+                vir::FoldingBehaviour::Stmt,
+            ));
+        } else {
+            stmts.push(vir::Stmt::Inhale(
+                vir::Expr::eq_cmp(target_value.into(), func_call),
+                vir::FoldingBehaviour::Stmt,
+            ));
+        }
 
-    //     // Store a label for permissions got back from the call
-    //     debug!(
-    //         "Pure function call location {:?} has label {}",
-    //         location, label
-    //     );
-    //     self.label_after_location.insert(location, label.clone());
+        // Store a label for permissions got back from the call
+        debug!(
+            "Pure function call location {:?} has label {}",
+            location, label
+        );
+        self.label_after_location.insert(location, label.clone());
 
-    //     // Transfer the permissions for the arguments used in the call
-    //     for operand in args.iter() {
-    //         let operand_ty = self.mir_encoder.get_operand_ty(operand);
-    //         let operand_place = self.mir_encoder.encode_operand_place(operand);
-    //         match (operand_place, &operand_ty.sty) {
-    //             (
-    //                 Some(ref place),
-    //                 ty::TyKind::RawPtr(ty::TypeAndMut {
-    //                     ty: ref inner_ty, ..
-    //                 }),
-    //             )
-    //             | (Some(ref place), ty::TyKind::Ref(_, ref inner_ty, _)) => {
-    //                 let ref_field = self.encoder.encode_dereference_field(inner_ty);
-    //                 let ref_place = place.clone().field(ref_field);
-    //                 stmts.extend(self.encode_transfer_permissions(
-    //                     ref_place.clone(),
-    //                     ref_place.clone().old(&label),
-    //                     location,
-    //                 ));
-    //             }
-    //             _ => {} // Nothing
-    //         }
-    //     }
+        // Transfer the permissions for the arguments used in the call
+        for operand in args.iter() {
+            let operand_ty = self.mir_encoder.get_operand_ty(operand);
+            let operand_place = self.mir_encoder.encode_operand_place(operand);
+            match (operand_place, &operand_ty.kind) {
+                (
+                    Some(ref place),
+                    ty::TyKind::RawPtr(ty::TypeAndMut {
+                        ty: ref inner_ty, ..
+                    }),
+                )
+                | (Some(ref place), ty::TyKind::Ref(_, ref inner_ty, _)) => {
+                    let ref_field = self.encoder.encode_dereference_field(inner_ty);
+                    let ref_place = place.clone().field(ref_field);
+                    stmts.extend(self.encode_transfer_permissions(
+                        ref_place.clone(),
+                        ref_place.clone().old(&label),
+                        location,
+                    ));
+                }
+                _ => {} // Nothing
+            }
+        }
 
-    //     /*
-    //     // Hack to work around the missing loan for arguments moved to the function call
-    //     for operand in args.iter() {
-    //         if let Some(place) = self.mir_encoder.encode_operand_place(operand) {
-    //             debug!("Put permission {:?} in postcondition", place);
-    //             // Choose the label that corresponds to the creation of the loan
-    //             let (loans, _) = self.polonius_info().get_all_active_loans(location);
-    //             let source_loans: Vec<_> = loans.iter().filter(|loan| {
-    //                 let loan_places = self.polonius_info().get_loan_places(loan).unwrap();
-    //                 let (expiring, _, restored) = self.encode_loan_places(&loan_places);
-    //                 trace!("Try {:?} == {:?} | {:?}", expiring, place, restored);
-    //                 expiring.parent() == Some(&place)
-    //             }).collect();
-    //             if !source_loans.is_empty() {
-    //                 assert_eq!(source_loans.len(), 1, "The argument depends on a condition");
-    //                 let source_loan = &source_loans[0];
-    //                 let loan_loc = self.polonius_info().get_loan_location(&source_loan);
-    //                 let loan_label = &self.label_after_location[&loan_loc];
-    //                 stmts.push(vir::Stmt::TransferPerm(
-    //                     place.clone(),
-    //                     place.clone().old(&loan_label)
-    //                 ));
-    //             }
-    //         }
-    //     }
-    //     */
+        /*
+        // Hack to work around the missing loan for arguments moved to the function call
+        for operand in args.iter() {
+            if let Some(place) = self.mir_encoder.encode_operand_place(operand) {
+                debug!("Put permission {:?} in postcondition", place);
+                // Choose the label that corresponds to the creation of the loan
+                let (loans, _) = self.polonius_info().get_all_active_loans(location);
+                let source_loans: Vec<_> = loans.iter().filter(|loan| {
+                    let loan_places = self.polonius_info().get_loan_places(loan).unwrap();
+                    let (expiring, _, restored) = self.encode_loan_places(&loan_places);
+                    trace!("Try {:?} == {:?} | {:?}", expiring, place, restored);
+                    expiring.parent() == Some(&place)
+                }).collect();
+                if !source_loans.is_empty() {
+                    assert_eq!(source_loans.len(), 1, "The argument depends on a condition");
+                    let source_loan = &source_loans[0];
+                    let loan_loc = self.polonius_info().get_loan_location(&source_loan);
+                    let loan_label = &self.label_after_location[&loan_loc];
+                    stmts.push(vir::Stmt::TransferPerm(
+                        place.clone(),
+                        place.clone().old(&loan_label)
+                    ));
+                }
+            }
+        }
+        */
 
-    //     stmts
-        unimplemented!();
+        stmts
     }
 
     /// Encode permissions that are implicitly carried by the given local variable.

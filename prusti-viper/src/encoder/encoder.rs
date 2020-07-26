@@ -1381,28 +1381,27 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let substs_key = self.type_substitution_key();
         let key = (proc_def_id, substs_key);
 
-        // if !self.pure_functions.borrow().contains_key(&key) {
-        //     trace!("not encoded: {:?}", key);
-        //     let procedure = self.env.get_procedure(proc_def_id);
-        //     let pure_function_encoder =
-        //         PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
-        //     let function = if self.is_trusted(proc_def_id) {
-        //         pure_function_encoder.encode_bodyless_function()
-        //     } else {
-        //         let pure_function = pure_function_encoder.encode_function();
-        //         self.patch_pure_post_with_mirror_call(pure_function)
-        //     };
+        if !self.pure_functions.borrow().contains_key(&key) {
+            trace!("not encoded: {:?}", key);
+            let procedure = self.env.get_procedure(proc_def_id);
+            let pure_function_encoder =
+                PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
+            let function = if self.is_trusted(proc_def_id) {
+                pure_function_encoder.encode_bodyless_function()
+            } else {
+                let pure_function = pure_function_encoder.encode_function();
+                self.patch_pure_post_with_mirror_call(pure_function)
+            };
 
-        //     self.log_vir_program_before_viper(function.to_string());
-        //     self.pure_functions.borrow_mut().insert(key, function);
-        // }
+            self.log_vir_program_before_viper(function.to_string());
+            self.pure_functions.borrow_mut().insert(key, function);
+        }
 
-        // // FIXME; hideous monstrosity...
-        // {
-        //     let mut tymap_stack = self.typaram_repl.borrow_mut();
-        //     tymap_stack.pop();
-        // }
-        unimplemented!();
+        // FIXME; hideous monstrosity...
+        {
+            let mut tymap_stack = self.typaram_repl.borrow_mut();
+            tymap_stack.pop();
+        }
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
     }
 

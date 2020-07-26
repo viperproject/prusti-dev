@@ -10,6 +10,9 @@ mod private {
     /// A macro for writing a postcondition on a function.
     pub use prusti_contracts_impl::ensures;
 
+    /// A macro for marking a function as pure.
+    pub use prusti_contracts_impl::pure;
+
     /// A macro for writing a loop invariant.
     #[proc_macro_hack]
     pub use prusti_contracts_impl::invariant;
@@ -24,6 +27,9 @@ mod private {
 
     /// A macro for writing a postcondition on a function.
     pub use prusti_contracts_internal::ensures;
+
+    /// A macro for marking a function as pure.
+    pub use prusti_contracts_internal::pure;
 
     /// A macro for writing a loop invariant.
     #[proc_macro_hack]
