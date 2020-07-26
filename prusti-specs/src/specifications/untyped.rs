@@ -240,6 +240,7 @@ impl EncodeTypeCheck for Assertion {
                 triggers.encode_type_check(&mut nested_assertion);
 
                 let typeck_call = quote_spanned! { span =>
+                    #[prusti::spec_only]
                     #[prusti::expr_id = #identifier]
                     |#(#vec_of_vars),*| {
                         #nested_assertion

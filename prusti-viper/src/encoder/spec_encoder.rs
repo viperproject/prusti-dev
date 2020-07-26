@@ -531,24 +531,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
             // Replace the variables introduced in the quantifications
             if !is_spec_function {
+                // let mut var_names = HashMap::new();
+                // for info in &outer_mir.var_debug_info {
+                //     if let Some(local) = info.place.as_local() {
+                //         var_names.insert(local, info.name);
+                //     } else {
+                //         unimplemented!();
+                //     }
+                // }
                 for local_arg_index in outer_mir.args_iter().skip(1) {
+                    // if let Some(var_name) = var_names.get(&local_arg_index) {
                     let local_arg = &outer_mir.local_decls[local_arg_index];
-                    unimplemented!("We cannot get MIR variable name.");
-                    // if let Some(var_name) = local_arg.name {
-                    //     let encoded_arg = outer_mir_encoder.encode_local(local_arg_index);
-                    //     let value_field = self.encoder.encode_value_field(local_arg.ty);
-                    //     let value_type = self.encoder.encode_value_type(local_arg.ty);
-                    //     let proper_var = vir::LocalVar::new(var_name.to_string(), value_type);
-                    //     let encoded_arg_value = vir::Expr::local(encoded_arg).field(value_field);
-                    //     trace!(
-                    //         "Place {}: {} is renamed to {} because a quantifier introduced it",
-                    //         encoded_arg_value,
-                    //         encoded_arg_value.get_type(),
-                    //         proper_var
-                    //     );
-                    //     encoded_expr =
-                    //         encoded_expr.replace_place(&encoded_arg_value, &proper_var.into());
-                    // }
+                    if !local_arg.internal {
+                        let var_name = format!("{:?}", local_arg_index);
+                        let encoded_arg = outer_mir_encoder.encode_local(local_arg_index).unwrap();
+                        let value_field = self.encoder.encode_value_field(local_arg.ty);
+                        let value_type = self.encoder.encode_value_type(local_arg.ty);
+                        let proper_var = vir::LocalVar::new(var_name, value_type);
+                        let encoded_arg_value = vir::Expr::local(encoded_arg).field(value_field);
+                        trace!(
+                            "Place {}: {} is renamed to {} because a quantifier introduced it",
+                            encoded_arg_value,
+                            encoded_arg_value.get_type(),
+                            proper_var
+                        );
+                        encoded_expr =
+                            encoded_expr.replace_place(&encoded_arg_value, &proper_var.into());
+                    }
                 }
             }
 
