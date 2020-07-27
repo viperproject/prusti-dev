@@ -32,7 +32,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     /// identifier of a procedure
     pub fn new(tcx: TyCtxt<'tcx>, proc_def_id: ProcedureDefId) -> Self {
         trace!("Encoding procedure {:?}", proc_def_id);
-        let (mir, _) = tcx.mir_validated(proc_def_id.expect_local());
+        let (mir, _) = tcx.mir_validated(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
         let mir = mir.borrow();
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir);

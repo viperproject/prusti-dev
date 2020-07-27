@@ -324,7 +324,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 continue;
             }
             trace!("Collecting closure instantiations for mir {:?}", mir_def_id);
-            let (mir, _) = tcx.mir_validated(mir_def_id);
+            let (mir, _) = tcx.mir_validated(ty::WithOptConstParam::unknown(mir_def_id));
             let mir = &*mir.borrow();
             for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
                 for (stmt_index, stmt) in bb_data.statements.iter().enumerate() {

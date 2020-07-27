@@ -114,7 +114,7 @@ impl<'tcx> StructuralToTyped<'tcx, Trigger> for json::Trigger {
 impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
     fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> ForAllVars<'tcx> {
         let local_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
-        let (body, _) = tcx.mir_validated(local_id);
+        let (body, _) = tcx.mir_validated(ty::WithOptConstParam::unknown(local_id));
         let body = body.borrow();
 
         // the first argument to the node is the closure itself and the
