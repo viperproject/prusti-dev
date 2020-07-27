@@ -4,19 +4,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::errors::{ErrorCtxt, PanicCause::Unimplemented};
-use encoder::Encoder;
+use crate::encoder::builtin_encoder::BuiltinFunctionKind;
+use crate::encoder::errors::ErrorCtxt;
+use crate::encoder::Encoder;
 use prusti_common::vir;
 use prusti_common::config;
-use rustc::hir::def_id::DefId;
-use rustc::mir;
-use rustc::ty;
-use rustc_data_structures::indexed_vec::Idx;
-use std;
-use std::option::Option;
-use syntax::ast;
-use syntax::codemap::Span;
+use rustc_hir::def_id::DefId;
+use rustc_middle::{mir, ty};
+// use rustc_data_structures::indexed_vec::Idx;
+// use std;
+// use std::option::Option;
+// use syntax::ast;
+// use syntax::codemap::Span;
+use rustc_ast::ast;
+use rustc_span::Span;
+use log::{trace, debug};
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static POSTCONDITION_LABEL: &'static str = "post";
@@ -24,17 +26,17 @@ pub static WAND_LHS_LABEL: &'static str = "lhs";
 
 /// Common code used for `ProcedureEncoder` and `PureFunctionEncoder`
 #[derive(Clone)]
-pub struct MirEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-    mir: &'p mir::Mir<'tcx>,
+pub struct MirEncoder<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
+    mir: &'p mir::Body<'tcx>,
     def_id: DefId,
     namespace: String,
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn new(
-        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-        mir: &'p mir::Mir<'tcx>,
+        encoder: &'p Encoder<'v, 'tcx>,
+        mir: &'p mir::Body<'tcx>,
         def_id: DefId,
     ) -> Self {
         trace!("MirEncoder constructor");
@@ -47,8 +49,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn new_with_namespace(
-        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-        mir: &'p mir::Mir<'tcx>,
+        encoder: &'p Encoder<'v, 'tcx>,
+        mir: &'p mir::Body<'tcx>,
         def_id: DefId,
         namespace: String,
     ) -> Self {
@@ -86,63 +88,72 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         place: &mir::Place<'tcx>,
     ) -> Result<(vir::Expr, ty::Ty<'tcx>, Option<usize>), ErrorCtxt> {
         trace!("Encode place {:?}", place);
-        match place {
-            &mir::Place::Local(local) => Ok((
+        let result = if place.projection.is_empty() {
+            let local = place.local;
+            (
                 self.encode_local(local)?.into(),
                 self.get_local_ty(local),
                 None,
-            )),
-
-            &mir::Place::Projection(ref place_projection) => {
-                Ok(self.encode_projection(place_projection, None))
-            }
-
-            x => {
-                debug!("Unimplemented! {:?}", x);
-                Err(ErrorCtxt::Panic(Unimplemented))
-            },
-        }
+            )
+        } else {
+            self.encode_projection(place.projection.len(), *place, None)
+        };
+        Ok(result)
     }
 
-    /// - `encoded_base_place`: optionally, the already encoded place (otherwise encoded by self.encode_place)
+    /// - `encoded_base_place`: optionally, the already encoded place (otherwise
+    ///   encoded by recursively calling self.encode_projection)
     /// Returns
     /// - `vir::Expr`: the place of the projection;
     /// - `ty::Ty<'tcx>`: the type of the place;
     /// - `Option<usize>`: optionally, the variant of the enum.
     pub fn encode_projection(
         &self,
-        place_projection: &mir::PlaceProjection<'tcx>,
+        index: usize,
+        place: mir::Place<'tcx>,
         encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>,
     ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
-        trace!("Encode projection {:?}", place_projection);
+        trace!("Encode projection {}: {:?}", index, place);
+
+        assert!(index >= 1, "place: {:?} index: {}", place, index);
 
         let (encoded_base, base_ty, opt_variant_index) =
-            // will panic if attempting to encode unsupported type
-            encoded_base_place.unwrap_or(self.encode_place(&place_projection.base).unwrap());
+            encoded_base_place.unwrap_or_else(|| {
+                if index == 1 {
+                    let local = place.local;
+                    (
+                        self.encode_local(local).unwrap().into(),
+                        self.get_local_ty(local),
+                        None,
+                    )
+                } else {
+                    self.encode_projection(index-1, place, None)
+                }
+            });
 
-        trace!("place_projection: {:?}", place_projection);
         trace!("base_ty: {:?}", base_ty);
 
-        match &place_projection.elem {
-            &mir::ProjectionElem::Field(ref field, _) => {
-                match base_ty.sty {
-                    ty::TypeVariants::TyBool
-                    | ty::TypeVariants::TyInt(_)
-                    | ty::TypeVariants::TyUint(_)
-                    | ty::TypeVariants::TyRawPtr(_)
-                    | ty::TypeVariants::TyRef(_, _, _) => {
+        let elem = place.projection[index-1];
+        match elem {
+            mir::ProjectionElem::Field(ref field, _) => {
+                match base_ty.kind {
+                    ty::TyKind::Bool
+                    | ty::TyKind::Int(_)
+                    | ty::TyKind::Uint(_)
+                    | ty::TyKind::RawPtr(_)
+                    | ty::TyKind::Ref(_, _, _) => {
                         panic!("Type {:?} has no fields", base_ty)
                     }
 
-                    ty::TypeVariants::TyTuple(elems) => {
+                    ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
-                        let field_ty = elems[field.index()];
+                        let field_ty = elems[field.index()].expect_ty();
                         let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
                         let encoded_projection = encoded_base.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
 
-                    ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
+                    ty::TyKind::Adt(ref adt_def, ref subst) if !adt_def.is_box() => {
                         debug!("subst {:?}", subst);
                         let num_variants = adt_def.variants.len();
                         // FIXME: why this can be None?
@@ -151,9 +162,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             0
                         });
                         let tcx = self.encoder.env().tcx();
-                        let variant_def = &adt_def.variants[variant_index];
+                        let variant_def = &adt_def.variants[variant_index.into()];
                         let encoded_variant = if num_variants != 1 {
-                            encoded_base.variant(&variant_def.name.as_str())
+                            encoded_base.variant(&variant_def.ident.as_str())
                         } else {
                             encoded_base
                         };
@@ -166,27 +177,36 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         (encoded_projection, field_ty, None)
                     }
 
-                    ty::TypeVariants::TyClosure(def_id, ref closure_subst) => {
-                        debug!("closure_subst {:?}", closure_subst);
-                        let tcx = self.encoder.env().tcx();
-                        let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
-                        let field_ty = closure_subst
-                            .upvar_tys(def_id, tcx)
-                            .nth(field.index())
-                            .unwrap();
+                    ty::TyKind::Closure(def_id, ref closure_subst) => {
+                        debug!("def_id={:?} closure_subst {:?}", def_id, closure_subst);
 
-                        let encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
-                            let freevar = &freevars[field.index()];
-                            let field_name = format!("closure_{}", field.index());
-                            let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
-                            let res = encoded_base.field(encoded_field);
-                            let var_name = tcx.hir.name(freevar.var_id()).to_string();
-                            trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
-                            res
-                        });
+                        let closure_subst = closure_subst.as_closure();
+                        debug!("Closure subst: {:?}", closure_subst);
+
+                        let tcx = self.encoder.env().tcx();
+                        // let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
+                        // let field_ty = closure_subst
+                        //     .upvar_tys(def_id, tcx)
+                        //     .nth(field.index())
+                        //     .unwrap();
+                        let field_ty = closure_subst.upvar_tys().nth(field.index()).unwrap();
+
+                        let field_name = format!("closure_{}", field.index());
+                        let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
+                        let encoded_projection = encoded_base.field(encoded_field);
+
+                        // let encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
+                        //     let freevar = &freevars[field.index()];
+                        //     let field_name = format!("closure_{}", field.index());
+                        //     let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
+                        //     let res = encoded_base.field(encoded_field);
+                        //     let var_name = tcx.hir.name(freevar.var_id()).to_string();
+                        //     trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
+                        //     res
+                        // });
 
                         let encoded_field_type = self.encoder.encode_type(field_ty);
-                        debug!("Rust closure projection {:?}", place_projection);
+                        // debug!("Rust closure projection {:?}", place_projection);
                         debug!("encoded_projection: {:?}", encoded_projection);
 
                         assert_eq!(encoded_projection.get_type(), &encoded_field_type);
@@ -198,11 +218,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }
             }
 
-            &mir::ProjectionElem::Deref => self.encode_deref(encoded_base, base_ty),
+            mir::ProjectionElem::Deref => self.encode_deref(encoded_base, base_ty),
 
-            &mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
+            mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
                 debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
-                (encoded_base, base_ty, Some(variant_index))
+                (encoded_base, base_ty, Some(variant_index.into()))
             }
 
             x => unimplemented!("{:?}", x),
@@ -211,8 +231,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn is_reference(&self, base_ty: ty::Ty<'tcx>) -> bool {
         trace!("is_reference {}", base_ty);
-        match base_ty.sty {
-            ty::TypeVariants::TyRawPtr(..) | ty::TypeVariants::TyRef(..) => true,
+        match base_ty.kind {
+            ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
 
             _ => false,
         }
@@ -220,10 +240,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn can_be_dereferenced(&self, base_ty: ty::Ty<'tcx>) -> bool {
         trace!("can_be_dereferenced {}", base_ty);
-        match base_ty.sty {
-            ty::TypeVariants::TyRawPtr(..) | ty::TypeVariants::TyRef(..) => true,
+        match base_ty.kind {
+            ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
 
-            ty::TypeVariants::TyAdt(ref adt_def, ..) if adt_def.is_box() => true,
+            ty::TyKind::Adt(ref adt_def, ..) if adt_def.is_box() => true,
 
             _ => false,
         }
@@ -240,9 +260,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             "Type {:?} can not be dereferenced",
             base_ty
         );
-        match base_ty.sty {
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. })
-            | ty::TypeVariants::TyRef(_, ty, _) => {
+        match base_ty.kind {
+            ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
+            | ty::TyKind::Ref(_, ty, _) => {
                 let access = if encoded_base.is_addr_of() {
                     encoded_base.get_parent().unwrap()
                 } else {
@@ -256,7 +276,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 };
                 (access, ty, None)
             }
-            ty::TypeVariants::TyAdt(ref adt_def, ref _subst) if adt_def.is_box() => {
+            ty::TyKind::Adt(ref adt_def, ref _subst) if adt_def.is_box() => {
                 let access = if encoded_base.is_addr_of() {
                     encoded_base.get_parent().unwrap()
                 } else {
@@ -280,63 +300,68 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         trace!("Encode operand expr {:?}", operand);
         match operand {
             &mir::Operand::Constant(box mir::Constant {
-                literal: mir::Literal::Value { value },
+                literal: ty::Const { ty, val },
                 ..
-            }) => self.encoder.encode_const_expr(value),
+            }) => self.encoder.encode_const_expr(ty, val),
             &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
                 let val_place = self.eval_place(&place);
                 val_place.into()
             }
-            &mir::Operand::Constant(box mir::Constant {
-                ty,
-                literal: mir::Literal::Promoted { .. },
-                ..
-            }) => {
-                debug!("Incomplete encoding of promoted literal {:?}", operand);
+            // FIXME: Check whether the commented out code is necessary.
+            // &mir::Operand::Constant(box mir::Constant {
+            //     ty,
+            //     literal: mir::Literal::Promoted { .. },
+            //     ..
+            // }) => {
+            //     debug!("Incomplete encoding of promoted literal {:?}", operand);
 
-                // Generate a function call that leaves the expression undefined.
-                let encoded_type = self.encoder.encode_value_type(ty);
-                let function_name =
-                    self.encoder
-                        .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
-                            encoded_type.clone(),
-                        ));
-                let pos = self.encoder.error_manager().register(
-                    // TODO: use a proper span
-                    self.mir.span,
-                    ErrorCtxt::PureFunctionCall,
-                );
-                vir::Expr::func_app(function_name, vec![], vec![], encoded_type, pos)
-            }
+            //     // Generate a function call that leaves the expression undefined.
+            //     let encoded_type = self.encoder.encode_value_type(ty);
+            //     let function_name =
+            //         self.encoder
+            //             .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
+            //                 encoded_type.clone(),
+            //             ));
+            //     let pos = self.encoder.error_manager().register(
+            //         // TODO: use a proper span
+            //         self.mir.span,
+            //         ErrorCtxt::PureFunctionCall,
+            //     );
+            //     vir::Expr::func_app(function_name, vec![], vec![], encoded_type, pos)
+            // }
         }
     }
 
     pub fn get_operand_ty(&self, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
         debug!("Get operand ty {:?}", operand);
-        match operand {
-            &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
-                let (_, ty, _) = self.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
-                ty
-            }
-            &mir::Operand::Constant(box mir::Constant { ty, .. }) => ty,
-        }
+        // match operand {
+        //     &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
+        //         let (_, ty, _) = self.encode_place(place);
+        //         ty
+        //     }
+        //     &mir::Operand::Constant(box mir::Constant { ty, .. }) => ty,
+        // }
+        operand.ty(self.mir, self.encoder.env().tcx())
     }
 
     /// Returns an `vir::Type` that corresponds to the type of the value of the operand
     pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>) -> vir::Type {
         trace!("Encode operand expr {:?}", operand);
-        match operand {
-            &mir::Operand::Constant(box mir::Constant { ty, .. }) => {
-                let ty = self.encoder.resolve_typaram(ty);
-                self.encoder.encode_value_type(ty)
-            }
-            &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
-                let (encoded_place, place_ty, _) = self.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
-                let place_ty = self.encoder.resolve_typaram(place_ty);
-                let val_place = self.encoder.encode_value_expr(encoded_place, place_ty);
-                val_place.get_type().clone()
-            }
-        }
+        // match operand {
+        //     &mir::Operand::Constant(box mir::Constant { ty, .. }) => {
+        //         let ty = self.encoder.resolve_typaram(ty);
+        //         self.encoder.encode_value_type(ty)
+        //     }
+        //     &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
+        //         let (encoded_place, place_ty, _) = self.encode_place(place);
+        //         let place_ty = self.encoder.resolve_typaram(place_ty);
+        //         let value_field = self.encoder.encode_value_field(place_ty);
+        //         let val_place = encoded_place.field(value_field);
+        //         val_place.get_type().clone()
+        //     }
+        // }
+        let ty = operand.ty(self.mir, self.encoder.env().tcx());
+        self.encoder.encode_value_type(ty)
     }
 
     pub fn encode_bin_op_expr(
@@ -346,7 +371,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> vir::Expr {
-        let is_bool = ty.sty == ty::TypeVariants::TyBool;
+        let is_bool = ty.kind == ty::TyKind::Bool;
         match op {
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
             mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
@@ -387,54 +412,54 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty);
 
             match op {
-                mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.sty {
+                mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.kind {
                     // Unsigned
-                    ty::TypeVariants::TyUint(ast::UintTy::U8) => vir::Expr::or(
+                    ty::TyKind::Uint(ast::UintTy::U8) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u8::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u8::MAX.into()),
                     ),
-                    ty::TypeVariants::TyUint(ast::UintTy::U16) => vir::Expr::or(
+                    ty::TyKind::Uint(ast::UintTy::U16) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u16::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u16::MAX.into()),
                     ),
-                    ty::TypeVariants::TyUint(ast::UintTy::U32) => vir::Expr::or(
+                    ty::TyKind::Uint(ast::UintTy::U32) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u32::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u32::MAX.into()),
                     ),
-                    ty::TypeVariants::TyUint(ast::UintTy::U64) => vir::Expr::or(
+                    ty::TyKind::Uint(ast::UintTy::U64) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u64::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u64::MAX.into()),
                     ),
-                    ty::TypeVariants::TyUint(ast::UintTy::U128) => vir::Expr::or(
+                    ty::TyKind::Uint(ast::UintTy::U128) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u128::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u128::MAX.into()),
                     ),
-                    ty::TypeVariants::TyUint(ast::UintTy::Usize) => vir::Expr::or(
+                    ty::TyKind::Uint(ast::UintTy::Usize) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::usize::MIN.into()),
                         vir::Expr::gt_cmp(result, std::usize::MAX.into()),
                     ),
                     // Signed
-                    ty::TypeVariants::TyInt(ast::IntTy::I8) => vir::Expr::or(
+                    ty::TyKind::Int(ast::IntTy::I8) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i8::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i8::MAX.into()),
                     ),
-                    ty::TypeVariants::TyInt(ast::IntTy::I16) => vir::Expr::or(
+                    ty::TyKind::Int(ast::IntTy::I16) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i16::MIN.into()),
                     ),
-                    ty::TypeVariants::TyInt(ast::IntTy::I32) => vir::Expr::or(
+                    ty::TyKind::Int(ast::IntTy::I32) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i32::MAX.into()),
                     ),
-                    ty::TypeVariants::TyInt(ast::IntTy::I64) => vir::Expr::or(
+                    ty::TyKind::Int(ast::IntTy::I64) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i64::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i64::MAX.into()),
                     ),
-                    ty::TypeVariants::TyInt(ast::IntTy::I128) => vir::Expr::or(
+                    ty::TyKind::Int(ast::IntTy::I128) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i128::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i128::MAX.into()),
                     ),
-                    ty::TypeVariants::TyInt(ast::IntTy::Isize) => vir::Expr::or(
+                    ty::TyKind::Int(ast::IntTy::Isize) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::isize::MIN.into()),
                         vir::Expr::gt_cmp(result, std::isize::MAX.into()),
                     ),
@@ -465,129 +490,129 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     ) -> vir::Expr {
         let src_ty = self.get_operand_ty(operand);
 
-        let encoded_val = match (&src_ty.sty, &dst_ty.sty) {
-            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I8))
-            | (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I16))
-            | (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I32))
-            | (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I64))
+        let encoded_val = match (&src_ty.kind, &dst_ty.kind) {
+            (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I8))
+            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I16))
+            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I32))
+            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I64))
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I8),
-                ty::TypeVariants::TyInt(ast::IntTy::I128),
+                ty::TyKind::Int(ast::IntTy::I8),
+                ty::TyKind::Int(ast::IntTy::I128),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I16),
-                ty::TypeVariants::TyInt(ast::IntTy::I16),
+                ty::TyKind::Int(ast::IntTy::I16),
+                ty::TyKind::Int(ast::IntTy::I16),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I16),
-                ty::TypeVariants::TyInt(ast::IntTy::I32),
+                ty::TyKind::Int(ast::IntTy::I16),
+                ty::TyKind::Int(ast::IntTy::I32),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I16),
-                ty::TypeVariants::TyInt(ast::IntTy::I64),
+                ty::TyKind::Int(ast::IntTy::I16),
+                ty::TyKind::Int(ast::IntTy::I64),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I16),
-                ty::TypeVariants::TyInt(ast::IntTy::I128),
+                ty::TyKind::Int(ast::IntTy::I16),
+                ty::TyKind::Int(ast::IntTy::I128),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I32),
-                ty::TypeVariants::TyInt(ast::IntTy::I32),
+                ty::TyKind::Int(ast::IntTy::I32),
+                ty::TyKind::Int(ast::IntTy::I32),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I32),
-                ty::TypeVariants::TyInt(ast::IntTy::I64),
+                ty::TyKind::Int(ast::IntTy::I32),
+                ty::TyKind::Int(ast::IntTy::I64),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I32),
-                ty::TypeVariants::TyInt(ast::IntTy::I128),
+                ty::TyKind::Int(ast::IntTy::I32),
+                ty::TyKind::Int(ast::IntTy::I128),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I64),
-                ty::TypeVariants::TyInt(ast::IntTy::I64),
+                ty::TyKind::Int(ast::IntTy::I64),
+                ty::TyKind::Int(ast::IntTy::I64),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I64),
-                ty::TypeVariants::TyInt(ast::IntTy::I128),
+                ty::TyKind::Int(ast::IntTy::I64),
+                ty::TyKind::Int(ast::IntTy::I128),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::I128),
-                ty::TypeVariants::TyInt(ast::IntTy::I128),
+                ty::TyKind::Int(ast::IntTy::I128),
+                ty::TyKind::Int(ast::IntTy::I128),
             )
             | (
-                ty::TypeVariants::TyInt(ast::IntTy::Isize),
-                ty::TypeVariants::TyInt(ast::IntTy::Isize),
+                ty::TyKind::Int(ast::IntTy::Isize),
+                ty::TyKind::Int(ast::IntTy::Isize),
             )
-            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyChar)
-            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U8))
-            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U16))
-            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U32))
-            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U64))
-            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U128))
-            | (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyChar)
+            | (ty::TyKind::Char, ty::TyKind::Char)
+            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U8))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U16))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U32))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U64))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U128))
+            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Char)
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U8),
-                ty::TypeVariants::TyUint(ast::UintTy::U8),
-            )
-            | (
-                ty::TypeVariants::TyUint(ast::UintTy::U8),
-                ty::TypeVariants::TyUint(ast::UintTy::U16),
+                ty::TyKind::Uint(ast::UintTy::U8),
+                ty::TyKind::Uint(ast::UintTy::U8),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U8),
-                ty::TypeVariants::TyUint(ast::UintTy::U32),
+                ty::TyKind::Uint(ast::UintTy::U8),
+                ty::TyKind::Uint(ast::UintTy::U16),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U8),
-                ty::TypeVariants::TyUint(ast::UintTy::U64),
+                ty::TyKind::Uint(ast::UintTy::U8),
+                ty::TyKind::Uint(ast::UintTy::U32),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U8),
-                ty::TypeVariants::TyUint(ast::UintTy::U128),
+                ty::TyKind::Uint(ast::UintTy::U8),
+                ty::TyKind::Uint(ast::UintTy::U64),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U16),
-                ty::TypeVariants::TyUint(ast::UintTy::U16),
+                ty::TyKind::Uint(ast::UintTy::U8),
+                ty::TyKind::Uint(ast::UintTy::U128),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U16),
-                ty::TypeVariants::TyUint(ast::UintTy::U32),
+                ty::TyKind::Uint(ast::UintTy::U16),
+                ty::TyKind::Uint(ast::UintTy::U16),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U16),
-                ty::TypeVariants::TyUint(ast::UintTy::U64),
+                ty::TyKind::Uint(ast::UintTy::U16),
+                ty::TyKind::Uint(ast::UintTy::U32),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U16),
-                ty::TypeVariants::TyUint(ast::UintTy::U128),
+                ty::TyKind::Uint(ast::UintTy::U16),
+                ty::TyKind::Uint(ast::UintTy::U64),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U32),
-                ty::TypeVariants::TyUint(ast::UintTy::U32),
+                ty::TyKind::Uint(ast::UintTy::U16),
+                ty::TyKind::Uint(ast::UintTy::U128),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U32),
-                ty::TypeVariants::TyUint(ast::UintTy::U64),
+                ty::TyKind::Uint(ast::UintTy::U32),
+                ty::TyKind::Uint(ast::UintTy::U32),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U32),
-                ty::TypeVariants::TyUint(ast::UintTy::U128),
+                ty::TyKind::Uint(ast::UintTy::U32),
+                ty::TyKind::Uint(ast::UintTy::U64),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U64),
-                ty::TypeVariants::TyUint(ast::UintTy::U64),
+                ty::TyKind::Uint(ast::UintTy::U32),
+                ty::TyKind::Uint(ast::UintTy::U128),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U64),
-                ty::TypeVariants::TyUint(ast::UintTy::U128),
+                ty::TyKind::Uint(ast::UintTy::U64),
+                ty::TyKind::Uint(ast::UintTy::U64),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::U128),
-                ty::TypeVariants::TyUint(ast::UintTy::U128),
+                ty::TyKind::Uint(ast::UintTy::U64),
+                ty::TyKind::Uint(ast::UintTy::U128),
             )
             | (
-                ty::TypeVariants::TyUint(ast::UintTy::Usize),
-                ty::TypeVariants::TyUint(ast::UintTy::Usize),
+                ty::TyKind::Uint(ast::UintTy::U128),
+                ty::TyKind::Uint(ast::UintTy::U128),
+            )
+            | (
+                ty::TyKind::Uint(ast::UintTy::Usize),
+                ty::TyKind::Uint(ast::UintTy::Usize),
             ) => self.encode_operand_expr(operand),
 
             _ => unimplemented!(

@@ -1,0 +1,34 @@
+// compile-flags: -Zprint-desugared-specs -Zprint-typeckd-specs -Zhide-uuids
+// normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
+// normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
+
+#![feature(register_tool)]
+#![register_tool(prusti)]
+#[prelude_import]
+use std::prelude::v1::*;
+#[macro_use]
+extern crate std;
+
+use prusti_contracts::*;
+
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+#[prusti::assertion =
+  "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
+fn prusti_post_item_test1_$(NUM_UUID)(result: ()) {
+
+    #[prusti::spec_only]
+    #[prusti::expr_id = "$(NUM_UUID)_101"]
+    || -> bool { false };
+}
+#[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+fn test1() { }
+
+fn test2() {
+    if !false {
+
+        { ::std::rt::begin_panic("assertion failed: false") }
+    };
+}
+fn main() { }
+Procedure(ProcedureSpecification { pres: [], posts: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:7 ~ false[317d]::prusti_post_item_test1_$(NUM_UUID)[0]::{{closure}}[0]) }) }] })

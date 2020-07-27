@@ -1,28 +1,21 @@
-// © 2019, ETH Zurich
-//
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 //! A module that invokes the verifier `prusti-viper`
 
-use prusti_common::report::user;
+use crate::specs::typed;
+use log::{debug, trace, warn};
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
     environment::Environment,
-    specifications::TypedSpecificationMap,
 };
 use prusti_viper::verifier::Verifier;
-use rustc_driver::driver;
+use rustc_middle::ty::TyCtxt;
+use prusti_interface::config::ConfigFlags;
+use prusti_common::report::user;
 
-/// Verify a (typed) specification on compiler state.
-pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
-    state: &'r mut driver::CompileState<'a, 'tcx>,
-    spec: TypedSpecificationMap,
-) {
+
+pub fn verify<'tcx>(flags: ConfigFlags, tcx: TyCtxt<'tcx>, spec: typed::SpecificationMap<'tcx>) {
     trace!("[verify] enter");
 
-    let env = Environment::new(state);
+    let env = Environment::new(tcx);
 
     if env.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
@@ -41,11 +34,18 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
             verification_task.procedures.len()
         ));
 
+        if flags.print_collected_verfication_items {
+            println!("Collected verification items {}:", verification_task.procedures.len());
+            for procedure in &verification_task.procedures {
+                println!("procedure: {} at {:?}", env.get_item_def_path(*procedure), env.get_item_span(*procedure));
+            }
+        }
+
         let verification_result = if verification_task.procedures.is_empty() {
             VerificationResult::Success
         } else {
-            debug!("Dump borrow checker info...");
-            env.dump_borrowck_info(&verification_task.procedures);
+            //         debug!("Dump borrow checker info...");
+            //         env.dump_borrowck_info(&verification_task.procedures);
 
             let mut verifier = Verifier::new(&env, &spec);
             let verification_result = verifier.verify(&verification_task);

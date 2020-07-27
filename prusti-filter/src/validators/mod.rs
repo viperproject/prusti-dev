@@ -20,11 +20,11 @@ use rustc::hir::def_id::DefId;
 use rustc::ty;
 
 pub struct Validator<'a, 'tcx: 'a> {
-    tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
+    tcx: ty::TyCtxt<'tcx>,
 }
 
 impl<'a, 'tcx: 'a> Validator<'a, 'tcx> {
-    pub fn new(tcx: ty::TyCtxt<'a, 'tcx, 'tcx>) -> Self {
+    pub fn new(tcx: ty::TyCtxt<'tcx>) -> Self {
         Validator { tcx }
     }
 

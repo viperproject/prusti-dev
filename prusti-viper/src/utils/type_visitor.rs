@@ -4,58 +4,57 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc::hir::Mutability;
-use rustc::ty::subst::Substs;
-use rustc::ty::TypeVariants::*;
-use rustc::ty::{
-    AdtDef, FieldDef, ParamTy, ProjectionTy, Region, Slice, Ty, TyCtxt, TypeFlags, TypeVariants,
-    VariantDef,
+use rustc_hir::Mutability;
+use rustc_middle::ty::{
+    AdtDef, FieldDef, ParamTy, ProjectionTy, Region, Slice, Ty, TyCtxt, TypeFlags, TyKind,
+    VariantDef, subst::SubstsRef
 };
-use syntax::ast::{IntTy, UintTy};
+use rustc_ast::ast::{IntTy, UintTy};
+use log::trace;
 
-pub trait TypeVisitor<'a, 'tcx>: Sized {
-    fn tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx>;
+pub trait TypeVisitor<'tcx>: Sized {
+    fn tcx(&self) -> TyCtxt<'tcx>;
 
     fn visit_ty(&mut self, ty: Ty<'tcx>) {
         trace!("visit_ty({:?})", ty);
-        self.visit_sty(&ty.sty);
+        self.visit_sty(&ty.kind);
         self.visit_flags(ty.flags);
     }
 
-    fn visit_sty(&mut self, sty: &TypeVariants<'tcx>) {
+    fn visit_sty(&mut self, sty: &TyKind<'tcx>) {
         trace!("visit_sty({:?})", sty);
         match *sty {
-            TyBool => {
+            TyKind::Bool => {
                 self.visit_bool();
             }
-            TyInt(ty) => {
+            TyKind::Int(ty) => {
                 self.visit_int(ty);
             }
-            TyUint(ty) => {
+            TyKind::Uint(ty) => {
                 self.visit_uint(ty);
             }
-            TyChar => {
+            TyKind::Char => {
                 self.visit_char();
             }
-            TyAdt(adt_def, substs) => {
+            TyKind::Adt(adt_def, substs) => {
                 self.visit_adt(adt_def, substs);
             }
-            TyRef(region, ty, mutability) => {
+            TyKind::Ref(region, ty, mutability) => {
                 self.visit_ref(region, ty, mutability);
             }
-            TyTuple(parts) => {
+            TyKind::Tuple(parts) => {
                 self.visit_tuple(parts);
             }
-            TyRawPtr(ty_and_mutbl) => {
+            TyKind::RawPtr(ty_and_mutbl) => {
                 self.visit_raw_ptr(ty_and_mutbl.ty, ty_and_mutbl.mutbl);
             }
-            TyNever => {
+            TyKind::Never => {
                 self.visit_never();
             }
-            TyParam(param) => {
+            TyKind::Param(param) => {
                 self.visit_param(param);
             }
-            TyProjection(data) => {
+            TyKind::Projection(data) => {
                 self.visit_projection(data);
             }
             ref x => {
@@ -80,17 +79,17 @@ pub trait TypeVisitor<'a, 'tcx>: Sized {
 
     fn visit_projection(&mut self, _data: ProjectionTy<'tcx>) {}
 
-    fn visit_adt(&mut self, adt_def: &'tcx AdtDef, substs: &'tcx Substs<'tcx>) {
+    fn visit_adt(&mut self, adt_def: &'tcx AdtDef, substs: SubstsRef<'tcx>) {
         trace!("visit_adt({:?})", adt_def);
         walk_adt(self, adt_def, substs);
     }
 
-    fn visit_adt_variant(&mut self, variant: &VariantDef, substs: &'tcx Substs<'tcx>) {
+    fn visit_adt_variant(&mut self, variant: &VariantDef, substs: SubstsRef<'tcx>) {
         trace!("visit_adt_variant({:?})", variant);
         walk_adt_variant(self, variant, substs);
     }
 
-    fn visit_field(&mut self, index: usize, field: &FieldDef, substs: &'tcx Substs<'tcx>) {
+    fn visit_field(&mut self, index: usize, field: &FieldDef, substs: SubstsRef<'tcx>) {
         trace!("visit_field({}, {:?})", index, field);
         walk_field(self, field, substs);
     }
@@ -106,7 +105,7 @@ pub trait TypeVisitor<'a, 'tcx>: Sized {
         walk_ref_type(self, ty, mutability);
     }
 
-    fn visit_tuple(&mut self, parts: &'tcx Slice<Ty<'tcx>>) {
+    fn visit_tuple(&mut self, parts: SubstsRef<'tcx>) {
         trace!("visit_tuple({:?})", parts);
         walk_tuple(self, parts);
     }
@@ -117,36 +116,36 @@ pub trait TypeVisitor<'a, 'tcx>: Sized {
     }
 }
 
-pub fn walk_adt<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(
+pub fn walk_adt<'tcx, V: TypeVisitor<'tcx>>(
     visitor: &mut V,
     adt_def: &'tcx AdtDef,
-    substs: &'tcx Substs<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) {
     for variant in adt_def.variants.iter() {
         visitor.visit_adt_variant(variant, substs);
     }
 }
 
-pub fn walk_adt_variant<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(
+pub fn walk_adt_variant<'a, 'tcx, V: TypeVisitor<'tcx>>(
     visitor: &mut V,
     variant: &VariantDef,
-    substs: &'tcx Substs<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) {
     for (index, field) in variant.fields.iter().enumerate() {
         visitor.visit_field(index, field, substs);
     }
 }
 
-pub fn walk_field<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(
+pub fn walk_field<'a, 'tcx, V: TypeVisitor<'tcx>>(
     visitor: &mut V,
     field: &FieldDef,
-    substs: &'tcx Substs<'tcx>,
+    substs: SubstsRef<'tcx>,
 ) {
     let ty = field.ty(visitor.tcx(), substs);
     visitor.visit_ty(ty);
 }
 
-pub fn walk_ref<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(
+pub fn walk_ref<'tcx, V: TypeVisitor<'tcx>>(
     visitor: &mut V,
     _: Region<'tcx>,
     ty: Ty<'tcx>,
@@ -155,7 +154,7 @@ pub fn walk_ref<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(
     visitor.visit_ty(ty);
 }
 
-pub fn walk_ref_type<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(
+pub fn walk_ref_type<'tcx, V: TypeVisitor<'tcx>>(
     visitor: &mut V,
     ty: Ty<'tcx>,
     _: Mutability,
@@ -163,16 +162,16 @@ pub fn walk_ref_type<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(
     visitor.visit_ty(ty);
 }
 
-pub fn walk_tuple<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(
+pub fn walk_tuple<'tcx, V: TypeVisitor<'tcx>>(
     visitor: &mut V,
-    parts: &'tcx Slice<Ty<'tcx>>,
+    parts: SubstsRef<'tcx>,
 ) {
     for part in parts.iter() {
-        visitor.visit_ty(part);
+        visitor.visit_ty(part.expect_ty());
     }
 }
 
-pub fn walk_raw_ptr<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(
+pub fn walk_raw_ptr<'tcx, V: TypeVisitor<'tcx>>(
     visitor: &mut V,
     ty: Ty<'tcx>,
     _: Mutability,

@@ -5,13 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::utils;
-use environment::place_set::PlaceSet;
-use environment::procedure::BasicBlockIndex;
-use rustc::mir;
-use rustc::mir::visit::Visitor;
-use rustc_data_structures::control_flow_graph::dominators::Dominators;
+use crate::environment::place_set::PlaceSet;
+use crate::environment::procedure::BasicBlockIndex;
+use rustc_middle::mir;
+use rustc_middle::mir::visit::Visitor;
+use rustc_data_structures::graph::dominators::Dominators;
 use std::collections::{HashMap, HashSet};
-use rustc_data_structures::indexed_vec::{Idx, IndexVec};
+use rustc_index::vec::{Idx, IndexVec};
+use log::{debug, trace};
 
 /// A visitor that collects the loop heads and bodies.
 struct LoopHeadCollector<'d> {
@@ -21,15 +22,14 @@ struct LoopHeadCollector<'d> {
 }
 
 impl<'d, 'tcx> Visitor<'tcx> for LoopHeadCollector<'d> {
-    fn visit_terminator_kind(
+    fn visit_terminator(
         &mut self,
-        block: BasicBlockIndex,
-        kind: &mir::TerminatorKind<'tcx>,
-        _: mir::Location,
+        terminator: &mir::Terminator<'tcx>,
+        location: mir::Location
     ) {
-        for successor in kind.successors() {
-            if self.dominators.is_dominated_by(block, *successor) {
-                self.back_edges.insert((block, *successor));
+        for successor in terminator.kind.successors() {
+            if self.dominators.is_dominated_by(location.block, *successor) {
+                self.back_edges.insert((location.block, *successor));
                 debug!("Loop head: {:?}", successor);
             }
         }
@@ -40,14 +40,14 @@ impl<'d, 'tcx> Visitor<'tcx> for LoopHeadCollector<'d> {
 fn collect_loop_body<'tcx>(
     head: BasicBlockIndex,
     back_edge_source: BasicBlockIndex,
-    mir: &mir::Mir<'tcx>,
+    mir: &mir::Body<'tcx>,
     body: &mut HashSet<BasicBlockIndex>,
 ) {
     let mut work_queue = vec![back_edge_source];
     body.insert(back_edge_source);
     while !work_queue.is_empty() {
         let current = work_queue.pop().unwrap();
-        for &predecessor in mir.predecessors_for(current).iter() {
+        for &predecessor in mir.predecessors()[current].iter() {
             if body.contains(&predecessor) {
                 continue;
             }
@@ -110,7 +110,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
     fn visit_place(
         &mut self,
         place: &mir::Place<'tcx>,
-        context: mir::visit::PlaceContext<'tcx>,
+        context: mir::visit::PlaceContext,
         location: mir::Location,
     ) {
         // TODO: using `location`, skip the places that are used for typechecking
@@ -122,24 +122,28 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                 context,
                 location
             );
-            use rustc::mir::visit::PlaceContext::*;
+            use rustc_middle::mir::visit::PlaceContext::*;
             let access_kind = match context {
-                Store => PlaceAccessKind::Store,
-                Copy => PlaceAccessKind::Read,
-                Move => PlaceAccessKind::Move,
-                Borrow {
-                    kind: mir::BorrowKind::Shared,
-                    ..
-                } => PlaceAccessKind::SharedBorrow,
-                Borrow {
-                    kind: mir::BorrowKind::Mut { .. },
-                    ..
-                } => PlaceAccessKind::MutableBorrow,
-                Call => PlaceAccessKind::Store,
-                // FIXME: This is just a guess. Upgrade to the new
-                // version of rustc to get proper information.
-                Inspect => PlaceAccessKind::Read,
-                Drop => PlaceAccessKind::Move,
+                MutatingUse(mir::visit::MutatingUseContext::Store) => PlaceAccessKind::Store,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Copy) => PlaceAccessKind::Read,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Move) => PlaceAccessKind::Move,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) => PlaceAccessKind::Read,
+                // Store => PlaceAccessKind::Store,
+                // Copy => PlaceAccessKind::Read,
+                // Move => PlaceAccessKind::Move,
+                // Borrow {
+                //     kind: mir::BorrowKind::Shared,
+                //     ..
+                // } => PlaceAccessKind::SharedBorrow,
+                // Borrow {
+                //     kind: mir::BorrowKind::Mut { .. },
+                //     ..
+                // } => PlaceAccessKind::MutableBorrow,
+                // Call => PlaceAccessKind::Store,
+                // // FIXME: This is just a guess. Upgrade to the new
+                // // version of rustc to get proper information.
+                // Inspect => PlaceAccessKind::Read,
+                // Drop => PlaceAccessKind::Move,
                 x => unimplemented!("{:?}", x),
             };
             let access = PlaceAccess {
@@ -154,9 +158,9 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
 
 /// Returns the list of basic blocks ordered in the topological order (ignoring back edges).
 fn order_basic_blocks<'tcx>(
-    mir: &mir::Mir<'tcx>,
+    mir: &mir::Body<'tcx>,
     back_edges: &HashSet<(BasicBlockIndex, BasicBlockIndex)>,
-    loop_depth: &Fn(BasicBlockIndex) -> usize,
+    loop_depth: &dyn Fn(BasicBlockIndex) -> usize,
 ) -> Vec<BasicBlockIndex> {
     let basic_blocks = mir.basic_blocks();
     let mut sorted_blocks = Vec::new();
@@ -167,7 +171,7 @@ fn order_basic_blocks<'tcx>(
     fn visit<'tcx>(
         basic_blocks: &IndexVec<BasicBlockIndex, mir::BasicBlockData<'tcx>>,
         back_edges: &HashSet<(BasicBlockIndex, BasicBlockIndex)>,
-        loop_depth: &Fn(BasicBlockIndex) -> usize,
+        loop_depth: &dyn Fn(BasicBlockIndex) -> usize,
         current: BasicBlockIndex,
         sorted_blocks: &mut Vec<BasicBlockIndex>,
         permanent_mark: &mut IndexVec<BasicBlockIndex, bool>,
@@ -255,14 +259,14 @@ pub struct ProcedureLoops {
 }
 
 impl ProcedureLoops {
-    pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Mir<'tcx>) -> ProcedureLoops {
+    pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Body<'tcx>) -> ProcedureLoops {
         let dominators = mir.dominators();
         let back_edges: HashSet<(_, _)> = {
             let mut visitor = LoopHeadCollector {
                 back_edges: HashSet::new(),
                 dominators: &dominators,
             };
-            visitor.visit_mir(mir);
+            visitor.visit_body(mir);
             visitor.back_edges.into_iter().collect()
         };
 
@@ -473,14 +477,14 @@ impl ProcedureLoops {
     fn compute_used_paths<'a, 'tcx: 'a>(
         &self,
         loop_head: BasicBlockIndex,
-        mir: &'a mir::Mir<'tcx>,
+        mir: &'a mir::Body<'tcx>,
     ) -> Vec<PlaceAccess<'tcx>> {
         let body = self.loop_bodies.get(&loop_head).unwrap();
         let mut visitor = AccessCollector {
             body: body,
             accessed_places: Vec::new(),
         };
-        visitor.visit_mir(mir);
+        visitor.visit_body(mir);
         visitor.accessed_places
     }
 
@@ -489,7 +493,7 @@ impl ProcedureLoops {
     pub fn compute_read_and_write_leaves<'a, 'tcx: 'a>(
         &self,
         loop_head: BasicBlockIndex,
-        mir: &'a mir::Mir<'tcx>,
+        mir: &'a mir::Body<'tcx>,
         definitely_initalised_paths: Option<&PlaceSet>,
     ) -> (
         Vec<mir::Place<'tcx>>,

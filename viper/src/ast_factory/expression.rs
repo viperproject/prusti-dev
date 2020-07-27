@@ -189,12 +189,12 @@ impl<'a> AstFactory<'a> {
         self.int_lit_with_pos(i, self.no_position())
     }
 
-    pub fn int_lit_from_ref_with_pos(&self, i: &ToString, pos: Position) -> Expr<'a> {
+    pub fn int_lit_from_ref_with_pos(&self, i: &dyn ToString, pos: Position) -> Expr<'a> {
         let big_i = self.jni.new_big_int(i);
         build_ast_node_with_pos!(self, Expr, ast::IntLit, big_i, pos.to_jobject())
     }
 
-    pub fn int_lit_from_ref(&self, i: &ToString) -> Expr<'a> {
+    pub fn int_lit_from_ref(&self, i: &dyn ToString) -> Expr<'a> {
         self.int_lit_from_ref_with_pos(i, self.no_position())
     }
 

@@ -4,17 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::{Encoder, snapshot_encoder};
+use crate::encoder::{Encoder, snapshot_encoder};
 use prusti_common::vir::{ExprFolder, compute_identifier};
 use prusti_common::vir;
-use encoder::snapshot_encoder::Snapshot;
+use crate::encoder::snapshot_encoder::Snapshot;
 
-pub struct SnapshotSpecPatcher<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+pub struct SnapshotSpecPatcher<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotSpecPatcher<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>) -> Self {
+impl<'p, 'v: 'p, 'tcx: 'v> SnapshotSpecPatcher<'p, 'v, 'tcx> {
+    pub fn new(encoder: &'p Encoder<'v, 'tcx>) -> Self {
         SnapshotSpecPatcher {
             encoder,
         }
@@ -27,11 +27,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotSpecPatcher<'p, 'v, 'r, 'a, '
     }
 }
 
-struct PostSnapshotPatcher<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+struct PostSnapshotPatcher<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ExprFolder for PostSnapshotPatcher<'p, 'v, 'r, 'a, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> ExprFolder for PostSnapshotPatcher<'p, 'v, 'tcx> {
     fn fold_func_app(
         &mut self,
         name: String,
@@ -63,7 +63,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ExprFolder for PostSnapshotPatcher<'p
     }
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PostSnapshotPatcher<'p, 'v, 'r, 'a, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> PostSnapshotPatcher<'p, 'v, 'tcx> {
     fn patch_cmp_call(&self, args: Vec<vir::Expr>, cmp: vir::BinOpKind) -> vir::Expr {
         assert_eq!(args.len(), 2);
         let lhs_is_snap = self.has_snap_type(&args[0]);

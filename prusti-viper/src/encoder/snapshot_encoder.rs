@@ -5,9 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_common::vir;
-use encoder::Encoder;
-use rustc::ty;
+use crate::encoder::Encoder;
+use rustc_middle::ty;
 use prusti_common::vir::{PermAmount};
+use log::warn;
 
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
@@ -19,8 +20,8 @@ const SNAPSHOT_ARG: &str = "_arg";
 const SNAPSHOT_LEFT: &str = "_left";
 const SNAPSHOT_RIGHT: &str = "_right";
 
-pub struct SnapshotEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+pub struct SnapshotEncoder<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
     ty: ty::Ty<'tcx>,
     predicate_name: String,
 
@@ -132,8 +133,8 @@ impl Snapshot {
     }
 }
 
-impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, ty: ty::Ty<'tcx>, predicate_name: String) -> Self {
+impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
+    pub fn new(encoder: &'p Encoder<'v, 'tcx>, ty: ty::Ty<'tcx>, predicate_name: String) -> Self {
         SnapshotEncoder { encoder, ty, predicate_name }
     }
 
@@ -146,25 +147,25 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
         }
 
-        match &self.ty.sty {
-            ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar
-            | ty::TypeVariants::TyBool => {
+        match &self.ty.kind {
+            ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char
+            | ty::TyKind::Bool => {
                 self.encode_snap_primitive(
                     self.encoder.encode_value_field(self.ty)
                 )
             }
-            ty::TypeVariants::TyParam(_) => {
+            ty::TyKind::Param(_) => {
                 self.encode_snap_generic()
             }
-            ty::TypeVariants::TyAdt(adt_def, _) if !adt_def.is_box() => {
+            ty::TyKind::Adt(adt_def, _) if !adt_def.is_box() => {
                 if adt_def.variants.len() != 1 {
                     warn!("Generating equality tests for enums is not supported yet");
                 }
                 self.encode_snap_struct()
             }
-            ty::TypeVariants::TyTuple(_) => {
+            ty::TyKind::Tuple(_) => {
                 self.encode_snap_struct()
             }
 
@@ -177,25 +178,25 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn is_ty_supported(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.sty {
-            ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar
-            | ty::TypeVariants::TyBool
-            | ty::TypeVariants::TyParam(_) => {
+        match ty.kind {
+            ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char
+            | ty::TyKind::Bool
+            | ty::TyKind::Param(_) => {
                 true
             }
 
-            ty::TypeVariants::TyRef(_, ref ty, _) => {
+            ty::TyKind::Ref(_, ref ty, _) => {
                 self.is_ty_supported(ty)
             }
 
-            ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
+            ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 if adt_def.variants.len() > 1 {
                     return false
                 }
                 let tcx = self.encoder.env().tcx();
-                for field in &adt_def.variants[0].fields {
+                for field in &adt_def.non_enum_variant().fields {
                     let field_ty = field.ty(tcx, subst);
                     if !self.is_ty_supported(field_ty) {
                         return false
@@ -203,9 +204,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }
                 true
             }
-            ty::TypeVariants::TyTuple(elems) => {
+            ty::TyKind::Tuple(elems) => {
                 for field_ty in elems {
-                    if !self.is_ty_supported(field_ty) {
+                    if !self.is_ty_supported(field_ty.expect_ty()) {
                         return false
                     }
                 }
@@ -470,11 +471,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     fn encode_domain_cons_formal_args(&self) -> Vec<vir::LocalVar> {
         let mut formal_args = vec![];
-        match self.ty.sty {
-            ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
+        match self.ty.kind {
+            ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 let tcx = self.encoder.env().tcx();
                 let mut field_num = 0;
-                for field in &adt_def.variants[0].fields {
+                for field in &adt_def.non_enum_variant().fields {
                     let field_ty = field.ty(tcx, subst);
                     let snapshot = self.encoder.encode_snapshot(&field_ty);
                     formal_args.push(
@@ -484,18 +485,18 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }
             },
 
-            ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar
-            | ty::TypeVariants::TyBool
-            | ty::TypeVariants::TyParam(_) => {
+            ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char
+            | ty::TyKind::Bool
+            | ty::TyKind::Param(_) => {
                 formal_args.push(self.encode_snap_arg_var(SNAPSHOT_ARG))
             },
 
-            ty::TypeVariants::TyTuple(elems) => {
+            ty::TyKind::Tuple(elems) => {
                 for (field_num, field_ty) in elems.iter().enumerate() {
-                    self.encoder.encode_snapshot(field_ty); // ensure there is a snapshot
-                    let field_type = self.encoder.encode_value_type(field_ty);
+                    self.encoder.encode_snapshot(field_ty.expect_ty()); // ensure there is a snapshot
+                    let field_type = self.encoder.encode_value_type(field_ty.expect_ty());
                     formal_args.push(
                         self.encode_local_var(field_num, &field_type)
                     );
@@ -519,10 +520,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_snap_func_args(&self) -> Vec<vir::Expr> {
-        match self.ty.sty {
-            ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
+        match self.ty.kind {
+            ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 let tcx = self.encoder.env().tcx();
-                adt_def.variants[0]
+                adt_def.non_enum_variant()
                     .fields
                     .iter()
                     .map(|f| self.encode_snap_arg(
@@ -534,20 +535,20 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         )
                     ).collect()
             },
-            ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar
-            | ty::TypeVariants::TyBool => {
+            ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char
+            | ty::TyKind::Bool => {
                 vec![self.encode_snap_arg_local(SNAPSHOT_ARG)]
             },
 
-            ty::TypeVariants::TyTuple(elems) => {
+            ty::TyKind::Tuple(elems) => {
                 let mut args = vec![];
                 for (field_num, field_ty) in elems.iter().enumerate() {
                     let field_name = format!("tuple_{}", field_num);
-                    let field = self.encoder.encode_raw_ref_field(field_name, field_ty);
+                    let field = self.encoder.encode_raw_ref_field(field_name, field_ty.expect_ty());
                     args.push(
-                        self.encode_snap_arg(field, field_ty)
+                        self.encode_snap_arg(field, field_ty.expect_ty())
                     );
                 }
                 args
@@ -557,7 +558,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_snap_arg(&self, field: vir::Field, field_ty: &ty::Ty<'tcx>) -> vir::Expr {
+    fn encode_snap_arg(&self, field: vir::Field, field_ty: ty::Ty<'tcx>) -> vir::Expr {
         let snapshot = self.encoder.encode_snapshot(field_ty);
         snapshot.get_snap_call(
             self.encode_snap_arg_field(field)

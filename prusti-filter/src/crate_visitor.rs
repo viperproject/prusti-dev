@@ -16,7 +16,7 @@ use validators::Validator;
 
 pub struct CrateVisitor<'r, 'a: 'r, 'tcx: 'a> {
     pub crate_name: &'a str,
-    pub tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    pub tcx: TyCtxt<'tcx>,
     pub env: &'r Environment<'r, 'a, 'tcx>,
     pub validator: Validator<'a, 'tcx>,
     pub crate_status: CrateStatus,

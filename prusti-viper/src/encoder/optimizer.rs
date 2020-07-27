@@ -7,6 +7,7 @@
 use prusti_common::vir;
 use std::collections::HashMap;
 use std::mem;
+use log::debug;
 
 /// Optimizations currently done:
 ///

@@ -4,11 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::foldunfold::perm::*;
-use encoder::foldunfold::permissions::*;
-use encoder::foldunfold::state::*;
+use crate::encoder::foldunfold::perm::*;
+use crate::encoder::foldunfold::permissions::*;
+use crate::encoder::foldunfold::state::*;
 use prusti_common::vir;
 use std::collections::HashMap;
+use log::{debug, trace};
 
 fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
     state.insert_all_perms(

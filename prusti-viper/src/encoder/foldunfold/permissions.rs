@@ -4,15 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::{
-    perm::{Perm::*, *},
-    places_utils::{union, union3},
-};
-use prusti_common::{vir, vir::PermAmount};
-use std::{
-    collections::{HashMap, HashSet},
-    iter::FromIterator,
-};
+use super::places_utils::{union, union3};
+use crate::encoder::foldunfold::perm::Perm::*;
+use crate::encoder::foldunfold::perm::*;
+use prusti_common::vir;
+use prusti_common::vir::PermAmount;
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::iter::FromIterator;
+use log::{trace, debug};
 
 pub trait RequiredPermissionsGetter {
     /// Returns the permissions required for the expression to be well-defined

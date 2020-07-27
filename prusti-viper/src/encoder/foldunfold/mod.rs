@@ -5,26 +5,24 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use self::path_ctxt::*;
-use encoder::{
-    foldunfold::{action::Action, perm::*, permissions::*, semantics::ApplyOnState},
-    Encoder,
-};
-use prusti_common::{
-    config, report,
-    utils::to_string::ToString,
-    vir,
-    vir::{
-        borrows::Borrow, CfgBlockIndex, CfgReplacer, CheckNoOpAction, ExprFolder,
-        FallibleExprFolder, PermAmount,
-    },
-};
-use rustc::mir;
-use std::{
-    self,
-    collections::{HashMap, HashSet},
-    mem,
-    ops::Deref,
-};
+use crate::encoder::foldunfold::action::Action;
+use crate::encoder::foldunfold::perm::*;
+use crate::encoder::foldunfold::permissions::*;
+use crate::encoder::foldunfold::semantics::ApplyOnState;
+use crate::encoder::Encoder;
+use prusti_common::utils::to_string::ToString;
+use prusti_common::vir;
+use prusti_common::vir::borrows::Borrow;
+use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
+use prusti_common::vir::{ExprFolder, FallibleExprFolder, PermAmount};
+use prusti_common::config;
+use prusti_common::report;
+use rustc_middle::mir;
+use std;
+use std::collections::{HashMap, HashSet};
+use std::mem;
+use std::ops::Deref;
+use ::log::{trace, debug};
 
 mod action;
 mod borrows;
@@ -90,8 +88,8 @@ pub fn add_folding_unfolding_to_function(
     result
 }
 
-pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
     cfg: vir::CfgMethod,
     borrow_locations: &'p HashMap<Borrow, mir::Location>,
     cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
@@ -112,8 +110,8 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(
 }
 
 #[derive(Clone)]
-struct FoldUnfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+struct FoldUnfold<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
     initial_pctxt: PathCtxt<'p>,
     pctxt_at_label: HashMap<String, PathCtxt<'p>>,
     dump_debug_info: bool,
@@ -126,9 +124,9 @@ struct FoldUnfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     method_pos: vir::Position,
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     pub fn new(
-        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        encoder: &'p Encoder<'v, 'tcx>,
         initial_pctxt: PathCtxt<'p>,
         cfg: &'p vir::CfgMethod,
         borrow_locations: &'p HashMap<vir::borrows::Borrow, mir::Location>,
@@ -708,8 +706,8 @@ impl CheckNoOpAction for ActionVec {
     }
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
-    for FoldUnfold<'p, 'v, 'r, 'a, 'tcx>
+impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
+    for FoldUnfold<'p, 'v, 'tcx>
 {
     type Error = FoldUnfoldError;
 

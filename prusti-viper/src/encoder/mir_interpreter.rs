@@ -5,11 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_common::vir;
-use rustc::mir;
+use rustc_middle::mir;
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;
 use std::marker::Sized;
+use log::trace;
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {
@@ -32,7 +33,7 @@ pub trait BackwardMirInterpreter<'tcx> {
 /// Interpret a loop-less MIR starting from the end and return the **initial** state.
 /// The result is None if the CFG contains a loop.
 pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tcx, State = S>>(
-    mir: &mir::Mir<'tcx>,
+    mir: &mir::Body<'tcx>,
     interpreter: &I,
 ) -> Option<S> {
     let basic_blocks = mir.basic_blocks();
@@ -73,7 +74,7 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
         heads.insert(curr_bb, curr_state);
 
         // Put the preceding basic blocks
-        for &pred_bb in mir.predecessors_for(curr_bb).iter() {
+        for &pred_bb in mir.predecessors()[curr_bb].iter() {
             if let Some(ref term) = basic_blocks[pred_bb].terminator {
                 if term.successors().all(|succ_bb| heads.contains_key(succ_bb)) {
                     pending_blocks.push(pred_bb);
@@ -98,7 +99,7 @@ pub fn run_backward_interpretation_point_to_point<
     S: Debug + Clone,
     I: BackwardMirInterpreter<'tcx, State = S>,
 >(
-    mir: &mir::Mir<'tcx>,
+    mir: &mir::Body<'tcx>,
     interpreter: &I,
     initial_bbi: mir::BasicBlock,
     final_bbi: mir::BasicBlock,
@@ -170,7 +171,7 @@ pub fn run_backward_interpretation_point_to_point<
 
         if curr_bb != initial_bbi {
             // Put the preceding basic blocks
-            for &pred_bb in mir.predecessors_for(curr_bb).iter() {
+            for &pred_bb in mir.predecessors()[curr_bb].iter() {
                 // Note: here we don't check that all the successors of `pred_bb` has been visited.
                 // It's a known limitation, because this is the point-to-point interpretation.
                 // Use `run_backward_interpretation` if the check is important.

@@ -7,13 +7,14 @@
 //! The log keeps track of actions performed by the fold-unfold algorithm so that they can be
 //! undone when restoring borrowed permissions.
 
-use encoder::foldunfold::action::Action;
-use encoder::foldunfold::perm::Perm;
-use encoder::foldunfold::FoldUnfoldError;
+use crate::encoder::foldunfold::action::Action;
+use crate::encoder::foldunfold::perm::Perm;
+use crate::encoder::foldunfold::FoldUnfoldError;
 use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use log::trace;
 use std::rc::Rc;
 use std::sync::RwLock;
 

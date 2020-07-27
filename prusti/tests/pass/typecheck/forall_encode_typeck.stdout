@@ -1,0 +1,46 @@
+// compile-flags: -Zprint-desugared-specs -Zprint-typeckd-specs -Zskip-verify -Zhide-uuids
+// normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
+// normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
+
+#![feature(register_tool)]
+#![register_tool(prusti)]
+#[prelude_import]
+use std::prelude::v1::*;
+#[macro_use]
+extern crate std;
+
+use prusti_contracts::*;
+
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+#[prusti::assertion =
+  "{/"kind/":{/"ForAll/":[{/"spec_id/":/"$(UUID)/",/"expr_id/":101,/"count/":2},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":105}}},[[{/"spec_id/":/"$(UUID)/",/"expr_id/":102},{/"spec_id/":/"$(UUID)/",/"expr_id/":103}],[{/"spec_id/":/"$(UUID)/",/"expr_id/":104}]]]}}"]
+fn prusti_pre_item_test1_$(NUM_UUID)() {
+
+    #[prusti::spec_only]
+    #[prusti::expr_id = "$(NUM_UUID)_101"]
+    |a: i32, b: u32|
+        {
+
+            #[prusti::spec_only]
+            #[prusti::expr_id = "$(NUM_UUID)_105"]
+            || -> bool { a == a };
+
+            #[prusti::spec_only]
+            #[prusti::expr_id = "$(NUM_UUID)_102"]
+            || { a == a; };
+
+            #[prusti::spec_only]
+            #[prusti::expr_id = "$(NUM_UUID)_103"]
+            || { a == a; };
+
+            #[prusti::spec_only]
+            #[prusti::expr_id = "$(NUM_UUID)_104"]
+            || { true; };
+        };
+}
+#[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
+fn test1() { }
+
+fn main() { }
+Procedure(ProcedureSpecification { pres: [Assertion { kind: ForAll(ForAllVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, i32), (_3, u32)] }, TriggerSet([Trigger([Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:8 ~ forall_encode_typeck[317d]::prusti_pre_item_test1_$(NUM_UUID)[0]::{{closure}}[0]::{{closure}}[1]) }, Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(103), expr: DefId(0:9 ~ forall_encode_typeck[317d]::prusti_pre_item_test1_$(NUM_UUID)[0]::{{closure}}[0]::{{closure}}[2]) }]), Trigger([Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(104), expr: DefId(0:10 ~ forall_encode_typeck[317d]::prusti_pre_item_test1_$(NUM_UUID)[0]::{{closure}}[0]::{{closure}}[3]) }])]), Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(105), expr: DefId(0:7 ~ forall_encode_typeck[317d]::prusti_pre_item_test1_$(NUM_UUID)[0]::{{closure}}[0]::{{closure}}[0]) }) }) }], posts: [] })

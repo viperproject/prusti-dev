@@ -1,5 +1,5 @@
-use encoder::errors::PrustiError;
-use syntax_pos::MultiSpan;
+use crate::encoder::errors::PrustiError;
+use rustc_span::MultiSpan;
 
 /// An error in the encoding
 #[derive(Clone, Debug)]

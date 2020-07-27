@@ -103,7 +103,7 @@ impl ServerSideService {
 
         info!("Prusti Server binding to port {}", port);
         let (address, server_handle) =
-            warp::serve(endpoints).bind_ephemeral((Ipv4Addr::localhost(), port));
+            warp::serve(endpoints).bind_ephemeral((Ipv4Addr::LOCALHOST, port));
         address_callback(address);
 
         info!("Prusti Server starting on port {}", address.port());

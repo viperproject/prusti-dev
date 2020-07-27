@@ -7,8 +7,9 @@
 use super::borrowck::facts;
 use super::place_set::PlaceSet;
 use crate::utils;
-use rustc::mir;
+use rustc_middle::{mir, ty::TyCtxt};
 use std::fmt;
+use log::{debug, trace};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PermissionKind {
@@ -178,9 +179,16 @@ impl<'tcx> fmt::Display for PermissionNode<'tcx> {
     }
 }
 
-#[derive(Debug)]
-pub struct PermissionTree<'tcx> {
+pub struct PermissionTree<'a, 'tcx> {
+    mir: &'a mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
     root: PermissionNode<'tcx>,
+}
+
+impl<'a, 'tcx> fmt::Debug for PermissionTree<'a, 'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "PermissionTree({:?})", self.root)
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -209,7 +217,7 @@ impl TargetType {
     }
 }
 
-impl<'tcx> PermissionTree<'tcx> {
+impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
     /// Create a permission tree such that:
     ///
     /// +   The `place` is of kind `WriteSubtree` or `ReadSubtree`
@@ -219,11 +227,13 @@ impl<'tcx> PermissionTree<'tcx> {
     /// +   All steps from the root until `target_place` are of kind
     ///     `ReadNode`.
     pub fn new(
+        mir: &'a mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
         place: &mir::Place<'tcx>,
         target_place: &mir::Place<'tcx>,
         target_type: TargetType,
     ) -> Self {
-        let place = utils::VecPlace::new(place);
+        let place = utils::VecPlace::new(mir, tcx, place);
         let mut place_iter = place.iter().rev();
         let node_permission_kind = target_type.to_permission_kind();
         let mut node = PermissionNode::OwnedNode {
@@ -246,7 +256,7 @@ impl<'tcx> PermissionTree<'tcx> {
                 permission_kind = PermissionKind::ReadNode;
             }
         }
-        Self { root: node }
+        Self { mir, tcx, root: node }
     }
 
     /// Add a new place by following the same rules as described in the
@@ -257,7 +267,7 @@ impl<'tcx> PermissionTree<'tcx> {
         _target_place: &mir::Place<'tcx>,
         target_type: TargetType,
     ) {
-        let place = utils::VecPlace::new(place);
+        let place = utils::VecPlace::new(self.mir, self.tcx, place);
         let mut place_iter = place.iter();
         place_iter.next(); // Drop the root.
         debug!("place {:?}", place);
@@ -338,7 +348,7 @@ impl<'tcx> PermissionTree<'tcx> {
     pub fn get_children(&self, parent_place: &mir::Place<'tcx>) -> Vec<&mir::Place<'tcx>> {
         trace!("[enter] get_children self={:?} parent_place={:?}", self, parent_place);
         let mut current_parent_node = &self.root;
-        let components = utils::VecPlace::new(parent_place);
+        let components = utils::VecPlace::new(self.mir, self.tcx, parent_place);
         let mut component_iter = components.iter();
         component_iter.next();
         for component in component_iter {
@@ -364,23 +374,25 @@ impl<'tcx> PermissionTree<'tcx> {
     }
 }
 
-impl<'tcx> fmt::Display for PermissionTree<'tcx> {
+impl<'a, 'tcx> fmt::Display for PermissionTree<'a, 'tcx> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.root)
     }
 }
 
 #[derive(Debug)]
-pub struct PermissionForest<'tcx> {
-    trees: Vec<PermissionTree<'tcx>>,
+pub struct PermissionForest<'a, 'tcx> {
+    trees: Vec<PermissionTree<'a, 'tcx>>,
 }
 
-impl<'tcx> PermissionForest<'tcx> {
+impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
     /// +   `write_paths` – paths to whose leaves we should have write permission.
     /// +   `mut_borrowed_paths` – paths that are roots of trees to
     ///     which we hsould have write permission.
     /// +   `read_paths` – paths to whose leaves we should have read permission.
     pub fn new(
+        mir: &'a mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
         write_paths: &Vec<mir::Place<'tcx>>,
         mut_borrowed_paths: &Vec<mir::Place<'tcx>>,
         read_paths: &Vec<mir::Place<'tcx>>,
@@ -430,9 +442,11 @@ impl<'tcx> PermissionForest<'tcx> {
         }
 
         /// Add places to the trees.
-        fn add_paths<'tcx>(
+        fn add_paths<'a, 'tcx>(
+            mir: &'a mir::Body<'tcx>,
+            tcx: TyCtxt<'tcx>,
             paths: &Vec<mir::Place<'tcx>>,
-            trees: &mut Vec<PermissionTree<'tcx>>,
+            trees: &mut Vec<PermissionTree<'a, 'tcx>>,
             target_type: TargetType,
             all_places: &PlaceSet<'tcx>,
         ) {
@@ -449,24 +463,26 @@ impl<'tcx> PermissionForest<'tcx> {
                 }
                 if !found {
                     for (actual_place, target_place) in places_to_add.iter() {
-                        let tree = PermissionTree::new(actual_place, target_place, target_type);
+                        let tree = PermissionTree::new(mir, tcx, actual_place, target_place, target_type);
                         trees.push(tree);
                     }
                 }
             }
         }
-        add_paths(write_paths, &mut trees, TargetType::WriteNode, all_places);
+        add_paths(mir, tcx, write_paths, &mut trees, TargetType::WriteNode, all_places);
         add_paths(
+            mir,
+            tcx,
             mut_borrowed_paths,
             &mut trees,
             TargetType::WriteContents,
             all_places,
         );
-        add_paths(read_paths, &mut trees, TargetType::Read, all_places);
+        add_paths(mir, tcx, read_paths, &mut trees, TargetType::Read, all_places);
         Self { trees: trees }
     }
 
-    pub fn get_trees(&self) -> &[PermissionTree<'tcx>] {
+    pub fn get_trees(&self) -> &[PermissionTree<'a, 'tcx>] {
         &self.trees
     }
 
@@ -480,7 +496,7 @@ impl<'tcx> PermissionForest<'tcx> {
     }
 }
 
-impl<'tcx> fmt::Display for PermissionForest<'tcx> {
+impl<'a, 'tcx> fmt::Display for PermissionForest<'a, 'tcx> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut first = true;
         for tree in self.trees.iter() {

@@ -21,7 +21,7 @@ fn log_dir() -> Option<PathBuf> {
     }
 }
 
-pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<Write>> {
+pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<dyn Write>> {
     Ok(match log_dir() {
         Some(log_dir) => {
             let mut path = log_dir.join(namespace);
@@ -53,7 +53,7 @@ pub fn report<S1: ToString, S2: ToString>(namespace: &str, name: S1, data: S2) {
     writer.flush().map_err(|e| panic!("{}", e)).ok().unwrap();
 }
 
-pub fn report_with_writer<S: ToString, F: FnOnce(&mut Box<Write>)>(
+pub fn report_with_writer<S: ToString, F: FnOnce(&mut Box<dyn Write>)>(
     namespace: &str,
     name: S,
     func: F,

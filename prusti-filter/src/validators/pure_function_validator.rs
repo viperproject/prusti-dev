@@ -16,7 +16,7 @@ use validators::Reason;
 use validators::SupportStatus;
 
 pub struct PureFunctionValidator<'a, 'tcx: 'a> {
-    tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
+    tcx: ty::TyCtxt<'tcx>,
     support: SupportStatus,
     visited_inner_type_variants: HashSet<&'tcx ty::TypeVariants<'tcx>>,
 }
@@ -40,7 +40,7 @@ impl<'a, 'tcx: 'a> CommonValidator<'a, 'tcx> for PureFunctionValidator<'a, 'tcx>
         self.support
     }
 
-    fn tcx(&self) -> ty::TyCtxt<'a, 'tcx, 'tcx> {
+    fn tcx(&self) -> ty::TyCtxt<'tcx> {
         self.tcx
     }
 
@@ -52,7 +52,7 @@ impl<'a, 'tcx: 'a> CommonValidator<'a, 'tcx> for PureFunctionValidator<'a, 'tcx>
 }
 
 impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
-    pub fn new(tcx: ty::TyCtxt<'a, 'tcx, 'tcx>) -> Self {
+    pub fn new(tcx: ty::TyCtxt<'tcx>) -> Self {
         PureFunctionValidator {
             tcx,
             support: SupportStatus::new(),
