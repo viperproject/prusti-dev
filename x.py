@@ -23,17 +23,35 @@ def error(template, *args, **kwargs):
     sys.exit(1)
 
 
+def get_var_or(name, default):
+    """If environment variable `name` set, return its value or `default`."""
+    if name in os.environ:
+        return os.environ[name]
+    else:
+        return default
+
+
 def get_linux_env():
     """Get environment variables for Linux."""
+    java_home = get_var_or('JAVA_HOME', '/usr/lib/jvm/default-java')
     variables = [
-        ('LD_LIBRARY_PATH', '/usr/lib/jvm/default-java/lib/server/'),
-        ('JAVA_HOME', '/usr/lib/jvm/default-java'),
+        ('JAVA_HOME', java_home),
         ('RUST_TEST_THREADS', '1'),
     ]
-    viper_home = os.path.abspath('viper_tools/backends')
+    if os.path.exists(java_home):
+        ld_library_path = None
+        for root, _, files in os.walk(java_home):
+            if 'libjvm.so' in files:
+                ld_library_path = root
+                break
+        if ld_library_path is None:
+            report("could not find libjvm.so in {}", java_home)
+        else:
+            variables.append(('LD_LIBRARY_PATH', ld_library_path))
+    viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/backends'))
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
-    z3_exe = os.path.abspath('viper_tools/z3/bin/z3')
+    z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
     if os.path.exists(z3_exe):
         variables.append(('Z3_EXE', z3_exe))
     return variables
@@ -86,6 +104,7 @@ def setup_ubuntu():
     shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
     shell('rm ViperToolsNightlyLinux.zip')
     # Setup rustc components.
+    shell('rustup component add rustfmt')
     shell('rustup component add rust-src')
     shell('rustup component add rustc-dev')
     shell('rustup component add llvm-tools-preview')
