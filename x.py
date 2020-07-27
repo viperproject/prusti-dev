@@ -105,7 +105,7 @@ def setup_ubuntu(rustup_only):
               'build-essential pkg-config '
               'wget gcc libssl-dev openjdk-8-jdk')
         # Download Viper.
-        shell('wget -q "http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
+        shell('wget -q http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
         shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
         shell('rm ViperToolsNightlyLinux.zip')
     # Setup rustc components.
