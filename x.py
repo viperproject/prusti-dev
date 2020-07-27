@@ -78,14 +78,18 @@ def get_env():
 
 def run_command(args):
     """Run a command with the given arguments."""
-    subprocess.run(args, env=get_env())
+    completed = subprocess.run(args, env=get_env())
+    if completed.returncode != 0:
+        sys.exit(completed.returncode)
 
 
 def shell(command):
     """Run a shell command."""
     print("Running a shell command: ", command)
     if not dry_run:
-        subprocess.run(command.split())
+        completed = subprocess.run(command.split())
+        if completed.returncode != 0:
+            sys.exit(completed.returncode)
 
 
 def cargo(args):
