@@ -16,6 +16,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use log::trace;
 use std::rc::Rc;
+use std::sync::RwLock;
 
 // Note: Now every PathCtxt has its own EventLog, because a Borrow no longer unique
 // (e.g. we duplicate the evaluation of the loop condition in the encoding of loops).
@@ -26,7 +27,7 @@ pub(super) struct EventLog {
     /// Actions performed by the fold-unfold algorithm before the join. We can use a single
     /// CfgBlockIndex because fold-unfold algorithms generates a new basic block for dropped
     /// permissions.
-    prejoin_actions: HashMap<vir::CfgBlockIndex, Rc<Vec<Action>>>,
+    prejoin_actions: HashMap<vir::CfgBlockIndex, Rc<RwLock<Vec<Action>>>>,
 
     /// A list of accessibility predicates for which we inhaled `Read`
     /// permission when creating a borrow and original places from which
@@ -70,13 +71,10 @@ impl EventLog {
         let entry_rc = self
             .prejoin_actions
             .entry(block_index)
-            .or_insert(Rc::new(Vec::new()));
-        if let Some(entry) = Rc::get_mut(entry_rc) {
-            entry.push(action);
-            trace!("[exit] log_prejoin_action {}", entry.iter().to_string());
-        } else {
-            panic!("Could not modify a shared Rc<_> entry of EventLog::prejoin_actions");
-        }
+            .or_insert(Rc::new(RwLock::new(Vec::new())));
+        let mut entry = entry_rc.write().unwrap();
+        entry.push(action);
+        trace!("[exit] log_prejoin_action {}", entry.iter().to_string());
     }
 
     pub fn collect_dropped_permissions(
@@ -89,7 +87,7 @@ impl EventLog {
         let mut dropped_permissions = Vec::new();
         for curr_block_index in relevant_path {
             if let Some(actions) = self.prejoin_actions.get(curr_block_index) {
-                for action in actions.iter() {
+                for action in actions.read().unwrap().iter() {
                     if let Action::Drop(perm, missing_perm) = action {
                         if dag.in_borrowed_places(missing_perm.get_place()) {
                             dropped_permissions.push(perm.clone());

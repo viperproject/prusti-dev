@@ -972,7 +972,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
 
         // 5. Apply effect of statement on state
         debug!("[step.5] replace_stmt: {}", stmt);
-        pctxt.apply_stmt(&stmt);
+        stmt = match stmt {
+            vir::Stmt::If(cond, then_stmts, else_stmts) => {
+                let mut then_pctxt = pctxt.clone();
+                let mut then_stmts = then_stmts.into_iter()
+                    .map(|stmt| self.replace_stmt(
+                        stmt_index, &stmt, false, &mut then_pctxt, curr_block_index, new_cfg, None
+                    ))
+                    .collect::<Result<Vec<_>, _>>()?
+                    .into_iter().flatten()
+                    .collect::<Vec<_>>();
+                let mut else_pctxt = pctxt.clone();
+                let mut else_stmts = else_stmts.into_iter()
+                    .map(|stmt| self.replace_stmt(
+                        stmt_index, &stmt, false, &mut else_pctxt, curr_block_index, new_cfg, None
+                    ))
+                    .collect::<Result<Vec<_>, _>>()?
+                    .into_iter().flatten()
+                    .collect::<Vec<_>>();
+                let (mut join_actions, mut joined_pctxt) = self.prepend_join(
+                    vec![&then_pctxt, &else_pctxt])?;
+                else_stmts.extend(self.perform_prejoin_action(
+                    &mut joined_pctxt, curr_block_index, join_actions.remove(1))?);
+                then_stmts.extend(self.perform_prejoin_action(
+                    &mut joined_pctxt, curr_block_index, join_actions.remove(0))?);
+                *pctxt = joined_pctxt;
+                vir::Stmt::If(cond, then_stmts, else_stmts)
+            },
+            _ => {
+                pctxt.apply_stmt(&stmt);
+                stmt
+            }
+        };
         stmts.push(stmt.clone());
 
         // 6. Recombine permissions into full if read was carved out during fold.
