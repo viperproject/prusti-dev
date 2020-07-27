@@ -93,16 +93,17 @@ def cargo(args):
     run_command(['cargo'] + args)
 
 
-def setup_ubuntu():
+def setup_ubuntu(rustup_only):
     """Install the dependencies on Ubuntu."""
-    # Install dependencies.
-    shell('sudo apt-get install -y '
-          'build-essential pkg-config '
-          'wget gcc libssl-dev openjdk-8-jdk')
-    # Download Viper.
-    shell('wget -q "http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
-    shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
-    shell('rm ViperToolsNightlyLinux.zip')
+    if not rustup_only:
+        # Install dependencies.
+        shell('sudo apt-get install -y '
+              'build-essential pkg-config '
+              'wget gcc libssl-dev openjdk-8-jdk')
+        # Download Viper.
+        shell('wget -q "http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
+        shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
+        shell('rm ViperToolsNightlyLinux.zip')
     # Setup rustc components.
     shell('rustup component add rustfmt')
     shell('rustup component add rust-src')
@@ -112,14 +113,17 @@ def setup_ubuntu():
 
 def setup(args):
     """Install the dependencies."""
+    rustup_only = False
     if len(args) == 1 and args[0] == '--dry-run':
         global dry_run
         dry_run = True
+    elif len(args) == 1 and args[0] == '--rustup-only':
+        rustup_only = True
     elif args:
         error("unexpected arguments: {}", args)
     if sys.platform == "linux" or sys.platform == "linux2":
         if 'Ubuntu' in platform.platform():
-            setup_ubuntu()
+            setup_ubuntu(rustup_only)
         else:
             error("unsupported Linux distribution: {}", platform.platform())
     else:
