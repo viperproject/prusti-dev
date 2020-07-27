@@ -8,7 +8,6 @@ on:
 
 env:
   RUST_BACKTRACE: 1
-  RUST_TEST_THREADS: 1
   PRUSTI_ASSERT_TIMEOUT: 60000
 
 jobs:
@@ -46,38 +45,14 @@ jobs:
     steps:
     - name: Check out the repo
       uses: actions/checkout@v2
-    - name: Setup Java JDK
-      uses: actions/setup-java@v1.3.0
-      with:
-        java-version: 1.8
-    - name: Add Java JDK to the library path
-      run: echo "::set-env name=LD_LIBRARY_PATH::"$(dirname "$(find "$JAVA_HOME" -name "libjvm.so")")""
-    - name: Setup Viper
-      working-directory: ./..
-      run: |
-        wget -q 'http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip'
-        unzip ViperToolsNightlyLinux.zip -d viper_tools
-        rm ViperToolsNightlyLinux.zip
-        echo "::set-env name=VIPER_HOME::$(pwd)/viper_tools/backends/"
-        echo "::set-env name=Z3_EXE::$(pwd)/viper_tools/z3/bin/z3"
-    - name: Install system dependencies for Prusti
-      run: sudo apt-get install -y build-essential pkg-config gcc libssl-dev
+    - name: Set up the environment
+      run: ./x.py setup
     - name: Build with cargo
-      run: |
-        rustup component add rustfmt
-        rustup component add rust-src
-        rustup component add rustc-dev
-        rustup component add llvm-tools-preview
-        cargo build --all --verbose
+      run: ./x.py build --all --verbose
     - name: Run cargo tests
-      run: cargo test --all --verbose
-      env:
-        RUST_TEST_THREADS: 1
-        PRUSTI_ASSERT_TIMEOUT: 60000
+      run: ./x.py test --all --verbose
     - name: Check formatting
-      run: |
-        rustup component add rustfmt
-        #cargo fmt -- --check
+      run: ./x.py fmt -- --check
     - name: Check prusti-contracts
       run: |
         cd prusti-contracts-test/
