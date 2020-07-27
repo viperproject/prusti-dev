@@ -1,4 +1,4 @@
-**WARNING:** We are currently upgrading Prusti to work with the latest version of the Rust compiler. As a result, many things are likely to break and be moved around. Therefore, most likely we will not be able to accept contributions until the upgrade is done.
+**WARNING:** We are currently upgrading Prusti to work with the latest version of the Rust compiler. As a result, the version of Prusti in the `master` branch has severe regressions. If you want to see the code of Prusti that matches the version used in [Prusti Assistant](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant), you find it in the `rustc-2018-06-07` branch. We advise everyone who just want to try out Prusti to use [Prusti Assistant](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant).
 
 Prusti-dev
 ==========
@@ -20,6 +20,10 @@ To see examples of programs annotated with specifications, look into the [`prust
 
 For a tutorial and more information, check out [the wiki page](https://github.com/viperproject/prusti-dev/wiki).
 
+Using Prusti
+------------
+
+The easiest way to try out Prusti is by using a VS Code extension called [Prusti Assistant](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant).
 
 Build for local development
 ---------------------------
@@ -83,13 +87,13 @@ The following instructions has been tested on Ubuntu 16.04. For other distributi
 - You can now compile Prusti
 
     ```bash
-    make build
+    ./x.py build
     ```
 
 - Make sure that the tests are passing
 
     ```bash
-    make test
+    ./x.py test
     ```
 
 - To run Prusti and verify a program (without overflow checks) there are three options:
