@@ -10,10 +10,12 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use crate::utils::has_spec_only_attr;
 
+pub mod external;
 pub mod typed;
 
 use typed::StructuralToTyped;
 use std::fmt;
+use crate::specs::external::ExternalSpecResolver;
 
 struct SpecItem {
     spec_id: typed::SpecificationId,
@@ -39,6 +41,7 @@ pub struct SpecCollector<'tcx> {
     spec_items: Vec<SpecItem>,
     current_spec_item: Option<SpecItem>,
     typed_expressions: HashMap<String, LocalDefId>,
+    resolver: ExternalSpecResolver<'tcx>,
 }
 
 impl<'tcx> SpecCollector<'tcx> {
@@ -48,6 +51,7 @@ impl<'tcx> SpecCollector<'tcx> {
             spec_items: Vec::new(),
             current_spec_item: None,
             typed_expressions: HashMap::new(),
+            resolver: ExternalSpecResolver::new(tcx),
         }
     }
     pub fn determine_typed_procedure_specs(self) -> typed::SpecificationMap<'tcx> {
@@ -65,7 +69,8 @@ impl<'tcx> SpecCollector<'tcx> {
             })
             .collect()
     }
-    fn process_item(&mut self, item: Item){
+
+    fn process_item(&mut self, item: Item) {
         if has_spec_only_attr(item.attrs) {
             assert!(
                 self.current_spec_item.is_none(),
@@ -90,6 +95,13 @@ impl<'tcx> SpecCollector<'tcx> {
             assert!(self.current_spec_item.is_none());
             self.current_spec_item = Some(spec_item);
         }
+    }
+
+    pub fn resolve_external_specs(&mut self) {
+        let hir = self.tcx.hir();
+        let krate = hir.krate();
+
+        intravisit::walk_crate(&mut self.resolver, &krate);
     }
 }
 
