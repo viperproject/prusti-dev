@@ -367,10 +367,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     .collect(),
                 self.encode_assertion(body),
             ),
-            box typed::AssertionKind::Pledge(ref _reference, ref _lhs, ref _rhs) => {
-                // Pledges are moved inside magic wands, so here we have only true.
-                true.into()
-            }
         }
     }
 

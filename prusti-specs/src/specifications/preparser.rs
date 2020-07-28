@@ -13,6 +13,7 @@ use crate::specifications::common::{ForAllVars, TriggerSet, Trigger};
 use syn::spanned::Spanned;
 
 pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
+pub type PledgeWithoutId = common::Pledge<(), syn::Expr, Arg>;
 pub type ExpressionWithoutId = common::Expression<(), syn::Expr>;
 
 /// A helper to operate the stream of tokens.
@@ -282,7 +283,11 @@ pub struct Parser {
     /// will be expected.
     expected_operator: bool,
     /// A flag to denote that the next token must be an operator.
-    expected_only_operator: bool
+    expected_only_operator: bool,
+    /// A flag to denote that the parser is currently parsing a pledge
+    /// containing a lhs. This is important so that the parser stops at the
+    /// comma in between lhs and rhs.
+    parsing_pledge_with_lhs: bool,
 }
 
 impl Parser {
@@ -294,7 +299,8 @@ impl Parser {
             expr: Vec::new(),
             previous_expression_resolved: false,
             expected_operator: false,
-            expected_only_operator: false
+            expected_only_operator: false,
+            parsing_pledge_with_lhs: false,
         }
     }
     fn from_parser_stream(input: ParserStream) -> Self {
@@ -304,7 +310,8 @@ impl Parser {
             expr: Vec::new(),
             previous_expression_resolved: false,
             expected_operator: false,
-            expected_only_operator: false
+            expected_only_operator: false,
+            parsing_pledge_with_lhs: false,
         }
     }
     fn resolve_and(&mut self) -> syn::Result<()>{
@@ -555,6 +562,9 @@ impl Parser {
                     return Err(err);
                 }
             }
+            else if self.parsing_pledge_with_lhs && self.input.peek_operator(",") {
+                break;
+            }
             else{
                 if let Err(err) = self.resolve_rust_expr() {
                     return Err(err);
@@ -571,6 +581,55 @@ impl Parser {
 
         // build a conjunction off of the assertions parsed
         self.conjuncts_to_assertion()
+    }
+    fn parse_rust_expression(&mut self, tokens: TokenStream) -> syn::Result<syn::Expr> {
+        let maybe_expr = syn::parse2(tokens.clone());
+        if let Err(err) = maybe_expr {
+            let mut stream = ParserStream::from_token_stream(tokens);
+            // raise a better error when seeing implication as part of a Rust expression
+            if stream.contains_operator("==>") {
+                self.input.span = stream.span;
+                return Err(self.error_expected_expr_without_implication());
+            }
+            return Err(err);
+        }
+        maybe_expr
+    }
+    pub fn extract_pledge(&mut self) -> syn::Result<PledgeWithoutId> {
+        self.parsing_pledge_with_lhs = true;
+        let mut pledge = self.extract_pledge_rhs_only()?;
+        self.parsing_pledge_with_lhs = false;
+        if !self.input.peek_operator(",") {
+            return Err(self.error_expected_comma());
+        }
+        self.input.check_and_consume_operator(",");
+        let rhs = self.extract_assertion()?;
+        pledge.lhs = Some(pledge.rhs.clone());
+        pledge.rhs = rhs;
+        Ok(pledge)
+    }
+    pub fn extract_pledge_rhs_only(&mut self) -> syn::Result<PledgeWithoutId> {
+        let mut reference = None;
+        if self.input.contains_operator("=>") {
+            let ref_stream = self.input.create_stream_until("=>");
+            let parsed_expr = self.parse_rust_expression(ref_stream)?;
+
+            let expr = ExpressionWithoutId {
+                spec_id: common::SpecificationId::dummy(),
+                id: (),
+                expr: parsed_expr,
+            };
+            reference = Some(expr);
+            self.input.check_and_consume_operator("=>");
+        }
+
+        let assertion = self.extract_assertion()?;
+
+        Ok(PledgeWithoutId {
+            reference,
+            lhs: None,
+            rhs: assertion
+        })
     }
     /// Convert all conjuncts into And assertion.
     fn conjuncts_to_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
@@ -594,21 +653,12 @@ impl Parser {
         token_stream.extend(expr.into_iter());
         self.expr.clear();
 
-        let maybe_expr = syn::parse2(token_stream.clone());
-        if let Err(err) = maybe_expr {
-            let mut stream = ParserStream::from_token_stream(token_stream);
-            // raise a better error when seeing implication as part of a Rust expression
-            if stream.contains_operator("==>") {
-                self.input.span = stream.span;
-                return Err(self.error_expected_expr_without_implication());
-            }
-            return Err(err);
-        }
+        let parsed_expr = self.parse_rust_expression(token_stream.clone())?;
 
         let expr = ExpressionWithoutId {
             spec_id: common::SpecificationId::dummy(),
             id: (),
-            expr: maybe_expr.unwrap(),
+            expr: parsed_expr,
         };
         self.conjuncts.push(AssertionWithoutId{
             kind: Box::new(common::AssertionKind::Expr(expr))
@@ -627,6 +677,9 @@ impl Parser {
     }
     fn error_expected_parenthesis(&self) -> syn::Error {
         syn::Error::new(self.input.span, "expected `(`")
+    }
+    fn error_expected_comma(&self) -> syn::Error {
+        syn::Error::new(self.input.span, "expected `,`")
     }
     fn error_expected_or(&self) -> syn::Error {
         syn::Error::new(self.input.span, "expected `|`")

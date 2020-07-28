@@ -43,6 +43,15 @@ impl AstRewriter {
     ) -> syn::Result<untyped::Assertion> {
         untyped::Assertion::parse(tokens, spec_id, &mut self.expr_id_generator)
     }
+    /// Parse a pledge.
+    pub fn parse_pledge(
+        &mut self,
+        lhs: bool,
+        spec_id: untyped::SpecificationId,
+        tokens: TokenStream
+    ) -> syn::Result<untyped::Pledge> {
+        untyped::Pledge::parse(lhs, tokens, spec_id, &mut self.expr_id_generator)
+    }
     /// Check whether function `item` contains a parameter called `keyword`. If
     /// yes, return its span.
     fn check_contains_keyword_in_params(&self, item: &syn::ItemFn, keyword: &str) -> Option<Span> {
@@ -110,6 +119,21 @@ impl AstRewriter {
             );
             spec_item.sig.inputs.push(fn_arg);
         }
+        Ok(syn::Item::Fn(spec_item))
+    }
+    pub fn generate_pledge(
+        &mut self,
+        spec_id: untyped::SpecificationId,
+        pledge: untyped::Pledge,
+        item: &syn::ItemFn,
+    ) -> syn::Result<syn::Item> {
+        let item_name = syn::Ident::new(
+            &format!("prusti_pledge_item_{}_{}", item.sig.ident, spec_id),
+            item.span(),
+        );
+        let spec_item: syn::ItemFn = syn::parse_quote! {
+            fn #item_name() {}
+        };
         Ok(syn::Item::Fn(spec_item))
     }
     /// Generate statements for checking the given loop invariant.

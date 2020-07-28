@@ -27,6 +27,8 @@ pub type AssertionKind = common::AssertionKind<ExpressionId, syn::Expr, Arg>;
 pub type Expression = common::Expression<ExpressionId, syn::Expr>;
 /// A trigger set that has not types associated with it.
 pub type TriggerSet = common::TriggerSet<ExpressionId, syn::Expr>;
+/// A pledge that has not types associated with it.
+pub type Pledge = common::Pledge<ExpressionId, syn::Expr, Arg>;
 
 impl Assertion {
     pub(crate) fn parse(
@@ -61,6 +63,26 @@ impl Parse for common::Assertion<(), syn::Expr, Arg> {
     }
 }
 
+impl Pledge {
+    pub(crate) fn parse(
+        lhs: bool,
+        tokens: TokenStream,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> syn::Result<Self> {
+        let mut parser = Parser::from_token_stream(tokens);
+        let mut pledge;
+        if !lhs {
+            pledge = parser.extract_pledge_rhs_only()?;
+        }
+        else {
+            pledge = parser.extract_pledge()?;
+        }
+
+        Ok(pledge.assign_id(spec_id, id_generator))
+    }
+}
+
 pub(crate) trait AssignExpressionId<Target> {
     fn assign_id(
         self,
@@ -80,6 +102,46 @@ impl AssignExpressionId<Expression> for common::Expression<(), syn::Expr> {
             id: id_generator.generate(),
             expr: self.expr,
         }
+    }
+}
+
+impl AssignExpressionId<Pledge> for common::Pledge<(), syn::Expr, Arg> {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> Pledge {
+        Pledge {
+            rhs: self.rhs.assign_id(spec_id, id_generator),
+            lhs: self.lhs.assign_id(spec_id, id_generator),
+            reference: self.reference.assign_id(spec_id, id_generator)
+        }
+    }
+}
+
+impl AssignExpressionId<Option<Assertion>> for Option<common::Assertion<(), syn::Expr, Arg>> {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> Option<Assertion> {
+        if self.is_none() {
+            return None;
+        }
+        Some(self.unwrap().assign_id(spec_id, id_generator))
+    }
+}
+
+impl AssignExpressionId<Option<Expression>> for Option<common::Expression<(), syn::Expr>> {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> Option<Expression> {
+        if self.is_none() {
+            return None;
+        }
+        Some(self.unwrap().assign_id(spec_id, id_generator))
     }
 }
 
