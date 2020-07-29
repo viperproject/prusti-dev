@@ -20,7 +20,8 @@ extern crate rustc_span;
 extern crate smallvec;
 extern crate regex;
 
-use prusti_interface::{specs, config::ConfigFlags};
+use prusti_interface::specs;
+use prusti_common::config::ConfigFlags;
 use rustc_driver::Compilation;
 use rustc_hir::intravisit;
 use rustc_interface::interface::Compiler;

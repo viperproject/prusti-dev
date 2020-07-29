@@ -54,7 +54,6 @@ extern crate rustc_index;
 extern crate lazy_static;
 
 // pub mod ast_builder;
-pub mod config;
 // pub mod constants;
 pub mod data;
 pub mod environment;

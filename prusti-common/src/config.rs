@@ -5,8 +5,25 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use config_crate::{Config, Environment, File};
+use std::env;
+use std::sync::RwLock;
 use serde::Deserialize;
-use std::{env, sync::RwLock};
+
+/// The flags provided by using `-Z` arguments on the command line. These are
+/// almost exclusively used for testing.
+#[derive(Clone, Copy, Default)]
+pub struct ConfigFlags {
+    /// Should Prusti print the AST with desugared specifications.
+    pub print_desugared_specs: bool,
+    /// Should Prusti print the type-checked specifications.
+    pub print_typeckd_specs: bool,
+    /// Should Prusti print the items collected for verification.
+    pub print_collected_verfication_items: bool,
+    /// Should Prusti skip the verification part.
+    pub skip_verify: bool,
+    /// Should Prusti hide the UUIDs of expressions and specifications.
+    pub hide_uuids: bool,
+}
 
 lazy_static! {
     // Is this RwLock<..> necessary?
@@ -20,6 +37,8 @@ lazy_static! {
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("ENCODE_UNSIGNED_NUM_CONSTRAINT", false).unwrap();
         settings.set_default("SIMPLIFY_ENCODING", true).unwrap();
+        settings.set_default("ENABLE_WHITELIST", false).unwrap();
+        settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_PATH_CTXT_IN_DEBUG_INFO", false).unwrap();
@@ -27,6 +46,7 @@ lazy_static! {
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("DUMP_VIPER_PROGRAM", false).unwrap();
         settings.set_default("FOLDUNFOLD_STATE_FILTER", "").unwrap();
+        settings.set_default("NUM_PARENTS_FOR_DUMPS", 0).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
         settings.set_default::<Vec<String>>("EXTRA_JVM_ARGS", vec![]).unwrap();
         settings.set_default::<Vec<String>>("EXTRA_VERIFIER_ARGS", vec![]).unwrap();
@@ -108,6 +128,24 @@ pub fn simplify_encoding() -> bool {
     read_setting("SIMPLIFY_ENCODING")
 }
 
+/// Whether to use the verifiation whitelist
+pub fn enable_whitelist() -> bool {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("ENABLE_WHITELIST")
+        .unwrap()
+}
+
+/// Get the whitelist of procedures that should be verified
+pub fn verification_whitelist() -> Vec<String> {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<Vec<String>>("WHITELIST")
+        .unwrap()
+}
+
 /// Should we dump debug files?
 pub fn dump_debug_info() -> bool {
     read_setting("DUMP_DEBUG_INFO")
@@ -136,6 +174,15 @@ pub fn dump_viper_program() -> bool {
 /// The Viper backend that should be used for the verification
 pub fn foldunfold_state_filter() -> String {
     read_setting("FOLDUNFOLD_STATE_FILTER")
+}
+
+/// How many parent folders should be used to disambiguate the Viper dumps (and other debug files)?
+pub fn num_parents_for_dumps() -> u64 {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<u64>("NUM_PARENTS_FOR_DUMPS")
+        .unwrap()
 }
 
 /// In which folder should we sore log/dumps?
@@ -190,10 +237,8 @@ pub fn report_support_status() -> bool {
 
 /**
 The maximum amount of instantiated viper verifiers the server will keep around for reuse.
-
 If not set, this defaults to `SERVER_MAX_CONCURRENT_VERIFICATION_OPERATIONS`.
 It also doesn't make much sense to set this to less than that, since then the server will likely have to keep creating new verifiers, reducing the performance gained from reuse.
-
 **Note:** This does _not_ limit how many verification requests the server handles concurrently, only the size of what is essentially its verifier cache.
 */
 pub fn server_max_stored_verifiers() -> Option<usize> {

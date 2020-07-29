@@ -21,7 +21,7 @@ use crate::encoder::type_encoder::{
     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use prusti_common::vir;
 use prusti_common::vir::WithIdentifier;
-use prusti_interface::config;
+use prusti_common::config;
 // use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;

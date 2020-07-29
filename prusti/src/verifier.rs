@@ -8,7 +8,7 @@ use prusti_interface::{
 };
 use prusti_viper::verifier::Verifier;
 use rustc_middle::ty::TyCtxt;
-use prusti_interface::config::ConfigFlags;
+use prusti_common::config::ConfigFlags;
 use prusti_common::report::user;
 
 

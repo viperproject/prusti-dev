@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::config;
+use prusti_common::config;
 use crate::environment::Environment;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
