@@ -27,11 +27,11 @@ pub fn load_variable_regions(path: &Path) -> io::Result<HashMap<mir::Local, fact
     }
     lazy_static! {
         static ref ARG: Regex =
-            Regex::new(r"^_(?P<local>\d+): &'(?P<rvid>\d+)rv (mut)? [a-zA-Z\d_]+\s*$").unwrap();
+            Regex::new(r"^_(?P<local>\d+): &'_#(?P<rvid>\d+)r (mut)? [a-zA-Z\d_]+\s*$").unwrap();
     }
     lazy_static! {
         static ref LOCAL: Regex =
-            Regex::new(r"^\s+let( mut)? _(?P<local>\d+): &'(?P<rvid>\d+)rv ").unwrap();
+            Regex::new(r"^\s+let( mut)? _(?P<local>\d+): &'_#(?P<rvid>\d+)r ").unwrap();
     }
     for line in io::BufReader::new(file).lines() {
         let line = line?;
