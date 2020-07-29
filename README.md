@@ -1,4 +1,4 @@
-**WARNING:** We are currently upgrading Prusti to work with the latest version of the Rust compiler. As a result, the version of Prusti in the `master` branch has severe regressions. If you want to see the code of Prusti that matches the version used in [Prusti Assistant](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant), you can find it in the `rustc-2018-06-07` branch. We advise everyone who just want to try out Prusti to use [Prusti Assistant](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant).
+**WARNING:** We are currently upgrading Prusti to work with the latest version of the Rust compiler. As a result, the version of Prusti in the `master` branch has severe regressions. If you want to see the code of Prusti that matches the version used in [Prusti Assistant](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant), you can find it in the `rustc-2018-06-07` branch. For trying out Prusti, we suggest to use [Prusti Assistant](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant).
 
 Prusti-dev
 ==========
