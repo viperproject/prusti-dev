@@ -25,7 +25,7 @@ use std::collections::HashSet;
 
 pub mod borrowck;
 mod collect_prusti_spec_visitor;
-// mod dump_borrowck_info;
+mod dump_borrowck_info;
 mod loops;
 mod loops_utils;
 pub mod mir_analyses;
@@ -181,14 +181,14 @@ impl<'tcx> Environment<'tcx> {
         crate::environment::collect_prusti_spec_visitor::contains_name(tcx.get_attrs(def_id), name)
     }
 
-    // /// Dump various information from the borrow checker.
-    // ///
-    // /// Mostly used for experiments and debugging.
-    // pub fn dump_borrowck_info(&self, procedures: &Vec<ProcedureDefId>) {
-    //     if config::dump_borrowck_info() {
-    //         dump_borrowck_info::dump_borrowck_info(self.tcx(), procedures)
-    //     }
-    // }
+    /// Dump various information from the borrow checker.
+    ///
+    /// Mostly used for experiments and debugging.
+    pub fn dump_borrowck_info(&self, procedures: &Vec<ProcedureDefId>) {
+        if prusti_common::config::dump_borrowck_info() {
+            dump_borrowck_info::dump_borrowck_info(self.tcx(), procedures)
+        }
+    }
 
     /// Get an absolute `def_path`. Note: not preserved across compilations!
     pub fn get_item_def_path(&self, def_id: DefId) -> String {

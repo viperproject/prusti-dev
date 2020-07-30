@@ -13,11 +13,11 @@ use super::mir_analyses::initialization::{
 use super::mir_analyses::liveness::{compute_liveness, LivenessAnalysisResult};
 use super::polonius_info::PoloniusInfo;
 use super::procedure::Procedure;
-use data::ProcedureDefId;
-use rustc::hir;
+use crate::data::ProcedureDefId;
+use rustc_hir as hir;
 use rustc_middle::mir;
-use rustc::ty::TyCtxt;
-use rustc_data_structures::indexed_vec::Idx;
+use rustc_middle::ty::{self, TyCtxt};
+use rustc_index::vec::Idx;
 use rustc_hash::FxHashMap;
 use std::cell;
 use std::collections::{BTreeMap, BTreeSet, HashSet, HashMap};
@@ -25,11 +25,10 @@ use std::env;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::PathBuf;
+use log::{trace, debug};
 
 pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'tcx>, procedures: &Vec<ProcedureDefId>) {
     trace!("[dump_borrowck_info] enter");
-
-    assert!(tcx.use_mir_borrowck(), "NLL is not enabled.");
 
     let printer = InfoPrinter { tcx: tcx };
     //intravisit::walk_crate(&mut printer, tcx.hir.krate());
@@ -42,11 +41,11 @@ pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'tcx>, procedures: &Vec<Procedur
     trace!("[dump_borrowck_info] exit");
 }
 
-struct InfoPrinter<'a, 'tcx: 'a> {
+struct InfoPrinter<'tcx> {
     pub tcx: TyCtxt<'tcx>,
 }
 
-impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
+impl<'tcx> InfoPrinter<'tcx> {
     fn print_info(&self, def_id: ProcedureDefId) {
         trace!("[print_info] enter {:?}", def_id);
 
@@ -61,12 +60,14 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
 
         let procedure = Procedure::new(self.tcx, def_id);
 
-        self.tcx.mir_borrowck(def_id);
+        let local_def_id = def_id.expect_local();
+        self.tcx.mir_borrowck(local_def_id);
 
         // Read Polonius facts.
-        let def_path = self.tcx.hir.def_path(def_id);
+        let def_path = self.tcx.hir().def_path(local_def_id);
 
-        let mir = self.tcx.mir_validated(def_id).borrow();
+        let (mir, _) = self.tcx.mir_validated(ty::WithOptConstParam::unknown(local_def_id));
+        let mir = mir.borrow();
 
         let loop_info = loops::ProcedureLoops::new(&mir);
 
@@ -83,6 +84,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
         // FIXME: this computes the wrong loop invariant permission
         let loop_invariant_block = HashMap::new();
 
+        super::polonius_info::graphviz(self.tcx, &def_path, &mir);
         let mir_info_printer = MirInfoPrinter {
             def_path: def_path,
             tcx: self.tcx,
@@ -100,7 +102,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
 }
 
 struct MirInfoPrinter<'a, 'tcx: 'a> {
-    pub def_path: hir::map::DefPath,
+    pub def_path: hir::definitions::DefPath,
     pub tcx: TyCtxt<'tcx>,
     pub mir: &'a mir::Body<'tcx>,
     pub graph: cell::RefCell<BufWriter<File>>,
@@ -215,8 +217,16 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 self,
                 "<tr><td>Name</td><td>Temporary</td><td>Type</td><td>Region</td></tr>"
             );
+            let mut var_names = HashMap::new();
+            for info in &self.mir.var_debug_info {
+                if let Some(local) = info.place.as_local() {
+                    var_names.insert(local, info.name);
+                } else {
+                    unimplemented!();
+                }
+            }
             for (temp, var) in self.mir.local_decls.iter_enumerated() {
-                let name = var.name.map(|s| s.to_string()).unwrap_or(String::from(""));
+                let name = var_names.get(&temp).map(|s| s.to_string()).unwrap_or(String::from(""));
                 let region = self
                     .polonius_info
                     .variable_regions
@@ -367,11 +377,12 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 region
             );
         }
-        for (region, point) in self.polonius_info.borrowck_in_facts.region_live_at.iter() {
-            if *point == start_point {
-                write_graph!(self, "{:?} -> {:?}_{:?}_{:?}", bb, bb, stmt, region);
-            }
-        }
+        // FIXME
+        // for (region, point) in self.polonius_info.borrowck_in_facts.region_live_at.iter() {
+        //     if *point == start_point {
+        //         write_graph!(self, "{:?} -> {:?}_{:?}_{:?}", bb, bb, stmt, region);
+        //     }
+        // }
         write_graph!(self, "}}");
         Ok(())
     }
@@ -480,6 +491,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 .compute_read_and_write_leaves(bb, self.mir, Some(&definitely_initalised_paths));
             // Construct the permission forest.
             let forest = PermissionForest::new(
+                self.mir,
+                self.tcx,
                 &write_leaves,
                 &mut_borrow_leaves,
                 &read_leaves,
@@ -827,17 +840,18 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 }
             }
 
-            for (region, point) in self.polonius_info.borrowck_in_facts.region_live_at.iter() {
-                if *point == start_point {
-                    // TODO: the unwrap_or is a temporary workaround
-                    // See issue prusti-internal/issues/14
-                    let variable = self
-                        .polonius_info
-                        .find_variable(*region)
-                        .unwrap_or(mir::Local::new(1000));
-                    self.print_blocked(variable, start_location)?;
-                }
-            }
+            // FIXME
+            // for (region, point) in self.polonius_info.borrowck_in_facts.region_live_at.iter() {
+            //     if *point == start_point {
+            //         // TODO: the unwrap_or is a temporary workaround
+            //         // See issue prusti-internal/issues/14
+            //         let variable = self
+            //             .polonius_info
+            //             .find_variable(*region)
+            //             .unwrap_or(mir::Local::new(1000));
+            //         self.print_blocked(variable, start_location)?;
+            //     }
+            // }
 
             self.print_subsets(start_location)?;
         }
@@ -895,29 +909,30 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .collect();
         write_graph!(self, "<td>{}</td>", to_sorted_string!(borrow_regions));
 
-        // Regions alive at this program point.
-        let regions: Vec<_> = self
-            .polonius_info
-            .borrowck_in_facts
-            .region_live_at
-            .iter()
-            .filter(|(_, point)| *point == start_point)
-            .cloned()
-            // TODO: Understand why we cannot unwrap here:
-            .map(|(region, _)| (region, self.polonius_info.find_variable(region)))
-            .collect();
-        write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
-        let regions: Vec<_> = self
-            .polonius_info
-            .borrowck_in_facts
-            .region_live_at
-            .iter()
-            .filter(|(_, point)| *point == mid_point)
-            .cloned()
-            // TODO: Understand why we cannot unwrap here:
-            .map(|(region, _)| (region, self.polonius_info.find_variable(region)))
-            .collect();
-        write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
+        // FIXME
+        // // Regions alive at this program point.
+        // let regions: Vec<_> = self
+        //     .polonius_info
+        //     .borrowck_in_facts
+        //     .region_live_at
+        //     .iter()
+        //     .filter(|(_, point)| *point == start_point)
+        //     .cloned()
+        //     // TODO: Understand why we cannot unwrap here:
+        //     .map(|(region, _)| (region, self.polonius_info.find_variable(region)))
+        //     .collect();
+        // write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
+        // let regions: Vec<_> = self
+        //     .polonius_info
+        //     .borrowck_in_facts
+        //     .region_live_at
+        //     .iter()
+        //     .filter(|(_, point)| *point == mid_point)
+        //     .cloned()
+        //     // TODO: Understand why we cannot unwrap here:
+        //     .map(|(region, _)| (region, self.polonius_info.find_variable(region)))
+        //     .collect();
+        // write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
 
         write_graph!(
             self,
@@ -949,7 +964,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         bb: mir::BasicBlock,
         terminator: &mir::Terminator,
     ) -> Result<(), io::Error> {
-        use rustc::mir::TerminatorKind;
+        use rustc_middle::mir::TerminatorKind;
         match terminator.kind {
             TerminatorKind::Goto { target } => {
                 write_edge!(self, bb, target);
@@ -1002,14 +1017,12 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
             TerminatorKind::Yield { .. } => unimplemented!(),
             TerminatorKind::GeneratorDrop => unimplemented!(),
-            TerminatorKind::FalseEdges {
+            TerminatorKind::FalseEdge {
                 ref real_target,
-                ref imaginary_targets,
+                ref imaginary_target,
             } => {
                 write_edge!(self, bb, real_target);
-                for target in imaginary_targets {
-                    write_edge!(self, bb, imaginary target);
-                }
+                write_edge!(self, bb, imaginary_target);
             }
             TerminatorKind::FalseUnwind {
                 real_target,
@@ -1020,6 +1033,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     write_edge!(self, bb, imaginary target);
                 }
             }
+            TerminatorKind::InlineAsm { .. } => unimplemented!(),
         };
         Ok(())
     }
@@ -1266,13 +1280,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             &dying_zombie_loans,
             location,
         ).ok().unwrap();
-        let forest = self.polonius_info.construct_reborrowing_forest(
-            &all_dying_loans,
-            &dying_zombie_loans,
-            location,
-        );
         if !all_dying_loans.is_empty() {
-            write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
             write_graph!(self, "<br />{}", dag.to_string());
         }
         write_graph!(self, "</td>");
@@ -1324,11 +1332,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 let (all_loans, zombie_loans) = self
                     .polonius_info
                     .get_all_loans_kept_alive_by(start_point, *region);
-                let forest = self.polonius_info.construct_reborrowing_forest(
-                    &all_loans,
-                    &zombie_loans,
-                    location,
-                );
                 let dag = self.polonius_info.construct_reborrowing_dag(
                     &all_loans,
                     &zombie_loans,
@@ -1339,7 +1342,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 write_graph!(self, "<td colspan=\"2\">Package</td>");
                 write_graph!(self, "<td colspan=\"7\">{}", to_sorted_string!(all_loans));
                 if !all_loans.is_empty() {
-                    write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
                     write_graph!(self, "<br />{}", dag.to_string());
                 }
                 write_graph!(self, "</td>");
