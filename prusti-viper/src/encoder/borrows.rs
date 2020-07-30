@@ -12,13 +12,14 @@ use prusti_interface::data::ProcedureDefId;
 // };
 use rustc_hir::{self as hir, Mutability};
 use rustc_middle::mir;
+use rustc_index::vec::Idx;
 use rustc_middle::ty::{self, Ty, TyCtxt};
 // use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::fmt;
 use crate::utils::type_visitor::{self, TypeVisitor};
 use prusti_interface::specs::typed;
-use log::trace;
+use log::{trace, debug};
 
 #[derive(Clone, Debug)]
 pub struct BorrowInfo<P>
@@ -281,34 +282,34 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
         self.current_path = None;
     }
 
-//     fn extract_bound_region(&self, region: ty::Region<'tcx>) -> Option<ty::BoundRegion> {
-//         match region {
-//             &ty::RegionKind::ReFree(free_region) => Some(free_region.bound_region),
-//             // TODO: is this correct?!
-//             &ty::RegionKind::ReLateBound(_, bound_region) => Some(bound_region),
-//             &ty::RegionKind::ReEarlyBound(early_region) => Some(early_region.to_bound_region()),
-//             &ty::RegionKind::ReStatic => None,
-//             &ty::RegionKind::ReScope(_scope) => None, //  FIXME: This is incorrect.
-//             x => unimplemented!("{:?}", x),
-//         }
-//     }
+    fn extract_bound_region(&self, region: ty::Region<'tcx>) -> Option<ty::BoundRegion> {
+        match region {
+            &ty::RegionKind::ReFree(free_region) => Some(free_region.bound_region),
+            // TODO: is this correct?!
+            &ty::RegionKind::ReLateBound(_, bound_region) => Some(bound_region),
+            &ty::RegionKind::ReEarlyBound(early_region) => Some(early_region.to_bound_region()),
+            &ty::RegionKind::ReStatic => None,
+            // &ty::RegionKind::ReScope(_scope) => None,
+            x => unimplemented!("{:?}", x),
+        }
+    }
 
-//     fn get_or_create_borrow_info(
-//         &mut self,
-//         region: Option<ty::BoundRegion>,
-//     ) -> &mut BorrowInfo<mir::Place<'tcx>> {
-//         if let Some(index) = self
-//             .borrow_infos
-//             .iter()
-//             .position(|info| info.region == region)
-//         {
-//             &mut self.borrow_infos[index]
-//         } else {
-//             let borrow_info = BorrowInfo::new(region);
-//             self.borrow_infos.push(borrow_info);
-//             self.borrow_infos.last_mut().unwrap()
-//         }
-//     }
+    fn get_or_create_borrow_info(
+        &mut self,
+        region: Option<ty::BoundRegion>,
+    ) -> &mut BorrowInfo<mir::Place<'tcx>> {
+        if let Some(index) = self
+            .borrow_infos
+            .iter()
+            .position(|info| info.region == region)
+        {
+            &mut self.borrow_infos[index]
+        } else {
+            let borrow_info = BorrowInfo::new(region);
+            self.borrow_infos.push(borrow_info);
+            self.borrow_infos.last_mut().unwrap()
+        }
+    }
 }
 
 impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
@@ -316,64 +317,66 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         self.tcx
     }
 
-//     fn visit_field(
-//         &mut self,
-//         index: usize,
-//         field: &ty::FieldDef,
-//         substs: &'tcx ty::subst::Substs<'tcx>,
-//     ) {
-//         trace!("visit_field({}, {:?})", index, field);
-//         let old_path = self.current_path.take().unwrap();
-//         let ty = field.ty(self.tcx(), substs);
-//         let field_id = mir::Field::new(index);
-//         self.current_path = Some(old_path.clone().field(field_id, ty));
-//         type_visitor::walk_field(self, field, substs);
-//         self.current_path = Some(old_path);
-//     }
+    fn visit_field(
+        &mut self,
+        index: usize,
+        field: &ty::FieldDef,
+        substs: ty::subst::SubstsRef<'tcx>,
+    ) {
+        trace!("visit_field({}, {:?})", index, field);
+        let old_path = self.current_path.take().unwrap();
+        let ty = field.ty(self.tcx(), substs);
+        let field_id = mir::Field::new(index);
+        let new_path = self.tcx.mk_place_field(old_path, field_id, ty);
+        self.current_path = Some(new_path);
+        // self.current_path = Some(old_path.clone().field(field_id, ty));
+        type_visitor::walk_field(self, field, substs);
+        self.current_path = Some(old_path);
+    }
 
-//     fn visit_ref(
-//         &mut self,
-//         region: ty::Region<'tcx>,
-//         ty: ty::Ty<'tcx>,
-//         mutability: hir::Mutability,
-//     ) {
-//         trace!(
-//             "visit_ref({:?}, {:?}, {:?}) current_path={:?}",
-//             region,
-//             ty,
-//             mutability,
-//             self.current_path
-//         );
-//         let bound_region = self.extract_bound_region(region);
-//         let is_path_blocking = self.is_path_blocking;
-//         let old_path = self.current_path.take().unwrap();
-//         let current_path = old_path.clone().deref();
-//         self.current_path = Some(current_path.clone());
-//         let borrow_info = self.get_or_create_borrow_info(bound_region);
-//         if is_path_blocking {
-//             borrow_info.blocking_paths.push((current_path, mutability));
-//         } else {
-//             borrow_info
-//                 .blocked_paths
-//                 .push((current_path.clone(), mutability));
-//             self.references_in.push((current_path, mutability));
-//         }
-//         self.is_path_blocking = true;
-//         //type_visitor::walk_ref(self, region, ty, mutability);
-//         self.is_path_blocking = is_path_blocking;
-//         self.current_path = Some(old_path);
-//     }
+    fn visit_ref(
+        &mut self,
+        region: ty::Region<'tcx>,
+        ty: ty::Ty<'tcx>,
+        mutability: hir::Mutability,
+    ) {
+        trace!(
+            "visit_ref({:?}, {:?}, {:?}) current_path={:?}",
+            region,
+            ty,
+            mutability,
+            self.current_path
+        );
+        let bound_region = self.extract_bound_region(region);
+        let is_path_blocking = self.is_path_blocking;
+        let old_path = self.current_path.take().unwrap();
+        let current_path = self.tcx.mk_place_deref(old_path);
+        self.current_path = Some(current_path.clone());
+        let borrow_info = self.get_or_create_borrow_info(bound_region);
+        if is_path_blocking {
+            borrow_info.blocking_paths.push((current_path, mutability));
+        } else {
+            borrow_info
+                .blocked_paths
+                .push((current_path.clone(), mutability));
+            self.references_in.push((current_path, mutability));
+        }
+        self.is_path_blocking = true;
+        //type_visitor::walk_ref(self, region, ty, mutability);
+        self.is_path_blocking = is_path_blocking;
+        self.current_path = Some(old_path);
+    }
 
-//     fn visit_raw_ptr(&mut self, ty: ty::Ty<'tcx>, mutability: hir::Mutability) {
-//         trace!(
-//             "visit_raw_ptr({:?}, {:?}) current_path={:?}",
-//             ty,
-//             mutability,
-//             self.current_path
-//         );
-//         // TODO
-//         debug!("BorrowInfoCollectingVisitor::visit_raw_ptr is unimplemented");
-//     }
+    fn visit_raw_ptr(&mut self, ty: ty::Ty<'tcx>, mutability: hir::Mutability) {
+        trace!(
+            "visit_raw_ptr({:?}, {:?}) current_path={:?}",
+            ty,
+            mutability,
+            self.current_path
+        );
+        // TODO
+        debug!("BorrowInfoCollectingVisitor::visit_raw_ptr is unimplemented");
+    }
 }
 
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(

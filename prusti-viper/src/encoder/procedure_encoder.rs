@@ -3882,19 +3882,42 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     // /// - `Option<usize>`: optionally, the variant of the enum.
     // fn encode_projection(
     //     &self,
-    //     place_projection: &mir::PlaceProjection<'tcx>,
+    //     index: usize,
+    //     place: mir::Place<'tcx>,
     //     root: Option<Local>,
     // ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
-    //     debug!("Encode projection {:?} {:?}", place_projection, root);
+    //     debug!("Encode projection {} {:?} {:?}", index, place, root);
     //     let encoded_place = self.encode_place_with_subst_root(&place_projection.base, root);
     //     self.mir_encoder
-    //         .encode_projection(place_projection, Some(encoded_place))
+    //         .encode_projection(index, place, Some(encoded_place))
     // }
 
     fn encode_generic_place(
         &self,
         place: &Place<'tcx>,
     ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
+        match place {
+            Place::NormalPlace(place) => {
+                self.mir_encoder.encode_place(place).unwrap()
+            }
+            Place::SubstitutedPlace {
+                substituted_root,
+                place
+            } => {
+                let (expr, ty, variant) = self.mir_encoder.encode_place(place).unwrap();
+                let new_root = self.encode_prusti_local(*substituted_root);
+                struct RootReplacer {
+                    new_root: vir::LocalVar,
+                }
+                use prusti_common::vir::ExprFolder;
+                impl ExprFolder for RootReplacer {
+                    fn fold_local(&mut self, v: vir::LocalVar, p: vir::Position) -> vir::Expr {
+                        Expr::Local(self.new_root.clone(), p)
+                    }
+                }
+                (RootReplacer { new_root }.fold(expr), ty, variant)
+            }
+        }
         // match place {
         //     &Place::NormalPlace(ref place) => self.encode_place_with_subst_root(place, None),
         //     &Place::SubstitutedPlace {
@@ -3902,38 +3925,53 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         //         ref place,
         //     } => self.encode_place_with_subst_root(place, Some(substituted_root)),
         // }
-        unimplemented!();
     }
 
-    /// Returns
-    /// - `vir::Expr`: the expression of the projection;
-    /// - `ty::Ty<'tcx>`: the type of the expression;
-    /// - `Option<usize>`: optionally, the variant of the enum.
-    fn encode_place_with_subst_root(
-        &self,
-        place: &mir::Place<'tcx>,
-        root: Option<Local>,
-    ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
-        // match place {
-        //     &mir::Place::Local(local) => match root {
-        //         Some(root) => (
-        //             self.encode_prusti_local(root).into(),
-        //             self.locals.get_type(root),
-        //             None,
-        //         ),
-        //         None => (
-        //             self.mir_encoder.encode_local(local).unwrap().into(), // will panic if attempting to encode unsupported type
-        //             self.mir_encoder.get_local_ty(local),
-        //             None,
-        //         ),
-        //     },
-        //     &mir::Place::Projection(ref place_projection) => {
-        //         self.encode_projection(place_projection, root)
-        //     }
-        //     x => unimplemented!("{:?}", x),
-        // }
-        unimplemented!();
-    }
+    // /// Returns
+    // /// - `vir::Expr`: the expression of the projection;
+    // /// - `ty::Ty<'tcx>`: the type of the expression;
+    // /// - `Option<usize>`: optionally, the variant of the enum.
+    // fn encode_place_with_subst_root(
+    //     &self,
+    //     place: &mir::Place<'tcx>,
+    //     root: Option<Local>,
+    // ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
+    //     if place.projection.is_empty() {
+    //         let local = place.local;
+    //         match root {
+    //             Some(root) => (
+    //                 self.encode_prusti_local(root).into(),
+    //                 self.locals.get_type(root),
+    //                 None,
+    //             ),
+    //             None => (
+    //                 self.mir_encoder.encode_local(local).unwrap().into(), // will panic if attempting to encode unsupported type
+    //                 self.mir_encoder.get_local_ty(local),
+    //                 None,
+    //             )
+    //         }
+    //     } else {
+    //         self.encode_projection(place_projection, root)
+    //     }
+    //     // match place {
+    //     //     &mir::Place::Local(local) => match root {
+    //     //         Some(root) => (
+    //     //             self.encode_prusti_local(root).into(),
+    //     //             self.locals.get_type(root),
+    //     //             None,
+    //     //         ),
+    //     //         None => (
+    //     //             self.mir_encoder.encode_local(local).unwrap().into(), // will panic if attempting to encode unsupported type
+    //     //             self.mir_encoder.get_local_ty(local),
+    //     //             None,
+    //     //         ),
+    //     //     },
+    //     //     &mir::Place::Projection(ref place_projection) => {
+    //     //         self.encode_projection(place_projection, root)
+    //     //     }
+    //     //     x => unimplemented!("{:?}", x),
+    //     // }
+    // }
 
     /// Return type:
     /// - `Vec<vir::Stmt>`: the statements that encode the assignment of `operand` to `lhs`

@@ -1132,7 +1132,9 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     pub fn get_loan_location(&self, loan: &facts::Loan) -> mir::Location {
-        self.loan_position[loan].clone()
+        self.loan_position.get(loan).unwrap_or_else(
+            || {panic!("not found: {:?}", loan)}
+        ).clone()
     }
 
     pub fn get_loan_at_location(&self, location: mir::Location) -> facts::Loan {
@@ -1309,7 +1311,12 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             location
         );
 
-        let mut loans: Vec<_> = loans.iter().cloned().collect();
+        let mut loans: Vec<_> = loans.iter().filter(|loan| {
+            // FIXME: This is most likely wrong. Filtering out placeholder loans.
+            self.borrowck_in_facts.placeholder.iter().all(
+                |(_origin, placeholder_loan)| placeholder_loan != *loan
+            )
+        }).cloned().collect();
 
         // The representative_loan is a loan that is the root of the
         // reborrowing in some loop. Since it has no proper

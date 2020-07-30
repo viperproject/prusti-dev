@@ -36,4 +36,12 @@ fn borrows_fail(_x: &mut u32) {
     assert!(a.f == 6);
 }
 
+fn reborrow<'a>(x: &'a mut T) -> &'a mut u32 {
+    &mut x.f
+}
+
+fn reborrow2(x: &mut T) -> &mut u32 {
+    &mut x.f
+}
+
 fn main() {}

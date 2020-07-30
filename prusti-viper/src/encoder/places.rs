@@ -129,12 +129,12 @@ impl<'tcx> Place<'tcx> {
         //         _ => unimplemented!(),
         //     }
         // }
-        // match self {
-        //     Place::NormalPlace(ref place) => check_if_root(place, local),
-        //     Place::SubstitutedPlace {
-        //         substituted_root, ..
-        //     } => *substituted_root == local,
-        // }
-        unimplemented!();
+        match self {
+            // Place::NormalPlace(ref place) => check_if_root(place, local),
+            Place::NormalPlace(ref place) => place.local.index() == local.index(),
+            Place::SubstitutedPlace {
+                substituted_root, ..
+            } => *substituted_root == local,
+        }
     }
 }
