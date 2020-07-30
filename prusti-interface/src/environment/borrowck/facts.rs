@@ -116,6 +116,24 @@ pub enum PointType {
     Mid,
 }
 
+impl std::cmp::PartialOrd for PointType {
+    fn partial_cmp(&self, other: &PointType) -> Option<std::cmp::Ordering> {
+        let res = match (self, other) {
+            (PointType::Start, PointType::Start) => std::cmp::Ordering::Equal,
+            (PointType::Start, PointType::Mid) => std::cmp::Ordering::Less,
+            (PointType::Mid, PointType::Start) => std::cmp::Ordering::Greater,
+            (PointType::Mid, PointType::Mid) => std::cmp::Ordering::Equal,
+        };
+        Some(res)
+    }
+}
+
+impl std::cmp::Ord for PointType {
+    fn cmp(&self, other: &PointType) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
 #[derive(Debug)]
 pub struct UnknownPointTypeError(String);
 
@@ -132,10 +150,22 @@ impl FromStr for PointType {
 }
 
 /// A program point used in the borrow checker analysis.
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, PartialOrd, Ord)]
 pub struct Point {
     pub location: mir::Location,
     pub typ: PointType,
+}
+
+impl std::fmt::Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{:?}:{:?}:{:?}",
+            self.location.block,
+            self.location.statement_index,
+            self.typ
+        )
+    }
 }
 
 impl FromStr for Point {
