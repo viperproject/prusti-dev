@@ -1158,42 +1158,42 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Encode the lhs and the rhs of the assignment that create the loan
     fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Expr, vir::Expr, bool) {
-        // debug!("encode_loan_rvalue '{:?}'", loan_places);
-        // // will panic if attempting to encode unsupported type
-        // let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&loan_places.dest).unwrap();
-        // let encode = |rhs_place| {
-        //     let (restored, _, _) = self.mir_encoder.encode_place(rhs_place).unwrap();
-        //     let ref_field = self.encoder.encode_value_field(expiring_ty);
-        //     let expiring = expiring_base.clone().field(ref_field.clone());
-        //     (expiring, restored, ref_field)
-        // };
-        // match loan_places.source {
-        //     mir::Rvalue::Ref(_, mir_borrow_kind, ref rhs_place) => {
-        //         let (expiring, restored, _) = encode(rhs_place);
-        //         assert_eq!(expiring.get_type(), restored.get_type());
-        //         let is_mut = match mir_borrow_kind {
-        //             mir::BorrowKind::Shared => false,
-        //             mir::BorrowKind::Unique => unimplemented!(),
-        //             mir::BorrowKind::Mut { .. } => true,
-        //         };
-        //         (expiring, restored, is_mut)
-        //     }
-        //     mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
-        //         let (expiring, restored_base, ref_field) = encode(rhs_place);
-        //         let restored = restored_base.clone().field(ref_field);
-        //         assert_eq!(expiring.get_type(), restored.get_type());
-        //         (expiring, restored, true)
-        //     }
-        //     mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) => {
-        //         let (expiring, restored_base, ref_field) = encode(rhs_place);
-        //         let restored = restored_base.clone().field(ref_field);
-        //         assert_eq!(expiring.get_type(), restored.get_type());
-        //         (expiring, restored, false)
-        //     }
+        debug!("encode_loan_rvalue '{:?}'", loan_places);
+        // will panic if attempting to encode unsupported type
+        let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&loan_places.dest).unwrap();
+        let encode = |rhs_place| {
+            let (restored, _, _) = self.mir_encoder.encode_place(rhs_place).unwrap();
+            let ref_field = self.encoder.encode_value_field(expiring_ty);
+            let expiring = expiring_base.clone().field(ref_field.clone());
+            (expiring, restored, ref_field)
+        };
+        match loan_places.source {
+            mir::Rvalue::Ref(_, mir_borrow_kind, ref rhs_place) => {
+                let (expiring, restored, _) = encode(rhs_place);
+                assert_eq!(expiring.get_type(), restored.get_type());
+                let is_mut = match mir_borrow_kind {
+                    mir::BorrowKind::Shared => false,
+                    mir::BorrowKind::Shallow => unimplemented!(),
+                    mir::BorrowKind::Unique => unimplemented!(),
+                    mir::BorrowKind::Mut { .. } => true,
+                };
+                (expiring, restored, is_mut)
+            }
+            mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
+                let (expiring, restored_base, ref_field) = encode(rhs_place);
+                let restored = restored_base.clone().field(ref_field);
+                assert_eq!(expiring.get_type(), restored.get_type());
+                (expiring, restored, true)
+            }
+            mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) => {
+                let (expiring, restored_base, ref_field) = encode(rhs_place);
+                let restored = restored_base.clone().field(ref_field);
+                assert_eq!(expiring.get_type(), restored.get_type());
+                (expiring, restored, false)
+            }
 
-        //     ref x => unreachable!("Borrow restores rvalue {:?}", x),
-        // }
-        unimplemented!();
+            ref x => unreachable!("Borrow restores rvalue {:?}", x),
+        }
     }
 
     fn encode_transfer_permissions(

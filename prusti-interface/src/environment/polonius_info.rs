@@ -597,7 +597,13 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
     loan_position: &HashMap<facts::Loan, mir::Location>,
     loan: facts::Loan,
 ) -> Vec<&'a mir::Place<'tcx>> {
-    let location = loan_position.get(&loan).unwrap_or_else(|| panic!("not found: {:?}", loan));
+    let location = if let Some(location) = loan_position.get(&loan) {
+        location
+    } else {
+        // FIXME (Vytautas): This is likely to be wrong.
+        debug!("Not found: {:?}", loan);
+        return Vec::new();
+    };
     let mir::BasicBlockData { ref statements, .. } = mir[location.block];
     if statements.len() == location.statement_index {
         Vec::new()
@@ -1191,17 +1197,17 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         roots
     }
 
-//     /// Find a variable that has the given region in its type.
-//     pub fn find_variable(&self, region: facts::Region) -> Option<mir::Local> {
-//         let mut local = None;
-//         for (key, value) in self.variable_regions.iter() {
-//             if *value == region {
-//                 assert!(local.is_none());
-//                 local = Some(*key);
-//             }
-//         }
-//         local
-//     }
+    /// Find a variable that has the given region in its type.
+    pub fn find_variable(&self, region: facts::Region) -> Option<mir::Local> {
+        let mut local = None;
+        for (key, value) in self.variable_regions.iter() {
+            if *value == region {
+                assert!(local.is_none());
+                local = Some(*key);
+            }
+        }
+        local
+    }
 
 //     /// Find variable that was moved into the function.
 //     pub fn get_moved_variable(&self, kind: &ReborrowingKind) -> mir::Local {
@@ -1236,19 +1242,19 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         )
     }
 
-//     pub fn construct_reborrowing_dag_loop_body(
-//         &self,
-//         loans: &[facts::Loan],
-//         zombie_loans: &[facts::Loan],
-//         location: mir::Location,
-//     ) -> Result<ReborrowingDAG, PoloniusInfoError> {
-//         self.construct_reborrowing_dag_custom_reborrows(
-//             loans,
-//             zombie_loans,
-//             location,
-//             &self.additional_facts_no_back.reborrows_direct,
-//         )
-//     }
+    pub fn construct_reborrowing_dag_loop_body(
+        &self,
+        loans: &[facts::Loan],
+        zombie_loans: &[facts::Loan],
+        location: mir::Location,
+    ) -> Result<ReborrowingDAG, PoloniusInfoError> {
+        self.construct_reborrowing_dag_custom_reborrows(
+            loans,
+            zombie_loans,
+            location,
+            &self.additional_facts_no_back.reborrows_direct,
+        )
+    }
 
     /// Get loops in which loans are defined (if any).
     pub fn get_loan_loops(
@@ -1258,7 +1264,13 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let pairs: Vec<_> = loans
             .iter()
             .flat_map(|loan| {
-                let loan_location = self.loan_position[loan];
+                let loan_location = if let Some(location) = self.loan_position.get(loan) {
+                    location
+                } else {
+                    // FIXME (Vytautas): This is likely to be wrong.
+                    debug!("ERROR: not found for loan: {:?}", loan);
+                    return None;
+                };
                 self.loops
                     .get_loop_head(loan_location.block)
                     .map(|loop_head| (*loan, loop_head))

@@ -1,0 +1,55 @@
+// compile-flags: -Zprint-desugared-specs -Zprint-typeckd-specs -Zhide-uuids
+// normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
+// normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
+
+#![feature(register_tool)]
+#![register_tool(prusti)]
+#[prelude_import]
+use std::prelude::v1::*;
+#[macro_use]
+extern crate std;
+
+use prusti_contracts::*;
+
+struct T {
+    f: u32,
+    g: u32,
+}
+
+fn borrows(_x: &mut u32) {
+    let mut a = T{f: 1, g: 2,};
+    if !(a.f == 1) {
+
+
+        { ::std::rt::begin_panic("assertion failed: a.f == 1") }
+    };
+    if !(a.g == 2) {
+        { ::std::rt::begin_panic("assertion failed: a.g == 2") }
+    };
+    let x = &mut a;
+    let y = &mut x.f;
+    let z = &x.g;
+    *y = 5;
+    if !(*z == 2) { { ::std::rt::begin_panic("assertion failed: *z == 2") } };
+    if !(a.f == 5) {
+        { ::std::rt::begin_panic("assertion failed: a.f == 5") }
+    };
+}
+fn borrows_fail(_x: &mut u32) {
+    let mut a = T{f: 1, g: 2,};
+    if !(a.f == 1) {
+        { ::std::rt::begin_panic("assertion failed: a.f == 1") }
+    };
+    if !(a.g == 2) {
+        { ::std::rt::begin_panic("assertion failed: a.g == 2") }
+    };
+    let x = &mut a;
+    let y = &mut x.f;
+    let z = &x.g;
+    *y = 5;
+    if !(*z == 2) { { ::std::rt::begin_panic("assertion failed: *z == 2") } };
+    if !(a.f == 6) {
+        { ::std::rt::begin_panic("assertion failed: a.f == 6") }
+    };
+}
+fn main() { }
