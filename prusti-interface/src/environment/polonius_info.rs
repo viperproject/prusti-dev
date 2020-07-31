@@ -494,6 +494,13 @@ fn add_fake_facts<'a, 'tcx: 'a>(
     // Find the last loan index.
     let mut last_loan_id = 0;
     for (_, loan, _) in all_facts.borrow_region.iter() {
+        let loan: facts::Loan = *loan;
+        if loan.index() > last_loan_id {
+            last_loan_id = loan.index();
+        }
+    }
+    for (_, loan) in all_facts.placeholder.iter() {
+        let loan: facts::Loan = *loan;
         if loan.index() > last_loan_id {
             last_loan_id = loan.index();
         }

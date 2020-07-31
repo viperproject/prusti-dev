@@ -44,4 +44,11 @@ fn reborrow2(x: &mut T) -> &mut u32 {
     &mut x.f
 }
 
+fn reborrow_caller(a: T) {
+    let mut a = a;
+    let x = &mut a;
+    let y = reborrow(x);
+    *y = 5;
+}
+
 fn main() {}

@@ -73,6 +73,8 @@ where
     L: fmt::Debug,
     P: fmt::Debug,
 {
+    /// Definition ID of the procedure to which the contract is attached.
+    pub def_id: rustc_hir::def_id::DefId,
     /// Formal arguments for which we should have permissions in the
     /// precondition. This includes both borrows and moved in values.
     /// For example, if `_2` is in the vector, this means that we have
@@ -191,6 +193,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             })
             .collect();
         ProcedureContract {
+            def_id: self.def_id,
             args: self.args.iter().map(|&a| a.into()).collect(),
             returned_refs: self
                 .returned_refs
@@ -234,6 +237,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             .collect();
         let returned_refs = self.returned_refs.iter().map(&substitute).collect();
         let result = ProcedureContract {
+            def_id: self.def_id,
             args: args.clone(),
             returned_refs: returned_refs,
             returned_value: target,
@@ -434,6 +438,7 @@ where
         .filter(|(place, _)| is_not_blocked(place))
         .collect();
     let contract = ProcedureContractGeneric {
+        def_id: proc_def_id,
         args: fake_mir_args,
         returned_refs,
         returned_value: mir::RETURN_PLACE,

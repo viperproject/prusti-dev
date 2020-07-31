@@ -1455,7 +1455,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Obtain the LHS permission.
         for (path, _) in &borrow_info.blocking_paths {
-            let (encoded_place, _, _) = self.encode_generic_place(path);
+            let (encoded_place, _, _) = self.encode_generic_place(
+                contract.def_id, path
+            );
             let encoded_place = replace_fake_exprs(encoded_place);
 
             // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
@@ -2805,7 +2807,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Mutability::Not => vir::PermAmount::Read,
                     Mutability::Mut => vir::PermAmount::Write,
                 };
-                let (place_expr, place_ty, _) = self.encode_generic_place(place);
+                let (place_expr, place_ty, _) = self.encode_generic_place(
+                    contract.def_id, place);
                 let vir_access =
                     vir::Expr::pred_permission(place_expr.clone().old(label), perm_amount).unwrap();
                 let inv = self
@@ -2953,7 +2956,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 "Put permission {:?} ({:?}) in postcondition",
                 place, mutability
             );
-            let (place_expr, place_ty, _) = self.encode_generic_place(place);
+            let (place_expr, place_ty, _) = self.encode_generic_place(
+                contract.def_id, place);
             let old_place_expr = place_expr.clone().old(pre_label);
             let mut add_type_spec = |perm_amount| {
                 let permissions =
@@ -3238,7 +3242,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 "We can have at most one magic wand in the postcondition."
             );
             for (path, _) in borrow_infos[0].blocking_paths.clone().iter() {
-                let (encoded_place, _, _) = self.encode_generic_place(path);
+                let (encoded_place, _, _) = self.encode_generic_place(
+                    self.procedure_contract().def_id, path);
                 let old_place = encoded_place.clone().old(post_label.clone());
                 stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
             }
@@ -3892,19 +3897,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     //         .encode_projection(index, place, Some(encoded_place))
     // }
 
+    /// `containing_def_id` – MIR body in which the place is defined.
     fn encode_generic_place(
         &self,
+        containing_def_id: rustc_hir::def_id::DefId,
         place: &Place<'tcx>,
     ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
+        let (mir, _) = self.encoder.env().tcx().mir_validated(
+            ty::WithOptConstParam::unknown(containing_def_id.expect_local())
+        );
+        let mir = mir.borrow();
+        let mir_encoder = MirEncoder::new(self.encoder, &*mir, containing_def_id);
         match place {
             Place::NormalPlace(place) => {
-                self.mir_encoder.encode_place(place).unwrap()
+                mir_encoder.encode_place(place).unwrap()
             }
             Place::SubstitutedPlace {
                 substituted_root,
                 place
             } => {
-                let (expr, ty, variant) = self.mir_encoder.encode_place(place).unwrap();
+                let (expr, ty, variant) = mir_encoder.encode_place(place).unwrap();
                 let new_root = self.encode_prusti_local(*substituted_root);
                 struct RootReplacer {
                     new_root: vir::LocalVar,
