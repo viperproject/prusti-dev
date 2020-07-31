@@ -245,8 +245,8 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
     } else {
         let mut rewriter = rewriter::AstRewriter::new();
 
-        let mut preconds: Vec<(untyped::SpecificationId,untyped::Assertion)> = Vec::new();
-        let mut postconds: Vec<(untyped::SpecificationId,untyped::Assertion)> = Vec::new();
+        let mut preconds: Vec<(untyped::SpecificationId, untyped::Assertion)> = Vec::new();
+        let mut postconds: Vec<(untyped::SpecificationId, untyped::Assertion)> = Vec::new();
 
         let mut cl_annotations = TokenStream::new();
 
@@ -271,8 +271,10 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         }
 
         let (spec_toks_pre, spec_toks_post) = rewriter.generate_cl_spec(preconds, postconds);
-        let syn::ExprClosure { attrs, asyncness, movability, capture, or1_token,
-                               inputs, or2_token, output, body } = cl_spec.cl;
+        let syn::ExprClosure {
+            attrs, asyncness, movability, capture, or1_token,
+            inputs, or2_token, output, body
+        } = cl_spec.cl;
 
         let mut attrs_ts = TokenStream::new();
         for a in attrs {
@@ -298,5 +300,21 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
                 _prusti_closure
             }
         }
+    }
+}
+
+pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
+    let mut item: syn::ItemImpl = handle_result!(syn::parse2(tokens));
+    let new_struct = handle_result!(rewriter::generate_new_struct(&mut item));
+    let struct_ident = &new_struct.ident;
+    let struct_ty: syn::Type = syn::parse_quote! {
+        #struct_ident
+    };
+
+    let rewritten_item =
+        handle_result!(rewriter::rewrite_extern_item_fn(&mut item, Box::from(struct_ty)));
+    quote! {
+        #new_struct
+        #rewritten_item
     }
 }

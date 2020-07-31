@@ -3,6 +3,7 @@ use crate::specifications::untyped::{self, EncodeTypeCheck};
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, format_ident};
 use syn::spanned::Spanned;
+use std::any::Any;
 
 pub(crate) struct AstRewriter {
     expr_id_generator: ExpressionIdGenerator,
@@ -183,4 +184,65 @@ impl AstRewriter {
 
         (pre_ts, post_ts)
     }
+}
+
+pub fn rewrite_extern_item_fn(
+    impl_item: &mut syn::ItemImpl,
+    new_ty: Box<syn::Type>,
+) -> syn::Result<TokenStream> {
+    let item_type: &syn::Type = &*impl_item.self_ty;
+
+    for item in impl_item.items.iter_mut() {
+        match item {
+            syn::ImplItem::Method(method) => {
+                method.attrs.push(
+                    syn::parse_quote! {
+                            #[prusti::extern_spec(#item_type)]
+                    });
+                method.block = syn::parse_quote! {
+                    { unimplemented!() }
+                }
+            }
+            _ => {
+                return Err(syn::Error::new(
+                    item.span(),
+                    "expected a method".to_string(),
+                ));
+            }
+        }
+    }
+
+    impl_item.self_ty = new_ty;
+
+    Ok(quote! {
+        #impl_item
+    })
+}
+
+
+pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct> {
+    let mut path_str: String = String::new();
+    match &*item.self_ty {
+        syn::Type::Path (ty_path) => {
+            for seg in ty_path.path.segments.iter() {
+                path_str.push_str(&seg.ident.to_string());
+            }
+        }
+        _ => {
+            return Err(syn::Error::new(
+                item.span(),
+                "expected a path".to_string(),
+            ));
+        }
+    };
+
+    let struct_ident = syn::Ident::new(
+        &format!("PrustiStruct{}", path_str),
+        item.span(),
+    );
+
+    Ok(syn::parse_quote! {
+        #[prusti::extern_spec]
+        struct #struct_ident {}
+    })
 }
