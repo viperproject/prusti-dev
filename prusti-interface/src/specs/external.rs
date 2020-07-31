@@ -4,28 +4,30 @@ use rustc_middle::ty::TyCtxt;
 
 use std::collections::HashSet;
 
-pub struct ExternalSpecResolver<'tcx> {
+pub struct ExternSpecResolver<'tcx> {
     tcx: TyCtxt<'tcx>,
     krates: HashSet<rustc_hir::def_id::CrateNum>,
 }
 
-impl<'tcx> ExternalSpecResolver<'tcx> {
+impl<'tcx> ExternSpecResolver<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>) -> Self {
-        let mut krates = HashSet::new();
-        for k_num in tcx.all_crate_nums(rustc_hir::def_id::LOCAL_CRATE) {
-            println!("Crate name: {:?}", tcx.original_crate_name(*k_num));
-            if true { // TODO: If external spec for crate exists
-                krates.insert(*k_num);
-            }
-        }
         Self {
             tcx: tcx,
-            krates: krates.clone(),
+            krates: HashSet::new(),
+        }
+    }
+
+    pub fn collect_extern_crates(&mut self) {
+        for k_num in self.tcx.all_crate_nums(rustc_hir::def_id::LOCAL_CRATE) {
+            println!("Crate name: {:?}", self.tcx.original_crate_name(*k_num));
+            if true { // TODO: If external spec for crate exists
+                self.krates.insert(*k_num);
+            }
         }
     }
 }
 
-impl<'tcx> intravisit::Visitor<'tcx> for ExternalSpecResolver<'tcx> {
+impl<'tcx> intravisit::Visitor<'tcx> for ExternSpecResolver<'tcx> {
     type Map = Map<'tcx>;
     fn nested_visit_map<'this>(&'this mut self) -> intravisit::NestedVisitorMap<Self::Map> {
         let map = self.tcx.hir();

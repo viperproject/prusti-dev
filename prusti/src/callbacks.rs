@@ -50,7 +50,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             let krate = hir.krate();
             let mut visitor = specs::SpecCollector::new(tcx);
             intravisit::walk_crate(&mut visitor, &krate);
-            visitor.resolve_external_specs();
+            visitor.resolve_extern_specs();
             let type_map = visitor.determine_typed_procedure_specs();
             if self.flags.print_typeckd_specs {
                 let uuid = Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}").unwrap();

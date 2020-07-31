@@ -15,7 +15,7 @@ pub mod typed;
 
 use typed::StructuralToTyped;
 use std::fmt;
-use crate::specs::external::ExternalSpecResolver;
+use crate::specs::external::ExternSpecResolver;
 
 struct SpecItem {
     spec_id: typed::SpecificationId,
@@ -41,7 +41,7 @@ pub struct SpecCollector<'tcx> {
     spec_items: Vec<SpecItem>,
     current_spec_item: Option<SpecItem>,
     typed_expressions: HashMap<String, LocalDefId>,
-    resolver: ExternalSpecResolver<'tcx>,
+    resolver: ExternSpecResolver<'tcx>,
 }
 
 impl<'tcx> SpecCollector<'tcx> {
@@ -51,7 +51,7 @@ impl<'tcx> SpecCollector<'tcx> {
             spec_items: Vec::new(),
             current_spec_item: None,
             typed_expressions: HashMap::new(),
-            resolver: ExternalSpecResolver::new(tcx),
+            resolver: ExternSpecResolver::new(tcx),
         }
     }
     pub fn determine_typed_procedure_specs(self) -> typed::SpecificationMap<'tcx> {
@@ -97,10 +97,10 @@ impl<'tcx> SpecCollector<'tcx> {
         }
     }
 
-    pub fn resolve_external_specs(&mut self) {
+    pub fn resolve_extern_specs(&mut self) {
         let hir = self.tcx.hir();
         let krate = hir.krate();
-
+        self.resolver.collect_extern_crates();
         intravisit::walk_crate(&mut self.resolver, &krate);
     }
 }
