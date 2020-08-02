@@ -46,11 +46,11 @@ impl AstRewriter {
     /// Parse a pledge.
     pub fn parse_pledge(
         &mut self,
-        lhs: bool,
-        spec_id: untyped::SpecificationId,
+        spec_id_lhs: Option<untyped::SpecificationId>,
+        spec_id_rhs: untyped::SpecificationId,
         tokens: TokenStream
     ) -> syn::Result<untyped::Pledge> {
-        untyped::Pledge::parse(lhs, tokens, spec_id, &mut self.expr_id_generator)
+        untyped::Pledge::parse(tokens, spec_id_lhs, spec_id_rhs, &mut self.expr_id_generator)
     }
     /// Check whether function `item` contains a parameter called `keyword`. If
     /// yes, return its span.
@@ -70,7 +70,22 @@ impl AstRewriter {
         }
         None
     }
-    /// Generate a dummy function for checking the given precondition.
+    fn generate_result_arg(&self, item: &syn::ItemFn) -> syn::FnArg {
+        let output_ty = match &item.sig.output {
+            syn::ReturnType::Default => syn::parse_quote!{ () },
+            syn::ReturnType::Type(_, ty) => ty.clone(),
+        };
+        let fn_arg = syn::FnArg::Typed(
+            syn::PatType {
+                attrs: Vec::new(),
+                pat: box syn::parse_quote! { result },
+                colon_token: syn::Token![:](item.sig.output.span()),
+                ty: output_ty,
+            }
+        );
+        fn_arg
+    }
+    /// Generate a dummy function for checking the given precondition or postcondition.
     ///
     /// `spec_type` should be either `"pre"` or `"post"`.
     pub fn generate_spec_item_fn(
@@ -105,35 +120,9 @@ impl AstRewriter {
         spec_item.sig.generics = item.sig.generics.clone();
         spec_item.sig.inputs = item.sig.inputs.clone();
         if spec_type == SpecItemType::Postcondition {
-            let output_ty = match &item.sig.output {
-                syn::ReturnType::Default => syn::parse_quote!{ () },
-                syn::ReturnType::Type(_, ty) => ty.clone(),
-            };
-            let fn_arg = syn::FnArg::Typed(
-                syn::PatType {
-                    attrs: Vec::new(),
-                    pat: box syn::parse_quote! { result },
-                    colon_token: syn::Token![:](item.sig.output.span()),
-                    ty: output_ty,
-                }
-            );
+            let fn_arg = self.generate_result_arg(item);
             spec_item.sig.inputs.push(fn_arg);
         }
-        Ok(syn::Item::Fn(spec_item))
-    }
-    pub fn generate_pledge(
-        &mut self,
-        spec_id: untyped::SpecificationId,
-        pledge: untyped::Pledge,
-        item: &syn::ItemFn,
-    ) -> syn::Result<syn::Item> {
-        let item_name = syn::Ident::new(
-            &format!("prusti_pledge_item_{}_{}", item.sig.ident, spec_id),
-            item.span(),
-        );
-        let spec_item: syn::ItemFn = syn::parse_quote! {
-            fn #item_name() {}
-        };
         Ok(syn::Item::Fn(spec_item))
     }
     /// Generate statements for checking the given loop invariant.
