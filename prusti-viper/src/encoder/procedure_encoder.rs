@@ -255,11 +255,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let procedure_trait_contract = self
                         .encoder
                         .get_procedure_contract_for_def(assoc_item.def_id);
-                    let (mut proc_pre_specs, mut proc_post_specs) = {
-                        if let typed::SpecificationSet::Procedure(spec) =
+                    let (mut proc_pre_specs, mut proc_post_specs, mut proc_pledge_specs) = {
+                        if let typed::SpecificationSet::Procedure(typed::ProcedureSpecification{pres, posts, pledges}) =
                             &mut self.mut_contract().specification
                         {
-                            (spec.pres.clone(), spec.posts.clone())
+                            (pres.clone(), posts.clone(), pledges.clone())
                         } else {
                             unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
                         }
@@ -288,10 +288,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         });
                     }
 
-                    if proc_post_specs.is_empty() {
+                    if proc_post_specs.is_empty() && proc_pledge_specs.is_empty() {
                         proc_post_specs
-                            .extend_from_slice(procedure_trait_contract.functional_postcondition())
+                            .extend_from_slice(procedure_trait_contract.functional_postcondition());
+                        proc_pledge_specs
+                            .extend_from_slice(procedure_trait_contract.pledges());
                     } else {
+                        if !proc_pledge_specs.is_empty() {
+                            unimplemented!("Refining specifications with pledges is not supported");
+                        }
                         let proc_post = typed::Assertion {
                             kind: Box::new(typed::AssertionKind::And(
                                 proc_post_specs.clone()
@@ -2826,7 +2831,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .iter()
                 .map(|(place, mutability)| encode_place_perm(place, *mutability, pre_label))
                 .collect();
-            if let Some((reference, body_lhs, body_rhs)) = pledges.pop() {
+            if let Some(typed::Pledge { reference, lhs: body_lhs, rhs: body_rhs}) = pledges.first() {
                 debug!(
                     "pledge reference={:?} lhs={:?} rhs={:?}",
                     reference, body_lhs, body_rhs
@@ -2835,16 +2840,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     reference.is_none(),
                     "The reference should be none in postcondition."
                 );
-                let mut assertion_lhs = self.encoder.encode_assertion(
-                    &body_lhs,
-                    &self.mir,
-                    pre_label,
-                    &encoded_args,
-                    Some(&encoded_return),
-                    false,
-                    None,
-                    ErrorCtxt::GenericExpression,
-                );
+                let mut assertion_lhs = if let Some(body_lhs) = body_lhs {
+                    self.encoder.encode_assertion(
+                        &body_lhs,
+                        &self.mir,
+                        pre_label,
+                        &encoded_args,
+                        Some(&encoded_return),
+                        false,
+                        None,
+                        ErrorCtxt::GenericExpression,
+                    )
+                } else {
+                    true.into()
+                };
                 let mut assertion_rhs = self.encoder.encode_assertion(
                     &body_rhs,
                     &self.mir,
@@ -3724,7 +3733,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             for spec_id in &spec_ids {
                 let spec_set = self.encoder.spec().get(spec_id).unwrap();
                 match spec_set {
-                    typed::SpecificationSet::Loop(ref specs) => {
+                    typed::SpecificationMapElement::Loop(ref specs) => {
                         for assertion in specs.invariant.iter() {
                             // TODO: Mmm... are these parameters correct?
                             let encoded_spec = self.encoder.encode_assertion(

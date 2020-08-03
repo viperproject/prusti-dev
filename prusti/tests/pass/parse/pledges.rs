@@ -50,6 +50,7 @@ fn reborrow_caller(a: T) {
     let x = &mut a;
     let y = reborrow(x);
     *y = 5;
+    assert!(a.f == 5);
 }
 
 fn main() {}

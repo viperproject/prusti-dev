@@ -113,28 +113,12 @@ impl<'tcx, L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'tcx, L, P> {
         }
     }
 
-    pub fn pledges(&self) -> Vec<(Option<typed::Expression>, typed::Assertion<'tcx>, typed::Assertion<'tcx>)> {
-        let mut pledges = Vec::new();
-        fn check_assertion<'tcx>(
-            assertion: &typed::Assertion<'tcx>,
-            pledges: &mut Vec<(Option<typed::Expression>, typed::Assertion<'tcx>, typed::Assertion<'tcx>)>,
-        ) {
-            match assertion.kind.as_ref() {
-                typed::AssertionKind::Expr(_)
-                | typed::AssertionKind::Implies(_, _)
-                | typed::AssertionKind::TypeCond(_, _)
-                | typed::AssertionKind::ForAll(_, _, _) => {}
-                typed::AssertionKind::And(ref assertions) => {
-                    for assertion in assertions {
-                        check_assertion(assertion, pledges);
-                    }
-                }
-            };
+    pub fn pledges(&self) -> &[typed::Pledge<'tcx>] {
+        if let typed::SpecificationSet::Procedure(spec) = &self.specification {
+            &spec.pledges
+        } else {
+            unreachable!("Unexpected: {:?}", self.specification)
         }
-        for assertion in self.functional_postcondition() {
-            check_assertion(assertion, &mut pledges);
-        }
-        pledges
     }
 }
 

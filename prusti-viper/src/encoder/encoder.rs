@@ -50,6 +50,16 @@ use std::ops::AddAssign;
 use ::log::info;
 use std::convert::TryInto;
 
+/// A reference into a specification.
+///
+/// TODO: Move this type and the assiotate functions into a separate file.
+#[derive(Debug)]
+enum SpecIdRef {
+    Precondition(SpecificationId),
+    Postcondition(SpecificationId),
+    Pledge { lhs: Option<SpecificationId>, rhs: SpecificationId },
+}
+
 const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
 
 pub struct Encoder<'v, 'tcx: 'v> {
@@ -397,41 +407,56 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             )
     }
 
-    pub fn get_opt_spec_id(&self, def_id: DefId) -> Vec<SpecificationId> {
+    fn get_opt_spec_id(&self, def_id: DefId) -> Vec<SpecIdRef> {
         use rustc_ast::ast;
+        fn to_spec_id(attr: &ast::Attribute) -> SpecificationId {
+            attr.value_str().unwrap().as_str().to_string().try_into().unwrap()
+        }
         let opt_spec_ids = self
             .env()
             .tcx()
             .get_attrs(def_id)
             .iter()
-            .filter(|attr|
+            .flat_map(|attr|
                 {
                 match &attr.kind {
                     ast::AttrKind::Normal(ast::AttrItem {
                         path: ast::Path { span: _, segments },
                         args: ast::MacArgs::Eq(_, _),
                     }) => {
-                        segments.len() == 2
-                        && segments[0]
-                            .ident
-                            .name
-                            .with(|attr_name| attr_name == "prusti")
-                        && segments[1]
-                            .ident
-                            .name
-                            .with(|attr_name|
-                                attr_name == "post_spec_id_ref" ||
-                                attr_name == "pre_spec_id_ref"
-                            )
+                        if segments.len() == 2
+                            && segments[0]
+                                .ident
+                                .name
+                                .with(|attr_name| attr_name == "prusti") {
+                            match segments[1]
+                                .ident
+                                .name
+                                .with(|attr_name| attr_name.to_string()).as_str() {
+                                "pre_spec_id_ref" => Some(SpecIdRef::Precondition(to_spec_id(attr))),
+                                "post_spec_id_ref" => Some(SpecIdRef::Postcondition(to_spec_id(attr))),
+                                "pledge_spec_id_ref" => {
+                                    let value = attr.value_str().unwrap().as_str();
+                                    let mut value = value.splitn(2, ":");
+                                    let lhs = value.next().unwrap();
+                                    let lhs_spec_id = if !lhs.is_empty() {
+                                        Some(lhs.to_string().try_into().unwrap())
+                                    } else {
+                                        None
+                                    };
+                                    let rhs_spec_id = value.next().unwrap().to_string().try_into().unwrap();
+                                    Some(SpecIdRef::Pledge{ lhs: lhs_spec_id, rhs: rhs_spec_id })
+                                },
+                                x => unimplemented!("x: {:}", x),
+                            }
+                        } else {
+                            None
+                        }
                     },
-                    _ => false,
+                    _ => None,
                 }
             }
             )
-            .map(|x| {
-                x.value_str()
-                    .map(|y: rustc_span::Symbol| -> SpecificationId {y.as_str().to_string().try_into().unwrap()}).unwrap()
-            })
             .collect();
         debug!("Function {:?} has spec_id {:?}", def_id, opt_spec_ids);
         opt_spec_ids
@@ -445,19 +470,31 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if !def_id.is_local() {
             return None;
         }
-        let ids = self.get_opt_spec_id(def_id);
-        if ids.is_empty() {
+        let refs = self.get_opt_spec_id(def_id);
+        if refs.is_empty() {
             None
         } else {
             let mut pres = Vec::new();
             let mut posts = Vec::new();
-            for spec_id in ids {
-                if let typed::SpecificationSet::Procedure(spec) = self.spec().get(&spec_id).unwrap() {
-                    pres.extend(spec.pres.iter().cloned());
-                    posts.extend(spec.posts.iter().cloned());
+            let mut pledges = Vec::new();
+            for spec_id_ref in refs {
+                match spec_id_ref {
+                    SpecIdRef::Precondition(spec_id) => {
+                        pres.push(self.spec().get(&spec_id).unwrap().as_assertion().clone());
+                    }
+                    SpecIdRef::Postcondition(spec_id) => {
+                        posts.push(self.spec().get(&spec_id).unwrap().as_assertion().clone());
+                    }
+                    SpecIdRef::Pledge{ lhs, rhs } => {
+                        pledges.push(typed::Pledge {
+                            reference: None,    // FIXME: Currently only `result` is supported.
+                            lhs: lhs.map(|spec_id| self.spec().get(&spec_id).unwrap().as_assertion().clone()),
+                            rhs: self.spec().get(&rhs).unwrap().as_assertion().clone(),
+                        })
+                    }
                 }
             }
-            Some(typed::SpecificationSet::Procedure(typed::ProcedureSpecification::new(pres, posts)))
+            Some(typed::SpecificationSet::Procedure(typed::ProcedureSpecification::new(pres, posts, pledges)))
         }
     }
 

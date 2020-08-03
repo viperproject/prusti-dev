@@ -20,7 +20,7 @@ use rustc_ast::ast;
 pub(crate) fn contains_name(attrs: &[ast::Attribute], name: &str) -> bool {
     for attr in attrs {
         match &attr.kind {
-            ast::AttrKind::DocComment(_) => unreachable!(),
+            ast::AttrKind::DocComment(symbol) => {},
             ast::AttrKind::Normal(ast::AttrItem {
                 path: ast::Path { span: _, segments },
                 args: _,
@@ -33,7 +33,7 @@ pub(crate) fn contains_name(attrs: &[ast::Attribute], name: &str) -> bool {
             }
         }
     }
-        false
+    false
 }
 
 pub struct CollectPrustiSpecVisitor<'a, 'tcx: 'a> {

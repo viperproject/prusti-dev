@@ -7,24 +7,27 @@
 
 use prusti_contracts::*;
 
-#[after_expiry_if(a => a, a)]
-fn test1() {}
+#[after_expiry_if(result => a, a)]
+fn test1(a: bool) {}
 
 #[after_expiry_if(a, a)]
-fn test2() {}
+fn test2(a: bool) {}
 
 #[after_expiry(a)]
-fn test3() {}
+fn test3(a: bool) {}
 
-#[after_expiry(a => a)]
-fn test4() {}
+#[after_expiry(result => a)]
+fn test4(a: bool) {}
 
 #[after_expiry(
-    match x {
+    result == match x {
         1 => 1,
-        2 => 2
+        2 => 2,
+        _ => 0,
     }
 )]
-fn test5() {}
+fn test5(x: u32) -> u32 {
+    1
+}
 
 fn main() {}

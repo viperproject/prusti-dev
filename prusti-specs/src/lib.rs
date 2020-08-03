@@ -70,7 +70,7 @@ pub fn after_expiry(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let item: syn::ItemFn = handle_result!(syn::parse2(tokens));
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id_rhs = rewriter.generate_spec_id();
-    let spec_id_rhs_str = spec_id_rhs.to_string();
+    let spec_id_rhs_str = format!(":{}", spec_id_rhs);
     let pledge = handle_result!(rewriter.parse_pledge(None, spec_id_rhs, attr));
     handle_result!(check_is_result(&pledge.reference));
     assert!(pledge.lhs.is_none(), "after_expiry with lhs?");
@@ -78,7 +78,7 @@ pub fn after_expiry(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         handle_result!(rewriter.generate_spec_item_fn(rewriter::SpecItemType::Postcondition, spec_id_rhs, pledge.rhs, &item));
     quote! {
         #spec_item_rhs
-        #[prusti::pledge_rhs_spec_id_ref = #spec_id_rhs_str]
+        #[prusti::pledge_spec_id_ref = #spec_id_rhs_str]
         #item
     }
 }
@@ -87,9 +87,8 @@ pub fn after_expiry_if(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let item: syn::ItemFn = handle_result!(syn::parse2(tokens));
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id_lhs = rewriter.generate_spec_id();
-    let spec_id_lhs_str = spec_id_lhs.to_string();
     let spec_id_rhs = rewriter.generate_spec_id();
-    let spec_id_rhs_str = spec_id_rhs.to_string();
+    let spec_id_str = format!("{}:{}", spec_id_lhs, spec_id_rhs);
     let pledge = handle_result!(rewriter.parse_pledge(Some(spec_id_lhs), spec_id_rhs, attr));
     handle_result!(check_is_result(&pledge.reference));
     let spec_item_lhs =
@@ -99,8 +98,7 @@ pub fn after_expiry_if(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     quote! {
         #spec_item_lhs
         #spec_item_rhs
-        #[prusti::pledge_lhs_spec_id_ref = #spec_id_lhs_str]
-        #[prusti::pledge_rhs_spec_id_ref = #spec_id_rhs_str]
+        #[prusti::pledge_spec_id_ref = #spec_id_str]
         #item
     }
 }

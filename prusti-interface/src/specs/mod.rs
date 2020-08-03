@@ -40,38 +40,12 @@ impl<'tcx> SpecCollector<'tcx> {
         self.spec_items
             .into_iter()
             .map(|spec_item| {
-                let spec_set = match spec_item.spec_type {
-                    SpecType::Precondition => {
-                        typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
-                            pres: vec![reconstruct_typed_assertion(
-                                spec_item.specification,
-                                &typed_expressions,
-                                tcx
-                            )],
-                            posts: Vec::new(),
-                        })
-                    }
-                    SpecType::Postcondition => {
-                        typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
-                            pres: Vec::new(),
-                            posts: vec![reconstruct_typed_assertion(
-                                spec_item.specification,
-                                &typed_expressions,
-                                tcx
-                            )],
-                        })
-                    }
-                    SpecType::Invariant => {
-                        typed::SpecificationSet::Loop(typed::LoopSpecification {
-                            invariant: vec![reconstruct_typed_assertion(
-                                spec_item.specification,
-                                &typed_expressions,
-                                tcx
-                            )],
-                        })
-                    }
-                };
-                (spec_item.spec_id, spec_set)
+                let assertion = typed::SpecificationMapElement::Assertion(reconstruct_typed_assertion(
+                    spec_item.specification,
+                    &typed_expressions,
+                    tcx
+                ));
+                (spec_item.spec_id, assertion)
             })
             .collect()
     }

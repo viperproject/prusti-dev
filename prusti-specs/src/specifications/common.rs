@@ -253,14 +253,20 @@ pub struct ProcedureSpecification<EID, ET, AT> {
     pub pres: Vec<Assertion<EID, ET, AT>>,
     /// Postcondition.
     pub posts: Vec<Assertion<EID, ET, AT>>,
+    /// Pledges in the postcondition.
+    pub pledges: Vec<Pledge<EID, ET, AT>>,
 }
 
 impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
-    pub fn new(pres: Vec<Assertion<EID, ET, AT>>, posts: Vec<Assertion<EID, ET, AT>>) -> Self {
-        Self { pres, posts }
+    pub fn new(
+        pres: Vec<Assertion<EID, ET, AT>>,
+        posts: Vec<Assertion<EID, ET, AT>>,
+        pledges: Vec<Pledge<EID, ET, AT>>
+    ) -> Self {
+        Self { pres, posts, pledges }
     }
     pub fn empty() -> Self {
-        Self::new(Vec::new(), Vec::new())
+        Self::new(Vec::new(), Vec::new(), Vec::new())
     }
     pub fn is_empty(&self) -> bool {
         self.pres.is_empty() && self.posts.is_empty()
@@ -299,16 +305,17 @@ impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<
     pub fn refine(&self, other: &Self) -> Self {
         let mut pres = vec![];
         let mut posts = vec![];
-        let (ref_pre, ref_post) = {
-            if let SpecificationSet::Procedure(ProcedureSpecification { ref pres, ref posts}) = other {
-                (pres, posts)
+        let mut pledges = vec![];
+        let (ref_pre, ref_post, ref_pledges) = {
+            if let SpecificationSet::Procedure(ProcedureSpecification { ref pres, ref posts, ref pledges}) = other {
+                (pres, posts, pledges)
             } else {
                 unreachable!("Unexpected: {:?}", other)
             }
         };
-        let (base_pre, base_post) = {
-            if let SpecificationSet::Procedure(ProcedureSpecification { ref pres, ref posts}) = self {
-                (pres, posts)
+        let (base_pre, base_post, base_pledges) = {
+            if let SpecificationSet::Procedure(ProcedureSpecification { ref pres, ref posts, ref pledges}) = self {
+                (pres, posts, pledges)
             } else {
                 unreachable!("Unexpected: {:?}", self)
             }
@@ -323,7 +330,12 @@ impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<
         } else {
             posts.append(&mut ref_post.clone());
         }
-        SpecificationSet::Procedure(ProcedureSpecification { pres, posts })
+        if ref_pledges.is_empty() {
+            pledges.append(&mut base_pledges.clone());
+        } else {
+            pledges.append(&mut ref_pledges.clone());
+        }
+        SpecificationSet::Procedure(ProcedureSpecification { pres, posts, pledges })
     }
 
 }

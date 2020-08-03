@@ -8,6 +8,21 @@ use std::collections::HashMap;
 
 pub use common::{ExpressionId, SpecType, SpecificationId};
 
+#[derive(Debug, Clone)]
+pub enum SpecificationMapElement<'tcx> {
+    Assertion(Assertion<'tcx>),
+    Loop(LoopSpecification<'tcx>),
+}
+
+impl<'tcx> SpecificationMapElement<'tcx> {
+    pub fn as_assertion(&self) -> &Assertion<'tcx> {
+        match self {
+            SpecificationMapElement::Assertion(assertion) => assertion,
+            _ => unreachable!(),
+        }
+    }
+}
+
 /// A specification that has no types associated with it.
 pub type Specification<'tcx> = common::Specification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A set of untyped specifications associated with a single element.
@@ -17,7 +32,7 @@ pub type LoopSpecification<'tcx> = common::LoopSpecification<ExpressionId, Local
 /// A set of untyped specifications associated with a procedure.
 pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A map of untyped specifications for a specific crate.
-pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, SpecificationSet<'tcx>>;
+pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, SpecificationMapElement<'tcx>>;
 /// An assertion that has no types associated with it.
 pub type Assertion<'tcx> = common::Assertion<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// An assertion kind that has no types associated with it.
@@ -30,6 +45,8 @@ pub type TriggerSet = common::TriggerSet<ExpressionId, LocalDefId>;
 pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
 /// A trigger that has no types associated with it.
 pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
+/// A pledge in the postcondition.
+pub type Pledge<'tcx> = common::Pledge<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 
 pub trait Spanned<'tcx> {
     fn get_spans(&self, tcx: TyCtxt<'tcx>) -> Vec<Span>;
