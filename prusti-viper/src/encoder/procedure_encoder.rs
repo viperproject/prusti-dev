@@ -1925,6 +1925,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
                     }
 
+                    "std::cmp::PartialEq::eq" |
                     "core::cmp::PartialEq::eq" => {
                         debug_assert!(args.len() == 2);
                         debug!("Encoding call of PartialEq::eq");
@@ -1941,8 +1942,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         );
                     }
 
+                    "std::cmp::PartialEq::ne" |
                     "core::cmp::PartialEq::ne" => {
-                        debug_assert!(args.len() == 2);
+                        debug_assert!(args.len() == 2);m
                         debug!("Encoding call of PartialEq::ne");
 
                         stmts.extend(
