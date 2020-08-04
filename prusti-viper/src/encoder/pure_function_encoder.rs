@@ -9,7 +9,7 @@ use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::PanicCause;
 use crate::encoder::errors::{EncodingError, ErrorCtxt};
 use crate::encoder::foldunfold;
-use crate::encoder::mir_encoder::MirEncoder;
+use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
 use crate::encoder::mir_interpreter::{
     run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,

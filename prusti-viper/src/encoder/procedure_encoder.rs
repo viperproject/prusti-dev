@@ -11,7 +11,7 @@ use crate::encoder::errors::{EncodingError, ErrorCtxt};
 use crate::encoder::foldunfold;
 use crate::encoder::initialisation::InitInfo;
 use crate::encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
-use crate::encoder::mir_encoder::MirEncoder;
+use crate::encoder::mir_encoder::{MirEncoder, FakeMirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
 use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::optimizer;
@@ -1461,7 +1461,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Obtain the LHS permission.
         for (path, _) in &borrow_info.blocking_paths {
             let (encoded_place, _, _) = self.encode_generic_place(
-                contract.def_id, path
+                contract.def_id, Some(loan_location), path
             );
             let encoded_place = replace_fake_exprs(encoded_place);
 
@@ -2169,9 +2169,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut const_arg_vars: HashSet<vir::Expr> = HashSet::new();
         let mut type_invs: HashMap<String, vir::Function> = HashMap::new();
         let mut constant_args = Vec::new();
+        let mut arg_tys = Vec::new();
 
         for operand in args.iter() {
             let arg_ty = self.mir_encoder.get_operand_ty(operand);
+            arg_tys.push(arg_ty);
             let fake_arg = self.locals.get_fresh(arg_ty);
             fake_vars.push(fake_arg.clone());
             let encoded_local = self.encode_prusti_local(fake_arg);
@@ -2359,6 +2361,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             _, // We don't care about verifying that the strengthening is valid,
                // since it isn't the task of the caller
         ) = self.encode_postcondition_expr(
+            Some(location),
             &procedure_contract,
             None,
             &pre_label,
@@ -2782,6 +2785,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// functional specification. Returns (lhs, rhs).
     fn encode_postcondition_magic_wand(
         &self,
+        location: Option<mir::Location>,
         contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
@@ -2815,7 +2819,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Mutability::Mut => vir::PermAmount::Write,
                 };
                 let (place_expr, place_ty, _) = self.encode_generic_place(
-                    contract.def_id, place);
+                    contract.def_id, location, place);
                 let vir_access =
                     vir::Expr::pred_permission(place_expr.clone().old(label), perm_amount).unwrap();
                 let inv = self
@@ -2938,6 +2942,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// at the end of the method?
     fn encode_postcondition_expr(
         &mut self,
+        location: Option<mir::Location>,
         contract: &ProcedureContract<'tcx>,
         postcondition_strengthening: Option<typed::Assertion<'tcx>>,
         pre_label: &str,
@@ -2968,7 +2973,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 place, mutability
             );
             let (place_expr, place_ty, _) = self.encode_generic_place(
-                contract.def_id, place);
+                contract.def_id, location, place);
             let old_place_expr = place_expr.clone().old(pre_label);
             let mut add_type_spec = |perm_amount| {
                 let permissions =
@@ -3003,7 +3008,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let mut magic_wands = Vec::new();
         if let Some((mut lhs, mut rhs)) =
-            self.encode_postcondition_magic_wand(contract, pre_label, post_label)
+            self.encode_postcondition_magic_wand(location, contract, pre_label, post_label)
         {
             if let Some((location, fake_exprs)) = magic_wand_store_info {
                 let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
@@ -3166,7 +3171,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Package magic wand(s)
         if let Some((lhs, rhs)) =
-            self.encode_postcondition_magic_wand(self.procedure_contract(), pre_label, post_label)
+            self.encode_postcondition_magic_wand(None, self.procedure_contract(), pre_label, post_label)
         {
             let pos = self
                 .encoder
@@ -3254,7 +3259,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
             for (path, _) in borrow_infos[0].blocking_paths.clone().iter() {
                 let (encoded_place, _, _) = self.encode_generic_place(
-                    self.procedure_contract().def_id, path);
+                    self.procedure_contract().def_id, None, path);
                 let old_place = encoded_place.clone().old(post_label.clone());
                 stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
             }
@@ -3282,6 +3287,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let (type_spec, return_type_spec, invs_spec, func_spec, magic_wands, _, strengthening_spec) =
             self.encode_postcondition_expr(
+                None,
                 &contract,
                 postcondition_strengthening,
                 PRECONDITION_LABEL,
@@ -3908,17 +3914,36 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     //         .encode_projection(index, place, Some(encoded_place))
     // }
 
-    /// `containing_def_id` – MIR body in which the place is defined.
+    /// `containing_def_id` – MIR body in which the place is defined. `location`
+    /// `location` – MIR terminator that makes the function call. If None,
+    /// then we assume that `containing_def_id` is local.
     fn encode_generic_place(
         &self,
         containing_def_id: rustc_hir::def_id::DefId,
+        location: Option<mir::Location>,
         place: &Place<'tcx>,
     ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
-        let (mir, _) = self.encoder.env().tcx().mir_validated(
-            ty::WithOptConstParam::unknown(containing_def_id.expect_local())
-        );
-        let mir = mir.borrow();
-        let mir_encoder = MirEncoder::new(self.encoder, &*mir, containing_def_id);
+        let mir_encoder = if let Some(location) = location {
+            let block = &self.mir.basic_blocks()[location.block];
+            assert_eq!(block.statements.len(), location.statement_index, "expected terminator location");
+            match &block.terminator().kind {
+                mir::terminator::TerminatorKind::Call{ args, destination, .. } => {
+                    let tcx = self.encoder.env().tcx();
+                    let arg_tys = args.iter().map(|arg| arg.ty(self.mir, tcx)).collect();
+                    let return_ty = destination.map(|(place, _)| place.ty(self.mir, tcx).ty);
+                    FakeMirEncoder::new(self.encoder, arg_tys, return_ty)
+                }
+                kind => unreachable!("Only calls are expected. Found: {:?}", kind),
+            }
+        } else {
+            let (mir, _) = self.encoder.env().tcx().mir_validated(
+                ty::WithOptConstParam::unknown(containing_def_id.expect_local())
+            );
+            let mir = mir.borrow();
+            let return_ty = mir.return_ty();
+            let arg_tys = mir.args_iter().map(|arg| mir.local_decls[arg].ty).collect();
+            FakeMirEncoder::new(self.encoder, arg_tys, Some(return_ty))
+        };
         match place {
             Place::NormalPlace(place) => {
                 mir_encoder.encode_place(place).unwrap()

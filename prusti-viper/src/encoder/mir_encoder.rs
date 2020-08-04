@@ -11,6 +11,7 @@ use prusti_common::vir;
 use prusti_common::config;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
+use rustc_index::vec::{Idx, IndexVec};
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
 // use std::option::Option;
@@ -19,62 +20,30 @@ use rustc_middle::{mir, ty};
 use rustc_ast::ast;
 use rustc_span::Span;
 use log::{trace, debug};
+use std::collections::HashMap;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static POSTCONDITION_LABEL: &'static str = "post";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
 
-/// Common code used for `ProcedureEncoder` and `PureFunctionEncoder`
-#[derive(Clone)]
-pub struct MirEncoder<'p, 'v: 'p, 'tcx: 'v> {
-    encoder: &'p Encoder<'v, 'tcx>,
-    mir: &'p mir::Body<'tcx>,
-    def_id: DefId,
-    namespace: String,
-}
+pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
-impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
-    pub fn new(
-        encoder: &'p Encoder<'v, 'tcx>,
-        mir: &'p mir::Body<'tcx>,
-        def_id: DefId,
-    ) -> Self {
-        trace!("MirEncoder constructor");
-        MirEncoder {
-            encoder,
-            mir,
-            def_id,
-            namespace: "".to_string(),
-        }
+    fn encoder(&self) -> &Encoder<'v, 'tcx>;
+
+    fn namespace(&self) -> &str {
+        ""
     }
 
-    pub fn new_with_namespace(
-        encoder: &'p Encoder<'v, 'tcx>,
-        mir: &'p mir::Body<'tcx>,
-        def_id: DefId,
-        namespace: String,
-    ) -> Self {
-        trace!("MirEncoder constructor with namespace");
-        MirEncoder {
-            encoder,
-            mir,
-            def_id,
-            namespace,
-        }
+    fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx>;
+
+    fn encode_local_var_name(&self, local: mir::Local) -> String {
+        format!("{}{:?}", self.namespace(), local)
     }
 
-    pub fn encode_local_var_name(&self, local: mir::Local) -> String {
-        format!("{}{:?}", self.namespace, local)
-    }
-
-    pub fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
-        self.mir.local_decls[local].ty
-    }
-
-    pub fn encode_local(&self, local: mir::Local) -> Result<vir::LocalVar, ErrorCtxt> {
+    fn encode_local(&self, local: mir::Local) -> Result<vir::LocalVar, ErrorCtxt> {
         let var_name = self.encode_local_var_name(local);
         let type_name = self
-            .encoder
+            .encoder()
             .encode_type_predicate_use(self.get_local_ty(local))?;
         Ok(vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name)))
     }
@@ -83,7 +52,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     /// - `vir::Expr`: the expression of the projection;
     /// - `ty::Ty<'tcx>`: the type of the expression;
     /// - `Option<usize>`: optionally, the variant of the enum.
-    pub fn encode_place(
+    fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
     ) -> Result<(vir::Expr, ty::Ty<'tcx>, Option<usize>), ErrorCtxt> {
@@ -107,7 +76,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     /// - `vir::Expr`: the place of the projection;
     /// - `ty::Ty<'tcx>`: the type of the place;
     /// - `Option<usize>`: optionally, the variant of the enum.
-    pub fn encode_projection(
+    fn encode_projection(
         &self,
         index: usize,
         place: mir::Place<'tcx>,
@@ -148,7 +117,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()].expect_ty();
-                        let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
+                        let encoded_field = self.encoder().encode_raw_ref_field(field_name, field_ty);
                         let encoded_projection = encoded_base.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
@@ -161,7 +130,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                             assert_eq!(num_variants, 1);
                             0
                         });
-                        let tcx = self.encoder.env().tcx();
+                        let tcx = self.encoder().env().tcx();
                         let variant_def = &adt_def.variants[variant_index.into()];
                         let encoded_variant = if num_variants != 1 {
                             encoded_base.variant(&variant_def.ident.as_str())
@@ -171,7 +140,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         let field = &variant_def.fields[field.index()];
                         let field_ty = field.ty(tcx, subst);
                         let encoded_field = self
-                            .encoder
+                            .encoder()
                             .encode_struct_field(&field.ident.as_str(), field_ty);
                         let encoded_projection = encoded_variant.field(encoded_field);
                         (encoded_projection, field_ty, None)
@@ -183,7 +152,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         let closure_subst = closure_subst.as_closure();
                         debug!("Closure subst: {:?}", closure_subst);
 
-                        let tcx = self.encoder.env().tcx();
+                        let tcx = self.encoder().env().tcx();
                         // let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
                         // let field_ty = closure_subst
                         //     .upvar_tys(def_id, tcx)
@@ -192,20 +161,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         let field_ty = closure_subst.upvar_tys().nth(field.index()).unwrap();
 
                         let field_name = format!("closure_{}", field.index());
-                        let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
+                        let encoded_field = self.encoder().encode_raw_ref_field(field_name, field_ty);
                         let encoded_projection = encoded_base.field(encoded_field);
 
                         // let encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
                         //     let freevar = &freevars[field.index()];
                         //     let field_name = format!("closure_{}", field.index());
-                        //     let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
+                        //     let encoded_field = self.encoder().encode_raw_ref_field(field_name, field_ty);
                         //     let res = encoded_base.field(encoded_field);
                         //     let var_name = tcx.hir.name(freevar.var_id()).to_string();
                         //     trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
                         //     res
                         // });
 
-                        let encoded_field_type = self.encoder.encode_type(field_ty);
+                        let encoded_field_type = self.encoder().encode_type(field_ty);
                         // debug!("Rust closure projection {:?}", place_projection);
                         debug!("encoded_projection: {:?}", encoded_projection);
 
@@ -229,27 +198,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn is_reference(&self, base_ty: ty::Ty<'tcx>) -> bool {
-        trace!("is_reference {}", base_ty);
-        match base_ty.kind {
-            ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
-
-            _ => false,
-        }
-    }
-
-    pub fn can_be_dereferenced(&self, base_ty: ty::Ty<'tcx>) -> bool {
-        trace!("can_be_dereferenced {}", base_ty);
-        match base_ty.kind {
-            ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
-
-            ty::TyKind::Adt(ref adt_def, ..) if adt_def.is_box() => true,
-
-            _ => false,
-        }
-    }
-
-    pub fn encode_deref(
+    fn encode_deref(
         &self,
         encoded_base: vir::Expr,
         base_ty: ty::Ty<'tcx>,
@@ -278,7 +227,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     match encoded_base {
                         vir::Expr::AddrOf(box base_place, _, _) => base_place,
                         _ => {
-                            let ref_field = self.encoder.encode_dereference_field(ty);
+                            let ref_field = self.encoder().encode_dereference_field(ty);
                             encoded_base.field(ref_field)
                         }
                 };
@@ -289,12 +238,132 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     encoded_base.get_parent().unwrap()
                 } else {
                     let field_ty = base_ty.boxed_ty();
-                    let ref_field = self.encoder.encode_dereference_field(field_ty);
+                    let ref_field = self.encoder().encode_dereference_field(field_ty);
                     encoded_base.field(ref_field)
                 };
                 (access, base_ty.boxed_ty(), None)
             }
             ref x => unimplemented!("{:?}", x),
+        }
+    }
+
+    fn can_be_dereferenced(&self, base_ty: ty::Ty<'tcx>) -> bool {
+        trace!("can_be_dereferenced {}", base_ty);
+        match base_ty.kind {
+            ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
+
+            ty::TyKind::Adt(ref adt_def, ..) if adt_def.is_box() => true,
+
+            _ => false,
+        }
+    }
+
+}
+
+/// Place encoder used when we do not have access to MIR. For example, when
+/// encoding calls to functions defined in other crates.
+#[derive(Clone)]
+pub struct FakeMirEncoder<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
+    tys: IndexVec<mir::Local, ty::Ty<'tcx>>,
+}
+
+impl<'p, 'v: 'p, 'tcx: 'v> FakeMirEncoder<'p, 'v, 'tcx> {
+    pub fn new(
+        encoder: &'p Encoder<'v, 'tcx>,
+        arg_tys: Vec<ty::Ty<'tcx>>,
+        return_ty: Option<ty::Ty<'tcx>>,
+    ) -> Self {
+        trace!("FakeMirEncoder constructor");
+        let mut tys: IndexVec<mir::Local, ty::Ty<'tcx>> = IndexVec::new();
+        if let Some(return_ty) = return_ty {
+            tys.push(return_ty);
+        } else {
+            tys.push(encoder.env().tcx().mk_unit());
+        }
+        for arg_ty in arg_tys {
+            tys.push(arg_ty);
+        }
+        Self {
+            encoder,
+            tys,
+        }
+    }
+}
+
+impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for FakeMirEncoder<'p, 'v, 'tcx> {
+
+    fn encoder(&self) -> &Encoder<'v, 'tcx> {
+        self.encoder
+    }
+
+    fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
+        self.tys[local]
+    }
+
+}
+
+/// Common code used for `ProcedureEncoder` and `PureFunctionEncoder`
+#[derive(Clone)]
+pub struct MirEncoder<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
+    mir: &'p mir::Body<'tcx>,
+    def_id: DefId,
+    namespace: String,
+}
+
+impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for MirEncoder<'p, 'v, 'tcx> {
+
+    fn namespace(&self) -> &str {
+        &self.namespace
+    }
+
+    fn encoder(&self) -> &Encoder<'v, 'tcx> {
+        self.encoder
+    }
+
+    fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
+        self.mir.local_decls[local].ty
+    }
+
+}
+
+impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
+    pub fn new(
+        encoder: &'p Encoder<'v, 'tcx>,
+        mir: &'p mir::Body<'tcx>,
+        def_id: DefId,
+    ) -> Self {
+        trace!("MirEncoder constructor");
+        MirEncoder {
+            encoder,
+            mir,
+            def_id,
+            namespace: "".to_string(),
+        }
+    }
+
+    pub fn new_with_namespace(
+        encoder: &'p Encoder<'v, 'tcx>,
+        mir: &'p mir::Body<'tcx>,
+        def_id: DefId,
+        namespace: String,
+    ) -> Self {
+        trace!("MirEncoder constructor with namespace");
+        MirEncoder {
+            encoder,
+            mir,
+            def_id,
+            namespace,
+        }
+    }
+
+    pub fn is_reference(&self, base_ty: ty::Ty<'tcx>) -> bool {
+        trace!("is_reference {}", base_ty);
+        match base_ty.kind {
+            ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
+
+            _ => false,
         }
     }
 

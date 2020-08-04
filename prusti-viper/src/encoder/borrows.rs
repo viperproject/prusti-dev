@@ -386,6 +386,7 @@ where
     let mut fake_mir_args_ty = Vec::new();
 
     // FIXME; "skip_binder" is most likely wrong
+    // FIXME: Replace with FakeMirEncoder.
     for i in 0usize..fn_sig.inputs().skip_binder().len() {
         fake_mir_args.push(mir::Local::from_usize(i + 1));
         let arg_ty = fn_sig.input(i);
@@ -397,7 +398,7 @@ where
         };
         fake_mir_args_ty.push(ty);
     }
-    let return_ty = fn_sig.output().skip_binder().clone();
+    let return_ty = fn_sig.output().skip_binder().clone();  // FIXME: Shouldn't this also go through maybe_tymap?
 
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {

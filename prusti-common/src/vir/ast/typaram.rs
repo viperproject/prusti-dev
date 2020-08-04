@@ -12,6 +12,14 @@ pub struct Substs {
     repls: HashMap<String, String>,
 }
 
+impl std::fmt::Debug for Substs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Substs")
+         .field("repls", &self.repls)
+         .finish()
+    }
+}
+
 fn escape_dollars(s: &str) -> String {
     s.replace('$', "\\$")
 }
@@ -83,7 +91,7 @@ impl Substs {
         let mut last = 0;
         for matsh in self.regex.find_iter(inner1) {
             newstr.push_str(&inner1[last..matsh.start()]);
-            newstr.push_str(&self.repls[matsh.as_str()]);
+            newstr.push_str(&self.repls.get(matsh.as_str()).unwrap_or_else(|| panic!("key error: {}", matsh.as_str())));
             last = matsh.end();
         }
         newstr.push_str(&inner1[last..]);
