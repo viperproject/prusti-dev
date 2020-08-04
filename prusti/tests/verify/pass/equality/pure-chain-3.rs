@@ -1,4 +1,7 @@
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 #[derive(Clone,Copy,PartialEq,Eq)]
 struct A {
@@ -11,8 +14,8 @@ fn pos(_x: A, _j: i32) -> bool {
 }
 
 #[pure]
-#[requires="pos(_x, 17) && pos(_y, 17)"]
-#[ensures="pos(result, 17) && pos(_x, 17) && pos(_y, 17)"]
+#[requires(pos(_x, 17) && pos(_y, 17))]
+#[ensures(pos(result, 17) && pos(_x, 17) && pos(_y, 17))]
 fn first(_x: A, _y: A) -> A {
     _x
 }

@@ -1,4 +1,7 @@
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 #[derive(Clone)]
 struct A<T> {
@@ -17,7 +20,7 @@ fn get_value<T>(_x: &A<T>) -> i32 {
     _x.i
 }
 
-#[ensures="result == 1"]
+#[ensures(result == 1)]
 fn test_eq_in_code(_a: &A<i32>, _b: &A<i32>) -> i32 {
     if *_a == *_b {
         if get_value(_a) == get_value(_b) {

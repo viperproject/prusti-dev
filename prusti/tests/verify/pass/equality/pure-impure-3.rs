@@ -1,4 +1,7 @@
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 #[derive(Clone,Copy,PartialEq,Eq)]
 struct A {
@@ -10,7 +13,7 @@ fn id(_x: A) -> A {
     _x
 }
 
-#[requires="_x == _y"]
+#[requires(_x == _y)]
 fn f(_x: A, _y: A) {
     let _z = id(_x);
     assert!(_z == id(_y));

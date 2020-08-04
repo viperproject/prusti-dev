@@ -1,4 +1,7 @@
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 #[derive(Clone,Copy,PartialEq,Eq)]
 struct A {
@@ -6,8 +9,8 @@ struct A {
 }
 
 #[pure]
-#[requires="_x != _y"]
-#[ensures="result != _y"]
+#[requires(_x != _y)]
+#[ensures(result != _y)]
 fn first(_x: A, _y: A) -> A {
     _x
 }

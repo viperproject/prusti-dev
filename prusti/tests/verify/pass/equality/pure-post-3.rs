@@ -1,4 +1,7 @@
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 #[derive(Clone,Copy,PartialEq,Eq)]
 struct A {
@@ -6,7 +9,7 @@ struct A {
 }
 
 #[pure]
-#[ensures="_x == result"]
+#[ensures(_x == result)]
 fn get_value(_x: A, _y: A) -> A {
     _x
 }
