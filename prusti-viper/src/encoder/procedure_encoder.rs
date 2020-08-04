@@ -1944,7 +1944,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                     "std::cmp::PartialEq::ne" |
                     "core::cmp::PartialEq::ne" => {
-                        debug_assert!(args.len() == 2);m
+                        debug_assert!(args.len() == 2);
                         debug!("Encoding call of PartialEq::ne");
 
                         stmts.extend(
