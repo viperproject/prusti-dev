@@ -231,7 +231,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn get_used_viper_domains(&self) -> Vec<vir::Domain> {
-        let mirrors = self
+        let mirrors: Vec<_> = self
             .snap_mirror_funcs
             .borrow()
             .values()
@@ -245,12 +245,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .into_iter()
             .filter_map(|s| s.get_domain())
             .collect();
-        domains.push(vir::Domain {
-            name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
-            functions: mirrors,
-            axioms: vec![],
-            type_vars: vec![],
-        });
+        if !mirrors.is_empty() {
+            domains.push(vir::Domain {
+                name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
+                functions: mirrors,
+                axioms: vec![],
+                type_vars: vec![],
+            });
+        }
         domains.sort_by_key(|d| d.get_identifier());
         domains
     }

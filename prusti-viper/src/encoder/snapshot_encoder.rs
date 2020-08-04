@@ -121,7 +121,7 @@ impl Snapshot {
             Some(func) => {
                 vir::Expr::FuncApp(
                     self.get_snap_name(),
-                    vec![arg],
+                    vec![self.dereference_expr(arg)],
                     func.formal_args.clone(),
                     self.get_type(),
                     vir::Position::default(),
@@ -129,7 +129,31 @@ impl Snapshot {
             }
             None => unreachable!()
         }
+    }
 
+    fn dereference_expr(&self, expr: vir::Expr) -> vir::Expr {
+        match expr.try_deref() {
+            Some(deref_expr) => self.dereference_expr(deref_expr),
+            None => expr,
+        }
+    }
+
+    pub fn encode_equals(&self, lhs: vir::Expr, rhs: vir::Expr, pos: vir::Position) -> vir::Expr {
+        vir::Expr::BinOp(
+            vir::BinOpKind::EqCmp,
+            Box::new(self.get_snap_call(lhs)),
+            Box::new(self.get_snap_call(rhs)),
+            pos,
+        )
+    }
+
+    pub fn encode_not_equals(&self, lhs: vir::Expr, rhs: vir::Expr, pos: vir::Position) -> vir::Expr {
+        vir::Expr::BinOp(
+            vir::BinOpKind::NeCmp,
+            Box::new(self.get_snap_call(lhs)),
+            Box::new(self.get_snap_call(rhs)),
+            pos,
+        )
     }
 }
 
@@ -254,7 +278,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             self.predicate_name.clone(),
             Box::new(expr),
             PermAmount::Read,
-            vir::Position::default())
+            vir::Position::default()
+        )
     }
 
     fn encode_snap_arg_local<S: Into<String>>(&self, arg_name: S) -> vir::Expr {
