@@ -369,11 +369,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let ty = self.encoder.resolve_typaram(self.mir.return_ty());
         self.encoder.encode_value_type(ty)
     }
-
-    pub fn encode_function_ref_return_type(&self) -> vir::Type {
-        let ty = self.encoder.resolve_typaram(self.mir.return_ty());
-        self.encoder.encode_value_or_ref_type(ty)
-    }
 }
 
 pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
