@@ -19,6 +19,9 @@ mod private {
     /// A macro for marking a function as pure.
     pub use prusti_contracts_impl::pure;
 
+    /// A macro for marking a function as trusted.
+    pub use prusti_contracts_impl::trusted;
+
     /// A macro for writing a loop invariant.
     #[proc_macro_hack]
     pub use prusti_contracts_impl::invariant;
@@ -42,6 +45,9 @@ mod private {
 
     /// A macro for marking a function as pure.
     pub use prusti_contracts_internal::pure;
+
+    /// A macro for marking a function as trusted.
+    pub use prusti_contracts_internal::trusted;
 
     /// A macro for writing a loop invariant.
     #[proc_macro_hack]

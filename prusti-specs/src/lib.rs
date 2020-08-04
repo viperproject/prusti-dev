@@ -110,6 +110,13 @@ pub fn pure(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     }
 }
 
+pub fn trusted(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    quote! {
+        #[prusti::trusted]
+        #tokens
+    }
+}
+
 pub fn invariant(tokens: TokenStream) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
