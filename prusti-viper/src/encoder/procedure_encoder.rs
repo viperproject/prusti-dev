@@ -1909,12 +1909,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                         let box_content = dst.clone().field(ref_field.clone());
 
-                        stmts.extend(self.prepare_assign_target(
-                            dst,
-                            ref_field,
-                            location,
-                            vir::AssignKind::Move,
-                        ));
+                        stmts.extend(
+                            self.prepare_assign_target(
+                                dst,
+                                ref_field,
+                                location,
+                                vir::AssignKind::Move,
+                            )
+                        );
 
                         // Allocate `box_content`
                         stmts.extend(self.encode_havoc_and_allocation(&box_content));
@@ -1924,78 +1926,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     }
 
                     "core::cmp::PartialEq::eq" => {
-                        assert!(args.len() == 2);
+                        debug_assert!(args.len() == 2);
                         debug!("Encoding call of PartialEq::eq");
 
-                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-
-                        let snapshot = self.encoder.encode_snapshot(&arg_ty);
-                        if snapshot.is_defined() {
-                            let arg_exprs = vec![
-                                self.mir_encoder.encode_operand_expr(&args[0]),
-                                self.mir_encoder.encode_operand_expr(&args[1]),
-                            ];
-                            let return_type = vir::Type::Bool;
-                            let function_name = snapshot.get_equals_func_name();
-
-                            stmts.extend(self.encode_specified_pure_function_call(
-                                location,
-                                term.source_info.span,
-                                args,
-                                destination,
-                                function_name,
-                                arg_exprs,
-                                return_type,
-                            ));
-                        } else {
-                            // the equality check involves some unsupported feature;
-                            // treat it as any other function
-                            stmts.extend(self.encode_impure_function_call(
-                                location,
-                                term.source_info.span,
-                                args,
-                                destination,
+                        stmts.extend(
+                            self.encode_cmp_function_call(
                                 def_id,
-                            )?);
-                        }
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                vir::BinOpKind::EqCmp,
+                            )
+                        );
                     }
 
-                    // TODO CMFIXME reduce code duplication with previous case
                     "core::cmp::PartialEq::ne" => {
-                        assert!(args.len() == 2);
+                        debug_assert!(args.len() == 2);
                         debug!("Encoding call of PartialEq::ne");
 
-                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-
-                        let snapshot = self.encoder.encode_snapshot(&arg_ty);
-                        if snapshot.is_defined() {
-                            let arg_exprs = vec![
-                                self.mir_encoder.encode_operand_expr(&args[0]),
-                                self.mir_encoder.encode_operand_expr(&args[1]),
-                            ];
-                            let return_type = vir::Type::Bool;
-                            let function_name = snapshot.get_not_equals_func_name();
-
-                            stmts.extend(self.encode_specified_pure_function_call(
-                                location,
-                                term.source_info.span,
-                                args,
-                                destination,
-                                function_name,
-                                arg_exprs,
-                                return_type
-                            ));
-                        } else {
-                            // the equality check involves some unsupported feature;
-                            // treat it as any other function
-                            stmts.extend(self.encode_impure_function_call(
-                                location,
-                                term.source_info.span,
-                                args,
-                                destination,
+                        stmts.extend(
+                            self.encode_cmp_function_call(
                                 def_id,
-                            )?);
-                        }
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                vir::BinOpKind::NeCmp,
+                            )
+                        );
                     }
 
                     _ => {
@@ -2104,6 +2063,60 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | TerminatorKind::InlineAsm { .. } => unimplemented!("{:?}", term.kind),
         };
         Ok(result)
+    }
+
+    fn encode_cmp_function_call(
+        &mut self,
+        called_def_id: ProcedureDefId,
+        location: mir::Location,
+        call_site_span: Span,
+        args: &[mir::Operand<'tcx>],
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+        bin_op: vir::BinOpKind,
+    ) -> Vec<vir::Stmt> {
+
+        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+
+        let snapshot = self.encoder.encode_snapshot(&arg_ty);
+        if snapshot.is_defined() {
+
+            let pos = self
+                .encoder
+                .error_manager()
+                .register(call_site_span, ErrorCtxt::PureFunctionCall);
+
+            let lhs = self.mir_encoder.encode_operand_expr(&args[0]);
+            let rhs = self.mir_encoder.encode_operand_expr(&args[1]);
+
+            let expr = match bin_op {
+                vir::BinOpKind::EqCmp => snapshot.encode_equals(lhs, rhs, pos),
+                vir::BinOpKind::NeCmp => snapshot.encode_not_equals(lhs, rhs, pos),
+                _ => unreachable!()
+            };
+
+            let target_value = self.encode_pure_function_call_lhs_value(destination);
+            let inhaled_expr = vir::Expr::eq_cmp(target_value.into(), expr);
+
+            let (mut stmts, label) = self.encode_pure_function_call_site(
+                location,
+                destination,
+                inhaled_expr
+            );
+
+            self.encode_transfer_args_permissions(location, args,  &mut stmts, label);
+
+            stmts
+        } else {
+            // the equality check involves some unsupported feature;
+            // treat it as any other function
+            self.encode_impure_function_call(
+                location,
+                call_site_span,
+                args,
+                destination,
+                called_def_id,
+            ).ok().unwrap() // TODO CMFIXME return proper result
+        }
     }
 
     /// Encode an edge of the MIR graph
@@ -2456,8 +2469,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         arg_exprs: Vec<Expr>,
         return_type: Type,
     ) -> Vec<vir::Stmt> {
-        let mut stmts = vec![];
-
         let formal_args: Vec<vir::LocalVar> = args
             .iter()
             .enumerate()
@@ -2474,17 +2485,70 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .error_manager()
             .register(call_site_span, ErrorCtxt::PureFunctionCall);
 
-        let func_call =
-            vir::Expr::func_app(function_name, arg_exprs, formal_args, return_type.clone(), pos);
+        let func_call = vir::Expr::func_app(
+            function_name,
+            arg_exprs,
+            formal_args,
+            return_type.clone(),
+            pos
+        );
+
+        let target_value = self.encode_pure_function_call_lhs_value(destination);
+
+        let inhaled_expr = if return_type.is_domain() {
+            let predicate_name = target_value.get_type().name();
+            let snapshot = self.encoder.encode_snapshot_use(predicate_name);
+            let target_place = self.encode_pure_function_call_lhs_place(destination);
+            let snap_call = snapshot.get_snap_call(target_place);
+            vir::Expr::eq_cmp(snap_call.clone(), func_call)
+        } else {
+            vir::Expr::eq_cmp(target_value.into(), func_call)
+        };
+
+        let (mut stmts,label) = self.encode_pure_function_call_site(
+            location,
+            destination,
+            inhaled_expr
+        );
+
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, label);
+        stmts
+    }
+
+    fn encode_pure_function_call_lhs_value(
+        &mut self,
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+    ) -> vir::Expr {
+        match destination.as_ref() {
+            Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
+            None => unreachable!(),
+        }
+    }
+
+    fn encode_pure_function_call_lhs_place(
+        &mut self,
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+    ) -> vir::Expr {
+        match destination.as_ref() {
+            // will panic if attempting to encode unsupported type
+            Some((ref dst, _)) => self.mir_encoder.encode_place(dst).unwrap().0,
+            None => unreachable!(),
+        }
+    }
+
+    fn encode_pure_function_call_site(
+        &mut self,
+        location: mir::Location,
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+        call_result: vir::Expr,
+    ) -> (Vec<vir::Stmt>,String) {
+        let mut stmts = vec![];
 
         let label = self.cfg_method.get_fresh_label_name();
         stmts.push(vir::Stmt::Label(label.clone()));
 
         // Havoc the content of the lhs
-        let (target_place, _target_ty, _) = match destination.as_ref() {
-            Some((ref dst, _)) => self.mir_encoder.encode_place(dst).unwrap(), // will panic if attempting to encode unsupported type
-            None => unreachable!(),
-        };
+        let target_place = self.encode_pure_function_call_lhs_place(destination);
         stmts.extend(self.encode_havoc(&target_place));
         let type_predicate = self
             .mir_encoder
@@ -2497,25 +2561,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ));
 
         // Initialize the lhs
-        let target_value = match destination.as_ref() {
-            Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
-            None => unreachable!(),
-        };
-
-        if return_type.is_domain() {
-            let predicate_name = target_value.get_type().name();
-            let snapshot = self.encoder.encode_snapshot_use(predicate_name);
-            let snap_call = snapshot.get_snap_call(target_place);
-            stmts.push(vir::Stmt::Inhale(
-                vir::Expr::eq_cmp(snap_call.clone(), func_call),
+        stmts.push(
+            vir::Stmt::Inhale(
+                call_result,
                 vir::FoldingBehaviour::Stmt,
-            ));
-        } else {
-            stmts.push(vir::Stmt::Inhale(
-                vir::Expr::eq_cmp(target_value.into(), func_call),
-                vir::FoldingBehaviour::Stmt,
-            ));
-        }
+            )
+        );
 
         // Store a label for permissions got back from the call
         debug!(
@@ -2524,7 +2575,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         self.label_after_location.insert(location, label.clone());
 
-        // Transfer the permissions for the arguments used in the call
+        (stmts, label)
+    }
+
+    // Transfer the permissions for the arguments used in the call
+    fn encode_transfer_args_permissions(
+        &mut self,
+        location: mir::Location,
+        args: &[mir::Operand<'tcx>],
+        stmts: &mut Vec<vir::Stmt>,
+        label: String,
+    )  {
         for operand in args.iter() {
             let operand_ty = self.mir_encoder.get_operand_ty(operand);
             let operand_place = self.mir_encoder.encode_operand_place(operand);
@@ -2574,8 +2635,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
         */
-
-        stmts
     }
 
     /// Encode permissions that are implicitly carried by the given local variable.
