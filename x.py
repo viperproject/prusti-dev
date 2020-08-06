@@ -101,6 +101,7 @@ def setup_ubuntu(rustup_only):
     """Install the dependencies on Ubuntu."""
     if not rustup_only:
         # Install dependencies.
+        shell('sudo apt-get update')
         shell('sudo apt-get install -y '
               'build-essential pkg-config '
               'wget gcc libssl-dev openjdk-8-jdk')
