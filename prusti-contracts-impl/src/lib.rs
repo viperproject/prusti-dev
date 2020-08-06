@@ -38,3 +38,8 @@ pub fn trusted(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn invariant(_tokens: TokenStream) -> TokenStream {
     (quote! { () }).into()
 }
+
+#[proc_macro_hack]
+pub fn closure(tokens: TokenStream) -> TokenStream {
+    prusti_specs::closure(tokens.into(), true).into()
+}

@@ -25,6 +25,10 @@ mod private {
     /// A macro for writing a loop invariant.
     #[proc_macro_hack]
     pub use prusti_contracts_impl::invariant;
+
+    /// A macro for defining a closure with a specification.
+    #[proc_macro_hack]
+    pub use prusti_contracts_impl::closure;
 }
 
 #[cfg(feature = "prusti")]
@@ -52,6 +56,10 @@ mod private {
     /// A macro for writing a loop invariant.
     #[proc_macro_hack]
     pub use prusti_contracts_internal::invariant;
+
+    /// A macro for defining a closure with a specification.
+    #[proc_macro_hack]
+    pub use prusti_contracts_internal::closure;
 }
 
 

@@ -1,8 +1,8 @@
 #![feature(box_syntax)]
 #![feature(box_patterns)]
 
-use proc_macro2::TokenStream;
-use quote::quote;
+use proc_macro2::{TokenStream, TokenTree, TokenTree::{Ident, Group, Punct}};
+use quote::{quote, ToTokens};
 use syn::spanned::Spanned;
 
 use specifications::untyped;
@@ -127,4 +127,86 @@ pub fn invariant(tokens: TokenStream) -> TokenStream {
             #check
         }
     }
+}
+
+pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
+    let mut requires: Vec<TokenTree> = vec! [];
+    let mut ensures: Vec<TokenTree> = vec! [];
+    let mut cl: Option<syn::ExprClosure> = None;
+
+    let mut iter = tokens.clone ().into_iter();
+
+    while let Some(tok) = iter.next() {
+        match tok {
+            Ident(id) => {
+                let total_span;
+
+                if id.to_string() == "requires" {
+                    match iter.next() {
+                        Some(Group(g)) => {
+                            total_span = id.span().join(g.span()).unwrap_or(g.span());
+                            requires.push(Group(g));
+                        },
+                        _ => {
+                            return syn::Error::new(
+                                id.span(), "\"requires\" expects one parenthesized argument")
+                                .to_compile_error();
+                        }
+                    }
+                } else if id.to_string() == "ensures" {
+                    match iter.next() {
+                        Some(Group(g)) => {
+                            total_span = id.span().join(g.span()).unwrap_or(g.span());
+                            ensures.push(Group(g));
+                        },
+                        _ => {
+                            return syn::Error::new(
+                                id.span(), "\"ensures\" expects one parenthesized argument")
+                                .to_compile_error();
+                        }
+                    }
+                } else {
+                    return syn::Error::new(id.span(), "invalid closure specification")
+                        .to_compile_error();
+                }
+
+                match iter.next() {
+                    Some(Punct(p)) => {
+                        match p.as_char() {
+                            ',' => {},
+                            _ => {
+                                return syn::Error::new(
+                                    p.span(), "expected a comma here")
+                                    .to_compile_error();
+                            }
+                        }
+                    },
+                    _ => {
+                        return syn::Error::new(
+                            total_span, "expected a comma after this")
+                            .to_compile_error()
+                    }
+                }
+            },
+
+            _ => {
+                let mut cl_toks = TokenStream::from(tok);
+                cl_toks.extend(iter);
+
+                match syn::parse2::<syn::ExprClosure>(cl_toks) {
+                    Ok(cl_expr) => {
+                        cl = Some(cl_expr);
+                    },
+                    Err(e) => {
+                        return e.to_compile_error();
+                    }
+                }
+
+                break;
+            }
+        }
+    }
+
+    cl.expect("closure must be parsed by now")
+      .into_token_stream()
 }
