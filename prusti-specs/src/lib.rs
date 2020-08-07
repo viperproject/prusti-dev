@@ -306,13 +306,17 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let mut item: syn::ItemImpl = handle_result!(syn::parse2(tokens));
     let new_struct = handle_result!(rewriter::generate_new_struct(&mut item));
+
     let struct_ident = &new_struct.ident;
+    let generics = &new_struct.generics;
+
     let struct_ty: syn::Type = syn::parse_quote! {
-        #struct_ident
+        #struct_ident #generics
     };
 
     let rewritten_item =
         handle_result!(rewriter::rewrite_extern_item_fn(&mut item, Box::from(struct_ty)));
+
     quote! {
         #new_struct
         #rewritten_item

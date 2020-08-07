@@ -1,9 +1,9 @@
 use crate::specifications::common::{ExpressionIdGenerator, SpecificationIdGenerator};
 use crate::specifications::untyped::{self, EncodeTypeCheck};
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, format_ident};
+use quote::{quote, format_ident, ToTokens};
+use syn::ImplItemMethod;
 use syn::spanned::Spanned;
-use std::any::Any;
 
 pub(crate) struct AstRewriter {
     expr_id_generator: ExpressionIdGenerator,
@@ -22,7 +22,6 @@ impl std::fmt::Display for SpecItemType {
             SpecItemType::Precondition => write!(f, "pre"),
             SpecItemType::Postcondition => write!(f, "post"),
         }
-
     }
 }
 
@@ -190,18 +189,23 @@ pub fn rewrite_extern_item_fn(
     impl_item: &mut syn::ItemImpl,
     new_ty: Box<syn::Type>,
 ) -> syn::Result<TokenStream> {
-    let item_type: &syn::Type = &*impl_item.self_ty;
-
+    let item_ty = &impl_item.self_ty;
     for item in impl_item.items.iter_mut() {
         match item {
             syn::ImplItem::Method(method) => {
+                let args = rewrite_fn_inputs(item_ty, method);
+                let ident = &method.sig.ident;
+
                 method.attrs.push(
                     syn::parse_quote! {
-                            #[prusti::extern_spec(#item_type)]
+                            #[prusti::extern_spec]
                     });
                 method.block = syn::parse_quote! {
-                    { unimplemented!() }
-                }
+                    {
+                        #item_ty :: #ident (#args);
+                        unimplemented!()
+                    }
+                };
             }
             _ => {
                 return Err(syn::Error::new(
@@ -211,7 +215,6 @@ pub fn rewrite_extern_item_fn(
             }
         }
     }
-
     impl_item.self_ty = new_ty;
 
     Ok(quote! {
@@ -219,6 +222,37 @@ pub fn rewrite_extern_item_fn(
     })
 }
 
+pub fn rewrite_fn_inputs(item_ty: &Box<syn::Type>, method: &mut ImplItemMethod) ->
+                           syn::punctuated::Punctuated<syn::Expr, syn::token::Comma>{
+    let mut args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
+        syn::punctuated::Punctuated::new();
+
+    for input in method.sig.inputs.iter_mut() {
+        match input {
+            syn::FnArg::Receiver(receiver) => {
+                let and = if receiver.reference.is_some() {
+                    quote! {&}
+                } else {
+                    quote! { }
+                };
+                let mutability = &receiver.mutability;
+                let fn_arg: syn::FnArg = syn::parse_quote! { _self : #and #mutability #item_ty };
+                *input = fn_arg;
+                let expr: syn::Expr = syn::parse_quote! { _self };
+                args.push_value(expr);
+            }
+            syn::FnArg::Typed(typed) => {
+                if let syn::Pat::Ident(ident) = &*typed.pat {
+                    let arg = &ident.ident;
+                    let expr: syn::Expr = syn::parse_quote! { #arg };
+                    args.push_value(expr);
+                }
+            }
+        }
+        args.push_punct(syn::token::Comma::default());
+    };
+    args
+}
 
 pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct> {
     let mut path_str: String = String::new();
@@ -235,14 +269,28 @@ pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct>
             ));
         }
     };
-
     let struct_ident = syn::Ident::new(
         &format!("PrustiStruct{}", path_str),
         item.span(),
     );
 
-    Ok(syn::parse_quote! {
-        #[prusti::extern_spec]
+    let mut new_struct: syn::ItemStruct = syn::parse_quote! {
         struct #struct_ident {}
-    })
+    };
+
+    new_struct.generics = item.generics.clone();
+    let generics = &new_struct.generics;
+
+    let mut fields_str: String = String::new();
+
+    for param in generics.params.iter() {
+        let field = format!("std::marker::PhantomData<{}>,", param.to_token_stream().to_string());
+        fields_str.push_str(&field);
+    }
+
+    let fields : syn::FieldsUnnamed =
+        syn::parse_str(&format!("({})", fields_str)).unwrap();
+
+    new_struct.fields = syn::Fields::Unnamed(fields);
+    Ok(new_struct)
 }
