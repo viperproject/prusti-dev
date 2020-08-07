@@ -8,7 +8,7 @@ use rustc_span::symbol::Symbol;
 use rustc_hir::def_id::LocalDefId;
 use std::collections::HashMap;
 use std::convert::TryInto;
-use crate::utils::has_spec_only_attr;
+use crate::utils::{has_prusti_attr, has_spec_only_attr};
 
 pub mod external;
 pub mod typed;
@@ -113,6 +113,11 @@ fn reconstruct_typed_assertion<'tcx>(
     assertion.to_typed(typed_expressions, tcx)
 }
 
+/// Check if `prusti::extern_spec` is among the attributes.
+pub fn has_extern_spec_attr(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "extern_spec")
+}
+
 /// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.
 fn read_prusti_attr(attr_name: &str, attrs: &[ast::Attribute]) -> Option<String> {
     let mut string = None;
@@ -188,6 +193,9 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         span: Span,
         id: rustc_hir::hir_id::HirId,
     ) {
+        if has_extern_spec_attr(fn_kind.attrs()) {
+            self.resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id);
+        }
         if self.current_spec_item.is_some() {
             if read_prusti_attr("spec_id", fn_kind.attrs()).is_none() {
                 let expr_id = read_prusti_attr("expr_id", fn_kind.attrs()).unwrap();
