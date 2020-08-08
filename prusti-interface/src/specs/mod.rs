@@ -100,7 +100,6 @@ impl<'tcx> SpecCollector<'tcx> {
     pub fn resolve_extern_specs(&mut self) {
         let hir = self.tcx.hir();
         let krate = hir.krate();
-        self.resolver.collect_extern_crates();
         intravisit::walk_crate(&mut self.resolver, &krate);
     }
 }
@@ -165,6 +164,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         let map = self.tcx.hir();
         intravisit::NestedVisitorMap::All(map)
     }
+
     fn visit_item(&mut self, item: &'tcx rustc_hir::Item<'tcx>) {
         if let ItemKind::Impl {items, ..} = &item.kind {
             for impl_item_ref in items.iter() {
@@ -193,17 +193,19 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         span: Span,
         id: rustc_hir::hir_id::HirId,
     ) {
-        if has_extern_spec_attr(fn_kind.attrs()) {
-            self.resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id);
-        }
         if self.current_spec_item.is_some() {
             if read_prusti_attr("spec_id", fn_kind.attrs()).is_none() {
                 let expr_id = read_prusti_attr("expr_id", fn_kind.attrs()).unwrap();
                 let local_id = self.tcx.hir().local_def_id(id);
                 self.typed_expressions.insert(expr_id, local_id);
             }
+        } else if has_extern_spec_attr(fn_kind.attrs()) {
+            self.resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id);
         }
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
+        if let Some(spec_item) = self.current_spec_item.take() {
+            self.spec_items.push(spec_item);
+        }
     }
     fn visit_local(&mut self, local: &'tcx rustc_hir::Local<'tcx>) {
         let mut clean_spec_item = false;
