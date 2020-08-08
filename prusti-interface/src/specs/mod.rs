@@ -69,7 +69,7 @@ impl<'tcx> SpecCollector<'tcx> {
             })
             .collect()
     }
-
+    
     fn process_item(&mut self, item: Item) {
         if has_spec_only_attr(item.attrs) {
             assert!(
@@ -101,6 +101,10 @@ impl<'tcx> SpecCollector<'tcx> {
         let hir = self.tcx.hir();
         let krate = hir.krate();
         intravisit::walk_crate(&mut self.resolver, &krate);
+    }
+
+    pub fn determine_extern_procedure_specs(self) -> typed::ExternSpecificationMap<'tcx> {
+        self.resolver.get_extern_fn_map()
     }
 }
 

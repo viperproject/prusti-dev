@@ -5,11 +5,12 @@ use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 
 use std::collections::HashMap;
+use crate::specs::typed::ExternSpecificationMap;
 
 pub struct ExternSpecResolver<'tcx> {
     tcx: TyCtxt<'tcx>,
     /// Map of def id of the real function to the fake function containing the specifications
-    extern_fn_map: HashMap<DefId, DefId>,
+    extern_fn_map: ExternSpecificationMap<'tcx>,
     current_def_id: Option<DefId>,
 }
 
@@ -31,6 +32,10 @@ impl<'tcx> ExternSpecResolver<'tcx> {
 
         self.current_def_id = Some(self.tcx.hir().local_def_id(id).to_def_id());
         intravisit::Visitor::visit_fn(self, fn_kind, fn_decl, body_id, span, id);
+    }
+
+    pub fn get_extern_fn_map(&self) -> ExternSpecificationMap<'tcx> {
+        self.extern_fn_map.clone()
     }
 }
 

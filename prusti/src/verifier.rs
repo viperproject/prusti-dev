@@ -12,7 +12,9 @@ use prusti_common::config::ConfigFlags;
 use prusti_common::report::user;
 
 
-pub fn verify<'tcx>(flags: ConfigFlags, tcx: TyCtxt<'tcx>, spec: typed::SpecificationMap<'tcx>) {
+pub fn verify<'tcx>(flags: ConfigFlags, tcx: TyCtxt<'tcx>, spec: typed::SpecificationMap<'tcx>,
+                    // extern_spec: typed::ExternSpecificationMap<'tcx>
+) {
     trace!("[verify] enter");
 
     let env = Environment::new(tcx);
