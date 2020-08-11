@@ -64,8 +64,13 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         let prusti_contracts_path =
             get_latest_crate_artefact(&prusti_home, "prusti_contracts", "rlib");
         cmd.arg(format!("prusti_contracts={}", prusti_contracts_path));
+        let dylib_extension = if cfg!(target_os = "macos") {
+            "dylib"
+        } else {
+            "so"
+        };
         let prusti_internal_path =
-            get_latest_crate_artefact(&prusti_home, "prusti_contracts_internal", "so");
+            get_latest_crate_artefact(&prusti_home, "prusti_contracts_internal", dylib_extension);
         cmd.arg("--extern");
         cmd.arg(format!(
             "prusti_contracts_internal={}",

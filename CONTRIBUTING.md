@@ -23,8 +23,16 @@ If you have VS Code installed, you can launch it with the necessary configuratio
 ./x.py ide .    # Arguments after `ide` are passed to `code`.
 ```
 
-If you want to see what exactly environment variables `./x.py` is setting, pass the `+verbose` flag:
+If you want to see what exactly environment variables `./x.py` is setting, pass the `++verbose` flag:
 
 ```bash
 ./x.py ++verbose build
+```
+
+After a successful build, you can use the `prusti-rustc` as follows (note that Prusti works only with 2018 edition):
+
+```bash
+# Set all env variables.
+export PRUSTI_LOAD_ALL_PROC_MACRO_CRATES=true
+./target/debug/prusti-rustc prusti/tests/pass/parse/pledges.rs --edition=2018
 ```
