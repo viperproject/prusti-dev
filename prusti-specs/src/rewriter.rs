@@ -193,13 +193,16 @@ pub fn rewrite_extern_item_fn(
     for item in impl_item.items.iter_mut() {
         match item {
             syn::ImplItem::Method(method) => {
+                for attr in method.attrs.iter_mut() {
+                    attr.tokens = rewrite_self(attr.tokens.clone());
+                }
+
                 let args = rewrite_fn_inputs(item_ty, method);
                 let ident = &method.sig.ident;
 
-                method.attrs.push(
-                    syn::parse_quote! {
-                            #[prusti::extern_spec]
-                    });
+                method.attrs.push(syn::parse_quote! { #[prusti::extern_spec]});
+                method.attrs.push(syn::parse_quote! { #[trusted] });
+
                 method.block = syn::parse_quote! {
                     {
                         #item_ty :: #ident (#args);
@@ -218,8 +221,33 @@ pub fn rewrite_extern_item_fn(
     impl_item.self_ty = new_ty;
 
     Ok(quote! {
+        #[allow(unused_variables)]
+        #[allow(dead_code)]
         #impl_item
     })
+}
+
+pub fn rewrite_self(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    let mut new_tokens = proc_macro2::TokenStream::new();
+    for token in tokens.into_iter() {
+        match token {
+            proc_macro2::TokenTree::Group(group) => {
+                let new_group = proc_macro2::Group::new(group.delimiter(),
+                                                        rewrite_self(group.stream()));
+                new_tokens.extend(new_group.to_token_stream());
+            }
+            proc_macro2::TokenTree::Ident(mut ident) => {
+                if ident.to_string() == "self" {
+                    ident = proc_macro2::Ident::new("_self", ident.span());
+                }
+                new_tokens.extend(ident.into_token_stream());
+            }
+            _ => {
+                new_tokens.extend(token.into_token_stream());
+            }
+        }
+    }
+    new_tokens
 }
 
 pub fn rewrite_fn_inputs(item_ty: &Box<syn::Type>, method: &mut ImplItemMethod) ->
