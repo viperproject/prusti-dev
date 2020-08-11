@@ -53,15 +53,8 @@ extern crate rustc_index;
 #[macro_use]
 extern crate lazy_static;
 
-// pub mod ast_builder;
-// pub mod constants;
 pub mod data;
 pub mod environment;
-// pub mod parser;
 pub mod report;
-// pub mod specifications; TODO: Delete.
 pub mod specs;
-// pub mod sysroot;
 pub mod utils;
-// pub mod cargo;
-// pub mod trait_register;
