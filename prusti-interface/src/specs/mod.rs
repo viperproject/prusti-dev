@@ -8,7 +8,7 @@ use rustc_span::symbol::Symbol;
 use rustc_hir::def_id::LocalDefId;
 use std::collections::HashMap;
 use std::convert::TryInto;
-use crate::utils::{has_prusti_attr, has_spec_only_attr};
+use crate::utils::{has_spec_only_attr, has_extern_spec_attr};
 
 pub mod external;
 pub mod typed;
@@ -97,13 +97,7 @@ impl<'tcx> SpecCollector<'tcx> {
         }
     }
 
-    pub fn resolve_extern_specs(&mut self) {
-        let hir = self.tcx.hir();
-        let krate = hir.krate();
-        intravisit::walk_crate(&mut self.resolver, &krate);
-    }
-
-    pub fn determine_extern_procedure_specs(self) -> typed::ExternSpecificationMap<'tcx> {
+    pub fn determine_extern_procedure_specs(&self) -> typed::ExternSpecificationMap<'tcx> {
         self.resolver.get_extern_fn_map()
     }
 }
@@ -114,11 +108,6 @@ fn reconstruct_typed_assertion<'tcx>(
     tcx: TyCtxt<'tcx>
 ) -> typed::Assertion<'tcx> {
     assertion.to_typed(typed_expressions, tcx)
-}
-
-/// Check if `prusti::extern_spec` is among the attributes.
-pub fn has_extern_spec_attr(attrs: &[ast::Attribute]) -> bool {
-    has_prusti_attr(attrs, "extern_spec")
 }
 
 /// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.

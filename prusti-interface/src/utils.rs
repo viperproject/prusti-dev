@@ -291,6 +291,11 @@ pub fn has_spec_only_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "spec_only")
 }
 
+/// Check if `prusti::extern_spec` is among the attributes.
+pub fn has_extern_spec_attr(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "extern_spec")
+}
+
 // pub fn get_attr_value(attr: &ast::Attribute) -> String {
 //     use syntax::parse::token;
 //     use syntax::tokenstream::TokenTree;

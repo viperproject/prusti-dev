@@ -144,10 +144,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
     pub fn new(
         env: &'v Environment<'tcx>,
         spec: &'v typed::SpecificationMap<'tcx>,
+        extern_spec: &'v typed::ExternSpecificationMap<'tcx>,
     ) -> Self {
         Verifier {
             env,
-            encoder: Encoder::new(env, spec),
+            encoder: Encoder::new(env, spec, extern_spec),
         }
     }
 

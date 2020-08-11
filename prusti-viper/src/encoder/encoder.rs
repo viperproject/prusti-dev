@@ -66,6 +66,7 @@ const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
     spec: &'v typed::SpecificationMap<'tcx>,
+    extern_spec: &'v typed::ExternSpecificationMap<'tcx>,
     error_manager: RefCell<ErrorManager<'tcx>>,
     procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
@@ -108,7 +109,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
-    pub fn new(env: &'v Environment<'tcx>, spec: &'v typed::SpecificationMap<'tcx>) -> Self {
+    pub fn new(env: &'v Environment<'tcx>, spec: &'v typed::SpecificationMap<'tcx>,
+               extern_spec: &'v typed::ExternSpecificationMap<'tcx>) -> Self {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         let vir_program_before_foldunfold_writer = RefCell::new(
@@ -131,6 +133,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Encoder {
             env,
             spec,
+            extern_spec,
             error_manager: RefCell::new(ErrorManager::new(env.codemap())),
             procedure_contracts: RefCell::new(HashMap::new()),
             builtin_methods: RefCell::new(HashMap::new()),
@@ -201,6 +204,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn spec(&self) -> &'v typed::SpecificationMap<'tcx> {
         self.spec
+    }
+
+    /** Returns the def_id of the element containing the specifications. This can be different from the
+       def_id that was passed in if the specifications were externally declared */
+    pub fn def_id(&self, def_id: &'v ProcedureDefId) -> &'v ProcedureDefId {
+        self.extern_spec.get(def_id).unwrap_or(def_id)
     }
 
     pub fn error_manager(&self) -> RefMut<ErrorManager<'tcx>> {
@@ -1344,9 +1353,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// `is_encoding_assertion` marks that we are translating a specification assertion.
     pub fn encode_pure_function_body(
         &self,
-        proc_def_id: ProcedureDefId,
+        mut proc_def_id: ProcedureDefId,
         is_encoding_assertion: bool,
     ) -> vir::Expr {
+        proc_def_id = *self.def_id(&proc_def_id);
         let substs_key = self.type_substitution_key();
         let key = (proc_def_id, substs_key);
         if !self.pure_function_bodies.borrow().contains_key(&key) {
@@ -1367,9 +1377,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_pure_function_def(
         &self,
-        proc_def_id: ProcedureDefId,
+        mut proc_def_id: ProcedureDefId,
         substs: Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>,
     ) {
+        proc_def_id = *self.def_id(&proc_def_id);
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
             self.env.has_attribute_name(proc_def_id, "pure"),
@@ -1533,8 +1544,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// The called function must be marked as pure.
     pub fn encode_pure_function_use(
         &self,
-        proc_def_id: ProcedureDefId,
+        mut proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
+        proc_def_id = *self.def_id(&proc_def_id);
         let procedure = self.env.get_procedure(proc_def_id);
 
         assert!(
@@ -1586,8 +1598,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// when the user tries to call an impure function in a context that requires a pure function.
     pub fn encode_stub_pure_function_use(
         &self,
-        proc_def_id: ProcedureDefId,
+        mut proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
+        proc_def_id = *self.def_id(&proc_def_id);
         let procedure = self.env.get_procedure(proc_def_id);
         let encoder = StubFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
 

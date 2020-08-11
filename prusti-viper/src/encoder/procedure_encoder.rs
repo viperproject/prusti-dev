@@ -1773,7 +1773,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ..
             } => {
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
-                    let def_id = *def_id;
+                    let def_id = *self.encoder.def_id(def_id);
                     let full_func_proc_name: &str =
                         &self.encoder.env().tcx().def_path_str(def_id);
                         // &self.encoder.env().tcx().absolute_item_path_str(def_id);
