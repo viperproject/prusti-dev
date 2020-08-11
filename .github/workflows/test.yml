@@ -40,8 +40,26 @@ jobs:
 #       ./target/debug/prusti-rustc prusti/tests/verify/pass/no-annotations/assert-true.rs
 #       ! ./target/debug/prusti-rustc prusti/tests/verify/fail/no-annotations/assert-false.rs
 
-  rustc-update:
+  rustc-update-linux:
     runs-on: ubuntu-latest
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v2
+    - name: Set up the environment
+      run: ./x.py setup
+    - name: Build with cargo
+      run: ./x.py build --all --verbose
+    - name: Run cargo tests
+      run: ./x.py test --all --verbose
+    - name: Check formatting
+      run: echo "temporarily skipped" # ./x.py fmt -- --check
+    - name: Check prusti-contracts
+      run: |
+        cd prusti-contracts-test/
+        cargo build
+
+  rustc-update-mac:
+    runs-on: macos-latest
     steps:
     - name: Check out the repo
       uses: actions/checkout@v2
