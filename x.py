@@ -57,6 +57,35 @@ def get_linux_env():
     return variables
 
 
+def get_mac_env():
+    """Get environment variables for Mac."""
+    java_home = get_var_or('JAVA_HOME', None)
+    if java_home is None:
+        java_home = subprocess.run(["/usr/libexec/java_home"], stdout=subprocess.PIPE).stdout.strip()
+    variables = [
+        ('JAVA_HOME', java_home),
+        ('RUST_TEST_THREADS', '1'),
+    ]
+    if os.path.exists(java_home):
+        ld_library_path = None
+        for root, _, files in os.walk(java_home):
+            if 'libjvm.dylib' in files:
+                ld_library_path = root
+                break
+        if ld_library_path is None:
+            report("could not find libjvm.dylib in {}", java_home)
+        else:
+            variables.append(('LD_LIBRARY_PATH', ld_library_path))
+            variables.append(('DYLD_LIBRARY_PATH', ld_library_path))
+    viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/backends'))
+    if os.path.exists(viper_home):
+        variables.append(('VIPER_HOME', viper_home))
+    z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
+    if os.path.exists(z3_exe):
+        variables.append(('Z3_EXE', z3_exe))
+    return variables
+
+
 def set_env_variables(env, variables):
     """Set the given environment variables in `env` if not already set."""
     for name, value in variables:
@@ -71,6 +100,9 @@ def get_env():
     if sys.platform == "linux" or sys.platform == "linux2":
         # Linux
         set_env_variables(env, get_linux_env())
+    elif sys.platform == "darwin":
+        # Mac
+        set_env_variables(env, get_mac_env())
     else:
         error("unsupported platform: {}", sys.platform)
     return env
@@ -97,18 +129,29 @@ def cargo(args):
     run_command(['cargo'] + args)
 
 
-def setup_ubuntu(rustup_only):
+def setup_ubuntu():
     """Install the dependencies on Ubuntu."""
-    if not rustup_only:
-        # Install dependencies.
-        shell('sudo apt-get update')
-        shell('sudo apt-get install -y '
-              'build-essential pkg-config '
-              'wget gcc libssl-dev openjdk-8-jdk')
-        # Download Viper.
-        shell('wget -q http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
-        shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
-        shell('rm ViperToolsNightlyLinux.zip')
+    # Install dependencies.
+    shell('sudo apt-get update')
+    shell('sudo apt-get install -y '
+          'build-essential pkg-config '
+          'wget gcc libssl-dev openjdk-8-jdk')
+    # Download Viper.
+    shell('wget -q http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
+    shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
+    shell('rm ViperToolsNightlyLinux.zip')
+
+
+def setup_mac():
+    """Install the dependencies on Mac."""
+    # Non-Viper dependencies must be installed manually.
+    # Download Viper.
+    shell('curl http://viper.ethz.ch/downloads/ViperToolsNightlyMac.zip -o ViperToolsNightlyMac.zip')
+    shell('unzip ViperToolsNightlyMac.zip -d viper_tools')
+    shell('rm ViperToolsNightlyMac.zip')
+
+
+def setup_rustup():
     # Setup rustc components.
     shell('rustup component add rustfmt')
     shell('rustup component add rust-src')
@@ -126,13 +169,17 @@ def setup(args):
         rustup_only = True
     elif args:
         error("unexpected arguments: {}", args)
-    if sys.platform == "linux" or sys.platform == "linux2":
-        if 'Ubuntu' in platform.platform():
-            setup_ubuntu(rustup_only)
+    if not rustup_only:
+        if sys.platform == "linux" or sys.platform == "linux2":
+            if 'Ubuntu' in platform.platform():
+                setup_ubuntu()
+            else:
+                error("unsupported Linux distribution: {}", platform.platform())
+        elif sys.platform == "darwin":
+            setup_mac()
         else:
-            error("unsupported Linux distribution: {}", platform.platform())
-    else:
-        error("unsupported platform: {}", sys.platform)
+            error("unsupported platform: {}", sys.platform)
+    setup_rustup()
 
 
 def ide(args):
