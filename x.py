@@ -11,6 +11,14 @@ verbose = False
 dry_run = False
 
 
+def default_linux_java_loc():
+    if os.path.exists('/usr/lib/jvm/default-java'):
+        return '/usr/lib/jvm/default-java'
+    elif os.path.exists('/usr/lib/jvm/default'):
+        return '/usr/lib/jvm/default'
+    report("Could not determine default java location.")
+
+
 def report(template, *args, **kwargs):
     """Print the message if `verbose` is `True`."""
     if verbose:
@@ -33,7 +41,7 @@ def get_var_or(name, default):
 
 def get_linux_env():
     """Get environment variables for Linux."""
-    java_home = get_var_or('JAVA_HOME', '/usr/lib/jvm/default-java')
+    java_home = get_var_or('JAVA_HOME', default_linux_java_loc())
     variables = [
         ('JAVA_HOME', java_home),
         ('RUST_TEST_THREADS', '1'),
@@ -142,6 +150,13 @@ def setup_ubuntu():
     shell('rm ViperToolsNightlyLinux.zip')
 
 
+def setup_linux():
+    """Install the dependencies on generic Linux."""
+    shell('curl http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip -o ViperToolsNightlyLinux.zip')
+    shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
+    shell('rm ViperToolsNightlyLinux.zip')
+
+
 def setup_mac():
     """Install the dependencies on Mac."""
     # Non-Viper dependencies must be installed manually.
@@ -174,7 +189,7 @@ def setup(args):
             if 'Ubuntu' in platform.platform():
                 setup_ubuntu()
             else:
-                error("unsupported Linux distribution: {}", platform.platform())
+                setup_linux()
         elif sys.platform == "darwin":
             setup_mac()
         else:
