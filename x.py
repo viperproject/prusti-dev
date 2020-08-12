@@ -11,7 +11,7 @@ verbose = False
 dry_run = False
 
 
-def default_java_loc():
+def default_linux_java_loc():
     if os.path.exists('/usr/lib/jvm/default-java'):
         return '/usr/lib/jvm/default-java'
     elif os.path.exists('/usr/lib/jvm/default'):
@@ -41,7 +41,7 @@ def get_var_or(name, default):
 
 def get_linux_env():
     """Get environment variables for Linux."""
-    java_home = get_var_or('JAVA_HOME', default_java_loc())
+    java_home = get_var_or('JAVA_HOME', default_linux_java_loc())
     variables = [
         ('JAVA_HOME', java_home),
         ('RUST_TEST_THREADS', '1'),
