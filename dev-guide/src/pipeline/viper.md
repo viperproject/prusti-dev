@@ -7,7 +7,7 @@
 
 ## Prusti server
 
-[Prusti server](https://github.com/viperproject/prusti-dev/pull/43) is an optional component of Prusti that can significantly reduce compilation times by running a background process. The background process keeps an instance of JVM open, which is what Viper backends use to perform verification of Viper code. With the server enabled, a client only needs to send VIR to the server and receive the results once they are ready.
+[Prusti server](https://github.com/viperproject/prusti-dev/pull/43) is an optional component of Prusti that can significantly reduce verification times by running a background process. The background process keeps an instance of JVM open, which is what Viper backends use to perform verification of Viper code. With the server enabled, a client only needs to send VIR to the server and receive the results once they are ready.
 
 > - [`prusti-viper/src/verifier.rs` - `Verifier::verify`](https://github.com/viperproject/prusti-dev/blob/143e673dc19b4c1363efade90ffee4f77641ec11/prusti-viper/src/verifier.rs#L259-L281) - verification with the server.
 > - [`prusti-viper/src/verifier.rs` - `Verifier::verify`](https://github.com/viperproject/prusti-dev/blob/143e673dc19b4c1363efade90ffee4f77641ec11/prusti-viper/src/verifier.rs#L281-L288) - verification without the server.

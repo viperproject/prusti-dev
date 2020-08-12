@@ -27,7 +27,7 @@ These crates relate to parsing Prusti-specific specifications in Rust code (e.g.
 These crates contain the majority of Prusti's code.
 
  - [`prusti-common/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-common) - common modules used across Prusti (code independent from Rust internals).
-   - [`src/vir/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-common/src/vir) - Viper IR.
+   - [`src/vir/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-common/src/vir) - VIR.
      - [`ast/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-common/src/vir/ast) - Viper IR enum definitions and methods to generate Viper code (as text).
      - [`optimizations/`](https://github.com/viperproject/prusti-dev/tree/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-common/src/vir/optimizations) - optimisations of Viper IR.
      - [`borrows.rs`](https://github.com/viperproject/prusti-dev/blob/9ca9cd1b9bcfd9870691fa5a7a957a90987ba4af/prusti-common/src/vir/borrows.rs) - reborrowing DAG definition.
