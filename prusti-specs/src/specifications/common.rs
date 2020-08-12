@@ -111,6 +111,30 @@ impl Into<u64> for ExpressionId {
     }
 }
 
+pub(crate) struct StructNameGenerator {}
+
+impl StructNameGenerator {
+    pub(crate) fn new() -> Self { Self { } }
+    pub(crate) fn generate(&self, item: &syn::ItemImpl) -> Result<String, String> {
+        let mut path_str: String = String::new();
+
+        match &*item.self_ty {
+            syn::Type::Path (ty_path) => {
+                for seg in ty_path.path.segments.iter() {
+                    path_str.push_str(&seg.ident.to_string());
+                }
+            }
+            _ => {
+                return Err("expected a path".to_string());
+            }
+        };
+        let uuid = Uuid::new_v4().to_simple();
+
+        Ok(format!("PrustiStruct{}{}", path_str, uuid))
+    }
+}
+
+
 #[derive(Debug, Clone)]
 /// A Rust expression used in the specification.
 pub struct Expression<EID, ET> {

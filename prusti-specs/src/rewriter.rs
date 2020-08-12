@@ -1,4 +1,4 @@
-use crate::specifications::common::{ExpressionIdGenerator, SpecificationIdGenerator};
+use crate::specifications::common::{ExpressionIdGenerator, SpecificationIdGenerator, StructNameGenerator};
 use crate::specifications::untyped::{self, EncodeTypeCheck};
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, format_ident, ToTokens};
@@ -283,23 +283,16 @@ pub fn rewrite_fn_inputs(item_ty: &Box<syn::Type>, method: &mut ImplItemMethod) 
 }
 
 pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct> {
-    let mut path_str: String = String::new();
-    match &*item.self_ty {
-        syn::Type::Path (ty_path) => {
-            for seg in ty_path.path.segments.iter() {
-                path_str.push_str(&seg.ident.to_string());
-            }
-        }
-        _ => {
-            return Err(syn::Error::new(
-                item.span(),
-                "expected a path".to_string(),
-            ));
-        }
+    let name_generator = StructNameGenerator::new();
+    let struct_name = match name_generator.generate(item) {
+        Ok(name) => name,
+        Err(msg) => return Err(syn::Error::new(
+            item.span(),
+            msg,
+        ))
     };
-    let struct_ident = syn::Ident::new(
-        &format!("PrustiStruct{}", path_str),
-        item.span(),
+    let struct_ident = syn::Ident::new(&struct_name,
+    item.span(),
     );
 
     let mut new_struct: syn::ItemStruct = syn::parse_quote! {
