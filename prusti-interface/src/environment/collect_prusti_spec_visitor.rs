@@ -20,7 +20,7 @@ use rustc_ast::ast;
 pub(crate) fn contains_name(attrs: &[ast::Attribute], name: &str) -> bool {
     for attr in attrs {
         match &attr.kind {
-            ast::AttrKind::DocComment(symbol) => {},
+            ast::AttrKind::DocComment(_, symbol) => {},
             ast::AttrKind::Normal(ast::AttrItem {
                 path: ast::Path { span: _, segments },
                 args: _,

@@ -1,7 +1,6 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use proc_macro_hack::proc_macro_hack;
 use quote::quote;
 
 #[proc_macro_attribute]
@@ -34,7 +33,7 @@ pub fn trusted(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
 
-#[proc_macro_hack]
+#[proc_macro]
 pub fn invariant(_tokens: TokenStream) -> TokenStream {
     (quote! { () }).into()
 }
