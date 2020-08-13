@@ -129,6 +129,14 @@ pub fn invariant(tokens: TokenStream) -> TokenStream {
     }
 }
 
+/** Unlike the functions above, which are only called from
+ *  prusti-contracts-internal, this function also needs to be called
+ *  from prusti-contracts-impl, because we still need to parse the
+ *  macro in order to replace it with the closure definition.
+ *  Therefore, there is an extra parameter drop_spec here which tells
+ *  the function whether to keep the specification (for -internal) or
+ *  drop it (for -impl).
+ */
 pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
     let mut requires: Vec<TokenTree> = vec! [];
     let mut ensures: Vec<TokenTree> = vec! [];
@@ -207,6 +215,49 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         }
     }
 
-    cl.expect("closure must be parsed by now")
-      .into_token_stream()
+    let cl = cl.expect("closure must be parsed by now");
+
+    if drop_spec {
+        cl.into_token_stream()
+    } else {
+        let mut rewriter = rewriter::AstRewriter::new();
+
+        let mut preconds: Vec<(untyped::SpecificationId,untyped::Assertion)> = Vec::new();
+        let mut postconds: Vec<(untyped::SpecificationId,untyped::Assertion)> = Vec::new();
+
+        let mut cl_annotations = TokenStream::new();
+
+        for r in requires {
+            let spec_id = rewriter.generate_spec_id();
+            let precond = handle_result!(rewriter.parse_assertion(spec_id, r.into()));
+            preconds.push((spec_id, precond));
+            let spec_id_str = spec_id.to_string();
+            cl_annotations.extend(quote! {
+                #[prusti::pre_spec_id_ref = #spec_id_str]
+            });
+        }
+
+        for e in ensures {
+            let spec_id = rewriter.generate_spec_id();
+            let postcond = handle_result!(rewriter.parse_assertion(spec_id, e.into()));
+            postconds.push((spec_id, postcond));
+            let spec_id_str = spec_id.to_string();
+            cl_annotations.extend(quote! {
+                #[prusti::post_spec_id_ref = #spec_id_str]
+            });
+        }
+
+        let spec_toks = rewriter.generate_cl_spec(preconds, postconds);
+
+        let toks = cl.into_token_stream();
+        quote! {
+            {
+                if false {
+                    #spec_toks
+                }
+                #cl_annotations
+                #toks
+            }
+        }
+    }
 }
