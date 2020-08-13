@@ -1,4 +1,4 @@
-# Repository layout
+# Repository Layout
 
 This section describes the crates located in the Prusti repository, their function, and key modules. Some important files are linked and described individually, although this list is far from complete.
 

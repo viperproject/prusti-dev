@@ -1,8 +1,8 @@
-# Verification pipeline
+# Verification Pipeline
 
 At a high level, Prusti is a tool that converts Rust code enriched with Prusti specifications into [Viper code](https://viper.ethz.ch), verifies the code with an external verifier, and then reports the results back to the user.
 
-This section summarises the steps that take place when the user runs Prusti on a given Rust file. The steps are described in greater detail in the subsequent chapters. Although we present the steps in separate “stages”, this distinction only exists for the purposes of this guide, and is not clearly mirrored in the codebase.
+This chapter summarises the steps that take place when the user runs Prusti on a given Rust file. The steps are described in greater detail in the subsequent sections. Although we present the steps in separate “stages”, this distinction only exists for the purposes of this guide, and is not clearly mirrored in the codebase.
 
 1. [Binary stage](binary.md)
     - User invokes the binary `prusti-rustc <file.rs>`.
