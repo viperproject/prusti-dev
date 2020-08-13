@@ -14,6 +14,7 @@ use super::procedure::Procedure;
 use crate::utils;
 use polonius_engine::{Algorithm, Atom, Output};
 use rustc_middle::mir;
+use rustc_span::def_id::LOCAL_CRATE;
 use rustc_hash::FxHashMap;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt;
@@ -712,7 +713,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
         // Read relations between region IDs and local variables.
         let renumber_path = PathBuf::from(format!(
-            "log/mir/rustc.{}.-------.renumber.0.mir",
+            "log/mir/{}.{}.-------.renumber.0.mir",
+            tcx.crate_name(LOCAL_CRATE),
             def_path.to_filename_friendly_no_crate()
         ));
         debug!("Renumber path: {:?}", renumber_path);
