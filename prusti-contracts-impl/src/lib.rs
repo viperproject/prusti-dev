@@ -38,7 +38,7 @@ pub fn invariant(_tokens: TokenStream) -> TokenStream {
     (quote! { () }).into()
 }
 
-#[proc_macro_hack]
+#[proc_macro]
 pub fn closure(tokens: TokenStream) -> TokenStream {
     prusti_specs::closure(tokens.into(), true).into()
 }
