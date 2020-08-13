@@ -85,7 +85,7 @@ fn read_attr(attr_name: &str, attrs: &[ast::Attribute]) -> Option<String> {
     let mut string = None;
     for attr in attrs {
         match &attr.kind {
-            ast::AttrKind::DocComment(_) => unreachable!(),
+            ast::AttrKind::DocComment(_, _) => unreachable!(),
             ast::AttrKind::Normal(ast::AttrItem {
                 path: ast::Path { span: _, segments },
                 args: ast::MacArgs::Eq(_, tokens),

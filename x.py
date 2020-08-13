@@ -123,13 +123,14 @@ def run_command(args):
         sys.exit(completed.returncode)
 
 
-def shell(command):
+def shell(command, term_on_nzec=True):
     """Run a shell command."""
     print("Running a shell command: ", command)
     if not dry_run:
         completed = subprocess.run(command.split())
-        if completed.returncode != 0:
+        if completed.returncode != 0 and term_on_nzec:
             sys.exit(completed.returncode)
+        return completed.returncode
 
 
 def cargo(args):
@@ -168,7 +169,7 @@ def setup_mac():
 
 def setup_rustup():
     # Setup rustc components.
-    shell('rustup component add rustfmt')
+    shell('rustup component add rustfmt', term_on_nzec=False)
     shell('rustup component add rust-src')
     shell('rustup component add rustc-dev')
     shell('rustup component add llvm-tools-preview')
