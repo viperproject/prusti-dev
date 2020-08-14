@@ -146,6 +146,7 @@ impl AstRewriter {
         }
     }
     /// Generate statements for checking a closure specification.
+    /// TODO: arguments, result (types are typically not known yet after parsing...)
     pub fn generate_cl_spec(
         &mut self,
         preconds: Vec<(untyped::SpecificationId,untyped::Assertion)>,

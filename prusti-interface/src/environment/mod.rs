@@ -23,8 +23,11 @@ use std::collections::HashSet;
 // use syntax_pos::MultiSpan;
 // use syntax_pos::symbol::Symbol;
 
+use log::debug;
+
 pub mod borrowck;
 mod collect_prusti_spec_visitor;
+mod collect_closure_defs_visitor;
 mod dump_borrowck_info;
 mod loops;
 mod loops_utils;
@@ -34,6 +37,8 @@ pub mod polonius_info;
 mod procedure;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
+use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
+use rustc_hir::intravisit::Visitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
 pub use self::procedure::{BasicBlockIndex, Procedure};
@@ -157,6 +162,11 @@ impl<'tcx> Environment<'tcx> {
         let tcx = self.tcx;
         let mut visitor = CollectPrustiSpecVisitor::new(self);
         tcx.hir().krate().visit_all_item_likes(&mut visitor);
+
+        let mut cl_visitor = CollectClosureDefsVisitor::new(tcx.hir());
+        tcx.hir().krate().visit_all_item_likes(&mut cl_visitor.as_deep_visitor());
+        debug!("closure defs found: {:?}", cl_visitor.get_closure_defs());
+
         visitor.get_annotated_procedures()
     }
 

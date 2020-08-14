@@ -248,16 +248,17 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         }
 
         let spec_toks = rewriter.generate_cl_spec(preconds, postconds);
+        let toks = cl.to_token_stream();
 
-        let toks = cl.into_token_stream();
-        quote! {
-            {
-                if false {
-                    #spec_toks
-                }
-                #cl_annotations
-                #toks
-            }
-        }
+        quote! { #cl_annotations #toks }
+        // quote! {
+        //     {
+        //         if false {
+        //             #spec_toks
+        //         }
+        //         #cl_annotations
+        //         #toks
+        //     }
+        // }
     }
 }
