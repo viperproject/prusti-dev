@@ -196,9 +196,6 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
             self.resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id);
         }
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
-        if let Some(spec_item) = self.current_spec_item.take() {
-            self.spec_items.push(spec_item);
-        }
     }
     fn visit_local(&mut self, local: &'tcx rustc_hir::Local<'tcx>) {
         let mut clean_spec_item = false;
