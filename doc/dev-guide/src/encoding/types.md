@@ -1,6 +1,8 @@
 # Types
 
-This section describes how Rust types are encoded into Viper. 
+This section describes how Rust types are encoded into Viper.
+
+TODO: snapshots
 
 ## Primitive types
 
@@ -37,7 +39,7 @@ predicate i32(self: Ref) {
 }
 ```
 
-When the [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](../config/flags.md#encode_unsigned_num_constraint) flag is enabled (even when `CHECK_BINARY_OPERATIONS` is not), non-negativity of unisnged integers is always encoded.
+When the [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](../config/flags.md#encode_unsigned_num_constraint) flag is enabled (even when `CHECK_BINARY_OPERATIONS` is not), non-negativity of unsigned integers is always encoded.
 
 ```viper
 // with ENCODE_UNSIGNED_NUM_CONSTRAINT
