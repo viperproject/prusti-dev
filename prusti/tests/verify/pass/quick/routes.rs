@@ -1,5 +1,8 @@
 #![feature(box_syntax, box_patterns)]
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 /// From points.rs
 struct Point {
@@ -7,8 +10,8 @@ struct Point {
 }
 
 /// From points.rs
-#[ensures="p.x == old(p.x) + s"]
-#[ensures="p.y == old(p.y)"]
+#[ensures(p.x == old(p.x) + s)]
+#[ensures(p.y == old(p.y))]
 fn shift_x(p: &mut Point, s: i32) {
   p.x = p.x + s
 }
@@ -19,7 +22,7 @@ struct Route { //list of Points
 }
 
 #[pure]
-#[ensures="result > 0"]
+#[ensures(result > 0)]
 fn length(r: &Route) -> i32 {
   1 + match r.rest {
     Some(box ref q) => length(q),
@@ -28,7 +31,7 @@ fn length(r: &Route) -> i32 {
 }
 
 #[pure]
-#[requires="0 <= n && n < length(r)"]
+#[requires(0 <= n && n < length(r))]
 fn get_nth_x(r: &Route, n: i32) -> i32 {
   if n == 0 { r.current.x } else {
     match r.rest {
@@ -38,19 +41,17 @@ fn get_nth_x(r: &Route, n: i32) -> i32 {
   }
 }
 
-#[requires="0 <= n && n < length(r)"]
-#[ensures="result.x == old(get_nth_x(r, n))"]
+#[requires(0 <= n && n < length(r))]
+#[ensures(result.x == old(get_nth_x(r, n)))]
 // Since a function (with our restrictions) can have only one magic wand
 // in its postcondition, we do not require the user to write with which
 // reference the functional specification is associated.
-#[ensures="after_expiry(
+#[after_expiry(
     length(r) == old(length(r)) &&
     get_nth_x(r, n) == before_expiry(result.x) &&
-    forall i: i32 ::
-        (0<=i && i<length(r) && i != n) ==>
-        get_nth_x(r, i) == old(get_nth_x(r, i))
-)
-"]
+    forall(|i: i32| (0<=i && i<length(r) && i != n) ==>
+        get_nth_x(r, i) == old(get_nth_x(r, i)))
+)]
 // See Sec. ~{\texttt{\ref{sec:promises}}}~
 fn borrow_nth(r:&mut Route, n: i32) ->
  &mut Point {
@@ -63,13 +64,10 @@ fn borrow_nth(r:&mut Route, n: i32) ->
   }
 }
 
-#[requires="0 <= n && n < length(r)"]
-#[ensures="length(r) == old(length(r))"]
-#[ensures="get_nth_x(r, n) ==
-  old(get_nth_x(r, n)) + s"]
-#[ensures="forall i: i32 ::
-  (0<=i && i<length(r) && i != n) ==>
-  get_nth_x(r, i) == old(get_nth_x(r, i))"]
+#[requires(0 <= n && n < length(r))]
+#[ensures(length(r) == old(length(r)))]
+#[ensures(get_nth_x(r, n) == old(get_nth_x(r, n)) + s)]
+#[ensures(forall(|i: i32| (0<=i && i<length(r) && i != n) ==> get_nth_x(r, i) == old(get_nth_x(r, i))))]
 fn shift_nth_x(r: &mut Route, n: i32, s:i32) {
   let p = borrow_nth(r, n);
   shift_x(p,s);

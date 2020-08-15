@@ -1,4 +1,7 @@
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 struct T {
     x: u32,
@@ -9,7 +12,7 @@ fn get_x(t: &mut T) -> u32 {
     t.x
 }
 
-#[ensures="old(get_x(t)) == get_x(t)"]
+#[ensures(old(get_x(t)) == get_x(t))]
 fn test(t: &mut T) {}
 
 fn main() {}
