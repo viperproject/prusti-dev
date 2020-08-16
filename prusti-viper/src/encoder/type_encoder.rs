@@ -6,16 +6,16 @@
 
 use crate::encoder::foldunfold;
 use crate::encoder::spec_encoder::SpecEncoder;
-// use crate::encoder::utils::range_extract;
-// use crate::encoder::utils::PlusOne;
+use crate::encoder::utils::range_extract;
+use crate::encoder::utils::PlusOne;
 use crate::encoder::Encoder;
 use prusti_common::vir::{self, ExprIterator, ExprFolder};
 use prusti_common::config;
 // use prusti_interface::specifications::*;
 // use rustc::middle::const_val::ConstVal;
 use rustc_middle::ty;
-// use rustc::ty::layout;
-// use rustc::ty::layout::IntegerExt;
+use rustc_target::abi;
+use rustc_middle::ty::layout::IntegerExt;
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
 use std::collections::hash_map::DefaultHasher;
@@ -23,7 +23,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use rustc_ast::ast;
 use prusti_interface::specs::typed;
-// use syntax::attr::SignedInt;
+use rustc_attr::IntType::SignedInt;
 use log::{debug, trace};
 use crate::encoder::errors::{ErrorCtxt, PanicCause::Unimplemented};
 
@@ -701,28 +701,27 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
 /// Compute the values that a discriminant can take.
 pub fn compute_discriminant_values(adt_def: &ty::AdtDef, tcx: ty::TyCtxt) -> Vec<i128> {
-    // let mut discr_values: Vec<i128> = vec![];
-    // // Handle *signed* discriminats
-    // if let SignedInt(ity) = adt_def.repr.discr_type() {
-    //     let bit_size = layout::Integer::from_attr(tcx, SignedInt(ity))
-    //         .size()
-    //         .bits();
-    //     let shift = 128 - bit_size;
-    //     for (variant_index, _) in adt_def.variants.iter().enumerate() {
-    //         let unsigned_discr = adt_def.discriminant_for_variant(tcx, variant_index).val;
-    //         let casted_discr = unsigned_discr as i128;
-    //         // sign extend the raw representation to be an i128
-    //         let signed_discr = (casted_discr << shift) >> shift;
-    //         discr_values.push(signed_discr);
-    //     }
-    // } else {
-    //     for (variant_index, _) in adt_def.variants.iter().enumerate() {
-    //         let value = adt_def.discriminant_for_variant(tcx, variant_index).val;
-    //         discr_values.push(value as i128);
-    //     }
-    // }
-    // discr_values
-    unimplemented!();
+    let mut discr_values: Vec<i128> = vec![];
+    // Handle *signed* discriminats
+    if let SignedInt(ity) = adt_def.repr.discr_type() {
+        let bit_size = abi::Integer::from_attr(&tcx, SignedInt(ity))
+            .size()
+            .bits();
+        let shift = 128 - bit_size;
+        for (variant_index, _) in adt_def.variants.iter().enumerate() {
+            let unsigned_discr = adt_def.discriminant_for_variant(tcx, abi::VariantIdx::from_usize(variant_index)).val;
+            let casted_discr = unsigned_discr as i128;
+            // sign extend the raw representation to be an i128
+            let signed_discr = (casted_discr << shift) >> shift;
+            discr_values.push(signed_discr);
+        }
+    } else {
+        for (variant_index, _) in adt_def.variants.iter().enumerate() {
+            let value = adt_def.discriminant_for_variant(tcx, abi::VariantIdx::from_usize(variant_index)).val;
+            discr_values.push(value as i128);
+        }
+    }
+    discr_values
 }
 
 /// Encode a disjunction that lists all possible discrimintant values.
@@ -731,34 +730,33 @@ pub fn compute_discriminant_bounds(
     tcx: ty::TyCtxt,
     discriminant_loc: &vir::Expr,
 ) -> vir::Expr {
-    // /// Try to produce the minimal disjunction.
-    // fn build_discr_range_expr<T: Ord + PartialEq + Eq + Copy + Into<vir::Expr> + PlusOne>(
-    //     discriminant_loc: &vir::Expr,
-    //     discr_values: Vec<T>,
-    // ) -> vir::Expr {
-    //     if discr_values.is_empty() {
-    //         // A `false` here is unsound. See issues #38 and #158.
-    //         return true.into();
-    //     }
-    //     range_extract(discr_values)
-    //         .into_iter()
-    //         .map(|(from, to)| {
-    //             if from == to {
-    //                 vir::Expr::eq_cmp(discriminant_loc.clone().into(), from.into())
-    //             } else {
-    //                 vir::Expr::and(
-    //                     vir::Expr::le_cmp(from.into(), discriminant_loc.clone().into()),
-    //                     vir::Expr::le_cmp(discriminant_loc.clone().into(), to.into()),
-    //                 )
-    //             }
-    //         })
-    //         .disjoin()
-    // }
+    /// Try to produce the minimal disjunction.
+    fn build_discr_range_expr<T: Ord + PartialEq + Eq + Copy + Into<vir::Expr> + PlusOne>(
+        discriminant_loc: &vir::Expr,
+        discr_values: Vec<T>,
+    ) -> vir::Expr {
+        if discr_values.is_empty() {
+            // A `false` here is unsound. See issues #38 and #158.
+            return true.into();
+        }
+        range_extract(discr_values)
+            .into_iter()
+            .map(|(from, to)| {
+                if from == to {
+                    vir::Expr::eq_cmp(discriminant_loc.clone().into(), from.into())
+                } else {
+                    vir::Expr::and(
+                        vir::Expr::le_cmp(from.into(), discriminant_loc.clone().into()),
+                        vir::Expr::le_cmp(discriminant_loc.clone().into(), to.into()),
+                    )
+                }
+            })
+            .disjoin()
+    }
 
-    // // Handle *signed* discriminats
-    // let discr_values = compute_discriminant_values(adt_def, tcx);
-    // build_discr_range_expr(discriminant_loc, discr_values)
-    unimplemented!();
+    // Handle *signed* discriminats
+    let discr_values = compute_discriminant_values(adt_def, tcx);
+    build_discr_range_expr(discriminant_loc, discr_values)
 }
 
 struct HackyExprFolder {
