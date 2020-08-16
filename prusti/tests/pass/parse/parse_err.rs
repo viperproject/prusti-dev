@@ -11,7 +11,7 @@ fn test2() {}
 
 fn test3() {
     for _ in 0..2 {
-        invariant!(true ++ 1)
+        body_invariant!(true ++ 1)
     }
 }
 
@@ -19,7 +19,7 @@ fn test3() {
 #[ensures(true)]
 fn test4() {
     for _ in 0..2 {
-        invariant!(true ++ 1)
+        body_invariant!(true ++ 1)
     }
 }
 
@@ -27,7 +27,7 @@ fn test4() {
 #[ensures(true ++ 1)]
 fn test5() {
     for _ in 0..2 {
-        invariant!(true ++ 1)
+        body_invariant!(true ++ 1)
     }
 }
 
