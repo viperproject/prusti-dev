@@ -1,6 +1,7 @@
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
 
-#[invariant="self.d1 == self.d2"]
+#[trait_invariant(self.d1 == self.d2)] // not yet implemented
 trait Foo {}
 
 struct Dummy {

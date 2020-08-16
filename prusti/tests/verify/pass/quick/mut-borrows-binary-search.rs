@@ -1,7 +1,11 @@
 //! Regression tests extracted from
 //! https://rosettacode.org/wiki/Binary_search#Rust
 
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+#![allow(unused_comparisons)]
+
+use prusti_contracts::*;
 
 pub struct VecWrapperI32{
     v: Vec<i32>
@@ -10,53 +14,54 @@ pub struct VecWrapperI32{
 impl VecWrapperI32 {
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
+    #[ensures(result >= 0)]
     pub fn len(&self) -> usize {
         self.v.len()
     }
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecWrapperI32{ v: Vec::new() }
     }
 
     #[trusted]
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
         self.v[index]
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="after_expiry(
+    #[requires(0 <= index && index < self.len())]
+    #[after_expiry(
         self.len() == old(self.len()) &&
         self.lookup(index) == before_expiry(*result) &&
         (
-            forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-            self.lookup(i) == old(self.lookup(i))
+            forall(|i: usize| (0 <= i && i < self.len() && i != index) ==>
+            self.lookup(i) == old(self.lookup(i)))
         )
-        )"]
+        )
+    ]
     pub fn borrow(&mut self, index: usize) -> &mut i32 {
         self.v.get_mut(index).unwrap()
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="self.len() == old(self.len())"]
-    #[ensures="self.lookup(index) == value"]
-    #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-                    self.lookup(i) == old(self.lookup(i))"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(self.len() == old(self.len()))]
+    #[ensures(self.lookup(index) == value)]
+    #[ensures(forall(|i: usize| (0 <= i && i < self.len() && i != index) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn store(&mut self, index: usize, value: i32) {
         self.v[index] = value;
     }
 
     #[trusted]
-    #[ensures="self.len() == old(self.len()) + 1"]
-    #[ensures="self.lookup(old(self.len())) == value"]
-    #[ensures="forall i: usize :: (0 <= i && i < old(self.len())) ==>
-                    self.lookup(i) == old(self.lookup(i))"]
+    #[ensures(self.len() == old(self.len()) + 1)]
+    #[ensures(self.lookup(old(self.len())) == value)]
+    #[ensures(forall(|i: usize| (0 <= i && i < old(self.len())) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
@@ -80,7 +85,7 @@ impl UsizeOption {
         !self.is_some()
     }
     #[pure]
-    #[requires="self.is_some()"]
+    #[requires(self.is_some())]
     fn peek(&self) -> usize {
         match self {
             UsizeOption::Some(n) => *n,
@@ -104,7 +109,7 @@ fn cmp(a: &mut i32, b: &mut i32) -> Ordering {
     else { Greater }
 }
 
-#[requires="arr.len() > 0"]
+#[requires(arr.len() > 0)]
 fn borrow_test1(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
 {
     let mut size = arr.len()/2;
@@ -124,11 +129,11 @@ fn borrow_test2(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 2;
 
-    #[invariant="0 <= base"]
-    #[invariant="0 <= size"]
-    #[invariant="base + size <= arr.len()"]
-    #[invariant="continue_loop ==> size > 2"]
     while continue_loop {
+        body_invariant!(0 <= base);
+        body_invariant!(0 <= size);
+        body_invariant!(base + size <= arr.len());
+        body_invariant!(continue_loop ==> size > 2);
         size /= 2;
         let mid = base + size;
         let mid_element = arr.borrow(mid);
@@ -146,11 +151,11 @@ fn borrow_test3(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 2;
 
-    #[invariant="0 <= base"]
-    #[invariant="0 <= size"]
-    #[invariant="base + size <= arr.len()"]
-    #[invariant="continue_loop ==> size > 2"]
     while continue_loop {
+        body_invariant!(0 <= base);
+        body_invariant!(0 <= size);
+        body_invariant!(base + size <= arr.len());
+        body_invariant!(continue_loop ==> size > 2);
         size /= 2;
         let mid = base + size;
         let mid_element = arr.borrow(mid);
@@ -166,10 +171,10 @@ fn borrow_test4(arr: &mut VecWrapperI32, elem: &mut i32) {
 
     let mut continue_loop = size > 2;
 
-    #[invariant="0 <= size"]
-    #[invariant="size <= arr.len()"]
-    #[invariant="continue_loop ==> size > 2"]
     while continue_loop {
+        body_invariant!(0 <= size);
+        body_invariant!(size <= arr.len());
+        body_invariant!(continue_loop ==> size > 2);
         size /= 2;
         let mid_element = arr.borrow(size);
         continue_loop = size > 2;

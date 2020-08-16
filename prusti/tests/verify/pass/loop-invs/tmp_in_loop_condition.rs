@@ -1,6 +1,9 @@
 #![feature(box_syntax)]
 
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 #[trusted]
 fn random() -> u32 {

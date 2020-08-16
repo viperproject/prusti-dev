@@ -1,4 +1,7 @@
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 struct T {
     f: u32,
@@ -9,10 +12,10 @@ struct U {
     g: u32,
 }
 
-#[requires="_a.f == 4"]
+#[requires(_a.f == 4)]
 fn check_t(_a: T) {}
 
-#[requires="_a.f == 3 && _a.g == 4"]
+#[requires(_a.f == 3 && _a.g == 4)]
 fn check_u(_a: U) {}
 
 pub fn test1() {

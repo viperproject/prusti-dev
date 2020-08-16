@@ -1,6 +1,10 @@
 #![feature(box_syntax)]
 
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
+
 
 #[trusted]
 fn random() -> i32 {
@@ -30,9 +34,9 @@ fn test() {
 fn test2() {
     let mut x: i32;
 
-    #[invariant="x == 123"]
     'myloop: while {
         x = 123;
+        body_invariant!(x == 123);
 
         if random() < x {
             break 'myloop;
@@ -53,9 +57,9 @@ fn test2() {
 fn test3() {
     let mut x: i32;
 
-    #[invariant="x == 123"]
     'myloop: while {
         x = 123;
+        body_invariant!(x == 123);
 
         if random() < x {
             break 'myloop;

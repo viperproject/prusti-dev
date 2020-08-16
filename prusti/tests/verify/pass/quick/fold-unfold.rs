@@ -1,4 +1,7 @@
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 pub fn empty() {}
 
@@ -8,7 +11,7 @@ pub fn local_pure() {
     assert!(x == 5);
 }
 
-#[ensures="result == x + 1"]
+#[ensures(result == x + 1)]
 pub fn argument_pure(x: u32) -> u32 {
     x + 1
 }

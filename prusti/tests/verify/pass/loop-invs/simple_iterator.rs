@@ -1,4 +1,7 @@
-extern crate prusti_contracts;
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
+use prusti_contracts::*;
 
 // ignore-test Unsupported loop. We don't yet generate magic wands in loop invariants, which are
 // required when a loan is created before, and expires after, the loop invariant.
