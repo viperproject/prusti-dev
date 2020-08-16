@@ -2,7 +2,7 @@
 /// parses the resulting Rust expressions, and then assembles the composite
 /// Prusti assertion.
 
-use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Group, Span, TokenStream, TokenTree};
 use std::collections::VecDeque;
 use std::mem;
 use syn::parse::{ParseStream, Parse};
