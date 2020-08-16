@@ -209,6 +209,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /** Returns the def_id of the element containing the specifications. This can be different from the
        def_id that was passed in if the specifications were externally declared */
     pub fn def_id(&self, def_id: &'v ProcedureDefId) -> &'v ProcedureDefId {
+        if def_id.is_local() && self.extern_spec.contains_key(def_id) &&
+            self.get_spec_by_def_id(*def_id).is_some() {
+            self.register_encoding_error(EncodingError::Incorrect(
+                format!("external specification found for already specified function"),
+                rustc_span::MultiSpan::from_span(self.env.tcx().def_span(*self.extern_spec.get(def_id).unwrap()))));
+        }
         self.extern_spec.get(def_id).unwrap_or(def_id)
     }
 

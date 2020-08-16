@@ -62,11 +62,16 @@ impl<'tcx> intravisit::Visitor<'tcx> for ExternSpecResolver<'tcx> {
             if self.current_def_id.is_some() {
                 let def_id = self.tcx.typeck(callee_expr.hir_id.owner).type_dependent_def_id(callee_expr.hir_id);
                 assert!(def_id.is_some());
-                self.extern_fn_map.insert(def_id.unwrap(), self.current_def_id.take().unwrap());
+                if self.extern_fn_map.contains_key(&def_id.unwrap()) {
+                    self.tcx.ty_error_with_message(ex.span.source_callsite(),
+                                                   &format!("Duplicate specification for {:?}",
+                                                            def_id.unwrap()));
+                    self.current_def_id = None;
+                } else {
+                    self.extern_fn_map.insert(def_id.unwrap(), self.current_def_id.take().unwrap());
+                }
             }
         }
         intravisit::walk_expr(self, ex);
     }
 }
-
-
