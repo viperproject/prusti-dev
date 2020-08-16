@@ -8,7 +8,7 @@ pub fn test2() {}
 
 pub fn test3() {
     for _ in 0..2 {
-        invariant!(true)
+        body_invariant!(true)
     }
 }
 
@@ -16,6 +16,6 @@ pub fn test3() {
 #[ensures(true)]
 pub fn test4() {
     for _ in 0..2 {
-        invariant!(true)
+        body_invariant!(true)
     }
 }
