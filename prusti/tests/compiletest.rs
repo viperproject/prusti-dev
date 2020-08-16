@@ -64,6 +64,6 @@ fn test_runner(_tests: &[&()]) {
     run_tests("ui", "tests/pass/typecheck");
 
     set_var("PRUSTI_QUIET", "true");
-    run_tests("ui", "tests/verify/pass");
+    //run_tests("ui", "tests/verify/pass");
     //run_tests("compile-fail", "tests/verify/fail");
 }

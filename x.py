@@ -203,32 +203,6 @@ def ide(args):
     run_command(['code'] + args)
 
 
-def tests_to_run():
-    return [
-        "mc91.rs",
-        "old_function.rs",
-        "take_inc_max.rs",
-        "routes.rs",
-        "moves.rs",
-        "mut-borrows.rs",
-        "fold-unfold.rs",
-        "empty-tuple.rs",
-        "generic-eq.rs",
-
-        # "framing_after_break.rs"
-        # "pure-chain-1.rs",
-        # "nll-rfc-case1.rs",
-        # "marker-traits.rs",
-        # "knapsack.rs"
-        # "fibonacci.rs",
-    ]
-
-
-def run_selected():
-    for tc in tests_to_run():
-        cargo(["test", tc[:-3]])
-
-
 def main(argv):
     global verbose
     args = []
@@ -244,9 +218,6 @@ def main(argv):
             break
         elif arg == 'ide':
             ide(argv[i+1:])
-            break
-        elif arg == 'test':
-            run_selected()
             break
         else:
             cargo(argv[i:])
