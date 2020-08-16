@@ -250,15 +250,19 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         let spec_toks = rewriter.generate_cl_spec(preconds, postconds);
         let toks = cl.to_token_stream();
 
-        quote! { #cl_annotations #toks }
-        // quote! {
-        //     {
-        //         if false {
-        //             #spec_toks
-        //         }
-        //         #cl_annotations
-        //         #toks
-        //     }
-        // }
+        let args = cl.inputs.to_token_stream();
+
+        quote! {
+            {
+                if false {
+                    #[prusti::spec_only]
+                    | #args , result: i32 | {
+                        #spec_toks
+                    };
+                }
+                #cl_annotations
+                #toks
+            }
+        }
     }
 }

@@ -163,11 +163,12 @@ impl<'tcx> Environment<'tcx> {
         let mut visitor = CollectPrustiSpecVisitor::new(self);
         tcx.hir().krate().visit_all_item_likes(&mut visitor);
 
-        let mut cl_visitor = CollectClosureDefsVisitor::new(tcx.hir());
+        let mut cl_visitor = CollectClosureDefsVisitor::new(self);
         tcx.hir().krate().visit_all_item_likes(&mut cl_visitor.as_deep_visitor());
-        debug!("closure defs found: {:?}", cl_visitor.get_closure_defs());
 
-        visitor.get_annotated_procedures()
+        let mut result: Vec<_> = visitor.get_annotated_procedures();
+        result.extend(cl_visitor.get_closure_defs());
+        result
     }
 
     // TODO: Use encoder.get_opt_spec_id instead.
