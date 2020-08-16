@@ -722,7 +722,6 @@ pub fn compute_discriminant_values(adt_def: &ty::AdtDef, tcx: ty::TyCtxt) -> Vec
         }
     }
     discr_values
-    // unimplemented!();
 }
 
 /// Encode a disjunction that lists all possible discrimintant values.

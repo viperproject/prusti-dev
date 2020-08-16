@@ -209,6 +209,18 @@ def tests_to_run():
         "old_function.rs",
         "take_inc_max.rs",
         "routes.rs",
+        "moves.rs",
+        "mut-borrows.rs",
+        "fold-unfold.rs",
+        "empty-tuple.rs",
+        "generic-eq.rs",
+
+        # "framing_after_break.rs"
+        # "pure-chain-1.rs",
+        # "nll-rfc-case1.rs",
+        # "marker-traits.rs",
+        # "knapsack.rs"
+        # "fibonacci.rs",
     ]
 
 
