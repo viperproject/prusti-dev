@@ -15,7 +15,7 @@ A small number of Rust types have direct analogues in the Viper type system. How
 ```viper
 field val_bool: Bool
 predicate bool(self: Ref) {
-  acc(self.val_bool)
+  acc(self.val_bool, write)
 }
 ```
 
@@ -26,7 +26,7 @@ All Rust integers (`i8`, `i16`, `i32`, `i64`, `i128`, `isize`, `u8`, `u16`, `u32
 ```viper
 field val_i32: Int
 predicate i32(self: Ref) {
-  acc(self.val_i32)
+  acc(self.val_i32, write)
 }
 ```
 
@@ -35,7 +35,7 @@ When the [`CHECK_BINARY_OPERATIONS`](../config/flags.md#check_binary_operations)
 ```viper
 // with CHECK_BINARY_OPERATIONS
 predicate i32(self: Ref) {
-  acc(self.val_i32) && -2147483648 <= self.val_i32 && self.val_i32 <= 2147483647
+  acc(self.val_i32, write) && -2147483648 <= self.val_i32 && self.val_i32 <= 2147483647
 }
 ```
 
@@ -44,7 +44,7 @@ When the [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](../config/flags.md#encode_unsigned_n
 ```viper
 // with ENCODE_UNSIGNED_NUM_CONSTRAINT
 predicate u32(self: Ref) {
-  acc(self.val_u32) && 0 <= self.val_u32
+  acc(self.val_u32, write) && 0 <= self.val_u32
 }
 ```
 
@@ -63,8 +63,8 @@ field tuple_1: Ref
 
 // for some types X and Y
 predicate Tuple_X_Y(self: Ref) {
-  acc(self.tuple_0) && X(self.tuple_0) &&
-  acc(self.tuple_1) && Y(self.tuple_1)
+  acc(self.tuple_0, write) && X(self.tuple_0) &&
+  acc(self.tuple_1, write) && Y(self.tuple_1)
 }
 ```
 
@@ -84,8 +84,8 @@ struct SomeStruct {
 field SomeStruct_a: Ref
 field SomeStruct_b: Ref
 predicate SomeStruct(self:Ref) {
-  acc(self.SomeStruct_a) && X(self.SomeStruct_a) &&
-  acc(self.SomeStruct_b) && Y(self.SomeStruct_b)
+  acc(self.SomeStruct_a, write) && X(self.SomeStruct_a) &&
+  acc(self.SomeStruct_b, write) && Y(self.SomeStruct_b)
 }
 ```
 
@@ -107,12 +107,12 @@ field elt0: Ref
 // ...
 
 predicate SomeEnum(self: Ref) {
-  acc(self.discriminant) &&
+  acc(self.discriminant, write) &&
   0 <= self.discriminant && self.discriminant <= 1 &&
   // variant `Foo`
   (self.discriminant == 0 ==> true) &&
   // variant `Bar(X)`
-  (self.discriminant == 1 ==> acc(self.elt0) && X(self.elt0))
+  (self.discriminant == 1 ==> acc(self.elt0, write) && X(self.elt0))
 }
 ```
 
@@ -125,6 +125,6 @@ field val_ref: Ref
 
 // for some Rust type X, &mut X is the following
 predicate RefMutX(self: Ref) {
-  acc(self.val_ref) && X(self.val_ref)
+  acc(self.val_ref, write) && X(self.val_ref)
 }
 ```
