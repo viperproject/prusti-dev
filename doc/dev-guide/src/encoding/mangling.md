@@ -1,6 +1,8 @@
 # Name mangling
 
-To ensure there are no duplicate names in the generated Viper code, name mangling is employed. For example, to encode the type [std::ops::Range](https://doc.rust-lang.org/std/ops/struct.Range.html), rather than generating the predicate:
+To ensure there are no duplicate names in the generated Viper code, name mangling is employed. Name mangling can be disabled with the [`DISABLE_NAME_MANGLING`](../config/flags.md#disable_name_mangling) flag, although this may result in errors due to name collisions.
+
+For example, to encode the type [std::ops::Range](https://doc.rust-lang.org/std/ops/struct.Range.html), rather than generating the predicate:
 
 ```viper
 predicate Range(self) {
@@ -8,7 +10,7 @@ predicate Range(self) {
 }
 ```
 
-Prusti instead generates:
+Prusti generates:
 
 ```viper
 predicate m_core$$ops$opensqu$0$closesqu$$$range$opensqu$0$closesqu$$$Range$opensqu$0$closesqu$$_beg_$i32$_end_(self) {

@@ -51,7 +51,7 @@ Maximum time (in milliseconds) for the verifier to spend on a single assertion. 
 
 ## `CHECK_BINARY_OPERATIONS`
 
-When enabled, binary operations will be checked for overflows.
+When enabled, binary operations will be checked for overflows. See [integer type encoding](../encoding/types.md#i-u-char).
 
 ## `CHECK_FOLDUNFOLD_STATE`
 

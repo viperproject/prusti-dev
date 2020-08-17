@@ -12,5 +12,6 @@
   - [Reporting stage](pipeline/report.md)
 - [Viper Encoding](encoding/summary.md)
   - [Types](encoding/types.md)
+  - [Pure function encoding](encoding/pure.md)
   - [Name mangling](encoding/mangling.md)
 - [Repository Layout](layout.md)
