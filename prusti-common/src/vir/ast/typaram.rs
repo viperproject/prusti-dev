@@ -61,6 +61,7 @@ impl Substs {
 
         // Use `repls_regex` to find typaram replacements
         let mut repls = HashMap::new();
+        trace! ("regex {:?} from {:?} to {:?}", repls_regex, from, to);
         let captures = repls_regex.captures(to).unwrap();
         for i in 1..captures.len() {
             let from_typaram = found_typarams[i - 1].to_string();

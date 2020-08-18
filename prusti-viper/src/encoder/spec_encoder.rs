@@ -583,8 +583,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             let item_name = self
                 .encoder
                 .encode_item_name(curr_def_id);
-            assert!(item_name.contains("prusti_pre_item_") ||
-                    item_name.contains("prusti_post_item_"), "item_name: {}", item_name);
+            if !tcx.is_closure(curr_def_id) {
+                assert!(item_name.contains("prusti_pre_item_") ||
+                        item_name.contains("prusti_post_item_"), "item_name: {}", item_name);
+            } else {
+                trace!("curr_def_id refers to closure: {:?}", curr_def_id);
+                // TODO (?): check that tcx.get_attrs(curr_def_id) includes
+                //           prusti::spec_only and prusti::spec_id
+            }
         }
 
         // Translate arguments and return from the SPEC to the TARGET context
@@ -594,6 +600,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         } else {
             assert_eq!(curr_mir.args_iter().count(), self.target_args.len());
         }
+        trace!("curr_mir args: {:?} {:?}, target_args: {:?}",
+               curr_mir.args_iter().collect::<Vec<_>>(),
+               curr_mir.args_iter().map(|arg| &curr_mir.local_decls[arg]).collect::<Vec<_>>(),
+               self.target_args);
         for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
             let local_ty = curr_mir.local_decls[local].ty;
             // will panic if attempting to encode unsupported type
