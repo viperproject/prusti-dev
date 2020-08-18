@@ -151,16 +151,14 @@ impl AstRewriter {
         &mut self,
         preconds: Vec<(untyped::SpecificationId,untyped::Assertion)>,
         postconds: Vec<(untyped::SpecificationId,untyped::Assertion)>
-    ) -> TokenStream {
-        let mut stmts = TokenStream::new();
-
-        let mut process_cond = |suffix: &str, count: i32, id: &untyped::SpecificationId, assertion: &untyped::Assertion| {
+    ) -> (TokenStream, TokenStream) {
+        let process_cond = |suffix: &str, count: i32, id: &untyped::SpecificationId, assertion: &untyped::Assertion, ts: &mut TokenStream| {
             let spec_id_str = id.to_string();
             let mut encoded = TokenStream::new();
             assertion.encode_type_check(&mut encoded);
             let assertion_json = crate::specifications::json::to_json_string(&assertion);
             let var_name = format_ident! ("_prusti_closure_{}{}", suffix, count.to_string());
-            stmts.extend(quote! {
+            ts.extend(quote! {
                 #[prusti::spec_only]
                 #[prusti::spec_id = #spec_id_str]
                 #[prusti::assertion = #assertion_json]
@@ -171,16 +169,18 @@ impl AstRewriter {
             });
         };
 
+        let mut pre_ts = TokenStream::new ();
+        let mut post_ts = TokenStream::new ();
         let mut count = 0;
         for (id, precond) in preconds {
-            process_cond (&"pre", count, &id, &precond);
+            process_cond (&"pre", count, &id, &precond, &mut pre_ts);
         }
 
         count = 0;
         for (id, postcond) in postconds {
-            process_cond (&"post", count, &id, &postcond);
+            process_cond (&"post", count, &id, &postcond, &mut post_ts);
         }
 
-        stmts
+        (pre_ts, post_ts)
     }
 }

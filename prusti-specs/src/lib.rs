@@ -247,21 +247,30 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             });
         }
 
-        let spec_toks = rewriter.generate_cl_spec(preconds, postconds);
-        let toks = cl.to_token_stream();
+        let (spec_toks_pre, spec_toks_post) = rewriter.generate_cl_spec(preconds, postconds);
+        let syn::ExprClosure { attrs, asyncness, movability, capture, or1_token,
+                               inputs, or2_token, output, body } = cl;
 
-        let args = cl.inputs.to_token_stream();
+        let mut attrs_ts = TokenStream::new();
+        for a in attrs {
+            attrs_ts.extend(a.into_token_stream());
+        }
 
         quote! {
             {
-                if false {
-                    #[prusti::spec_only]
-                    | #args , result: i32 | {
-                        #spec_toks
-                    };
+                #cl_annotations #attrs_ts
+                #asyncness #movability #capture
+                #or1_token #inputs #or2_token #output
+                {
+                    if false {
+                        #spec_toks_pre
+                    }
+                    let result = #body ;
+                    if false {
+                        #spec_toks_post
+                    }
+                    result
                 }
-                #cl_annotations
-                #toks
             }
         }
     }
