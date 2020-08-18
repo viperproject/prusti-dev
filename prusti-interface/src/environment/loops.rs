@@ -99,6 +99,7 @@ pub struct PlaceAccess<'tcx> {
 ///
 /// Note that it is not guaranteed that `accessed_places` and
 /// `defined_places` are disjoint
+#[derive(Debug)]
 struct AccessCollector<'b, 'tcx> {
     /// Loop body.
     pub body: &'b HashSet<BasicBlockIndex>,
@@ -125,9 +126,13 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
             use rustc_middle::mir::visit::PlaceContext::*;
             let access_kind = match context {
                 MutatingUse(mir::visit::MutatingUseContext::Store) => PlaceAccessKind::Store,
+                MutatingUse(mir::visit::MutatingUseContext::Call) => PlaceAccessKind::Store,
+                MutatingUse(mir::visit::MutatingUseContext::Borrow) => PlaceAccessKind::MutableBorrow,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Copy) => PlaceAccessKind::Read,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Move) => PlaceAccessKind::Move,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) => PlaceAccessKind::Read,
+                NonMutatingUse(mir::visit::NonMutatingUseContext::SharedBorrow) =>
+                    PlaceAccessKind::SharedBorrow,
                 // Store => PlaceAccessKind::Store,
                 // Copy => PlaceAccessKind::Read,
                 // Move => PlaceAccessKind::Move,
