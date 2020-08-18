@@ -117,7 +117,7 @@ pub fn trusted(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     }
 }
 
-pub fn invariant(tokens: TokenStream) -> TokenStream {
+pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let invariant = handle_result!(rewriter.parse_assertion(spec_id, tokens));

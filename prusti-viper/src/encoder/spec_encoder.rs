@@ -138,7 +138,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         );
         // FIXME: The name encoding is most likely wrong. (It most likely does
         // not match the names generated in other places.)
-        let var_name = format!("{:?}", arg);
+        let var_name = format!("{:?}_forall", arg);
         vir::LocalVar::new(var_name, vir::Type::Int)
     }
 
@@ -539,7 +539,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     // if let Some(var_name) = var_names.get(&local_arg_index) {
                     let local_arg = &outer_mir.local_decls[local_arg_index];
                     if !local_arg.internal {
-                        let var_name = format!("{:?}", local_arg_index);
+                        let var_name = format!("{:?}_forall", local_arg_index);
                         let encoded_arg = outer_mir_encoder.encode_local(local_arg_index).unwrap();
                         let value_field = self.encoder.encode_value_field(local_arg.ty);
                         let value_type = self.encoder.encode_value_type(local_arg.ty);

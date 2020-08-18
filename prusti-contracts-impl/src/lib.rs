@@ -34,7 +34,7 @@ pub fn trusted(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-pub fn invariant(_tokens: TokenStream) -> TokenStream {
+pub fn body_invariant(_tokens: TokenStream) -> TokenStream {
     (quote! { () }).into()
 }
 

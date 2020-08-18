@@ -16,7 +16,7 @@ fn test2() {}
 fn test3() {
     let mut curr = 0;
     while curr < 2 {
-        invariant!(true);
+        body_invariant!(true);
         curr += 1;
     }
 }
@@ -26,7 +26,7 @@ fn test3() {
 fn test4() {
     let mut curr = 0;
     while curr < 2 {
-        invariant!(true);
+        body_invariant!(true);
         curr += 1;
     }
 }

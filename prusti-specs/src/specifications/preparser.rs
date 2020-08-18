@@ -2,7 +2,7 @@
 /// parses the resulting Rust expressions, and then assembles the composite
 /// Prusti assertion.
 
-use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Group, Span, TokenStream, TokenTree};
 use std::collections::VecDeque;
 use std::mem;
 use syn::parse::{ParseStream, Parse};
@@ -119,9 +119,15 @@ impl ParserStream {
                 if punct.as_char() != c {
                     return false;
                 }
-                if i + 1 < operator.len() && punct.spacing() != Spacing::Joint {
-                    return false;
-                }
+                
+                // This code is disabled due to pretty-printing the implies operator and then
+                // parsing it as == >. Possibly this gets fixed in the future, for now, we
+                // recognize both ==> and == > as implies operators. Related issue:
+                // https://github.com/viperproject/prusti-dev/issues/127
+
+                // if i + 1 < operator.len() && punct.spacing() != Spacing::Joint {
+                //     return false;
+                // }
             } else {
                 return false;
             }

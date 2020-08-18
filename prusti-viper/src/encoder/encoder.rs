@@ -10,7 +10,7 @@ use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PrustiError};
-// use crate::encoder::foldunfold;
+use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::encoder::pure_function_encoder::PureFunctionEncoder;
@@ -652,47 +652,46 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         place: vir::Expr,
         adt_def: &ty::AdtDef,
     ) -> vir::Expr {
-        // let typ = place.get_type().clone();
-        // let mut name = typ.name();
-        // name.push_str("$$discriminant$$");
-        // let self_local_var = vir::LocalVar::new("self", typ);
-        // self.type_discriminant_funcs
-        //     .borrow_mut()
-        //     .entry(name.clone())
-        //     .or_insert_with(|| {
-        //         let predicate_name = place.get_type().name();
-        //         let precondition = vir::Expr::predicate_access_predicate(
-        //             predicate_name,
-        //             self_local_var.clone().into(),
-        //             vir::PermAmount::Read,
-        //         );
-        //         let result = vir::LocalVar::new("__result", vir::Type::Int);
-        //         let postcondition = compute_discriminant_bounds(
-        //             adt_def, self.env.tcx(), &result.into());
-        //         let discr_field = self.encode_discriminant_field();
-        //         let self_local_var_expr: vir::Expr = self_local_var.clone().into();
-        //         let function = vir::Function {
-        //             name: name.clone(),
-        //             formal_args: vec![self_local_var.clone()],
-        //             return_type: vir::Type::Int,
-        //             pres: vec![precondition],
-        //             posts: vec![postcondition],
-        //             body: Some(self_local_var_expr.field(discr_field)),
-        //         };
-        //         let final_function = foldunfold::add_folding_unfolding_to_function(
-        //             function,
-        //             self.get_used_viper_predicates_map(),
-        //         );
-        //         final_function
-        //     });
-        // vir::Expr::FuncApp(
-        //     name,
-        //     vec![place],
-        //     vec![self_local_var],
-        //     vir::Type::Int,
-        //     vir::Position::default(),
-        // )
-        unimplemented!();
+        let typ = place.get_type().clone();
+        let mut name = typ.name();
+        name.push_str("$$discriminant$$");
+        let self_local_var = vir::LocalVar::new("self", typ);
+        self.type_discriminant_funcs
+            .borrow_mut()
+            .entry(name.clone())
+            .or_insert_with(|| {
+                let predicate_name = place.get_type().name();
+                let precondition = vir::Expr::predicate_access_predicate(
+                    predicate_name,
+                    self_local_var.clone().into(),
+                    vir::PermAmount::Read,
+                );
+                let result = vir::LocalVar::new("__result", vir::Type::Int);
+                let postcondition = compute_discriminant_bounds(
+                    adt_def, self.env.tcx(), &result.into());
+                let discr_field = self.encode_discriminant_field();
+                let self_local_var_expr: vir::Expr = self_local_var.clone().into();
+                let function = vir::Function {
+                    name: name.clone(),
+                    formal_args: vec![self_local_var.clone()],
+                    return_type: vir::Type::Int,
+                    pres: vec![precondition],
+                    posts: vec![postcondition],
+                    body: Some(self_local_var_expr.field(discr_field)),
+                };
+                let final_function = foldunfold::add_folding_unfolding_to_function(
+                    function,
+                    self.get_used_viper_predicates_map(),
+                );
+                final_function.unwrap()
+            });
+        vir::Expr::FuncApp(
+            name,
+            vec![place],
+            vec![self_local_var],
+            vir::Type::Int,
+            vir::Position::default(),
+        )
     }
 
     fn encode_memory_eq_tuple(
