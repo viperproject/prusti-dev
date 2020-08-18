@@ -1,9 +1,10 @@
 use prusti_specs::specifications::{json::Assertion as JsonAssertion, SpecType};
 use rustc_ast::ast;
-use rustc_hir::intravisit;
+use rustc_hir::{intravisit, ItemKind};
 use rustc_middle::hir::map::Map;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
+use rustc_span::symbol::Symbol;
 use rustc_hir::def_id::LocalDefId;
 use std::collections::HashMap;
 use std::convert::TryInto;
@@ -11,11 +12,25 @@ use std::convert::TryInto;
 pub mod typed;
 
 use typed::StructuralToTyped;
+use std::fmt;
 
 struct SpecItem {
     spec_id: typed::SpecificationId,
     spec_type: SpecType,
     specification: JsonAssertion,
+}
+
+impl fmt::Debug for SpecItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SpecItem")
+         .field("spec_id", &self.spec_id)
+         .finish()
+    }
+}
+
+struct Item<'tcx> {
+    name: Symbol,
+    attrs: &'tcx [ast::Attribute],
 }
 
 pub struct SpecCollector<'tcx> {
@@ -48,6 +63,32 @@ impl<'tcx> SpecCollector<'tcx> {
                 (spec_item.spec_id, assertion)
             })
             .collect()
+    }
+    fn process_item(&mut self, item: Item){
+        if has_spec_only_attr(item.attrs) {
+            assert!(
+                self.current_spec_item.is_none(),
+                "nested specification item?"
+            );
+            let fn_name = item.name.to_ident_string();
+            let spec_type = if fn_name.starts_with("prusti_pre_item_") {
+                SpecType::Precondition
+            } else if fn_name.starts_with("prusti_post_item_") {
+                SpecType::Postcondition
+            } else {
+                unreachable!();
+            };
+            let spec_item = SpecItem {
+                spec_id: read_attr("spec_id", item.attrs)
+                    .expect("missing spec_id on spec item")
+                    .try_into()
+                    .unwrap(),
+                spec_type: spec_type,
+                specification: deserialize_spec_from_attrs(item.attrs),
+            };
+            assert!(self.current_spec_item.is_none());
+            self.current_spec_item = Some(spec_item);
+        }
     }
 }
 
@@ -138,35 +179,25 @@ fn deserialize_spec_from_attrs(attrs: &[ast::Attribute]) -> JsonAssertion {
 
 impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
     type Map = Map<'tcx>;
-    fn nested_visit_map<'this>(&'this mut self) -> intravisit::NestedVisitorMap<Self::Map> {
+    fn nested_visit_map(&mut self) -> intravisit::NestedVisitorMap<Self::Map> {
         let map = self.tcx.hir();
         intravisit::NestedVisitorMap::All(map)
     }
     fn visit_item(&mut self, item: &'tcx rustc_hir::Item<'tcx>) {
-        if has_spec_only_attr(item.attrs) {
-            assert!(
-                self.current_spec_item.is_none(),
-                "nested specification item?"
-            );
-            let fn_name = item.ident.name.to_ident_string();
-            let spec_type = if fn_name.starts_with("prusti_pre_item_") {
-                SpecType::Precondition
-            } else if fn_name.starts_with("prusti_post_item_") {
-                SpecType::Postcondition
-            } else {
-                unreachable!();
-            };
-            let spec_item = SpecItem {
-                spec_id: read_attr("spec_id", item.attrs)
-                    .expect("missing spec_id on spec item")
-                    .try_into()
-                    .unwrap(),
-                spec_type: spec_type,
-                specification: deserialize_spec_from_attrs(item.attrs),
-            };
-            assert!(self.current_spec_item.is_none());
-            self.current_spec_item = Some(spec_item);
+        if let ItemKind::Impl {items, ..} = &item.kind {
+            for impl_item_ref in items.iter() {
+                let impl_item = self.tcx.hir().impl_item(impl_item_ref.id);
+                self.process_item(
+                    Item {attrs: impl_item.attrs, name: impl_item.ident.name}
+                );
+                intravisit::walk_impl_item(self, impl_item);
+                if let Some(spec_item) = self.current_spec_item.take() {
+                    self.spec_items.push(spec_item);
+                }
+            }
+            return;
         }
+        self.process_item(Item {attrs: item.attrs, name: item.ident.name});
         intravisit::walk_item(self, item);
         if let Some(spec_item) = self.current_spec_item.take() {
             self.spec_items.push(spec_item);
