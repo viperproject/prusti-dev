@@ -4811,7 +4811,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 //assert!(self.encoder.is_spec_closure(def_id), "closure: {:?}", def_id);
                 // Specification only. Just ignore in the encoding.
                 // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
+              if self.encoder.is_spec_closure(def_id) {
+                // Specification only. Just ignore in the encoding.
+                // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
                 Vec::new()
+                } else {
+                  unimplemented!();
+                }
             }
 
             ref x => unimplemented!("{:?}", x),
