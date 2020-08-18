@@ -129,14 +129,13 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     }
 }
 
-/** Unlike the functions above, which are only called from
- *  prusti-contracts-internal, this function also needs to be called
- *  from prusti-contracts-impl, because we still need to parse the
- *  macro in order to replace it with the closure definition.
- *  Therefore, there is an extra parameter drop_spec here which tells
- *  the function whether to keep the specification (for -internal) or
- *  drop it (for -impl).
- */
+/// Unlike the functions above, which are only called from
+/// prusti-contracts-internal, this function also needs to be called
+/// from prusti-contracts-impl, because we still need to parse the
+/// macro in order to replace it with the closure definition.
+/// Therefore, there is an extra parameter drop_spec here which tells
+/// the function whether to keep the specification (for -internal) or
+/// drop it (for -impl).
 pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
     let mut requires: Vec<TokenTree> = vec! [];
     let mut ensures: Vec<TokenTree> = vec! [];
