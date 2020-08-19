@@ -1,7 +1,7 @@
 use crate::specifications::common::{ExpressionIdGenerator, SpecificationIdGenerator};
 use crate::specifications::untyped::{self, EncodeTypeCheck};
 use proc_macro2::{Span, TokenStream};
-use quote::quote;
+use quote::{quote, format_ident};
 use syn::spanned::Spanned;
 
 pub(crate) struct AstRewriter {
@@ -144,5 +144,43 @@ impl AstRewriter {
                 #statements
             };
         }
+    }
+    /// Generate statements for checking a closure specification.
+    /// TODO: arguments, result (types are typically not known yet after parsing...)
+    pub fn generate_cl_spec(
+        &mut self,
+        preconds: Vec<(untyped::SpecificationId,untyped::Assertion)>,
+        postconds: Vec<(untyped::SpecificationId,untyped::Assertion)>
+    ) -> (TokenStream, TokenStream) {
+        let process_cond = |suffix: &str, count: i32, id: &untyped::SpecificationId, assertion: &untyped::Assertion, ts: &mut TokenStream| {
+            let spec_id_str = id.to_string();
+            let mut encoded = TokenStream::new();
+            assertion.encode_type_check(&mut encoded);
+            let assertion_json = crate::specifications::json::to_json_string(&assertion);
+            let var_name = format_ident! ("_prusti_closure_{}{}", suffix, count.to_string());
+            ts.extend(quote! {
+                #[prusti::spec_only]
+                #[prusti::spec_id = #spec_id_str]
+                #[prusti::assertion = #assertion_json]
+                let #var_name =
+                {
+                    #encoded
+                };
+            });
+        };
+
+        let mut pre_ts = TokenStream::new ();
+        let mut post_ts = TokenStream::new ();
+        let mut count = 0;
+        for (id, precond) in preconds {
+            process_cond (&"pre", count, &id, &precond, &mut pre_ts);
+        }
+
+        count = 0;
+        for (id, postcond) in postconds {
+            process_cond (&"post", count, &id, &postcond, &mut post_ts);
+        }
+
+        (pre_ts, post_ts)
     }
 }

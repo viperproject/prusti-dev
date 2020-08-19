@@ -11,9 +11,9 @@ use prusti_interface::data::ProcedureDefId;
 //     TypedSpecificationSet,
 // };
 use rustc_hir::{self as hir, Mutability};
-use rustc_middle::mir;
+use rustc_middle::{mir, ty::FnSig};
 use rustc_index::vec::Idx;
-use rustc_middle::ty::{self, Ty, TyCtxt};
+use rustc_middle::ty::{self, Ty, TyCtxt, TyKind, TypeckResults};
 // use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::fmt;
@@ -379,7 +379,13 @@ where
 {
     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
 
-    let fn_sig = tcx.fn_sig(proc_def_id);
+    let fn_sig: FnSig = if tcx.is_closure(proc_def_id) {
+        let typeck_results: &TypeckResults<'_> = tcx.typeck(proc_def_id.expect_local());
+        let fn_sigs = typeck_results.liberated_fn_sigs();
+        *(fn_sigs.get(tcx.hir().local_def_id_to_hir_id(proc_def_id.expect_local())).unwrap())
+    } else {
+        tcx.fn_sig(proc_def_id).skip_binder()
+    };
     trace!("fn_sig: {:?}", fn_sig);
 
     let mut fake_mir_args = Vec::new();
@@ -387,10 +393,9 @@ where
 
     // FIXME; "skip_binder" is most likely wrong
     // FIXME: Replace with FakeMirEncoder.
-    for i in 0usize..fn_sig.inputs().skip_binder().len() {
+    for i in 0usize..fn_sig.inputs().len() {
         fake_mir_args.push(mir::Local::from_usize(i + 1));
-        let arg_ty = fn_sig.input(i);
-        let arg_ty = arg_ty.skip_binder();
+        let arg_ty = fn_sig.inputs()[i];
         let ty = if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
             replaced_arg_ty.clone()
         } else {
@@ -398,7 +403,7 @@ where
         };
         fake_mir_args_ty.push(ty);
     }
-    let return_ty = fn_sig.output().skip_binder().clone();  // FIXME: Shouldn't this also go through maybe_tymap?
+    let return_ty = fn_sig.output().clone();  // FIXME: Shouldn't this also go through maybe_tymap?
 
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {

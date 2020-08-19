@@ -36,3 +36,8 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     prusti_specs::body_invariant(tokens.into()).into()
 }
+
+#[proc_macro]
+pub fn closure(tokens: TokenStream) -> TokenStream {
+    prusti_specs::closure(tokens.into(), false).into()
+}

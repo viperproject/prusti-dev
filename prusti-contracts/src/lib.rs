@@ -22,6 +22,9 @@ mod private {
 
     /// A macro for writing a loop body invariant.
     pub use prusti_contracts_impl::body_invariant;
+
+    /// A macro for defining a closure with a specification.
+    pub use prusti_contracts_impl::closure;
 }
 
 #[cfg(feature = "prusti")]
@@ -46,6 +49,9 @@ mod private {
 
     /// A macro for writing a loop body invariant.
     pub use prusti_contracts_internal::body_invariant;
+
+    /// A macro for defining a closure with a specification.
+    pub use prusti_contracts_internal::closure;
 }
 
 
