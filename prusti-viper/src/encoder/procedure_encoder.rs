@@ -1287,8 +1287,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 assert_eq!(expiring.get_type(), restored.get_type());
                 (expiring, restored, false)
             }
+            mir::Rvalue::Aggregate(ref agg_kind, ref operands) => {
+                // TODO
+                unimplemented!("mir::Rvalue::Aggregate");
+            }
 
-            ref x => unreachable!("Borrow restores rvalue {:?}", x),
+            mir::Rvalue::Use(_) => unimplemented!("mir::Rvalue::Use"),
+            mir::Rvalue::Repeat(_, _) => unimplemented!("mir::Rvalue::Repeat"),
+            mir::Rvalue::ThreadLocalRef(_) => unimplemented!("mir::Rvalue::ThreadLocalRef"),
+            mir::Rvalue::AddressOf(_, _) => unimplemented!("mir::Rvalue::AddressOf"),
+            mir::Rvalue::Len(_) => unimplemented!("mir::Rvalue::Len"),
+            mir::Rvalue::Cast(_, _, _) => unimplemented!("mir::Rvalue::Cast"),
+            mir::Rvalue::BinaryOp(_, _, _) => unimplemented!("mir::Rvalue::BinaryOp"),
+            mir::Rvalue::CheckedBinaryOp(_, _, _) => unimplemented!("mir::Rvalue::CheckedBinaryOp"),
+            mir::Rvalue::NullaryOp(_, _) => unimplemented!("mir::Rvalue::NullaryOp"),
+            mir::Rvalue::UnaryOp(_, _) => unimplemented!("mir::Rvalue::UnaryOp"),
+            mir::Rvalue::Discriminant(_) => unimplemented!("mir::Rvalue::Discriminant"),
         }
     }
 
@@ -5046,6 +5060,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
                 stmts
             }
+            ty::TyKind::Closure(_, _) => {
+                // not implemented yet
+                debug!("warning: ty::TyKind::Closure not implemented yet");
+                Vec::new()
+            }
 
             ref x => unimplemented!("{:?}", x),
         };
@@ -5141,19 +5160,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             &mir::AggregateKind::Closure(def_id, _substs) => {
-                //assert!(self.encoder.is_spec_closure(def_id), "closure: {:?}", def_id);
-                // Specification only. Just ignore in the encoding.
-                // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
-                if self.encoder.is_spec_closure(def_id) {
-                    // Specification only. Just ignore in the encoding.
-                    // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
-                    stmts = Vec::new()
-                } else {
-                    return Err(SpannedEncodingError::unsupported(
-                        "construction of closures is not supported",
-                        span
-                    ));
-                }
+                debug_assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {:?}", def_id);
+                /*
+                return Err(EncodingError::unsupported(
+                    "construction of closures is not supported",
+                    span
+                ));
+                */
+                stmts = Vec::new();
             }
 
             &mir::AggregateKind::Array(..) => {
