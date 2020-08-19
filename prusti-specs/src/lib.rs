@@ -299,20 +299,18 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         quote_spanned! {callsite_span=>
             {
                 #cl_annotations #attrs_ts
-                let _prusti_closure =
-                    #asyncness #movability #capture
-                    #or1_token #inputs #or2_token #output
-                    {
-                        if false {
-                            #spec_toks_pre
-                        }
-                        let result = #body ;
-                        if false {
-                            #spec_toks_post
-                        }
-                        result
-                    };
-                _prusti_closure
+                #asyncness #movability #capture
+                #or1_token #inputs #or2_token #output
+                {
+                    if false {
+                        #spec_toks_pre
+                    }
+                    let result = #body ;
+                    if false {
+                        #spec_toks_post
+                    }
+                    result
+                }
             }
         }
     }
