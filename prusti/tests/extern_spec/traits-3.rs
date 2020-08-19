@@ -1,10 +1,14 @@
 #![feature(register_tool)]
 #![register_tool(prusti)]
 
+extern crate prusti_contracts;
 use prusti_contracts::*;
 
+/// This example currently fails
+
 pub trait Max {
-    fn max(&mut self) -> i32;
+    #[ensures(result == 3)]
+    fn max(&mut self) -> i32 { 3 }
 }
 
 pub struct Point(pub i32, pub i32);
@@ -21,9 +25,7 @@ impl Max for Point {
 
 #[extern_spec]
 impl Point {
-    #[pure]
-    #[ensures(result >= self.0 && result >= self.1)]
-    #[ensures(result == self.0 || result == self.1)]
+    #[ensures(true)]
     fn max(&mut self) -> i32;
 }
 

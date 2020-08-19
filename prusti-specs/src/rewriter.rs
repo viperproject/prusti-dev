@@ -223,6 +223,7 @@ pub fn rewrite_extern_item_fn(
     Ok(quote! {
         #[allow(unused_variables)]
         #[allow(dead_code)]
+        #[allow(unused_must_use)]
         #impl_item
     })
 }
