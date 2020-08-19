@@ -470,10 +470,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         // Since we have a collision of PRUSTI_SPEC_ATTR between different crates, we manually check
         // that the def_id does not point to an external crate.
         if !def_id.is_local() {
+            trace!("get_spec_by_def_id: def_id {:?} is not local, return None", def_id);
             return None;
         }
         let refs = self.get_opt_spec_id(def_id);
         if refs.is_empty() {
+            trace!("get_spec_by_def_id: refs is empty for def_id {:?}", def_id);
             None
         } else {
             let mut pres = Vec::new();
