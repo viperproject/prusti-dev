@@ -476,36 +476,50 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         // Replacements to use the provided `target_args` and `target_return`
         let mut replacements: Vec<(vir::Expr, vir::Expr)> = vec![];
 
+        // Skip the "self" argument for closures, for now
+        let skip_first = tcx.is_closure(curr_def_id);
+
         // Replacement 1: replace the arguments with the `target_args`.
-        for (local, target_arg) in mir.args_iter().zip(self.target_args) {
-            let local_ty = mir.local_decls[local].ty;
-            let spec_local = mir_encoder.encode_local(local)?;
-            let spec_local_place: vir::Expr = if self.targets_are_values {
-                self.encoder.encode_value_expr(
-                    vir::Expr::local(spec_local),
-                    local_ty
-                )
-            } else {
-                spec_local.into()
-            };
-            replacements.push((spec_local_place, target_arg.clone()));
-        }
+        replacements.extend(
+            mir.args_iter()
+                .zip(self.target_args)
+                .skip(if skip_first { 1 } else { 0 })
+                .map(|(local, target_arg)| {
+                    let local_ty = mir.local_decls[local].ty;
+                    // will panic if attempting to encode unsupported type
+                    let spec_local = mir_encoder.encode_local(local).unwrap();
+                    let spec_local_place: vir::Expr = if self.targets_are_values {
+                        self.encoder.encode_value_expr(
+                            vir::Expr::local(spec_local),
+                            local_ty
+                        )
+                    } else {
+                        spec_local.into()
+                    };
+                    (spec_local_place, target_arg.clone())
+                })
+        );
 
         // Replacement 2: replace the fake return variable (last argument) of SPEC items with
         // `target_return`
         if let Some(target_return) = self.target_return {
-            let fake_return_local = mir.args_iter().last().unwrap();
-            let fake_return_ty = mir.local_decls[fake_return_local].ty;
-            let spec_fake_return = mir_encoder.encode_local(fake_return_local)?;
-            let spec_fake_return_place: vir::Expr = if self.targets_are_values {
-                self.encoder.encode_value_expr(
-                    vir::Expr::local(spec_fake_return),
-                    fake_return_ty
-                )
+            if !tcx.is_closure(curr_def_id) {
+                let fake_return_local = mir.args_iter().last().unwrap();
+                let fake_return_ty = mir.local_decls[fake_return_local].ty;
+                // will panic if attempting to encode unsupported type
+                let spec_fake_return = mir_encoder.encode_local(fake_return_local).unwrap();
+                let spec_fake_return_place: vir::Expr = if self.targets_are_values {
+                    self.encoder.encode_value_expr(
+                        vir::Expr::local(spec_fake_return),
+                        fake_return_ty
+                    )
+                } else {
+                    spec_fake_return.clone().into()
+                };
+                replacements.push((spec_fake_return_place, target_return.clone()));
             } else {
-                spec_fake_return.clone().into()
-            };
-            replacements.push((spec_fake_return_place, target_return.clone()));
+                // TODO
+            }
         }
 
         // Do the replacements

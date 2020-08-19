@@ -502,13 +502,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     s.finish()
                 };
 
-                format!(
+                let name = format!(
                     "closure${}_{}${}${}",
                     def_id.krate.as_u32(),
                     def_id.index.as_u32(),
                     closure_subst.len(),
                     subst_hash
-                )
+                );
+                trace!("Encoded closure type {:?} as \"{:?}\"", def_id, name);
+                name
             }
 
             ty::TyKind::Param(param_ty) => {
