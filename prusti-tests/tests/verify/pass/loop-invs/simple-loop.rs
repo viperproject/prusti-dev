@@ -1,11 +1,9 @@
 use prusti_contracts::*;
 
-fn test1(n: u32) -> u32 {
-    let mut i = 0;
-    while i < n {
-        i += 1;
+fn main() {
+    let mut i = 10;
+    while i > 0 {
+        body_invariant!(i <= 10);
+        i -= 1;
     }
-    i
 }
-
-fn main() {}
