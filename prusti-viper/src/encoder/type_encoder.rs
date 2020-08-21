@@ -184,7 +184,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             // For composed data structures, we typically use a snapshot rather than a field.
             // To unify how parameters are passed to functions, we treat them like a reference.
             ty::TyKind::Adt(_, _)
-            | ty::TyKind::Tuple(_) => {
+            | ty::TyKind::Tuple(_)
+            | ty::TyKind::Closure(_, _) => {
                 let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
@@ -385,6 +386,35 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Param(_) => {
                 // special case: type parameters shall be encoded as *abstract* predicates
                 vec![vir::Predicate::new_abstract(typ)]
+            }
+
+            ty::TyKind::Closure(_def_id, substs) => {
+                let fields = substs
+                    .iter()
+                    .enumerate()
+                    .filter(|(field_num, ty)| {
+                        match ty.expect_ty().kind {
+                            ty::TyKind::FnPtr(sig) if sig == substs.as_closure().sig() => {
+                                // TODO: I suppose the closure could technically capture an
+                                // unrelated FnPtr with the same signature; then, instead of
+                                // skipping it, we should throw an error, but I suppose this
+                                // case would be handled outside the closure: To capture a
+                                // FnPtr, it has to be defined somewhere outside the closure,
+                                // and that will probably cause an error there
+                                trace!("Skipping code pointer field {:?} for closure", ty);
+                                false
+                            }
+                            _ => true
+                        }
+                    })
+                    .map(|(field_num, ty)| {
+                        let field_name = format!("capture_{}", field_num);
+                        self.encoder.encode_struct_field(&field_name, ty.expect_ty())
+                    })
+                    .collect::<Vec<_>>();
+                let pred = vir::Predicate::new_struct(typ.clone(), fields.clone());
+                trace!("Encoded closure type {:?} as {:?} with fields {:?}", typ, pred, fields);
+                vec![pred]
             }
 
             ref ty_variant => {
