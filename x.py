@@ -205,24 +205,24 @@ def ide(args):
 
 def tests_to_run():
     return [
-        "mc91.rs",
-        "old_function.rs",
-        "take_inc_max.rs",
-        "routes.rs",
-        "moves.rs",
+        # "mc91.rs",
+        # "old_function.rs",
+        # "take_inc_max.rs",
+        # "routes.rs",
+        # "moves.rs",
         # "mut-borrows.rs",
-        "fold-unfold.rs",
-        "empty-tuple.rs",
-        "generic-eq.rs",
+        # "fold-unfold.rs",
+        # "empty-tuple.rs",
+        # "generic-eq.rs",
 
-        # "result_in_guard.rs"
+        "simple_loop.rs",
 
-        # "framing_after_break.rs"
-        # "pure-chain-1.rs",
         # "nll-rfc-case1.rs",
+        # "fibonacci.rs",
+        # "result_in_guard.rs"
+        # "framing_after_break.rs"
         # "marker-traits.rs",
         # "knapsack.rs"
-        # "fibonacci.rs",
     ]
 
 
