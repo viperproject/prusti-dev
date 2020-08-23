@@ -189,7 +189,15 @@ pub fn rewrite_extern_item_fn(
     impl_item: &mut syn::ItemImpl,
     new_ty: Box<syn::Type>,
 ) -> syn::Result<TokenStream> {
-    let item_ty = &impl_item.self_ty;
+    let item_ty = &mut impl_item.self_ty;
+    if let syn::Type::Path(type_path) = item_ty.as_mut() {
+        for seg in type_path.path.segments.iter_mut() {
+            if let syn::PathArguments::AngleBracketed(genargs) = &mut seg.arguments {
+                genargs.colon2_token = Some(syn::token::Colon2::default());
+            }
+        }
+    }
+
     for item in impl_item.items.iter_mut() {
         match item {
             syn::ImplItem::Method(method) => {
