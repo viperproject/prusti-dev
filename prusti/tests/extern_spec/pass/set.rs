@@ -11,7 +11,7 @@ use std::cmp::Eq;
 use std::option::Option;
 
 #[extern_spec]
-impl<T> Option::<T> {
+impl<T> Option<T> {
     #[pure]
     #[ensures(matches!(*self, Some(_)) == result)]
     pub fn is_some(&self) -> bool;

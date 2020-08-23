@@ -5,7 +5,7 @@ extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[extern_spec]
-impl<T> std::vec::Vec::<T> {
+impl<T> std::vec::Vec<T> {
     #[ensures(result.len() == 0)]
     fn new() -> std::vec::Vec::<T>;
 

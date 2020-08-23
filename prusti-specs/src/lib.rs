@@ -305,6 +305,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let mut item: syn::ItemImpl = handle_result!(syn::parse2(tokens));
+
     let new_struct = handle_result!(rewriter::generate_new_struct(&mut item));
 
     let struct_ident = &new_struct.ident;

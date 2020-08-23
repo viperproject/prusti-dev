@@ -10,7 +10,7 @@ use std::vec::Vec;
 /// Example specifying trait implementations
 
 #[extern_spec]
-impl<T> Vec::<T> {
+impl<T> Vec<T> {
     #[ensures(true)]
     fn clone(&self) -> Vec::<T>
         where T: std::clone::Clone;

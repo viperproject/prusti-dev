@@ -8,7 +8,7 @@ use std::collections::LinkedList;
 use std::option::Option;
 
 #[extern_spec]
-impl<T> std::option::Option::<T> {
+impl<T> std::option::Option<T> {
     #[pure]
     #[ensures(matches!(*self, Some(_)) == result)]
     pub fn is_some(&self) -> bool;
@@ -25,7 +25,7 @@ impl<T> std::option::Option::<T> {
 }
 
 #[extern_spec]
-impl<T> LinkedList::<T>
+impl<T> LinkedList<T>
     where T: Copy + PartialEq {
     #[ensures(result.is_empty())]
     pub fn new() -> LinkedList<T>;
@@ -34,7 +34,8 @@ impl<T> LinkedList::<T>
     pub fn append(&mut self, other: &mut LinkedList<T>);
 
     #[pure]
-    #[ensures(self.len() == 0)]
+    #[ensures(result ==> self.len() == 0)]
+    #[ensures(!result ==> self.len() > 0)]
     pub fn is_empty(&self) -> bool;
 
     #[pure]
@@ -44,7 +45,6 @@ impl<T> LinkedList::<T>
     pub fn clear(&mut self);
 
     #[ensures(self.len() == old(self.len()) + 1)]
-    // #[ensures(LinkedListExtras::get(self, 0) == elt)]
     pub fn push_front(&mut self, elt: T);
 
     #[ensures(old(self.len()) > 0 ==> self.len() == old(self.len()) - 1 && result.is_some())]
@@ -63,37 +63,6 @@ impl<T> LinkedList::<T>
     pub fn split_off(&mut self, at: usize) -> LinkedList<T>;
 }
 
-
-struct LinkedListExtras<T>(std::marker::PhantomData<T>);
-
-impl<T> LinkedListExtras<T> where T: Copy + PartialEq {
-    #[requires(index >= 0 && index <= list.len())]
-    #[ensures(list.len() == old(list.len()) + 1)]
-    fn insert(list: &mut LinkedList<T>, index: usize, val: T) {
-        if index == 0 {
-            list.push_front(val);
-        } else if index == list.len() {
-            list.push_back(val);
-        } else {
-            let mut tail = list.split_off(index);
-            list.push_back(val);
-            list.append(&mut tail);
-        }
-    }
-
-    #[trusted]
-    #[pure]
-    #[requires(index < list.len())]
-    fn get(list: &mut LinkedList<T>, index: usize) -> T {
-        for (i, elem) in list.iter().enumerate() {
-            if i == index {
-                return *elem;
-            }
-        }
-        unreachable!()
-    }
-}
-
 fn main() {
     let mut l = LinkedList::new();
     l.push_front(1);
@@ -109,6 +78,4 @@ fn main() {
     l.pop_front();
 
     assert!(l.len() == 3);
-    // LinkedListExtras::insert(&mut l, 2, 4);
-    // assert!(l.len() == 4);
 }

@@ -5,7 +5,7 @@ extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[extern_spec]
-impl<T> std::option::Option::<T> {
+impl<T> std::option::Option<T> {
     #[pure]
     #[ensures(matches!(*self, Some(_)) == result)]
     pub fn is_some(&self) -> bool;

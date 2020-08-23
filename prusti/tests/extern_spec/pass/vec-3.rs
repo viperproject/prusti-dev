@@ -7,7 +7,7 @@ use std::vec::Vec;
 use std::option::Option;
 
 #[extern_spec]
-impl<T> Option::<T> {
+impl<T> Option<T> {
     #[pure]
     #[ensures(matches!(*self, Some(_)) == result)]
     pub fn is_some(&self) -> bool;
@@ -22,7 +22,7 @@ impl<T> Option::<T> {
 }
 
 #[extern_spec]
-impl<T> Vec::<T> {
+impl<T> Vec<T> {
     #[ensures(result.len() == 0)]
     fn new() -> Vec::<T>;
 
