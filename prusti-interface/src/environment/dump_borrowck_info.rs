@@ -229,8 +229,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 let name = var_names.get(&temp).map(|s| s.to_string()).unwrap_or(String::from(""));
                 let region = self
                     .polonius_info
-                    .variable_regions
-                    .get(&temp)
+                    .place_regions
+                    .for_local(temp)
                     .map(|region| format!("{:?}", region))
                     .unwrap_or(String::from(""));
                 let typ = to_html!(var.ty);
@@ -1138,7 +1138,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     fn print_blocked(&self, blocker: mir::Local, location: mir::Location) -> Result<(), io::Error> {
         let bb = location.block;
         let start_point = self.get_point(location, facts::PointType::Start);
-        if let Some(region) = self.polonius_info.variable_regions.get(&blocker) {
+        if let Some(region) = self.polonius_info.place_regions.for_local(blocker) {
             write_graph!(self, "{:?} -> {:?}_{:?}_{:?}", bb, bb, blocker, region);
             write_graph!(
                 self,
@@ -1154,7 +1154,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
                 if let Some(blocked_regions) = subset.get(&region) {
                     for blocked_region in blocked_regions.iter() {
-                        if blocked_region == region {
+                        if *blocked_region == region {
                             continue;
                         }
                         if let Some(blocked) = self.polonius_info.find_variable(*blocked_region) {
@@ -1299,7 +1299,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         //TODO: Check if it really is always start and not the mid point.
         let start_point = self.get_point(location, facts::PointType::Start);
 
-        if let Some(region) = self.polonius_info.variable_regions.get(&blocker) {
+        if let Some(region) = self.polonius_info.place_regions.for_local(blocker) {
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Magic wand</td>");
             let subset_map = &self.polonius_info.borrowck_out_facts.subset;
@@ -1307,7 +1307,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 let mut blocked_variables = Vec::new();
                 if let Some(blocked_regions) = subset.get(&region) {
                     for blocked_region in blocked_regions.iter() {
-                        if blocked_region == region {
+                        if *blocked_region == region {
                             continue;
                         }
                         if let Some(local) = self.polonius_info.find_variable(*blocked_region) {
@@ -1331,7 +1331,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             if package {
                 let (all_loans, zombie_loans) = self
                     .polonius_info
-                    .get_all_loans_kept_alive_by(start_point, *region);
+                    .get_all_loans_kept_alive_by(start_point, region);
                 let dag = self.polonius_info.construct_reborrowing_dag(
                     &all_loans,
                     &zombie_loans,
