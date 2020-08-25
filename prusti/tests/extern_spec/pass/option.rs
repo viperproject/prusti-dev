@@ -1,5 +1,8 @@
 #![feature(register_tool)]
 #![register_tool(prusti)]
+#![allow(unused_variables)]
+#![allow(dead_code)]
+#![allow(unused_must_use)]
 
 extern crate prusti_contracts;
 use prusti_contracts::*;

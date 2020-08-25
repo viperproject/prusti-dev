@@ -17,6 +17,11 @@ use specifications::untyped;
 use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
 
+mod extern_spec_rewriter;
+mod rewriter;
+mod parse_closure_macro;
+pub mod specifications;
+
 macro_rules! handle_result {
     ($parse_result: expr) => {
         match $parse_result {
@@ -304,22 +309,36 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 }
 
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
-    let mut item: syn::ItemImpl = handle_result!(syn::parse2(tokens));
+    let item: syn::Item = handle_result!(syn::parse2(tokens));
+    match item {
+        syn::Item::Impl(mut item_impl) => {
+            let new_struct = handle_result!(extern_spec_rewriter::generate_new_struct(&mut item_impl));
 
-    let new_struct = handle_result!(rewriter::generate_new_struct(&mut item));
+            let struct_ident = &new_struct.ident;
+            let generics = &new_struct.generics;
 
-    let struct_ident = &new_struct.ident;
-    let generics = &new_struct.generics;
+            let struct_ty: syn::Type = syn::parse_quote! {
+                #struct_ident #generics
+            };
 
-    let struct_ty: syn::Type = syn::parse_quote! {
-        #struct_ident #generics
-    };
+            let rewritten_item =
+                handle_result!(extern_spec_rewriter::rewrite_method(&mut item_impl, Box::from(struct_ty)));
 
-    let rewritten_item =
-        handle_result!(rewriter::rewrite_extern_item_fn(&mut item, Box::from(struct_ty)));
-
-    quote! {
-        #new_struct
-        #rewritten_item
+            quote! {
+                #new_struct
+                #rewritten_item
+            }
+        }
+        syn::Item::Mod(mut item_mod) => {
+            let mut path = syn::Path {
+                leading_colon: None,
+                segments: syn::punctuated::Punctuated::new(),
+            };
+            handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
+            quote! {
+                #item_mod
+            }
+        }
+        _ => { unimplemented!() }
     }
 }

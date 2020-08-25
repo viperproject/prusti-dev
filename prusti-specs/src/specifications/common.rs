@@ -111,11 +111,11 @@ impl Into<u64> for ExpressionId {
     }
 }
 
-pub(crate) struct StructNameGenerator {}
+pub(crate) struct NameGenerator {}
 
-impl StructNameGenerator {
+impl NameGenerator {
     pub(crate) fn new() -> Self { Self { } }
-    pub(crate) fn generate(&self, item: &syn::ItemImpl) -> Result<String, String> {
+    pub(crate) fn generate_struct_name(&self, item: &syn::ItemImpl) -> Result<String, String> {
         let mut path_str: String = String::new();
 
         match &*item.self_ty {
@@ -132,8 +132,12 @@ impl StructNameGenerator {
 
         Ok(format!("PrustiStruct{}{}", path_str, uuid))
     }
-}
 
+    pub(crate) fn generate_mod_name(&self, ident: &syn::Ident) -> String {
+        let uuid = Uuid::new_v4().to_simple();
+        format!("{}{}", ident.to_string(), uuid)
+    }
+}
 
 #[derive(Debug, Clone)]
 /// A Rust expression used in the specification.
