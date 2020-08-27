@@ -384,32 +384,38 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Closure(_def_id, substs) => {
-                let fields = substs
-                    .iter()
-                    .enumerate()
-                    .filter(|(field_num, ty)| {
-                        match ty.expect_ty().kind {
-                            ty::TyKind::FnPtr(sig) if sig == substs.as_closure().sig() => {
-                                // TODO: I suppose the closure could technically capture an
-                                // unrelated FnPtr with the same signature; then, instead of
-                                // skipping it, we should throw an error, but I suppose this
-                                // case would be handled outside the closure: To capture a
-                                // FnPtr, it has to be defined somewhere outside the closure,
-                                // and that will probably cause an error there
-                                trace!("Skipping code pointer field {:?} for closure", ty);
-                                false
-                            }
-                            _ => true
-                        }
-                    })
-                    .map(|(field_num, ty)| {
-                        let field_name = format!("capture_{}", field_num);
-                        self.encoder.encode_struct_field(&field_name, ty.expect_ty())
-                    })
-                    .collect::<Vec<_>>();
-                let pred = vir::Predicate::new_struct(typ.clone(), fields.clone());
-                trace!("Encoded closure type {:?} as {:?} with fields {:?}", typ, pred, fields);
-                vec![pred]
+                let mut fields_iter = substs.iter();
+
+                // First type should be the closure kind:
+                // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.ClosureSubsts.html
+                let cl_kind = fields_iter.next().unwrap();
+                match cl_kind.expect_ty().kind {
+                    ty::TyKind::Int(ast::IntTy::I8) => (),
+                    _ => unreachable!()
+                }
+
+                // Second type should be the closure signature as FnPtr
+                let cl_sig = fields_iter.next().unwrap();
+                match cl_sig.expect_ty().kind {
+                    ty::TyKind::FnPtr(sig) if sig == substs.as_closure().sig() => (),
+                    _ => unreachable!()
+                }
+
+                // Third type should be a tuple containing the upvar types
+                let cl_upvars = fields_iter.next().unwrap().expect_ty();
+                assert_eq!(fields_iter.next(), None);
+
+                match cl_upvars.kind {
+                    ty::TyKind::Tuple(upvar_substs) => {
+                        let field_name = "upvars".to_owned();
+                        let field = self.encoder.encode_raw_ref_field(field_name, cl_upvars);
+                        let pred = vir::Predicate::new_struct(typ.clone(), vec![field.clone()]);
+                        trace!("Encoded closure type {:?} as {:?} with field {:?}", typ, pred, field);
+                        vec![pred]
+                    }
+
+                    _ => unreachable!()
+                }
             }
 
             ref ty_variant => {
