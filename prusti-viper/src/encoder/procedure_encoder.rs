@@ -1254,7 +1254,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Encode the lhs and the rhs of the assignment that create the loan
     fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Expr, vir::Expr, bool) {
-        debug!("encode_loan_rvalue '{:?}'", loan_places);
+        debug!("encode_loan_places '{:?}'", loan_places);
         // will panic if attempting to encode unsupported type
         let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&loan_places.dest).unwrap();
         let encode = |rhs_place| {
@@ -1287,11 +1287,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 assert_eq!(expiring.get_type(), restored.get_type());
                 (expiring, restored, false)
             }
-            mir::Rvalue::Aggregate(ref agg_kind, ref operands) => {
-                // TODO
-                unimplemented!("mir::Rvalue::Aggregate");
-            }
 
+            mir::Rvalue::Aggregate(_, _) => unimplemented!("mir::Rvalue::Aggregate"),
             mir::Rvalue::Use(_) => unimplemented!("mir::Rvalue::Use"),
             mir::Rvalue::Repeat(_, _) => unimplemented!("mir::Rvalue::Repeat"),
             mir::Rvalue::ThreadLocalRef(_) => unimplemented!("mir::Rvalue::ThreadLocalRef"),

@@ -375,6 +375,16 @@ fn load_polonius_facts<'tcx>(
     debug!("Reading facts from: {:?}", dir_path);
     let mut facts_loader = facts::FactLoader::new();
     facts_loader.load_all_facts(&dir_path);
+
+    let all_facts = &facts_loader.facts;
+    all_facts.borrow_region.iter()
+        .for_each(|(origin, loan, point): &(facts::Region, facts::Loan, facts::PointIndex)| -> () {
+            trace!("load_polonius_facts: borrow_region: ({:?}, {:?}, {:?})",
+                   origin, loan, facts_loader.interner.get_point(*point)); });
+    all_facts.placeholder.iter()
+        .for_each(|(origin, loan): &(facts::Region, facts::Loan)| -> () {
+            trace!("load_polonius_facts: placeholder: ({:?}, {:?})", origin, loan); });
+
     facts_loader
 }
 
