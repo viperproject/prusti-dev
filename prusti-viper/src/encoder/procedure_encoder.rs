@@ -52,6 +52,7 @@ use rustc_middle::ty;
 use rustc_middle::ty::layout;
 use rustc_target::abi::Integer;
 use rustc_middle::ty::layout::IntegerExt;
+use rustc_index::vec::Idx;
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
 use std::collections::HashMap;
@@ -1265,23 +1266,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// A borrow is mutable if it was a MIR unique borrow, a move of
     /// a borrow, or a argument of a function.
-    fn is_mutable_borrow(&self, location: mir::Location) -> bool {
-        let mir::BasicBlockData { ref statements, .. } = self.mir[location.block];
-        if location.statement_index == statements.len() {
-            // It is not an assignment, so we assume that the borrow is mutable.
-            true
-        } else {
-            let statement = &statements[location.statement_index];
-            match statement.kind {
-                mir::StatementKind::Assign(box(ref _lhs, ref rhs)) => match rhs {
-                    &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, _)
-                    | &mir::Rvalue::Use(mir::Operand::Copy(_)) => false,
-                    &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, _)
-                    | &mir::Rvalue::Use(mir::Operand::Move(_)) => true,
+    fn is_mutable_borrow(&self, loan: facts::Loan) -> bool {
+        if let Some(stmt) = self.polonius_info().get_assignment_for_loan(loan) {
+            match stmt.kind {
+                mir::StatementKind::Assign(box (_, ref rhs)) => match rhs {
+                    &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, _) |
+                    &mir::Rvalue::Use(mir::Operand::Copy(_)) => false,
+                    &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, _) |
+                    &mir::Rvalue::Use(mir::Operand::Move(_)) => true,
                     x => unreachable!("{:?}", x),
                 },
                 ref x => unreachable!("{:?}", x),
             }
+        } else {
+            // It is not an assignment, so we assume that the borrow is mutable.
+            true
         }
     }
 
@@ -1368,9 +1367,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if node.incoming_zombies {
             let lhs_label = self.get_label_after_location(loan_location).to_string();
             for &in_loan in node.reborrowing_loans.iter() {
-                let in_location = self.polonius_info().get_loan_location(&in_loan);
-                let in_label = self.get_label_after_location(in_location).to_string();
-                if self.is_mutable_borrow(in_location) {
+                if self.is_mutable_borrow(in_loan) {
+                    let in_location = self.polonius_info().get_loan_location(&in_loan);
+                    let in_label = self.get_label_after_location(in_location).to_string();
                     used_lhs_label = true;
                     stmts.extend(self.encode_transfer_permissions(
                         expiring.clone().old(&in_label),
@@ -3261,10 +3260,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .get_point(location, facts::PointType::Start);
 
             let mut package_stmts =
-                if let Some(region) = self.polonius_info().variable_regions.get(&blocker) {
+                if let Some(region) = self.polonius_info().place_regions.for_local(blocker) {
                     let (all_loans, zombie_loans) = self
                         .polonius_info()
-                        .get_all_loans_kept_alive_by(start_point, *region);
+                        .get_all_loans_kept_alive_by(start_point, region);
                     self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)?
                 } else {
                     unreachable!(); // Really?

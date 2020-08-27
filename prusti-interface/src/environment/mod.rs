@@ -32,6 +32,7 @@ mod dump_borrowck_info;
 mod loops;
 mod loops_utils;
 pub mod mir_analyses;
+pub mod mir_utils;
 pub mod place_set;
 pub mod polonius_info;
 mod procedure;

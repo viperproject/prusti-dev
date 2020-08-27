@@ -11,7 +11,7 @@ use prusti_interface::data::ProcedureDefId;
 //     TypedSpecificationSet,
 // };
 use rustc_hir::{self as hir, Mutability};
-use rustc_middle::{mir, ty::FnSig};
+use rustc_middle::{mir, ty::FnSig, ty::subst::SubstsRef};
 use rustc_index::vec::Idx;
 use rustc_middle::ty::{self, Ty, TyCtxt, TyKind, TypeckResults};
 // use rustc_data_structures::indexed_vec::Idx;
@@ -352,6 +352,17 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         self.is_path_blocking = true;
         //type_visitor::walk_ref(self, region, ty, mutability);
         self.is_path_blocking = is_path_blocking;
+        self.current_path = Some(old_path);
+    }
+
+    fn visit_tuple(&mut self, parts: SubstsRef<'tcx>) {
+        let old_path = self.current_path.take().unwrap();
+        for (i, part) in parts.iter().enumerate() {
+            let field = mir::Field::new(i);
+            let ty = part.expect_ty();
+            self.current_path = Some(self.tcx().mk_place_field(old_path.clone(), field, ty));
+            self.visit_ty(ty);
+        }
         self.current_path = Some(old_path);
     }
 
