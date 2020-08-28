@@ -332,6 +332,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             if !(self
                 .env()
                 .has_attribute_name(mir_def_id.to_def_id(), "spec_only"))
+               && !tcx.is_closure(mir_def_id.to_def_id())
             {
                 continue;
             }

@@ -605,28 +605,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                curr_mir.args_iter().map(|arg| &curr_mir.local_decls[arg]).collect::<Vec<_>>(),
                self.target_args);
 
-        // Skip the "self" argument for closures, for now
-        let mut skip_first = false;
-        if tcx.is_closure(curr_def_id) {
-            skip_first = true;
-        }
-
         for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
-            if skip_first {
-                skip_first = false;
-                continue;
-            }
+            if !tcx.is_closure(curr_def_id) {
+                let local_ty = curr_mir.local_decls[local].ty;
+                // will panic if attempting to encode unsupported type
+                let spec_local = curr_mir_encoder.encode_local(local).unwrap();
+                let spec_local_place: vir::Expr = if self.targets_are_values {
+                    self.encoder.encode_value_expr(vir::Expr::local(spec_local), local_ty)
+                } else {
+                    spec_local.into()
+                };
 
-            let local_ty = curr_mir.local_decls[local].ty;
-            // will panic if attempting to encode unsupported type
-            let spec_local = curr_mir_encoder.encode_local(local).unwrap();
-            let spec_local_place: vir::Expr = if self.targets_are_values {
-                self.encoder.encode_value_expr(vir::Expr::local(spec_local), local_ty)
+                encoded_expr = encoded_expr.replace_place(&spec_local_place, target_arg);
             } else {
-                spec_local.into()
-            };
-
-            encoded_expr = encoded_expr.replace_place(&spec_local_place, target_arg);
+                // TODO?
+            }
         }
         if let Some(target_return) = self.target_return {
             if !tcx.is_closure(curr_def_id) {
@@ -666,7 +659,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 debug!("target_return: {}", target_return);
                 encoded_expr = encoded_expr.replace_place(&spec_fake_return_place, target_return);
             } else {
-                // TODO
+                // TODO?
             }
         }
 
