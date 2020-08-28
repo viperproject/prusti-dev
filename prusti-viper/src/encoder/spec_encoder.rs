@@ -468,6 +468,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             curr_def_id = outer_def_id;
         }
 
+        let skip_first = self.encoder.encode_item_name(curr_def_id).contains("_closure_");
+
         // At this point `curr_def_id` should be either a SPEC item (when encoding a contract) or
         // the method being verified (when encoding a loop invariant).
         let mir = self.encoder.env().local_mir(curr_def_id.expect_local());
@@ -480,47 +482,39 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         replacements.extend(
             mir.args_iter()
                 .zip(self.target_args)
-                .filter_map(|(local, target_arg)| {
-                    if !tcx.is_closure(curr_def_id) {
-                        let local_ty = mir.local_decls[local].ty;
-                        // will panic if attempting to encode unsupported type
-                        let spec_local = mir_encoder.encode_local(local).unwrap();
-                        let spec_local_place: vir::Expr = if self.targets_are_values {
-                            self.encoder.encode_value_expr(
-                                vir::Expr::local(spec_local),
-                                local_ty
-                            )
-                        } else {
-                            spec_local.into()
-                        };
-                        Some(spec_local_place, target_arg.clone())
+                .skip(if skip_first { 1 } else { 0 })
+                .map(|(local, target_arg)| {
+                    let local_ty = mir.local_decls[local].ty;
+                    // will panic if attempting to encode unsupported type
+                    let spec_local = mir_encoder.encode_local(local).unwrap();
+                    let spec_local_place: vir::Expr = if self.targets_are_values {
+                        self.encoder.encode_value_expr(
+                            vir::Expr::local(spec_local),
+                            local_ty
+                        )
                     } else {
-                        // TODO?
-                        None
-                    }
+                        spec_local.into()
+                    };
+                    (spec_local_place, target_arg.clone())
                 })
         );
 
         // Replacement 2: replace the fake return variable (last argument) of SPEC items with
         // `target_return`
         if let Some(target_return) = self.target_return {
-            if !tcx.is_closure(curr_def_id) {
-                let fake_return_local = mir.args_iter().last().unwrap();
-                let fake_return_ty = mir.local_decls[fake_return_local].ty;
-                // will panic if attempting to encode unsupported type
-                let spec_fake_return = mir_encoder.encode_local(fake_return_local).unwrap();
-                let spec_fake_return_place: vir::Expr = if self.targets_are_values {
-                    self.encoder.encode_value_expr(
-                        vir::Expr::local(spec_fake_return),
-                        fake_return_ty
-                    )
-                } else {
-                    spec_fake_return.clone().into()
-                };
-                replacements.push((spec_fake_return_place, target_return.clone()));
+            let fake_return_local = mir.args_iter().last().unwrap();
+            let fake_return_ty = mir.local_decls[fake_return_local].ty;
+            // will panic if attempting to encode unsupported type
+            let spec_fake_return = mir_encoder.encode_local(fake_return_local).unwrap();
+            let spec_fake_return_place: vir::Expr = if self.targets_are_values {
+                self.encoder.encode_value_expr(
+                    vir::Expr::local(spec_fake_return),
+                    fake_return_ty
+                )
             } else {
-                // TODO?
-            }
+                spec_fake_return.clone().into()
+            };
+            replacements.push((spec_fake_return_place, target_return.clone()));
         }
 
         // Do the replacements

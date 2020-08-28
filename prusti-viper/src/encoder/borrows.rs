@@ -290,6 +290,10 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
             &ty::RegionKind::ReStatic => None,
             &ty::RegionKind::ReErased => None,
             // &ty::RegionKind::ReScope(_scope) => None,
+
+            // TODO:
+            &ty::RegionKind::ReErased => None,
+
             x => unimplemented!("{:?}", x),
         }
     }
@@ -425,31 +429,46 @@ where
 {
     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
 
-    let fn_sig: FnSig = if tcx.is_closure(proc_def_id) {
-        let typeck_results: &TypeckResults<'_> = tcx.typeck(proc_def_id.expect_local());
-        let fn_sigs = typeck_results.liberated_fn_sigs();
-        *(fn_sigs.get(tcx.hir().local_def_id_to_hir_id(proc_def_id.expect_local())).unwrap())
-    } else {
-        tcx.fn_sig(proc_def_id).skip_binder()
-    };
-    trace!("fn_sig: {:?}", fn_sig);
-
     let mut fake_mir_args = Vec::new();
     let mut fake_mir_args_ty = Vec::new();
+    let return_ty;
 
-    // FIXME; "skip_binder" is most likely wrong
-    // FIXME: Replace with FakeMirEncoder.
-    for i in 0usize..fn_sig.inputs().len() {
-        fake_mir_args.push(mir::Local::from_usize(i + 1));
-        let arg_ty = fn_sig.inputs()[i];
-        let ty = if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
-            replaced_arg_ty.clone()
-        } else {
-            arg_ty.clone()
-        };
-        fake_mir_args_ty.push(ty);
+    if !tcx.is_closure(proc_def_id) {
+        let fn_sig: FnSig = tcx.fn_sig(proc_def_id).skip_binder();
+
+        // FIXME; "skip_binder" is most likely wrong
+        // FIXME: Replace with FakeMirEncoder.
+        for i in 0usize..fn_sig.inputs().len() {
+            fake_mir_args.push(mir::Local::from_usize(i + 1));
+            let arg_ty = fn_sig.inputs()[i];
+            let ty = if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
+                replaced_arg_ty.clone()
+            } else {
+                arg_ty.clone()
+            };
+            fake_mir_args_ty.push(ty);
+        }
+
+        return_ty = fn_sig.output().clone();  // FIXME: Shouldn't this also go through maybe_tymap?
+    } else {
+        let (mir, _) = tcx.mir_validated(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
+        let mir = mir.borrow();
+
+        return_ty = mir.local_decls[mir::Local::from_usize(0)].ty;
+        trace!("compute_procedure_contract: closure: return_ty: {:?}", return_ty);
+
+        for i in 1usize ..= mir.arg_count {
+            fake_mir_args.push(mir::Local::from_usize(i));
+            let arg_ty = mir.local_decls[mir::Local::from_usize(i)].ty;
+            trace!("compute_procedure_contract: closure: arg_ty #{}: {:?}", i, arg_ty);
+            let ty = if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
+                replaced_arg_ty.clone()
+            } else {
+                arg_ty.clone()
+            };
+            fake_mir_args_ty.push(ty);
+        }
     }
-    let return_ty = fn_sig.output().clone();  // FIXME: Shouldn't this also go through maybe_tymap?
 
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {

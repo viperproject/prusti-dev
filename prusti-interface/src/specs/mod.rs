@@ -315,9 +315,11 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
                         prusti::loop_body_invariant_spec"
                     ),
                 };
-                if fn_name.starts_with("prusti_pre_item_") {
+                if fn_name.starts_with("prusti_pre_item_")
+                    || fn_name.starts_with("prusti_pre_closure_") {
                     SpecType::Precondition
-                } else if fn_name.starts_with("prusti_post_item_") {
+                } else if fn_name.starts_with("prusti_post_item_")
+                    || fn_name.starts_with("prusti_post_closure_") {
                     SpecType::Postcondition
                 } else {
                     unreachable!()
