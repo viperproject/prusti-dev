@@ -583,15 +583,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             let item_name = self
                 .encoder
                 .encode_item_name(curr_def_id);
-            if !tcx.is_closure(curr_def_id) {
-                assert!(item_name.contains("prusti_pre_item_") ||
-                        item_name.contains("prusti_post_item_"), "item_name: {}", item_name);
-            } else {
-                trace!("curr_def_id refers to closure: {:?}", curr_def_id);
-                // TODO (?): check that tcx.get_attrs(curr_def_id) includes
-                //           prusti::spec_only and prusti::spec_id
-            }
+            assert!(item_name.contains("prusti_pre_item_") ||
+                    item_name.contains("prusti_post_item_") ||
+                    item_name.contains("prusti_pre_closure_") ||
+                    item_name.contains("prusti_post_closure_"), "item_name: {}", item_name);
         }
+
+        let skip_first = self.encoder.encode_item_name(curr_def_id).contains("_closure_");
 
         // Translate arguments and return from the SPEC to the TARGET context
         if self.stop_at_bbi.is_none() {
@@ -605,62 +603,37 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                curr_mir.args_iter().map(|arg| &curr_mir.local_decls[arg]).collect::<Vec<_>>(),
                self.target_args);
 
-        for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
-            if !tcx.is_closure(curr_def_id) {
-                let local_ty = curr_mir.local_decls[local].ty;
-                // will panic if attempting to encode unsupported type
-                let spec_local = curr_mir_encoder.encode_local(local).unwrap();
-                let spec_local_place: vir::Expr = if self.targets_are_values {
-                    self.encoder.encode_value_expr(vir::Expr::local(spec_local), local_ty)
-                } else {
-                    spec_local.into()
-                };
-
-                encoded_expr = encoded_expr.replace_place(&spec_local_place, target_arg);
+        for (local, target_arg) in curr_mir.args_iter().zip(
+                                       self.target_args.iter().skip(if skip_first { 1 } else { 0 })) {
+            let local_ty = curr_mir.local_decls[local].ty;
+            // will panic if attempting to encode unsupported type
+            let spec_local = curr_mir_encoder.encode_local(local).unwrap();
+            let spec_local_place: vir::Expr = if self.targets_are_values {
+                self.encoder.encode_value_expr(vir::Expr::local(spec_local), local_ty)
             } else {
-                // TODO?
-            }
+                spec_local.into()
+            };
+
+            encoded_expr = encoded_expr.replace_place(&spec_local_place, target_arg);
         }
         if let Some(target_return) = self.target_return {
-            if !tcx.is_closure(curr_def_id) {
-                let fake_return_local = curr_mir.args_iter().last().unwrap();
-                let fake_return_ty = curr_mir.local_decls[fake_return_local].ty;
-                // will panic if attempting to encode unsupported type
-                let spec_fake_return = curr_mir_encoder.encode_local(fake_return_local).unwrap();
+            let fake_return_local = curr_mir.args_iter().last().unwrap();
+            let fake_return_ty = curr_mir.local_decls[fake_return_local].ty;
+            // will panic if attempting to encode unsupported type
+            let spec_fake_return = curr_mir_encoder.encode_local(fake_return_local).unwrap();
 
-                /*match self.target_return_value {
-                Some(target_return_value) => {
-                match curr_mir.return_ty().sty {
-                ty::TyKind::Bool |
-                ty::TyKind::Int(..) |
-                ty::TyKind::Uint(..) |
-                ty::TyKind::RawPtr(..) |
-                ty::TyKind::Ref(..) => {
-                let value_field = self.encoder.encode_value_field(curr_mir.return_ty());
-                let spec_fake_return_value = vir::Expr::Local(spec_fake_return.clone()).field(value_field);
-                encoded_expr = encoded_expr.replace_place(&spec_fake_return_value, target_return_value);
-            }
-                _ => {}
-            }
-            }
-                None => {}
-            }*/
-
-                let spec_fake_return_place: vir::Expr = if self.targets_are_values {
-                    self.encoder.encode_value_expr(
-                        vir::Expr::local(spec_fake_return),
-                        fake_return_ty
-                    )
-                } else {
-                    spec_fake_return.clone().into()
-                };
-
-                debug!("spec_fake_return_place: {}", spec_fake_return_place);
-                debug!("target_return: {}", target_return);
-                encoded_expr = encoded_expr.replace_place(&spec_fake_return_place, target_return);
+            let spec_fake_return_place: vir::Expr = if self.targets_are_values {
+                self.encoder.encode_value_expr(
+                    vir::Expr::local(spec_fake_return),
+                    fake_return_ty
+                )
             } else {
-                // TODO?
-            }
+                spec_fake_return.clone().into()
+            };
+
+            debug!("spec_fake_return_place: {}", spec_fake_return_place);
+            debug!("target_return: {}", target_return);
+            encoded_expr = encoded_expr.replace_place(&spec_fake_return_place, target_return);
         }
 
         // Translate label of `old[pre]` expressions to the TARGET label

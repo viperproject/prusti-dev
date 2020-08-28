@@ -3,6 +3,7 @@ use crate::specifications::untyped::{self, EncodeTypeCheck};
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, format_ident};
 use syn::spanned::Spanned;
+use syn::{Type, punctuated::Punctuated, Pat, token::Comma};
 
 pub(crate) struct AstRewriter {
     expr_id_generator: ExpressionIdGenerator,
@@ -149,36 +150,46 @@ impl AstRewriter {
     /// TODO: arguments, result (types are typically not known yet after parsing...)
     pub fn generate_cl_spec(
         &mut self,
+        inputs: Punctuated<Pat, Comma>, output: Type,
         preconds: Vec<(untyped::SpecificationId,untyped::Assertion)>,
         postconds: Vec<(untyped::SpecificationId,untyped::Assertion)>
     ) -> (TokenStream, TokenStream) {
-        let process_cond = |suffix: &str, count: i32, id: &untyped::SpecificationId, assertion: &untyped::Assertion, ts: &mut TokenStream| {
+        let process_cond = |is_post: bool, id: &untyped::SpecificationId,
+                            assertion: &untyped::Assertion, ts: &mut TokenStream|
+        {
             let spec_id_str = id.to_string();
             let mut encoded = TokenStream::new();
             assertion.encode_type_check(&mut encoded);
             let assertion_json = crate::specifications::json::to_json_string(&assertion);
-            let var_name = format_ident! ("_prusti_closure_{}{}", suffix, count.to_string());
+            let name = format_ident! ("prusti_{}_closure_{}", if !is_post { "pre" } else { "post" }, spec_id_str);
+            let mut result = TokenStream::new();
+            if is_post {
+                if !inputs.is_empty() {
+                    result.extend(quote! { , });
+                }
+                result.extend(quote! {
+                    result: #output
+                });
+            }
             ts.extend(quote! {
                 #[prusti::spec_only]
                 #[prusti::spec_id = #spec_id_str]
                 #[prusti::assertion = #assertion_json]
-                let #var_name =
+                fn #name (#inputs #result)
                 {
                     #encoded
-                };
+                }
             });
         };
 
         let mut pre_ts = TokenStream::new ();
         let mut post_ts = TokenStream::new ();
-        let mut count = 0;
         for (id, precond) in preconds {
-            process_cond (&"pre", count, &id, &precond, &mut pre_ts);
+            process_cond (false, &id, &precond, &mut pre_ts);
         }
 
-        count = 0;
         for (id, postcond) in postconds {
-            process_cond (&"post", count, &id, &postcond, &mut post_ts);
+            process_cond (true, &id, &postcond, &mut post_ts);
         }
 
         (pre_ts, post_ts)

@@ -71,9 +71,11 @@ impl<'tcx> SpecCollector<'tcx> {
                 "nested specification item?"
             );
             let fn_name = item.name.to_ident_string();
-            let spec_type = if fn_name.starts_with("prusti_pre_item_") {
+            let spec_type = if fn_name.starts_with("prusti_pre_item_")
+                               || fn_name.starts_with("prusti_pre_closure_") {
                 SpecType::Precondition
-            } else if fn_name.starts_with("prusti_post_item_") {
+            } else if fn_name.starts_with("prusti_post_item_")
+                      || fn_name.starts_with("prusti_post_closure_") {
                 SpecType::Postcondition
             } else {
                 unreachable!();

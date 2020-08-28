@@ -175,9 +175,19 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             });
         }
 
-        let (spec_toks_pre, spec_toks_post) = rewriter.generate_cl_spec(preconds, postconds);
         let syn::ExprClosure { attrs, asyncness, movability, capture, or1_token,
                                inputs, or2_token, output, body } = cl_spec.cl;
+
+        let output_type: syn::Type = match output {
+            syn::ReturnType::Default => {
+                return syn::Error::new(output.span(), "closure must specify return type, for now")
+                    .to_compile_error();
+            }
+            syn::ReturnType::Type(_, ref ty) => (**ty).clone()
+        };
+
+        let (spec_toks_pre, spec_toks_post) = rewriter.generate_cl_spec(
+            inputs.clone(), output_type, preconds, postconds);
 
         let mut attrs_ts = TokenStream::new();
         for a in attrs {
