@@ -1,5 +1,4 @@
-#![feature(register_tool)]
-#![register_tool(prusti)]
+
 
 use prusti_contracts::*;
 
@@ -10,7 +9,7 @@ struct A {
 
 #[pure]
 fn get_value(_x: &A) -> i32 {
-    _x.i 
+    _x.i
 }
 
 #[ensures(result == 1)]
@@ -22,7 +21,7 @@ fn test_eq_in_code(_a: &A, _b: &A) -> i32 {
             0
         }
     } else {
-        if _a == _b { 
+        if _a == _b {
             2
         } else {
             1
