@@ -57,6 +57,8 @@ fn main() {
     args.push("-Zdump-mir-dir=log/mir/".to_owned());
     args.push("-Zdump-mir=renumber".to_owned());
     args.push("-Zalways-encode-mir".to_owned());
+    args.push("-Zcrate-attr=feature(register_tool)".to_owned());
+    args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
     args.push("--cfg=prusti".to_owned());
 
     let mut callbacks = PrustiCompilerCalls::new(flags);

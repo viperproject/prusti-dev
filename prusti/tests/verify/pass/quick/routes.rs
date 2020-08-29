@@ -1,6 +1,5 @@
 #![feature(box_syntax, box_patterns)]
-#![feature(register_tool)]
-#![register_tool(prusti)]
+
 
 use prusti_contracts::*;
 
