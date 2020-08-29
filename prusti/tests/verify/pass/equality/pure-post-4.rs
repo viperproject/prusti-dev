@@ -1,5 +1,4 @@
-#![feature(register_tool)]
-#![register_tool(prusti)]
+
 
 use prusti_contracts::*;
 
@@ -22,7 +21,7 @@ fn main() {
 
     let _u = first(_a, _b);
     assert!(_u == _a);
-    
+
     // assert!(u == b); // fails
 }
 
