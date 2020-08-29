@@ -394,15 +394,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 // First type should be the closure kind:
                 // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.ClosureSubsts.html
                 let cl_kind = fields_iter.next().unwrap();
-                match cl_kind.expect_ty().kind {
+                match cl_kind.expect_ty().kind() {
                     ty::TyKind::Int(ast::IntTy::I8) => (),
                     _ => unreachable!()
                 }
 
                 // Second type should be the closure signature as FnPtr
                 let cl_sig = fields_iter.next().unwrap();
-                match cl_sig.expect_ty().kind {
-                    ty::TyKind::FnPtr(sig) if sig == substs.as_closure().sig() => (),
+                match cl_sig.expect_ty().kind() {
+                    ty::TyKind::FnPtr(sig) if *sig == substs.as_closure().sig() => (),
                     _ => unreachable!()
                 }
 
@@ -410,12 +410,14 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 let cl_upvars = fields_iter.next().unwrap().expect_ty();
                 assert_eq!(fields_iter.next(), None);
 
-                match cl_upvars.kind {
+                match cl_upvars.kind() {
                     ty::TyKind::Tuple(upvar_substs) => {
-                        let field_name = "upvars".to_owned();
-                        let field = self.encoder.encode_raw_ref_field(field_name, cl_upvars);
-                        let pred = vir::Predicate::new_struct(typ.clone(), vec![field.clone()]);
-                        trace!("Encoded closure type {:?} as {:?} with field {:?}", typ, pred, field);
+                        // let field_name = "upvars".to_owned();
+                        // let field = self.encoder.encode_raw_ref_field(field_name, cl_upvars);
+                        // let pred = vir::Predicate::new_struct(typ.clone(), vec![field.clone()]);
+                        let pred = vir::Predicate::new_struct(typ.clone(), vec![]);
+                        // trace!("Encoded closure type {:?} as {:?} with field {:?}", typ, pred, field);
+                        trace!("Encoded closure type {:?} as {:?}", typ, pred);
                         vec![pred]
                     }
 

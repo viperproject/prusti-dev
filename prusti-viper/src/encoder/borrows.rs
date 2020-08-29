@@ -451,7 +451,7 @@ where
 
         return_ty = fn_sig.output().clone();  // FIXME: Shouldn't this also go through maybe_tymap?
     } else {
-        let (mir, _) = tcx.mir_validated(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
+        let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
         let mir = mir.borrow();
 
         return_ty = mir.local_decls[mir::Local::from_usize(0)].ty;
