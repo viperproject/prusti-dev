@@ -336,7 +336,7 @@ impl ExprPermissionsGetter for vir::Expr {
     /// This must be a subset of `get_required_permissions`
     fn get_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
         trace!("get_permissions {}", self);
-        match self {
+        let result = match self {
             vir::Expr::Local(_, _)
             | vir::Expr::Field(_, _, _)
             | vir::Expr::Variant(_, _, _)
@@ -426,7 +426,9 @@ impl ExprPermissionsGetter for vir::Expr {
             vir::Expr::LetExpr(ref _variable, ref _expr, ref _body, _) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
-        }
+        };
+        trace!("get_permissions {} -> {:?}", self, result);
+        result
     }
 }
 

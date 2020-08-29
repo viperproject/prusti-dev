@@ -430,10 +430,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .collect();
         for local in local_vars.iter() {
             let local_ty = self.locals.get_type(*local);
-            if let ty::TyKind::Closure(..) = local_ty.kind {
-                // Do not encode closures
-                continue;
-            }
+            // if let ty::TyKind::Closure(..) = local_ty.kind {
+            //     // Do not encode closures
+            //     continue;
+            // }
             let type_name = self.encoder.encode_type_predicate_use(local_ty).unwrap(); // will panic if attempting to encode unsupported type
             let var_name = self.locals.get_name(*local);
             self.cfg_method
@@ -1784,7 +1784,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         kind: ty::TyKind::FnDef(def_id, substs),
                                         ..
                                     },
-                                val: _
+                                val: func_const_val
                             },
                         ..
                     }),
@@ -1967,6 +1967,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 vir::BinOpKind::NeCmp,
                             )
                         );
+                    }
+
+                    "std::ops::Fn::call" => {
+                        let cl_type: ty::Ty = substs[0].expect_ty();
+                        match cl_type.kind {
+                            ty::TyKind::Closure(cl_def_id, _) => {
+                                debug!("Encoding call to closure {:?} with func {:?}", cl_def_id, func_const_val);
+                                stmts.extend(self.encode_impure_function_call(
+                                    location,
+                                    term.source_info.span,
+                                    args,
+                                    destination,
+                                    cl_def_id
+                                )?);
+                            }
+
+                            _ => unreachable!()
+                        }
                     }
 
                     _ => {
@@ -2183,7 +2201,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .tcx()
             .def_path_str(called_def_id);
             // .absolute_item_path_str(called_def_id);
-        debug!("Encoding non-pure function call '{}'", full_func_proc_name);
+        debug!("Encoding non-pure function call '{}' with args {:?}", full_func_proc_name, args);
 
         let mut stmts = vec![];
         let mut stmts_after: Vec<vir::Stmt> = vec![];
@@ -2194,40 +2212,101 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut constant_args = Vec::new();
         let mut arg_tys = Vec::new();
 
-        for operand in args.iter() {
-            let arg_ty = self.mir_encoder.get_operand_ty(operand);
-            arg_tys.push(arg_ty);
-            let fake_arg = self.locals.get_fresh(arg_ty);
-            fake_vars.push(fake_arg.clone());
-            let encoded_local = self.encode_prusti_local(fake_arg);
-            let fake_arg_place = vir::Expr::local(encoded_local);
-            debug!("fake_arg: {:?} {}", fake_arg, fake_arg_place);
-            let inv_name = self.encoder.encode_type_invariant_use(arg_ty);
-            let arg_inv = self.encoder.encode_type_invariant_def(arg_ty);
-            type_invs.insert(inv_name, arg_inv);
-            match self.mir_encoder.encode_operand_place(operand) {
-                Some(place) => {
-                    debug!("fake_arg: {} {}", fake_arg_place, place);
-                    fake_exprs.insert(fake_arg_place, place.into());
+        if self.encoder.env().tcx().is_closure(called_def_id) {
+            // Closure calls are wrapped around std::ops::Fn::call(), which receives
+            // two arguments: The closure instance, and the tupled-up arguments
+            assert_eq!(args.len(), 2);
+            let cl_ty = self.mir_encoder.get_operand_ty(&args[0]);
+            let arg_tuple_ty = self.mir_encoder.get_operand_ty(&args[1]);
+
+            {
+                arg_tys.push(cl_ty);
+                let fake_arg = self.locals.get_fresh(cl_ty);
+                fake_vars.push(fake_arg);
+                let encoded_local = self.encode_prusti_local(fake_arg);
+                let fake_arg_place = vir::Expr::local(encoded_local);
+                debug!("fake_arg self for closure: {:?}: {:?}, {}", fake_arg, cl_ty, fake_arg_place);
+                let inv_name = self.encoder.encode_type_invariant_use(cl_ty);
+                let arg_inv = self.encoder.encode_type_invariant_def(cl_ty);
+                type_invs.insert(inv_name, arg_inv);
+                match self.mir_encoder.encode_operand_place(&args[0]) {
+                    Some(place) => {
+                        debug!("fake_arg self for closure: {} {}", fake_arg_place, place);
+                        fake_exprs.insert(fake_arg_place, place.into());
+                    }
+                    None => unimplemented!()
                 }
-                None => {
-                    // We have a constant.
-                    constant_args.push(fake_arg_place.clone());
-                    let arg_val_expr = self.mir_encoder.encode_operand_expr(operand);
-                    debug!("arg_val_expr: {} {}", fake_arg_place, arg_val_expr);
-                    let val_field = self.encoder.encode_value_field(arg_ty);
-                    fake_exprs.insert(fake_arg_place.clone().field(val_field), arg_val_expr);
-                    let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
-                    if in_loop {
-                        const_arg_vars.insert(fake_arg_place);
-                        return Err(EncodingError::unsupported(
-                            format!(
-                                "please use a local variable as argument for function '{}', not a \
-                                constant, when calling the function from a loop",
-                                full_func_proc_name
-                            ),
-                            call_site_span,
-                        ));
+            }
+
+            {
+                match arg_tuple_ty.kind {
+                    ty::TyKind::Tuple(substs) => {
+                        for (field_num, ty) in substs.iter().enumerate() {
+                            let arg_ty = ty.expect_ty();
+                            arg_tys.push(arg_ty);
+                            let fake_arg = self.locals.get_fresh(arg_ty);
+                            fake_vars.push(fake_arg.clone());
+                            let encoded_local = self.encode_prusti_local(fake_arg);
+                            let fake_arg_place = vir::Expr::local(encoded_local);
+                            debug!("fake_arg for closure: {:?}: {:?}, {}", fake_arg, arg_ty, fake_arg_place);
+                            let inv_name = self.encoder.encode_type_invariant_use(arg_ty);
+                            let arg_inv = self.encoder.encode_type_invariant_def(arg_ty);
+                            type_invs.insert(inv_name, arg_inv);
+
+                            let value_field = self
+                                .encoder
+                                .encode_raw_ref_field(format!("tuple_{}", field_num), arg_ty);
+
+                            match self.mir_encoder.encode_operand_place(&args[1]) {
+                                Some(place) => {
+                                    let field = place.field(value_field);
+                                    debug!("fake_arg for closure: {} {}", fake_arg_place, field);
+                                    fake_exprs.insert(fake_arg_place, field);
+                                }
+                                None => unimplemented!()
+                            }
+                        }
+                    }
+
+                    _ => unimplemented!()
+                }
+            }
+        } else {
+            for operand in args.iter() {
+                let arg_ty = self.mir_encoder.get_operand_ty(operand);
+                arg_tys.push(arg_ty);
+                let fake_arg = self.locals.get_fresh(arg_ty);
+                fake_vars.push(fake_arg.clone());
+                let encoded_local = self.encode_prusti_local(fake_arg);
+                let fake_arg_place = vir::Expr::local(encoded_local);
+                debug!("fake_arg: {:?}: {:?}, {}", fake_arg, arg_ty, fake_arg_place);
+                let inv_name = self.encoder.encode_type_invariant_use(arg_ty);
+                let arg_inv = self.encoder.encode_type_invariant_def(arg_ty);
+                type_invs.insert(inv_name, arg_inv);
+                match self.mir_encoder.encode_operand_place(operand) {
+                    Some(place) => {
+                        debug!("fake_arg: {} {}", fake_arg_place, place);
+                        fake_exprs.insert(fake_arg_place, place.into());
+                    }
+                    None => {
+                        // We have a constant.
+                        constant_args.push(fake_arg_place.clone());
+                        let arg_val_expr = self.mir_encoder.encode_operand_expr(operand);
+                        debug!("arg_val_expr: {} {}", fake_arg_place, arg_val_expr);
+                        let val_field = self.encoder.encode_value_field(arg_ty);
+                        fake_exprs.insert(fake_arg_place.clone().field(val_field), arg_val_expr);
+                        let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
+                        if in_loop {
+                            const_arg_vars.insert(fake_arg_place);
+                            return Err(EncodingError::unsupported(
+                                format!(
+                                    "please use a local variable as argument for function '{}', not a \
+                                     constant, when calling the function from a loop",
+                                    full_func_proc_name
+                                ),
+                                call_site_span,
+                            ));
+                        }
                     }
                 }
             }
@@ -2698,6 +2777,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         vir::Expr,
         Option<vir::Expr>,
     ) {
+        trace!("[enter] encode_precondition_expr: contract: {:?}", contract);
         let borrow_infos = &contract.borrow_infos;
         let maybe_blocked_paths = if !borrow_infos.is_empty() {
             assert_eq!(
@@ -3622,10 +3702,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // will panic if attempting to encode unsupported type
                 let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place).unwrap();
                 debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
-                if let ty::TyKind::Closure(..) = ty.kind {
-                    // Do not encode closures
-                    continue;
-                }
+                // if let ty::TyKind::Closure(..) = ty.kind {
+                //     // Do not encode closures
+                //     continue;
+                // }
                 match kind {
                     // Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {

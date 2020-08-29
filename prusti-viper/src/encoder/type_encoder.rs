@@ -407,10 +407,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
                 match cl_upvars.kind {
                     ty::TyKind::Tuple(upvar_substs) => {
-                        let field_name = "upvars".to_owned();
-                        let field = self.encoder.encode_raw_ref_field(field_name, cl_upvars);
-                        let pred = vir::Predicate::new_struct(typ.clone(), vec![field.clone()]);
-                        trace!("Encoded closure type {:?} as {:?} with field {:?}", typ, pred, field);
+                        // let field_name = "upvars".to_owned();
+                        // let field = self.encoder.encode_raw_ref_field(field_name, cl_upvars);
+                        // let pred = vir::Predicate::new_struct(typ.clone(), vec![field.clone()]);
+                        let pred = vir::Predicate::new_struct(typ.clone(), vec![]);
+                        // trace!("Encoded closure type {:?} as {:?} with field {:?}", typ, pred, field);
+                        trace!("Encoded closure type {:?} as {:?}", typ, pred);
                         vec![pred]
                     }
 
