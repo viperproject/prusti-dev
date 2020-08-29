@@ -180,7 +180,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
         let output_type: syn::Type = match output {
             syn::ReturnType::Default => {
-                return syn::Error::new(output.span(), "closure must specify return type, for now")
+                return syn::Error::new(output.span(), "closure must specify return type")
                     .to_compile_error();
             }
             syn::ReturnType::Type(_, ref ty) => (**ty).clone()
