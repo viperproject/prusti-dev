@@ -196,14 +196,17 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
         quote! {
             {
+                #[allow(unused_variables)]
                 #cl_annotations #attrs_ts
                 #asyncness #movability #capture
                 #or1_token #inputs #or2_token #output
                 {
+                    #[allow(unused_must_use)]
                     if false {
                         #spec_toks_pre
                     }
                     let result = #body ;
+                    #[allow(unused_must_use)]
                     if false {
                         #spec_toks_post
                     }
