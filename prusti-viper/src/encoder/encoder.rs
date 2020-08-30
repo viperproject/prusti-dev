@@ -213,9 +213,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.get_spec_by_def_id(*def_id).is_some() {
             self.register_encoding_error(EncodingError::Incorrect(
                 format!("external specification found for already specified function"),
-                rustc_span::MultiSpan::from_span(self.env.tcx().def_span(*self.extern_spec.get(def_id).unwrap()))));
+                rustc_span::MultiSpan::from_span(self.env.tcx().def_span(self.extern_spec.get(def_id).unwrap().1))));
         }
-        self.extern_spec.get(def_id).unwrap_or(def_id)
+        if (self.extern_spec.contains_key(def_id)) {
+            &self.extern_spec.get(def_id).unwrap().1
+        } else {
+            def_id
+        }
+
     }
 
     pub fn error_manager(&self) -> RefMut<ErrorManager<'tcx>> {

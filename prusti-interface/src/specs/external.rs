@@ -9,7 +9,8 @@ use crate::specs::typed::ExternSpecificationMap;
 
 pub struct ExternSpecResolver<'tcx> {
     tcx: TyCtxt<'tcx>,
-    /// Map of def id of the real function to the fake function containing the specifications
+    /// Map of def id of the real function to a tuple containing the def id of the implementing type (or none)
+    /// mapped to the fake function with the specifications. Mapped to a tuple to account for trait implementations.
     extern_fn_map: ExternSpecificationMap<'tcx>,
     current_def_id: Option<DefId>,
 }
@@ -63,16 +64,29 @@ impl<'tcx> intravisit::Visitor<'tcx> for ExternSpecResolver<'tcx> {
                 intravisit::walk_expr(self, ex);
                 return;
             }
+
             if let rustc_hir::ExprKind::Path(ref qself) = callee_expr.kind {
+                let mut impl_ty = None;
+                if let rustc_hir::QPath::TypeRelative(ty, _) = qself {
+                    if let rustc_hir::TyKind::Path(qpath) = &ty.kind {
+                        if let rustc_hir::QPath::Resolved(_, path) = qpath {
+                            if let rustc_hir::def::Res::Def(_, id) = path.res {
+                                impl_ty = Some(id);
+                            }
+                        }
+                    }
+                }
+
                 let res = self.tcx.typeck(callee_expr.hir_id.owner).qpath_res(qself, callee_expr.hir_id);
                 if let rustc_hir::def::Res::Def(_, def_id) = res {
-                    if self.extern_fn_map.contains_key(&def_id) {
+                    if self.extern_fn_map.contains_key(&def_id) &&
+                            self.extern_fn_map.get(&def_id).unwrap().0 == impl_ty {
                         self.tcx.ty_error_with_message(ex.span.source_callsite(),
                                                        &format!("Duplicate specification for {:?}",
                                                                 def_id));
                         self.current_def_id = None;
                     } else {
-                        self.extern_fn_map.insert(def_id, self.current_def_id.take().unwrap());
+                        self.extern_fn_map.insert(def_id, (impl_ty, self.current_def_id.take().unwrap()));
                     }
                 };
             }

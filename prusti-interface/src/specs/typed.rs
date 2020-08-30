@@ -35,7 +35,7 @@ pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<Expressio
 /// A map of untyped specifications for a specific crate.
 pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, SpecificationMapElement<'tcx>>;
 /// A map of untyped specifications for a specific crate.
-pub type ExternSpecificationMap<'tcx> = HashMap<ProcedureDefId, ProcedureDefId>;
+pub type ExternSpecificationMap<'tcx> = HashMap<ProcedureDefId, (Option<ProcedureDefId>, ProcedureDefId)>;
 /// An assertion that has no types associated with it.
 pub type Assertion<'tcx> = common::Assertion<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// An assertion kind that has no types associated with it.
