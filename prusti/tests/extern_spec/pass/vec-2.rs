@@ -1,6 +1,3 @@
-#![feature(register_tool)]
-#![register_tool(prusti)]
-
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
@@ -14,6 +11,7 @@ impl<T> Vec<T> {
     #[ensures(true)]
     fn clone(&self) -> Vec::<T>
         where T: std::clone::Clone;
+
 
     /// Currently uses an unsupported type and will panic during type encoding
     #[pure]

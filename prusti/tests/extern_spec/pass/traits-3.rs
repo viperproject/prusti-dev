@@ -1,30 +1,26 @@
-#![feature(register_tool)]
-#![register_tool(prusti)]
-
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
 /// This example currently fails
 
-pub trait Max {
+pub trait Trait {
     #[ensures(result == 3)]
-    fn max(&mut self) -> i32 { 3 }
+    fn foo(&mut self) -> i32 { 3 }
 }
 
 pub struct Test {}
 
-impl Max for Test {
-    fn max(&mut self) -> i32 { 5 }
+impl Trait for Test {
+    fn foo(&mut self) -> i32 { 5 }
 }
 
 #[extern_spec]
-impl Point {
+impl Test {
     #[ensures(result == 5)]
-    fn max(&mut self) -> i32;
+    fn foo(&mut self) -> i32;
 }
 
 fn main() {
-    let mut p = Point {};
-    let x = p.max();
-    assert!(x == 5)
+    let mut t = Test {};
+    assert!(t.foo() == 5)
 }

@@ -1,5 +1,6 @@
-#![feature(register_tool)]
-#![register_tool(prusti)]
+#![allow(unused_variables)]
+#![allow(dead_code)]
+#![allow(unused_must_use)]
 
 extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -9,7 +10,7 @@ use std::vec::Vec;
 #[extern_spec]
 impl<T> Vec<T> {
     #[ensures(true)]
-    fn clone(&self) -> Vec::<T>
+    fn clone(&self) -> std::vec::Vec::<T>
         where T: std::clone::Clone;
 }
 
@@ -20,4 +21,7 @@ impl<T> Option<T> {
         where T: std::clone::Clone;
 }
 
-fn main() {}
+fn main() {
+    let c = Some(3);
+    c.clone();
+}

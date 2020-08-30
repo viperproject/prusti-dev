@@ -1,6 +1,3 @@
-#![feature(register_tool)]
-#![register_tool(prusti)]
-
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
@@ -36,8 +33,6 @@ impl<T> HashSet::<T>
     pub fn len(&self) -> usize;
 
     #[pure]
-    // #[ensures(self.get(value).is_some() ==> result)]
-    // #[ensures(self.get(value).is_none() ==> !result)]
     pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
         where
             T: std::borrow::Borrow<Q>,
@@ -50,24 +45,8 @@ impl<T> HashSet::<T>
     #[ensures(self.len() != 0 ==> !result)]
     pub fn is_empty(&self) -> bool;
 
-    // #[pure]
-    // pub fn get<'a, Q: ?Sized>(&self, value: &'a Q) -> Option<&'a T>
-    //     where
-    //         T: Borrow<Q>,
-    //         Q: Hash + Eq;
-
-    // #[ensures(old(self.contains(&value)) ==> !result)]
-    // #[ensures(!old(self.contains(&value)) ==> result)]
-    // #[ensures(result ==> self.len() == old(self.len()) + 1)]
     #[ensures(self.len() == old(self.len()) + 1)]
     pub fn insert(&mut self, value: T) -> bool;
 }
 
-fn main() {
-    let mut h = HashSet::new();
-    let i = 2;
-    h.insert(i);
-    // assert!(h.len() == 1);
-    h.contains(&i);
-    // assert!(matches!(h.get(&i), Some(_)));
-}
+fn main() {}

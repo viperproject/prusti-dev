@@ -1,6 +1,3 @@
-#![feature(register_tool)]
-#![register_tool(prusti)]
-
 extern crate prusti_contracts;
 use prusti_contracts::*;
 use std::vec::Vec;
@@ -56,3 +53,4 @@ fn main() {
     v.pop();
     assert!(v.pop().is_none());
 }
+

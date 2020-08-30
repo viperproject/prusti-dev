@@ -10,7 +10,7 @@ impl<T> std::vec::Vec<T> {
     #[ensures(self.len() == old(self.len()) + 1)]
     fn push(&mut self);
 
-    /// Wrong function name
+    /// Wrong method name
     #[ensures(self.len() == 0)]
     fn clears(&mut self);
 }
