@@ -95,10 +95,12 @@ def get_mac_env():
 
 
 def set_env_variables(env, variables):
-    """Set the given environment variables in `env` if not already set."""
+    """Set the given environment variables in `env` if not already set, merging special variables."""
     for name, value in variables:
         if name not in env:
             env[name] = value
+        elif name in ("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH"):
+            env[name] += ":" + value
         report("env: {}={}", name, env[name])
 
 

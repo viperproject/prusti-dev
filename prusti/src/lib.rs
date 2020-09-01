@@ -19,6 +19,7 @@ extern crate rustc_session;
 extern crate rustc_span;
 extern crate smallvec;
 extern crate regex;
+extern crate prusti_common;
 
 use prusti_interface::specs;
 use prusti_common::config::ConfigFlags;
@@ -27,6 +28,7 @@ use rustc_hir::intravisit;
 use rustc_interface::interface::Compiler;
 use rustc_interface::Queries;
 use regex::Regex;
+use prusti_common::config;
 
 mod verifier;
 
@@ -102,6 +104,10 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
         });
 
         compiler.session().abort_if_errors();
-        Compilation::Stop
+        if config::full_compilation() {
+            Compilation::Continue
+        } else {
+            Compilation::Stop
+        }
     }
 }

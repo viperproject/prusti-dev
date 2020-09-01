@@ -31,9 +31,6 @@ fn get_prusti_rustc_path() -> PathBuf {
 }
 
 fn run_tests(mode: &str, path: &str) {
-    // Ask prusti-rustc to load all proc-macro crates for us.
-    set_var("PRUSTI_LOAD_ALL_PROC_MACRO_CRATES", "true");
-
     // Add some flags we always want.
     let mut flags = Vec::new();
     flags.push("--edition 2018".to_owned());
@@ -60,10 +57,11 @@ fn test_runner(_tests: &[&()]) {
     let server_address = ServerSideService::spawn_off_thread();
     set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
 
-    run_tests("ui", "tests/pass/parse");
-    run_tests("ui", "tests/pass/typecheck");
+    run_tests("ui", "tests/parse/ui");
+    run_tests("ui", "tests/typecheck/ui");
 
     set_var("PRUSTI_QUIET", "true");
-    //run_tests("ui", "tests/verify/pass");
+    set_var("PRUSTI_FULL_COMPILATION", "true");
+    //run_tests("run-pass", "tests/verify/pass");
     //run_tests("compile-fail", "tests/verify/fail");
 }
