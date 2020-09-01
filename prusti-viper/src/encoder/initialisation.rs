@@ -4,15 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::mir_encoder::MirEncoder;
+use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 /// Module that allows querying the initialisation information.
 use prusti_common::vir;
 use prusti_interface::environment::mir_analyses::initialization::compute_definitely_initialized;
 use prusti_interface::environment::place_set::PlaceSet;
-use rustc::hir::def_id::DefId;
-use rustc::{mir, ty};
+use prusti_interface::utils::expand_one_level;
+use rustc_hir::def_id::DefId;
+use rustc_middle::{mir, ty::{self, TyCtxt}};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use crate::encoder::errors::ErrorCtxt;
 
 pub struct InitInfo {
     //mir_acc_before_block: HashMap<mir::BasicBlock, HashSet<mir::Place<'tcx>>>,
@@ -22,20 +24,20 @@ pub struct InitInfo {
 }
 
 /// Create a set that contains all places and their prefixes of the original set.
-fn explode<'tcx>(place_set: PlaceSet<'tcx>) -> HashSet<mir::Place<'tcx>> {
+fn explode<'tcx>(
+    mir: &mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    place_set: PlaceSet<'tcx>
+) -> HashSet<mir::Place<'tcx>> {
     let mut result = HashSet::new();
-    fn insert<'tcx>(place: mir::Place<'tcx>, set: &mut HashSet<mir::Place<'tcx>>) {
-        match place {
-            mir::Place::Local(_) => {}
-            mir::Place::Static(_) => {}
-            mir::Place::Projection(box mir::Projection { ref base, .. }) => {
-                insert(base.clone(), set)
-            }
+    for guide_place in place_set.into_iter() {
+        let mut current_place: mir::Place = guide_place.local.into();
+        result.insert(current_place);
+        while current_place.projection.len() < guide_place.projection.len() {
+            let (new_current_place, _) = expand_one_level(mir, tcx, current_place, guide_place);
+            current_place = new_current_place;
+            result.insert(new_current_place);
         }
-        set.insert(place);
-    }
-    for place in place_set.into_iter() {
-        insert(place, &mut result);
     }
     result
 }
@@ -53,49 +55,54 @@ fn contains_prefix(set: &HashSet<vir::Expr>, place: &vir::Expr) -> bool {
 
 fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
     map: &HashMap<T, HashSet<mir::Place<'tcx>>>,
-    mir_encoder: &MirEncoder<'_, '_, '_, 'tcx, '_>,
-) -> HashMap<T, HashSet<vir::Expr>> {
+    mir_encoder: &MirEncoder<'_, '_, 'tcx>,
+) -> Result<HashMap<T, HashSet<vir::Expr>>, ErrorCtxt> {
     map.iter()
         .map(|(loc, set)| {
-            let new_set = set
+            let new_set: Result<HashSet<vir::Expr>, ErrorCtxt> = set
                 .iter()
                 .map(|place| {
-                    let (encoded_place, _, _) = mir_encoder.encode_place(place);
-                    encoded_place
+                    match mir_encoder.encode_place(place) {
+                        Err(error) => Err(error),
+                        Ok(result) => Ok(result.0)
+                    }
                 })
                 .collect();
-            (loc.clone(), new_set)
+            match new_set {
+                Err(error) => Err(error),
+                Ok(result) => Ok((loc.clone(), result))
+            }
         })
         .collect()
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> InitInfo {
+impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {
     pub fn new(
-        mir: &'p mir::Mir<'tcx>,
-        tcx: ty::TyCtxt<'p, 'tcx, 'tcx>,
+        mir: &'p mir::Body<'tcx>,
+        tcx: ty::TyCtxt<'tcx>,
         def_id: DefId,
-        mir_encoder: &MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
-    ) -> Self {
-        let def_path = tcx.hir.def_path(def_id);
+        mir_encoder: &MirEncoder<'p, 'v, 'tcx>,
+    ) -> Result<Self, ErrorCtxt> {
+        let def_path = tcx.hir().def_path(def_id.expect_local());
         let initialisation = compute_definitely_initialized(&mir, tcx, def_path);
         let mir_acc_before_block: HashMap<_, _> = initialisation
             .before_block
             .into_iter()
-            .map(|(basic_block, place_set)| (basic_block, explode(place_set)))
+            .map(|(basic_block, place_set)| (basic_block, explode(mir, tcx, place_set)))
             .collect();
         let mir_acc_after_statement: HashMap<_, _> = initialisation
             .after_statement
             .into_iter()
-            .map(|(location, place_set)| (location, explode(place_set)))
+            .map(|(location, place_set)| (location, explode(mir, tcx, place_set)))
             .collect();
-        let vir_acc_before_block = convert_to_vir(&mir_acc_before_block, mir_encoder);
-        let vir_acc_after_statement = convert_to_vir(&mir_acc_after_statement, mir_encoder);
-        Self {
+        let vir_acc_before_block = convert_to_vir(&mir_acc_before_block, mir_encoder)?;
+        let vir_acc_after_statement = convert_to_vir(&mir_acc_after_statement, mir_encoder)?;
+        Ok(Self {
             //mir_acc_before_block,
             //mir_acc_after_statement,
             vir_acc_before_block,
             vir_acc_after_statement,
-        }
+        })
     }
 
     /// Is the ``place`` accessible (it is a prefix of a definitely

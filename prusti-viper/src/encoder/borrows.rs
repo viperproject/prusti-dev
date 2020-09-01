@@ -4,19 +4,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::places;
+use crate::encoder::places;
 use prusti_interface::data::ProcedureDefId;
-use prusti_interface::specifications::{
-    AssertionKind, SpecificationSet, TypedAssertion, TypedExpression, TypedSpecification,
-    TypedSpecificationSet,
-};
-use rustc::hir::{self, Mutability};
-use rustc::mir;
-use rustc::ty::{self, Ty, TyCtxt};
-use rustc_data_structures::indexed_vec::Idx;
+// use prusti_interface::specifications::{
+//     AssertionKind, SpecificationSet, TypedAssertion, TypedExpression, TypedSpecification,
+//     TypedSpecificationSet,
+// };
+use rustc_hir::{self as hir, Mutability};
+use rustc_middle::{mir, ty::FnSig, ty::subst::SubstsRef};
+use rustc_index::vec::Idx;
+use rustc_middle::ty::{self, Ty, TyCtxt, TyKind, TypeckResults};
+// use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::fmt;
-use utils::type_visitor::{self, TypeVisitor};
+use crate::utils::type_visitor::{self, TypeVisitor};
+use prusti_interface::specs::typed;
+use log::{trace, debug};
 
 #[derive(Clone, Debug)]
 pub struct BorrowInfo<P>
@@ -65,11 +68,13 @@ impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
 /// procedure calls before translating call targets.
 /// TODO: Move to some properly named module.
 #[derive(Clone, Debug)]
-pub struct ProcedureContractGeneric<L, P>
+pub struct ProcedureContractGeneric<'tcx, L, P>
 where
     L: fmt::Debug,
     P: fmt::Debug,
 {
+    /// Definition ID of the procedure to which the contract is attached.
+    pub def_id: rustc_hir::def_id::DefId,
     /// Formal arguments for which we should have permissions in the
     /// precondition. This includes both borrows and moved in values.
     /// For example, if `_2` is in the vector, this means that we have
@@ -88,61 +93,42 @@ where
     /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
     pub borrow_infos: Vec<BorrowInfo<P>>,
     /// The functional specification: precondition and postcondition
-    pub specification: TypedSpecificationSet,
+    pub specification: typed::SpecificationSet<'tcx>,
 }
 
-impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
-    pub fn functional_precondition(&self) -> &[TypedSpecification] {
-        if let SpecificationSet::Procedure(ref pre, _) = self.specification {
-            pre
+impl<'tcx, L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'tcx, L, P> {
+    pub fn functional_precondition(&self) -> &[typed::Assertion<'tcx>] {
+        if let typed::SpecificationSet::Procedure(spec) = &self.specification {
+            &spec.pres
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
     }
 
-    pub fn functional_postcondition(&self) -> &[TypedSpecification] {
-        if let SpecificationSet::Procedure(_, ref post) = self.specification {
-            post
+    pub fn functional_postcondition(&self) -> &[typed::Assertion<'tcx>] {
+        if let typed::SpecificationSet::Procedure(spec) = &self.specification {
+            &spec.posts
         } else {
             unreachable!("Unexpected: {:?}", self.specification)
         }
     }
 
-    pub fn pledges(&self) -> Vec<(Option<TypedExpression>, TypedAssertion, TypedAssertion)> {
-        let mut pledges = Vec::new();
-        fn check_assertion(
-            assertion: &TypedAssertion,
-            pledges: &mut Vec<(Option<TypedExpression>, TypedAssertion, TypedAssertion)>,
-        ) {
-            match assertion.kind.as_ref() {
-                AssertionKind::Expr(_)
-                | AssertionKind::Implies(_, _)
-                | AssertionKind::TypeCond(_, _)
-                | AssertionKind::ForAll(_, _, _) => {}
-                AssertionKind::And(ref assertions) => {
-                    for assertion in assertions {
-                        check_assertion(assertion, pledges);
-                    }
-                }
-                AssertionKind::Pledge(ref reference, ref lhs, ref rhs) => {
-                    pledges.push((reference.clone(), lhs.clone(), rhs.clone()));
-                }
-            };
+    pub fn pledges(&self) -> &[typed::Pledge<'tcx>] {
+        if let typed::SpecificationSet::Procedure(spec) = &self.specification {
+            &spec.pledges
+        } else {
+            unreachable!("Unexpected: {:?}", self.specification)
         }
-        for item in self.functional_postcondition() {
-            check_assertion(&item.assertion, &mut pledges);
-        }
-        pledges
     }
 }
 
 /// Procedure contract as it is defined in MIR.
-pub type ProcedureContractMirDef<'tcx> = ProcedureContractGeneric<mir::Local, mir::Place<'tcx>>;
+pub type ProcedureContractMirDef<'tcx> = ProcedureContractGeneric<'tcx, mir::Local, mir::Place<'tcx>>;
 
 /// Specialized procedure contract for use in translation.
-pub type ProcedureContract<'tcx> = ProcedureContractGeneric<places::Local, places::Place<'tcx>>;
+pub type ProcedureContract<'tcx> = ProcedureContractGeneric<'tcx, places::Local, places::Place<'tcx>>;
 
-impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<L, P> {
+impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<'_, L, P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "ProcedureContract {{")?;
         writeln!(f, "IN:")?;
@@ -162,11 +148,12 @@ impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<L, 
 }
 
 fn get_place_root<'tcx>(place: &mir::Place<'tcx>) -> mir::Local {
-    match place {
-        &mir::Place::Local(local) => local,
-        &mir::Place::Projection(ref projection) => get_place_root(&projection.base),
-        _ => unimplemented!(),
-    }
+    // match place {
+    //     &mir::Place::Local(local) => local,
+    //     &mir::Place::Projection(ref projection) => get_place_root(&projection.base),
+    //     _ => unimplemented!(),
+    // }
+    place.local
 }
 
 impl<'tcx> ProcedureContractMirDef<'tcx> {
@@ -190,6 +177,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             })
             .collect();
         ProcedureContract {
+            def_id: self.def_id,
             args: self.args.iter().map(|&a| a.into()).collect(),
             returned_refs: self
                 .returned_refs
@@ -233,6 +221,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             .collect();
         let returned_refs = self.returned_refs.iter().map(&substitute).collect();
         let result = ProcedureContract {
+            def_id: self.def_id,
             args: args.clone(),
             returned_refs: returned_refs,
             returned_value: target,
@@ -243,12 +232,12 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
     }
 }
 
-pub struct BorrowInfoCollectingVisitor<'a, 'tcx: 'a> {
+pub struct BorrowInfoCollectingVisitor<'tcx> {
     borrow_infos: Vec<BorrowInfo<mir::Place<'tcx>>>,
     /// References that were passed as arguments. We are interested only in
     /// references that can be blocked.
     references_in: Vec<(mir::Place<'tcx>, Mutability)>,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    tcx: TyCtxt<'tcx>,
     /// Can the currently analysed path block other paths? For return
     /// type this is initially true, and for parameters it is true below
     /// the first reference.
@@ -256,8 +245,8 @@ pub struct BorrowInfoCollectingVisitor<'a, 'tcx: 'a> {
     current_path: Option<mir::Place<'tcx>>,
 }
 
-impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
-    fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>) -> Self {
+impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
+    fn new(tcx: TyCtxt<'tcx>) -> Self {
         BorrowInfoCollectingVisitor {
             borrow_infos: Vec::new(),
             references_in: Vec::new(),
@@ -269,14 +258,14 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
 
     fn analyse_return_ty(&mut self, ty: Ty<'tcx>) {
         self.is_path_blocking = true;
-        self.current_path = Some(mir::Place::Local(mir::RETURN_PLACE));
+        self.current_path = Some(mir::RETURN_PLACE.into());
         self.visit_ty(ty);
         self.current_path = None;
     }
 
     fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>) {
         self.is_path_blocking = false;
-        self.current_path = Some(mir::Place::Local(arg));
+        self.current_path = Some(arg.into());
         self.visit_ty(ty);
         self.current_path = None;
     }
@@ -288,7 +277,7 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
             &ty::RegionKind::ReLateBound(_, bound_region) => Some(bound_region),
             &ty::RegionKind::ReEarlyBound(early_region) => Some(early_region.to_bound_region()),
             &ty::RegionKind::ReStatic => None,
-            &ty::RegionKind::ReScope(_scope) => None, //  FIXME: This is incorrect.
+            // &ty::RegionKind::ReScope(_scope) => None,
             x => unimplemented!("{:?}", x),
         }
     }
@@ -311,8 +300,8 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
-    fn tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx> {
+impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
+    fn tcx(&self) -> TyCtxt<'tcx> {
         self.tcx
     }
 
@@ -320,13 +309,15 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
         &mut self,
         index: usize,
         field: &ty::FieldDef,
-        substs: &'tcx ty::subst::Substs<'tcx>,
+        substs: ty::subst::SubstsRef<'tcx>,
     ) {
         trace!("visit_field({}, {:?})", index, field);
         let old_path = self.current_path.take().unwrap();
         let ty = field.ty(self.tcx(), substs);
         let field_id = mir::Field::new(index);
-        self.current_path = Some(old_path.clone().field(field_id, ty));
+        let new_path = self.tcx.mk_place_field(old_path, field_id, ty);
+        self.current_path = Some(new_path);
+        // self.current_path = Some(old_path.clone().field(field_id, ty));
         type_visitor::walk_field(self, field, substs);
         self.current_path = Some(old_path);
     }
@@ -347,7 +338,7 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
         let bound_region = self.extract_bound_region(region);
         let is_path_blocking = self.is_path_blocking;
         let old_path = self.current_path.take().unwrap();
-        let current_path = old_path.clone().deref();
+        let current_path = self.tcx.mk_place_deref(old_path);
         self.current_path = Some(current_path.clone());
         let borrow_info = self.get_or_create_borrow_info(bound_region);
         if is_path_blocking {
@@ -361,6 +352,17 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
         self.is_path_blocking = true;
         //type_visitor::walk_ref(self, region, ty, mutability);
         self.is_path_blocking = is_path_blocking;
+        self.current_path = Some(old_path);
+    }
+
+    fn visit_tuple(&mut self, parts: SubstsRef<'tcx>) {
+        let old_path = self.current_path.take().unwrap();
+        for (i, part) in parts.iter().enumerate() {
+            let field = mir::Field::new(i);
+            let ty = part.expect_ty();
+            self.current_path = Some(self.tcx().mk_place_field(old_path.clone(), field, ty));
+            self.visit_ty(ty);
+        }
         self.current_path = Some(old_path);
     }
 
@@ -378,8 +380,8 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
 
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>,
-    specification: TypedSpecificationSet,
+    tcx: TyCtxt<'tcx>,
+    specification: typed::SpecificationSet<'tcx>,
     maybe_tymap: Option<&HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
 ) -> ProcedureContractMirDef<'tcx>
 where
@@ -388,17 +390,23 @@ where
 {
     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
 
-    let fn_sig = tcx.fn_sig(proc_def_id);
+    let fn_sig: FnSig = if tcx.is_closure(proc_def_id) {
+        let typeck_results: &TypeckResults<'_> = tcx.typeck(proc_def_id.expect_local());
+        let fn_sigs = typeck_results.liberated_fn_sigs();
+        *(fn_sigs.get(tcx.hir().local_def_id_to_hir_id(proc_def_id.expect_local())).unwrap())
+    } else {
+        tcx.fn_sig(proc_def_id).skip_binder()
+    };
     trace!("fn_sig: {:?}", fn_sig);
 
     let mut fake_mir_args = Vec::new();
     let mut fake_mir_args_ty = Vec::new();
 
     // FIXME; "skip_binder" is most likely wrong
-    for i in 0usize..fn_sig.inputs().skip_binder().len() {
-        fake_mir_args.push(mir::Local::new(i + 1));
-        let arg_ty = fn_sig.input(i);
-        let arg_ty = arg_ty.skip_binder();
+    // FIXME: Replace with FakeMirEncoder.
+    for i in 0usize..fn_sig.inputs().len() {
+        fake_mir_args.push(mir::Local::from_usize(i + 1));
+        let arg_ty = fn_sig.inputs()[i];
         let ty = if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
             replaced_arg_ty.clone()
         } else {
@@ -406,7 +414,7 @@ where
         };
         fake_mir_args_ty.push(ty);
     }
-    let return_ty = fn_sig.output().skip_binder().clone();
+    let return_ty = fn_sig.output().clone();  // FIXME: Shouldn't this also go through maybe_tymap?
 
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
@@ -431,6 +439,7 @@ where
         .filter(|(place, _)| is_not_blocked(place))
         .collect();
     let contract = ProcedureContractGeneric {
+        def_id: proc_def_id,
         args: fake_mir_args,
         returned_refs,
         returned_value: mir::RETURN_PLACE,

@@ -6,10 +6,11 @@
 
 use prusti_common::vir::Position;
 use std::collections::HashMap;
-use syntax::codemap::CodeMap;
-use syntax_pos::MultiSpan;
+use rustc_span::source_map::SourceMap;
+use rustc_span::MultiSpan;
 use viper::VerificationError;
-use encoder::errors::PrustiError;
+use crate::encoder::errors::PrustiError;
+use log::debug;
 
 /// The cause of a panic!()
 #[derive(Clone, Debug)]
@@ -94,14 +95,15 @@ pub enum ErrorCtxt {
 /// The error manager
 #[derive(Clone)]
 pub struct ErrorManager<'tcx> {
-    codemap: &'tcx CodeMap,
+    codemap: &'tcx SourceMap,
     source_span: HashMap<u64, MultiSpan>,
     error_contexts: HashMap<u64, ErrorCtxt>,
     next_pos_id: u64,
 }
 
-impl<'tcx> ErrorManager<'tcx> {
-    pub fn new(codemap: &'tcx CodeMap) -> Self {
+impl<'tcx> ErrorManager<'tcx>
+ {
+    pub fn new(codemap: &'tcx SourceMap) -> Self {
         ErrorManager {
             codemap,
             source_span: HashMap::new(),
@@ -126,10 +128,13 @@ impl<'tcx> ErrorManager<'tcx> {
                 .codemap
                 .span_to_lines(primary_span.source_callsite())
                 .unwrap();
-            let first_line_info = lines_info.lines.get(0).unwrap();
-            let line = first_line_info.line_index as i32 + 1;
-            let column = first_line_info.start_col.0 as i32 + 1;
-            Position::new(line, column, pos_id)
+            if let Some(first_line_info) = lines_info.lines.get(0) {
+                let line = first_line_info.line_index as i32 + 1;
+                let column = first_line_info.start_col.0 as i32 + 1;
+                Position::new(line, column, pos_id.clone())
+            } else {
+                Position::new(0, 0, pos_id.clone())
+            }
         } else {
             Position::new(0, 0, pos_id)
         };

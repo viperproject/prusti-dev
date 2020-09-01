@@ -4,59 +4,58 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::{
-    foldunfold,
-    spec_encoder::SpecEncoder,
-    utils::{range_extract, PlusOne},
-    Encoder,
-};
-use prusti_common::{
-    config, vir,
-    vir::{ExprFolder, ExprIterator},
-};
-use prusti_interface::specifications::*;
-use rustc::{
-    middle::const_val::ConstVal,
-    ty,
-    ty::{layout, layout::IntegerExt},
-};
-use rustc_data_structures::indexed_vec::Idx;
-use std::{
-    self,
-    collections::{hash_map::DefaultHasher, HashMap},
-    hash::{Hash, Hasher},
-};
-use syntax::{ast, attr::SignedInt};
+use crate::encoder::foldunfold;
+use crate::encoder::spec_encoder::SpecEncoder;
+use crate::encoder::utils::range_extract;
+use crate::encoder::utils::PlusOne;
+use crate::encoder::Encoder;
+use prusti_common::vir::{self, ExprIterator, ExprFolder};
+use prusti_common::config;
+// use prusti_interface::specifications::*;
+// use rustc::middle::const_val::ConstVal;
+use rustc_middle::ty;
+use rustc_target::abi;
+use rustc_middle::ty::layout::IntegerExt;
+// use rustc_data_structures::indexed_vec::Idx;
+// use std;
+use std::collections::hash_map::DefaultHasher;
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
+use rustc_ast::ast;
+use prusti_interface::specs::typed;
+use rustc_attr::IntType::SignedInt;
+use log::{debug, trace};
+use crate::encoder::errors::{ErrorCtxt, PanicCause::Unimplemented};
 
-pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
     ty: ty::Ty<'tcx>,
 }
 
-impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, ty: ty::Ty<'tcx>) -> Self {
+impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
+    pub fn new(encoder: &'p Encoder<'v, 'tcx>, ty: ty::Ty<'tcx>) -> Self {
         TypeEncoder { encoder, ty }
     }
 
     /// Is this type supported?
     fn is_supported_type(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.sty {
-            ty::TypeVariants::TyBool
-            | ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar
-            | ty::TypeVariants::TyRef(_, _, _)
-            | ty::TypeVariants::TyAdt(_, _)
-            | ty::TypeVariants::TyTuple(_)
-            | ty::TypeVariants::TyNever
-            | ty::TypeVariants::TyParam(_) => true,
+        match ty.kind {
+            ty::TyKind::Bool
+            | ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char
+            | ty::TyKind::Ref(_, _, _)
+            | ty::TyKind::Adt(_, _)
+            | ty::TyKind::Tuple(_)
+            | ty::TyKind::Never
+            | ty::TyKind::Param(_) => true,
             _ => false,
         }
     }
 
-    fn is_supported_subst(&self, subst: &ty::subst::Substs<'tcx>) -> bool {
+    fn is_supported_subst(&self, subst: ty::subst::SubstsRef<'tcx>) -> bool {
         subst.iter().all(|kind| {
-            if let ty::subst::UnpackedKind::Type(ty) = kind.unpack() {
+            if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
                 trace!(
                     "is_supported_subst({:?}) = {}",
                     ty,
@@ -71,8 +70,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     /// Is this type supported?
     fn is_supported_field_type(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.sty {
-            ty::TypeVariants::TyAdt(_, subst) => self.is_supported_subst(subst),
+        match ty.kind {
+            ty::TyKind::Adt(_, subst) => self.is_supported_subst(subst),
             _ => self.is_supported_type(ty),
         }
     }
@@ -81,7 +80,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
     fn is_supported_struct_type(
         &self,
         adt_def: &ty::AdtDef,
-        subst: &ty::subst::Substs<'tcx>,
+        subst:ty::subst::SubstsRef<'tcx>,
     ) -> bool {
         let tcx = self.encoder.env().tcx();
         let supported_fields = adt_def.variants.iter().all(|variant| {
@@ -100,25 +99,26 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_type(self) -> vir::Type {
         debug!("Encode type '{:?}'", self.ty);
-        vir::Type::TypedRef(self.encode_predicate_use())
+        // will panic if attempting to encode unsupported type
+        vir::Type::TypedRef(self.encode_predicate_use().unwrap())
     }
 
     pub fn encode_value_type(self) -> vir::Type {
         debug!("Encode value type '{:?}'", self.ty);
-        match self.ty.sty {
-            ty::TypeVariants::TyBool => vir::Type::Bool,
+        match self.ty.kind {
+            ty::TyKind::Bool => vir::Type::Bool,
 
-            ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) | ty::TypeVariants::TyChar => {
+            ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
                 vir::Type::Int
             }
 
-            ty::TypeVariants::TyRef(_, ref ty, _) => {
-                let type_name = self.encoder.encode_type_predicate_use(ty);
+            ty::TyKind::Ref(_, ref ty, _) => {
+                // will panic if attempting to encode unsupported type
+                let type_name = self.encoder.encode_type_predicate_use(ty).unwrap();
                 vir::Type::TypedRef(type_name)
             }
 
-            ty::TypeVariants::TyAdt(_, _)
-            | ty::TypeVariants::TyTuple(_) => {
+            ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => {
                 let snapshot = self.encoder.encode_snapshot(&self.ty);
                 if snapshot.is_defined() {
                     snapshot.get_type()
@@ -127,32 +127,60 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }
             },
 
-            ty::TypeVariants::TyParam(_) => {
-                let type_name = self.encoder.encode_type_predicate_use(self.ty);
-                vir::Type::TypedRef(type_name)
+            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
+                unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
             }
 
             ref x => unimplemented!("{:?}", x),
         }
     }
 
+
+    /// provides the type of the underlying value or a reference in case of composed
+    /// data structures
+    pub fn encode_value_or_ref_type(self) -> vir::Type {
+        debug!("Encode ref value type '{:?}'", self.ty);
+        match self.ty.kind {
+            ty::TyKind::Adt(_, _)
+            | ty::TyKind::Tuple(_) => {
+                let snapshot = self.encoder.encode_snapshot(&self.ty);
+                if snapshot.is_defined() {
+                    let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
+                    vir::Type::TypedRef(type_name)
+                } else {
+                    unreachable!()
+                }
+            },
+
+            _ => self.encode_value_type(),
+        }
+    }
+
     pub fn encode_value_field(self) -> vir::Field {
         trace!("Encode value field for type '{:?}'", self.ty);
-        match self.ty.sty {
-            ty::TypeVariants::TyBool => vir::Field::new("val_bool", vir::Type::Bool),
+        match self.ty.kind {
+            ty::TyKind::Bool => vir::Field::new("val_bool", vir::Type::Bool),
 
-            ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) | ty::TypeVariants::TyChar => {
+            ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
                 vir::Field::new("val_int", vir::Type::Int)
             }
 
-            ty::TypeVariants::TyRef(_, ref ty, _) => {
-                let type_name = self.encoder.encode_type_predicate_use(ty);
+            ty::TyKind::Ref(_, ref ty, _) => {
+                // will panic if attempting to encode unsupported type
+                let type_name = self.encoder.encode_type_predicate_use(ty).unwrap();
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
 
-            ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unreachable!(),
+            // For composed data structures, we typically use a snapshot rather than a field.
+            // To unify how parameters are passed to functions, we treat them like a reference.
+            ty::TyKind::Adt(_, _)
+            | ty::TyKind::Tuple(_) => {
+                // will panic if attempting to encode unsupported type
+                let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
+                vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
+            }
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
+            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
             }
 
@@ -161,8 +189,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn get_integer_bounds(&self) -> Option<(vir::Expr, vir::Expr)> {
-        match self.ty.sty {
-            ty::TypeVariants::TyInt(int_ty) => {
+        match self.ty.kind {
+            ty::TyKind::Int(int_ty) => {
                 let bounds = match int_ty {
                     ast::IntTy::I8 => (std::i8::MIN.into(), std::i8::MAX.into()),
                     ast::IntTy::I16 => (std::i16::MIN.into(), std::i16::MAX.into()),
@@ -173,7 +201,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 };
                 Some(bounds)
             }
-            ty::TypeVariants::TyUint(uint_ty) => {
+            ty::TyKind::Uint(uint_ty) => {
                 let bounds = match uint_ty {
                     ast::UintTy::U8 => (0.into(), std::u8::MAX.into()),
                     ast::UintTy::U16 => (0.into(), std::u16::MAX.into()),
@@ -184,11 +212,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 };
                 Some(bounds)
             }
-            ty::TypeVariants::TyChar => {
+            ty::TyKind::Char => {
                 // char is always four bytes in size
                 Some((0.into(), 0xFFFFFFFFu32.into()))
             }
-            ty::TypeVariants::TyBool | ty::TypeVariants::TyRef(_, _, _) => None,
+            ty::TyKind::Bool | ty::TyKind::Ref(_, _, _) => None,
             ref x => unreachable!("{:?}", x),
         }
     }
@@ -206,24 +234,25 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_predicate_def(self) -> Vec<vir::Predicate> {
         debug!("Encode type predicate '{:?}'", self.ty);
-        let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
+        // will panic if attempting to encode unsupported type
+        let predicate_name = self.encoder.encode_type_predicate_use(self.ty).unwrap();
         let typ = vir::Type::TypedRef(predicate_name.clone());
 
-        match self.ty.sty {
-            ty::TypeVariants::TyBool => vec![vir::Predicate::new_primitive_value(
+        match self.ty.kind {
+            ty::TyKind::Bool => vec![vir::Predicate::new_primitive_value(
                 typ,
                 self.encoder.encode_value_field(self.ty),
                 None,
                 false,
             )],
 
-            ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) | ty::TypeVariants::TyChar => {
+            ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
                 let bounds = if config::check_binary_operations() {
                     self.get_integer_bounds()
                 } else {
                     None
                 };
-                let unsigned = if let ty::TypeVariants::TyUint(_) = self.ty.sty {
+                let unsigned = if let ty::TyKind::Uint(_) = self.ty.kind {
                     config::encode_unsigned_num_constraint()
                 } else {
                     false
@@ -236,28 +265,28 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 )]
             }
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
+            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
             }
 
-            ty::TypeVariants::TyRef(_, ref ty, _) => vec![vir::Predicate::new_struct(
+            ty::TyKind::Ref(_, ref ty, _) => vec![vir::Predicate::new_struct(
                 typ,
                 vec![self.encoder.encode_dereference_field(ty)],
             )],
 
-            ty::TypeVariants::TyTuple(elems) => {
+            ty::TyKind::Tuple(elems) => {
                 let fields = elems
                     .iter()
                     .enumerate()
                     .map(|(field_num, ty)| {
                         let field_name = format!("tuple_{}", field_num);
-                        self.encoder.encode_raw_ref_field(field_name, ty)
+                        self.encoder.encode_raw_ref_field(field_name, ty.expect_ty())
                     })
                     .collect();
                 vec![vir::Predicate::new_struct(typ, fields)]
             }
 
-            ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
+            ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 if !self.is_supported_struct_type(adt_def, subst) {
                     vec![vir::Predicate::new_abstract(typ)]
                 } else {
@@ -265,7 +294,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     let tcx = self.encoder.env().tcx();
                     if num_variants == 1 {
                         debug!("ADT {:?} has only one variant", adt_def);
-                        let fields = adt_def.variants[0]
+                        let fields = adt_def.variants[0usize.into()]
                             .fields
                             .iter()
                             .map(|field| {
@@ -300,7 +329,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                                         self.encoder.encode_struct_field(field_name, field_ty)
                                     })
                                     .collect();
-                                let variant_name = &variant_def.name.as_str();
+                                let variant_name = &variant_def.ident.as_str();
                                 let guard = vir::Expr::eq_cmp(
                                     discriminant_loc.clone().into(),
                                     variant_index.into(),
@@ -333,7 +362,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }
             }
 
-            ty::TypeVariants::TyAdt(ref adt_def, ref _subst) if adt_def.is_box() => {
+            ty::TyKind::Adt(ref adt_def, ref _subst) if adt_def.is_box() => {
                 let num_variants = adt_def.variants.len();
                 assert_eq!(num_variants, 1);
                 let field_ty = self.ty.boxed_ty();
@@ -343,51 +372,51 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 )]
             }
 
-            ty::TypeVariants::TyNever => {
+            ty::TyKind::Never => {
                 // FIXME: This should be a predicate with the body `false`. See issue #38.
                 vec![vir::Predicate::new_abstract(typ)]
             }
 
-            ty::TypeVariants::TyParam(_) => {
+            ty::TyKind::Param(_) => {
                 // special case: type parameters shall be encoded as *abstract* predicates
                 vec![vir::Predicate::new_abstract(typ)]
             }
 
             ref ty_variant => {
-                debug!("Encoding of type '{}' is incomplete", ty_variant);
+                debug!("Encoding of type '{:?}' is incomplete", ty_variant);
                 vec![vir::Predicate::new_abstract(typ)]
             }
         }
     }
 
-    pub fn encode_predicate_use(self) -> String {
+    pub fn encode_predicate_use(self) -> Result<String, ErrorCtxt> {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
-        match self.ty.sty {
-            ty::TypeVariants::TyBool => "bool".to_string(),
+        let result = match self.ty.kind {
+            ty::TyKind::Bool => "bool".to_string(),
 
-            ty::TypeVariants::TyInt(ast::IntTy::I8) => "i8".to_string(),
-            ty::TypeVariants::TyInt(ast::IntTy::I16) => "i16".to_string(),
-            ty::TypeVariants::TyInt(ast::IntTy::I32) => "i32".to_string(),
-            ty::TypeVariants::TyInt(ast::IntTy::I64) => "i64".to_string(),
-            ty::TypeVariants::TyInt(ast::IntTy::I128) => "i128".to_string(),
-            ty::TypeVariants::TyInt(ast::IntTy::Isize) => "isize".to_string(),
+            ty::TyKind::Int(ast::IntTy::I8) => "i8".to_string(),
+            ty::TyKind::Int(ast::IntTy::I16) => "i16".to_string(),
+            ty::TyKind::Int(ast::IntTy::I32) => "i32".to_string(),
+            ty::TyKind::Int(ast::IntTy::I64) => "i64".to_string(),
+            ty::TyKind::Int(ast::IntTy::I128) => "i128".to_string(),
+            ty::TyKind::Int(ast::IntTy::Isize) => "isize".to_string(),
 
-            ty::TypeVariants::TyUint(ast::UintTy::U8) => "u8".to_string(),
-            ty::TypeVariants::TyUint(ast::UintTy::U16) => "u16".to_string(),
-            ty::TypeVariants::TyUint(ast::UintTy::U32) => "u32".to_string(),
-            ty::TypeVariants::TyUint(ast::UintTy::U64) => "u64".to_string(),
-            ty::TypeVariants::TyUint(ast::UintTy::U128) => "u128".to_string(),
-            ty::TypeVariants::TyUint(ast::UintTy::Usize) => "usize".to_string(),
+            ty::TyKind::Uint(ast::UintTy::U8) => "u8".to_string(),
+            ty::TyKind::Uint(ast::UintTy::U16) => "u16".to_string(),
+            ty::TyKind::Uint(ast::UintTy::U32) => "u32".to_string(),
+            ty::TyKind::Uint(ast::UintTy::U64) => "u64".to_string(),
+            ty::TyKind::Uint(ast::UintTy::U128) => "u128".to_string(),
+            ty::TyKind::Uint(ast::UintTy::Usize) => "usize".to_string(),
 
-            ty::TypeVariants::TyChar => "char".to_string(),
+            ty::TyKind::Char => "char".to_string(),
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. })
-            | ty::TypeVariants::TyRef(_, ref ty, _) => {
-                format!("ref${}", self.encoder.encode_type_predicate_use(ty))
+            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
+            | ty::TyKind::Ref(_, ref ty, _) => {
+                format!("ref${}", self.encoder.encode_type_predicate_use(ty)?)
             }
 
-            ty::TypeVariants::TyAdt(adt_def, subst) => {
+            ty::TyKind::Adt(adt_def, subst) => {
                 let mut composed_name = vec![self.encoder.encode_item_name(adt_def.did)];
                 composed_name.push("_beg_".to_string()); // makes generics "less fragile"
                 let mut first = true;
@@ -398,46 +427,46 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         // makes generics "less fragile"
                         composed_name.push("_sep_".to_string());
                     }
-                    if let ty::subst::UnpackedKind::Type(ty) = kind.unpack() {
-                        composed_name.push(self.encoder.encode_type_predicate_use(ty))
+                    if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
+                        composed_name.push(self.encoder.encode_type_predicate_use(ty)?)
                     }
                 }
                 composed_name.push("_end_".to_string()); // makes generics "less fragile"
                 composed_name.join("$")
             }
 
-            ty::TypeVariants::TyTuple(elems) => {
-                let elem_predicate_names: Vec<String> = elems
+            ty::TyKind::Tuple(elems) => {
+                let elem_predicate_names: Result<Vec<String>, ErrorCtxt> = elems
                     .iter()
-                    .map(|ty| self.encoder.encode_type_predicate_use(ty))
+                    .map(|ty| match self.encoder.encode_type_predicate_use(ty.expect_ty()) {
+                        Ok(result) => Ok(result),
+                        Err(error) => return Err(error),
+                    })
                     .collect();
-                format!("tuple{}${}", elems.len(), elem_predicate_names.join("$"))
+                format!("tuple{}${}", elems.len(), elem_predicate_names?.join("$"))
             }
 
-            ty::TypeVariants::TyNever => "never".to_string(),
+            ty::TyKind::Never => "never".to_string(),
 
-            ty::TypeVariants::TyStr => "str".to_string(),
+            ty::TyKind::Str => "str".to_string(),
 
-            ty::TypeVariants::TyArray(elem_ty, size) => {
+            ty::TyKind::Array(elem_ty, size) => {
                 let scalar_size = match size.val {
-                    ConstVal::Value(ref value) => value.to_scalar().unwrap(),
+                    ty::ConstKind::Value(ref value) => value.try_to_bits(rustc_target::abi::Size::from_bits(64)).unwrap(),
                     x => unimplemented!("{:?}", x),
                 };
                 format!(
                     "array${}${}",
-                    self.encoder.encode_type_predicate_use(elem_ty),
+                    self.encoder.encode_type_predicate_use(elem_ty)?,
                     scalar_size
-                        .to_bits(ty::layout::Size::from_bits(64))
-                        .ok()
-                        .unwrap()
                 )
             }
 
-            ty::TypeVariants::TySlice(array_ty) => {
-                format!("slice${}", self.encoder.encode_type_predicate_use(array_ty))
+            ty::TyKind::Slice(array_ty) => {
+                format!("slice${}", self.encoder.encode_type_predicate_use(array_ty)?)
             }
 
-            ty::TypeVariants::TyClosure(def_id, closure_subst) => {
+            ty::TyKind::Closure(def_id, closure_subst) => {
                 let subst_hash = {
                     let mut s = DefaultHasher::new();
                     closure_subst.hash(&mut s);
@@ -445,44 +474,48 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 };
 
                 format!(
-                    "closure${:?}_{}_{}${}${}",
-                    def_id.krate.index(),
-                    def_id.index.address_space().index(),
-                    def_id.index.as_array_index(),
-                    closure_subst.substs.len(),
+                    "closure${}_{}${}${}",
+                    def_id.krate.as_u32(),
+                    def_id.index.as_u32(),
+                    closure_subst.len(),
                     subst_hash
                 )
             }
 
-            ty::TypeVariants::TyParam(param_ty) => {
+            ty::TyKind::Param(param_ty) => {
                 format!("__TYPARAM__${}$__", param_ty.name.as_str())
             }
 
-            ref x => unimplemented!("{:?}", x),
-        }
+            ref x => {
+                debug!("Unimplemented! {:?}", x);
+                return Err(ErrorCtxt::Panic(Unimplemented));
+            }
+        };
+        Ok(result)
     }
 
     pub fn encode_invariant_def(self) -> vir::Function {
         debug!("[enter] encode_invariant_def({:?})", self.ty);
 
-        let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
+        // will panic if attempting to encode unsupported type
+        let predicate_name = self.encoder.encode_type_predicate_use(self.ty).unwrap();
         let self_local_var =
             vir::LocalVar::new("self", vir::Type::TypedRef(predicate_name.clone()));
 
         let invariant_name = self.encoder.encode_type_invariant_use(self.ty);
 
-        let field_invariants = match self.ty.sty {
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. })
-            | ty::TypeVariants::TyRef(_, ref ty, _) => {
+        let field_invariants = match self.ty.kind {
+            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
+            | ty::TyKind::Ref(_, ref ty, _) => {
                 let elem_field = self.encoder.encode_dereference_field(ty);
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 Some(vec![self.encoder.encode_invariant_func_app(ty, elem_loc)])
             }
 
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
+            ty::TyKind::Adt(ref adt_def, ref subst) if !adt_def.is_box() => {
                 if self.is_supported_struct_type(adt_def, subst) {
                     let own_substs =
-                        ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), adt_def.did);
+                        ty::List::identity_for_item(self.encoder.env().tcx(), adt_def.did);
 
                     {
                         // FIXME; hideous monstrosity...
@@ -491,8 +524,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
                         for (kind1, kind2) in own_substs.iter().zip(*subst) {
                             if let (
-                                ty::subst::UnpackedKind::Type(ty1),
-                                ty::subst::UnpackedKind::Type(ty2),
+                                ty::subst::GenericArgKind::Type(ty1),
+                                ty::subst::GenericArgKind::Type(ty2),
                             ) = (kind1.unpack(), kind2.unpack())
                             {
                                 tymap.insert(ty1, ty2);
@@ -505,7 +538,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     let num_variants = adt_def.variants.len();
                     let tcx = self.encoder.env().tcx();
 
-                    let mut specs: Vec<&TypedSpecificationSet> = Vec::new();
+                    let mut specs: Vec<typed::SpecificationSet> = Vec::new();
                     if let Some(spec) = self.encoder.get_spec_by_def_id(adt_def.did) {
                         specs.push(spec);
                     }
@@ -527,7 +560,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         };
 
                         match spec {
-                            SpecificationSet::Struct(items) => {
+                            typed::SpecificationSet::Struct(items) => {
                                 for item in items {
                                     let enc = spec_encoder.encode_assertion(&item.assertion);
                                     // OPEN TODO: hacky fix here to convert the closure var to "self"...
@@ -552,7 +585,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     } else if num_variants == 1 {
                         debug!("ADT {:?} has only one variant", adt_def);
 
-                        for field in &adt_def.variants[0].fields {
+                        for field in &adt_def.non_enum_variant().fields {
                             debug!("Encoding field {:?}", field);
                             let field_name = &field.ident.as_str();
                             let field_ty = field.ty(tcx, subst);
@@ -577,9 +610,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             _ => Some(vec![]),
         };
 
-        let precondition = match self.ty.sty {
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. })
-            | ty::TypeVariants::TyRef(_, ref ty, _) => {
+        let precondition = match self.ty.kind {
+            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
+            | ty::TyKind::Ref(_, ref ty, _) => {
                 // This is a reference, so we need to have it already unfolded.
                 let elem_field = self.encoder.encode_dereference_field(ty);
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
@@ -620,7 +653,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_invariant_use(self) -> String {
         debug!("Encode type invariant name '{:?}'", self.ty);
-        format!("{}$inv", self.encode_predicate_use())
+        // will panic if attempting to encode unsupported type
+        format!("{}$inv", self.encode_predicate_use().unwrap())
     }
 
     pub fn encode_tag_def(self) -> vir::Function {
@@ -631,8 +665,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         let tag_name = self.encoder.encode_type_tag_use(self.ty);
 
-        let body = match self.ty.sty {
-            ty::TypeVariants::TyParam(_param_ty) => None,
+        let body = match self.ty.kind {
+            ty::TyKind::Param(_param_ty) => None,
             _ => Some((vir::Const::Int((self.ty as *const ty::TyS<'tcx>) as i64)).into()),
         };
 
@@ -661,7 +695,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_tag_use(self) -> String {
         debug!("Encode type tag name '{:?}'", self.ty);
-        format!("{}$tag", self.encode_predicate_use())
+        format!("{}$tag", self.encode_predicate_use().unwrap()) // will panic if attempting to encode unsupported type
     }
 }
 
@@ -670,12 +704,12 @@ pub fn compute_discriminant_values(adt_def: &ty::AdtDef, tcx: ty::TyCtxt) -> Vec
     let mut discr_values: Vec<i128> = vec![];
     // Handle *signed* discriminats
     if let SignedInt(ity) = adt_def.repr.discr_type() {
-        let bit_size = layout::Integer::from_attr(tcx, SignedInt(ity))
+        let bit_size = abi::Integer::from_attr(&tcx, SignedInt(ity))
             .size()
             .bits();
         let shift = 128 - bit_size;
         for (variant_index, _) in adt_def.variants.iter().enumerate() {
-            let unsigned_discr = adt_def.discriminant_for_variant(tcx, variant_index).val;
+            let unsigned_discr = adt_def.discriminant_for_variant(tcx, abi::VariantIdx::from_usize(variant_index)).val;
             let casted_discr = unsigned_discr as i128;
             // sign extend the raw representation to be an i128
             let signed_discr = (casted_discr << shift) >> shift;
@@ -683,7 +717,7 @@ pub fn compute_discriminant_values(adt_def: &ty::AdtDef, tcx: ty::TyCtxt) -> Vec
         }
     } else {
         for (variant_index, _) in adt_def.variants.iter().enumerate() {
-            let value = adt_def.discriminant_for_variant(tcx, variant_index).val;
+            let value = adt_def.discriminant_for_variant(tcx, abi::VariantIdx::from_usize(variant_index)).val;
             discr_values.push(value as i128);
         }
     }

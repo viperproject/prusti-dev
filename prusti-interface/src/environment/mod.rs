@@ -6,99 +6,119 @@
 
 //! This module defines the interface provided to a verifier.
 
-use rustc::hir;
-use rustc::hir::def_id::DefId;
-use rustc::ty;
-use rustc::ty::TyCtxt;
-use rustc_driver::driver;
-use std::collections::HashSet;
+use rustc_hir::hir_id::HirId;
+use rustc_hir::def_id::DefId;
+use rustc_middle::ty::{self, TyCtxt};
 use std::path::PathBuf;
-use syntax::attr;
-use syntax_pos::symbol::Symbol;
-use syntax_pos::FileName;
-use syntax_pos::MultiSpan;
+
+use rustc_span::{Span, MultiSpan, symbol::Symbol};
+use rustc_hir as hir;
+// use rustc::hir::def_id::DefId;
+// use rustc::ty;
+// use rustc::ty::TyCtxt;
+// use rustc_driver::driver;
+use std::collections::HashSet;
+// use syntax::attr;
+// use syntax_pos::FileName;
+// use syntax_pos::MultiSpan;
+// use syntax_pos::symbol::Symbol;
+
+use log::debug;
 
 pub mod borrowck;
 mod collect_prusti_spec_visitor;
+mod collect_closure_defs_visitor;
 mod dump_borrowck_info;
 mod loops;
 mod loops_utils;
 pub mod mir_analyses;
+pub mod mir_utils;
 pub mod place_set;
 pub mod polonius_info;
 mod procedure;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
+use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
+use rustc_hir::intravisit::Visitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
 pub use self::procedure::{BasicBlockIndex, Procedure};
-use data::ProcedureDefId;
-use prusti_common::config;
-use syntax::codemap::CodeMap;
-use syntax::codemap::Span;
-use utils::get_attr_value;
+// use config;
+use crate::data::ProcedureDefId;
+// use syntax::codemap::CodeMap;
+// use syntax::codemap::Span;
+// use utils::get_attr_value;
+use rustc_span::source_map::SourceMap;
 
 /// Facade to the Rust compiler.
 // #[derive(Copy, Clone)]
-pub struct Environment<'r, 'a: 'r, 'tcx: 'a> {
-    state: &'r mut driver::CompileState<'a, 'tcx>,
+pub struct Environment<'tcx> {
+    tcx: TyCtxt<'tcx>,
 }
 
-impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
+impl<'tcx> Environment<'tcx> {
     /// Builds an environment given a compiler state.
-    pub fn new(state: &'r mut driver::CompileState<'a, 'tcx>) -> Self {
-        Environment { state }
+    pub fn new(tcx: TyCtxt<'tcx>) -> Self {
+        Environment { tcx }
     }
 
     /// Returns the path of the source that is being compiled
     pub fn source_path(&self) -> PathBuf {
-        match driver::source_name(self.state.input) {
-            FileName::Real(path) => path,
-            _ => unreachable!(),
-        }
+        self.tcx.sess.local_crate_source_file.clone().unwrap()
     }
 
     /// Returns the name of the crate that is being compiled
-    pub fn crate_name(&self) -> &str {
-        self.state.crate_name.as_ref().unwrap()
+    pub fn crate_name(&self) -> String {
+        self.tcx
+            .crate_name(rustc_span::def_id::LOCAL_CRATE)
+            .to_string()
     }
 
     /// Returns the typing context
-    pub fn tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx> {
-        self.state.tcx.unwrap()
+    pub fn tcx(&self) -> TyCtxt<'tcx> {
+        self.tcx
     }
 
     /// Returns the type of a `HirId`
-    pub fn hir_id_to_type(&self, hir_id: hir::HirId) -> ty::Ty<'tcx> {
-        let owner_def_id = hir_id.owner_def_id();
-        let typeck_tables = self.tcx().typeck_tables_of(owner_def_id);
-        typeck_tables.node_id_to_type(hir_id)
+    pub fn hir_id_to_type(&self, hir_id: HirId) -> ty::Ty<'tcx> {
+        let def_id = self.tcx.hir().local_def_id(hir_id);
+        self.tcx.type_of(def_id)
     }
 
     /// Returns the `CodeMap`
-    pub fn codemap(&self) -> &'tcx CodeMap {
-        self.state.session.codemap()
+    pub fn codemap(&self) -> &'tcx SourceMap {
+        self.tcx.sess.source_map()
     }
 
-    /// Emits a warning message
-    pub fn warn(&self, msg: &str) {
-        self.state.session.warn(msg);
-    }
+    // /// Emits a warning message
+    // pub fn warn(&self, msg: &str) {
+    //     self.state.session.warn(msg);
+    // }
 
-    /// Emits an warning message.
-    pub fn span_warn<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
-        self.state.session.span_warn(sp, msg);
-    }
+    // /// Emits an warning message.
+    // pub fn span_warn<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
+    //     self.state.session.span_warn(sp, msg);
+    // }
+
+    // /// Emits an error message.
+    // pub fn err(&self, msg: &str) {
+    //     self.state.session.err(msg);
+    // }
+
+    // /// Emits an error message.
+    // pub fn span_err<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
+    //     self.state.session.span_err(sp, msg);
+    // }
 
     /// Emits an error message.
-    pub fn span_warn_with_help_and_note<S: Into<MultiSpan> + Clone>(
+    pub fn span_err_with_help_and_note<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
         msg: &str,
         help: &Option<String>,
-        note: &Option<(String, S)>,
+        note: &Option<(String, S)>
     ) {
-        let mut diagnostic = self.state.session.struct_warn(msg);
+        let mut diagnostic = self.tcx.sess.struct_err(msg);
         diagnostic.set_span(sp);
         if let Some(help_msg) = help {
             diagnostic.help(help_msg);
@@ -110,24 +130,14 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     }
 
     /// Emits an error message.
-    pub fn err(&self, msg: &str) {
-        self.state.session.err(msg);
-    }
-
-    /// Emits an error message.
-    pub fn span_err<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
-        self.state.session.span_err(sp, msg);
-    }
-
-    /// Emits an error message.
-    pub fn span_err_with_help_and_note<S: Into<MultiSpan> + Clone>(
+    pub fn span_warn_with_help_and_note<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
         msg: &str,
         help: &Option<String>,
-        note: &Option<(String, S)>,
+        note: &Option<(String, S)>
     ) {
-        let mut diagnostic = self.state.session.struct_err(msg);
+        let mut diagnostic = self.tcx.sess.struct_warn(msg);
         diagnostic.set_span(sp);
         if let Some(help_msg) = help {
             diagnostic.help(help_msg);
@@ -140,65 +150,62 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
 
     /// Returns true if an error has been emitted
     pub fn has_errors(&self) -> bool {
-        self.state.session.has_errors()
+        self.tcx.sess.has_errors()
     }
 
-    /// Aborts in case of error.
-    pub fn abort_if_errors(&self) {
-        self.state.session.abort_if_errors();
-    }
+    // /// Aborts in case of error.
+    // pub fn abort_if_errors(&self) {
+    //     self.state.session.abort_if_errors();
+    // }
 
     /// Get ids of Rust procedures that are annotated with a Prusti specification
     pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
-        let mut annotated_procedures: Vec<ProcedureDefId> = vec![];
-        let tcx = self.tcx();
-        {
-            let mut visitor = CollectPrustiSpecVisitor::new(self, &mut annotated_procedures);
-            tcx.hir.krate().visit_all_item_likes(&mut visitor);
-        }
-        annotated_procedures
+        let tcx = self.tcx;
+        let mut visitor = CollectPrustiSpecVisitor::new(self);
+        tcx.hir().krate().visit_all_item_likes(&mut visitor);
+
+        let mut cl_visitor = CollectClosureDefsVisitor::new(self);
+        tcx.hir().krate().visit_all_item_likes(&mut cl_visitor.as_deep_visitor());
+
+        let mut result: Vec<_> = visitor.get_annotated_procedures();
+        result.extend(cl_visitor.get_closure_defs());
+        result
     }
 
-    pub fn get_attr(&self, def_id: ProcedureDefId, name: &str) -> Option<String> {
-        let tcx = self.tcx();
-        let opt_node_id = tcx.hir.as_local_node_id(def_id);
-        match opt_node_id {
-            None => None,
-            Some(node_id) => tcx
-                .hir
-                .attrs(node_id)
-                .iter()
-                .find(|item| item.path.to_string() == name)
-                .map(get_attr_value),
-        }
-    }
+    // TODO: Use encoder.get_opt_spec_id instead.
+    // pub fn get_attr(&self, def_id: ProcedureDefId, name: &str) -> Option<String> {
+    //     let tcx = self.tcx();
+    //     let opt_node_id = tcx.hir.as_local_node_id(def_id);
+    //     match opt_node_id {
+    //         None => None,
+    //         Some(node_id) => tcx
+    //             .hir
+    //             .attrs(node_id)
+    //             .iter()
+    //             .find(|item| item.path.to_string() == name)
+    //             .map(get_attr_value),
+    //     }
+    // }
 
     /// Find whether the procedure has a particular attribute
     pub fn has_attribute_name(&self, def_id: ProcedureDefId, name: &str) -> bool {
         let tcx = self.tcx();
-        let opt_node_id = tcx.hir.as_local_node_id(def_id);
-        match opt_node_id {
-            None => {
-                debug!("Incomplete encoding of procedures from an external crate");
-                false
-            }
-            Some(node_id) => attr::contains_name(tcx.hir.attrs(node_id), name),
-        }
+        crate::environment::collect_prusti_spec_visitor::contains_name(tcx.get_attrs(def_id), name)
     }
 
     /// Dump various information from the borrow checker.
     ///
     /// Mostly used for experiments and debugging.
     pub fn dump_borrowck_info(&self, procedures: &Vec<ProcedureDefId>) {
-        if config::dump_borrowck_info() {
+        if prusti_common::config::dump_borrowck_info() {
             dump_borrowck_info::dump_borrowck_info(self.tcx(), procedures)
         }
     }
 
     /// Get an absolute `def_path`. Note: not preserved across compilations!
     pub fn get_item_def_path(&self, def_id: DefId) -> String {
-        let def_path = self.tcx().def_path(def_id);
-        let mut crate_name = self.tcx().crate_name(def_path.krate).to_string();
+        let def_path = self.tcx.def_path(def_id);
+        let mut crate_name = self.tcx.crate_name(def_path.krate).to_string();
         crate_name.push_str(&def_path.to_string_no_crate());
         crate_name
     }
@@ -206,19 +213,20 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     /// Get the span of a definition
     /// Note: panics on non-local `def_id`
     pub fn get_item_span(&self, def_id: DefId) -> Span {
-        self.tcx().hir.span_if_local(def_id).unwrap()
+        self.tcx.hir().span_if_local(def_id).unwrap()
     }
 
     pub fn get_absolute_item_name(&self, def_id: DefId) -> String {
-        self.tcx().absolute_item_path_str(def_id)
+        self.tcx.def_path_str(def_id)
     }
 
     pub fn get_item_name(&self, def_id: DefId) -> String {
-        self.tcx().item_path_str(def_id)
+        self.tcx.def_path_str(def_id)
+        // self.tcx().item_path_str(def_id)
     }
 
     /// Get a Procedure.
-    pub fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
+    pub fn get_procedure<'a>(&'a self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
         Procedure::new(self.tcx(), proc_def_id)
     }
 
@@ -238,26 +246,21 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     }
 
     /// Get an associated item by name.
-    pub fn get_assoc_item(&self, id: DefId, name: Symbol) -> Option<ty::AssociatedItem> {
-        self.tcx()
-            .associated_items(id)
-            .find(|assoc_item| assoc_item.name == name)
+    pub fn get_assoc_item(&self, id: DefId, name: Symbol) -> Option<ty::AssocItem> {
+        // FIXME: Probably we should use https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.AssociatedItems.html#method.find_by_name_and_namespace
+        // instead.
+        self.tcx().associated_items(id).filter_by_name_unhygienic(name).next().cloned()
     }
 
-    /// Get a trait method declaration by name for type.
-    pub fn get_trait_method_decl_for_type(
-        &self,
-        typ: ty::Ty<'tcx>,
-        trait_id: DefId,
-        name: Symbol,
-    ) -> Vec<ty::AssociatedItem> {
-        let mut result = Vec::new();
-        self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
-            let item = self.get_assoc_item(impl_id, name);
-            if let Some(inner) = item {
-                result.push(inner.clone());
-            }
-        });
-        result
-    }
+    // /// Get a trait method declaration by name for type.
+    // pub fn get_trait_method_decl_for_type(&self, typ: ty::Ty<'tcx>, trait_id: DefId, name: Symbol) -> Vec<ty::AssociatedItem> {
+    //     let mut result = Vec::new();
+    //     self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
+    //         let item = self.get_assoc_item(impl_id, name);
+    //         if let Some(inner) = item {
+    //             result.push(inner.clone());
+    //         }
+    //     });
+    //     result
+    // }
 }

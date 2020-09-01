@@ -4,29 +4,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::errors::ErrorCtxt;
-use encoder::mir_encoder::MirEncoder;
-use encoder::mir_encoder::PRECONDITION_LABEL;
-use encoder::mir_interpreter::{
+use crate::encoder::errors::ErrorCtxt;
+use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
+use crate::encoder::mir_encoder::PRECONDITION_LABEL;
+use crate::encoder::mir_interpreter::{
     run_backward_interpretation_point_to_point, BackwardMirInterpreter,
     MultiExprBackwardInterpreterState,
 };
-use encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
-use encoder::Encoder;
+use crate::encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
+use crate::encoder::Encoder;
 use prusti_common::vir;
 use prusti_common::vir::ExprIterator;
-use prusti_interface::specifications::*;
-use rustc::hir;
-use rustc::hir::def_id::DefId;
-use rustc::mir;
-use rustc::ty;
+use prusti_interface::specs::typed;
+use rustc_hir as hir;
+use rustc_hir::def_id::DefId;
+use rustc_middle::mir;
+use rustc_middle::ty;
 use std::collections::HashMap;
-use syntax::ast;
+use rustc_ast::ast;
+use log::{debug, trace};
 
-pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+pub struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
     // FIXME: this should be the MIR of the `__spec` function
-    mir: Option<&'p mir::Mir<'tcx>>,
+    mir: Option<&'p mir::Body<'tcx>>,
     /// The context in which the specification should be encoded
     target_label: &'p str,
     target_args: &'p [vir::Expr],
@@ -37,10 +38,10 @@ pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     stop_at_bbi: Option<mir::BasicBlock>,
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     pub fn new(
-        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-        mir: &'p mir::Mir<'tcx>,
+        encoder: &'p Encoder<'v, 'tcx>,
+        mir: &'p mir::Body<'tcx>,
         target_label: &'p str,
         target_args: &'p [vir::Expr],
         target_return: Option<&'p vir::Expr>,
@@ -62,7 +63,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     // TODO; useful for when we're using 'encode_assertion' only
     pub fn new_simple(
-        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        encoder: &'p Encoder<'v, 'tcx>,
         target_args: &'p [vir::Expr],
     ) -> Self {
         trace!("SpecEncoder simple constructor");
@@ -78,297 +79,287 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_hir_field(&self, base_place: vir::Expr, field_expr: &hir::Expr) -> vir::Expr {
-        trace!("encode_hir_field: {:?}", field_expr);
-        assert!(match field_expr.node {
-            hir::Expr_::ExprField(..) => true,
-            _ => false,
-        });
+//     fn encode_hir_field(&self, base_place: vir::Expr, field_expr: &hir::Expr) -> vir::Expr {
+//         trace!("encode_hir_field: {:?}", field_expr);
+//         assert!(match field_expr.node {
+//             hir::Expr_::ExprField(..) => true,
+//             _ => false,
+//         });
 
-        let (base_expr, field_id) =
-            if let hir::Expr_::ExprField(ref base_expr, field_id) = field_expr.node {
-                (base_expr, field_id)
-            } else {
-                unreachable!()
-            };
+//         let (base_expr, field_id) =
+//             if let hir::Expr_::ExprField(ref base_expr, field_id) = field_expr.node {
+//                 (base_expr, field_id)
+//             } else {
+//                 unreachable!()
+//             };
 
-        let tcx = self.encoder.env().tcx();
-        let owner_def_id = field_expr.hir_id.owner_def_id();
-        let typeck_tables = tcx.typeck_tables_of(owner_def_id);
-        let field_index = tcx.field_index(field_expr.id, typeck_tables);
-        let base_expr_ty = typeck_tables.expr_ty(base_expr);
+//         let tcx = self.encoder.env().tcx();
+//         let owner_def_id = field_expr.hir_id.owner_def_id();
+//         let typeck_tables = tcx.typeck_tables_of(owner_def_id);
+//         let field_index = tcx.field_index(field_expr.id, typeck_tables);
+//         let base_expr_ty = typeck_tables.expr_ty(base_expr);
 
-        let field_ty = typeck_tables.expr_ty(field_expr);
-        let encoded_type = self.encoder.encode_type(field_ty);
-        match base_expr_ty.ty_adt_def() {
-            Some(adt) => match tcx.hir.describe_def(base_expr.id) {
-                Some(def) => {
-                    let num_variants = adt.variants.len();
-                    let place = if num_variants != 1 {
-                        let variant_def = tcx.expect_variant_def(def);
-                        base_place.variant(&variant_def.name.as_str())
-                    } else {
-                        base_place
-                    };
-                    let field = vir::Field::new(field_id.name.as_str().to_string(), encoded_type);
-                    place.field(field)
-                }
-                None => {
-                    let field = vir::Field::new(field_id.name.as_str().to_string(), encoded_type);
-                    base_place.field(field)
-                }
-            },
-            None => {
-                let field_name = format!("tuple_{}", field_index);
-                let field = vir::Field::new(field_name, encoded_type);
-                base_place.field(field)
-            }
-        }
-    }
+//         let field_ty = typeck_tables.expr_ty(field_expr);
+//         let encoded_type = self.encoder.encode_type(field_ty);
+//         match base_expr_ty.ty_adt_def() {
+//             Some(adt) => match tcx.hir.describe_def(base_expr.id) {
+//                 Some(def) => {
+//                     let num_variants = adt.variants.len();
+//                     let place = if num_variants != 1 {
+//                         let variant_def = tcx.expect_variant_def(def);
+//                         base_place.variant(&variant_def.name.as_str())
+//                     } else {
+//                         base_place
+//                     };
+//                     let field = vir::Field::new(field_id.name.as_str().to_string(), encoded_type);
+//                     place.field(field)
+//                 }
+//                 None => {
+//                     let field = vir::Field::new(field_id.name.as_str().to_string(), encoded_type);
+//                     base_place.field(field)
+//                 }
+//             },
+//             None => {
+//                 let field_name = format!("tuple_{}", field_index);
+//                 let field = vir::Field::new(field_name, encoded_type);
+//                 base_place.field(field)
+//             }
+//         }
+//     }
 
-    fn encode_hir_arg(&self, arg: &hir::Arg) -> vir::LocalVar {
-        trace!("encode_hir_arg: {:?}", arg);
-        let var_name = match arg.pat.node {
-            hir::PatKind::Lit(ref expr) => {
-                hir::print::to_string(hir::print::NO_ANN, |s| s.print_expr(expr))
-            }
-            hir::PatKind::Binding(_, _, ident, ..) => ident.node.to_string(),
-            ref x => unimplemented!("{:?}", x),
-        };
-        debug!("encode_hir_arg var_name: {:?}", var_name);
-        let arg_ty = self.encoder.env().hir_id_to_type(arg.hir_id);
-
+    fn encode_forall_arg(&self, arg: mir::Local, arg_ty: ty::Ty<'tcx>) -> vir::LocalVar {
+        trace!("encode_forall_arg: {:?} {:?}", arg, arg_ty);
         assert!(
-            match arg_ty.sty {
-                ty::TypeVariants::TyInt(..) | ty::TypeVariants::TyUint(..) => true,
+            match arg_ty.kind {
+                ty::TyKind::Int(..) | ty::TyKind::Uint(..) => true,
                 _ => false,
             },
             "Quantification is only supported over integer values"
         );
-
+        // FIXME: The name encoding is most likely wrong. (It most likely does
+        // not match the names generated in other places.)
+        let var_name = format!("{:?}_forall", arg);
         vir::LocalVar::new(var_name, vir::Type::Int)
     }
 
-    fn path_to_string(&self, var_path: &hir::Path) -> String {
-        hir::print::to_string(hir::print::NO_ANN, |s| s.print_path(var_path, false))
-    }
+//     fn path_to_string(&self, var_path: &hir::Path) -> String {
+//         hir::print::to_string(hir::print::NO_ANN, |s| s.print_path(var_path, false))
+//     }
 
-    fn encode_hir_variable(&self, var_path: &hir::Path) -> vir::LocalVar {
-        trace!("encode_hir_variable: {:?}", var_path);
-        let original_var_name = self.path_to_string(var_path);
-        let is_quantified_var;
+//     fn encode_hir_variable(&self, var_path: &hir::Path) -> vir::LocalVar {
+//         trace!("encode_hir_variable: {:?}", var_path);
+//         let original_var_name = self.path_to_string(var_path);
+//         let is_quantified_var;
 
-        // Special variable names
-        let var_name = if original_var_name == "result" {
-            is_quantified_var = false;
-            "_0".to_string()
-        } else {
-            // Is it an argument?
-            let opt_local = self
-                .mir
-                .unwrap()
-                .local_decls
-                .iter_enumerated()
-                .find(|(_local, local_decl)| match local_decl.name {
-                    None => false,
-                    Some(name) => &format!("{:?}", name) == &original_var_name,
-                })
-                .map(|(local, _)| local);
+//         // Special variable names
+//         let var_name = if original_var_name == "result" {
+//             is_quantified_var = false;
+//             "_0".to_string()
+//         } else {
+//             // Is it an argument?
+//             let opt_local = self
+//                 .mir
+//                 .unwrap()
+//                 .local_decls
+//                 .iter_enumerated()
+//                 .find(|(_local, local_decl)| match local_decl.name {
+//                     None => false,
+//                     Some(name) => &format!("{:?}", name) == &original_var_name,
+//                 })
+//                 .map(|(local, _)| local);
 
-            // TODO: give precedence to the variables declared in quantifiers
-            match opt_local {
-                // If it's an argument, use the MIR name (_1, _2, ...)
-                Some(local) => {
-                    is_quantified_var = false;
-                    format!("{:?}", local)
-                }
+//             // TODO: give precedence to the variables declared in quantifiers
+//             match opt_local {
+//                 // If it's an argument, use the MIR name (_1, _2, ...)
+//                 Some(local) => {
+//                     is_quantified_var = false;
+//                     format!("{:?}", local)
+//                 }
 
-                // If it is not an argument, keep the original name
-                None => {
-                    is_quantified_var = true;
-                    original_var_name
-                }
-            }
-        };
+//                 // If it is not an argument, keep the original name
+//                 None => {
+//                     is_quantified_var = true;
+//                     original_var_name
+//                 }
+//             }
+//         };
 
-        let hir_id = match var_path.def {
-            hir::def::Def::Local(node_id) | hir::def::Def::Upvar(node_id, _, _) => {
-                self.encoder.env().tcx().hir.node_to_hir_id(node_id)
-            }
-            ref x => unimplemented!("{:?}", x),
-        };
-        let var_ty = self.encoder.env().hir_id_to_type(hir_id);
+//         let hir_id = match var_path.def {
+//             hir::def::Def::Local(node_id) | hir::def::Def::Upvar(node_id, _, _) => {
+//                 self.encoder.env().tcx().hir.node_to_hir_id(node_id)
+//             }
+//             ref x => unimplemented!("{:?}", x),
+//         };
+//         let var_ty = self.encoder.env().hir_id_to_type(hir_id);
 
-        let encoded_type = if is_quantified_var {
-            assert!(
-                match var_ty.sty {
-                    ty::TypeVariants::TyInt(..) | ty::TypeVariants::TyUint(..) => true,
-                    _ => false,
-                },
-                "Quantification is only supported over integer values"
-            );
-            vir::Type::Int
-        } else {
-            let type_name = self.encoder.encode_type_predicate_use(&var_ty);
-            vir::Type::TypedRef(type_name)
-        };
+//         let encoded_type = if is_quantified_var {
+//             assert!(
+//                 match var_ty.kind {
+//                     ty::TyKind::Int(..) | ty::TyKind::Uint(..) => true,
+//                     _ => false,
+//                 },
+//                 "Quantification is only supported over integer values"
+//             );
+//             vir::Type::Int
+//         } else {
+//             let type_name = self.encoder.encode_type_predicate_use(&var_ty);
+//             vir::Type::TypedRef(type_name)
+//         };
 
-        vir::LocalVar::new(var_name, encoded_type)
-    }
+//         vir::LocalVar::new(var_name, encoded_type)
+//     }
 
-    fn encode_hir_path(&self, base_expr: &hir::Expr) -> vir::Expr {
-        trace!("encode_hir_path: {:?}", base_expr.node);
-        let base_ty = self.encoder.env().hir_id_to_type(base_expr.hir_id);
-        match base_expr.node {
-            hir::Expr_::ExprField(ref expr, _field_id) => {
-                let place = self.encode_hir_path(expr);
-                assert!(place.get_type().is_ref());
-                self.encode_hir_field(place, base_expr)
-            }
+//     fn encode_hir_path(&self, base_expr: &hir::Expr) -> vir::Expr {
+//         trace!("encode_hir_path: {:?}", base_expr.node);
+//         let base_ty = self.encoder.env().hir_id_to_type(base_expr.hir_id);
+//         match base_expr.node {
+//             hir::Expr_::ExprField(ref expr, _field_id) => {
+//                 let place = self.encode_hir_path(expr);
+//                 assert!(place.get_type().is_ref());
+//                 self.encode_hir_field(place, base_expr)
+//             }
 
-            hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ref expr) => {
-                let place = self.encode_hir_path(expr);
-                assert!(place.get_type().is_ref());
-                match place {
-                    vir::Expr::AddrOf(box base, _typ, _) => base,
-                    _ => {
-                        let type_name: String = self.encoder.encode_type_predicate_use(base_ty);
-                        place.field(vir::Field::new("val_ref", vir::Type::TypedRef(type_name)))
-                    }
-                }
-            }
+//             hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ref expr) => {
+//                 let place = self.encode_hir_path(expr);
+//                 assert!(place.get_type().is_ref());
+//                 match place {
+//                     vir::Expr::AddrOf(box base, _typ, _) => base,
+//                     _ => {
+//                         let type_name: String = self.encoder.encode_type_predicate_use(base_ty);
+//                         place.field(vir::Field::new("val_ref", vir::Type::TypedRef(type_name)))
+//                     }
+//                 }
+//             }
 
-            hir::Expr_::ExprUnary(..)
-            | hir::Expr_::ExprLit(..)
-            | hir::Expr_::ExprBinary(..)
-            | hir::Expr_::ExprIf(..)
-            | hir::Expr_::ExprMatch(..) => {
-                unreachable!("A path is expected, but found {:?}", base_expr)
-            }
+//             hir::Expr_::ExprUnary(..)
+//             | hir::Expr_::ExprLit(..)
+//             | hir::Expr_::ExprBinary(..)
+//             | hir::Expr_::ExprIf(..)
+//             | hir::Expr_::ExprMatch(..) => {
+//                 unreachable!("A path is expected, but found {:?}", base_expr)
+//             }
 
-            hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref var_path)) => {
-                vir::Expr::local(self.encode_hir_variable(var_path))
-            }
+//             hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref var_path)) => {
+//                 vir::Expr::local(self.encode_hir_variable(var_path))
+//             }
 
-            ref x => unimplemented!("{:?}", x),
-        }
-    }
+//             ref x => unimplemented!("{:?}", x),
+//         }
+//     }
 
-    fn encode_hir_path_expr(&self, base_expr: &hir::Expr) -> vir::Expr {
-        trace!("encode_hir_path_expr: {:?}", base_expr.node);
-        let place = self.encode_hir_path(base_expr);
-        let base_ty = self.encoder.env().hir_id_to_type(base_expr.hir_id);
+//     fn encode_hir_path_expr(&self, base_expr: &hir::Expr) -> vir::Expr {
+//         trace!("encode_hir_path_expr: {:?}", base_expr.node);
+//         let place = self.encode_hir_path(base_expr);
+//         let base_ty = self.encoder.env().hir_id_to_type(base_expr.hir_id);
 
-        if place.get_type().is_ref() {
-            match base_ty.sty {
-                ty::TypeVariants::TyBool => place
-                    .field(vir::Field::new("val_bool", vir::Type::Bool))
-                    .into(),
+//         if place.get_type().is_ref() {
+//             match base_ty.kind {
+//                 ty::TyKind::Bool => place
+//                     .field(vir::Field::new("val_bool", vir::Type::Bool))
+//                     .into(),
 
-                ty::TypeVariants::TyInt(..) | ty::TypeVariants::TyUint(..) => place
-                    .field(vir::Field::new("val_int", vir::Type::Int))
-                    .into(),
+//                 ty::TyKind::Int(..) | ty::TyKind::Uint(..) => place
+//                     .field(vir::Field::new("val_int", vir::Type::Int))
+//                     .into(),
 
-                ty::TypeVariants::TyTuple(..) | ty::TypeVariants::TyAdt(..) => place.into(),
+//                 ty::TyKind::Tuple(..) | ty::TyKind::Adt(..) => place.into(),
 
-                ref x => unimplemented!("{:?}", x),
-            }
-        } else {
-            place.into()
-        }
-    }
+//                 ref x => unimplemented!("{:?}", x),
+//             }
+//         } else {
+//             place.into()
+//         }
+//     }
 
-    fn encode_literal_expr(&self, lit: &ast::Lit) -> vir::Expr {
-        trace!("encode_literal_expr: {:?}", lit.node);
-        match lit.node {
-            ast::LitKind::Int(int_val, ast::LitIntType::Signed(_)) => (int_val as i128).into(),
-            ast::LitKind::Int(int_val, ast::LitIntType::Unsigned(_))
-            | ast::LitKind::Int(int_val, ast::LitIntType::Unsuffixed) => int_val.into(),
-            ast::LitKind::Bool(bool_val) => bool_val.into(),
-            ref x => unimplemented!("{:?}", x),
-        }
-    }
+//     fn encode_literal_expr(&self, lit: &ast::Lit) -> vir::Expr {
+//         trace!("encode_literal_expr: {:?}", lit.node);
+//         match lit.node {
+//             ast::LitKind::Int(int_val, ast::LitIntType::Signed(_)) => (int_val as i128).into(),
+//             ast::LitKind::Int(int_val, ast::LitIntType::Unsigned(_))
+//             | ast::LitKind::Int(int_val, ast::LitIntType::Unsuffixed) => int_val.into(),
+//             ast::LitKind::Bool(bool_val) => bool_val.into(),
+//             ref x => unimplemented!("{:?}", x),
+//         }
+//     }
 
-    fn encode_hir_expr(&self, base_expr: &hir::Expr) -> vir::Expr {
-        trace!("encode_hir_expr: {:?}", base_expr.node);
-        match base_expr.node {
-            hir::Expr_::ExprLit(ref lit) => self.encode_literal_expr(lit),
+//     fn encode_hir_expr(&self, base_expr: &hir::Expr) -> vir::Expr {
+//         trace!("encode_hir_expr: {:?}", base_expr.node);
+//         match base_expr.node {
+//             hir::Expr_::ExprLit(ref lit) => self.encode_literal_expr(lit),
 
-            hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ..) | hir::Expr_::ExprField(..) => {
-                let encoded_expr = self.encode_hir_path_expr(base_expr);
-                encoded_expr
-            }
+//             hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ..) | hir::Expr_::ExprField(..) => {
+//                 let encoded_expr = self.encode_hir_path_expr(base_expr);
+//                 encoded_expr
+//             }
 
-            hir::Expr_::ExprPath(hir::QPath::Resolved(..)) => {
-                let encoded_expr = self.encode_hir_path_expr(base_expr);
-                encoded_expr
-            }
+//             hir::Expr_::ExprPath(hir::QPath::Resolved(..)) => {
+//                 let encoded_expr = self.encode_hir_path_expr(base_expr);
+//                 encoded_expr
+//             }
 
-            hir::Expr_::ExprCall(ref callee, ref _arguments) => {
-                match callee.node {
-                    hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref fn_path)) => {
-                        let fn_name = self.path_to_string(fn_path);
-                        if fn_name == "old" {
-                            panic!("Old expressions can not be used in triggers");
-                        /*assert_eq!(arguments.len(), 1);
-                        vir::Expr::labelled_old(
-                            PRECONDITION_LABEL,
-                            self.encode_hir_expr(&arguments[0]),
-                        )*/
-                        } else {
-                            unimplemented!("TODO: function call {:?}", fn_name)
-                        }
-                    }
+//             hir::Expr_::ExprCall(ref callee, ref _arguments) => {
+//                 match callee.node {
+//                     hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref fn_path)) => {
+//                         let fn_name = self.path_to_string(fn_path);
+//                         if fn_name == "old" {
+//                             panic!("Old expressions can not be used in triggers");
+//                         /*assert_eq!(arguments.len(), 1);
+//                         vir::Expr::labelled_old(
+//                             PRECONDITION_LABEL,
+//                             self.encode_hir_expr(&arguments[0]),
+//                         )*/
+//                         } else {
+//                             unimplemented!("TODO: function call {:?}", fn_name)
+//                         }
+//                     }
 
-                    ref x => unimplemented!("{:?}", x),
-                }
-            }
+//                     ref x => unimplemented!("{:?}", x),
+//                 }
+//             }
 
-            ref x => unimplemented!("{:?}", x),
-        }
-    }
+//             ref x => unimplemented!("{:?}", x),
+//         }
+//     }
 
-    fn encode_trigger(&self, trigger: &TypedTrigger) -> vir::Trigger {
+    fn encode_trigger(&self, trigger: &typed::Trigger) -> vir::Trigger {
         trace!("encode_trigger {:?}", trigger);
         // TODO: `encode_hir_expr` generated also the final `.val_int` field access, that we may not want...
-        vir::Trigger::new(
-            trigger
-                .terms()
-                .iter()
-                .map(|expr| self.encode_hir_expr(&expr.expr))
-                .collect(),
-        )
+        // vir::Trigger::new(
+        //     trigger
+        //         .terms()
+        //         .iter()
+        //         .map(|expr| self.encode_hir_expr(&expr.expr))
+        //         .collect(),
+        // )
+        unimplemented!();
     }
 
     /// Encode a specification item as a single expression.
-    pub fn encode_assertion(&self, assertion: &TypedAssertion) -> vir::Expr {
+    pub fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>) -> vir::Expr {
         trace!("encode_assertion {:?}", assertion);
         match assertion.kind {
-            box AssertionKind::Expr(ref assertion_expr) => self.encode_expression(assertion_expr),
-            box AssertionKind::And(ref assertions) => assertions
+            box typed::AssertionKind::Expr(ref assertion_expr) => self.encode_expression(assertion_expr),
+            box typed::AssertionKind::And(ref assertions) => assertions
                 .iter()
                 .map(|x| self.encode_assertion(x))
                 .collect::<Vec<vir::Expr>>()
                 .into_iter()
                 .conjoin(),
-            box AssertionKind::Implies(ref lhs, ref rhs) => {
+            box typed::AssertionKind::Implies(ref lhs, ref rhs) => {
                 vir::Expr::implies(self.encode_assertion(lhs), self.encode_assertion(rhs))
             }
-            box AssertionKind::TypeCond(ref vars, ref assertion) => {
-                let enc = |hir_id: hir::HirId| -> vir::Expr {
-                    let mut ty = self.encoder.env().hir_id_to_type(hir_id);
+            box typed::AssertionKind::TypeCond(ref vars, ref assertion) => {
+                let enc = |ty: ty::Ty<'tcx>| -> vir::Expr {
                     // FIXME oh dear...
-                    {
-                        ty = self.encoder.resolve_typaram(ty);
-                    }
+                    let ty = self.encoder.resolve_typaram(ty);
                     self.encoder.encode_tag_func_app(ty)
                 };
                 let typecond =
-                    vir::Expr::eq_cmp(enc(vars.vars[0].hir_id), enc(vars.vars[1].hir_id));
+                    vir::Expr::eq_cmp(enc(vars.vars[0].1), enc(vars.vars[1].1));
                 vir::Expr::implies(typecond, self.encode_assertion(assertion))
             }
-            box AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => vir::Expr::forall(
-                vars.vars.iter().map(|x| self.encode_hir_arg(x)).collect(),
+            box typed::AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => vir::Expr::forall(
+                vars.vars.iter().map(|(arg, ty)| self.encode_forall_arg(*arg, ty)).collect(),
                 trigger_set
                     .triggers()
                     .iter()
@@ -376,23 +367,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     .collect(),
                 self.encode_assertion(body),
             ),
-            box AssertionKind::Pledge(ref _reference, ref _lhs, ref _rhs) => {
-                // Pledges are moved inside magic wands, so here we have only true.
-                true.into()
-            }
         }
     }
 
-    fn encode_expression(&self, assertion_expr: &TypedExpression) -> vir::Expr {
+    fn encode_expression(&self, assertion_expr: &typed::Expression) -> vir::Expr {
         debug!("encode_expression {:?}", assertion_expr);
         let tcx = self.encoder.env().tcx();
 
-        // Find the MIR of the first closure that encodes the assertions
-        let mut curr_node_id = assertion_expr.expr.id;
-        for _ in 0..1 {
-            curr_node_id = tcx.hir.get_parent_node(curr_node_id);
-        }
-        let mut curr_def_id = tcx.hir.local_def_id(curr_node_id);
+//         // Find the MIR of the first closure that encodes the assertions
+//         let mut curr_node_id = assertion_expr.expr.id;
+//         for _ in 0..1 {
+//             curr_node_id = tcx.hir.get_parent_node(curr_node_id);
+//         }
+        // let mut curr_def_id = tcx.hir.local_def_id(curr_node_id);
+        let mut curr_def_id = assertion_expr.expr.to_def_id();
         let mut curr_namespace = "_pure".to_string();
 
         let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id, true);
@@ -400,7 +388,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         // For each of the enclosing closures, replace with the variables captured in the closure.
         // We support at most 1000 nested closures (arbitrarily chosen).
         for closure_counter in 0..1000 {
-            let (outer_def_id, outer_bb_index, outer_stmt_index, captured_operands) = {
+            let (outer_def_id, outer_bb_index, outer_stmt_index, captured_operands, captured_operand_tys) = {
                 let mut instantiations = self.encoder.get_closure_instantiations(curr_def_id);
                 if instantiations.is_empty() {
                     // `curr_def_id` is not a closure and there are no captured variables
@@ -461,7 +449,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             // Take the first local variable, that is the closure.
             // The closure is a record containing all the captured variables.
             let closure_local = curr_mir.local_decls.indices().skip(1).next().unwrap();
-            let closure_var = curr_mir_encoder.encode_local(closure_local);
+            // will panic if attempting to encode unsupported type
+            let closure_var = curr_mir_encoder.encode_local(closure_local).unwrap();
             let closure_ty = &curr_mir.local_decls[closure_local].ty;
             let should_closure_be_dereferenced = curr_mir_encoder.can_be_dereferenced(closure_ty);
             let (deref_closure_var, deref_closure_ty) = if should_closure_be_dereferenced {
@@ -474,12 +463,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             trace!("deref_closure_var: {:?}", deref_closure_var);
             trace!("deref_closure_ty: {:?}", deref_closure_ty);
             let closure_subst =
-                if let ty::TypeVariants::TyClosure(_, ref substs) = deref_closure_ty.sty {
+                if let ty::TyKind::Closure(_, ref substs) = deref_closure_ty.kind {
                     substs.clone()
                 } else {
                     unreachable!()
                 };
-            let captured_tys: Vec<ty::Ty> = closure_subst.upvar_tys(curr_def_id, tcx).collect();
+            // let captured_tys: Vec<ty::Ty> = closure_subst.upvar_tys(curr_def_id, tcx).collect();
+            // let captured_tys: Vec<ty::Ty> = closure_subst.iter().map(|arg| arg.expect_ty()).collect();
+            let captured_tys = captured_operand_tys;
             trace!("captured_tys: {:?}", captured_tys);
             assert_eq!(captured_tys.len(), captured_operands.len());
 
@@ -536,13 +527,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             // Replace the variables introduced in the quantifications
             if !is_spec_function {
+                // let mut var_names = HashMap::new();
+                // for info in &outer_mir.var_debug_info {
+                //     if let Some(local) = info.place.as_local() {
+                //         var_names.insert(local, info.name);
+                //     } else {
+                //         unimplemented!();
+                //     }
+                // }
                 for local_arg_index in outer_mir.args_iter().skip(1) {
+                    // if let Some(var_name) = var_names.get(&local_arg_index) {
                     let local_arg = &outer_mir.local_decls[local_arg_index];
-                    if let Some(var_name) = local_arg.name {
-                        let encoded_arg = outer_mir_encoder.encode_local(local_arg_index);
+                    if !local_arg.internal {
+                        let var_name = format!("{:?}_forall", local_arg_index);
+                        let encoded_arg = outer_mir_encoder.encode_local(local_arg_index).unwrap();
                         let value_field = self.encoder.encode_value_field(local_arg.ty);
                         let value_type = self.encoder.encode_value_type(local_arg.ty);
-                        let proper_var = vir::LocalVar::new(var_name.to_string(), value_type);
+                        let proper_var = vir::LocalVar::new(var_name, value_type);
                         let encoded_arg_value = vir::Expr::local(encoded_arg).field(value_field);
                         trace!(
                             "Place {}: {} is renamed to {} because a quantifier introduced it",
@@ -579,10 +580,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         if self.stop_at_bbi.is_none() {
             // At this point, `curr_def_id` corresponds to the SPEC method. Here is a simple check.
-            assert!(self
+            let item_name = self
                 .encoder
-                .encode_item_name(curr_def_id)
-                .contains("__spec"));
+                .encode_item_name(curr_def_id);
+            if !tcx.is_closure(curr_def_id) {
+                assert!(item_name.contains("prusti_pre_item_") ||
+                        item_name.contains("prusti_post_item_"), "item_name: {}", item_name);
+            } else {
+                trace!("curr_def_id refers to closure: {:?}", curr_def_id);
+                // TODO (?): check that tcx.get_attrs(curr_def_id) includes
+                //           prusti::spec_only and prusti::spec_id
+            }
         }
 
         // Translate arguments and return from the SPEC to the TARGET context
@@ -592,30 +600,36 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         } else {
             assert_eq!(curr_mir.args_iter().count(), self.target_args.len());
         }
+        trace!("curr_mir args: {:?} {:?}, target_args: {:?}",
+               curr_mir.args_iter().collect::<Vec<_>>(),
+               curr_mir.args_iter().map(|arg| &curr_mir.local_decls[arg]).collect::<Vec<_>>(),
+               self.target_args);
         for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
             let local_ty = curr_mir.local_decls[local].ty;
-            let spec_local = curr_mir_encoder.encode_local(local);
+            // will panic if attempting to encode unsupported type
+            let spec_local = curr_mir_encoder.encode_local(local).unwrap();
             let spec_local_place: vir::Expr = if self.targets_are_values {
-                let value_field = self.encoder.encode_value_field(local_ty);
-                vir::Expr::local(spec_local).field(value_field)
+                self.encoder.encode_value_expr(vir::Expr::local(spec_local), local_ty)
             } else {
                 spec_local.into()
             };
+
             encoded_expr = encoded_expr.replace_place(&spec_local_place, target_arg);
         }
         if let Some(target_return) = self.target_return {
             let fake_return_local = curr_mir.args_iter().last().unwrap();
             let fake_return_ty = curr_mir.local_decls[fake_return_local].ty;
-            let spec_fake_return = curr_mir_encoder.encode_local(fake_return_local);
+            // will panic if attempting to encode unsupported type
+            let spec_fake_return = curr_mir_encoder.encode_local(fake_return_local).unwrap();
 
             /*match self.target_return_value {
                 Some(target_return_value) => {
                     match curr_mir.return_ty().sty {
-                        ty::TypeVariants::TyBool |
-                        ty::TypeVariants::TyInt(..) |
-                        ty::TypeVariants::TyUint(..) |
-                        ty::TypeVariants::TyRawPtr(..) |
-                        ty::TypeVariants::TyRef(..) => {
+                        ty::TyKind::Bool |
+                        ty::TyKind::Int(..) |
+                        ty::TyKind::Uint(..) |
+                        ty::TyKind::RawPtr(..) |
+                        ty::TyKind::Ref(..) => {
                             let value_field = self.encoder.encode_value_field(curr_mir.return_ty());
                             let spec_fake_return_value = vir::Expr::Local(spec_fake_return.clone()).field(value_field);
                             encoded_expr = encoded_expr.replace_place(&spec_fake_return_value, target_return_value);
@@ -627,8 +641,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }*/
 
             let spec_fake_return_place: vir::Expr = if self.targets_are_values {
-                let value_field = self.encoder.encode_value_field(fake_return_ty);
-                vir::Expr::local(spec_fake_return).field(value_field)
+                self.encoder.encode_value_expr(
+                    vir::Expr::local(spec_fake_return),
+                    fake_return_ty
+                )
             } else {
                 spec_fake_return.clone().into()
             };
@@ -651,22 +667,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         encoded_expr.set_default_pos(
             self.encoder
                 .error_manager()
-                .register(assertion_expr.expr.span, ErrorCtxt::GenericExpression),
+                .register(
+                    self.encoder.env().tcx().def_span(assertion_expr.expr),
+                    ErrorCtxt::GenericExpression),
         )
     }
 }
 
-struct StraightLineBackwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>,
+struct StraightLineBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
+    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'tcx>,
 }
 
 /// XXX: This encoding works backward, but there is the risk of generating expressions whose length
 /// is exponential in the number of branches. If this becomes a problem, consider doing a forward
 /// encoding (keeping path conditions expressions).
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StraightLineBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx> {
+impl<'p, 'v: 'p, 'tcx: 'v> StraightLineBackwardInterpreter<'p, 'v, 'tcx> {
     fn new(
-        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-        mir: &'p mir::Mir<'tcx>,
+        encoder: &'p Encoder<'v, 'tcx>,
+        mir: &'p mir::Body<'tcx>,
         def_id: DefId,
         namespace: String,
     ) -> Self {
@@ -678,8 +696,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StraightLineBackwardInterpreter<'p, '
     }
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
-    for StraightLineBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>
+impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
+    for StraightLineBackwardInterpreter<'p, 'v, 'tcx>
 {
     type State = MultiExprBackwardInterpreterState;
     fn apply_terminator(

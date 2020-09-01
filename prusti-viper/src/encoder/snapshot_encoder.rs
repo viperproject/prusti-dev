@@ -5,21 +5,23 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_common::vir;
-use encoder::Encoder;
-use rustc::ty;
+use crate::encoder::Encoder;
+use rustc_middle::ty;
 use prusti_common::vir::{PermAmount};
+use log::warn;
 
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
 const SNAPSHOT_CONS: &str = "cons$";
 const SNAPSHOT_GET: &str = "snap$";
 pub const SNAPSHOT_EQUALS: &str = "equals$";
+pub const SNAPSHOT_NOT_EQUALS: &str = "not_equals$";
 const SNAPSHOT_ARG: &str = "_arg";
 const SNAPSHOT_LEFT: &str = "_left";
 const SNAPSHOT_RIGHT: &str = "_right";
 
-pub struct SnapshotEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+pub struct SnapshotEncoder<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
     ty: ty::Ty<'tcx>,
     predicate_name: String,
 
@@ -30,6 +32,8 @@ pub struct SnapshotDomain {
     pub domain: vir::Domain,
     pub equals_func: vir::Function,
     pub equals_func_ref: vir::Function,
+    pub not_equals_func: vir::Function,
+    pub not_equals_func_ref: vir::Function,
 }
 
 impl SnapshotDomain {
@@ -84,6 +88,8 @@ impl Snapshot {
         if let Some(s) = &self.snap_domain {
             res.push(s.equals_func.clone());
             res.push(s.equals_func_ref.clone());
+            res.push(s.not_equals_func.clone());
+            res.push(s.not_equals_func_ref.clone());
         }
         res
     }
@@ -106,12 +112,16 @@ impl Snapshot {
         SNAPSHOT_EQUALS.to_string()
     }
 
+    pub fn get_not_equals_func_name(&self) -> String {
+        SNAPSHOT_NOT_EQUALS.to_string()
+    }
+
     pub fn get_snap_call(&self, arg: vir::Expr) -> vir::Expr {
         match &self.snap_func {
             Some(func) => {
                 vir::Expr::FuncApp(
                     self.get_snap_name(),
-                    vec![arg],
+                    vec![self.dereference_expr(arg)],
                     func.formal_args.clone(),
                     self.get_type(),
                     vir::Position::default(),
@@ -119,12 +129,36 @@ impl Snapshot {
             }
             None => unreachable!()
         }
+    }
 
+    fn dereference_expr(&self, expr: vir::Expr) -> vir::Expr {
+        match expr.try_deref() {
+            Some(deref_expr) => self.dereference_expr(deref_expr),
+            None => expr,
+        }
+    }
+
+    pub fn encode_equals(&self, lhs: vir::Expr, rhs: vir::Expr, pos: vir::Position) -> vir::Expr {
+        vir::Expr::BinOp(
+            vir::BinOpKind::EqCmp,
+            Box::new(self.get_snap_call(lhs)),
+            Box::new(self.get_snap_call(rhs)),
+            pos,
+        )
+    }
+
+    pub fn encode_not_equals(&self, lhs: vir::Expr, rhs: vir::Expr, pos: vir::Position) -> vir::Expr {
+        vir::Expr::BinOp(
+            vir::BinOpKind::NeCmp,
+            Box::new(self.get_snap_call(lhs)),
+            Box::new(self.get_snap_call(rhs)),
+            pos,
+        )
     }
 }
 
-impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, ty: ty::Ty<'tcx>, predicate_name: String) -> Self {
+impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
+    pub fn new(encoder: &'p Encoder<'v, 'tcx>, ty: ty::Ty<'tcx>, predicate_name: String) -> Self {
         SnapshotEncoder { encoder, ty, predicate_name }
     }
 
@@ -137,25 +171,25 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
         }
 
-        match &self.ty.sty {
-            ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar
-            | ty::TypeVariants::TyBool => {
+        match &self.ty.kind {
+            ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char
+            | ty::TyKind::Bool => {
                 self.encode_snap_primitive(
                     self.encoder.encode_value_field(self.ty)
                 )
             }
-            ty::TypeVariants::TyParam(_) => {
+            ty::TyKind::Param(_) => {
                 self.encode_snap_generic()
             }
-            ty::TypeVariants::TyAdt(adt_def, _) if !adt_def.is_box() => {
+            ty::TyKind::Adt(adt_def, _) if !adt_def.is_box() => {
                 if adt_def.variants.len() != 1 {
                     warn!("Generating equality tests for enums is not supported yet");
                 }
                 self.encode_snap_struct()
             }
-            ty::TypeVariants::TyTuple(_) => {
+            ty::TyKind::Tuple(_) => {
                 self.encode_snap_struct()
             }
 
@@ -168,25 +202,25 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn is_ty_supported(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.sty {
-            ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar
-            | ty::TypeVariants::TyBool
-            | ty::TypeVariants::TyParam(_) => {
+        match ty.kind {
+            ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char
+            | ty::TyKind::Bool
+            | ty::TyKind::Param(_) => {
                 true
             }
 
-            ty::TypeVariants::TyRef(_, ref ty, _) => {
+            ty::TyKind::Ref(_, ref ty, _) => {
                 self.is_ty_supported(ty)
             }
 
-            ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
+            ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 if adt_def.variants.len() > 1 {
                     return false
                 }
                 let tcx = self.encoder.env().tcx();
-                for field in &adt_def.variants[0].fields {
+                for field in &adt_def.non_enum_variant().fields {
                     let field_ty = field.ty(tcx, subst);
                     if !self.is_ty_supported(field_ty) {
                         return false
@@ -194,9 +228,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }
                 true
             }
-            ty::TypeVariants::TyTuple(elems) => {
+            ty::TyKind::Tuple(elems) => {
                 for field_ty in elems {
-                    if !self.is_ty_supported(field_ty) {
+                    if !self.is_ty_supported(field_ty.expect_ty()) {
                         return false
                     }
                 }
@@ -244,7 +278,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             self.predicate_name.clone(),
             Box::new(expr),
             PermAmount::Read,
-            vir::Position::default())
+            vir::Position::default()
+        )
     }
 
     fn encode_snap_arg_local<S: Into<String>>(&self, arg_name: S) -> vir::Expr {
@@ -284,6 +319,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             domain: self.encode_domain(),
             equals_func: self.encode_equals_func(),
             equals_func_ref: self.encode_equals_func_ref(),
+            not_equals_func: self.encode_not_equals_func(),
+            not_equals_func_ref: self.encode_not_equals_func_ref(),
         }
     }
 
@@ -313,10 +350,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_domain(&self) -> vir::Domain {
+        let domain_name = self.encode_domain_name();
+        let cons_func = self.encode_domain_cons(&domain_name);
+        let cons_axiom_injectivity = self.encode_cons_injectivity(&domain_name, &cons_func);
+
         vir::Domain {
-            name: self.encode_domain_name(),
-            functions: self.encode_domain_cons(),
-            axioms: vec![],
+            name: domain_name,
+            functions: vec![cons_func],
+            axioms: vec![cons_axiom_injectivity],
             type_vars: vec![]
         }
     }
@@ -329,20 +370,88 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         )
     }
 
-    fn encode_domain_cons(&self) -> Vec<vir::DomainFunc> {
-        let domain_name = self.encode_domain_name();
-        let cons_fun = vir::DomainFunc {
+    fn encode_domain_cons(&self, domain_name: &String) -> vir::DomainFunc {
+        vir::DomainFunc {
             name: SNAPSHOT_CONS.to_string(),
             formal_args: self.encode_domain_cons_formal_args(),
-            return_type: vir::Type::Domain(domain_name.clone()),
+            return_type: vir::Type::Domain(domain_name.to_string()),
             unique: false,
-            domain_name,
-        };
-        vec![cons_fun]
+            domain_name: domain_name.to_string(),
+        }
     }
+
+    fn encode_cons_injectivity(&self, domain_name: &String, cons_func: &vir::DomainFunc) -> vir::DomainAxiom {
+        let (lhs_args, lhs_call) = self.encode_injectivity_args_call(
+            cons_func,
+            "_1".to_string()
+        );
+
+        let (rhs_args, rhs_call) = self.encode_injectivity_args_call(
+            cons_func,
+            "_2".to_string()
+        );
+
+        let mut vars = Vec::new();
+        vars.extend(lhs_args.iter().cloned());
+        vars.extend(rhs_args.iter().cloned());
+
+        let conjunction = vir::ExprIterator::conjoin(
+            &mut lhs_args.into_iter().zip(rhs_args.into_iter()).map(
+                |(l,r)| vir::Expr::eq_cmp(
+                    vir::Expr::local(l.clone()),
+                    vir::Expr::local(r.clone())
+                )
+            )
+        );
+
+        let trigger = vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()]);
+
+        vir::DomainAxiom {
+            name: format!("{}$injectivity", domain_name.to_string()),
+            expr: vir::Expr::forall(
+                vars,
+                vec![trigger],
+                vir::Expr::implies(
+                    vir::Expr::eq_cmp(
+                        lhs_call,
+                        rhs_call
+                    ),
+                    conjunction
+                )
+            ),
+            domain_name: domain_name.to_string()
+        }
+    }
+
+    fn encode_injectivity_args_call(&self, cons_func: &vir::DomainFunc, suffix: String)
+        -> (Vec<vir::LocalVar>, vir::Expr){
+        let args: Vec<_> = cons_func.formal_args.iter().map(
+            |v| vir::LocalVar::new(
+                format!("{}{}", v.name.to_string(), suffix),
+                v.typ.clone()
+            )
+        ).collect();
+
+        let call = vir::Expr::DomainFuncApp(
+            cons_func.clone(),
+            args.iter().map(|v| vir::Expr::local(v.clone())).collect(),
+            vir::Position::default()
+        );
+
+        (args, call)
+    }
+
     pub fn encode_equals_func(&self) -> vir::Function {
+        self.encode_cmp_func(SNAPSHOT_EQUALS.to_string(), vir::BinOpKind::EqCmp)
+    }
+
+    pub fn encode_not_equals_func(&self) -> vir::Function {
+        self.encode_cmp_func(SNAPSHOT_NOT_EQUALS.to_string(), vir::BinOpKind::NeCmp)
+    }
+
+    fn encode_cmp_func(&self, name: String, cmp: vir::BinOpKind) -> vir::Function {
         vir::Function {
-            name: SNAPSHOT_EQUALS.to_string(),
+            name,
             formal_args: vec![
                 self.encode_snap_arg_var(SNAPSHOT_LEFT),
                 self.encode_snap_arg_var(SNAPSHOT_RIGHT),
@@ -358,7 +467,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ],
             posts: vec![],
             body: Some(vir::Expr::BinOp(
-                vir::BinOpKind::EqCmp,
+                cmp,
                 Box::new(self.encode_value_snapshot_call(SNAPSHOT_LEFT)),
                 Box::new(self.encode_value_snapshot_call(SNAPSHOT_RIGHT)),
                 vir::Position::default(),
@@ -387,11 +496,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     fn encode_domain_cons_formal_args(&self) -> Vec<vir::LocalVar> {
         let mut formal_args = vec![];
-        match self.ty.sty {
-            ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
+        match self.ty.kind {
+            ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 let tcx = self.encoder.env().tcx();
                 let mut field_num = 0;
-                for field in &adt_def.variants[0].fields {
+                for field in &adt_def.non_enum_variant().fields {
                     let field_ty = field.ty(tcx, subst);
                     let snapshot = self.encoder.encode_snapshot(&field_ty);
                     formal_args.push(
@@ -401,18 +510,18 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }
             },
 
-            ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar
-            | ty::TypeVariants::TyBool
-            | ty::TypeVariants::TyParam(_) => {
+            ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char
+            | ty::TyKind::Bool
+            | ty::TyKind::Param(_) => {
                 formal_args.push(self.encode_snap_arg_var(SNAPSHOT_ARG))
             },
 
-            ty::TypeVariants::TyTuple(elems) => {
+            ty::TyKind::Tuple(elems) => {
                 for (field_num, field_ty) in elems.iter().enumerate() {
-                    self.encoder.encode_snapshot(field_ty); // ensure there is a snapshot
-                    let field_type = self.encoder.encode_value_type(field_ty);
+                    self.encoder.encode_snapshot(field_ty.expect_ty()); // ensure there is a snapshot
+                    let field_type = self.encoder.encode_value_type(field_ty.expect_ty());
                     formal_args.push(
                         self.encode_local_var(field_num, &field_type)
                     );
@@ -436,10 +545,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_snap_func_args(&self) -> Vec<vir::Expr> {
-        match self.ty.sty {
-            ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
+        match self.ty.kind {
+            ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 let tcx = self.encoder.env().tcx();
-                adt_def.variants[0]
+                adt_def.non_enum_variant()
                     .fields
                     .iter()
                     .map(|f| self.encode_snap_arg(
@@ -451,20 +560,20 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         )
                     ).collect()
             },
-            ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar
-            | ty::TypeVariants::TyBool => {
+            ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char
+            | ty::TyKind::Bool => {
                 vec![self.encode_snap_arg_local(SNAPSHOT_ARG)]
             },
 
-            ty::TypeVariants::TyTuple(elems) => {
+            ty::TyKind::Tuple(elems) => {
                 let mut args = vec![];
                 for (field_num, field_ty) in elems.iter().enumerate() {
                     let field_name = format!("tuple_{}", field_num);
-                    let field = self.encoder.encode_raw_ref_field(field_name, field_ty);
+                    let field = self.encoder.encode_raw_ref_field(field_name, field_ty.expect_ty());
                     args.push(
-                        self.encode_snap_arg(field, field_ty)
+                        self.encode_snap_arg(field, field_ty.expect_ty())
                     );
                 }
                 args
@@ -474,7 +583,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_snap_arg(&self, field: vir::Field, field_ty: &ty::Ty<'tcx>) -> vir::Expr {
+    fn encode_snap_arg(&self, field: vir::Field, field_ty: ty::Ty<'tcx>) -> vir::Expr {
         let snapshot = self.encoder.encode_snapshot(field_ty);
         snapshot.get_snap_call(
             self.encode_snap_arg_field(field)
@@ -482,6 +591,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_equals_func_ref(&self) -> vir::Function {
+        self.encode_cmp_func_ref(SNAPSHOT_EQUALS.to_string(), vir::BinOpKind::EqCmp)
+    }
+
+    pub fn encode_not_equals_func_ref(&self) -> vir::Function {
+        self.encode_cmp_func_ref(SNAPSHOT_NOT_EQUALS.to_string(),vir::BinOpKind::NeCmp)
+    }
+
+    fn encode_cmp_func_ref(&self, name: String, cmp: vir::BinOpKind) -> vir::Function {
         let arg_type = vir::Type::TypedRef(
             format!("ref${}", self.predicate_name)
         );
@@ -491,7 +608,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let arg_right = self.get_ref_field(formal_right.clone());
 
         vir::Function {
-            name: SNAPSHOT_EQUALS.to_string(),
+            name,
             formal_args: vec![formal_left.clone(), formal_right.clone()],
             return_type: vir::Type::Bool,
             pres: vec![
@@ -502,7 +619,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ],
             posts: vec![],
             body: Some(vir::Expr::BinOp(
-                vir::BinOpKind::EqCmp,
+                cmp,
                 Box::new(self.encode_ref_snapshot_call(SNAPSHOT_LEFT)),
                 Box::new(self.encode_ref_snapshot_call(SNAPSHOT_RIGHT)),
                 vir::Position::default(),

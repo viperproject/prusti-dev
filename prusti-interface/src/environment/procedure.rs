@@ -5,21 +5,21 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::loops;
-use data::ProcedureDefId;
-use rustc::mir;
-use rustc::mir::Mir;
-use rustc::mir::{BasicBlock, Terminator, TerminatorKind};
-use rustc::ty::{self, Ty, TyCtxt};
+use crate::data::ProcedureDefId;
+use rustc_middle::mir::{self, Body as Mir};
+use rustc_middle::mir::{BasicBlock, Terminator, TerminatorKind};
+use rustc_middle::ty::{self, Ty, TyCtxt};
 use std::cell::Ref;
 use std::collections::HashSet;
-use syntax::codemap::Span;
+use rustc_span::Span;
+use log::{trace, debug};
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
 
 /// A facade that provides information about the Rust procedure.
 pub struct Procedure<'a, 'tcx: 'a> {
-    tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    tcx: TyCtxt<'tcx>,
     proc_def_id: ProcedureDefId,
     mir: Ref<'a, Mir<'tcx>>,
     loop_info: loops::ProcedureLoops,
@@ -30,9 +30,10 @@ pub struct Procedure<'a, 'tcx: 'a> {
 impl<'a, 'tcx> Procedure<'a, 'tcx> {
     /// Builds an implementation of the Procedure interface, given a typing context and the
     /// identifier of a procedure
-    pub fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>, proc_def_id: ProcedureDefId) -> Self {
+    pub fn new(tcx: TyCtxt<'tcx>, proc_def_id: ProcedureDefId) -> Self {
         trace!("Encoding procedure {:?}", proc_def_id);
-        let mir = tcx.mir_validated(proc_def_id).borrow();
+        let (mir, _) = tcx.mir_validated(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
+        let mir = mir.borrow();
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir);
 
@@ -55,15 +56,17 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     /// Returns all the types used in the procedure, and any types reachable from them
     pub fn get_declared_types(&self) -> Vec<Ty<'tcx>> {
         let mut types: HashSet<Ty> = HashSet::new();
-        for var in &self.mir.local_decls {
-            for ty in var.ty.walk() {
-                let declared_ty = ty;
-                //let declared_ty = clean_type(tcx, ty);
-                //let declared_ty = tcx.erase_regions(&ty);
-                types.insert(declared_ty);
-            }
-        }
-        types.into_iter().collect()
+        // for var in &self.mir.local_decls {
+        //     for ty in var.ty.walk() {
+        //         let declared_ty = ty;
+        //         //let declared_ty = clean_type(tcx, ty);
+        //         //let declared_ty = tcx.erase_regions(&ty);
+        //         types.insert(declared_ty);
+        //     }
+        // }
+        // types.into_iter().collect()
+        unimplemented!();
+
     }
 
     /// Get definition ID of the procedure.
@@ -77,7 +80,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     }
 
     /// Get the typing context.
-    pub fn get_tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx> {
+    pub fn get_tcx(&self) -> TyCtxt<'tcx> {
         self.tcx
     }
 
@@ -89,15 +92,15 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         crate_name
     }
 
-    /// Get a short name of the procedure
-    pub fn get_short_name(&self) -> String {
-        self.tcx.item_path_str(self.proc_def_id)
-    }
+    // /// Get a short name of the procedure
+    // pub fn get_short_name(&self) -> String {
+    //     self.tcx.item_path_str(self.proc_def_id)
+    // }
 
-    /// Get a readable path of the procedure
-    pub fn get_name(&self) -> String {
-        self.tcx.absolute_item_path_str(self.proc_def_id)
-    }
+    // /// Get a readable path of the procedure
+    // pub fn get_name(&self) -> String {
+    //     self.tcx.absolute_item_path_str(self.proc_def_id)
+    // }
 
     /// Get the span of the procedure
     pub fn get_span(&self) -> Span {
@@ -147,23 +150,21 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             func:
                 mir::Operand::Constant(box mir::Constant {
                     literal:
-                        mir::Literal::Value {
-                            value:
-                                ty::Const {
-                                    ty:
-                                        &ty::TyS {
-                                            sty: ty::TyFnDef(def_id, ..),
-                                            ..
-                                        },
+                        ty::Const {
+                            ty:
+                                &ty::TyS {
+                                    kind: ty::TyKind::FnDef(def_id, ..),
                                     ..
                                 },
+                            ..
                         },
                     ..
                 }),
             ..
         } = self.mir[bbi].terminator().kind
         {
-            let func_proc_name = self.tcx.absolute_item_path_str(def_id);
+            // let func_proc_name = self.tcx.absolute_item_path_str(def_id);
+            let func_proc_name = self.tcx.def_path_str(def_id);
             &func_proc_name == "std::panicking::begin_panic"
                 || &func_proc_name == "std::rt::begin_panic"
         } else {
@@ -199,7 +200,7 @@ fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
             None => vec![],
         },
 
-        TerminatorKind::FalseEdges {
+        TerminatorKind::FalseEdge {
             ref real_target, ..
         } => vec![*real_target],
 
@@ -207,7 +208,7 @@ fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
             ref real_target, ..
         } => vec![*real_target],
 
-        TerminatorKind::Yield { .. } | TerminatorKind::GeneratorDrop => unimplemented!(),
+        TerminatorKind::Yield { .. } | TerminatorKind::GeneratorDrop | TerminatorKind::InlineAsm { .. } => unimplemented!(),
     }
 }
 
@@ -276,40 +277,7 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
             trace!("MIR block {:?} is a loop head", source);
         }
         for target in get_normal_targets(term) {
-            trace!("Try target {:?} of {:?}", target, source);
-            // Skip the following "if false"
-            let target_term = &mir[target].terminator();
-            let span = target_term.source_info.span;
-            trace!(
-                "target_term {:?} span=({:?}, {:?})",
-                target_term,
-                span.lo(),
-                span.hi()
-            );
-            if let TerminatorKind::SwitchInt {
-                ref discr,
-                ref values,
-                ref targets,
-                ..
-            } = target_term.kind
-            {
-                trace!("target_term is a SwitchInt");
-                trace!("discr: '{:?}'", discr);
-                // Specification guard has its span set to (0, 0) position.
-                if format!("{:?}", discr) == "const false" && span.lo().0 == 0 && span.hi().0 == 0 {
-                    // Some assumptions
-                    assert_eq!(values[0], 0 as u128);
-                    assert_eq!(values.len(), 1);
-
-                    // Do not visit the 'then' branch.
-                    // So, it will not be put into nonspec_basic_blocks.
-                    debug!(
-                        "MIR block {:?} is the head of a specification branch",
-                        targets[1]
-                    );
-                    visited.insert(targets[1]);
-                }
-            }
+            // FIXME: Filtering is broken.
             if !visited.contains(&target) {
                 to_visit.push(target);
             }

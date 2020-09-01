@@ -4,21 +4,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::foldunfold::action::*;
-use encoder::foldunfold::log::EventLog;
-use encoder::foldunfold::perm::*;
-use encoder::foldunfold::permissions::*;
-use encoder::foldunfold::places_utils::*;
-use encoder::foldunfold::semantics::ApplyOnState;
-use encoder::foldunfold::state::*;
-use encoder::foldunfold::FoldUnfoldError;
-use encoder::foldunfold::FoldUnfoldError::FailedToObtain;
+use crate::encoder::foldunfold::action::*;
+use crate::encoder::foldunfold::log::EventLog;
+use crate::encoder::foldunfold::perm::*;
+use crate::encoder::foldunfold::permissions::*;
+use crate::encoder::foldunfold::places_utils::*;
+use crate::encoder::foldunfold::semantics::ApplyOnState;
+use crate::encoder::foldunfold::state::*;
+use crate::encoder::foldunfold::FoldUnfoldError;
+use crate::encoder::foldunfold::FoldUnfoldError::FailedToObtain;
 use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
 use prusti_common::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
+use log::{debug, trace};
 
 /// The fold-unfold context of a CFG path
 #[derive(Debug, Clone)]
@@ -428,7 +429,7 @@ impl<'a> PathCtxt<'a> {
 
             // If we have `Read` and `Write`, make both `Read`.
             for acc_place in self.state.acc_places() {
-                assert!(other.state.acc().contains_key(&acc_place)
+                assert!(other.state.acc().contains_key(&acc_place),
                         "acc_place = {}", acc_place);
                 let left_perm = self.state.acc()[&acc_place];
                 let right_perm = other.state.acc()[&acc_place];

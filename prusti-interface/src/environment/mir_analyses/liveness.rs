@@ -10,9 +10,10 @@
 //! variables may reach that program point.
 
 use super::common::{self, WorkItem};
-use rustc::mir;
+use rustc_middle::mir;
 use std::collections::BTreeSet;
 use std::fmt;
+use log::trace;
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Ord, PartialOrd)]
 pub struct Assignment {
@@ -69,13 +70,13 @@ pub type LivenessAnalysisResult = common::AnalysisResult<AssignmentSet>;
 /// Finds which assignments are live at which program points.
 struct LivenessAnalysis<'a, 'tcx: 'a> {
     result: LivenessAnalysisResult,
-    mir: &'a mir::Mir<'tcx>,
+    mir: &'a mir::Body<'tcx>,
     /// Work queue.
     queue: Vec<WorkItem>,
 }
 
 impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
-    fn new(mir: &'a mir::Mir<'tcx>) -> Self {
+    fn new(mir: &'a mir::Body<'tcx>) -> Self {
         Self {
             result: LivenessAnalysisResult::new(),
             mir: mir,
@@ -149,7 +150,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         let statement = &self.mir[location.block].statements[location.statement_index];
         let mut set = self.get_set_before_statement(location);
         match statement.kind {
-            mir::StatementKind::Assign(ref target, _) => {
+            mir::StatementKind::Assign(box (ref target, _)) => {
                 self.replace_in_set(&mut set, target, location);
             }
             _ => {}
@@ -196,7 +197,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
     fn merge_effects(&mut self, bb: mir::BasicBlock) {
         trace!("[enter] merge_effects bb={:?}", bb);
         let set = {
-            let sets = self.mir.predecessors_for(bb);
+            let sets = &self.mir.predecessors()[bb];
             if sets.is_empty() {
                 return;
             }
@@ -235,8 +236,10 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         place: &mir::Place<'tcx>,
         location: mir::Location,
     ) {
-        if let mir::Place::Local(ref local) = place {
-            set.replace(*local, location);
+        // FIXME: Potential wrong.
+        if place.projection.is_empty() {
+        // if let mir::Place::Local(ref local) = place {
+            set.replace(place.local, location);
         }
     }
     /// If the place set after the statement is different from the provided,
@@ -303,7 +306,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
 
 /// Compute which assignments to local variables are live at each
 /// program point.
-pub fn compute_liveness<'a, 'tcx: 'a>(mir: &'a mir::Mir<'tcx>) -> LivenessAnalysisResult {
+pub fn compute_liveness<'a, 'tcx: 'a>(mir: &'a mir::Body<'tcx>) -> LivenessAnalysisResult {
     let mut analysis = LivenessAnalysis::new(mir);
     analysis.initialize();
     analysis.propagate_work_queue();

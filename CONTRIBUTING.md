@@ -1,12 +1,38 @@
-Running tests
-=============
+# Contributing
 
-- Run `make test` to run all tests.
+## Getting Started
 
+At the repository root, we provide a Python3 script `x.py` that sets up the necessary configuration flags and calls `cargo` with the provided arguments.
 
-Filtering tests
----------------
+To install the necessary dependencies, run the following command:
 
-- Set environment variable `TESTNAME` to a string. Then, the tests containing this string in its name are filtered.
-- Run `make test-examples` to run those tests.
-- Example: `TESTNAME=tree; make test-examples` runs only tests containing `tree` in its name.
+```bash
+./x.py setup
+```
+
+After the setup is complete, you can use `x.py` in the same way as you would use cargo. For example, you can compile the project and run all tests as follows:
+
+```bash
+./x.py build    # Compile Prusti.
+./x.py test     # Run tests.
+```
+
+If you have VS Code installed, you can launch it with the necessary configuration flags set as follows:
+
+```bash
+./x.py ide .    # Arguments after `ide` are passed to `code`.
+```
+
+If you want to see what exactly environment variables `./x.py` is setting, pass the `++verbose` flag:
+
+```bash
+./x.py ++verbose build
+```
+
+After a successful build, you can use the `prusti-rustc` as follows (note that Prusti works only with 2018 edition):
+
+```bash
+# Set all env variables.
+export PRUSTI_LOAD_ALL_PROC_MACRO_CRATES=true
+./target/debug/prusti-rustc prusti/tests/pass/parse/pledges.rs --edition=2018
+```

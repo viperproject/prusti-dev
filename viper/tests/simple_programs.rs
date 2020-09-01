@@ -4,10 +4,10 @@ extern crate error_chain;
 extern crate lazy_static;
 extern crate viper;
 
-use std::sync::{Once, ONCE_INIT};
+use std::sync::Once;
 use viper::*;
 
-static INIT: Once = ONCE_INIT;
+static INIT: Once = Once::new();
 
 lazy_static! {
     static ref VIPER: Viper = Viper::new();

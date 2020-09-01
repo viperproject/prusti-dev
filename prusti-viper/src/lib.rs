@@ -6,36 +6,46 @@
 
 #![feature(rustc_private)]
 #![feature(box_patterns)]
-#![feature(nll)]
+// #![feature(nll)]
 #![feature(box_syntax)]
-#![feature(custom_attribute)]
-#![feature(iterator_flatten)]
-#![deny(unreachable_patterns)]
-#![deny(unused_mut)]
-#![deny(unused_variables)]
-#![deny(unused_imports)]
-#![deny(unused_doc_comments)]
+// #![feature(slice_sort_by_cached_key)]
+// #![feature(iterator_flatten)]
 
-#[macro_use]
-extern crate log;
-extern crate num_rational;
-extern crate num_traits;
-extern crate prusti_common;
-extern crate prusti_filter;
-extern crate prusti_interface;
-extern crate prusti_server;
-extern crate regex;
-extern crate rustc;
-extern crate rustc_data_structures;
-extern crate rustc_mir;
-extern crate serde;
-extern crate syntax;
-extern crate syntax_pos;
-extern crate viper;
+#![allow(warnings)]
 
-#[cfg(debug_assertions)]
+// #![deny(unreachable_patterns)]
+// #![deny(unused_mut)]
+// #![deny(unused_variables)]
+// #![deny(unused_imports)]
+// #![deny(unused_doc_comments)]
+
+extern crate rustc_middle;
+extern crate rustc_hir;
+extern crate rustc_span;
+extern crate rustc_index;
+extern crate rustc_ast;
+extern crate rustc_target;
+extern crate rustc_attr;
+// #[macro_use]
+// extern crate log;
+// extern crate num_rational;
+// extern crate num_traits;
+// extern crate prusti_filter;
+// extern crate prusti_interface;
+// extern crate regex;
+// extern crate rustc;
+// extern crate rustc_data_structures;
+// extern crate rustc_mir;
+// extern crate syntax;
+// extern crate syntax_pos;
+// extern crate uuid;
+// extern crate viper;
 #[macro_use]
-extern crate pretty_assertions;
+extern crate lazy_static;
+
+// #[cfg(debug_assertions)]
+// #[macro_use]
+// extern crate pretty_assertions;
 
 pub mod encoder;
 mod utils;

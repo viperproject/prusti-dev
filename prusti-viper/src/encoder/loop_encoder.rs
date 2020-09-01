@@ -10,23 +10,23 @@ use prusti_interface::environment::mir_analyses::initialization::{
 use prusti_interface::environment::place_set::PlaceSet;
 use prusti_interface::environment::{BasicBlockIndex, PermissionForest, ProcedureLoops, Procedure};
 use prusti_interface::utils;
-use rustc::mir;
-use rustc::ty;
+use rustc_middle::{mir, ty};
+use log::{trace, debug};
 
 pub enum LoopEncoderError {
     LoopInvariantInBranch(BasicBlockIndex),
 }
 
-pub struct LoopEncoder<'p, 'a: 'p, 'tcx: 'a> {
-    procedure: &'p Procedure<'a, 'tcx>,
-    tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
+pub struct LoopEncoder<'p, 'tcx: 'p> {
+    procedure: &'p Procedure<'p, 'tcx>,
+    tcx: ty::TyCtxt<'tcx>,
     initialization: DefinitelyInitializedAnalysisResult<'tcx>,
 }
 
-impl<'p, 'a: 'p, 'tcx: 'a> LoopEncoder<'p, 'a, 'tcx> {
+impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
     pub fn new(
-        procedure: &'p Procedure<'a, 'tcx>,
-        tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
+        procedure: &'p Procedure<'p, 'tcx>,
+        tcx: ty::TyCtxt<'tcx>,
     ) -> Self {
         LoopEncoder {
             procedure,
@@ -34,12 +34,12 @@ impl<'p, 'a: 'p, 'tcx: 'a> LoopEncoder<'p, 'a, 'tcx> {
             initialization: compute_definitely_initialized(
                 procedure.get_mir(),
                 tcx,
-                tcx.hir.def_path(procedure.get_id())
+                tcx.hir().def_path(procedure.get_id().expect_local())
             ),
         }
     }
 
-    pub fn mir(&self) -> &mir::Mir<'tcx> {
+    pub fn mir(&self) -> &mir::Body<'tcx> {
         self.procedure.get_mir()
     }
 
@@ -73,7 +73,7 @@ impl<'p, 'a: 'p, 'tcx: 'a> LoopEncoder<'p, 'a, 'tcx> {
         &self,
         bb: BasicBlockIndex,
         bb_inv: BasicBlockIndex
-    ) -> PermissionForest<'tcx> {
+    ) -> PermissionForest<'p, 'tcx> {
         assert!(self.is_loop_head(bb));
 
         // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
@@ -117,7 +117,7 @@ impl<'p, 'a: 'p, 'tcx: 'a> LoopEncoder<'p, 'a, 'tcx> {
 
         // Construct the permission forest.
         let forest =
-            PermissionForest::new(&write_leaves, &mut_borrow_leaves, &read_leaves, &all_places);
+            PermissionForest::new(self.procedure.get_mir(), self.tcx, &write_leaves, &mut_borrow_leaves, &read_leaves, &all_places);
 
         forest
     }

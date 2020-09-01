@@ -4,13 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::foldunfold::perm::*;
+use crate::encoder::foldunfold::perm::*;
 use prusti_common::vir;
 use prusti_common::vir::ExprIterator;
 use prusti_common::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
+use log::{trace, debug};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {

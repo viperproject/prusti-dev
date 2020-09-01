@@ -4,15 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::{
-    perm::{Perm::*, *},
-    places_utils::{union, union3},
-};
-use prusti_common::{vir, vir::PermAmount};
-use std::{
-    collections::{HashMap, HashSet},
-    iter::FromIterator,
-};
+use super::places_utils::{union, union3};
+use crate::encoder::foldunfold::perm::Perm::*;
+use crate::encoder::foldunfold::perm::*;
+use prusti_common::vir;
+use prusti_common::vir::PermAmount;
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::iter::FromIterator;
+use log::{trace, debug};
 
 pub trait RequiredPermissionsGetter {
     /// Returns the permissions required for the expression to be well-defined
@@ -22,21 +22,17 @@ pub trait RequiredPermissionsGetter {
     ) -> HashSet<Perm>;
 }
 
-impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<&'a A> {
+impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for &'a A {
     /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
         predicates: &HashMap<String, vir::Predicate>,
     ) -> HashSet<Perm> {
-        self.iter().fold(HashSet::new(), |res, x| {
-            res.union(&x.get_required_permissions(predicates))
-                .cloned()
-                .collect()
-        })
+        (*self).get_required_permissions(predicates)
     }
 }
 
-impl RequiredPermissionsGetter for Vec<vir::Expr> {
+impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<A> {
     /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
@@ -157,6 +153,12 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
             &vir::Stmt::ExpireBorrows(ref _dag) => {
                 HashSet::new() // TODO: #133
+            }
+
+            &vir::Stmt::If(_, ref then, ref elze) => {
+                then.get_required_permissions(predicates)
+                    .union(&elze.get_required_permissions(predicates))
+                    .cloned().collect()
             }
 
             ref x => unimplemented!("{}", x),

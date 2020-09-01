@@ -4,21 +4,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::{mir_encoder::MirEncoder, Encoder};
-use prusti_common::{config, report::log, vir, vir::Successor};
+use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
+use crate::encoder::Encoder;
+use prusti_common::vir;
+use prusti_common::vir::Successor;
+use prusti_common::config;
 use prusti_interface::environment::Procedure;
-use rustc::{hir::def_id::DefId, mir};
+use prusti_common::report::log;
+use rustc_hir::def_id::DefId;
+use rustc_middle::mir;
+use ::log::trace;
 
-pub struct StubProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-    mir: &'p mir::Mir<'tcx>,
-    mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
+pub struct StubProcedureEncoder<'p, 'v: 'p, 'tcx: 'v>
+ {
+    encoder: &'p Encoder<'v, 'tcx>,
+    mir: &'p mir::Body<'tcx>,
+    mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     def_id: DefId,
-    procedure: &'p Procedure<'a, 'tcx>,
+    procedure: &'p Procedure<'v, 'tcx>,
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, procedure: &'p Procedure<'a, 'tcx>) -> Self {
+impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
+    pub fn new(encoder: &'p Encoder<'v, 'tcx>, procedure: &'p Procedure<'v, 'tcx>) -> Self {
         let def_id = procedure.get_id();
         trace!("StubProcedureEncoder constructor: {:?}", def_id);
 
@@ -34,7 +41,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubProcedureEncoder<'p, 'v, 'r, 'a, 
     }
 
     pub fn encode(self) -> vir::CfgMethod {
-        trace!("Encode stub for procedure {}", self.procedure.get_name());
+        trace!("Encode stub for procedure {}", self.procedure.get_def_path());
 
         let mut cfg_method = vir::CfgMethod::new(
             // method name
@@ -54,7 +61,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubProcedureEncoder<'p, 'v, 'r, 'a, 
             let name = self.mir_encoder.encode_local_var_name(local);
             let type_name = self
                 .encoder
-                .encode_type_predicate_use(self.mir_encoder.get_local_ty(local));
+                .encode_type_predicate_use(self.mir_encoder.get_local_ty(local)).unwrap(); // will panic if attempting to encode unsupported type
             cfg_method.add_formal_return(&name, vir::Type::TypedRef(type_name))
         }
 
@@ -64,7 +71,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubProcedureEncoder<'p, 'v, 'r, 'a, 
             vec![],
             vec![
                 vir::Stmt::comment("========== stub =========="),
-                vir::Stmt::comment(format!("Name: {:?}", self.procedure.get_name())),
+                // vir::Stmt::comment(format!("Name: {:?}", self.procedure.get_name())),
                 vir::Stmt::comment(format!("Def path: {:?}", self.procedure.get_def_path())),
                 vir::Stmt::comment(format!("Span: {:?}", self.procedure.get_span())),
             ],

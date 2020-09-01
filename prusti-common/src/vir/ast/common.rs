@@ -178,6 +178,13 @@ impl Type {
         }
     }
 
+    pub fn is_domain(&self) -> bool {
+        match self {
+            &Type::Domain(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn name(&self) -> String {
         match self {
             &Type::Bool => "bool".to_string(),

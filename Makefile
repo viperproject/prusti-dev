@@ -65,6 +65,10 @@ test-viper-crate: build clean-nested
 	$(SET_ENV_VARS) \
 	cargo test -p viper
 
+test-server-crate: build clean-nested
+	$(SET_ENV_VARS) \
+	cargo test -p prusti-server
+
 test-deep: clean-nested
 	$(SET_ENV_VARS) \
 	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \

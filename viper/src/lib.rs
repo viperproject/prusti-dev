@@ -6,7 +6,6 @@
 
 #![deny(unused_must_use)]
 #![recursion_limit = "1024"]
-#![feature(iterator_flatten)]
 
 #[macro_use]
 extern crate error_chain;
