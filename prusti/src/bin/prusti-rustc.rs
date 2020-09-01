@@ -1,14 +1,26 @@
-use prusti_env_utils::{add_to_loader_path, get_latest_crate_artefact, prusti_sysroot};
-use std::env;
-use std::process::{Command, Stdio};
+use prusti_launch::{add_to_loader_path, prusti_sysroot};
+use std::{
+    env,
+    path::PathBuf,
+    process::{Command, Stdio},
+};
 
 fn process(mut args: Vec<String>) -> Result<(), i32> {
-    let mut prusti_driver_path = std::env::current_exe()
+    let mut prusti_driver_path = env::current_exe()
         .expect("current executable path invalid")
         .with_file_name("prusti-driver");
     if cfg!(windows) {
         prusti_driver_path.set_extension("exe");
     }
+
+    let java_home = match env::var("JAVA_HOME") {
+        Ok(java_home) => PathBuf::from(java_home),
+        Err(_) => prusti_launch::find_java_home()
+            .expect("Failed to find Java home directory. Try setting JAVA_HOME"),
+    };
+
+    let libjvm_path = prusti_launch::find_libjvm(&java_home)
+        .expect("Failed to find JVM library. Check JAVA_HOME");
 
     let prusti_sysroot =
         prusti_sysroot().expect(&format!("Failed to find Rust's sysroot for Prusti"));
@@ -27,9 +39,9 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
             .join("rustlib")
             .join(target)
             .join("lib");
-        add_to_loader_path(vec![rustlib_path, compiler_lib], &mut cmd);
+        add_to_loader_path(vec![rustlib_path, compiler_lib, libjvm_path], &mut cmd);
     } else {
-        add_to_loader_path(vec![compiler_lib], &mut cmd);
+        add_to_loader_path(vec![compiler_lib, libjvm_path], &mut cmd);
     }
 
     let has_no_color_arg = args
@@ -39,8 +51,9 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     if has_no_color_arg {
         cmd.args(&["--color", "always"]);
     }
+
     if !args.iter().any(|s| s == "--sysroot") {
-        args.push("--sysroot".to_owned());
+        args.push("--sysroot".to_string());
         args.push(
             prusti_sysroot
                 .into_os_string()
@@ -54,27 +67,37 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     if env::var_os("PRUSTI_LOAD_ALL_PROC_MACRO_CRATES").is_some() {
         cmd.arg("-L");
         cmd.arg(format!(
-            "dependency={}/deps",
+            "dependency={}",
             prusti_home
                 .as_os_str()
                 .to_str()
                 .expect("the Prusti HOME path contains invalid UTF-8")
         ));
+
         cmd.arg("--extern");
-        let prusti_contracts_path =
-            get_latest_crate_artefact(&prusti_home, "prusti_contracts", "rlib");
-        cmd.arg(format!("prusti_contracts={}", prusti_contracts_path));
+        let prusti_contracts_path = prusti_home.join("libprusti_contracts.rlib");
+        cmd.arg(format!(
+            "prusti_contracts={}",
+            prusti_contracts_path
+                .as_os_str()
+                .to_str()
+                .expect("the Prusti contracts path contains invalid UTF-8")
+        ));
+
         let dylib_extension = if cfg!(target_os = "macos") {
             "dylib"
         } else {
             "so"
         };
         let prusti_internal_path =
-            get_latest_crate_artefact(&prusti_home, "prusti_contracts_internal", dylib_extension);
+            prusti_home.join(format!("libprusti_contracts_internal.{}", dylib_extension));
         cmd.arg("--extern");
         cmd.arg(format!(
             "prusti_contracts_internal={}",
             prusti_internal_path
+                .as_os_str()
+                .to_str()
+                .expect("the internal Prusti contracts path contains invalid UTF-8")
         ));
     }
     // cmd.arg("-Zreport-delayed-bugs");
