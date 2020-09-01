@@ -7,6 +7,7 @@ use log::debug;
 use prusti::PrustiCompilerCalls;
 use std::env;
 use prusti_common::config::ConfigFlags;
+use prusti_common::report::user;
 
 /// Initialize Prusti and the Rust compiler loggers.
 fn init_loggers() {
@@ -26,6 +27,24 @@ fn main() {
     }
 
     init_loggers();
+
+    user::message(r"  __          __        __  ___             ");
+    user::message(r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ");
+    user::message(r" |      /\   |  \ \__/ .__/  |       /\   | ");
+    user::message(r"");
+    user::message(format!(
+        "Commit hash: {}",
+        option_env!("COMMIT_HASH").unwrap_or("<unknown>")
+    ));
+    user::message(format!(
+        "Commit time: {}",
+        option_env!("COMMIT_TIME").unwrap_or("<unknown>")
+    ));
+    user::message(format!(
+        "Build time: {}",
+        option_env!("BUILD_TIME").unwrap_or("<unknown>")
+    ));
+    user::message(r"");
 
     // We assume that prusti-rustc alread took care of the the compiler
     // arguments.
