@@ -103,10 +103,22 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     // cmd.arg("-Ztreat-err-as-bug=1");
 
     let mut child = cmd
-        .stdout(Stdio::inherit()) // do not filter stdout
+        .stdout(Stdio::piped()) // filter stdout (see below)
         .stderr(Stdio::inherit()) // do not filter stderr
         .spawn()
         .expect("could not run prusti-driver");
+
+    // HACK: filter unwanted output
+    let stdout = child.stdout.as_mut().expect("failed to open stdout");
+    let stdout_reader = BufReader::new(stdout);
+    for maybe_line in stdout_reader.lines() {
+        let line = maybe_line.expect("failed to read line from stdout");
+        // Filter an annoying Viper message
+        if line.starts_with("Could not resolve expression") {
+            continue;
+        }
+        println!("{}", line);
+    }
 
     let exit_status = child.wait().expect("failed to wait for prusti-driver?");
 
