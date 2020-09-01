@@ -31,9 +31,6 @@ fn get_prusti_rustc_path() -> PathBuf {
 }
 
 fn run_tests(mode: &str, path: &str) {
-    // Ask prusti-rustc to load all proc-macro crates for us.
-    set_var("PRUSTI_LOAD_ALL_PROC_MACRO_CRATES", "true");
-
     // Add some flags we always want.
     let mut flags = Vec::new();
     flags.push("--edition 2018".to_owned());

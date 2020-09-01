@@ -64,42 +64,41 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
     cmd.args(args);
 
-    if env::var_os("PRUSTI_LOAD_ALL_PROC_MACRO_CRATES").is_some() {
-        cmd.arg("-L");
-        cmd.arg(format!(
-            "dependency={}",
-            prusti_home
-                .as_os_str()
-                .to_str()
-                .expect("the Prusti HOME path contains invalid UTF-8")
-        ));
+    cmd.arg("-L");
+    cmd.arg(format!(
+        "dependency={}",
+        prusti_home
+            .as_os_str()
+            .to_str()
+            .expect("the Prusti HOME path contains invalid UTF-8")
+    ));
 
-        cmd.arg("--extern");
-        let prusti_contracts_path = prusti_home.join("libprusti_contracts.rlib");
-        cmd.arg(format!(
-            "prusti_contracts={}",
-            prusti_contracts_path
-                .as_os_str()
-                .to_str()
-                .expect("the Prusti contracts path contains invalid UTF-8")
-        ));
+    cmd.arg("--extern");
+    let prusti_contracts_path = prusti_home.join("libprusti_contracts.rlib");
+    cmd.arg(format!(
+        "prusti_contracts={}",
+        prusti_contracts_path
+            .as_os_str()
+            .to_str()
+            .expect("the Prusti contracts path contains invalid UTF-8")
+    ));
 
-        let dylib_extension = if cfg!(target_os = "macos") {
-            "dylib"
-        } else {
-            "so"
-        };
-        let prusti_internal_path =
-            prusti_home.join(format!("libprusti_contracts_internal.{}", dylib_extension));
-        cmd.arg("--extern");
-        cmd.arg(format!(
-            "prusti_contracts_internal={}",
-            prusti_internal_path
-                .as_os_str()
-                .to_str()
-                .expect("the internal Prusti contracts path contains invalid UTF-8")
-        ));
-    }
+    let dylib_extension = if cfg!(target_os = "macos") {
+        "dylib"
+    } else {
+        "so"
+    };
+    let prusti_internal_path =
+        prusti_home.join(format!("libprusti_contracts_internal.{}", dylib_extension));
+    cmd.arg("--extern");
+    cmd.arg(format!(
+        "prusti_contracts_internal={}",
+        prusti_internal_path
+            .as_os_str()
+            .to_str()
+            .expect("the internal Prusti contracts path contains invalid UTF-8")
+    ));
+
     // cmd.arg("-Zreport-delayed-bugs");
     // cmd.arg("-Ztreat-err-as-bug=1");
 
