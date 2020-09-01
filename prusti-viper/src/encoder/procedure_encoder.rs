@@ -72,7 +72,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     auxiliary_local_vars: HashMap<String, vir::Type>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
     check_panics: bool,
-    check_fold_unfold_state: bool,
+    check_foldunfold_state: bool,
     polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
     procedure_contract: Option<ProcedureContract<'tcx>>,
     label_after_location: HashMap<mir::Location, String>,
@@ -134,7 +134,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             auxiliary_local_vars: HashMap::new(),
             mir_encoder: mir_encoder,
             check_panics: config::check_panics(),
-            check_fold_unfold_state: config::check_foldunfold_state(),
+            check_foldunfold_state: config::check_foldunfold_state(),
             polonius_info: None,
             procedure_contract: None,
             label_after_location: HashMap::new(),
@@ -1204,7 +1204,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             vec![vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)]
         };
 
-        if self.check_fold_unfold_state {
+        if self.check_foldunfold_state {
             let pos = self
                 .encoder
                 .error_manager()
@@ -1224,7 +1224,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         stmts.push(vir::Stmt::Obtain(expr.clone(), pos));
 
-        if self.check_fold_unfold_state {
+        if self.check_foldunfold_state {
             let pos = self.encoder.error_manager().register(
                 // TODO: use a better span
                 self.mir.span,
