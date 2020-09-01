@@ -1,5 +1,3 @@
-#![feature(register_tool)]
-#![register_tool(prusti)]
 #![feature(type_ascription)]
 #![allow(unused_variables)]
 #![allow(dead_code)]

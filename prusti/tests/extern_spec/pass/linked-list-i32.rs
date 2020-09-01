@@ -1,10 +1,3 @@
-#![feature(register_tool)]
-#![register_tool(prusti)]
-#![allow(unused_variables)]
-#![allow(dead_code)]
-#![allow(unused_must_use)]
-// #![allow(unused_comparisons)]
-
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
@@ -117,66 +110,6 @@ fn insert(list: &mut LinkedList<i32>, index: usize, val:i32) {
         let mut tail = list.split_off(index);
         list.push_back(val);
         list.append(&mut tail);
-    }
-}
-
-/// Iterative version of reverse. Cannot add specifications because
-/// loop invariants are currently not supported
-fn reverse(list: &mut LinkedList<i32>) {
-    let mut stack = LinkedList::new();
-    while !list.is_empty() {
-        let first = list.pop_front();
-        // Needed because loop invariants currently not working
-        if first.is_some() {
-            stack.push_back(first.unwrap());
-        }
-    }
-
-    while !stack.is_empty() {
-        let last = stack.pop_back();
-        // Needed because loop invariants currently not working
-        if last.is_some() {
-            list.push_back(last.unwrap());
-        }
-    }
-}
-
-
-/// This wrapper is needed because Prusti crashes with an access error when
-/// trying to encode the actual clone method (needs &mut instead of & for some reason)
-#[trusted]
-#[ensures(list.len() == old(list.len()))]
-#[ensures(list.len() == result.len())]
-#[ensures(forall (|i: usize| (i < list.len()) && i < old(list.len())==>
-    get(list, i) == old(get(list, i))))]
-#[ensures(forall (|j: usize| (j < result.len() && j < list.len()) ==>
-    get(&result, j) == get(list, j)))]
-fn clone(list: &mut LinkedList<i32>) -> LinkedList<i32> {
-    list.clone()
-}
-
-/// Recursive version of reverse
-#[ensures(list.len() == old(list.len()))]
-fn recursive_reverse(list: &mut LinkedList<i32>) {
-    let mut stack = clone(list);
-    list.clear();
-    reverse_helper(list, &mut stack);
-}
-
-#[ensures(list.len() == old(stack.len() + list.len()))]
-#[ensures(forall (|i: usize| (i < old(list.len()) && i < list.len()) ==>
-    get(list, i) == old(get(list, i))))]
-/// The following post-condition does not hold
-// #[ensures(forall (|j: usize| (0 <= j && j < old(stack.len())) ==>
-//     get(list, list.len() - 1 - j) == old(get(stack, j))))]
-// #[ensures(forall (|k: usize| (old(list.len()) <= k && k < list.len()) ==>
-//     get(list, k) == old(get(stack, list.len() + stack.len() - k))))]
-// #[ensures(forall (|k: usize| (0 <= k && k < old(stack.len())) ==>
-//     get(list, k) == old(get(stack, list.len() + stack.len() - k))))]
-fn reverse_helper(list: &mut LinkedList<i32>, stack: &mut LinkedList<i32>) {
-    if !stack.is_empty() {
-        list.push_back(stack.pop_back().unwrap());
-        reverse_helper(list, stack);
     }
 }
 

@@ -21,7 +21,4 @@ impl<T> Option<T> {
         where T: std::clone::Clone;
 }
 
-fn main() {
-    let c = Some(3);
-    c.clone();
-}
+fn main() {}
