@@ -57,10 +57,10 @@ fn test_runner(_tests: &[&()]) {
     let server_address = ServerSideService::spawn_off_thread();
     set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
 
-    run_tests("ui", "tests/pass/parse");
-    run_tests("ui", "tests/pass/typecheck");
+    run_tests("ui", "tests/parse/ui");
+    run_tests("ui", "tests/typecheck/ui");
 
     set_var("PRUSTI_QUIET", "true");
-    //run_tests("ui", "tests/verify/pass");
+    run_tests("ui", "tests/verify/pass");
     //run_tests("compile-fail", "tests/verify/fail");
 }
