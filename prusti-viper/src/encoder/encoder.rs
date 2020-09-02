@@ -22,10 +22,10 @@ use crate::encoder::type_encoder::{
 use prusti_common::vir;
 use prusti_common::vir::WithIdentifier;
 use prusti_common::config;
+use prusti_common::report::log;
 // use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
-use prusti_interface::report::log;
 use prusti_interface::specs::typed;
 use prusti_interface::specs::typed::SpecificationId;
 // use prusti_interface::specs::{
