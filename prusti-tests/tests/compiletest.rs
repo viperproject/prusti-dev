@@ -112,7 +112,6 @@ fn run_filter(group_name: &str, filter: &Option<String>) {
     // Automatically restored to their original value at the end of the lexical scope
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
-        TemporaryEnvVar::set("PRUSTI_REPORT_SUPPORT_STATUS", "true"),
         TemporaryEnvVar::set("PRUSTI_ERROR_ON_PARTIALLY_SUPPORTED", "true"),
         TemporaryEnvVar::set("PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS", "true"),
         TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
@@ -125,7 +124,6 @@ fn run_verification(group_name: &str, filter: &Option<String>) {
     // Automatically restored to their original value at the end of the lexical scope
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
-        TemporaryEnvVar::set("PRUSTI_DUMP_BORROWCK_INFO", "false"),
         TemporaryEnvVar::set("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true"),
         TemporaryEnvVar::set("PRUSTI_REPORT_SUPPORT_STATUS", "false"),
         TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
@@ -153,18 +151,18 @@ fn run_verification_core_proof(group_name: &str, filter: &Option<String>) {
 }
 
 fn test_runner(_tests: &[&()]) {
-    // spawn server process as child (so it stays around until main function terminates)
+    // Spawn server process as child (so it stays around until main function terminates)
     let server_address = ServerSideService::spawn_off_thread();
     env::set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
 
     // Filter the tests to run
     let filter = env::args().nth(1);
 
-    // Test the parsing of specifications. Doesn't run the verifier.
+    // Test the parsing of specifications. This doesn't run the verifier.
     println!("[parse]");
     run_no_verification("parse", &filter);
 
-    // Test the type-checking of specifications. Doesn't run the verifier.
+    // Test the type-checking of specifications. This doesn't run the verifier.
     println!("[typecheck]");
     run_no_verification("typecheck", &filter);
 
