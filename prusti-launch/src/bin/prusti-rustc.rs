@@ -1,8 +1,8 @@
-//  © 2020, ETH Zurich
+// © 2020, ETH Zurich
 //
-//  This Source Code Form is subject to the terms of the Mozilla Public
-//  License, v. 2.0. If a copy of the MPL was not distributed with this
-//  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 extern crate prusti_launch;
 
@@ -117,12 +117,12 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         .spawn()
         .expect("could not run prusti-driver");
 
-    // HACK: filter unwanted output
+    // HACK: filter unwanted Viper output.
+    // See: https://github.com/viperproject/silicon/issues/261
     let stdout = child.stdout.as_mut().expect("failed to open stdout");
     let stdout_reader = BufReader::new(stdout);
     for maybe_line in stdout_reader.lines() {
         let line = maybe_line.expect("failed to read line from stdout");
-        // Filter an annoying Viper message
         if line.starts_with("Could not resolve expression") {
             continue;
         }

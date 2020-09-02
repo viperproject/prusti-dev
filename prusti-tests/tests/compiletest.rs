@@ -32,13 +32,15 @@ fn get_prusti_rustc_path() -> PathBuf {
     panic!("Could not find the prusti-rustc binary to be used in tests");
 }
 
-/// Set an environment variable, automatically reverting the change at the end of the lexical scope
+/// This type allows to temporary modify an environment variable.
+/// When this structure is dropped (falls out of scope), the original value will be restored.
 struct TemporaryEnvVar {
     name: String,
     original: Option<String>,
 }
 
 impl TemporaryEnvVar {
+    /// Temporarily set an environment variable, until the returned value is dropped.
     fn set(name: &str, value: &str) -> Self {
         let original: Option<String> = env::var(name).ok();
         env::set_var(name, value);
@@ -98,7 +100,6 @@ fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Opti
 }
 
 fn run_no_verification(group_name: &str, filter: &Option<String>) {
-    // Automatically restored to their original value at the end of the lexical scope
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
         TemporaryEnvVar::set("PRUSTI_NO_VERIFY", "true"),
@@ -109,7 +110,6 @@ fn run_no_verification(group_name: &str, filter: &Option<String>) {
 }
 
 fn run_filter(group_name: &str, filter: &Option<String>) {
-    // Automatically restored to their original value at the end of the lexical scope
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
         TemporaryEnvVar::set("PRUSTI_ERROR_ON_PARTIALLY_SUPPORTED", "true"),
@@ -121,7 +121,6 @@ fn run_filter(group_name: &str, filter: &Option<String>) {
 }
 
 fn run_verification(group_name: &str, filter: &Option<String>) {
-    // Automatically restored to their original value at the end of the lexical scope
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
         TemporaryEnvVar::set("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true"),
@@ -133,7 +132,6 @@ fn run_verification(group_name: &str, filter: &Option<String>) {
 }
 
 fn run_verification_overflow(group_name: &str, filter: &Option<String>) {
-    // Automatically restored to their original value at the end of the lexical scope
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_CHECK_BINARY_OPERATIONS", "true"),
     );
@@ -142,7 +140,6 @@ fn run_verification_overflow(group_name: &str, filter: &Option<String>) {
 }
 
 fn run_verification_core_proof(group_name: &str, filter: &Option<String>) {
-    // Automatically restored to their original value at the end of the lexical scope
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_CHECK_PANICS", "false"),
     );
@@ -166,7 +163,7 @@ fn test_runner(_tests: &[&()]) {
     println!("[typecheck]");
     run_no_verification("typecheck", &filter);
 
-    // Test the error messages of prusti-filter
+    // Test the error messages of prusti-filter.
     println!("[filter]");
     run_filter("filter", &filter);
 
