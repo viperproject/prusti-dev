@@ -46,17 +46,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 );
             }
 
-            let mut curr_block_pre_statements = Vec::new();
-
-            let mut pctxt = self.construct_initial_pctxt(
-                dag,
+            let (mut pctxt, curr_block_pre_statements) = self.construct_initial_pctxt(
+                dag, &mut cfg,
                 surrounding_pctxt,
                 surrounding_block_index,
                 new_cfg,
-                &mut cfg,
-                &mut final_pctxt,
                 curr_block_index,
-                &mut curr_block_pre_statements)?;
+                &final_pctxt)?;
             initial_pctxt[curr_block_index] = Some(pctxt.clone());
 
             let curr_block = &mut cfg.basic_blocks[curr_block_index];
@@ -212,22 +208,94 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
 
     fn construct_initial_pctxt(&mut self,
         dag: &vir::borrows::DAG,
+        cfg: &mut borrows::CFG,
         surrounding_pctxt: &mut PathCtxt<'p>,
         surrounding_block_index: vir::CfgBlockIndex,
         new_cfg: &vir::CfgMethod,
-        cfg: &mut borrows::CFG,
-        final_pctxt: &mut Vec<Option<PathCtxt<'p>>>,
         curr_block_index: usize,
-        curr_block_pre_statements: &mut Vec<vir::Stmt>,
+        final_pctxt: &[Option<PathCtxt<'p>>],
+    ) -> Result<(PathCtxt<'p>, Vec<vir::Stmt>), FoldUnfoldError> {
+        let curr_block = &cfg.basic_blocks[curr_block_index];
+        Ok(if curr_block.predecessors.is_empty() {
+            self.construct_initial_pctxt_no_predecessors(
+                dag, cfg,
+                surrounding_pctxt,
+                surrounding_block_index,
+                new_cfg,
+                curr_block_index)
+        } else {
+            let pctxt = self.construct_initial_pctxt_with_predecessors(
+                dag, cfg,
+                surrounding_pctxt,
+                surrounding_block_index,
+                new_cfg,
+                curr_block_index,
+                final_pctxt)?;
+            (pctxt, Vec::new())
+        })
+    }
+
+    fn construct_initial_pctxt_no_predecessors(&mut self,
+        dag: &vir::borrows::DAG,
+        cfg: &mut borrows::CFG,
+        surrounding_pctxt: &mut PathCtxt<'p>,
+        surrounding_block_index: vir::CfgBlockIndex,
+        new_cfg: &vir::CfgMethod,
+        curr_block_index: usize,
+    ) -> (PathCtxt<'p>, Vec<vir::Stmt>) {
+        let curr_block = &cfg.basic_blocks[curr_block_index];
+        let curr_node = &curr_block.node;
+        let mut pctxt = surrounding_pctxt.clone();
+        let mut curr_block_pre_statements = Vec::new();
+        let end_block = surrounding_block_index;
+        let start_block = self.get_cfg_block_of_last_borrow(
+            surrounding_block_index, &curr_node.borrow);
+        if !start_block.weak_eq(&end_block) {
+            let path = new_cfg.find_path(start_block, end_block).unwrap();
+            debug!(
+                "process_expire_borrows borrow={:?} path={:?}",
+                curr_node.borrow, path
+            );
+            let dropped_permissions = surrounding_pctxt
+                .log()
+                .collect_dropped_permissions(&path, dag);
+            debug!(
+                "process_expire_borrows borrow={:?} dropped_permissions={:?}",
+                curr_node.borrow, dropped_permissions
+            );
+            for perm in &dropped_permissions {
+                let comment = format!("restored (from log): {}", perm);
+                curr_block_pre_statements.push(vir::Stmt::comment(comment));
+            }
+            pctxt
+                .mut_state()
+                .restore_dropped_perms(dropped_permissions.into_iter());
+        }
+        (pctxt, curr_block_pre_statements)
+    }
+
+    fn construct_initial_pctxt_with_predecessors(&mut self,
+        dag: &vir::borrows::DAG,
+        cfg: &mut borrows::CFG,
+        surrounding_pctxt: &mut PathCtxt<'p>,
+        surrounding_block_index: vir::CfgBlockIndex,
+        new_cfg: &vir::CfgMethod,
+        curr_block_index: usize,
+        final_pctxt: &[Option<PathCtxt<'p>>],
     ) -> Result<PathCtxt<'p>, FoldUnfoldError> {
         let curr_block = &cfg.basic_blocks[curr_block_index];
         let curr_node = &curr_block.node;
-        let mut pctxt = if curr_block.predecessors.is_empty() {
-            let mut pctxt = surrounding_pctxt.clone();
-            let end_block = surrounding_block_index;
-            let start_block =
-                self.get_cfg_block_of_last_borrow(surrounding_block_index, &curr_node.borrow);
-            if !start_block.weak_eq(&end_block) {
+        let mut incoming_pctxt = Vec::new();
+        for &predecessor in &curr_block.predecessors {
+            let mut pctxt = final_pctxt[predecessor].as_ref().unwrap().clone();
+            let predecessor_node = &cfg.basic_blocks[predecessor].node;
+            let end_block = self.get_cfg_block_of_last_borrow(
+                surrounding_block_index,
+                &predecessor_node.borrow,
+            );
+            let start_block = self
+                .get_cfg_block_of_last_borrow(surrounding_block_index, &curr_node.borrow);
+            if start_block != end_block {
                 let path = new_cfg.find_path(start_block, end_block).unwrap();
                 debug!(
                     "process_expire_borrows borrow={:?} path={:?}",
@@ -237,86 +305,49 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     .log()
                     .collect_dropped_permissions(&path, dag);
                 debug!(
-                    "process_expire_borrows borrow={:?} dropped_permissions={:?}",
-                    curr_node.borrow, dropped_permissions
+                    "process_expire_borrows borrow={:?} dropped_permissions={}",
+                    curr_node.borrow,
+                    dropped_permissions.iter().to_string()
                 );
                 for perm in &dropped_permissions {
                     let comment = format!("restored (from log): {}", perm);
-                    curr_block_pre_statements.push(vir::Stmt::comment(comment));
+                    let key = (predecessor, curr_block_index);
+                    let entry = cfg.edges.entry(key).or_insert(Vec::new());
+                    entry.push(vir::Stmt::comment(comment));
                 }
                 pctxt
                     .mut_state()
                     .restore_dropped_perms(dropped_permissions.into_iter());
-                pctxt
-            } else {
-                pctxt
             }
-        } else {
-            let mut incoming_pctxt = Vec::new();
-            for &predecessor in &curr_block.predecessors {
-                let mut pctxt = final_pctxt[predecessor].as_ref().unwrap().clone();
-                let predecessor_node = &cfg.basic_blocks[predecessor].node;
-                let end_block = self.get_cfg_block_of_last_borrow(
-                    surrounding_block_index,
-                    &predecessor_node.borrow,
-                );
-                let start_block = self
-                    .get_cfg_block_of_last_borrow(surrounding_block_index, &curr_node.borrow);
-                if start_block != end_block {
-                    let path = new_cfg.find_path(start_block, end_block).unwrap();
-                    debug!(
-                        "process_expire_borrows borrow={:?} path={:?}",
-                        curr_node.borrow, path
-                    );
-                    let dropped_permissions = surrounding_pctxt
-                        .log()
-                        .collect_dropped_permissions(&path, dag);
-                    debug!(
-                        "process_expire_borrows borrow={:?} dropped_permissions={}",
-                        curr_node.borrow,
-                        dropped_permissions.iter().to_string()
-                    );
-                    for perm in &dropped_permissions {
-                        let comment = format!("restored (from log): {}", perm);
-                        let key = (predecessor, curr_block_index);
-                        let entry = cfg.edges.entry(key).or_insert(Vec::new());
-                        entry.push(vir::Stmt::comment(comment));
-                    }
-                    pctxt
-                        .mut_state()
-                        .restore_dropped_perms(dropped_permissions.into_iter());
-                }
-                incoming_pctxt.push(pctxt);
-            }
-            let incoming_pctxt_refs = incoming_pctxt.iter().collect();
-            let (actions, mut pctxt) = self.prepend_join(incoming_pctxt_refs)?;
-            for (&src_index, action) in curr_block.predecessors.iter().zip(&actions) {
-                assert!(src_index < curr_block_index);
-                if !action.is_empty() {
-                    //let stmts_to_add = action.iter().map(|a| a.to_stmt()).collect();
-                    let mut stmts_to_add = Vec::new();
-                    for a in &action.0 {
-                        stmts_to_add.push(a.to_stmt());
-                        if let Action::Drop(perm, missing_perm) = a {
-                            if dag.in_borrowed_places(missing_perm.get_place())
-                                && perm.get_perm_amount() != vir::PermAmount::Read
-                            {
-                                let comment = vir::Stmt::comment(format!(
-                                    "restored (in branch merge): {} ({})",
-                                    perm, missing_perm
-                                ));
-                                stmts_to_add.push(comment);
-                                pctxt.mut_state().restore_dropped_perm(perm.clone());
-                            }
+            incoming_pctxt.push(pctxt);
+        }
+        let incoming_pctxt_refs = incoming_pctxt.iter().collect();
+        let (actions, mut pctxt) = self.prepend_join(incoming_pctxt_refs)?;
+        for (&src_index, action) in curr_block.predecessors.iter().zip(&actions) {
+            assert!(src_index < curr_block_index);
+            if !action.is_empty() {
+                //let stmts_to_add = action.iter().map(|a| a.to_stmt()).collect();
+                let mut stmts_to_add = Vec::new();
+                for a in &action.0 {
+                    stmts_to_add.push(a.to_stmt());
+                    if let Action::Drop(perm, missing_perm) = a {
+                        if dag.in_borrowed_places(missing_perm.get_place())
+                            && perm.get_perm_amount() != vir::PermAmount::Read
+                        {
+                            let comment = vir::Stmt::comment(format!(
+                                "restored (in branch merge): {} ({})",
+                                perm, missing_perm
+                            ));
+                            stmts_to_add.push(comment);
+                            pctxt.mut_state().restore_dropped_perm(perm.clone());
                         }
                     }
-                    let key = (src_index, curr_block_index);
-                    let entry = cfg.edges.entry(key).or_insert(Vec::new());
-                    entry.extend(stmts_to_add);
                 }
+                let key = (src_index, curr_block_index);
+                let entry = cfg.edges.entry(key).or_insert(Vec::new());
+                entry.extend(stmts_to_add);
             }
-            pctxt
-        };
+        }
         Ok(pctxt)
     }
 }
