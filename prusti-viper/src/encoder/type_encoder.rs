@@ -213,8 +213,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 Some(bounds)
             }
             ty::TyKind::Char => {
-                // char is always four bytes in size
-                Some((0.into(), 0xFFFFFFFFu32.into()))
+                Some((0.into(), std::char::MAX.into()))
             }
             ty::TyKind::Bool | ty::TyKind::Ref(_, _, _) => None,
             ref x => unreachable!("{:?}", x),
