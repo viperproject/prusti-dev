@@ -14,8 +14,7 @@ impl<T> Option<T> {
     pub fn is_some(&self) -> bool;
 
     #[pure]
-    #[ensures(self.is_some() ==> !result)]
-    #[ensures(!self.is_some() ==> result)]
+    #[ensures(result != self.is_some())]
     pub fn is_none(&self) -> bool;
 
     #[requires(self.is_some())]

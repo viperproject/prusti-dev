@@ -83,6 +83,7 @@ impl LinkedList<i32> {
     get(self, i) == old(get(self, i))))]
     #[ensures(forall (|j: usize| (old(self.len()) <= j && j < self.len()) ==>
         get(self, j) == old(get(other, j - self.len()))))]
+    #[ensures(other.len() == 0)]
     pub fn append(&mut self, other: &mut LinkedList<i32>);
 
 
