@@ -147,39 +147,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         }
 
         // Merge all pctxts with reborrowed_nodes.is_empty() into one.
-        let final_blocks: Vec<_> = cfg
-            .basic_blocks
-            .iter()
-            .enumerate()
-            .filter(|(_, block)| block.successors.is_empty())
-            .map(|(i, _)| i)
-            .collect();
-        let final_pctxts: Vec<_> = final_blocks
-            .iter()
-            .map(|i| final_pctxt[*i].as_ref().unwrap())
-            .collect();
-        let (actions, mut final_pctxt) = self.prepend_join(final_pctxts)?;
-        for (&i, action) in final_blocks.iter().zip(actions.iter()) {
-            if !action.is_empty() {
-                let mut stmts_to_add = Vec::new();
-                for a in action.deref() {
-                    stmts_to_add.push(a.to_stmt());
-                    if let Action::Drop(perm, missing_perm) = a {
-                        if dag.in_borrowed_places(missing_perm.get_place())
-                            && perm.get_perm_amount() != vir::PermAmount::Read
-                        {
-                            let comment =
-                                format!("restored (in branch merge): {} ({})", perm, missing_perm);
-                            stmts_to_add.push(vir::Stmt::comment(comment));
-                            final_pctxt.mut_state().restore_dropped_perm(perm.clone());
-                        }
-                    }
-                }
-                //let stmts_to_add = action.iter().map(|a| a.to_stmt());
-                cfg.basic_blocks[i].statements.extend(stmts_to_add);
-            }
-        }
-        mem::swap(surrounding_pctxt, &mut final_pctxt);
+        *surrounding_pctxt = self.construct_final_pctxt(dag, &mut cfg, &final_pctxt)?;
 
         let mut stmts = Vec::new();
         for (i, block) in cfg.basic_blocks.iter().enumerate() {
@@ -349,6 +317,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             }
         }
         Ok(pctxt)
+    }
+
+    fn construct_final_pctxt(&mut self,
+        dag: &vir::borrows::DAG,
+        cfg: &mut borrows::CFG,
+        final_pctxt: &[Option<PathCtxt<'p>>]
+    ) -> Result<PathCtxt<'p>, FoldUnfoldError> {
+        let final_blocks: Vec<_> = cfg
+            .basic_blocks
+            .iter()
+            .enumerate()
+            .filter(|(_, block)| block.successors.is_empty())
+            .map(|(i, _)| i)
+            .collect();
+        let final_pctxts: Vec<_> = final_blocks
+            .iter()
+            .map(|i| final_pctxt[*i].as_ref().unwrap())
+            .collect();
+        let (actions, mut final_pctxt) = self.prepend_join(final_pctxts)?;
+        for (&i, action) in final_blocks.iter().zip(actions.iter()) {
+            if !action.is_empty() {
+                let mut stmts_to_add = Vec::new();
+                for a in action.deref() {
+                    stmts_to_add.push(a.to_stmt());
+                    if let Action::Drop(perm, missing_perm) = a {
+                        if dag.in_borrowed_places(missing_perm.get_place())
+                            && perm.get_perm_amount() != vir::PermAmount::Read
+                        {
+                            let comment =
+                                format!("restored (in branch merge): {} ({})", perm, missing_perm);
+                            stmts_to_add.push(vir::Stmt::comment(comment));
+                            final_pctxt.mut_state().restore_dropped_perm(perm.clone());
+                        }
+                    }
+                }
+                //let stmts_to_add = action.iter().map(|a| a.to_stmt());
+                cfg.basic_blocks[i].statements.extend(stmts_to_add);
+            }
+        }
+        Ok(final_pctxt)
     }
 }
 
