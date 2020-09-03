@@ -316,8 +316,4 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             VerificationResult::Failure
         }
     }
-
-    pub fn invalidate_all(&mut self) {
-        unimplemented!()
-    }
 }
