@@ -27,7 +27,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
 
         let mut cfg = build_initial_cfg(dag);
 
-        let mut initial_pctxt: Vec<Option<PathCtxt>> = vec![None; cfg.basic_blocks.len()];
         let mut final_pctxt: Vec<Option<PathCtxt>> = vec![None; cfg.basic_blocks.len()];
 
         for curr_block_index in 0..cfg.basic_blocks.len() {
@@ -40,7 +39,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 new_cfg,
                 curr_block_index,
                 &final_pctxt)?;
-            initial_pctxt[curr_block_index] = Some(pctxt.clone());
 
             let curr_block = &mut cfg.basic_blocks[curr_block_index];
             curr_block.statements.extend(curr_block_pre_statements);
