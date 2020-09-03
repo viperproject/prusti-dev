@@ -56,7 +56,7 @@ mod private {
     /// A macro for defining a closure with a specification.
     pub use prusti_contracts_internal::closure;
 
-    /// A macro for specifying external functions
+    /// A macro for specifying external functions.
     pub use prusti_contracts_internal::extern_spec;
 }
 
