@@ -25,30 +25,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     ) -> Result<Vec<vir::Stmt>, FoldUnfoldError> {
         trace!("[enter] process_expire_borrows dag=[{:?}]", dag);
 
-        let mut cfg = borrows::CFG::new();
-        for node in dag.iter() {
-            trace!("process_expire_borrows construct cfg node={:?}", node);
-            let predecessors = node
-                .reborrowing_nodes
-                .iter()
-                .map(|b| dag.get_borrow_index(*b))
-                .collect();
-            let successors = node
-                .reborrowed_nodes
-                .iter()
-                .map(|b| dag.get_borrow_index(*b))
-                .collect();
-            let guard = dag.guard(node.borrow);
-            let current_guard = node.guard.clone();
-            let statements = vec![vir::Stmt::comment(format!("expire loan {:?}", node.borrow))];
-            let block = borrows::BasicBlock {
-                node,
-                guard, current_guard,
-                predecessors, successors,
-                statements,
-            };
-            cfg.add_block(block);
-        }
+        let mut cfg = build_initial_cfg(dag);
 
         let mut initial_pctxt: Vec<Option<PathCtxt>> = vec![None; cfg.basic_blocks.len()];
         let mut final_pctxt: Vec<Option<PathCtxt>> = vec![None; cfg.basic_blocks.len()];
@@ -322,3 +299,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     }
 }
 
+fn build_initial_cfg(dag: &vir::borrows::DAG) -> borrows::CFG {
+    let mut cfg = borrows::CFG::new();
+    for node in dag.iter() {
+        trace!("process_expire_borrows construct cfg node={:?}", node);
+        let predecessors = node
+            .reborrowing_nodes
+            .iter()
+            .map(|b| dag.get_borrow_index(*b))
+            .collect();
+        let successors = node
+            .reborrowed_nodes
+            .iter()
+            .map(|b| dag.get_borrow_index(*b))
+            .collect();
+        let guard = dag.guard(node.borrow);
+        let current_guard = node.guard.clone();
+        let statements = vec![vir::Stmt::comment(format!("expire loan {:?}", node.borrow))];
+        let block = borrows::BasicBlock {
+            node,
+            guard, current_guard,
+            predecessors, successors,
+            statements,
+        };
+        cfg.add_block(block);
+    }
+    cfg
+}
