@@ -15,6 +15,9 @@ use super::FoldUnfoldError;
 use super::path_ctxt::PathCtxt;
 
 impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
+    /// Generates Viper statements that expire all the borrows from the given `dag`. The
+    /// `surrounding_pctxt` will be modified to reflect the path context after the borrows have
+    /// been expired.
     pub(super) fn process_expire_borrows(
         &mut self,
         dag: &vir::borrows::DAG,
