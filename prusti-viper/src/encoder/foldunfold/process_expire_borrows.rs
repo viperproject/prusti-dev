@@ -56,92 +56,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             initial_pctxt[curr_block_index] = Some(pctxt.clone());
 
             let curr_block = &mut cfg.basic_blocks[curr_block_index];
-            let curr_node = &curr_block.node;
             curr_block.statements.extend(curr_block_pre_statements);
 
-            for (stmt_index, stmt) in curr_node.stmts.iter().enumerate() {
-                debug!(
-                    "process_expire_borrows block={} ({:?}) stmt={}",
-                    curr_block_index, curr_node.borrow, stmt
-                );
-                let new_stmts = self.replace_stmt(
-                    stmt_index,
-                    &stmt,
-                    false,
-                    &mut pctxt,
-                    surrounding_block_index,
-                    new_cfg,
-                    label,
-                )?;
-                curr_block.statements.extend(new_stmts);
-            }
-
-            // Remove read permissions.
-            let duplicated_perms = surrounding_pctxt
-                .log()
-                .get_duplicated_read_permissions(curr_node.borrow);
-            let mut maybe_original_place = None;
-            for (mut read_access, original_place) in duplicated_perms {
-                if let Some(ref place) = curr_node.place {
-                    debug!(
-                        "place={} original_place={} read_access={}",
-                        place, original_place, read_access
-                    );
-                    read_access = read_access.replace_place(&original_place, place);
-                }
-                maybe_original_place = Some(original_place);
-                let stmt = vir::Stmt::Exhale(read_access, self.method_pos);
-                let new_stmts = self.replace_stmt(
-                    curr_block.statements.len(),
-                    &stmt,
-                    false,
-                    &mut pctxt,
-                    surrounding_block_index,
-                    new_cfg,
-                    label,
-                )?;
-                curr_block.statements.extend(new_stmts);
-            }
-            if let Some(original_place) = maybe_original_place {
-                if pctxt.state().contains_acc(&original_place) {
-                    pctxt.mut_state().insert_moved(original_place);
-                }
-            }
-            // Restore write permissions.
-            // Currently, we have a simplified version that restores write permissions only when
-            // all borrows in the conflict set are dead. This is sound, but less complete.
-            // TODO: Implement properly so that we can restore write permissions to the prefix only
-            // when there is still alive conflicting borrown. For example, when the currently expiring
-            // borrow borrowed `x.f`, but we still have a conflicting borrow that borrowed `x.f.g`, we
-            // would need to restore write permissions to `x.f` without doing the same for `x.f.g`.
-            // This would require making sure that we are unfolded up to `x.f.g` and emit
-            // restoration for each place segment separately.
-            debug!(
-                "curr_node.alive_conflicting_borrows={:?}",
-                curr_node.alive_conflicting_borrows
-            );
-            debug!(
-                "curr_node.conflicting_borrows={:?}",
-                curr_node.conflicting_borrows
-            );
-            if curr_node.alive_conflicting_borrows.is_empty() {
-                for &borrow in &curr_node.conflicting_borrows {
-                    curr_block
-                        .statements
-                        .extend(self.restore_write_permissions(borrow, &mut pctxt)?);
-                }
-                curr_block
-                    .statements
-                    .extend(self.restore_write_permissions(curr_node.borrow, &mut pctxt)?);
-            }
-            debug!(
-                "curr_node.alive_conflicting_borrows={:?}",
-                curr_node.alive_conflicting_borrows
-            );
-            debug!(
-                "curr_node.conflicting_borrows={:?}",
-                curr_node.conflicting_borrows
-            );
+            self.process_node(
+                surrounding_pctxt,
+                surrounding_block_index,
+                new_cfg,
+                curr_block,
+                curr_block_index,
+                label,
+                &mut pctxt)?;
 
             final_pctxt[curr_block_index] = Some(pctxt);
         }
@@ -317,6 +241,104 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             }
         }
         Ok(pctxt)
+    }
+
+    fn process_node(&mut self,
+        surrounding_pctxt: &mut PathCtxt<'p>,
+        surrounding_block_index: vir::CfgBlockIndex,
+        new_cfg: &vir::CfgMethod,
+        curr_block: &mut borrows::BasicBlock,
+        curr_block_index: usize,
+        label: Option<&str>,
+        pctxt: &mut PathCtxt<'p>
+    ) -> Result<(), FoldUnfoldError> {
+        let curr_node = &curr_block.node;
+
+        for (stmt_index, stmt) in curr_node.stmts.iter().enumerate() {
+            debug!(
+                "process_expire_borrows block={} ({:?}) stmt={}",
+                curr_block_index, curr_node.borrow, stmt
+            );
+            let new_stmts = self.replace_stmt(
+                stmt_index,
+                &stmt,
+                false,
+                pctxt,
+                surrounding_block_index,
+                new_cfg,
+                label,
+            )?;
+            curr_block.statements.extend(new_stmts);
+        }
+
+        // Remove read permissions.
+        let duplicated_perms = surrounding_pctxt
+            .log()
+            .get_duplicated_read_permissions(curr_node.borrow);
+        let mut maybe_original_place = None;
+        for (mut read_access, original_place) in duplicated_perms {
+            if let Some(ref place) = curr_node.place {
+                debug!(
+                    "place={} original_place={} read_access={}",
+                    place, original_place, read_access
+                );
+                read_access = read_access.replace_place(&original_place, place);
+            }
+            maybe_original_place = Some(original_place);
+            let stmt = vir::Stmt::Exhale(read_access, self.method_pos);
+            let new_stmts = self.replace_stmt(
+                curr_block.statements.len(),
+                &stmt,
+                false,
+                pctxt,
+                surrounding_block_index,
+                new_cfg,
+                label,
+            )?;
+            curr_block.statements.extend(new_stmts);
+        }
+        if let Some(original_place) = maybe_original_place {
+            if pctxt.state().contains_acc(&original_place) {
+                pctxt.mut_state().insert_moved(original_place);
+            }
+        }
+        // Restore write permissions.
+        // Currently, we have a simplified version that restores write permissions only when
+        // all borrows in the conflict set are dead. This is sound, but less complete.
+        // TODO: Implement properly so that we can restore write permissions to the prefix only
+        // when there is still alive conflicting borrown. For example, when the currently expiring
+        // borrow borrowed `x.f`, but we still have a conflicting borrow that borrowed `x.f.g`, we
+        // would need to restore write permissions to `x.f` without doing the same for `x.f.g`.
+        // This would require making sure that we are unfolded up to `x.f.g` and emit
+        // restoration for each place segment separately.
+        debug!(
+            "curr_node.alive_conflicting_borrows={:?}",
+            curr_node.alive_conflicting_borrows
+        );
+        debug!(
+            "curr_node.conflicting_borrows={:?}",
+            curr_node.conflicting_borrows
+        );
+        if curr_node.alive_conflicting_borrows.is_empty() {
+            for &borrow in &curr_node.conflicting_borrows {
+                curr_block
+                    .statements
+                    .extend(self.restore_write_permissions(borrow, pctxt)?);
+            }
+            curr_block
+                .statements
+                .extend(self.restore_write_permissions(curr_node.borrow, pctxt)?);
+        }
+        debug!(
+            "curr_node.alive_conflicting_borrows={:?}",
+            curr_node.alive_conflicting_borrows
+        );
+        debug!(
+            "curr_node.conflicting_borrows={:?}",
+            curr_node.conflicting_borrows
+        );
+
+        Ok(())
     }
 
     fn construct_final_pctxt(&mut self,
