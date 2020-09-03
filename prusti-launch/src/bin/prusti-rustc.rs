@@ -9,9 +9,8 @@ extern crate prusti_launch;
 use prusti_launch::{add_to_loader_path, prusti_sysroot};
 use std::{
     env,
-    io::{BufRead, BufReader},
     path::PathBuf,
-    process::{Command, Stdio},
+    process::Command,
 };
 
 fn process(mut args: Vec<String>) -> Result<(), i32> {
@@ -111,25 +110,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     // cmd.arg("-Zreport-delayed-bugs");
     // cmd.arg("-Ztreat-err-as-bug=1");
 
-    let mut child = cmd
-        .stdout(Stdio::piped()) // filter stdout (see below)
-        .stderr(Stdio::inherit()) // do not filter stderr
-        .spawn()
-        .expect("could not run prusti-driver");
-
-    // HACK: filter unwanted Viper output.
-    // See: https://github.com/viperproject/silicon/issues/261
-    let stdout = child.stdout.as_mut().expect("failed to open stdout");
-    let stdout_reader = BufReader::new(stdout);
-    for maybe_line in stdout_reader.lines() {
-        let line = maybe_line.expect("failed to read line from stdout");
-        if line.starts_with("Could not resolve expression") {
-            continue;
-        }
-        println!("{}", line);
-    }
-
-    let exit_status = child.wait().expect("failed to wait for prusti-driver?");
+    let exit_status = cmd.status().expect("failed to execute prusti-driver");
 
     if exit_status.success() {
         Ok(())

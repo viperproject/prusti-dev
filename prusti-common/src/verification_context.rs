@@ -81,7 +81,7 @@ impl<'v> VerificationContext<'v> {
                 VerificationBackend::Silicon => verifier_args.extend(vec![
                     "--printMethodCFGs".to_string(),
                     "--logLevel".to_string(),
-                    "INFO".to_string(),
+                    "ERROR".to_string(),
                     //"--printTranslatedProgram".to_string(),
                 ]),
                 VerificationBackend::Carbon => verifier_args.extend::<Vec<_>>(vec![
