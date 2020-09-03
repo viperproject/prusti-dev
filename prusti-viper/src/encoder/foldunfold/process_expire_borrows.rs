@@ -60,29 +60,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         // Merge all pctxts with reborrowed_nodes.is_empty() into one.
         *surrounding_pctxt = self.construct_final_pctxt(dag, &mut cfg, &final_pctxt)?;
 
-        let mut stmts = Vec::new();
-        for (i, block) in cfg.basic_blocks.iter().enumerate() {
-            stmts.push(vir::Stmt::If(
-                block.guard.clone(),
-                self.patch_places(&block.statements, label),
-                vec![]
-            ));
-            for ((from, to), statements) in &cfg.edges {
-                if *from == i {
-                    let condition = vir::Expr::and(
-                        block.guard.clone(),
-                        cfg.basic_blocks[*to].current_guard.clone(),
-                    );
-                    stmts.push(vir::Stmt::If(
-                        condition,
-                        self.patch_places(statements, label),
-                        vec![]
-                    ));
-                }
-            }
-        }
-
-        Ok(stmts)
+        Ok(self.generate_final_statements(&cfg, label))
     }
 
     fn construct_initial_pctxt(&mut self,
@@ -366,6 +344,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             }
         }
         Ok(final_pctxt)
+    }
+
+    fn generate_final_statements(&mut self,
+        cfg: &borrows::CFG,
+        label: Option<&str>,
+    ) -> Vec<vir::Stmt> {
+        let mut stmts = Vec::new();
+        for (i, block) in cfg.basic_blocks.iter().enumerate() {
+            stmts.push(vir::Stmt::If(
+                block.guard.clone(),
+                self.patch_places(&block.statements, label),
+                vec![]
+            ));
+            for ((from, to), statements) in &cfg.edges {
+                if *from == i {
+                    let condition = vir::Expr::and(
+                        block.guard.clone(),
+                        cfg.basic_blocks[*to].current_guard.clone(),
+                    );
+                    stmts.push(vir::Stmt::If(
+                        condition,
+                        self.patch_places(statements, label),
+                        vec![]
+                    ));
+                }
+            }
+        }
+        stmts
     }
 
     fn dump_debug_info(&self,
