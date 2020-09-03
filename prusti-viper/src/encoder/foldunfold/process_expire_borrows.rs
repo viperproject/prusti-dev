@@ -31,20 +31,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         let mut final_pctxt: Vec<Option<PathCtxt>> = vec![None; cfg.basic_blocks.len()];
 
         for curr_block_index in 0..cfg.basic_blocks.len() {
-            if self.dump_debug_info {
-                let source_path = self.encoder.env().source_path();
-                let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-                report::log::report_with_writer(
-                    "graphviz_reborrowing_dag_during_foldunfold",
-                    format!(
-                        "{}.{:?}.{}.dot",
-                        source_filename,
-                        dag,
-                        surrounding_block_index.index()
-                    ),
-                    |writer| cfg.to_graphviz(writer, curr_block_index),
-                );
-            }
+            self.dump_debug_info(dag, &cfg, surrounding_block_index, curr_block_index);
 
             let (mut pctxt, curr_block_pre_statements) = self.construct_initial_pctxt(
                 dag, &mut cfg,
@@ -379,6 +366,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             }
         }
         Ok(final_pctxt)
+    }
+
+    fn dump_debug_info(&self,
+        dag: &vir::borrows::DAG,
+        cfg: &borrows::CFG,
+        surrounding_block_index: vir::CfgBlockIndex,
+        curr_block_index: usize
+    ) {
+        if !self.dump_debug_info { return; }
+        let source_path = self.encoder.env().source_path();
+        let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+        report::log::report_with_writer(
+            "graphviz_reborrowing_dag_during_foldunfold",
+            format!(
+                "{}.{:?}.{}.dot",
+                source_filename,
+                dag,
+                surrounding_block_index.index()
+            ),
+            |writer| cfg.to_graphviz(writer, curr_block_index),
+        );
     }
 }
 
