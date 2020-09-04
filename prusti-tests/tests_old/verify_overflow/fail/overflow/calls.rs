@@ -1,7 +1,7 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[requires="a + b <= std::u32::MAX"]
-#[ensures="result == a + b"]
+#[requires(a + b <= std::u32::MAX)]
+#[ensures(result == a + b)]
 fn sum(a: u32, b: u32) -> u32 {
     a + b
 }

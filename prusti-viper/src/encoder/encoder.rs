@@ -1227,7 +1227,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             //         panic!("Constant evaluation of {:?} failed", value.val)
             //     }
             // }
-            _ => unimplemented!(),
+            _ => unimplemented!("encode_const_expr"),
         };
 
             fn with_sign(unsigned_val: u128, bit_size: u64) -> i128 {
