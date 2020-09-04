@@ -1,22 +1,22 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 #[pure]
 #[trusted]
-#[requires="x >= 0"]
+#[requires(x >= 0)]
 fn foo_u32(x: u32) -> u32 {
     unimplemented!()
 }
 
 #[pure]
 #[trusted]
-#[requires="x >= 0"]
+#[requires(x >= 0)]
 fn foo_u64(x: u64) -> u64 {
     unimplemented!()
 }
 
 #[pure]
 #[trusted]
-#[requires="x >= 0"]
+#[requires(x >= 0)]
 fn foo_usize(x: usize) -> usize {
     unimplemented!()
 }

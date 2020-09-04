@@ -1,18 +1,18 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 #[pure]
-fn test_u32_ge_zero(x: u32) -> u32 {
-    -x //~ ERROR
+fn test_minus_i32(x: i32) -> i32 {
+    -x //~ ERROR negate with overflow
 }
 
 #[pure]
-fn test_u64_ge_zero(x: u64) -> u64 {
-    -x //~ ERROR
+fn test_minus_i64(x: i64) -> i64 {
+    -x //~ ERROR negate with overflow
 }
 
 #[pure]
-fn test_usize_ge_zero(x: usize) -> usize {
-    -x //~ ERROR
+fn test_minus_isize(x: isize) -> isize {
+    -x //~ ERROR negate with overflow
 }
 
 fn main() {}
