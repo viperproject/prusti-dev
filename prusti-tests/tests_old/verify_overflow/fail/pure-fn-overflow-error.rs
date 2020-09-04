@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 #[pure]
 fn test_usize(x: usize) -> usize {
