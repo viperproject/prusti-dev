@@ -32,5 +32,4 @@ pub fn test5() {
     let y = x;
 }
 
-
 fn main() {}

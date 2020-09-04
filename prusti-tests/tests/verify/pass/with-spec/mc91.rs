@@ -1,5 +1,3 @@
-
-
 use prusti_contracts::*;
 
 /// McCarthy’s 91 function

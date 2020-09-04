@@ -1,5 +1,3 @@
-
-
 use prusti_contracts::*;
 
 #[derive(Clone,PartialEq,Eq)]
@@ -50,4 +48,3 @@ fn test_eq_propagation(_x: &A, _y: &A) -> i32 {
 
 fn main() {
 }
-

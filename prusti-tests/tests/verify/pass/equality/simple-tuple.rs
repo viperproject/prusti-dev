@@ -1,7 +1,4 @@
-
-
 use prusti_contracts::*;
-
 
 #[derive(Clone,PartialEq,Eq)]
 struct A {
@@ -13,7 +10,6 @@ struct A {
 fn get_value(_x: &A) -> i32 {
     _x.i + _x.t.0 + _x.t.1
 }
-
 
 #[requires(_x == _y)]
 #[ensures(result == 2*get_value(_x))]

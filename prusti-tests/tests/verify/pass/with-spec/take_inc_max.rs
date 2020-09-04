@@ -1,5 +1,3 @@
-
-
 use prusti_contracts::*;
 
 /// Example 1 / Figure 1 from the paper "RustHorn: CHC-based Verification for Rust Programs"
