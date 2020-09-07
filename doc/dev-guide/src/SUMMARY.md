@@ -15,3 +15,7 @@
   - [Pure function encoding](encoding/pure.md)
   - [Name mangling](encoding/mangling.md)
 - [Repository Layout](layout.md)
+- [Development](development/summary.md)
+  - [Setup](development/setup.md)
+  - [Building](development/build.md)
+  - [Tests](development/tests.md)
