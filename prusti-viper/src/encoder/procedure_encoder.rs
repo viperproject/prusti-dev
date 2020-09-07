@@ -76,7 +76,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     auxiliary_local_vars: HashMap<String, vir::Type>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     check_panics: bool,
-    check_fold_unfold_state: bool,
+    check_foldunfold_state: bool,
     polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
     procedure_contract: Option<ProcedureContract<'tcx>>,
     label_after_location: HashMap<mir::Location, String>,
@@ -146,7 +146,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             auxiliary_local_vars: HashMap::new(),
             mir_encoder: mir_encoder,
             check_panics: config::check_panics(),
-            check_fold_unfold_state: config::check_foldunfold_state(),
+            check_foldunfold_state: config::check_foldunfold_state(),
             polonius_info: None,
             procedure_contract: None,
             label_after_location: HashMap::new(),
@@ -1229,7 +1229,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vec![vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)]
         };
 
-        if self.check_fold_unfold_state {
+        if self.check_foldunfold_state {
             let pos = self
                 .encoder
                 .error_manager()
@@ -1249,7 +1249,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         stmts.push(vir::Stmt::Obtain(expr.clone(), pos));
 
-        if self.check_fold_unfold_state {
+        if self.check_foldunfold_state {
             let pos = self.encoder.error_manager().register(
                 // TODO: use a better span
                 self.mir.span,
@@ -2205,8 +2205,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let mut stmts = vec![];
         let mut stmts_after: Vec<vir::Stmt> = vec![];
+
+        // Arguments can be places or constants. For constants, we pretend they're places by
+        // creating a new local variable of the same type. For arguments that are not just local
+        // variables (i.e., for places that have projections), we do the same. We don't replace
+        // arguments that are just local variables with a new local variable.
+        // This data structure maps the newly created local variables to the expression that was
+        // originally passed as an argument.
         let mut fake_exprs: HashMap<vir::Expr, vir::Expr> = HashMap::new();
-        let mut fake_vars = vec![];
+        let mut arguments = vec![];
+
         let mut const_arg_vars: HashSet<vir::Expr> = HashSet::new();
         let mut type_invs: HashMap<String, vir::Function> = HashMap::new();
         let mut constant_args = Vec::new();
@@ -2221,18 +2229,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             {
                 arg_tys.push(cl_ty);
-                let fake_arg = self.locals.get_fresh(cl_ty);
-                fake_vars.push(fake_arg);
-                let encoded_local = self.encode_prusti_local(fake_arg);
-                let fake_arg_place = vir::Expr::local(encoded_local);
-                debug!("fake_arg self for closure: {:?}: {:?}, {}", fake_arg, cl_ty, fake_arg_place);
+                let arg = match args[0] {
+                    mir::Operand::Copy(place) | mir::Operand::Move(place) => {
+                        if let Some(local) = place.as_local() {
+                            local.into()
+                        } else {
+                            self.locals.get_fresh(cl_ty)
+                        }
+                    }
+                    mir::Operand::Constant(_) =>
+                        self.locals.get_fresh(cl_ty)
+                };
+                arguments.push(arg.clone());
+
+                let encoded_local = self.encode_prusti_local(arg);
+                let arg_place = vir::Expr::local(encoded_local);
+                debug!("arg self for closure: {:?}: {:?}, {}", arg, cl_ty, arg_place);
                 let inv_name = self.encoder.encode_type_invariant_use(cl_ty);
                 let arg_inv = self.encoder.encode_type_invariant_def(cl_ty);
                 type_invs.insert(inv_name, arg_inv);
                 match self.mir_encoder.encode_operand_place(&args[0]) {
                     Some(place) => {
-                        debug!("fake_arg self for closure: {} {}", fake_arg_place, place);
-                        fake_exprs.insert(fake_arg_place, place.into());
+                        debug!("arg self for closure: {} {}", arg_place, place);
+                        fake_exprs.insert(arg_place, place.into());
                     }
                     None => unimplemented!()
                 }
@@ -2244,11 +2263,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         for (field_num, ty) in substs.iter().enumerate() {
                             let arg_ty = ty.expect_ty();
                             arg_tys.push(arg_ty);
-                            let fake_arg = self.locals.get_fresh(arg_ty);
-                            fake_vars.push(fake_arg.clone());
-                            let encoded_local = self.encode_prusti_local(fake_arg);
-                            let fake_arg_place = vir::Expr::local(encoded_local);
-                            debug!("fake_arg for closure: {:?}: {:?}, {}", fake_arg, arg_ty, fake_arg_place);
+                            let arg = self.locals.get_fresh(arg_ty);
+                            arguments.push(arg.clone());
+
+                            let encoded_local = self.encode_prusti_local(arg);
+                            let arg_place = vir::Expr::local(encoded_local);
+                            debug!("arg for closure: {:?}: {:?}, {}", arg, arg_ty, arg_place);
                             let inv_name = self.encoder.encode_type_invariant_use(arg_ty);
                             let arg_inv = self.encoder.encode_type_invariant_def(arg_ty);
                             type_invs.insert(inv_name, arg_inv);
@@ -2260,8 +2280,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             match self.mir_encoder.encode_operand_place(&args[1]) {
                                 Some(place) => {
                                     let field = place.field(value_field);
-                                    debug!("fake_arg for closure: {} {}", fake_arg_place, field);
-                                    fake_exprs.insert(fake_arg_place, field);
+                                    debug!("arg for closure: {} {}", arg_place, field);
+                                    fake_exprs.insert(arg_place, field);
                                 }
                                 None => unimplemented!()
                             }
@@ -2275,29 +2295,41 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             for operand in args.iter() {
                 let arg_ty = self.mir_encoder.get_operand_ty(operand);
                 arg_tys.push(arg_ty);
-                let fake_arg = self.locals.get_fresh(arg_ty);
-                fake_vars.push(fake_arg.clone());
-                let encoded_local = self.encode_prusti_local(fake_arg);
-                let fake_arg_place = vir::Expr::local(encoded_local);
-                debug!("fake_arg: {:?}: {:?}, {}", fake_arg, arg_ty, fake_arg_place);
+
+                let arg = match operand {
+                    mir::Operand::Copy(place) | mir::Operand::Move(place) => {
+                        if let Some(local) = place.as_local() {
+                            local.into()
+                        } else {
+                            self.locals.get_fresh(arg_ty)
+                        }
+                    }
+                    mir::Operand::Constant(_) =>
+                        self.locals.get_fresh(arg_ty)
+                };
+                arguments.push(arg.clone());
+
+                let encoded_local = self.encode_prusti_local(arg);
+                let arg_place = vir::Expr::local(encoded_local);
+                debug!("arg: {:?} {}", arg, arg_place);
                 let inv_name = self.encoder.encode_type_invariant_use(arg_ty);
                 let arg_inv = self.encoder.encode_type_invariant_def(arg_ty);
                 type_invs.insert(inv_name, arg_inv);
                 match self.mir_encoder.encode_operand_place(operand) {
                     Some(place) => {
-                        debug!("fake_arg: {} {}", fake_arg_place, place);
-                        fake_exprs.insert(fake_arg_place, place.into());
+                        debug!("arg: {} {}", arg_place, place);
+                        fake_exprs.insert(arg_place, place.into());
                     }
                     None => {
                         // We have a constant.
-                        constant_args.push(fake_arg_place.clone());
+                        constant_args.push(arg_place.clone());
                         let arg_val_expr = self.mir_encoder.encode_operand_expr(operand);
-                        debug!("arg_val_expr: {} {}", fake_arg_place, arg_val_expr);
+                        debug!("arg_val_expr: {} {}", arg_place, arg_val_expr);
                         let val_field = self.encoder.encode_value_field(arg_ty);
-                        fake_exprs.insert(fake_arg_place.clone().field(val_field), arg_val_expr);
+                        fake_exprs.insert(arg_place.clone().field(val_field), arg_val_expr);
                         let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
                         if in_loop {
-                            const_arg_vars.insert(fake_arg_place);
+                            const_arg_vars.insert(arg_place);
                             return Err(EncodingError::unsupported(
                                 format!(
                                     "please use a local variable as argument for function '{}', not a \
@@ -2312,17 +2344,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
 
-        let (fake_target_local, real_target) = {
+        let (target_local, encoded_target) = {
             match destination.as_ref() {
                 Some((ref target_place, _)) => {
                     // will panic if attempting to encode unsupported type
-                    let (encoded_dst, ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
-                    let fake_target = self.locals.get_fresh(ty);
+                    let (encoded_target, ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                    let target_local = if let Some(target_local) = target_place.as_local() {
+                        target_local.into()
+                    } else {
+                        self.locals.get_fresh(ty)
+                    };
                     fake_exprs.insert(
-                        vir::Expr::local(self.encode_prusti_local(fake_target)),
-                        encoded_dst.clone().into(),
+                        vir::Expr::local(self.encode_prusti_local(target_local)),
+                        encoded_target.clone().into(),
                     );
-                    (fake_target, Some(encoded_dst))
+                    (target_local, Some(encoded_target))
                 }
                 None => {
                     // The return type is Never
@@ -2374,8 +2410,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let procedure_contract = {
             self.encoder.get_procedure_contract_for_call(
                 called_def_id,
-                &fake_vars,
-                fake_target_local,
+                &arguments,
+                target_local,
             )
         };
 
@@ -2437,7 +2473,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let pre_mandatory_perm_spec = pre_mandatory_perms_old.into_iter().conjoin();
 
         // Havoc the content of the lhs, if there is one
-        if let Some(ref target_place) = real_target {
+        if let Some(ref target_place) = encoded_target {
             stmts.extend(self.encode_havoc(target_place));
         }
 
@@ -2469,7 +2505,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             &pre_label,
             &post_label,
             Some((location, &fake_exprs)),
-            real_target.is_none(),
+            encoded_target.is_none(),
             loan,
             false,
         );

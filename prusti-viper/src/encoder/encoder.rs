@@ -24,10 +24,10 @@ use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
 use prusti_common::vir;
 use prusti_common::vir::WithIdentifier;
 use prusti_common::config;
+use prusti_common::report::log;
 // use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
-use prusti_interface::report::log;
 use prusti_interface::specs::typed;
 use prusti_interface::specs::typed::SpecificationId;
 // use prusti_interface::specs::{
@@ -1251,7 +1251,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             //         panic!("Constant evaluation of {:?} failed", value.val)
             //     }
             // }
-            _ => unimplemented!(),
+            _ => unimplemented!("encode_const_expr"),
         };
 
             fn with_sign(unsigned_val: u128, bit_size: u64) -> i128 {

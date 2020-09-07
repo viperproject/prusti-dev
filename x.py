@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 """A wrapper for cargo that sets up the Prusti environment."""
 
@@ -94,23 +94,59 @@ def get_mac_env():
     return variables
 
 
+def get_win_env():
+    """Get environment variables for Windows."""
+    java_home = get_var_or('JAVA_HOME', None)
+    variables = [
+        ('JAVA_HOME', java_home),
+        ('RUST_TEST_THREADS', '1'),
+    ]
+    if os.path.exists(java_home):
+        library_path = None
+        for root, _, files in os.walk(java_home):
+            if 'jvm.dll' in files:
+                library_path = root
+                break
+        if library_path is None:
+            report("could not find jvm.dll in {}", java_home)
+        else:
+            variables.append(('PATH', library_path))
+    viper_home = get_var_or('VIPER_HOME', os.path.abspath(os.path.join('viper_tools', 'backends')))
+    if os.path.exists(viper_home):
+        variables.append(('VIPER_HOME', viper_home))
+    else:
+        report("could not find VIPER_HOME in {}", viper_home)
+    z3_exe = os.path.abspath(os.path.join(viper_home, os.path.join('..', 'z3', 'bin', 'z3.exe')))
+    if os.path.exists(z3_exe):
+        variables.append(('Z3_EXE', z3_exe))
+    return variables
+
+
 def set_env_variables(env, variables):
-    """Set the given environment variables in `env` if not already set."""
+    """Set the given environment variables in `env` if not already set, merging special variables."""
     for name, value in variables:
         if name not in env:
             env[name] = value
+        elif name in ("PATH", "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH"):
+            if sys.platform == "win32":
+                env[name] += ";" + value
+            else:
+                env[name] += ":" + value
         report("env: {}={}", name, env[name])
 
 
 def get_env():
     """Returns the environment with the variables set."""
     env = os.environ.copy()
-    if sys.platform == "linux" or sys.platform == "linux2":
+    if sys.platform in ("linux", "linux2"):
         # Linux
         set_env_variables(env, get_linux_env())
     elif sys.platform == "darwin":
         # Mac
         set_env_variables(env, get_mac_env())
+    elif sys.platform == "win32":
+        # Windows
+        set_env_variables(env, get_win_env())
     else:
         error("unsupported platform: {}", sys.platform)
     return env
@@ -148,14 +184,14 @@ def setup_ubuntu():
     # Download Viper.
     shell('wget -q http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
     shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
-    shell('rm ViperToolsNightlyLinux.zip')
+    os.remove('ViperToolsNightlyLinux.zip')
 
 
 def setup_linux():
     """Install the dependencies on generic Linux."""
     shell('curl http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip -o ViperToolsNightlyLinux.zip')
     shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
-    shell('rm ViperToolsNightlyLinux.zip')
+    os.remove('ViperToolsNightlyLinux.zip')
 
 
 def setup_mac():
@@ -164,7 +200,17 @@ def setup_mac():
     # Download Viper.
     shell('curl http://viper.ethz.ch/downloads/ViperToolsNightlyMac.zip -o ViperToolsNightlyMac.zip')
     shell('unzip ViperToolsNightlyMac.zip -d viper_tools')
-    shell('rm ViperToolsNightlyMac.zip')
+    os.remove('ViperToolsNightlyMac.zip')
+
+
+def setup_win():
+    """Install the dependencies on Windows."""
+    # Non-Viper dependencies must be installed manually.
+    # Download Viper.
+    shell('curl http://viper.ethz.ch/downloads/ViperToolsNightlyWin.zip -o ViperToolsNightlyWin.zip')
+    shell('mkdir viper_tools')
+    shell('tar -xf ViperToolsNightlyWin.zip -C viper_tools')
+    os.remove('ViperToolsNightlyWin.zip')
 
 
 def setup_rustup():
@@ -186,13 +232,15 @@ def setup(args):
     elif args:
         error("unexpected arguments: {}", args)
     if not rustup_only:
-        if sys.platform == "linux" or sys.platform == "linux2":
+        if sys.platform in ("linux", "linux2"):
             if 'Ubuntu' in platform.platform():
                 setup_ubuntu()
             else:
                 setup_linux()
         elif sys.platform == "darwin":
             setup_mac()
+        elif sys.platform == "win32":
+            setup_win()
         else:
             error("unsupported platform: {}", sys.platform)
     setup_rustup()
