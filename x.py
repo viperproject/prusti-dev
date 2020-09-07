@@ -111,10 +111,12 @@ def get_win_env():
             report("could not find jvm.dll in {}", java_home)
         else:
             variables.append(('PATH', library_path))
-    viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/backends'))
+    viper_home = get_var_or('VIPER_HOME', os.path.abspath(os.path.join('viper_tools', 'backends')))
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
-    z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3.exe'))
+    else:
+        report("could not find VIPER_HOME in {}", viper_home)
+    z3_exe = os.path.abspath(os.path.join(viper_home, os.path.join('..', 'z3', 'bin', 'z3.exe')))
     if os.path.exists(z3_exe):
         variables.append(('Z3_EXE', z3_exe))
     return variables
@@ -206,7 +208,8 @@ def setup_win():
     # Non-Viper dependencies must be installed manually.
     # Download Viper.
     shell('curl http://viper.ethz.ch/downloads/ViperToolsNightlyWin.zip -o ViperToolsNightlyWin.zip')
-    shell('tar -xf ViperToolsNightlyWin.zip')
+    shell('mkdir viper_tools')
+    shell('tar -xf ViperToolsNightlyWin.zip -C viper_tools')
     os.remove('ViperToolsNightlyWin.zip')
 
 
