@@ -68,10 +68,8 @@ impl<'v> VerificationContext<'v> {
             VerificationBackend::Silicon => verifier_args.extend(vec![
                 "--tempDirectory".to_string(),
                 log_dir_str.to_string(),
-                //"--logLevel".to_string(), "WARN".to_string(),
             ]),
             VerificationBackend::Carbon => verifier_args.extend(vec![
-                "--disableAllocEncoding".to_string(),
                 "--boogieOpt".to_string(),
                 format!("/logPrefix {}", log_dir_str),
             ]),
@@ -80,8 +78,6 @@ impl<'v> VerificationContext<'v> {
             match backend_config.backend {
                 VerificationBackend::Silicon => verifier_args.extend(vec![
                     "--printMethodCFGs".to_string(),
-                    "--logLevel".to_string(),
-                    "ERROR".to_string(),
                     //"--printTranslatedProgram".to_string(),
                 ]),
                 VerificationBackend::Carbon => verifier_args.extend::<Vec<_>>(vec![

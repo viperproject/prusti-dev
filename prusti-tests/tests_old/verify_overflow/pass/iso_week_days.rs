@@ -1,9 +1,9 @@
 /// From time::display[0]::iso_week_days[0]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[requires="0 <= yday && yday <= 365 * 5"]
-#[requires="0 <= wday && wday <= 6"]
+#[requires(0 <= yday && yday <= 365 * 5)]
+#[requires(0 <= wday && wday <= 6)]
 fn iso_week_days(yday: i32, wday: i32) -> i32 {
     /* The number of days from the first day of the first ISO week of this
     * year to the year day YDAY with week day WDAY.

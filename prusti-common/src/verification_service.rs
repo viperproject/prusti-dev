@@ -27,15 +27,23 @@ impl Default for ViperBackendConfig {
     fn default() -> Self {
         let backend = VerificationBackend::from_str(&config::viper_backend());
         let mut verifier_args = config::extra_verifier_args();
-        if let VerificationBackend::Silicon = backend {
-            if config::use_more_complete_exhale() {
-                verifier_args.push("--enableMoreCompleteExhale".to_string());
-                // Buggy :(
+        match backend {
+            VerificationBackend::Silicon => {
+                if config::use_more_complete_exhale() {
+                    verifier_args.push("--enableMoreCompleteExhale".to_string());
+                }
+                verifier_args.extend(vec![
+                    "--assertTimeout".to_string(),
+                    config::assert_timeout().to_string(),
+                    "--logLevel".to_string(),
+                    "ERROR".to_string(),
+                ]);
             }
-            verifier_args.extend(vec![
-                "--assertTimeout".to_string(),
-                config::assert_timeout().to_string(),
-            ]);
+            VerificationBackend::Carbon => {
+                verifier_args.extend(vec![
+                    "--disableAllocEncoding".to_string(),
+                ]);
+            }
         }
         Self {
             backend,

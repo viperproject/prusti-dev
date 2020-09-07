@@ -1,5 +1,3 @@
-
-
 use prusti_contracts::*;
 
 #[derive(Clone,Copy,PartialEq,Eq)]
@@ -16,4 +14,3 @@ fn first(_x: A, _y: A) -> A {
 
 fn main() {
 }
-

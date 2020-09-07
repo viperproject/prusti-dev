@@ -10,4 +10,3 @@ fn main() {
     let _b = A { i: 42 };
     assert!(_a != _b);
 }
-

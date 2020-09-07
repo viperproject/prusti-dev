@@ -1,5 +1,3 @@
-
-
 use prusti_contracts::*;
 
 struct T {
