@@ -23,6 +23,8 @@ mod pure_function_encoder;
 mod snapshot_encoder;
 mod snapshot_spec_patcher;
 mod spec_encoder;
+mod spec_function_encoder;
+pub use spec_function_encoder::SpecFunctionKind;
 mod stub_function_encoder;
 mod stub_procedure_encoder;
 mod type_encoder;
