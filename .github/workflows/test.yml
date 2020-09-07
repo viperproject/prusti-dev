@@ -14,28 +14,27 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-latest ]
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
       fail-fast: false # don't cancel when one matrix job fails, so we can compare to the others
     runs-on: ${{ matrix.os }}
     steps:
     - name: Check out the repo
       uses: actions/checkout@v2
+    - name: Setup Python 3
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1.0.6
     - name: Set up the environment
-      run: ./x.py setup
+      run: python x.py setup
     - name: Build with cargo
-      run: ./x.py build --all --verbose
+      run: python x.py build --all --verbose
     - name: Run cargo tests
-      run: ./x.py test --all --verbose
+      run: python x.py test --all --verbose
     - name: Check formatting
-      run: echo "temporarily skipped" # ./x.py fmt -- --check
+      run: echo "temporarily skipped" # python x.py fmt -- --check
     - name: Check prusti-contracts
       run: |
         cd prusti-contracts-test/
         cargo build
-    - name: Check prusti-rustc binary
-      run: |
-        ./target/debug/prusti-rustc prusti-tests/tests/verify/pass/no-annotations/assert-true.rs
-        ! ./target/debug/prusti-rustc prusti-tests/tests/verify/fail/no-annotations/assert-false.rs
-      env:
-        VIPER_HOME: viper_tools/backends/
-        Z3_EXE: viper_tools/z3/bin/z3
