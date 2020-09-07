@@ -19,6 +19,8 @@ use crate::encoder::spec_encoder::encode_spec_assertion;
 use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder};
 use crate::encoder::type_encoder::{
     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
+use crate::encoder::SpecFunctionKind;
+use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
 use prusti_common::vir;
 use prusti_common::vir::WithIdentifier;
 use prusti_common::config;
@@ -72,6 +74,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     /// Stub pure functions. Generated when an impure Rust function is invoked
     /// where a pure function is required.
     stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
+    spec_functions: RefCell<HashMap<ProcedureDefId, Vec<vir::Function>>>,
     type_predicate_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     type_tag_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
@@ -129,6 +132,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             pure_function_bodies: RefCell::new(HashMap::new()),
             pure_functions: RefCell::new(HashMap::new()),
             stub_pure_functions: RefCell::new(HashMap::new()),
+            spec_functions: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
             type_invariant_names: RefCell::new(HashMap::new()),
             type_tag_names: RefCell::new(HashMap::new()),
@@ -284,6 +288,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         for snap in self.snapshots.borrow().values() {
             for function in snap.get_functions() {
                 functions.push(function);
+            }
+        }
+        for sfs in self.spec_functions.borrow().values() {
+            for sf in sfs {
+                functions.push(sf.clone());
             }
         }
         functions.sort_by_key(|f| f.get_identifier());
@@ -690,6 +699,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.log_vir_program_before_viper(method.to_string());
             self.procedures.borrow_mut().insert(def_id, method);
         }
+        self.encode_spec_funcs(def_id)?;
         Ok(self.procedures.borrow()[&def_id].clone())
     }
 
@@ -698,6 +708,19 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_value_or_ref_type()
+    }
+
+    /// Encodes the specification functions for the function/closure def_id.
+    pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
+        -> PositionlessEncodingResult<Vec<vir::Function>>
+    {
+        if !self.spec_functions.borrow().contains_key(&def_id) {
+            let procedure = self.env.get_procedure(def_id);
+            let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure);
+            let result = spec_func_encoder.encode()?;
+            self.spec_functions.borrow_mut().insert(def_id, result);
+        }
+        Ok(self.spec_functions.borrow()[&def_id].clone())
     }
 
     pub fn encode_value_type(&self, ty: ty::Ty<'tcx>)
@@ -1465,5 +1488,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .collect();
         substs.sort();
         Ok(substs.join(";"))
+    }
+
+    pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {
+        let item_name: String = self.encode_item_name(def_id);
+        let sf_name: String = item_name.replacen(
+            "m_",
+            &("sf_".to_owned()
+              + match kind { SpecFunctionKind::Pre => "pre",
+                             SpecFunctionKind::Post => "post",
+                             SpecFunctionKind::HistInv => "histinv" }
+              + "_"),
+            1);
+        sf_name
     }
 }
