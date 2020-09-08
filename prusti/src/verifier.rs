@@ -1,6 +1,6 @@
 //! A module that invokes the verifier `prusti-viper`
 
-use crate::specs::typed;
+use prusti_interface::specs::typed;
 use log::{debug, trace, warn};
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
