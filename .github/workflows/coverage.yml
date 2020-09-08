@@ -3,34 +3,45 @@ name: Test coverage
 on:
   push:
     branches:
-      - non-existant-master # Disable temporarily.
+      - master
 
 env:
   RUST_BACKTRACE: 1
-  RUST_TEST_THREADS: 1
   PRUSTI_ASSERT_TIMEOUT: 60000
+  # The following are necessary for profiling (see https://github.com/mozilla/grcov)
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
+  RUSTDOCFLAGS: -Cpanic=abort
 
 jobs:
-
-  full-test:
+  test:
     runs-on: ubuntu-latest
     steps:
     - name: Check out the repo
       uses: actions/checkout@v2
-    - name: Prepare environment
-      run: .github/workflows/prepare-environment.sh
-    - name: Run cargo tests, enabling profiling
-      run: cargo test --all --verbose
-      env:
-        CARGO_INCREMENTAL: 0
-        RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads
-    - name: Run tests with prusti-rustc, enabling debug dumps
+    - name: Setup Python 3
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1.0.6
+    - name: Set up the environment
+      run: python x.py setup
+    - name: Build with cargo
+      run: python x.py build --all --verbose
+    - name: Run cargo tests
+      run: python x.py test --all --verbose
+    - name: Check prusti-contracts
       run: |
-        ./target/debug/prusti-rustc prusti/tests/verify/pass/no-annotations/assert-true.rs
-        ! ./target/debug/prusti-rustc prusti/tests/verify/fail/no-annotations/assert-false.rs
-      env:
-        PRUSTI_DUMP_DEBUG_INFO: true
-        PRUSTI_DUMP_VIPER_PROGRAM: true
+        cd prusti-contracts-test/
+        cargo build
+    #- name: Run tests with prusti-rustc, enabling debug dumps
+    #  run: |
+    #    ./target/debug/prusti-rustc prusti/tests/verify/pass/no-annotations/assert-true.rs
+    #    ! ./target/debug/prusti-rustc prusti/tests/verify/fail/no-annotations/assert-false.rs
+    #  env:
+    #    PRUSTI_DUMP_DEBUG_INFO: true
+    #    PRUSTI_DUMP_VIPER_PROGRAM: true
     - name: Collect coverage
       run: |
         curl -sL https://github.com/mozilla/grcov/releases/latest/download/grcov-linux-x86_64.tar.bz2 | tar jxf -
