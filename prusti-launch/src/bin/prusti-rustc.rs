@@ -12,6 +12,7 @@ use std::{
     path::PathBuf,
     process::Command,
 };
+use std::path::Path;
 
 fn process(mut args: Vec<String>) -> Result<(), i32> {
     let mut prusti_driver_path = env::current_exe()
@@ -52,25 +53,25 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         add_to_loader_path(vec![compiler_lib, libjvm_path], &mut cmd);
     }
 
-    let has_no_color_arg = args
-        .iter()
-        .find(|&x| x == "--color" || x.starts_with("--color="))
-        .is_none();
-    if has_no_color_arg {
-        cmd.args(&["--color", "always"]);
+    let has_no_sysroot_arg = !args.iter().any(|s| s == "--sysroot");
+
+    // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
+    // We're invoking the compiler programmatically, so we ignore this
+    if args.len() > 0 && Path::new(&args[0]).file_stem() == Some("rustc".as_ref()) {
+        args.remove(0);
     }
 
-    if !args.iter().any(|s| s == "--sysroot") {
-        args.push("--sysroot".to_string());
-        args.push(
+    cmd.args(args);
+
+    if has_no_sysroot_arg {
+        cmd.arg("--sysroot".to_string());
+        cmd.arg(
             prusti_sysroot
                 .into_os_string()
                 .into_string()
                 .expect("sysroot is not a valid utf-8 string"),
         );
     };
-
-    cmd.args(args);
 
     cmd.arg("-L");
     cmd.arg(format!(

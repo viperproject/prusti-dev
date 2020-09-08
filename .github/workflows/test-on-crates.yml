@@ -27,12 +27,12 @@ jobs:
       - name: Download top crates
         run: |
           mkdir -p "$TOP_CRATES_DIR"
-          ./evaluation/script/download-top-20.sh "$TOP_CRATES_DIR"
-          ./evaluation/script/set-cargo-lock.sh "$TOP_CRATES_DIR"
+          ./test-crates/download-top-20.sh "$TOP_CRATES_DIR"
+          ./test-crates/set-cargo-lock.sh "$TOP_CRATES_DIR"
       - name: Compile crates with standard rustc
-        run: ./evaluation/script/compile-crates.sh "$TOP_CRATES_DIR"
+        run: ./test-crates/compile-crates.sh "$TOP_CRATES_DIR"
       - name: Run Prusti on the top crates
-        run: ./evaluation/script/core-evaluation.sh "$TOP_CRATES_DIR"
+        run: ./test-crates/core-evaluation.sh "$TOP_CRATES_DIR"
       - name: Check outcome
         run: |
           if grep "^[^,]*,false," "$TOP_CRATES_DIR"/coarse-grained-verification-report.csv; then
