@@ -9,6 +9,7 @@ use std::fmt;
 use std::iter::FromIterator;
 use uuid::Uuid;
 use vir::ast::*;
+use vir::gather_labels::gather_labels;
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
@@ -232,14 +233,14 @@ impl CfgMethod {
     }
 
     pub fn add_stmt(&mut self, index: CfgBlockIndex, stmt: Stmt) {
-        if let &Stmt::Label(ref label_name) = &stmt {
+        for label_name in gather_labels(&stmt) {
             assert!(
-                self.is_fresh_local_name(label_name),
+                self.is_fresh_local_name(&label_name),
                 "label {} is not fresh",
                 label_name
             );
-            self.labels.insert(label_name.clone());
-        };
+            self.labels.insert(label_name);
+        }
         self.basic_blocks[index.block_index].stmts.push(stmt);
     }
 
