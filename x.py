@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 """A wrapper for cargo that sets up the Prusti environment."""
 
