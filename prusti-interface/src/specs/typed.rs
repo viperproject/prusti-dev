@@ -81,6 +81,12 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                 // FIXME: include the conditions
                 body.get_spans(tcx)
             }
+            AssertionKind::SpecEnt(ref cl_name, ref _binders, ref pre, ref post) => {
+                pre.get_spans(tcx)
+                   .into_iter()
+                   .chain(post.get_spans(tcx))
+                   .collect()
+            }
         }
     }
 }

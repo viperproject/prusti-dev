@@ -198,6 +198,12 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
                 triggers.assign_id(spec_id, id_generator),
                 body.assign_id(spec_id, id_generator)
             ),
+            SpecEnt(clname, args, pre, post) => SpecEnt(
+                clname,
+                args.assign_id(spec_id, id_generator),
+                pre.assign_id(spec_id, id_generator),
+                post.assign_id(spec_id, id_generator)
+            ),
             x => unimplemented!("{:?}", x),
         }
     }
@@ -291,6 +297,24 @@ impl EncodeTypeCheck for Assertion {
                 let vec_of_vars = &vars.vars;
                 let span = Span::call_site();
                 let identifier = format!("{}_{}", vars.spec_id, vars.id);
+
+                let mut nested_assertion = TokenStream::new();
+                body.encode_type_check(&mut nested_assertion);
+                triggers.encode_type_check(&mut nested_assertion);
+
+                let typeck_call = quote_spanned! { span =>
+                    #[prusti::spec_only]
+                    #[prusti::expr_id = #identifier]
+                    |#(#vec_of_vars),*| {
+                        #nested_assertion
+                    };
+                };
+                tokens.extend(typeck_call);
+            }
+            AssertionKind::SpecEnt(clname, args, pre, post) => {
+                let vec_of_vars = &args.vars;
+                let span = Span::call_site();
+                let identifier = format!("{}_{}", args.spec_id, args.id);
 
                 let mut nested_assertion = TokenStream::new();
                 body.encode_type_check(&mut nested_assertion);

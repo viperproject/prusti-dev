@@ -367,6 +367,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     .collect(),
                 self.encode_assertion(body),
             ),
+            box typed::AssertionKind::SpecEnt(ref clname, ref args, ref precond, ref postcond) => {
+                // TODO
+                vir::Expr::Const(vir::Const::Bool(true), vir::Position::new(0, 0, 0))
+            }
         }
     }
 
