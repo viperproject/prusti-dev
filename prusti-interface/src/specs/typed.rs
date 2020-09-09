@@ -115,6 +115,12 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                 spans.extend(body.get_spans(mir_body, tcx));
                 spans
             }
+            AssertionKind::SpecEnt(ref cl_name, ref _binders, ref pre, ref post) => {
+                pre.get_spans(tcx)
+                   .into_iter()
+                   .chain(post.get_spans(tcx))
+                   .collect()
+            }
         }
     }
 }

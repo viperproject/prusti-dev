@@ -253,6 +253,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     final_body,
                 )
             },
+            box typed::AssertionKind::SpecEnt(ref clname, ref args, ref precond, ref postcond) => {
+                // TODO
+                vir::Expr::Const(vir::Const::Bool(true), vir::Position::new(0, 0, 0))
+            }
         })
     }
 

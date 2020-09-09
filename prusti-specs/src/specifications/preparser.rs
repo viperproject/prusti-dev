@@ -2,14 +2,14 @@
 /// parses the resulting Rust expressions, and then assembles the composite
 /// Prusti assertion.
 
-use proc_macro2::{Delimiter, Group, Span, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Group, Span, TokenStream, TokenTree, Ident};
 use std::collections::VecDeque;
 use std::mem;
 use syn::parse::{ParseStream, Parse};
 use syn::{self, Token, Error};
 
 use super::common;
-use crate::specifications::common::{ForAllVars, TriggerSet, Trigger};
+use crate::specifications::common::{ForAllVars, SpecEntVars, TriggerSet, Trigger};
 use syn::spanned::Spanned;
 
 pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
@@ -266,6 +266,20 @@ impl Parse for ForAllArgs {
     }
 }
 
+#[derive(Debug)]
+struct SpecEntArgs {
+    args: syn::punctuated::Punctuated<Arg, Token![,]>
+}
+
+impl Parse for SpecEntArgs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let parsed: syn::punctuated::Punctuated<Arg, Token![,]> = input.parse_terminated(Arg::parse)?;
+        Ok(Self{
+            args: parsed
+        })
+    }
+}
+
 /// The structure to parse Prusti assertions.
 ///
 /// Check common::AssertionKind to see all types of Prusti assertions.
@@ -494,6 +508,89 @@ impl Parser {
             return Err(self.error_expected_parenthesis());
         }
     }
+
+    fn resolve_spec_ent(&mut self) -> syn::Result<()> {
+        if self.expected_operator {
+            return Err(self.error_expected_operator());
+        }
+
+        // check whether there is a parenthesized block after spec_ent
+        if let Some(group) = self.input.check_and_consume_parenthesized_block() {
+            // construct a ParserStream off of the parenthesized block for further parsing
+            let mut stream = ParserStream::from_token_stream(group.stream());
+
+            // parse closure name (should be an expression at some point)
+            let token_stream = stream.create_stream_until(",");
+            if token_stream.is_empty() {
+                return Err(self.error_no_closure_ident());
+            }
+            let cl_name: Ident = syn::parse2(token_stream)?;
+            if !stream.check_and_consume_operator(",") {
+                return Err(self.error_expected_comma());
+            }
+
+            // parse vars
+            if !stream.check_and_consume_operator("|") {
+                return Err(self.error_expected_or());
+            }
+            let token_stream = stream.create_stream_until("|");
+            if token_stream.is_empty() {
+                return Err(self.error_no_quantifier_arguments());
+            }
+            let all_args: SpecEntArgs = syn::parse2(token_stream)?;
+            if !stream.check_and_consume_operator("|") {
+                return Err(self.error_expected_or());
+            }
+            let mut vars = vec![];
+            for var in all_args.args {
+                vars.push(Arg {
+                    typ: var.typ,
+                    name: var.name
+                })
+            }
+
+            if !stream.check_and_consume_operator(",") {
+                return Err(self.error_expected_comma());
+            }
+
+            // parse precondition
+            let token_stream = stream.create_stream_until(",");
+            let mut parser = Parser::from_token_stream(token_stream);
+            let precond = parser.extract_assertion()?;
+
+            if !stream.check_and_consume_operator(",") {
+                return Err(self.error_expected_comma());
+            }
+
+            // parse postcondition
+            let token_stream = stream.create_stream();
+            let mut parser = Parser::from_token_stream(token_stream);
+            let postcond = parser.extract_assertion()?;
+
+            let conjunct = AssertionWithoutId {
+                kind: Box::new(common::AssertionKind::SpecEnt(
+                    cl_name.to_string(),
+                    SpecEntVars {
+                        spec_id: common::SpecificationId::dummy(),
+                        id: (),
+                        vars
+                    },
+                    precond,
+                    postcond
+                ))
+            };
+
+            self.conjuncts.push(conjunct);
+            self.previous_expression_resolved = true;
+            self.expected_only_operator = true;
+            self.expected_operator = true;
+            return Ok(());
+        }
+        else {
+            return Err(self.error_expected_parenthesis());
+        }
+    }
+
     fn resolve_parenthesized_block(&mut self, group: Group) -> syn::Result<()>{
         // handling a parenthesized block
         if self.expected_only_operator {
@@ -560,6 +657,11 @@ impl Parser {
             }
             else if self.input.check_and_consume_keyword("forall") {
                 if let Err(err) = self.resolve_forall() {
+                    return Err(err);
+                }
+            }
+            else if self.input.check_and_consume_keyword("spec_ent") {
+                if let Err(err) = self.resolve_spec_ent() {
                     return Err(err);
                 }
             }
@@ -707,5 +809,8 @@ impl Parser {
     }
     fn error_no_quantifier_arguments(&self) -> syn::Error {
         syn::Error::new(self.input.span, "a quantifier must have at least one argument")
+    }
+    fn error_no_closure_ident(&self) -> syn::Error {
+        syn::Error::new(self.input.span, "missing closure identifier")
     }
 }

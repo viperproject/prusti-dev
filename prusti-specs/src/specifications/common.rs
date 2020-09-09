@@ -224,6 +224,13 @@ pub struct ForAllVars<EID, AT> {
 }
 
 #[derive(Debug, Clone)]
+pub struct SpecEntVars<EID, AT> {
+    pub spec_id: SpecificationId,
+    pub id: EID,
+    pub vars: Vec<AT>,
+}
+
+#[derive(Debug, Clone)]
 /// An assertion kind used in the specification.
 pub enum AssertionKind<EID, ET, AT> {
     /// A single Rust expression.
@@ -240,6 +247,13 @@ pub enum AssertionKind<EID, ET, AT> {
         TriggerSet<EID, ET>,
         Assertion<EID, ET, AT>,
     ),
+    /// Specification entailment: spec_ent(closure, argument binders, precond, postcond)
+    SpecEnt(
+        String, // closure name
+        SpecEntVars<EID, AT>, // argument binders
+        Assertion<EID, ET, AT>, // precondition
+        Assertion<EID, ET, AT>, // postcondition
+    )
 }
 
 #[derive(Debug, Clone)]
