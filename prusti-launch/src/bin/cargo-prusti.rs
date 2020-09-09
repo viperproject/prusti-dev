@@ -26,6 +26,7 @@ fn process<I>(args: I) -> Result<(), i32>
     let exit_status = Command::new("cargo".to_string())
         .arg("check")
         .args(args)
+        .env("PRUSTI_QUIET", "true")
         .env("PRUSTI_FULL_COMPILATION", "true")
         .env("RUSTC_WRAPPER", prusti_rustc_path)
         .status()

@@ -19,3 +19,4 @@ pub mod optimizations;
 mod to_viper;
 pub mod utils;
 mod program;
+mod gather_labels;
