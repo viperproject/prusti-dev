@@ -65,8 +65,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         ).to_def_site_contract();
 
         let pre_func = self.encode_pre_spec_func(&contract);
+        let post_func = self.encode_post_spec_func(&contract);
 
-        Ok(vec! [pre_func])
+        Ok(vec! [pre_func, post_func])
     }
 
     fn encode_pre_spec_func(&self, contract: &ProcedureContract<'tcx>) -> vir::Function {
@@ -95,6 +96,42 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Pre),
             formal_args: encoded_args,
+            return_type: vir::Type::Bool,
+            pres: Vec::new(),
+            posts: Vec::new(),
+            body: Some(func_spec.into_iter()
+                                .map(|post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post))
+                                .conjoin()),
+        }
+    }
+
+    fn encode_post_spec_func(&self, contract: &ProcedureContract<'tcx>) -> vir::Function {
+        let mut func_spec: Vec<vir::Expr> = vec![];
+
+        let mut encoded_args: Vec<vir::LocalVar> = contract
+            .args
+            .iter()
+            .map(|local| self.encode_local(local.clone().into()).into())
+            .collect();
+        let encoded_return = self.encode_local(contract.returned_value.clone().into());
+
+        for item in contract.functional_postcondition() {
+            func_spec.push(self.encoder.encode_assertion(
+                &item,
+                &self.mir,
+                &"",
+                &encoded_args.iter().map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
+                Some(&encoded_return.clone().into()),
+                true,
+                None,
+                ErrorCtxt::GenericExpression,
+            ));
+        }
+
+        vir::Function {
+            name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
+                                                     SpecFunctionKind::Post),
+            formal_args: encoded_args.into_iter().chain(std::iter::once(encoded_return)).collect(),
             return_type: vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),
