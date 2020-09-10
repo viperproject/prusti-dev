@@ -117,7 +117,7 @@ The following instructions has been tested on Ubuntu 16.04. For other distributi
 
 - To enable overflow checks, run the previous commands with the environment variable `PRUSTI_CHECK_BINARY_OPERATIONS` set to `true`.
 
-- (Optional) To install additional tools required by some scripts in the evaluation folder:
+- (Optional) To install additional tools required by some scripts:
 
     ```bash
     sudo apt-get install -y jq
