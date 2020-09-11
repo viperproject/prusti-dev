@@ -331,9 +331,29 @@ impl EncodeTypeCheck for Assertion {
                 };
                 tokens.extend(typeck_call);
             }
-            AssertionKind::SpecEnt(_cl, _args, _pres, _posts) => {
-                // TODO!
-                unimplemented!("spec_ent");
+            AssertionKind::SpecEnt(cl, args, pres, posts) => {
+                cl.encode_type_check(tokens);
+
+                let vec_of_vars = &args.vars;
+                let span = Span::call_site();
+                let identifier = format!("{}_{}", args.spec_id, args.id);
+
+                let mut nested_assertion = TokenStream::new();
+                for pre in pres {
+                    pre.encode_type_check(&mut nested_assertion);
+                }
+                for post in posts {
+                    post.encode_type_check(&mut nested_assertion);
+                }
+
+                let typeck_call = quote_spanned! { span =>
+                    #[prusti::spec_only]
+                    #[prusti::expr_id = #identifier]
+                    |#(#vec_of_vars),*| {
+                        #nested_assertion
+                    };
+                };
+                tokens.extend(typeck_call);
             }
             x => {
                 unimplemented!("{:?}", x);
