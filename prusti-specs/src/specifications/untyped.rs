@@ -387,34 +387,26 @@ impl EncodeTypeCheck for Assertion {
                 };
                 tokens.extend(typeck_call);
             }
-            AssertionKind::SpecEnt(clname, vars, pres, posts) => {
-                let vec_of_args = &vars.args;
+            AssertionKind::SpecEnt(cl, args, pres, posts) => {
+                cl.encode_type_check(tokens);
+
+                let vec_of_vars = &args.args;
                 let span = Span::call_site();
-                let pre_id = format!("{}_{}", vars.spec_id, vars.pre_id);
-                let post_id = format!("{}_{}", vars.spec_id, vars.post_id);
+                let identifier = format!("{}", args.spec_id);
 
-                let mut pre_assertion = TokenStream::new();
+                let mut nested_assertion = TokenStream::new();
                 for pre in pres {
-                    pre.encode_type_check(&mut pre_assertion);
+                    pre.encode_type_check(&mut nested_assertion);
                 }
-                let mut post_assertion = TokenStream::new();
                 for post in posts {
-                    post.encode_type_check(&mut post_assertion);
+                    post.encode_type_check(&mut nested_assertion);
                 }
-
-                let vec_of_args_with_result =
-                    vars.args.iter().chain(std::iter::once(&vars.result)).collect::<Vec<_>>();
 
                 let typeck_call = quote_spanned! { span =>
                     #[prusti::spec_only]
-                    #[prusti::expr_id = #pre_id]
-                    |#(#vec_of_args),*| {
-                        #pre_assertion
-                    };
-                    #[prusti::spec_only]
-                    #[prusti::expr_id = #post_id]
-                    |#(#vec_of_args_with_result),*| {
-                        #post_assertion
+                    #[prusti::expr_id = #identifier]
+                    |#(#vec_of_vars),*| {
+                        #nested_assertion
                     };
                 };
                 tokens.extend(typeck_call);
