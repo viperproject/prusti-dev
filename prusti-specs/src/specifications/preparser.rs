@@ -530,8 +530,9 @@ impl Parser {
 
         // specification entailments are in one of the following forms:
         //   expr |= |arg, arg, ...| [ requires(...), ensures(...), ... ]
-        //   expr |= |arg, arg, ...| requires(...)
         //   expr |= [ requires(...), ensures(...), ... ]
+        // TODO: (after discussion on syntax)
+        //   expr |= |arg, arg, ...| requires(...)
         //   expr |= requires(...)
         // by this point we have already consumed expr and |=
 
