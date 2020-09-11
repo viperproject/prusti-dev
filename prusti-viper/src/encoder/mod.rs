@@ -10,6 +10,7 @@ mod borrows;
 mod builtin_encoder;
 mod encoder;
 mod errors;
+mod expires_first_domain;
 mod foldunfold;
 mod initialisation;
 mod loop_encoder;
