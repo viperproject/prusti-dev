@@ -128,7 +128,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         )
                     ))
                 }
-            },
+            }
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 return Err(EncodingError::unsupported(

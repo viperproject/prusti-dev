@@ -41,7 +41,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             encoder: encoder,
             procedure: procedure,
             proc_def_id: procedure.get_id(),
-            contract: encoder.get_spec_by_def_id(procedure.get_id()),
+            contract: encoder.get_procedure_specs(procedure.get_id()),
             mir: procedure.get_mir(),
             mir_encoder: MirEncoder::new(encoder, procedure.get_mir(), procedure.get_id())
         }
@@ -83,7 +83,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             func_spec.push(self.encoder.encode_assertion(
                 &item,
                 &self.mir,
-                &"",
+                Some(&""),
                 &encoded_args.iter().map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 None,
                 true,
@@ -119,7 +119,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             func_spec.push(self.encoder.encode_assertion(
                 &item,
                 &self.mir,
-                &"",
+                Some(&""),
                 &encoded_args.iter().map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 Some(&encoded_return.clone().into()),
                 true,

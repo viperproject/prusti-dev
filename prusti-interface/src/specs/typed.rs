@@ -30,6 +30,9 @@ pub type Expression = common::Expression<ExpressionId, LocalDefId>;
 pub type TriggerSet = common::TriggerSet<ExpressionId, LocalDefId>;
 /// For all variables that have no types associated with it.
 pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
+
+pub type SpecEntVars<'tcx> = common::SpecEntVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
+
 /// A trigger that has no types associated with it.
 pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
 /// A pledge in the postcondition.
@@ -116,9 +119,9 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                 spans
             }
             AssertionKind::SpecEnt(ref cl_name, ref _binders, ref pre, ref post) => {
-                pre.get_spans(tcx)
+                pre.get_spans(mir_body, tcx)
                    .into_iter()
-                   .chain(post.get_spans(tcx))
+                   .chain(post.get_spans(mir_body, tcx))
                    .collect()
             }
         }
@@ -191,6 +194,48 @@ impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
     }
 }
 
+impl<'tcx> StructuralToTyped<'tcx, SpecEntVars<'tcx>> for json::SpecEntVars {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> SpecEntVars<'tcx> {
+        let local_pre_id = typed_expressions[&format!("{}_{}", self.spec_id, self.pre_expr_id)];
+        let local_post_id = typed_expressions[&format!("{}_{}", self.spec_id, self.post_expr_id)];
+        let (pre_body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_pre_id));
+        let (post_body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_post_id));
+        let pre_body = pre_body.borrow();
+        let post_body = post_body.borrow();
+
+        let pre_args: Vec<(mir::Local, ty::Ty)> = pre_body
+            .args_iter()
+            .skip(1)
+            .map(|arg| (arg, pre_body.local_decls
+                                     .get(arg)
+                                     .unwrap()
+                                     .ty
+                                     .clone()))
+            .collect();
+        let post_args: Vec<(mir::Local, ty::Ty)> = post_body
+            .args_iter()
+            .skip(1)
+            .map(|arg| (arg, post_body.local_decls
+                                      .get(arg)
+                                      .unwrap()
+                                      .ty
+                                      .clone()))
+            .collect();
+
+        assert!(pre_body.arg_count - 1 == self.arg_count);
+        assert!(post_body.arg_count - 1 == self.arg_count + 1); // arguments + "result"
+        assert_eq!(pre_args.len(), self.arg_count);
+        assert_eq!(post_args.len(), self.arg_count + 1);
+        return SpecEntVars {
+            spec_id: self.spec_id,
+            pre_id: self.pre_expr_id,
+            post_id: self.post_expr_id,
+            args: pre_args,
+            result: *post_args.last().unwrap()
+        }
+    }
+}
+
 impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind {
     fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> AssertionKind<'tcx> {
         use json::AssertionKind::*;
@@ -209,6 +254,12 @@ impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind 
                 vars.to_typed(typed_expressions, tcx),
                 triggers.to_typed(typed_expressions, tcx),
                 body.to_typed(typed_expressions, tcx),
+            ),
+            SpecEnt(clname, args, pre, post) => AssertionKind::SpecEnt(
+                clname.clone(),
+                args.to_typed(typed_expressions, tcx),
+                pre.to_typed(typed_expressions, tcx),
+                post.to_typed(typed_expressions, tcx),
             )
         }
     }

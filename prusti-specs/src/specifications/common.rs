@@ -226,8 +226,10 @@ pub struct ForAllVars<EID, AT> {
 #[derive(Debug, Clone)]
 pub struct SpecEntVars<EID, AT> {
     pub spec_id: SpecificationId,
-    pub id: EID,
-    pub vars: Vec<AT>,
+    pub pre_id: EID,
+    pub post_id: EID,
+    pub args: Vec<AT>,
+    pub result: AT,
 }
 
 #[derive(Debug, Clone)]

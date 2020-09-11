@@ -13,6 +13,7 @@ pub enum AssertionKind {
     And(Vec<Assertion>),
     Implies(Assertion, Assertion),
     ForAll(ForAllVars, Assertion, TriggerSet),
+    SpecEnt(String, SpecEntVars, Assertion, Assertion),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -28,6 +29,14 @@ pub struct ForAllVars {
     pub spec_id: untyped::SpecificationId,
     pub expr_id: untyped::ExpressionId,
     pub count: usize,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SpecEntVars {
+    pub spec_id: untyped::SpecificationId,
+    pub pre_expr_id: untyped::ExpressionId,
+    pub post_expr_id: untyped::ExpressionId,
+    pub arg_count: usize,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -51,6 +60,17 @@ impl common::ForAllVars<untyped::ExpressionId, untyped::Arg> {
             spec_id: self.spec_id.clone(),
             count: self.vars.len(),
             expr_id: self.id.clone(),
+        }
+    }
+}
+
+impl common::SpecEntVars<untyped::ExpressionId, untyped::Arg> {
+    fn to_structure(&self) -> SpecEntVars {
+        SpecEntVars {
+            spec_id: self.spec_id.clone(),
+            arg_count: self.args.len(),
+            pre_expr_id: self.pre_id.clone(),
+            post_expr_id: self.post_id.clone(),
         }
     }
 }
@@ -96,6 +116,12 @@ impl untyped::AssertionKind {
                 vars.to_structure(),
                 body.to_structure(),
                 triggers.to_structure(),
+            ),
+            SpecEnt(clname, args, pre, post) => AssertionKind::SpecEnt(
+                clname.clone(),
+                args.to_structure(),
+                pre.to_structure(),
+                post.to_structure(),
             ),
             x => {
                 unimplemented!("{:?}", x);

@@ -7,7 +7,7 @@ use syn::spanned::Spanned;
 
 pub use common::{ExpressionId, SpecType, SpecificationId};
 pub use super::preparser::{Parser, Arg};
-use crate::specifications::common::ForAllVars;
+use crate::specifications::common::{ForAllVars, SpecEntVars};
 
 /// A specification that has no types associated with it.
 pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
@@ -208,6 +208,22 @@ impl AssignExpressionId<ForAllVars<ExpressionId, Arg>> for common::ForAllVars<()
     }
 }
 
+impl AssignExpressionId<SpecEntVars<ExpressionId, Arg>> for common::SpecEntVars<(), Arg> {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> SpecEntVars<ExpressionId, Arg> {
+        SpecEntVars {
+            spec_id,
+            pre_id: id_generator.generate(),
+            post_id: id_generator.generate(),
+            args: self.args,
+            result: self.result,
+        }
+    }
+}
+
 impl AssignExpressionId<TriggerSet> for common::TriggerSet<(), syn::Expr> {
     fn assign_id(
         self,
@@ -365,20 +381,30 @@ impl EncodeTypeCheck for Assertion {
                 };
                 tokens.extend(typeck_call);
             }
-            AssertionKind::SpecEnt(clname, args, pre, post) => {
-                let vec_of_vars = &args.vars;
+            AssertionKind::SpecEnt(clname, vars, pre, post) => {
+                let vec_of_args = &vars.args;
                 let span = Span::call_site();
-                let identifier = format!("{}_{}", args.spec_id, args.id);
+                let pre_id = format!("{}_{}", vars.spec_id, vars.pre_id);
+                let post_id = format!("{}_{}", vars.spec_id, vars.post_id);
 
-                let mut nested_assertion = TokenStream::new();
-                body.encode_type_check(&mut nested_assertion);
-                triggers.encode_type_check(&mut nested_assertion);
+                let mut pre_assertion = TokenStream::new();
+                pre.encode_type_check(&mut pre_assertion);
+                let mut post_assertion = TokenStream::new();
+                post.encode_type_check(&mut post_assertion);
+
+                let vec_of_args_with_result =
+                    vars.args.iter().chain(std::iter::once(&vars.result)).collect::<Vec<_>>();
 
                 let typeck_call = quote_spanned! { span =>
                     #[prusti::spec_only]
-                    #[prusti::expr_id = #identifier]
-                    |#(#vec_of_vars),*| {
-                        #nested_assertion
+                    #[prusti::expr_id = #pre_id]
+                    |#(#vec_of_args),*| {
+                        #pre_assertion
+                    };
+                    #[prusti::spec_only]
+                    #[prusti::expr_id = #post_id]
+                    |#(#vec_of_args_with_result),*| {
+                        #post_assertion
                     };
                 };
                 tokens.extend(typeck_call);

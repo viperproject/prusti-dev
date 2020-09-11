@@ -7,6 +7,7 @@ use std::collections::VecDeque;
 use std::mem;
 use syn::parse::{ParseStream, Parse};
 use syn::{self, Token, Error};
+use quote::quote;
 
 use super::common;
 use crate::specifications::common::{ForAllVars, SpecEntVars, TriggerSet, Trigger};
@@ -572,8 +573,11 @@ impl Parser {
                     cl_name.to_string(),
                     SpecEntVars {
                         spec_id: common::SpecificationId::dummy(),
-                        id: (),
-                        vars
+                        pre_id: (),
+                        post_id: (),
+                        args: vars,
+                        result: Arg { name: syn::Ident::new("result", Span::call_site()),
+                                      typ: syn::parse2(quote! { i32 }).unwrap() },
                     },
                     precond,
                     postcond
