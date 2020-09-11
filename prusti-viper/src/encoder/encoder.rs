@@ -1028,7 +1028,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.log_vir_program_before_viper(method.to_string());
             self.procedures.borrow_mut().insert(def_id, method);
         }
-        self.encode_spec_funcs(def_id)?;
+
+        // TODO: not just for closures
+        if self.env.tcx().is_closure(def_id) {
+            self.encode_spec_funcs(def_id)?;
+        }
+
         Ok(self.procedures.borrow()[&def_id].clone())
     }
 
