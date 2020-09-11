@@ -81,9 +81,18 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                 // FIXME: include the conditions
                 body.get_spans(tcx)
             }
-            AssertionKind::SpecEnt(ref cl, ref _binders, ref _pres, ref _posts) => {
-                // FIXME: include the specification
-                cl.get_spans(tcx)
+            AssertionKind::SpecEnt(ref cl, ref _args, ref pres, ref posts) => {
+                let mut spans = cl.get_spans(tcx);
+                // FIXME: include the arguments
+                spans.extend(pres
+                    .iter()
+                    .flat_map(|a| a.get_spans(tcx))
+                    .collect::<Vec<Span>>());
+                spans.extend(posts
+                    .iter()
+                    .flat_map(|a| a.get_spans(tcx))
+                    .collect::<Vec<Span>>());
+                spans
             }
         }
     }
