@@ -118,11 +118,17 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                 spans.extend(body.get_spans(mir_body, tcx));
                 spans
             }
-            AssertionKind::SpecEnt(ref cl_name, ref _binders, ref pre, ref post) => {
-                pre.get_spans(mir_body, tcx)
-                   .into_iter()
-                   .chain(post.get_spans(mir_body, tcx))
-                   .collect()
+            AssertionKind::SpecEnt(ref cl, ref _binders, ref pres, ref posts) => {
+                let mut spans = cl.get_spans(mir_body, tcx);
+                spans.extend(pres
+                    .iter()
+                    .flat_map(|pre| pre.get_spans(mir_body, tcx))
+                    .collect::<Vec<Span>>());
+                spans.extend(posts
+                    .iter()
+                    .flat_map(|post| post.get_spans(mir_body, tcx))
+                    .collect::<Vec<Span>>());
+                spans
             }
         }
     }
@@ -255,11 +261,15 @@ impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind 
                 triggers.to_typed(typed_expressions, tcx),
                 body.to_typed(typed_expressions, tcx),
             ),
-            SpecEnt(clname, args, pre, post) => AssertionKind::SpecEnt(
-                clname.clone(),
+            SpecEnt(cl, args, pres, posts) => AssertionKind::SpecEnt(
+                cl.to_typed(typed_expressions, tcx),
                 args.to_typed(typed_expressions, tcx),
-                pre.to_typed(typed_expressions, tcx),
-                post.to_typed(typed_expressions, tcx),
+                pres.into_iter()
+                    .map(|pre| pre.to_typed(typed_expressions, tcx))
+                    .collect(),
+                posts.into_iter()
+                    .map(|post| post.to_typed(typed_expressions, tcx))
+                    .collect(),
             )
         }
     }

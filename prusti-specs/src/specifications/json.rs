@@ -13,7 +13,7 @@ pub enum AssertionKind {
     And(Vec<Assertion>),
     Implies(Assertion, Assertion),
     ForAll(ForAllVars, Assertion, TriggerSet),
-    SpecEnt(String, SpecEntVars, Assertion, Assertion),
+    SpecEnt(Expression, SpecEntVars, Vec<Assertion>, Vec<Assertion>),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -117,11 +117,15 @@ impl untyped::AssertionKind {
                 body.to_structure(),
                 triggers.to_structure(),
             ),
-            SpecEnt(clname, args, pre, post) => AssertionKind::SpecEnt(
-                clname.clone(),
+            SpecEnt(cl, args, pres, posts) => AssertionKind::SpecEnt(
+                cl.to_structure(),
                 args.to_structure(),
-                pre.to_structure(),
-                post.to_structure(),
+                pres.into_iter()
+                    .map(|pre| Assertion { kind: box pre.kind.to_structure() })
+                    .collect(),
+                posts.into_iter()
+                    .map(|post| Assertion { kind: box post.kind.to_structure() })
+                    .collect(),
             ),
             x => {
                 unimplemented!("{:?}", x);

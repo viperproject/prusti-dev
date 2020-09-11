@@ -249,12 +249,12 @@ pub enum AssertionKind<EID, ET, AT> {
         TriggerSet<EID, ET>,
         Assertion<EID, ET, AT>,
     ),
-    /// Specification entailment: spec_ent(closure, argument binders, precond, postcond)
+    /// Specification entailment: spec_ent(closure, argument binders, pres, posts)
     SpecEnt(
-        String, // closure name
+        Expression<EID, ET>, // closure
         SpecEntVars<EID, AT>, // argument binders
-        Assertion<EID, ET, AT>, // precondition
-        Assertion<EID, ET, AT>, // postcondition
+        Vec<Assertion<EID, ET, AT>>, // preconditions
+        Vec<Assertion<EID, ET, AT>>, // postconditions
     )
 }
 
