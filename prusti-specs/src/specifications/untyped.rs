@@ -7,7 +7,7 @@ use syn::spanned::Spanned;
 
 pub use common::{ExpressionId, SpecType, SpecificationId};
 pub use super::preparser::{Parser, Arg};
-use crate::specifications::common::ForAllVars;
+use crate::specifications::common::{ForAllVars, SpecEntVars};
 
 /// A specification that has no types associated with it.
 pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
@@ -154,6 +154,20 @@ impl AssignExpressionId<ForAllVars<ExpressionId, Arg>> for common::ForAllVars<()
     }
 }
 
+impl AssignExpressionId<SpecEntVars<ExpressionId, Arg>> for common::SpecEntVars<(), Arg> {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> SpecEntVars<ExpressionId, Arg> {
+        SpecEntVars {
+            spec_id,
+            id: id_generator.generate(),
+            vars: self.vars
+        }
+    }
+}
+
 impl AssignExpressionId<TriggerSet> for common::TriggerSet<(), syn::Expr> {
     fn assign_id(
         self,
@@ -198,11 +212,17 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
                 triggers.assign_id(spec_id, id_generator),
                 body.assign_id(spec_id, id_generator)
             ),
-            SpecEnt(clname, args, pre, post) => SpecEnt(
-                clname,
+            SpecEnt(cl, args, pres, posts) => SpecEnt(
+                cl.assign_id(spec_id, id_generator),
                 args.assign_id(spec_id, id_generator),
-                pre.assign_id(spec_id, id_generator),
-                post.assign_id(spec_id, id_generator)
+                pres.into_iter()
+                    .map(|assertion|
+                        Assertion { kind: assertion.kind.assign_id(spec_id, id_generator) })
+                    .collect(),
+                posts.into_iter()
+                     .map(|assertion|
+                         Assertion { kind: assertion.kind.assign_id(spec_id, id_generator) })
+                     .collect(),
             ),
             x => unimplemented!("{:?}", x),
         }
@@ -311,14 +331,20 @@ impl EncodeTypeCheck for Assertion {
                 };
                 tokens.extend(typeck_call);
             }
-            AssertionKind::SpecEnt(clname, args, pre, post) => {
+            AssertionKind::SpecEnt(cl, args, pres, posts) => {
+                cl.encode_type_check(tokens);
+
                 let vec_of_vars = &args.vars;
                 let span = Span::call_site();
                 let identifier = format!("{}_{}", args.spec_id, args.id);
 
                 let mut nested_assertion = TokenStream::new();
-                body.encode_type_check(&mut nested_assertion);
-                triggers.encode_type_check(&mut nested_assertion);
+                for pre in pres {
+                    pre.encode_type_check(&mut nested_assertion);
+                }
+                for post in posts {
+                    post.encode_type_check(&mut nested_assertion);
+                }
 
                 let typeck_call = quote_spanned! { span =>
                     #[prusti::spec_only]

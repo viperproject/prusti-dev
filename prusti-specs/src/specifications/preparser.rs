@@ -2,7 +2,7 @@
 /// parses the resulting Rust expressions, and then assembles the composite
 /// Prusti assertion.
 
-use proc_macro2::{Delimiter, Group, Span, TokenStream, TokenTree, Ident};
+use proc_macro2::{Delimiter, Group, Span, TokenStream, TokenTree};
 use std::collections::VecDeque;
 use std::mem;
 use syn::parse::{ParseStream, Parse};
@@ -137,6 +137,7 @@ impl ParserStream {
     /// Check whether the input starts with an operator. Does not set the span.
     fn peek_any_operator(&self) -> bool {
         self.peek_operator("==>") || self.peek_operator("&&")
+            || self.peek_operator("||") || self.peek_operator("|=")
     }
     /// Check if the input starts with the operator and if yes, consume it
     /// and set the span to it.
@@ -157,11 +158,11 @@ impl ParserStream {
         self.span = span.unwrap();
         true
     }
-    /// Check if the input starts with a parenthesized block and if yes,
-    /// consume it and set the span to it.
-    fn check_and_consume_parenthesized_block(&mut self) -> Option<Group> {
+    /// Check if the input starts with a block delimited with the given
+    /// delimiter and if yes, consume it and set the span to it.
+    fn check_and_consume_block(&mut self, delimiter: Delimiter) -> Option<Group> {
         if let Some(TokenTree::Group(group)) = self.tokens.front() {
-            if group.delimiter() == Delimiter::Parenthesis {
+            if group.delimiter() == delimiter {
                 if let Some(TokenTree::Group(group)) = self.pop() {
                     self.span = group.span();
                     return Some(group);
@@ -171,6 +172,11 @@ impl ParserStream {
             }
         }
         None
+    }
+    /// Check if the input starts with a parenthesized block and if yes,
+    /// consume it and set the span to it.
+    fn check_and_consume_parenthesized_block(&mut self) -> Option<Group> {
+        self.check_and_consume_block(Delimiter::Parenthesis)
     }
     /// Check if the input starts with a parenthesized block and if yes,
     /// set the span to it.
@@ -508,75 +514,93 @@ impl Parser {
             return Err(self.error_expected_parenthesis());
         }
     }
-
     fn resolve_spec_ent(&mut self) -> syn::Result<()> {
-        if self.expected_operator {
-            return Err(self.error_expected_operator());
+        // handles the case when there is no lhs of the |= operator
+        if !self.expected_operator {
+            return Err(self.error_expected_assertion());
         }
 
-        // check whether there is a parenthesized block after spec_ent
-        if let Some(group) = self.input.check_and_consume_parenthesized_block() {
-            // construct a ParserStream off of the parenthesized block for further parsing
-            let mut stream = ParserStream::from_token_stream(group.stream());
+        // handles the case when there is no rhs of the |= operator
+        if self.input.is_empty() {
+            return Err(self.error_expected_assertion());
+        }
 
-            // parse closure name (should be an expression at some point)
-            let token_stream = stream.create_stream_until(",");
-            if token_stream.is_empty() {
-                return Err(self.error_no_closure_ident());
-            }
-            let cl_name: Ident = syn::parse2(token_stream)?;
-            if !stream.check_and_consume_operator(",") {
-                return Err(self.error_expected_comma());
-            }
+        let lhs = self.extract_rust_expression()?;
 
-            // parse vars
-            if !stream.check_and_consume_operator("|") {
-                return Err(self.error_expected_or());
-            }
-            let token_stream = stream.create_stream_until("|");
+        // specification entailments are in one of the following forms:
+        //   expr |= |arg, arg, ...| [ requires(...), ensures(...), ... ]
+        //   expr |= [ requires(...), ensures(...), ... ]
+        // TODO: (after discussion on syntax)
+        //   expr |= |arg, arg, ...| requires(...)
+        //   expr |= requires(...)
+        // by this point we have already consumed expr and |=
+
+        // parse args
+        let vars = if !self.input.check_and_consume_operator("|") {
+            vec![]
+        } else {
+            let token_stream = self.input.create_stream_until("|");
             if token_stream.is_empty() {
+                // FIXME: is this really an error?
                 return Err(self.error_no_quantifier_arguments());
             }
             let all_args: SpecEntArgs = syn::parse2(token_stream)?;
-            if !stream.check_and_consume_operator("|") {
+            if !self.input.check_and_consume_operator("|") {
                 return Err(self.error_expected_or());
             }
-            let mut vars = vec![];
-            for var in all_args.args {
-                vars.push(Arg {
-                    typ: var.typ,
-                    name: var.name
-                })
+            all_args.args.into_iter()
+                         .map(|var| Arg { typ: var.typ, name: var.name })
+                         .collect()
+        };
+
+        if let Some(group) = self.input.check_and_consume_block(Delimiter::Bracket) {
+            // parse specification
+            let mut parser = Parser::from_token_stream(group.stream());
+            let mut pres = vec![];
+            let mut posts = vec![];
+            // TODO: pledges
+            //let mut pledges = vec![];
+            loop {
+                use common::SpecType::*;
+                if parser.input.is_empty() {
+                    break
+                }
+                let kind = if parser.input.check_and_consume_keyword("requires") {
+                    Precondition
+                } else if parser.input.check_and_consume_keyword("ensures") {
+                    Postcondition
+                } else {
+                    // TODO: invariant, pledge ...
+                    return Err(self.error_expected_specification());
+                };
+                let conjunct = if let Some(group) = parser.input.check_and_consume_parenthesized_block() {
+                    let mut parser = Parser::from_token_stream(group.stream());
+                    parser.extract_assertion()?
+                } else {
+                    return Err(self.error_expected_parenthesis());
+                };
+                if !parser.input.check_and_consume_operator(",") {
+                    if !parser.input.is_empty() {
+                        return Err(self.error_expected_comma());
+                    }
+                }
+                (match kind {
+                    Precondition => &mut pres,
+                    Postcondition => &mut posts,
+                    _ => unreachable!()
+                }).push(conjunct);
             }
-
-            if !stream.check_and_consume_operator(",") {
-                return Err(self.error_expected_comma());
-            }
-
-            // parse precondition
-            let token_stream = stream.create_stream_until(",");
-            let mut parser = Parser::from_token_stream(token_stream);
-            let precond = parser.extract_assertion()?;
-
-            if !stream.check_and_consume_operator(",") {
-                return Err(self.error_expected_comma());
-            }
-
-            // parse postcondition
-            let token_stream = stream.create_stream();
-            let mut parser = Parser::from_token_stream(token_stream);
-            let postcond = parser.extract_assertion()?;
 
             let conjunct = AssertionWithoutId {
                 kind: Box::new(common::AssertionKind::SpecEnt(
-                    cl_name.to_string(),
+                    lhs,
                     SpecEntVars {
                         spec_id: common::SpecificationId::dummy(),
                         id: (),
                         vars
                     },
-                    precond,
-                    postcond
+                    pres,
+                    posts,
                 ))
             };
 
@@ -585,12 +609,10 @@ impl Parser {
             self.expected_only_operator = true;
             self.expected_operator = true;
             return Ok(());
-        }
-        else {
-            return Err(self.error_expected_parenthesis());
+        } else {
+            return Err(self.error_expected_bracket());
         }
     }
-
     fn resolve_parenthesized_block(&mut self, group: Group) -> syn::Result<()>{
         // handling a parenthesized block
         if self.expected_only_operator {
@@ -660,7 +682,7 @@ impl Parser {
                     return Err(err);
                 }
             }
-            else if self.input.check_and_consume_keyword("spec_ent") {
+            else if self.input.check_and_consume_operator("|=") {
                 if let Err(err) = self.resolve_spec_ent() {
                     return Err(err);
                 }
@@ -702,6 +724,19 @@ impl Parser {
             return Err(err);
         }
         maybe_expr
+    }
+    fn extract_rust_expression(&mut self) -> syn::Result<ExpressionWithoutId> {
+        let expr = self.expr.clone();
+        let mut token_stream = TokenStream::new();
+        token_stream.extend(expr.into_iter());
+        self.expr.clear();
+        let parsed_expr = self.parse_rust_expression(token_stream.clone())?;
+
+        Ok(ExpressionWithoutId {
+            spec_id: common::SpecificationId::dummy(),
+            id: (),
+            expr: parsed_expr,
+        })
     }
     pub fn extract_pledge(&mut self) -> syn::Result<PledgeWithoutId> {
         self.parsing_pledge_with_lhs = true;
@@ -756,18 +791,7 @@ impl Parser {
     }
     /// Convert parsed Rust expression into a Prusti conjunct.
     fn convert_expr_into_conjunct(&mut self) -> syn::Result<()> {
-        let expr = self.expr.clone();
-        let mut token_stream = TokenStream::new();
-        token_stream.extend(expr.into_iter());
-        self.expr.clear();
-
-        let parsed_expr = self.parse_rust_expression(token_stream.clone())?;
-
-        let expr = ExpressionWithoutId {
-            spec_id: common::SpecificationId::dummy(),
-            id: (),
-            expr: parsed_expr,
-        };
+        let expr = self.extract_rust_expression()?;
         self.conjuncts.push(AssertionWithoutId{
             kind: Box::new(common::AssertionKind::Expr(expr))
         });
@@ -781,10 +805,13 @@ impl Parser {
         syn::Error::new(self.input.span, "expected Prusti assertion")
     }
     fn error_expected_operator(&self) -> syn::Error {
-        syn::Error::new(self.input.span, "expected `&&` or `==>`")
+        syn::Error::new(self.input.span, "expected `&&`, `==>`, or `|=`")
     }
     fn error_expected_parenthesis(&self) -> syn::Error {
         syn::Error::new(self.input.span, "expected `(`")
+    }
+    fn error_expected_bracket(&self) -> syn::Error {
+        syn::Error::new(self.input.span, "expected `[`")
     }
     fn error_expected_comma(&self) -> syn::Error {
         syn::Error::new(self.input.span, "expected `,`")
@@ -794,6 +821,9 @@ impl Parser {
     }
     fn error_expected_triggers(&self) -> syn::Error {
         syn::Error::new(self.input.span, "expected `triggers`")
+    }
+    fn error_expected_specification(&self) -> syn::Error {
+        syn::Error::new(self.input.span, "expected `requires` or `ensures`")
     }
     fn error_expected_equals(&self) -> syn::Error {
         syn::Error::new(self.input.span, "expected `=`")
@@ -807,7 +837,4 @@ impl Parser {
     fn error_no_quantifier_arguments(&self) -> syn::Error {
         syn::Error::new(self.input.span, "a quantifier must have at least one argument")
     }
-    fn error_no_closure_ident(&self) -> syn::Error {
-        syn::Error::new(self.input.span, "missing closure identifier")
-    }
-}
+ }
