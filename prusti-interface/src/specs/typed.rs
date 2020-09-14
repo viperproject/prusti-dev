@@ -228,11 +228,11 @@ impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind 
                 triggers.to_typed(typed_expressions, tcx),
                 body.to_typed(typed_expressions, tcx),
             ),
-            SpecEnt(clname, args, pre, post) => AssertionKind::SpecEnt(
-                clname.clone(),
+            SpecEnt(cl, args, pre, post) => AssertionKind::SpecEnt(
+                cl.to_typed(typed_expressions, tcx),
                 args.to_typed(typed_expressions, tcx),
-                pre.to_typed(typed_expressions, tcx),
-                post.to_typed(typed_expressions, tcx),
+                pre.into_iter().map(|a| a.to_typed(typed_expressions, tcx)).collect(),
+                post.into_iter().map(|a| a.to_typed(typed_expressions, tcx)).collect(),
             )
         }
     }

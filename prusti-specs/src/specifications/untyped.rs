@@ -333,20 +333,42 @@ impl EncodeTypeCheck for Assertion {
                 };
                 tokens.extend(typeck_call);
             }
-            AssertionKind::SpecEnt(cl, args, pres, posts) => {
-                cl.encode_type_check(tokens);
+            AssertionKind::SpecEnt(cl, vars, pres, posts) => {
+                // TODO
+                // cl needs special handling because it's not a boolean expression
+                {
+                    let span = cl.expr.span();
+                    let expr = &cl.expr;
+                    let identifier = format!("{}_{}", cl.spec_id, cl.id);
+                    let typeck_call = quote_spanned! { span =>
+                        #[prusti::spec_only]
+                        #[prusti::expr_id = #identifier]
+                        || {
+                            #expr
+                        };
+                    };
+                    tokens.extend(typeck_call);
+                }
 
-                let vec_of_vars = &args.vars;
                 let span = Span::call_site();
                 let pre_id = format!("{}_{}", vars.spec_id, vars.pre_id);
                 let post_id = format!("{}_{}", vars.spec_id, vars.post_id);
 
-                let mut nested_assertion = TokenStream::new();
+                let vec_of_args = &vars.args;
+                let vec_of_args_with_result: Vec<_> =
+                    vars.args
+                        .clone()
+                        .into_iter()
+                        .chain(std::iter::once(vars.result.clone()))
+                        .collect();
+
+                let mut pre_assertion = TokenStream::new();
                 for pre in pres {
-                    pre.encode_type_check(&mut nested_assertion);
+                    pre.encode_type_check(&mut pre_assertion);
                 }
+                let mut post_assertion = TokenStream::new();
                 for post in posts {
-                    post.encode_type_check(&mut nested_assertion);
+                    post.encode_type_check(&mut post_assertion);
                 }
 
                 let typeck_call = quote_spanned! { span =>
