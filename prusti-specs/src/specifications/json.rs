@@ -117,15 +117,11 @@ impl untyped::AssertionKind {
                 body.to_structure(),
                 triggers.to_structure(),
             ),
-            SpecEnt(cl, args, pres, posts) => AssertionKind::SpecEnt(
+            SpecEnt(cl, args, pre, post) => AssertionKind::SpecEnt(
                 cl.to_structure(),
                 args.to_structure(),
-                pres.into_iter()
-                    .map(|pre| Assertion { kind: box pre.kind.to_structure() })
-                    .collect(),
-                posts.into_iter()
-                    .map(|post| Assertion { kind: box post.kind.to_structure() })
-                    .collect(),
+                pre.iter().map(|pre| pre.to_structure()).collect(),
+                post.iter().map(|post| post.to_structure()).collect(),
             ),
             x => {
                 unimplemented!("{:?}", x);
