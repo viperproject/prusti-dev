@@ -1062,7 +1062,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         );
         spec_encoder.encode_assertion(assertion).set_default_pos(
             self.error_manager()
-                .register(typed::Spanned::get_spans(assertion, self.env().tcx()), error),
+                .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error),
         )
     }
 
