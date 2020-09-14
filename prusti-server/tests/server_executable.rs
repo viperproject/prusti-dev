@@ -25,18 +25,12 @@ fn system_assigned_port() {
 
     let line = stdout.lines().next().expect("at least one line in stdout");
 
-    // TODO: all this could just be strip_prefix in newer versions
-    let port_prefix = "port: ";
-    assert!(
-        line.starts_with(port_prefix),
-        "port message as first stdout line"
-    );
-    let port_string = &line[port_prefix.len()..];
+    let port_string = line.strip_prefix("port: ").expect("port message as first stdout line");
 
     assert_ne!(
         port_string.parse::<u16>().expect("valid port number"),
         0,
-        "port message as first stdout line"
+        "non-zero port number"
     );
 }
 
