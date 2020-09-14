@@ -89,7 +89,7 @@ impl ToStructure<AssertionKind> for untyped::AssertionKind {
             And(assertions) => {
                 AssertionKind::And(
                     assertions.into_iter()
-                              .map(|assertion| Assertion { kind: Box::new(assertion.kind.to_structure()) })
+                              .map(|assertion| Assertion { kind: box assertion.kind.to_structure() })
                               .collect()
                 )
             }

@@ -46,7 +46,7 @@ const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/
 lazy_static! {
     static ref ICE_HOOK: Box<dyn Fn(&panic::PanicInfo<'_>) + Sync + Send + 'static> = {
         let hook = panic::take_hook();
-        panic::set_hook(Box::new(|info| report_prusti_ice(info, BUG_REPORT_URL)));
+        panic::set_hook(box |info| report_prusti_ice(info, BUG_REPORT_URL));
         hook
     };
 }
@@ -68,14 +68,14 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     // Separate the output with an empty line
     eprintln!();
 
-    let emitter = Box::new(rustc_errors::emitter::EmitterWriter::stderr(
+    let emitter = box rustc_errors::emitter::EmitterWriter::stderr(
         rustc_errors::ColorConfig::Auto,
         None,
         false,
         false,
         None,
         false,
-    ));
+    );
     let handler = rustc_errors::Handler::with_emitter(true, None, emitter);
 
     // a .span_bug or .bug call has already printed what it wants to print.

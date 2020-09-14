@@ -29,13 +29,13 @@ pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<dyn
             let name_path = PathBuf::from(name.to_string());
             debug_assert!(!name_path.is_absolute(), "The name cannot be absolute");
             path.push(name_path);
-            Box::new(fs::File::create(path)?)
+            box fs::File::create(path)?
         }
         // fallback
         None => {
             let mut stdout = io::stdout();
             write!(&mut stdout, "# {}: {}\n\n", namespace, name.to_string())?;
-            Box::new(stdout)
+            box stdout
         }
     })
 }

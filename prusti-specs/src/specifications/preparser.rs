@@ -388,7 +388,7 @@ impl Parser {
         }
 
         return Ok(AssertionWithoutId{
-            kind: Box::new(common::AssertionKind::Implies(lhs.unwrap(), rhs.unwrap()))
+            kind: box common::AssertionKind::Implies(lhs.unwrap(), rhs.unwrap())
         });
     }
     fn resolve_forall(&mut self) -> syn::Result<()> {
@@ -473,7 +473,7 @@ impl Parser {
             }
 
             let conjunct = AssertionWithoutId {
-                kind: Box::new(common::AssertionKind::ForAll(
+                kind: box common::AssertionKind::ForAll(
                     ForAllVars {
                         spec_id: common::SpecificationId::dummy(),
                         id: (),
@@ -481,7 +481,7 @@ impl Parser {
                     },
                     trigger_set,
                     body,
-                ))
+                )
             };
 
             self.conjuncts.push(conjunct);
@@ -648,7 +648,7 @@ impl Parser {
         }
         else{
             Ok(AssertionWithoutId{
-                kind: Box::new(common::AssertionKind::And(conjuncts))
+                kind: box common::AssertionKind::And(conjuncts)
             })
         }
     }
@@ -667,7 +667,7 @@ impl Parser {
             expr: parsed_expr,
         };
         self.conjuncts.push(AssertionWithoutId{
-            kind: Box::new(common::AssertionKind::Expr(expr))
+            kind: box common::AssertionKind::Expr(expr)
         });
         Ok(())
     }

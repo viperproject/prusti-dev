@@ -271,21 +271,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             .extend_from_slice(procedure_trait_contract.functional_precondition())
                     } else {
                         let proc_pre = typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::And(
+                            kind: box typed::AssertionKind::And(
                                 proc_pre_specs.clone()
-                            )),
+                            ),
                         };
                         let proc_trait_pre = typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::And(
+                            kind: box typed::AssertionKind::And(
                                 procedure_trait_contract
                                     .functional_precondition()
                                     .iter()
                                     .cloned()
                                     .collect(),
-                            )),
+                            ),
                         };
                         precondition_weakening = Some(typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::Implies(proc_trait_pre, proc_pre)),
+                            kind: box typed::AssertionKind::Implies(proc_trait_pre, proc_pre),
                         });
                     }
 
@@ -299,21 +299,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             unimplemented!("Refining specifications with pledges is not supported");
                         }
                         let proc_post = typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::And(
+                            kind: box typed::AssertionKind::And(
                                 proc_post_specs.clone()
-                            )),
+                            ),
                         };
                         let proc_trait_post = typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::And(
+                            kind: box typed::AssertionKind::And(
                                 procedure_trait_contract
                                     .functional_postcondition()
                                     .iter()
                                     .cloned()
                                     .collect(),
-                            )),
+                            ),
                         };
                         postcondition_strengthening = Some(typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::Implies(proc_post, proc_trait_post)),
+                            kind: box typed::AssertionKind::Implies(proc_post, proc_trait_post),
                         });
                     }
                 }
