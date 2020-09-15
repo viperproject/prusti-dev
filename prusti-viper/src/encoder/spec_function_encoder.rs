@@ -95,7 +95,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         vir::Function {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Pre),
-            formal_args: encoded_args,
+            formal_args: encoded_args.into_iter()
+                                     .skip(1)
+                                     .collect(), // skip "self" for now
             return_type: vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),
@@ -131,7 +133,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         vir::Function {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Post),
-            formal_args: encoded_args.into_iter().chain(std::iter::once(encoded_return)).collect(),
+            formal_args: encoded_args.into_iter()
+                                     .skip(1) // skip "self" for now
+                                     .chain(std::iter::once(encoded_return))
+                                     .collect(),
             return_type: vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),

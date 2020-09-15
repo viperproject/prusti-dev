@@ -9,6 +9,7 @@ use rustc_middle::ty::{
     AdtDef, FieldDef, ParamTy, ProjectionTy, Region, Slice, Ty, TyCtxt, TypeFlags, TyKind,
     VariantDef, subst::SubstsRef
 };
+use rustc_hir::def_id::DefId;
 use rustc_ast::ast::{IntTy, UintTy};
 use log::trace;
 
@@ -58,6 +59,9 @@ pub trait TypeVisitor<'tcx>: Sized {
             }
             TyKind::Projection(data) => {
                 self.visit_projection(data)
+            }
+            TyKind::Closure(def_id, substs) => {
+                self.visit_closure(def_id, substs);
             }
             ref x => {
                 self.visit_unsupported_sty(x)
@@ -168,6 +172,11 @@ pub trait TypeVisitor<'tcx>: Sized {
     ) -> Result<(), Self::Error> {
         trace!("visit_raw_ptr({:?}, {:?})", ty, mutability);
         walk_raw_ptr(self, ty, mutability)
+    }
+
+    fn visit_closure(&mut self, def_id: DefId, substs: SubstsRef<'tcx>) {
+        trace!("visit_closure({:?})", def_id);
+        // TODO
     }
 }
 

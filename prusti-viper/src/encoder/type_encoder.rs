@@ -390,13 +390,24 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Closure(_def_id, substs) => {
                 let mut fields_iter = substs.iter();
+                let typaram_repl = self.encoder.typaram_repl.borrow();
+
+                debug!("substs: {:?}, typaram_repl: {:?}", substs, typaram_repl.iter().last());
+
+                if let Some(top) = typaram_repl.iter().last() {
+                    // TODO (?)
+                    for i in 0 .. top.len() {
+                        fields_iter.next();
+                    }
+                };
 
                 // First type should be the closure kind:
                 // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.ClosureSubsts.html
                 let cl_kind = fields_iter.next().unwrap();
                 match cl_kind.expect_ty().kind() {
-                    ty::TyKind::Int(ast::IntTy::I8) => (),
-                    _ => unreachable!()
+                    //ty::TyKind::Int(ast::IntTy::I8) => (),
+                    ty::TyKind::Int(_) => (), // ??? - sometimes it's an I32, who knows why...
+                    ref x => unreachable!("closure kind: {:?}", x)
                 }
 
                 // Second type should be the closure signature as FnPtr

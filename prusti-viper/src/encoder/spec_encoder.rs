@@ -16,6 +16,7 @@ use crate::encoder::mir_interpreter::{
 use crate::encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
 use crate::encoder::Encoder;
 use prusti_common::config;
+use crate::encoder::SpecFunctionKind;
 use prusti_common::vir;
 use prusti_common::vir::ExprIterator;
 use prusti_interface::specs::typed;
@@ -254,9 +255,98 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 )
             },
             box typed::AssertionKind::SpecEnt(ref cl, ref vars, ref pres, ref posts) => {
-                debug!("encoding spec ent: {:?}", cl);
-                // TODO
-                vir::Expr::Const(vir::Const::Bool(true), vir::Position::new(0, 0, 0))
+                let tcx = self.encoder.env().tcx();
+                let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(cl.expr));
+                let result = &mir.borrow().local_decls[(0 as u32).into()];
+                let ty = result.ty;
+                let typaram_repl = self.encoder.typaram_repl.borrow();
+                if let Some(Some(ty_repl)) = typaram_repl.iter().last().map(|x| x.get(ty)) {
+                    debug!("spec ent repl: {:?} -> {:?}", ty, ty_repl);
+
+                    match ty_repl.kind() {
+                        ty::TyKind::Closure(def_id, substs) => {
+                            let encoded_pres = pres.iter()
+                                .map(|x| self.encode_assertion(x))
+                                .collect::<Vec<vir::Expr>>()
+                                .into_iter()
+                                .conjoin();
+
+                            // TODO: encode types properly, instead of just using Int
+
+                            let sf_pre_name = self.encoder.encode_spec_func_name(*def_id, SpecFunctionKind::Pre);
+                            let pre_conjunct = vir::Expr::forall(
+                                vars.args.iter().map(|(arg, arg_ty)| self.encode_forall_arg(*arg, arg_ty, &format!("{}_{}", vars.spec_id, vars.pre_id))).collect(),
+                                vec![], // TODO: encode triggers
+                                vir::Expr::implies(
+                                    encoded_pres.clone(),
+                                    vir::Expr::FuncApp(
+                                        sf_pre_name,
+                                        (0 .. vars.args.len())
+                                            .map(|i| vir::Expr::Local(
+                                                vir::LocalVar::new(format!("_{}_forall", i + 2), vir::Type::Int),
+                                                vir::Position::default()
+                                            ))
+                                            .collect(),
+                                        (0 .. vars.args.len())
+                                            .map(|i| vir::LocalVar::new(format!("_{}", i), vir::Type::Int))
+                                            .collect(),
+                                        vir::Type::Bool,
+                                        vir::Position::default()
+                                    )
+                                )
+                            );
+
+                            let sf_post_name = self.encoder.encode_spec_func_name(*def_id, SpecFunctionKind::Post);
+                            // The result should be in _0, but for some reason it gets encoded like this
+                            let result_name = format!("_{}_forall", vars.args.len() + 2);
+                            let post_conjunct = vir::Expr::forall(
+                                vars.args
+                                    .iter()
+                                    .map(|(arg, arg_ty)| self.encode_forall_arg(*arg, arg_ty, &format!("{}_{}", vars.spec_id, vars.pre_id)))
+                                    .chain(std::iter::once(vir::LocalVar::new(result_name.clone(), vir::Type::Int)))
+                                    .collect(),
+                                vec![], // TODO: encode triggers
+                                vir::Expr::implies(
+                                    encoded_pres,
+                                    vir::Expr::implies(
+                                        vir::Expr::FuncApp(
+                                            sf_post_name,
+                                            (0 .. vars.args.len())
+                                                .map(|i| vir::Expr::Local(
+                                                    vir::LocalVar::new(format!("_{}_forall", i + 2), vir::Type::Int),
+                                                    vir::Position::default()
+                                                ))
+                                                .chain(std::iter::once(
+                                                    vir::Expr::Local(
+                                                        vir::LocalVar::new(result_name.clone(), vir::Type::Int),
+                                                        vir::Position::default()
+                                                    )))
+                                                .collect(),
+                                            (0 ..= vars.args.len())
+                                                .map(|i| vir::LocalVar::new(format!("_{}", i), vir::Type::Int))
+                                                .collect(),
+                                            vir::Type::Bool,
+                                            vir::Position::default()
+                                        ),
+                                        posts.iter()
+                                            .map(|x| self.encode_assertion(x))
+                                            .collect::<Vec<vir::Expr>>()
+                                            .into_iter()
+                                            .conjoin()
+                                    )
+                                )
+                            );
+
+                            vec![pre_conjunct, post_conjunct]
+                                .into_iter()
+                                .conjoin()
+                        }
+                        _ => unreachable!()
+                    }
+                } else {
+                    // TODO
+                    vir::Expr::Const(vir::Const::Bool(true), vir::Position::default())
+                }
             }
         })
     }
