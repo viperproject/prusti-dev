@@ -75,11 +75,11 @@ fn knuth_shuffle<T>(v: &mut VecWrapper<T>) {
 
     let mut n = 0;
     let bgn = 0;
-    #[invariant(n < l)]
-    #[invariant(n >= 0)]
-    #[invariant(bgn == 0)]
-    #[invariant(l == v.len())]
     while n < l {
+        body_invariant!(n < l);
+        body_invariant!(n >= 0);
+        body_invariant!(bgn == 0);
+        body_invariant!(l == v.len());
         let i = rng.gen_range(bgn, l - n);
         v.swap(i, l - n - 1);
         n += 1;

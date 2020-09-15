@@ -60,21 +60,21 @@ fn selection_sort(mut array: &mut VecWrapper<i32>) {
 
     let mut i = 0;
     let mut continue_loop_1 = i < array.len();
-    #[invariant(i < array.len())]
-    #[invariant(array.len() == old(array.len()))]
-    #[invariant(0 <= i && i <= array.len())]
-    #[invariant(continue_loop_1 ==> i < array.len())]
     while continue_loop_1 {
+        body_invariant!(i < array.len());
+        body_invariant!(array.len() == old(array.len()));
+        body_invariant!(0 <= i && i <= array.len());
+        body_invariant!(continue_loop_1 ==> i < array.len());
         min = i;
 
         let mut j = i+1;
         let mut continue_loop_2 = j < array.len();
-        #[invariant(j < array.len())]
-        #[invariant(array.len() == old(array.len()))]
-        #[invariant(0 < j && j <= array.len())]
-        #[invariant(continue_loop_2 ==> j < array.len())]
-        #[invariant(0 <= min && min < array.len())]
         while continue_loop_2 {
+            body_invariant!(j < array.len());
+            body_invariant!(array.len() == old(array.len()));
+            body_invariant!(0 < j && j <= array.len());
+            body_invariant!(continue_loop_2 ==> j < array.len());
+            body_invariant!(0 <= min && min < array.len());
             if *array.index(j) < *array.index(min) {
                 min = j;
             }

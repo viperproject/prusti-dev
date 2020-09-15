@@ -200,13 +200,13 @@ fn main(){
 
     let mut continue_loop = 0 <= ant.x && ant.x < 100 && 0 <= ant.y && ant.y < 100;
  
-    #[invariant(grid.y_size() == 100)]
-    #[invariant(grid.x_size() == 100)]
-    #[invariant(ant.valid(grid.y_size(), grid.x_size()))]
-    #[invariant(forall y: isize, x: isize ::
-                (0 <= x && x < grid.x_size() && 0 <= y && y < grid.y_size()) ==>
-                (grid.lookup(y, x) == 0 || grid.lookup(y, x) == 1))]
     while continue_loop {
+        body_invariant!(grid.y_size() == 100);
+        body_invariant!(grid.x_size() == 100);
+        body_invariant!(ant.valid(grid.y_size(), grid.x_size()));
+        body_invariant!(forall y: isize, x: isize ::
+                (0 <= x && x < grid.x_size() && 0 <= y && y < grid.y_size()) ==>
+                (grid.lookup(y, x) == 0 || grid.lookup(y, x) == 1));
         ant.mv(&mut grid);
         continue_loop = 0 <= ant.x && ant.x < 100 && 0 <= ant.y && ant.y < 100;
         if continue_loop {

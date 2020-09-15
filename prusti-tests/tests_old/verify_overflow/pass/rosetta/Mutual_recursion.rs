@@ -32,16 +32,16 @@ fn print_newline() {
 
 fn main() {
     let mut i = 0;
-    #[invariant(i < 20)]
     while i < 20 {
+        body_invariant!(i < 20);
         let res = f(i);
         print_u32(res);
         i += 1;
     }
     print_newline();
     let mut i = 0;
-    #[invariant(i < 20)]
     while i < 20 {
+        body_invariant!(i < 20);
         let res = m(i);
         print_u32(res);
         i += 1;

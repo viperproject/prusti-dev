@@ -39,9 +39,9 @@ pub fn test3(n: &i32) {
 pub fn test4(n: &i32) {
     let mut i = 0;
     let mut cond = i < *n;
-    #[invariant(cond == (i < *n))]
-    #[invariant(0 <= i && i <= *n)]
     while cond {
+        body_invariant!(cond == (i < *n));
+        body_invariant!(0 <= i && i <= *n);
         i += 1;
         borrow(n);
         cond = i < *n;

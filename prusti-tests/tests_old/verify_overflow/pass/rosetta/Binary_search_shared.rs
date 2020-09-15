@@ -136,9 +136,9 @@ fn binary_search<T: Ord>(arr: &VecWrapper<T>, elem: &T) -> UsizeOption {
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 0;
 
-    #[invariant(size > 0 && result.is_none())]
-    #[invariant(base + size <= arr.len())]
     while continue_loop {
+        body_invariant!(size > 0 && result.is_none());
+        body_invariant!(base + size <= arr.len());
         let half = size / 2;
         let mid = base + half;
 

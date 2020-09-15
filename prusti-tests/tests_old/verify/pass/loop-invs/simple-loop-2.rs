@@ -14,9 +14,9 @@ fn test2(n: i32) -> i32 {
     let mut res = 0;
     let mut ia = 0;
 
-    #[invariant(res == ia)]
-    #[invariant(ia < n)]
     while ia < n {
+        body_invariant!(res == ia);
+        body_invariant!(ia < n);
         res += 1;
         ia += 1;
     }
