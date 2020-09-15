@@ -48,7 +48,13 @@ pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
 /// A pledge in the postcondition.
 pub type Pledge<'tcx> = common::Pledge<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 
+/// This trait is implemented for specification-related types that have one or
+/// more associated spans (positions within the source code). The spans are not
+/// necessarily contiguous, and may be used for diagnostic reporting.
 pub trait Spanned<'tcx> {
+    /// Returns the spans for the given value. `mir` is the function body used
+    /// to resolve positions of `rustc_middle::mir::Local` indices, `tcx` is
+    /// used to resolve positions of global items.
     fn get_spans(&self, mir_body: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Vec<Span>;
 }
 
