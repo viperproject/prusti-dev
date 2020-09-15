@@ -17,8 +17,6 @@
 //!
 //! +   Absence of panics.
 
-// ignore-test Flaky test
-
 use prusti_contracts::*;
 
 pub struct VecWrapper<T>{
@@ -229,13 +227,13 @@ impl Board {
         let mut moves = moves();
         let mut i = 0;
         let mut continue_loop = i < moves.len();
-        #[invariant(self.field.size() == size())]
-        #[invariant(0 <= i)]
-        #[invariant(continue_loop ==> i < moves.len())]
-        #[invariant(0 <= p.x && p.x < size())]
-        #[invariant(0 <= p.y && p.y < size())]
-        #[invariant(0 <= count && count <= i)]
         while continue_loop {
+            body_invariant!(self.field.size() == size());
+            body_invariant!(0 <= i);
+            body_invariant!(continue_loop ==> i < moves.len());
+            body_invariant!(0 <= p.x && p.x < size());
+            body_invariant!(0 <= p.y && p.y < size());
+            body_invariant!(0 <= count && count <= i);
             let mut dir = moves.index(i);
             let next = p.mov(dir);
             if self.available(next) {
@@ -260,22 +258,22 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
 
     let mut continue_loop_1 = step <= size() * size();
  
-    #[invariant(board.field.size() == size())]
-    #[invariant(0 <= p.x && p.x < size())]
-    #[invariant(0 <= p.y && p.y < size())]
-    #[invariant(continue_loop_1 ==> step <= size() * size())]
     while continue_loop_1 {
+        body_invariant!(board.field.size() == size());
+        body_invariant!(0 <= p.x && p.x < size());
+        body_invariant!(0 <= p.y && p.y < size());
+        body_invariant!(continue_loop_1 ==> step <= size() * size());
         // choose next square by Warnsdorf's rule
         let mut candidates = Candidates::new();
         let mut moves = moves();
         let mut i = 0;
         let mut continue_loop_3 = i < moves.len();
-        #[invariant(board.field.size() == size())]
-        #[invariant(0 <= i)]
-        #[invariant(continue_loop_3 ==> i < moves.len())]
-        #[invariant(0 <= p.x && p.x < size())]
-        #[invariant(0 <= p.y && p.y < size())]
         while continue_loop_3 {
+            body_invariant!(board.field.size() == size());
+            body_invariant!(0 <= i);
+            body_invariant!(continue_loop_3 ==> i < moves.len());
+            body_invariant!(0 <= p.x && p.x < size());
+            body_invariant!(0 <= p.y && p.y < size());
             let mut dir = moves.index(i);
             let mut adj = p.mov(dir);
             if board.available(adj) {
@@ -290,10 +288,10 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
         let mut continue_loop_2 = i < candidates.len();
         let mut min = None;
         let mut min_degree = size() * size();
-        #[invariant(0 <= i)]
-        #[invariant(continue_loop_2 ==> i < candidates.len())]
-        #[invariant(valid(&min))]
         while continue_loop_2 {
+            body_invariant!(0 <= i);
+            body_invariant!(continue_loop_2 ==> i < candidates.len());
+            body_invariant!(valid(&min));
             let &(degree, adj) = candidates.index(i);
             if min_degree > degree {
                 min_degree = degree;
@@ -329,9 +327,9 @@ impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for row in self.field.v.iter() {
             for x in row.iter(){
-                try!(write!(f, "{:3} ", x));
+                write!(f, "{:3} ", x)?;
             }
-            try!(write!(f, "\n"));
+            write!(f, "\n")?;
         }
         Ok(())
     }
