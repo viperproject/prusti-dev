@@ -1,6 +1,6 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[requires="x > 0"]
+#[requires(x > 0)]
 fn foo(x: i32) {
     // nothing
 }

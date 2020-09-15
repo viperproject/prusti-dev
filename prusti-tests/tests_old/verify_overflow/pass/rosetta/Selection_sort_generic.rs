@@ -13,7 +13,7 @@
 //! +   Absence of overflows.
 //! +   The resulting vector is sorted.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapper<T>{
     v: Vec<T>
@@ -22,13 +22,13 @@ pub struct VecWrapper<T>{
 impl<T> VecWrapper<T> {
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecWrapper{ v: Vec::new() }
     }
 
     #[trusted]
-    #[ensures="self.len() == old(self.len()) + 1"]
+    #[ensures(self.len() == old(self.len()) + 1)]
     pub fn push(&mut self, value: T) {
         self.v.push(value);
     }
@@ -40,40 +40,40 @@ impl<T> VecWrapper<T> {
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn index(&self, index: usize) -> &T {
         &self.v[index]
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="after_expiry(self.len() == old(self.len()))"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(after_expiry(self.len() == old(self.len())))]
     pub fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.v[index]
     }
 }
 
-#[ensures="array.len() == old(array.len())"]
+#[ensures(array.len() == old(array.len()))]
 fn selection_sort(mut array: &mut VecWrapper<i32>) {
 
     let mut min;
 
     let mut i = 0;
     let mut continue_loop_1 = i < array.len();
-    #[invariant="i < array.len()"]
-    #[invariant="array.len() == old(array.len())"]
-    #[invariant="0 <= i && i <= array.len()"]
-    #[invariant="continue_loop_1 ==> i < array.len()"]
+    #[invariant(i < array.len())]
+    #[invariant(array.len() == old(array.len()))]
+    #[invariant(0 <= i && i <= array.len())]
+    #[invariant(continue_loop_1 ==> i < array.len())]
     while continue_loop_1 {
         min = i;
 
         let mut j = i+1;
         let mut continue_loop_2 = j < array.len();
-        #[invariant="j < array.len()"]
-        #[invariant="array.len() == old(array.len())"]
-        #[invariant="0 < j && j <= array.len()"]
-        #[invariant="continue_loop_2 ==> j < array.len()"]
-        #[invariant="0 <= min && min < array.len()"]
+        #[invariant(j < array.len())]
+        #[invariant(array.len() == old(array.len()))]
+        #[invariant(0 < j && j <= array.len())]
+        #[invariant(continue_loop_2 ==> j < array.len())]
+        #[invariant(0 <= min && min < array.len())]
         while continue_loop_2 {
             if *array.index(j) < *array.index(min) {
                 min = j;

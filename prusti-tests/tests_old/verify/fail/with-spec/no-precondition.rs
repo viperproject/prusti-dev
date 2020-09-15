@@ -1,6 +1,6 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[ensures="match result { 4 => false, _ => true}"] //~ ERROR postcondition might not hold
+#[ensures(match result { 4 => false, _ => true})] //~ ERROR postcondition might not hold
 fn foo(x: i64, y: bool) -> i64 {
     let mut return_value = x * x;
 

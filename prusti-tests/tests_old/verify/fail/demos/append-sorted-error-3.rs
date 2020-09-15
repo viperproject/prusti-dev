@@ -1,5 +1,5 @@
 #![feature(box_patterns, box_syntax)]
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct List {
     val: i32,
@@ -8,7 +8,7 @@ struct List {
 
 impl List {
     #[pure]
-    #[ensures="result >= 0"]
+    #[ensures(result >= 0)]
     fn len(&self) -> usize {
         match self.next {
             None => 1,
@@ -17,7 +17,7 @@ impl List {
     }
 
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     fn get(&self, index: usize) -> i32 {
         if index == 0 {
             self.val
@@ -40,10 +40,10 @@ impl List {
     }
 }
 
-#[requires="a.sorted() && a.get(a.len() - 1) <= v"]
-#[ensures="a.len() == old(a.len()) + 1"]
-// #[ensures="a.get(0) == old(a.get(0))"] // missing
-#[ensures="a.sorted()"] //~ ERROR postcondition might not hold
+#[requires(a.sorted() && a.get(a.len() - 1) <= v)]
+#[ensures(a.len() == old(a.len()) + 1)]
+// #[ensures(a.get(0) == old(a.get(0)))] // missing
+#[ensures(a.sorted())] //~ ERROR postcondition might not hold
 fn append(a: &mut List, v: i32) {
     if let Some(box ref mut tail) = a.next {
         append(tail, v);
@@ -55,8 +55,8 @@ fn append(a: &mut List, v: i32) {
     }
 }
 
-#[requires="a.sorted() && a.get(a.len() - 1) <= 100"]
-#[ensures="a.sorted()"]
+#[requires(a.sorted() && a.get(a.len() - 1) <= 100)]
+#[ensures(a.sorted())]
 fn client(a: &mut List, b: &mut List) {
     let old_len = b.len();
     append(a, 100);

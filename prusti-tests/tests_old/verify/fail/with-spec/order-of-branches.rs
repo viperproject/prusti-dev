@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 /// Test that we report errors for the `then` branch before later branches
 /// See also issue https://github.com/viperproject/silicon/issues/501
@@ -12,7 +12,7 @@ fn test_if_1(b: bool) {
     }
 }
 
-#[requires="!b"]
+#[requires(!b)]
 fn test_if_2(b: bool) {
     if b {
         assert!(false);
@@ -44,7 +44,7 @@ fn test_match_1(v: u32) {
     }
 }
 
-#[requires="v >= 1"]
+#[requires(v >= 1)]
 fn test_match_2(v: u32) {
     match v {
         0 => assert!(false),
@@ -53,7 +53,7 @@ fn test_match_2(v: u32) {
     }
 }
 
-#[requires="v >= 2"]
+#[requires(v >= 2)]
 fn test_match_3(v: u32) {
     match v {
         0 => assert!(false),
@@ -71,8 +71,8 @@ fn test_loop_1(b: bool) {
 
 fn test_loop_2(b: bool) {
     let mut g = true;
-    #[invariant="g"] //~ ERROR
     while b {
+        body_invariant!(g); //~ ERROR
         g = false;
     }
     assert!(false);

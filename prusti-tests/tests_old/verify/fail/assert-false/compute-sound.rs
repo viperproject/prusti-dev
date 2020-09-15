@@ -1,6 +1,6 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 #[derive(Clone, Copy)]
 struct IntBox {

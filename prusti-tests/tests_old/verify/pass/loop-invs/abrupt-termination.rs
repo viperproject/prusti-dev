@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn test_continue() {
     let mut i = 0;
@@ -45,7 +45,7 @@ fn test_unreachable_break() {
     i += 1;
     i += 1;
     i += 1;
-    #[invariant="i <= 10"]
+    #[invariant(i <= 10)]
     while i < 10 {
         if i == 50 {
             i += 1;
@@ -63,7 +63,7 @@ fn test_unreachable_return() {
     i += 1;
     i += 1;
     i += 1;
-    #[invariant="i <= 10"]
+    #[invariant(i <= 10)]
     while i < 10 {
         if i == 50 {
             i += 1;

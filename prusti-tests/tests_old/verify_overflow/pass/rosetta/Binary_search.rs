@@ -54,7 +54,7 @@
 //! This file contains a verified version of it.
 
 #![allow(dead_code)]
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapperI32{
     v: Vec<i32>
@@ -68,38 +68,38 @@ impl VecWrapperI32 {
     }
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecWrapperI32{ v: Vec::new() }
     }
 
     #[trusted]
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
         self.v[index]
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="*result == old(self.lookup(index))"]
-    #[ensures="after_expiry(
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(*result == old(self.lookup(index)))]
+    #[ensures(after_expiry(
         self.len() == old(self.len()) &&
         self.lookup(index) == before_expiry(*result) &&
         (
             forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
             self.lookup(i) == old(self.lookup(i))
         )
-        )"]
+        ))]
     pub fn borrow(&mut self, index: usize) -> &mut i32 {
         self.v.get_mut(index).unwrap()
     }
 
     #[trusted]
-    #[ensures="self.len() == old(self.len()) + 1"]
-    #[ensures="self.lookup(old(self.len())) == value"]
-    #[ensures="forall i: usize :: (0 <= i && i < old(self.len())) ==>
-                    self.lookup(i) == old(self.lookup(i))"]
+    #[ensures(self.len() == old(self.len()) + 1)]
+    #[ensures(self.lookup(old(self.len())) == value)]
+    #[ensures(forall i: usize :: (0 <= i && i < old(self.len())) ==>
+                    self.lookup(i) == old(self.lookup(i)))]
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
@@ -123,7 +123,7 @@ impl UsizeOption {
         !self.is_some()
     }
     #[pure]
-    #[requires="self.is_some()"]
+    #[requires(self.is_some())]
     fn peek(&self) -> usize {
         match self {
             UsizeOption::Some(n) => *n,
@@ -141,29 +141,29 @@ pub enum Ordering {
 use self::Ordering::*;
 
 // Adapted from https://doc.rust-lang.org/src/core/cmp.rs.html#962-966
-#[ensures="*a == old(*a)"]
-#[ensures="*b == old(*b)"]
-#[ensures="(match result {
+#[ensures(*a == old(*a))]
+#[ensures(*b == old(*b))]
+#[ensures((match result {
                 Equal => *a == *b,
                 Less => *a < *b,
                 Greater => *a > *b,
-            })"]
+            }))]
 fn cmp(a: &mut i32, b: &mut i32) -> Ordering {
     if *a == *b { Equal }
         else if *a < *b { Less }
             else { Greater }
 }
 
-#[requires="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
-             arr.lookup(k1) <= arr.lookup(k2)"]
-#[ensures="arr.len() == old(arr.len())"]
-#[ensures="forall k: usize:: (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k))"]
-#[ensures="*elem == old(*elem)"]
-#[ensures="result.is_none() ==>
-            (forall k: usize :: (0 <= k && k < arr.len()) ==> *elem != arr.lookup(k))"]
-#[ensures="result.is_some() ==> (
+#[requires(forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
+             arr.lookup(k1) <= arr.lookup(k2))]
+#[ensures(arr.len() == old(arr.len()))]
+#[ensures(forall k: usize:: (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k)))]
+#[ensures(*elem == old(*elem))]
+#[ensures(result.is_none() ==>
+            (forall k: usize :: (0 <= k && k < arr.len()) ==> *elem != arr.lookup(k)))]
+#[ensures(result.is_some() ==> (
                 0 <= result.peek() && result.peek() < arr.len() &&
-                arr.lookup(result.peek()) == *elem)"]
+                arr.lookup(result.peek()) == *elem))]
 fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
 {
     let mut size = arr.len();
@@ -172,20 +172,20 @@ fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 0;
 
-    #[invariant="base + size <= arr.len()"]
-    #[invariant="size > 0 && result.is_none()"]
-    #[invariant="arr.len() == old(arr.len())"]
-    #[invariant="*elem == old(*elem)"]
-    #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
-            arr.lookup(k1) <= arr.lookup(k2)"]
-    #[invariant="forall k: usize:: (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k))"]
-    #[invariant="forall k: usize:: (0 <= k && k < base) ==> arr.lookup(k) < *elem"]
-    #[invariant="result.is_none() ==>
-             (forall k: usize:: (base + size <= k && k < arr.len()) ==> *elem < arr.lookup(k))"]
-    #[invariant="result.is_some() ==> (
-                0 <= result.peek() && result.peek() < arr.len() &&
-                arr.lookup(result.peek()) == *elem)"]
     while continue_loop {
+        body_invariant!(base + size <= arr.len());
+        body_invariant!(size > 0 && result.is_none());
+        body_invariant!(arr.len() == old(arr.len()));
+        body_invariant!(*elem == old(*elem));
+        body_invariant!(forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
+            arr.lookup(k1) <= arr.lookup(k2));
+        body_invariant!(forall k: usize:: (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k)));
+        body_invariant!(forall k: usize:: (0 <= k && k < base) ==> arr.lookup(k) < *elem);
+        body_invariant!(result.is_none() ==>
+             (forall k: usize:: (base + size <= k && k < arr.len()) ==> *elem < arr.lookup(k)));
+        body_invariant!(result.is_some() ==> (
+                0 <= result.peek() && result.peek() < arr.len() &&
+                arr.lookup(result.peek()) == *elem));
         let half = size / 2;
         let mid = base + half;
 

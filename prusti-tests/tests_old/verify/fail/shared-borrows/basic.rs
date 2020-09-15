@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub fn test1() {
     let a = 4;

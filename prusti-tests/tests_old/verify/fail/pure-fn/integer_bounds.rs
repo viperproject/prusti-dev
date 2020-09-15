@@ -1,7 +1,7 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 #[pure]
-#[requires="a + b <= std::u32::MAX"]
+#[requires(a + b <= std::u32::MAX)]
 fn sum_pure(a: u32, b: u32) -> u32 {
     a + b
 }
@@ -30,11 +30,11 @@ fn u32_foo_call_4() {
     assert!(u32_foo() <= 4294967295); //~ ERROR
 }
 
-#[ensures="0 <= u32_foo()"]
+#[ensures(0 <= u32_foo())]
 fn u32_foo_call_5() {
 }
 
-#[ensures="u32_foo() <= 4294967295"] //~ ERROR postcondition
+#[ensures(u32_foo() <= 4294967295)] //~ ERROR postcondition
 fn u32_foo_call_6() {
 }
 

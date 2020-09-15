@@ -1,6 +1,6 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[ensures="assert_on_expiry(*result == 42)"]
+#[ensures(assert_on_expiry(*result == 42))]
 fn must_answer(location: &mut i32) -> &mut i32 {
     location
 }

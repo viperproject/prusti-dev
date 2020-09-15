@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct T { f: u32, }
 pub struct U { f: T, g: T, h: T, }

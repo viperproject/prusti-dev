@@ -1,14 +1,14 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[requires="0 <= n"]
+#[requires(0 <= n)]
 // Commented-out because of non-linear arithmetic.
-//#[ensures="result == old(n) * (old(n) + 1) / 2"]
+//#[ensures(result == old(n) * (old(n) + 1) / 2)]
 fn sum(n: i32) -> i32 {
     let mut res = 0;
     let mut i = 0;
-    #[invariant="n == old(n)"]
-    #[invariant="i <= (n + 1)"]
-    //#[invariant="res == (i - 1) * i / 2"]
+    #[invariant(n == old(n))]
+    #[invariant(i <= (n + 1))]
+    //#[invariant(res == (i - 1) * i / 2)]
     while i <= n {
         res = res + i;
         i = i + 1;

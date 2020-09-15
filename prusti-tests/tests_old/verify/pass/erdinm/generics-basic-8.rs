@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 use std::marker::PhantomData;
 
@@ -12,7 +12,7 @@ struct Bar<C> {
     c: C,
 }
 
-#[ensures="arg.ib.c == 42"]
+#[ensures(arg.ib.c == 42)]
 fn set_a<X>(arg: &mut Foo<X, i8>) {
     arg.ib.c = 42;
 }

@@ -4,7 +4,7 @@
 
 // From: https://github.com/xcaptain/rust-algorithms/blob/master/algorithms/src/search/binary_search.rs
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 // Prusti Vec wrapper
 pub struct VecWrapperusize{
@@ -21,8 +21,8 @@ impl VecWrapperusize {
 
     // Encoded as body-less Viper method
     #[trusted]
-    #[ensures="result.len() == length"]
-    #[ensures="forall i: usize :: (0 <= i && i < length) ==> result.lookup(i) == 0"]
+    #[ensures(result.len() == length)]
+    #[ensures(forall i: usize :: (0 <= i && i < length) ==> result.lookup(i) == 0)]
     pub fn new(length: usize) -> Self {
         VecWrapperusize{ v: vec![0; length] }
     }
@@ -30,22 +30,22 @@ impl VecWrapperusize {
     // Encoded as body-less Viper function
     #[trusted]
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> usize {
         self.v[index]
     }
 
     // Encoded as body-less Viper method
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="self.lookup(old(index)) == old(value)"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(self.lookup(old(index)) == old(value))]
     pub fn store(&mut self, index: usize, value: usize) {
         self.v[index] = value;
     }
 }
 
 // binary search using iteration
-#[requires="arr.len() > 0"]
+#[requires(arr.len() > 0)]
 pub fn binary_search_iter(arr: VecWrapperusize, target: usize) -> Option<usize> {
     let len = arr.len();
     let mut left = 0;
@@ -53,9 +53,9 @@ pub fn binary_search_iter(arr: VecWrapperusize, target: usize) -> Option<usize> 
     let mut result = None;
     let mut done = false;
 
-    #[invariant="true"]
     let mut condition = left <= right && !done;
     while condition {
+        body_invariant!(true);
         let mid = (left + right) / 2;
         if arr.lookup(mid) < target { //~ ERROR precondition of pure function call might not hold.
             left = mid + 1;

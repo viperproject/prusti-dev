@@ -2,7 +2,7 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 use std::borrow::BorrowMut;
 
@@ -12,7 +12,7 @@ struct List {
 }
 
 #[pure]
-#[ensures="result > 0"]
+#[ensures(result > 0)]
 fn len(head: &List) -> usize {
     match head.next {
         None => 1,
@@ -21,7 +21,7 @@ fn len(head: &List) -> usize {
 }
 
 #[pure]
-#[requires="0 <= index && index < len(head)"]
+#[requires(0 <= index && index < len(head))]
 fn lookup(head: &List, index: usize) -> u32 {
     if index == 0 {
         head.value
@@ -33,14 +33,14 @@ fn lookup(head: &List, index: usize) -> u32 {
     }
 }
 
-#[ensures="len(&result) > 0"]
-#[ensures="old(len(&list)) == len(&result)"]
-#[ensures="if len(&result) > 0 { old(lookup(&list, 0)) == lookup(&result, 0) } else { true }"]
+#[ensures(len(&result) > 0)]
+#[ensures(old(len(&list)) == len(&result))]
+#[ensures(if len(&result) > 0 { old(lookup(&list, 0)) == lookup(&result, 0) } else { true })]
 fn identity(list: List) -> List { list }
 
 
-#[ensures="len(&result) == 1"]
-#[ensures="lookup(&result, 0) == old(x)"]
+#[ensures(len(&result) == 1)]
+#[ensures(lookup(&result, 0) == old(x))]
 fn build_list_1(x: u32) -> List {
     List {
         value: x,
@@ -48,9 +48,9 @@ fn build_list_1(x: u32) -> List {
     }
 }
 
-#[ensures="len(&result) == 2"]
-#[ensures="lookup(&result, 0) == old(x)"]
-#[ensures="lookup(&result, 1) == old(y)"]
+#[ensures(len(&result) == 2)]
+#[ensures(lookup(&result, 0) == old(x))]
+#[ensures(lookup(&result, 1) == old(y))]
 fn build_list_2(x: u32, y: u32) -> List {
     let tail = build_list_1(y);
     List {
@@ -59,9 +59,9 @@ fn build_list_2(x: u32, y: u32) -> List {
     }
 }
 
-#[ensures="len(&result) == old(len(&tail)) + 1"]
-#[ensures="lookup(&result, 0) == old(x)"]
-#[ensures="forall i: usize :: (i > 0 && i < len(&result)) ==> lookup(&result, i) == old(lookup(&tail, i - 1))"]
+#[ensures(len(&result) == old(len(&tail)) + 1)]
+#[ensures(lookup(&result, 0) == old(x))]
+#[ensures(forall i: usize :: (i > 0 && i < len(&result)) ==> lookup(&result, i) == old(lookup(&tail, i - 1)))]
 fn prepend_list(x: u32, tail: List) -> List {
     List {
         value: x,

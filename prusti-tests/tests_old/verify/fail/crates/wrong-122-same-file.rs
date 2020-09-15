@@ -1,5 +1,5 @@
 /// Source: https://docs.rs/same-file/1.0.4/src/same_file/lib.rs.html#326-328
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub type CInt = i32;
 
@@ -34,7 +34,7 @@ impl UnixImplHandle {
 pub struct Handle(UnixImplHandle);
 
 impl Handle {
-    #[ensures="false"] //~ ERROR postcondition
+    #[ensures(false)] //~ ERROR postcondition
     pub fn as_file_mut(&mut self) -> &mut StdFsFile {
         self.0.as_file_mut()
     }

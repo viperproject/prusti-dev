@@ -1,12 +1,12 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct S {
     f: i32
 }
 
 impl S {
-    #[requires="true"]
-    #[ensures="false"] //~ ERROR postcondition
+    #[requires(true)]
+    #[ensures(false)] //~ ERROR postcondition
     pub fn test(self) {}
 }
 

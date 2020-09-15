@@ -1,6 +1,6 @@
 #![feature(attr_literals)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 // Extend Prusti to allow writing specifications in functional style
 #[requires("x > 0 && y > 0")]

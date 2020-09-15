@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn foo(_x: i32) {}
 

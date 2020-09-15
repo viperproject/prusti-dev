@@ -19,7 +19,7 @@
 //! +   Absence of overflows.
 //!
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 type Link<T> = Option<Box<Node<T>>>; // Type alias
 pub struct List<T> { // User-facing interface for list

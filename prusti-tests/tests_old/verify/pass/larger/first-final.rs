@@ -16,7 +16,7 @@
 //! +   Absence of panics.
 //! +   Push and pop behaves correctly.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 use std::mem;
 
@@ -38,8 +38,8 @@ impl Link {
         }
     }
     #[pure]
-    #[ensures="!self.is_empty() ==> result > 0"]
-    #[ensures="result >= 0"]
+    #[ensures(!self.is_empty() ==> result > 0)]
+    #[ensures(result >= 0)]
     fn len(&self) -> usize {
         match self {
             Link::Empty => 0,
@@ -47,7 +47,7 @@ impl Link {
         }
     }
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
         match self {
             Link::Empty => unreachable!(),
@@ -88,7 +88,7 @@ impl TrustedOption {
         }
     }
     #[pure]
-    #[requires="self.is_some()"]
+    #[requires(self.is_some())]
     pub fn peek(&self) -> i32 {
         match self {
             TrustedOption::Some(val) => *val,
@@ -98,11 +98,11 @@ impl TrustedOption {
 }
 
 #[trusted]
-#[requires="src.is_empty()"]
-#[ensures="dest.is_empty()"]
-#[ensures="old(dest.len()) == result.len()"]
-#[ensures="forall i: usize :: (0 <= i && i < result.len()) ==>
-                old(dest.lookup(i)) == result.lookup(i)"]
+#[requires(src.is_empty())]
+#[ensures(dest.is_empty())]
+#[ensures(old(dest.len()) == result.len())]
+#[ensures(forall i: usize :: (0 <= i && i < result.len()) ==>
+                old(dest.lookup(i)) == result.lookup(i))]
 fn replace(dest: &mut Link, src: Link) -> Link {
     mem::replace(dest, src)
 }
@@ -115,22 +115,22 @@ impl List {
     }
 
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
         self.head.lookup(index)
     }
 
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         List {
             head: Link::Empty,
         }
     }
 
-    #[ensures="self.len() == old(self.len()) + 1"]
-    #[ensures="self.lookup(0) == elem"]
-    #[ensures="forall i: usize :: (1 <= i && i < self.len()) ==>
-                    old(self.lookup(i-1)) == self.lookup(i)"]
+    #[ensures(self.len() == old(self.len()) + 1)]
+    #[ensures(self.lookup(0) == elem)]
+    #[ensures(forall i: usize :: (1 <= i && i < self.len()) ==>
+                    old(self.lookup(i-1)) == self.lookup(i))]
     pub fn push(&mut self, elem: i32) {
         let old_len = self.head.len();
         let new_node = Box::new(Node {
@@ -140,14 +140,14 @@ impl List {
         self.head = Link::More(new_node);
     }
 
-    #[ensures="old(self.len()) == 0 ==> result.is_none()"]
-    #[ensures="old(self.len()) == 0 ==> self.len() == 0"]
-    #[ensures="old(self.len()) > 0 ==> result.is_some()"]
-    #[ensures="old(self.len()) > 0 ==> result.peek() == old(self.lookup(0))"]
-    #[ensures="old(self.len()) > 0 ==> self.len() == old(self.len()-1)"]
-    #[ensures="old(self.len()) > 0 ==>
+    #[ensures(old(self.len()) == 0 ==> result.is_none())]
+    #[ensures(old(self.len()) == 0 ==> self.len() == 0)]
+    #[ensures(old(self.len()) > 0 ==> result.is_some())]
+    #[ensures(old(self.len()) > 0 ==> result.peek() == old(self.lookup(0)))]
+    #[ensures(old(self.len()) > 0 ==> self.len() == old(self.len()-1))]
+    #[ensures(old(self.len()) > 0 ==>
                 forall i: usize :: (0 <= i && i < self.len()) ==>
-                    old(self.lookup(i+1)) == self.lookup(i)"]
+                    old(self.lookup(i+1)) == self.lookup(i))]
     pub fn pop(&mut self) -> TrustedOption {
         match replace(&mut self.head, Link::Empty) {
             Link::Empty => {

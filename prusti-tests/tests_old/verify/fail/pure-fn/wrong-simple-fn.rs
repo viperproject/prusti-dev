@@ -1,7 +1,7 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 #[pure]
-#[requires="0 <= n && n <= 2"]
+#[requires(0 <= n && n <= 2)]
 fn magic(n: i32) -> i32 {
     match n {
         -1 => 123,
@@ -12,8 +12,8 @@ fn magic(n: i32) -> i32 {
     }
 }
 
-#[ensures="magic(-1) == 123"] //~ ERROR
-#[ensures="magic(0) == -1"]
-#[ensures="magic(1) == 1"]
-#[ensures="magic(2) == 42"]
+#[ensures(magic(-1) == 123)] //~ ERROR
+#[ensures(magic(0) == -1)]
+#[ensures(magic(1) == 1)]
+#[ensures(magic(2) == 42)]
 fn main() {}

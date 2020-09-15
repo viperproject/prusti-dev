@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 #[trusted]
 fn random(i: u32) -> bool {
@@ -7,13 +7,13 @@ fn random(i: u32) -> bool {
 
 fn continue_before_invariant() {
     let mut i = 0;
-    #[invariant="true"]
     'myloop: while { //~ ERROR the loop invariant cannot be in a conditional branch of the loop
         if random(i + 2) {
             continue 'myloop;
         }
         random(i + 3)
     } {
+        body_invariant!(true);
         i += 1;
     }
 }
@@ -21,7 +21,6 @@ fn continue_before_invariant() {
 fn break_before_invariant() {
     let mut i = 0;
     'outer: while random(i + 0) {
-        #[invariant="true"]
         'inner: while {
             if random(i + 2) {
                 break 'inner; // Ok
@@ -31,6 +30,7 @@ fn break_before_invariant() {
             }
             random(i + 3)
         } {
+            body_invariant!(true);
             i += 1;
         }
     }
@@ -39,13 +39,13 @@ fn break_before_invariant() {
 fn continue_outer_loop_before_invariant() {
     let mut i = 0;
     'outer: while random(i + 0) {
-        #[invariant="true"]
         'inner: while {
             if random(i + 2) {
                 continue 'outer; // Ok
             }
             random(i + 3)
         } {
+            body_invariant!(true);
             i += 1;
         }
     }

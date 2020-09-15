@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 use std::marker::PhantomData;
 
@@ -7,16 +7,16 @@ trait IntState {}
 struct Even; impl IntState for Even {}
 struct Odd;  impl IntState for Odd {}
 
-#[invariant="S == Even ~~> self.i % 2 == 0"]
-#[invariant="S == Odd  ~~> self.i % 2 != 0"]
+#[invariant(S == Even ~~> self.i % 2 == 0)]
+#[invariant(S == Odd  ~~> self.i % 2 != 0)]
 struct Int<S: IntState> {
     i: i32,
     s: PhantomData<S>,
 }
 
 impl<Z: IntState> Int<Z> {
-    #[requires="Z == Even ~~> i % 2 == 0"]
-    #[requires="Z == Odd  ~~> i % 2 != 0"]
+    #[requires(Z == Even ~~> i % 2 == 0)]
+    #[requires(Z == Odd  ~~> i % 2 != 0)]
     fn new(i: i32) -> Int<Z> {
         Int {
             i,
@@ -24,8 +24,8 @@ impl<Z: IntState> Int<Z> {
         }
     }
 
-    //#[requires="Z == Even ~~> i % 2 == 0"]
-    //#[requires="Z == Odd  ~~> i % 2 != 0"]
+    //#[requires(Z == Even ~~> i % 2 == 0)]
+    //#[requires(Z == Odd  ~~> i % 2 != 0)]
     fn new_fail(i: i32) -> Int<Z> { //~ ERROR type invariants
         Int {
             i,
@@ -80,22 +80,22 @@ fn test2_fail<S: IntState>(int: &mut Int<S>) {
     assert!(int.i % 2 != 0); //~ ERROR the asserted expression might not hold
 }
 
-#[requires="i % 2 == 0"] // even
+#[requires(i % 2 == 0)] // even
 fn test3(i: i32) -> Int<Even> {
     Int::new(i)
 }
 
-#[requires="i % 2 == 0"] // even
+#[requires(i % 2 == 0)] // even
 fn test3_fail(i: i32) -> Int<Odd> { // wrong return type state
     Int::new(i) //~ ERROR precondition might not hold
 }
 
-#[requires="i % 2 != 0"] // odd
+#[requires(i % 2 != 0)] // odd
 fn test4(i: i32) -> Int<Odd> {
     Int::new(i)
 }
 
-#[requires="i % 2 != 0"] // odd
+#[requires(i % 2 != 0)] // odd
 fn test4_fail(i: i32) -> Int<Even> {
     Int::new(i) //~ ERROR precondition might not hold
 }

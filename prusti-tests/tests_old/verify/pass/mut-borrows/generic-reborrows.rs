@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn reborrow<T>(x: &mut T) -> &mut T {
     x

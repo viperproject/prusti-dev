@@ -1,8 +1,8 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 // postcondition (&mut arg) assert
 
-#[invariant="self.value <= 100"]
+#[invariant(self.value <= 100)]
 struct Percentage {
     value: u8,
 }

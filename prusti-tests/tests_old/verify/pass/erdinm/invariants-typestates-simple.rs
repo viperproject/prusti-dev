@@ -1,15 +1,15 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct Neg;
 
-#[invariant="S == Neg ~~> self.i < 0"]
+#[invariant(S == Neg ~~> self.i < 0)]
 struct Number<S> {
     i: i32,
     _s: S,
 }
 
 impl<X> Number<X> {
-    #[ensures="-1 <= self.i && self.i <= 1"]
+    #[ensures(-1 <= self.i && self.i <= 1)]
     fn to_sign(&mut self) {
         if self.i <= -1 {
             self.i = -1;

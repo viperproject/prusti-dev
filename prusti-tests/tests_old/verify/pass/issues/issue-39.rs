@@ -4,7 +4,7 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 
 struct List {
@@ -13,7 +13,7 @@ struct List {
 }
 
 #[pure]
-#[ensures="result > 0"]
+#[ensures(result > 0)]
 fn len(head: &List) -> usize {
     match head.next {
         None => 1,
@@ -22,7 +22,7 @@ fn len(head: &List) -> usize {
 }
 
 #[pure]
-#[requires="0 <= index && index < len(head)"]
+#[requires(0 <= index && index < len(head))]
 fn lookup(head: &List, index: usize) -> u32 {
     if index == 0 {
         head.value
@@ -34,9 +34,9 @@ fn lookup(head: &List, index: usize) -> u32 {
     }
 }
 
-#[ensures="len(&result) == old(len(&tail)) + 1"]
-#[ensures="lookup(&result, 0) == old(x)"]
-#[ensures="forall i: usize :: (0 < i && i < len(&result)) ==> lookup(&result, i) == old(lookup(&tail, i - 1))"]
+#[ensures(len(&result) == old(len(&tail)) + 1)]
+#[ensures(lookup(&result, 0) == old(x))]
+#[ensures(forall i: usize :: (0 < i && i < len(&result)) ==> lookup(&result, i) == old(lookup(&tail, i - 1)))]
 fn prepend_list(x: u32, tail: List) -> List {
     List {
         value: x,

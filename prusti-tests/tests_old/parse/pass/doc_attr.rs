@@ -1,5 +1,5 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 /// Documentation should be allowed
-#[requires="true"]
+#[requires(true)]
 fn main() {}

@@ -12,7 +12,7 @@
 /// +   Absence of panics.
 /// +   Absence of overflows.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapper<T>{
     v: Vec<T>
@@ -21,13 +21,13 @@ pub struct VecWrapper<T>{
 impl<T> VecWrapper<T> {
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecWrapper{ v: Vec::new() }
     }
 
     #[trusted]
-    #[ensures="self.len() == old(self.len()) + 1"]
+    #[ensures(self.len() == old(self.len()) + 1)]
     pub fn push(&mut self, value: T) {
         self.v.push(value);
     }
@@ -39,7 +39,7 @@ impl<T> VecWrapper<T> {
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn index(&self, index: usize) -> &T {
         &self.v[index]
     }
@@ -57,7 +57,7 @@ fn default<T>() -> T {
 }
 
 
-#[requires="vec.len() > 0"]
+#[requires(vec.len() > 0)]
 pub fn foo<T>(vec: &mut VecWrapper<T>) -> &T {
     let r = vec.index(0);
     if some_condition(r) {

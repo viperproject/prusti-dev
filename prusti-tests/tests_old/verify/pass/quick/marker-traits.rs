@@ -1,6 +1,6 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[invariant="self.d1 == self.d2"]
+#[invariant(self.d1 == self.d2)]
 trait Foo {}
 
 struct Dummy {

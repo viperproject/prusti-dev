@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct Nonsense {
     m2: u32, // multiple of 2
@@ -12,16 +12,16 @@ impl Nonsense {
         self.m2 % 2 == 0 && self.m3 % 3 == 0 && self.m5 % 5 == 0
     }
 
-    //#[requires="self.valid()"]
-    #[ensures="*result == old(self.m3)"]
-    #[ensures="assert_on_expiry(*result % 3 == 0, self.valid())"]  //~ ERROR might not hold
+    //#[requires(self.valid())]
+    #[ensures(*result == old(self.m3))]
+    #[ensures(assert_on_expiry(*result % 3 == 0, self.valid()))]  //~ ERROR might not hold
     fn m3_mut(&mut self) -> &mut u32 {
         &mut self.m3
     }
 }
 
-#[requires="arg.valid()"]
-#[ensures="arg.valid()"]
+#[requires(arg.valid())]
+#[ensures(arg.valid())]
 fn test(arg: &mut Nonsense) {
     let m3 = arg.m3_mut();
     *m3 += 3;

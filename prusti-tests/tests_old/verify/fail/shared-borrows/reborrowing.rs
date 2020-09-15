@@ -1,13 +1,13 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[ensures="*result == old(*x)"]
+#[ensures(*result == old(*x))]
 pub fn reborrow(x: &u32) -> &u32 {
     assert!(false); //~ ERROR the asserted expression might not hold
     x
 }
 
-#[ensures="false"] //~ ERROR postcondition might not hold.
-#[ensures="*result == old(*x)"]
+#[ensures(false)] //~ ERROR postcondition might not hold.
+#[ensures(*result == old(*x))]
 pub fn reborrow2(x: &u32) -> &u32 {
     x
 }

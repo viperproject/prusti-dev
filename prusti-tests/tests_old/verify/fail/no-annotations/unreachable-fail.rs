@@ -1,6 +1,6 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct IntBox {
     val: i32

@@ -16,7 +16,7 @@
 //! +   We could not express the postcondition that the result is
 //!     correct because that requires support for comprehensions.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct Item {
     name: usize,
@@ -31,31 +31,31 @@ pub struct Items{
 impl Items {
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
+    #[ensures(result >= 0)]
     pub fn len(&self) -> usize {
         self.v.len()
     }
 
     #[trusted]
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="result > 0"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(result > 0)]
     pub fn lookup_weight(&self, index: usize) -> usize {
         self.v[index].weight
     }
 
     #[trusted]
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="result >= 0"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(result >= 0)]
     pub fn lookup_value(&self, index: usize) -> usize {
         self.v[index].value
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="self.lookup_weight(index) == result.weight"]
-    #[ensures="self.lookup_value(index) == result.value"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(self.lookup_weight(index) == result.weight)]
+    #[ensures(self.lookup_value(index) == result.value)]
     pub fn index(&self, index: usize) -> &Item {
         &self.v[index]
     }
@@ -95,11 +95,11 @@ pub struct BestValues {
 impl BestValues {
 
     #[trusted]
-    #[ensures="result.item_len() == item_len"]
-    #[ensures="result.weight_len() == weight_len"]
-    #[ensures="forall ii: usize, wi: usize ::
+    #[ensures(result.item_len() == item_len)]
+    #[ensures(result.weight_len() == weight_len)]
+    #[ensures(forall ii: usize, wi: usize ::
                     (0 <= ii && ii < result.item_len() && 0 <= wi && wi < result.weight_len()) ==>
-                    result.lookup(ii, wi) == default"]
+                    result.lookup(ii, wi) == default)]
     pub fn new(default: usize, weight_len: usize, item_len: usize) -> Self {
         Self {
             _ghost_item_len: item_len,
@@ -120,24 +120,24 @@ impl BestValues {
 
     #[trusted]
     #[pure]
-    #[requires="0 <= item_index && item_index < self.item_len()"]
-    #[requires="0 <= weight_index && weight_index < self.weight_len()"]
+    #[requires(0 <= item_index && item_index < self.item_len())]
+    #[requires(0 <= weight_index && weight_index < self.weight_len())]
     pub fn lookup(&self, item_index: usize, weight_index: usize) -> usize {
         self.v[item_index][weight_index]
     }
 
     #[trusted]
-    #[requires="0 <= item_index && item_index < self.item_len()"]
-    #[requires="0 <= weight_index && weight_index < self.weight_len()"]
-    #[ensures="self.lookup(item_index, weight_index) == *result"]
+    #[requires(0 <= item_index && item_index < self.item_len())]
+    #[requires(0 <= weight_index && weight_index < self.weight_len())]
+    #[ensures(self.lookup(item_index, weight_index) == *result)]
     pub fn index(&self, item_index: usize, weight_index: usize) -> &usize {
         &self.v[item_index][weight_index]
     }
 
     #[trusted]
-    #[requires="0 <= item_index && item_index < self.item_len()"]
-    #[requires="0 <= weight_index && weight_index < self.weight_len()"]
-    #[ensures="after_expiry(
+    #[requires(0 <= item_index && item_index < self.item_len())]
+    #[requires(0 <= weight_index && weight_index < self.weight_len())]
+    #[ensures(after_expiry(
         self.item_len() == old(self.item_len()) &&
         self.weight_len() == old(self.weight_len()) &&
         self.lookup(item_index, weight_index) == before_expiry(*result) &&
@@ -146,7 +146,7 @@ impl BestValues {
              0 <= wi && wi < self.weight_len() &&
              !(ii == item_index && wi == weight_index)) ==>
             self.lookup(ii, wi) == old(self.lookup(ii, wi)))
-        )"]
+        ))]
     pub fn index_mut(&mut self, item_index: usize, weight_index: usize) -> &mut usize {
         &mut self.v[item_index][weight_index]
     }
@@ -168,8 +168,8 @@ fn max(a: usize, b: usize) -> usize {
 /// *   $m[i,\,w]=m[i-1,\,w]$ if $w_i > w\,\!$ (the new item is more than the current weight limit)
 /// *   $m[i,\,w]=\max(m[i-1,\,w],\,m[i-1,w-w_i]+v_i)$ if $w_i \leqslant w$.
 #[pure]
-#[requires="0 <= i && i <= items.len()"]
-#[requires="0 <= w && w <= max_weight"]
+#[requires(0 <= i && i <= items.len())]
+#[requires(0 <= w && w <= max_weight)]
 fn m(items: &Items, i: usize, w: usize, max_weight: usize) -> usize {
     match (i, w) {
         (0, _w) => 0,
@@ -184,49 +184,49 @@ fn m(items: &Items, i: usize, w: usize, max_weight: usize) -> usize {
     }
 }
 
-#[requires="items.len() < std::usize::MAX"]
-#[requires="2 <= max_weight && max_weight < std::usize::MAX"]
+#[requires(items.len() < std::usize::MAX)]
+#[requires(2 <= max_weight && max_weight < std::usize::MAX)]
 pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
     let mut best_value = BestValues::new(0, max_weight + 1, items.len() + 1);
     let mut i = 0;
     let mut continue_loop_1 = i < items.len();
-    #[invariant="items.len() + 1 == best_value.item_len()"]
-    #[invariant="max_weight + 1 == best_value.weight_len()"]
-    #[invariant="i < items.len()"]
-    #[invariant="0 <= i && i < items.len()"]
-    #[invariant="2 <= max_weight && max_weight < std::usize::MAX"]
-    #[invariant="forall ii: usize, wi: usize ::
+    #[invariant(items.len() + 1 == best_value.item_len())]
+    #[invariant(max_weight + 1 == best_value.weight_len())]
+    #[invariant(i < items.len())]
+    #[invariant(0 <= i && i < items.len())]
+    #[invariant(2 <= max_weight && max_weight < std::usize::MAX)]
+    #[invariant(forall ii: usize, wi: usize ::
                     (0 <= ii && ii < best_value.item_len() && 0 <= wi && wi < best_value.weight_len()) ==>
-                    best_value.lookup(ii, wi) >= 0"]
-    #[invariant="forall ii: usize ::
+                    best_value.lookup(ii, wi) >= 0)]
+    #[invariant(forall ii: usize ::
                     (0 <= ii && ii < best_value.item_len()) ==>
-                    best_value.lookup(ii, 0) == 0"]
-    #[invariant="forall ii: usize, wi: usize ::
+                    best_value.lookup(ii, 0) == 0)]
+    #[invariant(forall ii: usize, wi: usize ::
                     (0 <= ii && ii <= i && 0 <= wi && wi < best_value.weight_len()) ==>
-                    m(items, ii, wi, max_weight) == best_value.lookup(ii, wi)"]
+                    m(items, ii, wi, max_weight) == best_value.lookup(ii, wi))]
     while continue_loop_1 {
         let it = items.index(i);
 
         let mut w = 1;
-        #[invariant="w <= max_weight"]
-        #[invariant="items.len() + 1 == best_value.item_len()"]
-        #[invariant="max_weight + 1 == best_value.weight_len()"]
-        #[invariant="0 <= w && w <= best_value.weight_len()"]
-        #[invariant="0 <= i && i < items.len()"]
-        #[invariant="2 <= max_weight && max_weight < std::usize::MAX"]
-        #[invariant="it.value == items.lookup_value(i)"]
-        #[invariant="it.weight == items.lookup_weight(i)"]
-        #[invariant="forall ii: usize, wi: usize ::
+        #[invariant(w <= max_weight)]
+        #[invariant(items.len() + 1 == best_value.item_len())]
+        #[invariant(max_weight + 1 == best_value.weight_len())]
+        #[invariant(0 <= w && w <= best_value.weight_len())]
+        #[invariant(0 <= i && i < items.len())]
+        #[invariant(2 <= max_weight && max_weight < std::usize::MAX)]
+        #[invariant(it.value == items.lookup_value(i))]
+        #[invariant(it.weight == items.lookup_weight(i))]
+        #[invariant(forall ii: usize, wi: usize ::
                         (0 <= ii && ii < best_value.item_len() && 0 <= wi && wi < best_value.weight_len()) ==>
-                        best_value.lookup(ii, wi) >= 0"]
-        #[invariant="forall ii: usize, wi: usize ::
+                        best_value.lookup(ii, wi) >= 0)]
+        #[invariant(forall ii: usize, wi: usize ::
                         (0 <= ii && ii <= i && 0 <= wi && wi < best_value.weight_len()) ==>
-                        m(items, ii, wi, max_weight) == best_value.lookup(ii, wi)"]
-        #[invariant="forall wi: usize :: (0 <= wi && wi < w) ==>
-                        m(items, i+1, wi, max_weight) == best_value.lookup(i+1, wi)"]
-        #[invariant="forall ii: usize ::
+                        m(items, ii, wi, max_weight) == best_value.lookup(ii, wi))]
+        #[invariant(forall wi: usize :: (0 <= wi && wi < w) ==>
+                        m(items, i+1, wi, max_weight) == best_value.lookup(i+1, wi))]
+        #[invariant(forall ii: usize ::
                         (0 <= ii && ii < best_value.item_len()) ==>
-                        best_value.lookup(ii, 0) == 0"]
+                        best_value.lookup(ii, 0) == 0)]
         while w <= max_weight {
             let new_best_value = if it.weight > w {
                 *best_value.index(i, w)
@@ -247,13 +247,13 @@ pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
     let mut left_weight = max_weight;
  
     let mut i = items.len();
-    #[invariant="0 < i && i <= items.len()"]
-    #[invariant="items.len() + 1 == best_value.item_len()"]
-    #[invariant="max_weight + 1 == best_value.weight_len()"]
-    #[invariant="0 <= left_weight && left_weight <= max_weight"]
-    #[invariant="forall ii: usize, wi: usize ::
+    #[invariant(0 < i && i <= items.len())]
+    #[invariant(items.len() + 1 == best_value.item_len())]
+    #[invariant(max_weight + 1 == best_value.weight_len())]
+    #[invariant(0 <= left_weight && left_weight <= max_weight)]
+    #[invariant(forall ii: usize, wi: usize ::
                     (0 <= ii && ii < best_value.item_len() && 0 <= wi && wi < best_value.weight_len()) ==>
-                    m(items, ii, wi, max_weight) == best_value.lookup(ii, wi)"]
+                    m(items, ii, wi, max_weight) == best_value.lookup(ii, wi))]
     while 0 < i {
         i -= 1;
         let it = items.index(i);

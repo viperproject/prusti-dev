@@ -1,12 +1,12 @@
 /// Issue #25 "Exhaling postconditions with `old(..)`"
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct T {
     f: i32,
 }
 
-#[ensures="old(x.f) == result"] //~ ERROR postcondition
+#[ensures(old(x.f) == result)] //~ ERROR postcondition
 fn extract(x: &mut T) -> i32 {
     // move x
     let y = x;

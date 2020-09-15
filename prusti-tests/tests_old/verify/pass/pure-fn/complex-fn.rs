@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct A(i32);
 
@@ -9,7 +9,7 @@ struct T {
 }
 
 #[pure]
-#[requires="-1000 < n && n < 1000"]
+#[requires(-1000 < n && n < 1000)]
 fn negative(n: i32) -> i32 {
     let x = T {
         a: (A(n), 0),
@@ -37,5 +37,5 @@ fn test2() -> i32 {
     (x.0).0
 }
 
-#[ensures="forall i: i32 :: ( -1000 < i && i < 1000 ) ==> negative(i) == -i"]
+#[ensures(forall i: i32 :: ( -1000 < i && i < 1000 ) ==> negative(i) == -i)]
 fn main() {}

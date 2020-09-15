@@ -1,5 +1,5 @@
 #![feature(box_patterns, box_syntax)]
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct List {
     val: i32,

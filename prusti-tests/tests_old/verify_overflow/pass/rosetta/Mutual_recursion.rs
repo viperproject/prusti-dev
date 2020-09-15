@@ -1,10 +1,10 @@
 /// An adaptation of the example from
 /// https://rosettacode.org/wiki/Mutual_recursion#Rust
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[ensures="n == 0 ==> result == 1"]
-#[ensures="n >= 1 ==> n >= result"]
+#[ensures(n == 0 ==> result == 1)]
+#[ensures(n >= 1 ==> n >= result)]
 fn f(n: u32) -> u32 {
     match n {
         0 => 1,
@@ -12,7 +12,7 @@ fn f(n: u32) -> u32 {
     }
 }
 
-#[ensures="n >= result"]
+#[ensures(n >= result)]
 fn m(n: u32) -> u32 {
     match n {
         0 => 0,
@@ -32,7 +32,7 @@ fn print_newline() {
 
 fn main() {
     let mut i = 0;
-    #[invariant="i < 20"]
+    #[invariant(i < 20)]
     while i < 20 {
         let res = f(i);
         print_u32(res);
@@ -40,7 +40,7 @@ fn main() {
     }
     print_newline();
     let mut i = 0;
-    #[invariant="i < 20"]
+    #[invariant(i < 20)]
     while i < 20 {
         let res = m(i);
         print_u32(res);

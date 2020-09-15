@@ -1,6 +1,6 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 /// The fused multiply-add assignment operation.
 pub trait MyMulAddAssign<A = Self, B = Self> {

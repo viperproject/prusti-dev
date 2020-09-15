@@ -17,7 +17,7 @@
 ///
 /// +   Absence of panics.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 use std::sync::mpsc;
 
@@ -71,7 +71,7 @@ impl<T> SResult<T> {
             SResult::Err => false,
         }
     }
-    #[requires="self.is_ok()"]
+    #[requires(self.is_ok())]
     fn unwrap(self) -> T {
         match self {
             SResult::Ok(v) => v,
@@ -105,7 +105,7 @@ impl MessageOption {
         }
     }
 
-    #[requires="self.is_some()"]
+    #[requires(self.is_some())]
     pub fn take(self) -> Message {
         match self {
             MessageOption::Some(msg) => msg,
@@ -122,8 +122,8 @@ fn router(me: &StringWrapper, rx: Receiver<Message>, tx: Sender<Message>) {
     let mut tx = tx;
     let mut message_option = rx.recv();
     let mut is_some = message_option.is_some();
-    #[invariant="message_option.is_some()"]
     while is_some {
+        body_invariant!(message_option.is_some());
         let mut message = message_option.take();
         match &message {
             Message::Letter { recipient, data } => {

@@ -22,7 +22,7 @@
 //!
 //! +   Absence of panics.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapper<T>{
     v: Vec<T>
@@ -31,7 +31,7 @@ pub struct VecWrapper<T>{
 impl<T: Clone> VecWrapper<T> {
 
     #[trusted]
-    #[ensures="result.len() == size"]
+    #[ensures(result.len() == size)]
     pub fn new(value: T, size: usize) -> Self {
         VecWrapper { v: vec![value; size] }
     }
@@ -43,14 +43,14 @@ impl<T: Clone> VecWrapper<T> {
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn index(&self, index: usize) -> &T {
         &self.v[index]
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="after_expiry(self.len() == old(self.len()))"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(after_expiry(self.len() == old(self.len())))]
     pub fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.v[index]
     }
@@ -65,14 +65,14 @@ fn print_door_state(i: usize, is_open: bool) {
 fn doors1() {
     let mut door_open = VecWrapper::new(false, 100);
     let mut pass = 1;
-    #[invariant="pass < 100"]
-    #[invariant="1 <= pass"]
-    #[invariant="door_open.len() == 100"]
+    #[invariant(pass < 100)]
+    #[invariant(1 <= pass)]
+    #[invariant(door_open.len() == 100)]
     while pass < 100 {
         let mut door = pass;
-        #[invariant="door <= 100"]
-        #[invariant="1 <= door"]
-        #[invariant="door_open.len() == 100"]
+        #[invariant(door <= 100)]
+        #[invariant(1 <= door)]
+        #[invariant(door_open.len() == 100)]
         while door <= 100 {
             let door_state = !door_open.index(door - 1);
             let new_door_state = door_open.index_mut(door - 1);
@@ -83,8 +83,8 @@ fn doors1() {
     }
     let mut i = 0;
     let mut continue_loop = i < door_open.len();
-    #[invariant="0 <= i"]
-    #[invariant="i < door_open.len()"]
+    #[invariant(0 <= i)]
+    #[invariant(i < door_open.len())]
     while continue_loop {
         let is_open = *door_open.index(i);
         print_door_state(i, is_open);
@@ -94,8 +94,8 @@ fn doors1() {
 }
 
 #[trusted]
-#[requires="exp == 2 ==> base * base < std::u32::MAX"]
-#[ensures="exp == 2 ==> result == base * base"]
+#[requires(exp == 2 ==> base * base < std::u32::MAX)]
+#[ensures(exp == 2 ==> result == base * base)]
 fn pow(base: u32, exp: u32) -> u32 {
     base.pow(exp)
 }
@@ -108,7 +108,7 @@ fn print_door_open(i: u32) {
 fn doors4() {
     let mut i = 1u32;
     let exp = 2;
-    #[invariant="i < 10u32"]
+    #[invariant(i < 10u32)]
     while i < 10u32 {
         let door = pow(i, exp);
         print_door_open(door);

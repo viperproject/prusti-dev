@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 #[derive(Copy, Clone)]
 pub struct S1<T> {

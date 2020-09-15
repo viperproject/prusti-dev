@@ -14,7 +14,7 @@
 //! +   Absence of panics.
 //! +   Absence of overflows.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapper<T>{
     v: Vec<T>
@@ -23,13 +23,13 @@ pub struct VecWrapper<T>{
 impl<T> VecWrapper<T> {
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecWrapper{ v: Vec::new() }
     }
 
     #[trusted]
-    #[ensures="self.len() == old(self.len()) + 1"]
+    #[ensures(self.len() == old(self.len()) + 1)]
     pub fn push(&mut self, value: T) {
         self.v.push(value);
     }
@@ -41,9 +41,9 @@ impl<T> VecWrapper<T> {
     }
 
     #[trusted]
-    #[requires="0 <= index_a && index_a < self.len()"]
-    #[requires="0 <= index_b && index_b < self.len()"]
-    #[ensures="self.len() == old(self.len())"]
+    #[requires(0 <= index_a && index_a < self.len())]
+    #[requires(0 <= index_b && index_b < self.len())]
+    #[ensures(self.len() == old(self.len()))]
     pub fn swap(&mut self, index_a: usize, index_b: usize) {
         self.v.swap(index_a, index_b);
     }
@@ -57,8 +57,8 @@ struct ThreadRngWrapper {}
 
 impl ThreadRngWrapper {
     #[trusted]
-    #[requires="low < high"]
-    #[ensures="low <= result && result < high"]
+    #[requires(low < high)]
+    #[ensures(low <= result && result < high)]
     fn gen_range(&mut self, low: usize, high: usize) -> usize {
         unimplemented!();
     }
@@ -75,10 +75,10 @@ fn knuth_shuffle<T>(v: &mut VecWrapper<T>) {
 
     let mut n = 0;
     let bgn = 0;
-    #[invariant="n < l"]
-    #[invariant="n >= 0"]
-    #[invariant="bgn == 0"]
-    #[invariant="l == v.len()"]
+    #[invariant(n < l)]
+    #[invariant(n >= 0)]
+    #[invariant(bgn == 0)]
+    #[invariant(l == v.len())]
     while n < l {
         let i = rng.gen_range(bgn, l - n);
         v.swap(i, l - n - 1);
