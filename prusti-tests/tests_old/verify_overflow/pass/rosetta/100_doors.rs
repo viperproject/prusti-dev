@@ -87,9 +87,9 @@ fn doors1() {
         body_invariant!(door_open.len() == 100);
         let mut door = pass;
         while door <= 100 {
-            body_invariant(door <= 100);
-            body_invariant(1 <= door);
-            body_invariant(door_open.len() == 100);
+            body_invariant!(door <= 100);
+            body_invariant!(1 <= door);
+            body_invariant!(door_open.len() == 100);
             let door_state = door_open.lookup(door - 1);
             door_open.store(door - 1, !door_state);
             door += pass;

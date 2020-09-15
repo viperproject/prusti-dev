@@ -5,7 +5,7 @@ use prusti_contracts::*;
 #[requires(12345)]
 pub fn test1a(x: i32) {}
 
-#[requires=     "12345)]
+#[requires=     "12345"]
 pub fn test1b(x: i32) {}
 
 #[
