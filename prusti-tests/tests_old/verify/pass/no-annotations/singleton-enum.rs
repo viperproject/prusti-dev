@@ -1,6 +1,6 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 enum Expr {
     Sum(i32, i32)

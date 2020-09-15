@@ -1,7 +1,7 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 trait Foo {
-    #[ensures="result > 42"]
+    #[ensures(result > 42)]
     fn foo(&self) -> i32;
 }
 

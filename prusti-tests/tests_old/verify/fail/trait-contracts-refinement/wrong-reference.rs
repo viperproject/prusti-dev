@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 trait Foo {  //~ ERROR no method 'bar' in super trait
     fn foo(&self, arg: i32) -> bool;

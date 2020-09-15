@@ -1,9 +1,9 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn test_loop(b: bool) {
     let mut g = b;
-    #[invariant="g"] // Ok, as the loop invariant is not reached after `g = false`
     while g {
+        body_invariant!(g); // Ok, as the loop invariant is not reached after `g = false`
         g = false;
     }
 }

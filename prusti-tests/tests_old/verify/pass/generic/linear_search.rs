@@ -1,6 +1,6 @@
 #![feature(attr_literals)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapper<T> {
     v: Vec<T>,
@@ -55,10 +55,10 @@ fn linear_search<T: Eq>(arr: &VecWrapper<T>, elem: &T) -> UsizeOption {
     let mut i = 0;
     let mut done = false;
 
-    #[invariant("0 <= i && i < arr.len()")]
-    #[invariant("forall k: usize :: (0 <= k && k < i) ==> !arr.present(k, elem)")]
-    #[invariant("done ==> (i < arr.len() && arr.present(i, elem))")]
     while i < arr.len() && !done {
+        body_invariant!(0 <= i && i < arr.len());
+        body_invariant!(forall k: usize :: (0 <= k && k < i) ==> !arr.present(k, elem));
+        body_invariant!(done ==> (i < arr.len() && arr.present(i, elem)));
         if arr.present(i, elem) {
             done = true;
         } else {

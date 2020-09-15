@@ -1,20 +1,20 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 use std::marker::PhantomData;
 
 struct Even;
 struct Odd;
 
-#[invariant="S == Even ~~> self.i % 2 == 0"]
-//#[invariant="S == Odd  ~~> self.i % 2 != 0"]
+#[invariant(S == Even ~~> self.i % 2 == 0)]
+//#[invariant(S == Odd  ~~> self.i % 2 != 0)]
 struct Int<S> {
     i: i32,
     s: PhantomData<S>,
 }
 
 impl<A> Int<A> {
-    //#[requires="A == Even ~~> i % 2 == 0"]
-    #[requires="A == Odd  ~~> i % 2 != 0"]
+    //#[requires(A == Even ~~> i % 2 == 0)]
+    #[requires(A == Odd  ~~> i % 2 != 0)]
     fn new(i: i32) -> Int<A> { //~ ERROR type invariants
         Int {
             i,
@@ -34,7 +34,7 @@ impl<A> Int<A> {
     }
 
     // non-negative because modulo doesn't like negative numbers (currently)
-    #[requires="self.i >= 0"]
+    #[requires(self.i >= 0)]
     fn test_double(self) -> Int<Even> {
         Int::new(self.i * 2)
     }
@@ -48,12 +48,12 @@ fn test2(int: &mut Int<Odd>) {
     assert!(int.i % 2 != 0); //~ ERROR the asserted expression might not hold
 }
 
-#[requires="i % 2 == 0"]
+#[requires(i % 2 == 0)]
 fn test3(i: i32) -> Int<Even> {
     Int::new(i)
 }
 
-#[requires="i % 2 != 0"]
+#[requires(i % 2 != 0)]
 fn test4(i: i32) -> Int<Odd> {
     Int::new(i)
 }

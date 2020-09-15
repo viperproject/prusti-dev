@@ -4,7 +4,7 @@
 #![feature(never_type)]
 #![allow(unconditional_recursion)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 use std::borrow::BorrowMut;
 

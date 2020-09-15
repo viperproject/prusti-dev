@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn foo() {
     assert!(false);  //~ ERROR the asserted expression might not hold

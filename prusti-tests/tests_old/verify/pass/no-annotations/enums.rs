@@ -3,7 +3,7 @@
 #[allow(dead_code)]
 #[allow(unused_variables)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct T0 (u32);
 
@@ -71,7 +71,7 @@ struct S2 {
     g: S1,
 }
 
-#[ensures="result.f == result.g.b"]
+#[ensures(result.f == result.g.b)]
 fn test4() -> S2 {
     S2 {
         f: 3,
@@ -92,7 +92,7 @@ fn get_b(s: &S1) -> u32 {
     s.b
 }
 
-#[ensures="get_f(&result) == get_b(&result.g)"]
+#[ensures(get_f(&result) == get_b(&result.g))]
 fn test5() -> S2 {
     S2 {
         f: 3,

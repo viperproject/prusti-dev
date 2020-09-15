@@ -1,6 +1,6 @@
 #![feature(box_syntax)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 #[trusted]
 fn random() -> bool {

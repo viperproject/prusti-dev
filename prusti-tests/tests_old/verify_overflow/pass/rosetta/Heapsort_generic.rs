@@ -12,7 +12,7 @@
 //!
 //! +   Absence of panics.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapper<T>{
     v: Vec<T>
@@ -21,13 +21,13 @@ pub struct VecWrapper<T>{
 impl<T> VecWrapper<T> {
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecWrapper{ v: Vec::new() }
     }
 
     #[trusted]
-    #[ensures="self.len() == old(self.len()) + 1"]
+    #[ensures(self.len() == old(self.len()) + 1)]
     pub fn push(&mut self, value: T) {
         self.v.push(value);
     }
@@ -39,22 +39,22 @@ impl<T> VecWrapper<T> {
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn index(&self, index: usize) -> &T {
         &self.v[index]
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="after_expiry(self.len() == old(self.len()))"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(after_expiry(self.len() == old(self.len())))]
     pub fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.v[index]
     }
 
     #[trusted]
-    #[requires="0 <= index_a && index_a < self.len()"]
-    #[requires="0 <= index_b && index_b < self.len()"]
-    #[ensures="self.len() == old(self.len())"]
+    #[requires(0 <= index_a && index_a < self.len())]
+    #[requires(0 <= index_b && index_b < self.len())]
+    #[ensures(self.len() == old(self.len()))]
     pub fn swap(&mut self, index_a: usize, index_b: usize) {
         self.v.swap(index_a, index_b);
     }
@@ -66,8 +66,8 @@ fn order<T>(_x: &T, _y: &T) -> bool {
     unimplemented!()
 }
 
-#[requires="array.len() < std::usize::MAX/2"]
-#[ensures="array.len() == old(array.len())"]
+#[requires(array.len() < std::usize::MAX/2)]
+#[ensures(array.len() == old(array.len()))]
 fn heap_sort<T>(array: &mut VecWrapper<T>)
 {
     let len = array.len();
@@ -75,11 +75,11 @@ fn heap_sort<T>(array: &mut VecWrapper<T>)
     let mut start = len/2;
     let mut continue_loop = start > 0;
     // Create heap
-    #[invariant="array.len() < std::usize::MAX/2"]
-    #[invariant="len == array.len()"]
-    #[invariant="start <= len/2"]
-    #[invariant="start > 0"]
     while continue_loop {
+        body_invariant!(array.len() < std::usize::MAX/2);
+        body_invariant!(len == array.len());
+        body_invariant!(start <= len/2);
+        body_invariant!(start > 0);
         start -= 1;
         shift_down(array, start, len - 1);
         continue_loop = start > 0;
@@ -87,11 +87,11 @@ fn heap_sort<T>(array: &mut VecWrapper<T>)
 
     let mut end = len;
     let mut continue_loop = end > 1;
-    #[invariant="array.len() < std::usize::MAX/2"]
-    #[invariant="len == array.len()"]
-    #[invariant="end <= len"]
-    #[invariant="end > 1"]
     while continue_loop {
+        body_invariant!(array.len() < std::usize::MAX/2);
+        body_invariant!(len == array.len());
+        body_invariant!(end <= len);
+        body_invariant!(end > 1);
         end -= 1;
         let zero = 0;
         array.swap(zero, end);
@@ -100,18 +100,18 @@ fn heap_sort<T>(array: &mut VecWrapper<T>)
     }
 }
 
-#[requires="array.len() < std::usize::MAX/2"]
-#[requires="0 <= start && start < array.len()/2"]
-#[requires="0 <= end && end < array.len()"]
-#[ensures="array.len() == old(array.len())"]
+#[requires(array.len() < std::usize::MAX/2)]
+#[requires(0 <= start && start < array.len()/2)]
+#[requires(0 <= end && end < array.len())]
+#[ensures(array.len() == old(array.len()))]
 fn shift_down<T>(array: &mut VecWrapper<T>, start: usize, end: usize) {
     let mut root = start;
     let mut continue_loop = true;
-    #[invariant="array.len() < std::usize::MAX/2"]
-    #[invariant="0 <= root && root < array.len()"]
-    #[invariant="0 <= end && end < array.len()"]
-    #[invariant="array.len() == old(array.len())"]
     while continue_loop {
+        body_invariant!(array.len() < std::usize::MAX/2);
+        body_invariant!(0 <= root && root < array.len());
+        body_invariant!(0 <= end && end < array.len());
+        body_invariant!(array.len() == old(array.len()));
         let mut child = root * 2 + 1;
         if child > end {
             continue_loop = false;

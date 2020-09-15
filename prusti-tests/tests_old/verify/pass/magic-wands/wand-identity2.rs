@@ -1,12 +1,12 @@
 #![allow(dead_code)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct T {
     val: i32
 }
 
-#[ensures="after_expiry(x.val == before_expiry(result.val))"]
+#[ensures(after_expiry(x.val == before_expiry(result.val)))]
 fn identity(x: &mut T) -> &mut T {
     x
 }
@@ -19,15 +19,15 @@ fn identity_use() {
     assert!(t.val == 6);
 }
 
-#[ensures="result.val == v"]    // TODO x.val is illegal, but we crash instead of giving a proper error.
-#[ensures="after_expiry(x.val == before_expiry(result.val))"]
+#[ensures(result.val == v)]    // TODO x.val is illegal, but we crash instead of giving a proper error.
+#[ensures(after_expiry(x.val == before_expiry(result.val)))]
 fn identity2(x: &mut T, v: i32) -> &mut T {
     x.val = v;
     x
 }
 
-#[ensures="*result == v"]
-#[ensures="after_expiry(x.val == before_expiry(*result))"]
+#[ensures(*result == v)]
+#[ensures(after_expiry(x.val == before_expiry(*result)))]
 fn identity3(x: &mut T, v: i32) -> &mut i32 {
     x.val = v;
     &mut x.val

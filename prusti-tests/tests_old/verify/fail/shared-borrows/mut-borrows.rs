@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn borrow(_x: &u32) {}
 
@@ -20,7 +20,7 @@ pub fn test3(x: &mut u32) {
     assert!(false); //~ ERROR the asserted expression might not hold
 }
 
-#[ensures="*x == 5"]
+#[ensures(*x == 5)]
 pub fn test4(x: &mut u32) {
     let y = &*x;
     assert!(*y == *x);

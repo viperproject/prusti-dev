@@ -7,7 +7,7 @@
 ///
 /// TODO: Add specifications.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapperI32{
     v: Vec<i32>
@@ -17,14 +17,14 @@ impl VecWrapperI32 {
     // Encoded as body-less Viper function
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
+    #[ensures(result >= 0)]
     pub fn len(&self) -> usize {
         self.v.len()
     }
 
     // Encoded as body-less Viper method
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecWrapperI32{ v: Vec::new() }
     }
@@ -32,16 +32,16 @@ impl VecWrapperI32 {
     // Encoded as body-less Viper function
     #[trusted]
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
         self.v[index]
     }
 
     // Encoded as body-less Viper method
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="self.len() == old(self.len())"]
-    #[ensures="self.lookup(old(index)) == old(value)"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(self.len() == old(self.len()))]
+    #[ensures(self.lookup(old(index)) == old(value))]
     pub fn store(&mut self, index: usize, value: i32) {
         self.v[index] = value;
     }
@@ -55,9 +55,9 @@ impl VecWrapperI32 {
 fn capitalize(vec: &mut VecWrapperI32) {
     let mut i = 0;
     let mut not_finished = i < vec.len();
-    #[invariant="0 <= i && i <= vec.len()"]
-    #[invariant="not_finished ==> i < vec.len()"]
     while not_finished {
+        body_invariant!(0 <= i && i <= vec.len());
+        body_invariant!(not_finished ==> i < vec.len());
         let value = vec.lookup(i);
         vec.store(i, value);
         i += 1;
@@ -66,7 +66,7 @@ fn capitalize(vec: &mut VecWrapperI32) {
     }
 }
 
-#[ensures="false"] //~ ERROR postcondition
+#[ensures(false)] //~ ERROR postcondition
 fn bar() {
     let mut data = VecWrapperI32::new();
     data.push(1);

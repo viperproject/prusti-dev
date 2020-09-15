@@ -4,7 +4,7 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn use_box(v: i32) -> Box<i32> {
     let x = Box::new(v);

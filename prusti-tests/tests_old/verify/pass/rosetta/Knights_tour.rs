@@ -14,7 +14,7 @@
 //!
 //! +   Absence of panics.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct VecWrapperI32I32{
     v: Vec<(i32, i32)>
@@ -23,20 +23,20 @@ struct VecWrapperI32I32{
 impl VecWrapperI32I32 {
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecWrapperI32I32{ v: Vec::new() }
     }
 
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
+    #[ensures(result >= 0)]
     pub fn len(&self) -> usize {
         self.v.len()
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&mut self, index: usize) -> (i32, i32) {
         self.v[index]
     }
@@ -49,30 +49,30 @@ struct VecCandidates{
 impl VecCandidates {
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecCandidates{ v: Vec::new() }
     }
 
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
+    #[ensures(result >= 0)]
     pub fn len(&self) -> usize {
         self.v.len()
     }
 
     #[trusted]
-    #[requires="0 <= value.1.x && value.1.x < size()"]
-    #[requires="0 <= value.1.y && value.1.y < size()"]
-    #[ensures="self.len() == old(self.len()) + 1"]
+    #[requires(0 <= value.1.x && value.1.x < size())]
+    #[requires(0 <= value.1.y && value.1.y < size())]
+    #[ensures(self.len() == old(self.len()) + 1)]
     pub fn push(&mut self, value: (i32, Point)) {
         self.v.push(value);
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="0 <= result.1.x && result.1.x < size()"]
-    #[ensures="0 <= result.1.y && result.1.y < size()"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(0 <= result.1.x && result.1.x < size())]
+    #[ensures(0 <= result.1.y && result.1.y < size())]
     pub fn lookup(&mut self, index: usize) -> (i32, Point) {
         let r = &self.v[index];
         (r.0, Point { x: r.1.x, y: r.1.y })
@@ -94,19 +94,19 @@ impl VecVecWrapperI32 {
 
     #[pure]
     #[trusted]
-    #[requires="0 <= x && x < size()"]
-    #[requires="0 <= y && y < size()"]
+    #[requires(0 <= x && x < size())]
+    #[requires(0 <= y && y < size())]
     fn lookup(&self, x: i32, y: i32) -> i32 {
         self.v[x as usize][y as usize]
     }
 
     #[trusted]
-    #[requires="0 <= x && x < size()"]
-    #[requires="0 <= y && y < size()"]
-    #[ensures="self.lookup(x, y) == value"]
-    #[ensures="forall px: i32, py: i32 ::
+    #[requires(0 <= x && x < size())]
+    #[requires(0 <= y && y < size())]
+    #[ensures(self.lookup(x, y) == value)]
+    #[ensures(forall px: i32, py: i32 ::
                (0 <= px && px < size() && px != x && 0 <= py && py < size() && py != y) ==>
-               self.lookup(px, py) == old(self.lookup(px, py))"]
+               self.lookup(px, py) == old(self.lookup(px, py)))]
     pub fn store(&mut self, x: i32, y: i32, value: i32) {
         self.v[x as usize][y as usize] = value;
     }
@@ -118,7 +118,7 @@ const SIZE: usize = 8;
 
 #[trusted]
 #[pure]
-#[ensures="result == 8"]
+#[ensures(result == 8)]
 fn size() -> i32 {
     SIZE as i32
 }
@@ -136,18 +136,18 @@ struct Point {
 }
  
 impl Point {
-    #[ensures="self.x == old(self.x)"]
-    #[ensures="self.y == old(self.y)"]
+    #[ensures(self.x == old(self.x))]
+    #[ensures(self.y == old(self.y))]
     fn mov(&mut self, &mut (dx,dy): &mut (i32, i32)) -> Point {
         Point {
             x: self.x + dx,
             y: self.y + dy
         }
     }
-    #[ensures="result.x == old(self.x)"]
-    #[ensures="result.y == old(self.y)"]
-    #[ensures="self.x == old(self.x)"]
-    #[ensures="self.y == old(self.y)"]
+    #[ensures(result.x == old(self.x))]
+    #[ensures(result.y == old(self.y))]
+    #[ensures(self.x == old(self.x))]
+    #[ensures(self.y == old(self.y))]
     fn clone(&mut self) -> Point {
         Point {
             x: self.x,
@@ -176,7 +176,7 @@ impl Board {
         };
     }
  
-    #[ensures="result ==> (0 <= p.x && p.x < size() && 0 <= p.y && p.y < size())"]
+    #[ensures(result ==> (0 <= p.x && p.x < size() && 0 <= p.y && p.y < size()))]
     fn available(&mut self, p: Point) -> bool {
         let valid = 0 <= p.x && p.x < size()
                  && 0 <= p.y && p.y < size();
@@ -190,8 +190,8 @@ impl Board {
         let mut moves = moves();
         let mut i = 0;
         let mut continue_loop = i < moves.len();
-        #[invariant="0 <= i"]
-        #[invariant="i < moves.len()"]
+        #[invariant(0 <= i)]
+        #[invariant(i < moves.len())]
         while continue_loop {
             let mut dir = moves.lookup(i);
             let next = p.mov(&mut dir);
@@ -219,7 +219,7 @@ impl fmt::Display for Board {
     }
 }
  
-#[requires="0 <= x && x < size() && 0 <= y && y < size()"]
+#[requires(0 <= x && x < size() && 0 <= y && y < size())]
 fn knights_tour(x: i32, y: i32) -> Option<Board> {
     let mut board = Board::new();
     let mut p = Point {x: x, y: y};
@@ -230,18 +230,18 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
 
     let mut continue_loop_1 = step <= size() * size();
  
-    #[invariant="0 <= p.x && p.x < size()"]
-    #[invariant="0 <= p.y && p.y < size()"]
+    #[invariant(0 <= p.x && p.x < size())]
+    #[invariant(0 <= p.y && p.y < size())]
     while continue_loop_1 {
         // choose next square by Warnsdorf's rule
         let mut candidates = VecCandidates::new();
         let mut moves = moves();
         let mut i = 0;
         let mut continue_loop_3 = i < moves.len();
-        #[invariant="0 <= i"]
-        #[invariant="i < moves.len()"]
-        #[invariant="0 <= p.x && p.x < size()"]
-        #[invariant="0 <= p.y && p.y < size()"]
+        #[invariant(0 <= i)]
+        #[invariant(i < moves.len())]
+        #[invariant(0 <= p.x && p.x < size())]
+        #[invariant(0 <= p.y && p.y < size())]
         while continue_loop_3 {
             let mut dir = moves.lookup(i);
             let mut adj = p.mov(&mut dir);
@@ -257,9 +257,9 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
         let mut continue_loop_2 = i < candidates.len();
         let mut min = None;
         let mut min_degree = size() * size();
-        #[invariant="0 <= i"]
-        #[invariant="i < candidates.len()"]
-        #[invariant="valid(&min)"]
+        #[invariant(0 <= i)]
+        #[invariant(i < candidates.len())]
+        #[invariant(valid(&min))]
         while continue_loop_2 {
             let (degree, adj) = candidates.lookup(i);
             if min_degree > degree {

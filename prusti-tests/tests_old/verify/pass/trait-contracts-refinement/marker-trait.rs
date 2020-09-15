@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 trait Foo {
     fn foo(&self) -> bool;

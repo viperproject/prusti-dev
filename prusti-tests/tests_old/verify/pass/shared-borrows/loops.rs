@@ -1,8 +1,8 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn borrow(_x: &i32) {}
 
-#[ensures="*n == old(*n)"]
+#[ensures(*n == old(*n))]
 pub fn test1(n: &mut i32) {
     let mut i = 0;
     let mut cond = i < *n;
@@ -12,7 +12,7 @@ pub fn test1(n: &mut i32) {
     }
 }
 
-#[ensures="*n == old(*n)"]
+#[ensures(*n == old(*n))]
 pub fn test2(n: &mut i32) {
     let mut i = 0;
     let mut cond = i < *n;
@@ -23,7 +23,7 @@ pub fn test2(n: &mut i32) {
     }
 }
 
-#[ensures="*n == old(*n)"]
+#[ensures(*n == old(*n))]
 pub fn test3(n: &i32) {
     let mut i = 0;
     let mut cond = i < *n;
@@ -34,13 +34,13 @@ pub fn test3(n: &i32) {
     }
 }
 
-#[requires="*n >= 0"]
-#[ensures="*n == old(*n)"]
+#[requires(*n >= 0)]
+#[ensures(*n == old(*n))]
 pub fn test4(n: &i32) {
     let mut i = 0;
     let mut cond = i < *n;
-    #[invariant="cond == (i < *n)"]
-    #[invariant="0 <= i && i <= *n"]
+    #[invariant(cond == (i < *n))]
+    #[invariant(0 <= i && i <= *n)]
     while cond {
         i += 1;
         borrow(n);

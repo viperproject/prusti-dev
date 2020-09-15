@@ -1,10 +1,10 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 trait Percentage {
-    #[ensures="result <= 100"] //~ ERROR postcondition might not hold
+    #[ensures(result <= 100)] //~ ERROR postcondition might not hold
     fn get(&self) -> u8;
 
-    #[requires="arg <= 100"]
+    #[requires(arg <= 100)]
     fn set(&mut self, arg: u8);
 }
 

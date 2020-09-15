@@ -1,6 +1,6 @@
 #![feature(box_patterns)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct T {
     f: u32,
@@ -11,14 +11,14 @@ struct U {
     g: u32,
 }
 
-#[requires="_a.f == 4"]
+#[requires(_a.f == 4)]
 fn check_t(_a: T) {}
 
-#[requires="_a.f == 3 && _a.g == 4"]
+#[requires(_a.f == 3 && _a.g == 4)]
 fn check_u(_a: U) {}
 
-#[ensures="*result == old(*x)"]
-#[ensures="after_expiry(before_expiry(*result) == *x)"]
+#[ensures(*result == old(*x))]
+#[ensures(after_expiry(before_expiry(*result) == *x))]
 fn reborrow_u32(x: &mut u32) -> &mut u32 {
     x
 }

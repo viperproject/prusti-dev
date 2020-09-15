@@ -1,15 +1,15 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[invariant="self.value <= 100"]
+#[invariant(self.value <= 100)]
 struct Percentage {
     value: u8,
 }
 
 impl Percentage {
-    #[ensures="*result <= 100"]
-    #[ensures="assert_on_expiry(*result <= 100)"]
+    #[ensures(*result <= 100)]
+    #[ensures(assert_on_expiry(*result <= 100))]
     fn leak(&mut self) -> &mut u8 {
         &mut self.value
     }

@@ -17,9 +17,7 @@
 //!
 //! +   Absence of panics.
 
-// ignore-test Flaky test
-
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapper<T>{
     v: Vec<T>
@@ -28,13 +26,13 @@ pub struct VecWrapper<T>{
 impl<T> VecWrapper<T> {
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecWrapper{ v: Vec::new() }
     }
 
     #[trusted]
-    #[ensures="self.len() == old(self.len()) + 1"]
+    #[ensures(self.len() == old(self.len()) + 1)]
     pub fn push(&mut self, value: T) {
         self.v.push(value);
     }
@@ -46,14 +44,14 @@ impl<T> VecWrapper<T> {
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn index(&self, index: usize) -> &T {
         &self.v[index]
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="after_expiry(self.len() == old(self.len()))"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(after_expiry(self.len() == old(self.len())))]
     pub fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.v[index]
     }
@@ -67,8 +65,8 @@ struct VecVecWrapper<T> {
 impl<T: Clone> VecVecWrapper<T> {
 
     #[trusted]
-    #[requires="board_size >= 0"]
-    #[ensures="result.size() == board_size"]
+    #[requires(board_size >= 0)]
+    #[ensures(result.size() == board_size)]
     fn new(board_size: i32, default_value: T) -> Self {
         Self {
             s: board_size,
@@ -82,16 +80,16 @@ impl<T: Clone> VecVecWrapper<T> {
     }
 
     #[trusted]
-    #[requires="0 <= index_x && index_x < self.size()"]
-    #[requires="0 <= index_y && index_y < self.size()"]
+    #[requires(0 <= index_x && index_x < self.size())]
+    #[requires(0 <= index_y && index_y < self.size())]
     pub fn index(&self, index_x: i32, index_y: i32) -> &T {
         &self.v[index_x as usize][index_y as usize]
     }
 
     #[trusted]
-    #[requires="0 <= index_x && index_x < self.size()"]
-    #[requires="0 <= index_y && index_y < self.size()"]
-    #[ensures="after_expiry(self.size() == old(self.size()))"]
+    #[requires(0 <= index_x && index_x < self.size())]
+    #[requires(0 <= index_y && index_y < self.size())]
+    #[ensures(after_expiry(self.size() == old(self.size())))]
     pub fn index_mut(&mut self, index_x: i32, index_y: i32) -> &mut T {
         &mut self.v[index_x as usize][index_y as usize]
     }
@@ -101,7 +99,7 @@ const SIZE: usize = 8;
 
 #[trusted]
 #[pure]
-#[ensures="result == 8"]
+#[ensures(result == 8)]
 fn size() -> i32 {
     SIZE as i32
 }
@@ -114,15 +112,15 @@ impl Moves {
 
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
+    #[ensures(result >= 0)]
     pub fn len(&self) -> i32 {
         self.v.len() as i32
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="-2 <= result.0 && result.0 <= 2"]
-    #[ensures="-2 <= result.1 && result.1 <= 2"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(-2 <= result.0 && result.0 <= 2)]
+    #[ensures(-2 <= result.1 && result.1 <= 2)]
     pub fn index(&self, index: i32) -> &(i32, i32) {
         &self.v[index as usize]
     }
@@ -142,30 +140,30 @@ struct Candidates{
 impl Candidates {
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         Self { v: Vec::new() }
     }
 
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
+    #[ensures(result >= 0)]
     pub fn len(&self) -> usize {
         self.v.len()
     }
 
     #[trusted]
-    #[requires="0 <= value.1.x && value.1.x < size()"]
-    #[requires="0 <= value.1.y && value.1.y < size()"]
-    #[ensures="self.len() == old(self.len()) + 1"]
+    #[requires(0 <= value.1.x && value.1.x < size())]
+    #[requires(0 <= value.1.y && value.1.y < size())]
+    #[ensures(self.len() == old(self.len()) + 1)]
     pub fn push(&mut self, value: (i32, Point)) {
         self.v.push(value);
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="0 <= result.1.x && result.1.x < size()"]
-    #[ensures="0 <= result.1.y && result.1.y < size()"]
+    #[requires(0 <= index && index < self.len())]
+    #[ensures(0 <= result.1.x && result.1.x < size())]
+    #[ensures(0 <= result.1.y && result.1.y < size())]
     pub fn index(&self, index: usize) -> &(i32, Point) {
         &self.v[index]
     }
@@ -178,10 +176,10 @@ struct Point {
 }
 
 impl Point {
-    #[requires="0 <= self.x && self.x < size()"]
-    #[requires="0 <= self.y && self.y < size()"]
-    #[requires="-2 <= dx && dx <= 2"]
-    #[requires="-2 <= dy && dy <= 2"]
+    #[requires(0 <= self.x && self.x < size())]
+    #[requires(0 <= self.y && self.y < size())]
+    #[requires(-2 <= dx && dx <= 2)]
+    #[requires(-2 <= dy && dy <= 2)]
     fn mov(&self, &(dx,dy): &(i32, i32)) -> Point {
         Point {
             x: self.x + dx,
@@ -204,15 +202,15 @@ struct Board {
 
 impl Board {
  
-    #[ensures="result.field.size() == size()"]
+    #[ensures(result.field.size() == size())]
     fn new() -> Board {
         return Board {
             field: VecVecWrapper::new(size(), 0),
         };
     }
  
-    #[requires="self.field.size() == size()"]
-    #[ensures="result ==> (0 <= p.x && p.x < size() && 0 <= p.y && p.y < size())"]
+    #[requires(self.field.size() == size())]
+    #[ensures(result ==> (0 <= p.x && p.x < size() && 0 <= p.y && p.y < size()))]
     fn available(&self, p: Point) -> bool {
         let valid = 0 <= p.x && p.x < size()
                  && 0 <= p.y && p.y < size();
@@ -220,22 +218,22 @@ impl Board {
     }
  
     // calculate the number of possible moves
-    #[requires="self.field.size() == size()"]
-    #[requires="0 <= p.x && p.x < size()"]
-    #[requires="0 <= p.y && p.y < size()"]
+    #[requires(self.field.size() == size())]
+    #[requires(0 <= p.x && p.x < size())]
+    #[requires(0 <= p.y && p.y < size())]
     fn count_degree(&self, p: Point) -> i32 {
         let mut p = p;
         let mut count = 0;
         let mut moves = moves();
         let mut i = 0;
         let mut continue_loop = i < moves.len();
-        #[invariant="self.field.size() == size()"]
-        #[invariant="0 <= i"]
-        #[invariant="continue_loop ==> i < moves.len()"]
-        #[invariant="0 <= p.x && p.x < size()"]
-        #[invariant="0 <= p.y && p.y < size()"]
-        #[invariant="0 <= count && count <= i"]
         while continue_loop {
+            body_invariant!(self.field.size() == size());
+            body_invariant!(0 <= i);
+            body_invariant!(continue_loop ==> i < moves.len());
+            body_invariant!(0 <= p.x && p.x < size());
+            body_invariant!(0 <= p.y && p.y < size());
+            body_invariant!(0 <= count && count <= i);
             let mut dir = moves.index(i);
             let next = p.mov(dir);
             if self.available(next) {
@@ -248,7 +246,7 @@ impl Board {
     }
 }
 
-#[requires="0 <= x && x < size() && 0 <= y && y < size()"]
+#[requires(0 <= x && x < size() && 0 <= y && y < size())]
 fn knights_tour(x: i32, y: i32) -> Option<Board> {
     let mut board = Board::new();
     let mut p = Point {x: x, y: y};
@@ -260,22 +258,22 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
 
     let mut continue_loop_1 = step <= size() * size();
  
-    #[invariant="board.field.size() == size()"]
-    #[invariant="0 <= p.x && p.x < size()"]
-    #[invariant="0 <= p.y && p.y < size()"]
-    #[invariant="continue_loop_1 ==> step <= size() * size()"]
     while continue_loop_1 {
+        body_invariant!(board.field.size() == size());
+        body_invariant!(0 <= p.x && p.x < size());
+        body_invariant!(0 <= p.y && p.y < size());
+        body_invariant!(continue_loop_1 ==> step <= size() * size());
         // choose next square by Warnsdorf's rule
         let mut candidates = Candidates::new();
         let mut moves = moves();
         let mut i = 0;
         let mut continue_loop_3 = i < moves.len();
-        #[invariant="board.field.size() == size()"]
-        #[invariant="0 <= i"]
-        #[invariant="continue_loop_3 ==> i < moves.len()"]
-        #[invariant="0 <= p.x && p.x < size()"]
-        #[invariant="0 <= p.y && p.y < size()"]
         while continue_loop_3 {
+            body_invariant!(board.field.size() == size());
+            body_invariant!(0 <= i);
+            body_invariant!(continue_loop_3 ==> i < moves.len());
+            body_invariant!(0 <= p.x && p.x < size());
+            body_invariant!(0 <= p.y && p.y < size());
             let mut dir = moves.index(i);
             let mut adj = p.mov(dir);
             if board.available(adj) {
@@ -290,10 +288,10 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
         let mut continue_loop_2 = i < candidates.len();
         let mut min = None;
         let mut min_degree = size() * size();
-        #[invariant="0 <= i"]
-        #[invariant="continue_loop_2 ==> i < candidates.len()"]
-        #[invariant="valid(&min)"]
         while continue_loop_2 {
+            body_invariant!(0 <= i);
+            body_invariant!(continue_loop_2 ==> i < candidates.len());
+            body_invariant!(valid(&min));
             let &(degree, adj) = candidates.index(i);
             if min_degree > degree {
                 min_degree = degree;
@@ -329,9 +327,9 @@ impl fmt::Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for row in self.field.v.iter() {
             for x in row.iter(){
-                try!(write!(f, "{:3} ", x));
+                write!(f, "{:3} ", x)?;
             }
-            try!(write!(f, "\n"));
+            write!(f, "\n")?;
         }
         Ok(())
     }

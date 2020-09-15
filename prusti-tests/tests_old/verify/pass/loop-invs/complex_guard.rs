@@ -1,15 +1,14 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn test() {
     let mut i = 0;
 
-    #[invariant="i == 0"]
     'outer: loop {
-        #[invariant="i % 10 == 0 && i < 55"]
+        body_invariant!(i == 0);
         while {
             let old_i = i;
-            #[invariant="i < old_i + 10"]
             while i < old_i + 10 {
+                body_invariant!(i < old_i + 10);
                 if i == 123123 {
                     break;
                 }
@@ -20,6 +19,7 @@ fn test() {
             }
             i < 55
         } {
+            body_invariant!(i % 10 == 0 && i < 55);
             i += 1;
             if i == 456456 {
                 break;

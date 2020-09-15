@@ -1,15 +1,15 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 
 trait Foo {
-    #[ensures="result > 0"]
+    #[ensures(result > 0)]
     fn foo(_a: i32) -> i32;
 }
 
 struct Dummy { }
 
 impl Foo for Dummy {
-    #[ensures="result == 5"]
+    #[ensures(result == 5)]
     fn foo(_a: i32) -> i32 {
         5
     }

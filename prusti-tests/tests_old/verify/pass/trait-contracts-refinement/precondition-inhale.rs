@@ -1,14 +1,14 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 trait Foo {
-    #[requires="_val > 100"]
+    #[requires(_val > 100)]
     fn foo(&self, _val: i32);
 }
 
 struct Dummy { }
 
 impl Foo for Dummy {
-    #[requires="_val > 12"]
+    #[requires(_val > 12)]
     fn foo(&self, _val: i32) { }
 }
 

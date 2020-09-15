@@ -1,6 +1,6 @@
 #![feature(box_patterns, box_syntax)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 type Triple = (i32, i32, i32);
 
@@ -21,10 +21,10 @@ fn contains(list: &List, i: i32, j: i32) -> bool {
     }
 }
 
-#[requires="!contains(list, elem.0, elem.1)"]
-#[ensures="contains(list, elem.0, elem.1)"]
-#[ensures="forall i: i32, j: i32 :: old(contains(list, i, j)) ==> contains(list, i, j)"]
-#[ensures="forall i: i32, j: i32 :: (!old(contains(list, i, j)) && i != elem.0 && j != elem.1) ==> !contains(list, i, j)"]
+#[requires(!contains(list, elem.0, elem.1))]
+#[ensures(contains(list, elem.0, elem.1))]
+#[ensures(forall i: i32, j: i32 :: old(contains(list, i, j)) ==> contains(list, i, j))]
+#[ensures(forall i: i32, j: i32 :: (!old(contains(list, i, j)) && i != elem.0 && j != elem.1) ==> !contains(list, i, j))]
 fn append(list: &mut List, elem: Triple) {
     match list.next {
         Some(box ref mut tail) => append(tail, elem),

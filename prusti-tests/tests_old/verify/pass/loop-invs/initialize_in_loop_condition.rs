@@ -1,6 +1,6 @@
 #![feature(box_syntax)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 #[trusted]
 fn random() -> u32 {
@@ -10,7 +10,6 @@ fn random() -> u32 {
 fn test() {
     let mut x: Box<u32>;
 
-    #[invariant="*x < 55"]
     'myloop: while {
         x = box random();
         if *x == 0 {
@@ -18,6 +17,7 @@ fn test() {
         }
         *x < 55
     } {
+        body_invariant!(*x < 55);
         assert!(*x != 100);
     }
 

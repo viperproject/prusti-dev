@@ -1,19 +1,19 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 use std::marker::PhantomData;
 
 struct Neg;
 struct Pos;
 
-#[invariant="S == Neg ~~> self.i < 0"]
-//#[invariant="S == Pos ~~> self.i > 0"]
+#[invariant(S == Neg ~~> self.i < 0)]
+//#[invariant(S == Pos ~~> self.i > 0)]
 struct Number<S> {
     i: i32,
     s: PhantomData<S>,
 }
 
 impl<X> Number<X> {
-    #[ensures="self.i >= -1 && self.i <= 1"]
+    #[ensures(self.i >= -1 && self.i <= 1)]
     fn to_sign(&mut self) {
         if self.i <= -1 {
             self.i = -1;

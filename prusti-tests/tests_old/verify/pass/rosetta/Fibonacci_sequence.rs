@@ -25,7 +25,7 @@
 //! +   Absence of panics.
 //! +   The verified three implementations print only Fibonacci numbers.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 use std::mem;
 
@@ -39,20 +39,20 @@ fn fib(i: usize) -> usize {
 }
 
 #[trusted]
-#[requires="fib(_i) == n"]
+#[requires(fib(_i) == n)]
 fn print_fib(_i: usize, n: usize) {
     println!("{}", n);
 }
 
 #[trusted]
-#[ensures="*a == old(*b)"]
-#[ensures="*b == old(*a)"]
+#[ensures(*a == old(*b))]
+#[ensures(*b == old(*a))]
 fn swap(a: &mut usize, b: &mut usize) {
     mem::swap(a, b);
 }
 
 #[trusted]
-#[ensures="result.is_some() ==> a + b == result.peek()"]
+#[ensures(result.is_some() ==> a + b == result.peek())]
 fn checked_add(a: usize, b: usize) -> UsizeOption {
     match a.checked_add(b) {
         Some(n) => UsizeOption::Some(n),
@@ -70,9 +70,9 @@ fn iterative_fibonacci() {
     let mut _ghost_counter = 1;
     let mut add_succeeded = true;
 
-    #[invariant="_ghost_counter >= 1"]
-    #[invariant="fib(_ghost_counter) == curr"]
-    #[invariant="fib(_ghost_counter-1) == prev"]
+    #[invariant(_ghost_counter >= 1)]
+    #[invariant(fib(_ghost_counter) == curr)]
+    #[invariant(fib(_ghost_counter-1) == prev)]
     while add_succeeded {
         if let UsizeOption::Some(n) = checked_add(curr, prev) {
             prev = curr;
@@ -87,9 +87,9 @@ fn iterative_fibonacci() {
 
 // Recursive
 
-#[requires="_ghost_counter >= 1"]
-#[requires="fib(_ghost_counter-1) == prev"]
-#[requires="fib(_ghost_counter) == curr"]
+#[requires(_ghost_counter >= 1)]
+#[requires(fib(_ghost_counter-1) == prev)]
+#[requires(fib(_ghost_counter) == curr)]
 fn recursive_fibonacci(_ghost_counter: usize, prev: usize, curr: usize) {
     let mut prev = prev;
     let mut curr = curr;
@@ -116,7 +116,7 @@ impl UsizeOption {
         }
     }
     #[pure]
-    #[requires="self.is_some()"]
+    #[requires(self.is_some())]
     fn peek(&self) -> usize {
         match self {
             UsizeOption::Some(n) => *n,
@@ -132,8 +132,8 @@ struct Fib {
 }
 
 impl Fib {
-    #[ensures="result.valid()"]
-    #[ensures="result.counter() == 1"]
+    #[ensures(result.valid())]
+    #[ensures(result.counter() == 1)]
     fn new() -> Self {
         Fib {prev: 0, curr: 1, _ghost_counter: 1}
     }
@@ -147,9 +147,9 @@ impl Fib {
         self.prev == fib(self._ghost_counter-1) &&
         self.curr == fib(self._ghost_counter)
     }
-    #[requires="self.valid()"]
-    #[ensures="result.is_some() ==> self.valid()"]
-    #[ensures="result.is_some() ==> fib(self.counter()) == result.peek()"]
+    #[requires(self.valid())]
+    #[ensures(result.is_some() ==> self.valid())]
+    #[ensures(result.is_some() ==> fib(self.counter()) == result.peek())]
     fn next(&mut self) -> UsizeOption {
         swap(&mut self.curr, &mut self.prev);
         if let UsizeOption::Some(n) = checked_add(self.curr, self.prev) {
@@ -166,7 +166,7 @@ impl Fib {
 fn main() {
     let mut iter = Fib::new();
     let mut continue_iteration = true;
-    #[invariant="iter.valid()"]
+    #[invariant(iter.valid())]
     while continue_iteration {
         let item = iter.next();
         match item {

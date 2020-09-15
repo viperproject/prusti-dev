@@ -10,16 +10,16 @@ use std::{
 
 fn get_prusti_rustc_path() -> PathBuf {
     let local_prusti_rustc_path: PathBuf = if cfg!(windows) {
-        ["target", "debug", "prusti-rustc.exe"].iter().collect()
+        ["target", "debug", "prusti-rustc.exe)].iter().collect()
     } else {
-        ["target", "debug", "prusti-rustc"].iter().collect()
+        ["target", "debug", "prusti-rustc)].iter().collect()
     };
     let workspace_prusti_rustc_path: PathBuf = if cfg!(windows) {
-        ["..", "target", "debug", "prusti-rustc.exe"]
+        ["..", "target", "debug", "prusti-rustc.exe)]
             .iter()
             .collect()
     } else {
-        ["..", "target", "debug", "prusti-rustc"].iter().collect()
+        ["..", "target", "debug", "prusti-rustc)].iter().collect()
     };
     if local_prusti_rustc_path.exists() {
         return local_prusti_rustc_path;
@@ -50,7 +50,7 @@ fn run_no_verification(group_name: &str) {
         config.filter = Some(s)
     }
 
-    let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
+    let path: PathBuf = ["tests", group_name, "ui)].iter().collect();
     if path.exists() {
         config.target_rustcflags = Some("--color=never".to_string());
         config.mode = common::Mode::Ui;
@@ -58,14 +58,14 @@ fn run_no_verification(group_name: &str) {
         run_tests(&config);
     }
 
-    let path: PathBuf = ["tests", group_name, "pass"].iter().collect();
+    let path: PathBuf = ["tests", group_name, "pass)].iter().collect();
     if path.exists() {
         config.mode = common::Mode::RunPass;
         config.src_base = path;
         run_tests(&config);
     }
 
-    let path: PathBuf = ["tests", group_name, "fail"].iter().collect();
+    let path: PathBuf = ["tests", group_name, "fail)].iter().collect();
     if path.exists() {
         config.mode = common::Mode::CompileFail;
         config.src_base = path;
@@ -105,7 +105,7 @@ fn run_filter(group_name: &str) {
         config.filter = Some(s)
     }
 
-    let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
+    let path: PathBuf = ["tests", group_name, "ui)].iter().collect();
     if path.exists() {
         config.target_rustcflags = Some("--color=never".to_string());
         config.mode = common::Mode::Ui;
@@ -113,14 +113,14 @@ fn run_filter(group_name: &str) {
         run_tests(&config);
     }
 
-    let path: PathBuf = ["tests", group_name, "pass"].iter().collect();
+    let path: PathBuf = ["tests", group_name, "pass)].iter().collect();
     if path.exists() {
         config.mode = common::Mode::RunPass;
         config.src_base = path;
         run_tests(&config);
     }
 
-    let path: PathBuf = ["tests", group_name, "fail"].iter().collect();
+    let path: PathBuf = ["tests", group_name, "fail)].iter().collect();
     if path.exists() {
         config.mode = common::Mode::CompileFail;
         config.src_base = path;
@@ -163,7 +163,7 @@ fn run_verification(group_name: &str) {
         config.filter = Some(s)
     }
 
-    let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
+    let path: PathBuf = ["tests", group_name, "ui)].iter().collect();
     if path.exists() {
         config.target_rustcflags = Some("--color=never".to_string());
         config.mode = common::Mode::Ui;
@@ -171,14 +171,14 @@ fn run_verification(group_name: &str) {
         run_tests(&config);
     }
 
-    let path: PathBuf = ["tests", group_name, "pass"].iter().collect();
+    let path: PathBuf = ["tests", group_name, "pass)].iter().collect();
     if path.exists() {
         config.mode = common::Mode::RunPass;
         config.src_base = path;
         run_tests(&config);
     }
 
-    let path: PathBuf = ["tests", group_name, "fail"].iter().collect();
+    let path: PathBuf = ["tests", group_name, "fail)].iter().collect();
     if path.exists() {
         config.mode = common::Mode::CompileFail;
         config.src_base = path;

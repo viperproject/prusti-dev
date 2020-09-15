@@ -2,10 +2,10 @@
 // instead of the return value.
 
 #![allow(dead_code)]
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[requires="result == 0"]
-#[ensures="result == 0"]
+#[requires(result == 0)]
+#[ensures(result == 0)]
 fn fun(result: i32) -> i32 {
     1
 }

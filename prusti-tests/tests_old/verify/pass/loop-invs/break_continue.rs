@@ -1,11 +1,11 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn test() {
     let mut i = 0;
 
-    #[invariant="i < 10"]
+    #[invariant(i < 10)]
     while i < 10 {
-        #[invariant="i < 10"]
+        #[invariant(i < 10)]
         'inner: while {
             i += 1;
             i -= 1;

@@ -1,8 +1,8 @@
-extern crate prusti_contracts;
+use crate prusti_contracts::*;
 
 // precondition assert
 
-#[invariant="self.value <= 100"]
+#[invariant(self.value <= 100)]
 struct Percentage {
     value: u8,
 }
@@ -15,7 +15,7 @@ impl Percentage {
     }
 }
 
-#[requires="x <= 100"]
+#[requires(x <= 100)]
 fn test(x: u8) {
     let mut perc = Percentage { value: x };
     perc.incr();

@@ -1,7 +1,7 @@
 #![feature(nll)]
 #![feature(box_patterns)]
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 struct Tree {
     val: i32,

@@ -13,7 +13,7 @@
 //!
 //! +   Absence of panics.
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 pub struct VecWrapperI32{
     v: Vec<i32>
@@ -22,38 +22,38 @@ pub struct VecWrapperI32{
 impl VecWrapperI32 {
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
+    #[ensures(result >= 0)]
     pub fn len(&self) -> usize {
         self.v.len()
     }
 
     #[trusted]
-    #[ensures="result.len() == 0"]
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         VecWrapperI32{ v: Vec::new() }
     }
 
     #[trusted]
     #[pure]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
         self.v[index]
     }
 
     #[trusted]
-    #[ensures="self.len() == old(self.len()) + 1"]
+    #[ensures(self.len() == old(self.len()) + 1)]
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
 
     #[trusted]
-    #[requires="0 <= index_a && index_a < self.len()"]
-    #[requires="0 <= index_b && index_b < self.len()"]
-    #[ensures="self.len() == old(self.len())"]
-    #[ensures="self.lookup(index_a) == old(self.lookup(index_b))"]
-    #[ensures="self.lookup(index_b) == old(self.lookup(index_a))"]
-    #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index_a && i != index_b) ==>
-                    self.lookup(i) == old(self.lookup(i))"]
+    #[requires(0 <= index_a && index_a < self.len())]
+    #[requires(0 <= index_b && index_b < self.len())]
+    #[ensures(self.len() == old(self.len()))]
+    #[ensures(self.lookup(index_a) == old(self.lookup(index_b)))]
+    #[ensures(self.lookup(index_b) == old(self.lookup(index_a)))]
+    #[ensures(forall i: usize :: (0 <= i && i < self.len() && i != index_a && i != index_b) ==>
+                    self.lookup(i) == old(self.lookup(i)))]
     pub fn swap(&mut self, index_a: usize, index_b: usize) {
         self.v.swap(index_a, index_b);
     }
@@ -67,8 +67,8 @@ struct ThreadRngWrapper {}
 
 impl ThreadRngWrapper {
     #[trusted]
-    #[requires="low < high"]
-    #[ensures="low <= result && result < high"]
+    #[requires(low < high)]
+    #[ensures(low <= result && result < high)]
     fn gen_range(&mut self, low: usize, high: usize) -> usize {
         unimplemented!();
     }
@@ -85,9 +85,9 @@ fn knuth_shuffle(v: &mut VecWrapperI32) {
 
     let mut n = 0;
     let bgn = 0;
-    #[invariant=" 0 <= n && n < l"]
-    #[invariant="bgn == 0"]
-    #[invariant="l == v.len()"]
+    #[invariant( 0 <= n && n < l)]
+    #[invariant(bgn == 0)]
+    #[invariant(l == v.len())]
     while n < l {
         let i = rng.gen_range(bgn, l - n);
         v.swap(i, l - n - 1);

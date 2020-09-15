@@ -1,7 +1,7 @@
 #![allow(dead_code)]
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[requires="false"]
+#[requires(false)]
 fn failing_precondition(x: i32) {
     let mut x = x;
     while x < 10 {
@@ -9,7 +9,7 @@ fn failing_precondition(x: i32) {
     }
 }
 
-#[ensures="false"]
+#[ensures(false)]
 fn failing_postcondition(x: i32) {
     let mut x = x;
     while x < 10 {
@@ -19,8 +19,8 @@ fn failing_postcondition(x: i32) {
 
 fn failing_loop_invariant(x: i32) {
     let mut x = x;
-    #[invariant="false"]
     while x < 10 {
+        body_invariant!(false);
         x += 1;
     }
 }

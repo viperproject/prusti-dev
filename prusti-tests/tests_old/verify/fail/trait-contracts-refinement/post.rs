@@ -1,10 +1,10 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 trait Foo {
-    #[requires="-5 <= a && a <= 10"]
-    #[requires="-25 <= b && b <= 30"]
-    #[ensures="result.0 >= a"]
-    #[ensures="result.1 >= b"]
+    #[requires(-5 <= a && a <= 10)]
+    #[requires(-25 <= b && b <= 30)]
+    #[ensures(result.0 >= a)]
+    #[ensures(result.1 >= b)]
     fn foo(&mut self, a: isize, b: isize) -> (isize, isize);
 }
 
@@ -14,16 +14,16 @@ struct Dummy {
 }
 
 #[pure]
-#[requires="a > std::isize::MIN"]
+#[requires(a > std::isize::MIN)]
 fn abs(a: isize) -> isize {
     if a < 0 { -a } else { a }
 }
 
 impl Foo for Dummy {
-    #[ensures="result.0 < a"] //~ ERROR may not be a valid strengthening of the trait's postcondition
-    #[ensures="result.1 == 3"]
-    #[ensures="self.d1 == a"]
-    #[ensures="self.d2 == b"]
+    #[ensures(result.0 < a)] //~ ERROR may not be a valid strengthening of the trait's postcondition
+    #[ensures(result.1 == 3)]
+    #[ensures(self.d1 == a)]
+    #[ensures(self.d2 == b)]
     fn foo(&mut self, a: isize, b: isize) -> (isize, isize) {
         let a = abs(a);
         let b = abs(b);

@@ -1,7 +1,7 @@
 //! An adaptation of the example from
 //! https://rosettacode.org/wiki/Dijkstra%27s_algorithm#Rust
 
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
@@ -24,8 +24,9 @@ struct Grid {
 
 impl Grid {
     fn find_path(&mut self){
-        #[invariant="self.nodes.len() >= 0"]
-        while true {}
+        while true {
+            body_invariant!(self.nodes.len() >= 0);
+        }
     }
 }
 

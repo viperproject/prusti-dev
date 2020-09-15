@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 fn borrow(_x: &u32) {}
 
@@ -37,13 +37,13 @@ pub fn test5() {
     assert!(false); //~ ERROR the asserted expression might not hold
 }
 
-#[requires="*x == 5"]
-#[ensures="*x == 5"]
+#[requires(*x == 5)]
+#[ensures(*x == 5)]
 pub fn test6(x: &u32) {
     assert!(false); //~ ERROR the asserted expression might not hold
 }
 
-#[ensures="*x == old(*x)"]
+#[ensures(*x == old(*x))]
 pub fn test7(x: &u32) {
     assert!(false); //~ ERROR the asserted expression might not hold
 }

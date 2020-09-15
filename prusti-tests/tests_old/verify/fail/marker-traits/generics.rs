@@ -1,6 +1,6 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
-#[invariant="self.d1 > 5"] //~ ERROR mismatched types
+#[invariant(self.d1 > 5)] //~ ERROR mismatched types
 trait Foo { }
 
 struct Dummy<T> {

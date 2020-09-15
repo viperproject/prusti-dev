@@ -1,19 +1,19 @@
-extern crate prusti_contracts;
+use prusti_contracts::*;
 
 trait Foo {
-    #[requires="-10 <= a && a <= 10"]
-    #[ensures="result > 0"]
+    #[requires(-10 <= a && a <= 10)]
+    #[ensures(result > 0)]
     fn foo(&self, a: isize) -> isize;
 
-    #[requires="-5 <= b && b <= 5"]
-    #[ensures="result > 10"]
+    #[requires(-5 <= b && b <= 5)]
+    #[ensures(result > 10)]
     fn bar(&self, b: isize) -> isize {
         assert!(-5 <= b && b <= 5); // Ok
         100
     }
 
-    #[requires="-1 <= c && c <= 1"]
-    #[ensures="result > 1"] //~ ERROR postcondition
+    #[requires(-1 <= c && c <= 1)]
+    #[ensures(result > 1)] //~ ERROR postcondition
     fn baz(&self, c: isize) -> isize {
         assert!(-1 <= c && c <= 1); // Ok
         100
