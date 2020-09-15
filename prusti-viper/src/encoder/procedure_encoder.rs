@@ -271,21 +271,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             .extend_from_slice(procedure_trait_contract.functional_precondition())
                     } else {
                         let proc_pre = typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::And(
+                            kind: box typed::AssertionKind::And(
                                 proc_pre_specs.clone()
-                            )),
+                            ),
                         };
                         let proc_trait_pre = typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::And(
+                            kind: box typed::AssertionKind::And(
                                 procedure_trait_contract
                                     .functional_precondition()
                                     .iter()
                                     .cloned()
                                     .collect(),
-                            )),
+                            ),
                         };
                         precondition_weakening = Some(typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::Implies(proc_trait_pre, proc_pre)),
+                            kind: box typed::AssertionKind::Implies(proc_trait_pre, proc_pre),
                         });
                     }
 
@@ -299,21 +299,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             unimplemented!("Refining specifications with pledges is not supported");
                         }
                         let proc_post = typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::And(
+                            kind: box typed::AssertionKind::And(
                                 proc_post_specs.clone()
-                            )),
+                            ),
                         };
                         let proc_trait_post = typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::And(
+                            kind: box typed::AssertionKind::And(
                                 procedure_trait_contract
                                     .functional_postcondition()
                                     .iter()
                                     .cloned()
                                     .collect(),
-                            )),
+                            ),
                         };
                         postcondition_strengthening = Some(typed::Assertion {
-                            kind: Box::new(typed::AssertionKind::Implies(proc_post, proc_trait_post)),
+                            kind: box typed::AssertionKind::Implies(proc_post, proc_trait_post),
                         });
                     }
                 }
@@ -2802,7 +2802,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ErrorCtxt::AssertMethodPreconditionWeakening(MultiSpan::from_spans(
                     func_precondition
                         .iter()
-                        .flat_map(|ts| typed::Spanned::get_spans(ts, self.encoder.env().tcx()))
+                        .flat_map(|ts| typed::Spanned::get_spans(ts, &self.mir, self.encoder.env().tcx()))
                         .collect(),
                 )),
             )
@@ -3137,7 +3137,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 None,
                 ErrorCtxt::GenericExpression,
             );
-            func_spec_spans.extend(typed::Spanned::get_spans(typed_assertion, self.encoder.env().tcx()));
+            func_spec_spans.extend(typed::Spanned::get_spans(typed_assertion, &self.mir, self.encoder.env().tcx()));
             assertion = self.wrap_arguments_into_old(assertion, pre_label, contract, &encoded_args);
             func_spec.push(assertion);
         }
@@ -3156,7 +3156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ErrorCtxt::AssertMethodPostconditionStrengthening(MultiSpan::from_spans(
                     func_postcondition
                         .iter()
-                        .flat_map(|ts| typed::Spanned::get_spans(ts, self.encoder.env().tcx()))
+                        .flat_map(|ts| typed::Spanned::get_spans(ts, &self.mir, self.encoder.env().tcx()))
                         .collect(),
                 )),
             );
@@ -3831,7 +3831,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             // TODO: Mmm... are these parameters correct?
                             let encoded_spec = self.encoder.encode_assertion(
                                 &assertion,
-                                self.mir,
+                                &self.mir,
                                 PRECONDITION_LABEL,
                                 &encoded_args,
                                 None,
@@ -3839,7 +3839,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 Some(loop_inv_block),
                                 ErrorCtxt::GenericExpression,
                             );
-                            let spec_spans = typed::Spanned::get_spans(assertion, self.encoder.env().tcx());
+                            let spec_spans = typed::Spanned::get_spans(assertion, &self.mir, self.encoder.env().tcx());
                             let spec_pos = self
                                 .encoder
                                 .error_manager()

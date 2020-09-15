@@ -48,38 +48,62 @@ pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
 /// A pledge in the postcondition.
 pub type Pledge<'tcx> = common::Pledge<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 
+/// This trait is implemented for specification-related types that have one or
+/// more associated spans (positions within the source code). The spans are not
+/// necessarily contiguous, and may be used for diagnostic reporting.
 pub trait Spanned<'tcx> {
-    fn get_spans(&self, tcx: TyCtxt<'tcx>) -> Vec<Span>;
+    /// Returns the spans for the given value. `mir` is the function body used
+    /// to resolve positions of `rustc_middle::mir::Local` indices, `tcx` is
+    /// used to resolve positions of global items.
+    fn get_spans(&self, mir_body: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Vec<Span>;
 }
 
 impl<'tcx> Spanned<'tcx> for Expression {
-    fn get_spans(&self, tcx: TyCtxt<'tcx>) -> Vec<Span> {
+    fn get_spans(&self, _mir_body: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Vec<Span> {
         vec![tcx.def_span(self.expr)]
     }
 }
 
+impl<'tcx> Spanned<'tcx> for ForAllVars<'tcx> {
+    fn get_spans(&self, mir_body: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Vec<Span> {
+        self.vars
+            .iter()
+            .filter_map(|v| mir_body.local_decls.get(v.0))
+            .map(|v| v.source_info.span)
+            .collect()
+    }
+}
+
 impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
-    fn get_spans(&self, tcx: TyCtxt<'tcx>) -> Vec<Span> {
+    fn get_spans(&self, mir_body: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Vec<Span> {
         match *self.kind {
-            AssertionKind::Expr(ref assertion_expr) => assertion_expr.get_spans(tcx),
+            AssertionKind::Expr(ref assertion_expr) => assertion_expr.get_spans(mir_body, tcx),
             AssertionKind::And(ref assertions) => {
                 assertions
                     .iter()
-                    .flat_map(|a| a.get_spans(tcx))
+                    .flat_map(|a| a.get_spans(mir_body, tcx))
                     .collect()
             }
             AssertionKind::Implies(ref lhs, ref rhs) => {
-                let mut spans = lhs.get_spans(tcx);
-                spans.extend(rhs.get_spans(tcx));
+                let mut spans = lhs.get_spans(mir_body, tcx);
+                spans.extend(rhs.get_spans(mir_body, tcx));
                 spans
             }
-            AssertionKind::ForAll(ref _vars, ref _trigger_set, ref body) => {
-                // FIXME: include the variables
-                body.get_spans(tcx)
+            AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
+                let mut spans = vars.get_spans(mir_body, tcx);
+                spans.extend(trigger_set
+                    .triggers()
+                    .iter()
+                    .flat_map(|t| t.terms())
+                    .flat_map(|e| e.get_spans(mir_body, tcx))
+                    .collect::<Vec<Span>>());
+                spans.extend(body.get_spans(mir_body, tcx));
+                spans
             }
-            AssertionKind::TypeCond(ref _vars, ref body) => {
-                // FIXME: include the conditions
-                body.get_spans(tcx)
+            AssertionKind::TypeCond(ref vars, ref body) => {
+                let mut spans = vars.get_spans(mir_body, tcx);
+                spans.extend(body.get_spans(mir_body, tcx));
+                spans
             }
         }
     }

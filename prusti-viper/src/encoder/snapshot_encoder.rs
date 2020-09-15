@@ -141,8 +141,8 @@ impl Snapshot {
     pub fn encode_equals(&self, lhs: vir::Expr, rhs: vir::Expr, pos: vir::Position) -> vir::Expr {
         vir::Expr::BinOp(
             vir::BinOpKind::EqCmp,
-            Box::new(self.get_snap_call(lhs)),
-            Box::new(self.get_snap_call(rhs)),
+            box self.get_snap_call(lhs),
+            box self.get_snap_call(rhs),
             pos,
         )
     }
@@ -150,8 +150,8 @@ impl Snapshot {
     pub fn encode_not_equals(&self, lhs: vir::Expr, rhs: vir::Expr, pos: vir::Position) -> vir::Expr {
         vir::Expr::BinOp(
             vir::BinOpKind::NeCmp,
-            Box::new(self.get_snap_call(lhs)),
-            Box::new(self.get_snap_call(rhs)),
+            box self.get_snap_call(lhs),
+            box self.get_snap_call(rhs),
             pos,
         )
     }
@@ -265,7 +265,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             body: Some(vir::Expr::Unfolding(
                 self.predicate_name.clone(),
                 vec![self.encode_snap_arg_local(SNAPSHOT_ARG)],
-                Box::new(body),
+                box body,
                 vir::PermAmount::Read,
                 None,
                 vir::Position::default(),
@@ -276,7 +276,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     fn encode_snap_predicate_access(&self, expr: vir::Expr) -> vir::Expr {
         vir::Expr::PredicateAccessPredicate(
             self.predicate_name.clone(),
-            Box::new(expr),
+            box expr,
             PermAmount::Read,
             vir::Position::default()
         )
@@ -291,7 +291,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
 
     fn encode_snap_arg_field(&self, field: vir::Field) -> vir::Expr {
         vir::Expr::Field(
-            Box::new(self.encode_snap_arg_local(SNAPSHOT_ARG)),
+            box self.encode_snap_arg_local(SNAPSHOT_ARG),
             field,
             vir::Position::default()
         )
@@ -468,8 +468,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             posts: vec![],
             body: Some(vir::Expr::BinOp(
                 cmp,
-                Box::new(self.encode_value_snapshot_call(SNAPSHOT_LEFT)),
-                Box::new(self.encode_value_snapshot_call(SNAPSHOT_RIGHT)),
+                box self.encode_value_snapshot_call(SNAPSHOT_LEFT),
+                box self.encode_value_snapshot_call(SNAPSHOT_RIGHT),
                 vir::Position::default(),
             )),
         }
@@ -620,8 +620,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             posts: vec![],
             body: Some(vir::Expr::BinOp(
                 cmp,
-                Box::new(self.encode_ref_snapshot_call(SNAPSHOT_LEFT)),
-                Box::new(self.encode_ref_snapshot_call(SNAPSHOT_RIGHT)),
+                box self.encode_ref_snapshot_call(SNAPSHOT_LEFT),
+                box self.encode_ref_snapshot_call(SNAPSHOT_RIGHT),
                 vir::Position::default(),
             )),
         }
@@ -629,7 +629,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
 
     fn get_ref_field(&self, var: vir::LocalVar) -> vir::Expr {
         vir::Expr::Field(
-            Box::new(vir::Expr::Local(var, vir::Position::default())),
+            box vir::Expr::Local(var, vir::Position::default()),
             vir::Field::new("val_ref", self.get_predicate_type()),
             vir::Position::default()
         )
@@ -637,7 +637,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
 
     fn get_ref_field_perm(&self, expr: vir::Expr) -> vir::Expr {
         vir::Expr::FieldAccessPredicate(
-            Box::new(expr),
+            box expr,
             PermAmount::Read,
             vir::Position::default()
         )

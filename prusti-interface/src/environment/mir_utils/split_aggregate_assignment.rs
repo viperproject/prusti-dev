@@ -62,7 +62,7 @@ impl<'tcx> SplitAggregateAssignment<'tcx> for mir::Statement<'tcx> {
         let source_info = self.source_info;
         atomic_assignments.into_iter()
             .map(|(lhs, rhs)| {
-                let kind = mir::StatementKind::Assign(Box::new((lhs, rhs)));
+                let kind = mir::StatementKind::Assign(box (lhs, rhs));
                 mir::Statement { source_info, kind }
             })
             .collect()

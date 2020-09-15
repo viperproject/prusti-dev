@@ -1062,7 +1062,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         );
         spec_encoder.encode_assertion(assertion).set_default_pos(
             self.error_manager()
-                .register(typed::Spanned::get_spans(assertion, self.env().tcx()), error),
+                .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error),
         )
     }
 
@@ -1119,7 +1119,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
             self.snapshots
                 .borrow_mut()
-                .insert(predicate_name.to_string(), Box::new(snapshot));
+                .insert(predicate_name.to_string(), box snapshot);
         }
         self.snapshots.borrow()[&predicate_name].clone()
     }
@@ -1471,20 +1471,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         let mut posts = function.posts.clone();
         posts.push(vir::Expr::InhaleExhale(
-            Box::new(vir::Expr::BinOp(
+            box vir::Expr::BinOp(
                 vir::BinOpKind::EqCmp,
-                Box::new(
-                    vir::Expr::Local(
-                        vir::LocalVar::new("__result", function.return_type.clone()),
-                        vir::Position::default(),
-                    )
+                box vir::Expr::Local(
+                    vir::LocalVar::new("__result", function.return_type.clone()),
+                    vir::Position::default(),
                 ),
-                Box::new(
-                    vir::Expr::DomainFuncApp(
-                        mirror.clone(),
-                        mirror_args,
-                        vir::Position::default(),
-                    )
+                box vir::Expr::DomainFuncApp(
+                    mirror.clone(),
+                    mirror_args,
+                    vir::Position::default(),
+                ),
                     /* TODO
                     vir::Expr::DomainFuncApp(
                         mirror.name,
@@ -1495,11 +1492,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         vir::Position::default(),
                     )
                      */
-                ), vir::Position::default(),
-            )),
-            Box::new(
-                vir::Expr::Const(vir::Const::Bool(true), vir::Position::default())
+                vir::Position::default(),
             ),
+            box vir::Expr::Const(vir::Const::Bool(true), vir::Position::default()),
             vir::Position::default()
         ));
         vir::Function { posts, ..function }
