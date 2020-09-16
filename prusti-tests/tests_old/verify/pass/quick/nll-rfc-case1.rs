@@ -59,9 +59,9 @@ impl VecWrapperI32 {
 
 #[ensures(vec.len() == old(vec.len()))]
 #[ensures(forall i: usize :: (0 <= i && i < vec.len()) ==> vec.lookup(i) <= 0)]
-#[ensures=r"forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) > 0) ==>
+#[ensures(forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) > 0) ==>
                 -old(vec.lookup(j)) == vec.lookup(j))]
-#[ensures=r"forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) <= 0) ==>
+#[ensures(forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) <= 0) ==>
                 old(vec.lookup(j)) == vec.lookup(j))]
 fn capitalize(vec: &mut VecWrapperI32) {
     let mut i = 0;
