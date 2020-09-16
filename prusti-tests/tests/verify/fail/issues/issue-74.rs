@@ -1,6 +1,6 @@
 #![allow(unused_comparisons)]
 
-/// Issue #73: "Properly report failing precondition of pure functions"
+/// Issue #74: "Pure function call fails with insufficient permissions"
 
 // From: https://github.com/xcaptain/rust-algorithms/blob/master/algorithms/src/search/binary_search.rs
 
@@ -22,7 +22,7 @@ impl VecWrapperusize {
     // Encoded as body-less Viper method
     #[trusted]
     #[ensures(result.len() == length)]
-    #[ensures(forall i: usize :: (0 <= i && i < length) ==> result.lookup(i) == 0)]
+    #[ensures(forall(|i: usize| (0 <= i && i < length) ==> result.lookup(i) == 0))]
     pub fn new(length: usize) -> Self {
         VecWrapperusize{ v: vec![0; length] }
     }
@@ -44,25 +44,31 @@ impl VecWrapperusize {
     }
 }
 
-// binary search using recursion
-pub fn binary_search_rec(arr: VecWrapperusize, target: usize) -> Option<usize> {
+// binary search using iteration
+#[requires(arr.len() > 0)]
+pub fn binary_search_iter(arr: VecWrapperusize, target: usize) -> Option<usize> {
     let len = arr.len();
-    return binary_search_help(arr, 0, len - 1, target); //~ ERROR type invariant expected by the function call might not hold.
-}
+    let mut left = 0;
+    let mut right = len - 1;
+    let mut result = None;
+    let mut done = false;
 
-// Here the precondition is missing
-fn binary_search_help(arr: VecWrapperusize, left: usize, right: usize, target: usize) -> Option<usize> {
-    if left <= right {
+    let mut condition = left <= right && !done;
+    while condition {
+        body_invariant!(true);
         let mid = (left + right) / 2;
-        if arr.lookup(mid) < target { //~ ERROR precondition of pure function call might not hold
-            return binary_search_help(arr, mid + 1, right, target);
+        if arr.lookup(mid) < target { //~ ERROR precondition of pure function call might not hold.
+            left = mid + 1;
         } else if arr.lookup(mid) > target {
-            return binary_search_help(arr, left, mid - 1, target);
+            right = mid - 1;
         } else {
-            return Some(mid);
+            result = Some(mid);
+            done = false;
         }
+        condition = left <= right && !done;
     }
-    return None;
+
+    return result;
 }
 
 fn main() {}

@@ -65,15 +65,15 @@ fn print_door_state(i: usize, is_open: bool) {
 fn doors1() {
     let mut door_open = VecWrapper::new(false, 100);
     let mut pass = 1;
-    #[invariant(pass < 100)]
-    #[invariant(1 <= pass)]
-    #[invariant(door_open.len() == 100)]
     while pass < 100 {
+        body_invariant!(pass < 100);
+        body_invariant!(1 <= pass);
+        body_invariant!(door_open.len() == 100);
         let mut door = pass;
-        #[invariant(door <= 100)]
-        #[invariant(1 <= door)]
-        #[invariant(door_open.len() == 100)]
         while door <= 100 {
+            body_invariant!(door <= 100);
+            body_invariant!(1 <= door);
+            body_invariant!(door_open.len() == 100);
             let door_state = !door_open.index(door - 1);
             let new_door_state = door_open.index_mut(door - 1);
             *new_door_state = door_state;
@@ -83,9 +83,9 @@ fn doors1() {
     }
     let mut i = 0;
     let mut continue_loop = i < door_open.len();
-    #[invariant(0 <= i)]
-    #[invariant(i < door_open.len())]
     while continue_loop {
+        body_invariant!(0 <= i);
+        body_invariant!(i < door_open.len());
         let is_open = *door_open.index(i);
         print_door_state(i, is_open);
         i += 1;
@@ -108,8 +108,8 @@ fn print_door_open(i: u32) {
 fn doors4() {
     let mut i = 1u32;
     let exp = 2;
-    #[invariant(i < 10u32)]
     while i < 10u32 {
+        body_invariant!(i < 10u32);
         let door = pow(i, exp);
         print_door_open(door);
         i += 1;

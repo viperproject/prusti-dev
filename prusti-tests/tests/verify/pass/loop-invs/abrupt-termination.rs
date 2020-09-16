@@ -45,8 +45,8 @@ fn test_unreachable_break() {
     i += 1;
     i += 1;
     i += 1;
-    #[invariant(i <= 10)]
     while i < 10 {
+        body_invariant!(i <= 10);
         if i == 50 {
             i += 1;
             i += 10;
@@ -63,8 +63,8 @@ fn test_unreachable_return() {
     i += 1;
     i += 1;
     i += 1;
-    #[invariant(i <= 10)]
     while i < 10 {
+        body_invariant!(i <= 10);
         if i == 50 {
             i += 1;
             i += 10;

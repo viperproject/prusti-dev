@@ -39,6 +39,7 @@ use lazy_static::lazy_static;
 use std::borrow::Cow;
 use callbacks::PrustiCompilerCalls;
 use rustc_middle::ty::TyCtxt;
+use prusti_common::config;
 
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
@@ -138,6 +139,7 @@ fn main() {
 
     let mut args = Vec::new();
     let mut flags = ConfigFlags::default();
+    flags.skip_verify = config::no_verify();
     for arg in rustc_args {
         debug!("Arg: {}", arg);
         if arg == "-Zprint-desugared-specs" {

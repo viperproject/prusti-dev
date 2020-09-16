@@ -33,11 +33,9 @@ impl VecWrapperI32 {
     #[ensures(after_expiry(
         self.len() == old(self.len()) &&
         self.lookup(index) == before_expiry(*result) &&
-        (
-            forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-            self.lookup(i) == old(self.lookup(i))
-        )
-        ))]
+        forall(|i: usize| (0 <= i && i < self.len() && i != index) ==>
+            self.lookup(i) == old(self.lookup(i)))
+    ))]
     pub fn borrow(&mut self, index: usize) -> &mut i32 {
         self.v.get_mut(index).unwrap()
     }
@@ -46,8 +44,8 @@ impl VecWrapperI32 {
     #[requires(0 <= index && index < self.len())]
     #[ensures(self.len() == old(self.len()))]
     #[ensures(self.lookup(index) == value)]
-    #[ensures(forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < self.len() && i != index) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn store(&mut self, index: usize, value: i32) {
         self.v[index] = value;
     }
@@ -55,8 +53,8 @@ impl VecWrapperI32 {
     #[trusted]
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(old(self.len())) == value)]
-    #[ensures(forall i: usize :: (0 <= i && i < old(self.len())) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < old(self.len())) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
@@ -124,11 +122,11 @@ fn borrow_test2(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 2;
 
-    #[invariant(0 <= base)]
-    #[invariant(0 <= size)]
-    #[invariant(base + size <= arr.len())]
-    #[invariant(continue_loop ==> size > 2)]
     while continue_loop {
+        body_invariant!(0 <= base);
+        body_invariant!(0 <= size);
+        body_invariant!(base + size <= arr.len());
+        body_invariant!(continue_loop ==> size > 2);
         size /= 2;
         let mid = base + size;
         let mid_element = arr.borrow(mid);
@@ -146,11 +144,11 @@ fn borrow_test3(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 2;
 
-    #[invariant(0 <= base)]
-    #[invariant(0 <= size)]
-    #[invariant(base + size <= arr.len())]
-    #[invariant(continue_loop ==> size > 2)]
     while continue_loop {
+        body_invariant!(0 <= base);
+        body_invariant!(0 <= size);
+        body_invariant!(base + size <= arr.len());
+        body_invariant!(continue_loop ==> size > 2);
         size /= 2;
         let mid = base + size;
         let mid_element = arr.borrow(mid);
@@ -166,10 +164,10 @@ fn borrow_test4(arr: &mut VecWrapperI32, elem: &mut i32) {
 
     let mut continue_loop = size > 2;
 
-    #[invariant(0 <= size)]
-    #[invariant(size <= arr.len())]
-    #[invariant(continue_loop ==> size > 2)]
     while continue_loop {
+        body_invariant!(0 <= size);
+        body_invariant!(size <= arr.len());
+        body_invariant!(continue_loop ==> size > 2);
         size /= 2;
         let mid_element = arr.borrow(size);
         continue_loop = size > 2;

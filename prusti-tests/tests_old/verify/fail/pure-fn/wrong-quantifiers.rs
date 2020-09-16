@@ -32,10 +32,10 @@ fn len(head: &List) -> isize {
 }
 
 #[ensures(len(&result) == old(len(&tail)) + 1)]
-#[ensures(lookup(&result, 0) == old(x))] //~ ERROR postcondition
+#[ensures(lookup(&result, 0) == old(x))] //~ ERROR postcondition might not hold
 #[ensures(if len(&result) >= 2 { old(lookup(&tail, 0)) == lookup(&result, 1) } else { true })]
-#[ensures(forall i: isize :: (0 <= i && i < old(len(&tail))) ==> old(lookup(&tail, i)) == lookup(&result, i))]
-#[ensures(forall i: isize :: (0 <= i && i < old(len(&tail))) ==> i * 2 == i + i)]
+#[ensures(forall(|i: usize| (0 <= i && i < old(len(&tail))) ==> old(lookup(&tail, i)) == lookup(&result, i)))]
+#[ensures(forall(|i: usize| (0 <= i && i < old(len(&tail))) ==> i * 2 == i + i))]
 fn prepend_list(x: u32, tail: List) -> List {
     List {
         value: x,

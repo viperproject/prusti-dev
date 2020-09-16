@@ -21,7 +21,7 @@ impl VecWrapperU32 {
     // Encoded as body-less Viper method
     #[trusted]
     #[ensures(result.len() == length)]
-    #[ensures(forall i: usize :: (0 <= i && i < length) ==> result.lookup(i) == 0)]
+    #[ensures(forall(|i: usize| (0 <= i && i < length) ==> result.lookup(i) == 0))]
     pub fn new(length: usize) -> Self {
         VecWrapperU32{ v: vec![0; length] }
     }

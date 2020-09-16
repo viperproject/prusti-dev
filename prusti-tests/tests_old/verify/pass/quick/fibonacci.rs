@@ -70,10 +70,10 @@ fn iterative_fibonacci() {
     let mut _ghost_counter = 1;
     let mut add_succeeded = true;
 
-    #[invariant(_ghost_counter >= 1)]
-    #[invariant(fib(_ghost_counter) == curr)]
-    #[invariant(fib(_ghost_counter-1) == prev)]
     while add_succeeded {
+        body_invariant!(_ghost_counter >= 1);
+        body_invariant!(fib(_ghost_counter) == curr);
+        body_invariant!(fib(_ghost_counter-1) == prev);
         if let UsizeOption::Some(n) = checked_add(curr, prev) {
             prev = curr;
             curr = n;
@@ -166,8 +166,8 @@ impl Fib {
 fn main() {
     let mut iter = Fib::new();
     let mut continue_iteration = true;
-    #[invariant(iter.valid())]
     while continue_iteration {
+        body_invariant!(iter.valid());
         let item = iter.next();
         match item {
             UsizeOption::Some(n) => {

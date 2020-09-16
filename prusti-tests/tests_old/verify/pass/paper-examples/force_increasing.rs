@@ -39,7 +39,7 @@ fn get_nth_x(r: &Route, n: i32) -> i32 {
 #[ensures(length(r) == old(length(r)))]
 #[ensures(r.current.x == max(old(r.current.x), min_x))]
 #[ensures(r.current.y == old(r.current.y))]
-#[ensures(forall i: i32 :: (1 <= i && i < length(r)) ==> get_nth_x(r, i) == max(get_nth_x(r, i - 1), old(get_nth_x(r, i))))]
+#[ensures(forall(|i: i32| (1 <= i && i < length(r)) ==> get_nth_x(r, i) == max(get_nth_x(r, i - 1), old(get_nth_x(r, i)))))]
 fn force_increasing(r: &mut Route, min_x: i32) {
     r.current.x = max(r.current.x, min_x);
     if let Some(box ref mut rest) = r.rest {

@@ -86,11 +86,9 @@ impl VecWrapperI32 {
     #[ensures(after_expiry(
         self.len() == old(self.len()) &&
         self.lookup(index) == before_expiry(*result) &&
-        (
-            forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-            self.lookup(i) == old(self.lookup(i))
-        )
-        ))]
+        forall(|i: usize| (0 <= i && i < self.len() && i != index) ==>
+            self.lookup(i) == old(self.lookup(i)))
+    ))]
     pub fn borrow(&mut self, index: usize) -> &mut i32 {
         self.v.get_mut(index).unwrap()
     }
@@ -98,8 +96,8 @@ impl VecWrapperI32 {
     #[trusted]
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(old(self.len())) == value)]
-    #[ensures(forall i: usize :: (0 <= i && i < old(self.len())) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < old(self.len())) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
@@ -154,13 +152,13 @@ fn cmp(a: &mut i32, b: &mut i32) -> Ordering {
             else { Greater }
 }
 
-#[requires(forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
-             arr.lookup(k1) <= arr.lookup(k2))]
+#[requires(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
+             arr.lookup(k1) <= arr.lookup(k2)))]
 #[ensures(arr.len() == old(arr.len()))]
-#[ensures(forall k: usize:: (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k)))]
+#[ensures(forall(|k: usize| (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k))))]
 #[ensures(*elem == old(*elem))]
 #[ensures(result.is_none() ==>
-            (forall k: usize :: (0 <= k && k < arr.len()) ==> *elem != arr.lookup(k)))]
+            forall(|k: usize| (0 <= k && k < arr.len()) ==> *elem != arr.lookup(k)))]
 #[ensures(result.is_some() ==> (
                 0 <= result.peek() && result.peek() < arr.len() &&
                 arr.lookup(result.peek()) == *elem))]
@@ -177,12 +175,13 @@ fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
         body_invariant!(size > 0 && result.is_none());
         body_invariant!(arr.len() == old(arr.len()));
         body_invariant!(*elem == old(*elem));
-        body_invariant!(forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
-            arr.lookup(k1) <= arr.lookup(k2));
-        body_invariant!(forall k: usize:: (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k)));
-        body_invariant!(forall k: usize:: (0 <= k && k < base) ==> arr.lookup(k) < *elem);
+        body_invariant!(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
+            arr.lookup(k1) <= arr.lookup(k2)));
+        body_invariant!(forall(|k: usize| (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k))));
+        body_invariant!(forall(|k: usize| (0 <= k && k < base) ==> arr.lookup(k) < *elem));
         body_invariant!(result.is_none() ==>
-             (forall k: usize:: (base + size <= k && k < arr.len()) ==> *elem < arr.lookup(k)));
+             forall(|k: usize| (base + size <= k && k < arr.len()) ==> *elem < arr.lookup(k))
+        );
         body_invariant!(result.is_some() ==> (
                 0 <= result.peek() && result.peek() < arr.len() &&
                 arr.lookup(result.peek()) == *elem));

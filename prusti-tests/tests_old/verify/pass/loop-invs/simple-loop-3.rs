@@ -2,9 +2,8 @@ use prusti_contracts::*;
 
 fn test1() {
     let mut i = 0;
-    #[invariant(i < 10)] // ---+
-    while i < 10 {        //    |
-        // INV <----------------+
+    while i < 10 {
+        body_invariant!(i < 10);
         i += 1;
     }
     assert!(i == 10);
@@ -25,9 +24,8 @@ fn work(i: &mut usize) {
 
 fn client() {
     let mut i = 0;
-    #[invariant(i > 0)] // -----------------+
-    while test_and_increment(&mut i) { //    |
-        // INV <-----------------------------+
+    while test_and_increment(&mut i) {
+        body_invariant!(i > 0);
         work(&mut i);
     }
     assert!(i <= 0);

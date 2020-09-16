@@ -3902,7 +3902,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
 
         let mut stmts = vec![vir::Stmt::comment(format!(
-            "Assert and exhale the loop invariant of block {:?}",
+            "Assert and exhale the loop body invariant (loop head: {:?})",
             loop_head
         ))];
         if !after_loop_iteration {

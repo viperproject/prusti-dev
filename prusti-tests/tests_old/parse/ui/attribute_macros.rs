@@ -13,7 +13,7 @@ fn too_many_args() {}
 fn wrong_token() {
     let mut i=0u32;
     #[invariant["true"]]
-    while i<10 {
+    while i < 10 {
         i += 1
     }
 }

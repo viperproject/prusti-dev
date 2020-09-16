@@ -5,15 +5,15 @@
 use prusti_contracts::*;
 
 #[pure]
-fn identity(x: u32) -> u32 { x }
+fn identity(x: i32) -> i32 { x }
 
-#[ensures(forall(|x: u32| true))]
+#[ensures(forall(|x: i32| true))]
 fn test1() {}
 
-#[ensures(forall(|x: u32| identity(x) == x))]
+#[ensures(forall(|x: i32| identity(x) == x))]
 fn test2() {}
 
-#[ensures(forall(|x: u32| identity(x) == x + 1))]
+#[ensures(forall(|x: i32| identity(x) == x + 1))]
 fn test3() {}
 
 fn main() {}

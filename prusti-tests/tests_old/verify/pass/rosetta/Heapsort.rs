@@ -45,11 +45,9 @@ impl VecWrapperI32 {
     #[ensures(after_expiry(
         self.len() == old(self.len()) &&
         self.lookup(index) == before_expiry(*result) &&
-        (
-            forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-            self.lookup(i) == old(self.lookup(i))
-        )
-        ))]
+        forall(|i: usize| (0 <= i && i < self.len() && i != index) ==>
+            self.lookup(i) == old(self.lookup(i)))
+    ))]
     pub fn borrow(&mut self, index: usize) -> &mut i32 {
         self.v.get_mut(index).unwrap()
     }
@@ -58,8 +56,8 @@ impl VecWrapperI32 {
     #[requires(0 <= index && index < self.len())]
     #[ensures(self.len() == old(self.len()))]
     #[ensures(self.lookup(index) == value)]
-    #[ensures(forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < self.len() && i != index) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn store(&mut self, index: usize, value: i32) {
         self.v[index] = value;
     }
@@ -67,8 +65,8 @@ impl VecWrapperI32 {
     #[trusted]
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(old(self.len())) == value)]
-    #[ensures(forall i: usize :: (0 <= i && i < old(self.len())) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < old(self.len())) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
@@ -79,8 +77,8 @@ impl VecWrapperI32 {
     #[ensures(self.len() == old(self.len()))]
     #[ensures(self.lookup(index_a) == old(self.lookup(index_b)))]
     #[ensures(self.lookup(index_b) == old(self.lookup(index_a)))]
-    #[ensures(forall i: usize :: (0 <= i && i < self.len() && i != index_a && i != index_b) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < self.len() && i != index_a && i != index_b) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn swap(&mut self, index_a: usize, index_b: usize) {
         self.v.swap(index_a, index_b);
     }
@@ -114,10 +112,10 @@ fn heap_sort(array: &mut VecWrapperI32)
     let mut start = len/2;
     let mut continue_loop = start > 0;
     // Create heap
-    #[invariant(len == array.len())]
-    #[invariant(start <= len/2)]
-    #[invariant(start > 0)]
     while continue_loop {
+        body_invariant!(len == array.len());
+        body_invariant!(start <= len/2);
+        body_invariant!(start > 0);
         start -= 1;
         shift_down(array, start, len - 1);
         continue_loop = start > 0;
@@ -125,10 +123,10 @@ fn heap_sort(array: &mut VecWrapperI32)
 
     let mut end = len;
     let mut continue_loop = end > 1;
-    #[invariant(len == array.len())]
-    #[invariant(end <= len)]
-    #[invariant(end > 1)]
     while continue_loop {
+        body_invariant!(len == array.len());
+        body_invariant!(end <= len);
+        body_invariant!(end > 1);
         end -= 1;
         let start = 0;
         array.swap(start, end);
@@ -145,10 +143,10 @@ fn shift_down(array: &mut VecWrapperI32, start: usize, end: usize)
 {
     let mut root = start;
     let mut continue_loop = true;
-    #[invariant(0 <= root && root < array.len())]
-    #[invariant(0 <= end && end < array.len())]
-    #[invariant(array.len() == old(array.len()))]
     while continue_loop {
+        body_invariant!(0 <= root && root < array.len());
+        body_invariant!(0 <= end && end < array.len());
+        body_invariant!(array.len() == old(array.len()));
         let mut child = root * 2 + 1;
         if child > end {
             continue_loop = false;

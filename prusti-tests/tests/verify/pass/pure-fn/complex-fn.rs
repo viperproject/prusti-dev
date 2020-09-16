@@ -37,5 +37,5 @@ fn test2() -> i32 {
     (x.0).0
 }
 
-#[ensures(forall i: i32 :: ( -1000 < i && i < 1000 ) ==> negative(i) == -i)]
+#[ensures(forall(|i: i32| ( -1000 < i && i < 1000 ) ==> negative(i) == -i))]
 fn main() {}

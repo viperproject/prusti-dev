@@ -6,21 +6,23 @@ use prusti_contracts::*;
 fn sum(n: i32) -> i32 {
     let mut res = 0;
     let mut i = 0;
-    #[invariant(n == old(n))]
-    #[invariant(i <= (n + 1))]
-    //#[invariant(res == (i - 1) * i / 2)]
     while i <= n {
+        body_invariant!(n == old(n));
+        body_invariant!(i <= (n + 1));
+        //body_invariant!(res == (i - 1) * i / 2);
         res = res + i;
         i = i + 1;
     }
     res
 }
 
-fn main() {
-//  assert!(sum(100) == 5050);
-//  assert!(sum(100) != 5);
-//  assert!(sum(0) != 1);
-//  assert!(sum(0) == 0);
-//  assert!(sum(1) != 0);
-//  assert!(sum(1) == 1);
+fn test() {
+    assert!(sum(100) == 5050);
+    assert!(sum(100) != 5);
+    assert!(sum(0) != 1);
+    assert!(sum(0) == 0);
+    assert!(sum(1) != 0);
+    assert!(sum(1) == 1);
 }
+
+fn main() {}

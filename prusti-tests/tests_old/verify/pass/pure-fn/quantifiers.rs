@@ -36,8 +36,8 @@ fn lookup(head: &List, index: usize) -> u32 {
 #[ensures(len(&result) == old(len(&tail)) + 1)]
 #[ensures(lookup(&result, 0) == old(x))]
 #[ensures(if len(&result) >= 2 { old(lookup(&tail, 0)) == lookup(&result, 1) } else { true })]
-#[ensures(forall i: usize :: (0 <= i && i < old(len(&tail))) ==> old(lookup(&tail, i)) == lookup(&result, i + 1))]
-#[ensures(forall i: usize :: (0 <= i && i < old(len(&tail))) ==> i * 2 == i + i)]
+#[ensures(forall(|i: usize| (0 <= i && i < old(len(&tail))) ==> old(lookup(&tail, i)) == lookup(&result, i + 1)))]
+#[ensures(forall(|i: usize| (0 <= i && i < old(len(&tail))) ==> i * 2 == i + i))]
 fn prepend_list(x: u32, tail: List) -> List {
     List {
         value: x,

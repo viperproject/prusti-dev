@@ -104,9 +104,9 @@ impl VecVecWrapperI32 {
     #[requires(0 <= x && x < size())]
     #[requires(0 <= y && y < size())]
     #[ensures(self.lookup(x, y) == value)]
-    #[ensures(forall px: i32, py: i32 ::
+    #[ensures(forall(|px: i32, py: i32|
                (0 <= px && px < size() && px != x && 0 <= py && py < size() && py != y) ==>
-               self.lookup(px, py) == old(self.lookup(px, py)))]
+               self.lookup(px, py) == old(self.lookup(px, py))))]
     pub fn store(&mut self, x: i32, y: i32, value: i32) {
         self.v[x as usize][y as usize] = value;
     }
@@ -190,9 +190,9 @@ impl Board {
         let mut moves = moves();
         let mut i = 0;
         let mut continue_loop = i < moves.len();
-        #[invariant(0 <= i)]
-        #[invariant(i < moves.len())]
         while continue_loop {
+            body_invariant!(0 <= i);
+            body_invariant!(i < moves.len());
             let mut dir = moves.lookup(i);
             let next = p.mov(&mut dir);
             if self.available(next) {
@@ -230,19 +230,19 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
 
     let mut continue_loop_1 = step <= size() * size();
  
-    #[invariant(0 <= p.x && p.x < size())]
-    #[invariant(0 <= p.y && p.y < size())]
     while continue_loop_1 {
+        body_invariant!(0 <= p.x && p.x < size());
+        body_invariant!(0 <= p.y && p.y < size());
         // choose next square by Warnsdorf's rule
         let mut candidates = VecCandidates::new();
         let mut moves = moves();
         let mut i = 0;
         let mut continue_loop_3 = i < moves.len();
-        #[invariant(0 <= i)]
-        #[invariant(i < moves.len())]
-        #[invariant(0 <= p.x && p.x < size())]
-        #[invariant(0 <= p.y && p.y < size())]
         while continue_loop_3 {
+            body_invariant!(0 <= i);
+            body_invariant!(i < moves.len());
+            body_invariant!(0 <= p.x && p.x < size());
+            body_invariant!(0 <= p.y && p.y < size());
             let mut dir = moves.lookup(i);
             let mut adj = p.mov(&mut dir);
             if board.available(adj.clone()) {
@@ -257,10 +257,10 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
         let mut continue_loop_2 = i < candidates.len();
         let mut min = None;
         let mut min_degree = size() * size();
-        #[invariant(0 <= i)]
-        #[invariant(i < candidates.len())]
-        #[invariant(valid(&min))]
         while continue_loop_2 {
+            body_invariant!(0 <= i);
+            body_invariant!(i < candidates.len());
+            body_invariant!(valid(&min));
             let (degree, adj) = candidates.lookup(i);
             if min_degree > degree {
                 min_degree = degree;

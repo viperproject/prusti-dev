@@ -46,11 +46,10 @@ fn get_nth_x(r: &Route, n: i32) -> i32 {
 #[ensures(after_expiry(
     length(r) == old(length(r)) &&
     get_nth_x(r, n) == before_expiry(result.x) &&
-    forall i: i32 ::
+    forall(|i: i32|
         (0<=i && i<length(r) && i != n) ==>
-        get_nth_x(r, i) == old(get_nth_x(r, i))
-)
-)]
+        get_nth_x(r, i) == old(get_nth_x(r, i)))
+))]
 // See Sec. ~{\texttt{\ref{sec:promises}}}~
 fn borrow_nth(r:&mut Route, n: i32) ->
  &mut Point {
@@ -67,9 +66,9 @@ fn borrow_nth(r:&mut Route, n: i32) ->
 #[ensures(length(r) == old(length(r)))]
 #[ensures(get_nth_x(r, n) ==
   old(get_nth_x(r, n)) + s)]
-#[ensures(forall i: i32 ::
+#[ensures(forall(|i: i32|
   (0<=i && i<length(r) && i != n) ==>
-  get_nth_x(r, i) == old(get_nth_x(r, i)))]
+  get_nth_x(r, i) == old(get_nth_x(r, i))))]
 fn shift_nth_x(r: &mut Route, n: i32, s:i32) {
   let p = borrow_nth(r, n);
   shift_x(p,s);
