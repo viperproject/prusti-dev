@@ -81,8 +81,10 @@ impl<'tcx> intravisit::Visitor<'tcx> for ExternSpecResolver<'tcx> {
                 if let rustc_hir::def::Res::Def(_, def_id) = res {
                     if self.extern_fn_map.contains_key(&def_id) &&
                             self.extern_fn_map.get(&def_id).unwrap().0 == impl_ty {
+                        // FIXME: this kind of error causes a compiler panic
+                        // after it is reported
                         self.tcx.ty_error_with_message(ex.span.source_callsite(),
-                                                       &format!("Duplicate specification for {:?}",
+                                                       &format!("duplicate specification for {:?}",
                                                                 def_id));
                         self.current_def_id = None;
                     } else {
