@@ -2,7 +2,7 @@
 
 use prusti_contracts::*;
 
-#[requires(result > 0)]  //~ ERROR postcondition might not hold
+#[requires(result > 0)]  //~ ERROR cannot find value `result`
 pub fn fun() -> i32 {
     42
 }
