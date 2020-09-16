@@ -206,8 +206,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.spec
     }
 
-    /** Returns the def_id of the element containing the specifications. This can be different from the
-       def_id that was passed in if the specifications were externally declared */
+    /// Returns the def_id of the element containing the specifications.
+    /// This can be different from the def_id that was passed in if the
+    /// specifications were externally declared.
     pub fn def_id(&self, def_id: &'v ProcedureDefId) -> &'v ProcedureDefId {
         if def_id.is_local() && self.extern_spec.contains_key(def_id) &&
             self.get_spec_by_def_id(*def_id).is_some() {
