@@ -148,17 +148,17 @@ fn cmp(a: &i32, b: &i32) -> Ordering {
 }
 
 
-#[requires(forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
-             arr.lookup(k1) <= arr.lookup(k2))]
+#[requires(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
+             arr.lookup(k1) <= arr.lookup(k2)))]
 #[ensures(result.is_none() ==>
-            (forall k: usize :: (0 <= k && k < arr.len()) ==> *elem != arr.lookup(k)))]
+            forall(|k: usize| (0 <= k && k < arr.len()) ==> *elem != arr.lookup(k)))]
 #[ensures(match result {
-                UsizeOption::Some(index) => (
-                    0 <= index && index < arr.len() &&
-                    arr.lookup(index) == *elem
-                ),
-                UsizeOption::None => true,
-            })]
+    UsizeOption::Some(index) => (
+        0 <= index && index < arr.len() &&
+        arr.lookup(index) == *elem
+    ),
+    UsizeOption::None => true,
+})]
 fn binary_search(arr: &VecWrapperI32, elem: &i32) -> UsizeOption {
     let mut size = arr.len();
     let mut base = 0;
@@ -169,11 +169,12 @@ fn binary_search(arr: &VecWrapperI32, elem: &i32) -> UsizeOption {
     while continue_loop {
         body_invariant!(size > 0 && result.is_none());
         body_invariant!(base + size <= arr.len());
-        body_invariant!(forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
-            arr.lookup(k1) <= arr.lookup(k2));
-        body_invariant!(forall k: usize:: (0 <= k && k < base) ==> arr.lookup(k) < *elem);
+        body_invariant!(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
+            arr.lookup(k1) <= arr.lookup(k2)));
+        body_invariant!(forall(|k: usize| (0 <= k && k < base) ==> arr.lookup(k) < *elem));
         body_invariant!(result.is_none() ==>
-            (forall k: usize :: (base + size <= k && k < arr.len()) ==> *elem != arr.lookup(k)));
+            forall(|k: usize| (base + size <= k && k < arr.len()) ==> *elem != arr.lookup(k))
+        );
         body_invariant!(match result {
             UsizeOption::Some(index) => (
                 0 <= index && index < arr.len() &&

@@ -59,23 +59,23 @@ impl VecWrapperI32 {
 
 #[ensures(vec.len() == old(vec.len()))]
 #[ensures(forall(|i: usize| (0 <= i && i < vec.len()) ==> vec.lookup(i) <= 0))]
-#[ensures(forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) > 0) ==>
-                -old(vec.lookup(j)) == vec.lookup(j))]
-#[ensures(forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) <= 0) ==>
-                old(vec.lookup(j)) == vec.lookup(j))]
+#[ensures(forall(|j: usize| (0 <= j && j < vec.len() && old(vec.lookup(j)) > 0) ==>
+                -old(vec.lookup(j)) == vec.lookup(j)))]
+#[ensures(forall(|j: usize| (0 <= j && j < vec.len() && old(vec.lookup(j)) <= 0) ==>
+                old(vec.lookup(j)) == vec.lookup(j)))]
 fn capitalize(vec: &mut VecWrapperI32) {
     let mut i = 0;
     let mut not_finished = i < vec.len();
     while not_finished {
         body_invariant!(vec.len() == old(vec.len()));
         body_invariant!(0 <= i && i < vec.len());
-        body_invariant!(forall j: usize :: (0 <= j && j < i) ==> vec.lookup(j) <= 0);
-        body_invariant!(forall j: usize :: (i <= j && j < vec.len()) ==>
-                    old(vec.lookup(j)) == vec.lookup(j));
-        body_invariant!(forall j: usize :: (0 <= j && j < i && old(vec.lookup(j)) > 0) ==>
-                    -old(vec.lookup(j)) == vec.lookup(j));
-        body_invariant!(forall j: usize :: (0 <= j && j < i && old(vec.lookup(j)) <= 0) ==>
-                    old(vec.lookup(j)) == vec.lookup(j));
+        body_invariant!(forall(|j: usize| (0 <= j && j < i) ==> vec.lookup(j) <= 0));
+        body_invariant!(forall(|j: usize| (i <= j && j < vec.len()) ==>
+                    old(vec.lookup(j)) == vec.lookup(j)));
+        body_invariant!(forall(|j: usize| (0 <= j && j < i && old(vec.lookup(j)) > 0) ==>
+                    -old(vec.lookup(j)) == vec.lookup(j)));
+        body_invariant!(forall(|j: usize| (0 <= j && j < i && old(vec.lookup(j)) <= 0) ==>
+                    old(vec.lookup(j)) == vec.lookup(j)));
         let value = vec.lookup(i);
         if value > 0 {
             vec.store(i, -value);

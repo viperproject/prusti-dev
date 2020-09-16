@@ -104,9 +104,9 @@ impl VecVecWrapperI32 {
     #[requires(0 <= x && x < size())]
     #[requires(0 <= y && y < size())]
     #[ensures(self.lookup(x, y) == value)]
-    #[ensures(forall px: i32, py: i32 ::
+    #[ensures(forall(|px: i32, py: i32|
                (0 <= px && px < size() && px != x && 0 <= py && py < size() && py != y) ==>
-               self.lookup(px, py) == old(self.lookup(px, py)))]
+               self.lookup(px, py) == old(self.lookup(px, py))))]
     pub fn store(&mut self, x: i32, y: i32, value: i32) {
         self.v[x as usize][y as usize] = value;
     }
