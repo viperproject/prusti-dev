@@ -39,12 +39,12 @@ impl List {
     #[ensures(
         after_expiry<result>(
             self.len() == old(self.len()) - 1 + before_expiry(result.len()) &&
-            (forall i: usize ::
+            (forall(|i: usize|
                 (0 <= i && i < old(self.len()) - 1) ==>
-                self.lookup(i) == old(self.lookup(i))) &&
-            (forall i: usize ::
+                self.lookup(i) == old(self.lookup(i)))) &&
+            (forall(|i: usize|
                 (0 <= i && i < before_expiry(result.len())) ==>
-                self.lookup(old(self.len()) - 1 + i) == before_expiry(result.lookup(i)))
+                self.lookup(old(self.len()) - 1 + i) == before_expiry(result.lookup(i))))
         )
     )]
     fn recursive_get_last_mut(&mut self) -> &mut List {
@@ -67,9 +67,9 @@ impl List {
     /// Appends a value at the end of a linked list
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(value == self.lookup(self.len() - 1))]
-    #[ensures(forall i: usize ::
+    #[ensures(forall(|i: usize|
                 (0 <= i && i < old(self.len())) ==>
-                self.lookup(i) == old(self.lookup(i)))]
+                self.lookup(i) == old(self.lookup(i))))]
     fn append(&mut self, value: u32) {
         let len = self.len();
         let last = self.recursive_get_last_mut();

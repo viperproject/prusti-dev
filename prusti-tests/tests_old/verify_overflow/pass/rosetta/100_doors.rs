@@ -39,7 +39,7 @@ impl VecWrapperBool {
     // Encoded as body-less Viper method
     #[trusted]
     #[ensures(result.len() == size)]
-    #[ensures(forall i: usize :: (0 <= i && i < result.len()) ==> result.lookup(i) == value)]
+    #[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==> result.lookup(i) == value))]
     pub fn new(value: bool, size: usize) -> Self {
         VecWrapperBool{ v: vec![value; size] }
     }
@@ -57,8 +57,8 @@ impl VecWrapperBool {
     #[requires(0 <= index && index < self.len())]
     #[ensures(self.len() == old(self.len()))]
     #[ensures(self.lookup(index) == value)]
-    #[ensures(forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < self.len() && i != index) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn store(&mut self, index: usize, value: bool) {
         self.v[index] = value;
     }
@@ -66,8 +66,8 @@ impl VecWrapperBool {
     #[trusted]
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(old(self.len())) == value)]
-    #[ensures(forall i: usize :: (0 <= i && i < old(self.len())) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < old(self.len())) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn push(&mut self, value: bool) {
         self.v.push(value);
     }

@@ -43,21 +43,22 @@ impl UsizeOption {
     }
 }
 
-#[ensures("result.is_none() ==>
-            (forall k: usize :: (0 <= k && k < arr.len()) ==> !arr.present(k, elem))")]
-#[ensures("match result {
-                UsizeOption::Some(index) => (
-                    0 <= index && index < arr.len() && arr.present(index, elem)
-                ),
-                UsizeOption::None => true,
-            }")]
+#[ensures(result.is_none() ==>
+    (forall(|k: usize| (0 <= k && k < arr.len()) ==> !arr.present(k, elem)))
+)]
+#[ensures(match result {
+    UsizeOption::Some(index) => (
+        0 <= index && index < arr.len() && arr.present(index, elem)
+    ),
+    UsizeOption::None => true,
+})]
 fn linear_search<T: Eq>(arr: &VecWrapper<T>, elem: &T) -> UsizeOption {
     let mut i = 0;
     let mut done = false;
 
     while i < arr.len() && !done {
         body_invariant!(0 <= i && i < arr.len());
-        body_invariant!(forall k: usize :: (0 <= k && k < i) ==> !arr.present(k, elem));
+        body_invariant!(forall(|k: usize| (0 <= k && k < i) ==> !arr.present(k, elem)));
         body_invariant!(done ==> (i < arr.len() && arr.present(i, elem)));
         if arr.present(i, elem) {
             done = true;

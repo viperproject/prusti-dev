@@ -52,8 +52,8 @@ impl VecWrapperI32 {
     #[ensures(self.len() == old(self.len()))]
     #[ensures(self.lookup(index_a) == old(self.lookup(index_b)))]
     #[ensures(self.lookup(index_b) == old(self.lookup(index_a)))]
-    #[ensures(forall i: usize :: (0 <= i && i < self.len() && i != index_a && i != index_b) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < self.len() && i != index_a && i != index_b) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn swap(&mut self, index_a: usize, index_b: usize) {
         self.v.swap(index_a, index_b);
     }

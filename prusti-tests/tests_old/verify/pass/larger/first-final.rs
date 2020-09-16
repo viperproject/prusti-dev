@@ -101,8 +101,8 @@ impl TrustedOption {
 #[requires(src.is_empty())]
 #[ensures(dest.is_empty())]
 #[ensures(old(dest.len()) == result.len())]
-#[ensures(forall i: usize :: (0 <= i && i < result.len()) ==>
-                old(dest.lookup(i)) == result.lookup(i))]
+#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==>
+                old(dest.lookup(i)) == result.lookup(i)))]
 fn replace(dest: &mut Link, src: Link) -> Link {
     mem::replace(dest, src)
 }
@@ -129,8 +129,8 @@ impl List {
 
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
-    #[ensures(forall i: usize :: (1 <= i && i < self.len()) ==>
-                    old(self.lookup(i-1)) == self.lookup(i))]
+    #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
+                    old(self.lookup(i-1)) == self.lookup(i)))]
     pub fn push(&mut self, elem: i32) {
         let old_len = self.head.len();
         let new_node = Box::new(Node {
@@ -146,8 +146,8 @@ impl List {
     #[ensures(old(self.len()) > 0 ==> result.peek() == old(self.lookup(0)))]
     #[ensures(old(self.len()) > 0 ==> self.len() == old(self.len()-1))]
     #[ensures(old(self.len()) > 0 ==>
-                forall i: usize :: (0 <= i && i < self.len()) ==>
-                    old(self.lookup(i+1)) == self.lookup(i))]
+                forall(|i: usize| (0 <= i && i < self.len()) ==>
+                    old(self.lookup(i+1)) == self.lookup(i)))]
     pub fn pop(&mut self) -> TrustedOption {
         match replace(&mut self.head, Link::Empty) {
             Link::Empty => {

@@ -61,7 +61,7 @@ fn build_list_2(x: u32, y: u32) -> List {
 
 #[ensures(len(&result) == old(len(&tail)) + 1)]
 #[ensures(lookup(&result, 0) == old(x))]
-#[ensures(forall i: usize :: (i > 0 && i < len(&result)) ==> lookup(&result, i) == old(lookup(&tail, i - 1)))]
+#[ensures(forall(|i: usize| (i > 0 && i < len(&result)) ==> lookup(&result, i) == old(lookup(&tail, i - 1))))]
 fn prepend_list(x: u32, tail: List) -> List {
     List {
         value: x,

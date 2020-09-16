@@ -41,8 +41,8 @@ impl VecWrapperI32 {
     #[requires(0 <= index && index < self.len())]
     #[ensures(self.len() == old(self.len()))]
     #[ensures(self.lookup(index) == value)]
-    #[ensures(forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < self.len() && i != index) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn store(&mut self, index: usize, value: i32) {
         self.v[index] = value;
     }
@@ -50,15 +50,15 @@ impl VecWrapperI32 {
     #[trusted]
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(old(self.len())) == value)]
-    #[ensures(forall i: usize :: (0 <= i && i < old(self.len())) ==>
-                    self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < old(self.len())) ==>
+                    self.lookup(i) == old(self.lookup(i))))]
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
 }
 
 #[ensures(vec.len() == old(vec.len()))]
-#[ensures(forall i: usize :: (0 <= i && i < vec.len()) ==> vec.lookup(i) <= 0)]
+#[ensures(forall(|i: usize| (0 <= i && i < vec.len()) ==> vec.lookup(i) <= 0))]
 #[ensures(forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) > 0) ==>
                 -old(vec.lookup(j)) == vec.lookup(j))]
 #[ensures(forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) <= 0) ==>

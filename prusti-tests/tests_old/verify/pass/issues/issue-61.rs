@@ -17,7 +17,7 @@ impl VecWrapperI32 {
     // Encoded as body-less Viper method
     #[trusted]
     #[ensures(result.len() == length)]
-    #[ensures(forall i: usize :: (0 <= i && i < length) ==> result.lookup(i) == 0)]
+    #[ensures(forall(|i: usize| (0 <= i && i < length) ==> result.lookup(i) == 0))]
     pub fn new(length: usize) -> Self {
         VecWrapperI32{ v: vec![0; length] }
     }
@@ -40,7 +40,7 @@ impl VecWrapperI32 {
 }
 
 #[requires(index >= 0)]
-#[requires(forall i: usize :: (0 <= i && i < v.len()) ==> v.lookup(i) == 100)]
+#[requires(forall(|i: usize| (0 <= i && i < v.len()) ==> v.lookup(i) == 100))]
 //#[ensures(index == old(index))]
 //#[ensures(default_val == old(default_val))]
 //#[ensures(if index < old(v.len()) { result == 100 } else { result == default_val })]

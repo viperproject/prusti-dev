@@ -18,7 +18,7 @@ impl VecWrapperI32 {
     // Encoded as body-less Viper method
     #[trusted]
     #[ensures(result.len() == length)]
-    #[ensures(forall i: usize :: (0 <= i && i < length) ==> result.lookup(i) == 0)]
+    #[ensures(forall(|i: usize| (0 <= i && i < length) ==> result.lookup(i) == 0))]
     pub fn new(length: usize) -> Self {
         VecWrapperI32{ v: vec![0; length] }
     }
@@ -36,7 +36,7 @@ impl VecWrapperI32 {
     #[requires(0 <= index && index < self.len())]
     #[ensures(self.lookup(old(index)) == old(value))]
     #[ensures(self.len() == old(self.len()))]
-    #[ensures(forall i: usize :: (0 <= i && i < self.len() && i != old(index)) ==> self.lookup(i) == old(self.lookup(i)))]
+    #[ensures(forall(|i: usize| (0 <= i && i < self.len() && i != old(index)) ==> self.lookup(i) == old(self.lookup(i))))]
     pub fn store(&mut self, index: usize, value: i32) {
         self.v[index] = value;
     }
