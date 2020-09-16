@@ -124,11 +124,11 @@ fn borrow_test2(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 2;
 
-    #[invariant(0 <= base)]
-    #[invariant(0 <= size)]
-    #[invariant(base + size <= arr.len())]
-    #[invariant(continue_loop ==> size > 2)]
     while continue_loop {
+        body_invariant!(0 <= base);
+        body_invariant!(0 <= size);
+        body_invariant!(base + size <= arr.len());
+        body_invariant!(continue_loop ==> size > 2);
         size /= 2;
         let mid = base + size;
         let mid_element = arr.borrow(mid);
@@ -146,11 +146,11 @@ fn borrow_test3(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 2;
 
-    #[invariant(0 <= base)]
-    #[invariant(0 <= size)]
-    #[invariant(base + size <= arr.len())]
-    #[invariant(continue_loop ==> size > 2)]
     while continue_loop {
+        body_invariant!(0 <= base);
+        body_invariant!(0 <= size);
+        body_invariant!(base + size <= arr.len());
+        body_invariant!(continue_loop ==> size > 2);
         size /= 2;
         let mid = base + size;
         let mid_element = arr.borrow(mid);
@@ -166,10 +166,10 @@ fn borrow_test4(arr: &mut VecWrapperI32, elem: &mut i32) {
 
     let mut continue_loop = size > 2;
 
-    #[invariant(0 <= size)]
-    #[invariant(size <= arr.len())]
-    #[invariant(continue_loop ==> size > 2)]
     while continue_loop {
+        body_invariant!(0 <= size);
+        body_invariant!(size <= arr.len());
+        body_invariant!(continue_loop ==> size > 2);
         size /= 2;
         let mid_element = arr.borrow(size);
         continue_loop = size > 2;

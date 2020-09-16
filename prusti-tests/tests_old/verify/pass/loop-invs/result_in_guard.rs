@@ -88,9 +88,8 @@ macro_rules! simple_try {
 fn test_result_in_guard(start: u32) -> Result<u32, UnexpectedValue> {
     let mut i = start;
 
-    #[invariant(0 <= i && i < 10)]
     while simple_try!(done(i)) == false {
-        // Position of the invariant
+        body_invariant!(0 <= i && i < 10);
         i += 1;
     }
 

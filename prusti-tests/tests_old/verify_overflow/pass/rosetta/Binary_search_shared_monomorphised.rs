@@ -166,21 +166,21 @@ fn binary_search(arr: &VecWrapperI32, elem: &i32) -> UsizeOption {
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 0;
 
-    #[invariant(size > 0 && result.is_none())]
-    #[invariant(base + size <= arr.len())]
-    #[invariant(forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
-            arr.lookup(k1) <= arr.lookup(k2))]
-    #[invariant(forall k: usize:: (0 <= k && k < base) ==> arr.lookup(k) < *elem)]
-    #[invariant(result.is_none() ==>
-                (forall k: usize :: (base + size <= k && k < arr.len()) ==> *elem != arr.lookup(k)))]
-    #[invariant(match result {
-                    UsizeOption::Some(index) => (
-                        0 <= index && index < arr.len() &&
-                        arr.lookup(index) == *elem
-                    ),
-                    UsizeOption::None => true,
-                })]
     while continue_loop {
+        body_invariant!(size > 0 && result.is_none());
+        body_invariant!(base + size <= arr.len());
+        body_invariant!(forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
+            arr.lookup(k1) <= arr.lookup(k2));
+        body_invariant!(forall k: usize:: (0 <= k && k < base) ==> arr.lookup(k) < *elem);
+        body_invariant!(result.is_none() ==>
+            (forall k: usize :: (base + size <= k && k < arr.len()) ==> *elem != arr.lookup(k)));
+        body_invariant!(match result {
+            UsizeOption::Some(index) => (
+                0 <= index && index < arr.len() &&
+                arr.lookup(index) == *elem
+            ),
+            UsizeOption::None => true,
+        });
         let half = size / 2;
         let mid = base + half;
 
