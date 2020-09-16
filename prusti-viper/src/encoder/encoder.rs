@@ -1201,36 +1201,30 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.type_tags.borrow()[&tag_name].clone()
     }
 
-    pub fn encode_const_expr(&self, ty: &ty::TyS<'tcx>, value: &ty::ConstKind<'tcx>) -> vir::Expr {
+    pub fn encode_const_expr(
+        &self,
+        ty: &ty::TyS<'tcx>,
+        value: &ty::ConstKind<'tcx>
+    ) -> vir::Expr {
         trace!("encode_const_expr {:?}", value);
         let scalar_value = match value {
-            ty::ConstKind::Value(ref value) => value
-                .try_to_scalar()
-                .expect(&format!("Unsupported const: {:?}", value)),
-            // FIXME: Implement support for unevaluated constants.
-            // ConstVal::Unevaluated(def_id, substs) => {
-            //     let tcx = self.env().tcx();
-            //     let param_env = tcx.param_env(def_id);
-            //     let cid = GlobalId {
-            //         instance: ty::Instance::new(def_id, substs),
-            //         promoted: None,
-            //     };
-            //     if let Ok(const_value) = tcx.const_eval(param_env.and(cid)) {
-            //         if let ConstVal::Value(ref value) = const_value.val {
-            //             value
-            //                 .to_scalar()
-            //                 .expect(&format!("Unsupported const: {:?}", value))
-            //         } else {
-            //             unreachable!()
-            //         }
-            //     } else {
-            //         panic!("Constant evaluation of {:?} failed", value.val)
-            //     }
-            // }
-            _ => unimplemented!("encode_const_expr"),
+            ty::ConstKind::Value(ref const_value) => {
+                const_value
+                    .try_to_scalar()
+                    .expect(&format!("Unsupported const: {:?}", value))
+            }
+            ty::ConstKind::Unevaluated(def, substs, promoted) => {
+                let tcx = self.env().tcx();
+                let param_env = tcx.param_env(def.did);
+                tcx
+                    .const_eval_resolve(param_env, *def, substs, *promoted, None).ok()
+                    .and_then(|const_value| const_value.try_to_scalar())
+                    .expect(&format!("Unsupported const: {:?}", value))
+            }
+            _ => unimplemented!("{:?}", value),
         };
 
-            fn with_sign(unsigned_val: u128, bit_size: u64) -> i128 {
+        fn with_sign(unsigned_val: u128, bit_size: u64) -> i128 {
             // Handle *signed* integers
             let shift = 128 - bit_size;
             let casted_val = unsigned_val as i128;
