@@ -11,12 +11,34 @@ env:
   PRUSTI_ASSERT_TIMEOUT: 60000
 
 jobs:
-  test:
+  # Run a subset of the tests that used to fail often.
+  # The goal here is to fail fast and give quick feedback to the developers.
+  quick-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Setup Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1.0.6
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Build with cargo
+        run: python x.py build --all --verbose
+      - name: Run "quick" cargo tests
+        run: python x.py test --all --verbose quick
+
+  # Run all the tests.
+  tests:
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
-      fail-fast: false # don't cancel when one matrix job fails, so we can compare to the others
-    runs-on: ${{ matrix.os }}
+      # Don't cancel when one matrix job fails, so we can compare to the others.
+      fail-fast: false
+    runs-on: ubuntu-latest
     steps:
     - name: Check out the repo
       uses: actions/checkout@v2
@@ -33,7 +55,7 @@ jobs:
     - name: Run cargo tests
       run: python x.py test --all --verbose
     - name: Check formatting
-      run: echo "temporarily skipped" # python x.py fmt -- --check
+      run: echo "Temporarily skipped." # python x.py fmt -- --check
     - name: Check prusti-contracts
       run: |
         cd prusti-contracts-test/
