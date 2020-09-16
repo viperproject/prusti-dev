@@ -21,6 +21,27 @@ fn setup() {
 }
 
 #[test]
+fn runtime_error() {
+    setup();
+
+    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let ast = verification_context.new_ast_factory();
+
+    // This is an error, as Silicon expects the method body to be a Seqn statement.
+    let method_body = ast.assert(
+        ast.true_lit(),
+        ast.no_position(),
+    );
+    let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
+    let program = ast.program(&[], &[], &[], &[], &[method]);
+
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let verification_result = verifier.verify(program);
+
+    assert!(matches!(verification_result, VerificationResult::JavaException(_)));
+}
+
+#[test]
 fn consistency_error() {
     test_consistency_error_for_method_body(|ast| {
         let local_var = ast.local_var("x", ast.bool_type());

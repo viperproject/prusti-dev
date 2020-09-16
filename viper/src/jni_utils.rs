@@ -5,13 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use error_chain::ChainedError;
-use jni::errors::Result;
+use jni::errors::{Result as JniResult, ErrorKind};
 use jni::objects::JObject;
 use jni::objects::JString;
 use jni::strings::JNIString;
 use jni::sys::jsize;
 use jni::JNIEnv;
 use viper_sys::wrappers::*;
+use java_exception::JavaException;
 
 #[derive(Clone, Copy)]
 pub struct JniUtils<'a> {
@@ -24,74 +25,53 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Generates the stack trace from a Java Exception
-    pub fn get_stack_trace(&self, t: JObject) -> Result<String> {
+    pub fn get_stack_trace(&self, t: JObject) -> JniResult<String> {
         let sw = java::io::StringWriter::with(self.env).new()?;
         let pw = java::io::PrintWriter::with(self.env).new(sw)?;
         java::lang::Throwable::with(self.env).call_printStackTrace(t, pw)?;
         Ok(self.to_string(sw))
     }
 
-    /// Unwraps a Result<T>, checking for Java Exceptions.
-    pub fn unwrap_result<T>(&self, res: Result<T>) -> T {
-        res.unwrap_or_else(|error| {
-            error!("{}", error.display_chain().to_string());
-            let exception_occurred = self.env.exception_check().unwrap_or_else(|e| {
-                error!("{}", e.display_chain().to_string());
-                panic!();
-            });
-            if exception_occurred {
-                self.env.exception_describe().unwrap_or_else(|e| {
+    /// Unwrap a JniResult<T>, retrieving information on raised Java exceptions.
+    pub fn unwrap_or_exception<T>(&self, res: JniResult<T>) -> Result<T, JavaException> {
+        res.map_err(|error| {
+            if let ErrorKind::JavaException = *error.kind() {
+                let exception = self.env.exception_occurred().unwrap_or_else(|e| {
                     error!("{}", e.display_chain().to_string());
-                    panic!();
+                    panic!("Failed to get the raised Java exception.");
                 });
-
-                /*let throwable = self.env.exception_occurred().unwrap_or_else(|e| {
-                    error!("{}", e.display_chain().to_string());
-                    panic!();
-                });*/
-
                 self.env.exception_clear().unwrap_or_else(|e| {
                     error!("{}", e.display_chain().to_string());
-                    panic!();
+                    panic!("Failed to clear an exception in the process of being thrown.");
                 });
-
-                /*let stack_trace = self.get_stack_trace(throwable.into()).unwrap_or_else(|e| {
-                    error!("{}", e.display_chain().to_string());
-                    panic!();
-                });
-                error!("Exception stack trace:\n{}", stack_trace);*/
-
-                // Dump JVM heap
-                // Same command as `jmap -dump:format=b,file=viper_heap_dump.bin <pid>`
-                // let pid = process::id().to_string();
-                // let dump_name = format!("viper_heap_dump_{}.bin", pid);
-                // let _ = Command::new("jcmd")
-                //     .arg(&pid)
-                //     .arg("GC.heap_dump")
-                //     .arg(&dump_name)
-                //     .output()
-                //     .unwrap();
-                // debug!("A heap dump has been saved to '{}'.", dump_name);
+                // Retrieve information on the Java exception.
+                // The internal calls `unwrap_result` might lead to infinite recursion.
+                let exception_message = self.to_string(*exception);
+                let string_writer = self.unwrap_result(
+                    java::io::StringWriter::with(self.env).new()
+                );
+                let print_writer = self.unwrap_result(
+                    java::io::PrintWriter::with(self.env).new(string_writer)
+                );
+                self.unwrap_result(
+                    java::lang::Throwable::with(self.env)
+                        .call_printStackTrace(*exception, print_writer)
+                );
+                let stack_trace = self.to_string(string_writer);
+                JavaException::new(exception_message, stack_trace)
+            } else {
+                // This is not a Java exception
+                error!("{}", error.display_chain().to_string());
+                panic!("{}", error);
             }
-            panic!();
         })
     }
 
-    #[allow(dead_code)]
-    pub fn retry_on_exception<F, T>(&self, f: F, retry: usize) -> T
-    where
-        F: Fn() -> Result<T>,
-    {
-        let mut res = f();
-        for _ in 0..retry {
-            if res.is_ok() {
-                break;
-            } else {
-                let _ = self.env.exception_clear();
-                res = f();
-            }
-        }
-        self.unwrap_result(res)
+    /// Unwrap a JniResult<T>.
+    pub fn unwrap_result<T>(&self, res: JniResult<T>) -> T {
+        self.unwrap_or_exception(res).unwrap_or_else(
+            |java_exception| panic!("{}", java_exception)
+        )
     }
 
     /// Converts a Rust Option<JObject> to a Scala Option
