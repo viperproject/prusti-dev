@@ -2,8 +2,6 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
-use prusti_contracts::*;
-
 use std::borrow::BorrowMut;
 
 struct List {
