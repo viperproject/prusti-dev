@@ -9,6 +9,7 @@ use jni::objects::JObject;
 use jni::JNIEnv;
 use jni_utils::JniUtils;
 use viper_sys::wrappers::viper::*;
+use JavaException;
 
 #[derive(Clone, Copy)]
 pub struct AstUtils<'a> {
@@ -22,10 +23,13 @@ impl<'a> AstUtils<'a> {
         AstUtils { env, jni }
     }
 
-    pub(crate) fn check_consistency(&self, program: Program) -> Vec<JObject> {
-        self.jni.seq_to_vec(self.jni.unwrap_result(
+    /// Returns a vector of consistency errors, or a Java exception
+    pub(crate) fn check_consistency(&self, program: Program) -> Result<Vec<JObject>, JavaException> {
+        self.jni.unwrap_or_exception(
             silver::ast::Node::with(self.env).call_checkTransitively(program.to_jobject()),
-        ))
+        ).map(
+            |java_vec| self.jni.seq_to_vec(java_vec)
+        )
     }
 
     pub fn pretty_print(&self, program: Program) -> String {

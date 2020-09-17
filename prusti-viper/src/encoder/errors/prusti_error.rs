@@ -7,6 +7,7 @@
 use rustc_span::MultiSpan;
 use prusti_interface::environment::Environment;
 use prusti_common::config;
+use ::log::warn;
 
 /// The Prusti message that will be reported to the user.
 ///
@@ -138,9 +139,7 @@ fn check_message(message: String) {
         "Message {:?} is too short",
         message
     );
-    debug_assert!(
-        message.get(0..1).unwrap() == message.get(0..1).unwrap().to_lowercase(),
-        "Message {:?} should start with a lowercase character",
-        message
-    );
+    if message.get(0..1).unwrap() != message.get(0..1).unwrap().to_lowercase() {
+        warn!("Message {:?} should start with a lowercase character", message);
+    }
 }

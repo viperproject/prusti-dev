@@ -20,7 +20,7 @@ use std::path::PathBuf;
 use std::fs::{create_dir_all, canonicalize};
 use std::ffi::OsString;
 use prusti_interface::specs::typed;
-use ::log::{info, debug};
+use ::log::{info, debug, error};
 use prusti_server::{PrustiServerConnection, ServerSideService, VerifierRunner};
 use rustc_span::DUMMY_SP;
 
@@ -290,16 +290,24 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         stopwatch.finish();
 
         let verification_errors = match verification_result {
+            viper::VerificationResult::Success() => vec![],
             viper::VerificationResult::Failure(errors) => errors,
             viper::VerificationResult::ConsistencyErrors(errors) => {
                 debug_assert!(!errors.is_empty());
                 errors.iter().for_each(|e| {
-                    PrustiError::internal(format!("consistency error: {}", e), DUMMY_SP.into())
-                        .emit(self.env)
+                    PrustiError::internal(
+                        format!("consistency error: {}", e), DUMMY_SP.into()
+                    ).emit(self.env)
                 });
                 return VerificationResult::Failure;
             }
-            viper::VerificationResult::Success() => vec![],
+            viper::VerificationResult::JavaException(exception) => {
+                error!("Java exception: {}", exception.get_stack_trace());
+                PrustiError::internal(
+                    format!("{}", exception), DUMMY_SP.into()
+                ).emit(self.env);
+                return VerificationResult::Failure;
+            }
         };
 
         if encoding_errors_count == 0 && verification_errors.is_empty() {

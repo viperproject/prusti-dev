@@ -123,7 +123,12 @@ impl<'a> Verifier<'a, state::Started> {
         );
 
         run_timed!("Viper consistency checks", debug,
-            let consistency_errors = ast_utils.check_consistency(program);
+            let consistency_errors = match ast_utils.check_consistency(program) {
+                Ok(errors) => errors,
+                Err(java_exception) => {
+                    return VerificationResult::JavaException(java_exception);
+                }
+            };
         );
 
         if !consistency_errors.is_empty() {
