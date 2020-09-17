@@ -47,17 +47,9 @@ impl<'a> JniUtils<'a> {
                 // Retrieve information on the Java exception.
                 // The internal calls `unwrap_result` might lead to infinite recursion.
                 let exception_message = self.to_string(*exception);
-                let string_writer = self.unwrap_result(
-                    java::io::StringWriter::with(self.env).new()
+                let stack_trace = self.unwrap_result(
+                    self.get_stack_trace(*exception)
                 );
-                let print_writer = self.unwrap_result(
-                    java::io::PrintWriter::with(self.env).new(string_writer)
-                );
-                self.unwrap_result(
-                    java::lang::Throwable::with(self.env)
-                        .call_printStackTrace(*exception, print_writer)
-                );
-                let stack_trace = self.to_string(string_writer);
                 JavaException::new(exception_message, stack_trace)
             } else {
                 // This is not a Java exception
