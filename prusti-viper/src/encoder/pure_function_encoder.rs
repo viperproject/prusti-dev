@@ -742,69 +742,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             // args[0]: message
                             // args[1]: position of failing assertions
 
-                            // Pattern match on the macro that generated the panic
-                            // TODO: use a better approach to match macros
-                            let macro_backtrace: Vec<_> = term.source_info.span.macro_backtrace().collect();
-                            debug!("macro_backtrace: {:?}", macro_backtrace);
-
-                            let panic_cause = if !macro_backtrace.is_empty() {
-                                let macro_name = macro_backtrace[0]
-                                    .macro_def_id
-                                    .unwrap();
-                                // HACK to match the filename of the span
-                                let def_site_span = format!(
-                                    "{:?}",
-                                    macro_backtrace[0].def_site
-                                );
-
-                                match self.encoder.env().tcx().def_path_str(macro_name).as_str() {
-                                    "panic!" if def_site_span.contains("<panic macros>") => {
-                                        if macro_backtrace.len() > 1 {
-                                            let second_macro_name =
-                                                macro_backtrace[1]
-                                                    .macro_def_id
-                                                    .unwrap();
-                                            // HACK to match the filename of the span
-                                            let second_def_site_span = format!(
-                                                "{:?}",
-                                                macro_backtrace[1]
-                                                    .def_site
-                                            );
-
-                                            match self.encoder.env().tcx().def_path_str(second_macro_name).as_str() {
-                                                "panic!"
-                                                    if second_def_site_span
-                                                        .contains("<panic macros>") =>
-                                                {
-                                                    PanicCause::Panic
-                                                }
-                                                "assert!" if second_def_site_span == "None" => {
-                                                    PanicCause::Assert
-                                                }
-                                                "unreachable!"
-                                                    if second_def_site_span
-                                                        .contains("<unreachable macros>") =>
-                                                {
-                                                    PanicCause::Unreachable
-                                                }
-                                                "unimplemented!"
-                                                    if second_def_site_span
-                                                        .contains("<unimplemented macros>") =>
-                                                {
-                                                    PanicCause::Unimplemented
-                                                }
-                                                _ => PanicCause::Panic,
-                                            }
-                                        } else {
-                                            PanicCause::Panic
-                                        }
-                                    }
-                                    _ => PanicCause::Unknown,
-                                }
-                            } else {
-                                // Something else called panic!()
-                                PanicCause::Unknown
-                            };
+                            let panic_cause = self.mir_encoder.encode_panic_cause(
+                                term.source_info
+                            );
                             ErrorCtxt::PanicInPureFunction(panic_cause)
                         }
 

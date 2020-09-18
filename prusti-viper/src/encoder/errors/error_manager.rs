@@ -15,12 +15,14 @@ use log::debug;
 /// The cause of a panic!()
 #[derive(Clone, Debug)]
 pub enum PanicCause {
-    /// Unknown cause
-    Unknown,
+    /// Generic cause
+    Generic,
     /// Caused by a panic!()
     Panic,
     /// Caused by an assert!()
     Assert,
+    /// Caused by an debug_assert!()
+    DebugAssert,
     /// Caused by an unreachable!()
     Unreachable,
     /// Caused by an unimplemented!()
@@ -237,18 +239,19 @@ impl<'tcx> ErrorManager<'tcx>
         };
 
         match (ver_error.full_id.as_str(), error_ctxt) {
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unknown)) => {
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Generic)) => {
                 PrustiError::verification("statement might panic", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Panic)) => {
-                PrustiError::verification("panic!(..) statement might panic", error_span)
+                PrustiError::verification("panic!(..) statement might be reachable", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) => {
-                PrustiError::verification("the asserted expression might not hold", error_span)
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) |
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::DebugAssert)) => {
+                    PrustiError::verification("the asserted expression might not hold", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
@@ -362,7 +365,7 @@ impl<'tcx> ErrorManager<'tcx>
 
             (
                 "application.precondition:assertion.false",
-                ErrorCtxt::PanicInPureFunction(PanicCause::Unknown),
+                ErrorCtxt::PanicInPureFunction(PanicCause::Generic),
             ) => {
                 PrustiError::verification("statement in pure function might panic", error_span)
                     .push_primary_span(opt_cause_span)

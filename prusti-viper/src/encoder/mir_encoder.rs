@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::errors::ErrorCtxt;
+use crate::encoder::errors::{ErrorCtxt, PanicCause};
 use crate::encoder::Encoder;
 use prusti_common::vir;
 use prusti_common::config;
@@ -736,5 +736,43 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         self.encoder
             .error_manager()
             .register(span, ErrorCtxt::GenericExpression)
+    }
+
+    /// Return the span of the outermost macro
+    pub fn get_root_span(&self, span: Span) -> Span {
+        let mut res = span;
+        while let Some(parent_span) = span.parent() {
+            res = parent_span;
+        }
+        res
+    }
+
+    /// Return the cause of a call to `begin_panic`
+    pub fn encode_panic_cause(&self, source_info: mir::SourceInfo) -> PanicCause {
+        let macro_backtrace: Vec<_> = source_info.span.macro_backtrace().collect();
+        debug!("macro_backtrace: {:?}", macro_backtrace);
+
+        // To classify the cause of the panic it's enough to look at the top 3 macro calls
+        let lookup_size = 3;
+        let tcx = self.encoder.env().tcx();
+        let macro_names: Vec<String> = macro_backtrace.iter()
+            .take(lookup_size)
+            .map(|x| x.macro_def_id.map(|y| tcx.def_path_str(y)))
+            .flatten()
+            .collect();
+        debug!("macro_names: {:?}", macro_names);
+
+        let macro_names_str: Vec<&str> = macro_names.iter()
+            .map(|x| x.as_str())
+            .collect();
+        match &macro_names_str[..] {
+            ["std::panic", "std::assert", "std::debug_assert", ..] =>
+                PanicCause::DebugAssert,
+            ["std::panic", "std::assert", ..] => PanicCause::Assert,
+            ["std::panic", "std::unreachable", ..] => PanicCause::Unreachable,
+            ["std::panic", "std::unimplemented", ..] => PanicCause::Unimplemented,
+            ["std::panic", ..] => PanicCause::Panic,
+            _ => PanicCause::Generic,
+        }
     }
 }
