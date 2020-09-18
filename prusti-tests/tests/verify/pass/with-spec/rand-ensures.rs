@@ -1,9 +1,9 @@
 #![feature(rustc_private)]
 
 extern crate rand;
-use prusti_contracts::*;
 
-use rand::{ThreadRng, Rng};
+use prusti_contracts::*;
+use rand::{thread_rng, rngs::ThreadRng, Rng};
 
 struct RandWrapper {
     rng: ThreadRng
@@ -19,10 +19,8 @@ impl RandWrapper {
 
 #[ensures(result >= 0 && result < 10)]
 fn func() -> u32{
-    let mut rw = RandWrapper { rng: rand::thread_rng() };
+    let mut rw = RandWrapper { rng: thread_rng() };
     rw.gen_range(0, 10)
 }
 
-fn main() {
-
-}
+fn main() {}
