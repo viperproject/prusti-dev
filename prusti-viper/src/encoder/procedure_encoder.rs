@@ -3296,7 +3296,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
-    /// Encode postcondition exhale on the definition side.
+    /// Encode postcondition exhale in the `return_cfg_block` CFG block.
     fn encode_postconditions(
         &mut self,
         return_cfg_block: CfgBlockIndex,

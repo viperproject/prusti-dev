@@ -79,7 +79,7 @@ impl<'tcx> SpecCollector<'tcx> {
                 unreachable!();
             };
             let spec_item = SpecItem {
-                spec_id: read_attr("spec_id", item.attrs)
+                spec_id: read_prusti_attr("spec_id", item.attrs)
                     .expect("missing spec_id on spec item")
                     .try_into()
                     .unwrap(),
@@ -121,59 +121,43 @@ fn has_spec_only_attr(attrs: &[ast::Attribute]) -> bool {
     })
 }
 
-/// Read the value stored in the specified attribute.
-fn read_attr(attr_name: &str, attrs: &[ast::Attribute]) -> Option<String> {
+/// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.
+fn read_prusti_attr(attr_name: &str, attrs: &[ast::Attribute]) -> Option<String> {
     let mut string = None;
     for attr in attrs {
-        match &attr.kind {
-            ast::AttrKind::DocComment(_, _) => unreachable!(),
-            ast::AttrKind::Normal(ast::AttrItem {
-                path: ast::Path { span: _, segments },
-                args: ast::MacArgs::Eq(_, tokens),
-            }) => {
-                if segments.len() != 2 || segments[0].ident.name.with(|name| name != "prusti") {
-                    unreachable!("attr={:?}", attr);
-                }
-                if segments[1].ident.name.with(|name| name != attr_name) {
-                    continue;
-                }
-                use rustc_ast::token::Lit;
-                use rustc_ast::token::Token;
-                use rustc_ast::token::TokenKind;
-                use rustc_ast::tokenstream::TokenTree;
-                match &tokens.0[0].0 {
-                    TokenTree::Token(Token {
-                        kind: TokenKind::Literal(Lit { symbol, .. }),
-                        ..
-                    }) => {
-                        assert!(string.is_none(), "string={:?} attr={:?}", string, attr);
-                        string = Some(symbol.as_str());
-                    }
-                    x => unreachable!("{:?}", x),
-                }
+        if let ast::AttrKind::Normal(ast::AttrItem {
+            path: ast::Path { span: _, segments },
+            args: ast::MacArgs::Eq(_, tokens),
+        }) = &attr.kind {
+            // Skip attributes whose path don't match with "prusti::<attr_name>"
+            if !(
+                segments.len() == 2 &&
+                segments[0].ident.name.with(|name| name == "prusti") &&
+                segments[1].ident.name.with(|name| name == attr_name)
+            ) {
+                continue;
             }
-            ast::AttrKind::Normal(ast::AttrItem {
-                path: ast::Path { span: _, segments },
-                args: ast::MacArgs::Empty,
-            }) => {
-                assert_eq!(segments.len(), 2);
-                assert!(segments[0]
-                    .ident
-                    .name
-                    .with(|attr_name| attr_name == "prusti"));
-                assert!(segments[1]
-                    .ident
-                    .name
-                    .with(|attr_name| attr_name == "spec_only"));
+            use rustc_ast::token::Lit;
+            use rustc_ast::token::Token;
+            use rustc_ast::token::TokenKind;
+            use rustc_ast::tokenstream::TokenTree;
+            match &tokens.0[0].0 {
+                TokenTree::Token(Token {
+                    kind: TokenKind::Literal(Lit { symbol, .. }),
+                    ..
+                }) => {
+                    assert!(string.is_none(), "string={:?} attr={:?}", string, attr);
+                    string = Some(symbol.as_str());
+                }
+                x => unreachable!("{:?}", x),
             }
-            x => unreachable!("{:?}", x),
         };
     }
     string.map(|s| s.replace("\\\"", "\""))
 }
 
 fn deserialize_spec_from_attrs(attrs: &[ast::Attribute]) -> JsonAssertion {
-    let json_string = read_attr("assertion", attrs).expect("could not find prusti::assertion");
+    let json_string = read_prusti_attr("assertion", attrs).expect("could not find prusti::assertion");
     JsonAssertion::from_json_string(&json_string)
 }
 
@@ -212,8 +196,8 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         id: rustc_hir::hir_id::HirId,
     ) {
         if self.current_spec_item.is_some() {
-            if read_attr("spec_id", fn_kind.attrs()).is_none() {
-                let expr_id = read_attr("expr_id", fn_kind.attrs()).unwrap();
+            if read_prusti_attr("spec_id", fn_kind.attrs()).is_none() {
+                let expr_id = read_prusti_attr("expr_id", fn_kind.attrs()).unwrap();
                 let local_id = self.tcx.hir().local_def_id(id);
                 self.typed_expressions.insert(expr_id, local_id);
             }
@@ -224,7 +208,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         let mut clean_spec_item = false;
         if has_spec_only_attr(&local.attrs) {
             let spec_item = SpecItem {
-                spec_id: read_attr("spec_id", &local.attrs)
+                spec_id: read_prusti_attr("spec_id", &local.attrs)
                     .expect("missing spec_id on invariant")
                     .try_into()
                     .unwrap(),

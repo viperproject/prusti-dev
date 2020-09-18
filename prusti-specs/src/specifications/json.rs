@@ -2,13 +2,9 @@ use super::untyped;
 use serde::{Deserialize, Serialize};
 use super::common;
 
-
 #[derive(Serialize, Deserialize)]
-pub struct Expression {
-    /// Identifier of the specification to which this expression belongs.
-    pub spec_id: untyped::SpecificationId,
-    /// Identifier of the expression within the specification.
-    pub expr_id: untyped::ExpressionId,
+pub struct Assertion {
+    pub kind: Box<AssertionKind>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -20,8 +16,11 @@ pub enum AssertionKind {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Assertion {
-    pub kind: Box<AssertionKind>,
+pub struct Expression {
+    /// Identifier of the specification to which this expression belongs.
+    pub spec_id: untyped::SpecificationId,
+    /// Identifier of the expression within the specification.
+    pub expr_id: untyped::ExpressionId,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -32,16 +31,12 @@ pub struct ForAllVars {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Trigger(pub Vec<Expression>);
-
-#[derive(Serialize, Deserialize)]
 pub struct TriggerSet(pub Vec<Trigger>);
 
-trait ToStructure<T> {
-    fn to_structure(&self) -> T;
-}
+#[derive(Serialize, Deserialize)]
+pub struct Trigger(pub Vec<Expression>);
 
-impl ToStructure<Expression> for untyped::Expression {
+impl untyped::Expression {
     fn to_structure(&self) -> Expression {
         Expression {
             spec_id: self.spec_id.clone(),
@@ -50,7 +45,7 @@ impl ToStructure<Expression> for untyped::Expression {
     }
 }
 
-impl ToStructure<ForAllVars> for common::ForAllVars<untyped::ExpressionId, untyped::Arg> {
+impl common::ForAllVars<untyped::ExpressionId, untyped::Arg> {
     fn to_structure(&self) -> ForAllVars {
         ForAllVars {
             spec_id: self.spec_id.clone(),
@@ -60,7 +55,7 @@ impl ToStructure<ForAllVars> for common::ForAllVars<untyped::ExpressionId, untyp
     }
 }
 
-impl ToStructure<TriggerSet> for untyped::TriggerSet {
+impl untyped::TriggerSet {
     fn to_structure(&self) -> TriggerSet {
         TriggerSet(self.0.clone()
                          .into_iter()
@@ -70,7 +65,7 @@ impl ToStructure<TriggerSet> for untyped::TriggerSet {
     }
 }
 
-impl ToStructure<Trigger> for common::Trigger<common::ExpressionId, syn::Expr> {
+impl common::Trigger<common::ExpressionId, syn::Expr> {
     fn to_structure(&self) -> Trigger {
         Trigger(self.0
                     .clone()
@@ -81,7 +76,7 @@ impl ToStructure<Trigger> for common::Trigger<common::ExpressionId, syn::Expr> {
     }
 }
 
-impl ToStructure<AssertionKind> for untyped::AssertionKind {
+impl untyped::AssertionKind {
     fn to_structure(&self) -> AssertionKind {
         use super::common::AssertionKind::*;
         match self {
@@ -109,7 +104,7 @@ impl ToStructure<AssertionKind> for untyped::AssertionKind {
     }
 }
 
-impl ToStructure<Assertion> for untyped::Assertion {
+impl untyped::Assertion {
     fn to_structure(&self) -> Assertion {
         Assertion {
             kind: box self.kind.to_structure(),
