@@ -41,7 +41,7 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
     if typ.variant_index.is_some() {
         unimplemented!("We do not support downcast yet.");
     }
-    match typ.ty.kind {
+    match typ.ty.kind() {
         ty::Adt(def, substs) => {
             assert!(
                 def.is_struct(),
@@ -102,7 +102,7 @@ pub fn expand_one_level<'tcx>(
             (new_current_place, places)
         }
         mir::ProjectionElem::Downcast(_symbol, variant) => {
-            let kind = &current_place.ty(mir, tcx).ty.kind;
+            let kind = &current_place.ty(mir, tcx).ty.kind();
             if let ty::TyKind::Adt(adt, _) = kind {
                 (tcx.mk_place_downcast(current_place, adt, variant), Vec::new())
             } else {

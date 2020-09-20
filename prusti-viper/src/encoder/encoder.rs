@@ -336,7 +336,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 continue;
             }
             trace!("Collecting closure instantiations for mir {:?}", mir_def_id);
-            let (mir, _) = tcx.mir_validated(ty::WithOptConstParam::unknown(mir_def_id));
+            let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(mir_def_id));
             let mir = &*mir.borrow();
             for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
                 for (stmt_index, stmt) in bb_data.statements.iter().enumerate() {
@@ -391,8 +391,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .any(|attr|
                 match &attr.kind {
                     ast::AttrKind::Normal(ast::AttrItem {
-                        path: ast::Path { span: _, segments },
+                        path: ast::Path { span: _, segments, tokens: _ },
                         args: ast::MacArgs::Empty,
+                        tokens: _,
                     }) => {
                         segments.len() == 2
                         && segments[0]
@@ -423,8 +424,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 {
                 match &attr.kind {
                     ast::AttrKind::Normal(ast::AttrItem {
-                        path: ast::Path { span: _, segments },
+                        path: ast::Path { span: _, segments, tokens: _ },
                         args: ast::MacArgs::Eq(_, _),
+                        tokens: _,
                     }) => {
                         if segments.len() == 2
                             && segments[0]
@@ -581,7 +583,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// a primitive types.
     /// For composed data structures, the base expression is returned.
     pub fn encode_value_expr(&self, base: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
-        match ty.kind {
+        match ty.kind() {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
                 base // don't use a field for tuples and ADTs
@@ -773,7 +775,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         second: vir::Expr,
         self_ty: ty::Ty<'tcx>
     ) -> Option<vir::Expr> {
-        let eq = match self_ty.kind {
+        let eq = match self_ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
@@ -1067,16 +1069,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> Result<String, ErrorCtxt> {
-        if !self.type_predicate_names.borrow().contains_key(&ty.kind) {
+        if !self.type_predicate_names.borrow().contains_key(ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_predicate_use()?;
             self.type_predicate_names
                 .borrow_mut()
-                .insert(ty.kind.clone(), result);
+                .insert(ty.kind().clone(), result);
             // Trigger encoding of definition
             self.encode_type_predicate_def(ty);
         }
-        let predicate_name = self.type_predicate_names.borrow()[&ty.kind].clone();
+        let predicate_name = self.type_predicate_names.borrow()[&ty.kind()].clone();
         self.predicate_types
             .borrow_mut()
             .insert(predicate_name.clone(), ty);
@@ -1125,7 +1127,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn dereference_ty(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-        match ty.kind {
+        match ty.kind() {
             ty::TyKind::Ref(_, ref val_ty, _) => self.dereference_ty(val_ty),
             _ => ty,
         }
@@ -1152,16 +1154,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
         // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
-        if !self.type_invariant_names.borrow().contains_key(&ty.kind) {
+        if !self.type_invariant_names.borrow().contains_key(ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_invariant_use();
             self.type_invariant_names
                 .borrow_mut()
-                .insert(ty.kind.clone(), result);
+                .insert(ty.kind().clone(), result);
             // Trigger encoding of definition
             self.encode_type_invariant_def(ty);
         }
-        let invariant_name = self.type_invariant_names.borrow()[&ty.kind].clone();
+        let invariant_name = self.type_invariant_names.borrow()[&ty.kind()].clone();
         invariant_name
     }
 
@@ -1178,16 +1180,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
-        if !self.type_tag_names.borrow().contains_key(&ty.kind) {
+        if !self.type_tag_names.borrow().contains_key(&ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_tag_use();
             self.type_tag_names
                 .borrow_mut()
-                .insert(ty.kind.clone(), result);
+                .insert(ty.kind().clone(), result);
             // Trigger encoding of definition
             self.encode_type_tag_def(ty);
         }
-        let tag_name = self.type_tag_names.borrow()[&ty.kind].clone();
+        let tag_name = self.type_tag_names.borrow()[&ty.kind()].clone();
         tag_name
     }
 
@@ -1232,7 +1234,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ((casted_val << shift) >> shift).into()
         }
 
-        let expr = match ty.kind {
+        let expr = match ty.kind() {
             ty::TyKind::Bool => scalar_value.to_bool().unwrap().into(),
             ty::TyKind::Char => scalar_value.to_char().unwrap().into(),
             ty::TyKind::Int(ast::IntTy::I8) => scalar_value.to_i8().unwrap().into(),
@@ -1289,7 +1291,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> vir::Expr {
         trace!("encode_int_cast {:?} as {:?}", value, ty);
 
-        let expr = match ty.kind {
+        let expr = match ty.kind() {
             ty::TyKind::Bool => (value != 0).into(),
             ty::TyKind::Int(ast::IntTy::I8) => (value as i8).into(),
             ty::TyKind::Int(ast::IntTy::I16) => (value as i16).into(),

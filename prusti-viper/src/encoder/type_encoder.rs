@@ -39,7 +39,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     /// Is this type supported?
     fn is_supported_type(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.kind {
+        match ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
@@ -70,7 +70,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     /// Is this type supported?
     fn is_supported_field_type(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.kind {
+        match ty.kind() {
             ty::TyKind::Adt(_, subst) => self.is_supported_subst(subst),
             _ => self.is_supported_type(ty),
         }
@@ -105,7 +105,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_value_type(self) -> vir::Type {
         debug!("Encode value type '{:?}'", self.ty);
-        match self.ty.kind {
+        match self.ty.kind() {
             ty::TyKind::Bool => vir::Type::Bool,
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
@@ -140,7 +140,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     /// data structures
     pub fn encode_value_or_ref_type(self) -> vir::Type {
         debug!("Encode ref value type '{:?}'", self.ty);
-        match self.ty.kind {
+        match self.ty.kind() {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
                 let snapshot = self.encoder.encode_snapshot(&self.ty);
@@ -158,7 +158,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_value_field(self) -> vir::Field {
         trace!("Encode value field for type '{:?}'", self.ty);
-        match self.ty.kind {
+        match self.ty.kind() {
             ty::TyKind::Bool => vir::Field::new("val_bool", vir::Type::Bool),
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
@@ -189,7 +189,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     fn get_integer_bounds(&self) -> Option<(vir::Expr, vir::Expr)> {
-        match self.ty.kind {
+        match self.ty.kind() {
             ty::TyKind::Int(int_ty) => {
                 let bounds = match int_ty {
                     ast::IntTy::I8 => (std::i8::MIN.into(), std::i8::MAX.into()),
@@ -237,7 +237,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty).unwrap();
         let typ = vir::Type::TypedRef(predicate_name.clone());
 
-        match self.ty.kind {
+        match self.ty.kind() {
             ty::TyKind::Bool => vec![vir::Predicate::new_primitive_value(
                 typ,
                 self.encoder.encode_value_field(self.ty),
@@ -251,7 +251,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 } else {
                     None
                 };
-                let unsigned = if let ty::TyKind::Uint(_) = self.ty.kind {
+                let unsigned = if let ty::TyKind::Uint(_) = self.ty.kind() {
                     config::encode_unsigned_num_constraint()
                 } else {
                     false
@@ -391,7 +391,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     pub fn encode_predicate_use(self) -> Result<String, ErrorCtxt> {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
-        let result = match self.ty.kind {
+        let result = match self.ty.kind() {
             ty::TyKind::Bool => "bool".to_string(),
 
             ty::TyKind::Int(ast::IntTy::I8) => "i8".to_string(),
@@ -503,7 +503,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
         let invariant_name = self.encoder.encode_type_invariant_use(self.ty);
 
-        let field_invariants = match self.ty.kind {
+        let field_invariants = match self.ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
             | ty::TyKind::Ref(_, ref ty, _) => {
                 let elem_field = self.encoder.encode_dereference_field(ty);
@@ -609,7 +609,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             _ => Some(vec![]),
         };
 
-        let precondition = match self.ty.kind {
+        let precondition = match self.ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
             | ty::TyKind::Ref(_, ref ty, _) => {
                 // This is a reference, so we need to have it already unfolded.
@@ -664,7 +664,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
         let tag_name = self.encoder.encode_type_tag_use(self.ty);
 
-        let body = match self.ty.kind {
+        let body = match self.ty.kind() {
             ty::TyKind::Param(_param_ty) => None,
             _ => Some((vir::Const::Int((self.ty as *const ty::TyS<'tcx>) as i64)).into()),
         };

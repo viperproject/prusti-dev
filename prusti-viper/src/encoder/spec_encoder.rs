@@ -130,7 +130,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     fn encode_forall_arg(&self, arg: mir::Local, arg_ty: ty::Ty<'tcx>) -> vir::LocalVar {
         trace!("encode_forall_arg: {:?} {:?}", arg, arg_ty);
         assert!(
-            match arg_ty.kind {
+            match arg_ty.kind() {
                 ty::TyKind::Int(..) | ty::TyKind::Uint(..) => true,
                 _ => false,
             },
@@ -194,7 +194,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
 //         let encoded_type = if is_quantified_var {
 //             assert!(
-//                 match var_ty.kind {
+//                 match var_ty.kind() {
 //                     ty::TyKind::Int(..) | ty::TyKind::Uint(..) => true,
 //                     _ => false,
 //                 },
@@ -253,7 +253,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 //         let base_ty = self.encoder.env().hir_id_to_type(base_expr.hir_id);
 
 //         if place.get_type().is_ref() {
-//             match base_ty.kind {
+//             match base_ty.kind() {
 //                 ty::TyKind::Bool => place
 //                     .field(vir::Field::new("val_bool", vir::Type::Bool))
 //                     .into(),
@@ -463,7 +463,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             trace!("deref_closure_var: {:?}", deref_closure_var);
             trace!("deref_closure_ty: {:?}", deref_closure_ty);
             let closure_subst =
-                if let ty::TyKind::Closure(_, ref substs) = deref_closure_ty.kind {
+                if let ty::TyKind::Closure(_, ref substs) = deref_closure_ty.kind() {
                     substs.clone()
                 } else {
                     unreachable!()

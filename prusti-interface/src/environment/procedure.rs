@@ -32,7 +32,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     /// identifier of a procedure
     pub fn new(tcx: TyCtxt<'tcx>, proc_def_id: ProcedureDefId) -> Self {
         trace!("Encoding procedure {:?}", proc_def_id);
-        let (mir, _) = tcx.mir_validated(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
+        let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
         let mir = mir.borrow();
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir);
@@ -151,22 +151,21 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
                 mir::Operand::Constant(box mir::Constant {
                     literal:
                         ty::Const {
-                            ty:
-                                &ty::TyS {
-                                    kind: ty::TyKind::FnDef(def_id, ..),
-                                    ..
-                                },
+                            ty,
                             ..
                         },
                     ..
                 }),
             ..
-        } = self.mir[bbi].terminator().kind
-        {
-            // let func_proc_name = self.tcx.absolute_item_path_str(def_id);
-            let func_proc_name = self.tcx.def_path_str(def_id);
-            &func_proc_name == "std::panicking::begin_panic"
-                || &func_proc_name == "std::rt::begin_panic"
+        } = self.mir[bbi].terminator().kind {
+            if let ty::TyKind::FnDef(def_id, ..) = ty.kind() {
+                // let func_proc_name = self.tcx.absolute_item_path_str(def_id);
+                let func_proc_name = self.tcx.def_path_str(*def_id);
+                &func_proc_name == "std::panicking::begin_panic"
+                    || &func_proc_name == "std::rt::begin_panic"
+            } else {
+                false
+            }
         } else {
             false
         }

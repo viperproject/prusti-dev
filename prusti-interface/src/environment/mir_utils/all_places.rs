@@ -13,7 +13,7 @@ impl<'tcx> AllPlaces<'tcx> for mir::Local {
     fn all_places(self, tcx: ty::TyCtxt<'tcx>, mir: &mir::Body<'tcx>) -> Vec<mir::Place<'tcx>> {
         let mut places = vec![self.into()];
         let ty = mir.local_decls[self].ty;
-        if let ty::TyKind::Tuple(types) = ty.kind {
+        if let ty::TyKind::Tuple(types) = ty.kind() {
             for (i, ty) in types.iter().enumerate() {
                 let field = mir::Field::new(i);
                 let ty = ty.expect_ty();

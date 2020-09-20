@@ -104,8 +104,9 @@ fn reconstruct_typed_assertion<'tcx>(
 fn has_spec_only_attr(attrs: &[ast::Attribute]) -> bool {
     attrs.iter().any(|attr| match &attr.kind {
         ast::AttrKind::Normal(ast::AttrItem {
-            path: ast::Path { span: _, segments },
+            path: ast::Path { span: _, segments, tokens: _ },
             args: ast::MacArgs::Empty,
+            tokens: _,
         }) => {
             segments.len() == 2
                 && segments[0]
@@ -126,8 +127,9 @@ fn read_prusti_attr(attr_name: &str, attrs: &[ast::Attribute]) -> Option<String>
     let mut string = None;
     for attr in attrs {
         if let ast::AttrKind::Normal(ast::AttrItem {
-            path: ast::Path { span: _, segments },
+            path: ast::Path { span: _, segments, tokens: _ },
             args: ast::MacArgs::Eq(_, tokens),
+            tokens: _,
         }) = &attr.kind {
             // Skip attributes whose path don't match with "prusti::<attr_name>"
             if !(
