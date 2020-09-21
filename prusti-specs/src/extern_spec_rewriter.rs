@@ -4,6 +4,12 @@ use quote::{quote, ToTokens};
 use syn::ImplItemMethod;
 use syn::spanned::Spanned;
 
+/// Processes external specifications in Rust modules marked with the
+/// #[extern_spec] attribute. Nested modules are processed recursively.
+/// Specifications are collected from functions and function stubs.
+///
+/// Modules are rewritten so that their name does not clash with the module
+/// they are specifying.
 pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result<()> {
     if item_mod.content.is_none() {
         return Ok(())
@@ -23,6 +29,9 @@ pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Re
                 rewrite_mod(inner_mod, path)?;
             },
             syn::Item::Verbatim(tokens) => {
+                // Transforms function stubs (functions with a `;` after the
+                // signature instead of the body) into functions, then
+                // processes them.
                 let mut new_tokens = TokenStream::new();
                 for mut token in tokens.clone().into_iter() {
                     if let TokenTree::Punct(punct) = &mut token {

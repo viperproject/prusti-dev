@@ -209,7 +209,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Returns the def_id of the element containing the specifications.
     /// This can be different from the def_id that was passed in if the
     /// specifications were externally declared.
-    pub fn def_id(&self, def_id: &'v ProcedureDefId) -> &'v ProcedureDefId {
+    pub fn get_specification_def_id(&self, def_id: &'v ProcedureDefId) -> &'v ProcedureDefId {
         if def_id.is_local() && self.extern_spec.contains_key(def_id) &&
             self.get_spec_by_def_id(*def_id).is_some() {
             self.register_encoding_error(EncodingError::Incorrect(
@@ -221,7 +221,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         } else {
             def_id
         }
-
     }
 
     pub fn error_manager(&self) -> RefMut<ErrorManager<'tcx>> {
@@ -1368,7 +1367,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         mut proc_def_id: ProcedureDefId,
         is_encoding_assertion: bool,
     ) -> vir::Expr {
-        proc_def_id = *self.def_id(&proc_def_id);
+        proc_def_id = *self.get_specification_def_id(&proc_def_id);
         let substs_key = self.type_substitution_key();
         let key = (proc_def_id, substs_key);
         if !self.pure_function_bodies.borrow().contains_key(&key) {
@@ -1392,7 +1391,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         mut proc_def_id: ProcedureDefId,
         substs: Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>,
     ) {
-        proc_def_id = *self.def_id(&proc_def_id);
+        proc_def_id = *self.get_specification_def_id(&proc_def_id);
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
             self.env.has_attribute_name(proc_def_id, "pure"),
@@ -1558,7 +1557,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         mut proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
-        proc_def_id = *self.def_id(&proc_def_id);
+        proc_def_id = *self.get_specification_def_id(&proc_def_id);
         let procedure = self.env.get_procedure(proc_def_id);
 
         assert!(
@@ -1612,7 +1611,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         mut proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
-        proc_def_id = *self.def_id(&proc_def_id);
+        proc_def_id = *self.get_specification_def_id(&proc_def_id);
         let procedure = self.env.get_procedure(proc_def_id);
         let encoder = StubFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
 
