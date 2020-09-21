@@ -67,11 +67,13 @@ pub fn rewrite_prusti_attributes(
     }
 }
 
+type GeneratedResult = syn::Result<(Vec<syn::Item>, Vec<syn::Attribute>)>;
+
 /// Generate spec items and attributes for `item` from the Prusti attributes
 fn generate_spec_and_assertions(
     mut prusti_attributes: Vec<(SpecAttributeKind, TokenStream)>,
     item: &syn::ItemFn,
-) -> RewritingResult {
+) -> GeneratedResult {
     let mut generated_items = vec![];
     let mut generated_attributes = vec![];
 
@@ -92,10 +94,8 @@ fn generate_spec_and_assertions(
     Ok((generated_items, generated_attributes))
 }
 
-type RewritingResult = syn::Result<(Vec<syn::Item>, Vec<syn::Attribute>)>;
-
 /// Generate spec items and attributes to typecheck the and later retrieve "requires" annotations.
-fn generate_for_requires(attr: TokenStream, item: &syn::ItemFn) -> RewritingResult {
+fn generate_for_requires(attr: TokenStream, item: &syn::ItemFn) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
@@ -113,7 +113,7 @@ fn generate_for_requires(attr: TokenStream, item: &syn::ItemFn) -> RewritingResu
 }
 
 /// Generate spec items and attributes to typecheck th and later retrieve "ensures" annotations.
-fn generate_for_ensures(attr: TokenStream, item: &syn::ItemFn) -> RewritingResult {
+fn generate_for_ensures(attr: TokenStream, item: &syn::ItemFn) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
@@ -148,7 +148,7 @@ fn check_is_result(reference: &Option<untyped::Expression>) -> syn::Result<()> {
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.
-fn generate_for_after_expiry(attr: TokenStream, item: &syn::ItemFn) -> RewritingResult {
+fn generate_for_after_expiry(attr: TokenStream, item: &syn::ItemFn) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id_rhs = rewriter.generate_spec_id();
     let spec_id_rhs_str = format!(":{}", spec_id_rhs);
@@ -169,7 +169,7 @@ fn generate_for_after_expiry(attr: TokenStream, item: &syn::ItemFn) -> Rewriting
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry_if"
 /// annotations.
-fn generate_for_after_expiry_if(attr: TokenStream, item: &syn::ItemFn) -> RewritingResult {
+fn generate_for_after_expiry_if(attr: TokenStream, item: &syn::ItemFn) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id_lhs = rewriter.generate_spec_id();
     let spec_id_rhs = rewriter.generate_spec_id();
@@ -199,7 +199,7 @@ fn generate_for_after_expiry_if(attr: TokenStream, item: &syn::ItemFn) -> Rewrit
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "pure" annotations.
-fn generate_for_pure(_attr: TokenStream, _item: &syn::ItemFn) -> RewritingResult {
+fn generate_for_pure(_attr: TokenStream, _item: &syn::ItemFn) -> GeneratedResult {
     Ok((
         vec![],
         vec![parse_quote!(#[prusti::pure])],
@@ -207,7 +207,7 @@ fn generate_for_pure(_attr: TokenStream, _item: &syn::ItemFn) -> RewritingResult
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "trusted" annotations.
-fn generate_for_trusted(_attr: TokenStream, _item: &syn::ItemFn) -> RewritingResult {
+fn generate_for_trusted(_attr: TokenStream, _item: &syn::ItemFn) -> GeneratedResult {
     Ok((
         vec![],
         vec![parse_quote!(#[prusti::trusted])],
