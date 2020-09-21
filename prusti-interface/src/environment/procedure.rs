@@ -252,8 +252,9 @@ fn is_spec_closure(def_id: def_id::DefId, tcx: &TyCtxt) -> bool {
         .any(|attr|
             match &attr.kind {
                 ast::AttrKind::Normal(ast::AttrItem {
-                    path: ast::Path { span: _, segments },
+                    path: ast::Path { span: _, segments, tokens: _ },
                     args: ast::MacArgs::Empty,
+                    tokens: _
                 }) => {
                     segments.len() == 2
                     && segments[0]
