@@ -17,8 +17,8 @@ pub trait TypeVisitor<'tcx>: Sized {
 
     fn visit_ty(&mut self, ty: Ty<'tcx>) {
         trace!("visit_ty({:?})", ty);
-        self.visit_sty(&ty.kind);
-        self.visit_flags(ty.flags);
+        self.visit_sty(ty.kind());
+        self.visit_flags(ty.flags());
     }
 
     fn visit_sty(&mut self, sty: &TyKind<'tcx>) {

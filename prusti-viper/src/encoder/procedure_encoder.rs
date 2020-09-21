@@ -430,7 +430,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .collect();
         for local in local_vars.iter() {
             let local_ty = self.locals.get_type(*local);
-            if let ty::TyKind::Closure(..) = local_ty.kind {
+            if let ty::TyKind::Closure(..) = local_ty.kind() {
                 // Do not encode closures
                 continue;
             }
@@ -1607,7 +1607,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let mut cfg_targets: Vec<(vir::Expr, BasicBlockIndex)> = vec![];
 
                 // Use a local variable for the discriminant (see issue #57)
-                let discr_var = match switch_ty.kind {
+                let discr_var = match switch_ty.kind() {
                     ty::TyKind::Bool => {
                         self.cfg_method.add_fresh_local_var(vir::Type::Bool)
                     }
@@ -1631,7 +1631,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir::AssignKind::Copy,
                 ));
 
-                let guard_is_bool = match switch_ty.kind {
+                let guard_is_bool = match switch_ty.kind() {
                     ty::TyKind::Bool => true,
                     _ => false
                 };
@@ -1639,7 +1639,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 for (i, &value) in values.iter().enumerate() {
                     let target = targets[i as usize];
                     // Convert int to bool, if required
-                    let viper_guard = match switch_ty.kind {
+                    let viper_guard = match switch_ty.kind() {
                         ty::TyKind::Bool => {
                             if value == 0 {
                                 // If discr is 0 (false)
@@ -1769,185 +1769,187 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     mir::Operand::Constant(box mir::Constant {
                         literal:
                             ty::Const {
-                                ty: ty::TyS {
-                                        kind: ty::TyKind::FnDef(def_id, substs),
-                                        ..
-                                    },
+                                ty,
                                 val: _
                             },
                         ..
                     }),
                 ..
             } => {
-                let def_id = *def_id;
-                let full_func_proc_name: &str =
-                    &self.encoder.env().tcx().def_path_str(def_id);
-                    // &self.encoder.env().tcx().absolute_item_path_str(def_id);
+                if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
+                    let def_id = *def_id;
+                    let full_func_proc_name: &str =
+                        &self.encoder.env().tcx().def_path_str(def_id);
+                        // &self.encoder.env().tcx().absolute_item_path_str(def_id);
 
-                let own_substs =
-                    ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
+                    let own_substs =
+                        ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
 
-                {
-                    // FIXME; hideous monstrosity...
-                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                    let mut tymap = HashMap::new();
+                    {
+                        // FIXME; hideous monstrosity...
+                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                        let mut tymap = HashMap::new();
 
-                    for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
-                        if let (
-                            ty::subst::GenericArgKind::Type(ty1),
-                            ty::subst::GenericArgKind::Type(ty2),
-                        ) = (kind1.unpack(), kind2.unpack())
-                        {
-                            tymap.insert(ty1, ty2);
+                        for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
+                            if let (
+                                ty::subst::GenericArgKind::Type(ty1),
+                                ty::subst::GenericArgKind::Type(ty2),
+                            ) = (kind1.unpack(), kind2.unpack())
+                            {
+                                tymap.insert(ty1, ty2);
+                            }
                         }
+                        tymap_stack.push(tymap);
                     }
-                    tymap_stack.push(tymap);
-                }
 
-                match full_func_proc_name {
-                    "std::rt::begin_panic" | "std::panicking::begin_panic" => {
-                        // This is called when a Rust assertion fails
-                        // args[0]: message
-                        // args[1]: position of failing assertions
+                    match full_func_proc_name {
+                        "std::rt::begin_panic" | "std::panicking::begin_panic" => {
+                            // This is called when a Rust assertion fails
+                            // args[0]: message
+                            // args[1]: position of failing assertions
 
-                        // Example of args[0]: 'const "internal error: entered unreachable code"'
-                        let panic_message = format!("{:?}", args[0]);
+                            // Example of args[0]: 'const "internal error: entered unreachable code"'
+                            let panic_message = format!("{:?}", args[0]);
 
-                        let panic_cause = self.mir_encoder.encode_panic_cause(
-                            term.source_info
-                        );
-                        let pos = self
-                            .encoder
-                            .error_manager()
-                            .register(
-                                term.source_info.span,
-                                ErrorCtxt::Panic(panic_cause)
+                            let panic_cause = self.mir_encoder.encode_panic_cause(
+                                term.source_info
+                            );
+                            let pos = self
+                                .encoder
+                                .error_manager()
+                                .register(
+                                    term.source_info.span,
+                                    ErrorCtxt::Panic(panic_cause)
+                                );
+
+                            if self.check_panics {
+                                stmts.push(vir::Stmt::comment(format!(
+                                    "Rust panic - {}",
+                                    panic_message
+                                )));
+                                stmts.push(vir::Stmt::Assert(
+                                    false.into(),
+                                    vir::FoldingBehaviour::Stmt,
+                                    pos,
+                                ));
+                            } else {
+                                debug!("Absence of panic will not be checked")
+                            }
+                        }
+
+                        "<std::boxed::Box<T>>::new" => {
+                            // This is the initialization of a box
+                            // args[0]: value to put in the box
+                            assert_eq!(args.len(), 1);
+
+                            let &(ref target_place, _) = destination.as_ref().unwrap(); // will panic if attempting to encode unsupported type
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let boxed_ty = dest_ty.boxed_ty();
+                            let ref_field = self.encoder.encode_dereference_field(boxed_ty);
+
+                            let box_content = dst.clone().field(ref_field.clone());
+
+                            stmts.extend(
+                                self.prepare_assign_target(
+                                    dst,
+                                    ref_field,
+                                    location,
+                                    vir::AssignKind::Move,
+                                )
                             );
 
-                        if self.check_panics {
-                            stmts.push(vir::Stmt::comment(format!(
-                                "Rust panic - {}",
-                                panic_message
-                            )));
-                            stmts.push(vir::Stmt::Assert(
-                                false.into(),
-                                vir::FoldingBehaviour::Stmt,
-                                pos,
-                            ));
-                        } else {
-                            debug!("Absence of panic will not be checked")
+                            // Allocate `box_content`
+                            stmts.extend(self.encode_havoc_and_allocation(&box_content));
+
+                            // Initialize `box_content`
+                            stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
                         }
-                    }
 
-                    "<std::boxed::Box<T>>::new" => {
-                        // This is the initialization of a box
-                        // args[0]: value to put in the box
-                        assert_eq!(args.len(), 1);
+                        "std::cmp::PartialEq::eq" |
+                        "core::cmp::PartialEq::eq" => {
+                            debug_assert!(args.len() == 2);
+                            debug!("Encoding call of PartialEq::eq");
 
-                        let &(ref target_place, _) = destination.as_ref().unwrap(); // will panic if attempting to encode unsupported type
-                        let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
-                        let boxed_ty = dest_ty.boxed_ty();
-                        let ref_field = self.encoder.encode_dereference_field(boxed_ty);
+                            stmts.extend(
+                                self.encode_cmp_function_call(
+                                    def_id,
+                                    location,
+                                    term.source_info.span,
+                                    args,
+                                    destination,
+                                    vir::BinOpKind::EqCmp,
+                                )
+                            );
+                        }
 
-                        let box_content = dst.clone().field(ref_field.clone());
+                        "std::cmp::PartialEq::ne" |
+                        "core::cmp::PartialEq::ne" => {
+                            debug_assert!(args.len() == 2);
+                            debug!("Encoding call of PartialEq::ne");
 
-                        stmts.extend(
-                            self.prepare_assign_target(
-                                dst,
-                                ref_field,
-                                location,
-                                vir::AssignKind::Move,
-                            )
-                        );
+                            stmts.extend(
+                                self.encode_cmp_function_call(
+                                    def_id,
+                                    location,
+                                    term.source_info.span,
+                                    args,
+                                    destination,
+                                    vir::BinOpKind::NeCmp,
+                                )
+                            );
+                        }
 
-                        // Allocate `box_content`
-                        stmts.extend(self.encode_havoc_and_allocation(&box_content));
+                        _ => {
+                            let is_pure_function =
+                                self.encoder.env().has_attribute_name(def_id, "pure");
+                            if is_pure_function {
+                                let (function_name, _) = self.encoder.encode_pure_function_use(def_id);
+                                debug!("Encoding pure function call '{}'", function_name);
+                                assert!(destination.is_some());
 
-                        // Initialize `box_content`
-                        stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
-                    }
+                                let mut arg_exprs = vec![];
+                                for operand in args.iter() {
+                                    let arg_expr = self.mir_encoder.encode_operand_expr(operand);
+                                    arg_exprs.push(arg_expr);
+                                }
 
-                    "std::cmp::PartialEq::eq" |
-                    "core::cmp::PartialEq::eq" => {
-                        debug_assert!(args.len() == 2);
-                        debug!("Encoding call of PartialEq::eq");
-
-                        stmts.extend(
-                            self.encode_cmp_function_call(
-                                def_id,
-                                location,
-                                term.source_info.span,
-                                args,
-                                destination,
-                                vir::BinOpKind::EqCmp,
-                            )
-                        );
-                    }
-
-                    "std::cmp::PartialEq::ne" |
-                    "core::cmp::PartialEq::ne" => {
-                        debug_assert!(args.len() == 2);
-                        debug!("Encoding call of PartialEq::ne");
-
-                        stmts.extend(
-                            self.encode_cmp_function_call(
-                                def_id,
-                                location,
-                                term.source_info.span,
-                                args,
-                                destination,
-                                vir::BinOpKind::NeCmp,
-                            )
-                        );
-                    }
-
-                    _ => {
-                        let is_pure_function =
-                            self.encoder.env().has_attribute_name(def_id, "pure");
-                        if is_pure_function {
-                            let (function_name, _) = self.encoder.encode_pure_function_use(def_id);
-                            debug!("Encoding pure function call '{}'", function_name);
-                            assert!(destination.is_some());
-
-                            let mut arg_exprs = vec![];
-                            for operand in args.iter() {
-                                let arg_expr = self.mir_encoder.encode_operand_expr(operand);
-                                arg_exprs.push(arg_expr);
+                                stmts.extend(self.encode_pure_function_call(
+                                    location,
+                                    term.source_info.span,
+                                    args,
+                                    destination,
+                                    def_id,
+                                ));
+                            } else {
+                                stmts.extend(self.encode_impure_function_call(
+                                    location,
+                                    term.source_info.span,
+                                    args,
+                                    destination,
+                                    def_id,
+                                )?);
                             }
-
-                            stmts.extend(self.encode_pure_function_call(
-                                location,
-                                term.source_info.span,
-                                args,
-                                destination,
-                                def_id,
-                            ));
-                        } else {
-                            stmts.extend(self.encode_impure_function_call(
-                                location,
-                                term.source_info.span,
-                                args,
-                                destination,
-                                def_id,
-                            )?);
                         }
                     }
-                }
 
-                // FIXME; hideous monstrosity...
-                {
-                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                    tymap_stack.pop();
-                }
+                    // FIXME; hideous monstrosity...
+                    {
+                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                        tymap_stack.pop();
+                    }
 
-                if let &Some((_, target)) = destination {
-                    (stmts, MirSuccessor::Goto(target))
+                    if let &Some((_, target)) = destination {
+                        (stmts, MirSuccessor::Goto(target))
+                    } else {
+                        // Encode unreachability
+                        //stmts.push(
+                        //    vir::Stmt::Inhale(false.into())
+                        //);
+                        (stmts, MirSuccessor::Kill)
+                    }
                 } else {
-                    // Encode unreachability
-                    //stmts.push(
-                    //    vir::Stmt::Inhale(false.into())
-                    //);
-                    (stmts, MirSuccessor::Kill)
+                    // Other kind of calls?
+                    unimplemented!();
                 }
             }
 
@@ -2560,7 +2562,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for operand in args.iter() {
             let operand_ty = self.mir_encoder.get_operand_ty(operand);
             let operand_place = self.mir_encoder.encode_operand_place(operand);
-            match (operand_place, &operand_ty.kind) {
+            match (operand_place, &operand_ty.kind()) {
                 (
                     Some(ref place),
                     ty::TyKind::RawPtr(ty::TypeAndMut {
@@ -2610,7 +2612,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Encode permissions that are implicitly carried by the given local variable.
     fn encode_local_variable_permission(&self, local: Local) -> vir::Expr {
-        match self.locals.get_type(local).kind {
+        match self.locals.get_type(local).kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut {
                 ref ty,
                 mutbl: mutability,
@@ -3578,7 +3580,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // will panic if attempting to encode unsupported type
                 let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place).unwrap();
                 debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
-                if let ty::TyKind::Closure(..) = ty.kind {
+                if let ty::TyKind::Closure(..) = ty.kind() {
                     // Do not encode closures
                     continue;
                 }
@@ -3612,7 +3614,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         {
                             // will panic if attempting to encode unsupported type
                             let (_, ref_ty, _) = self.mir_encoder.encode_place(&base).unwrap();
-                            match ref_ty.kind {
+                            match ref_ty.kind() {
                                 ty::TyKind::RawPtr(ty::TypeAndMut { mutbl, .. })
                                 | ty::TyKind::Ref(_, _, mutbl) => {
                                     if def_init {
@@ -3622,7 +3624,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         ));
                                     }
                                     if drop_read_references {
-                                        if mutbl == Mutability::Not {
+                                        if mutbl == &Mutability::Not {
                                             continue;
                                         }
                                     }
@@ -3630,7 +3632,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 ref x => unreachable!("{:?}", x),
                             }
                         }
-                        match ty.kind {
+                        match ty.kind() {
                             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, mutbl })
                             | ty::TyKind::Ref(_, ref ty, mutbl) => {
                                 debug!(
@@ -3653,7 +3655,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     ));
                                 }
                                 if def_init
-                                    && !(mutbl == Mutability::Not && drop_read_references)
+                                    && !(mutbl == &Mutability::Not && drop_read_references)
                                 {
                                     permissions.push(
                                         vir::Expr::pred_permission(field_place, perm_amount)
@@ -3964,7 +3966,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 kind => unreachable!("Only calls are expected. Found: {:?}", kind),
             }
         } else {
-            let (mir, _) = self.encoder.env().tcx().mir_validated(
+            let (mir, _) = self.encoder.env().tcx().mir_promoted(
                 ty::WithOptConstParam::unknown(containing_def_id.expect_local())
             );
             let mir = mir.borrow();
@@ -4064,7 +4066,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let stmts = match operand {
             mir::Operand::Move(ref place) => {
                 let (src, ty, _) = self.mir_encoder.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
-                let mut stmts = match ty.kind {
+                let mut stmts = match ty.kind() {
                     ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => {
                         // Reborrow.
                         let field = self.encoder.encode_value_field(ty);
@@ -4132,7 +4134,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Operand::Constant(box mir::Constant {
                 literal: ty::Const { ty, val }, ..
             }) => {
-                if let ty::TyKind::Tuple(elements) = ty.kind {
+                if let ty::TyKind::Tuple(elements) = ty.kind() {
                     // FIXME: This is most likley completely wrong. We need to
                     // implement proper support for handling constants of
                     // non-primitive types.
@@ -4254,7 +4256,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             left,
             right
         );
-        let operand_ty = if let ty::TyKind::Tuple(ref types) = ty.kind {
+        let operand_ty = if let ty::TyKind::Tuple(ref types) = ty.kind() {
             types[0].clone()
         } else {
             unreachable!()
@@ -4270,7 +4272,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let encoded_check =
             self.mir_encoder
                 .encode_bin_op_check(op, encoded_left, encoded_right, operand_ty.expect_ty());
-        let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind {
+        let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind() {
             x
         } else {
             unreachable!()
@@ -4397,7 +4399,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location
         );
         let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src).unwrap(); // will panic if attempting to encode unsupported type
-        match src_ty.kind {
+        match src_ty.kind() {
             ty::TyKind::Adt(ref adt_def, _) if !adt_def.is_box() => {
                 let num_variants = adt_def.variants.len();
                 // Initialize `lhs.int_field`
@@ -4659,7 +4661,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self_ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> Vec<vir::Stmt> {
-        let stmts = match self_ty.kind {
+        let stmts = match self_ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
@@ -4703,7 +4705,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Initialize values
         match aggregate {
             &mir::AggregateKind::Tuple => {
-                let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind {
+                let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind() {
                     x
                 } else {
                     unreachable!()

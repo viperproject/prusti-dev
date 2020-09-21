@@ -66,7 +66,7 @@ impl<'tcx> InfoPrinter<'tcx> {
         // Read Polonius facts.
         let def_path = self.tcx.hir().def_path(local_def_id);
 
-        let (mir, _) = self.tcx.mir_validated(ty::WithOptConstParam::unknown(local_def_id));
+        let (mir, _) = self.tcx.mir_promoted(ty::WithOptConstParam::unknown(local_def_id));
         let mir = mir.borrow();
 
         let loop_info = loops::ProcedureLoops::new(&mir);

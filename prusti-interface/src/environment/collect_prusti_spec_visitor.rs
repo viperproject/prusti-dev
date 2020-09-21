@@ -22,8 +22,9 @@ pub(crate) fn contains_name(attrs: &[ast::Attribute], name: &str) -> bool {
         match &attr.kind {
             ast::AttrKind::DocComment(_, symbol) => {},
             ast::AttrKind::Normal(ast::AttrItem {
-                path: ast::Path { span: _, segments },
+                path: ast::Path { span: _, segments, tokens: _ },
                 args: _,
+                tokens: _,
             }) => {
                 if segments.len() == 2 && segments[0].ident.name.with(
                     |attr_name| attr_name == "prusti"

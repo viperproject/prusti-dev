@@ -171,7 +171,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             }
         }
 
-        match &self.ty.kind {
+        match &self.ty.kind() {
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
             | ty::TyKind::Char
@@ -202,7 +202,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn is_ty_supported(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.kind {
+        match ty.kind() {
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
             | ty::TyKind::Char
@@ -229,7 +229,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 true
             }
             ty::TyKind::Tuple(elems) => {
-                for field_ty in elems {
+                for field_ty in *elems {
                     if !self.is_ty_supported(field_ty.expect_ty()) {
                         return false
                     }
@@ -496,7 +496,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
 
     fn encode_domain_cons_formal_args(&self) -> Vec<vir::LocalVar> {
         let mut formal_args = vec![];
-        match self.ty.kind {
+        match self.ty.kind() {
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 let tcx = self.encoder.env().tcx();
                 let mut field_num = 0;
@@ -545,7 +545,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_snap_func_args(&self) -> Vec<vir::Expr> {
-        match self.ty.kind {
+        match self.ty.kind() {
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 let tcx = self.encoder.env().tcx();
                 adt_def.non_enum_variant()

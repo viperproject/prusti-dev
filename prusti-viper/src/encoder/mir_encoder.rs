@@ -105,7 +105,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         let elem = place.projection[index-1];
         match elem {
             mir::ProjectionElem::Field(ref field, _) => {
-                match base_ty.kind {
+                match base_ty.kind() {
                     ty::TyKind::Bool
                     | ty::TyKind::Int(_)
                     | ty::TyKind::Uint(_)
@@ -209,7 +209,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             "Type {:?} can not be dereferenced",
             base_ty
         );
-        match base_ty.kind {
+        match base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(_, ty, _) => {
                 // let access = if encoded_base.is_addr_of() {
@@ -249,7 +249,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
     fn can_be_dereferenced(&self, base_ty: ty::Ty<'tcx>) -> bool {
         trace!("can_be_dereferenced {}", base_ty);
-        match base_ty.kind {
+        match base_ty.kind() {
             ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
 
             ty::TyKind::Adt(ref adt_def, ..) if adt_def.is_box() => true,
@@ -360,7 +360,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 
     pub fn is_reference(&self, base_ty: ty::Ty<'tcx>) -> bool {
         trace!("is_reference {}", base_ty);
-        match base_ty.kind {
+        match base_ty.kind() {
             ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
 
             _ => false,
@@ -448,7 +448,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> vir::Expr {
-        let is_bool = ty.kind == ty::TyKind::Bool;
+        let is_bool = ty.kind() == &ty::TyKind::Bool;
         match op {
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
             mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
@@ -489,7 +489,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty);
 
             match op {
-                mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.kind {
+                mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.kind() {
                     // Unsigned
                     ty::TyKind::Uint(ast::UintTy::U8) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u8::MIN.into()),
@@ -567,7 +567,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     ) -> vir::Expr {
         let src_ty = self.get_operand_ty(operand);
 
-        let encoded_val = match (&src_ty.kind, &dst_ty.kind) {
+        let encoded_val = match (src_ty.kind(), dst_ty.kind()) {
             (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I8))
             | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I16))
             | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I32))
