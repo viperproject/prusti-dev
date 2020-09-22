@@ -8,6 +8,7 @@ use rustc_span::symbol::Symbol;
 use rustc_hir::def_id::LocalDefId;
 use std::collections::HashMap;
 use std::convert::TryInto;
+use crate::utils::has_spec_only_attr;
 
 pub mod typed;
 
@@ -98,28 +99,6 @@ fn reconstruct_typed_assertion<'tcx>(
     tcx: TyCtxt<'tcx>
 ) -> typed::Assertion<'tcx> {
     assertion.to_typed(typed_expressions, tcx)
-}
-
-/// Check if `prusti::spec_only` is among the attributes.
-fn has_spec_only_attr(attrs: &[ast::Attribute]) -> bool {
-    attrs.iter().any(|attr| match &attr.kind {
-        ast::AttrKind::Normal(ast::AttrItem {
-            path: ast::Path { span: _, segments, tokens: _ },
-            args: ast::MacArgs::Empty,
-            tokens: _,
-        }) => {
-            segments.len() == 2
-                && segments[0]
-                    .ident
-                    .name
-                    .with(|attr_name| attr_name == "prusti")
-                && segments[1]
-                    .ident
-                    .name
-                    .with(|attr_name| attr_name == "spec_only")
-        }
-        _ => false,
-    })
 }
 
 /// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.

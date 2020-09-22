@@ -263,6 +263,34 @@ impl<'tcx> VecPlace<'tcx> {
     }
 }
 
+/// Check if `prusti::<name>` is among the attributes.
+/// The attribute must not have any arguments.
+pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
+    attrs.iter().any(|attr| match &attr.kind {
+        ast::AttrKind::Normal(ast::AttrItem {
+                                  path: ast::Path { span: _, segments, tokens: _ },
+                                  args: ast::MacArgs::Empty,
+                                  tokens: _,
+                              }) => {
+            segments.len() == 2
+                && segments[0]
+                .ident
+                .name
+                .with(|attr_name| attr_name == "prusti")
+                && segments[1]
+                .ident
+                .name
+                .with(|attr_name| attr_name == name)
+        }
+        _ => false,
+    })
+}
+
+/// Check if `prusti::spec_only` is among the attributes.
+pub fn has_spec_only_attr(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "spec_only")
+}
+
 // pub fn get_attr_value(attr: &ast::Attribute) -> String {
 //     use syntax::parse::token;
 //     use syntax::tokenstream::TokenTree;

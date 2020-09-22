@@ -1,11 +1,12 @@
 use rustc_hir::intravisit::{Visitor, NestedVisitorMap, ErasedMap, walk_expr, FnKind};
 use rustc_hir as hir;
 use rustc_middle::hir::map::Map;
-use crate::environment::{collect_prusti_spec_visitor::contains_name, Environment};
+use crate::environment::Environment;
 use log::{trace, debug};
 use rustc_hir::def_id::DefId;
 use rustc_span::Span;
 use rustc_middle::ty::TypeckResults;
+use crate::utils::has_spec_only_attr;
 
 pub struct CollectClosureDefsVisitor<'env, 'tcx: 'env> {
     env: &'env Environment<'tcx>,
@@ -36,7 +37,7 @@ impl<'env, 'tcx> Visitor<'tcx> for CollectClosureDefsVisitor<'env, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
         match expr.kind {
             hir::ExprKind::Closure(_, _, _, _, _) => {
-                if !contains_name(&expr.attrs, "spec_only") {
+                if !has_spec_only_attr(&expr.attrs) {
                     let tcx = self.env.tcx();
                     let def_id = self.map.local_def_id(expr.hir_id).to_def_id();
                     let item_def_path = self.env.get_item_def_path(def_id);

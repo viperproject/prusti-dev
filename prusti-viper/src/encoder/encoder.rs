@@ -28,6 +28,7 @@ use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::specs::typed;
 use prusti_interface::specs::typed::SpecificationId;
+use prusti_interface::utils::has_spec_only_attr;
 // use prusti_interface::specs::{
 //     SpecID, SpecificationSet, TypedAssertion,
 //     TypedSpecificationMap, TypedSpecificationSet,
@@ -383,31 +384,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Is the closure specified with the `def_id` is spec only?
     pub fn is_spec_closure(&self, def_id: DefId) -> bool {
         use rustc_ast::ast;
-        self
-            .env()
-            .tcx()
-            .get_attrs(def_id)
-            .iter()
-            .any(|attr|
-                match &attr.kind {
-                    ast::AttrKind::Normal(ast::AttrItem {
-                        path: ast::Path { span: _, segments, tokens: _ },
-                        args: ast::MacArgs::Empty,
-                        tokens: _,
-                    }) => {
-                        segments.len() == 2
-                        && segments[0]
-                            .ident
-                            .name
-                            .with(|attr_name| attr_name == "prusti")
-                        && segments[1]
-                            .ident
-                            .name
-                            .with(|attr_name| attr_name == "spec_only")
-                    },
-                    _ => false,
-                }
-            )
+        has_spec_only_attr(self.env().tcx().get_attrs(def_id))
     }
 
     fn get_opt_spec_id(&self, def_id: DefId) -> Vec<SpecIdRef> {

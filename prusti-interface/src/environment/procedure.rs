@@ -245,30 +245,7 @@ fn build_reachable_basic_blocks(mir: &Mir) -> HashSet<BasicBlock> {
 }
 
 fn is_spec_closure(def_id: def_id::DefId, tcx: &TyCtxt) -> bool {
-    use rustc_ast::ast;
-    tcx
-        .get_attrs(def_id)
-        .iter()
-        .any(|attr|
-            match &attr.kind {
-                ast::AttrKind::Normal(ast::AttrItem {
-                    path: ast::Path { span: _, segments, tokens: _ },
-                    args: ast::MacArgs::Empty,
-                    tokens: _
-                }) => {
-                    segments.len() == 2
-                    && segments[0]
-                        .ident
-                        .name
-                        .with(|attr_name| attr_name == "prusti")
-                    && segments[1]
-                        .ident
-                        .name
-                        .with(|attr_name| attr_name == "spec_only")
-                },
-                _ => false,
-            }
-        )
+    crate::utils::has_spec_only_attr(tcx.get_attrs(def_id))
 }
 
 fn is_spec_basic_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> bool {
