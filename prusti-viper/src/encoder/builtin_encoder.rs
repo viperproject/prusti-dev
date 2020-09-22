@@ -11,6 +11,9 @@ pub enum BuiltinMethodKind {
     HavocBool,
     HavocInt,
     HavocRef,
+    HavocSet,
+    HavocSeq,
+    HavocMultiSet,
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -33,6 +36,9 @@ impl BuiltinEncoder {
             BuiltinMethodKind::HavocBool => "builtin$havoc_bool".to_string(),
             BuiltinMethodKind::HavocInt => "builtin$havoc_int".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
+            BuiltinMethodKind::HavocSet => "builtin$havoc_set".to_string(),
+            BuiltinMethodKind::HavocSeq => "builtin$havoc_seq".to_string(),
+            BuiltinMethodKind::HavocMultiSet => "builtin$havoc_multiset".to_string(),
         }
     }
 
@@ -41,6 +47,9 @@ impl BuiltinEncoder {
             BuiltinMethodKind::HavocBool => vir::Type::Bool,
             BuiltinMethodKind::HavocInt => vir::Type::Int,
             BuiltinMethodKind::HavocRef => vir::Type::TypedRef("".to_string()),
+            BuiltinMethodKind::HavocSet => vir::Type::Set,
+            BuiltinMethodKind::HavocSeq => vir::Type::Seq,
+            BuiltinMethodKind::HavocMultiSet => vir::Type::MultiSet,
         };
         vir::BodylessMethod {
             name: self.encode_builtin_method_name(method),
@@ -59,10 +68,16 @@ impl BuiltinEncoder {
             BuiltinFunctionKind::Unreachable(vir::Type::Domain(_)) => {
                 format!("builtin$unreach_domain")
             }
+            BuiltinFunctionKind::Unreachable(vir::Type::Seq) => format!("builtin$unreach_seq"),
+            BuiltinFunctionKind::Unreachable(vir::Type::Set) => format!("builtin$unreach_set"),
+            BuiltinFunctionKind::Unreachable(vir::Type::MultiSet) => format!("builtin$unreach_multiset"),
             BuiltinFunctionKind::Undefined(vir::Type::Int) => format!("builtin$undef_int"),
             BuiltinFunctionKind::Undefined(vir::Type::Bool) => format!("builtin$undef_bool"),
             BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => format!("builtin$undef_ref"),
             BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => format!("builtin$undef_doman"),
+            BuiltinFunctionKind::Undefined(vir::Type::Seq) => format!("builtin$undef_seq"),
+            BuiltinFunctionKind::Undefined(vir::Type::Set) => format!("builtin$undef_set"),
+            BuiltinFunctionKind::Undefined(vir::Type::MultiSet) => format!("builtin$undef_multiset"),
         }
     }
 

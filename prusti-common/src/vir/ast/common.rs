@@ -144,6 +144,9 @@ pub enum Type {
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
     Domain(String),
+    Seq,
+    Set,
+    MultiSet,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -152,6 +155,9 @@ pub enum TypeId {
     Bool,
     Ref,
     Domain,
+    Seq,
+    Set,
+    MultiSet,
 }
 
 impl fmt::Display for Type {
@@ -159,6 +165,9 @@ impl fmt::Display for Type {
         match self {
             &Type::Int => write!(f, "Int"),
             &Type::Bool => write!(f, "Bool"),
+            &Type::Seq => write!(f, "Seq"),
+            &Type::Set => write!(f, "Set"),
+            &Type::MultiSet => write!(f, "MultiSet"),
             //&Type::Ref => write!(f, "Ref"),
             &Type::TypedRef(ref name) => write!(f, "Ref({})", name),
             &Type::Domain(ref name) => write!(f, "Domain({})", name),
@@ -186,6 +195,9 @@ impl Type {
         match self {
             &Type::Bool => "bool".to_string(),
             &Type::Int => "int".to_string(),
+            &Type::Seq => "seq".to_string(),
+            &Type::Set => "set".to_string(),
+            &Type::MultiSet => "multiset".to_string(),
             &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
             &Type::Domain(ref pred_name) => format!("{}", pred_name),
         }
@@ -220,6 +232,9 @@ impl Type {
         match self {
             Type::Bool => TypeId::Bool,
             Type::Int => TypeId::Int,
+            Type::Seq => TypeId::Seq,
+            Type::Set => TypeId::Set,
+            Type::MultiSet => TypeId::MultiSet,
             Type::TypedRef(_) => TypeId::Ref,
             Type::Domain(_) => TypeId::Domain,
         }

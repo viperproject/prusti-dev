@@ -74,6 +74,10 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
         match self {
             &Type::Int => ast.int_type(),
             &Type::Bool => ast.bool_type(),
+            // N.B. currently testing with T = Int
+            &Type::Seq => ast.seq_type(ast.int_type()),
+            &Type::Set => ast.set_type(ast.int_type()),
+            &Type::MultiSet => ast.multiset_type(ast.int_type()),
             //&Type::Ref |
             &Type::TypedRef(_) => ast.ref_type(),
             &Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
