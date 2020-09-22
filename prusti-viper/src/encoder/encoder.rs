@@ -50,9 +50,9 @@ use std::ops::AddAssign;
 use ::log::info;
 use std::convert::TryInto;
 
-/// A reference into a specification.
+/// A reference to a specification.
 ///
-/// TODO: Move this type and the assiotate functions into a separate file.
+/// TODO: Move this type and the associated functions into a separate file.
 #[derive(Debug)]
 enum SpecIdRef {
     Precondition(SpecificationId),

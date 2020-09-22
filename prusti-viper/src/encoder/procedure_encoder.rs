@@ -1676,10 +1676,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 // Is the target a specification block?
                 if self.procedure.is_spec_block(default_target) {
-                    debug_assert!(format!("{:?}", discr) == "const false");
-                    debug_assert!(term.source_info.span.lo().0 == 0);
-                    debug_assert!(term.source_info.span.hi().0 == 0);
-
                     stmts.push(vir::Stmt::comment(format!(
                         "Ignore default target {:?}, as it is only used by Prusti to type-check \
                         a loop invariant.",
