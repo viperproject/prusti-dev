@@ -75,6 +75,9 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
             Type::TypedRef(ref name) => name.to_string(),
             Type::Domain(ref name) => name.to_string(),
             Type::Snapshot(ref name) => format!("Snap${}", name),
+            Type::Seq => "$seq$".to_string(),
+            Type::Set => "$set$".to_string(),
+            Type::MultiSet => "$multiset$".to_string(),
         }
     }
     for arg in formal_args {
