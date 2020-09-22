@@ -14,28 +14,7 @@ use std::collections::HashSet;
 use std::iter::FromIterator;
 use log::{trace, debug};
 use rustc_ast::ast;
-
-/// Check whether the `attrs` contain `prusti::$name` attribute.
-/// FIXME: Move this function to utils.
-pub(crate) fn contains_name(attrs: &[ast::Attribute], name: &str) -> bool {
-    for attr in attrs {
-        match &attr.kind {
-            ast::AttrKind::DocComment(_, symbol) => {},
-            ast::AttrKind::Normal(ast::AttrItem {
-                path: ast::Path { span: _, segments, tokens: _ },
-                args: _,
-                tokens: _,
-            }) => {
-                if segments.len() == 2 && segments[0].ident.name.with(
-                    |attr_name| attr_name == "prusti"
-                ) && segments[1].ident.name.with(|attr_name| attr_name == name) {
-                    return true;
-                }
-            }
-        }
-    }
-    false
-}
+use crate::utils::has_spec_only_attr;
 
 pub struct CollectPrustiSpecVisitor<'a, 'tcx: 'a> {
     env: &'a Environment<'tcx>,
@@ -62,8 +41,7 @@ impl<'a, 'tcx> CollectPrustiSpecVisitor<'a, 'tcx> {
 
 impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     fn visit_item(&mut self, item: &hir::Item) {
-        if contains_name(&item.attrs, "spec_only")
-        {
+        if has_spec_only_attr(&item.attrs) {
             return;
         }
         if let hir::ItemKind::Fn(..) = item.kind {
@@ -75,8 +53,7 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     }
 
     fn visit_trait_item(&mut self, trait_item: &hir::TraitItem) {
-        if contains_name(&trait_item.attrs, "spec_only")
-        {
+        if has_spec_only_attr(&trait_item.attrs) {
             return;
         }
 
@@ -98,8 +75,7 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     }
 
     fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
-        if contains_name(&impl_item.attrs, "spec_only")
-        {
+        if has_spec_only_attr(&impl_item.attrs) {
             return;
         }
 

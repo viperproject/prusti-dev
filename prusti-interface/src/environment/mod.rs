@@ -190,7 +190,7 @@ impl<'tcx> Environment<'tcx> {
     /// Find whether the procedure has a particular attribute
     pub fn has_attribute_name(&self, def_id: ProcedureDefId, name: &str) -> bool {
         let tcx = self.tcx();
-        crate::environment::collect_prusti_spec_visitor::contains_name(tcx.get_attrs(def_id), name)
+        crate::utils::has_prusti_attr(tcx.get_attrs(def_id), name)
     }
 
     /// Dump various information from the borrow checker.
