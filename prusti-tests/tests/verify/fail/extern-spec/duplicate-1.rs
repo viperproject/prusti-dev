@@ -1,7 +1,5 @@
-extern crate prusti_contracts; //~ ERROR already specified function
+extern crate prusti_contracts;
 use prusti_contracts::*;
-
-// FIXME: the error happens on line 23, but is reported from line 1
 
 struct TestStruct {}
 
@@ -20,7 +18,7 @@ impl TestStruct {
 
 #[extern_spec]
 impl TestStruct {
-    #[pure]
+    #[pure] //~ ERROR already specified function
     #[ensures(result >= a && result >= b)]
     #[ensures(result == a || result == b)]
     fn max(a: i32, b: i32) -> i32;

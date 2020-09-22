@@ -2,6 +2,7 @@
 #![feature(box_patterns)]
 #![feature(drain_filter)]
 
+mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
 mod spec_attribute_kind;
@@ -16,11 +17,6 @@ use std::convert::{TryFrom, TryInto};
 use specifications::untyped;
 use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
-
-mod extern_spec_rewriter;
-mod rewriter;
-mod parse_closure_macro;
-pub mod specifications;
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
