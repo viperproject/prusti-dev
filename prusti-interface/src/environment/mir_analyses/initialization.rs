@@ -362,10 +362,6 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     analysis.run(JoinOperation::Union);
     analysis.propagate_work_queue();
     analysis.run(JoinOperation::Intersect);
-    if let Some(ref path) = tcx.sess.local_crate_source_file {
-        let path_to_source = path.to_str().unwrap().to_owned();
-        analysis.result.compare_with_expected(def_path, path_to_source);
-    }
     analysis.result
 }
 
@@ -410,51 +406,5 @@ impl<'tcx> DefinitelyInitializedAnalysisResult<'tcx> {
         }
         records.sort();
         records
-    }
-    /// Compare the expected analysis results with the actual.
-    fn compare_with_expected(&self, def_path: hir::definitions::DefPath, test_file: String) {
-        trace!(
-            "[enter] compare_definitely_initialized def_path={:?} test_file={}",
-            def_path,
-            test_file
-        );
-        let mut expected_result_file = test_file.clone();
-        expected_result_file.push('.');
-        expected_result_file.push_str(&def_path.to_filename_friendly_no_crate());
-        expected_result_file.push('.');
-        expected_result_file.push_str("def_init");
-        let expected_result_path = Path::new(&expected_result_file);
-
-        trace!("expected_result_file={}", expected_result_file);
-        if !expected_result_path.exists() {
-            return;
-        }
-        let actual_result = self.to_initialization_records();
-
-        let mut reader = ReaderBuilder::new()
-            .from_path(&expected_result_path)
-            .unwrap();
-        let mut expected_result = Vec::new();
-        for row in reader.deserialize() {
-            let record = row.unwrap();
-            expected_result.push(record);
-        }
-        if actual_result != expected_result {
-            let mut actual_result_file = expected_result_file.clone();
-            actual_result_file.push_str(".actual");
-            let actual_result_path = Path::new(&actual_result_file);
-
-            let mut writer = WriterBuilder::new().from_path(&actual_result_path).unwrap();
-            for record in actual_result {
-                writer.serialize(record).unwrap();
-            }
-
-            panic!(
-                "Expected ({:?}) definitely initialized information differ from actual ({:?}).",
-                expected_result_file, actual_result_file
-            );
-        }
-
-        trace!("[exit] compare_definitely_initialized");
     }
 }

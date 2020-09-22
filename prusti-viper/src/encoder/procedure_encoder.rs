@@ -1066,16 +1066,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut stmts = vec![vir::Stmt::comment(format!("[mir] {:?}", stmt))];
 
         let encoding_stmts = match stmt.kind {
-            mir::StatementKind::StorageDead(_)
-            | mir::StatementKind::StorageLive(_)
-            // | mir::StatementKind::EndRegion(_)
-            // | mir::StatementKind::ReadForMatch(_)
-            // | mir::StatementKind::UserAssertTy(_, _)
-            | mir::StatementKind::FakeRead(_, _)    // FIXME
+            mir::StatementKind::StorageLive(..)
+            | mir::StatementKind::StorageDead(..)
+            | mir::StatementKind::FakeRead(..)
+            | mir::StatementKind::AscribeUserType(..)
+            | mir::StatementKind::Coverage(..)
             | mir::StatementKind::Nop => vec![],
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
-                let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs).unwrap(); // will panic if attempting to encode unsupported type
+                // FIXME: the following line will panic if attempting to encode unsupported types.
+                let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs).unwrap();
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
                         self.encode_assign_operand(&encoded_lhs, operand, location)
@@ -1676,10 +1676,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 // Is the target a specification block?
                 if self.procedure.is_spec_block(default_target) {
-                    debug_assert!(format!("{:?}", discr) == "const false");
-                    debug_assert!(term.source_info.span.lo().0 == 0);
-                    debug_assert!(term.source_info.span.hi().0 == 0);
-
                     stmts.push(vir::Stmt::comment(format!(
                         "Ignore default target {:?}, as it is only used by Prusti to type-check \
                         a loop invariant.",

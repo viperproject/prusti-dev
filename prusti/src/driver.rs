@@ -169,6 +169,11 @@ fn main() {
     args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
     args.push("--cfg=prusti".to_owned());
 
+    if config::dump_debug_info() {
+        args.push("-Zdump-mir=all".to_owned());
+        args.push("-Zdump-mir-graphviz".to_owned());
+    }
+
     let mut callbacks = PrustiCompilerCalls::new(flags);
 
     // Invoke compiler, and handle return code.

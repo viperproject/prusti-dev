@@ -4,15 +4,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#![feature(box_syntax, box_patterns)]
+
 use super::loops;
 use crate::data::ProcedureDefId;
-use rustc_middle::mir::{self, Body as Mir};
-use rustc_middle::mir::{BasicBlock, Terminator, TerminatorKind};
+use rustc_middle::mir::{self, Body as Mir, Rvalue, AggregateKind};
+use rustc_middle::mir::{BasicBlock, BasicBlockData, Terminator, TerminatorKind};
 use rustc_middle::ty::{self, Ty, TyCtxt};
 use std::cell::Ref;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use rustc_span::Span;
 use log::{trace, debug};
+use rustc_middle::mir::StatementKind;
+use rustc_hir::def_id;
+use std::iter::FromIterator;
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
@@ -35,7 +40,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
         let mir = mir.borrow();
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir);
-        let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir);
+        let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir, &tcx);
 
         let loop_info = loops::ProcedureLoops::new(&mir);
 
@@ -212,7 +217,7 @@ fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
 }
 
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
-fn build_reachable_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
+fn build_reachable_basic_blocks(mir: &Mir) -> HashSet<BasicBlock> {
     let mut reachable_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     let mut visited: HashSet<BasicBlock> = HashSet::new();
     let mut to_visit: Vec<BasicBlock> = vec![];
@@ -239,8 +244,90 @@ fn build_reachable_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
     reachable_basic_blocks
 }
 
+fn is_spec_closure(def_id: def_id::DefId, tcx: &TyCtxt) -> bool {
+    use rustc_ast::ast;
+    tcx
+        .get_attrs(def_id)
+        .iter()
+        .any(|attr|
+            match &attr.kind {
+                ast::AttrKind::Normal(ast::AttrItem {
+                    path: ast::Path { span: _, segments, tokens: _ },
+                    args: ast::MacArgs::Empty,
+                    tokens: _
+                }) => {
+                    segments.len() == 2
+                    && segments[0]
+                        .ident
+                        .name
+                        .with(|attr_name| attr_name == "prusti")
+                    && segments[1]
+                        .ident
+                        .name
+                        .with(|attr_name| attr_name == "spec_only")
+                },
+                _ => false,
+            }
+        )
+}
+
+fn is_spec_basic_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> bool {
+    for stmt in &bb_data.statements {
+        if let StatementKind::Assign(box (_, rvalue)) = &stmt.kind {
+            if let Rvalue::Aggregate(box aggr, _) = rvalue {
+                if let AggregateKind::Closure(def_id, _) = aggr {
+                    if is_spec_closure(*def_id, tcx) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+#[derive(Debug)]
+struct BasicBlockNode {
+    successors: HashSet<BasicBlock>,
+    predecessors: HashSet<BasicBlock>,
+}
+
+fn _blocks_definitely_leading_to<'a>(bb_graph: &'a HashMap<BasicBlock, BasicBlockNode>,
+                                 target: BasicBlock,
+                                 blocks: &'a mut HashSet<BasicBlock>) -> &'a mut HashSet<BasicBlock> {
+    for pred in bb_graph[&target].predecessors.iter() {
+        debug!("target: {:#?}, pred: {:#?}", target, pred);
+        if bb_graph[pred].successors.len() == 1 {
+            debug!("pred {:#?} has 1 successor", pred);
+            blocks.insert(*pred);
+            _blocks_definitely_leading_to(bb_graph, *pred, blocks);
+        }
+    }
+    return blocks;
+}
+
+fn blocks_definitely_leading_to<'a>(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, target: BasicBlock) -> HashSet<BasicBlock> {
+    let mut blocks = HashSet::new();
+    _blocks_definitely_leading_to(bb_graph, target, &mut blocks);
+    blocks
+}
+
+fn get_nonspec_basic_blocks(bb_graph: HashMap<BasicBlock, BasicBlockNode>, mir: &Mir, tcx: &TyCtxt) -> HashSet<BasicBlock>{
+    let mut spec_basic_blocks: HashSet<BasicBlock> = HashSet::new();
+    for (bb, _) in bb_graph.iter() {
+        if is_spec_basic_block(&mir[*bb], &tcx) {
+            spec_basic_blocks.insert(*bb);
+            spec_basic_blocks.extend(blocks_definitely_leading_to(&bb_graph, *bb).into_iter());
+        }
+    }
+    debug!("spec basic blocks: {:#?}", spec_basic_blocks);
+
+    let all_basic_blocks: HashSet<BasicBlock> = bb_graph.keys().cloned().collect();
+    all_basic_blocks.difference(&spec_basic_blocks).cloned().collect()
+}
+
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
-fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
+fn build_nonspec_basic_blocks(mir: &Mir, tcx: &TyCtxt) -> HashSet<BasicBlock> {
     let dominators = mir.dominators();
     let mut loop_heads: HashSet<BasicBlock> = HashSet::new();
 
@@ -260,6 +347,8 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
     let mut to_visit: Vec<BasicBlock> = vec![];
     to_visit.push(mir.basic_blocks().indices().next().unwrap());
 
+    let mut bb_graph: HashMap<BasicBlock, BasicBlockNode> = HashMap::new();
+
     while !to_visit.is_empty() {
         let source = to_visit.pop().unwrap();
 
@@ -267,8 +356,14 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
             continue;
         }
 
+        if !bb_graph.contains_key(&source) {
+            bb_graph.insert(source, BasicBlockNode {
+                successors: HashSet::new(),
+                predecessors: HashSet::new(),
+            });
+        }
+
         visited.insert(source);
-        nonspec_basic_blocks.insert(source);
 
         let term = mir[source].terminator();
         let is_loop_head = loop_heads.contains(&source);
@@ -276,12 +371,20 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
             trace!("MIR block {:?} is a loop head", source);
         }
         for target in get_normal_targets(term) {
-            // FIXME: Filtering is broken.
             if !visited.contains(&target) {
                 to_visit.push(target);
             }
+
+            if !bb_graph.contains_key(&target) {
+                bb_graph.insert(target, BasicBlockNode {
+                    successors: HashSet::new(),
+                    predecessors: HashSet::new(),
+                });
+            }
+            bb_graph.get_mut(&target).unwrap().predecessors.insert(source);
+            bb_graph.get_mut(&source).unwrap().successors.insert(target);
         }
     }
 
-    nonspec_basic_blocks
+    get_nonspec_basic_blocks(bb_graph, mir, tcx)
 }
