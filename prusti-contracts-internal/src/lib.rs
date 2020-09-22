@@ -1,35 +1,36 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
+use prusti_specs::{rewrite_prusti_attributes, SpecAttributeKind};
 
 #[proc_macro_attribute]
 pub fn requires(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    prusti_specs::requires(attr.into(), tokens.into()).into()
+    rewrite_prusti_attributes(SpecAttributeKind::Requires, attr.into(), tokens.into()).into()
 }
 
 #[proc_macro_attribute]
 pub fn ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    prusti_specs::ensures(attr.into(), tokens.into()).into()
+    rewrite_prusti_attributes(SpecAttributeKind::Ensures, attr.into(), tokens.into()).into()
 }
 
 #[proc_macro_attribute]
 pub fn after_expiry(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    prusti_specs::after_expiry(attr.into(), tokens.into()).into()
+    rewrite_prusti_attributes(SpecAttributeKind::AfterExpiry, attr.into(), tokens.into()).into()
 }
 
 #[proc_macro_attribute]
 pub fn after_expiry_if(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    prusti_specs::after_expiry_if(attr.into(), tokens.into()).into()
+    rewrite_prusti_attributes(SpecAttributeKind::AfterExpiryIf, attr.into(), tokens.into()).into()
 }
 
 #[proc_macro_attribute]
 pub fn pure(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    prusti_specs::pure(attr.into(), tokens.into()).into()
+    rewrite_prusti_attributes(SpecAttributeKind::Pure, attr.into(), tokens.into()).into()
 }
 
 #[proc_macro_attribute]
 pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    prusti_specs::trusted(attr.into(), tokens.into()).into()
+    rewrite_prusti_attributes(SpecAttributeKind::Trusted, attr.into(), tokens.into()).into()
 }
 
 #[proc_macro]
