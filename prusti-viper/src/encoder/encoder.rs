@@ -1151,6 +1151,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         expr
     }
 
+    pub fn get_native_adt_item_name(&self, def_id: DefId) -> String {
+        if config::disable_name_mangling() {
+            self.env.get_item_name(def_id)
+        } else {
+            self.env.get_item_def_path(def_id)
+        }
+    }
+
     pub fn encode_item_name(&self, def_id: DefId) -> String {
         let full_name = format!("m_{}", encode_identifier(self.env.get_item_def_path(def_id)));
         let short_name = format!("m_{}", encode_identifier(
