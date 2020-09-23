@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
 use viper::VerificationError;
-use crate::encoder::errors::PrustiError;
+use prusti_interface::PrustiError;
 use log::debug;
 
 /// The cause of a panic!()

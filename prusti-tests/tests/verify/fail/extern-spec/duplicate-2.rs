@@ -1,8 +1,6 @@
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
-// ignore-test This works, but the error reporting crashes the compiler.
-
 #[extern_spec]
 impl<T> std::vec::Vec<T> {
     #[pure]

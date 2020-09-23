@@ -1,4 +1,4 @@
-use prusti_interface::specs;
+use prusti_interface::{specs, environment::Environment};
 use prusti_common::config::ConfigFlags;
 use rustc_driver::Compilation;
 use rustc_hir::intravisit;
@@ -50,7 +50,8 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             let krate = hir.krate();
             let mut visitor = specs::SpecCollector::new(tcx);
             intravisit::walk_crate(&mut visitor, &krate);
-            let extern_specs = visitor.determine_extern_procedure_specs();
+            let env = Environment::new(tcx);
+            let extern_specs = visitor.determine_extern_procedure_specs(&env);
             let type_map = visitor.determine_typed_procedure_specs();
             if self.flags.print_typeckd_specs {
                 let uuid = Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}").unwrap();
@@ -76,7 +77,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                 }
             }
             if !self.flags.skip_verify {
-                verify(self.flags, tcx, type_map, extern_specs);
+                verify(self.flags, env, type_map, extern_specs);
             }
         });
 

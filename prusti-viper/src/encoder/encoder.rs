@@ -9,7 +9,7 @@ use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, Pro
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PrustiError};
+use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError};
 use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
@@ -29,6 +29,7 @@ use prusti_interface::environment::Environment;
 use prusti_interface::specs::typed;
 use prusti_interface::specs::typed::SpecificationId;
 use prusti_interface::utils::has_spec_only_attr;
+use prusti_interface::PrustiError;
 // use prusti_interface::specs::{
 //     SpecID, SpecificationSet, TypedAssertion,
 //     TypedSpecificationMap, TypedSpecificationSet,

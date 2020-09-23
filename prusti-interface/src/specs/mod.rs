@@ -9,6 +9,7 @@ use rustc_hir::def_id::LocalDefId;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use crate::utils::{has_spec_only_attr, has_extern_spec_attr};
+use crate::environment::Environment;
 
 pub mod external;
 pub mod typed;
@@ -97,7 +98,8 @@ impl<'tcx> SpecCollector<'tcx> {
         }
     }
 
-    pub fn determine_extern_procedure_specs(&self) -> typed::ExternSpecificationMap<'tcx> {
+    pub fn determine_extern_procedure_specs(&self, env: &Environment<'tcx>) -> typed::ExternSpecificationMap<'tcx> {
+        self.resolver.check_duplicates(env);
         self.resolver.get_extern_fn_map()
     }
 }
@@ -178,6 +180,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
             self.spec_items.push(spec_item);
         }
     }
+
     fn visit_fn(
         &mut self,
         fn_kind: intravisit::FnKind<'tcx>,
@@ -197,6 +200,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         }
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
     }
+
     fn visit_local(&mut self, local: &'tcx rustc_hir::Local<'tcx>) {
         let mut clean_spec_item = false;
         if has_spec_only_attr(&local.attrs) {

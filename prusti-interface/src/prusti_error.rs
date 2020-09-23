@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_span::MultiSpan;
-use prusti_interface::environment::Environment;
+use crate::environment::Environment;
 use prusti_common::config;
 use ::log::warn;
 
