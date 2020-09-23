@@ -6,17 +6,15 @@
 
 #![feature(rustc_private)]
 
-extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
-extern crate rustc_ast;
-extern crate rustc_attr;
 
 use rustc_middle::ty::TyCtxt;
 use rustc_middle::mir;
+use rustc_span::def_id::LocalDefId;
 
-pub struct LivenessAnalysisState {}
-pub struct DefinitelyInitializedAnalysisState {}
+pub struct LivenessState {}
+pub struct DefinitelyInitializedState {}
 pub struct PCSState {}
 
 pub trait AnalysisResult {
@@ -32,6 +30,7 @@ type Result<T> = std::result::Result<T, AnalysisError>;
 
 pub struct Analyzer<'tcx> {
     tcx: TyCtxt<'tcx>,
+    // We can add caching, using e.g. a RefCell<HashMap<LocalDefId, Result<...>>>
 }
 
 impl<'tcx> Analyzer<'tcx> {
@@ -41,17 +40,19 @@ impl<'tcx> Analyzer<'tcx> {
         }
     }
 
+    // Instead of `mir: &mir::Body<'tcx>` we could ask for a `LocalDefId`, which can be resolved
+    // using https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.TyCtxt.html#method.mir_promoted
     pub fn liveness_analysis(
         &self,
         mir: &mir::Body<'tcx>,
-    ) -> Result<Box<dyn AnalysisResult<AbstractState = LivenessAnalysisState>>> {
+    ) -> Result<Box<dyn AnalysisResult<AbstractState = LivenessState>>> {
         unimplemented!();
     }
 
     pub fn definitely_initilized_analysis(
         &self,
         mir: &mir::Body<'tcx>,
-    ) -> Result<Box<dyn AnalysisResult<AbstractState = DefinitelyInitializedAnalysisState>>> {
+    ) -> Result<Box<dyn AnalysisResult<AbstractState = DefinitelyInitializedState>>> {
         unimplemented!();
     }
 
