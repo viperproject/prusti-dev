@@ -138,7 +138,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // TODO: Clean up code duplication:
         //let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
         let contract = {
-            let opt_fun_spec = self.encoder.get_spec_by_def_id(self.proc_def_id);
+            let opt_fun_spec = self.encoder.get_procedure_specs(self.proc_def_id);
             let fun_spec = match opt_fun_spec {
                 Some(fun_spec) => fun_spec.clone(),
                 None => {

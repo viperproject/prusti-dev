@@ -28,7 +28,7 @@ use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::specs::typed;
 use prusti_interface::specs::typed::SpecificationId;
-use prusti_interface::utils::has_spec_only_attr;
+use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs, has_prusti_attr};
 use prusti_interface::PrustiError;
 // use prusti_interface::specs::{
 //     SpecID, SpecificationSet, TypedAssertion,
@@ -52,7 +52,7 @@ use std::ops::AddAssign;
 use ::log::info;
 use std::convert::TryInto;
 
-/// A reference to a specification.
+/// A reference to a procedure specification.
 ///
 /// TODO: Move this type and the associated functions into a separate file.
 #[derive(Debug)]
@@ -408,63 +408,65 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         has_spec_only_attr(self.env().tcx().get_attrs(def_id))
     }
 
-    fn get_opt_spec_id(&self, def_id: DefId) -> Vec<SpecIdRef> {
-        use rustc_ast::ast;
-        fn to_spec_id(attr: &ast::Attribute) -> SpecificationId {
-            attr.value_str().unwrap().as_str().to_string().try_into().unwrap()
-        }
-        let opt_spec_ids = self
-            .env()
-            .tcx()
-            .get_attrs(def_id)
-            .iter()
-            .flat_map(|attr|
-                {
-                match &attr.kind {
-                    ast::AttrKind::Normal(ast::AttrItem {
-                        path: ast::Path { span: _, segments, tokens: _ },
-                        args: ast::MacArgs::Eq(_, _),
-                        tokens: _,
-                    }) => {
-                        if segments.len() == 2
-                            && segments[0]
-                                .ident
-                                .name
-                                .with(|attr_name| attr_name == "prusti") {
-                            match segments[1]
-                                .ident
-                                .name
-                                .with(|attr_name| attr_name.to_string()).as_str() {
-                                "pre_spec_id_ref" => Some(SpecIdRef::Precondition(to_spec_id(attr))),
-                                "post_spec_id_ref" => Some(SpecIdRef::Postcondition(to_spec_id(attr))),
-                                "pledge_spec_id_ref" => {
-                                    let value = attr.value_str().unwrap().as_str();
-                                    let mut value = value.splitn(2, ":");
-                                    let lhs = value.next().unwrap();
-                                    let lhs_spec_id = if !lhs.is_empty() {
-                                        Some(lhs.to_string().try_into().unwrap())
-                                    } else {
-                                        None
-                                    };
-                                    let rhs_spec_id = value.next().unwrap().to_string().try_into().unwrap();
-                                    Some(SpecIdRef::Pledge{ lhs: lhs_spec_id, rhs: rhs_spec_id })
-                                },
-                                x => unimplemented!("x: {:}", x),
-                            }
-                        } else {
-                            None
-                        }
-                    },
-                    _ => None,
-                }
-            }
+    /// Return the specification ids that are attached to `def_id` with one of the following
+    /// attributes:
+    /// * `prusti::pre_spec_id_ref="..."` for preconditions,
+    /// * `prusti::post_spec_id_ref="..."` for postconditions,
+    /// * `prusti::pledge_spec_id_ref="..."` for pledges.
+    fn get_procedure_spec_ids(&self, def_id: DefId) -> Vec<SpecIdRef> {
+        let mut spec_id_refs = vec![];
+        let attrs = self.env().tcx().get_attrs(def_id);
+
+        let parse_spec_id = |spec_id: String| -> SpecificationId {
+            spec_id.try_into().expect(
+                &format!("cannot parse the spec_id attached to {:?}", def_id)
             )
-            .collect();
-        debug!("Function {:?} has spec_id {:?}", def_id, opt_spec_ids);
-        opt_spec_ids
+        };
+
+        spec_id_refs.extend(
+            read_prusti_attrs("pre_spec_id_ref", attrs).into_iter().map(
+                |raw_spec_id| SpecIdRef::Precondition(parse_spec_id(raw_spec_id))
+            )
+        );
+        spec_id_refs.extend(
+            read_prusti_attrs("post_spec_id_ref", attrs).into_iter().map(
+                |raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id))
+            )
+        );
+        spec_id_refs.extend(
+            read_prusti_attrs("pledge_spec_id_ref", attrs).into_iter().map(
+                |value| {
+                    let mut value = value.splitn(2, ":");
+                    let raw_lhs_spec_id = value.next().unwrap();
+                    let raw_rhs_spec_id = value.next().unwrap();
+                    let lhs_spec_id = if !raw_lhs_spec_id.is_empty() {
+                        Some(parse_spec_id(raw_lhs_spec_id.to_string()))
+                    } else {
+                        None
+                    };
+                    let rhs_spec_id = parse_spec_id(raw_rhs_spec_id.to_string());
+                    SpecIdRef::Pledge{ lhs: lhs_spec_id, rhs: rhs_spec_id }
+                }
+            )
+        );
+        debug!("Function {:?} has specification ids {:?}", def_id, spec_id_refs);
+        spec_id_refs
     }
 
-    pub fn get_spec_by_def_id(&self, def_id: DefId) -> Option<typed::SpecificationSet<'tcx>> {
+    /// Get the loop invariant attached to a function with a
+    /// `prusti::loop_body_invariant_spec` attribute.
+    pub fn get_loop_specs(&self, def_id: DefId) -> Vec<SpecificationId> {
+        let attrs = self.env().tcx().get_attrs(def_id);
+        debug_assert!(has_prusti_attr(attrs, "loop_body_invariant_spec"));
+        read_prusti_attrs("spec_id", attrs).into_iter().map(
+            |raw_spec_id| raw_spec_id.try_into().expect(
+                &format!("cannot parse the spec_id attached to {:?}", def_id)
+            )
+        ).collect()
+    }
+
+    /// Get the specifications attached to the `def_id` function.
+    pub fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::SpecificationSet<'tcx>> {
         debug!("get spec for: {:?}", def_id);
         // Currently, we don't support specifications for external functions.
         // Since we have a collision of PRUSTI_SPEC_ATTR between different crates, we manually check
@@ -472,7 +474,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if !def_id.is_local() {
             return None;
         }
-        let refs = self.get_opt_spec_id(def_id);
+        let refs = self.get_procedure_spec_ids(def_id);
         if refs.is_empty() {
             None
         } else {
@@ -482,16 +484,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             for spec_id_ref in refs {
                 match spec_id_ref {
                     SpecIdRef::Precondition(spec_id) => {
-                        pres.push(self.spec().get(&spec_id).unwrap().as_assertion().clone());
+                        pres.push(self.spec().get(&spec_id).unwrap().clone());
                     }
                     SpecIdRef::Postcondition(spec_id) => {
-                        posts.push(self.spec().get(&spec_id).unwrap().as_assertion().clone());
+                        posts.push(self.spec().get(&spec_id).unwrap().clone());
                     }
                     SpecIdRef::Pledge{ lhs, rhs } => {
                         pledges.push(typed::Pledge {
                             reference: None,    // FIXME: Currently only `result` is supported.
-                            lhs: lhs.map(|spec_id| self.spec().get(&spec_id).unwrap().as_assertion().clone()),
-                            rhs: self.spec().get(&rhs).unwrap().as_assertion().clone(),
+                            lhs: lhs.map(|spec_id| self.spec().get(&spec_id).unwrap().clone()),
+                            rhs: self.spec().get(&rhs).unwrap().clone(),
                         })
                     }
                 }
@@ -501,7 +503,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) -> ProcedureContractMirDef<'tcx> {
-        let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
+        let opt_fun_spec = self.get_procedure_specs(proc_def_id);
         let fun_spec = match opt_fun_spec {
             Some(fun_spec) => fun_spec.clone(),
             None => {
@@ -530,7 +532,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         target: places::Local,
     ) -> ProcedureContract<'tcx> {
         // get specification on trait declaration method or inherent impl
-        let fun_spec = if let Some(spec) = self.get_spec_by_def_id(proc_def_id) {
+        let fun_spec = if let Some(spec) = self.get_procedure_specs(proc_def_id) {
             spec.clone()
         } else {
             debug!("Procedure {:?} has no specification", proc_def_id);
@@ -560,7 +562,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //                 // FIXME(@jakob): if several methods are found, we currently don't know which
     //                 // one to pick.
     //                 let item = procs[0];
-    //                 if let Some(spec) = self.get_spec_by_def_id(item.def_id) {
+    //                 if let Some(spec) = self.get_procedure_spec_ids(item.def_id) {
     //                     impl_spec = spec.clone();
     //                 } else {
     //                     debug!("Procedure {:?} has no specification", item.def_id);

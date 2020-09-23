@@ -538,13 +538,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     let tcx = self.encoder.env().tcx();
 
                     let mut specs: Vec<typed::SpecificationSet> = Vec::new();
-                    if let Some(spec) = self.encoder.get_spec_by_def_id(adt_def.did) {
+                    if let Some(spec) = self.encoder.get_procedure_specs(adt_def.did) {
                         specs.push(spec);
                     }
 
                     let traits = self.encoder.env().get_traits_decls_for_type(&self.ty);
                     for trait_id in traits {
-                        if let Some(spec) = self.encoder.get_spec_by_def_id(trait_id) {
+                        if let Some(spec) = self.encoder.get_procedure_specs(trait_id) {
                             specs.push(spec);
                         }
                     }
