@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
 use viper::VerificationError;
-use crate::encoder::errors::PrustiError;
+use prusti_interface::PrustiError;
 use log::debug;
 
 /// The cause of a panic!()
@@ -126,10 +126,14 @@ impl<'tcx> ErrorManager<'tcx>
         self.next_pos_id += 1;
         debug!("Register position {:?} at span {:?}", pos_id, span);
         let pos = if let Some(primary_span) = span.primary_span() {
-            let lines_info = self
+            let lines_info_res = self
                 .codemap
-                .span_to_lines(primary_span.source_callsite())
-                .unwrap();
+                .span_to_lines(primary_span.source_callsite());
+            if lines_info_res.is_err() {
+                debug!("Error converting span to lines {:?}", lines_info_res.err());
+                return Position::new(0, 0, pos_id.clone());
+            }
+            let lines_info = lines_info_res.unwrap();
             if let Some(first_line_info) = lines_info.lines.get(0) {
                 let line = first_line_info.line_index as i32 + 1;
                 let column = first_line_info.start_col.0 as i32 + 1;

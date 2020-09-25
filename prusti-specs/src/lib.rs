@@ -2,6 +2,7 @@
 #![feature(box_patterns)]
 #![feature(drain_filter)]
 
+mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
 mod spec_attribute_kind;
@@ -245,8 +246,8 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
     } else {
         let mut rewriter = rewriter::AstRewriter::new();
 
-        let mut preconds: Vec<(untyped::SpecificationId,untyped::Assertion)> = Vec::new();
-        let mut postconds: Vec<(untyped::SpecificationId,untyped::Assertion)> = Vec::new();
+        let mut preconds: Vec<(untyped::SpecificationId, untyped::Assertion)> = Vec::new();
+        let mut postconds: Vec<(untyped::SpecificationId, untyped::Assertion)> = Vec::new();
 
         let mut cl_annotations = TokenStream::new();
 
@@ -271,8 +272,10 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         }
 
         let (spec_toks_pre, spec_toks_post) = rewriter.generate_cl_spec(preconds, postconds);
-        let syn::ExprClosure { attrs, asyncness, movability, capture, or1_token,
-                               inputs, or2_token, output, body } = cl_spec.cl;
+        let syn::ExprClosure {
+            attrs, asyncness, movability, capture, or1_token,
+            inputs, or2_token, output, body
+        } = cl_spec.cl;
 
         let mut attrs_ts = TokenStream::new();
         for a in attrs {
@@ -298,5 +301,40 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
                 _prusti_closure
             }
         }
+    }
+}
+
+pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
+    let item: syn::Item = handle_result!(syn::parse2(tokens));
+    match item {
+        syn::Item::Impl(mut item_impl) => {
+            let new_struct = handle_result!(extern_spec_rewriter::generate_new_struct(&mut item_impl));
+
+            let struct_ident = &new_struct.ident;
+            let generics = &new_struct.generics;
+
+            let struct_ty: syn::Type = syn::parse_quote! {
+                #struct_ident #generics
+            };
+
+            let rewritten_item =
+                handle_result!(extern_spec_rewriter::rewrite_impl(&mut item_impl, Box::from(struct_ty)));
+
+            quote! {
+                #new_struct
+                #rewritten_item
+            }
+        }
+        syn::Item::Mod(mut item_mod) => {
+            let mut path = syn::Path {
+                leading_colon: None,
+                segments: syn::punctuated::Punctuated::new(),
+            };
+            handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
+            quote! {
+                #item_mod
+            }
+        }
+        _ => { unimplemented!() }
     }
 }

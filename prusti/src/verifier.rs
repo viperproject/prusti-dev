@@ -7,15 +7,12 @@ use prusti_interface::{
     environment::Environment,
 };
 use prusti_viper::verifier::Verifier;
-use rustc_middle::ty::TyCtxt;
 use prusti_common::config::ConfigFlags;
 use prusti_common::report::user;
 
-
-pub fn verify<'tcx>(flags: ConfigFlags, tcx: TyCtxt<'tcx>, spec: typed::SpecificationMap<'tcx>) {
+pub fn verify<'tcx>(flags: ConfigFlags, env: Environment<'tcx>, spec: typed::SpecificationMap<'tcx>,
+                    extern_spec: typed::ExternSpecificationMap<'tcx>) {
     trace!("[verify] enter");
-
-    let env = Environment::new(tcx);
 
     if env.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
@@ -47,7 +44,7 @@ pub fn verify<'tcx>(flags: ConfigFlags, tcx: TyCtxt<'tcx>, spec: typed::Specific
             debug!("Dump borrow checker info...");
             env.dump_borrowck_info(&verification_task.procedures);
 
-            let mut verifier = Verifier::new(&env, &spec);
+            let mut verifier = Verifier::new(&env, &spec, &extern_spec);
             let verification_result = verifier.verify(&verification_task);
             debug!("Verifier returned {:?}", verification_result);
 

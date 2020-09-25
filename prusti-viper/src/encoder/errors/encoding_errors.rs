@@ -1,4 +1,4 @@
-use crate::encoder::errors::PrustiError;
+use prusti_interface::PrustiError;
 use rustc_span::MultiSpan;
 
 /// An error in the encoding

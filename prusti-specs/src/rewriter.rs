@@ -21,7 +21,6 @@ impl std::fmt::Display for SpecItemType {
             SpecItemType::Precondition => write!(f, "pre"),
             SpecItemType::Postcondition => write!(f, "post"),
         }
-
     }
 }
 

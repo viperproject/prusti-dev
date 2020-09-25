@@ -5,13 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_span::MultiSpan;
-use prusti_interface::environment::Environment;
+use crate::environment::Environment;
 use prusti_common::config;
 use ::log::warn;
 
 /// The Prusti message that will be reported to the user.
 ///
 /// A Prusti message can originate from:
+/// * invalid usage detected during specification collection
 /// * an encoding error (see the `EncodingError` type)
 /// * a Viper verification error
 ///

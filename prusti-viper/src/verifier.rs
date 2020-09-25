@@ -8,11 +8,12 @@ use prusti_common::vir::{self, optimizations, ToViper, ToViperDecl};
 use prusti_common::{
     config, report::log, verification_context::VerifierBuilder, verification_service::*, Stopwatch,
 };
-use crate::encoder::{Encoder, PrustiError};
+use crate::encoder::Encoder;
 // use prusti_filter::validators::Validator;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
+use prusti_interface::PrustiError;
 // use prusti_interface::specifications::TypedSpecificationMap;
 use std::time::Instant;
 use viper::{self, VerificationBackend, Viper};
@@ -144,10 +145,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
     pub fn new(
         env: &'v Environment<'tcx>,
         spec: &'v typed::SpecificationMap<'tcx>,
+        extern_spec: &'v typed::ExternSpecificationMap<'tcx>,
     ) -> Self {
         Verifier {
             env,
-            encoder: Encoder::new(env, spec),
+            encoder: Encoder::new(env, spec, extern_spec),
         }
     }
 

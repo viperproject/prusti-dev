@@ -8,12 +8,15 @@ use rustc_span::symbol::Symbol;
 use rustc_hir::def_id::LocalDefId;
 use std::collections::HashMap;
 use std::convert::TryInto;
-use crate::utils::has_spec_only_attr;
+use crate::utils::{has_spec_only_attr, has_extern_spec_attr};
+use crate::environment::Environment;
 
+pub mod external;
 pub mod typed;
 
 use typed::StructuralToTyped;
 use std::fmt;
+use crate::specs::external::ExternSpecResolver;
 
 struct SpecItem {
     spec_id: typed::SpecificationId,
@@ -39,6 +42,7 @@ pub struct SpecCollector<'tcx> {
     spec_items: Vec<SpecItem>,
     current_spec_item: Option<SpecItem>,
     typed_expressions: HashMap<String, LocalDefId>,
+    extern_resolver: ExternSpecResolver<'tcx>,
 }
 
 impl<'tcx> SpecCollector<'tcx> {
@@ -48,6 +52,7 @@ impl<'tcx> SpecCollector<'tcx> {
             spec_items: Vec::new(),
             current_spec_item: None,
             typed_expressions: HashMap::new(),
+            extern_resolver: ExternSpecResolver::new(tcx),
         }
     }
     pub fn determine_typed_procedure_specs(self) -> typed::SpecificationMap<'tcx> {
@@ -65,7 +70,8 @@ impl<'tcx> SpecCollector<'tcx> {
             })
             .collect()
     }
-    fn process_item(&mut self, item: Item){
+    
+    fn process_item(&mut self, item: Item) {
         if has_spec_only_attr(item.attrs) {
             assert!(
                 self.current_spec_item.is_none(),
@@ -90,6 +96,11 @@ impl<'tcx> SpecCollector<'tcx> {
             assert!(self.current_spec_item.is_none());
             self.current_spec_item = Some(spec_item);
         }
+    }
+
+    pub fn determine_extern_procedure_specs(&self, env: &Environment<'tcx>) -> typed::ExternSpecificationMap<'tcx> {
+        self.extern_resolver.check_duplicates(env);
+        self.extern_resolver.get_extern_fn_map()
     }
 }
 
@@ -148,6 +159,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         let map = self.tcx.hir();
         intravisit::NestedVisitorMap::All(map)
     }
+
     fn visit_item(&mut self, item: &'tcx rustc_hir::Item<'tcx>) {
         if let ItemKind::Impl {items, ..} = &item.kind {
             for impl_item_ref in items.iter() {
@@ -168,6 +180,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
             self.spec_items.push(spec_item);
         }
     }
+
     fn visit_fn(
         &mut self,
         fn_kind: intravisit::FnKind<'tcx>,
@@ -182,9 +195,12 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
                 let local_id = self.tcx.hir().local_def_id(id);
                 self.typed_expressions.insert(expr_id, local_id);
             }
+        } else if has_extern_spec_attr(fn_kind.attrs()) {
+            self.extern_resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id);
         }
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
     }
+
     fn visit_local(&mut self, local: &'tcx rustc_hir::Local<'tcx>) {
         let mut clean_spec_item = false;
         if has_spec_only_attr(&local.attrs) {
