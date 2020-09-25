@@ -42,7 +42,7 @@ pub struct SpecCollector<'tcx> {
     spec_items: Vec<SpecItem>,
     current_spec_item: Option<SpecItem>,
     typed_expressions: HashMap<String, LocalDefId>,
-    resolver: ExternSpecResolver<'tcx>,
+    extern_resolver: ExternSpecResolver<'tcx>,
 }
 
 impl<'tcx> SpecCollector<'tcx> {
@@ -52,7 +52,7 @@ impl<'tcx> SpecCollector<'tcx> {
             spec_items: Vec::new(),
             current_spec_item: None,
             typed_expressions: HashMap::new(),
-            resolver: ExternSpecResolver::new(tcx),
+            extern_resolver: ExternSpecResolver::new(tcx),
         }
     }
     pub fn determine_typed_procedure_specs(self) -> typed::SpecificationMap<'tcx> {
@@ -99,8 +99,8 @@ impl<'tcx> SpecCollector<'tcx> {
     }
 
     pub fn determine_extern_procedure_specs(&self, env: &Environment<'tcx>) -> typed::ExternSpecificationMap<'tcx> {
-        self.resolver.check_duplicates(env);
-        self.resolver.get_extern_fn_map()
+        self.extern_resolver.check_duplicates(env);
+        self.extern_resolver.get_extern_fn_map()
     }
 }
 
@@ -196,7 +196,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
                 self.typed_expressions.insert(expr_id, local_id);
             }
         } else if has_extern_spec_attr(fn_kind.attrs()) {
-            self.resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id);
+            self.extern_resolver.add_extern_fn(fn_kind, fn_decl, body_id, span, id);
         }
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
     }

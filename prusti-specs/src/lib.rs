@@ -318,7 +318,7 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
             };
 
             let rewritten_item =
-                handle_result!(extern_spec_rewriter::rewrite_method(&mut item_impl, Box::from(struct_ty)));
+                handle_result!(extern_spec_rewriter::rewrite_impl(&mut item_impl, Box::from(struct_ty)));
 
             quote! {
                 #new_struct

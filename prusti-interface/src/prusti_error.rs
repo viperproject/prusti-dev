@@ -12,6 +12,7 @@ use ::log::warn;
 /// The Prusti message that will be reported to the user.
 ///
 /// A Prusti message can originate from:
+/// * invalid usage detected during specification collection
 /// * an encoding error (see the `EncodingError` type)
 /// * a Viper verification error
 ///

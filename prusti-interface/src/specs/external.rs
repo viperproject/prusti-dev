@@ -9,15 +9,19 @@ use crate::specs::typed::ExternSpecificationMap;
 use crate::environment::Environment;
 use crate::PrustiError;
 
+/// This struct is used to build a mapping of external functions to their
+/// Prusti specifications (see `extern_fn_map`).
 pub struct ExternSpecResolver<'tcx> {
     tcx: TyCtxt<'tcx>,
 
-    /// Maps real functions (keyed by their `def_id`) to Prusti-generated fake
+    /// Maps real functions (keyed by their `DefId`) to Prusti-generated fake
     /// functions with specifications. The mapping may also optionally contain
-    /// the `def_id` of the implementing type to account for trait
+    /// the `DefId` of the implementing type to account for trait
     /// implementations.
     extern_fn_map: ExternSpecificationMap<'tcx>,
 
+    /// Duplicate specifications detected, keyed by the `DefId` of the function
+    /// to be specified.
     spec_duplicates: HashMap<DefId, Vec<(DefId, Span)>>,
 }
 
@@ -30,6 +34,13 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         }
     }
 
+    /// Registers an external function specification. The arguments for this
+    /// function are the same as arguments given to a function visit in an
+    /// intravisit visitor.
+    ///
+    /// In case of duplicates, the function is added to `spec_duplicates`, and
+    /// will later (in `check_duplicates`) be reported as an error. Otherwise,
+    /// the function is added to `extern_fn_map`.
     pub fn add_extern_fn(
         &mut self,
         fn_kind: intravisit::FnKind<'tcx>,
@@ -64,6 +75,8 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         }
     }
 
+    /// Report errors for duplicate specifications found during specification
+    /// collection.
     pub fn check_duplicates(&self, env: &Environment<'tcx>) {
         for (def_id, specs) in self.spec_duplicates.iter() {
             PrustiError::incorrect(
@@ -91,6 +104,7 @@ struct ExternSpecVisitor<'tcx> {
     spec_found: Option<(DefId, Option<DefId>, Span)>,
 }
 
+/// Gets the `DefId` from the given path.
 fn get_impl_type<'tcx>(qself: &rustc_hir::QPath<'tcx>) -> Option<DefId> {
     if let rustc_hir::QPath::TypeRelative(ty, _) = qself {
         if let rustc_hir::TyKind::Path(qpath) = &ty.kind {

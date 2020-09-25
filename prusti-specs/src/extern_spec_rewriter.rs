@@ -4,7 +4,7 @@ use quote::{quote, ToTokens};
 use syn::ImplItemMethod;
 use syn::spanned::Spanned;
 
-/// Processes external specifications in Rust modules marked with the
+/// Process external specifications in Rust modules marked with the
 /// #[extern_spec] attribute. Nested modules are processed recursively.
 /// Specifications are collected from functions and function stubs.
 ///
@@ -68,6 +68,8 @@ pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Re
     Ok(())
 }
 
+/// Rewrite a specification function to a call to the specified function.
+/// The result of this rewriting is then parsed in `ExternSpecResolver`.
 fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) {
     let ident = &item_fn.sig.ident;
     let args = &item_fn.sig.inputs;
@@ -78,11 +80,13 @@ fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) {
         }
     };
 
-    item_fn.attrs.push(syn::parse_quote! { #[prusti::extern_spec]});
+    item_fn.attrs.push(syn::parse_quote! { #[prusti::extern_spec] });
     item_fn.attrs.push(syn::parse_quote! { #[trusted] });
 }
 
-pub fn rewrite_method(
+/// Rewrite all methods in an impl block to calls to the specified methods.
+/// The result of this rewriting is then parsed in `ExternSpecResolver`.
+pub fn rewrite_impl(
     impl_item: &mut syn::ItemImpl,
     new_ty: Box<syn::Type>,
 ) -> syn::Result<TokenStream> {
@@ -105,7 +109,7 @@ pub fn rewrite_method(
                 let args = rewrite_method_inputs(item_ty, method);
                 let ident = &method.sig.ident;
 
-                method.attrs.push(syn::parse_quote! { #[prusti::extern_spec]});
+                method.attrs.push(syn::parse_quote! { #[prusti::extern_spec] });
                 method.attrs.push(syn::parse_quote! { #[trusted] });
 
                 method.block = syn::parse_quote! {
@@ -130,7 +134,7 @@ pub fn rewrite_method(
     })
 }
 
-pub fn rewrite_self(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+fn rewrite_self(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let mut new_tokens = proc_macro2::TokenStream::new();
     for token in tokens.into_iter() {
         match token {
@@ -153,8 +157,8 @@ pub fn rewrite_self(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStrea
     new_tokens
 }
 
-pub fn rewrite_method_inputs(item_ty: &Box<syn::Type>, method: &mut ImplItemMethod) ->
-    syn::punctuated::Punctuated<syn::Expr, syn::token::Comma>{
+fn rewrite_method_inputs(item_ty: &Box<syn::Type>, method: &mut ImplItemMethod) ->
+    syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> {
     let mut args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
         syn::punctuated::Punctuated::new();
 
@@ -162,6 +166,7 @@ pub fn rewrite_method_inputs(item_ty: &Box<syn::Type>, method: &mut ImplItemMeth
         match input {
             syn::FnArg::Receiver(receiver) => {
                 let and = if receiver.reference.is_some() {
+                    // TODO: do lifetimes need to be specified here?
                     quote! {&}
                 } else {
                     quote! { }
@@ -185,6 +190,8 @@ pub fn rewrite_method_inputs(item_ty: &Box<syn::Type>, method: &mut ImplItemMeth
     args
 }
 
+/// Generate an empty struct to be able to define impl blocks (in
+/// `rewrite_impl`) on it for its specification functions.
 pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct> {
     let name_generator = NameGenerator::new();
     let struct_name = match name_generator.generate_struct_name(item) {
@@ -195,8 +202,7 @@ pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct>
         ))
     };
     let struct_ident = syn::Ident::new(&struct_name,
-                                       item.span(),
-    );
+                                       item.span());
 
     let mut new_struct: syn::ItemStruct = syn::parse_quote! {
         struct #struct_ident {}
@@ -207,6 +213,8 @@ pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct>
 
     let mut fields_str: String = String::new();
 
+    // Add `PhantomData` markers for each type parameter to silence errors
+    // about unused type parameters.
     for param in generics.params.iter() {
         let field = format!("std::marker::PhantomData<{}>,", param.to_token_stream().to_string());
         fields_str.push_str(&field);
