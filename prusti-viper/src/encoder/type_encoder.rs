@@ -257,36 +257,36 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         None
     }
 
-    fn encode_ghost_predicate(ghost_type: &str, value_field: vir::Field) -> Vec<vir::Predicate> {
+    fn encode_ghost_predicate(typ: vir::Type, ghost_type: &str, value_field: vir::Field) -> Vec<vir::Predicate> {
         match ghost_type {
             "GhostInt" => vec![vir::Predicate::new_primitive_value(
-                vir::Type::Int,
-                value_field,
+                typ,
+                vir::Field::new("val_int", vir::Type::Int),
                 None,
                 false
             )],
             "GhostBool" => vec![vir::Predicate::new_primitive_value(
-                vir::Type::Bool,
-                value_field,
+                typ,
+                vir::Field::new("val_bool", vir::Type::Bool),
                 None,
                 false
             )],
             "GhostSeq" => vec![vir::Predicate::new_primitive_value(
-                vir::Type::Seq,
-                value_field,
+                typ,
+                vir::Field::new("val_seq", vir::Type::Seq),
                 None,
                 false
             )],
             "GhostSet" => vec![vir::Predicate::new_primitive_value(
-                vir::Type::Set,
-                value_field,
+                typ,
+                vir::Field::new("val_set", vir::Type::Set),
                 None,
                 false
             )],
 
             "GhostMultiSet" => vec![vir::Predicate::new_primitive_value(
-                vir::Type::MultiSet,
-                value_field,
+                typ,
+                vir::Field::new("val_multiset", vir::Type::MultiSet),
                 None,
                 false
             )],
@@ -373,7 +373,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                                 let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
                                 if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
                                     debug!("Ghost Type {}", ghost_type);
-                                    return TypeEncoder::encode_ghost_predicate(&ghost_type, self.encoder.encode_value_field(self.ty));
+                                    return TypeEncoder::encode_ghost_predicate(typ, &ghost_type, self.encoder.encode_value_field(self.ty));
                                 }
                                 else {
                                     vec![vir::Predicate::new_struct(typ, fields)]
