@@ -362,7 +362,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                                 self.encoder.encode_struct_field(&field_name, field_ty)
                             })
                             .collect();
-                        if adt_def.is_struct() && self.ty.is_zst(self.encoder.env().tcx(), adt_def.did)
+
+                        let ty_layout = {
+                            let env_and_value = self.encoder.env().tcx().param_env(adt_def.did).and(self.ty);
+                            self.encoder.env().tcx().layout_of(env_and_value).unwrap()
+                        };
+
+                        if adt_def.is_struct() && ty_layout.is_zst()
                         {   
                                 let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
                                 if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
