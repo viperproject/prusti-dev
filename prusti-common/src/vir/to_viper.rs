@@ -75,6 +75,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             &Type::Int => ast.int_type(),
             &Type::Bool => ast.bool_type(),
             // N.B. currently testing with T = Int
+            // FIXME: Implement support for generic arguments.
             &Type::Seq => ast.seq_type(ast.int_type()),
             &Type::Set => ast.set_type(ast.int_type()),
             &Type::MultiSet => ast.multiset_type(ast.int_type()),
