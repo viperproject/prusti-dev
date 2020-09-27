@@ -128,6 +128,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                 MutatingUse(mir::visit::MutatingUseContext::Store) => PlaceAccessKind::Store,
                 MutatingUse(mir::visit::MutatingUseContext::Call) => PlaceAccessKind::Store,
                 MutatingUse(mir::visit::MutatingUseContext::Borrow) => PlaceAccessKind::MutableBorrow,
+                MutatingUse(mir::visit::MutatingUseContext::Drop) => PlaceAccessKind::Move,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Copy) => PlaceAccessKind::Read,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Move) => PlaceAccessKind::Move,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) => PlaceAccessKind::Read,

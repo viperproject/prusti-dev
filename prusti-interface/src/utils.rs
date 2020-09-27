@@ -39,46 +39,47 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
     let mut places = Vec::new();
     let typ = place.ty(mir, tcx);
     if typ.variant_index.is_some() {
-        unimplemented!("We do not support downcast yet.");
-    }
-    match typ.ty.kind() {
-        ty::Adt(def, substs) => {
-            assert!(
-                def.is_struct(),
-                "Only structs can be expanded. Got def={:?}.",
-                def
-            );
-            let variant = def.non_enum_variant();
-            for (index, field_def) in variant.fields.iter().enumerate() {
-                if Some(index) != without_field {
-                    let field = mir::Field::new(index);
-                    let field_place = tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
-                    places.push(field_place);
-                }
-            }
-        }
-        ty::Tuple(slice) => {
-            for (index, arg) in slice.iter().enumerate() {
-                if Some(index) != without_field {
-                    let field = mir::Field::new(index);
-                    let field_place = tcx.mk_place_field(*place, field, arg.expect_ty());
-                    places.push(field_place);
-                }
-            }
-        },
-        ty::Ref(_region, _ty, _) => match without_field {
-            Some(without_field) => {
-                assert_eq!(
-                    without_field, 0,
-                    "References have only a single “field”."
+        // Downcast is a no-op.
+    } else {
+        match typ.ty.kind() {
+            ty::Adt(def, substs) => {
+                assert!(
+                    def.is_struct(),
+                    "Only structs can be expanded. Got def={:?}.",
+                    def
                 );
+                let variant = def.non_enum_variant();
+                for (index, field_def) in variant.fields.iter().enumerate() {
+                    if Some(index) != without_field {
+                        let field = mir::Field::new(index);
+                        let field_place = tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
+                        places.push(field_place);
+                    }
+                }
             }
-            None => {
-                places.push(tcx.mk_place_deref(*place));
+            ty::Tuple(slice) => {
+                for (index, arg) in slice.iter().enumerate() {
+                    if Some(index) != without_field {
+                        let field = mir::Field::new(index);
+                        let field_place = tcx.mk_place_field(*place, field, arg.expect_ty());
+                        places.push(field_place);
+                    }
+                }
+            },
+            ty::Ref(_region, _ty, _) => match without_field {
+                Some(without_field) => {
+                    assert_eq!(
+                        without_field, 0,
+                        "References have only a single “field”."
+                    );
+                }
+                None => {
+                    places.push(tcx.mk_place_deref(*place));
+                }
+            },
+            ref ty => {
+                unimplemented!("ty={:?}", ty);
             }
-        },
-        ref ty => {
-            unimplemented!("ty={:?}", ty);
         }
     }
     places
