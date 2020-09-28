@@ -22,7 +22,7 @@ use rustc_middle::mir;
 use rustc_middle::ty;
 use std::collections::HashMap;
 use rustc_ast::ast;
-use log::{debug, trace, error};
+use log::{debug, trace};
 
 /// Encode an assertion coming from a specification to a `vir::Expr`.
 ///
@@ -133,7 +133,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         trace!("encode_assertion {:?}", assertion);
         match assertion.kind {
             box typed::AssertionKind::Expr(ref assertion_expr) =>
-                self.new_encode_expression(assertion_expr),
+                self.encode_expression(assertion_expr),
             box typed::AssertionKind::And(ref assertions) => assertions
                 .iter()
                 .map(|x| self.encode_assertion(x))
@@ -166,7 +166,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    fn encode_expression(&self, assertion_expr: &typed::Expression) -> vir::Expr {
+    fn old_encode_expression(&self, assertion_expr: &typed::Expression) -> vir::Expr {
         debug!("encode_expression {:?}", assertion_expr);
         let tcx = self.encoder.env().tcx();
 
@@ -618,7 +618,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode the assertion of a contract or loop invariant.
-    fn new_encode_expression(&self, assertion_expr: &typed::Expression) -> vir::Expr {
+    fn encode_expression(&self, assertion_expr: &typed::Expression) -> vir::Expr {
         debug!("encode_expression {:?}", assertion_expr);
 
         let mut curr_def_id = assertion_expr.expr.to_def_id();
