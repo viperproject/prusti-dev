@@ -42,7 +42,7 @@ use log::{debug, trace, error};
 /// * `target_return`: the expression to be used to encode `return` expressions. This should be
 ///   `None` iff the assertion cannot mention `return` (e.g. a loop invariant).
 /// * `targets_are_values`: if `true`, the elements of `target_args` and `target_return` encode
-///   _values_ and not _memory locations_.
+///   _values_ and not _memory locations_. This is typically used to encode pure functions.
 /// * `assertion_location`: the basic block at which the assertion should be encoded. This should
 ///   be `None` iff the assertion is a loop invariant.
 pub fn encode_spec_assertion<'v, 'tcx: 'v>(
@@ -73,7 +73,7 @@ struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
     target_args: &'p [vir::Expr],
     /// The expression that encodes `return` in a postcondition.
     target_return: Option<&'p vir::Expr>,
-    /// If `true`, `target_args` and `target_return` encode values. Used to encode pure functions.
+    /// Used to encode pure functions.
     targets_are_values: bool,
     /// Location at which to encode loop invariants.
     assertion_location: Option<mir::BasicBlock>,
@@ -132,7 +132,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     pub fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>) -> vir::Expr {
         trace!("encode_assertion {:?}", assertion);
         match assertion.kind {
-            box typed::AssertionKind::Expr(ref assertion_expr) => self.encode_expression(assertion_expr),
+            box typed::AssertionKind::Expr(ref assertion_expr) =>
+                self.new_encode_expression(assertion_expr),
             box typed::AssertionKind::And(ref assertions) => assertions
                 .iter()
                 .map(|x| self.encode_assertion(x))
@@ -616,7 +617,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         pre_state_expr
     }
 
-    /// Encode the assertion of a contract or of a loop invariant to a VIR expression.
+    /// Encode the assertion of a contract or loop invariant.
     fn new_encode_expression(&self, assertion_expr: &typed::Expression) -> vir::Expr {
         debug!("encode_expression {:?}", assertion_expr);
 
@@ -653,24 +654,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mir = self.encoder.env().mir(curr_def_id.expect_local());
         let mir_encoder = MirEncoder::new(self.encoder, &mir, curr_def_id);
 
-        // `curr_expr` is an expression that can be evaluated in `curr_def_id`, but it contains
-        // arguments encoded with e.g. a `.val_int` final field, which is not what we want if we
-        // are encoding a pure function. So, if needed we replace them.
-        if !self.targets_are_values {
-            let replacements: Vec<_> = mir.args_iter().map(|local| {
+        // Replace the arguments with the `target_args`.
+        let replacements: Vec<_> = mir.args_iter()
+            .zip(self.target_args)
+            .map(|(local, target_arg)| {
                 let local_ty = mir.local_decls[local].ty;
                 // will panic if attempting to encode unsupported type
                 let spec_local = mir_encoder.encode_local(local).unwrap();
-                let spec_local_place: vir::Expr = self.encoder.encode_value_expr(
-                    vir::Expr::local(spec_local.clone()),
-                    local_ty
-                );
-                (spec_local_place, spec_local.into())
-            }).collect();
-            curr_expr = curr_expr.replace_multiple_places(&replacements);
-        }
+                let spec_local_place: vir::Expr = if self.targets_are_values {
+                    self.encoder.encode_value_expr(
+                        vir::Expr::local(spec_local),
+                        local_ty
+                    )
+                } else {
+                    spec_local.into()
+                };
+                (spec_local_place, target_arg.clone())
+            })
+            .collect();
+        curr_expr = curr_expr.replace_multiple_places(&replacements);
 
-        // Replace the fake return variable (last argument) of SPEC items with a given expression
+        // Replace the fake return variable (last argument) of SPEC items with `self.target_return`
         if let Some(target_return) = self.target_return {
             let fake_return_local = mir.args_iter().last().unwrap();
             let fake_return_ty = mir.local_decls[fake_return_local].ty;
