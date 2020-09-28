@@ -20,3 +20,4 @@
   - [Building](development/build.md)
   - [Tests](development/tests.md)
   - [IDE integration](development/ide.md)
+  - [Debugging](development/debug.md)
