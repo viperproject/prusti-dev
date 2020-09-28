@@ -691,6 +691,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             curr_expr = curr_expr.replace_place(&spec_fake_return_place, target_return);
         }
 
+        // use the provided `self.pre_label` to encode old expressions
+        curr_expr = curr_expr.map_old_expr_label(|label| {
+            if label == PRECONDITION_LABEL {
+                self.pre_label.to_string()
+            } else {
+                label.clone()
+            }
+        });
+
         debug!("MIR expr {:?} --> {}", assertion_expr.id, curr_expr);
         curr_expr.set_default_pos(
             self.encoder
