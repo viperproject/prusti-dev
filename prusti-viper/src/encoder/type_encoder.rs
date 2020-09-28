@@ -558,10 +558,14 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         match spec {
                             typed::SpecificationSet::Struct(items) => {
                                 for item in items {
-                                    let enc = encode_simple_spec_assertion(
-                                        self.encoder,
-                                        &[],
-                                        &item.assertion
+                                    // let enc = encode_simple_spec_assertion(
+                                    //     self.encoder,
+                                    //     &[],
+                                    //     &item.assertion
+                                    // );
+                                    let enc = unimplemented!(
+                                        "TODO: type invariants need to be upgraded \
+                                        to the new compiler version"
                                     );
                                     // OPEN TODO: hacky fix here to convert the closure var to "self"...
                                     let enc = hacky_folder.fold(enc);

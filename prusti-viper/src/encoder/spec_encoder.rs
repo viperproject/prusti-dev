@@ -46,18 +46,6 @@ pub fn encode_spec_assertion<'p, 'v: 'p, 'tcx: 'v>(
     spec_encoder.encode_assertion(assertion)
 }
 
-pub fn encode_simple_spec_assertion<'p, 'v: 'p, 'tcx: 'v>(
-    encoder: &'p Encoder<'v, 'tcx>,
-    target_args: &'p [vir::Expr],
-    assertion: &typed::Assertion<'tcx>,
-) -> vir::Expr {
-    let spec_encoder = SpecEncoder::new_simple(
-        encoder,
-        target_args,
-    );
-    spec_encoder.encode_assertion(assertion)
-}
-
 struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     // FIXME: this should be the MIR of the `__spec` function
