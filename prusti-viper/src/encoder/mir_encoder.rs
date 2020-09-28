@@ -212,24 +212,17 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         match base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(_, ty, _) => {
-                // let access = if encoded_base.is_addr_of() {
-                //     encoded_base.get_parent().unwrap()
-                // } else {
-                //     match encoded_base {
-                //         vir::Expr::AddrOf(box base_base_place, _, _) => base_base_place,
-                //         _ => {
-                //             let ref_field = self.encoder.encode_dereference_field(ty);
-                //             encoded_base.field(ref_field)
-                //         }
-                //     }
-                // };
-                let access =
+                let access = if encoded_base.is_addr_of() {
+                    // Simplify `*&<expr>` ==> `<expr>`
+                    encoded_base.get_parent().unwrap()
+                } else {
                     match encoded_base {
                         vir::Expr::AddrOf(box base_place, _, _) => base_place,
                         _ => {
                             let ref_field = self.encoder().encode_dereference_field(ty);
                             encoded_base.field(ref_field)
                         }
+                    }
                 };
                 (access, ty, None)
             }

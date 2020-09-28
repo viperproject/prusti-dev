@@ -96,8 +96,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
         DefId,
         Vec<(
             ProcedureDefId,
-            mir::BasicBlock,
-            usize,
+            mir::Location,
             Vec<mir::Operand<'tcx>>,
             Vec<ty::Ty<'tcx>>,
         )>,
@@ -351,32 +350,39 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let mut closure_instantiations: HashMap<DefId, Vec<_>> = HashMap::new();
         let crate_num = hir::def_id::LOCAL_CRATE;
         for &mir_def_id in tcx.mir_keys(crate_num).iter() {
-            if !(self
-                .env()
-                .has_attribute_name(mir_def_id.to_def_id(), "spec_only"))
-            {
-                continue;
-            }
-            trace!("Collecting closure instantiations for mir {:?}", mir_def_id);
+            trace!("Collecting closure instantiations in mir {:?}", mir_def_id);
             let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(mir_def_id));
             let mir = &*mir.borrow();
             for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
                 for (stmt_index, stmt) in bb_data.statements.iter().enumerate() {
                     if let mir::StatementKind::Assign(
                         box (
-                        _,
-                        mir::Rvalue::Aggregate(
-                            box mir::AggregateKind::Closure(cl_def_id, _),
-                            ref operands,
-                        ),
-                    )
+                            _,
+                            mir::Rvalue::Aggregate(
+                                box mir::AggregateKind::Closure(cl_def_id, _),
+                                ref operands,
+                            ),
+                        )
                     ) = stmt.kind
                     {
+                        if !self.env().has_prusti_attribute(cl_def_id, "spec_only") {
+                            continue;
+                        }
                         trace!("Found closure instantiation: {:?}", stmt);
-                        let operand_tys = operands.iter().map(|operand| operand.ty(mir, tcx)).collect();
+                        let operand_tys = operands.iter().map(
+                            |operand| operand.ty(mir, tcx)
+                        ).collect();
                         let instantiations =
                             closure_instantiations.entry(cl_def_id).or_insert(vec![]);
-                        instantiations.push((mir_def_id.to_def_id(), bb_index, stmt_index, operands.clone(), operand_tys))
+                        instantiations.push((
+                            mir_def_id.to_def_id(),
+                            mir::Location {
+                                block: bb_index,
+                                statement_index: stmt_index,
+                            },
+                            operands.clone(),
+                            operand_tys
+                        ))
                     }
                 }
             }
@@ -390,8 +396,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         closure_def_id: DefId,
     ) -> Vec<(
         ProcedureDefId,
-        mir::BasicBlock,
-        usize,
+        mir::Location,
         Vec<mir::Operand<'tcx>>,
         Vec<ty::Ty<'tcx>>,
     )> {
@@ -399,6 +404,24 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         match self.closure_instantiations.get(&closure_def_id) {
             Some(result) => result.clone(),
             None => vec![],
+        }
+    }
+
+    pub fn get_single_closure_instantiation(
+        &self,
+        closure_def_id: DefId,
+    ) -> Option<(
+        ProcedureDefId,
+        mir::Location,
+        Vec<mir::Operand<'tcx>>,
+        Vec<ty::Ty<'tcx>>,
+    )> {
+        let mut instantiations = self.get_closure_instantiations(closure_def_id);
+        assert!(instantiations.len() <= 1);
+        if instantiations.is_empty() {
+            None
+        } else {
+            Some(instantiations.remove(0))
         }
     }
 
@@ -996,12 +1019,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> Result<vir::CfgMethod, EncodingError> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
-            !self.env.has_attribute_name(def_id, "pure"),
+            !self.env.has_prusti_attribute(def_id, "pure"),
             "procedure is marked as pure: {:?}",
             def_id
         );
         assert!(
-            !self.env.has_attribute_name(def_id, "trusted"),
+            !self.env.has_prusti_attribute(def_id, "trusted"),
             "procedure is marked as trusted: {:?}",
             def_id
         );
@@ -1416,7 +1439,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         proc_def_id = *self.get_specification_def_id(&proc_def_id);
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
-            self.env.has_attribute_name(proc_def_id, "pure"),
+            self.env.has_prusti_attribute(proc_def_id, "pure"),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -1583,7 +1606,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let procedure = self.env.get_procedure(proc_def_id);
 
         assert!(
-            self.env.has_attribute_name(proc_def_id, "pure"),
+            self.env.has_prusti_attribute(proc_def_id, "pure"),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -1676,7 +1699,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 "Encoding: {} from {:?} ({})",
                 proc_name, proc_span, proc_def_path
             );
-            let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
+            let is_pure_function = self.env.has_prusti_attribute(proc_def_id, "pure");
             if is_pure_function {
                 self.encode_pure_function_def(proc_def_id, substs);
             } else {
@@ -1698,7 +1721,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
         trace!("is_trusted {:?}", def_id);
-        let result = self.env().has_attribute_name(def_id, "trusted");
+        let result = self.env().has_prusti_attribute(def_id, "trusted");
         trace!("is_trusted {:?} = {}", def_id, result);
         result
     }

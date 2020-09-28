@@ -6,7 +6,7 @@
 
 use super::super::borrows::Borrow;
 use vir::ast::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem;
@@ -1025,7 +1025,78 @@ impl Expr {
             typaram_substs,
             subst: false,
         }
-        .fold(self)
+            .fold(self)
+    }
+
+    pub fn replace_multiple_places(self, replacements: &[(Expr, Expr)]) -> Self {
+        for (src, dst) in replacements {
+            debug_assert!(src.is_place() && dst.is_place());
+            if dst.is_place() {
+                assert!(
+                    // for copy types references are replaced by snapshots
+                    src.get_type() == dst.get_type() || dst.get_type().is_domain(),
+                    "Cannot substitute '{}' with '{}', because they have incompatible \
+                    types '{}' and '{}'",
+                    src,
+                    dst,
+                    src.get_type(),
+                    dst.get_type()
+                );
+            }
+        }
+
+        struct PlaceReplacer<'a> {
+            replacements: &'a [(Expr, Expr)],
+        };
+        impl<'a> ExprFolder for PlaceReplacer<'a> {
+            fn fold(&mut self, e: Expr) -> Expr {
+                // Check if this matches a substitution.
+                if e.is_place() {
+                    let substitution = self.replacements.iter()
+                        .find(|(src, _)| src == &e);
+                    if let Some((src, dst)) = substitution {
+                        return dst.clone();
+                    }
+                }
+
+                // Otherwise, keep folding
+                default_fold_expr(self, e)
+            }
+
+            fn fold_forall(
+                &mut self,
+                vars: Vec<LocalVar>,
+                triggers: Vec<Trigger>,
+                body: Box<Expr>,
+                pos: Position,
+            ) -> Expr {
+                // TODO: the correct solution is the following:
+                // (1) skip replacements where `src` uses a quantified variable;
+                // (2) rename with a fresh name the quantified variables that conflict with `dst`.
+                for (src, dst) in self.replacements.iter() {
+                    if vars.contains(&src.get_base()) || vars.contains(&dst.get_base()) {
+                        unimplemented!(
+                            "replace_multiple_places doesn't handle replacements that conflict \
+                            with quantified variables"
+                        )
+                    }
+                }
+
+                Expr::ForAll(
+                    vars,
+                    triggers
+                        .into_iter()
+                        .map(|x| x.replace_multiple_places(self.replacements))
+                        .collect(),
+                    self.fold_boxed(body),
+                    pos,
+                )
+            }
+        }
+
+        PlaceReplacer {
+            replacements,
+        }.fold(self)
     }
 
     /// Replaces expressions like `old[l5](old[l5](_9.val_ref).foo.bar)`

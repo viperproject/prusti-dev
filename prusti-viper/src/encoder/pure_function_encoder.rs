@@ -46,7 +46,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             encoder,
             mir,
             proc_def_id,
-            "_pure".to_string(),
+            "".to_string(),
             is_encoding_assertion,
         );
         PureFunctionEncoder {
@@ -251,7 +251,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             self.encoder.get_used_viper_predicates_map(),
         )
         .ok()
-        .unwrap() // TODO: return a result
+        .expect(
+            &format!("failed generation of folding/unfolding in {:?}", self.proc_def_id)
+        ) // TODO: return a `Result<..>`
     }
 
     /// Encode the precondition with two expressions:
@@ -660,7 +662,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             _ => {
                                 let mut is_cmp_call = false;
                                 let is_pure_function =
-                                    self.encoder.env().has_attribute_name(def_id, "pure");
+                                    self.encoder.env().has_prusti_attribute(def_id, "pure");
                                 let (function_name, return_type) = if is_pure_function {
                                     self.encoder.encode_pure_function_use(def_id)
                                 } else {

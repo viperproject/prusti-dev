@@ -1903,7 +1903,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                         _ => {
                             let is_pure_function =
-                                self.encoder.env().has_attribute_name(def_id, "pure");
+                                self.encoder.env().has_prusti_attribute(def_id, "pure");
                             if is_pure_function {
                                 let (function_name, _) = self.encoder.encode_pure_function_use(def_id);
                                 debug!("Encoding pure function call '{}'", function_name);
