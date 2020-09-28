@@ -1406,12 +1406,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// Encode either a pure function body or a specification assertion (stored in the given MIR).
-    /// `is_encoding_assertion` marks that we are translating a specification assertion.
-    pub fn encode_pure_function_body(
-        &self,
-        mut proc_def_id: ProcedureDefId,
-        is_encoding_assertion: bool,
-    ) -> vir::Expr {
+    pub fn encode_pure_function_body(&self, mut proc_def_id: ProcedureDefId) -> vir::Expr {
         proc_def_id = *self.get_specification_def_id(&proc_def_id);
         let substs_key = self.type_substitution_key();
         let key = (proc_def_id, substs_key);
@@ -1421,7 +1416,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 self,
                 proc_def_id,
                 procedure.get_mir(),
-                is_encoding_assertion,
+                true,
             );
             let body = pure_function_encoder.encode_body();
             self.pure_function_bodies

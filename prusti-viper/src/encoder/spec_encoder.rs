@@ -158,7 +158,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mut curr_def_id = assertion_expr.expr.to_def_id();
         let mut curr_namespace = "_pure".to_string();
 
-        let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id, true);
+        let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id);
 
         // For each of the enclosing closures, replace with the variables captured in the closure.
         // We support at most 1000 nested closures (arbitrarily chosen).
@@ -595,7 +595,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         debug!("encode_expression {:?}", assertion_expr);
 
         let mut curr_def_id = assertion_expr.expr.to_def_id();
-        let mut curr_expr = self.encoder.encode_pure_function_body(curr_def_id, true);
+        let mut curr_expr = self.encoder.encode_pure_function_body(curr_def_id);
 
         loop {
             let done = self.encoder.get_single_closure_instantiation(curr_def_id).is_none();
