@@ -243,7 +243,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
     fn is_ghost_adt(ghost_adt_def: &ty::AdtDef, item_name: String) -> Option<String> {
-        // check if Crate: prusti_contracts and Module: ghost
+        // check if crate is "prusti_contracts" and module is "ghost"
         let item_name: Vec<&str> = item_name.split("::").collect();
         let crate_name = item_name[0];
         let mod_name = item_name[1];

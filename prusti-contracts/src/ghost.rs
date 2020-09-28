@@ -16,6 +16,8 @@ macro_rules! implement_ghost_type_generic {
             _type: PhantomData<T>
         }
         impl <T: Ghost> $ghost_type<T> {
+            /// Constructor for generic ghost types.
+            /// #Examples
             ///  ```rust
             ///  let seq_inst: GhostSeq<GhostInt> = GhostSeq::new();
             ///  ```
@@ -74,6 +76,8 @@ impl Not for GhostBool {
 implement_ghost_type_generic!(GhostSeq);
 // wrappers around standard operations on GhostSeq
 impl<T: Ghost> GhostSeq<T> {
+    /// Push an item of type `T` to the ghost sequence
+    /// #Examples
     /// ```rust
     /// let seq: GhostSeq<i32> = GhostSeq::new();
     /// seq.push(10);
@@ -82,6 +86,8 @@ impl<T: Ghost> GhostSeq<T> {
         GhostSeq::new()
     }
 
+    /// Pop an item from a ghost sequence instance
+    /// #Examples
     /// ```rust
     /// let seq: GhostSeq<i32> = GhostSeq::new();
     /// seq.push(10);
@@ -91,9 +97,11 @@ impl<T: Ghost> GhostSeq<T> {
         GhostSeq::new()
     }
 
+    /// Concatenate two instances of ghost sequence
+    /// #Examples
     /// ```rust
     /// let seq1: GhostSeq<i32> = GhostSeq::new();
-    /// seq1.append(seq2);
+    /// seq1.chain(seq2);
     /// ```
     pub fn chain(self, other: GhostSeq<T>) -> Self {
         GhostSeq::new()
