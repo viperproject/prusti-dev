@@ -24,7 +24,41 @@ use std::collections::HashMap;
 use rustc_ast::ast;
 use log::{debug, trace, error};
 
-pub struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
+pub fn encode_spec_assertion<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
+    mir: &'p mir::Body<'tcx>,
+    target_label: &'p str,
+    target_args: &'p [vir::Expr],
+    target_return: Option<&'p vir::Expr>,
+    targets_are_values: bool,
+    stop_at_bbi: Option<mir::BasicBlock>,
+    assertion: &typed::Assertion<'tcx>,
+) -> vir::Expr {
+    let spec_encoder = SpecEncoder::new(
+        encoder,
+        mir,
+        target_label,
+        target_args,
+        target_return,
+        targets_are_values,
+        stop_at_bbi,
+    );
+    spec_encoder.encode_assertion(assertion)
+}
+
+pub fn encode_simple_spec_assertion<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p Encoder<'v, 'tcx>,
+    target_args: &'p [vir::Expr],
+    assertion: &typed::Assertion<'tcx>,
+) -> vir::Expr {
+    let spec_encoder = SpecEncoder::new_simple(
+        encoder,
+        target_args,
+    );
+    spec_encoder.encode_assertion(assertion)
+}
+
+struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     // FIXME: this should be the MIR of the `__spec` function
     mir: Option<&'p mir::Body<'tcx>>,
@@ -41,7 +75,7 @@ pub struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
-    pub fn new(
+    fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         mir: &'p mir::Body<'tcx>,
         target_label: &'p str,
@@ -63,7 +97,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn new_simple(
+    fn new_simple(
         encoder: &'p Encoder<'v, 'tcx>,
         target_args: &'p [vir::Expr],
     ) -> Self {

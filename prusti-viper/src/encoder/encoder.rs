@@ -15,7 +15,7 @@ use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 use crate::encoder::stub_function_encoder::StubFunctionEncoder;
-use crate::encoder::spec_encoder::SpecEncoder;
+use crate::encoder::spec_encoder::encode_spec_assertion;
 use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder};
 use crate::encoder::type_encoder::{
     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
@@ -1100,7 +1100,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         error: ErrorCtxt,
     ) -> vir::Expr {
         trace!("encode_assertion {:?}", assertion);
-        let spec_encoder = SpecEncoder::new(
+        let encoded_assertion = encode_spec_assertion(
             self,
             mir,
             label,
@@ -1108,8 +1108,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             encoded_return,
             targets_are_values,
             stop_at_bbi,
+            assertion,
         );
-        spec_encoder.encode_assertion(assertion).set_default_pos(
+        encoded_assertion.set_default_pos(
             self.error_manager()
                 .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error),
         )

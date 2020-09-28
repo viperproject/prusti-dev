@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::foldunfold;
-use crate::encoder::spec_encoder::SpecEncoder;
+use crate::encoder::spec_encoder::encode_simple_spec_assertion;
 use crate::encoder::utils::range_extract;
 use crate::encoder::utils::PlusOne;
 use crate::encoder::Encoder;
@@ -551,9 +551,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
                     for spec in specs.into_iter() {
                         //let encoded_args = vec![vir::Expr::from(self_local_var.clone())];
-                        let encoded_args = vec![];
-                        let spec_encoder = SpecEncoder::new_simple(self.encoder, &encoded_args);
-
                         let mut hacky_folder = HackyExprFolder {
                             saelf: self_local_var.clone(),
                         };
@@ -561,7 +558,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         match spec {
                             typed::SpecificationSet::Struct(items) => {
                                 for item in items {
-                                    let enc = spec_encoder.encode_assertion(&item.assertion);
+                                    let enc = encode_simple_spec_assertion(
+                                        self.encoder,
+                                        &[],
+                                        &item.assertion
+                                    );
                                     // OPEN TODO: hacky fix here to convert the closure var to "self"...
                                     let enc = hacky_folder.fold(enc);
                                     exprs.push(enc);
