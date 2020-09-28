@@ -15,6 +15,8 @@ Assuming VS Code is in `PATH`, it can be launched directly with the correct envi
 $ ./x.py ide
 ```
 
+Any additional arguments are passed to VS Code.
+
 ## IntelliJ Rust
 
 When using the [Rust Plugin for IntelliJ](https://intellij-rust.github.io/), a lot of spurious errors may be found in the code. This is because Prusti uses a custom toolchain (set in the `rust-toolchain` file), which makes the plugin fail to load the [prelude definitions](https://doc.rust-lang.org/std/prelude/). The issue is tracked in the `intellij-rust` repository [here](https://github.com/intellij-rust/intellij-rust/issues/4930).
