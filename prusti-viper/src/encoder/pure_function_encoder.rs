@@ -250,8 +250,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             function,
             self.encoder.get_used_viper_predicates_map(),
         )
-            .ok()
-            .unwrap() // TODO: return a result
+        .ok()
+        .unwrap() // TODO: return a result
     }
 
     /// Encode the precondition with two expressions:
@@ -264,7 +264,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let type_spec = contract.args.iter().flat_map(|&local| {
             let local_ty = self.interpreter.mir_encoder().get_local_ty(local.into());
             let fraction = if let ty::TyKind::Ref(_, _, hir::Mutability::Not) =
-            local_ty.kind()
+                local_ty.kind()
             {
                 vir::PermAmount::Read
             } else {
@@ -409,7 +409,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
-for PureFunctionBackwardInterpreter<'p, 'v, 'tcx>
+    for PureFunctionBackwardInterpreter<'p, 'v, 'tcx>
 {
     type State = MultiExprBackwardInterpreterState;
 
@@ -588,21 +588,21 @@ for PureFunctionBackwardInterpreter<'p, 'v, 'tcx>
                 ref args,
                 ref destination,
                 func:
-                mir::Operand::Constant(box mir::Constant {
-                    literal:
-                    ty::Const {
-                        ty,
-                        val: _,
-                    },
-                    ..
-                }),
+                    mir::Operand::Constant(box mir::Constant {
+                        literal:
+                            ty::Const {
+                                ty,
+                                val: _,
+                            },
+                        ..
+                    }),
                 ..
             } => {
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
                     let def_id = *self.encoder.get_specification_def_id(def_id);
                     let full_func_proc_name: &str =
                         &self.encoder.env().tcx().def_path_str(def_id);
-                    // &self.encoder.env().tcx().absolute_item_path_str(def_id);
+                        // &self.encoder.env().tcx().absolute_item_path_str(def_id);
                     let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
                     let own_substs =
@@ -682,7 +682,8 @@ for PureFunctionBackwardInterpreter<'p, 'v, 'tcx>
                                             _ => {
                                                 // TODO: interestingly, this crashes for
                                                 // custom implementations of eq as the def_id
-                                                // is not local.
+                                                // is not local; for details, see
+                                                // https://github.com/viperproject/prusti-dev/issues/188.
                                                 self.encoder.encode_stub_pure_function_use(def_id)
                                             }
                                         }
@@ -842,7 +843,7 @@ for PureFunctionBackwardInterpreter<'p, 'v, 'tcx>
             | mir::StatementKind::FakeRead(_, _)    // FIXME
             // | mir::StatementKind::ReadForMatch(..)
             // | mir::StatementKind::EndRegion(..)
-            => {
+             => {
                 // Nothing to do
             }
 
