@@ -46,7 +46,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             encoder,
             mir,
             proc_def_id,
-            "".to_string(),
+            "_pure".to_string(),
             is_encoding_assertion,
         );
         PureFunctionEncoder {

@@ -350,6 +350,29 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let mut closure_instantiations: HashMap<DefId, Vec<_>> = HashMap::new();
         let crate_num = hir::def_id::LOCAL_CRATE;
         for &mir_def_id in tcx.mir_keys(crate_num).iter() {
+            // Do not inspect `mir_def_id`s for which we cannot build a MIR.
+            // The match is a simplification of:
+            // https://github.com/rust-lang/rust/blob/4e3eb5249340898e4380ffe37e7ed8c6b2afdbf9/compiler/rustc_mir_build/src/build/mod.rs#L36
+            let id = tcx.hir().local_def_id_to_hir_id(mir_def_id);
+            let inspect = match tcx.hir().get(id) {
+                hir::Node::Expr(hir::Expr { kind: hir::ExprKind::Closure(..), .. })
+                | hir::Node::Item(hir::Item { kind: hir::ItemKind::Fn(..), .. })
+                | hir::Node::Item(hir::Item { kind: hir::ItemKind::Static(..), .. })
+                | hir::Node::Item(hir::Item { kind: hir::ItemKind::Const(..), .. })
+                | hir::Node::ImplItem(hir::ImplItem { kind: hir::ImplItemKind::Fn(..), .. })
+                | hir::Node::ImplItem(hir::ImplItem { kind: hir::ImplItemKind::Const(..), .. })
+                | hir::Node::TraitItem(hir::TraitItem { kind: hir::TraitItemKind::Fn(..), .. })
+                | hir::Node::TraitItem(hir::TraitItem {
+                                      kind: hir::TraitItemKind::Const(_, Some(..)),
+                                      ..
+                                  })
+                | hir::Node::AnonConst(hir::AnonConst { .. }) => true,
+                _ => false
+            };
+            if !inspect {
+                continue;
+            }
+
             trace!("Collecting closure instantiations in mir {:?}", mir_def_id);
             let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(mir_def_id));
             let mir = &*mir.borrow();
