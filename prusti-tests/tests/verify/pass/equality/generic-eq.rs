@@ -1,6 +1,6 @@
 use prusti_contracts::*;
 
-#[derive(Clone, PartialEq,Eq)]
+#[derive(Clone, PartialEq, Eq)]
 struct A<T> {
     i: i32,
     t: T,
