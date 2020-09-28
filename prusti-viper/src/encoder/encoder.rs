@@ -51,6 +51,7 @@ use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
 use ::log::info;
 use std::convert::TryInto;
+use std::borrow::Borrow;
 
 /// A reference to a procedure specification.
 ///
@@ -365,17 +366,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 | hir::Node::TraitItem(hir::TraitItem {
                                       kind: hir::TraitItemKind::Const(_, Some(..)),
                                       ..
-                                  })
-                | hir::Node::AnonConst(hir::AnonConst { .. }) => true,
+                                  }) => true,
                 _ => false
             };
             if !inspect {
+                debug!("Skip collecting closure instantiations in {:?}", mir_def_id);
                 continue;
             }
 
             trace!("Collecting closure instantiations in mir {:?}", mir_def_id);
-            let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(mir_def_id));
-            let mir = &*mir.borrow();
+            let ref_mir = self.env().mir(mir_def_id);
+            let mir = &*ref_mir;
             for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
                 for (stmt_index, stmt) in bb_data.statements.iter().enumerate() {
                     if let mir::StatementKind::Assign(

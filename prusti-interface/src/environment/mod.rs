@@ -16,6 +16,7 @@ use std::cell::Ref;
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
 use rustc_hir as hir;
 use std::collections::HashSet;
+use rustc_hir::def_id::LocalDefId;
 
 use log::debug;
 
@@ -205,9 +206,9 @@ impl<'tcx> Environment<'tcx> {
     }
 
     /// Get the MIR or a procedure.
-    pub fn mir<'a>(&self, def_id: ProcedureDefId) -> Ref<'a, mir::Body<'tcx>> {
+    pub fn mir<'a>(&self, def_id: LocalDefId) -> Ref<'a, mir::Body<'tcx>> {
         self.tcx().mir_promoted(
-            ty::WithOptConstParam::unknown(def_id.expect_local())
+            ty::WithOptConstParam::unknown(def_id)
         ).0.borrow()
     }
 

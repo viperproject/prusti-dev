@@ -468,7 +468,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         def_id: DefId,
     ) -> (vir::Expr, DefId, mir::Location) {
         debug!("translate_expr_to_closure_def_site {} {:?}", expr, def_id);
-        let inner_mir = self.encoder.env().mir(def_id);
+        let inner_mir = self.encoder.env().mir(def_id.expect_local());
         let inner_mir_encoder = MirEncoder::new(self.encoder, &inner_mir, def_id);
 
         let opt_instantiation = self.encoder.get_single_closure_instantiation(def_id);
@@ -480,7 +480,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         ) = opt_instantiation.expect(
             &format!("cannot find definition site for closure {:?}", def_id)
         );
-        let outer_mir = self.encoder.env().mir(outer_def_id);
+        let outer_mir = self.encoder.env().mir(outer_def_id.expect_local());
         let outer_mir_encoder = MirEncoder::new(self.encoder, &outer_mir, outer_def_id);
         trace!("Replacing variables of {:?} captured from {:?}", def_id, outer_def_id);
 
@@ -567,7 +567,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         target_location: mir::BasicBlock,
     ) -> vir::Expr {
         debug!("translate_expr_to_state {} {:?} {:?}", expr, def_id, expr_location);
-        let mir = self.encoder.env().mir(def_id);
+        let mir = self.encoder.env().mir(def_id.expect_local());
 
         // Translate an intermediate state to the state at the beginning of the method
         let state = MultiExprBackwardInterpreterState::new_single(
@@ -630,7 +630,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
         // At this point `curr_def_id` should be either a SPEC item (when encoding a contract) or
         // the method being verified (when encoding a loop invariant).
-        let mir = self.encoder.env().mir(curr_def_id);
+        let mir = self.encoder.env().mir(curr_def_id.expect_local());
         let mir_encoder = MirEncoder::new(self.encoder, &mir, curr_def_id);
 
         // `curr_expr` is an expression that can be evaluated in `curr_def_id`, but it contains
