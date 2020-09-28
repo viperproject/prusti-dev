@@ -21,3 +21,11 @@ Any additional arguments are added to the `cargo build` command line. For exampl
 ```bash
 $ ./x.py build --all --verbose
 ```
+
+## Verbose mode
+
+To see which environment variables `./x.py` is setting, the `++verbose` flag can be passed on the command line before the `cargo` command:
+
+```bash
+./x.py ++verbose build
+```

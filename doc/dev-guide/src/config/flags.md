@@ -4,11 +4,12 @@ Flags can be set in one of three ways, in increasing order of priority:
 
 1. Provided in a `Prusti.toml` file in the current working directory.
 2. Provided in a TOML file with the path in the environment variable `PRUSTI_CONFIG`.
-3. Provided individually as environment variables with the prefix `PRUST_` (e.g. `PRUSTI_ASSERT_TIMEOUT` for the [`ASSERT_TIMEOUT`](#assert_timeout) flag).
+3. Provided individually as environment variables with the prefix `PRUSTI_` (e.g. `PRUSTI_ASSERT_TIMEOUT` for the [`ASSERT_TIMEOUT`](#assert_timeout) flag).
 
 | Name | Rust type | Default value |
 | --- | --- | --- |
 | [`ASSERT_TIMEOUT`](#assert_timeout) | `u64` | `10_000` |
+| [`BE_RUSTC`](#be_rustc) | `bool` | `false` |
 | [`CHECK_BINARY_OPERATIONS`](#check_binary_operations) | `bool` | `false` |
 | [`CHECK_FOLDUNFOLD_STATE`](#check_foldunfold_state) | `bool` | `false` |
 | [`CHECK_PANICS`](#check_panics) | `bool` | `true` |
@@ -29,7 +30,9 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`FOLDUNFOLD_STATE_FILTER`](#foldunfold_state_filter) | `String` | `""` |
 | [`FULL_COMPILATION`](#full_compilation) | `bool` | `false` |
 | [`JSON_COMMUNICATION`](#json_communication) | `bool` | `false` |
+| [`LOG`](#log) | `Option<String>` | `None` |
 | [`LOG_DIR`](#log_dir) | `String` | `"./log/"` |
+| [`LOG_STYLE`](#log_style) | `String` | `"auto"` |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` |
 | [`NUM_PARENTS_FOR_DUMPS`](#num_parents_for_dumps) | `u64` | `0` |
 | [`QUIET`](#quiet) | `bool` | `false` |
@@ -48,6 +51,10 @@ Flags can be set in one of three ways, in increasing order of priority:
 ## `ASSERT_TIMEOUT`
 
 Maximum time (in milliseconds) for the verifier to spend on a single assertion. Set to `0` to disable timeout. Maps to the verifier command-line argument `--assertTimeout`.
+
+## `BE_RUSTC`
+
+When enabled, Prusti will behave like `rustc`.
 
 ## `CHECK_BINARY_OPERATIONS`
 
@@ -135,9 +142,17 @@ When enabled, compilation will continue and a binary will be generated after Pru
 
 When enabled, communication with the server will be encoded as JSON instead of bincode.
 
+## `LOG`
+
+Log level and filters. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env_logger/index.html#enabling-logging).
+
 ## `LOG_DIR`
 
 Path to directory in which log files and dumped output will be stored.
+
+## `LOG_STYLE`
+
+Log style. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env_logger/index.html#disabling-colors).
 
 ## `NO_VERIFY`
 
