@@ -1092,7 +1092,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         assertion: &typed::Assertion<'tcx>,
         mir: &mir::Body<'tcx>,
-        label: &str,
+        label: Option<&str>,
         encoded_args: &[vir::Expr],
         encoded_return: Option<&vir::Expr>,
         targets_are_values: bool,
@@ -1102,7 +1102,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         trace!("encode_assertion {:?}", assertion);
         let encoded_assertion = encode_spec_assertion(
             self,
-            mir,
             label,
             encoded_args,
             encoded_return,

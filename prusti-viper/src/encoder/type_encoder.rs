@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::foldunfold;
-use crate::encoder::spec_encoder::encode_simple_spec_assertion;
 use crate::encoder::utils::range_extract;
 use crate::encoder::utils::PlusOne;
 use crate::encoder::Encoder;

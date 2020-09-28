@@ -2729,7 +2729,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let value = self.encoder.encode_assertion(
                 &assertion,
                 &self.mir,
-                &"",
+                None,
                 &encoded_args,
                 None,
                 false,
@@ -2742,7 +2742,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.encoder.encode_assertion(
                 &pw,
                 &self.mir,
-                &"",
+                None,
                 &encoded_args,
                 None,
                 false,
@@ -2880,7 +2880,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.encoder.encode_assertion(
                         &body_lhs,
                         &self.mir,
-                        pre_label,
+                        Some(pre_label),
                         &encoded_args,
                         Some(&encoded_return),
                         false,
@@ -2893,7 +2893,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let mut assertion_rhs = self.encoder.encode_assertion(
                     &body_rhs,
                     &self.mir,
-                    pre_label,
+                    Some(pre_label),
                     &encoded_args,
                     Some(&encoded_return),
                     false,
@@ -3078,7 +3078,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let mut assertion = self.encoder.encode_assertion(
                 &typed_assertion,
                 &self.mir,
-                pre_label,
+                Some(pre_label),
                 &encoded_args,
                 Some(&encoded_return),
                 false,
@@ -3096,7 +3096,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let assertion = self.encoder.encode_assertion(
                 &ps,
                 &self.mir,
-                pre_label,
+                Some(pre_label),
                 &encoded_args,
                 Some(&encoded_return),
                 false,
@@ -3772,7 +3772,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let encoded_spec = self.encoder.encode_assertion(
                     &assertion,
                     &self.mir,
-                    PRECONDITION_LABEL,
+                    Some(PRECONDITION_LABEL),
                     &encoded_args,
                     None,
                     false,

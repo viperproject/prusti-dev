@@ -289,7 +289,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             func_spec.push(self.encoder.encode_assertion(
                 &item,
                 &self.mir,
-                &"",
+                None,
                 &encoded_args,
                 None,
                 true,
@@ -326,7 +326,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let encoded_postcond = self.encoder.encode_assertion(
                 &item,
                 &self.mir,
-                &"",
+                None,
                 &encoded_args,
                 Some(&encoded_return.clone().into()),
                 true,

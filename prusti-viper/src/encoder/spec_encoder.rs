@@ -24,20 +24,25 @@ use std::collections::HashMap;
 use rustc_ast::ast;
 use log::{debug, trace, error};
 
-pub fn encode_spec_assertion<'p, 'v: 'p, 'tcx: 'v>(
-    encoder: &'p Encoder<'v, 'tcx>,
-    mir: &'p mir::Body<'tcx>,
-    target_label: &'p str,
-    target_args: &'p [vir::Expr],
-    target_return: Option<&'p vir::Expr>,
+/// Encode an assertion coming from a specification to a `vir::Expr`.
+///
+/// Arguments:
+/// * `pre_label`: the label to be used to encode `old(..)` expressions. This should be `None` iff
+///   the assertion cannot have old expressions.
+/// * `target_return`: the expression to be used to encode the value of `return` expressions. This
+///   should be `None` iff the assertion cannot mention `return`.
+pub fn encode_spec_assertion<'v, 'tcx: 'v>(
+    encoder: &Encoder<'v, 'tcx>,
+    pre_label: Option<&str>,
+    target_args: &[vir::Expr],
+    target_return: Option<&vir::Expr>,
     targets_are_values: bool,
     stop_at_bbi: Option<mir::BasicBlock>,
     assertion: &typed::Assertion<'tcx>,
 ) -> vir::Expr {
     let spec_encoder = SpecEncoder::new(
         encoder,
-        mir,
-        target_label,
+        pre_label.unwrap_or(""),
         target_args,
         target_return,
         targets_are_values,
@@ -48,8 +53,6 @@ pub fn encode_spec_assertion<'p, 'v: 'p, 'tcx: 'v>(
 
 struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
-    // FIXME: this should be the MIR of the `__spec` function
-    mir: Option<&'p mir::Body<'tcx>>,
     /// The context in which the specification should be encoded
     target_label: &'p str,
     /// The expression that encodes the arguments.
@@ -65,7 +68,6 @@ struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
 impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     fn new(
         encoder: &'p Encoder<'v, 'tcx>,
-        mir: &'p mir::Body<'tcx>,
         target_label: &'p str,
         target_args: &'p [vir::Expr],
         target_return: Option<&'p vir::Expr>,
@@ -76,29 +78,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
         SpecEncoder {
             encoder,
-            mir: Some(mir),
             target_label,
             target_args,
             target_return,
             targets_are_values,
             stop_at_bbi,
-        }
-    }
-
-    fn new_simple(
-        encoder: &'p Encoder<'v, 'tcx>,
-        target_args: &'p [vir::Expr],
-    ) -> Self {
-        trace!("SpecEncoder simple constructor");
-
-        SpecEncoder {
-            encoder,
-            mir: None,
-            target_label: &"",
-            target_args,
-            target_return: None,
-            targets_are_values: false,
-            stop_at_bbi: None,
         }
     }
 
