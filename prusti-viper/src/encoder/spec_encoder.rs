@@ -156,7 +156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 //         }
         // let mut curr_def_id = tcx.hir.local_def_id(curr_node_id);
         let mut curr_def_id = assertion_expr.expr.to_def_id();
-        let mut curr_namespace = "_pure".to_string();
+        let mut curr_namespace = "".to_string();
 
         let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id);
 
