@@ -10,6 +10,7 @@ fn get_value(_x: &A) -> i32 {
     _x.i
 }
 
+
 #[ensures(result == 1)]
 fn test_eq_in_code(_a: &A, _b: &A) -> i32 {
     if *_a == *_b {
