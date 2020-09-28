@@ -274,12 +274,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                             // encode_forall_arg() above only works for integers.
                             // Therefore, for the time being, check that we're working with integers:
                             vars.args.iter().map(|(arg, arg_ty)| {
-                                match arg_ty.kind {
+                                match arg_ty.kind() {
                                     ty::TyKind::Int(..) | ty::TyKind::Uint(..) => {}
                                     _ => { unimplemented!("Only integers are currently supported as closure arguments."); }
                                 }
                             });
-                            match vars.result.1.kind {
+                            match vars.result.1.kind() {
                                 ty::TyKind::Int(..) | ty::TyKind::Uint(..) => {}
                                 _ => { unimplemented!("Only integers are currently supported as closure return types."); }
                             }

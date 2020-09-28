@@ -394,20 +394,17 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
                 debug!("substs: {:?}, typaram_repl: {:?}", substs, typaram_repl.iter().last());
 
-                if let Some(top) = typaram_repl.iter().last() {
-                    // TODO (?)
-                    for i in 0 .. top.len() {
-                        fields_iter.next();
-                    }
-                };
-
-                // First type should be the closure kind:
                 // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.ClosureSubsts.html
-                let cl_kind = fields_iter.next().unwrap();
-                match cl_kind.expect_ty().kind() {
-                    //ty::TyKind::Int(ast::IntTy::I8) => (),
-                    ty::TyKind::Int(_) => (), // ??? - sometimes it's an I32, who knows why...
-                    ref x => unreachable!("closure kind: {:?}", x)
+
+                // First type should be the closure kind
+                // Skip generic args until we get to the closure kind
+                // FIXME: This is probably wrong, but skipping (typaram_repl.iter().last().map_or(0, |x| x.len()))
+                //        elements from the start of fields_iter did not work either
+                while let Some(ty) = fields_iter.next() {
+                    match ty.expect_ty().kind() {
+                        ty::TyKind::Int(_) => { break; }
+                        _ => {}
+                    }
                 }
 
                 // Second type should be the closure signature as FnPtr
