@@ -1132,7 +1132,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// Checks whether the given type implements structural equality
-    /// by deriving the Eq trait.
+    /// by either being a primitive type or by deriving the Eq trait.
     pub fn has_structural_eq_impl(&self, ty: ty::Ty<'tcx>) -> bool {
         let ty = self.dereference_ty(ty);
         match ty.kind() {
