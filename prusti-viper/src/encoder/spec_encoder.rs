@@ -249,7 +249,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             trace!("captured_tys: {:?}", captured_tys);
             assert_eq!(captured_tys.len(), captured_operands.len());
 
-            // Translate a local variable from the closure to a place in the enclosing closure
+            // Translate a local variable from the closure to a place in the outer MIR
             let inner_captured_places: Vec<_> = captured_tys
                 .iter()
                 .enumerate()
@@ -268,8 +268,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 .zip(outer_captured_places.iter())
                 .enumerate()
             {
-                trace!(
-                    "Field {} of closure, encoded as {}: {}, corresponds to {}: {} in the middle of the enclosing procedure",
+                debug!(
+                    "Field {} of closure, encoded as {}: {}, corresponds to {}: {} \
+                    in the middle of the enclosing procedure",
                     index,
                     inner_place,
                     inner_place.get_type(),
@@ -277,8 +278,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     outer_place.get_type()
                 );
                 assert_eq!(inner_place.get_type(), outer_place.get_type());
-                encoded_expr = encoded_expr.replace_place(inner_place, outer_place);
             }
+            encoded_expr = encoded_expr.replace_multiple_places(
+                &inner_captured_places
+                    .into_iter()
+                    .zip(outer_captured_places.into_iter())
+                    .collect::<Vec<_>>()
+            );
 
             // Translate an intermediate state to the state at the beginning of the method
             let state = MultiExprBackwardInterpreterState::new_single(encoded_expr.clone());
