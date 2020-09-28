@@ -1833,7 +1833,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             }
                         }
 
-                        "<std::boxed::Box<T>>::new" => {
+                        "std::boxed::Box::<T>::new" => {
                             // This is the initialization of a box
                             // args[0]: value to put in the box
                             assert_eq!(args.len(), 1);
