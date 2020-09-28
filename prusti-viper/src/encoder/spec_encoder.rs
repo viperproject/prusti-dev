@@ -26,19 +26,33 @@ use log::{debug, trace, error};
 
 /// Encode an assertion coming from a specification to a `vir::Expr`.
 ///
+/// In this documentation, we distinguish the encoding of a _value_ of a Rust expression from
+/// the encoding of its _memory location_. For example:
+/// * given an argument `x: u32` the Viper encoding will use `x: Ref` to encode the memory
+///   location and `x.val_int: Int` to encode the value;
+/// * given an argument `y: &u32` the Viper encoding will use `y: Ref` to encode the memory
+///   location and `y.val_ref: Ref` to encode the value.
+///
 /// Arguments:
+/// * `encoder`: a reference to the `Encoder`.
+/// * `assertion`: the assertion to be encoded.
 /// * `pre_label`: the label to be used to encode `old(..)` expressions. This should be `None` iff
-///   the assertion cannot have old expressions.
-/// * `target_return`: the expression to be used to encode the value of `return` expressions. This
-///   should be `None` iff the assertion cannot mention `return`.
+///   the assertion cannot have old expressions (e.g. a precondition).
+/// * `target_args`: the expression to be used to encode arguments.
+/// * `target_return`: the expression to be used to encode `return` expressions. This should be
+///   `None` iff the assertion cannot mention `return` (e.g. a loop invariant).
+/// * `targets_are_values`: if `true`, the elements of `target_args` and `target_return` encode
+///   _values_ and not _memory locations_.
+/// * `assertion_location`: the basic block at which the assertion should be encoded. This should
+///   be `None` iff the assertion is a loop invariant.
 pub fn encode_spec_assertion<'v, 'tcx: 'v>(
     encoder: &Encoder<'v, 'tcx>,
+    assertion: &typed::Assertion<'tcx>,
     pre_label: Option<&str>,
     target_args: &[vir::Expr],
     target_return: Option<&vir::Expr>,
     targets_are_values: bool,
-    stop_at_bbi: Option<mir::BasicBlock>,
-    assertion: &typed::Assertion<'tcx>,
+    assertion_location: Option<mir::BasicBlock>,
 ) -> vir::Expr {
     let spec_encoder = SpecEncoder::new(
         encoder,
@@ -46,43 +60,43 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
         target_args,
         target_return,
         targets_are_values,
-        stop_at_bbi,
+        assertion_location,
     );
     spec_encoder.encode_assertion(assertion)
 }
 
 struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
-    /// The context in which the specification should be encoded
-    target_label: &'p str,
+    /// The label to encode `old(..)` expressions
+    pre_label: &'p str,
     /// The expression that encodes the arguments.
     target_args: &'p [vir::Expr],
     /// The expression that encodes `return` in a postcondition.
     target_return: Option<&'p vir::Expr>,
-    /// Used to encode pure functions
+    /// If `true`, `target_args` and `target_return` encode values. Used to encode pure functions.
     targets_are_values: bool,
-    /// Used to encode loop invariants
-    stop_at_bbi: Option<mir::BasicBlock>,
+    /// Location at which to encode loop invariants.
+    assertion_location: Option<mir::BasicBlock>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     fn new(
         encoder: &'p Encoder<'v, 'tcx>,
-        target_label: &'p str,
+        pre_label: &'p str,
         target_args: &'p [vir::Expr],
         target_return: Option<&'p vir::Expr>,
         targets_are_values: bool,
-        stop_at_bbi: Option<mir::BasicBlock>,
+        assertion_location: Option<mir::BasicBlock>,
     ) -> Self {
         trace!("SpecEncoder constructor");
 
         SpecEncoder {
             encoder,
-            target_label,
+            pre_label,
             target_args,
             target_return,
             targets_are_values,
-            stop_at_bbi,
+            assertion_location,
         }
     }
 
@@ -199,13 +213,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 curr_def_id,
                 outer_def_id
             );
-            let stop_at_bbi = if format!("{:?}", outer_def_id).contains("{{closure}}") {
+            let assertion_location = if format!("{:?}", outer_def_id).contains("{{closure}}") {
                 // FIXME: A hack to identify if we are more than on closure inside the loop.
-                // If this is a case, when stop_at_bbi makes no sense because it refers to
+                // If this is a case, when assertion_location makes no sense because it refers to
                 // non-existant basic block.
                 None
             } else {
-                self.stop_at_bbi.clone()
+                self.assertion_location.clone()
             };
             let is_spec_function = self
                 .encoder
@@ -214,7 +228,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             let outer_procedure = self.encoder.env().get_procedure(outer_def_id);
             let outer_mir = outer_procedure.get_mir();
             // HACK: don't use a namespace for the last iteration if we are encoding a loop invariant
-            let outer_namespace = if self.stop_at_bbi.is_some() && is_last_iteration {
+            let outer_namespace = if self.assertion_location.is_some() && is_last_iteration {
                 "".to_string()
             } else {
                 format!("_closure{}", closure_counter)
@@ -303,7 +317,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             let initial_state = run_backward_interpretation_point_to_point(
                 outer_mir,
                 &interpreter,
-                stop_at_bbi.unwrap_or(mir::START_BLOCK),
+                assertion_location.unwrap_or(mir::START_BLOCK),
                 outer_location.block,
                 outer_location.statement_index,
                 state,
@@ -365,7 +379,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             curr_namespace.clone(),
         );
 
-        if self.stop_at_bbi.is_none() {
+        if self.assertion_location.is_none() {
             // At this point, `curr_def_id` corresponds to the SPEC method. Here is a simple check.
             let item_name = self
                 .encoder
@@ -381,7 +395,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         }
 
         // Translate arguments and return from the SPEC to the TARGET context
-        if self.stop_at_bbi.is_none() {
+        if self.assertion_location.is_none() {
             // FIXME
             //assert_eq!(curr_mir.args_iter().count(), self.target_args.len() + 1);
         } else {
@@ -444,7 +458,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         // Translate label of `old[pre]` expressions to the TARGET label
         encoded_expr = encoded_expr.map_old_expr_label(|label| {
             if label == PRECONDITION_LABEL {
-                self.target_label.to_string()
+                self.pre_label.to_string()
             } else {
                 label.clone()
             }
@@ -626,7 +640,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 outer_def_id,
                 outer_location,
                 if done {
-                    self.stop_at_bbi.unwrap_or(mir::START_BLOCK)
+                    self.assertion_location.unwrap_or(mir::START_BLOCK)
                 } else {
                     mir::START_BLOCK
                 },

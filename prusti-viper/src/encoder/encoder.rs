@@ -1092,22 +1092,22 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         assertion: &typed::Assertion<'tcx>,
         mir: &mir::Body<'tcx>,
-        label: Option<&str>,
-        encoded_args: &[vir::Expr],
-        encoded_return: Option<&vir::Expr>,
+        pre_label: Option<&str>,
+        target_args: &[vir::Expr],
+        target_return: Option<&vir::Expr>,
         targets_are_values: bool,
-        stop_at_bbi: Option<mir::BasicBlock>,
+        assertion_location: Option<mir::BasicBlock>,
         error: ErrorCtxt,
     ) -> vir::Expr {
         trace!("encode_assertion {:?}", assertion);
         let encoded_assertion = encode_spec_assertion(
             self,
-            label,
-            encoded_args,
-            encoded_return,
-            targets_are_values,
-            stop_at_bbi,
             assertion,
+            pre_label,
+            target_args,
+            target_return,
+            targets_are_values,
+            assertion_location,
         );
         encoded_assertion.set_default_pos(
             self.error_manager()
