@@ -160,7 +160,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     .iter()
                     .map(|x| self.encode_trigger(x))
                     .collect(),
-                // TODO: Replace the variables introduced in the quantifications
                 self.encode_assertion(body),
             ),
         }
@@ -475,9 +474,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         )
     }
 
-    /// Translate an expression from a closure identified by `def_id` to its definition site.
-    /// The `expr` parameter is the expression encoded using the closure's arguments and captured
-    /// state.
+    /// Translate an expression `expr` from a closure identified by `def_id` to its definition site.
+    ///
+    /// During the translation:
+    /// * Usages of the closure's captured state will be translated to the captured place.
+    /// * Closure arguments will be treated as quantified variables and will be translated using
+    ///   the `self.encode_forall_arg(..)` method.
     ///
     /// The result is a tuple with:
     /// * the translated expression,
@@ -505,14 +507,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let outer_mir_encoder = MirEncoder::new(self.encoder, &outer_mir, outer_def_id);
         trace!("Replacing variables of {:?} captured from {:?}", def_id, outer_def_id);
 
-        // Take the first local variable, that is the closure.
+        // Take the first argument, which is the closure's captured state.
         // The closure is a record containing all the captured variables.
-        let closure_local = inner_mir.local_decls.indices().skip(1).next().unwrap();
+        let closure_local = inner_mir.args_iter().next().unwrap();
         // will panic if attempting to encode unsupported type
         let closure_var = inner_mir_encoder.encode_local(closure_local).unwrap();
         let closure_ty = &inner_mir.local_decls[closure_local].ty;
         let should_closure_be_dereferenced = inner_mir_encoder.can_be_dereferenced(closure_ty);
-        let (deref_closure_var, deref_closure_ty) = if should_closure_be_dereferenced {
+        let (deref_closure_var, _deref_closure_ty) = if should_closure_be_dereferenced {
             let res = inner_mir_encoder.encode_deref(closure_var.clone().into(), closure_ty);
             (res.0, res.1)
         } else {
@@ -520,19 +522,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         };
         trace!("closure_ty: {:?}", closure_ty);
         trace!("deref_closure_var: {:?}", deref_closure_var);
-        trace!("deref_closure_ty: {:?}", deref_closure_ty);
-        let closure_subst =
-            if let ty::TyKind::Closure(_, ref substs) = deref_closure_ty.kind() {
-                substs.clone()
-            } else {
-                unreachable!()
-            };
 
         let captured_tys = captured_operand_tys;
         trace!("captured_tys: {:?}", captured_tys);
         assert_eq!(captured_tys.len(), captured_operands.len());
 
-        // Translate a local variable from the closure to a place in the outer MIR
+        // Replacements to translate from the closure to the definition site
+        let mut replacements: Vec<(vir::Expr, vir::Expr)> = vec![];
+
+        // Replacement 1: translate a local variable from the closure to a place in the outer MIR
         let inner_captured_places: Vec<_> = captured_tys
             .iter()
             .enumerate()
@@ -562,13 +560,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             );
             assert_eq!(inner_place.get_type(), outer_place.get_type());
         }
-        let outer_expr = expr.replace_multiple_places(
-            &inner_captured_places
+        replacements.extend(
+            inner_captured_places
                 .into_iter()
                 .zip(outer_captured_places.into_iter())
                 .collect::<Vec<_>>()
         );
 
+        // Replacement 2: rename the variables introduced by a quantification
+        // Skip the first argument, which is the captured state
+        for local_arg_index in inner_mir.args_iter().skip(1) {
+            let local_arg = &inner_mir.local_decls[local_arg_index];
+            assert!(!local_arg.internal);
+            let quantified_var = self.encode_forall_arg(local_arg_index, local_arg.ty);
+            let encoded_arg = inner_mir_encoder.encode_local(local_arg_index).unwrap();
+            let value_field = self.encoder.encode_value_field(local_arg.ty);
+            let encoded_arg_value = vir::Expr::local(encoded_arg).field(value_field);
+            trace!(
+                "Place {}: {} will be renamed to {} because a quantifier introduced it",
+                encoded_arg_value,
+                encoded_arg_value.get_type(),
+                quantified_var
+            );
+            replacements.push((encoded_arg_value, quantified_var.into()));
+        }
+
+        // Do the replacements
+        let outer_expr = expr.replace_multiple_places(&replacements);
         debug!(
             "Expr at the definition site ({:?} {:?}): {}",
             outer_def_id,
