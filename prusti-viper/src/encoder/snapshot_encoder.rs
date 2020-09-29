@@ -198,7 +198,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn is_supported(&self) -> bool {
-        self.is_ty_supported(self.ty)
+        self.encoder.has_structural_eq_impl(self.ty)
+            && self.is_ty_supported(self.ty)
     }
 
     fn is_ty_supported(&self, ty: ty::Ty<'tcx>) -> bool {

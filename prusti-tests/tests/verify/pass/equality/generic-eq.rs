@@ -1,15 +1,9 @@
 use prusti_contracts::*;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 struct A<T> {
     i: i32,
     t: T,
-}
-
-impl PartialEq for A<i32> {
-    fn eq(&self, other: &A<i32>) -> bool {
-        self.i == other.i
-    }
 }
 
 #[pure]

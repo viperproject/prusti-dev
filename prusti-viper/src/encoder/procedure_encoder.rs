@@ -1862,10 +1862,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         "std::cmp::PartialEq::eq" |
-                        "core::cmp::PartialEq::eq" => {
-                            debug_assert!(args.len() == 2);
+                        "core::cmp::PartialEq::eq"
+                            if args.len() == 2 &&
+                                self.encoder.has_structural_eq_impl(
+                                    self.mir_encoder.get_operand_ty(&args[0])
+                                )
+                        => {
                             debug!("Encoding call of PartialEq::eq");
-
                             stmts.extend(
                                 self.encode_cmp_function_call(
                                     def_id,
@@ -1879,10 +1882,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         "std::cmp::PartialEq::ne" |
-                        "core::cmp::PartialEq::ne" => {
-                            debug_assert!(args.len() == 2);
+                        "core::cmp::PartialEq::ne"
+                            if args.len() == 2 &&
+                                self.encoder.has_structural_eq_impl(
+                                    self.mir_encoder.get_operand_ty(&args[0])
+                                )
+                        => {
                             debug!("Encoding call of PartialEq::ne");
-
                             stmts.extend(
                                 self.encode_cmp_function_call(
                                     def_id,

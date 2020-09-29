@@ -1131,6 +1131,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+    /// Checks whether the given type implements structural equality
+    /// by either being a primitive type or by deriving the Eq trait.
+    pub fn has_structural_eq_impl(&self, ty: ty::Ty<'tcx>) -> bool {
+        let ty = self.dereference_ty(ty);
+        match ty.kind() {
+            ty::TyKind::Bool
+            | ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char
+            | ty::TyKind::Tuple(_)
+            | ty::TyKind::Never
+            | ty::TyKind::Param(_) => true,
+            ty::TyKind::Adt(_, _) => {
+                self.env().tcx().has_structural_eq_impls(ty)
+            }
+            _ => false,
+        }
+    }
+
     pub fn encode_snapshot_use(&self, predicate_name: String) -> Box<Snapshot> {
         if !self.snapshots.borrow().contains_key(&predicate_name) {
             if !self.predicate_types.borrow().contains_key(&predicate_name) {

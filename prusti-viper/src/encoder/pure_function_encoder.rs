@@ -666,20 +666,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 } else {
                                     // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
                                     // function
-                                    match self.encoder.get_item_name(def_id).as_str() {
-                                        "std::cmp::PartialEq::eq" => {
-                                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                            is_cmp_call = true;
-                                            self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, true)
+                                    if args.len() == 2 {
+                                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                        match self.encoder.get_item_name(def_id).as_str() {
+                                            "std::cmp::PartialEq::eq"
+                                            if self.encoder.has_structural_eq_impl(arg_ty) => {
+                                                is_cmp_call = true;
+                                                self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, true)
+                                            }
+                                            "std::cmp::PartialEq::ne"
+                                            if self.encoder.has_structural_eq_impl(arg_ty) => {
+                                                is_cmp_call = true;
+                                                self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, false)
+                                            }
+                                            _ => {
+                                                // TODO: interestingly, this crashes for
+                                                // custom implementations of eq as the def_id
+                                                // is not local; for details, see
+                                                // https://github.com/viperproject/prusti-dev/issues/188.
+                                                self.encoder.encode_stub_pure_function_use(def_id)
+                                            }
                                         }
-                                        "std::cmp::PartialEq::ne" => {
-                                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                            is_cmp_call = true;
-                                            self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, false)
-                                        }
-                                        _ => {
-                                            self.encoder.encode_stub_pure_function_use(def_id)
-                                        }
+                                    } else {
+                                        self.encoder.encode_stub_pure_function_use(def_id)
                                     }
                                 };
                                 if is_pure_function{
