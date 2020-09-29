@@ -19,6 +19,7 @@ macro_rules! implement_ghost_type_generic {
             /// Constructor for generic ghost types.
             /// #Examples
             ///  ```rust
+            ///  use prusti_contracts::{GhostInt, GhostSeq};
             ///  let seq_inst: GhostSeq<GhostInt> = GhostSeq::new();
             ///  ```
             pub fn new() -> Self {
@@ -44,6 +45,12 @@ impl Add for GhostInt {
 impl Sub for GhostInt {
     type Output = Self;
     fn sub(self, other: GhostInt) -> Self::Output {
+        GhostInt
+    }
+}
+
+impl GhostInt {
+    pub fn new(val: i32) -> Self {
         GhostInt
     }
 }
@@ -79,8 +86,9 @@ impl<T: Ghost> GhostSeq<T> {
     /// Push an item of type `T` to the ghost sequence
     /// #Examples
     /// ```rust
-    /// let seq: GhostSeq<i32> = GhostSeq::new();
-    /// seq.push(10);
+    /// use prusti_contracts::{GhostInt, GhostSeq};
+    /// let seq: GhostSeq<GhostInt> = GhostSeq::new();
+    /// seq.push(GhostInt::new(10));
     /// ```
     pub fn push(self, to_add: T) -> Self {
         GhostSeq::new()
@@ -89,9 +97,10 @@ impl<T: Ghost> GhostSeq<T> {
     /// Pop an item from a ghost sequence instance
     /// #Examples
     /// ```rust
-    /// let seq: GhostSeq<i32> = GhostSeq::new();
-    /// seq.push(10);
-    /// seq.pop(10);
+    /// use prusti_contracts::{GhostInt, GhostSeq};
+    /// let mut seq: GhostSeq<GhostInt> = GhostSeq::new();
+    /// seq = seq.push(GhostInt::new(10));
+    /// seq = seq.pop(GhostInt::new(10));
     /// ```
     pub fn pop(self, to_remove: T) -> Self {
         GhostSeq::new()
@@ -100,7 +109,9 @@ impl<T: Ghost> GhostSeq<T> {
     /// Concatenate two instances of ghost sequence
     /// #Examples
     /// ```rust
-    /// let seq1: GhostSeq<i32> = GhostSeq::new();
+    /// use prusti_contracts::{GhostInt, GhostSeq};
+    /// let seq2: GhostSeq<GhostInt> = GhostSeq::new();
+    /// let seq1: GhostSeq<GhostInt> = GhostSeq::new();
     /// seq1.chain(seq2);
     /// ```
     pub fn chain(self, other: GhostSeq<T>) -> Self {

@@ -1,5 +1,4 @@
-use prusti_contracts::*;
-use crate::ghost::GhostInt;
+use prusti_contracts::GhostInt;
 
 fn test_ghost_int_sum() -> GhostInt{
     let a = GhostInt;
