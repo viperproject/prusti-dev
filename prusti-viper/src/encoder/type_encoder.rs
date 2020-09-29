@@ -245,6 +245,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     fn is_ghost_adt(ghost_adt_def: &ty::AdtDef, item_name: String) -> Option<String> {
         // check if crate is "prusti_contracts" and module is "ghost"
         let item_name: Vec<&str> = item_name.split("::").collect();
+        // ghost types will be represented as prusti_contracts::ghost::Ghost*
+        if item_name.len() < 3 {
+            return None;
+        }
         let crate_name = item_name[0];
         let mod_name = item_name[1];
         let adt_identifier = item_name[2];
@@ -363,9 +367,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             })
                             .collect();
 
-                        let ty_layout = {
-                            let env_and_value = self.encoder.env().tcx().param_env(adt_def.did).and(self.ty);
-                            self.encoder.env().tcx().layout_of(env_and_value).unwrap()
+                        let env_and_value = self.encoder.env().tcx().param_env(adt_def.did).and(self.ty);
+                        let ty_layout = match self.encoder.env().tcx().layout_of(env_and_value) {
+                            Ok(layout) => layout,
+                            Err(_) => return vec![vir::Predicate::new_struct(typ, fields)],
                         };
 
                         if adt_def.is_struct() && ty_layout.is_zst()
