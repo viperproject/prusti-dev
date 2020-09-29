@@ -212,7 +212,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// specifications were externally declared.
     pub fn get_specification_def_id(&self, def_id: &'v ProcedureDefId) -> &'v ProcedureDefId {
         if def_id.is_local() && self.extern_spec.contains_key(def_id) &&
-            self.get_spec_by_def_id(*def_id).is_some() {
+            self.get_procedure_specs(*def_id).is_some() {
             self.register_encoding_error(EncodingError::Incorrect(
                 format!("external specification found for already specified function"),
                 rustc_span::MultiSpan::from_span(self.env.tcx().def_span(self.extern_spec.get(def_id).unwrap().1))));
