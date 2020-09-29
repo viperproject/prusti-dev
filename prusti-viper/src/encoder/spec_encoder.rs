@@ -564,7 +564,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             inner_captured_places
                 .into_iter()
                 .zip(outer_captured_places.into_iter())
-                .collect::<Vec<_>>()
         );
 
         // Replacement 2: rename the variables introduced by a quantification
@@ -672,27 +671,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mir = self.encoder.env().mir(curr_def_id.expect_local());
         let mir_encoder = MirEncoder::new(self.encoder, &mir, curr_def_id);
 
-        // Replace the arguments with the `target_args`.
-        let replacements: Vec<_> = mir.args_iter()
-            .zip(self.target_args)
-            .map(|(local, target_arg)| {
-                let local_ty = mir.local_decls[local].ty;
-                // will panic if attempting to encode unsupported type
-                let spec_local = mir_encoder.encode_local(local).unwrap();
-                let spec_local_place: vir::Expr = if self.targets_are_values {
-                    self.encoder.encode_value_expr(
-                        vir::Expr::local(spec_local),
-                        local_ty
-                    )
-                } else {
-                    spec_local.into()
-                };
-                (spec_local_place, target_arg.clone())
-            })
-            .collect();
-        curr_expr = curr_expr.replace_multiple_places(&replacements);
+        // Replacements to use the provided `target_args` and `target_return`
+        let mut replacements: Vec<(vir::Expr, vir::Expr)> = vec![];
 
-        // Replace the fake return variable (last argument) of SPEC items with `self.target_return`
+        // Replacement 1: replace the arguments with the `target_args`.
+        replacements.extend(
+            mir.args_iter()
+                .zip(self.target_args)
+                .map(|(local, target_arg)| {
+                    let local_ty = mir.local_decls[local].ty;
+                    // will panic if attempting to encode unsupported type
+                    let spec_local = mir_encoder.encode_local(local).unwrap();
+                    let spec_local_place: vir::Expr = if self.targets_are_values {
+                        self.encoder.encode_value_expr(
+                            vir::Expr::local(spec_local),
+                            local_ty
+                        )
+                    } else {
+                        spec_local.into()
+                    };
+                    (spec_local_place, target_arg.clone())
+                })
+        );
+
+        // Replacement 2: replace the fake return variable (last argument) of SPEC items with
+        // `target_return`
         if let Some(target_return) = self.target_return {
             let fake_return_local = mir.args_iter().last().unwrap();
             let fake_return_ty = mir.local_decls[fake_return_local].ty;
@@ -706,8 +709,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             } else {
                 spec_fake_return.clone().into()
             };
-            curr_expr = curr_expr.replace_place(&spec_fake_return_place, target_return);
+            replacements.push((spec_fake_return_place, target_return.clone()));
         }
+
+        // Do the replacements
+        curr_expr = curr_expr.replace_multiple_places(&replacements);
 
         // use the provided `self.pre_label` to encode old expressions
         curr_expr = curr_expr.map_old_expr_label(|label| {
