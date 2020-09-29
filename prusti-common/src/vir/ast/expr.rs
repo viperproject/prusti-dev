@@ -1047,6 +1047,14 @@ impl Expr {
 
         struct PlaceReplacer<'a> {
             replacements: &'a [(Expr, Expr)],
+            // FIXME: the following fields serve a grotesque hack.
+            //  Purpose:  Generics. When a less-generic function-under-test desugars specs from
+            //            a more-generic function, the vir::Expr contains Local's with __TYPARAM__s,
+            //            but Field's with the function-under-test's concrete types. The purpose is
+            //            the to "fix" the (Viper) predicates of the fields, i.e. replace those
+            //            typarams with local (more) concrete types.
+            //            THIS IS FRAGILE!
+            typaram_substs: Vec<Option<typaram::Substs>>,
         };
         impl<'a> ExprFolder for PlaceReplacer<'a> {
             fn fold(&mut self, e: Expr) -> Expr {
@@ -1061,6 +1069,34 @@ impl Expr {
 
                 // Otherwise, keep folding
                 default_fold_expr(self, e)
+            }
+
+            fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
+                // Check if the base matches a substitution.
+                let base_substitution = if field.typ.is_ref() && receiver.is_place() {
+                    self.replacements.iter()
+                        .position(|(src, _)| src == &receiver.get_base().into())
+                } else {
+                    None
+                };
+
+                let new_receiver = self.fold_boxed(receiver);
+
+                // Apply the substitution
+                let new_field = if let Some(subst_index) = base_substitution {
+                    assert!(field.typ.is_ref());
+                    if let Some(ts) = &self.typaram_substs[subst_index] {
+                        let inner1 = field.typ.name();
+                        let inner2 = ts.apply(&inner1);
+                        debug!("replacing:\n{}\n{}\n========", &inner1, &inner2);
+                        Field::new(field.name, Type::TypedRef(inner2))
+                    } else {
+                        field
+                    }
+                } else {
+                    field
+                };
+                Expr::Field(new_receiver, new_field, pos)
             }
 
             fn fold_forall(
@@ -1093,9 +1129,31 @@ impl Expr {
                 )
             }
         }
-
+        let typaram_substs = replacements.into_iter().map(
+            |(target, replacement)| {
+                match (target, replacement) {
+                    (Expr::Local(tv, _), Expr::Local(rv, _)) => {
+                        if tv.typ.is_ref() && rv.typ.is_ref() {
+                            debug!(
+                                "learning:\n{}\n{}\n=======",
+                                &target.local_type(),
+                                replacement.local_type()
+                            );
+                            Some(typaram::Substs::learn(
+                                &target.local_type(),
+                                &replacement.local_type(),
+                            ))
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                }
+            }
+        ).collect();
         PlaceReplacer {
             replacements,
+            typaram_substs,
         }.fold(self)
     }
 
