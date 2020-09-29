@@ -27,6 +27,18 @@ macro_rules! handle_result {
     };
 }
 
+fn extract_prusti_attributes<'a>(item: &'a mut untyped::AnyFnItem) -> impl Iterator<Item=(SpecAttributeKind, TokenStream)> + 'a {
+    item.attrs_mut().drain_filter(
+        |attr|
+            attr.path.segments.len() == 1
+                && SpecAttributeKind::try_from(attr.path.segments[0].ident.to_string()).is_ok()
+    ).map(
+        |attr| attr.path.segments[0].ident.to_string().try_into().ok().map(
+            |attr_kind| (attr_kind, attr.tokens)
+        )
+    ).flatten()
+}
+
 /// Rewrite an item as required by *all* its specification attributes.
 ///
 /// The first attribute (the outer one) needs to be passed via `attr_kind` and `attr` because
@@ -36,7 +48,7 @@ pub fn rewrite_prusti_attributes(
     outer_attr_tokens: TokenStream,
     item_tokens: TokenStream,
 ) -> TokenStream {
-    let mut item: syn::ItemFn = handle_result!(syn::parse2(item_tokens));
+    let mut item: untyped::AnyFnItem = handle_result!(syn::parse2(item_tokens));
 
     // Start with the outer attribute
     let mut prusti_attributes = vec![
@@ -44,18 +56,7 @@ pub fn rewrite_prusti_attributes(
     ];
 
     // Collect the remaining Prusti attributes, removing them from `item`.
-    let remaining_prusti_attributes = item.attrs.drain_filter(
-        |attr|
-            attr.path.segments.len() == 1
-                && SpecAttributeKind::try_from(attr.path.segments[0].ident.to_string()).is_ok()
-    );
-    prusti_attributes.extend(
-        remaining_prusti_attributes.map(
-            |attr| attr.path.segments[0].ident.to_string().try_into().ok().map(
-                |attr_kind| (attr_kind, attr.tokens)
-            )
-        ).flatten()
-    );
+    prusti_attributes.extend(extract_prusti_attributes(&mut item));
 
     let (generated_spec_items, generated_attributes) = handle_result!(
         generate_spec_and_assertions(prusti_attributes, &item)
@@ -73,7 +74,7 @@ type GeneratedResult = syn::Result<(Vec<syn::Item>, Vec<syn::Attribute>)>;
 /// Generate spec items and attributes for `item` from the Prusti attributes
 fn generate_spec_and_assertions(
     mut prusti_attributes: Vec<(SpecAttributeKind, TokenStream)>,
-    item: &syn::ItemFn,
+    item: &untyped::AnyFnItem,
 ) -> GeneratedResult {
     let mut generated_items = vec![];
     let mut generated_attributes = vec![];
@@ -96,7 +97,7 @@ fn generate_spec_and_assertions(
 }
 
 /// Generate spec items and attributes to typecheck the and later retrieve "requires" annotations.
-fn generate_for_requires(attr: TokenStream, item: &syn::ItemFn) -> GeneratedResult {
+fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
@@ -114,7 +115,7 @@ fn generate_for_requires(attr: TokenStream, item: &syn::ItemFn) -> GeneratedResu
 }
 
 /// Generate spec items and attributes to typecheck th and later retrieve "ensures" annotations.
-fn generate_for_ensures(attr: TokenStream, item: &syn::ItemFn) -> GeneratedResult {
+fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
@@ -149,7 +150,7 @@ fn check_is_result(reference: &Option<untyped::Expression>) -> syn::Result<()> {
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.
-fn generate_for_after_expiry(attr: TokenStream, item: &syn::ItemFn) -> GeneratedResult {
+fn generate_for_after_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id_rhs = rewriter.generate_spec_id();
     let spec_id_rhs_str = format!(":{}", spec_id_rhs);
@@ -170,7 +171,7 @@ fn generate_for_after_expiry(attr: TokenStream, item: &syn::ItemFn) -> Generated
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry_if"
 /// annotations.
-fn generate_for_after_expiry_if(attr: TokenStream, item: &syn::ItemFn) -> GeneratedResult {
+fn generate_for_after_expiry_if(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id_lhs = rewriter.generate_spec_id();
     let spec_id_rhs = rewriter.generate_spec_id();
@@ -200,7 +201,7 @@ fn generate_for_after_expiry_if(attr: TokenStream, item: &syn::ItemFn) -> Genera
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "pure" annotations.
-fn generate_for_pure(_attr: TokenStream, _item: &syn::ItemFn) -> GeneratedResult {
+fn generate_for_pure(_attr: TokenStream, _item: &untyped::AnyFnItem) -> GeneratedResult {
     Ok((
         vec![],
         vec![parse_quote!(#[prusti::pure])],
@@ -208,7 +209,7 @@ fn generate_for_pure(_attr: TokenStream, _item: &syn::ItemFn) -> GeneratedResult
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "trusted" annotations.
-fn generate_for_trusted(_attr: TokenStream, _item: &syn::ItemFn) -> GeneratedResult {
+fn generate_for_trusted(_attr: TokenStream, _item: &untyped::AnyFnItem) -> GeneratedResult {
     Ok((
         vec![],
         vec![parse_quote!(#[prusti::trusted])],
@@ -301,6 +302,59 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
                 _prusti_closure
             }
         }
+    }
+}
+
+pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let mut impl_block: syn::ItemImpl = handle_result!(syn::parse2(tokens));
+    let mut new_items = Vec::new();
+    let mut generated_spec_items = Vec::new();
+    for item in impl_block.items {
+        match item {
+            syn::ImplItem::Method(method) => {
+                let mut method_item = untyped::AnyFnItem::ImplMethod(method);
+                let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item).collect();
+                let (spec_items, generated_attributes) = handle_result!(
+                    generate_spec_and_assertions(prusti_attributes, &method_item)
+                );
+                generated_spec_items.extend(spec_items.into_iter().map(|spec_item| {
+                    match spec_item {
+                        syn::Item::Fn(spec_item_fn) => {
+                            syn::ImplItem::Method(syn::ImplItemMethod {
+                                attrs: spec_item_fn.attrs,
+                                vis: spec_item_fn.vis,
+                                defaultness: None,
+                                sig: spec_item_fn.sig,
+                                block: *spec_item_fn.block,
+                            })
+                        }
+                        x => unimplemented!("Unexpected variant: {:?}", x),
+                    }
+                }));
+                let new_item = parse_quote!{
+                    #(#generated_attributes)*
+                    #method_item
+                };
+                new_items.push(new_item);
+            }
+            _ => {}
+        }
+    }
+    impl_block.items = new_items;
+    let spec_impl_block = syn::ItemImpl {
+        attrs: Vec::new(),
+        defaultness: impl_block.defaultness,
+        unsafety: impl_block.unsafety,
+        impl_token: impl_block.impl_token,
+        generics: impl_block.generics.clone(),
+        trait_: None,
+        self_ty: impl_block.self_ty.clone(),
+        brace_token: impl_block.brace_token,
+        items: generated_spec_items,
+    };
+    quote! {
+        #spec_impl_block
+        #impl_block
     }
 }
 

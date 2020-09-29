@@ -234,15 +234,15 @@ impl<'tcx> Environment<'tcx> {
         self.tcx().associated_items(id).filter_by_name_unhygienic(name).next().cloned()
     }
 
-    // /// Get a trait method declaration by name for type.
-    // pub fn get_trait_method_decl_for_type(&self, typ: ty::Ty<'tcx>, trait_id: DefId, name: Symbol) -> Vec<ty::AssociatedItem> {
-    //     let mut result = Vec::new();
-    //     self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
-    //         let item = self.get_assoc_item(impl_id, name);
-    //         if let Some(inner) = item {
-    //             result.push(inner.clone());
-    //         }
-    //     });
-    //     result
-    // }
+    /// Get a trait method declaration by name for type.
+    pub fn get_trait_method_decl_for_type(&self, typ: ty::Ty<'tcx>, trait_id: DefId, name: Symbol) -> Vec<ty::AssocItem> {
+        let mut result = Vec::new();
+        self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
+            let item = self.get_assoc_item(impl_id, name);
+            if let Some(inner) = item {
+                result.push(inner.clone());
+            }
+        });
+        result
+    }
 }

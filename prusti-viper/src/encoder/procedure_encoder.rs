@@ -1774,6 +1774,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ..
             } => {
                 if let ty::TyKind::FnDef(def_id, substs) = ty.kind() {
+                    let self_ty = {
+                        // If we are calling a trait method on a struct, self_ty
+                        // is the struct.
+                        let generics = self.encoder.env().tcx().generics_of(*def_id);
+                        if generics.has_self {
+                            Some(substs.type_at(0))
+                        } else {
+                            None
+                        }
+                    };
+
                     let def_id = *self.encoder.get_specification_def_id(def_id);
                     let full_func_proc_name: &str =
                         &self.encoder.env().tcx().def_path_str(def_id);
@@ -1930,6 +1941,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     args,
                                     destination,
                                     def_id,
+                                    self_ty,
                                 )?);
                             }
                         }
@@ -2064,6 +2076,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 args,
                 destination,
                 called_def_id,
+                None, // FIXME: This is almost definitely wrong.
             ).ok().unwrap() // TODO CMFIXME return proper result
         }
     }
@@ -2113,6 +2126,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
+        self_ty: Option<&'tcx ty::TyS<'tcx>>,
     ) -> Result<Vec<vir::Stmt>> {
         let full_func_proc_name = &self
             .encoder
@@ -2255,6 +2269,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let procedure_contract = {
             self.encoder.get_procedure_contract_for_call(
+                self_ty,
                 called_def_id,
                 &arguments,
                 target_local,

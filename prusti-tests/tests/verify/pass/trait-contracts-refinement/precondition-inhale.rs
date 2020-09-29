@@ -7,6 +7,7 @@ trait Foo {
 
 struct Dummy { }
 
+#[refine_trait_spec]
 impl Foo for Dummy {
     #[requires(_val > 12)]
     fn foo(&self, _val: i32) { }

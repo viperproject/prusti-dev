@@ -9,6 +9,7 @@ struct Dummy {
     inner: i32,
 }
 
+#[refine_trait_spec]
 impl Foo for Dummy {
     #[ensures(result > 84)]
     fn foo(&self) -> i32 {

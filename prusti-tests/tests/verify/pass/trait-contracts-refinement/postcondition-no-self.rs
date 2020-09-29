@@ -8,6 +8,7 @@ trait Foo {
 
 struct Dummy { }
 
+#[refine_trait_spec]
 impl Foo for Dummy {
     #[ensures(result == 5)]
     fn foo(_a: i32) -> i32 {

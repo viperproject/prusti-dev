@@ -57,8 +57,8 @@ impl AstRewriter {
 
     /// Check whether function `item` contains a parameter called `keyword`. If
     /// yes, return its span.
-    fn check_contains_keyword_in_params(&self, item: &syn::ItemFn, keyword: &str) -> Option<Span> {
-        for param in &item.sig.inputs {
+    fn check_contains_keyword_in_params(&self, item: &untyped::AnyFnItem, keyword: &str) -> Option<Span> {
+        for param in &item.sig().inputs {
             match param {
                 syn::FnArg::Typed(syn::PatType {
                     pat: box syn::Pat::Ident(syn::PatIdent { ident, .. }),
@@ -73,9 +73,8 @@ impl AstRewriter {
         }
         None
     }
-
-    fn generate_result_arg(&self, item: &syn::ItemFn) -> syn::FnArg {
-        let output_ty = match &item.sig.output {
+    fn generate_result_arg(&self, item: &untyped::AnyFnItem) -> syn::FnArg {
+        let output_ty = match &item.sig().output {
             syn::ReturnType::Default => syn::parse_quote!{ () },
             syn::ReturnType::Type(_, ty) => ty.clone(),
         };
@@ -83,7 +82,7 @@ impl AstRewriter {
             syn::PatType {
                 attrs: Vec::new(),
                 pat: box syn::parse_quote! { result },
-                colon_token: syn::Token![:](item.sig.output.span()),
+                colon_token: syn::Token![:](item.sig().output.span()),
                 ty: output_ty,
             }
         );
@@ -98,7 +97,7 @@ impl AstRewriter {
         spec_type: SpecItemType,
         spec_id: untyped::SpecificationId,
         assertion: untyped::Assertion,
-        item: &syn::ItemFn,
+        item: &untyped::AnyFnItem,
     ) -> syn::Result<syn::Item> {
         if let Some(span) = self.check_contains_keyword_in_params(item, "result") {
             return Err(syn::Error::new(
@@ -107,7 +106,7 @@ impl AstRewriter {
             ));
         }
         let item_name = syn::Ident::new(
-            &format!("prusti_{}_item_{}_{}", spec_type, item.sig.ident, spec_id),
+            &format!("prusti_{}_item_{}_{}", spec_type, item.sig().ident, spec_id),
             item.span(),
         );
         let mut statements = TokenStream::new();
@@ -123,8 +122,8 @@ impl AstRewriter {
                 #statements
             }
         };
-        spec_item.sig.generics = item.sig.generics.clone();
-        spec_item.sig.inputs = item.sig.inputs.clone();
+        spec_item.sig.generics = item.sig().generics.clone();
+        spec_item.sig.inputs = item.sig().inputs.clone();
         if spec_type == SpecItemType::Postcondition {
             let fn_arg = self.generate_result_arg(item);
             spec_item.sig.inputs.push(fn_arg);

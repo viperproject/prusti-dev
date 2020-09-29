@@ -44,6 +44,11 @@ pub fn closure(tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+pub fn refine_trait_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    prusti_specs::refine_trait_spec(attr.into(), tokens.into()).into()
+}
+
+#[proc_macro_attribute]
 pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::extern_spec(attr.into(), tokens.into()).into()
 }
