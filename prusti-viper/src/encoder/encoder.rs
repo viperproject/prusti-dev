@@ -1632,8 +1632,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         mut proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
         proc_def_id = *self.get_specification_def_id(&proc_def_id);
-        let procedure = self.env.get_procedure(proc_def_id);
-        let encoder = StubFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+        // The stub function may come from another module for which we can have
+        // only optimized_mir.
+        let body = self.env.tcx().optimized_mir(proc_def_id);
+        let encoder = StubFunctionEncoder::new(self, proc_def_id, body);
 
         // If we haven't seen this particular stub before, generate and insert it.
         let key = (proc_def_id, self.type_substitution_key());
