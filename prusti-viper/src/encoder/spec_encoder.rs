@@ -151,7 +151,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             }
             box typed::AssertionKind::TypeCond(ref vars, ref assertion) => {
                 let enc = |ty: ty::Ty<'tcx>| -> vir::Expr {
-                    // FIXME oh dear...
+                    // FIXME: this is a hack to support generics. See issue #187.
                     let ty = self.encoder.resolve_typaram(ty);
                     self.encoder.encode_tag_func_app(ty)
                 };

@@ -942,13 +942,12 @@ impl Expr {
         struct PlaceReplacer<'a> {
             target: &'a Expr,
             replacement: &'a Expr,
-            // FIXME: the following fields serve a grotesque hack.
-            //  Purpose:  Generics. When a less-generic function-under-test desugars specs from
-            //            a more-generic function, the vir::Expr contains Local's with __TYPARAM__s,
-            //            but Field's with the function-under-test's concrete types. The purpose is
-            //            the to "fix" the (Viper) predicates of the fields, i.e. replace those
-            //            typarams with local (more) concrete types.
-            //            THIS IS FRAGILE!
+            // FIXME: this is a hack to support generics. See issue #187.
+            //  When a less-generic function-under-test desugars specs from
+            //  a more-generic function, the vir::Expr contains Local's with __TYPARAM__s,
+            //  but Field's with the function-under-test's concrete types. The purpose is
+            //  to "fix" the (Viper) predicates of the fields, i.e. replace those
+            //  typarams with local (more) concrete types.
             typaram_substs: Option<typaram::Substs>,
             subst: bool,
         };
@@ -1047,13 +1046,12 @@ impl Expr {
 
         struct PlaceReplacer<'a> {
             replacements: &'a [(Expr, Expr)],
-            // FIXME: the following fields serve a grotesque hack.
-            //  Purpose:  Generics. When a less-generic function-under-test desugars specs from
-            //            a more-generic function, the vir::Expr contains Local's with __TYPARAM__s,
-            //            but Field's with the function-under-test's concrete types. The purpose is
-            //            the to "fix" the (Viper) predicates of the fields, i.e. replace those
-            //            typarams with local (more) concrete types.
-            //            THIS IS FRAGILE!
+            // FIXME: this is a hack to support generics. See issue #187.
+            //  When a less-generic function-under-test desugars specs from
+            //  a more-generic function, the vir::Expr contains Local's with __TYPARAM__s,
+            //  but Field's with the function-under-test's concrete types. The purpose is
+            //  to "fix" the (Viper) predicates of the fields, i.e. replace those
+            //  typarams with local (more) concrete types.
             typaram_substs: Vec<Option<typaram::Substs>>,
         };
         impl<'a> ExprFolder for PlaceReplacer<'a> {
@@ -1261,8 +1259,8 @@ impl Expr {
         collector.perms
     }
 
-    /// FIXME: A hack. Replaces all generic types with their instantiations by using string
-    /// substitution.
+    /// Replace all generic types with their instantiations by using string substitution.
+    /// FIXME: this is a hack to support generics. See issue #187.
     pub fn patch_types(self, substs: &HashMap<String, String>) -> Self {
         struct TypePatcher<'a> {
             substs: &'a HashMap<String, String>,

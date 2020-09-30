@@ -607,7 +607,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
 
                     {
-                        // FIXME; hideous monstrosity...
+                        // FIXME: this is a hack to support generics. See issue #187.
                         let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
                         let mut tymap = HashMap::new();
 
@@ -762,7 +762,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         MultiExprBackwardInterpreterState::new_single(unreachable_expr(pos))
                     };
 
-                    // FIXME; hideous monstrosity...
+                    // FIXME: this is a hack to support generics. See issue #187.
                     {
                         let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
                         tymap_stack.pop();
