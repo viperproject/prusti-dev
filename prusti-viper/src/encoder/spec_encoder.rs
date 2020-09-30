@@ -23,6 +23,7 @@ use rustc_middle::ty;
 use std::collections::HashMap;
 use rustc_ast::ast;
 use log::{debug, trace};
+use prusti_interface::utils::read_prusti_attr;
 
 /// Encode an assertion coming from a specification to a `vir::Expr`.
 ///
@@ -100,8 +101,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    fn encode_forall_arg(&self, arg: mir::Local, arg_ty: ty::Ty<'tcx>) -> vir::LocalVar {
-        trace!("encode_forall_arg: {:?} {:?}", arg, arg_ty);
+    /// Encode a quantified variable `arg`, given its type `arg_ty` and a unique identifier
+    /// `forall_id` of the quantification.
+    fn encode_forall_arg(
+        &self,
+        arg: mir::Local,
+        arg_ty: ty::Ty<'tcx>,
+        forall_id: &str
+    ) -> vir::LocalVar {
+        trace!("encode_forall_arg: {:?} {:?} {:?}", arg, arg_ty, forall_id);
         assert!(
             match arg_ty.kind() {
                 ty::TyKind::Int(..) | ty::TyKind::Uint(..) => true,
@@ -109,9 +117,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             },
             "Quantification is only supported over integer values"
         );
-        // FIXME: The name encoding is most likely wrong. (It most likely does
-        // not match the names generated in other places.)
-        let var_name = format!("{:?}_forall", arg);
+        let var_name = format!("{:?}_forall_{}", arg, forall_id);
         vir::LocalVar::new(var_name, vir::Type::Int)
     }
 
@@ -154,7 +160,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 vir::Expr::implies(typecond, self.encode_assertion(assertion))
             }
             box typed::AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => vir::Expr::forall(
-                vars.vars.iter().map(|(arg, ty)| self.encode_forall_arg(*arg, ty)).collect(),
+                vars.vars.iter()
+                    .map(|(arg, ty)|
+                        self.encode_forall_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id))
+                    ).collect(),
                 trigger_set
                     .triggers()
                     .iter()
@@ -179,24 +188,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     fn translate_expr_to_closure_def_site(
         &self,
         expr: vir::Expr,
-        def_id: DefId,
+        inner_def_id: DefId,
     ) -> (vir::Expr, DefId, mir::Location) {
-        debug!("translate_expr_to_closure_def_site {} {:?}", expr, def_id);
-        let inner_mir = self.encoder.env().mir(def_id.expect_local());
-        let inner_mir_encoder = MirEncoder::new(self.encoder, &inner_mir, def_id);
+        debug!("translate_expr_to_closure_def_site {} {:?}", expr, inner_def_id);
+        let inner_mir = self.encoder.env().mir(inner_def_id.expect_local());
+        let inner_mir_encoder = MirEncoder::new(self.encoder, &inner_mir, inner_def_id);
+        let inner_attrs = self.encoder.env().tcx().get_attrs(inner_def_id);
 
-        let opt_instantiation = self.encoder.get_single_closure_instantiation(def_id);
+        let opt_instantiation = self.encoder.get_single_closure_instantiation(
+            inner_def_id
+        );
         let (
             outer_def_id,
             outer_location,
             captured_operands,
             captured_operand_tys,
         ) = opt_instantiation.expect(
-            &format!("cannot find definition site for closure {:?}", def_id)
+            &format!("cannot find definition site for closure {:?}", inner_def_id)
         );
         let outer_mir = self.encoder.env().mir(outer_def_id.expect_local());
         let outer_mir_encoder = MirEncoder::new(self.encoder, &outer_mir, outer_def_id);
-        trace!("Replacing variables of {:?} captured from {:?}", def_id, outer_def_id);
+        trace!("Replacing variables of {:?} captured from {:?}", inner_def_id, outer_def_id);
 
         // Take the first argument, which is the closure's captured state.
         // The closure is a record containing all the captured variables.
@@ -258,21 +270,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         );
 
         // Replacement 2: rename the variables introduced by a quantification
-        // Skip the first argument, which is the captured state
-        for local_arg_index in inner_mir.args_iter().skip(1) {
-            let local_arg = &inner_mir.local_decls[local_arg_index];
-            assert!(!local_arg.internal);
-            let quantified_var = self.encode_forall_arg(local_arg_index, local_arg.ty);
-            let encoded_arg = inner_mir_encoder.encode_local(local_arg_index).unwrap();
-            let value_field = self.encoder.encode_value_field(local_arg.ty);
-            let encoded_arg_value = vir::Expr::local(encoded_arg).field(value_field);
-            trace!(
-                "Place {}: {} will be renamed to {} because a quantifier introduced it",
-                encoded_arg_value,
-                encoded_arg_value.get_type(),
-                quantified_var
-            );
-            replacements.push((encoded_arg_value, quantified_var.into()));
+        let opt_forall_id = read_prusti_attr("expr_id", inner_attrs);
+        if let Some(forall_id) = opt_forall_id {
+            // Skip the first argument, which is the captured state
+            for local_arg_index in inner_mir.args_iter().skip(1) {
+                let local_arg = &inner_mir.local_decls[local_arg_index];
+                assert!(!local_arg.internal);
+                let quantified_var = self.encode_forall_arg(
+                    local_arg_index,
+                    local_arg.ty,
+                    &forall_id
+                );
+                let encoded_arg = inner_mir_encoder.encode_local(local_arg_index).unwrap();
+                let value_field = self.encoder.encode_value_field(local_arg.ty);
+                let encoded_arg_value = vir::Expr::local(encoded_arg).field(value_field);
+                trace!(
+                    "Place {}: {} will be renamed to {} because a quantifier introduced it",
+                    encoded_arg_value,
+                    encoded_arg_value.get_type(),
+                    quantified_var
+                );
+                replacements.push((encoded_arg_value, quantified_var.into()));
+            }
         }
 
         // Do the replacements
