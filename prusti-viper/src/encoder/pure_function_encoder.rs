@@ -46,7 +46,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             encoder,
             mir,
             proc_def_id,
-            "".to_string(),
             is_encoding_assertion,
         );
         PureFunctionEncoder {
@@ -377,7 +376,6 @@ pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     mir: &'p mir::Body<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
-    namespace: String,
     /// True if the encoder is currently encoding an assertion and not a pure function body. This
     /// flag is used to distinguish when assert terminators should be translated into `false` and
     /// when to a undefined function calls. This distinction allows overflow checks to be checked
@@ -393,14 +391,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         encoder: &'p Encoder<'v, 'tcx>,
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
-        namespace: String,
         is_encoding_assertion: bool,
     ) -> Self {
         PureFunctionBackwardInterpreter {
             encoder,
             mir,
-            mir_encoder: MirEncoder::new_with_namespace(encoder, mir, def_id, namespace.clone()),
-            namespace,
+            mir_encoder: MirEncoder::new(encoder, mir, def_id),
             is_encoding_assertion,
         }
     }
@@ -491,7 +487,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 assert!(states.is_empty());
                 trace!("Return type: {:?}", self.mir.return_ty());
                 let return_type = self.encoder.encode_type(self.mir.return_ty());
-                let return_var = vir::LocalVar::new(format!("{}_0", self.namespace), return_type);
+                let return_var = vir::LocalVar::new("_0", return_type);
                 MultiExprBackwardInterpreterState::new_single(
                     self.encoder.encode_value_expr(
                         vir::Expr::local(return_var.into()),

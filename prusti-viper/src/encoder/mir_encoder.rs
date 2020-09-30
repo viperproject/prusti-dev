@@ -302,14 +302,9 @@ pub struct MirEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     mir: &'p mir::Body<'tcx>,
     def_id: DefId,
-    namespace: String,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for MirEncoder<'p, 'v, 'tcx> {
-
-    fn namespace(&self) -> &str {
-        &self.namespace
-    }
 
     fn encoder(&self) -> &Encoder<'v, 'tcx> {
         self.encoder
@@ -332,22 +327,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             encoder,
             mir,
             def_id,
-            namespace: "".to_string(),
-        }
-    }
-
-    pub fn new_with_namespace(
-        encoder: &'p Encoder<'v, 'tcx>,
-        mir: &'p mir::Body<'tcx>,
-        def_id: DefId,
-        namespace: String,
-    ) -> Self {
-        trace!("MirEncoder constructor with namespace");
-        MirEncoder {
-            encoder,
-            mir,
-            def_id,
-            namespace,
         }
     }
 
