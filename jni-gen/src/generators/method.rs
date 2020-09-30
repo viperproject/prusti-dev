@@ -23,7 +23,7 @@ pub fn generate_method(
 
     let methods = env
         .call_method(
-            clazz.into(),
+            clazz,
             "getMethods",
             "()[Ljava/lang/reflect/Method;",
             &[],
@@ -218,7 +218,7 @@ fn generate(
 
     code.push(format!("pub fn {}(", rust_method_name));
     code.push("    &self,".to_string());
-    code.push("    receiver: JObject,".to_string());
+    code.push("    receiver: JObject<'a>,".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];

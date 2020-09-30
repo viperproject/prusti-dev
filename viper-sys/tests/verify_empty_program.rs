@@ -67,27 +67,27 @@ fn verify_empty_program() {
             JObject::from(env.new_object_array(4, "java/lang/String", JObject::null())?);
 
         env.set_object_array_element(
-            silicon_args_array.into_inner(),
+            *silicon_args_array,
             0,
-            From::from(env.new_string("--z3Exe")?),
+            env.new_string("--z3Exe")?,
         )?;
 
         env.set_object_array_element(
-            silicon_args_array.into_inner(),
+            *silicon_args_array,
             1,
-            From::from(env.new_string(&z3_path)?),
+            env.new_string(&z3_path)?,
         )?;
 
         env.set_object_array_element(
-            silicon_args_array.into_inner(),
+            *silicon_args_array,
             2,
-            From::from(env.new_string("--ignoreFile")?),
+            env.new_string("--ignoreFile")?,
         )?;
 
         env.set_object_array_element(
-            silicon_args_array.into_inner(),
+            *silicon_args_array,
             3,
-            From::from(env.new_string("dummy.vpr")?),
+            env.new_string("dummy.vpr")?,
         )?;
 
         let silicon_args_seq = scala::Predef::with(&env).call_wrapRefArray(silicon_args_array)?;
