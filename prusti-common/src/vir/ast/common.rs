@@ -205,8 +205,8 @@ impl Type {
         }
     }
 
-    /// FIXME: A hack. Replaces all generic types with their instantiations by using string
-    /// substitution.
+    /// Replace all generic types with their instantiations by using string substitution.
+    /// FIXME: this is a hack to support generics. See issue #187.
     pub fn patch(self, substs: &HashMap<String, String>) -> Self {
         match self {
             Type::TypedRef(mut predicate_name) => {

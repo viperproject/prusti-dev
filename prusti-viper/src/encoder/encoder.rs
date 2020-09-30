@@ -1464,7 +1464,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         );
 
         {
-            // FIXME; hideous monstrosity...
+            // FIXME: this is a hack to support generics. See issue #187.
             let mut tymap_stack = self.typaram_repl.borrow_mut();
             assert!(tymap_stack.is_empty());
             let mut tymap = HashMap::new();
@@ -1494,7 +1494,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.pure_functions.borrow_mut().insert(key, function);
         }
 
-        // FIXME; hideous monstrosity...
+        // FIXME: this is a hack to support generics. See issue #187.
         {
             let mut tymap_stack = self.typaram_repl.borrow_mut();
             tymap_stack.pop();

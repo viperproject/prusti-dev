@@ -516,7 +516,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         ty::List::identity_for_item(self.encoder.env().tcx(), adt_def.did);
 
                     {
-                        // FIXME; hideous monstrosity...
+                        // FIXME: this is a hack to support generics. See issue #187.
                         let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
                         let mut tymap = HashMap::new();
 
@@ -575,7 +575,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         }
                     }
 
-                    // FIXME; hideous monstrosity...
+                    // FIXME: this is a hack to support generics. See issue #187.
                     {
                         let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
                         tymap_stack.pop();
