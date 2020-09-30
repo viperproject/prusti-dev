@@ -89,11 +89,11 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         self.tcx
     }
 
-    /// Get an absolute path to this procedure
+    /// Get an absolute `def_path`. Note: not preserved across compilations!
     pub fn get_def_path(&self) -> String {
         let def_path = self.tcx.def_path(self.proc_def_id);
         let mut crate_name = self.tcx.crate_name(def_path.krate).to_string();
-        crate_name.push_str(&def_path.to_string_no_crate());
+        crate_name.push_str(&def_path.to_string_no_crate_verbose());
         crate_name
     }
 

@@ -178,7 +178,7 @@ fn main() {
 
     // Invoke compiler, and handle return code.
     let exit_code = rustc_driver::catch_with_exit_code(move || {
-        rustc_driver::run_compiler(&args, &mut callbacks, None, None)
+        rustc_driver::run_compiler(&args, &mut callbacks, None, None, None)
     });
     std::process::exit(exit_code)
 }
