@@ -182,7 +182,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         // for &proc_id in &task.procedures {
         //     let proc_name = self.env.get_absolute_item_name(proc_id);
         //     let proc_span = self.env.get_item_span(proc_id);
-        //     let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
+        //     let is_pure_function = self.env.has_prusti_attribute(proc_id, "pure");
 
         //     let support_status = if is_pure_function {
         //         validator.pure_function_support_status(proc_id)

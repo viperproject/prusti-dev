@@ -212,24 +212,17 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         match base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(_, ty, _) => {
-                // let access = if encoded_base.is_addr_of() {
-                //     encoded_base.get_parent().unwrap()
-                // } else {
-                //     match encoded_base {
-                //         vir::Expr::AddrOf(box base_base_place, _, _) => base_base_place,
-                //         _ => {
-                //             let ref_field = self.encoder.encode_dereference_field(ty);
-                //             encoded_base.field(ref_field)
-                //         }
-                //     }
-                // };
-                let access =
+                let access = if encoded_base.is_addr_of() {
+                    // Simplify `*&<expr>` ==> `<expr>`
+                    encoded_base.get_parent().unwrap()
+                } else {
                     match encoded_base {
                         vir::Expr::AddrOf(box base_place, _, _) => base_place,
                         _ => {
                             let ref_field = self.encoder().encode_dereference_field(ty);
                             encoded_base.field(ref_field)
                         }
+                    }
                 };
                 (access, ty, None)
             }
@@ -309,14 +302,9 @@ pub struct MirEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     mir: &'p mir::Body<'tcx>,
     def_id: DefId,
-    namespace: String,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for MirEncoder<'p, 'v, 'tcx> {
-
-    fn namespace(&self) -> &str {
-        &self.namespace
-    }
 
     fn encoder(&self) -> &Encoder<'v, 'tcx> {
         self.encoder
@@ -339,22 +327,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             encoder,
             mir,
             def_id,
-            namespace: "".to_string(),
-        }
-    }
-
-    pub fn new_with_namespace(
-        encoder: &'p Encoder<'v, 'tcx>,
-        mir: &'p mir::Body<'tcx>,
-        def_id: DefId,
-        namespace: String,
-    ) -> Self {
-        trace!("MirEncoder constructor with namespace");
-        MirEncoder {
-            encoder,
-            mir,
-            def_id,
-            namespace,
         }
     }
 

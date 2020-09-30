@@ -297,28 +297,43 @@ pub fn has_extern_spec_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "extern_spec")
 }
 
-// pub fn get_attr_value(attr: &ast::Attribute) -> String {
-//     use syntax::parse::token;
-//     use syntax::tokenstream::TokenTree;
+/// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.
+pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<String> {
+    let mut strings = vec![];
+    for attr in attrs {
+        if let ast::AttrKind::Normal(ast::AttrItem {
+                                         path: ast::Path { span: _, segments, tokens: _ },
+                                         args: ast::MacArgs::Eq(_, tokens),
+                                         tokens: _,
+                                     }) = &attr.kind {
+            // Skip attributes whose path don't match with "prusti::<attr_name>"
+            if !(
+                segments.len() == 2 &&
+                    segments[0].ident.name.with(|name| name == "prusti") &&
+                    segments[1].ident.name.with(|name| name == attr_name)
+            ) {
+                continue;
+            }
+            use rustc_ast::token::Lit;
+            use rustc_ast::token::Token;
+            use rustc_ast::token::TokenKind;
+            use rustc_ast::tokenstream::TokenTree;
+            match &tokens.0[0].0 {
+                TokenTree::Token(Token {
+                                     kind: TokenKind::Literal(Lit { symbol, .. }),
+                                     ..
+                                 }) => {
+                    strings.push(symbol.as_str().replace("\\\"", "\""))
+                }
+                x => unreachable!("{:?}", x),
+            }
+        };
+    }
+    strings
+}
 
-//     let trees: Vec<_> = attr.tokens.trees().collect();
-//     assert_eq!(trees.len(), 2);
-
-//     match trees[0] {
-//         TokenTree::Token(_, ref token) => assert_eq!(*token, token::Token::Eq),
-//         _ => unreachable!(),
-//     };
-
-//     match trees[1] {
-//         TokenTree::Token(_, ref token) => match *token {
-//             token::Token::Literal(ref lit, None) => match *lit {
-//                 token::Lit::Str_(ref name) | token::Lit::StrRaw(ref name, _) => {
-//                     name.as_str().to_string()
-//                 }
-//                 _ => unreachable!(),
-//             },
-//             _ => unreachable!(),
-//         },
-//         _ => unreachable!(),
-//     }
-// }
+/// Read the value stored in a single Prusti attribute (e.g. `prusti::<attr_name>="...")`.
+/// Panics if there is more than one such attribute.
+pub fn read_prusti_attr(attr_name: &str, attrs: &[ast::Attribute]) -> Option<String> {
+    read_prusti_attrs(attr_name, attrs).pop()
+}

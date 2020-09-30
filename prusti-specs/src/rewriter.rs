@@ -31,9 +31,11 @@ impl AstRewriter {
             spec_id_generator: SpecificationIdGenerator::new(),
         }
     }
+
     pub fn generate_spec_id(&mut self) -> untyped::SpecificationId {
         self.spec_id_generator.generate()
     }
+
     /// Parse an assertion.
     pub fn parse_assertion(
         &mut self,
@@ -42,6 +44,7 @@ impl AstRewriter {
     ) -> syn::Result<untyped::Assertion> {
         untyped::Assertion::parse(tokens, spec_id, &mut self.expr_id_generator)
     }
+
     /// Parse a pledge.
     pub fn parse_pledge(
         &mut self,
@@ -51,6 +54,7 @@ impl AstRewriter {
     ) -> syn::Result<untyped::Pledge> {
         untyped::Pledge::parse(tokens, spec_id_lhs, spec_id_rhs, &mut self.expr_id_generator)
     }
+
     /// Check whether function `item` contains a parameter called `keyword`. If
     /// yes, return its span.
     fn check_contains_keyword_in_params(&self, item: &syn::ItemFn, keyword: &str) -> Option<Span> {
@@ -69,6 +73,7 @@ impl AstRewriter {
         }
         None
     }
+
     fn generate_result_arg(&self, item: &syn::ItemFn) -> syn::FnArg {
         let output_ty = match &item.sig.output {
             syn::ReturnType::Default => syn::parse_quote!{ () },
@@ -84,6 +89,7 @@ impl AstRewriter {
         );
         fn_arg
     }
+
     /// Generate a dummy function for checking the given precondition or postcondition.
     ///
     /// `spec_type` should be either `"pre"` or `"post"`.
@@ -124,6 +130,7 @@ impl AstRewriter {
         }
         Ok(syn::Item::Fn(spec_item))
     }
+
     /// Generate statements for checking the given loop invariant.
     pub fn generate_spec_loop(
         &mut self,
@@ -136,14 +143,15 @@ impl AstRewriter {
         let assertion_json = crate::specifications::json::to_json_string(&assertion);
         quote! {
             #[prusti::spec_only]
+            #[prusti::loop_body_invariant_spec]
             #[prusti::spec_id = #spec_id_str]
             #[prusti::assertion = #assertion_json]
-            let _prusti_loop_invariant =
-            {
+            || {
                 #statements
             };
         }
     }
+
     /// Generate statements for checking a closure specification.
     /// TODO: arguments, result (types are typically not known yet after parsing...)
     pub fn generate_cl_spec(

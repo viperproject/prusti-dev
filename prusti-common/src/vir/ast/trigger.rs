@@ -41,4 +41,13 @@ impl Trigger {
                 .collect(),
         )
     }
+
+    pub fn replace_multiple_places(self, replacements: &[(Expr, Expr)]) -> Self {
+        Trigger(
+            self.0
+                .into_iter()
+                .map(|x| x.replace_multiple_places(replacements))
+                .collect(),
+        )
+    }
 }

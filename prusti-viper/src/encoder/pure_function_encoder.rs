@@ -46,7 +46,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             encoder,
             mir,
             proc_def_id,
-            "_pure".to_string(),
             is_encoding_assertion,
         );
         PureFunctionEncoder {
@@ -138,7 +137,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // TODO: Clean up code duplication:
         //let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
         let contract = {
-            let opt_fun_spec = self.encoder.get_spec_by_def_id(self.proc_def_id);
+            let opt_fun_spec = self.encoder.get_procedure_specs(self.proc_def_id);
             let fun_spec = match opt_fun_spec {
                 Some(fun_spec) => fun_spec.clone(),
                 None => {
@@ -251,7 +250,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             self.encoder.get_used_viper_predicates_map(),
         )
         .ok()
-        .unwrap() // TODO: return a result
+        .expect(
+            &format!("failed generation of folding/unfolding in {:?}", self.proc_def_id)
+        ) // TODO: return a `Result<..>`
     }
 
     /// Encode the precondition with two expressions:
@@ -287,7 +288,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             func_spec.push(self.encoder.encode_assertion(
                 &item,
                 &self.mir,
-                &"",
+                None,
                 &encoded_args,
                 None,
                 true,
@@ -324,7 +325,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let encoded_postcond = self.encoder.encode_assertion(
                 &item,
                 &self.mir,
-                &"",
+                None,
                 &encoded_args,
                 Some(&encoded_return.clone().into()),
                 true,
@@ -375,7 +376,6 @@ pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     mir: &'p mir::Body<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
-    namespace: String,
     /// True if the encoder is currently encoding an assertion and not a pure function body. This
     /// flag is used to distinguish when assert terminators should be translated into `false` and
     /// when to a undefined function calls. This distinction allows overflow checks to be checked
@@ -391,14 +391,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         encoder: &'p Encoder<'v, 'tcx>,
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
-        namespace: String,
         is_encoding_assertion: bool,
     ) -> Self {
         PureFunctionBackwardInterpreter {
             encoder,
             mir,
-            mir_encoder: MirEncoder::new_with_namespace(encoder, mir, def_id, namespace.clone()),
-            namespace,
+            mir_encoder: MirEncoder::new(encoder, mir, def_id),
             is_encoding_assertion,
         }
     }
@@ -489,7 +487,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 assert!(states.is_empty());
                 trace!("Return type: {:?}", self.mir.return_ty());
                 let return_type = self.encoder.encode_type(self.mir.return_ty());
-                let return_var = vir::LocalVar::new(format!("{}_0", self.namespace), return_type);
+                let return_var = vir::LocalVar::new("_0", return_type);
                 MultiExprBackwardInterpreterState::new_single(
                     self.encoder.encode_value_expr(
                         vir::Expr::local(return_var.into()),
@@ -660,7 +658,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             _ => {
                                 let mut is_cmp_call = false;
                                 let is_pure_function =
-                                    self.encoder.env().has_attribute_name(def_id, "pure");
+                                    self.encoder.env().has_prusti_attribute(def_id, "pure");
                                 let (function_name, return_type) = if is_pure_function {
                                     self.encoder.encode_pure_function_use(def_id)
                                 } else {

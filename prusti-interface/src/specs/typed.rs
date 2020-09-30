@@ -9,21 +9,6 @@ use std::collections::HashMap;
 pub use common::{ExpressionId, SpecType, SpecificationId};
 use crate::data::ProcedureDefId;
 
-#[derive(Debug, Clone)]
-pub enum SpecificationMapElement<'tcx> {
-    Assertion(Assertion<'tcx>),
-    Loop(LoopSpecification<'tcx>),
-}
-
-impl<'tcx> SpecificationMapElement<'tcx> {
-    pub fn as_assertion(&self) -> &Assertion<'tcx> {
-        match self {
-            SpecificationMapElement::Assertion(assertion) => assertion,
-            _ => unreachable!(),
-        }
-    }
-}
-
 /// A specification that has no types associated with it.
 pub type Specification<'tcx> = common::Specification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A set of untyped specifications associated with a single element.
@@ -33,7 +18,7 @@ pub type LoopSpecification<'tcx> = common::LoopSpecification<ExpressionId, Local
 /// A set of untyped specifications associated with a procedure.
 pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A map of untyped specifications for a specific crate.
-pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, SpecificationMapElement<'tcx>>;
+pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, Assertion<'tcx>>;
 /// A map of untyped external specifications.
 pub type ExternSpecificationMap<'tcx> = HashMap<ProcedureDefId, (Option<ProcedureDefId>, ProcedureDefId)>;
 /// An assertion that has no types associated with it.

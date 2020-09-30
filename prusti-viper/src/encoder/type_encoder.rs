@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::foldunfold;
-use crate::encoder::spec_encoder::SpecEncoder;
 use crate::encoder::utils::range_extract;
 use crate::encoder::utils::PlusOne;
 use crate::encoder::Encoder;
@@ -538,22 +537,19 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     let tcx = self.encoder.env().tcx();
 
                     let mut specs: Vec<typed::SpecificationSet> = Vec::new();
-                    if let Some(spec) = self.encoder.get_spec_by_def_id(adt_def.did) {
+                    if let Some(spec) = self.encoder.get_procedure_specs(adt_def.did) {
                         specs.push(spec);
                     }
 
                     let traits = self.encoder.env().get_traits_decls_for_type(&self.ty);
                     for trait_id in traits {
-                        if let Some(spec) = self.encoder.get_spec_by_def_id(trait_id) {
+                        if let Some(spec) = self.encoder.get_procedure_specs(trait_id) {
                             specs.push(spec);
                         }
                     }
 
                     for spec in specs.into_iter() {
                         //let encoded_args = vec![vir::Expr::from(self_local_var.clone())];
-                        let encoded_args = vec![];
-                        let spec_encoder = SpecEncoder::new_simple(self.encoder, &encoded_args);
-
                         let mut hacky_folder = HackyExprFolder {
                             saelf: self_local_var.clone(),
                         };
@@ -561,7 +557,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         match spec {
                             typed::SpecificationSet::Struct(items) => {
                                 for item in items {
-                                    let enc = spec_encoder.encode_assertion(&item.assertion);
+                                    // let enc = encode_simple_spec_assertion(
+                                    //     self.encoder,
+                                    //     &[],
+                                    //     &item.assertion
+                                    // );
+                                    let enc = unimplemented!(
+                                        "TODO: type invariants need to be upgraded \
+                                        to the new compiler version"
+                                    );
                                     // OPEN TODO: hacky fix here to convert the closure var to "self"...
                                     let enc = hacky_folder.fold(enc);
                                     exprs.push(enc);

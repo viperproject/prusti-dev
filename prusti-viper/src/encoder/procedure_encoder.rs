@@ -62,6 +62,7 @@ use rustc_attr::IntType::SignedInt;
 use rustc_span::{MultiSpan, Span};
 use prusti_interface::specs::typed;
 use ::log::{trace, debug, error};
+use std::borrow::Borrow as StdBorrow;
 
 type Result<T> = std::result::Result<T, EncodingError>;
 
@@ -1903,7 +1904,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                         _ => {
                             let is_pure_function =
-                                self.encoder.env().has_attribute_name(def_id, "pure");
+                                self.encoder.env().has_prusti_attribute(def_id, "pure");
                             if is_pure_function {
                                 let (function_name, _) = self.encoder.encode_pure_function_use(def_id);
                                 debug!("Encoding pure function call '{}'", function_name);
@@ -2728,7 +2729,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let value = self.encoder.encode_assertion(
                 &assertion,
                 &self.mir,
-                &"",
+                None,
                 &encoded_args,
                 None,
                 false,
@@ -2741,7 +2742,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.encoder.encode_assertion(
                 &pw,
                 &self.mir,
-                &"",
+                None,
                 &encoded_args,
                 None,
                 false,
@@ -2879,7 +2880,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.encoder.encode_assertion(
                         &body_lhs,
                         &self.mir,
-                        pre_label,
+                        Some(pre_label),
                         &encoded_args,
                         Some(&encoded_return),
                         false,
@@ -2892,7 +2893,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let mut assertion_rhs = self.encoder.encode_assertion(
                     &body_rhs,
                     &self.mir,
-                    pre_label,
+                    Some(pre_label),
                     &encoded_args,
                     Some(&encoded_return),
                     false,
@@ -3077,7 +3078,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let mut assertion = self.encoder.encode_assertion(
                 &typed_assertion,
                 &self.mir,
-                pre_label,
+                Some(pre_label),
                 &encoded_args,
                 Some(&encoded_return),
                 false,
@@ -3095,7 +3096,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let assertion = self.encoder.encode_assertion(
                 &ps,
                 &self.mir,
-                pre_label,
+                Some(pre_label),
                 &encoded_args,
                 Some(&encoded_return),
                 false,
@@ -3740,27 +3741,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             spec_blocks
         );
 
+        // `body_invariant!(..)` is desugared to a closure with special attributes,
+        // which we can detect and use to retrieve the specification.
         let mut spec_ids = vec![];
         for bbi in spec_blocks {
             for stmt in &self.mir.basic_blocks()[bbi].statements {
                 if let mir::StatementKind::Assign(box (
                     _,
                     mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
-                )) = stmt.kind
-                {
-                    debug!("cl_def_id: {:?}", cl_def_id);
-                    unimplemented!();
-                    // if let Some(spec_id) = self
-                    //     .encoder
-                    //     .get_opt_spec_id(cl_def_id)
-                    // {
-                    //     spec_ids.push(spec_id);
-                    // }
+                )) = stmt.kind {
+                    spec_ids.extend(
+                        self.encoder.get_loop_specs(cl_def_id)
+                    );
                 }
             }
         }
         trace!("spec_ids: {:?}", spec_ids);
-        assert!(spec_ids.len() <= 1, "a loop has multiple specification ids");
 
         let mut encoded_specs = vec![];
         let mut encoded_spec_spans = vec![];
@@ -3771,32 +3767,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|local| self.mir_encoder.encode_local(local).unwrap().into()) // will panic if attempting to encode unsupported type
                 .collect();
             for spec_id in &spec_ids {
-                let spec_set = self.encoder.spec().get(spec_id).unwrap();
-                match spec_set {
-                    typed::SpecificationMapElement::Loop(ref specs) => {
-                        for assertion in specs.invariant.iter() {
-                            // TODO: Mmm... are these parameters correct?
-                            let encoded_spec = self.encoder.encode_assertion(
-                                &assertion,
-                                &self.mir,
-                                PRECONDITION_LABEL,
-                                &encoded_args,
-                                None,
-                                false,
-                                Some(loop_inv_block),
-                                ErrorCtxt::GenericExpression,
-                            );
-                            let spec_spans = typed::Spanned::get_spans(assertion, &self.mir, self.encoder.env().tcx());
-                            let spec_pos = self
-                                .encoder
-                                .error_manager()
-                                .register_span(spec_spans.clone());
-                            encoded_specs.push(encoded_spec.set_default_pos(spec_pos));
-                            encoded_spec_spans.extend(spec_spans);
-                        }
-                    }
-                    ref x => unreachable!("{:?}", x),
-                }
+                let assertion = self.encoder.spec().get(spec_id).unwrap();
+                // TODO: Mmm... are these parameters correct?
+                let encoded_spec = self.encoder.encode_assertion(
+                    &assertion,
+                    &self.mir,
+                    Some(PRECONDITION_LABEL),
+                    &encoded_args,
+                    None,
+                    false,
+                    Some(loop_inv_block),
+                    ErrorCtxt::GenericExpression,
+                );
+                let spec_spans = typed::Spanned::get_spans(assertion, &self.mir, self.encoder.env().tcx());
+                let spec_pos = self
+                    .encoder
+                    .error_manager()
+                    .register_span(spec_spans.clone());
+                encoded_specs.push(encoded_spec.set_default_pos(spec_pos));
+                encoded_spec_spans.extend(spec_spans);
             }
             trace!("encoded_specs: {:?}", encoded_specs);
         }
@@ -3968,10 +3957,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 kind => unreachable!("Only calls are expected. Found: {:?}", kind),
             }
         } else {
-            let (mir, _) = self.encoder.env().tcx().mir_promoted(
-                ty::WithOptConstParam::unknown(containing_def_id.expect_local())
-            );
-            let mir = mir.borrow();
+            let ref_mir = self.encoder.env().mir(containing_def_id.expect_local());
+            let mir = ref_mir.borrow();
             let return_ty = mir.return_ty();
             let arg_tys = mir.args_iter().map(|arg| mir.local_decls[arg].ty).collect();
             FakeMirEncoder::new(self.encoder, arg_tys, Some(return_ty))

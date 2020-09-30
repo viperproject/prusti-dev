@@ -6,22 +6,17 @@
 
 //! This module defines the interface provided to a verifier.
 
+use rustc_middle::mir;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::DefId;
 use rustc_middle::ty::{self, TyCtxt};
 use std::path::PathBuf;
+use std::cell::Ref;
 
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
 use rustc_hir as hir;
-// use rustc::hir::def_id::DefId;
-// use rustc::ty;
-// use rustc::ty::TyCtxt;
-// use rustc_driver::driver;
 use std::collections::HashSet;
-// use syntax::attr;
-// use syntax_pos::FileName;
-// use syntax_pos::MultiSpan;
-// use syntax_pos::symbol::Symbol;
+use rustc_hir::def_id::LocalDefId;
 
 use log::debug;
 
@@ -153,11 +148,6 @@ impl<'tcx> Environment<'tcx> {
         self.tcx.sess.has_errors()
     }
 
-    // /// Aborts in case of error.
-    // pub fn abort_if_errors(&self) {
-    //     self.state.session.abort_if_errors();
-    // }
-
     /// Get ids of Rust procedures that are annotated with a Prusti specification
     pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
         let tcx = self.tcx;
@@ -172,23 +162,8 @@ impl<'tcx> Environment<'tcx> {
         result
     }
 
-    // TODO: Use encoder.get_opt_spec_id instead.
-    // pub fn get_attr(&self, def_id: ProcedureDefId, name: &str) -> Option<String> {
-    //     let tcx = self.tcx();
-    //     let opt_node_id = tcx.hir.as_local_node_id(def_id);
-    //     match opt_node_id {
-    //         None => None,
-    //         Some(node_id) => tcx
-    //             .hir
-    //             .attrs(node_id)
-    //             .iter()
-    //             .find(|item| item.path.to_string() == name)
-    //             .map(get_attr_value),
-    //     }
-    // }
-
-    /// Find whether the procedure has a particular attribute
-    pub fn has_attribute_name(&self, def_id: ProcedureDefId, name: &str) -> bool {
+    /// Find whether the procedure has a particular `prusti::<name>` attribute.
+    pub fn has_prusti_attribute(&self, def_id: ProcedureDefId, name: &str) -> bool {
         let tcx = self.tcx();
         crate::utils::has_prusti_attr(tcx.get_attrs(def_id), name)
     }
@@ -228,6 +203,13 @@ impl<'tcx> Environment<'tcx> {
     /// Get a Procedure.
     pub fn get_procedure<'a>(&'a self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
         Procedure::new(self.tcx(), proc_def_id)
+    }
+
+    /// Get the MIR or a procedure.
+    pub fn mir<'a>(&self, def_id: LocalDefId) -> Ref<'a, mir::Body<'tcx>> {
+        self.tcx().mir_promoted(
+            ty::WithOptConstParam::unknown(def_id)
+        ).0.borrow()
     }
 
     /// Get all relevant trait declarations for some type.

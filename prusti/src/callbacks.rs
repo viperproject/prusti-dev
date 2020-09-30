@@ -54,13 +54,15 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             let extern_specs = visitor.determine_extern_procedure_specs(&env);
             let type_map = visitor.determine_typed_procedure_specs();
             if self.flags.print_typeckd_specs {
-                let uuid = Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}").unwrap();
-                let num_uuid = Regex::new("[a-z0-9]{32}").unwrap();
                 let mut values: Vec<_> = type_map
                     .values()
                     .map(|spec| format!("{:?}", spec))
                     .collect();
                 if self.flags.hide_uuids {
+                    let uuid = Regex::new(
+                        "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}"
+                    ).unwrap();
+                    let num_uuid = Regex::new("[a-z0-9]{32}").unwrap();
                     let mut replaced_values: Vec<String> = vec![];
                     for item in values {
                         let item = num_uuid.replace_all(&item, "$(NUM_UUID)");
