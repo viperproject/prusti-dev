@@ -25,7 +25,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Generates the stack trace from a Java Exception
-    pub fn get_stack_trace(&self, t: JObject) -> JniResult<String> {
+    pub fn get_stack_trace(&self, t: JObject<'a>) -> JniResult<String> {
         let sw = java::io::StringWriter::with(self.env).new()?;
         let pw = java::io::PrintWriter::with(self.env).new(sw)?;
         java::lang::Throwable::with(self.env).call_printStackTrace(t, pw)?;
@@ -67,7 +67,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Converts a Rust Option<JObject> to a Scala Option
-    pub fn new_option(&self, opt: Option<JObject>) -> JObject {
+    pub fn new_option(&self, opt: Option<JObject<'a>>) -> JObject<'a> {
         match opt {
             Some(o) => self.unwrap_result(scala::Some::with(self.env).new(o)),
             None => self.unwrap_result(scala::None_object::with(self.env).singleton()),
@@ -75,11 +75,11 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Converts a Rust String to a Java String
-    pub fn new_string<S: Into<JNIString>>(&self, string: S) -> JObject {
+    pub fn new_string<S: Into<JNIString>>(&self, string: S) -> JObject<'a> {
         self.unwrap_result(self.env.new_string(string)).into()
     }
 
-    pub fn new_map(&self, items: &[(JObject, JObject)]) -> JObject {
+    pub fn new_map(&self, items: &[(JObject<'a>, JObject<'a>)]) -> JObject<'a> {
         let hash_map_wrapper = scala::collection::immutable::HashMap::with(self.env);
         let mut result = self.unwrap_result(hash_map_wrapper.new());
         for &(k, v) in items {
@@ -131,7 +131,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Convert a Scala Seq to a Rust Vec<JObject>
-    pub fn seq_to_vec(&self, sequence: JObject) -> Vec<JObject> {
+    pub fn seq_to_vec(&self, sequence: JObject<'a>) -> Vec<JObject<'a>> {
         let mut res: Vec<JObject> = vec![];
         let seq_wrapper = scala::collection::Seq::with(self.env);
         let length = self.unwrap_result(seq_wrapper.call_length(sequence));
@@ -161,7 +161,7 @@ impl<'a> JniUtils<'a> {
 
     /// Converts a Scala Seq to a Java Array
     #[allow(dead_code)]
-    pub fn seq_to_array(&self, sequence: JObject, elements_class_ref: &str) -> JObject {
+    pub fn seq_to_array(&self, sequence: JObject<'a>, elements_class_ref: &str) -> JObject<'a> {
         let elements_class = self.unwrap_result(self.env.find_class(elements_class_ref));
         let class_tag_object_wrapper = scala::reflect::ClassTag_object::with(self.env);
         let class_tag_object = self.unwrap_result(class_tag_object_wrapper.singleton());

@@ -7,7 +7,6 @@
 extern crate env_logger;
 extern crate error_chain;
 extern crate jni_gen;
-extern crate reqwest;
 extern crate tempdir;
 
 use error_chain::ChainedError;
@@ -32,14 +31,15 @@ fn main() {
         Some(location) => location,
         None => {
             let target = "https://repo.maven.apache.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar";
-            let mut response = reqwest::get(target).unwrap_or_else(|e| {
-                panic!(e.to_string());
-            });
+            let response = ureq::get(target).call();
+            if let Some(error) = response.synthetic_error() {
+                panic!(error.to_string());
+            }
             let fname = deps_dir.path().join("asm.jar");
             let mut dest = File::create(fname.clone()).unwrap_or_else(|e| {
                 panic!(e.to_string());
             });
-            copy(&mut response, &mut dest).unwrap_or_else(|e| {
+            copy(&mut response.into_reader(), &mut dest).unwrap_or_else(|e| {
                 panic!(e.to_string());
             });
             fname.to_str().unwrap().to_string()

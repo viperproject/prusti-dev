@@ -21,7 +21,7 @@ pub fn generate_constructor(
 
     let constructors = env
         .call_method(
-            clazz.into(),
+            clazz,
             "getConstructors",
             "()[Ljava/lang/reflect/Constructor;",
             &[],

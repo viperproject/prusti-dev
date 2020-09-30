@@ -24,7 +24,7 @@ impl<'a> AstUtils<'a> {
     }
 
     /// Returns a vector of consistency errors, or a Java exception
-    pub(crate) fn check_consistency(&self, program: Program) -> Result<Vec<JObject>, JavaException> {
+    pub(crate) fn check_consistency(&self, program: Program<'a>) -> Result<Vec<JObject<'a>>, JavaException> {
         self.jni.unwrap_or_exception(
             silver::ast::Node::with(self.env).call_checkTransitively(program.to_jobject()),
         ).map(
@@ -32,7 +32,7 @@ impl<'a> AstUtils<'a> {
         )
     }
 
-    pub fn pretty_print(&self, program: Program) -> String {
+    pub fn pretty_print(&self, program: Program<'a>) -> String {
         let fast_pretty_printer_wrapper =
             silver::ast::pretty::FastPrettyPrinter_object::with(self.env);
         self.jni.get_string(
@@ -46,7 +46,7 @@ impl<'a> AstUtils<'a> {
         )
     }
 
-    pub fn to_string(&self, program: Program) -> String {
+    pub fn to_string(&self, program: Program<'a>) -> String {
         self.jni.to_string(program.to_jobject())
     }
 

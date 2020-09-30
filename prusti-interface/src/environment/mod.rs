@@ -181,7 +181,7 @@ impl<'tcx> Environment<'tcx> {
     pub fn get_item_def_path(&self, def_id: DefId) -> String {
         let def_path = self.tcx.def_path(def_id);
         let mut crate_name = self.tcx.crate_name(def_path.krate).to_string();
-        crate_name.push_str(&def_path.to_string_no_crate());
+        crate_name.push_str(&def_path.to_string_no_crate_verbose());
         crate_name
     }
 

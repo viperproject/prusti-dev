@@ -274,14 +274,8 @@ pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
                                   tokens: _,
                               }) => {
             segments.len() == 2
-                && segments[0]
-                .ident
-                .name
-                .with(|attr_name| attr_name == "prusti")
-                && segments[1]
-                .ident
-                .name
-                .with(|attr_name| attr_name == name)
+                && segments[0].ident.as_str() == "prusti"
+                && segments[1].ident.as_str() == name
         }
         _ => false,
     })
@@ -308,9 +302,9 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
                                      }) = &attr.kind {
             // Skip attributes whose path don't match with "prusti::<attr_name>"
             if !(
-                segments.len() == 2 &&
-                    segments[0].ident.name.with(|name| name == "prusti") &&
-                    segments[1].ident.name.with(|name| name == attr_name)
+                segments.len() == 2
+                    && segments[0].ident.as_str() == "prusti"
+                    && segments[1].ident.as_str() == attr_name
             ) {
                 continue;
             }
