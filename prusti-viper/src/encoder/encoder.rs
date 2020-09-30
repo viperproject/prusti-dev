@@ -1389,6 +1389,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         final_name.push_str(
             &name
                 .replace("::", "$$")
+                .replace("#", "$sharp$")
                 .replace("<", "$openang$")
                 .replace(">", "$closeang$")
                 .replace("(", "$openrou$")
