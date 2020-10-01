@@ -11,21 +11,21 @@ use prusti_server::ServerSideService;
 use std::{env, path::PathBuf};
 
 fn get_prusti_rustc_path() -> PathBuf {
-    let local_prusti_rustc_path: PathBuf = if cfg!(windows) {
-        ["target", "debug", "prusti-rustc.exe"].iter().collect()
+    let target_directory = if cfg!(debug_assertions) {
+        "debug"
     } else {
-        ["target", "debug", "prusti-rustc"].iter().collect()
+        "release"
     };
-    let workspace_prusti_rustc_path: PathBuf = if cfg!(windows) {
-        ["..", "target", "debug", "prusti-rustc.exe"]
-            .iter()
-            .collect()
+    let executable_name = if cfg!(windows) {
+        "prusti-rustc.exe"
     } else {
-        ["..", "target", "debug", "prusti-rustc"].iter().collect()
+        "prusti-rustc"
     };
+    let local_prusti_rustc_path: PathBuf = ["target", target_directory, executable_name].iter().collect();
     if local_prusti_rustc_path.exists() {
         return local_prusti_rustc_path;
     }
+    let workspace_prusti_rustc_path: PathBuf = ["..", "target", target_directory, executable_name].iter().collect();
     if workspace_prusti_rustc_path.exists() {
         return workspace_prusti_rustc_path;
     }
