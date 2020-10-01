@@ -47,8 +47,10 @@ pub fn find_libjvm<S: AsRef<Path>>(path: S) -> Option<PathBuf> {
     const EXPECTED_JVM_FILENAME: &str = "jvm.dll";
     #[cfg(target_os = "linux")]
     const EXPECTED_JVM_FILENAME: &str = "libjvm.so";
+    // On MacOS, we need to link to libjli instead of libjvm as a workaround to a Java8 bug.
+    // See: https://github.com/jni-rs/jni-rs/pull/230
     #[cfg(target_os = "macos")]
-    const EXPECTED_JVM_FILENAME: &str = "libjvm.dylib";
+    const EXPECTED_JVM_FILENAME: &str = "libjli.dylib";
 
     let walker = walkdir::WalkDir::new(path).follow_links(true);
 

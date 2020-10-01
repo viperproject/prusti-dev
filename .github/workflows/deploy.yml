@@ -1,0 +1,106 @@
+name: Continuous deployment
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  RUST_BACKTRACE: 1
+  PRUSTI_ASSERT_TIMEOUT: 60000
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+      # Don't cancel when one matrix job fails, so we can compare to the others.
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Setup Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1.0.6
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Build with cargo --release
+        run: python x.py build --all --verbose --release
+      - name: Run "quick" cargo tests
+        run: python x.py test --all --verbose quick
+      - name: Upload Prusti artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: prusti-release-${{ matrix.os }}
+          if-no-files-found: error
+          path: |
+            rust-toolchain
+            viper_tools/
+            target/release/prusti-driver
+            target/release/prusti-server-driver
+            target/release/prusti-server
+            target/release/prusti-rustc
+            target/release/cargo-prusti
+            target/release/libprusti_contracts.rlib
+            target/release/libprusti_contracts_internal.*
+            !target/release/libprusti_contracts_internal.d
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download all Prusti artifacts
+        uses: actions/download-artifact@v2
+      - name: Package Prusti artifacts
+        shell: bash
+        run: |
+          for os in ubuntu-latest windows-latest macos-latest
+          do
+            echo "Package Prusti artifact for $os"
+            cd prusti-release-$os
+            mv target/release/* .
+            rm -rf target
+            zip -r prusti.zip *
+            cd ..
+          done
+      - name: Create GitHub release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload release asset for Ubuntu
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./prusti-release-ubuntu-latest/prusti.zip
+          asset_name: prusti-release-ubuntu.zip
+          asset_content_type: application/zip
+      - name: Upload release asset for Windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./prusti-release-windows-latest/prusti.zip
+          asset_name: prusti-release-windows.zip
+          asset_content_type: application/zip
+      - name: Upload release asset for MacOS
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./prusti-release-macos-latest/prusti.zip
+          asset_name: prusti-release-macos.zip
+          asset_content_type: application/zip
