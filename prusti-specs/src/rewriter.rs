@@ -115,6 +115,7 @@ impl AstRewriter {
         let spec_id_str = spec_id.to_string();
         let assertion_json = crate::specifications::json::to_json_string(&assertion);
         let mut spec_item: syn::ItemFn = syn::parse_quote! {
+            #[allow(unused_must_use, unused_variables)]
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
             #[prusti::assertion = #assertion_json]
@@ -142,6 +143,7 @@ impl AstRewriter {
         let spec_id_str = spec_id.to_string();
         let assertion_json = crate::specifications::json::to_json_string(&assertion);
         quote! {
+            #[allow(unused_must_use, unused_variables)]
             #[prusti::spec_only]
             #[prusti::loop_body_invariant_spec]
             #[prusti::spec_id = #spec_id_str]
