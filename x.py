@@ -77,11 +77,11 @@ def get_mac_env():
     if os.path.exists(java_home):
         ld_library_path = None
         for root, _, files in os.walk(java_home):
-            if 'libjvm.dylib' in files:
+            if 'libjli.dylib' in files:
                 ld_library_path = root
                 break
         if ld_library_path is None:
-            report("could not find libjvm.dylib in {}", java_home)
+            report("could not find libjli.dylib in {}", java_home)
         else:
             variables.append(('LD_LIBRARY_PATH', ld_library_path))
             variables.append(('DYLD_LIBRARY_PATH', ld_library_path))
