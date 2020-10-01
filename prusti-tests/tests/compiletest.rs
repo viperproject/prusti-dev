@@ -11,17 +11,31 @@ use prusti_server::ServerSideService;
 use std::{env, path::PathBuf};
 
 fn get_prusti_rustc_path() -> PathBuf {
-    let local_prusti_rustc_path: PathBuf = if cfg!(windows) {
-        ["target", "debug", "prusti-rustc.exe"].iter().collect()
+    let local_prusti_rustc_path: PathBuf = if cfg!(debug_assertions) {
+        if cfg!(windows) {
+            ["target", "debug", "prusti-rustc.exe"].iter().collect()
+        } else {
+            ["target", "debug", "prusti-rustc"].iter().collect()
+        }
     } else {
-        ["target", "debug", "prusti-rustc"].iter().collect()
+        if cfg!(windows) {
+            ["target", "release", "prusti-rustc.exe"].iter().collect()
+        } else {
+            ["target", "release", "prusti-rustc"].iter().collect()
+        }
     };
-    let workspace_prusti_rustc_path: PathBuf = if cfg!(windows) {
-        ["..", "target", "debug", "prusti-rustc.exe"]
-            .iter()
-            .collect()
+    let workspace_prusti_rustc_path: PathBuf = if cfg!(debug_assertions) {
+        if cfg!(windows) {
+            ["..", "target", "debug", "prusti-rustc.exe"].iter().collect()
+        } else {
+            ["..", "target", "debug", "prusti-rustc"].iter().collect()
+        }
     } else {
-        ["..", "target", "debug", "prusti-rustc"].iter().collect()
+        if cfg!(windows) {
+            ["..", "target", "release", "prusti-rustc.exe"].iter().collect()
+        } else {
+            ["..", "target", "release", "prusti-rustc"].iter().collect()
+        }
     };
     if local_prusti_rustc_path.exists() {
         return local_prusti_rustc_path;
