@@ -121,14 +121,17 @@ jobs:
             zip -r prusti.zip *
             cd ..
           done
+      - name: Create release tag
+        shell: bash
+        run: echo "TAG_NAME=$(date +v-%Y-%m-%d-%H%M)" >> $GITHUB_ENV
       - name: Create GitHub release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ env.TAG_NAME }}
+          release_name: Release ${{ env.TAG_NAME }} (${{ github.sha }})
           draft: false
           prerelease: false
       - name: Upload release asset for Ubuntu
