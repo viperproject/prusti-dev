@@ -19,7 +19,7 @@ fn identity_use() {
     assert!(t.val == 6);
 }
 
-#[ensures(result.val == v)]    // TODO x.val is illegal, but we crash instead of giving a proper error.
+#[ensures(result.val == v)]    // TODO x.val is illegal, but Prusti doesn't report a readable error message.
 #[after_expiry(x.val == before_expiry(result.val))]
 fn identity2(x: &mut T, v: i32) -> &mut T {
     x.val = v;
