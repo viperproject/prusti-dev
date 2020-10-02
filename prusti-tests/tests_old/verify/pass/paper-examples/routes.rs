@@ -43,13 +43,13 @@ fn get_nth_x(r: &Route, n: i32) -> i32 {
 // Since a function (with our restrictions) can have only one magic wand
 // in its postcondition, we do not require the user to write with which
 // reference the functional specification is associated.
-#[ensures(after_expiry(
+#[after_expiry(
     length(r) == old(length(r)) &&
     get_nth_x(r, n) == before_expiry(result.x) &&
     forall(|i: i32|
         (0<=i && i<length(r) && i != n) ==>
         get_nth_x(r, i) == old(get_nth_x(r, i)))
-))]
+)]
 // See Sec. ~{\texttt{\ref{sec:promises}}}~
 fn borrow_nth(r:&mut Route, n: i32) ->
  &mut Point {

@@ -137,7 +137,7 @@ impl BestValues {
     #[trusted]
     #[requires(0 <= item_index && item_index < self.item_len())]
     #[requires(0 <= weight_index && weight_index < self.weight_len())]
-    #[ensures(after_expiry(
+    #[after_expiry(
         self.item_len() == old(self.item_len()) &&
         self.weight_len() == old(self.weight_len()) &&
         self.lookup(item_index, weight_index) == before_expiry(*result) &&
@@ -146,7 +146,7 @@ impl BestValues {
              0 <= wi && wi < self.weight_len() &&
              !(ii == item_index && wi == weight_index)) ==>
             self.lookup(ii, wi) == old(self.lookup(ii, wi)))
-    ))]
+    )]
     pub fn index_mut(&mut self, item_index: usize, weight_index: usize) -> &mut usize {
         &mut self.v[item_index][weight_index]
     }

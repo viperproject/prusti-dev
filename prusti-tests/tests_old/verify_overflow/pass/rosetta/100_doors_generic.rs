@@ -50,7 +50,7 @@ impl<T: Clone> VecWrapper<T> {
 
     #[trusted]
     #[requires(0 <= index && index < self.len())]
-    #[ensures(after_expiry(self.len() == old(self.len())))]
+    #[after_expiry(self.len() == old(self.len()))]
     pub fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.v[index]
     }

@@ -6,7 +6,7 @@ struct T {
     val: i32
 }
 
-#[ensures(after_expiry(x.val == before_expiry(result.val)))]
+#[after_expiry(x.val == before_expiry(result.val))]
 fn identity(x: &mut T) -> &mut T {
     x
 }
@@ -20,14 +20,14 @@ fn identity_use() {
 }
 
 #[ensures(result.val == v)]    // TODO x.val is illegal, but we crash instead of giving a proper error.
-#[ensures(after_expiry(x.val == before_expiry(result.val)))]
+#[after_expiry(x.val == before_expiry(result.val))]
 fn identity2(x: &mut T, v: i32) -> &mut T {
     x.val = v;
     x
 }
 
 #[ensures(*result == v)]
-#[ensures(after_expiry(x.val == before_expiry(*result)))]
+#[after_expiry(x.val == before_expiry(*result))]
 fn identity3(x: &mut T, v: i32) -> &mut i32 {
     x.val = v;
     &mut x.val
