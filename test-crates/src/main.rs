@@ -12,7 +12,7 @@ use std::fmt;
 
 use rustwide::{cmd::SandboxBuilder, Crate, Toolchain, WorkspaceBuilder};
 use serde::Deserialize;
-use log::{debug, info};
+use log::{info, error};
 
 #[derive(Debug, Deserialize)]
 struct CrateRecord {
@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     info!("Crate a new workspace...");
     let workspace = WorkspaceBuilder::new(
-        Path::new(".workspaces/test-crates-builder"),
+        Path::new("../workspaces/test-crates-builder"),
         "prusti-test-crates"
     ).init()?;
 
@@ -66,9 +66,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     info!("Iterate over all crates in the list...");
     for result in crate_list_reader.deserialize() {
         let crate_record: CrateRecord = result?;
-        debug!("Crate: {}", crate_record);
+        info!("Crate: {}", crate_record);
 
-        info!("Fetch crate {}...", crate_record);
+        info!("Fetch crate...");
         let krate = Crate::crates_io(&crate_record.name, &crate_record.version);
         krate.fetch(&workspace)?;
 
@@ -77,12 +77,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             .memory_limit(Some(1024 * 1024 * 1024))
             .enable_networking(false);
 
-        info!("Build crate {}...", crate_record);
-        let mut build_dir = workspace.build_dir("docs");
-        build_dir.build(&toolchain, &krate, sandbox).run(|build| {
+        info!("Build crate...");
+        let mut crate_build_dir = workspace.build_dir(
+            &format!("build_{}_{}", &crate_record.name, &crate_record.version)
+        );
+        let build_result = crate_build_dir.build(&toolchain, &krate, sandbox).run(|build| {
             build.cargo().args(&["check"]).run()?;
             Ok(())
-        })?;
+        });
+        if let Err(build_error) = build_result {
+            error!("Error: {}", build_error);
+        }
     }
 
     Ok(())
