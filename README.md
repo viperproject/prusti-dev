@@ -14,7 +14,7 @@ built upon the the [Viper verification infrastructure](http://www.pm.inf.ethz.ch
 
 By default Prusti verifies absence of panics by proving that statements such as `unreachable!()` and `panic!()` are unreachable.
 Overflow checking can be enabled with a configuration flag, otherwise all integers are treated as unbounded.
-In Prusti, the functional behaviour of a function can be specified by using annotations among which preconditions, postconditions, and loop invariants.
+In Prusti, the functional behaviour of a function can be specified by using annotations, among which are preconditions, postconditions, and loop invariants.
 The tool checks them, reporting error messages when the code does not adhere to the provided specification.
 
 For a tutorial and more information, check out [the wiki page](https://github.com/viperproject/prusti-dev/wiki).
