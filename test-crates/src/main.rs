@@ -62,11 +62,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     info!("Read list of crates...");
     let crate_list_file = File::open("test-crates/crates.csv")?;
     let mut crate_list_reader = csv::Reader::from_reader(crate_list_file);
+    let crate_list: Vec<CrateRecord> = crate_list_reader.deserialize().collect::<Result<_, _>>()?;
 
-    info!("Iterate over all crates in the list...");
-    for result in crate_list_reader.deserialize() {
-        let crate_record: CrateRecord = result?;
-        info!("Crate: {}", crate_record);
+    info!("Iterate over all {} crates in the list...", crate_list.len());
+    for (index, crate_record) in crate_list.iter().enumerate() {
+        info!("Crate {}/{}: {}", index, crate_list.len(), crate_record);
 
         info!("Fetch crate...");
         let krate = Crate::crates_io(&crate_record.name, &crate_record.version);
