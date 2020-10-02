@@ -583,10 +583,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
                     if num_variants == 0 {
                         debug!("ADT {:?} has no variant", adt_def);
-                    // `false` here is currently unsound. See:
-                    // * https://gitlab.inf.ethz.ch/OU-PMUELLER/prusti-dev/issues/158
-                    // * https://gitlab.inf.ethz.ch/OU-PMUELLER/prusti-dev/issues/146
-                    //exprs.push(false.into());
+                        // `false` here is currently unsound. See:
+                        // * https://gitlab.inf.ethz.ch/OU-PMUELLER/prusti-dev/issues/158
+                        // * https://gitlab.inf.ethz.ch/OU-PMUELLER/prusti-dev/issues/146
+                        //exprs.push(false.into());
                     } else if num_variants == 1 && (adt_def.is_struct() || adt_def.is_union()) {
                         debug!("ADT {:?} has only one variant", adt_def);
 
