@@ -15,11 +15,11 @@ impl Nonsense {
     // using after_expiry
 
     //#[ensures(*result == old(self.m3))]
-    //#[ensures(after_expiry(
+    //#[after_expiry(
     //    self.m2 == old(self.m2) &&
     //    self.m3 == before_expiry(*result) &&
     //    self.m5 == old(self.m5)
-    //))]
+    //)]
 
     // using assert_on_expiry
 

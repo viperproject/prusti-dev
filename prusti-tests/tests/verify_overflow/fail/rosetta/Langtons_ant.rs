@@ -61,7 +61,7 @@ impl Matrix {
     #[requires(0 <= y && y < self.y_size())]
     #[requires(0 <= x && x < self.x_size())]
     #[ensures(*result == old(self.lookup(y, x)))]
-    #[ensures(after_expiry(
+    #[after_expiry(
         self.y_size() == old(self.y_size()) &&
         self.x_size() == old(self.x_size()) &&
         self.lookup(y, x) == before_expiry(*result) &&
@@ -70,7 +70,7 @@ impl Matrix {
              0 <= j && j < self.x_size() && j != x) ==>
                 self.lookup(i, j) == old(self.lookup(i, j))
         )
-    ))]
+    )]
     fn borrow(&mut self, y: usize, x: usize) -> &mut u8 {
         &mut self.vec[y][x]
     }

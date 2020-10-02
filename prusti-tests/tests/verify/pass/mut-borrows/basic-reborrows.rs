@@ -18,7 +18,7 @@ fn check_t(_a: T) {}
 fn check_u(_a: U) {}
 
 #[ensures(*result == old(*x))]
-#[ensures(after_expiry(before_expiry(*result) == *x))]
+#[after_expiry(before_expiry(*result) == *x)]
 fn reborrow_u32(x: &mut u32) -> &mut u32 {
     x
 }

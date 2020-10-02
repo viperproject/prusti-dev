@@ -204,16 +204,29 @@ impl Board {
         return count;
     }
 }
- 
+
+/// We don't yet support the "?" Rust operator, because it uses the following calls:
+/// * std::ops::Try::from_error(..)
+/// * std::ops::Try::into_result(..)
+/// So, here is an alternative:
+macro_rules! simple_try {
+    ($e:expr) => {
+        match $e {
+            Err(err_val) => return Err(err_val),
+            Ok(ok_val) => ok_val,
+        }
+    };
+}
+
 impl fmt::Display for Board {
 
     #[trusted]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for row in self.field.v.iter() {
             for x in row.iter(){
-                try!(write!(f, "{:3} ", x));
+                simple_try!(write!(f, "{:3} ", x));
             }
-            try!(write!(f, "\n"));
+            simple_try!(write!(f, "\n"));
         }
         Ok(())
     }

@@ -4,12 +4,12 @@ struct T {
     val: i32
 }
 
-//#[ensures(after_expiry(x.val == 5))]
+//#[after_expiry(x.val == 5)]
 //fn identity2(x: &mut T) -> &mut T {
     //x
 //}
 
-#[ensures(after_expiry(x.val == before_expiry(result.val)))]
+#[after_expiry(x.val == before_expiry(result.val))]
 fn identity(x: &mut T) -> &mut T {
     x
 }

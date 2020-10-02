@@ -116,7 +116,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
     ) {
         // TODO: using `location`, skip the places that are used for typechecking
         // because that part of the generated code contains closures.
-        if self.body.contains(&location.block) {
+        if self.body.contains(&location.block) && context.is_use() {
             trace!(
                 "visit_place(place={:?}, context={:?}, location={:?})",
                 place,
@@ -134,22 +134,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                 NonMutatingUse(mir::visit::NonMutatingUseContext::Inspect) => PlaceAccessKind::Read,
                 NonMutatingUse(mir::visit::NonMutatingUseContext::SharedBorrow) =>
                     PlaceAccessKind::SharedBorrow,
-                // Store => PlaceAccessKind::Store,
-                // Copy => PlaceAccessKind::Read,
-                // Move => PlaceAccessKind::Move,
-                // Borrow {
-                //     kind: mir::BorrowKind::Shared,
-                //     ..
-                // } => PlaceAccessKind::SharedBorrow,
-                // Borrow {
-                //     kind: mir::BorrowKind::Mut { .. },
-                //     ..
-                // } => PlaceAccessKind::MutableBorrow,
-                // Call => PlaceAccessKind::Store,
-                // // FIXME: This is just a guess. Upgrade to the new
-                // // version of rustc to get proper information.
-                // Inspect => PlaceAccessKind::Read,
-                // Drop => PlaceAccessKind::Move,
+                NonUse(_) => unreachable!(),
                 x => unimplemented!("{:?}", x),
             };
             let access = PlaceAccess {
