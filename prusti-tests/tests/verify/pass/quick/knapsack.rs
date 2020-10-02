@@ -16,6 +16,8 @@
 //! +   We could not express the postcondition that the result is
 //!     correct because that requires support for comprehensions.
 
+// ignore-test: this test it's flaky because it uses nonlinear arithmetic.
+
 use prusti_contracts::*;
 
 pub struct Item {
