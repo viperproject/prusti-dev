@@ -28,6 +28,14 @@ jobs:
         uses: actions-rs/toolchain@v1.0.6
       - name: Set up the environment
         run: python x.py setup
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
       - name: Build with cargo
         run: python x.py build --all --verbose
       - name: Run "quick" cargo tests
