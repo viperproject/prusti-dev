@@ -1997,6 +1997,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             );
                         }
 
+                        "prusti_contracts::ghost::GhostInt::new" => {
+                            // let sample_ghost_int = GhostInt::new(ghost_val);
+                            //args[0] will have the integer value `ghost_val`
+                             
+                            // N.B. Do we need to encode the destination for ghost variables as well?
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            // Step 1. get a destination location for `var sample_ghost_int: Int;`
+                            // Is this viper declaration of an Int type encoded in prepare_assign_target method?
+                            // Currently, it's using the destination field from the MIR to accomplish this. I'm not sure how
+                            // destination and location are related here.
+                            stmts.extend(
+                                self.prepare_assign_target(
+                                    dst,
+                                    ref_field,
+                                    location,
+                                    vir::AssignKind::Move,
+                                )
+                            );
+                            // N.B. Is encode_value_field the right choice here?
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            // Step2. assign value = `ghost_val` to the above created destination/ location (unsure about the terminology)
+                            stmts.extend(self.encode_assign_operand(&dst.clone().field(value_field), &args[0], location));
+                        }
+
                         "std::cmp::PartialEq::eq" |
                         "core::cmp::PartialEq::eq"
                             if args.len() == 2 &&
