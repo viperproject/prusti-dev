@@ -105,8 +105,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect::<Result<Vec<CrateRecord>, _>>()?
         .into_iter()
         .map(|c| c.into())
-        // For the moment, use test only the top-10 crates.
-        .take(10)
+        // For the moment, test only a few of the crates.
+        .take(50)
         .collect();
 
     // List of crates that don't compile with the standard compiler.
