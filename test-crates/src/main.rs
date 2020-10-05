@@ -120,7 +120,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     for (index, krate) in crates_list.iter().enumerate() {
         info!("Crate {}/{}: {}", index, crates_list.len(), krate);
 
-
         info!("Fetch crate...");
         krate.fetch(&workspace)?;
 
@@ -143,7 +142,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             });
 
             if let Err(err) = build_status {
-                warn!("Build error: {:?}", err);
+                warn!("Error: {:?}", err);
                 warn!("Output:\n{}", storage);
 
                 // Do not try to verify this crate
@@ -170,6 +169,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 logging::capture(&storage, || {
                     build.cmd(&cargo_prusti)
                         .env("RUST_BACKTRACE", "1")
+                        .env("PRUSTI_ASSERT_TIMEOUT", "60000")
                         // Skip unsupported language features
                         .env("PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS", "true")
                         .run()?;
@@ -178,7 +178,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             });
 
             if let Err(err) = verification_status {
-                error!("Verification error: {:?}", err);
+                error!("Error: {:?}", err);
                 error!("Output:\n{}", storage);
 
                 // Report the failure
