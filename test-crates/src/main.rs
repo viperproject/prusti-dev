@@ -136,7 +136,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let build_status =  build_dir.build(&toolchain, &krate, sandbox).run(|build| {
                 logging::capture(&storage, || {
-                    build.cargo().args(&["check"]).run()?;
+                    build.cargo()
+                        .args(&["check"])
+                        .env("POLONIUS_ALGORITHM", "Naive")
+                        .env(
+                            "RUSTFLAGS",
+                            "-Zborrowck=mir -Zpolonius -Znll-facts -Zidentify-regions \
+                            -Zdump-mir-dir=log/mir/ -Zdump-mir=renumber -Zalways-encode-mir"
+                        )
+                        .run()?;
                     Ok(())
                 })
             });
