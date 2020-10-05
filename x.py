@@ -6,6 +6,7 @@ import os
 import platform
 import subprocess
 import sys
+import glob
 
 verbose = False
 dry_run = False
@@ -251,9 +252,44 @@ def ide(args):
     run_command(['code'] + args)
 
 
+def select_newest_file(paths):
+    """Select a file that exists and has the newest modification timestamp."""
+    existing_paths = [
+        (os.path.getmtime(path), path)
+        for path in paths if os.path.exists(path)
+    ]
+    try:
+        return next(reversed(sorted(existing_paths)))[1]
+    except:
+        error("Could not select the newest file from {}", paths)
+
+
+def verify_test(test):
+    """Runs prusti on the specified files."""
+    current_path = os.path.abspath(os.path.curdir)
+    candidate_prusti_paths = [
+        os.path.join(current_path, 'target', 'release', 'prusti-rustc'),
+        os.path.join(current_path, 'target', 'debug', 'prusti-rustc')
+    ]
+    prusti_path = select_newest_file(candidate_prusti_paths)
+    report("Selected Prusti: {}", prusti_path)
+    candidate_test_paths = glob.glob(os.path.join(current_path, "prusti-tests/tests*/*", test))
+    if len(candidate_test_paths) == 0:
+        error("Not tests found that match: {}", test)
+    elif len(candidate_test_paths) > 1:
+        error(
+            "Expected one test, but found {} tests that match {}. First 5: {}",
+            len(candidate_test_paths),
+            test,
+            candidate_test_paths[:5]
+        )
+    test_path = candidate_test_paths[0]
+    report("Found test: {}", test_path)
+    run_command([prusti_path, '--edition=2018', test_path])
+
+
 def main(argv):
     global verbose
-    args = []
     for i, arg in enumerate(argv):
         if arg.startswith('+'):
             if arg == '+v' or arg == '++verbose':
@@ -266,6 +302,12 @@ def main(argv):
             break
         elif arg == 'ide':
             ide(argv[i+1:])
+            break
+        elif arg == 'verify-test':
+            arg_count = len(argv) - i
+            if arg_count != 2:
+                error("Expected a single argument (test file). Got: ", arg_count)
+            verify_test(argv[i+1])
             break
         else:
             cargo(argv[i:])

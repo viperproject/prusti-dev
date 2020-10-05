@@ -44,6 +44,11 @@ pub fn closure(tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
+#[proc_macro_attribute]
 pub fn extern_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }

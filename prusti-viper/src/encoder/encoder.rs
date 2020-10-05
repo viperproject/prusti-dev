@@ -574,6 +574,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn get_procedure_contract_for_call(
         &self,
+        self_ty: Option<&'tcx ty::TyS<'tcx>>,
         proc_def_id: ProcedureDefId,
         args: &Vec<places::Local>,
         target: places::Local,
@@ -601,22 +602,22 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         //     }
         // }
 
-    //     if let Some(ty) = self_ty {
-    //         if let Some(id) = self.env().tcx().trait_of_item(proc_def_id) {
-    //             let proc_name = self.env().tcx().item_name(proc_def_id).as_symbol();
-    //             let procs = self.env().get_trait_method_decl_for_type(ty, id, proc_name);
-    //             if procs.len() == 1 {
-    //                 // FIXME(@jakob): if several methods are found, we currently don't know which
-    //                 // one to pick.
-    //                 let item = procs[0];
-    //                 if let Some(spec) = self.get_procedure_spec_ids(item.def_id) {
-    //                     impl_spec = spec.clone();
-    //                 } else {
-    //                     debug!("Procedure {:?} has no specification", item.def_id);
-    //                 }
-    //             }
-    //         }
-    //     }
+        if let Some(ty) = self_ty {
+            if let Some(id) = self.env().tcx().trait_of_item(proc_def_id) {
+                let proc_name = self.env().tcx().item_name(proc_def_id);
+                let procs = self.env().get_trait_method_decl_for_type(ty, id, proc_name);
+                if procs.len() == 1 {
+                    // FIXME(@jakob): if several methods are found, we currently don't know which
+                    // one to pick.
+                    let item = procs[0];
+                    if let Some(spec) = self.get_procedure_specs(item.def_id) {
+                        impl_spec = spec.clone();
+                    } else {
+                        debug!("Procedure {:?} has no specification", item.def_id);
+                    }
+                }
+            }
+        }
 
         // merge specifications
         let final_spec = fun_spec.refine(&impl_spec);
