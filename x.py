@@ -153,9 +153,11 @@ def get_env():
     return env
 
 
-def run_command(args):
+def run_command(args, env=None):
     """Run a command with the given arguments."""
-    completed = subprocess.run(args, env=get_env())
+    if env is None:
+        env = get_env()
+    completed = subprocess.run(args, env=env)
     if completed.returncode != 0:
         sys.exit(completed.returncode)
 
@@ -273,19 +275,33 @@ def verify_test(test):
     ]
     prusti_path = select_newest_file(candidate_prusti_paths)
     report("Selected Prusti: {}", prusti_path)
-    candidate_test_paths = glob.glob(os.path.join(current_path, "prusti-tests/tests*/*", test))
-    if len(candidate_test_paths) == 0:
-        error("Not tests found that match: {}", test)
-    elif len(candidate_test_paths) > 1:
-        error(
-            "Expected one test, but found {} tests that match {}. First 5: {}",
-            len(candidate_test_paths),
-            test,
-            candidate_test_paths[:5]
-        )
-    test_path = candidate_test_paths[0]
+    if test.startswith('prusti-tests/'):
+        test_path = test
+    else:
+        candidate_test_paths = glob.glob(os.path.join(current_path, "prusti-tests/tests*/*", test))
+        if len(candidate_test_paths) == 0:
+            error("Not tests found that match: {}", test)
+        elif len(candidate_test_paths) > 1:
+            error(
+                "Expected one test, but found {} tests that match {}. First 5: {}",
+                len(candidate_test_paths),
+                test,
+                candidate_test_paths[:5]
+            )
+        test_path = candidate_test_paths[0]
     report("Found test: {}", test_path)
-    run_command([prusti_path, '--edition=2018', test_path])
+    compile_flags = []
+    with open(test_path) as fp:
+        for line in fp:
+            if line.startswith('// compile-flags:'):
+                compile_flags.extend(line[len('// compile-flags:'):].strip().split())
+        report("Additional compile flags: {}", compile_flags)
+    env = get_env()
+    if test_path.startswith('prusti-tests/tests/verify_overflow/'):
+        env['PRUSTI_CHECK_BINARY_OPERATIONS'] = 'true'
+    else:
+        env['PRUSTI_CHECK_BINARY_OPERATIONS'] = 'false'
+    run_command([prusti_path, '--edition=2018', test_path] + compile_flags, env)
 
 
 def main(argv):
