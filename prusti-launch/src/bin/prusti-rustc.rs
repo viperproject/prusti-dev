@@ -6,7 +6,7 @@
 
 extern crate prusti_launch;
 
-use prusti_launch::{add_to_loader_path, prusti_sysroot};
+use prusti_launch::add_to_loader_path;
 use std::{
     env,
     path::PathBuf,
@@ -31,8 +31,8 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     let libjvm_path = prusti_launch::find_libjvm(&java_home)
         .expect("Failed to find JVM library. Check JAVA_HOME");
 
-    let prusti_sysroot =
-        prusti_sysroot().expect(&format!("Failed to find Rust's sysroot for Prusti"));
+    let prusti_sysroot = prusti_launch::prusti_sysroot()
+        .expect(&format!("Failed to find Rust's sysroot for Prusti"));
 
     let compiler_lib = prusti_sysroot.join("lib");
 
@@ -77,6 +77,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     cmd.arg(format!(
         "dependency={}",
         prusti_home
+            .join("deps")
             .as_os_str()
             .to_str()
             .expect("the Prusti HOME path contains invalid UTF-8")
@@ -90,22 +91,6 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
             .as_os_str()
             .to_str()
             .expect("the Prusti contracts path contains invalid UTF-8")
-    ));
-
-    let dylib_extension = if cfg!(target_os = "macos") {
-        "dylib"
-    } else {
-        "so"
-    };
-    let prusti_internal_path =
-        prusti_home.join(format!("libprusti_contracts_internal.{}", dylib_extension));
-    cmd.arg("--extern");
-    cmd.arg(format!(
-        "prusti_contracts_internal={}",
-        prusti_internal_path
-            .as_os_str()
-            .to_str()
-            .expect("the internal Prusti contracts path contains invalid UTF-8")
     ));
 
     // cmd.arg("-Zreport-delayed-bugs");
