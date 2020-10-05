@@ -18,7 +18,7 @@ use rustwide::{
     logging::LogStorage,
 };
 use serde::Deserialize;
-use log::{info, error, LevelFilter};
+use log::{info, warn, error, LevelFilter};
 
 #[derive(Debug, Deserialize)]
 struct CrateRecord {
@@ -98,27 +98,35 @@ fn main() -> Result<(), Box<dyn Error>> {
     toolchain.add_component(&workspace, "llvm-tools-preview")?;
 
     info!("Read lists of crates...");
+    // TODO: do something to freeze the version of the dependencies.
     let crates_list: Vec<Crate> = csv::Reader::from_reader(
        fs::File::open("test-crates/crates.csv")?
     ).deserialize()
         .collect::<Result<Vec<CrateRecord>, _>>()?
         .into_iter()
         .map(|c| c.into())
+        // For the moment, use test only the top-10 crates.
         .take(10)
         .collect();
 
+    // List of crates that don't compile with the standard compiler.
+    let mut skipped_crates = vec![];
+    // List of crates on which Prusti fails.
+    let mut failed_crates = vec![];
+    // List of crates on which Prusti succeed.
+    let mut successful_crates = vec![];
+
     info!("Iterate over all {} crates...", crates_list.len());
     for (index, krate) in crates_list.iter().enumerate() {
-        info!("Crate {}/{}: {}", index + 1, crates_list.len(), krate);
+        info!("Crate {}/{}: {}", index, crates_list.len(), krate);
 
-        let mut build_dir = workspace.build_dir("build");
 
         info!("Fetch crate...");
         krate.fetch(&workspace)?;
 
         info!("Build crate...");
         {
-            build_dir.purge()?;
+            let mut build_dir = workspace.build_dir(&format!("build_{}", index));
 
             let sandbox = cmd::SandboxBuilder::new()
                 .memory_limit(Some(1024 * 1024 * 1024))
@@ -127,22 +135,26 @@ fn main() -> Result<(), Box<dyn Error>> {
             let mut storage = LogStorage::new(LevelFilter::Info);
             storage.set_max_size(1024 * 1024);
 
-            let build_status = logging::capture(&storage, || {
-                build_dir.build(&toolchain, &krate, sandbox).run(|build| {
+            let build_status =  build_dir.build(&toolchain, &krate, sandbox).run(|build| {
+                logging::capture(&storage, || {
                     build.cargo().args(&["check"]).run()?;
                     Ok(())
                 })
             });
 
             if let Err(err) = build_status {
-                error!("Build error: {:?}", err);
-                error!("Output:\n{}", storage);
+                warn!("Build error: {:?}", err);
+                warn!("Output:\n{}", storage);
+
+                // Do not try to verify this crate
+                skipped_crates.push(krate);
+                continue;
             }
         }
 
         info!("Verify crate...");
         {
-            build_dir.purge()?;
+            let mut build_dir = workspace.build_dir(&format!("verify_{}", index));
 
             let sandbox = cmd::SandboxBuilder::new()
                 .memory_limit(Some(1024 * 1024 * 1024))
@@ -154,10 +166,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             let mut storage = LogStorage::new(LevelFilter::Info);
             storage.set_max_size(1024 * 1024);
 
-            let verification_status = logging::capture(&storage, || {
-                build_dir.build(&toolchain, &krate, sandbox).run(|build| {
+            let verification_status = build_dir.build(&toolchain, &krate, sandbox).run(|build| {
+                logging::capture(&storage, || {
                     build.cmd(&cargo_prusti)
                         .env("RUST_BACKTRACE", "1")
+                        // Skip unsupported language features
+                        .env("PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS", "true")
                         .run()?;
                     Ok(())
                 })
@@ -166,11 +180,34 @@ fn main() -> Result<(), Box<dyn Error>> {
             if let Err(err) = verification_status {
                 error!("Verification error: {:?}", err);
                 error!("Output:\n{}", storage);
+
+                // Report the failure
+                failed_crates.push(krate);
+            } else {
+                successful_crates.push(krate);
             }
         }
     }
 
-    info!("Done.");
+    if !successful_crates.is_empty() {
+        info!("Successfully verified {} crates:", successful_crates.len());
+        for krate in &successful_crates {
+            info!(" - {}", krate);
+        }
+    }
+    if !skipped_crates.is_empty() {
+        warn!("Skipped {} crates:", skipped_crates.len());
+        for krate in &skipped_crates {
+            warn!(" - {}", krate);
+        }
+    }
+    if !failed_crates.is_empty() {
+        error!("Failed to verify {} crates:", failed_crates.len());
+        for krate in &failed_crates {
+            error!(" - {}", krate);
+        }
+        panic!("Failed to verify {} crates", failed_crates.len());
+    }
 
     Ok(())
 }
