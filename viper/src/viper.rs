@@ -34,8 +34,8 @@ impl Viper {
 
         debug!("Using Viper home: '{}'", &viper_home);
 
-        let jar_paths: Vec<String> = fs::read_dir(viper_home)
-            .unwrap()
+        let jar_paths: Vec<String> = fs::read_dir(&viper_home)
+            .expect(&format!("failed to open {:?}", viper_home))
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
             .filter(|path|
                 match viper_backend {

@@ -55,7 +55,7 @@ impl PrustiError {
             format!("[Prusti: unsupported feature] {}", message.to_string()),
             span
         );
-        if !config::error_on_partially_supported() && config::skip_unsupported_functions() {
+        if config::skip_unsupported_functions() {
             error.set_warning();
         }
         error
