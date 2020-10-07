@@ -4,13 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{ HashMap, BTreeMap };
+use std::collections::HashMap;
 use rustc_middle::mir;
 use crate::AbstractState;
 
 pub struct PointwiseState<S: AbstractState> {
     state_before: HashMap<mir::Location, S>,
-    state_after_block: HashMap<mir::BasicBlock, BTreeMap<mir::BasicBlock, S>>,
+    /// We use a vector, not a map, to reflect the type of `TerminatorKind::Switch::targets`.
+    /// In particular, there might be multiple CFG edges all going to the same CFG block, and we
+    /// want to distinguish them.
+    state_after_block: HashMap<mir::BasicBlock, Vec<(mir::BasicBlock, S)>>,
 }
 
 impl<S: AbstractState> PointwiseState<S> {
@@ -25,7 +28,7 @@ impl<S: AbstractState> PointwiseState<S> {
     }
 
     /// Return the abstract state on the outgoing CFG edges
-    pub fn lookup_afterblock(&self, block: mir::BasicBlock) -> BTreeMap<mir::BasicBlock, &S> {
+    pub fn lookup_after_block(&self, block: mir::BasicBlock) -> &[(mir::BasicBlock, S)] {
         unimplemented!();
     }
 
@@ -40,10 +43,10 @@ impl<S: AbstractState> PointwiseState<S> {
     }
 
     /// Return the abstract state on the outgoing CFG edges
-    pub(crate) fn lookup_mut_block(
+    pub(crate) fn lookup_mut_after_block(
         &mut self,
         block: mir::BasicBlock,
-    ) -> BTreeMap<mir::BasicBlock, &mut S> {
+    ) -> &mut Vec<(mir::BasicBlock, S)> {
         unimplemented!();
     }
 }
