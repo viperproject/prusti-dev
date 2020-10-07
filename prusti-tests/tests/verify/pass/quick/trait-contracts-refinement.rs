@@ -19,6 +19,7 @@ fn abs(a: isize) -> isize {
     if a < 0 { -a } else { a }
 }
 
+#[refine_trait_spec]
 impl Foo for Dummy {
     #[requires(-150 <= a && a <= 100)]
     #[requires(b > std::isize::MIN)]
