@@ -261,7 +261,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         if let typed::SpecificationSet::Procedure(typed::ProcedureSpecification{pres, posts, pledges}) =
                             &mut self.mut_contract().specification
                         {
-                            (pres.clone(), posts.clone(), pledges.clone())
+                            (pres, posts, pledges)
                         } else {
                             unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
                         }
