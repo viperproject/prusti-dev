@@ -7,59 +7,16 @@
 #![feature(rustc_private)]
 
 extern crate rustc_middle;
-extern crate rustc_span;
+
+mod pointwise_state;
+mod abstract_state;
+mod analysis_error;
+mod analyzer;
+pub mod abstract_domains;
 
 use rustc_middle::ty::TyCtxt;
 use rustc_middle::mir;
-use rustc_span::def_id::LocalDefId;
-
-pub struct LivenessState {}
-pub struct DefinitelyInitializedState {}
-pub struct PCSState {}
-
-pub trait AnalysisResult {
-    type AbstractState;
-    fn lookup(&self, location: mir::Location) -> Self::AbstractState;
-}
-
-pub enum AnalysisError {
-    UnsupportedStatement(mir::Location),
-}
-
-type Result<T> = std::result::Result<T, AnalysisError>;
-
-pub struct Analyzer<'tcx> {
-    tcx: TyCtxt<'tcx>,
-    // We can add caching, using e.g. a RefCell<HashMap<LocalDefId, Result<...>>>
-}
-
-impl<'tcx> Analyzer<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>) -> Self {
-        Analyzer {
-            tcx,
-        }
-    }
-
-    // Instead of `mir: &mir::Body<'tcx>` we could ask for a `LocalDefId`, which can be resolved
-    // using https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.TyCtxt.html#method.mir_promoted
-    pub fn liveness_analysis(
-        &self,
-        mir: &mir::Body<'tcx>,
-    ) -> Result<Box<dyn AnalysisResult<AbstractState = LivenessState>>> {
-        unimplemented!();
-    }
-
-    pub fn definitely_initilized_analysis(
-        &self,
-        mir: &mir::Body<'tcx>,
-    ) -> Result<Box<dyn AnalysisResult<AbstractState = DefinitelyInitializedState>>> {
-        unimplemented!();
-    }
-
-    pub fn pcs_analysis(
-        &self,
-        mir: &mir::Body<'tcx>,
-    ) -> Result<Box<dyn AnalysisResult<AbstractState = PCSState>>> {
-        unimplemented!();
-    }
-}
+pub use pointwise_state::PointwiseState;
+pub use abstract_state::AbstractState;
+pub use analysis_error::AnalysisError;
+pub use analyzer::Analyzer;
