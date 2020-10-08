@@ -43,32 +43,27 @@ impl<'a> VerificationContext<'a> {
         let mut verifier_args: Vec<String> = vec![];
 
         // Set Z3 binary
-        let z3_path = vec![
-            env::var("Z3_PATH").ok(),
-            env::var("Z3_EXE").ok(),
-            Some("z3".to_string()),
-            Some("/usr/bin/viper-z3".to_string()),
-        ]
-        .into_iter()
-        .flatten()
-        .find(|path| Path::new(path).exists())
-        .expect("No valid Z3 path has been found. Please set Z3_EXE.");
-        info!("Using Z3 path: '{}'", &z3_path);
-        verifier_args.extend(vec!["--z3Exe".to_string(), z3_path]);
+        let z3_exe = env::var("Z3_EXE")
+            .expect("the Z3_EXE environment variable should not be empty");
+        info!("Using Z3 exe: '{}'", &z3_exe);
+        assert!(
+            Path::new(&z3_exe).is_file(),
+            "The Z3_EXE environment variable ({:?}) does not point to a valid file.",
+            z3_exe
+        );
+        verifier_args.extend(vec!["--z3Exe".to_string(), z3_exe]);
 
         // Set Boogie binary
         if let VerificationBackend::Carbon = backend {
-            let boogie_path = vec![
-                env::var("BOOGIE_PATH").ok(),
-                env::var("BOOGIE_EXE").ok(),
-                Some("boogie".to_string()),
-            ]
-            .into_iter()
-            .flatten()
-            .find(|path| Path::new(path).exists())
-            .expect("No valid Boogie path has been found. Please set BOOGIE_EXE.");
-            info!("Using BOOGIE path: '{}'", &boogie_path);
-            verifier_args.extend(vec!["--boogieExe".to_string(), boogie_path]);
+            let boogie_exe = env::var("BOOGIE_EXE")
+                .expect("the BOOGIE_EXE environment variable should not be empty");
+            info!("Using BOOGIE exe: '{}'", &boogie_exe);
+            assert!(
+                Path::new(&boogie_exe).is_file(),
+                "The BOOGIE_EXE environment variable ({:?}) does not point to a valid file.",
+                boogie_exe
+            );
+            verifier_args.extend(vec!["--boogieExe".to_string(), boogie_exe]);
         }
 
         verifier_args.extend(extra_args);

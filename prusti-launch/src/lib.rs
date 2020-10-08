@@ -107,3 +107,39 @@ pub fn prusti_sysroot() -> Option<PathBuf> {
         })
         .map(|s| PathBuf::from(s.trim().to_owned()))
 }
+
+/// Find Viper home
+pub fn find_viper_home(base_dir: &PathBuf) -> Option<PathBuf> {
+    let candidates = vec![
+        base_dir.join("viper_tools").join("backends"),
+        base_dir.join("..").join("..").join("viper_tools").join("backends"),
+    ];
+
+    for candidate in candidates.into_iter() {
+        if candidate.is_dir() {
+            return Some(candidate);
+        }
+    }
+
+    None
+}
+
+/// Find Z3 executable
+pub fn find_z3_exe(base_dir: &PathBuf) -> Option<PathBuf> {
+    let mut candidates = vec![
+        base_dir.join("viper_tools").join("z3").join("bin").join("z3"),
+        base_dir.join("..").join("..").join("viper_tools").join("z3").join("bin").join("z3"),
+    ];
+
+    if cfg!(windows) {
+        candidates.iter_mut().for_each(|x| { x.set_extension("exe"); });
+    }
+
+    for candidate in candidates.into_iter() {
+        if candidate.is_file() {
+            return Some(candidate);
+        }
+    }
+
+    None
+}

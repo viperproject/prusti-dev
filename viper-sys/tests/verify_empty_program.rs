@@ -20,10 +20,10 @@ use viper_sys::wrappers::*;
 fn verify_empty_program() {
     env_logger::init();
 
-    let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
+    let viper_home = env::var("VIPER_HOME").expect("failed to get VIPER_HOME");
     debug!("Using Viper home: '{}'", &viper_home);
 
-    let z3_path = env::var("Z3_EXE").unwrap_or_else(|_| "/usr/bin/viper-z3".to_string());
+    let z3_path = env::var("Z3_EXE").expect("failed to get Z3_EXE");
     debug!("Using Z3 path: '{}'", &z3_path);
 
     let jar_paths: Vec<String> = fs::read_dir(viper_home)
