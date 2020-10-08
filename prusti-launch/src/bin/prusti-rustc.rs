@@ -21,7 +21,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         .expect("failed to obtain the folder of the current executable")
         .to_path_buf();
 
-    let mut prusti_driver_path = current_executable_dir.with_file_name("prusti-driver");
+    let mut prusti_driver_path = current_executable_dir.join("prusti-driver");
     if cfg!(windows) {
         prusti_driver_path.set_extension("exe");
     }
@@ -124,7 +124,8 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     // cmd.arg("-Zreport-delayed-bugs");
     // cmd.arg("-Ztreat-err-as-bug=1");
 
-    let exit_status = cmd.status().expect("failed to execute prusti-driver");
+    let exit_status = cmd.status()
+        .expect(&format!("failed to execute prusti-driver ({:?})", prusti_driver_path));
 
     if exit_status.success() {
         Ok(())
