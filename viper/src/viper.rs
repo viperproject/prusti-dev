@@ -36,7 +36,7 @@ impl Viper {
 
         debug!("Using Viper home: '{}'", &viper_home);
         assert!(
-            Path::new(&viper_home).is_file(),
+            Path::new(&viper_home).is_dir(),
             "The VIPER_HOME environment variable ({:?}) does not point to a valid folder.",
             viper_home
         );
