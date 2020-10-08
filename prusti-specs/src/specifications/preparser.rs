@@ -700,7 +700,10 @@ impl Parser {
         syn::Error::new(self.input.span, "`triggers` must be an array of tuples containing Rust expressions")
     }
     fn error_ambiguous_expression(&self) -> syn::Error {
-        syn::Error::new(self.input.span, "found `||` and `&&` in the same subexpression")
+        syn::Error::new(
+            self.input.span,
+            "found `||` and `&&` in the same subexpression. \
+            Hint: add parentheses to clarify the evaluation order.")
     }
     fn error_no_quantifier_arguments(&self) -> syn::Error {
         syn::Error::new(self.input.span, "a quantifier must have at least one argument")

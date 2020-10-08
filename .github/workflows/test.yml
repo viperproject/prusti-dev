@@ -1,0 +1,71 @@
+name: Test
+
+on:
+  push:
+    branches: 'master'
+  pull_request:
+    branches: [ '**' ]
+
+env:
+  RUST_BACKTRACE: 1
+  PRUSTI_ASSERT_TIMEOUT: 60000
+
+jobs:
+  # Run a subset of the tests that used to fail often.
+  # The goal here is to fail fast and give quick feedback to the developers.
+  quick-tests:
+    runs-on: ubuntu-latest
+    # Only run when triggered by a pull request event
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1.0.6
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
+      - name: Build with cargo
+        run: python x.py build --all --verbose
+      - name: Run "quick" cargo tests
+        run: python x.py test --all --verbose quick
+
+  # Run all the tests.
+  all-tests:
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v2
+    - name: Set up Python 3
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1.0.6
+    - name: Set up the environment
+      run: python x.py setup
+    - name: Build with cargo
+      run: python x.py build --all --verbose
+    - name: Run cargo tests
+      run: python x.py test --all --verbose
+    - name: Check formatting
+      run: echo "Temporarily skipped." # python x.py fmt -- --check
+    - name: Check prusti-contracts
+      run: |
+        cd prusti-contracts-test/
+        cargo build
