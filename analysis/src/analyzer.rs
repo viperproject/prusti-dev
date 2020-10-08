@@ -30,7 +30,7 @@ impl<'tcx> Analyzer<'tcx> {
         unimplemented!();
     }
 
-    pub fn definitely_initilized_analysis(
+    pub fn definitely_initialized_analysis(
         &self,
         mir: &mir::Body<'tcx>,
     ) -> Result<PointwiseState<DefinitelyInitializedState>> {
