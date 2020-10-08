@@ -12,6 +12,7 @@ use std::fs;
 use verification_context::*;
 use viper_sys::wrappers::*;
 use VerificationBackend;
+use std::path::Path;
 
 pub struct Viper {
     jvm: JavaVM,
@@ -29,10 +30,16 @@ impl Viper {
     }
 
     pub fn new_with_args(java_args: Vec<String>, viper_backend: VerificationBackend) -> Self {
-        let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
+        let viper_home = env::var("VIPER_HOME")
+            .expect("the VIPER_HOME environment variable should not be empty");
         let heap_size = env::var("JAVA_HEAP_SIZE").unwrap_or_else(|_| "4096".to_string());
 
         debug!("Using Viper home: '{}'", &viper_home);
+        assert!(
+            Path::new(&viper_home).is_dir(),
+            "The VIPER_HOME environment variable ({:?}) does not point to a valid folder.",
+            viper_home
+        );
 
         let jar_paths: Vec<String> = fs::read_dir(&viper_home)
             .expect(&format!("failed to open {:?}", viper_home))

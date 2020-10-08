@@ -6,7 +6,7 @@
 
 extern crate prusti_launch;
 
-use prusti_launch::add_to_loader_path;
+use prusti_launch::{add_to_loader_path, find_viper_home, find_z3_exe};
 use std::{
     env,
     path::PathBuf,
@@ -15,9 +15,13 @@ use std::{
 use std::path::Path;
 
 fn process(mut args: Vec<String>) -> Result<(), i32> {
-    let mut prusti_driver_path = env::current_exe()
+    let mut current_executable_dir = env::current_exe()
         .expect("current executable path invalid")
-        .with_file_name("prusti-driver");
+        .parent()
+        .expect("failed to obtain the folder of the current executable")
+        .to_path_buf();
+
+    let mut prusti_driver_path = current_executable_dir.join("prusti-driver");
     if cfg!(windows) {
         prusti_driver_path.set_extension("exe");
     }
@@ -52,6 +56,30 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     } else {
         add_to_loader_path(vec![compiler_lib, libjvm_path], &mut cmd);
     }
+
+    if let None = env::var("VIPER_HOME").ok() {
+        if let Some(viper_home) = find_viper_home(&current_executable_dir) {
+            cmd.env("VIPER_HOME", viper_home);
+        } else {
+            panic!(
+                "Could not find the Viper home. \
+                Please set the VIPER_HOME environment variable, which should contain the path of \
+                the folder that contains all Viper JAR files."
+            );
+        }
+    };
+
+    if let None = env::var("Z3_EXE").ok() {
+        if let Some(z3_exe) = find_z3_exe(&current_executable_dir) {
+            cmd.env("Z3_EXE", z3_exe);
+        } else {
+            panic!(
+                "Could not find the Z3 executable. \
+                Please set the Z3_EXE environment variable, which should contain the path of a \
+                Z3 executable."
+            );
+        }
+    };
 
     let has_no_sysroot_arg = !args.iter().any(|s| s == "--sysroot");
 
@@ -96,7 +124,8 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     // cmd.arg("-Zreport-delayed-bugs");
     // cmd.arg("-Ztreat-err-as-bug=1");
 
-    let exit_status = cmd.status().expect("failed to execute prusti-driver");
+    let exit_status = cmd.status()
+        .expect(&format!("failed to execute prusti-driver ({:?})", prusti_driver_path));
 
     if exit_status.success() {
         Ok(())
