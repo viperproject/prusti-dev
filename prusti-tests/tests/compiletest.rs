@@ -29,7 +29,11 @@ fn get_prusti_rustc_path() -> PathBuf {
     if workspace_prusti_rustc_path.exists() {
         return workspace_prusti_rustc_path;
     }
-    panic!("Could not find the prusti-rustc binary to be used in tests");
+    panic!(
+        "Could not find the {:?} prusti-rustc binary to be used in tests. \
+        It might be that Prusti has not been compiled correctly.",
+        target_directory
+    );
 }
 
 /// This type allows to temporary modify an environment variable.
