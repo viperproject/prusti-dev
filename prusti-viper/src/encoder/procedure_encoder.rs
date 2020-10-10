@@ -2008,16 +2008,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             // Is this viper declaration of an Int type encoded in prepare_assign_target method?
                             // Currently, it's using the destination field from the MIR to accomplish this. I'm not sure how
                             // destination and location are related here.
+                            let value_field = self.encoder.encode_value_field(dest_ty);
                             stmts.extend(
                                 self.prepare_assign_target(
-                                    dst,
-                                    ref_field,
+                                    dst.clone(),
+                                    value_field.clone(),
                                     location,
                                     vir::AssignKind::Move,
                                 )
                             );
                             // N.B. Is encode_value_field the right choice here?
-                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            //let value_field = self.encoder.encode_value_field(dest_ty);
                             // Step2. assign value = `ghost_val` to the above created destination/ location (unsure about the terminology)
                             stmts.extend(self.encode_assign_operand(&dst.clone().field(value_field), &args[0], location));
                         }
