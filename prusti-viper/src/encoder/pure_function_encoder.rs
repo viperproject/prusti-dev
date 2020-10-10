@@ -702,6 +702,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state
                             }
 
+                            "std::ops::Add::add" => {
+                                let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                let encoded_left = self.mir_encoder
+                                    .encode_operand_expr(&args[0])
+                                    .with_span(term.source_info.span)
+                                    .run_if_err(cleanup)?;
+                                let encoded_right = self.mir_encoder
+                                    .encode_operand_expr(&args[1])
+                                    .with_span(term.source_info.span)
+                                    .run_if_err(cleanup)?;
+                                let encoded_value = self.mir_encoder
+                                    .encode_bin_op_expr(
+                                        mir::BinOp::Add,
+                                        encoded_left,
+                                        encoded_right,
+                                        arg_ty,
+                                    )
+                                    .with_span(term.source_info.span)
+                                    .run_if_err(cleanup)?;
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&lhs_value, encoded_value);
+                                state
+                            }
+
                             // simple function call
                             _ => {
                                 let is_pure_function = self.encoder.is_pure(def_id);
