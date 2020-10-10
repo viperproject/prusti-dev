@@ -695,6 +695,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state
                             }
+                            "std::ops::Add::add" => {
+                                let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                let encoded_left = self.mir_encoder.encode_operand_expr(&args[0]);
+                                let encoded_right = self.mir_encoder.encode_operand_expr(&args[1]);
+                                let encoded_value = self.mir_encoder.encode_bin_op_expr(
+                                    mir::BinOp::Add,
+                                    encoded_left,
+                                    encoded_right,
+                                    arg_ty,
+                                );
+
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(&lhs_value, encoded_value);
+                            state
+                        }
                             // simple function call
                             _ => {
                                 let mut is_cmp_call = false;
