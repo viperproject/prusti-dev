@@ -5,6 +5,7 @@ pub unsafe auto trait Ghost {}
 
 macro_rules! implement_ghost_type {
     ($ghost_type: ident) => {
+        #[derive(PartialEq, Eq)]
         pub struct $ghost_type;
         unsafe impl Ghost for $ghost_type{}
     };
