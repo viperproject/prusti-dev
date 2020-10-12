@@ -6,16 +6,17 @@
 
 extern crate prusti_launch;
 
+use std::{env, path::{Path, PathBuf}, process::Command};
 use prusti_launch::{add_to_loader_path, find_viper_home, find_z3_exe};
-use std::{
-    env,
-    path::PathBuf,
-    process::Command,
-};
-use std::path::Path;
+
+fn main() {
+    if let Err(code) = process(std::env::args().skip(1).collect()) {
+        std::process::exit(code);
+    }
+}
 
 fn process(mut args: Vec<String>) -> Result<(), i32> {
-    let mut current_executable_dir = env::current_exe()
+    let current_executable_dir = env::current_exe()
         .expect("current executable path invalid")
         .parent()
         .expect("failed to obtain the folder of the current executable")
@@ -38,6 +39,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     let prusti_sysroot = prusti_launch::prusti_sysroot()
         .expect(&format!("Failed to find Rust's sysroot for Prusti"));
 
+    let compiler_bin = prusti_sysroot.join("bin");
     let compiler_lib = prusti_sysroot.join("lib");
 
     let prusti_home = prusti_driver_path
@@ -46,16 +48,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
     let mut cmd = Command::new(&prusti_driver_path);
 
-    if let Some(target) = option_env!("TARGET") {
-        let rustlib_path = prusti_sysroot
-            .join("lib")
-            .join("rustlib")
-            .join(target)
-            .join("lib");
-        add_to_loader_path(vec![rustlib_path, compiler_lib, libjvm_path], &mut cmd);
-    } else {
-        add_to_loader_path(vec![compiler_lib, libjvm_path], &mut cmd);
-    }
+    add_to_loader_path(vec![compiler_lib, compiler_bin, libjvm_path], &mut cmd);
 
     if let None = env::var("VIPER_HOME").ok() {
         if let Some(viper_home) = find_viper_home(&current_executable_dir) {
@@ -131,11 +124,5 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         Ok(())
     } else {
         Err(exit_status.code().unwrap_or(-1))
-    }
-}
-
-fn main() {
-    if let Err(code) = process(std::env::args().skip(1).collect()) {
-        std::process::exit(code);
     }
 }
