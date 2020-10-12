@@ -137,8 +137,10 @@ impl ParserStream {
     }
     /// Check whether the input starts with an operator. Does not set the span.
     fn peek_any_operator(&self) -> bool {
+        // FIXME: this method may be named wrong; operators include "||" and
+        // "|=", but including them here incorrectly parses disjunction as
+        // a closure with no arguments
         self.peek_operator("==>") || self.peek_operator("&&")
-            || self.peek_operator("||") || self.peek_operator("|=")
     }
     /// Check if the input starts with the operator and if yes, consume it
     /// and set the span to it.
@@ -844,4 +846,4 @@ impl Parser {
     fn error_no_quantifier_arguments(&self) -> syn::Error {
         syn::Error::new(self.input.span, "a quantifier must have at least one argument")
     }
- }
+}
