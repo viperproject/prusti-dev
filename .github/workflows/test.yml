@@ -81,10 +81,11 @@ jobs:
     - name: Check Prusti binaries on Windows
       if: matrix.os == 'windows-latest'
       run: |
-        :: Should succeed
-        target\debug\prusti-rustc.exe \
+        # Should succeed
+        target\debug\prusti-rustc.exe `
           prusti-tests\tests\verify\pass\no-annotations\assert-true.rs
-        :: Should fail
-        ! target\debug\prusti-rustc.exe \
+        if ($LASTEXITCODE -ne 0) { throw "Exit code is $LASTEXITCODE" }
+        # Should fail
+        target\debug\prusti-rustc.exe `
           prusti-tests\tests\verify\fail\no-annotations\assert-false.rs
-        if %errorlevel% eq 0 exit /b 1
+        if ($LASTEXITCODE -eq 0) { throw "Exit code is $LASTEXITCODE" }
