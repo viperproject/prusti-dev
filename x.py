@@ -2,10 +2,14 @@
 
 """A wrapper for cargo that sets up the Prusti environment."""
 
+import sys
+if sys.version_info[0] < 3:
+    print('You need to run this script with Python 3.')
+    sys.exit(1)
+
 import os
 import platform
 import subprocess
-import sys
 import glob
 
 verbose = False
