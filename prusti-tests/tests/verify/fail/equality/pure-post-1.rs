@@ -6,7 +6,7 @@ struct A {
     i: i32,
 }
 
-#[pure]
+#[pure] //~ ERROR does not implement Copy type
 #[requires(_x == _y)]
 #[ensures(_x == _y)]
 fn get_value(_x: A, _y: A) -> A {
