@@ -40,7 +40,6 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 // use rustc::mir::interpret::GlobalId;
 use rustc_middle::ty;
-use rustc_middle::ty::ParamEnv;
 use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use std::io::Write;
@@ -1153,9 +1152,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_snapshot(&self, ty: ty::Ty<'tcx>) -> Box<Snapshot> {
         let ty = self.dereference_ty(ty);
 
-        // CMFIXME
-        println!("CMFIXME: {:?} implements Copy? {:?}", ty, self.implements_copy_trait(ty));
-
         // will panic if attempting to encode unsupported type
         let predicate_name = self.encode_type_predicate_use(ty).unwrap();
         if !self.snapshots.borrow().contains_key(&predicate_name) {
@@ -1177,97 +1173,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 .insert(predicate_name.to_string(), box snapshot);
         }
         self.snapshots.borrow()[&predicate_name].clone()
-    }
-
-    pub fn implements_copy_trait(&self, ty: ty::Ty<'tcx>) -> bool {
-        let copy_trait = self.env().tcx().lang_items().copy_trait();
-        if let Some(copy_trait_def_id) = copy_trait {
-            self.implements_trait(ty, copy_trait_def_id)
-        } else {
-            false
-        }
-    }
-
-    /// Checks whether the given type implements the trait with the given DefId.
-    pub fn implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId) -> bool {
-        let tcx = self.env().tcx();
-        assert!(tcx.is_trait(trait_def_id));
-        match &ty.kind() {
-            ty::TyKind::Adt(adt_def, substs) => {
-                tcx.type_implements_trait((
-                    trait_def_id,
-                    ty,
-                    substs,
-                    ParamEnv::empty()
-                ))
-            }
-            ty::TyKind::Bool => {
-                self.empty_substs_implements_trait(
-                    ty,
-                    tcx.lang_items().bool_impl(),
-                    trait_def_id
-                )
-            }
-            ty::TyKind::Char => {
-                self.empty_substs_implements_trait(
-                    ty,
-                    tcx.lang_items().char_impl(),
-                    trait_def_id
-                )
-            }
-            ty::TyKind::Int(int_ty) => {
-                let lang_items = tcx.lang_items();
-                let impl_def = match int_ty {
-                    Isize => lang_items.isize_impl(),
-                    I8 => lang_items.i8_impl(),
-                    I16 => lang_items.i16_impl(),
-                    I32 => lang_items.i32_impl(),
-                    I64 => lang_items.i64_impl(),
-                    I128 => lang_items.i128_impl(),
-                };
-                self.empty_substs_implements_trait(
-                    ty,
-                    impl_def,
-                    trait_def_id
-                )
-            }
-            ty::TyKind::Uint(uint_ty) => {
-                let lang_items = tcx.lang_items();
-                let impl_def = match uint_ty {
-                    Usize => lang_items.usize_impl(),
-                    U8 => lang_items.u8_impl(),
-                    U16 => lang_items.u16_impl(),
-                    U32 => lang_items.u32_impl(),
-                    U64 => lang_items.u64_impl(),
-                    U128 => lang_items.u128_impl(),
-                };
-                self.empty_substs_implements_trait(
-                    ty,
-                    impl_def,
-                    trait_def_id
-                )
-            }
-            _ => {
-                unimplemented!()
-            }
-        }
-    }
-
-    fn empty_substs_implements_trait(
-        &self,
-        ty: ty::Ty<'tcx>,
-        impl_def: Option<DefId>,
-        trait_def_id: DefId
-    ) -> bool {
-        assert!(impl_def.is_some());
-        let impl_def_id = impl_def.unwrap();
-        let tcx = self.env().tcx();
-        tcx.type_implements_trait((
-            trait_def_id,
-            ty,
-            tcx.empty_substs_for_def_id(impl_def_id),
-            ParamEnv::empty()
-        ))
     }
 
     fn dereference_ty(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
