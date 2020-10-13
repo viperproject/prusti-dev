@@ -249,21 +249,26 @@ impl<'tcx> Environment<'tcx> {
     pub fn implements_copy_trait(&self, ty: ty::Ty<'tcx>) -> bool {
         let copy_trait = self.tcx.lang_items().copy_trait();
         if let Some(copy_trait_def_id) = copy_trait {
-            self.implements_trait(ty, copy_trait_def_id)
+            self.type_implements_trait(ty, copy_trait_def_id)
         } else {
             false
         }
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
-    pub fn implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId) -> bool {
+    pub fn type_implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId) -> bool {
         assert!(self.tcx.is_trait(trait_def_id));
         match &ty.kind() {
-            ty::TyKind::Adt(adt_def, substs) => {
+            ty::TyKind::Adt(_, subst)
+            | ty::TyKind::FnDef(_, subst)
+            | ty::TyKind::Closure(_, subst)
+            | ty::TyKind::Opaque(_, subst)
+            | ty::TyKind::Generator(_, subst, _)
+            | ty::TyKind::Tuple(subst) => {
                 self.tcx.type_implements_trait((
                     trait_def_id,
                     ty,
-                    substs,
+                    subst,
                     ParamEnv::empty()
                 ))
             }
@@ -313,8 +318,23 @@ impl<'tcx> Environment<'tcx> {
                     trait_def_id
                 )
             }
+            ty::TyKind::Float(float_ty) => {
+                let lang_items = self.tcx.lang_items();
+                let impl_def = match float_ty {
+                    F32 => lang_items.f32_impl(),
+                    F64 => lang_items.f64_impl(),
+                };
+                self.primitive_type_implements_trait(
+                    ty,
+                    impl_def,
+                    trait_def_id
+                )
+            }
+            ty::TyKind::Ref(_, ref_ty, _) => {
+                self.type_implements_trait(ref_ty, trait_def_id)
+            }
             _ => {
-                unimplemented!()
+                unimplemented!() // none of the remaining types should be supported yet
             }
         }
     }
