@@ -26,6 +26,7 @@ use rustc_middle::mir;
 use rustc_middle::ty;
 use std::collections::HashMap;
 use log::{debug, trace};
+use prusti_interface::PrustiError;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -104,6 +105,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // if the function returns a snapshot, we take a snapshot of the body
         if self.encode_function_return_type().is_domain() {
             let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+
+            if !self.encoder.env().type_is_copy(ty) {
+                self.encoder
+                    .register_encoding_error(EncodingError::unsupported(
+                        "return type of pure function does not implement Copy",
+                        self.mir.span,
+                    ));
+            }
+
             let snapshot = self.encoder.encode_snapshot(&ty);
             let body_expr = snapshot.get_snap_call(body_expr);
             self.encode_function_given_body(Some(body_expr))

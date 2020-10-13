@@ -246,7 +246,7 @@ impl<'tcx> Environment<'tcx> {
         result
     }
 
-    pub fn implements_copy_trait(&self, ty: ty::Ty<'tcx>) -> bool {
+    pub fn type_is_copy(&self, ty: ty::Ty<'tcx>) -> bool {
         let copy_trait = self.tcx.lang_items().copy_trait();
         if let Some(copy_trait_def_id) = copy_trait {
             self.type_implements_trait(ty, copy_trait_def_id)
