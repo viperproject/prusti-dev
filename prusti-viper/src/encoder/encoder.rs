@@ -1151,7 +1151,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_snapshot(&self, ty: ty::Ty<'tcx>) -> Box<Snapshot> {
         let ty = self.dereference_ty(ty);
-
         // will panic if attempting to encode unsupported type
         let predicate_name = self.encode_type_predicate_use(ty).unwrap();
         if !self.snapshots.borrow().contains_key(&predicate_name) {
