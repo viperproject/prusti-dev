@@ -22,9 +22,9 @@ fn process(args: Vec<String>) -> Result<(), i32> {
         .expect("failed to obtain the folder of the current executable")
         .to_path_buf();
 
-    let mut prusti_driver_path = current_executable_dir.join("prusti-driver");
+    let mut prusti_server_driver_path = current_executable_dir.join("prusti-server-driver");
     if cfg!(windows) {
-        prusti_driver_path.set_extension("exe");
+        prusti_server_driver_path.set_extension("exe");
     }
 
     let java_home = match std::env::var("JAVA_HOME") {
@@ -33,7 +33,7 @@ fn process(args: Vec<String>) -> Result<(), i32> {
             .expect("Failed to find Java home directory. Try setting JAVA_HOME"),
     };
 
-    let mut cmd = Command::new(&prusti_driver_path);
+    let mut cmd = Command::new(&prusti_server_driver_path);
     cmd.args(args);
 
     let libjvm_path = prusti_launch::find_libjvm(&java_home)
