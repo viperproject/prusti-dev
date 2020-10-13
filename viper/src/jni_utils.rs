@@ -62,7 +62,7 @@ impl<'a> JniUtils<'a> {
     /// Unwrap a JniResult<T>.
     pub fn unwrap_result<T>(&self, res: JniResult<T>) -> T {
         self.unwrap_or_exception(res).unwrap_or_else(
-            |java_exception| panic!("{}", java_exception)
+            |java_exception| panic!("{:?}", java_exception)
         )
     }
 
