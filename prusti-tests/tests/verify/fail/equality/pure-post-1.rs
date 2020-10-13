@@ -1,5 +1,6 @@
 use prusti_contracts::*;
 
+// Copy is missing here
 #[derive(Clone,PartialEq,Eq)]
 struct A {
     i: i32,
