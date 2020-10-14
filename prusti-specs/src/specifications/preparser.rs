@@ -543,10 +543,6 @@ impl Parser {
             vec![]
         } else {
             let token_stream = self.input.create_stream_until("|");
-            if token_stream.is_empty() {
-                // FIXME: is this really an error?
-                return Err(self.error_no_quantifier_arguments());
-            }
             let all_args: SpecEntArgs = syn::parse2(token_stream)?;
             if !self.input.check_and_consume_operator("|") {
                 return Err(self.error_expected_or());

@@ -30,9 +30,8 @@ pub type Expression = common::Expression<ExpressionId, LocalDefId>;
 pub type TriggerSet = common::TriggerSet<ExpressionId, LocalDefId>;
 /// For all variables that have no types associated with it.
 pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
-
+/// Specification entailment variables that have no types associated.
 pub type SpecEntVars<'tcx> = common::SpecEntVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
-
 /// A trigger that has no types associated with it.
 pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
 /// A pledge in the postcondition.

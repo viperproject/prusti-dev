@@ -290,10 +290,6 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
             &ty::RegionKind::ReStatic => None,
             &ty::RegionKind::ReErased => None,
             // &ty::RegionKind::ReScope(_scope) => None,
-
-            // TODO:
-            &ty::RegionKind::ReErased => None,
-
             x => unimplemented!("{:?}", x),
         }
     }
