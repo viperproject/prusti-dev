@@ -88,6 +88,7 @@ fn test_prusti_rustc() {
             .arg("--edition=2018")
             .arg(program)
             .env_clear()
+            .env("RUST_BACKTRACE", "1")
             .status()
             .expect("failed to execute prusti-rustc")
     });
@@ -102,9 +103,10 @@ fn test_prusti_rustc_with_server() {
         .arg("--port=0")
         .env_clear()
         .env("RUST_LOG", "warn")
+        .env("RUST_BACKTRACE", "1")
         .stdout(Stdio::piped())
         .spawn()
-        .expect("Failed to start prusti-server");
+        .expect("failed to start prusti-server");
 
     // Wait for the server to be ready and read the server port
     let server_port = {
@@ -115,7 +117,7 @@ fn test_prusti_rustc_with_server() {
 
         for result in stdout_lines {
             match result {
-                Err(why) => panic!("couldn't write to wc stdin: {}", why),
+                Err(why) => panic!("could not read from prusti-server's stdout: {}", why),
                 Ok(line) => {
                     if let Some(port) = line.strip_prefix("port: ") {
                         opt_server_port = Some(port.to_string());
@@ -133,6 +135,7 @@ fn test_prusti_rustc_with_server() {
             .arg("--edition=2018")
             .arg(program)
             .env_clear()
+            .env("RUST_BACKTRACE", "1")
             .env("PRUSTI_SERVER_ADDRESS", format!("localhost:{}", server_port))
             .status()
             .expect("failed to execute prusti-rustc")
