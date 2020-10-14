@@ -12,8 +12,6 @@
 extern crate compiletest_rs;
 extern crate prusti_server;
 
-mod common;
-
 use compiletest_rs::{common::Mode, run_tests, Config};
 use prusti_server::ServerSideService;
 use std::{env, path::PathBuf};
