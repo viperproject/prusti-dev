@@ -63,44 +63,7 @@ jobs:
       run: python x.py build --all --verbose
     - name: Run cargo tests
       run: python x.py test --all --verbose
-    - name: Check formatting
-      run: echo "Temporarily skipped." # python x.py fmt -- --check
     - name: Check prusti-contracts
       run: |
         cd prusti-contracts-test/
         cargo build
-    - name: Check Prusti binaries on Ubuntu and MacOS
-      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-      run: |
-        # Should succeed
-        target/debug/prusti-rustc \
-          prusti-tests/tests/verify/pass/no-annotations/assert-true.rs
-        # Should fail
-        ! target/debug/prusti-rustc \
-          prusti-tests/tests/verify/fail/no-annotations/assert-false.rs
-    - name: Check Prusti binaries on Windows
-      if: matrix.os == 'windows-latest'
-      run: |
-        # Should succeed
-        target\debug\prusti-rustc.exe `
-          prusti-tests\tests\verify\pass\no-annotations\assert-true.rs
-        if ($LASTEXITCODE -ne 0) { throw "Exit code is $LASTEXITCODE" }
-        # Should fail
-        target\debug\prusti-rustc.exe `
-          prusti-tests\tests\verify\fail\no-annotations\assert-false.rs
-        if ($LASTEXITCODE -eq 0) { throw "Exit code is $LASTEXITCODE" }
-        else { cmd /c "exit 0" <# Reset $LASTEXITCODE #> }
-    - name: Check Prusti server binaries on Ubuntu and MacOS
-      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-      run: |
-        # Start server
-        target/debug/prusti-server --port=42424 &
-        export PRUSTI_SERVER_ADDRESS="localhost:42424"
-        # Should succeed
-        target/debug/prusti-rustc \
-          prusti-tests/tests/verify/pass/no-annotations/assert-true.rs
-        # Should fail
-        ! target/debug/prusti-rustc \
-          prusti-tests/tests/verify/fail/no-annotations/assert-false.rs
-        # Stop the server
-        killall prusti-server
