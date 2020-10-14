@@ -8,6 +8,8 @@ use glob::glob;
 use std::process::{Command, ExitStatus, Stdio};
 use std::path::PathBuf;
 use std::io::{BufReader, BufRead};
+use std::env;
+use prusti_launch::find_java_home;
 
 fn find_executable_path(base_name: &str) -> PathBuf {
     let target_directory = if cfg!(debug_assertions) {
@@ -98,12 +100,14 @@ fn test_prusti_rustc() {
 fn test_prusti_rustc_with_server() {
     let prusti_rustc = find_executable_path("prusti-rustc");
     let prusti_server = find_executable_path("prusti-server");
+    let java_home = find_java_home().expect("Failed to find Java home directory.");
 
     let mut server_child = Command::new(&prusti_server)
         .arg("--port=0")
         .env_clear()
         .env("RUST_LOG", "warn")
         .env("RUST_BACKTRACE", "1")
+        .env("JAVA_HOME", java_home)
         .stdout(Stdio::piped())
         .spawn()
         .expect("failed to start prusti-server");
