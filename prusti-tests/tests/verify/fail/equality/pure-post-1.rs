@@ -1,6 +1,5 @@
 use prusti_contracts::*;
 
-// Copy is missing here
 #[derive(Clone,PartialEq,Eq)]
 struct A {
     i: i32,
@@ -9,7 +8,7 @@ struct A {
 #[pure] 
 #[requires(_x == _y)]
 #[ensures(_x == _y)]
-fn get_value(_x: A, _y: A) -> A { //~ ERROR 
+fn get_value(_x: A, _y: A) -> A { //~ ERROR return type of pure function does not implement Copy
     _x
 }
 
