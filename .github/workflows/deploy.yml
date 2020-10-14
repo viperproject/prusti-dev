@@ -13,7 +13,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-latest, ubuntu-16.04, windows-latest ]
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
@@ -62,7 +62,7 @@ jobs:
       - name: Package Prusti artifacts
         shell: bash
         run: |
-          for os in ubuntu-latest ubuntu-16.04 windows-latest macos-latest
+          for os in ubuntu-latest windows-latest macos-latest
           do
             echo "Package Prusti artifact for $os"
             cd prusti-release-$os
@@ -83,7 +83,7 @@ jobs:
           tag_name: ${{ env.TAG_NAME }}
           release_name: Nightly Release ${{ env.TAG_NAME }}
           keep_num: 2
-      - name: Upload release asset for Ubuntu latest
+      - name: Upload release asset for Ubuntu
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -91,15 +91,6 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./prusti-release-ubuntu-latest/prusti.zip
           asset_name: prusti-release-ubuntu.zip
-          asset_content_type: application/zip
-      - name: Upload release asset for Ubuntu 16.04
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-ubuntu-16.04/prusti.zip
-          asset_name: prusti-release-ubuntu-16.04.zip
           asset_content_type: application/zip
       - name: Upload release asset for Windows
         uses: actions/upload-release-asset@v1
