@@ -10,6 +10,7 @@ use std::path::PathBuf;
 use std::io::{BufReader, BufRead};
 use std::env;
 use prusti_launch::find_java_home;
+use std::collections::HashMap;
 
 fn find_executable_path(base_name: &str) -> PathBuf {
     let target_directory = if cfg!(debug_assertions) {
@@ -102,12 +103,19 @@ fn test_prusti_rustc_with_server() {
     let prusti_server = find_executable_path("prusti-server");
     let java_home = find_java_home().expect("Failed to find Java home directory.");
 
+    // Preserve SYSTEMROOT on Windows.
+    // See: https://travis-ci.community/t/socket-the-requested-service-provider-could-not-be-loaded-or-initialized/1127
+    let filtered_env : HashMap<String, String> = env::vars()
+        .filter(|&(ref k, _)| k == "SYSTEMROOT")
+        .collect();
+
     let mut server_child = Command::new(&prusti_server)
         .arg("--port=0")
         .env_clear()
         .env("RUST_LOG", "warn")
         .env("RUST_BACKTRACE", "1")
         .env("JAVA_HOME", java_home)
+        .envs(&filtered_env)
         .stdout(Stdio::piped())
         .spawn()
         .expect("failed to start prusti-server");
