@@ -9,6 +9,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
+use serde_derive::Deserialize;
 
 /// Append paths to the loader environment variable
 pub fn add_to_loader_path(paths: Vec<PathBuf>, cmd: &mut Command) {
@@ -89,11 +90,35 @@ pub fn find_java_home() -> Option<PathBuf> {
         })
 }
 
+pub fn get_rust_toolchain_channel() -> String {
+    #[derive(Deserialize)]
+    struct RustToolchain {
+        toolchain: RustToolchainZone,
+    }
+
+    #[derive(Deserialize)]
+    struct RustToolchainZone {
+        channel: String,
+        components: Option<Vec<String>>,
+    }
+
+    let content = include_str!("../../rust-toolchain");
+    // Be ready to accept TOML format
+    // See: https://github.com/rust-lang/rustup/pull/2438
+    if content.starts_with("[toolchain]") {
+        let rust_toolchain: RustToolchain = toml::from_str(content)
+            .expect("failed to parse rust-toolchain file");
+        rust_toolchain.toolchain.channel
+    } else {
+        content.trim().to_string()
+    }
+}
+
 /// Find Prusti's sysroot
 pub fn prusti_sysroot() -> Option<PathBuf> {
     Command::new("rustup")
         .arg("run")
-        .arg(include_str!("../../rust-toolchain").trim())
+        .arg(get_rust_toolchain_channel())
         .arg("rustc")
         .arg("--print")
         .arg("sysroot")
