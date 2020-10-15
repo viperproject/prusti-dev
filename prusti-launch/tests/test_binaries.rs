@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use glob::glob;
-use std::process::{Command, ExitStatus, Stdio};
+use std::process::{Command, ExitStatus, Stdio, Child};
 use std::path::PathBuf;
 use std::io::{BufReader, BufRead};
 use std::env;
@@ -81,6 +81,17 @@ fn run_on_test_files<F: Fn(&PathBuf) -> ExitStatus>(run: F) {
     }
 }
 
+/// Kill a spawned Child process even in case of panics.
+struct ChildGuard(Child);
+
+impl Drop for ChildGuard {
+    fn drop(&mut self) {
+        if let Err(e) = self.0.kill() {
+            panic!("Could not kill child process: {}", e);
+        }
+    }
+}
+
 #[test]
 fn test_prusti_rustc() {
     let prusti_rustc = find_executable_path("prusti-rustc");
@@ -141,6 +152,8 @@ fn test_prusti_rustc_with_server() {
         opt_server_port.expect("failed to read prusti-server port")
     };
 
+    let _server_child_guard = ChildGuard(server_child);
+
     run_on_test_files(|program: &PathBuf| -> ExitStatus {
         println!("Running {:?} on {:?}...", prusti_rustc.display(), program.display());
         Command::new(&prusti_rustc)
@@ -152,6 +165,4 @@ fn test_prusti_rustc_with_server() {
             .status()
             .expect("failed to execute prusti-rustc")
     });
-
-    server_child.kill().expect("failed to kill prusti-server");
 }
