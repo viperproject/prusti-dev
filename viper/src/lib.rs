@@ -15,7 +15,7 @@ extern crate log;
 extern crate uuid;
 extern crate viper_sys;
 #[macro_use]
-extern crate serde_derive;
+extern crate serde;
 
 mod ast_factory;
 mod ast_utils;

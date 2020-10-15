@@ -15,7 +15,7 @@ extern crate num_cpus;
 extern crate prusti_common;
 extern crate tokio;
 #[macro_use]
-extern crate serde_derive;
+extern crate serde;
 
 mod service;
 mod verifier_runner;

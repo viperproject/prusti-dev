@@ -9,7 +9,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
-use serde_derive::Deserialize;
+use serde::Deserialize;
 
 /// Append paths to the loader environment variable
 pub fn add_to_loader_path(paths: Vec<PathBuf>, cmd: &mut Command) {
