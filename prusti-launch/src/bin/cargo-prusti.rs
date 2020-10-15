@@ -23,9 +23,12 @@ fn process<I>(args: I) -> Result<(), i32>
         prusti_rustc_path.set_extension("exe");
     }
 
+    let rust_toolchain = include_str!("../../../rust-toolchain");
+
     let exit_status = Command::new("cargo".to_string())
         .arg("check")
         .args(args)
+        .env("RUST_TOOLCHAIN", rust_toolchain)
         .env("PRUSTI_QUIET", "true")
         .env("PRUSTI_FULL_COMPILATION", "true")
         .env("RUSTC_WRAPPER", prusti_rustc_path)
