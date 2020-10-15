@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::process::Command;
+use prusti_launch::get_rust_toolchain_channel;
 
 fn main(){
     if let Err(code) = process(std::env::args().skip(1)) {
@@ -23,12 +24,10 @@ fn process<I>(args: I) -> Result<(), i32>
         prusti_rustc_path.set_extension("exe");
     }
 
-    let rust_toolchain = include_str!("../../../rust-toolchain");
-
     let exit_status = Command::new("cargo".to_string())
         .arg("check")
         .args(args)
-        .env("RUST_TOOLCHAIN", rust_toolchain)
+        .env("RUST_TOOLCHAIN", get_rust_toolchain_channel())
         .env("PRUSTI_QUIET", "true")
         .env("PRUSTI_FULL_COMPILATION", "true")
         .env("RUSTC_WRAPPER", prusti_rustc_path)
