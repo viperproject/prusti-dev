@@ -24,7 +24,9 @@ fn process<I>(args: I) -> Result<(), i32>
         prusti_rustc_path.set_extension("exe");
     }
 
-    let exit_status = Command::new("cargo".to_string())
+    let cargo_path = std::env::var("CARGO_PATH").unwrap_or("cargo".to_string());
+
+    let exit_status = Command::new(cargo_path)
         .arg("check")
         .args(args)
         .env("RUST_TOOLCHAIN", get_rust_toolchain_channel())
