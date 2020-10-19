@@ -83,8 +83,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             func_spec.push(self.encoder.encode_assertion(
                 &item,
                 &self.mir,
-                Some(&""),
-                &encoded_args.iter().map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
+                None,
+                &encoded_args
+                    .iter()
+                    .map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 None,
                 true,
                 None,
@@ -121,8 +123,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             func_spec.push(self.encoder.encode_assertion(
                 &item,
                 &self.mir,
-                Some(&""),
-                &encoded_args.iter().map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
+                None,
+                &encoded_args
+                    .iter()
+                    .map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 Some(&encoded_return.clone().into()),
                 true,
                 None,

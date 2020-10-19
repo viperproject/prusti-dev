@@ -308,7 +308,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                             );
 
                             let sf_post_name = self.encoder.encode_spec_func_name(*def_id, SpecFunctionKind::Post);
-                            // The result should be in _0, but for some reason it gets encoded like this
+                            // The result is modeled as the final argument to the post() spec function
                             let result_name = format!("_{}_forall", vars.args.len() + 2);
                             let post_conjunct = vir::Expr::forall(
                                 vars.args
@@ -587,8 +587,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         // Replacement 1: replace the arguments with the `target_args`.
         replacements.extend(
             mir.args_iter()
-                .zip(self.target_args)
-                .skip(if skip_first { 1 } else { 0 })
+                .zip(self.target_args
+                         .iter()
+                         .skip(if skip_first { 1 } else { 0 }))
                 .map(|(local, target_arg)| {
                     let local_ty = mir.local_decls[local].ty;
                     // will panic if attempting to encode unsupported type

@@ -1103,7 +1103,7 @@ impl Expr {
             fn fold(&mut self, e: Expr) -> Expr {
                 // Check if this matches a substitution.
                 if e.is_place() {
-                    let substitution = self.replacements.iter()
+                    let substitution = self.replacements.iter().rev()
                         .find(|(src, _)| src == &e);
                     if let Some((src, dst)) = substitution {
                         return dst.clone();
@@ -1118,7 +1118,7 @@ impl Expr {
                 // Check if the base matches a substitution.
                 let base_substitution = if field.typ.is_ref() && receiver.is_place() {
                     self.replacements.iter()
-                        .position(|(src, _)| src == &receiver.get_base().into())
+                        .rposition(|(src, _)| src == &receiver.get_base().into())
                 } else {
                     None
                 };
