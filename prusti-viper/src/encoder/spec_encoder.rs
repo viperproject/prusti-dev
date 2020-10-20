@@ -256,8 +256,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             },
             box typed::AssertionKind::SpecEnt(ref cl, ref vars, ref pres, ref posts) => {
                 let tcx = self.encoder.env().tcx();
-                let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(cl.expr));
-                let result = &mir.borrow().local_decls[(0 as u32).into()];
+                let mir = self.encoder.env().mir(cl.expr);
+                let result = &mir.local_decls[(0 as u32).into()];
                 let ty = result.ty;
                 let typaram_repl = self.encoder.typaram_repl.borrow();
                 if let Some(Some(ty_repl)) = typaram_repl.iter().last().map(|x| x.get(ty)) {
