@@ -285,18 +285,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                             }
 
                             let sf_pre_name = self.encoder.encode_spec_func_name(*def_id, SpecFunctionKind::Pre);
+                            let qvars_pre: Vec<_> = vars.args
+                                .iter()
+                                .map(|(arg, arg_ty)| self.encode_forall_arg(*arg, arg_ty, &format!("{}_{}", vars.spec_id, vars.pre_id)))
+                                .collect();
                             let pre_conjunct = vir::Expr::forall(
-                                vars.args.iter().map(|(arg, arg_ty)| self.encode_forall_arg(*arg, arg_ty, &format!("{}_{}", vars.spec_id, vars.pre_id))).collect(),
+                                qvars_pre.clone(),
                                 vec![], // TODO: encode triggers
                                 vir::Expr::implies(
                                     encoded_pres.clone(),
                                     vir::Expr::FuncApp(
                                         sf_pre_name,
-                                        (0 .. vars.args.len())
-                                            .map(|i| vir::Expr::Local(
-                                                vir::LocalVar::new(format!("_{}_forall", i + 2), vir::Type::Int),
-                                                vir::Position::default()
-                                            ))
+                                        qvars_pre.iter()
+                                            .map(|x| vir::Expr::Local(x.clone(), vir::Position::default()))
                                             .collect(),
                                         (0 .. vars.args.len())
                                             .map(|i| vir::LocalVar::new(format!("_{}", i), vir::Type::Int))
@@ -307,31 +308,41 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                                 )
                             );
 
+
                             let sf_post_name = self.encoder.encode_spec_func_name(*def_id, SpecFunctionKind::Post);
+
                             // The result is modeled as the final argument to the post() spec function
-                            let result_name = format!("_{}_forall", vars.args.len() + 2);
+                            let result_var = mir::Local::from_usize(vars.args.len() + 2);
+
+                            // The set of quantified variables
+                            let qvars_post: Vec<_> = vars.args
+                                .iter()
+                                .map(|(arg, arg_ty)|
+                                     self.encode_forall_arg(
+                                         *arg, arg_ty,
+                                         &format!("{}_{}", vars.spec_id, vars.post_id)))
+                                .chain(std::iter::once(
+                                    self.encode_forall_arg(
+                                        result_var, tcx.mk_ty(ty::TyKind::Int(rustc_ast::ast::IntTy::I32)),
+                                        &format!("{}_{}", vars.spec_id, vars.post_id))))
+                                .collect();
+
                             let post_conjunct = vir::Expr::forall(
-                                vars.args
-                                    .iter()
-                                    .map(|(arg, arg_ty)| self.encode_forall_arg(*arg, arg_ty, &format!("{}_{}", vars.spec_id, vars.pre_id)))
-                                    .chain(std::iter::once(vir::LocalVar::new(result_name.clone(), vir::Type::Int)))
-                                    .collect(),
+                                qvars_post.clone(),
                                 vec![], // TODO: encode triggers
                                 vir::Expr::implies(
-                                    encoded_pres,
+                                    // The quantified variables in the precondition have been encoded using
+                                    // different IDs (vars.pre_id vs. vars.post_id), so we need to fix them
+                                    (0 .. qvars_pre.len())
+                                        .fold(encoded_pres, |e, i| {
+                                            e.replace_place(&vir::Expr::Local(qvars_pre[i].clone(), vir::Position::default()),
+                                                            &vir::Expr::Local(qvars_post[i].clone(), vir::Position::default()))
+                                        }),
                                     vir::Expr::implies(
                                         vir::Expr::FuncApp(
                                             sf_post_name,
-                                            (0 .. vars.args.len())
-                                                .map(|i| vir::Expr::Local(
-                                                    vir::LocalVar::new(format!("_{}_forall", i + 2), vir::Type::Int),
-                                                    vir::Position::default()
-                                                ))
-                                                .chain(std::iter::once(
-                                                    vir::Expr::Local(
-                                                        vir::LocalVar::new(result_name.clone(), vir::Type::Int),
-                                                        vir::Position::default()
-                                                    )))
+                                            qvars_post.iter()
+                                                .map(|x| vir::Expr::Local(x.clone(), vir::Position::default()))
                                                 .collect(),
                                             (0 ..= vars.args.len())
                                                 .map(|i| vir::LocalVar::new(format!("_{}", i), vir::Type::Int))
