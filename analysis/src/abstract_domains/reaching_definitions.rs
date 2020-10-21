@@ -11,7 +11,6 @@
 //! derived from mir_analyses/liveness
 
 use std::collections::{HashMap, HashSet};
-use std::fmt;
 use crate::AbstractState;
 use rustc_middle::mir;
 
@@ -28,7 +27,7 @@ impl fmt::Debug for Assignment {
     }
 }*/
 
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ReachingDefsState {
     reaching_assignments: HashMap<mir::Local, HashSet<mir::Location>>,
 }
@@ -41,7 +40,7 @@ impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
     }
 
     fn new_initial(args: &[mir::LocalDecl<'tcx>]) -> Self {
-        new_bottom()
+        Self::new_bottom()
     }
 
     fn widening_threshold() -> u32 {
@@ -50,9 +49,9 @@ impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
 
     fn join(&mut self, other: &Self) {
         for (local, other_assignments) in other.reaching_assignments.iter() {
-            let assignments = self.reaching_assignments.entry(local).or_insert(HashSet::new());
+            let assignments = self.reaching_assignments.entry(*local).or_insert(HashSet::new());
             for assignment in other_assignments.iter() {
-                assignments.insert(assignment);
+                assignments.insert(*assignment);
             }
         }
     }
@@ -63,19 +62,19 @@ impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
     }
 
     fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement<'tcx>){
-        match statement.kind {
+        match stmt.kind {
             mir::StatementKind::Assign(box (ref target, _)) => {
                 if let Some(local) = target.as_local() {
                     let assignment_set = self.reaching_assignments.entry(local).or_insert(HashSet::new());
                     assignment_set.clear();
-                    assignment_set.insert(location);
+                    assignment_set.insert(*location);
                 }
             }
             _ => {}
         }
     }
 
-    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator<'tcx>) -> Vec<(mir::BasicBlock, Self)> {
+    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator<'tcx>) -> Vec<(mir::BasicBlock, Box<Self>)> {
         match terminator.kind {
             mir::TerminatorKind::Call {
                 ref destination, ..     //TODO: need to handle cleanup?
@@ -85,9 +84,9 @@ impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
                     if let Some(local) = place.as_local() {
                         let assignment_set = dest_state.reaching_assignments.entry(local).or_insert(HashSet::new());
                         assignment_set.clear();
-                        assignment_set.insert(location);
+                        assignment_set.insert(*location);
                     }
-                    return Vec::from([(bb, dest_state)]);
+                    return Vec::from([(*bb, Box::new(dest_state))]);
                 }
             }
             _ => {}

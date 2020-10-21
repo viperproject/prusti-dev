@@ -25,5 +25,5 @@ pub trait AbstractState<'tcx> {
     fn widen(&mut self, previous: &Self);
 
     fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement<'tcx>);
-    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator<'tcx>) -> Vec<(mir::BasicBlock, Self)>;
+    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator<'tcx>) -> Vec<(mir::BasicBlock, Box<Self>)>;
 }

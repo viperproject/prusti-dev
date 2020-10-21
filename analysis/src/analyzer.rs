@@ -15,12 +15,12 @@ use std::iter::FromIterator;
 
 type Result<T> = std::result::Result<T, AnalysisError>;
 
-pub struct Analyzer<'tcx, S: AbstractState<'tcx>> {
+pub struct Analyzer<'tcx> {         // S: AbstractState<'tcx>
     tcx: TyCtxt<'tcx>,
     //p_state: PointwiseState<'tcx, S>,
 }
 
-impl<'tcx, S: AbstractState<'tcx> + Clone + Eq> Analyzer<'tcx, S> {
+impl<'tcx> Analyzer<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>) -> Self {
         Analyzer {
             tcx,
@@ -44,10 +44,11 @@ impl<'tcx, S: AbstractState<'tcx> + Clone + Eq> Analyzer<'tcx, S> {
         }
     }*/
 
-    pub fn run_fwd_analysis(&mut self, tcx: TyCtxt<'tcx>, mir:  &mir::Body<'tcx>,) -> Result<PointwiseState<'tcx, S>>
+    pub fn run_fwd_analysis<S>(&mut self, tcx: TyCtxt<'tcx>, mir:  &mir::Body<'tcx>,) -> Result<PointwiseState<'tcx, S>>
+        where S: AbstractState<'tcx> + Clone + Eq
     {
         let mut p_state = PointwiseState::new(tcx);
-        //TODO: use https://crates.io/crates/linked_hash_set for set preserving insertion order
+        //TODO: use https://crates.io/crates/linked_hash_set for set preserving insertion order? Or Btreeset -> extract minimal element
         let mut work_list: VecDeque<mir::BasicBlock> = VecDeque::from_iter(mir.basic_blocks().indices()); //TODO: guaranteed order? Only take first?
 
         //TODO: maybe initialize all after_block first to bottom?
@@ -77,28 +78,28 @@ impl<'tcx, S: AbstractState<'tcx> + Clone + Eq> Analyzer<'tcx, S> {
                 if *counter > S::widening_threshold() {
                     let location = mir::Location {
                         block: bb,
-                        0,
+                        statement_index: 0,
                     };
-                    state_before_block.widen(p_state.lookup_before(location).unwrap())
+                    state_before_block.widen(p_state.lookup_before(&location).unwrap())
                 }
             }
 
-            let mir::BasicBlockData { ref terminator, ref statements, .. } = mir[bb];
+            let mir::BasicBlockData { ref statements, .. } = mir[bb];
             let mut current_state = state_before_block;
             for statement_index in 0..statements.len() {
                 let location = mir::Location {
                     block: bb,
                     statement_index,
                 };
-                let prev_state = p_state.lookup_before(location);
-                if prev_state.is_some() && prev_state == current_state {
+                let prev_state = p_state.lookup_before(&location);
+                if prev_state.is_some() && prev_state.unwrap() == &current_state {
                     // same state, don't need to reiterate
                     continue 'block_loop;
                 }
-                p_state.set_before(location, current_state.clone());
+                p_state.set_before(&location, current_state.clone());
                 // normal statement
-                let stmt = statements[statement_index];
-                current_state.apply_statement_effect(stmt);
+                let stmt = &statements[statement_index];
+                current_state.apply_statement_effect(&location, stmt);
             }
 
             // terminator effect
@@ -106,18 +107,20 @@ impl<'tcx, S: AbstractState<'tcx> + Clone + Eq> Analyzer<'tcx, S> {
                 block: bb,
                 statement_index: statements.len(),
             };
-            let prev_state = p_state.lookup_before(location);
-            if prev_state.is_some() && prev_state == current_state {
+            let prev_state = p_state.lookup_before(&location);
+            if prev_state.is_some() && prev_state.unwrap() == &current_state {
                 // same state, don't need to reiterate
                 continue 'block_loop;
             }
-            p_state.set_before(location, current_state.clone());
+            p_state.set_before(&location, current_state.clone());
 
-            let next_states = current_state.apply_terminator_effect(terminator);
-            let map_after_block = p_state.lookup_mut_after_block(bb);
+            let terminator = mir[bb].terminator();
+            let next_states = current_state.apply_terminator_effect(&location, terminator);
+            let map_after_block = p_state.lookup_mut_after_block(&bb);
             for (next_bb, state) in next_states {
-                let prev_state = map_after_block.insert(next_bb, state);
-                if (prev_state.is_none() || prev_state != state) {
+                let prev_state = map_after_block.insert(next_bb, *state);
+                let new_state_ref = map_after_block.get(&next_bb);
+                if prev_state.is_none() || &prev_state.unwrap() != new_state_ref.unwrap() {
                     // input state has changed => add next_bb to worklist again
                     work_list.push_back(next_bb);
                 }
