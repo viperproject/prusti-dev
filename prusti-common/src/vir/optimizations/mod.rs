@@ -11,6 +11,7 @@ use vir::Program;
 pub mod folding;
 pub mod functions;
 pub mod methods;
+pub mod predicates;
 
 impl Program {
     pub fn optimized(mut self) -> Self {
@@ -28,6 +29,12 @@ impl Program {
             .into_iter()
             .map(|f| folding::FoldingOptimizer::optimize(f))
             .collect();
+        self.viper_predicates = predicates::delete_unused_predicates(
+            &self.methods,
+            &self.functions,
+            &self.viper_predicates,
+        );
+
         self
     }
 }
