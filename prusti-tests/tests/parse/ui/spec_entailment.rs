@@ -2,7 +2,7 @@
 // normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
 // normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
 
-/// Failure cases for specification entailment parsing.
+/// Tests for specification entailment parsing.
 
 use prusti_contracts::*;
 
