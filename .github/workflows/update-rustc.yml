@@ -1,0 +1,38 @@
+name: Update rustc
+
+on:
+  schedule:
+    # At 07:00 UTC on day-of-month 1 and 15. Use https://crontab.guru/ to edit this.
+    - cron:  '0 7 1,15 * *'
+
+jobs:
+  # Update the version of rustc, open a PR and assign a developer.
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Update rustc version
+        run: |
+          NIGHTLY_VERSION="nightly-$(
+            curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/rustc-dev
+          )"
+          echo "The updated version of rustc is $NIGHTLY_VERSION"
+          echo "$NIGHTLY_VERSION" > rust-toolchain
+          declare -a DEVELOPERS=(Aurel300 fpoli vakaras)
+          DEVELOPER="${DEVELOPERS[$(( RANDOM % ${#DEVELOPERS[@]} ))]}"
+          echo "The randomly chosen developer is $DEVELOPER"
+          echo "$NIGHTLY_VERSION=$NIGHTLY_VERSION" >> $GITHUB_ENV
+          echo "$DEVELOPER=$DEVELOPER" >> $GITHUB_ENV
+
+      - name: Open a pull request
+        uses: peter-evans/create-pull-request@v3
+        commit-message: Update rustc to ${{ $NIGHTLY_VERSION }}
+        title: Update rustc to ${{ $NIGHTLY_VERSION }}
+        branch: auto-update-rustc
+        delete-branch: true
+        body: |
+          * Update rustc to ${{ env.NIGHTLY_VERSION }}
+
+          @${{ env.DEVELOPER }} could you assign someone to this PR?
