@@ -259,8 +259,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 let mir = self.encoder.env().mir(cl.expr);
                 let result = &mir.local_decls[(0 as u32).into()];
                 let ty = result.ty;
-                let typaram_repl = self.encoder.typaram_repl.borrow();
-                if let Some(Some(ty_repl)) = typaram_repl.iter().last().map(|x| x.get(ty)) {
+                if let Some(ty_repl) = self.encoder.current_tymap().get(ty) {
                     debug!("spec ent repl: {:?} -> {:?}", ty, ty_repl);
 
                     match ty_repl.kind() {
