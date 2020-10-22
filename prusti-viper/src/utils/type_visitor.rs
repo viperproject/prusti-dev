@@ -176,7 +176,7 @@ pub trait TypeVisitor<'tcx>: Sized {
 
     fn visit_closure(&mut self, def_id: DefId, substs: SubstsRef<'tcx>) {
         trace!("visit_closure({:?})", def_id);
-        // TODO
+        // TODO: visit types of closure
     }
 }
 

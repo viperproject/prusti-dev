@@ -3998,10 +3998,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // will panic if attempting to encode unsupported type
                 let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place).unwrap();
                 debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
-                // if let ty::TyKind::Closure(..) = ty.kind {
-                //     // Do not encode closures
-                //     continue;
-                // }
                 match kind {
                     // Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
@@ -5157,7 +5153,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 stmts
             }
             ty::TyKind::Closure(_, _) => {
-                // not implemented yet
+                // TODO: implement
                 debug!("warning: ty::TyKind::Closure not implemented yet");
                 Vec::new()
             }

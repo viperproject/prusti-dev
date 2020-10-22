@@ -388,21 +388,18 @@ impl EncodeTypeCheck for Assertion {
                 tokens.extend(typeck_call);
             }
             AssertionKind::SpecEnt(cl, vars, pres, posts) => {
-                // TODO
                 // cl needs special handling because it's not a boolean expression
-                {
-                    let span = cl.expr.span();
-                    let expr = &cl.expr;
-                    let identifier = format!("{}_{}", cl.spec_id, cl.id);
-                    let typeck_call = quote_spanned! { span =>
-                        #[prusti::spec_only]
-                        #[prusti::expr_id = #identifier]
-                        || {
-                            #expr
-                        };
+                let span = cl.expr.span();
+                let expr = &cl.expr;
+                let cl_id = format!("{}_{}", cl.spec_id, cl.id);
+                let typeck_call_cl = quote_spanned! { span =>
+                    #[prusti::spec_only]
+                    #[prusti::expr_id = #cl_id]
+                    || {
+                        #expr
                     };
-                    tokens.extend(typeck_call);
-                }
+                };
+                tokens.extend(typeck_call_cl);
 
                 let span = Span::call_site();
                 let pre_id = format!("{}_{}", vars.spec_id, vars.pre_id);

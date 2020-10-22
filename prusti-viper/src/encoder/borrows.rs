@@ -432,7 +432,7 @@ where
     if !tcx.is_closure(proc_def_id) {
         let fn_sig: FnSig = tcx.fn_sig(proc_def_id).skip_binder();
 
-        // FIXME; "skip_binder" is most likely wrong
+        // FIXME: "skip_binder" is most likely wrong
         // FIXME: Replace with FakeMirEncoder.
         for i in 0usize..fn_sig.inputs().len() {
             fake_mir_args.push(mir::Local::from_usize(i + 1));
@@ -445,13 +445,19 @@ where
             fake_mir_args_ty.push(ty);
         }
 
-        return_ty = fn_sig.output().clone();  // FIXME: Shouldn't this also go through maybe_tymap?
+        return_ty = fn_sig.output().clone(); // FIXME: Shouldn't this also go through maybe_tymap?
     } else {
         let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
         let mir = mir.borrow();
 
         return_ty = mir.local_decls[mir::Local::from_usize(0)].ty;
         trace!("compute_procedure_contract: closure: return_ty: {:?}", return_ty);
+
+        // local_decls:
+        // _0    - return, with closure's return type
+        // _1    - closure's self
+        // _2... - actual arguments
+        // arg_count includes the extra self _1
 
         for i in 1usize ..= mir.arg_count {
             fake_mir_args.push(mir::Local::from_usize(i));
