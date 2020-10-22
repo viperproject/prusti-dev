@@ -98,8 +98,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Pre),
             formal_args: encoded_args.into_iter()
-                                     .skip(1)
-                                     .collect(), // skip "self" for now
+                                     .skip(1) // FIXME: "self" is skipped, see TypeEncoder
+                                     .collect(),
             return_type: vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),
@@ -118,6 +118,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             .map(|local| self.encode_local(local.clone().into()).into())
             .collect();
         let encoded_return = self.encode_local(contract.returned_value.clone().into());
+        // encoded_args:
+        // _1    - closure "self"
+        // _2... - additional arguments
+        // encoded return: _0
 
         for item in contract.functional_postcondition() {
             func_spec.push(self.encoder.encode_assertion(
@@ -138,7 +142,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Post),
             formal_args: encoded_args.into_iter()
-                                     .skip(1) // skip "self" for now
+                                     .skip(1) // FIXME: "self" is skipped, see TypeEncoder
                                      .chain(std::iter::once(encoded_return))
                                      .collect(),
             return_type: vir::Type::Bool,

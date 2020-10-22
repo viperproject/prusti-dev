@@ -585,6 +585,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             curr_def_id = outer_def_id;
         }
 
+        // FIXME: "self" is skipped for closures, see TypeEncoder
         let skip_first = self.encoder.encode_item_name(curr_def_id).contains("_closure_");
 
         // At this point `curr_def_id` should be either a SPEC item (when encoding a contract) or

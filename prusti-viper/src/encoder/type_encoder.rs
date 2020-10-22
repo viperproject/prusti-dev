@@ -388,37 +388,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vec![vir::Predicate::new_abstract(typ)]
             }
 
-            ty::TyKind::Closure(_def_id, substs) => {
-                let mut fields_iter = substs.iter();
-                let typaram_repl = self.encoder.typaram_repl.borrow();
-
-                debug!("substs: {:?}, typaram_repl: {:?}", substs, typaram_repl.iter().last());
-
-                // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.ClosureSubsts.html
-
-                // First type should be the closure kind
-                // Skip generic args until we get to the closure kind
-                // FIXME: This is probably wrong, but skipping (typaram_repl.iter().last().map_or(0, |x| x.len()))
-                //        elements from the start of fields_iter did not work either
-                while let Some(ty) = fields_iter.next() {
-                    match ty.expect_ty().kind() {
-                        ty::TyKind::Int(_) => { break; }
-                        _ => {}
-                    }
-                }
-
-                // Second type should be the closure signature as FnPtr
-                let cl_sig = fields_iter.next().unwrap();
-                match cl_sig.expect_ty().kind() {
-                    ty::TyKind::FnPtr(sig) if *sig == substs.as_closure().sig() => (),
-                    _ => unreachable!()
-                }
-
-                // Third type should be a tuple containing the upvar types
-                let cl_upvars = fields_iter.next().unwrap().expect_ty();
-                assert_eq!(fields_iter.next(), None);
-
-                match cl_upvars.kind() {
+            ty::TyKind::Closure(_def_id, internal_substs) => {
+                let closure_substs = internal_substs.as_closure();
+                match closure_substs.tupled_upvars_ty().kind() {
                     ty::TyKind::Tuple(upvar_substs) => {
                         // let field_name = "upvars".to_owned();
                         // let field = self.encoder.encode_raw_ref_field(field_name, cl_upvars);
