@@ -1024,31 +1024,33 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         expr
     }
 
-    pub fn encode_item_name(&self, def_id: DefId) -> String {
+    pub fn encode_identifier(&self, ident: String) -> String {
         // Rule: the rhs must always have an even number of "$"
-        let mut final_name = "m_".to_string();
-        let name = if config::disable_name_mangling() {
-            self.env.get_item_name(def_id)
-        } else {
-            self.env.get_item_def_path(def_id)
-        };
-        final_name.push_str(
-            &name
-                .replace("::", "$$")
-                .replace("#", "$sharp$")
-                .replace("<", "$openang$")
-                .replace(">", "$closeang$")
-                .replace("(", "$openrou$")
-                .replace(")", "$closerou$")
-                .replace("[", "$opensqu$")
-                .replace("]", "$closesqu$")
-                .replace("{", "$opencur$")
-                .replace("}", "$closecur$")
-                .replace(",", "$comma$")
-                .replace(";", "$semic$")
-                .replace(" ", "$space$"),
-        );
-        final_name
+        ident
+            .replace("::", "$$")
+            .replace("#", "$sharp$")
+            .replace("<", "$openang$")
+            .replace(">", "$closeang$")
+            .replace("(", "$openrou$")
+            .replace(")", "$closerou$")
+            .replace("[", "$opensqu$")
+            .replace("]", "$closesqu$")
+            .replace("{", "$opencur$")
+            .replace("}", "$closecur$")
+            .replace(",", "$comma$")
+            .replace(";", "$semic$")
+            .replace(" ", "$space$")
+    }
+
+    pub fn encode_item_name(&self, def_id: DefId) -> String {
+        format!(
+            "m_{}",
+            self.encode_identifier(if config::disable_name_mangling() {
+                self.env.get_item_name(def_id)
+            } else {
+                self.env.get_item_def_path(def_id)
+            })
+        )
     }
 
     pub fn encode_invariant_func_app(
@@ -1496,15 +1498,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {
-        let item_name: String = self.encode_item_name(def_id);
-        let sf_name: String = item_name.replacen(
-            "m_",
-            &("sf_".to_owned()
-              + match kind { SpecFunctionKind::Pre => "pre",
-                             SpecFunctionKind::Post => "post",
-                             SpecFunctionKind::HistInv => "histinv" }
-              + "_"),
-            1);
-        sf_name
+        format!(
+            "sf_{}_{}",
+            match kind {
+                SpecFunctionKind::Pre => "pre",
+                SpecFunctionKind::Post => "post",
+                SpecFunctionKind::HistInv => "histinv",
+            },
+            self.encode_identifier(if config::disable_name_mangling() {
+                self.env.get_item_name(def_id)
+            } else {
+                self.env.get_item_def_path(def_id)
+            })
+        )
     }
 }
