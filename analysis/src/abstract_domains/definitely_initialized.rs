@@ -4,17 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::AbstractState;
+use crate::{AbstractState, AnalysisError};
 use rustc_middle::mir;
 
 pub struct DefinitelyInitializedState {}
 
-impl<'tcx> AbstractState<'tcx> for DefinitelyInitializedState {
+impl AbstractState for DefinitelyInitializedState {
     fn new_bottom() -> Self {
         unimplemented!()
     }
 
-    fn new_initial(args: &[mir::LocalDecl<'tcx>]) -> Self {
+    fn new_initial(args: Vec<&mir::LocalDecl>) -> Self {
         unimplemented!()
     }
 
@@ -30,11 +30,12 @@ impl<'tcx> AbstractState<'tcx> for DefinitelyInitializedState {
         unimplemented!()
     }
 
-    fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement<'tcx>) {
+    fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement)-> Result<(), AnalysisError> {
         unimplemented!()
     }
 
-    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator<'tcx>) -> Vec<(mir::BasicBlock, Box<Self>)> {
+    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator)
+        -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
         unimplemented!()
     }
 }

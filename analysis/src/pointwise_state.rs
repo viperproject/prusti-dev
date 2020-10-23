@@ -9,9 +9,7 @@ use rustc_middle::mir;
 use rustc_middle::ty::TyCtxt;
 use crate::AbstractState;
 
-pub struct PointwiseState<'tcx, S: AbstractState<'tcx>> {
-    tcx: TyCtxt<'tcx>,
-
+pub struct PointwiseState<S: AbstractState> {
     state_before: HashMap<mir::Location, S>,
     /// We use a vector, not a map, to reflect the type of `TerminatorKind::Switch::targets`.
     /// In particular, there might be multiple CFG edges all going to the same CFG block, and we
@@ -19,10 +17,9 @@ pub struct PointwiseState<'tcx, S: AbstractState<'tcx>> {
     state_after_block: HashMap<mir::BasicBlock, HashMap<mir::BasicBlock, S>>,
 }
 
-impl<'tcx, S: AbstractState<'tcx>> PointwiseState<'tcx, S> {
-    pub fn new(tcx: TyCtxt<'tcx>) -> Self {
+impl<S: AbstractState> PointwiseState<S> {
+    pub fn new() -> Self {
         Self {
-            tcx,
             state_before: HashMap::new(),
             state_after_block: HashMap::new(),
         }

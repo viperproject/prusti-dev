@@ -10,53 +10,39 @@ pub use crate::PointwiseState;
 pub use crate::AnalysisError;
 pub use crate::abstract_domains::*;
 use crate::AbstractState;
-use std::collections::{VecDeque, HashMap};
+use std::collections::{HashMap, BTreeSet};
 use std::iter::FromIterator;
+use crate::analysis_error::AnalysisError::SuccessorWithoutState;
 
 type Result<T> = std::result::Result<T, AnalysisError>;
 
 pub struct Analyzer<'tcx> {         // S: AbstractState<'tcx>
     tcx: TyCtxt<'tcx>,
-    //p_state: PointwiseState<'tcx, S>,
+    //p_state: PointwiseState<S>,
 }
 
 impl<'tcx> Analyzer<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>) -> Self {
         Analyzer {
             tcx,
-            //p_state: PointwiseState::new(tcx),
+            //p_state: PointwiseState::new(),
         }
     }
 
-    /*fn initialize_states(&mut self, mir:  &mir::Body<'tcx>,) {
-        for bb in mir.basic_blocks().indices() {
-            p_state.before_block.insert(bb, AssignmentSet::new());
-            let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
-            for statement_index in 0..statements.len() + 1 {
-                let location = mir::Location {
-                    block: bb,
-                    statement_index: statement_index,
-                };
-                self.result
-                    .after_statement
-                    .insert(location, AssignmentSet::new());
-            }
-        }
-    }*/
 
-    pub fn run_fwd_analysis<S>(&mut self, tcx: TyCtxt<'tcx>, mir:  &mir::Body<'tcx>,) -> Result<PointwiseState<'tcx, S>>
-        where S: AbstractState<'tcx> + Clone + Eq
+    pub fn run_fwd_analysis<S>(&mut self, tcx: TyCtxt<'tcx>, mir:  &mir::Body<'tcx>,) -> Result<PointwiseState<S>>
+        where S: AbstractState + Clone + Eq
     {
-        let mut p_state = PointwiseState::new(tcx);
-        //TODO: use https://crates.io/crates/linked_hash_set for set preserving insertion order? Or Btreeset -> extract minimal element
-        let mut work_list: VecDeque<mir::BasicBlock> = VecDeque::from_iter(mir.basic_blocks().indices()); //TODO: guaranteed order? Only take first?
+        let mut p_state = PointwiseState::new();
+        //use https://crates.io/crates/linked_hash_set for set preserving insertion order?
+        let mut work_set: BTreeSet<mir::BasicBlock> = BTreeSet::from_iter(mir.basic_blocks().indices());
 
-        //TODO: maybe initialize all after_block first to bottom?
+        let mut counters: HashMap<mir::BasicBlock, u32> = HashMap::with_capacity(mir.basic_blocks().len());
 
-        let mut counters: HashMap<mir::BasicBlock, u32> = HashMap::with_capacity(work_list.len());
+        'block_loop:    // extract the bb with the minimal index -> hopefully better performance
+        while let Some(&bb) = work_set.iter().next() {      //use pop_first when it becomes stable?
+            work_set.remove(&bb);
 
-        'block_loop:
-        while let Some(bb) = work_list.pop_front() {
             let mut state_before_block;
             if mir.predecessors()[bb].is_empty() {
                 //TODO: extract arguments from localDecl?
@@ -92,14 +78,17 @@ impl<'tcx> Analyzer<'tcx> {
                     statement_index,
                 };
                 let prev_state = p_state.lookup_before(&location);
-                if prev_state.is_some() && prev_state.unwrap() == &current_state {
+                if prev_state.into_iter().any(|s| s == &current_state) {      //use .contains when it becomes stable
                     // same state, don't need to reiterate
                     continue 'block_loop;
                 }
                 p_state.set_before(&location, current_state.clone());
                 // normal statement
                 let stmt = &statements[statement_index];
-                current_state.apply_statement_effect(&location, stmt);
+                let res = current_state.apply_statement_effect(&location, stmt);
+                if res.is_err() {
+                    return Err(res.unwrap_err());
+                }
             }
 
             // terminator effect
@@ -108,21 +97,42 @@ impl<'tcx> Analyzer<'tcx> {
                 statement_index: statements.len(),
             };
             let prev_state = p_state.lookup_before(&location);
-            if prev_state.is_some() && prev_state.unwrap() == &current_state {
+            if prev_state.into_iter().any(|s| s == &current_state) {
                 // same state, don't need to reiterate
                 continue 'block_loop;
             }
             p_state.set_before(&location, current_state.clone());
 
             let terminator = mir[bb].terminator();
-            let next_states = current_state.apply_terminator_effect(&location, terminator);
-            let map_after_block = p_state.lookup_mut_after_block(&bb);
-            for (next_bb, state) in next_states {
-                let prev_state = map_after_block.insert(next_bb, *state);
-                let new_state_ref = map_after_block.get(&next_bb);
-                if prev_state.is_none() || &prev_state.unwrap() != new_state_ref.unwrap() {
-                    // input state has changed => add next_bb to worklist again
-                    work_list.push_back(next_bb);
+            let term_res = current_state.apply_terminator_effect(&location, terminator);
+
+            match term_res {
+                Err(e) => {return Err(e);}
+                Ok(next_states) => {
+                    let mut new_map: HashMap<mir::BasicBlock, S> = HashMap::new();
+                    for (next_bb, state) in next_states {
+                        if let Some(s) = new_map.get_mut(&next_bb) {
+                            s.join(&state);      // join states with same destination for Map
+                        }
+                        else {
+                            new_map.insert(next_bb, state);
+                        }
+                    }
+
+                    let map_after_block = p_state.lookup_mut_after_block(&bb);
+                    for next_bb in terminator.successors() {
+                        if let Some(s) = new_map.remove(next_bb) {
+                            let prev_state = map_after_block.insert(*next_bb, s);
+                            let new_state_ref = map_after_block.get(&next_bb);
+                            if !prev_state.iter().any(|ps| ps == new_state_ref.unwrap()) {       //use .contains when it becomes stable
+                                // input state has changed => add next_bb to worklist
+                                work_set.insert(*next_bb);
+                            }
+                        }
+                        else {
+                            return Err(SuccessorWithoutState(location, *next_bb));
+                        }
+                    }
                 }
             }
         }
@@ -130,24 +140,4 @@ impl<'tcx> Analyzer<'tcx> {
         return Result::Ok(p_state);
     }
 
-    /*pub fn liveness_analysis(
-        &self,
-        mir: &mir::Body<'tcx>,
-    ) -> Result<PointwiseState<LivenessState>> {
-        unimplemented!();
-    }
-
-    pub fn definitely_initialized_analysis(
-        &self,
-        mir: &mir::Body<'tcx>,
-    ) -> Result<PointwiseState<DefinitelyInitializedState>> {
-        unimplemented!();
-    }
-
-    pub fn pcs_analysis(
-        &self,
-        mir: &mir::Body<'tcx>,
-    ) -> Result<PointwiseState<PCSState>> {
-        unimplemented!();
-    }*/
 }

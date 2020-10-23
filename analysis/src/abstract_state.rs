@@ -6,14 +6,15 @@
 
 use rustc_middle::mir;
 use std::vec::Vec;
+use crate::AnalysisError;
 
 
-pub trait AbstractState<'tcx> {
-    //fn make_top(self) -> Self;
-    //fn make_bottom(self) -> Self;
+pub trait AbstractState: Sized {   // Sized needed for apply_terminator_effect's return type
+    //fn make_top(&mut self) -> Self;
+    //fn make_bottom(&mut self) -> Self;
     fn new_bottom() -> Self;
     //fn new_top() -> Self;
-    fn new_initial(args: &[mir::LocalDecl<'tcx>]) -> Self;
+    fn new_initial(args: Vec<&mir::LocalDecl>) -> Self;
 
     fn widening_threshold() -> u32;
 
@@ -24,6 +25,8 @@ pub trait AbstractState<'tcx> {
     //fn meet(&mut self, other: &Self) -> Self;
     fn widen(&mut self, previous: &Self);
 
-    fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement<'tcx>);
-    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator<'tcx>) -> Vec<(mir::BasicBlock, Box<Self>)>;
+    fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement)
+        -> Result<(), AnalysisError>;
+    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator)
+        -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError>;
 }

@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![feature(rustc_private)]
+#![feature(box_patterns)]
 
 extern crate rustc_middle;
 

@@ -11,7 +11,7 @@
 //! derived from mir_analyses/liveness
 
 use std::collections::{HashMap, HashSet};
-use crate::AbstractState;
+use crate::{AbstractState, AnalysisError};
 use rustc_middle::mir;
 
 
@@ -32,14 +32,14 @@ pub struct ReachingDefsState {
     reaching_assignments: HashMap<mir::Local, HashSet<mir::Location>>,
 }
 
-impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
+impl AbstractState for ReachingDefsState {
     fn new_bottom() -> Self {
         Self {
             reaching_assignments: HashMap::new(),
         }
     }
 
-    fn new_initial(args: &[mir::LocalDecl<'tcx>]) -> Self {
+    fn new_initial(args: Vec<&mir::LocalDecl>) -> Self {
         Self::new_bottom()
     }
 
@@ -61,7 +61,7 @@ impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
         unimplemented!()
     }
 
-    fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement<'tcx>){
+    fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement) -> Result<(), AnalysisError> {
         match stmt.kind {
             mir::StatementKind::Assign(box (ref target, _)) => {
                 if let Some(local) = target.as_local() {
@@ -69,29 +69,42 @@ impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
                     assignment_set.clear();
                     assignment_set.insert(*location);
                 }
+                Ok(())
             }
-            _ => {}
+            _ => {Ok(())}
         }
     }
 
-    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator<'tcx>) -> Vec<(mir::BasicBlock, Box<Self>)> {
-        match terminator.kind {
-            mir::TerminatorKind::Call {
-                ref destination, ..     //TODO: need to handle cleanup?
-            } => {
-                if let Some((place, bb)) = destination {
-                    let mut dest_state = self.clone();
-                    if let Some(local) = place.as_local() {
-                        let assignment_set = dest_state.reaching_assignments.entry(local).or_insert(HashSet::new());
-                        assignment_set.clear();
-                        assignment_set.insert(*location);
+    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator)
+        -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
+            match terminator.kind {
+                mir::TerminatorKind::Call {
+                    ref destination, cleanup, ..
+                } => {
+                    let mut res_vec = Vec::new();
+                    if let Some((place, bb)) = destination {
+                        let mut dest_state = self.clone();
+                        if let Some(local) = place.as_local() {
+                            let assignment_set = dest_state.reaching_assignments.entry(local).or_insert(HashSet::new());
+                            assignment_set.clear();
+                            assignment_set.insert(*location);
+                        }
+                        res_vec.push((*bb, dest_state));
                     }
-                    return Vec::from([(*bb, Box::new(dest_state))]);
+                    if let Some(bb) = cleanup {
+                        //TODO: correct? assignment failed?
+                        res_vec.push((bb, self.clone()));
+                    }
+                    Ok(res_vec)
+                }
+                _ => {
+                    let mut res_vec = Vec::new();
+                    for bb in terminator.successors() {
+                        // no assignment -> no change of state
+                        res_vec.push((*bb, self.clone()));
+                    }
+                    Ok(res_vec)
                 }
             }
-            _ => {}
-        }
-
-        Vec::new()
     }
 }
