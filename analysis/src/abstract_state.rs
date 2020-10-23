@@ -16,7 +16,7 @@ pub trait AbstractState: Sized {   // Sized needed for apply_terminator_effect's
     //fn new_top() -> Self;
     fn new_initial(args: Vec<&mir::LocalDecl>) -> Self;
 
-    fn widening_threshold() -> u32;
+    fn need_to_widen(counter: &u32) -> bool;
 
     //fn is_top(&self) -> bool;
     //fn is_bottom(&self) -> bool;

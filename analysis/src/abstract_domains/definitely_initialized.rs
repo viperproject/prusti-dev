@@ -18,7 +18,7 @@ impl AbstractState for DefinitelyInitializedState {
         unimplemented!()
     }
 
-    fn widening_threshold() -> u32 {
+    fn need_to_widen(counter: &u32) -> bool {
         unimplemented!()
     }
 

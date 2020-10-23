@@ -61,13 +61,12 @@ impl<'tcx> Analyzer<'tcx> {
                 let counter = counters.entry(bb).or_insert(0);
                 *counter += 1;
 
-                if *counter > S::widening_threshold() {
-                    let location = mir::Location {
-                        block: bb,
-                        statement_index: 0,
-                    };
-                    state_before_block.widen(p_state.lookup_before(&location).unwrap())
-                }
+            if S::need_to_widen(counter) {
+                let location = mir::Location {
+                    block: bb,
+                    statement_index: 0,
+                };
+                state_before_block.widen(p_state.lookup_before(&location).unwrap())
             }
 
             let mir::BasicBlockData { ref statements, .. } = mir[bb];

@@ -43,8 +43,8 @@ impl AbstractState for ReachingDefsState {
         Self::new_bottom()
     }
 
-    fn widening_threshold() -> u32 {
-        7
+    fn need_to_widen(counter: &u32) -> bool {
+        false       // only consider static information (assignments) => no lattice of infinite height
     }
 
     fn join(&mut self, other: &Self) {
