@@ -601,6 +601,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 .zip(self.target_args
                          .iter()
                          .skip(if skip_first { 1 } else { 0 }))
+                .take(if let Some(_) = self.target_return { mir.arg_count - 1 } else { mir.arg_count })
                 .map(|(local, target_arg)| {
                     let local_ty = mir.local_decls[local].ty;
                     // will panic if attempting to encode unsupported type
