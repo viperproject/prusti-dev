@@ -44,18 +44,21 @@ impl<'tcx> Analyzer<'tcx> {
             work_set.remove(&bb);
 
             let mut state_before_block;
-            if mir.predecessors()[bb].is_empty() {
-                //TODO: extract arguments from localDecl?
-                //state_before_block = S::new_initial(mir.local_decls.get(1..=mir.arg_count));
-                state_before_block = S::new_bottom();
+            if bb == mir::START_BLOCK {
+                // entry block
+                state_before_block = S::new_initial(
+                    mir.args_iter().map(|local| mir.local_decls.get(local).unwrap())    //TODO: handle unwrap error?
+                    .collect::<Vec<&mir::LocalDecl>>());
             }
             else {
                 state_before_block = S::new_bottom();
-                for pred_bb in &mir.predecessors()[bb] {
-                    if let Some(map) = p_state.lookup_after_block(pred_bb) {
-                        state_before_block.join(map.get(&bb).unwrap());      //TODO: handle error?
-                    }
+            }
+
+            for pred_bb in &mir.predecessors()[bb] {
+                if let Some(map) = p_state.lookup_after_block(pred_bb) {
+                    state_before_block.join(map.get(&bb).unwrap());      //TODO: handle unwrap error?
                 }
+            }
 
                 // widen if needed
                 let counter = counters.entry(bb).or_insert(0);
