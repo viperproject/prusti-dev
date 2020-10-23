@@ -79,11 +79,12 @@ impl<'tcx> Analyzer<'tcx> {
                     block: bb,
                     statement_index,
                 };
+                /* Too much performance overhead to check for every statement?
                 let prev_state = p_state.lookup_before(&location);
                 if prev_state.into_iter().any(|s| s == &current_state) {      //use .contains when it becomes stable
                     // same state, don't need to reiterate
                     continue 'block_loop;
-                }
+                }*/
                 p_state.set_before(&location, current_state.clone());
                 // normal statement
                 let stmt = &statements[statement_index];
@@ -94,15 +95,13 @@ impl<'tcx> Analyzer<'tcx> {
             }
 
             // terminator effect
-            let location = mir::Location {
-                block: bb,
-                statement_index: statements.len(),
-            };
+            let location = mir.terminator_loc(bb);
+            /* Too much performance overhead to check for every statement?
             let prev_state = p_state.lookup_before(&location);
             if prev_state.into_iter().any(|s| s == &current_state) {
                 // same state, don't need to reiterate
                 continue 'block_loop;
-            }
+            }*/
             p_state.set_before(&location, current_state.clone());
 
             let terminator = mir[bb].terminator();
@@ -139,7 +138,7 @@ impl<'tcx> Analyzer<'tcx> {
             }
         }
 
-        return Result::Ok(p_state);
+        Result::Ok(p_state)
     }
 
 }
