@@ -5251,15 +5251,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            &mir::AggregateKind::Closure(def_id, _substs) => {
+            &mir::AggregateKind::Closure(_def_id, _substs) => {
                 debug_assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {:?}", def_id);
-                /*
-                return Err(EncodingError::unsupported(
-                    "construction of closures is not supported",
-                    span
-                ));
-                */
-                stmts = Vec::new();
+                // TODO: assign to closure; this case should only handle assign
+                // of the same closure type (== instances of the same syntactic
+                // closure)
+                // closure state encoding should first be implemented in
+                // type_encoder
+                // this case might also need to assert history invariants?
+                //
+                // for now we generate nothing to at least allow
+                // let f = closure!(...);
+                Vec::new()
             }
 
             &mir::AggregateKind::Array(..) => {
