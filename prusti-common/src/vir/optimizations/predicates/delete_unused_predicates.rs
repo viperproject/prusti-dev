@@ -7,33 +7,9 @@ use crate::vir::{cfg, Successor};
 
 fn get_used_predicates(methods: &[CfgMethod], functions: &[Function]) -> BTreeSet<String> {
     let mut collector = UsedPredicateCollector::new();
-    for method in methods {
-        method.walk_statements(|stmt| {
-            StmtWalker::walk(&mut collector, stmt);
-        });
-        method.walk_successors(|successor| match successor {
-            cfg::Successor::Undefined | cfg::Successor::Return | cfg::Successor::Goto(_) => {}
-            cfg::Successor::GotoSwitch(conditional_targets, _) => {
-                for (expr, _) in conditional_targets {
-                    ExprWalker::walk(&mut collector, expr);
-                }
-            }
-        });
-    }
+    super::walk_methods(methods, &mut collector);
+    super::walk_functions(functions, &mut collector);
 
-    for function in functions {
-        for e in &function.pres {
-            ExprWalker::walk(&mut collector, e);
-        }
-
-        for e in &function.posts {
-            ExprWalker::walk(&mut collector, e);
-        }
-
-        for e in &function.body {
-            ExprWalker::walk(&mut collector, e);
-        }
-    }
     // DeadBorrowToken$ is a used predicate but it does not appear in VIR becaue it is only created when viper code is created from VIR
     collector
         .used_predicates
