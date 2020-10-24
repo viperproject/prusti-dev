@@ -34,6 +34,7 @@ fn get_used_predicates_in_predicates(predicates: &[Predicate]) -> BTreeSet<Strin
 
                 for (e, _, sp) in &p.variants {
                     ExprWalker::walk(&mut collector, e);
+                    collector.used_predicates.insert(sp.name.to_string());
                     sp.body
                         .iter()
                         .for_each(|e| ExprWalker::walk(&mut collector, e))
