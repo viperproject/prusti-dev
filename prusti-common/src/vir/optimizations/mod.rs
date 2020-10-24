@@ -34,7 +34,7 @@ impl Program {
             &self.functions,
             &self.viper_predicates,
         );
-        self.viper_predicates = predicates::remove_not_needed_bodies(
+        self.viper_predicates = predicates::remove_unnecessary_bodies(
             &self.methods,
             &self.functions,
             &self.viper_predicates,

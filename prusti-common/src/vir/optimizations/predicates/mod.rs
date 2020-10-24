@@ -1,17 +1,20 @@
-use std::collections::BTreeSet;
-use vir::{ast::*, cfg::CfgMethod};
+// © 2020, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use vir::CfgBlock;
-
-use crate::vir::{cfg, Successor};
+use crate::vir::{ast::*, cfg, cfg::CfgMethod, Successor};
 
 mod delete_unused_predicates;
-mod remove_not_needed_bodies;
+mod remove_unnecessary_bodies;
 
-pub use self::delete_unused_predicates::delete_unused_predicates;
+pub use self::{
+    delete_unused_predicates::delete_unused_predicates,
+    remove_unnecessary_bodies::remove_unnecessary_bodies,
+};
 
-pub use self::remove_not_needed_bodies::remove_not_needed_bodies;
-
+/// Walks all Statements and Expressions in the provided methods
 fn walk_methods(methods: &[CfgMethod], walker: &mut (impl StmtWalker + ExprWalker)) {
     for method in methods {
         method.walk_statements(|stmt| {
@@ -28,6 +31,7 @@ fn walk_methods(methods: &[CfgMethod], walker: &mut (impl StmtWalker + ExprWalke
     }
 }
 
+/// Walks all Expressions in the provided functions (including pre and post condidions)
 fn walk_functions(functions: &[Function], walker: &mut (impl ExprWalker)) {
     for function in functions {
         for e in &function.pres {

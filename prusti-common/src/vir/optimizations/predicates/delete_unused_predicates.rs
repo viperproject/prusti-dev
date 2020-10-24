@@ -1,9 +1,11 @@
+// © 2020, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+use crate::vir::{ast::*, cfg, cfg::CfgMethod, CfgBlock};
 use std::collections::BTreeSet;
-use vir::{ast::*, cfg::CfgMethod};
-
-use vir::CfgBlock;
-
-use crate::vir::{cfg, Successor};
 
 fn get_used_predicates(methods: &[CfgMethod], functions: &[Function]) -> BTreeSet<String> {
     let mut collector = UsedPredicateCollector::new();
@@ -75,13 +77,19 @@ pub fn delete_unused_predicates(
 
     let used_preds = get_used_predicates(methods, functions);
 
-    dbg!(&used_preds);
+    debug!(
+        "The used predicates in functions and methods are {:?}",
+        &used_preds
+    );
 
     while has_changed {
         has_changed = false;
 
         let predicates_used_in_predicates = get_used_predicates_in_predicates(&new_predicates);
-        dbg!(&predicates_used_in_predicates);
+        debug!(
+            "The used predicates in predicates are {:?}",
+            &predicates_used_in_predicates
+        );
         new_predicates = new_predicates
             .into_iter()
             .filter(|p| {
@@ -90,6 +98,7 @@ pub fn delete_unused_predicates(
                 let is_used_in_func_or_method = used_preds.contains(name);
                 let is_used = is_used_in_predicate || is_used_in_func_or_method;
                 if !is_used {
+                    debug!("The predicate {} was never used and thus removed", name);
                     has_changed = true;
                 }
 
@@ -98,6 +107,8 @@ pub fn delete_unused_predicates(
             .collect();
     }
 
+    // FIXME: This acctually removes bodies that are needed
+    /*
     let predicates_used_in_predicates = get_used_predicates_in_predicates(&new_predicates);
     let only_used_in_predicates: BTreeSet<String> = predicates_used_in_predicates
         .difference(&used_preds)
@@ -105,8 +116,8 @@ pub fn delete_unused_predicates(
         .collect();
     dbg!(&only_used_in_predicates);
 
-    // FIXME: This acctually removes bodies that are needed
-    /*new_predicates =
+
+    new_predicates =
     remove_body_of_predicates_if_possible(&new_predicates, &only_used_in_predicates);*/
     return new_predicates;
 }

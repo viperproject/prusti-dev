@@ -1,7 +1,14 @@
+// © 2020, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use std::collections::BTreeSet;
 use vir::{ast::*, cfg::CfgMethod};
 
-pub fn remove_not_needed_bodies(
+/// Returns the provided predicates but deletes the bodies of predicates where the body is not needed
+pub fn remove_unnecessary_bodies(
     methods: &[CfgMethod],
     functions: &[Function],
     predicates: &[Predicate],
@@ -12,7 +19,7 @@ pub fn remove_not_needed_bodies(
         let name_tmp = predicate.name().to_string();
         if !folded_preds.contains(predicate.name()) {
             if let Predicate::Struct(sp) = predicate {
-                println!("removing body of {}", name_tmp);
+                debug!("Removed body of {}", name_tmp);
 
                 sp.body = None;
             }
