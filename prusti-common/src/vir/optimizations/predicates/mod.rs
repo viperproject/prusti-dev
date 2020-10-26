@@ -31,7 +31,7 @@ fn walk_methods(methods: &[CfgMethod], walker: &mut (impl StmtWalker + ExprWalke
     }
 }
 
-/// Walks all Expressions in the provided functions (including pre and post condidions)
+/// Walks all Expressions in the provided functions (including pre and post conditions)
 fn walk_functions(functions: &[Function], walker: &mut (impl ExprWalker)) {
     for function in functions {
         for e in &function.pres {

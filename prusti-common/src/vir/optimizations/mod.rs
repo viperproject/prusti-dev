@@ -29,15 +29,15 @@ impl Program {
             .into_iter()
             .map(|f| folding::FoldingOptimizer::optimize(f))
             .collect();
-        self.viper_predicates = predicates::delete_unused_predicates(
-            &self.methods,
-            &self.functions,
-            &self.viper_predicates,
-        );
         self.viper_predicates = predicates::remove_unnecessary_bodies(
             &self.methods,
             &self.functions,
-            &self.viper_predicates,
+            self.viper_predicates,
+        );
+        self.viper_predicates = predicates::delete_unused_predicates(
+            &self.methods,
+            &self.functions,
+            self.viper_predicates,
         );
 
         self

@@ -11,11 +11,10 @@ use vir::{ast::*, cfg::CfgMethod};
 pub fn remove_unnecessary_bodies(
     methods: &[CfgMethod],
     functions: &[Function],
-    predicates: &[Predicate],
+    mut predicates: Vec<Predicate>,
 ) -> Vec<Predicate> {
-    let mut new_predicates = predicates.to_vec();
     let folded_preds = get_folded_predicates(methods, functions);
-    new_predicates.iter_mut().for_each(|predicate| {
+    predicates.iter_mut().for_each(|predicate| {
         let name_tmp = predicate.name().to_string();
         if !folded_preds.contains(predicate.name()) {
             if let Predicate::Struct(sp) = predicate {
@@ -25,7 +24,8 @@ pub fn remove_unnecessary_bodies(
             }
         }
     });
-    new_predicates
+
+    predicates
 }
 /// Return the names of all predicates that are ever folded or unfolded in the given methods and functions
 fn get_folded_predicates(methods: &[CfgMethod], functions: &[Function]) -> BTreeSet<String> {

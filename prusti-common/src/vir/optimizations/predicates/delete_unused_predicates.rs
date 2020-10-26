@@ -12,7 +12,8 @@ fn get_used_predicates(methods: &[CfgMethod], functions: &[Function]) -> BTreeSe
     super::walk_methods(methods, &mut collector);
     super::walk_functions(functions, &mut collector);
 
-    // DeadBorrowToken$ is a used predicate but it does not appear in VIR becaue it is only created when viper code is created from VIR
+    // DeadBorrowToken$ is a used predicate but it does not appear in VIR
+    // becaue it is only created when viper code is created from VIR
     collector
         .used_predicates
         .insert("DeadBorrowToken$".to_string());
@@ -27,7 +28,7 @@ fn get_used_predicates_in_predicates(predicates: &[Predicate]) -> BTreeSet<Strin
             Predicate::Struct(StructPredicate { body: Some(e), .. }) => {
                 ExprWalker::walk(&mut collector, e)
             }
-            Predicate::Struct(_) => { /* ignore */ }
+            Predicate::Struct(StructPredicate { body: None, .. }) => { /* ignore */ }
             Predicate::Enum(p) => {
                 ExprWalker::walk(&mut collector, &p.discriminant);
                 ExprWalker::walk(&mut collector, &p.discriminant_bounds);
@@ -46,35 +47,12 @@ fn get_used_predicates_in_predicates(predicates: &[Predicate]) -> BTreeSet<Strin
     collector.used_predicates
 }
 
-fn remove_body_of_predicates_if_possible(
-    predicates: &[Predicate],
-    predicates_only_used_in_predicates: &BTreeSet<String>,
-) -> Vec<Predicate> {
-    let mut new_predicates = predicates.to_vec();
-
-    new_predicates.iter_mut().for_each(|predicate| {
-        let predicates_used_in_this_predicate =
-            get_used_predicates_in_predicates(&[predicate.clone()]);
-        if predicates_used_in_this_predicate
-            .intersection(&predicates_only_used_in_predicates)
-            .next()
-            .is_some()
-        {
-            if let Predicate::Struct(sp) = predicate {
-                sp.body = None;
-            }
-        }
-    });
-    new_predicates
-}
-
 pub fn delete_unused_predicates(
     methods: &[CfgMethod],
     functions: &[Function],
-    predicates: &[Predicate],
+    mut predicates: Vec<Predicate>,
 ) -> Vec<Predicate> {
     let mut has_changed = true;
-    let mut new_predicates: Vec<Predicate> = predicates.to_vec();
 
     let used_preds = get_used_predicates(methods, functions);
 
@@ -83,44 +61,34 @@ pub fn delete_unused_predicates(
         &used_preds
     );
 
+    let mut count = 0;
     while has_changed {
+        count += 1;
         has_changed = false;
 
-        let predicates_used_in_predicates = get_used_predicates_in_predicates(&new_predicates);
+        let predicates_used_in_predicates = get_used_predicates_in_predicates(&predicates);
         debug!(
             "The used predicates in predicates are {:?}",
             &predicates_used_in_predicates
         );
-        new_predicates = new_predicates
-            .into_iter()
-            .filter(|p| {
-                let name = p.name();
-                let is_used_in_predicate = predicates_used_in_predicates.contains(name);
-                let is_used_in_func_or_method = used_preds.contains(name);
-                let is_used = is_used_in_predicate || is_used_in_func_or_method;
-                if !is_used {
-                    debug!("The predicate {} was never used and thus removed", name);
-                    has_changed = true;
-                }
+        predicates.retain(|p| {
+            let name = p.name();
+            let is_used_in_predicate = predicates_used_in_predicates.contains(name);
+            let is_used_in_func_or_method = used_preds.contains(name);
+            let is_used = is_used_in_predicate || is_used_in_func_or_method;
+            if !is_used {
+                debug!("The predicate {} was never used and thus removed", name);
+                has_changed = true;
+            }
 
-                is_used
-            })
-            .collect();
+            is_used
+        });
     }
 
-    // FIXME: This acctually removes bodies that are needed
-    /*
-    let predicates_used_in_predicates = get_used_predicates_in_predicates(&new_predicates);
-    let only_used_in_predicates: BTreeSet<String> = predicates_used_in_predicates
-        .difference(&used_preds)
-        .cloned()
-        .collect();
-    dbg!(&only_used_in_predicates);
+    debug!("Did {} iterations of predicate removal", count);
+    assert!(count <= 2);
 
-
-    new_predicates =
-    remove_body_of_predicates_if_possible(&new_predicates, &only_used_in_predicates);*/
-    return new_predicates;
+    predicates
 }
 
 struct UsedPredicateCollector {
