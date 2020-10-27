@@ -27,12 +27,12 @@ impl<S: AbstractState> PointwiseState<S> {
 
     /// The location can point to a statement or terminator.
     pub fn lookup_before(&self, location: &mir::Location) -> Option<&S> {
-        unimplemented!();
+        self.state_before.get(location)
     }
 
     /// The location should point to a statement, not a terminator.
     pub fn lookup_after(&self, location: &mir::Location) -> Option<&S> {
-        unimplemented!();
+        self.state_before.get(&location.successor_within_block())
     }
 
     /// Return the abstract state on the outgoing CFG edges
@@ -56,10 +56,10 @@ impl<S: AbstractState> PointwiseState<S> {
         &mut self,
         block: &mir::BasicBlock,
     ) -> &mut HashMap<mir::BasicBlock, S> {
-        unimplemented!();
+        self.state_after_block.entry(*block).or_insert(HashMap::new())
     }
 
     pub(crate) fn set_before(&mut self, location: &mir::Location, state: S) {
-        unimplemented!();
+        self.state_before.insert(*location, state);
     }
 }
