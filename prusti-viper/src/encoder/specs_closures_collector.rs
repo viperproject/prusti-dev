@@ -13,7 +13,7 @@ use rustc_middle::ty;
 use prusti_interface::environment::Environment;
 
 /// Structure to collect closure instantiations annotated with `prusti::spec_only`.
-pub struct ClosuresCollector<'tcx> {
+pub struct SpecsClosuresCollector<'tcx> {
     visited: HashSet<LocalDefId>,
     /// For each instantiation of each closure: DefId, location, operands and types of operands.
     instantiations: HashMap<
@@ -27,9 +27,9 @@ pub struct ClosuresCollector<'tcx> {
     >,
 }
 
-impl<'tcx> ClosuresCollector<'tcx> {
+impl<'tcx> SpecsClosuresCollector<'tcx> {
     pub fn new() -> Self {
-        ClosuresCollector {
+        SpecsClosuresCollector {
             visited: HashSet::new(),
             instantiations: HashMap::new(),
         }

@@ -51,7 +51,7 @@ use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
 use std::convert::TryInto;
 use std::borrow::Borrow;
-use crate::encoder::closures_collector::ClosuresCollector;
+use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
 
 /// A reference to a procedure specification.
 ///
@@ -92,7 +92,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     snapshots: RefCell<HashMap<String, Box<Snapshot>>>, // maps predicate names to snapshots
     type_snapshots: RefCell<HashMap<String, String>>, // maps snapshot names to predicate names
     snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
-    closures_collector: RefCell<ClosuresCollector<'tcx>>,
+    closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
     vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
     vir_program_before_viper_writer: RefCell<Box<Write>>,
@@ -144,7 +144,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_discriminant_funcs: RefCell::new(HashMap::new()),
             memory_eq_funcs: RefCell::new(HashMap::new()),
             fields: RefCell::new(HashMap::new()),
-            closures_collector: RefCell::new(ClosuresCollector::new()),
+            closures_collector: RefCell::new(SpecsClosuresCollector::new()),
             encoding_queue: RefCell::new(vec![]),
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,

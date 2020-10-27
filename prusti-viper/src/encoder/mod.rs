@@ -8,7 +8,7 @@ pub use self::encoder::Encoder;
 
 mod borrows;
 mod builtin_encoder;
-mod closures_collector;
+mod specs_closures_collector;
 mod encoder;
 mod errors;
 mod foldunfold;
