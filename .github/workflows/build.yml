@@ -1,0 +1,34 @@
+name: Build GitHub pages
+
+on:
+  push:
+    branches:
+      - gh-pages-src
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          path: "repo"
+
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: "latest"
+
+      - name: Prepare output directory
+        run: |
+          mkdir -p output
+
+      - name: Copy static content
+        run: |
+          cp -r repo/static output
+
+      - name: Publish to GitHub pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
