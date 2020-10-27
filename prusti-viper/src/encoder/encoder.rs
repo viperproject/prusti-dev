@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ::log::{debug, trace};
+use ::log::{info, debug, trace};
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
@@ -49,9 +49,9 @@ use rustc_ast::ast;
 // use viper;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
-use ::log::info;
 use std::convert::TryInto;
 use std::borrow::Borrow;
+use crate::encoder::closures_collector::ClosuresCollector;
 
 /// A reference to a procedure specification.
 ///
@@ -92,16 +92,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     snapshots: RefCell<HashMap<String, Box<Snapshot>>>, // maps predicate names to snapshots
     type_snapshots: RefCell<HashMap<String, String>>, // maps snapshot names to predicate names
     snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
-    /// For each instantiation of each closure: DefId, basic block index, statement index, operands
-    closure_instantiations: HashMap<
-        DefId,
-        Vec<(
-            ProcedureDefId,
-            mir::Location,
-            Vec<mir::Operand<'tcx>>,
-            Vec<ty::Ty<'tcx>>,
-        )>,
-    >,
+    closures_collector: RefCell<ClosuresCollector<'tcx>>,
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
     vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
     vir_program_before_viper_writer: RefCell<Box<Write>>,
@@ -153,7 +144,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_discriminant_funcs: RefCell::new(HashMap::new()),
             memory_eq_funcs: RefCell::new(HashMap::new()),
             fields: RefCell::new(HashMap::new()),
-            closure_instantiations: HashMap::new(),
+            closures_collector: RefCell::new(ClosuresCollector::new()),
             encoding_queue: RefCell::new(vec![]),
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
@@ -192,7 +183,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn initialize(&mut self) {
-        self.collect_closure_instantiations();
+        self.closures_collector.borrow_mut().collect_from_all_spec_items(self.env);
         // These are used in optimization passes
         self.encode_builtin_method_def(BuiltinMethodKind::HavocBool);
         self.encode_builtin_method_def(BuiltinMethodKind::HavocInt);
@@ -345,92 +336,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.procedures.borrow().values().cloned().collect()
     }
 
-    fn collect_closure_instantiations(&mut self) {
-        debug!("Collecting closure instantiations...");
-        let tcx = self.env().tcx();
-        let mut closure_instantiations: HashMap<DefId, Vec<_>> = HashMap::new();
-        let crate_num = hir::def_id::LOCAL_CRATE;
-        for &mir_def_id in tcx.mir_keys(crate_num).iter() {
-            // Do not inspect `mir_def_id`s for which we cannot build a MIR.
-            // The match is a simplification of:
-            // https://github.com/rust-lang/rust/blob/4e3eb5249340898e4380ffe37e7ed8c6b2afdbf9/compiler/rustc_mir_build/src/build/mod.rs#L36
-            let id = tcx.hir().local_def_id_to_hir_id(mir_def_id);
-            let inspect = match tcx.hir().get(id) {
-                hir::Node::Expr(hir::Expr { kind: hir::ExprKind::Closure(..), .. })
-                | hir::Node::Item(hir::Item { kind: hir::ItemKind::Fn(..), .. })
-                | hir::Node::Item(hir::Item { kind: hir::ItemKind::Static(..), .. })
-                | hir::Node::Item(hir::Item { kind: hir::ItemKind::Const(..), .. })
-                | hir::Node::ImplItem(hir::ImplItem { kind: hir::ImplItemKind::Fn(..), .. })
-                | hir::Node::ImplItem(hir::ImplItem { kind: hir::ImplItemKind::Const(..), .. })
-                | hir::Node::TraitItem(hir::TraitItem { kind: hir::TraitItemKind::Fn(..), .. })
-                | hir::Node::TraitItem(hir::TraitItem {
-                                      kind: hir::TraitItemKind::Const(_, Some(..)),
-                                      ..
-                                  }) => true,
-                _ => false
-            };
-            if !inspect {
-                debug!("Skip collecting closure instantiations in {:?}", mir_def_id);
-                continue;
-            }
-
-            trace!("Collecting closure instantiations in mir {:?}", mir_def_id);
-            let ref_mir = self.env().mir(mir_def_id);
-            let mir = &*ref_mir;
-            for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
-                for (stmt_index, stmt) in bb_data.statements.iter().enumerate() {
-                    if let mir::StatementKind::Assign(
-                        box (
-                            _,
-                            mir::Rvalue::Aggregate(
-                                box mir::AggregateKind::Closure(cl_def_id, _),
-                                ref operands,
-                            ),
-                        )
-                    ) = stmt.kind
-                    {
-                        if !self.env().has_prusti_attribute(cl_def_id, "spec_only") {
-                            continue;
-                        }
-                        trace!("Found closure instantiation: {:?}", stmt);
-                        let operand_tys = operands.iter().map(
-                            |operand| operand.ty(mir, tcx)
-                        ).collect();
-                        let instantiations =
-                            closure_instantiations.entry(cl_def_id).or_insert(vec![]);
-                        instantiations.push((
-                            mir_def_id.to_def_id(),
-                            mir::Location {
-                                block: bb_index,
-                                statement_index: stmt_index,
-                            },
-                            operands.clone(),
-                            operand_tys
-                        ))
-                    }
-                }
-            }
-        }
-        debug!("closure_instantiations: {:?}", closure_instantiations);
-        self.closure_instantiations = closure_instantiations;
-    }
-
-    pub fn get_closure_instantiations(
-        &self,
-        closure_def_id: DefId,
-    ) -> Vec<(
-        ProcedureDefId,
-        mir::Location,
-        Vec<mir::Operand<'tcx>>,
-        Vec<ty::Ty<'tcx>>,
-    )> {
-        trace!("Get closure instantiations for {:?}", closure_def_id);
-        match self.closure_instantiations.get(&closure_def_id) {
-            Some(result) => result.clone(),
-            None => vec![],
-        }
-    }
-
     pub fn get_single_closure_instantiation(
         &self,
         closure_def_id: DefId,
@@ -440,13 +345,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Vec<mir::Operand<'tcx>>,
         Vec<ty::Ty<'tcx>>,
     )> {
-        let mut instantiations = self.get_closure_instantiations(closure_def_id);
-        assert!(instantiations.len() <= 1);
-        if instantiations.is_empty() {
-            None
-        } else {
-            Some(instantiations.remove(0))
-        }
+        self.closures_collector.borrow().get_single_instantiation(closure_def_id)
     }
 
     /// Is the closure specified with the `def_id` is spec only?
@@ -1054,6 +953,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             def_id
         );
         if !self.procedures.borrow().contains_key(&def_id) {
+            self.closures_collector.borrow_mut().collect(self.env, def_id.expect_local());
             let procedure = self.env.get_procedure(def_id);
             let proc_encoder = ProcedureEncoder::new(self, &procedure)?;
             let method = match proc_encoder.encode() {
