@@ -92,22 +92,35 @@ impl MemoryEqEncoder {
                 vir::PermAmount::Read,
             ),
         ];
-        let body = self.encode_memory_eq_func_body(
-            encoder,
-            first_local_var.clone().into(),
-            second_local_var.clone().into(),
-            self_ty
-        )?;
-        let function = vir::Function {
+        let mut function = vir::Function {
             name: name.clone(),
-            formal_args: vec![first_local_var, second_local_var],
+            formal_args: vec![
+                first_local_var.clone(),
+                second_local_var.clone()
+            ],
             return_type: vir::Type::Bool,
             pres: precondition,
             posts: vec![],
-            body: body,
+            body: None,
         };
-        self.memory_eq_funcs.insert(name, Some(function));
-        Ok(())
+        let body_result = self.encode_memory_eq_func_body(
+            encoder,
+            first_local_var.into(),
+            second_local_var.into(),
+            self_ty
+        );
+        match body_result {
+            Ok(body) => {
+                function.body = body;
+                self.memory_eq_funcs.insert(name, Some(function));
+                Ok(())
+            }
+            Err(err) => {
+                // We need to overwrite the `None` even in case of errors
+                self.memory_eq_funcs.insert(name, Some(function));
+                Err(err)
+            }
+        }
     }
 
     fn encode_memory_eq_func_body<'tcx>(
@@ -318,12 +331,26 @@ impl MemoryEqEncoder {
                 vir::PermAmount::Read,
             ),
         ];
-        let conjuncts = self_variant.fields
+        let mut function = vir::Function {
+            name: name.clone(),
+            formal_args: vec![
+                first_local_var.clone(),
+                second_local_var.clone()
+            ],
+            return_type: vir::Type::Bool,
+            pres: precondition,
+            posts: vec![],
+            body: None, // temporarily
+        };
+        let conjuncts_result = self_variant.fields
             .iter()
             .map(|field| {
                 let field_name = &field.ident.as_str();
                 let field_ty = field.ty(tcx, subst);
-                let encoded_field = encoder.encode_struct_field(field_name, field_ty);
+                let encoded_field = encoder.encode_struct_field(
+                    field_name,
+                    field_ty
+                );
                 let first_field = vir::Expr::from(first_local_var.clone())
                     .field(encoded_field.clone());
                 let second_field = vir::Expr::from(second_local_var.clone())
@@ -335,22 +362,23 @@ impl MemoryEqEncoder {
                     field_ty,
                     vir::Position::default()
                 )
-            }).collect::<Result<Vec<_>, _>>()?;
-        let conjunction: vir::Expr = conjuncts.into_iter().conjoin();
-        let unfolded_second = vir::Expr::wrap_in_unfolding(
-            second_local_var.clone().into(), conjunction);
-        let unfolded_first = vir::Expr::wrap_in_unfolding(
-            first_local_var.clone().into(), unfolded_second);
-        let body = Some(unfolded_first);
-        let function = vir::Function {
-            name: name.clone(),
-            formal_args: vec![first_local_var, second_local_var],
-            return_type: vir::Type::Bool,
-            pres: precondition,
-            posts: vec![],
-            body: body,
-        };
-        self.memory_eq_funcs.insert(name, Some(function));
-        Ok(())
+            }).collect::<Result<Vec<_>, _>>();
+        match conjuncts_result {
+            Ok(conjuncts) => {
+                let conjunction: vir::Expr = conjuncts.into_iter().conjoin();
+                let unfolded_second = vir::Expr::wrap_in_unfolding(
+                    second_local_var.into(), conjunction);
+                let unfolded_first = vir::Expr::wrap_in_unfolding(
+                    first_local_var.into(), unfolded_second);
+                function.body = Some(unfolded_first);
+                self.memory_eq_funcs.insert(name, Some(function));
+                Ok(())
+            }
+            Err(err) => {
+                // We need to overwrite the `None` even in case of errors
+                self.memory_eq_funcs.insert(name, Some(function));
+                Err(err)
+            }
+        }
     }
 }
