@@ -144,12 +144,15 @@ pub fn delete_unused_predicates(
 
     let predicates_in_predicates_map = get_used_predicates_in_predicate_map(&predicates);
 
-    dbg!(&predicates_in_predicates_map);
+    debug!(
+        "Map of predicates used in predicates {:?}",
+        &predicates_in_predicates_map
+    );
     let used_predicates = compute_used_predicates(
         &predicates_in_predicates_map,
         &used_preds_in_methods_and_functions,
     );
-    dbg!(&used_predicates);
+    debug!("All the used predicates are {:?}", &used_predicates);
 
     predicates.retain(|p| used_predicates.contains(p.name()));
 
