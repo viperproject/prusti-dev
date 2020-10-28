@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::errors::ErrorCtxt;
+use crate::encoder::errors::{ErrorCtxt, EncodingError, PositionlessEncodingError};
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_interpreter::{
@@ -54,7 +54,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
     target_return: Option<&vir::Expr>,
     targets_are_values: bool,
     assertion_location: Option<mir::BasicBlock>,
-) -> vir::Expr {
+) -> Result<vir::Expr, EncodingError> {
     let spec_encoder = SpecEncoder::new(
         encoder,
         pre_label.unwrap_or(""),
@@ -135,19 +135,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode a specification item as a single expression.
-    pub fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>) -> vir::Expr {
+    pub fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>)
+        -> Result<vir::Expr, EncodingError>
+    {
         trace!("encode_assertion {:?}", assertion);
-        match assertion.kind {
+        Ok(match assertion.kind {
             box typed::AssertionKind::Expr(ref assertion_expr) =>
-                self.encode_expression(assertion_expr),
+                self.encode_expression(assertion_expr)?,
             box typed::AssertionKind::And(ref assertions) => assertions
                 .iter()
                 .map(|x| self.encode_assertion(x))
-                .collect::<Vec<vir::Expr>>()
+                .collect::<Result<Vec<vir::Expr>, _>>()?
                 .into_iter()
                 .conjoin(),
             box typed::AssertionKind::Implies(ref lhs, ref rhs) => {
-                vir::Expr::implies(self.encode_assertion(lhs), self.encode_assertion(rhs))
+                vir::Expr::implies(
+                    self.encode_assertion(lhs)?,
+                    self.encode_assertion(rhs)?
+                )
             }
             box typed::AssertionKind::TypeCond(ref vars, ref assertion) => {
                 let enc = |ty: ty::Ty<'tcx>| -> vir::Expr {
@@ -157,7 +162,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 };
                 let typecond =
                     vir::Expr::eq_cmp(enc(vars.vars[0].1), enc(vars.vars[1].1));
-                vir::Expr::implies(typecond, self.encode_assertion(assertion))
+                vir::Expr::implies(
+                    typecond,
+                    self.encode_assertion(assertion)?
+                )
             }
             box typed::AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => vir::Expr::forall(
                 vars.vars.iter()
@@ -169,9 +177,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     .iter()
                     .map(|x| self.encode_trigger(x))
                     .collect(),
-                self.encode_assertion(body),
+                self.encode_assertion(body)?,
             ),
-        }
+        })
     }
 
     /// Translate an expression `expr` from a closure identified by `def_id` to its definition site.
@@ -189,7 +197,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         &self,
         expr: vir::Expr,
         inner_def_id: DefId,
-    ) -> (vir::Expr, DefId, mir::Location) {
+    ) -> Result<(vir::Expr, DefId, mir::Location), EncodingError> {
         debug!("translate_expr_to_closure_def_site {} {:?}", expr, inner_def_id);
         let inner_mir = self.encoder.env().mir(inner_def_id.expect_local());
         let inner_mir_encoder = MirEncoder::new(self.encoder, &inner_mir, inner_def_id);
@@ -245,7 +253,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             .collect();
         let outer_captured_places: Vec<_> = captured_operands
             .iter()
-            .map(|operand| outer_mir_encoder.encode_operand_place(operand).unwrap())
+            .map(|operand| outer_mir_encoder.encode_operand_place(operand))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|err| err.with_span(
+                outer_mir_encoder.get_span_of_location(outer_location)
+            ))?
+            .into_iter()
+            .map(|x| x.unwrap())
             .collect();
         for (index, (inner_place, outer_place)) in inner_captured_places
             .iter()
@@ -302,7 +316,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             outer_location,
             outer_expr
         );
-        (outer_expr, outer_def_id, outer_location)
+        Ok((outer_expr, outer_def_id, outer_location))
     }
 
     /// Given an expression and a program point, return the equivalent expression at a
@@ -313,7 +327,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         def_id: DefId,
         expr_location: mir::Location,
         target_location: mir::BasicBlock,
-    ) -> vir::Expr {
+    ) -> Result<vir::Expr, EncodingError> {
         debug!("translate_expr_to_state {} {:?} {:?}", expr, def_id, expr_location);
         let mir = self.encoder.env().mir(def_id.expect_local());
 
@@ -334,21 +348,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             expr_location.statement_index,
             state,
             MultiExprBackwardInterpreterState::new(vec![]),
-        ).expect(
+        )?.expect(
             &format!("cannot encode {:?} because its CFG contains a loop", def_id)
         );
         let pre_state_expr = initial_state.into_expressions().remove(0);
 
         trace!("Expr at the beginning: {}", pre_state_expr);
-        pre_state_expr
+        Ok(pre_state_expr)
     }
 
     /// Encode the assertion of a contract or loop invariant.
-    fn encode_expression(&self, assertion_expr: &typed::Expression) -> vir::Expr {
+    fn encode_expression(&self, assertion_expr: &typed::Expression)
+        -> Result<vir::Expr, EncodingError>
+    {
         debug!("encode_expression {:?}", assertion_expr);
 
         let mut curr_def_id = assertion_expr.expr.to_def_id();
-        let mut curr_expr = self.encoder.encode_pure_function_body(curr_def_id);
+        let mut curr_expr = self.encoder.encode_pure_function_body(curr_def_id)?;
 
         loop {
             let done = self.encoder.get_single_closure_instantiation(curr_def_id).is_none();
@@ -360,7 +376,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 outer_expr,
                 outer_def_id,
                 outer_location,
-            ) = self.translate_expr_to_closure_def_site(curr_expr, curr_def_id);
+            ) = self.translate_expr_to_closure_def_site(curr_expr, curr_def_id)?;
             let done = self.encoder.get_single_closure_instantiation(outer_def_id).is_none();
             curr_expr = self.translate_expr_to_state(
                 outer_expr,
@@ -371,7 +387,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 } else {
                     mir::START_BLOCK
                 },
-            );
+            )?;
             curr_def_id = outer_def_id;
         }
 
@@ -434,13 +450,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         });
 
         debug!("MIR expr {:?} --> {}", assertion_expr.id, curr_expr);
-        curr_expr.set_default_pos(
+        Ok(curr_expr.set_default_pos(
             self.encoder
                 .error_manager()
                 .register(
                     self.encoder.env().tcx().def_span(assertion_expr.expr),
                     ErrorCtxt::GenericExpression),
-        )
+        ))
     }
 }
 
@@ -469,12 +485,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
     for StraightLineBackwardInterpreter<'p, 'v, 'tcx>
 {
     type State = MultiExprBackwardInterpreterState;
+    type Error = EncodingError;
+
     fn apply_terminator(
         &self,
         bb: mir::BasicBlock,
         term: &mir::Terminator<'tcx>,
         states: HashMap<mir::BasicBlock, &Self::State>,
-    ) -> Self::State {
+    ) -> Result<Self::State, Self::Error> {
         trace!("apply_terminator {:?}, states: {:?}", term, states);
         if !states.is_empty() && states.values().all(|state| !state.exprs().is_empty()) {
             // All states are initialized
@@ -482,7 +500,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         } else {
             // One of the states is not yet initialized
             trace!("Skip terminator {:?}", term);
-            MultiExprBackwardInterpreterState::new(vec![])
+            Ok(MultiExprBackwardInterpreterState::new(vec![]))
         }
     }
     fn apply_statement(
@@ -491,7 +509,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         stmt_index: usize,
         stmt: &mir::Statement<'tcx>,
         state: &mut Self::State,
-    ) {
+    ) -> Result<(), Self::Error> {
         trace!("apply_statement {:?}, state: {:?}", stmt, state);
         if !state.exprs().is_empty() {
             // The state is initialized
@@ -501,5 +519,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             // The state is not yet initialized
             trace!("Skip statement {:?}", stmt);
         }
+        Ok(())
     }
 }

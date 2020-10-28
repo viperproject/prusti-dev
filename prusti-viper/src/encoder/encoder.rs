@@ -546,7 +546,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_encoder = TypeEncoder::new(self, ty);
-        let field = type_encoder.encode_value_field();
+        let field = type_encoder.encode_value_field()
+            .expect("failed to encode unsupported type");
         self.fields
             .borrow_mut()
             .entry(field.name.clone())
@@ -555,7 +556,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_raw_ref_field(&self, viper_field_name: String, ty: ty::Ty<'tcx>) -> vir::Field {
-        let type_name = self.encode_type_predicate_use(ty).unwrap(); // will panic if attempting to encode unsupported type
+        let type_name = self.encode_type_predicate_use(ty)
+            .expect("failed to encode unsupported type");
         self.fields
             .borrow_mut()
             .entry(viper_field_name.clone())
@@ -748,16 +750,19 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_value_or_ref_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_value_or_ref_type()
+            .expect("failed to encode unsupported type")
     }
 
     pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_value_type()
+            .expect("failed to encode unsupported type")
     }
 
     pub fn encode_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_type()
+            .expect("failed to encode unsupported type")
     }
 
     pub fn encode_type_bounds(&self, var: &vir::Expr, ty: ty::Ty<'tcx>) -> Vec<vir::Expr> {
@@ -775,7 +780,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         targets_are_values: bool,
         assertion_location: Option<mir::BasicBlock>,
         error: ErrorCtxt,
-    ) -> vir::Expr {
+    ) -> Result<vir::Expr, EncodingError> {
         trace!("encode_assertion {:?}", assertion);
         let encoded_assertion = encode_spec_assertion(
             self,
@@ -785,11 +790,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             target_return,
             targets_are_values,
             assertion_location,
-        );
-        encoded_assertion.set_default_pos(
+        )?;
+        Ok(encoded_assertion.set_default_pos(
             self.error_manager()
                 .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error),
-        )
+        ))
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>)
@@ -815,7 +820,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let predicate_name = self.encode_type_predicate_use(ty).unwrap();
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let predicates = type_encoder.encode_predicate_def();
+            let predicates = type_encoder.encode_predicate_def()
+                .expect("failed to encode unsupported type");
             for predicate in predicates {
                 self.log_vir_program_before_viper(predicate.to_string());
                 let predicate_name = predicate.name();
@@ -829,8 +835,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_snapshot(&self, ty: ty::Ty<'tcx>) -> Box<Snapshot> {
         let ty = self.dereference_ty(ty);
-        // will panic if attempting to encode unsupported type
-        let predicate_name = self.encode_type_predicate_use(ty).unwrap();
+        let predicate_name = self.encode_type_predicate_use(ty)
+            .expect("failed to encode unsupported type");
         if !self.snapshots.borrow().contains_key(&predicate_name) {
             let encoder = SnapshotEncoder::new(
                 self, ty,
@@ -901,10 +907,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
         if !self.type_invariant_names.borrow().contains_key(ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let result = type_encoder.encode_invariant_use();
+            let invariant_name = type_encoder.encode_invariant_use()
+                .expect("failed to encode unsupported type");
             self.type_invariant_names
                 .borrow_mut()
-                .insert(ty.kind().clone(), result);
+                .insert(ty.kind().clone(), invariant_name);
             // Trigger encoding of definition
             self.encode_type_invariant_def(ty);
         }
@@ -916,7 +923,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let invariant_name = self.encode_type_invariant_use(ty);
         if !self.type_invariants.borrow().contains_key(&invariant_name) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let invariant = type_encoder.encode_invariant_def();
+            let invariant = type_encoder.encode_invariant_def()
+                .expect("failed to encode unsupported type");
             self.type_invariants
                 .borrow_mut()
                 .insert(invariant_name.clone(), invariant);
@@ -927,10 +935,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
         if !self.type_tag_names.borrow().contains_key(&ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let result = type_encoder.encode_tag_use();
+            let tag_name = type_encoder.encode_tag_use()
+                .expect("failed to encode unsupported type");
             self.type_tag_names
                 .borrow_mut()
-                .insert(ty.kind().clone(), result);
+                .insert(ty.kind().clone(), tag_name);
             // Trigger encoding of definition
             self.encode_type_tag_def(ty);
         }
@@ -1085,7 +1094,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_invariant_func_app(&self, ty: ty::Ty<'tcx>, encoded_arg: vir::Expr) -> vir::Expr {
-        let type_pred = self.encode_type_predicate_use(ty).unwrap(); // will panic if attempting to encode unsupported type
+        let type_pred = self.encode_type_predicate_use(ty)
+            .expect("failed to encode unsupported type");
         vir::Expr::FuncApp(
             self.encode_type_invariant_use(ty),
             vec![encoded_arg],
@@ -1110,7 +1120,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// Encode either a pure function body or a specification assertion (stored in the given MIR).
-    pub fn encode_pure_function_body(&self, mut proc_def_id: ProcedureDefId) -> vir::Expr {
+    pub fn encode_pure_function_body(&self, mut proc_def_id: ProcedureDefId)
+        -> Result<vir::Expr, EncodingError>
+    {
         proc_def_id = *self.get_specification_def_id(&proc_def_id);
         let substs_key = self.type_substitution_key();
         let key = (proc_def_id, substs_key);
@@ -1122,19 +1134,19 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 procedure.get_mir(),
                 true,
             );
-            let body = pure_function_encoder.encode_body();
+            let body = pure_function_encoder.encode_body()?;
             self.pure_function_bodies
                 .borrow_mut()
                 .insert(key.clone(), body);
         }
-        self.pure_function_bodies.borrow()[&key].clone()
+        Ok(self.pure_function_bodies.borrow()[&key].clone())
     }
 
     pub fn encode_pure_function_def(
         &self,
         mut proc_def_id: ProcedureDefId,
         substs: Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>,
-    ) {
+    ) -> Result<(), EncodingError> {
         proc_def_id = *self.get_specification_def_id(&proc_def_id);
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
@@ -1164,9 +1176,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let pure_function_encoder =
                 PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
             let function = if self.is_trusted(proc_def_id) {
-                pure_function_encoder.encode_bodyless_function()
+                pure_function_encoder.encode_bodyless_function()?
             } else {
-                let pure_function = pure_function_encoder.encode_function();
+                let pure_function = pure_function_encoder.encode_function()?;
                 self.patch_pure_post_with_mirror_call(pure_function)
             };
 
@@ -1180,6 +1192,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             tymap_stack.pop();
         }
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
+        Ok(())
     }
 
     fn patch_pure_post_with_mirror_call(&self, function: vir::Function) -> vir::Function {

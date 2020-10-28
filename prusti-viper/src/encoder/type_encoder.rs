@@ -26,6 +26,8 @@ use rustc_attr::IntType::SignedInt;
 use log::{debug, trace};
 use crate::encoder::errors::PositionlessEncodingError;
 
+type Result<T> = std::result::Result<T, PositionlessEncodingError>;
+
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     ty: ty::Ty<'tcx>,
@@ -96,15 +98,14 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         supported_fields && self.is_supported_subst(subst)
     }
 
-    pub fn encode_type(self) -> vir::Type {
+    pub fn encode_type(self) -> Result<vir::Type> {
         debug!("Encode type '{:?}'", self.ty);
-        // will panic if attempting to encode unsupported type
-        vir::Type::TypedRef(self.encode_predicate_use().unwrap())
+        Ok(vir::Type::TypedRef(self.encode_predicate_use()?))
     }
 
-    pub fn encode_value_type(self) -> vir::Type {
+    pub fn encode_value_type(self) -> Result<vir::Type> {
         debug!("Encode value type '{:?}'", self.ty);
-        match self.ty.kind() {
+        Ok(match self.ty.kind() {
             ty::TyKind::Bool => vir::Type::Bool,
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
@@ -112,8 +113,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Ref(_, ref ty, _) => {
-                // will panic if attempting to encode unsupported type
-                let type_name = self.encoder.encode_type_predicate_use(ty).unwrap();
+                let type_name = self.encoder.encode_type_predicate_use(ty)?;
                 vir::Type::TypedRef(type_name)
             }
 
@@ -127,25 +127,28 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             },
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
-                unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
+                return Err(PositionlessEncodingError::unsupported(
+                    "raw pointers are unsupported"
+                ));
             }
 
             ref x => unimplemented!("{:?}", x),
-        }
+        })
     }
 
 
     /// provides the type of the underlying value or a reference in case of composed
     /// data structures
-    pub fn encode_value_or_ref_type(self) -> vir::Type {
+    pub fn encode_value_or_ref_type(self) -> Result<vir::Type> {
         debug!("Encode ref value type '{:?}'", self.ty);
         match self.ty.kind() {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
                 let snapshot = self.encoder.encode_snapshot(&self.ty);
                 if snapshot.is_defined() {
-                    let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
-                    vir::Type::TypedRef(type_name)
+                    let type_name = self.encoder
+                        .encode_type_predicate_use(self.ty)?;
+                    Ok(vir::Type::TypedRef(type_name))
                 } else {
                     unreachable!()
                 }
@@ -155,9 +158,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_value_field(self) -> vir::Field {
+    pub fn encode_value_field(self) -> Result<vir::Field> {
         trace!("Encode value field for type '{:?}'", self.ty);
-        match self.ty.kind() {
+        Ok(match self.ty.kind() {
             ty::TyKind::Bool => vir::Field::new("val_bool", vir::Type::Bool),
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
@@ -165,8 +168,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Ref(_, ref ty, _) => {
-                // will panic if attempting to encode unsupported type
-                let type_name = self.encoder.encode_type_predicate_use(ty).unwrap();
+                let type_name = self.encoder.encode_type_predicate_use(ty)?;
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
 
@@ -174,17 +176,18 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             // To unify how parameters are passed to functions, we treat them like a reference.
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
-                // will panic if attempting to encode unsupported type
-                let type_name = self.encoder.encode_type_predicate_use(self.ty).ok().unwrap();
+                let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
-                unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
+                return Err(PositionlessEncodingError::unsupported(
+                    "raw pointers are unsupported"
+                ));
             }
 
             ref x => unimplemented!("{:?}", x),
-        }
+        })
     }
 
     fn get_integer_bounds(&self) -> Option<(vir::Expr, vir::Expr)> {
@@ -230,13 +233,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_predicate_def(self) -> Vec<vir::Predicate> {
+    pub fn encode_predicate_def(self) -> Result<Vec<vir::Predicate>> {
         debug!("Encode type predicate '{:?}'", self.ty);
-        // will panic if attempting to encode unsupported type
-        let predicate_name = self.encoder.encode_type_predicate_use(self.ty).unwrap();
+        let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
         let typ = vir::Type::TypedRef(predicate_name.clone());
 
-        match self.ty.kind() {
+        Ok(match self.ty.kind() {
             ty::TyKind::Bool => vec![vir::Predicate::new_primitive_value(
                 typ,
                 self.encoder.encode_value_field(self.ty),
@@ -384,12 +386,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 debug!("Encoding of type '{:?}' is incomplete", ty_variant);
                 vec![vir::Predicate::new_abstract(typ)]
             }
-        }
+        })
     }
 
-    pub fn encode_predicate_use(self)
-        -> Result<String, PositionlessEncodingError>
-    {
+    pub fn encode_predicate_use(self) -> Result<String> {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
         let result = match self.ty.kind() {
@@ -436,7 +436,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Tuple(elems) => {
-                let elem_predicate_names: Result<Vec<_>, _> = elems
+                let elem_predicate_names: Result<Vec<_>> = elems
                     .iter()
                     .map(|ty| {
                         self.encoder.encode_type_predicate_use(ty.expect_ty())
@@ -508,11 +508,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(result)
     }
 
-    pub fn encode_invariant_def(self) -> vir::Function {
+    pub fn encode_invariant_def(self) -> Result<vir::Function> {
         debug!("[enter] encode_invariant_def({:?})", self.ty);
 
-        // will panic if attempting to encode unsupported type
-        let predicate_name = self.encoder.encode_type_predicate_use(self.ty).unwrap();
+        let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
         let self_local_var =
             vir::LocalVar::new("self", vir::Type::TypedRef(predicate_name.clone()));
 
@@ -662,20 +661,17 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let final_function = foldunfold::add_folding_unfolding_to_function(
             function,
             self.encoder.get_used_viper_predicates_map(),
-        )
-        .ok()
-        .unwrap(); // TODO: generate a stub function in case of error
+        ).unwrap(); // TODO: generate a stub function in case of error
         debug!(
             "[exit] encode_invariant_def({:?}):\n{}",
             self.ty, final_function
         );
-        final_function
+        Ok(final_function)
     }
 
-    pub fn encode_invariant_use(self) -> String {
+    pub fn encode_invariant_use(self) -> Result<String> {
         debug!("Encode type invariant name '{:?}'", self.ty);
-        // will panic if attempting to encode unsupported type
-        format!("{}$inv", self.encode_predicate_use().unwrap())
+        Ok(format!("{}$inv", self.encode_predicate_use()?))
     }
 
     pub fn encode_tag_def(self) -> vir::Function {
@@ -714,9 +710,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         function
     }
 
-    pub fn encode_tag_use(self) -> String {
+    pub fn encode_tag_use(self) -> Result<String> {
         debug!("Encode type tag name '{:?}'", self.ty);
-        format!("{}$tag", self.encode_predicate_use().unwrap()) // will panic if attempting to encode unsupported type
+        Ok(format!("{}$tag", self.encode_predicate_use()?))
     }
 }
 
