@@ -9,7 +9,7 @@ use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, Pro
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError};
+use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PositionlessEncodingError};
 use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
@@ -52,7 +52,7 @@ use std::ops::AddAssign;
 use std::convert::TryInto;
 use std::borrow::Borrow;
 use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
-use crate::encoder::memory_eq_encoder::{MemoryEqEncoder, MemoryEqEncodingError};
+use crate::encoder::memory_eq_encoder::MemoryEqEncoder;
 use rustc_span::MultiSpan;
 
 /// A reference to a procedure specification.
@@ -653,19 +653,19 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         position: vir::Position,
         span: MultiSpan,
     ) -> vir::Expr {
-        let encoding_result = self.memory_eq_encoder.borrow_mut().encode_memory_eq_func_app(
-            self,
-            first,
-            second,
-            self_ty,
-            position,
-        );
+        let encoding_result = self.memory_eq_encoder
+            .borrow_mut()
+            .encode_memory_eq_func_app(
+                self,
+                first,
+                second,
+                self_ty,
+                position,
+            ).map_err(|err| err.with_span(span));
         match encoding_result {
             Ok(expr) => expr,
-            Err(MemoryEqEncodingError::Unsupported(msg)) => {
-                self.register_encoding_error(
-                    EncodingError::unsupported(msg, span)
-                );
+            Err(err) => {
+                self.register_encoding_error(err);
                 // Stub encoding of the memory eq function application
                 true.into()
             }
@@ -792,7 +792,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         )
     }
 
-    pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> Result<String, EncodingError> {
+    pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>)
+        -> Result<String, PositionlessEncodingError>
+    {
         if !self.type_predicate_names.borrow().contains_key(ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_predicate_use()?;

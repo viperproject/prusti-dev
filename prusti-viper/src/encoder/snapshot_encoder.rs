@@ -185,7 +185,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             }
             ty::TyKind::Adt(adt_def, _) if !adt_def.is_box() => {
                 if adt_def.variants.len() != 1 {
-                    warn!("Generating equality tests for enums is not supported yet");
+                    warn!("Generating equality tests for enums is not yet supported");
                 }
                 self.encode_snap_struct()
             }

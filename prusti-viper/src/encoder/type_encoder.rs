@@ -24,7 +24,7 @@ use rustc_ast::ast;
 use prusti_interface::specs::typed;
 use rustc_attr::IntType::SignedInt;
 use log::{debug, trace};
-use crate::encoder::errors::EncodingError;
+use crate::encoder::errors::PositionlessEncodingError;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -387,7 +387,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_predicate_use(self) -> Result<String, EncodingError> {
+    pub fn encode_predicate_use(self)
+        -> Result<String, PositionlessEncodingError>
+    {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
         let result = match self.ty.kind() {
@@ -495,7 +497,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ref x => {
-                unimplemented!("{:?}", x);
+                return Err(PositionlessEncodingError::internal(
+                    format!(
+                        "encoding of type {:?} has not yet been implemented",
+                        x
+                    )
+                ))
             }
         };
         Ok(result)

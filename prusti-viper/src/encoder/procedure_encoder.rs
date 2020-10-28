@@ -1471,7 +1471,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Get the borrow information.
         debug_assert!(
             self.label_after_location.contains_key(&loan_location),
-            "Location {:?} has not been encoded yet",
+            "Location {:?} has not yet been encoded",
             loan_location
         );
         let (contract, fake_exprs) = self.procedure_contracts[&loan_location].clone();
@@ -4918,7 +4918,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn get_label_after_location(&mut self, location: mir::Location) -> &str {
         debug_assert!(
             self.label_after_location.contains_key(&location),
-            "Location {:?} has not been encoded yet",
+            "Location {:?} has not yet been encoded",
             location
         );
         &self.label_after_location[&location]

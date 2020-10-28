@@ -1,4 +1,4 @@
-// © 2019, ETH Zurich
+// © 2019-2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,13 +12,8 @@ use prusti_common::config;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
 use rustc_index::vec::{Idx, IndexVec};
-// use rustc_data_structures::indexed_vec::Idx;
-// use std;
-// use std::option::Option;
-// use syntax::ast;
-// use syntax::codemap::Span;
+use rustc_span::{Span, DUMMY_SP};
 use rustc_ast::ast;
-use rustc_span::Span;
 use log::{trace, debug};
 use std::collections::HashMap;
 
@@ -29,21 +24,22 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
     fn encoder(&self) -> &Encoder<'v, 'tcx>;
 
-    fn namespace(&self) -> &str {
-        ""
-    }
-
     fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx>;
 
+    fn get_local_span(&self, local: mir::Local) -> Span;
+
     fn encode_local_var_name(&self, local: mir::Local) -> String {
-        format!("{}{:?}", self.namespace(), local)
+        format!("{:?}", local)
     }
 
     fn encode_local(&self, local: mir::Local) -> Result<vir::LocalVar, EncodingError> {
         let var_name = self.encode_local_var_name(local);
         let type_name = self
             .encoder()
-            .encode_type_predicate_use(self.get_local_ty(local))?;
+            .encode_type_predicate_use(self.get_local_ty(local))
+            .map_err(|err| err.with_span(
+                self.get_local_span(local)
+            ))?;
         Ok(vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name)))
     }
 
@@ -293,6 +289,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for FakeMirEncoder<'p, 'v, 'tc
         self.tys[local]
     }
 
+    fn get_local_span(&self, _local: mir::Local) -> Span {
+        DUMMY_SP
+    }
 }
 
 /// Common code used for `ProcedureEncoder` and `PureFunctionEncoder`
@@ -313,6 +312,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for MirEncoder<'p, 'v, 'tcx> {
         self.mir.local_decls[local].ty
     }
 
+    fn get_local_span(&self, local: mir::Local) -> Span {
+        self.mir.local_decls[local].source_info.span
+    }
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
