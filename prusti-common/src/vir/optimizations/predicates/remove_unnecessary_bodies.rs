@@ -7,6 +7,8 @@
 use std::collections::BTreeSet;
 use vir::{ast::*, cfg::CfgMethod};
 
+use crate::vir::utils::{walk_functions, walk_methods};
+
 /// Returns the provided predicates but deletes the bodies of predicates where the body is not needed
 pub fn remove_unnecessary_bodies(
     methods: &[CfgMethod],
@@ -30,8 +32,8 @@ pub fn remove_unnecessary_bodies(
 /// Return the names of all predicates that are ever folded or unfolded in the given methods and functions
 fn get_folded_predicates(methods: &[CfgMethod], functions: &[Function]) -> BTreeSet<String> {
     let mut collector = FoldedPredicateCollector::new();
-    super::walk_methods(methods, &mut collector);
-    super::walk_functions(functions, &mut collector);
+    walk_methods(methods, &mut collector);
+    walk_functions(functions, &mut collector);
 
     return collector.unfolded_predicates;
 }

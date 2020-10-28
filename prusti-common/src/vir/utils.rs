@@ -6,10 +6,10 @@
 
 //! Various utility methods for working with VIR.
 
-use vir;
-use vir::ExprFolder;
-use vir::FallibleStmtFolder;
-use vir::StmtFolder;
+use vir::{
+    self, cfg, CfgMethod, ExprFolder, ExprWalker, FallibleStmtFolder, Function, StmtFolder,
+    StmtWalker,
+};
 
 /// Substitute (map) expressions in a statement
 impl vir::Stmt {
@@ -118,5 +118,39 @@ impl vir::Expr {
             }
         }
         ExprLabelSubstitutor { substitutor }.fold(self)
+    }
+}
+
+/// Walks all Statements and Expressions in the provided methods
+pub fn walk_methods(methods: &[CfgMethod], walker: &mut (impl StmtWalker + ExprWalker)) {
+    for method in methods {
+        method.walk_statements(|stmt| {
+            StmtWalker::walk(walker, stmt);
+        });
+        method.walk_successors(|successor| match successor {
+            cfg::Successor::Undefined | cfg::Successor::Return | cfg::Successor::Goto(_) => {}
+            cfg::Successor::GotoSwitch(conditional_targets, _) => {
+                for (expr, _) in conditional_targets {
+                    ExprWalker::walk(walker, expr);
+                }
+            }
+        });
+    }
+}
+
+/// Walks all Expressions in the provided functions (including pre and post conditions)
+pub fn walk_functions(functions: &[Function], walker: &mut (impl ExprWalker)) {
+    for function in functions {
+        for e in &function.pres {
+            ExprWalker::walk(walker, e);
+        }
+
+        for e in &function.posts {
+            ExprWalker::walk(walker, e);
+        }
+
+        for e in &function.body {
+            ExprWalker::walk(walker, e);
+        }
     }
 }

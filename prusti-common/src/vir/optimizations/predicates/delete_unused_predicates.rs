@@ -4,13 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::vir::{ast::*, cfg, cfg::CfgMethod, CfgBlock};
+use crate::vir::{
+    ast::*,
+    cfg,
+    cfg::CfgMethod,
+    utils::{walk_functions, walk_methods},
+    CfgBlock,
+};
 use std::collections::{BTreeMap, BTreeSet};
 
 fn get_used_predicates(methods: &[CfgMethod], functions: &[Function]) -> BTreeSet<String> {
     let mut collector = UsedPredicateCollector::new();
-    super::walk_methods(methods, &mut collector);
-    super::walk_functions(functions, &mut collector);
+    walk_methods(methods, &mut collector);
+    walk_functions(functions, &mut collector);
 
     // DeadBorrowToken$ is a used predicate but it does not appear in VIR
     // becaue it is only created when viper code is created from VIR
