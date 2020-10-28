@@ -30,7 +30,7 @@ impl<'tcx> Analyzer<'tcx> {
     }
 
 
-    pub fn run_fwd_analysis<S>(&mut self, tcx: TyCtxt<'tcx>, mir:  &mir::Body<'tcx>,) -> Result<PointwiseState<S>>
+    pub fn run_fwd_analysis<S>(&self, mir:  &mir::Body<'tcx>,) -> Result<PointwiseState<S>>
         where S: AbstractState + Clone + Eq
     {
         let mut p_state = PointwiseState::new();
