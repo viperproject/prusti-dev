@@ -13,7 +13,10 @@ use crate::vir::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 
-fn get_used_predicates(methods: &[CfgMethod], functions: &[Function]) -> BTreeSet<String> {
+fn get_used_predicates_in_methods_and_functions(
+    methods: &[CfgMethod],
+    functions: &[Function],
+) -> BTreeSet<String> {
     let mut collector = UsedPredicateCollector::new();
     walk_methods(methods, &mut collector);
     walk_functions(functions, &mut collector);
@@ -23,33 +26,6 @@ fn get_used_predicates(methods: &[CfgMethod], functions: &[Function]) -> BTreeSe
     collector
         .used_predicates
         .insert("DeadBorrowToken$".to_string());
-    collector.used_predicates
-}
-
-fn get_used_predicates_in_predicates(predicates: &[Predicate]) -> BTreeSet<String> {
-    let mut collector = UsedPredicateCollector::new();
-
-    for pred in predicates {
-        match pred {
-            Predicate::Struct(StructPredicate { body: Some(e), .. }) => {
-                ExprWalker::walk(&mut collector, e)
-            }
-            Predicate::Struct(StructPredicate { body: None, .. }) => { /* ignore */ }
-            Predicate::Enum(p) => {
-                ExprWalker::walk(&mut collector, &p.discriminant);
-                ExprWalker::walk(&mut collector, &p.discriminant_bounds);
-
-                for (e, _, sp) in &p.variants {
-                    ExprWalker::walk(&mut collector, e);
-                    collector.used_predicates.insert(sp.name.to_string());
-                    sp.body
-                        .iter()
-                        .for_each(|e| ExprWalker::walk(&mut collector, e))
-                }
-            }
-            Predicate::Bodyless(_, _) => { /* ignore */ }
-        }
-    }
     collector.used_predicates
 }
 
@@ -96,7 +72,7 @@ fn get_used_predicates_in_predicate_map(
 
 /// Return the set of the predicates in the predicate map that are accutally
 /// reachable from the provided set of predicates
-fn compute_used_predicates(
+fn compute_reachable_predicates(
     predicates_in_predicates: &BTreeMap<String, BTreeSet<String>>,
     used_predicates: &BTreeSet<String>,
 ) -> BTreeSet<String> {
@@ -104,8 +80,6 @@ fn compute_used_predicates(
     for to_visit in used_predicates {
         visit_used_pred(to_visit, predicates_in_predicates, &mut visited);
     }
-
-    visited.extend(used_predicates.iter().cloned());
 
     visited
 }
@@ -128,6 +102,40 @@ fn visit_used_pred(
     }
 }
 
+fn compute_used_predicates(
+    methods: &[CfgMethod],
+    functions: &[Function],
+    predicates: &[Predicate],
+) -> BTreeSet<String> {
+    let used_preds_in_methods_and_functions =
+        get_used_predicates_in_methods_and_functions(methods, functions);
+
+    debug!(
+        "The used predicates in functions and methods are {:?}",
+        &used_preds_in_methods_and_functions
+    );
+
+    let predicates_in_predicates_map = get_used_predicates_in_predicate_map(predicates);
+
+    debug!(
+        "Map of predicates used in predicates {:?}",
+        &predicates_in_predicates_map
+    );
+
+    let mut reachable_predicates_in_predicates = compute_reachable_predicates(
+        &predicates_in_predicates_map,
+        &used_preds_in_methods_and_functions,
+    );
+
+    reachable_predicates_in_predicates.extend(used_preds_in_methods_and_functions.iter().cloned());
+
+    debug!(
+        "All the used predicates are {:?}",
+        &reachable_predicates_in_predicates
+    );
+    reachable_predicates_in_predicates
+}
+
 pub fn delete_unused_predicates(
     methods: &[CfgMethod],
     functions: &[Function],
@@ -135,54 +143,8 @@ pub fn delete_unused_predicates(
 ) -> Vec<Predicate> {
     let mut has_changed = true;
 
-    let used_preds_in_methods_and_functions = get_used_predicates(methods, functions);
-
-    debug!(
-        "The used predicates in functions and methods are {:?}",
-        &used_preds_in_methods_and_functions
-    );
-
-    let predicates_in_predicates_map = get_used_predicates_in_predicate_map(&predicates);
-
-    debug!(
-        "Map of predicates used in predicates {:?}",
-        &predicates_in_predicates_map
-    );
-    let used_predicates = compute_used_predicates(
-        &predicates_in_predicates_map,
-        &used_preds_in_methods_and_functions,
-    );
-    debug!("All the used predicates are {:?}", &used_predicates);
-
+    let used_predicates = compute_used_predicates(methods, functions, &predicates);
     predicates.retain(|p| used_predicates.contains(p.name()));
-
-    //FIXME: remove this as it should only ever do 1 itteraton which has no effect on the predicates
-    let mut count = 0;
-    while has_changed {
-        count += 1;
-        has_changed = false;
-
-        let predicates_used_in_predicates = get_used_predicates_in_predicates(&predicates);
-        debug!(
-            "The used predicates in predicates are {:?}",
-            &predicates_used_in_predicates
-        );
-        predicates.retain(|p| {
-            let name = p.name();
-            let is_used_in_predicate = predicates_used_in_predicates.contains(name);
-            let is_used_in_func_or_method = used_preds_in_methods_and_functions.contains(name);
-            let is_used = is_used_in_predicate || is_used_in_func_or_method;
-            if !is_used {
-                debug!("The predicate {} was never used and thus removed", name);
-                has_changed = true;
-            }
-
-            is_used
-        });
-    }
-
-    debug!("Did {} iterations of extra predicate removal", count);
-    assert!(count <= 1);
 
     predicates
 }
