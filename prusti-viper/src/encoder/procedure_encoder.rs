@@ -12,7 +12,7 @@ use crate::encoder::foldunfold;
 use crate::encoder::initialisation::InitInfo;
 use crate::encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
 use crate::encoder::mir_encoder::{MirEncoder, FakeMirEncoder, PlaceEncoder};
-use crate::encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
+use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::optimizer;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
@@ -1624,9 +1624,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let result = match term.kind {
             TerminatorKind::Return => {
                 // Package magic wands, if there is any
+                let postcondition_label = self.cfg_method.get_fresh_label_name();
                 stmts.extend(self.encode_package_end_of_method(
                     PRECONDITION_LABEL,
-                    POSTCONDITION_LABEL,
+                    &postcondition_label,
                     location,
                 )?);
 
@@ -3390,9 +3391,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.cfg_method
             .add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
+        let postcondition_label = self.cfg_method.get_fresh_label_name();
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Label(POSTCONDITION_LABEL.to_string()),
+            vir::Stmt::Label(postcondition_label.clone()),
         );
 
         let type_inv_pos = self.encoder.error_manager().register(
@@ -3406,7 +3408,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &contract,
                 postcondition_strengthening,
                 PRECONDITION_LABEL,
-                POSTCONDITION_LABEL,
+                &postcondition_label,
                 None,
                 false,
                 None,

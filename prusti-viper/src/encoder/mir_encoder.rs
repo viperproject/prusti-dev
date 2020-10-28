@@ -23,7 +23,6 @@ use log::{trace, debug};
 use std::collections::HashMap;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
-pub static POSTCONDITION_LABEL: &'static str = "post";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
 
 pub trait PlaceEncoder<'v, 'tcx: 'v> {
