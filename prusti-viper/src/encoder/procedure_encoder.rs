@@ -3339,6 +3339,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.cfg_method
             .add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
+        self.cfg_method.add_stmt(
+            return_cfg_block,
+            vir::Stmt::Label(POSTCONDITION_LABEL.to_string()),
+        );
+
         let type_inv_pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::AssertMethodPostconditionTypeInvariants,
