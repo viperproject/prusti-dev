@@ -1045,7 +1045,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let index = location.statement_index;
         if index < bb_data.statements.len() {
             let mir_stmt = &bb_data.statements[index];
-            let stmts = self.encode_statement(mir_stmt, location);
+            let stmts = self.encode_statement(mir_stmt, location)?;
             Ok((stmts, None))
         } else {
             let mir_term = bb_data.terminator();
@@ -1058,7 +1058,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         stmt: &mir::Statement<'tcx>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         debug!(
             "Encode statement '{:?}', span: {:?}",
             stmt.kind, stmt.source_info.span
@@ -1079,12 +1079,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs).unwrap();
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
-                        self.encode_assign_operand(&encoded_lhs, operand, location)
+                        self.encode_assign_operand(&encoded_lhs, operand, location)?
                     }
-                    &mir::Rvalue::Aggregate(ref aggregate, ref operands) => self
-                        .encode_assign_aggregate(&encoded_lhs, ty, aggregate, operands, location),
+                    &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
+                        self.encode_assign_aggregate(
+                            &encoded_lhs,
+                            ty,
+                            aggregate,
+                            operands,
+                            location
+                        )?
+                    },
                     &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
-                        self.encode_assign_binary_op(op, left, right, encoded_lhs, ty, location)
+                        self.encode_assign_binary_op(
+                            op,
+                            left,
+                            right,
+                            encoded_lhs,
+                            ty,
+                            location
+                        )?
                     }
                     &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => self
                         .encode_assign_checked_binary_op(
@@ -1096,19 +1110,48 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             location,
                         ),
                     &mir::Rvalue::UnaryOp(op, ref operand) => {
-                        self.encode_assign_unary_op(op, operand, encoded_lhs, ty, location)
+                        self.encode_assign_unary_op(
+                            op,
+                            operand,
+                            encoded_lhs,
+                            ty,
+                            location
+                        )?
                     }
                     &mir::Rvalue::NullaryOp(op, ref op_ty) => {
-                        self.encode_assign_nullary_op(op, op_ty, encoded_lhs, ty, location)
+                        self.encode_assign_nullary_op(
+                            op,
+                            op_ty,
+                            encoded_lhs,
+                            ty,
+                            location
+                        )?
                     }
                     &mir::Rvalue::Discriminant(ref src) => {
-                        self.encode_assign_discriminant(src, location, encoded_lhs, ty)
+                        self.encode_assign_discriminant(
+                            src,
+                            location,
+                            encoded_lhs,
+                            ty
+                        )?
                     }
                     &mir::Rvalue::Ref(ref _region, mir_borrow_kind, ref place) => {
-                        self.encode_assign_ref(mir_borrow_kind, place, location, encoded_lhs, ty)
+                        self.encode_assign_ref(
+                            mir_borrow_kind,
+                            place,
+                            location,
+                            encoded_lhs,
+                            ty
+                        )?
                     }
                     &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
-                        self.encode_cast(operand, dst_ty, encoded_lhs, ty, location)
+                        self.encode_cast(
+                            operand,
+                            dst_ty,
+                            encoded_lhs,
+                            ty,
+                            location
+                        )?
                     }
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
@@ -1119,7 +1162,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ref x => unimplemented!("{:?}", x),
         };
         stmts.extend(encoding_stmts);
-        stmts
+        Ok(stmts
             .into_iter()
             .map(|s| {
                 let expr_pos = self
@@ -1132,7 +1175,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .register(stmt.source_info.span, ErrorCtxt::GenericStatement);
                 s.set_default_expr_pos(expr_pos).set_default_pos(stmt_pos)
             })
-            .collect()
+            .collect())
     }
 
     /// Translate a borrowed place to a place that is currently usable
@@ -1755,7 +1798,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             } => {
                 // will panic if attempting to encode unsupported type
                 let (encoded_lhs, _, _) = self.mir_encoder.encode_place(lhs).unwrap();
-                stmts.extend(self.encode_assign_operand(&encoded_lhs, value, location));
+                stmts.extend(
+                    self.encode_assign_operand(&encoded_lhs, value, location)?
+                );
                 (stmts, MirSuccessor::Goto(target))
             }
 
@@ -1863,14 +1908,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     ref_field,
                                     location,
                                     vir::AssignKind::Move,
-                                )
+                                )?
                             );
 
                             // Allocate `box_content`
                             stmts.extend(self.encode_havoc_and_allocation(&box_content));
 
                             // Initialize `box_content`
-                            stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
+                            stmts.extend(
+                                self.encode_assign_operand(
+                                    &box_content,
+                                    &args[0],
+                                    location
+                                )?
+                            );
                         }
 
                         "std::cmp::PartialEq::eq" |
@@ -4078,7 +4129,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         lhs: &vir::Expr,
         operand: &mir::Operand<'tcx>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})",
             lhs, operand, location
@@ -4095,7 +4146,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             field.clone(),
                             location,
                             vir::AssignKind::Move,
-                        );
+                        )?;
                         alloc_stmts.push(vir::Stmt::Assign(
                             lhs.clone().field(field.clone()),
                             src.field(field),
@@ -4131,7 +4182,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ref_field.clone(),
                         location,
                         vir::AssignKind::SharedBorrow(loan.into()),
-                    );
+                    )?;
                     stmts.push(vir::Stmt::Assign(
                         lhs.clone().field(ref_field.clone()),
                         src.field(ref_field),
@@ -4139,7 +4190,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ));
                     stmts
                 } else {
-                    self.encode_copy2(src, lhs.clone(), ty, location)
+                    self.encode_copy2(src, lhs.clone(), ty, location)?
                 };
 
                 // Store a label for this state
@@ -4172,7 +4223,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         field.clone(),
                         location,
                         vir::AssignKind::Copy,
-                    );
+                    )?;
                     // Initialize the constant
                     let const_val = self.encoder.encode_const_expr(*ty, val);
                     // Initialize value of lhs
@@ -4224,7 +4275,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location,
             vir::stmts_to_str(&stmts)
         );
-        stmts
+        Ok(stmts)
     }
 
     fn encode_assign_binary_op(
@@ -4235,7 +4286,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_binary_op(op={:?}, left={:?}, right={:?})",
             op,
@@ -4256,9 +4307,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_rhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         let field = self.encoder.encode_value_field(ty);
-        self.encode_copy_value_assign2(encoded_lhs, encoded_rhs, field, location)
+        self.encode_copy_value_assign2(
+            encoded_lhs,
+            encoded_rhs,
+            field,
+            location
+        )
     }
 
     fn encode_assign_checked_binary_op(
@@ -4358,7 +4414,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_unary_op(op={:?}, operand={:?})",
             op,
@@ -4377,7 +4433,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_nullary_op(op={:?}, op_ty={:?})",
             op,
@@ -4394,13 +4450,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ref_field,
                     location,
                     vir::AssignKind::Move,
-                );
+                )?;
 
                 // Allocate `box_content`
                 stmts.extend(self.encode_havoc_and_allocation(&box_content));
 
                 // Leave `box_content` uninitialized
-                stmts
+                Ok(stmts)
             }
             mir::NullOp::SizeOf => unimplemented!(),
         }
@@ -4412,14 +4468,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_discriminant(src={:?}, location={:?})",
             src,
             location
         );
         let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src).unwrap(); // will panic if attempting to encode unsupported type
-        match src_ty.kind() {
+        let stmts = match src_ty.kind() {
             ty::TyKind::Adt(ref adt_def, _) if !adt_def.is_box() => {
                 let num_variants = adt_def.variants.len();
                 // Initialize `lhs.int_field`
@@ -4430,7 +4486,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         self.translate_maybe_borrowed_place(location, encoded_src),
                         adt_def,
                     );
-                    self.encode_copy_value_assign(encoded_lhs.clone(), encoded_rhs, ty, location)
+                    self.encode_copy_value_assign(
+                        encoded_lhs.clone(),
+                        encoded_rhs,
+                        ty,
+                        location
+                    )?
                 } else {
                     vec![]
                 }
@@ -4440,14 +4501,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let value_field = self.encoder.encode_value_field(src_ty);
                 let discr_value: vir::Expr =
                     self.translate_maybe_borrowed_place(location, encoded_src.field(value_field));
-                self.encode_copy_value_assign(encoded_lhs.clone(), discr_value, ty, location)
+                self.encode_copy_value_assign(
+                    encoded_lhs.clone(),
+                    discr_value,
+                    ty,
+                    location
+                )?
             }
 
             ref x => {
                 debug!("The discriminant of type {:?} is not defined", x);
                 vec![]
             }
-        }
+        };
+        Ok(stmts)
     }
 
     fn encode_assign_ref(
@@ -4457,7 +4524,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_ref(mir_borrow_kind={:?}, place={:?}, location={:?})",
             mir_borrow_kind,
@@ -4479,7 +4546,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             field.clone(),
             location,
             vir_assign_kind,
-        );
+        )?;
         stmts.push(vir::Stmt::Assign(
             encoded_lhs.field(field),
             encoded_value,
@@ -4490,7 +4557,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         debug!("Current loc {:?} has label {}", location, label);
         self.label_after_location.insert(location, label.clone());
         stmts.push(vir::Stmt::Label(label.clone()));
-        stmts
+        Ok(stmts)
     }
 
     fn encode_cast(
@@ -4500,7 +4567,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_cast(operand={:?}, dst_ty={:?})",
             operand,
@@ -4568,7 +4635,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         field: vir::Field,
         location: mir::Location,
         vir_assign_kind: vir::AssignKind,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         trace!(
             "[enter] prepare_assign_target(dst={}, field={}, location={:?})",
             dst,
@@ -4583,7 +4650,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             match vir_assign_kind {
                 vir::AssignKind::Copy => {
                     if field.typ.is_ref() {
-                        unimplemented!("Inhale the predicate rooted at dst_field.");
+                        // TODO: Inhale the predicate rooted at dst_field
+                        return Err(EncodingError::unsupported(
+                            "the encoding of this reference copy has not yet \
+                            been implemented",
+                            self.mir_encoder.get_span_of_location(location),
+                        ));
                     }
                 }
                 vir::AssignKind::Move
@@ -4592,9 +4664,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::AssignKind::Ghost => unreachable!(),
             }
             debug!("alloc_stmts = {}", alloc_stmts.iter().to_string());
-            alloc_stmts
+            Ok(alloc_stmts)
         } else {
-            Vec::with_capacity(1)
+            Ok(Vec::with_capacity(1))
         }
     }
 
@@ -4605,15 +4677,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         rhs: vir::Expr,
         field: vir::Field,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
-        let mut stmts =
-            self.prepare_assign_target(lhs.clone(), field.clone(), location, vir::AssignKind::Copy);
+    ) -> Result<Vec<vir::Stmt>> {
+        let mut stmts = self.prepare_assign_target(
+            lhs.clone(),
+            field.clone(),
+            location,
+            vir::AssignKind::Copy
+        )?;
         stmts.push(vir::Stmt::Assign(
             lhs.field(field),
             rhs,
             vir::AssignKind::Copy,
         ));
-        stmts
+        Ok(stmts)
     }
 
     /// Copy a primitive value such as an integer. Allocate the target
@@ -4624,9 +4700,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         let field = self.encoder.encode_value_field(ty);
-        self.encode_copy_value_assign2(dst, src.field(field.clone()), field, location)
+        self.encode_copy_value_assign2(
+            dst,
+            src.field(field.clone()),
+            field,
+            location
+        )
     }
 
     fn encode_deep_copy_adt(
@@ -4687,13 +4768,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst: vir::Expr,
         self_ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         let stmts = match self_ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
             | ty::TyKind::Char => {
-                self.encode_copy_primitive_value(src, dst, self_ty, location)
+                self.encode_copy_primitive_value(src, dst, self_ty, location)?
             }
             ty::TyKind::Adt(adt_def, _subst) if !adt_def.is_box() => {
                 self.encode_deep_copy_adt(src, dst, self_ty, location)
@@ -4716,7 +4797,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             ref x => unimplemented!("{:?}", x),
         };
-        stmts
+        Ok(stmts)
     }
 
     fn encode_assign_aggregate(
@@ -4726,7 +4807,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         aggregate: &mir::AggregateKind<'tcx>,
         operands: &Vec<mir::Operand<'tcx>>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         debug!(
             "[enter] encode_assign_aggregate({:?}, {:?})",
             aggregate, operands
@@ -4749,9 +4830,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         &dst.clone().field(encoded_field),
                         operand,
                         location,
-                    ));
+                    )?);
                 }
-                stmts
             }
 
             &mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) => {
@@ -4800,19 +4880,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         &dst_base.clone().field(encoded_field),
                         operand,
                         location,
-                    ));
+                    )?);
                 }
-                stmts
             }
 
             &mir::AggregateKind::Closure(def_id, _substs) => {
                 //assert!(self.encoder.is_spec_closure(def_id), "closure: {:?}", def_id);
                 // Specification only. Just ignore in the encoding.
                 // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
-              if self.encoder.is_spec_closure(def_id) {
-                // Specification only. Just ignore in the encoding.
-                // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
-                Vec::new()
+                if self.encoder.is_spec_closure(def_id) {
+                    // Specification only. Just ignore in the encoding.
+                    // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
+                    stmts = Vec::new()
                 } else {
                   unimplemented!();
                 }
@@ -4820,6 +4899,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             ref x => unimplemented!("{:?}", x),
         }
+
+        Ok(stmts)
     }
 
     fn check_vir(&self) -> Result<()> {
