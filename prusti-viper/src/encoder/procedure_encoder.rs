@@ -3239,9 +3239,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .get_all_loans_kept_alive_by(start_point, region);
                     self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)?
                 } else {
-                    return Err(EncodingError::internal(
-                        "failed to encode a pledge: there seem to be no \
-                        region blocked by the return type",
+                    // This happens when encoding the following function
+                    // ```
+                    // struct MyStruct<'tcx>(TyCtxt<'tcx>);
+                    // fn foo(tcx: TyCtxt) -> MyStruct {
+                    //     MyStruct(tcx)
+                    // }
+                    // ```
+                    return Err(EncodingError::unsupported(
+                        "the encoding of pledges does not yet supporte this \
+                        kind of reborrowing",
                         self.mir_encoder.get_span_of_location(location),
                     ));
                 };
