@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::errors::{ErrorCtxt, PanicCause};
+use crate::encoder::errors::{ErrorCtxt, PanicCause, EncodingError};
 use crate::encoder::Encoder;
 use prusti_common::vir;
 use prusti_common::config;
@@ -39,7 +39,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         format!("{}{:?}", self.namespace(), local)
     }
 
-    fn encode_local(&self, local: mir::Local) -> Result<vir::LocalVar, ErrorCtxt> {
+    fn encode_local(&self, local: mir::Local) -> Result<vir::LocalVar, EncodingError> {
         let var_name = self.encode_local_var_name(local);
         let type_name = self
             .encoder()
@@ -54,7 +54,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> Result<(vir::Expr, ty::Ty<'tcx>, Option<usize>), ErrorCtxt> {
+    ) -> Result<(vir::Expr, ty::Ty<'tcx>, Option<usize>), EncodingError> {
         trace!("Encode place {:?}", place);
         let result = if place.projection.is_empty() {
             let local = place.local;

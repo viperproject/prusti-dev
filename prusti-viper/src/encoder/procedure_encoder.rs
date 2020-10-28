@@ -1108,7 +1108,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             encoded_lhs,
                             ty,
                             location,
-                        ),
+                        )?,
                     &mir::Rvalue::UnaryOp(op, ref operand) => {
                         self.encode_assign_unary_op(
                             op,
@@ -4327,7 +4327,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_checked_binary_op(op={:?}, left={:?}, right={:?})",
             op,
@@ -4406,7 +4406,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             encoded_check,
             vir::AssignKind::Copy,
         ));
-        stmts
+        Ok(stmts)
     }
 
     fn encode_assign_unary_op(

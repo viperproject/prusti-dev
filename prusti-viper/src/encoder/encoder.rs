@@ -792,7 +792,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         )
     }
 
-    pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> Result<String, ErrorCtxt> {
+    pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> Result<String, EncodingError> {
         if !self.type_predicate_names.borrow().contains_key(ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_predicate_use()?;

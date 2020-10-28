@@ -24,7 +24,7 @@ use rustc_ast::ast;
 use prusti_interface::specs::typed;
 use rustc_attr::IntType::SignedInt;
 use log::{debug, trace};
-use crate::encoder::errors::{ErrorCtxt, PanicCause::Unimplemented};
+use crate::encoder::errors::EncodingError;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -387,7 +387,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_predicate_use(self) -> Result<String, ErrorCtxt> {
+    pub fn encode_predicate_use(self) -> Result<String, EncodingError> {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
         let result = match self.ty.kind() {
@@ -434,14 +434,17 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Tuple(elems) => {
-                let elem_predicate_names: Result<Vec<String>, ErrorCtxt> = elems
+                let elem_predicate_names: Result<Vec<_>, _> = elems
                     .iter()
-                    .map(|ty| match self.encoder.encode_type_predicate_use(ty.expect_ty()) {
-                        Ok(result) => Ok(result),
-                        Err(error) => return Err(error),
+                    .map(|ty| {
+                        self.encoder.encode_type_predicate_use(ty.expect_ty())
                     })
                     .collect();
-                format!("tuple{}${}", elems.len(), elem_predicate_names?.join("$"))
+                format!(
+                    "tuple{}${}",
+                    elems.len(),
+                    elem_predicate_names?.join("$")
+                )
             }
 
             ty::TyKind::Never => "never".to_string(),
@@ -450,7 +453,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Array(elem_ty, size) => {
                 let scalar_size = match size.val {
-                    ty::ConstKind::Value(ref value) => value.try_to_bits(rustc_target::abi::Size::from_bits(64)).unwrap(),
+                    ty::ConstKind::Value(ref value) => {
+                        value.try_to_bits(
+                            rustc_target::abi::Size::from_bits(64)
+                        ).unwrap()
+                    },
                     x => unimplemented!("{:?}", x),
                 };
                 format!(
@@ -461,7 +468,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Slice(array_ty) => {
-                format!("slice${}", self.encoder.encode_type_predicate_use(array_ty)?)
+                format!(
+                    "slice${}",
+                    self.encoder.encode_type_predicate_use(array_ty)?
+                )
             }
 
             ty::TyKind::Closure(def_id, closure_subst) => {
@@ -485,8 +495,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ref x => {
-                debug!("Unimplemented! {:?}", x);
-                return Err(ErrorCtxt::Panic(Unimplemented));
+                unimplemented!("{:?}", x);
             }
         };
         Ok(result)
