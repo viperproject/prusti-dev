@@ -4618,13 +4618,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         src: vir::Expr,
         dst: vir::Expr,
         self_ty: ty::Ty<'tcx>,
+        location: mir::Location,
     ) -> Vec<vir::Stmt> {
         let mut stmts = self.encode_havoc(&dst);
         let pred = vir::Expr::pred_permission(dst.clone(), vir::PermAmount::Write).unwrap();
         stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
-        let eq =
-            self.encoder
-                .encode_memory_eq_func_app(src, dst, self_ty, vir::Position::default());
+        let eq = self.encoder.encode_memory_eq_func_app(
+            src,
+            dst,
+            self_ty,
+            vir::Position::default(),
+            self.mir_encoder.get_span_of_location(location).into(),
+        );
         stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
         stmts
     }
@@ -4634,6 +4639,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         src: vir::Expr,
         dst: vir::Expr,
         elems: ty::subst::SubstsRef<'tcx>,
+        location: mir::Location,
     ) -> Vec<vir::Stmt> {
         let mut stmts = self.encode_havoc(&dst);
         for (field_num, arg) in elems.iter().enumerate() {
@@ -4652,6 +4658,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 dst_field,
                 ty,
                 vir::Position::default(),
+                self.mir_encoder.get_span_of_location(location).into(),
             );
             stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
         }
@@ -4673,9 +4680,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.encode_copy_primitive_value(src, dst, self_ty, location)
             }
             ty::TyKind::Adt(adt_def, _subst) if !adt_def.is_box() => {
-                self.encode_deep_copy_adt(src, dst, self_ty)
+                self.encode_deep_copy_adt(src, dst, self_ty, location)
             }
-            ty::TyKind::Tuple(elems) => self.encode_deep_copy_tuple(src, dst, elems),
+            ty::TyKind::Tuple(elems) => {
+                self.encode_deep_copy_tuple(src, dst, elems, location)
+            }
             ty::TyKind::Param(_) => {
                 let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
                 let eq = self.encoder.encode_memory_eq_func_app(
@@ -4683,6 +4692,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     dst,
                     self_ty,
                     vir::Position::default(),
+                    self.mir_encoder.get_span_of_location(location).into(),
                 );
                 stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
                 stmts

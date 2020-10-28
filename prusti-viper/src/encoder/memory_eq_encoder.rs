@@ -6,9 +6,17 @@
 
 use std::collections::HashMap;
 use rustc_middle::ty;
+use rustc_middle::mir;
+use rustc_span::MultiSpan;
 use prusti_common::vir;
+use prusti_common::vir::ExprIterator;
 use crate::encoder::Encoder;
 use crate::encoder::type_encoder::compute_discriminant_values;
+use crate::encoder::errors::EncodingError;
+
+pub enum MemoryEqEncodingError {
+    Unsupported(String)
+}
 
 /// Encoder of memory equality functions
 pub struct MemoryEqEncoder {
@@ -36,23 +44,23 @@ impl MemoryEqEncoder {
         second: vir::Expr,
         self_ty: ty::Ty<'tcx>,
         position: vir::Position,
-    ) -> vir::Expr {
+    ) -> Result<vir::Expr, MemoryEqEncodingError> {
         let typ = first.get_type().clone();
         assert!(&typ == second.get_type());
         let mut name = typ.name();
         name.push_str("$$memory_eq$$");
         if !self.memory_eq_funcs.contains_key(&name) {
-            self.encode_memory_eq_func(encoder, name.clone(), self_ty);
+            self.encode_memory_eq_func(encoder, name.clone(), self_ty)?
         }
         let first_local_var = vir::LocalVar::new("self", typ.clone());
         let second_local_var = vir::LocalVar::new("other", typ);
-        vir::Expr::FuncApp(
+        Ok(vir::Expr::FuncApp(
             name,
             vec![first, second],
             vec![first_local_var, second_local_var],
             vir::Type::Bool,
             position,
-        )
+        ))
     }
 
     /// Note: We generate functions already with the required unfoldings because some types are
@@ -62,7 +70,7 @@ impl MemoryEqEncoder {
         encoder: &Encoder<'_, 'tcx>,
         name: String,
         self_ty: ty::Ty<'tcx>
-    ) {
+    ) -> Result<(), MemoryEqEncodingError> {
         assert!(!self.memory_eq_funcs.contains_key(&name));
         // Mark that we started encoding this function to avoid infinite recursion.
         self.memory_eq_funcs.insert(name.clone(), None);
@@ -89,7 +97,7 @@ impl MemoryEqEncoder {
             first_local_var.clone().into(),
             second_local_var.clone().into(),
             self_ty
-        );
+        )?;
         let function = vir::Function {
             name: name.clone(),
             formal_args: vec![first_local_var, second_local_var],
@@ -99,6 +107,7 @@ impl MemoryEqEncoder {
             body: body,
         };
         self.memory_eq_funcs.insert(name, Some(function));
+        Ok(())
     }
 
     fn encode_memory_eq_func_body<'tcx>(
@@ -107,7 +116,7 @@ impl MemoryEqEncoder {
         first: vir::Expr,
         second: vir::Expr,
         self_ty: ty::Ty<'tcx>
-    ) -> Option<vir::Expr> {
+    ) -> Result<Option<vir::Expr>, MemoryEqEncodingError> {
         let eq = match self_ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
@@ -127,7 +136,7 @@ impl MemoryEqEncoder {
                     second.clone(),
                     adt_def,
                     subst
-                ))
+                )?)
             }
             ty::TyKind::Tuple(elems) => {
                 Some(self.encode_memory_eq_tuple(
@@ -135,20 +144,26 @@ impl MemoryEqEncoder {
                     first.clone(),
                     second.clone(),
                     elems
-                ))
+                )?)
             }
             ty::TyKind::Param(_) => {
                 None
-            },
+            }
+            ty::TyKind::Ref(..) => {
+                return Err(MemoryEqEncodingError::Unsupported(
+                    "memory equality between reference types is not yet \
+                    supported".to_string()
+                ));
+            }
 
             ref x => unimplemented!("{:?}", x),
         };
-        eq.map(|body| {
+        Ok(eq.map(|body| {
             vir::Expr::wrap_in_unfolding(
                 first,
                 vir::Expr::wrap_in_unfolding(second, body)
             )
-        })
+        }))
     }
 
     fn encode_memory_eq_adt<'tcx>(
@@ -158,7 +173,7 @@ impl MemoryEqEncoder {
         second: vir::Expr,
         adt_def: &ty::AdtDef,
         subst: ty::subst::SubstsRef<'tcx>,
-    ) -> vir::Expr {
+    ) -> Result<vir::Expr, MemoryEqEncodingError> {
         let tcx = encoder.env().tcx();
         let num_variants = adt_def.variants.len();
         let mut conjuncts = Vec::new();
@@ -178,8 +193,8 @@ impl MemoryEqEncoder {
                     first_field,
                     second_field,
                     field_ty,
-                    vir::Position::default()
-                );
+                    vir::Position::default(),
+                )?;
                 conjuncts.push(eq);
             }
         } else {
@@ -212,7 +227,7 @@ impl MemoryEqEncoder {
                 });
             conjuncts.extend(variants);
         }
-        vir::ExprIterator::conjoin(&mut conjuncts.into_iter())
+        Ok(vir::ExprIterator::conjoin(&mut conjuncts.into_iter()))
     }
 
     fn encode_memory_eq_tuple<'tcx>(
@@ -221,7 +236,7 @@ impl MemoryEqEncoder {
         first: vir::Expr,
         second: vir::Expr,
         elems: ty::subst::SubstsRef<'tcx>,
-    ) -> vir::Expr {
+    ) -> Result<vir::Expr, MemoryEqEncodingError> {
         let mut conjuncts = Vec::new();
         for (field_num, arg) in elems.iter().enumerate() {
             let ty = arg.expect_ty();
@@ -235,10 +250,10 @@ impl MemoryEqEncoder {
                 first_field,
                 ty,
                 vir::Position::default()
-            );
+            )?;
             conjuncts.push(eq);
         }
-        vir::ExprIterator::conjoin(&mut conjuncts.into_iter())
+        Ok(vir::ExprIterator::conjoin(&mut conjuncts.into_iter()))
     }
 
     fn encode_memory_eq_func_app_variant<'tcx>(
@@ -283,7 +298,7 @@ impl MemoryEqEncoder {
         typ: vir::Type,
         self_variant: &ty::VariantDef,
         subst: ty::subst::SubstsRef<'tcx>,
-    ) {
+    ) -> Result<(), MemoryEqEncodingError> {
         assert!(!self.memory_eq_funcs.contains_key(&name));
         // Mark that we started encoding this function to avoid infinite recursion.
         self.memory_eq_funcs.insert(name.clone(), None);
@@ -303,7 +318,7 @@ impl MemoryEqEncoder {
                 vir::PermAmount::Read,
             ),
         ];
-        let mut conjuncts = self_variant.fields
+        let conjuncts = self_variant.fields
             .iter()
             .map(|field| {
                 let field_name = &field.ident.as_str();
@@ -320,8 +335,8 @@ impl MemoryEqEncoder {
                     field_ty,
                     vir::Position::default()
                 )
-            });
-        let conjunction = vir::ExprIterator::conjoin(&mut conjuncts);
+            }).collect::<Result<Vec<_>, _>>()?;
+        let conjunction: vir::Expr = conjuncts.into_iter().conjoin();
         let unfolded_second = vir::Expr::wrap_in_unfolding(
             second_local_var.clone().into(), conjunction);
         let unfolded_first = vir::Expr::wrap_in_unfolding(
@@ -336,5 +351,6 @@ impl MemoryEqEncoder {
             body: body,
         };
         self.memory_eq_funcs.insert(name, Some(function));
+        Ok(())
     }
 }

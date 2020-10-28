@@ -699,6 +699,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         vir::Expr::labelled_old(label, expr)
     }
 
+    pub fn get_span_of_location(&self, location: mir::Location) -> Span {
+        self.mir.source_info(location).span
+    }
+
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
         let bb_data = &self.mir.basic_blocks()[bbi];
         bb_data.terminator().source_info.span

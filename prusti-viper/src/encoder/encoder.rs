@@ -52,7 +52,8 @@ use std::ops::AddAssign;
 use std::convert::TryInto;
 use std::borrow::Borrow;
 use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
-use crate::encoder::memory_eq_encoder::MemoryEqEncoder;
+use crate::encoder::memory_eq_encoder::{MemoryEqEncoder, MemoryEqEncodingError};
+use rustc_span::MultiSpan;
 
 /// A reference to a procedure specification.
 ///
@@ -207,7 +208,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.get_procedure_specs(*def_id).is_some() {
             self.register_encoding_error(EncodingError::Incorrect(
                 format!("external specification found for already specified function"),
-                rustc_span::MultiSpan::from_span(self.env.tcx().def_span(self.extern_spec.get(def_id).unwrap().1))));
+                MultiSpan::from_span(self.env.tcx().def_span(self.extern_spec.get(def_id).unwrap().1))));
         }
         if (self.extern_spec.contains_key(def_id)) {
             &self.extern_spec.get(def_id).unwrap().1
@@ -650,14 +651,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         second: vir::Expr,
         self_ty: ty::Ty<'tcx>,
         position: vir::Position,
+        span: MultiSpan,
     ) -> vir::Expr {
-        self.memory_eq_encoder.borrow_mut().encode_memory_eq_func_app(
+        let encoding_result = self.memory_eq_encoder.borrow_mut().encode_memory_eq_func_app(
             self,
             first,
             second,
             self_ty,
-            position
-        )
+            position,
+        );
+        match encoding_result {
+            Ok(expr) => expr,
+            Err(MemoryEqEncodingError::Unsupported(msg)) => {
+                self.register_encoding_error(
+                    EncodingError::unsupported(msg, span)
+                );
+                // Stub encoding of the memory eq function application
+                true.into()
+            }
+        }
     }
 
     pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
