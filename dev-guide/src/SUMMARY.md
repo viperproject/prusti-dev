@@ -12,6 +12,8 @@
   - [Reporting stage](pipeline/report.md)
 - [Viper Encoding](encoding/summary.md)
   - [Types](encoding/types.md)
+    - [Heap-based type encoding](encoding/types-heap.md)
+    - [Snapshot-based type encoding](encoding/types-snap.md)
   - [Pure function encoding](encoding/pure.md)
   - [Name mangling](encoding/mangling.md)
 - [Repository Layout](layout.md)

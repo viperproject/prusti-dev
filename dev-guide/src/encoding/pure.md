@@ -20,13 +20,9 @@ fn hello(a: i32) -> i32 {
 Is encoded as:
 
 ```viper
-domain SnapshotMirrors {
-  function mirror_hello(a: Int): Int
-}
-
 function hello(a: Int): Int
   requires true
-  ensures result == mirror_hello(a)
+  ensures result == mirror_hello(a) // see Snapshot-based type encoding
 {
   !(a < 3) ? (!(a > 10) ? 10 : a - 2) : a + 2
 }
