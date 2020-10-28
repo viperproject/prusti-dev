@@ -3239,7 +3239,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .get_all_loans_kept_alive_by(start_point, region);
                     self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)?
                 } else {
-                    unreachable!(); // Really?
+                    return Err(EncodingError::internal(
+                        "failed to encode a pledge: the information from \
+                        Polonius seems incomplete as there seem to be no \
+                        region blocked by a returned reference",
+                        self.mir_encoder.get_span_of_location(location),
+                    ));
                 };
 
             // We need to make sure that the lhs of the magic wand is
