@@ -3240,9 +3240,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)?
                 } else {
                     return Err(EncodingError::internal(
-                        "failed to encode a pledge: the information from \
-                        Polonius seems incomplete as there seem to be no \
-                        region blocked by a returned reference",
+                        "failed to encode a pledge: there seem to be no \
+                        region blocked by the return type",
                         self.mir_encoder.get_span_of_location(location),
                     ));
                 };
