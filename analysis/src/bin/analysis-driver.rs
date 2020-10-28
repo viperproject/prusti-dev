@@ -32,7 +32,9 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
             let main_body = tcx.mir_promoted(
                 ty::WithOptConstParam::unknown(main_def_id)
             ).0.borrow();
+            // TODO: switch analysis based on some flag or envirnoment variable
             let result = analyzer.run_fwd_analysis::<ReachingDefsState>(&main_body);
+            // TODO: dump the result to stdout (e.g. using the serde library)
         });
 
         compiler.session().abort_if_errors();
