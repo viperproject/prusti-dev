@@ -500,12 +500,17 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 format!("__TYPARAM__${}$__", param_ty.name.as_str())
             }
 
-            ref x => {
-                debug!("unimplemented: {:?}", x);
+            ty::TyKind::Dynamic(..) => {
+                return Err(PositionlessEncodingError::unsupported(
+                    "dynamic trait types are not yet supported"
+                ))
+            }
+
+            ref t => {
                 return Err(PositionlessEncodingError::internal(
                     format!(
-                        "encoding of type {:?} has not yet been implemented",
-                        x
+                        "support for type {:?} has not yet been implemented",
+                        t
                     )
                 ))
             }
