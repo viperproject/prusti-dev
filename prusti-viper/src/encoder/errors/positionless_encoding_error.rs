@@ -53,16 +53,6 @@ impl PositionlessEncodingError {
 /// Lossy conversion
 impl From<EncodingError> for PositionlessEncodingError {
     fn from(other: EncodingError) -> Self {
-        match other {
-            EncodingError::Unsupported(msg, _span) => {
-                PositionlessEncodingError::unsupported(msg)
-            }
-            EncodingError::Incorrect(msg, _span) => {
-                PositionlessEncodingError::incorrect(msg)
-            }
-            EncodingError::Internal(msg, _span) => {
-                PositionlessEncodingError::internal(msg)
-            }
-        }
+        other.error
     }
 }

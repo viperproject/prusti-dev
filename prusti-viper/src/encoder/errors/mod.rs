@@ -7,7 +7,9 @@
 pub use self::encoding_error::*;
 pub use self::error_manager::*;
 pub use self::positionless_encoding_error::*;
+pub use self::with_span::*;
 
 mod encoding_error;
 mod error_manager;
 mod positionless_encoding_error;
+mod with_span;

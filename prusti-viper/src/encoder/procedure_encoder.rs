@@ -6,8 +6,9 @@
 
 use crate::encoder::borrows::ProcedureContract;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{PanicCause, PositionlessEncodingError};
-use crate::encoder::errors::{EncodingError, ErrorCtxt};
+use crate::encoder::errors::{
+    EncodingError, ErrorCtxt, PanicCause, PositionlessEncodingError, WithSpan
+};
 use crate::encoder::foldunfold;
 use crate::encoder::initialisation::InitInfo;
 use crate::encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
@@ -115,9 +116,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let tcx = encoder.env().tcx();
         let mir_encoder = MirEncoder::new(encoder, mir, def_id);
         let init_info = InitInfo::new(mir, tcx, def_id, &mir_encoder)
-            .map_err(
-                |err| err.with_span(procedure.get_span())
-            )?;
+            .with_span(procedure.get_span())?;
 
         let cfg_method = vir::CfgMethod::new(
             // method name
@@ -1665,9 +1664,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ref x => unreachable!("{:?}", x),
                 };
                 let encoded_discr = self.mir_encoder.encode_operand_expr(discr)
-                    .map_err(|err| err.with_span(
+                    .with_span(
                         self.mir_encoder.get_span_of_location(location)
-                    ))?;
+                    )?;
                 stmts.push(vir::Stmt::Assign(
                     discr_var.clone().into(),
                     if encoded_discr.is_place() {
@@ -2041,9 +2040,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 stmts.push(vir::Stmt::Assign(
                     cond_var.clone().into(),
                     self.mir_encoder.encode_operand_expr(cond)
-                        .map_err(|err| err.with_span(
+                        .with_span(
                             self.mir_encoder.get_span_of_location(location)
-                        ))?,
+                        )?,
                     vir::AssignKind::Copy,
                 ));
 
@@ -2104,9 +2103,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .register(call_site_span, ErrorCtxt::PureFunctionCall);
 
             let lhs = self.mir_encoder.encode_operand_expr(&args[0])
-                .map_err(|err| err.with_span(call_site_span))?;
+                .with_span(call_site_span)?;
             let rhs = self.mir_encoder.encode_operand_expr(&args[1])
-                .map_err(|err| err.with_span(call_site_span))?;
+                .with_span(call_site_span)?;
 
             let expr = match bin_op {
                 vir::BinOpKind::EqCmp => snapshot.encode_equals(lhs, rhs, pos),
@@ -2115,7 +2114,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             };
 
             let target_value = self.encode_pure_function_call_lhs_value(destination)
-                .map_err(|err| err.with_span(call_site_span))?;
+                .with_span(call_site_span)?;
             let inhaled_expr = vir::Expr::eq_cmp(target_value.into(), expr);
 
             let (mut stmts, label) = self.encode_pure_function_call_site(
@@ -2237,7 +2236,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let arg_inv = self.encoder.encode_type_invariant_def(arg_ty);
             type_invs.insert(inv_name, arg_inv);
             let encoded_operand = self.mir_encoder.encode_operand_place(operand)
-                .map_err(|err| err.with_span(call_site_span))?;
+                .with_span(call_site_span)?;
             match encoded_operand {
                 Some(place) => {
                     debug!("arg: {} {}", arg_place, place);
@@ -2247,7 +2246,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // We have a constant.
                     constant_args.push(arg_place.clone());
                     let arg_val_expr = self.mir_encoder.encode_operand_expr(operand)
-                        .map_err(|err| err.with_span(call_site_span))?;
+                        .with_span(call_site_span)?;
                     debug!("arg_val_expr: {} {}", arg_place, arg_val_expr);
                     let val_field = self.encoder.encode_value_field(arg_ty);
                     fake_exprs.insert(arg_place.clone().field(val_field), arg_val_expr);
@@ -2499,7 +2498,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut arg_exprs = vec![];
         for operand in args.iter() {
             let arg_expr = self.mir_encoder.encode_operand_expr(operand)
-                .map_err(|err| err.with_span(call_site_span))?;
+                .with_span(call_site_span)?;
             arg_exprs.push(arg_expr);
         }
 
@@ -2549,7 +2548,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
 
         let target_value = self.encode_pure_function_call_lhs_value(destination)
-            .map_err(|err| err.with_span(call_site_span))?;
+            .with_span(call_site_span)?;
 
         let inhaled_expr = if return_type.is_domain() {
             let predicate_name = target_value.get_type().name();
@@ -2645,9 +2644,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for operand in args.iter() {
             let operand_ty = self.mir_encoder.get_operand_ty(operand);
             let operand_place = self.mir_encoder.encode_operand_place(operand)
-                .map_err(|err| err.with_span(
+                .with_span(
                     self.mir_encoder.get_span_of_location(location)
-                ))?;
+                )?;
             match (operand_place, &operand_ty.kind()) {
                 (
                     Some(ref place),
@@ -4337,13 +4336,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             right
         );
         let encoded_left = self.mir_encoder.encode_operand_expr(left)
-            .map_err(|err| err.with_span(
+            .with_span(
                 self.mir_encoder.get_span_of_location(location)
-            ))?;
+            )?;
         let encoded_right = self.mir_encoder.encode_operand_expr(right)
-            .map_err(|err| err.with_span(
+            .with_span(
                 self.mir_encoder.get_span_of_location(location)
-            ))?;
+            )?;
         let encoded_value =
             self.mir_encoder
                 .encode_bin_op_expr(op, encoded_left, encoded_right, ty);
@@ -4387,13 +4386,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             unreachable!()
         };
         let encoded_left = self.mir_encoder.encode_operand_expr(left)
-            .map_err(|err| err.with_span(
+            .with_span(
                 self.mir_encoder.get_span_of_location(location)
-            ))?;
+            )?;
         let encoded_right = self.mir_encoder.encode_operand_expr(right)
-            .map_err(|err| err.with_span(
+            .with_span(
                 self.mir_encoder.get_span_of_location(location)
-            ))?;
+            )?;
         let encoded_value = self.mir_encoder.encode_bin_op_expr(
             op,
             encoded_left.clone(),
@@ -4476,9 +4475,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             operand
         );
         let encoded_val = self.mir_encoder.encode_operand_expr(operand)
-            .map_err(|err| err.with_span(
+            .with_span(
                 self.mir_encoder.get_span_of_location(location)
-            ))?;
+            )?;
         let encoded_value = self.mir_encoder.encode_unary_op_expr(op, encoded_val);
         // Initialize `lhs.field`
         self.encode_copy_value_assign(encoded_lhs, encoded_value, ty, location)
@@ -4632,9 +4631,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             dst_ty
         );
         let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty)
-            .map_err(|err| err.with_span(
+            .with_span(
                 self.mir_encoder.get_span_of_location(location)
-            ))?;
+            )?;
         self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
     }
 

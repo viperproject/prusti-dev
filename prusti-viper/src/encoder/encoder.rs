@@ -9,7 +9,9 @@ use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, Pro
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PositionlessEncodingError};
+use crate::encoder::errors::{
+    ErrorCtxt, ErrorManager, EncodingError, PositionlessEncodingError, WithSpan
+};
 use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
@@ -206,9 +208,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn get_specification_def_id(&self, def_id: &'v ProcedureDefId) -> &'v ProcedureDefId {
         if def_id.is_local() && self.extern_spec.contains_key(def_id) &&
             self.get_procedure_specs(*def_id).is_some() {
-            self.register_encoding_error(EncodingError::Incorrect(
-                format!("external specification found for already specified function"),
-                MultiSpan::from_span(self.env.tcx().def_span(self.extern_spec.get(def_id).unwrap().1))));
+            self.register_encoding_error(EncodingError::incorrect(
+                "external specification found for already specified function",
+                self.env.tcx().def_span(self.extern_spec.get(def_id).unwrap().1))
+            );
         }
         if (self.extern_spec.contains_key(def_id)) {
             &self.extern_spec.get(def_id).unwrap().1
@@ -663,7 +666,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 second,
                 self_ty,
                 position,
-            ).map_err(|err| err.with_span(span));
+            ).with_span(span);
         match encoding_result {
             Ok(expr) => expr,
             Err(err) => {

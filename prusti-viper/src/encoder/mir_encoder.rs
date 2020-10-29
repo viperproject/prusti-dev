@@ -5,7 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::errors::{ErrorCtxt, PanicCause, EncodingError, PositionlessEncodingError};
+use crate::encoder::errors::{
+    ErrorCtxt, PanicCause, EncodingError, PositionlessEncodingError, WithSpan
+};
 use crate::encoder::Encoder;
 use prusti_common::vir;
 use prusti_common::config;
@@ -40,9 +42,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         let type_name = self
             .encoder()
             .encode_type_predicate_use(self.get_local_ty(local))
-            .map_err(|err| err.with_span(
-                self.get_local_span(local)
-            ))?;
+            .with_span(self.get_local_span(local))?;
         Ok(vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name)))
     }
 

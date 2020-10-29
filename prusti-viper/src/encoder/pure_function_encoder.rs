@@ -7,7 +7,7 @@
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::PanicCause;
-use crate::encoder::errors::{EncodingError, ErrorCtxt};
+use crate::encoder::errors::{EncodingError, ErrorCtxt, WithSpan};
 use crate::encoder::foldunfold;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
@@ -530,7 +530,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 );
                 let mut cfg_targets: Vec<(vir::Expr, mir::BasicBlock)> = vec![];
                 let discr_val = self.mir_encoder.encode_operand_expr(discr)
-                    .map_err(|err| err.with_span(span))?;
+                    .with_span(span)?;
                 for (i, &value) in values.iter().enumerate() {
                     let target = targets[i as usize];
                     // Convert int to bool, if required
@@ -652,7 +652,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             .iter()
                             .map(|arg| self.mir_encoder.encode_operand_expr(arg))
                             .collect::<Result<_, _>>()
-                            .map_err(|err| err.with_span(span))?;
+                            .with_span(span)?;
 
                         match full_func_proc_name {
                             "prusti_contracts::old" => {
@@ -809,7 +809,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 ..
             } => {
                 let cond_val = self.mir_encoder.encode_operand_expr(cond)
-                    .map_err(|err| err.with_span(span))?;
+                    .with_span(span)?;
                 let viper_guard = if expected {
                     cond_val
                 } else {
@@ -898,7 +898,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
                         let opt_encoded_rhs = self.mir_encoder.encode_operand_place(operand)
-                            .map_err(|err| err.with_span(span))?;
+                            .with_span(span)?;
 
                         match opt_encoded_rhs {
                             Some(encoded_rhs) => {
@@ -908,7 +908,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             None => {
                                 // Substitute a place of a value with an expression
                                 let rhs_expr = self.mir_encoder.encode_operand_expr(operand)
-                                    .map_err(|err| err.with_span(span))?;
+                                    .with_span(span)?;
                                 state.substitute_value(&opt_lhs_value_place.unwrap(), rhs_expr);
                             }
                         }
@@ -931,7 +931,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     let field_place = encoded_lhs.clone().field(encoded_field);
 
                                     let encoded_operand = self.mir_encoder.encode_operand_place(operand)
-                                        .map_err(|err| err.with_span(span))?;
+                                        .with_span(span)?;
                                     match encoded_operand {
                                         Some(encoded_rhs) => {
                                             // Substitute a place
@@ -941,7 +941,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                             // Substitute a place of a value with an expression
                                             let rhs_expr =
                                                 self.mir_encoder.encode_operand_expr(operand)
-                                                    .map_err(|err| err.with_span(span))?;
+                                                    .with_span(span)?;
                                             state.substitute_value(
                                                 &self.encoder.encode_value_expr(field_place, field_ty.expect_ty()),
                                                 rhs_expr,
@@ -976,7 +976,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         encoded_lhs_variant.clone().field(encoded_field);
 
                                     let encoded_operand = self.mir_encoder.encode_operand_place(operand)
-                                        .map_err(|err| err.with_span(span))?;
+                                        .with_span(span)?;
                                     match encoded_operand {
                                         Some(encoded_rhs) => {
                                             // Substitute a place
@@ -986,7 +986,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                             // Substitute a place of a value with an expression
                                             let rhs_expr =
                                                 self.mir_encoder.encode_operand_expr(operand)
-                                                    .map_err(|err| err.with_span(span))?;
+                                                    .with_span(span)?;
                                             state.substitute_value(
                                                 &self.encoder.encode_value_expr(field_place, field_ty),
                                                 rhs_expr,
@@ -1002,9 +1002,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
                         let encoded_left = self.mir_encoder.encode_operand_expr(left)
-                            .map_err(|err| err.with_span(span))?;
+                            .with_span(span)?;
                         let encoded_right = self.mir_encoder.encode_operand_expr(right)
-                            .map_err(|err| err.with_span(span))?;
+                            .with_span(span)?;
                         let encoded_value = self.mir_encoder.encode_bin_op_expr(
                             op,
                             encoded_left,
@@ -1024,9 +1024,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         };
 
                         let encoded_left = self.mir_encoder.encode_operand_expr(left)
-                            .map_err(|err| err.with_span(span))?;
+                            .with_span(span)?;
                         let encoded_right = self.mir_encoder.encode_operand_expr(right)
-                            .map_err(|err| err.with_span(span))?;
+                            .with_span(span)?;
 
                         let encoded_value = self.mir_encoder.encode_bin_op_expr(
                             op,
@@ -1071,7 +1071,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     &mir::Rvalue::UnaryOp(op, ref operand) => {
                         let encoded_val = self.mir_encoder.encode_operand_expr(operand)
-                            .map_err(|err| err.with_span(span))?;
+                            .with_span(span)?;
                         let encoded_value = self.mir_encoder.encode_unary_op_expr(op, encoded_val);
 
                         // Substitute a place of a value with an expression

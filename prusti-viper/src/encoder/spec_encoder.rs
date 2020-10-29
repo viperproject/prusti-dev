@@ -4,7 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::errors::{ErrorCtxt, EncodingError, PositionlessEncodingError};
+use crate::encoder::errors::{
+    ErrorCtxt, EncodingError, PositionlessEncodingError, WithSpan
+};
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_interpreter::{
@@ -255,9 +257,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             .iter()
             .map(|operand| outer_mir_encoder.encode_operand_place(operand))
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|err| err.with_span(
+            .with_span(
                 outer_mir_encoder.get_span_of_location(outer_location)
-            ))?
+            )?
             .into_iter()
             .map(|x| x.unwrap())
             .collect();
