@@ -404,9 +404,8 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
             mutability,
             self.current_path
         );
-        Err(PositionlessEncodingError::unsupported(
-            "raw pointer types are not yet supported"
-        ))
+        // Do nothing.
+        Ok(())
     }
 }
 
