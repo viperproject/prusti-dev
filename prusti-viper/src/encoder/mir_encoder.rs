@@ -127,10 +127,19 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         debug!("subst {:?}", subst);
                         let num_variants = adt_def.variants.len();
                         // FIXME: why this can be None?
-                        let variant_index = opt_variant_index.unwrap_or_else(|| {
-                            assert_eq!(num_variants, 1);
+                        let variant_index = if let Some(num) = opt_variant_index {
+                            num
+                        } else {
+                            if num_variants != 1 {
+                                return Err(PositionlessEncodingError::internal(
+                                    format!(
+                                        "unexpected number of type variants: \
+                                        {} (should be 1)", num_variants
+                                    )
+                                ));
+                            }
                             0
-                        });
+                        };
                         let tcx = self.encoder().env().tcx();
                         let variant_def = &adt_def.variants[variant_index.into()];
                         let encoded_variant = if num_variants != 1 {
