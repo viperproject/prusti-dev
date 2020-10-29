@@ -168,7 +168,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.encoder.env().tcx(),
                 fun_spec,
                 Some(&tymap),
-            );
+            ).with_span(self.mir.span)?;
             contract.to_def_site_contract()
         };
         let subst_strings = self.encoder.type_substitution_strings();

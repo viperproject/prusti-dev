@@ -265,10 +265,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )]
             }
 
-            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
-                unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
-            }
-
             ty::TyKind::Ref(_, ref ty, _) => vec![vir::Predicate::new_struct(
                 typ,
                 vec![self.encoder.encode_dereference_field(ty)?],
@@ -382,6 +378,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Param(_) => {
                 // special case: type parameters shall be encoded as *abstract* predicates
                 vec![vir::Predicate::new_abstract(typ)]
+            }
+
+            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
+                return Err(PositionlessEncodingError::unsupported(
+                    "raw pointer types are not yet supported"
+                ))
             }
 
             ref ty_variant => {
@@ -512,9 +514,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 ))
             }
 
-            ref t => {
+            ref ty_variant => {
                 return Err(PositionlessEncodingError::internal(
-                    format!("failed to encode type {:?}", t)
+                    format!("failed to encode type {:?}", ty_variant)
                 ))
             }
         };

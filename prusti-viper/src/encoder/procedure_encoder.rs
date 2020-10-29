@@ -223,7 +223,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Retrieve the contract
         self.procedure_contract = Some(
             self.encoder
-                .get_procedure_contract_for_def(self.proc_def_id),
+                .get_procedure_contract_for_def(self.proc_def_id)
+                .with_span(mir_span)?
         );
 
         // Prepare assertions to check specification refinement
@@ -251,7 +252,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // TODO use the impl's specs if there are any (separately replace pre/post!)
                     let procedure_trait_contract = self
                         .encoder
-                        .get_procedure_contract_for_def(assoc_item.def_id);
+                        .get_procedure_contract_for_def(assoc_item.def_id)
+                        .with_span(mir_span)?;
                     let (mut proc_pre_specs, mut proc_post_specs, mut proc_pledge_specs) = {
                         if let typed::SpecificationSet::Procedure(typed::ProcedureSpecification{pres, posts, pledges}) =
                             &mut self.mut_contract().specification
@@ -2335,7 +2337,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 called_def_id,
                 &arguments,
                 target_local,
-            )
+            ).with_span(call_site_span)?
         };
 
         // Store a label for the pre state

@@ -74,7 +74,10 @@ pub struct Encoder<'v, 'tcx: 'v> {
     spec: &'v typed::SpecificationMap<'tcx>,
     extern_spec: &'v typed::ExternSpecificationMap<'tcx>,
     error_manager: RefCell<ErrorManager<'tcx>>,
-    procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
+    procedure_contracts: RefCell<HashMap<
+        ProcedureDefId,
+        Result<ProcedureContractMirDef<'tcx>, PositionlessEncodingError>
+    >>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::Function>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
@@ -453,7 +456,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) -> ProcedureContractMirDef<'tcx> {
+    fn get_procedure_contract(&self, proc_def_id: ProcedureDefId)
+        -> Result<ProcedureContractMirDef<'tcx>, PositionlessEncodingError>
+    {
         let opt_fun_spec = self.get_procedure_specs(proc_def_id);
         let fun_spec = match opt_fun_spec {
             Some(fun_spec) => fun_spec.clone(),
@@ -468,12 +473,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn get_procedure_contract_for_def(
         &self,
         proc_def_id: ProcedureDefId,
-    ) -> ProcedureContract<'tcx> {
+    ) -> Result<ProcedureContract<'tcx>, PositionlessEncodingError> {
         self.procedure_contracts
             .borrow_mut()
             .entry(proc_def_id)
-            .or_insert_with(|| self.get_procedure_contract(proc_def_id))
-            .to_def_site_contract()
+            .or_insert_with(|| self.get_procedure_contract(proc_def_id)).as_ref()
+            .map(|contract| contract.to_def_site_contract())
+            .map_err(|err| err.clone())
     }
 
     pub fn get_procedure_contract_for_call(
@@ -482,7 +488,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         proc_def_id: ProcedureDefId,
         args: &Vec<places::Local>,
         target: places::Local,
-    ) -> ProcedureContract<'tcx> {
+    ) -> Result<ProcedureContract<'tcx>, PositionlessEncodingError> {
         // get specification on trait declaration method or inherent impl
         let fun_spec = if let Some(spec) = self.get_procedure_specs(proc_def_id) {
             spec.clone()
@@ -526,9 +532,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         // merge specifications
         let final_spec = fun_spec.refine(&impl_spec);
 
-        let contract =
-            compute_procedure_contract(proc_def_id, self.env().tcx(), final_spec, Some(&tymap[0]));
-        contract.to_call_site_contract(args, target)
+        let contract = compute_procedure_contract(
+            proc_def_id,
+            self.env().tcx(),
+            final_spec,
+            Some(&tymap[0])
+        )?;
+        Ok(contract.to_call_site_contract(args, target))
     }
 
     /// Encodes a value in a field if the base expression is a reference or
