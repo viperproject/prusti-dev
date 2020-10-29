@@ -506,12 +506,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 ))
             }
 
+            ty::TyKind::FnPtr(..) => {
+                return Err(PositionlessEncodingError::unsupported(
+                    "function pointer types are not yet supported"
+                ))
+            }
+
             ref t => {
                 return Err(PositionlessEncodingError::internal(
-                    format!(
-                        "support for type {:?} has not yet been implemented",
-                        t
-                    )
+                    format!("failed to encode type {:?}", t)
                 ))
             }
         };
