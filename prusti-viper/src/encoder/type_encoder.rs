@@ -514,6 +514,18 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 ))
             }
 
+            ty::TyKind::FnDef(..) => {
+                return Err(PositionlessEncodingError::unsupported(
+                    "function types are not yet supported"
+                ))
+            }
+
+            ty::TyKind::Projection(..) => {
+                return Err(PositionlessEncodingError::unsupported(
+                    "projections of associated types are not yet supported"
+                ))
+            }
+
             ref ty_variant => {
                 return Err(PositionlessEncodingError::internal(
                     format!("failed to encode type {:?}", ty_variant)
