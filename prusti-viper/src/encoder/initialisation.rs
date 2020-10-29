@@ -57,17 +57,16 @@ fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
     map: &HashMap<T, HashSet<mir::Place<'tcx>>>,
     mir_encoder: &MirEncoder<'_, '_, 'tcx>,
 ) -> Result<HashMap<T, HashSet<vir::Expr>>, PositionlessEncodingError> {
-    map.iter()
-        .map(|(loc, set)| {
-            let new_set: Result<HashSet<_>, _> = set
-                .iter()
-                .map(|place| {
-                    mir_encoder.encode_place(place).map(|result| result.0)
-                })
-                .collect();
-            new_set.map(|result| (loc.clone(), result))
-        })
-        .collect()
+    let mut result = HashMap::new();
+    for (loc, set) in map.iter() {
+        let mut new_set = HashSet::new();
+        for place in set.iter() {
+            let encoded_place = mir_encoder.encode_place(place)?.0;
+            new_set.insert(encoded_place);
+        }
+        result.insert(loc.clone(), new_set);
+    }
+    Ok(result)
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {

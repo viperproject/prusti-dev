@@ -812,10 +812,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     {
         if !self.type_predicate_names.borrow().contains_key(ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let result = type_encoder.encode_predicate_use()?;
+            let name = type_encoder.encode_predicate_use()?;
             self.type_predicate_names
                 .borrow_mut()
-                .insert(ty.kind().clone(), result);
+                .insert(ty.kind().clone(), name);
             // Trigger encoding of definition
             self.encode_type_predicate_def(ty)?;
         }

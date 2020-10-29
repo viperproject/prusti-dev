@@ -294,15 +294,17 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     let tcx = self.encoder.env().tcx();
                     if num_variants == 1 {
                         debug!("ADT {:?} has only one variant", adt_def);
-                        let fields = adt_def.variants[0usize.into()]
-                            .fields
-                            .iter()
-                            .map(|field| {
-                                let field_name = field.ident.to_string();
-                                let field_ty = field.ty(tcx, subst);
-                                self.encoder.encode_struct_field(&field_name, field_ty)
-                            })
-                            .collect::<Result<_, _>>()?;
+                        let mut fields = vec![];
+                        for field in &adt_def.variants[0usize.into()].fields {
+                            let field_name = field.ident.to_string();
+                            let field_ty = field.ty(tcx, subst);
+                            fields.push(
+                                self.encoder.encode_struct_field(
+                                    &field_name,
+                                    field_ty
+                                )?
+                            );
+                        }
                         vec![vir::Predicate::new_struct(typ, fields)]
                     } else {
                         debug!("ADT {:?} has {} variants", adt_def, num_variants);
@@ -428,7 +430,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         composed_name.push("_sep_".to_string());
                     }
                     if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                        composed_name.push(self.encoder.encode_type_predicate_use(ty)?)
+                        composed_name.push(
+                            self.encoder.encode_type_predicate_use(ty)?
+                        )
                     }
                 }
                 composed_name.push("_end_".to_string()); // makes generics "less fragile"
@@ -497,6 +501,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ref x => {
+                debug!("unimplemented: {:?}", x);
                 return Err(PositionlessEncodingError::internal(
                     format!(
                         "encoding of type {:?} has not yet been implemented",

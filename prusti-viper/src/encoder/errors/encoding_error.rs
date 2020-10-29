@@ -32,18 +32,34 @@ impl Into<PrustiError> for EncodingError {
 }
 
 impl EncodingError {
+    fn new<S: Into<MultiSpan>>(error: PositionlessEncodingError, span: S) -> Self {
+        EncodingError {
+            error,
+            span: span.into(),
+        }
+    }
+
     /// Usage of an unsupported Rust feature (e.g. dereferencing raw pointers)
     pub fn unsupported<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
-        PositionlessEncodingError::unsupported(message).with_span(span)
+        EncodingError::new(
+            PositionlessEncodingError::unsupported(message),
+            span
+        )
     }
 
     /// Report an incorrect usage of Prusti (e.g. call an impure function in a contract)
     pub fn incorrect<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
-        PositionlessEncodingError::incorrect(message).with_span(span)
+        EncodingError::new(
+            PositionlessEncodingError::incorrect(message),
+            span
+        )
     }
 
     /// An internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
-        PositionlessEncodingError::internal(message).with_span(span)
+        EncodingError::new(
+            PositionlessEncodingError::internal(message),
+            span
+        )
     }
 }
