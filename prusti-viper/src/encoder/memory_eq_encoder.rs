@@ -194,7 +194,10 @@ impl MemoryEqEncoder {
             for field in &variant_def.fields {
                 let field_name = &field.ident.as_str();
                 let field_ty = field.ty(tcx, subst);
-                let elem_field = encoder.encode_struct_field(field_name, field_ty);
+                let elem_field = encoder.encode_struct_field(
+                    field_name,
+                    field_ty
+                )?;
                 let first_field = first.clone().field(elem_field.clone());
                 let second_field = second.clone().field(elem_field);
                 let eq = self.encode_memory_eq_func_app(
@@ -250,7 +253,7 @@ impl MemoryEqEncoder {
         for (field_num, arg) in elems.iter().enumerate() {
             let ty = arg.expect_ty();
             let field_name = format!("tuple_{}", field_num);
-            let field = encoder.encode_raw_ref_field(field_name, ty);
+            let field = encoder.encode_raw_ref_field(field_name, ty)?;
             let first_field = first.clone().field(field.clone());
             let second_field = second.clone().field(field);
             let eq = self.encode_memory_eq_func_app(
@@ -346,7 +349,7 @@ impl MemoryEqEncoder {
                 let encoded_field = encoder.encode_struct_field(
                     field_name,
                     field_ty
-                );
+                )?;
                 let first_field = vir::Expr::from(first_local_var.clone())
                     .field(encoded_field.clone());
                 let second_field = vir::Expr::from(second_local_var.clone())

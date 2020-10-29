@@ -26,7 +26,7 @@ use rustc_attr::IntType::SignedInt;
 use log::{debug, trace};
 use crate::encoder::errors::PositionlessEncodingError;
 
-type Result<T> = std::result::Result<T, PositionlessEncodingError>;
+type PositionlessResult<T> = std::result::Result<T, PositionlessEncodingError>;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -98,12 +98,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         supported_fields && self.is_supported_subst(subst)
     }
 
-    pub fn encode_type(self) -> Result<vir::Type> {
+    pub fn encode_type(self) -> PositionlessResult<vir::Type> {
         debug!("Encode type '{:?}'", self.ty);
         Ok(vir::Type::TypedRef(self.encode_predicate_use()?))
     }
 
-    pub fn encode_value_type(self) -> Result<vir::Type> {
+    pub fn encode_value_type(self) -> PositionlessResult<vir::Type> {
         debug!("Encode value type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vir::Type::Bool,
@@ -118,7 +118,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => {
-                let snapshot = self.encoder.encode_snapshot(&self.ty);
+                let snapshot = self.encoder.encode_snapshot(&self.ty)?;
                 if snapshot.is_defined() {
                     snapshot.get_type()
                 } else {
@@ -139,12 +139,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     /// provides the type of the underlying value or a reference in case of composed
     /// data structures
-    pub fn encode_value_or_ref_type(self) -> Result<vir::Type> {
+    pub fn encode_value_or_ref_type(self) -> PositionlessResult<vir::Type> {
         debug!("Encode ref value type '{:?}'", self.ty);
         match self.ty.kind() {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
-                let snapshot = self.encoder.encode_snapshot(&self.ty);
+                let snapshot = self.encoder.encode_snapshot(&self.ty)?;
                 if snapshot.is_defined() {
                     let type_name = self.encoder
                         .encode_type_predicate_use(self.ty)?;
@@ -158,7 +158,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_value_field(self) -> Result<vir::Field> {
+    pub fn encode_value_field(self) -> PositionlessResult<vir::Field> {
         trace!("Encode value field for type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vir::Field::new("val_bool", vir::Type::Bool),
@@ -233,7 +233,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_predicate_def(self) -> Result<Vec<vir::Predicate>> {
+    pub fn encode_predicate_def(self) -> PositionlessResult<Vec<vir::Predicate>> {
         debug!("Encode type predicate '{:?}'", self.ty);
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
         let typ = vir::Type::TypedRef(predicate_name.clone());
@@ -271,7 +271,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Ref(_, ref ty, _) => vec![vir::Predicate::new_struct(
                 typ,
-                vec![self.encoder.encode_dereference_field(ty)],
+                vec![self.encoder.encode_dereference_field(ty)?],
             )],
 
             ty::TyKind::Tuple(elems) => {
@@ -282,7 +282,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         let field_name = format!("tuple_{}", field_num);
                         self.encoder.encode_raw_ref_field(field_name, ty.expect_ty())
                     })
-                    .collect();
+                    .collect::<Result<_, _>>()?;
                 vec![vir::Predicate::new_struct(typ, fields)]
             }
 
@@ -302,7 +302,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                                 let field_ty = field.ty(tcx, subst);
                                 self.encoder.encode_struct_field(&field_name, field_ty)
                             })
-                            .collect();
+                            .collect::<Result<_, _>>()?;
                         vec![vir::Predicate::new_struct(typ, fields)]
                     } else {
                         debug!("ADT {:?} has {} variants", adt_def, num_variants);
@@ -319,7 +319,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             .iter()
                             .zip(discriminant_values)
                             .map(|(variant_def, variant_index)| {
-                                let fields = variant_def
+                                let fields_res = variant_def
                                     .fields
                                     .iter()
                                     .map(|field| {
@@ -328,20 +328,20 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                                         let field_ty = field.ty(tcx, subst);
                                         self.encoder.encode_struct_field(field_name, field_ty)
                                     })
-                                    .collect();
+                                    .collect::<Result<_, _>>();
                                 let variant_name = &variant_def.ident.as_str();
                                 let guard = vir::Expr::eq_cmp(
                                     discriminant_loc.clone().into(),
                                     variant_index.into(),
                                 );
                                 let variant_typ = typ.clone().variant(variant_name);
-                                (
+                                fields_res.map(|fields| (
                                     guard,
                                     variant_name.to_string(),
                                     vir::StructPredicate::new(variant_typ, fields),
-                                )
+                                ))
                             })
-                            .collect();
+                            .collect::<Result<_, _>>()?;
                         for (_, name, _) in &variants {
                             self.encoder.encode_enum_variant_field(name);
                         }
@@ -368,7 +368,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 let field_ty = self.ty.boxed_ty();
                 vec![vir::Predicate::new_struct(
                     typ,
-                    vec![self.encoder.encode_dereference_field(field_ty)],
+                    vec![self.encoder.encode_dereference_field(field_ty)?],
                 )]
             }
 
@@ -389,7 +389,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    pub fn encode_predicate_use(self) -> Result<String> {
+    pub fn encode_predicate_use(self) -> PositionlessResult<String> {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
         let result = match self.ty.kind() {
@@ -436,7 +436,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Tuple(elems) => {
-                let elem_predicate_names: Result<Vec<_>> = elems
+                let elem_predicate_names: PositionlessResult<Vec<_>> = elems
                     .iter()
                     .map(|ty| {
                         self.encoder.encode_type_predicate_use(ty.expect_ty())
@@ -508,7 +508,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(result)
     }
 
-    pub fn encode_invariant_def(self) -> Result<vir::Function> {
+    pub fn encode_invariant_def(self) -> PositionlessResult<vir::Function> {
         debug!("[enter] encode_invariant_def({:?})", self.ty);
 
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
@@ -520,7 +520,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let field_invariants = match self.ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
             | ty::TyKind::Ref(_, ref ty, _) => {
-                let elem_field = self.encoder.encode_dereference_field(ty);
+                let elem_field = self.encoder.encode_dereference_field(ty)?;
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 Some(vec![self.encoder.encode_invariant_func_app(ty, elem_loc)])
             }
@@ -609,7 +609,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             debug!("Encoding field {:?}", field);
                             let field_name = &field.ident.as_str();
                             let field_ty = field.ty(tcx, subst);
-                            let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
+                            let elem_field = self.encoder.encode_struct_field(field_name, field_ty)?;
                             let elem_loc =
                                 vir::Expr::from(self_local_var.clone()).field(elem_field);
                             exprs.push(self.encoder.encode_invariant_func_app(field_ty, elem_loc));
@@ -634,7 +634,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
             | ty::TyKind::Ref(_, ref ty, _) => {
                 // This is a reference, so we need to have it already unfolded.
-                let elem_field = self.encoder.encode_dereference_field(ty);
+                let elem_field = self.encoder.encode_dereference_field(ty)?;
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 vir::Expr::and(
                     vir::Expr::acc_permission(elem_loc.clone(), vir::PermAmount::Read),
@@ -669,7 +669,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(final_function)
     }
 
-    pub fn encode_invariant_use(self) -> Result<String> {
+    pub fn encode_invariant_use(self) -> PositionlessResult<String> {
         debug!("Encode type invariant name '{:?}'", self.ty);
         Ok(format!("{}$inv", self.encode_predicate_use()?))
     }
@@ -710,7 +710,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         function
     }
 
-    pub fn encode_tag_use(self) -> Result<String> {
+    pub fn encode_tag_use(self) -> PositionlessResult<String> {
         debug!("Encode type tag name '{:?}'", self.ty);
         Ok(format!("{}$tag", self.encode_predicate_use()?))
     }

@@ -117,7 +117,8 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()].expect_ty();
-                        let encoded_field = self.encoder().encode_raw_ref_field(field_name, field_ty);
+                        let encoded_field = self.encoder()
+                            .encode_raw_ref_field(field_name, field_ty)?;
                         let encoded_projection = encoded_base.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
@@ -141,7 +142,10 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let field_ty = field.ty(tcx, subst);
                         let encoded_field = self
                             .encoder()
-                            .encode_struct_field(&field.ident.as_str(), field_ty);
+                            .encode_struct_field(
+                                &field.ident.as_str(),
+                                field_ty
+                            )?;
                         let encoded_projection = encoded_variant.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
@@ -161,13 +165,15 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let field_ty = closure_subst.upvar_tys().nth(field.index()).unwrap();
 
                         let field_name = format!("closure_{}", field.index());
-                        let encoded_field = self.encoder().encode_raw_ref_field(field_name, field_ty);
+                        let encoded_field = self.encoder()
+                            .encode_raw_ref_field(field_name, field_ty)?;
                         let encoded_projection = encoded_base.field(encoded_field);
 
                         // let encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
                         //     let freevar = &freevars[field.index()];
                         //     let field_name = format!("closure_{}", field.index());
-                        //     let encoded_field = self.encoder().encode_raw_ref_field(field_name, field_ty);
+                        //     let encoded_field = self.encoder()
+                        //          .encode_raw_ref_field(field_name, field_ty)?;
                         //     let res = encoded_base.field(encoded_field);
                         //     let var_name = tcx.hir.name(freevar.var_id()).to_string();
                         //     trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
@@ -187,7 +193,9 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 }
             }
 
-            mir::ProjectionElem::Deref => self.encode_deref(encoded_base, base_ty),
+            mir::ProjectionElem::Deref => {
+                self.encode_deref(encoded_base, base_ty)?
+            }
 
             mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
                 debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
@@ -202,14 +210,14 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         &self,
         encoded_base: vir::Expr,
         base_ty: ty::Ty<'tcx>,
-    ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
+    ) -> PositionlessResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("encode_deref {} {}", encoded_base, base_ty);
         assert!(
             self.can_be_dereferenced(base_ty),
             "Type {:?} can not be dereferenced",
             base_ty
         );
-        match base_ty.kind() {
+        Ok(match base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(_, ty, _) => {
                 let access = if encoded_base.is_addr_of() {
@@ -219,7 +227,8 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     match encoded_base {
                         vir::Expr::AddrOf(box base_place, _, _) => base_place,
                         _ => {
-                            let ref_field = self.encoder().encode_dereference_field(ty);
+                            let ref_field = self.encoder()
+                                .encode_dereference_field(ty)?;
                             encoded_base.field(ref_field)
                         }
                     }
@@ -231,13 +240,14 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     encoded_base.get_parent().unwrap()
                 } else {
                     let field_ty = base_ty.boxed_ty();
-                    let ref_field = self.encoder().encode_dereference_field(field_ty);
+                    let ref_field = self.encoder()
+                        .encode_dereference_field(field_ty)?;
                     encoded_base.field(ref_field)
                 };
                 (access, base_ty.boxed_ty(), None)
             }
             ref x => unimplemented!("{:?}", x),
-        }
+        })
     }
 
     fn can_be_dereferenced(&self, base_ty: ty::Ty<'tcx>) -> bool {

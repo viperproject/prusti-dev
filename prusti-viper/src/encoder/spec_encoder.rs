@@ -218,17 +218,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         );
         let outer_mir = self.encoder.env().mir(outer_def_id.expect_local());
         let outer_mir_encoder = MirEncoder::new(self.encoder, &outer_mir, outer_def_id);
+        let outer_span = outer_mir_encoder.get_span_of_location(outer_location);
         trace!("Replacing variables of {:?} captured from {:?}", inner_def_id, outer_def_id);
 
         // Take the first argument, which is the closure's captured state.
         // The closure is a record containing all the captured variables.
         let closure_local = inner_mir.args_iter().next().unwrap();
-        // will panic if attempting to encode unsupported type
-        let closure_var = inner_mir_encoder.encode_local(closure_local).unwrap();
+        let closure_var = inner_mir_encoder.encode_local(closure_local)?;
         let closure_ty = &inner_mir.local_decls[closure_local].ty;
         let should_closure_be_dereferenced = inner_mir_encoder.can_be_dereferenced(closure_ty);
         let (deref_closure_var, _deref_closure_ty) = if should_closure_be_dereferenced {
-            let res = inner_mir_encoder.encode_deref(closure_var.clone().into(), closure_ty);
+            let res = inner_mir_encoder
+                .encode_deref(closure_var.clone().into(), closure_ty)
+                .with_span(outer_span)?;
             (res.0, res.1)
         } else {
             (closure_var.clone().into(), *closure_ty)
@@ -249,17 +251,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             .enumerate()
             .map(|(index, &captured_ty)| {
                 let field_name = format!("closure_{}", index);
-                let encoded_field = self.encoder.encode_raw_ref_field(field_name, captured_ty);
-                deref_closure_var.clone().field(encoded_field)
+                self.encoder.encode_raw_ref_field(field_name, captured_ty)
+                    .with_span(outer_span)
+                    .map(|encoded_field|
+                        deref_closure_var.clone().field(encoded_field)
+                    )
             })
-            .collect();
+            .collect::<Result<_, _>>()?;
         let outer_captured_places: Vec<_> = captured_operands
             .iter()
             .map(|operand| outer_mir_encoder.encode_operand_place(operand))
             .collect::<Result<Vec<_>, _>>()
-            .with_span(
-                outer_mir_encoder.get_span_of_location(outer_location)
-            )?
+            .with_span(outer_span)?
             .into_iter()
             .map(|x| x.unwrap())
             .collect();

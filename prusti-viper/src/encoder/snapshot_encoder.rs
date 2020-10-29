@@ -9,6 +9,7 @@ use crate::encoder::Encoder;
 use rustc_middle::ty;
 use prusti_common::vir::{PermAmount};
 use log::warn;
+use crate::encoder::errors::PositionlessEncodingError;
 
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
@@ -19,6 +20,8 @@ pub const SNAPSHOT_NOT_EQUALS: &str = "not_equals$";
 const SNAPSHOT_ARG: &str = "_arg";
 const SNAPSHOT_LEFT: &str = "_left";
 const SNAPSHOT_RIGHT: &str = "_right";
+
+type PositionlessResult<T> = std::result::Result<T, PositionlessEncodingError>;
 
 pub struct SnapshotEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -162,16 +165,16 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         SnapshotEncoder { encoder, ty, predicate_name }
     }
 
-    pub fn encode(&self) -> Snapshot {
+    pub fn encode(&self) -> PositionlessResult<Snapshot> {
         if !self.is_supported() {
-            return Snapshot {
+            return Ok(Snapshot {
                 predicate_name: self.predicate_name.clone(),
                 snap_func: None,
                 snap_domain: None,
-            }
+            })
         }
 
-        match &self.ty.kind() {
+        Ok(match &self.ty.kind() {
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
             | ty::TyKind::Char
@@ -181,20 +184,20 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 )
             }
             ty::TyKind::Param(_) => {
-                self.encode_snap_generic()
+                self.encode_snap_generic()?
             }
             ty::TyKind::Adt(adt_def, _) if !adt_def.is_box() => {
                 if adt_def.variants.len() != 1 {
                     warn!("Generating equality tests for enums is not yet supported");
                 }
-                self.encode_snap_struct()
+                self.encode_snap_struct()?
             }
             ty::TyKind::Tuple(_) => {
-                self.encode_snap_struct()
+                self.encode_snap_struct()?
             }
 
             x => unimplemented!("{:?}", x),
-        }
+        })
     }
 
     fn is_supported(&self) -> bool {
@@ -306,23 +309,23 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         vir::Type::TypedRef(self.predicate_name.clone())
     }
 
-    fn encode_snap_generic(&self) -> Snapshot {
-        let snap_domain = self.encode_snap_domain();
-        Snapshot {
+    fn encode_snap_generic(&self) -> PositionlessResult<Snapshot> {
+        let snap_domain = self.encode_snap_domain()?;
+        Ok(Snapshot {
             predicate_name: self.predicate_name.clone(),
             snap_func: Some(self.encode_snap_func_generic(snap_domain.get_type())),
             snap_domain: Some(snap_domain),
-        }
+        })
     }
 
-    fn encode_snap_domain(&self) -> SnapshotDomain {
-        SnapshotDomain{
-            domain: self.encode_domain(),
+    fn encode_snap_domain(&self) -> PositionlessResult<SnapshotDomain> {
+        Ok(SnapshotDomain{
+            domain: self.encode_domain()?,
             equals_func: self.encode_equals_func(),
             equals_func_ref: self.encode_equals_func_ref(),
             not_equals_func: self.encode_not_equals_func(),
             not_equals_func_ref: self.encode_not_equals_func_ref(),
-        }
+        })
     }
 
     fn encode_snap_func_generic(&self, return_type: vir::Type) -> vir::Function {
@@ -336,31 +339,31 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    fn encode_snap_struct(&self) -> Snapshot {
-        let snap_domain = self.encode_snap_domain();
-        Snapshot {
+    fn encode_snap_struct(&self) -> PositionlessResult<Snapshot> {
+        let snap_domain = self.encode_snap_domain()?;
+        Ok(Snapshot {
             predicate_name: self.predicate_name.clone(),
             snap_func: Some(self.encode_snap_func(
                 snap_domain.get_type(),
                 snap_domain.call_snap_func(
-                    self.encode_snap_func_args()
+                    self.encode_snap_func_args()?
                 )
             )),
             snap_domain: Some(snap_domain),
-        }
+        })
     }
 
-    fn encode_domain(&self) -> vir::Domain {
+    fn encode_domain(&self) -> PositionlessResult<vir::Domain> {
         let domain_name = self.encode_domain_name();
-        let cons_func = self.encode_domain_cons(&domain_name);
+        let cons_func = self.encode_domain_cons(&domain_name)?;
         let cons_axiom_injectivity = self.encode_cons_injectivity(&domain_name, &cons_func);
 
-        vir::Domain {
+        Ok(vir::Domain {
             name: domain_name,
             functions: vec![cons_func],
             axioms: vec![cons_axiom_injectivity],
             type_vars: vec![]
-        }
+        })
     }
 
     fn encode_domain_name(&self) -> String {
@@ -371,14 +374,16 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         )
     }
 
-    fn encode_domain_cons(&self, domain_name: &String) -> vir::DomainFunc {
-        vir::DomainFunc {
+    fn encode_domain_cons(&self, domain_name: &String)
+        -> PositionlessResult<vir::DomainFunc>
+    {
+        Ok(vir::DomainFunc {
             name: SNAPSHOT_CONS.to_string(),
-            formal_args: self.encode_domain_cons_formal_args(),
+            formal_args: self.encode_domain_cons_formal_args()?,
             return_type: vir::Type::Domain(domain_name.to_string()),
             unique: false,
             domain_name: domain_name.to_string(),
-        }
+        })
     }
 
     fn encode_cons_injectivity(&self, domain_name: &String, cons_func: &vir::DomainFunc) -> vir::DomainAxiom {
@@ -495,7 +500,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         )
     }
 
-    fn encode_domain_cons_formal_args(&self) -> Vec<vir::LocalVar> {
+    fn encode_domain_cons_formal_args(&self)
+        -> PositionlessResult<Vec<vir::LocalVar>>
+    {
         let mut formal_args = vec![];
         match self.ty.kind() {
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
@@ -503,7 +510,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 let mut field_num = 0;
                 for field in &adt_def.non_enum_variant().fields {
                     let field_ty = field.ty(tcx, subst);
-                    let snapshot = self.encoder.encode_snapshot(&field_ty);
+                    let snapshot = self.encoder.encode_snapshot(&field_ty)?;
                     formal_args.push(
                         self.encode_local_var(field_num, &snapshot.get_type())
                     );
@@ -531,7 +538,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
 
             _ => unreachable!(),
         }
-        formal_args
+        Ok(formal_args)
     }
 
     fn encode_local_var(&self, counter: usize, field_type: &vir::Type) -> vir::LocalVar {
@@ -545,21 +552,24 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         vir::LocalVar::new(name, typ)
     }
 
-    fn encode_snap_func_args(&self) -> Vec<vir::Expr> {
-        match self.ty.kind() {
+    fn encode_snap_func_args(&self) -> PositionlessResult<Vec<vir::Expr>> {
+        Ok(match self.ty.kind() {
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 let tcx = self.encoder.env().tcx();
                 adt_def.non_enum_variant()
                     .fields
                     .iter()
-                    .map(|f| self.encode_snap_arg(
-                        self.encoder.encode_struct_field(
-                            &f.ident.to_string(),
-                            &f.ty(tcx, subst)
-                            ),
-                        &f.ty(tcx, subst),
-                        )
-                    ).collect()
+                    .map(|f|
+                         self.encoder.encode_struct_field(
+                             &f.ident.to_string(),
+                             &f.ty(tcx, subst)
+                         ).and_then(|encoded_field|
+                             self.encode_snap_arg(
+                                 encoded_field,
+                                &f.ty(tcx, subst)
+                             )
+                         )
+                    ).collect::<Result<_, _>>()?
             },
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
@@ -572,23 +582,28 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 let mut args = vec![];
                 for (field_num, field_ty) in elems.iter().enumerate() {
                     let field_name = format!("tuple_{}", field_num);
-                    let field = self.encoder.encode_raw_ref_field(field_name, field_ty.expect_ty());
+                    let field = self.encoder.encode_raw_ref_field(
+                        field_name,
+                        field_ty.expect_ty()
+                    )?;
                     args.push(
-                        self.encode_snap_arg(field, field_ty.expect_ty())
+                        self.encode_snap_arg(field, field_ty.expect_ty())?
                     );
                 }
                 args
             }
 
             _ => unreachable!(),
-        }
+        })
     }
 
-    fn encode_snap_arg(&self, field: vir::Field, field_ty: ty::Ty<'tcx>) -> vir::Expr {
-        let snapshot = self.encoder.encode_snapshot(field_ty);
-        snapshot.get_snap_call(
+    fn encode_snap_arg(&self, field: vir::Field, field_ty: ty::Ty<'tcx>)
+        -> PositionlessResult<vir::Expr>
+    {
+        let snapshot = self.encoder.encode_snapshot(field_ty)?;
+        Ok(snapshot.get_snap_call(
             self.encode_snap_arg_field(field)
-        )
+        ))
     }
 
     pub fn encode_equals_func_ref(&self) -> vir::Function {

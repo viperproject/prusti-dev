@@ -27,6 +27,7 @@ use rustc_middle::ty;
 use std::collections::HashMap;
 use log::{debug, trace};
 use prusti_interface::PrustiError;
+use rustc_span::Span;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -114,7 +115,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                     ));
             }
 
-            let snapshot = self.encoder.encode_snapshot(&ty);
+            let return_span = self.get_local_span(mir::RETURN_PLACE);
+            let snapshot = self.encoder.encode_snapshot(&ty)
+                .with_span(return_span)?;
             let body_expr = snapshot.get_snap_call(body_expr);
             self.encode_function_given_body(Some(body_expr))
         } else {
@@ -238,9 +241,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         let postcondition = postcondition
             .into_iter()
-            .map(
-                |post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post)
-            ).collect();
+            .map(|post|
+                SnapshotSpecPatcher::new(self.encoder)
+                    .patch_spec(post)
+                    // TODO: use a better span
+                    .with_span(self.mir.span)
+            ).collect::<Result<_, _>>()?;
 
         let mut function = vir::Function {
             name: function_name.clone(),
@@ -317,9 +323,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             type_spec.into_iter().conjoin(),
             func_spec
                 .into_iter()
-                .map(
-                    |post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post)
-                ).conjoin(),
+                .map(|post|
+                    SnapshotSpecPatcher::new(self.encoder)
+                        .patch_spec(post)
+                        // TODO: use a better span
+                        .with_span(self.mir.span)
+                )
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter()
+                .conjoin(),
         ))
     }
 
@@ -369,7 +381,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos);
 
-        Ok(SnapshotSpecPatcher::new(self.encoder).patch_spec(post))
+        // TODO: use a better span
+        Ok(SnapshotSpecPatcher::new(self.encoder)
+            .patch_spec(post)
+            .with_span(self.mir.span)?
+        )
     }
 
     fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
@@ -378,6 +394,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .encoder
             .encode_value_or_ref_type(self.interpreter.mir_encoder().get_local_ty(local));
         vir::LocalVar::new(var_name, var_type)
+    }
+
+    fn get_local_span(&self, local: mir::Local) -> Span {
+        self.interpreter.mir_encoder().get_local_span(local)
     }
 
     pub fn encode_function_name(&self) -> String {
@@ -926,8 +946,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 for (field_num, operand) in operands.iter().enumerate() {
                                     let field_name = format!("tuple_{}", field_num);
                                     let field_ty = field_types[field_num];
-                                    let encoded_field =
-                                        self.encoder.encode_raw_ref_field(field_name, field_ty.expect_ty());
+                                    let encoded_field = self.encoder
+                                        .encode_raw_ref_field(field_name, field_ty.expect_ty())
+                                        .with_span(span)?;
                                     let field_place = encoded_lhs.clone().field(encoded_field);
 
                                     let encoded_operand = self.mir_encoder.encode_operand_place(operand)
@@ -969,8 +990,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     let field_name = &field.ident.as_str();
                                     let tcx = self.encoder.env().tcx();
                                     let field_ty = field.ty(tcx, subst);
-                                    let encoded_field =
-                                        self.encoder.encode_struct_field(field_name, field_ty);
+                                    let encoded_field = self.encoder
+                                            .encode_struct_field(field_name, field_ty)
+                                            .with_span(span)?;
 
                                     let field_place =
                                         encoded_lhs_variant.clone().field(encoded_field);
@@ -1046,14 +1068,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         } else {
                             unreachable!()
                         };
-                        let value_field = self
-                            .encoder
-                            .encode_raw_ref_field("tuple_0".to_string(), field_types[0].expect_ty());
-                        let value_field_value = self.encoder.encode_value_field(field_types[0].expect_ty());
-                        let check_field = self
-                            .encoder
-                            .encode_raw_ref_field("tuple_1".to_string(), field_types[1].expect_ty());
-                        let check_field_value = self.encoder.encode_value_field(field_types[1].expect_ty());
+                        let value_field = self.encoder
+                            .encode_raw_ref_field("tuple_0".to_string(), field_types[0].expect_ty())
+                            .with_span(span)?;
+                        let value_field_value = self.encoder
+                            .encode_value_field(field_types[0].expect_ty());
+                        let check_field = self.encoder
+                            .encode_raw_ref_field("tuple_1".to_string(), field_types[1].expect_ty())
+                            .with_span(span)?;
+                        let check_field_value = self.encoder
+                            .encode_value_field(field_types[1].expect_ty());
 
                         let lhs_value = encoded_lhs
                             .clone()
