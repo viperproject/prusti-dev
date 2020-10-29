@@ -930,7 +930,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.snapshots.borrow()[&predicate_name].clone()
     }
 
-    pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
+    pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>)
+        -> Result<String, PositionlessEncodingError>
+    {
         // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
         if !self.type_invariant_names.borrow().contains_key(ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
@@ -940,23 +942,24 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 .borrow_mut()
                 .insert(ty.kind().clone(), invariant_name);
             // Trigger encoding of definition
-            self.encode_type_invariant_def(ty);
+            self.encode_type_invariant_def(ty)?;
         }
         let invariant_name = self.type_invariant_names.borrow()[&ty.kind()].clone();
-        invariant_name
+        Ok(invariant_name)
     }
 
-    pub fn encode_type_invariant_def(&self, ty: ty::Ty<'tcx>) -> vir::Function {
-        let invariant_name = self.encode_type_invariant_use(ty);
+    pub fn encode_type_invariant_def(&self, ty: ty::Ty<'tcx>)
+        -> Result<vir::Function, PositionlessEncodingError>
+    {
+        let invariant_name = self.encode_type_invariant_use(ty)?;
         if !self.type_invariants.borrow().contains_key(&invariant_name) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let invariant = type_encoder.encode_invariant_def()
-                .expect("failed to encode unsupported type");
+            let invariant = type_encoder.encode_invariant_def()?;
             self.type_invariants
                 .borrow_mut()
                 .insert(invariant_name.clone(), invariant);
         }
-        self.type_invariants.borrow()[&invariant_name].clone()
+        Ok(self.type_invariants.borrow()[&invariant_name].clone())
     }
 
     pub fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
@@ -1120,18 +1123,22 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         final_name
     }
 
-    pub fn encode_invariant_func_app(&self, ty: ty::Ty<'tcx>, encoded_arg: vir::Expr) -> vir::Expr {
+    pub fn encode_invariant_func_app(
+        &self,
+        ty: ty::Ty<'tcx>,
+        encoded_arg: vir::Expr
+    ) -> Result<vir::Expr, PositionlessEncodingError> {
         let type_pred = self.encode_type_predicate_use(ty)
             .expect("failed to encode unsupported type");
-        vir::Expr::FuncApp(
-            self.encode_type_invariant_use(ty),
+        Ok(vir::Expr::FuncApp(
+            self.encode_type_invariant_use(ty)?,
             vec![encoded_arg],
             // TODO ?
             vec![vir::LocalVar::new("self", vir::Type::TypedRef(type_pred))],
             vir::Type::Bool,
             // TODO
             vir::Position::default(),
-        )
+        ))
     }
 
     pub fn encode_tag_func_app(&self, ty: ty::Ty<'tcx>) -> vir::Expr {

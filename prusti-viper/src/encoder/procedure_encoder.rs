@@ -2238,8 +2238,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let encoded_local = self.encode_prusti_local(arg);
             let arg_place = vir::Expr::local(encoded_local);
             debug!("arg: {:?} {}", arg, arg_place);
-            let inv_name = self.encoder.encode_type_invariant_use(arg_ty);
-            let arg_inv = self.encoder.encode_type_invariant_def(arg_ty);
+            let inv_name = self.encoder.encode_type_invariant_use(arg_ty)
+                .with_span(call_site_span)?;
+            let arg_inv = self.encoder.encode_type_invariant_def(arg_ty)
+                .with_span(call_site_span)?;
             type_invs.insert(inv_name, arg_inv);
             let encoded_operand = self.mir_encoder.encode_operand_place(operand)
                 .with_span(call_site_span)?;
@@ -2802,15 +2804,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             };
         }
 
-        let mut invs_spec: Vec<vir::Expr> = vec![];
-
-        for arg in contract.args.iter() {
-            invs_spec.push(self.encoder.encode_invariant_func_app(
-                self.locals.get_type(*arg),
-                self.encode_prusti_local(*arg).into(),
-            ));
-        }
-
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         // Encode functional specification
@@ -2844,6 +2837,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ))
                 .collect(),
         );
+
+        let mut invs_spec: Vec<vir::Expr> = vec![];
+        for arg in contract.args.iter() {
+            invs_spec.push(
+                self.encoder.encode_invariant_func_app(
+                    self.locals.get_type(*arg),
+                    self.encode_prusti_local(*arg).into(),
+                ).with_span(precondition_spans.clone())?
+            );
+        }
+
         let precondition_weakening = precondition_weakening.map(|pw| {
             self.encoder.encode_assertion(
                 &pw,
@@ -2956,7 +2960,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 "There can be at most one pledge in the function postcondition."
             );
             debug!("borrow_info {:?}", borrow_info);
-            let encode_place_perm = |place, mutability, label| {
+            let encode_place_perm = |place, mutability, label| -> _ {
                 let perm_amount = match mutability {
                     Mutability::Not => vir::PermAmount::Read,
                     Mutability::Mut => vir::PermAmount::Write,
@@ -2965,21 +2969,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     contract.def_id, location, place);
                 let vir_access =
                     vir::Expr::pred_permission(place_expr.clone().old(label), perm_amount).unwrap();
-                let inv = self
+                self
                     .encoder
-                    .encode_invariant_func_app(place_ty, place_expr.old(label));
-                vir::Expr::and(vir_access, inv)
+                    .encode_invariant_func_app(place_ty, place_expr.old(label))
+                    // TODO: Use a better span
+                    .with_span(self.mir.span)
+                    .map(|inv| vir::Expr::and(vir_access, inv))
             };
             let mut lhs: Vec<_> = borrow_info
                 .blocking_paths
                 .iter()
                 .map(|(place, mutability)| encode_place_perm(place, *mutability, post_label))
-                .collect();
+                .collect::<Result<_>>()?;
             let mut rhs: Vec<_> = borrow_info
                 .blocked_paths
                 .iter()
                 .map(|(place, mutability)| encode_place_perm(place, *mutability, pre_label))
-                .collect();
+                .collect::<Result<_>>()?;
             if let Some(typed::Pledge { reference, lhs: body_lhs, rhs: body_rhs}) = pledges.first() {
                 debug!(
                     "pledge reference={:?} lhs={:?} rhs={:?}",
@@ -3150,7 +3156,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     add_type_spec(vir::PermAmount::Write);
                     let inv = self
                         .encoder
-                        .encode_invariant_func_app(place_ty, old_place_expr);
+                        .encode_invariant_func_app(place_ty, old_place_expr)
+                        // TODO: Use a better span
+                        .with_span(self.mir.span)?;
                     invs_spec.push(inv);
                 }
             };
@@ -3194,13 +3202,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.encode_local_variable_permission(contract.returned_value)?
         );
 
-        // Encode invariant for return value
-        // TODO put this in the above if?
-        invs_spec.push(self.encoder.encode_invariant_func_app(
-            self.locals.get_type(contract.returned_value),
-            encoded_return.clone(),
-        ));
-
         // Encode functional specification
         let mut func_spec = vec![];
         let mut func_spec_spans = vec![];
@@ -3228,6 +3229,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let postcondition_span = MultiSpan::from_spans(func_spec_spans);
         let func_spec_pos = self.encoder.error_manager()
             .register_span(postcondition_span.clone());
+
+        // Encode invariant for return value
+        invs_spec.push(
+            self.encoder.encode_invariant_func_app(
+                self.locals.get_type(contract.returned_value),
+                encoded_return.clone(),
+            ).with_span(postcondition_span.clone())?
+        );
 
         // Encode possible strengthening, in case of trait method implementation
         let strengthening_spec: Option<Expr> = postcondition_strengthening
