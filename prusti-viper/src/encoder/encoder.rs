@@ -817,7 +817,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 .borrow_mut()
                 .insert(ty.kind().clone(), result);
             // Trigger encoding of definition
-            self.encode_type_predicate_def(ty);
+            self.encode_type_predicate_def(ty)?;
         }
         let predicate_name = self.type_predicate_names.borrow()[&ty.kind()].clone();
         self.predicate_types
@@ -826,12 +826,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(predicate_name)
     }
 
-    pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> vir::Predicate {
+    pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>)
+        -> Result<vir::Predicate, PositionlessEncodingError>
+    {
         let predicate_name = self.encode_type_predicate_use(ty).unwrap();
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let predicates = type_encoder.encode_predicate_def()
-                .expect("failed to encode unsupported type");
+            let predicates = type_encoder.encode_predicate_def()?;
             for predicate in predicates {
                 self.log_vir_program_before_viper(predicate.to_string());
                 let predicate_name = predicate.name();
@@ -840,7 +841,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     .insert(predicate_name.to_string(), predicate);
             }
         }
-        self.type_predicates.borrow()[&predicate_name].clone()
+        Ok(self.type_predicates.borrow()[&predicate_name].clone())
     }
 
     pub fn encode_snapshot(&self, ty: ty::Ty<'tcx>)
