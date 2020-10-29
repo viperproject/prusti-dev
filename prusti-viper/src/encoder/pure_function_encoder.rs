@@ -6,7 +6,7 @@
 
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::errors::PanicCause;
+use crate::encoder::errors::{PanicCause, RunIfErr};
 use crate::encoder::errors::{EncodingError, ErrorCtxt, WithSpan};
 use crate::encoder::foldunfold;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
@@ -663,10 +663,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                         tymap_stack.push(tymap);
                     }
+                    let cleanup = || {
+                        // FIXME: this is a hack to support generics. See issue #187.
+                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                        tymap_stack.pop();
+                    };
 
                     let state = if destination.is_some() {
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
-                        let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place).unwrap(); // will panic if attempting to encode unsupported type
+                        let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place)
+                            .with_span(span)
+                            .run_if_err(cleanup)?;
                         let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty);
                         let encoded_args: Vec<vir::Expr> = args
                             .iter()
@@ -804,11 +811,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         MultiExprBackwardInterpreterState::new_single(unreachable_expr(pos))
                     };
 
-                    // FIXME: this is a hack to support generics. See issue #187.
-                    {
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        tymap_stack.pop();
-                    }
+                    cleanup();
                     state
                 } else {
                     // Other kind of calls?

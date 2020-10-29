@@ -9,9 +9,7 @@ use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, Pro
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{
-    ErrorCtxt, ErrorManager, EncodingError, PositionlessEncodingError, WithSpan
-};
+use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PositionlessEncodingError, WithSpan, RunIfErr};
 use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
@@ -497,7 +495,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             typed::SpecificationSet::Procedure(typed::ProcedureSpecification::empty())
         };
 
-        let tymap = self.typaram_repl.borrow_mut();
+        let tymap = self.typaram_repl.borrow();
 
         if tymap.len() != 1 {
             return Err(PositionlessEncodingError::internal(
@@ -1194,6 +1192,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
             tymap_stack.push(tymap);
         }
+        let cleanup = || {
+            // FIXME: this is a hack to support generics. See issue #187.
+            let mut tymap_stack = self.typaram_repl.borrow_mut();
+            tymap_stack.pop();
+        };
 
         // FIXME: Using substitutions as a key is most likely wrong.
         let substs_key = self.type_substitution_key();
@@ -1205,23 +1208,22 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let pure_function_encoder =
                 PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
             let function = if self.is_trusted(proc_def_id) {
-                pure_function_encoder.encode_bodyless_function()?
+                pure_function_encoder.encode_bodyless_function()
+                    .run_if_err(cleanup)?
             } else {
-                let pure_function = pure_function_encoder.encode_function()?;
+                let pure_function = pure_function_encoder.encode_function()
+                    .run_if_err(cleanup)?;
                 self.patch_pure_post_with_mirror_call(pure_function)
-                    .with_span(procedure.get_span())?
+                    .with_span(procedure.get_span())
+                    .run_if_err(cleanup)?
             };
 
             self.log_vir_program_before_viper(function.to_string());
             self.pure_functions.borrow_mut().insert(key, function);
         }
 
-        // FIXME: this is a hack to support generics. See issue #187.
-        {
-            let mut tymap_stack = self.typaram_repl.borrow_mut();
-            tymap_stack.pop();
-        }
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
+        cleanup();
         Ok(())
     }
 

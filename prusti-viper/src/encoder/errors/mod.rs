@@ -8,8 +8,10 @@ pub use self::encoding_error::*;
 pub use self::error_manager::*;
 pub use self::positionless_encoding_error::*;
 pub use self::with_span::*;
+pub use self::run_if_err::*;
 
 mod encoding_error;
 mod error_manager;
 mod positionless_encoding_error;
 mod with_span;
+mod run_if_err;

@@ -6,9 +6,7 @@
 
 use crate::encoder::borrows::ProcedureContract;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{
-    EncodingError, ErrorCtxt, PanicCause, PositionlessEncodingError, WithSpan
-};
+use crate::encoder::errors::{EncodingError, ErrorCtxt, PanicCause, PositionlessEncodingError, WithSpan, RunIfErr};
 use crate::encoder::foldunfold;
 use crate::encoder::initialisation::InitInfo;
 use crate::encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
@@ -1857,6 +1855,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
                         tymap_stack.push(tymap);
                     }
+                    let cleanup = || {
+                        // FIXME: this is a hack to support generics. See issue #187.
+                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                        tymap_stack.pop();
+                    };
 
                     match full_func_proc_name {
                         "std::rt::begin_panic" | "std::panicking::begin_panic" => {
@@ -1902,7 +1905,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let boxed_ty = dest_ty.boxed_ty();
                             let ref_field = self.encoder.encode_dereference_field(boxed_ty)
-                                .with_span(span)?;
+                                .with_span(span)
+                                .run_if_err(cleanup)?;
 
                             let box_content = dst.clone().field(ref_field.clone());
 
@@ -1912,7 +1916,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     ref_field,
                                     location,
                                     vir::AssignKind::Move,
-                                )?
+                                ).run_if_err(cleanup)?
                             );
 
                             // Allocate `box_content`
@@ -1924,7 +1928,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     &box_content,
                                     &args[0],
                                     location
-                                )?
+                                ).run_if_err(cleanup)?
                             );
                         }
 
@@ -1944,7 +1948,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     args,
                                     destination,
                                     vir::BinOpKind::EqCmp,
-                                )?
+                                ).run_if_err(cleanup)?
                             );
                         }
 
@@ -1964,7 +1968,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     args,
                                     destination,
                                     vir::BinOpKind::NeCmp,
-                                )?
+                                ).run_if_err(cleanup)?
                             );
                         }
 
@@ -1982,31 +1986,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     arg_exprs.push(arg_expr);
                                 }
 
-                                stmts.extend(self.encode_pure_function_call(
-                                    location,
-                                    term.source_info.span,
-                                    args,
-                                    destination,
-                                    def_id,
-                                )?);
+                                stmts.extend(
+                                    self.encode_pure_function_call(
+                                        location,
+                                        term.source_info.span,
+                                        args,
+                                        destination,
+                                        def_id,
+                                    ).run_if_err(cleanup)?
+                                );
                             } else {
-                                stmts.extend(self.encode_impure_function_call(
-                                    location,
-                                    term.source_info.span,
-                                    args,
-                                    destination,
-                                    def_id,
-                                    self_ty,
-                                )?);
+                                stmts.extend(
+                                    self.encode_impure_function_call(
+                                        location,
+                                        term.source_info.span,
+                                        args,
+                                        destination,
+                                        def_id,
+                                        self_ty,
+                                    ).run_if_err(cleanup)?
+                                );
                             }
                         }
                     }
 
-                    // FIXME: this is a hack to support generics. See issue #187.
-                    {
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        tymap_stack.pop();
-                    }
+                    cleanup();
 
                     if let &Some((_, target)) = destination {
                         (stmts, MirSuccessor::Goto(target))
