@@ -499,7 +499,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         let tymap = self.typaram_repl.borrow_mut();
 
-        assert_eq!(tymap.len(), 1, "tymap.len() = {}, but should be 1", tymap.len());
+        if tymap.len() != 1 {
+            return Err(PositionlessEncodingError::internal(
+                format!("tymap.len() = {}, but should be 1", tymap.len())
+            ))
+        }
 
         // get receiver object base type
         let mut impl_spec = typed::SpecificationSet::Procedure(typed::ProcedureSpecification::empty());
