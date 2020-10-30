@@ -118,8 +118,8 @@ impl<'a> PathCtxt<'a> {
         );
 
         // Simulate unfolding of `pred_place`
-        self.state.remove_pred(&pred_place, perm_amount);
-        self.state.insert_all_perms(places_in_pred.into_iter());
+        self.state.remove_pred(&pred_place, perm_amount)?;
+        self.state.insert_all_perms(places_in_pred.into_iter())?;
 
         debug!("We unfolded {}", pred_place);
 
@@ -309,7 +309,7 @@ impl<'a> PathCtxt<'a> {
                                 Ok(true)
                             }
                             ObtainResult::Failure(missing_perm) => {
-                                ctxt_right.state.remove_perm(&perm);
+                                ctxt_right.state.remove_perm(&perm)?;
                                 right_actions.push(Action::Drop(perm, missing_perm));
                                 Ok(false)
                             }
@@ -438,12 +438,12 @@ impl<'a> PathCtxt<'a> {
                 let left_perm = self.state.acc()[&acc_place];
                 let right_perm = other.state.acc()[&acc_place];
                 if left_perm == PermAmount::Write && right_perm == PermAmount::Read {
-                    self.state.remove_acc(&acc_place, PermAmount::Remaining);
+                    self.state.remove_acc(&acc_place, PermAmount::Remaining)?;
                     let perm = Perm::acc(acc_place.clone(), PermAmount::Remaining);
                     left_actions.push(Action::Drop(perm.clone(), perm));
                 }
                 if left_perm == PermAmount::Read && right_perm == PermAmount::Write {
-                    other.state.remove_acc(&acc_place, PermAmount::Remaining);
+                    other.state.remove_acc(&acc_place, PermAmount::Remaining)?;
                     let perm = Perm::acc(acc_place.clone(), PermAmount::Remaining);
                     right_actions.push(Action::Drop(perm.clone(), perm));
                 }
@@ -453,12 +453,12 @@ impl<'a> PathCtxt<'a> {
                 let left_perm = self.state.pred()[&pred_place];
                 let right_perm = other.state.pred()[&pred_place];
                 if left_perm == PermAmount::Write && right_perm == PermAmount::Read {
-                    self.state.remove_pred(&pred_place, PermAmount::Remaining);
+                    self.state.remove_pred(&pred_place, PermAmount::Remaining)?;
                     let perm = Perm::pred(pred_place.clone(), PermAmount::Remaining);
                     left_actions.push(Action::Drop(perm.clone(), perm));
                 }
                 if left_perm == PermAmount::Read && right_perm == PermAmount::Write {
-                    other.state.remove_pred(&pred_place, PermAmount::Remaining);
+                    other.state.remove_pred(&pred_place, PermAmount::Remaining)?;
                     let perm = Perm::pred(pred_place.clone(), PermAmount::Remaining);
                     right_actions.push(Action::Drop(perm.clone(), perm));
                 }
@@ -661,8 +661,8 @@ impl<'a> PathCtxt<'a> {
                     self.state
                 );
                 assert!(!self.state.contains_pred(req.get_place()));
-                self.state.remove_all_perms(scaled_places_in_pred.iter());
-                self.state.insert_pred(req.get_place().clone(), perm_amount);
+                self.state.remove_all_perms(scaled_places_in_pred.iter())?;
+                self.state.insert_pred(req.get_place().clone(), perm_amount)?;
 
                 // Done. Continue checking the remaining requirements
                 debug!("We folded {}", req);

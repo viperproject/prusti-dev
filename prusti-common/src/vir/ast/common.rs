@@ -64,6 +64,11 @@ mod tests {
     }
 }
 
+pub enum PermAmountError {
+    InvalidAdd(PermAmount, PermAmount),
+    InvalidSub(PermAmount, PermAmount)
+}
+
 /// The permission amount.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum PermAmount {
@@ -82,19 +87,19 @@ impl PermAmount {
         }
     }
 
-    pub fn add(self, other: PermAmount) -> PermAmount {
+    pub fn add(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
         match (self, other) {
             (PermAmount::Read, PermAmount::Remaining)
-            | (PermAmount::Remaining, PermAmount::Read) => PermAmount::Write,
-            _ => unreachable!("Invalid addition: {} + {}", self, other),
+            | (PermAmount::Remaining, PermAmount::Read) => Ok(PermAmount::Write),
+            _ => Err(PermAmountError::InvalidAdd(self, other)),
         }
     }
 
-    pub fn sub(self, other: PermAmount) -> PermAmount {
+    pub fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
         match (self, other) {
-            (PermAmount::Write, PermAmount::Read) => PermAmount::Remaining,
-            (PermAmount::Write, PermAmount::Remaining) => PermAmount::Read,
-            _ => unreachable!("Invalid subtraction: {} - {}", self, other),
+            (PermAmount::Write, PermAmount::Read) => Ok(PermAmount::Remaining),
+            (PermAmount::Write, PermAmount::Remaining) => Ok(PermAmount::Read),
+            _ => Err(PermAmountError::InvalidSub(self, other)),
         }
     }
 }
