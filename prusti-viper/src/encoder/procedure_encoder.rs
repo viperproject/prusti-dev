@@ -5116,13 +5116,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     stmts = Vec::new()
                 } else {
                     return Err(EncodingError::unsupported(
-                        "closures are not supported",
+                        "construction of closures is not supported",
                         span
                     ));
                 }
             }
 
-            ref x => unimplemented!("{:?}", x),
+            &mir::AggregateKind::Array(..) => {
+                return Err(EncodingError::unsupported(
+                    "construction of arrays is not supported",
+                    span
+                ));
+            }
+
+            &mir::AggregateKind::Generator(..) => {
+                return Err(EncodingError::unsupported(
+                    "construction of generators is not supported",
+                    span
+                ));
+            }
         }
 
         Ok(stmts)
