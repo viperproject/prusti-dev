@@ -1,4 +1,4 @@
-## Loop body invariants
+# Loop body invariants
 
 To verify loops, including loops in which the loop condition has side effects, Prusti allows specifying the *invariant of the loop body* using the `body_invariant!(...);` statement. The expression inside the parentheses should be a [Prusti specification](../syntax.md). There may be any number of body invariants in any given loop, but they must all be written at the beginning of the loop body.
 
