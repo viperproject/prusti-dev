@@ -160,7 +160,7 @@ impl MemoryEqEncoder {
             }
             ty::TyKind::Ref(..) => {
                 return Err(PositionlessEncodingError::unsupported(
-                    "memory equality between reference types is not yet \
+                    "memory equality between reference types is not \
                     supported"
                 ));
             }

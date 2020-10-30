@@ -180,21 +180,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             PoloniusInfoError::ReborrowingDagHasNoMagicWands(location) => {
                 EncodingError::unsupported(
-                    "the creation of loans in this loop is not yet supported \
+                    "the creation of loans in this loop is not supported \
                     (ReborrowingDagHasNoMagicWands)",
                     self.mir.source_info(location).span,
                 )
             }
 
             PoloniusInfoError::MultipleMagicWandsPerLoop(location) => EncodingError::unsupported(
-                "the creation of loans in this loop is not yet supported \
+                "the creation of loans in this loop is not supported \
                     (MultipleMagicWandsPerLoop)",
                 self.mir.source_info(location).span,
             ),
 
             PoloniusInfoError::MagicWandHasNoRepresentativeLoan(location) => {
                 EncodingError::unsupported(
-                    "the creation of loans in this loop is not yet supported \
+                    "the creation of loans in this loop is not supported \
                     (MagicWandHasNoRepresentativeLoan)",
                     self.mir.source_info(location).span,
                 )
@@ -3398,7 +3398,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // }
                     // ```
                     return Err(EncodingError::unsupported(
-                        "the encoding of pledges does not yet supporte this \
+                        "the encoding of pledges does not supporte this \
                         kind of reborrowing",
                         self.mir_encoder.get_span_of_location(location),
                     ));
@@ -4785,7 +4785,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     if field.typ.is_ref() {
                         // TODO: Inhale the predicate rooted at dst_field
                         return Err(EncodingError::unsupported(
-                            "the encoding of this reference copy has not yet \
+                            "the encoding of this reference copy has not \
                             been implemented",
                             self.mir_encoder.get_span_of_location(location),
                         ));

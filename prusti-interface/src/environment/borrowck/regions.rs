@@ -73,7 +73,7 @@ impl PlaceRegions {
         let indices = place.projection.iter()
             .map(|elem| match elem {
                 mir::ProjectionElem::Field(f, _) => f.index(),
-                _ => unreachable!()
+                x => unreachable!("{:?}", x),
             })
             .collect();
         (place.local, indices)
