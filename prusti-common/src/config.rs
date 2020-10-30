@@ -54,8 +54,10 @@ lazy_static! {
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
         settings.set_default("SKIP_UNSUPPORTED_FUNCTIONS", false).unwrap();
+        settings.set_default("ALLOW_UNREACHABLE_UNSUPPORTED_CODE", false).unwrap();
         settings.set_default("NO_VERIFY", false).unwrap();
         settings.set_default("FULL_COMPILATION", false).unwrap();
+        settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
@@ -295,6 +297,12 @@ pub fn delete_basic_blocks() -> Vec<String> {
 /// Skip functions that are unsupported or partially supported
 pub fn skip_unsupported_functions() -> bool {
     read_setting("SKIP_UNSUPPORTED_FUNCTIONS")
+}
+
+/// Encode unsupported code as `assert false`, so that we report error messages
+/// only for unsupported code that is actually reachable.
+pub fn allow_unreachable_unsupported_code() -> bool {
+    read_setting("ALLOW_UNREACHABLE_UNSUPPORTED_CODE")
 }
 
 /// Skip the verification

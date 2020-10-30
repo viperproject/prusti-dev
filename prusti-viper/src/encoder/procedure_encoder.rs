@@ -1068,11 +1068,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             Ok(stmts_succ) => Ok(stmts_succ),
             Err(err) => {
                 let unsupported_msg = match err.as_positionless() {
-                    PositionlessEncodingError::Unsupported(msg) => {
+                    PositionlessEncodingError::Unsupported(msg)
+                        if config::allow_unreachable_unsupported_code() => {
                         msg.to_string()
                     },
                     _ => {
-                        // Propagate other kinds of error
+                        // Propagate the error
                         return Err(err)?;
                     }
                 };
