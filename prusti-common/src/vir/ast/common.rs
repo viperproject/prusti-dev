@@ -81,6 +81,22 @@ impl PermAmount {
             PermAmount::Remaining => false,
         }
     }
+
+    pub fn add(self, other: PermAmount) -> PermAmount {
+        match (self, other) {
+            (PermAmount::Read, PermAmount::Remaining)
+            | (PermAmount::Remaining, PermAmount::Read) => PermAmount::Write,
+            _ => unreachable!("Invalid addition: {} + {}", self, other),
+        }
+    }
+
+    pub fn sub(self, other: PermAmount) -> PermAmount {
+        match (self, other) {
+            (PermAmount::Write, PermAmount::Read) => PermAmount::Remaining,
+            (PermAmount::Write, PermAmount::Remaining) => PermAmount::Read,
+            _ => unreachable!("Invalid subtraction: {} - {}", self, other),
+        }
+    }
 }
 
 impl fmt::Display for PermAmount {
@@ -89,30 +105,6 @@ impl fmt::Display for PermAmount {
             PermAmount::Read => write!(f, "read"),
             PermAmount::Write => write!(f, "write"),
             PermAmount::Remaining => write!(f, "write-read"),
-        }
-    }
-}
-
-impl ops::Add for PermAmount {
-    type Output = PermAmount;
-
-    fn add(self, other: PermAmount) -> PermAmount {
-        match (self, other) {
-            (PermAmount::Read, PermAmount::Remaining)
-            | (PermAmount::Remaining, PermAmount::Read) => PermAmount::Write,
-            _ => unreachable!("Invalid addition: {} + {}", self, other),
-        }
-    }
-}
-
-impl ops::Sub for PermAmount {
-    type Output = PermAmount;
-
-    fn sub(self, other: PermAmount) -> PermAmount {
-        match (self, other) {
-            (PermAmount::Write, PermAmount::Read) => PermAmount::Remaining,
-            (PermAmount::Write, PermAmount::Remaining) => PermAmount::Read,
-            _ => unreachable!("Invalid subtraction: {} - {}", self, other),
         }
     }
 }

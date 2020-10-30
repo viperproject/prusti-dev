@@ -352,7 +352,7 @@ impl State {
     pub fn insert_acc(&mut self, place: vir::Expr, perm: PermAmount) {
         trace!("insert_acc {}, {}", place, perm);
         if self.acc.contains_key(&place) {
-            let new_perm = self.acc[&place] + perm;
+            let new_perm = self.acc[&place].add(perm);
             assert!(
                 new_perm == PermAmount::Write || new_perm == PermAmount::Read,
                 "Trying to inhale {} access permission, while there is already {}",
@@ -377,7 +377,7 @@ impl State {
     pub fn insert_pred(&mut self, place: vir::Expr, perm: PermAmount) {
         trace!("insert_pred {}, {}", place, perm);
         if self.pred.contains_key(&place) {
-            let new_perm = self.pred[&place] + perm;
+            let new_perm = self.pred[&place].add(perm);
             assert!(
                 new_perm == PermAmount::Write || new_perm == PermAmount::Read,
                 "Trying to inhale {} predicate permission, while there is already {}",
@@ -451,7 +451,7 @@ impl State {
         if self.acc[place] == perm {
             self.acc.remove(place);
         } else {
-            self.acc.insert(place.clone(), self.acc[place] - perm);
+            self.acc.insert(place.clone(), self.acc[place].sub(perm));
         }
     }
 
@@ -465,7 +465,7 @@ impl State {
         if self.pred[place] == perm {
             self.pred.remove(place);
         } else {
-            self.pred.insert(place.clone(), self.pred[place] - perm);
+            self.pred.insert(place.clone(), self.pred[place].sub(perm));
         }
     }
 
@@ -524,7 +524,7 @@ impl State {
     fn restore_acc(&mut self, acc_place: vir::Expr, mut perm: PermAmount) {
         trace!("restore_acc {}, {}", acc_place, perm);
         if let Some(curr_perm_amount) = self.acc.get(&acc_place) {
-            perm = perm + *curr_perm_amount;
+            perm = perm.add(*curr_perm_amount);
         }
         if acc_place.is_simple_place() {
             for pred_place in self.pred.keys() {
@@ -544,7 +544,7 @@ impl State {
     fn restore_pred(&mut self, pred_place: vir::Expr, mut perm: PermAmount) {
         trace!("restore_pred {}, {}", pred_place, perm);
         if let Some(curr_perm_amount) = self.pred.get(&pred_place) {
-            perm = perm + *curr_perm_amount;
+            perm = perm.add(*curr_perm_amount);
             //trace!("restore_pred {}: ignored (state already contains place)", pred_place);
             //return;
         }
