@@ -1096,7 +1096,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         pos
                     )
                 ];
-                Ok((stmts, None))
+                Ok((stmts, Some(MirSuccessor::Kill)))
             }
         }
     }
