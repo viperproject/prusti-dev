@@ -382,7 +382,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             &mir::Operand::Constant(box mir::Constant {
                 literal: ty::Const { ty, val },
                 ..
-            }) => self.encoder.encode_const_expr(ty, val),
+            }) => self.encoder.encode_const_expr(ty, val)?,
             &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
                 let val_place = self.eval_place(&place)?;
                 val_place.into()

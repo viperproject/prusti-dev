@@ -7,6 +7,7 @@
 use crate::encoder::errors::EncodingError;
 use rustc_span::MultiSpan;
 use log::trace;
+use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 
 /// An error in the encoding with no information regarding the source code span.
 /// This type is meant to be translated to `EncodingError` as soon as possible.
@@ -56,5 +57,14 @@ impl From<EncodingError> for PositionlessEncodingError {
     fn from(other: EncodingError) -> Self {
         trace!("Converting a EncodingError to PositionlessEncodingError");
         other.error
+    }
+}
+
+impl From<PlaceRegionsError> for PositionlessEncodingError {
+    fn from(err: PlaceRegionsError) -> Self {
+        match err {
+            PlaceRegionsError::Unsupported(msg) =>
+                PositionlessEncodingError::unsupported(msg)
+        }
     }
 }

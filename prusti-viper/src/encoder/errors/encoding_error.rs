@@ -62,4 +62,8 @@ impl EncodingError {
             span
         )
     }
+
+    pub fn as_positionless(&self) -> &PositionlessEncodingError {
+        &self.error
+    }
 }

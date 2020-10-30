@@ -991,23 +991,29 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         ty: &ty::TyS<'tcx>,
         value: &ty::ConstKind<'tcx>
-    ) -> vir::Expr {
+    ) -> Result<vir::Expr, PositionlessEncodingError> {
         trace!("encode_const_expr {:?}", value);
-        let scalar_value = match value {
+        let opt_scalar_value = match value {
             ty::ConstKind::Value(ref const_value) => {
                 const_value
                     .try_to_scalar()
-                    .expect(&format!("Unsupported const: {:?}", value))
             }
             ty::ConstKind::Unevaluated(def, substs, promoted) => {
                 let tcx = self.env().tcx();
                 let param_env = tcx.param_env(def.did);
-                tcx
-                    .const_eval_resolve(param_env, *def, substs, *promoted, None).ok()
+                tcx.const_eval_resolve(param_env, *def, substs, *promoted, None)
+                    .ok()
                     .and_then(|const_value| const_value.try_to_scalar())
-                    .expect(&format!("Unsupported const: {:?}", value))
             }
             _ => unimplemented!("{:?}", value),
+        };
+
+        let scalar_value = if let Some(v) = opt_scalar_value {
+            v
+        } else {
+            return Err(PositionlessEncodingError::Unsupported(
+                format!("unsupported constant value: {:?}", value)
+            ))
         };
 
         fn with_sign(unsigned_val: u128, bit_size: u64) -> i128 {
@@ -1069,7 +1075,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ref x => unimplemented!("{:?}", x),
         };
         debug!("encode_const_expr {:?} --> {:?}", value, expr);
-        expr
+        Ok(expr)
     }
 
     pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> vir::Expr {

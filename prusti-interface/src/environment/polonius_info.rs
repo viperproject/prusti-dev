@@ -25,7 +25,7 @@ use rustc_middle::ty;
 use rustc_span::def_id::LOCAL_CRATE;
 
 use crate::environment::borrowck::facts::PointType;
-use crate::environment::borrowck::regions::PlaceRegions;
+use crate::environment::borrowck::regions::{PlaceRegions, PlaceRegionsError};
 use crate::environment::mir_utils::AllPlaces;
 use crate::environment::mir_utils::SplitAggregateAssignment;
 use crate::environment::mir_utils::StatementAsAssign;
@@ -265,6 +265,7 @@ pub enum PoloniusInfoError {
     /// We currently support only one reborrowing chain per loop
     MultipleMagicWandsPerLoop(mir::Location),
     MagicWandHasNoRepresentativeLoan(mir::Location),
+    PlaceRegionsError(PlaceRegionsError, mir::Location),
 }
 
 pub fn graphviz<'tcx>(
@@ -416,7 +417,10 @@ fn add_fake_facts<'a, 'tcx: 'a>(
     mir: &'a mir::Body<'tcx>,
     place_regions: &PlaceRegions,
     call_magic_wands: &mut HashMap<facts::Loan, mir::Local>,
-) -> (Vec<facts::Loan>, Vec<facts::Loan>, Vec<Vec<facts::Loan>>) {
+) -> Result<
+    (Vec<facts::Loan>, Vec<facts::Loan>, Vec<Vec<facts::Loan>>),
+    (PlaceRegionsError, mir::Location)
+> {
     let mut reference_moves = Vec::new();
     let mut argument_moves = Vec::new();
     let mut incompatible_loans = Vec::new();
@@ -493,8 +497,14 @@ fn add_fake_facts<'a, 'tcx: 'a>(
                         // TODO: The LHS may still be a tuple, even if it's not a local variable.
                         vec![lhs.clone()]
                     };
-                let lhs_regions = lhs_places.into_iter()
-                    .filter_map(|p| place_regions.for_place(p));
+                let mut lhs_regions = vec![];
+                for place in lhs_places.into_iter() {
+                    if let Some(region) = place_regions
+                        .for_place(place)
+                        .map_err(|err| (err, location))? {
+                        lhs_regions.push(region);
+                    }
+                }
                 let mut new_incompatible = Vec::new();
                 for lhs_region in lhs_regions {
                     let loan = new_loan();
@@ -508,7 +518,7 @@ fn add_fake_facts<'a, 'tcx: 'a>(
             }
         }
     }
-    (reference_moves, argument_moves, incompatible_loans)
+    Ok((reference_moves, argument_moves, incompatible_loans))
 }
 
 /// Remove back edges to make MIR uncyclic so that we can compute reborrowing dags at the end of
@@ -669,7 +679,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             tcx,
             &mir,
             &place_regions,
-            &mut call_magic_wands);
+            &mut call_magic_wands
+        ).map_err(|(err, loc)|
+            PoloniusInfoError::PlaceRegionsError(err, loc)
+        )?;
 
         Self::disconnect_universal_regions(tcx, mir, &place_regions, &mut all_facts);
 
@@ -751,10 +764,13 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         mir: &mir::Body<'tcx>,
         place_regions: &PlaceRegions,
         all_facts: &mut AllInputFacts
-    ) {
-        let return_regions = mir::RETURN_PLACE.all_places(tcx, mir).into_iter()
-            .filter_map(|r| place_regions.for_place(r))
-            .collect::<Vec<_>>();
+    ) -> Result<(), PlaceRegionsError> {
+        let mut return_regions = vec![];
+        for place in mir::RETURN_PLACE.all_places(tcx, mir).into_iter() {
+            if let Some(region) = place_regions.for_place(place)? {
+                return_regions.push(region);
+            }
+        }
 
         let input_regions = (1..=mir.arg_count)
             .map(|i| mir::Local::new(i))
@@ -773,6 +789,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
         // Add return regions to universal regions.
         all_facts.universal_region.extend(return_regions);
+        Ok(())
     }
 
     fn compute_loop_magic_wands(
@@ -1137,7 +1154,9 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Convert a facts::Loan to LoanPlaces<'tcx> (if possible)
-    pub fn get_loan_places(&self, loan: &facts::Loan) -> Option<LoanPlaces<'tcx>> {
+    pub fn get_loan_places(&self, loan: &facts::Loan)
+        -> Result<Option<LoanPlaces<'tcx>>, PlaceRegionsError>
+    {
         // Implementing get_loan_places is a bit more complicated when there are tuples. This is
         // because an assignment like
         //   _3 = (move _4, move _5)
@@ -1149,20 +1168,34 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         // get_assignment_for_loan(L1) would be _3.1 = move _5. Using these atomic assignments, we
         // can simply read off the loan places as before.
 
-        let assignment = self.get_assignment_for_loan(*loan)?;
+        let assignment = if let Some(loan_assignment) = self.get_assignment_for_loan(*loan)? {
+            loan_assignment
+        } else {
+            return Ok(None);
+        };
         let (dest, source) = assignment.as_assign().unwrap();
         let dest = dest.clone();
         let source = source.clone();
         let location = self.loan_position[loan];
-        Some(LoanPlaces { dest, source, location })
+        Ok(Some(LoanPlaces { dest, source, location }))
     }
 
     /// Returns the atomic assignment that created a loan. Refer to the documentation of
     /// SplitAggregateAssignment for more information on what an atomic assignment is.
-    pub fn get_assignment_for_loan(&self, loan: facts::Loan) -> Option<mir::Statement<'tcx>> {
-        let &location = self.loan_position.get(&loan)?;
-        let stmt = self.mir.statement_at(location)?.clone();
-        let mut assignments = stmt.split_assignment(self.tcx, &self.mir);
+    pub fn get_assignment_for_loan(&self, loan: facts::Loan)
+        -> Result<Option<mir::Statement<'tcx>>, PlaceRegionsError>
+    {
+        let &location = if let Some(loc) = self.loan_position.get(&loan) {
+            loc
+        } else {
+            return Ok(None);
+        };
+        let stmt = if let Some(s) = self.mir.statement_at(location) {
+            s.clone()
+        } else {
+            return Ok(None);
+        };
+        let mut assignments: Vec<_> = stmt.split_assignment(self.tcx, &self.mir);
 
         // TODO: This is a workaround. It seems like some local variables don't have a local
         //  variable declaration in the MIR. One example of this can be observed in the
@@ -1173,7 +1206,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         //  region information. Of course once a local variable that is a tuple is not declared
         //  explicitly, this will fail again.
         if assignments.len() == 1 {
-            return assignments.pop();
+            return Ok(assignments.pop());
         }
 
         let region = self.get_borrow_region_for_loan(loan);
@@ -1192,13 +1225,16 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         // correspondence allows us to identify the correct atomic assignment by comparing the
         // region of the left-hand side with the borrow region of the loan. This is hacky, and a
         // solution that does not rely on such subtleties would be much better.
-        assignments.retain(|stmt| {
+        let mut retained_assignments = vec![];
+        for stmt in assignments.into_iter() {
             let (lhs, _) = stmt.as_assign().unwrap_or_else(||
                 unreachable!("Borrow starts at statement {:?}", stmt));
-            self.place_regions.for_place(lhs) == Some(region)
-        });
+            if self.place_regions.for_place(lhs)? == Some(region) {
+                retained_assignments.push(stmt);
+            }
+        };
 
-        assignments.pop()
+        Ok(retained_assignments.pop())
     }
 
     /// Returns the borrow region that requires the terms of the given loan to be enforced. This
