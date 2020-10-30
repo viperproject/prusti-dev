@@ -1074,7 +1074,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     },
                     _ => {
                         // Propagate the error
-                        return Err(err)?;
+                        return Err(err);
                     }
                 };
                 // TODO: How to combine this with the span of the encoding error?
@@ -5115,7 +5115,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
                     stmts = Vec::new()
                 } else {
-                  unimplemented!();
+                    return Err(EncodingError::unsupported(
+                        "closures are not supported",
+                        span
+                    ));
                 }
             }
 

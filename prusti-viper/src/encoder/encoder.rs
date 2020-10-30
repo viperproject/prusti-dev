@@ -500,7 +500,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if tymap.len() != 1 {
             return Err(PositionlessEncodingError::internal(
                 format!("tymap.len() = {}, but should be 1", tymap.len())
-            ))
+            ));
         }
 
         // get receiver object base type
@@ -1013,7 +1013,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         } else {
             return Err(PositionlessEncodingError::Unsupported(
                 format!("unsupported constant value: {:?}", value)
-            ))
+            ));
         };
 
         fn with_sign(unsigned_val: u128, bit_size: u64) -> i128 {

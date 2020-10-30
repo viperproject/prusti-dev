@@ -383,7 +383,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 return Err(PositionlessEncodingError::unsupported(
                     "raw pointer types are not supported"
-                ))
+                ));
             }
 
             ref ty_variant => {
@@ -505,31 +505,31 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Dynamic(..) => {
                 return Err(PositionlessEncodingError::unsupported(
                     "dynamic trait types are not supported"
-                ))
+                ));
             }
 
             ty::TyKind::FnPtr(..) => {
                 return Err(PositionlessEncodingError::unsupported(
                     "function pointer types are not supported"
-                ))
+                ));
             }
 
             ty::TyKind::FnDef(..) => {
                 return Err(PositionlessEncodingError::unsupported(
                     "function types are not supported"
-                ))
+                ));
             }
 
             ty::TyKind::Projection(..) => {
                 return Err(PositionlessEncodingError::unsupported(
                     "projections of associated types are not supported"
-                ))
+                ));
             }
 
             ref ty_variant => {
                 return Err(PositionlessEncodingError::internal(
                     format!("failed to encode type {:?}", ty_variant)
-                ))
+                ));
             }
         };
         Ok(result)
