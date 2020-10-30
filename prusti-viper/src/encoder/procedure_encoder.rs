@@ -3456,7 +3456,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let pos = self
                 .encoder
                 .error_manager()
-                .register(span, ErrorCtxt::PackageMagicWandForPostcondition);
+                .register(self.mir.span, ErrorCtxt::PackageMagicWandForPostcondition);
 
             let blocker = mir::RETURN_PLACE;
             // TODO: Check if it really is always start and not the mid point.
