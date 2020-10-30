@@ -81,7 +81,7 @@ impl<'a> PathCtxt<'a> {
         pred_place: &vir::Expr,
         perm_amount: PermAmount,
         variant: vir::MaybeEnumVariantIndex,
-    ) -> Action {
+    ) -> Result<Action, FoldUnfoldError> {
         debug!("We want to unfold {} with {}", pred_place, perm_amount);
         //assert!(self.state.contains_acc(pred_place), "missing acc({}) in {}", pred_place, self.state);
         assert!(
@@ -96,7 +96,11 @@ impl<'a> PathCtxt<'a> {
         );
 
         let predicate_name = pred_place.typed_ref_name().unwrap();
-        let predicate = self.predicates.get(&predicate_name).unwrap();
+        let predicate = self.predicates.get(&predicate_name)
+            .map(Ok)
+            .unwrap_or(
+                Err(FoldUnfoldError::MissingPredicate(predicate_name.clone()))
+            )?;
 
         let pred_self_place: vir::Expr = predicate.self_place();
         let places_in_pred: Vec<Perm> = predicate
@@ -128,12 +132,12 @@ impl<'a> PathCtxt<'a> {
             self.state.display_pred()
         );
 
-        Action::Unfold(
+        Ok(Action::Unfold(
             predicate_name.clone(),
             vec![pred_place.clone().into()],
             perm_amount,
             variant,
-        )
+        ))
     }
 
     /// left is self, right is other
@@ -544,8 +548,15 @@ impl<'a> PathCtxt<'a> {
                 perm_amount,
                 req.get_perm_amount(),
             );
-            let variant = self.find_variant(&existing_pred_to_unfold, req.get_place());
-            let action = self.unfold(&existing_pred_to_unfold, perm_amount, variant);
+            let variant = self.find_variant(
+                &existing_pred_to_unfold,
+                req.get_place()
+            );
+            let action = self.unfold(
+                &existing_pred_to_unfold,
+                perm_amount,
+                variant,
+            )?;
             actions.push(action);
             debug!("We unfolded {}", existing_pred_to_unfold);
 

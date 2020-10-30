@@ -47,6 +47,12 @@ pub enum FoldUnfoldError {
         vir::MaybeEnumVariantIndex,
         vir::Position,
     ),
+    /// The algorithm tried to add permissions obtaining more than 1.
+    InvalidPermAdd(),
+    /// The algorithm tried to add permissions obtaining less than 0.
+    InvalidPermSub(),
+    /// The algorithm couldn' find a predicate definition.
+    MissingPredicate(String),
 }
 
 pub fn add_folding_unfolding_to_expr(
