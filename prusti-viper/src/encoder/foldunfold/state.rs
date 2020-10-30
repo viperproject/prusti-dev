@@ -475,13 +475,13 @@ impl State {
         -> Result<(), FoldUnfoldError>
     {
         trace!("remove_pred {}, {}", place, perm);
-        assert!(
-            self.pred.contains_key(place),
-            "Place {} is not in state (pred), so it can not be removed.",
-            place
-        );
+        if !self.pred.contains_key(place) {
+            return Err(
+                FoldUnfoldError::FailedToRemovePred(place.clone())
+            );
+        }
         if self.pred[place] == perm {
-            self.pred.remove(place);
+            self.pred.remove(place).unwrap();
         } else {
             self.pred.insert(place.clone(), self.pred[place].sub(perm)?);
         }

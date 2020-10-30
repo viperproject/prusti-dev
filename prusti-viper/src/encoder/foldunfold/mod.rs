@@ -53,6 +53,9 @@ pub enum FoldUnfoldError {
     InvalidPermAmountSub(String),
     /// The algorithm couldn' find a predicate definition.
     MissingPredicate(String),
+    /// The algorithms tried to remove a predicate that is not in the
+    /// fold-unfold state.
+    FailedToRemovePred(vir::Expr),
 }
 
 impl From<PermAmountError> for FoldUnfoldError {
