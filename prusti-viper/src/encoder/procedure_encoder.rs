@@ -1399,7 +1399,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         end_location,
                     )?,
                 ReborrowingKind::Call { loan, .. } => {
-                    self.construct_vir_reborrowing_node_for_call(&mir_dag, loan, node, location)
+                    self.construct_vir_reborrowing_node_for_call(
+                        &mir_dag,
+                        loan,
+                        node,
+                        location
+                    )?
                 }
                 ReborrowingKind::ArgumentMove { loan } => {
                     let loan_location = self.polonius_info().get_loan_location(&loan);
@@ -1524,9 +1529,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         _mir_dag: &ReborrowingDAG,
         loan: facts::Loan,
         node: &ReborrowingDAGNode,
-        _location: mir::Location,
-    ) -> vir::borrows::Node {
+        location: mir::Location,
+    ) -> Result<vir::borrows::Node> {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
+        let span = self.mir_encoder.get_span_of_location(location);
 
         let loan_location = self.polonius_info().get_loan_location(&loan);
 
@@ -1567,7 +1573,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for (path, _) in &borrow_info.blocking_paths {
             let (encoded_place, _, _) = self.encode_generic_place(
                 contract.def_id, Some(loan_location), path
-            );
+            ).with_span(span)?;
             let encoded_place = replace_fake_exprs(encoded_place);
 
             // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
@@ -1616,7 +1622,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         let guard = self.construct_location_guard(loan_location);
-        vir::borrows::Node::new(
+        Ok(vir::borrows::Node::new(
             guard,
             node.loan.into(),
             convert_loans_to_borrows(&node.reborrowing_loans),
@@ -1626,7 +1632,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             Vec::new(),
             Vec::new(),
             None,
-        )
+        ))
     }
 
     fn encode_expiration_of_loans(
@@ -3004,7 +3010,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
-    ) -> Result<Option<(vir::Expr, vir::Expr)>> {
+    ) -> PositionlessResult<Option<(vir::Expr, vir::Expr)>> {
         // Encode args and return.
         let encoded_args: Vec<vir::Expr> = contract
             .args
@@ -3033,8 +3039,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Mutability::Not => vir::PermAmount::Read,
                     Mutability::Mut => vir::PermAmount::Write,
                 };
+                // TODO: Use a better span
                 let (place_expr, place_ty, _) = self.encode_generic_place(
-                    contract.def_id, location, place);
+                    contract.def_id, location, place
+                ).with_span(self.mir.span)?;
                 let vir_access =
                     vir::Expr::pred_permission(place_expr.clone().old(label), perm_amount).unwrap();
                 self
@@ -3205,8 +3213,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 "Put permission {:?} ({:?}) in postcondition",
                 place, mutability
             );
+            // TODO: Use a better span
             let (place_expr, place_ty, _) = self.encode_generic_place(
-                contract.def_id, location, place);
+                contract.def_id, location, place
+            ).with_span(self.mir.span)?;
             let old_place_expr = place_expr.clone().old(pre_label);
             let mut add_type_spec = |perm_amount| {
                 let permissions =
@@ -3245,9 +3255,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
 
         let mut magic_wands = Vec::new();
-        if let Some((mut lhs, mut rhs)) =
-            self.encode_postcondition_magic_wand(location, contract, pre_label, post_label)?
-        {
+        // TODO: Use a better span
+        if let Some((mut lhs, mut rhs)) = self.encode_postcondition_magic_wand(
+            location,
+            contract,
+            pre_label,
+            post_label
+        ).with_span(self.mir.span)? {
             if let Some((location, fake_exprs)) = magic_wand_store_info {
                 let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
                     for (fake_arg, arg_expr) in fake_exprs.iter() {
@@ -3433,18 +3447,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.mir.source_info(location).span;
 
         // Package magic wand(s)
-        if let Some((lhs, rhs)) =
-            self.encode_postcondition_magic_wand(
-                None,
-                self.procedure_contract(),
-                pre_label,
-                post_label
-            )?
-        {
+        if let Some((lhs, rhs)) = self.encode_postcondition_magic_wand(
+            None,
+            self.procedure_contract(),
+            pre_label,
+            post_label
+        ).with_span(span)? {
             let pos = self
                 .encoder
                 .error_manager()
-                .register(self.mir.span, ErrorCtxt::PackageMagicWandForPostcondition);
+                .register(span, ErrorCtxt::PackageMagicWandForPostcondition);
 
             let blocker = mir::RETURN_PLACE;
             // TODO: Check if it really is always start and not the mid point.
@@ -3541,7 +3553,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
             for (path, _) in borrow_infos[0].blocking_paths.clone().iter() {
                 let (encoded_place, _, _) = self.encode_generic_place(
-                    self.procedure_contract().def_id, None, path);
+                    self.procedure_contract().def_id, None, path
+                ).with_span(span)?;
                 let old_place = encoded_place.clone().old(post_label.clone());
                 stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
             }
@@ -4209,7 +4222,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         containing_def_id: rustc_hir::def_id::DefId,
         location: Option<mir::Location>,
         place: &Place<'tcx>,
-    ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
+    ) -> PositionlessResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         let mir_encoder = if let Some(location) = location {
             let block = &self.mir.basic_blocks()[location.block];
             assert_eq!(block.statements.len(), location.statement_index, "expected terminator location");
@@ -4231,13 +4244,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
         match place {
             Place::NormalPlace(place) => {
-                mir_encoder.encode_place(place).unwrap()
+                mir_encoder.encode_place(place)
             }
             Place::SubstitutedPlace {
                 substituted_root,
                 place
             } => {
-                let (expr, ty, variant) = mir_encoder.encode_place(place).unwrap();
+                let (expr, ty, variant) = mir_encoder.encode_place(place)?;
                 let new_root = self.encode_prusti_local(*substituted_root);
                 struct RootReplacer {
                     new_root: vir::LocalVar,
@@ -4248,7 +4261,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         Expr::Local(self.new_root.clone(), p)
                     }
                 }
-                (RootReplacer { new_root }.fold(expr), ty, variant)
+                Ok((RootReplacer { new_root }.fold(expr), ty, variant))
             }
         }
         // match place {
