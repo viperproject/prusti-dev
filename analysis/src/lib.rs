@@ -15,8 +15,6 @@ mod analysis_error;
 mod analyzer;
 pub mod abstract_domains;
 
-use rustc_middle::ty::TyCtxt;
-use rustc_middle::mir;
 pub use pointwise_state::PointwiseState;
 pub use abstract_state::AbstractState;
 pub use analysis_error::AnalysisError;

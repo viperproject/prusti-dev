@@ -6,22 +6,24 @@
 
 use std::collections::HashMap;
 use rustc_middle::mir;
-use rustc_middle::ty::TyCtxt;
 use crate::AbstractState;
+use std::marker::PhantomData;
 
-pub struct PointwiseState<S: AbstractState> {
+pub struct PointwiseState<'tcx, S: AbstractState<'tcx>> {
     state_before: HashMap<mir::Location, S>,
     /// We use a vector, not a map, to reflect the type of `TerminatorKind::Switch::targets`.
     /// In particular, there might be multiple CFG edges all going to the same CFG block, and we
     /// want to distinguish them.
     state_after_block: HashMap<mir::BasicBlock, HashMap<mir::BasicBlock, S>>,
+    phantom: PhantomData<&'tcx S>,      //for 'tcx
 }
 
-impl<S: AbstractState> PointwiseState<S> {
+impl<'tcx, S: AbstractState<'tcx>> PointwiseState<'tcx, S> {
     pub fn new() -> Self {
         Self {
             state_before: HashMap::new(),
             state_after_block: HashMap::new(),
+            phantom: PhantomData::default(),
         }
     }
 

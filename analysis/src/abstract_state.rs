@@ -5,16 +5,17 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_middle::mir;
+use rustc_middle::ty::TyCtxt;
 use std::vec::Vec;
 use crate::AnalysisError;
 
 
-pub trait AbstractState: Sized {   // Sized needed for apply_terminator_effect's return type
+pub trait AbstractState<'tcx>: Sized {   // Sized needed for apply_terminator_effect's return type
     //fn make_top(&mut self) -> Self;
     //fn make_bottom(&mut self) -> Self;
-    fn new_bottom() -> Self;
+    fn new_bottom(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
     //fn new_top() -> Self;
-    fn new_initial(args: Vec<&mir::LocalDecl>) -> Self;
+    fn new_initial(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
 
     fn need_to_widen(counter: &u32) -> bool;
 
@@ -25,8 +26,10 @@ pub trait AbstractState: Sized {   // Sized needed for apply_terminator_effect's
     //fn meet(&mut self, other: &Self) -> Self;
     fn widen(&mut self, previous: &Self);
 
-    fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement)
+    /// extract statement with &mir[location.block].statements[location.statement_index]
+    fn apply_statement_effect(&mut self, location: &mir::Location, mir: &mir::Body<'tcx>)
         -> Result<(), AnalysisError>;
-    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator)
+    /// extract terminator with mir[location.block].terminator()
+    fn apply_terminator_effect(&self, location: &mir::Location, mir: &mir::Body<'tcx>)
         -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError>;
 }

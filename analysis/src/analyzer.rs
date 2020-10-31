@@ -29,9 +29,9 @@ impl<'tcx> Analyzer<'tcx> {
         }
     }
 
-
-    pub fn run_fwd_analysis<S>(&self, mir:  &mir::Body<'tcx>,) -> Result<PointwiseState<S>>
-        where S: AbstractState + Clone + Eq
+    //TODO: add tracing like in initialization.rs?
+    pub fn run_fwd_analysis<S>(&self, mir:  &mir::Body<'tcx>) -> Result<PointwiseState<'tcx, S>>
+        where S: AbstractState<'tcx> + Clone + Eq
     {
         let mut p_state = PointwiseState::new();
         //use https://crates.io/crates/linked_hash_set for set preserving insertion order?
@@ -46,23 +46,22 @@ impl<'tcx> Analyzer<'tcx> {
             let mut state_before_block;
             if bb == mir::START_BLOCK {
                 // entry block
-                state_before_block = S::new_initial(
-                    mir.args_iter().map(|local| mir.local_decls.get(local).unwrap())    //TODO: handle unwrap error?
-                    .collect::<Vec<&mir::LocalDecl>>());
+                state_before_block = S::new_initial(mir, self.tcx);
             }
             else {
-                state_before_block = S::new_bottom();
+                state_before_block = S::new_bottom(mir, self.tcx);
             }
 
             for pred_bb in &mir.predecessors()[bb] {
                 if let Some(map) = p_state.lookup_after_block(pred_bb) {
                     state_before_block.join(map.get(&bb).unwrap());      //TODO: handle unwrap error?
                 }
+                // if no state is present: assume bottom => no effect on join
             }
 
-                // widen if needed
-                let counter = counters.entry(bb).or_insert(0);
-                *counter += 1;
+            // widen if needed
+            let counter = counters.entry(bb).or_insert(0);
+            *counter += 1;
 
             if S::need_to_widen(counter) {
                 let location = mir::Location {
@@ -87,8 +86,7 @@ impl<'tcx> Analyzer<'tcx> {
                 }*/
                 p_state.set_before(&location, current_state.clone());
                 // normal statement
-                let stmt = &statements[statement_index];
-                let res = current_state.apply_statement_effect(&location, stmt);
+                let res = current_state.apply_statement_effect(&location, mir);
                 if res.is_err() {
                     return Err(res.unwrap_err());
                 }
@@ -104,8 +102,7 @@ impl<'tcx> Analyzer<'tcx> {
             }*/
             p_state.set_before(&location, current_state.clone());
 
-            let terminator = mir[bb].terminator();
-            let term_res = current_state.apply_terminator_effect(&location, terminator);
+            let term_res = current_state.apply_terminator_effect(&location, mir);
 
             match term_res {
                 Err(e) => {return Err(e);}
@@ -119,6 +116,8 @@ impl<'tcx> Analyzer<'tcx> {
                             new_map.insert(next_bb, state);
                         }
                     }
+
+                    let terminator = mir[bb].terminator();
 
                     let map_after_block = p_state.lookup_mut_after_block(&bb);
                     for next_bb in terminator.successors() {

@@ -6,14 +6,15 @@
 
 use crate::{AbstractState, AnalysisError};
 use rustc_middle::mir;
+use rustc_middle::ty::TyCtxt;
 
 pub struct PCSState {}
-impl AbstractState for PCSState {
-    fn new_bottom() -> Self {
+impl<'tcx> AbstractState<'tcx> for PCSState {
+    fn new_bottom(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         unimplemented!()
     }
 
-    fn new_initial(args: Vec<&mir::LocalDecl>) -> Self {
+    fn new_initial(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         unimplemented!()
     }
 
@@ -29,11 +30,12 @@ impl AbstractState for PCSState {
         unimplemented!()
     }
 
-    fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement) -> Result<(), AnalysisError> {
+    fn apply_statement_effect(&mut self, location: &mir::Location, mir: &mir::Body<'tcx>)
+    -> Result<(), AnalysisError> {
         unimplemented!()
     }
 
-    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator)
+    fn apply_terminator_effect(&self, location: &mir::Location, mir: &mir::Body<'tcx>)
         -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
         unimplemented!()
     }

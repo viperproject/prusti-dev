@@ -13,6 +13,7 @@
 use std::collections::{HashMap, HashSet};
 use crate::{AbstractState, AnalysisError};
 use rustc_middle::mir;
+use rustc_middle::ty::TyCtxt;
 
 
 /*#[derive(PartialEq, Eq, Hash, Copy, Clone, Ord, PartialOrd)]
@@ -32,15 +33,15 @@ pub struct ReachingDefsState {
     reaching_assignments: HashMap<mir::Local, HashSet<mir::Location>>,
 }
 
-impl AbstractState for ReachingDefsState {
-    fn new_bottom() -> Self {
+impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
+    fn new_bottom(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {
             reaching_assignments: HashMap::new(),
         }
     }
 
-    fn new_initial(args: Vec<&mir::LocalDecl>) -> Self {
-        Self::new_bottom()
+    fn new_initial(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {     //TODO: also interpret argument passing as definition?
+        Self::new_bottom(mir, tcx)
     }
 
     fn need_to_widen(counter: &u32) -> bool {
@@ -61,7 +62,10 @@ impl AbstractState for ReachingDefsState {
         unimplemented!()
     }
 
-    fn apply_statement_effect(&mut self, location: &mir::Location, stmt: &mir::Statement) -> Result<(), AnalysisError> {
+    fn apply_statement_effect(&mut self, location: &mir::Location, mir: &mir::Body<'tcx>)
+        -> Result<(), AnalysisError> {
+
+        let stmt = &mir[location.block].statements[location.statement_index];
         match stmt.kind {
             mir::StatementKind::Assign(box (ref target, _)) => {
                 if let Some(local) = target.as_local() {
@@ -75,36 +79,38 @@ impl AbstractState for ReachingDefsState {
         }
     }
 
-    fn apply_terminator_effect(&self, location: &mir::Location, terminator: &mir::terminator::Terminator)
+    fn apply_terminator_effect(&self, location: &mir::Location, mir: &mir::Body<'tcx>)
         -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
-            match terminator.kind {
-                mir::TerminatorKind::Call {
-                    ref destination, cleanup, ..
-                } => {
-                    let mut res_vec = Vec::new();
-                    if let Some((place, bb)) = destination {
-                        let mut dest_state = self.clone();
-                        if let Some(local) = place.as_local() {
-                            let assignment_set = dest_state.reaching_assignments.entry(local).or_insert(HashSet::new());
-                            assignment_set.clear();
-                            assignment_set.insert(*location);
-                        }
-                        res_vec.push((*bb, dest_state));
+
+        let terminator = mir[location.block].terminator();
+        match terminator.kind {
+            mir::TerminatorKind::Call {
+                ref destination, cleanup, ..
+            } => {
+                let mut res_vec = Vec::new();
+                if let Some((place, bb)) = destination {
+                    let mut dest_state = self.clone();
+                    if let Some(local) = place.as_local() {
+                        let assignment_set = dest_state.reaching_assignments.entry(local).or_insert(HashSet::new());
+                        assignment_set.clear();
+                        assignment_set.insert(*location);
                     }
-                    if let Some(bb) = cleanup {
-                        //TODO: correct? assignment failed?
-                        res_vec.push((bb, self.clone()));
-                    }
-                    Ok(res_vec)
+                    res_vec.push((*bb, dest_state));
                 }
-                _ => {
-                    let mut res_vec = Vec::new();
-                    for bb in terminator.successors() {
-                        // no assignment -> no change of state
-                        res_vec.push((*bb, self.clone()));
-                    }
-                    Ok(res_vec)
+                if let Some(bb) = cleanup {
+                    //TODO: correct? assignment failed?
+                    res_vec.push((bb, self.clone()));
                 }
+                Ok(res_vec)
             }
+            _ => {
+                let mut res_vec = Vec::new();
+                for bb in terminator.successors() {
+                    // no assignment -> no change of state
+                    res_vec.push((*bb, self.clone()));
+                }
+                Ok(res_vec)
+            }
+        }
     }
 }
