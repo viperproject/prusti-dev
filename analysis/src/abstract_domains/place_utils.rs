@@ -167,7 +167,7 @@ pub(crate) fn collapse<'a, 'tcx: 'a>(
     places: &mut HashSet<mir::Place<'tcx>>,
     guide_place: &mir::Place<'tcx>,
 ) {
-    let mut guide_place = guide_place.clone();
+    let guide_place = guide_place.clone();
     fn recurse<'tcx>(
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,

@@ -131,7 +131,7 @@ impl<'tcx> AbstractState<'tcx> for DefinitelyInitializedState<'tcx>
         Self {def_init_places: places, tcx}
     }
 
-    fn need_to_widen(counter: &u32) -> bool {
+    fn need_to_widen(_counter: &u32) -> bool {
         false   //TODO: check
     }
 
@@ -164,7 +164,7 @@ impl<'tcx> AbstractState<'tcx> for DefinitelyInitializedState<'tcx>
         self.check_invariant();
     }
 
-    fn widen(&mut self, previous: &Self) {
+    fn widen(&mut self, _previous: &Self) {
         unimplemented!()
     }
 

@@ -34,7 +34,7 @@ pub struct ReachingDefsState {
 }
 
 impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
-    fn new_bottom(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    fn new_bottom(_mir: &mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Self {
         Self {
             reaching_assignments: HashMap::new(),
         }
@@ -44,7 +44,7 @@ impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
         Self::new_bottom(mir, tcx)
     }
 
-    fn need_to_widen(counter: &u32) -> bool {
+    fn need_to_widen(_counter: &u32) -> bool {
         false       // only consider static information (assignments) => no lattice of infinite height
     }
 
@@ -57,7 +57,7 @@ impl<'tcx> AbstractState<'tcx> for ReachingDefsState {
         }
     }
 
-    fn widen(&mut self, previous: &Self) {
+    fn widen(&mut self, _previous: &Self) {
         // assignments are static info -> cannot grow infinitely -> widening should not be needed
         unimplemented!()
     }
