@@ -7,6 +7,7 @@
 mod reaching_definitions;
 mod definitely_initialized;
 mod pcs;
+mod place_utils;
 
 pub use reaching_definitions::ReachingDefsState;
 pub use definitely_initialized::DefinitelyInitializedState;
