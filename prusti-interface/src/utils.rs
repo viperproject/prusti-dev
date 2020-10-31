@@ -51,7 +51,7 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
                 let variant = def.non_enum_variant();
                 for (index, field_def) in variant.fields.iter().enumerate() {
                     if Some(index) != without_field {
-                        let field = mir::Field::new(index);
+                        let field = mir::Field::from_usize(index);
                         let field_place = tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
                         places.push(field_place);
                     }
@@ -60,7 +60,7 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
             ty::Tuple(slice) => {
                 for (index, arg) in slice.iter().enumerate() {
                     if Some(index) != without_field {
-                        let field = mir::Field::new(index);
+                        let field = mir::Field::from_usize(index);
                         let field_place = tcx.mk_place_field(*place, field, arg.expect_ty());
                         places.push(field_place);
                     }
