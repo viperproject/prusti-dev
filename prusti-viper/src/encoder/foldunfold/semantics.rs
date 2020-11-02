@@ -10,16 +10,21 @@ use crate::encoder::foldunfold::state::*;
 use prusti_common::vir;
 use std::collections::HashMap;
 use log::{debug, trace};
+use crate::encoder::foldunfold::FoldUnfoldError;
 
-fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
+fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>)
+    -> Result<(), FoldUnfoldError>
+{
     state.insert_all_perms(
         expr.get_permissions(predicates)
             .into_iter()
             .filter(|p| !(p.is_local() && p.is_acc())),
-    );
+    )
 }
 
-fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
+fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>)
+    -> Result<(), FoldUnfoldError>
+{
     state.remove_all_perms(
         expr.get_permissions(predicates)
             .iter()
@@ -27,15 +32,18 @@ fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String,
             .filter(|p| !(p.is_local() && p.is_acc()))
             // Hack for final exhale of method: do not remove "old[pre](..)" permissions from state
             .filter(|p| p.get_label() != Some(&"pre".to_string())),
-    );
+    )
 }
 
 pub trait ApplyOnState {
-    fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>);
+    fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>)
+        -> Result<(), FoldUnfoldError>;
 }
 
 impl ApplyOnState for vir::Stmt {
-    fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
+    fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>)
+        -> Result<(), FoldUnfoldError>
+    {
         debug!("apply_on_state '{}'", self);
         trace!("State acc before {{\n{}\n}}", state.display_acc());
         trace!("State pred before {{\n{}\n}}", state.display_pred());
@@ -185,8 +193,8 @@ impl ApplyOnState for vir::Stmt {
                 //}
 
                 // Simulate folding of `place`
-                state.remove_all_perms(places_in_pred.iter());
-                state.insert_pred(place.clone(), perm_amount);
+                state.remove_all_perms(places_in_pred.iter())?;
+                state.insert_pred(place.clone(), perm_amount)?;
             }
 
             &vir::Stmt::Unfold(ref _pred_name, ref args, perm_amount, ref variant) => {
@@ -212,13 +220,13 @@ impl ApplyOnState for vir::Stmt {
                 }
 
                 // Simulate unfolding of `place`
-                state.remove_pred(place, perm_amount);
-                state.insert_all_perms(places_in_pred.into_iter());
+                state.remove_pred(place, perm_amount)?;
+                state.insert_all_perms(places_in_pred.into_iter())?;
             }
 
             &vir::Stmt::BeginFrame => state.begin_frame(),
 
-            &vir::Stmt::EndFrame => state.end_frame(),
+            &vir::Stmt::EndFrame => state.end_frame()?,
 
             &vir::Stmt::TransferPerm(ref lhs_place, ref rhs_place, unchecked) => {
                 let original_state = state.clone();
@@ -289,7 +297,7 @@ impl ApplyOnState for vir::Stmt {
                         state.insert_acc(
                             rhs_place.clone(),
                             state.acc().get(lhs_place).unwrap().clone(),
-                        );
+                        )?;
                         if !lhs_place.is_local() && !lhs_place.is_curr() {
                             state.remove_acc_place(lhs_place);
                         }
@@ -308,7 +316,7 @@ impl ApplyOnState for vir::Stmt {
                     state.insert_acc(
                         rhs_place.clone(),
                         state.acc().get(lhs_place).unwrap().clone()
-                    );
+                    )?;
                     if !lhs_place.is_local() && lhs_place.is_curr() {
                         state.remove_acc_place(lhs_place);
                     }
@@ -349,5 +357,6 @@ impl ApplyOnState for vir::Stmt {
 
             ref x => unimplemented!("{}", x),
         }
+        Ok(())
     }
 }

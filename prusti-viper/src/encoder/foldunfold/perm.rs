@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
 use log::trace;
+use crate::encoder::foldunfold::FoldUnfoldError;
 
 /// An access or predicate permission to a place
 #[derive(Clone, PartialEq, Eq, Hash)]

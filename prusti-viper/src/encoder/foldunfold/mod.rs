@@ -13,7 +13,7 @@ use crate::encoder::Encoder;
 use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
 use prusti_common::vir::borrows::Borrow;
-use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
+use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction, PermAmountError};
 use prusti_common::vir::{ExprFolder, FallibleExprFolder, PermAmount};
 use prusti_common::config;
 use prusti_common::report;
@@ -47,6 +47,32 @@ pub enum FoldUnfoldError {
         vir::MaybeEnumVariantIndex,
         vir::Position,
     ),
+    /// The algorithm tried to add permissions in an invalid way.
+    InvalidPermAmountAdd(String),
+    /// The algorithm tried to add permissions in an invalid way.
+    InvalidPermAmountSub(String),
+    /// The algorithm couldn' find a predicate definition.
+    MissingPredicate(String),
+    /// The algorithms tried to remove a predicate that is not in the
+    /// fold-unfold state.
+    FailedToRemovePred(vir::Expr),
+}
+
+impl From<PermAmountError> for FoldUnfoldError {
+    fn from(err: PermAmountError) -> Self {
+        match err {
+            PermAmountError::InvalidAdd(a, b) => {
+                FoldUnfoldError::InvalidPermAmountAdd(
+                    format!("invalid addition: {} + {}", a, b)
+                )
+            }
+            PermAmountError::InvalidSub(a, b) => {
+                FoldUnfoldError::InvalidPermAmountSub(
+                    format!("invalid substraction: {} - {}", a, b)
+                )
+            }
+        }
+    }
 }
 
 pub fn add_folding_unfolding_to_expr(
@@ -193,7 +219,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     expr.get_permissions(pctxt.predicates())
                         .into_iter()
                         .filter(|p| !p.get_place().is_local() && p.is_curr()),
-                );
+                )?;
 
                 // Rewrite statement
                 Ok(vir::Stmt::Inhale(
@@ -210,7 +236,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     rhs.get_permissions(pctxt.predicates())
                         .into_iter()
                         .filter(|p| p.is_pred())
-                );
+                )?;
                 */
                 let new_lhs = if unchecked {
                     lhs
@@ -519,7 +545,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 if let vir::Expr::PredicateAccessPredicate(ref _name, box ref arg, perm_amount, _) =
                     lhs
                 {
-                    labelled_state.insert_acc(arg.clone(), *perm_amount);
+                    labelled_state.insert_acc(arg.clone(), *perm_amount)?;
                 }
                 labelled_state.replace_places(|place| place.old(&label));
                 self.pctxt_at_label
@@ -1138,7 +1164,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
-        );
+        )?;
         lhs_state.replace_places(|place| {
             let pos = place.pos();
             place.old("lhs").set_pos(pos)
@@ -1164,7 +1190,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
-        );
+        )?;
         new_lhs_state.replace_places(|place| {
             let pos = place.pos();
             place.old("lhs").set_pos(pos)
@@ -1180,7 +1206,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
-        );
+        )?;
         debug!("State of rhs of magic wand: {}", rhs_state);
 
         // Store states

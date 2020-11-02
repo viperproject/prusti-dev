@@ -1,50 +1,48 @@
-// © 2019, ETH Zurich
+// © 2019-2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::errors::{ErrorCtxt, PanicCause};
+use crate::encoder::errors::{
+    ErrorCtxt, PanicCause, EncodingError, PositionlessEncodingError, WithSpan
+};
 use crate::encoder::Encoder;
 use prusti_common::vir;
 use prusti_common::config;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
 use rustc_index::vec::{Idx, IndexVec};
-// use rustc_data_structures::indexed_vec::Idx;
-// use std;
-// use std::option::Option;
-// use syntax::ast;
-// use syntax::codemap::Span;
+use rustc_span::{Span, DUMMY_SP};
 use rustc_ast::ast;
-use rustc_span::Span;
 use log::{trace, debug};
 use std::collections::HashMap;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
-pub static POSTCONDITION_LABEL: &'static str = "post";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
+
+type Result<T> = std::result::Result<T, EncodingError>;
+type PositionlessResult<T> = std::result::Result<T, PositionlessEncodingError>;
 
 pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
     fn encoder(&self) -> &Encoder<'v, 'tcx>;
 
-    fn namespace(&self) -> &str {
-        ""
-    }
-
     fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx>;
 
+    fn get_local_span(&self, local: mir::Local) -> Span;
+
     fn encode_local_var_name(&self, local: mir::Local) -> String {
-        format!("{}{:?}", self.namespace(), local)
+        format!("{:?}", local)
     }
 
-    fn encode_local(&self, local: mir::Local) -> Result<vir::LocalVar, ErrorCtxt> {
+    fn encode_local(&self, local: mir::Local) -> Result<vir::LocalVar> {
         let var_name = self.encode_local_var_name(local);
         let type_name = self
             .encoder()
-            .encode_type_predicate_use(self.get_local_ty(local))?;
+            .encode_type_predicate_use(self.get_local_ty(local))
+            .with_span(self.get_local_span(local))?;
         Ok(vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name)))
     }
 
@@ -55,7 +53,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> Result<(vir::Expr, ty::Ty<'tcx>, Option<usize>), ErrorCtxt> {
+    ) -> PositionlessResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode place {:?}", place);
         let result = if place.projection.is_empty() {
             let local = place.local;
@@ -65,7 +63,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 None,
             )
         } else {
-            self.encode_projection(place.projection.len(), *place, None)
+            self.encode_projection(place.projection.len(), *place, None)?
         };
         Ok(result)
     }
@@ -81,13 +79,15 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         index: usize,
         place: mir::Place<'tcx>,
         encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>,
-    ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
+    ) -> PositionlessResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode projection {}: {:?}", index, place);
 
         assert!(index >= 1, "place: {:?} index: {}", place, index);
 
         let (encoded_base, base_ty, opt_variant_index) =
-            encoded_base_place.unwrap_or_else(|| {
+            if let Some(content) = encoded_base_place {
+                content
+            } else {
                 if index == 1 {
                     let local = place.local;
                     (
@@ -96,14 +96,14 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         None,
                     )
                 } else {
-                    self.encode_projection(index-1, place, None)
+                    self.encode_projection(index-1, place, None)?
                 }
-            });
+            };
 
         trace!("base_ty: {:?}", base_ty);
 
         let elem = place.projection[index-1];
-        match elem {
+        Ok(match elem {
             mir::ProjectionElem::Field(ref field, _) => {
                 match base_ty.kind() {
                     ty::TyKind::Bool
@@ -117,7 +117,8 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()].expect_ty();
-                        let encoded_field = self.encoder().encode_raw_ref_field(field_name, field_ty);
+                        let encoded_field = self.encoder()
+                            .encode_raw_ref_field(field_name, field_ty)?;
                         let encoded_projection = encoded_base.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
@@ -126,10 +127,19 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         debug!("subst {:?}", subst);
                         let num_variants = adt_def.variants.len();
                         // FIXME: why this can be None?
-                        let variant_index = opt_variant_index.unwrap_or_else(|| {
-                            assert_eq!(num_variants, 1);
+                        let variant_index = if let Some(num) = opt_variant_index {
+                            num
+                        } else {
+                            if num_variants != 1 {
+                                return Err(PositionlessEncodingError::internal(
+                                    format!(
+                                        "unexpected number of type variants: \
+                                        {} (should be 1)", num_variants
+                                    )
+                                ));
+                            }
                             0
-                        });
+                        };
                         let tcx = self.encoder().env().tcx();
                         let variant_def = &adt_def.variants[variant_index.into()];
                         let encoded_variant = if num_variants != 1 {
@@ -141,7 +151,10 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let field_ty = field.ty(tcx, subst);
                         let encoded_field = self
                             .encoder()
-                            .encode_struct_field(&field.ident.as_str(), field_ty);
+                            .encode_struct_field(
+                                &field.ident.as_str(),
+                                field_ty
+                            )?;
                         let encoded_projection = encoded_variant.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
@@ -161,13 +174,15 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let field_ty = closure_subst.upvar_tys().nth(field.index()).unwrap();
 
                         let field_name = format!("closure_{}", field.index());
-                        let encoded_field = self.encoder().encode_raw_ref_field(field_name, field_ty);
+                        let encoded_field = self.encoder()
+                            .encode_raw_ref_field(field_name, field_ty)?;
                         let encoded_projection = encoded_base.field(encoded_field);
 
                         // let encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
                         //     let freevar = &freevars[field.index()];
                         //     let field_name = format!("closure_{}", field.index());
-                        //     let encoded_field = self.encoder().encode_raw_ref_field(field_name, field_ty);
+                        //     let encoded_field = self.encoder()
+                        //          .encode_raw_ref_field(field_name, field_ty)?;
                         //     let res = encoded_base.field(encoded_field);
                         //     let var_name = tcx.hir.name(freevar.var_id()).to_string();
                         //     trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
@@ -187,7 +202,9 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 }
             }
 
-            mir::ProjectionElem::Deref => self.encode_deref(encoded_base, base_ty),
+            mir::ProjectionElem::Deref => {
+                self.encode_deref(encoded_base, base_ty)?
+            }
 
             mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
                 debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
@@ -195,21 +212,21 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             }
 
             x => unimplemented!("{:?}", x),
-        }
+        })
     }
 
     fn encode_deref(
         &self,
         encoded_base: vir::Expr,
         base_ty: ty::Ty<'tcx>,
-    ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
+    ) -> PositionlessResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("encode_deref {} {}", encoded_base, base_ty);
         assert!(
             self.can_be_dereferenced(base_ty),
             "Type {:?} can not be dereferenced",
             base_ty
         );
-        match base_ty.kind() {
+        Ok(match base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(_, ty, _) => {
                 let access = if encoded_base.is_addr_of() {
@@ -219,7 +236,8 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     match encoded_base {
                         vir::Expr::AddrOf(box base_place, _, _) => base_place,
                         _ => {
-                            let ref_field = self.encoder().encode_dereference_field(ty);
+                            let ref_field = self.encoder()
+                                .encode_dereference_field(ty)?;
                             encoded_base.field(ref_field)
                         }
                     }
@@ -231,13 +249,14 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     encoded_base.get_parent().unwrap()
                 } else {
                     let field_ty = base_ty.boxed_ty();
-                    let ref_field = self.encoder().encode_dereference_field(field_ty);
+                    let ref_field = self.encoder()
+                        .encode_dereference_field(field_ty)?;
                     encoded_base.field(ref_field)
                 };
                 (access, base_ty.boxed_ty(), None)
             }
             ref x => unimplemented!("{:?}", x),
-        }
+        })
     }
 
     fn can_be_dereferenced(&self, base_ty: ty::Ty<'tcx>) -> bool {
@@ -294,6 +313,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for FakeMirEncoder<'p, 'v, 'tc
         self.tys[local]
     }
 
+    fn get_local_span(&self, _local: mir::Local) -> Span {
+        DUMMY_SP
+    }
 }
 
 /// Common code used for `ProcedureEncoder` and `PureFunctionEncoder`
@@ -314,6 +336,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlaceEncoder<'v, 'tcx> for MirEncoder<'p, 'v, 'tcx> {
         self.mir.local_decls[local].ty
     }
 
+    fn get_local_span(&self, local: mir::Local) -> Span {
+        self.mir.local_decls[local].source_info.span
+    }
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
@@ -339,21 +364,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Expr {
-        let (encoded_place, place_ty, _) = self.encode_place(place).ok().unwrap();  // will panic if attempting to encode unsupported type
-        self.encoder.encode_value_expr(encoded_place, place_ty)
+    pub fn eval_place(
+        &self,
+        place: &mir::Place<'tcx>,
+    ) -> PositionlessResult<vir::Expr> {
+        let (encoded_place, place_ty, _) = self.encode_place(place)?;
+        Ok(self.encoder.encode_value_expr(encoded_place, place_ty))
     }
 
     /// Returns an `vir::Expr` that corresponds to the value of the operand
-    pub fn encode_operand_expr(&self, operand: &mir::Operand<'tcx>) -> vir::Expr {
+    pub fn encode_operand_expr(
+        &self,
+        operand: &mir::Operand<'tcx>,
+    ) -> PositionlessResult<vir::Expr> {
         trace!("Encode operand expr {:?}", operand);
-        match operand {
+        Ok(match operand {
             &mir::Operand::Constant(box mir::Constant {
                 literal: ty::Const { ty, val },
                 ..
-            }) => self.encoder.encode_const_expr(ty, val),
+            }) => self.encoder.encode_const_expr(ty, val)?,
             &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
-                let val_place = self.eval_place(&place);
+                let val_place = self.eval_place(&place)?;
                 val_place.into()
             }
             // FIXME: Check whether the commented out code is necessary.
@@ -378,7 +409,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             //     );
             //     vir::Expr::func_app(function_name, vec![], vec![], encoded_type, pos)
             // }
-        }
+        })
     }
 
     pub fn get_operand_ty(&self, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
@@ -536,7 +567,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         &self,
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
-    ) -> vir::Expr {
+    ) -> PositionlessResult<vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
         let encoded_val = match (src_ty.kind(), dst_ty.kind()) {
@@ -662,7 +693,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             | (
                 ty::TyKind::Uint(ast::UintTy::Usize),
                 ty::TyKind::Uint(ast::UintTy::Usize),
-            ) => self.encode_operand_expr(operand),
+            ) => self.encode_operand_expr(operand)?,
 
             _ => unimplemented!(
                 "unimplemented cast from type '{:?}' to type '{:?}'",
@@ -671,19 +702,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             ),
         };
 
-        encoded_val
+        Ok(encoded_val)
     }
 
-    pub fn encode_operand_place(&self, operand: &mir::Operand<'tcx>) -> Option<vir::Expr> {
+    pub fn encode_operand_place(
+        &self,
+        operand: &mir::Operand<'tcx>,
+    ) -> PositionlessResult<Option<vir::Expr>> {
         debug!("Encode operand place {:?}", operand);
-        match operand {
+        Ok(match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
-                let (src, _, _) = self.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
+                let (src, _, _) = self.encode_place(place)?;
                 Some(src)
             }
 
             &mir::Operand::Constant(_) => None,
-        }
+        })
     }
 
     pub fn encode_place_predicate_permission(
@@ -697,6 +731,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_old_expr(&self, expr: vir::Expr, label: &str) -> vir::Expr {
         debug!("encode_old_expr {}, {}", expr, label);
         vir::Expr::labelled_old(label, expr)
+    }
+
+    pub fn get_span_of_location(&self, location: mir::Location) -> Span {
+        self.mir.source_info(location).span
     }
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {

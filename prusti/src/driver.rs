@@ -30,6 +30,7 @@ extern crate prusti_common;
 
 mod callbacks;
 mod verifier;
+mod arg_value;
 
 use log::debug;
 use std::{env, panic};
@@ -40,6 +41,7 @@ use std::borrow::Cow;
 use callbacks::PrustiCompilerCalls;
 use rustc_middle::ty::TyCtxt;
 use prusti_common::config;
+use arg_value::arg_value;
 
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
@@ -118,8 +120,15 @@ fn init_loggers() {
 }
 
 fn main() {
+    // We assume that prusti-rustc already removed the first "rustc" argument
+    // added by RUSTC_WRAPPER.
+    let rustc_args: Vec<String> = env::args().collect();
+
     // If the environment asks us to actually be rustc, then do that.
-    if env::var_os("PRUSTI_BE_RUSTC").is_some() {
+    // If cargo is compiling a dependency, then be rustc.
+    let prusti_be_rustc = env::var_os("PRUSTI_BE_RUSTC").is_some()
+        || arg_value(&rustc_args, "--cap-lints", |val| val == "allow").is_some();
+    if prusti_be_rustc {
         rustc_driver::main();
     }
 
@@ -133,9 +142,6 @@ fn main() {
         get_prusti_version_info(),
     ));
 
-    // We assume that prusti-rustc already removed the first "rustc" argument
-    // added by RUSTC_WRAPPER.
-    let rustc_args: Vec<String> = env::args().collect();
 
     let mut args = Vec::new();
     let mut flags = ConfigFlags::default();

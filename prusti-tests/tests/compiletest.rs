@@ -122,7 +122,6 @@ fn run_no_verification(group_name: &str, filter: &Option<String>) {
 fn run_filter(group_name: &str, filter: &Option<String>) {
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
-        TemporaryEnvVar::set("PRUSTI_ERROR_ON_PARTIALLY_SUPPORTED", "true"),
         TemporaryEnvVar::set("PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS", "true"),
         TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
     );

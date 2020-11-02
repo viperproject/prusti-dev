@@ -20,6 +20,7 @@ use std::fmt;
 use crate::utils::type_visitor::{self, TypeVisitor};
 use prusti_interface::specs::typed;
 use log::{trace, debug};
+use crate::encoder::errors::PositionlessEncodingError;
 
 #[derive(Clone, Debug)]
 pub struct BorrowInfo<P>
@@ -256,18 +257,24 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
         }
     }
 
-    fn analyse_return_ty(&mut self, ty: Ty<'tcx>) {
+    fn analyse_return_ty(&mut self, ty: Ty<'tcx>)
+        -> Result<(), PositionlessEncodingError>
+    {
         self.is_path_blocking = true;
         self.current_path = Some(mir::RETURN_PLACE.into());
-        self.visit_ty(ty);
+        self.visit_ty(ty)?;
         self.current_path = None;
+        Ok(())
     }
 
-    fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>) {
+    fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>)
+        -> Result<(), PositionlessEncodingError>
+    {
         self.is_path_blocking = false;
         self.current_path = Some(arg.into());
-        self.visit_ty(ty);
+        self.visit_ty(ty)?;
         self.current_path = None;
+        Ok(())
     }
 
     fn extract_bound_region(&self, region: ty::Region<'tcx>) -> Option<ty::BoundRegion> {
@@ -302,6 +309,17 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
 }
 
 impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
+    type Error = PositionlessEncodingError;
+
+    fn visit_unsupported_sty(
+        &mut self,
+        sty: &TyKind<'tcx>
+    ) -> Result<(), Self::Error> {
+        Err(PositionlessEncodingError::unsupported(
+            format!("unsupported type {:?}", sty)
+        ))
+    }
+
     fn tcx(&self) -> TyCtxt<'tcx> {
         self.tcx
     }
@@ -311,7 +329,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         index: usize,
         field: &ty::FieldDef,
         substs: ty::subst::SubstsRef<'tcx>,
-    ) {
+    ) -> Result<(), Self::Error> {
         trace!("visit_field({}, {:?})", index, field);
         let old_path = self.current_path.take().unwrap();
         let ty = field.ty(self.tcx(), substs);
@@ -319,8 +337,9 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         let new_path = self.tcx.mk_place_field(old_path, field_id, ty);
         self.current_path = Some(new_path);
         // self.current_path = Some(old_path.clone().field(field_id, ty));
-        type_visitor::walk_field(self, field, substs);
+        type_visitor::walk_field(self, field, substs)?;
         self.current_path = Some(old_path);
+        Ok(())
     }
 
     fn visit_ref(
@@ -328,7 +347,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         region: ty::Region<'tcx>,
         ty: ty::Ty<'tcx>,
         mutability: hir::Mutability,
-    ) {
+    ) -> Result<(), Self::Error> {
         trace!(
             "visit_ref({:?}, {:?}, {:?}) current_path={:?}",
             region,
@@ -351,31 +370,42 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
             self.references_in.push((current_path, mutability));
         }
         self.is_path_blocking = true;
-        //type_visitor::walk_ref(self, region, ty, mutability);
+        //type_visitor::walk_ref(self, region, ty, mutability)?;
         self.is_path_blocking = is_path_blocking;
         self.current_path = Some(old_path);
+        Ok(())
     }
 
-    fn visit_tuple(&mut self, parts: SubstsRef<'tcx>) {
+    fn visit_tuple(
+        &mut self,
+        parts: SubstsRef<'tcx>,
+    ) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
         for (i, part) in parts.iter().enumerate() {
             let field = mir::Field::new(i);
             let ty = part.expect_ty();
-            self.current_path = Some(self.tcx().mk_place_field(old_path.clone(), field, ty));
+            self.current_path = Some(
+                self.tcx().mk_place_field(old_path.clone(), field, ty)
+            );
             self.visit_ty(ty);
         }
         self.current_path = Some(old_path);
+        Ok(())
     }
 
-    fn visit_raw_ptr(&mut self, ty: ty::Ty<'tcx>, mutability: hir::Mutability) {
+    fn visit_raw_ptr(
+        &mut self,
+        ty: ty::Ty<'tcx>,
+        mutability: hir::Mutability,
+    ) -> Result<(), Self::Error> {
         trace!(
             "visit_raw_ptr({:?}, {:?}) current_path={:?}",
             ty,
             mutability,
             self.current_path
         );
-        // TODO
-        debug!("BorrowInfoCollectingVisitor::visit_raw_ptr is unimplemented");
+        // Do nothing.
+        Ok(())
     }
 }
 
@@ -384,7 +414,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     tcx: TyCtxt<'tcx>,
     specification: typed::SpecificationSet<'tcx>,
     maybe_tymap: Option<&HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
-) -> ProcedureContractMirDef<'tcx>
+) -> Result<ProcedureContractMirDef<'tcx>, PositionlessEncodingError>
 where
     'a: 'p,
     'tcx: 'a,
@@ -419,9 +449,9 @@ where
 
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
-        visitor.analyse_arg(*arg, arg_ty);
+        visitor.analyse_arg(*arg, arg_ty)?;
     }
-    visitor.analyse_return_ty(return_ty);
+    visitor.analyse_return_ty(return_ty)?;
     let borrow_infos: Vec<_> = visitor
         .borrow_infos
         .into_iter()
@@ -449,5 +479,5 @@ where
     };
 
     trace!("[compute_borrow_infos] exit result={}", contract);
-    contract
+    Ok(contract)
 }

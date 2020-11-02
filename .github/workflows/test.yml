@@ -67,3 +67,28 @@ jobs:
       run: |
         cd prusti-contracts-test/
         cargo build
+
+  # Run Prusti on itself. Currently disabled because of many bugs in Prusti.
+  test-on-prusti:
+    runs-on: ubuntu-latest
+    if: false
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1.0.6
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Build with cargo
+        run: python x.py build --release --all --verbose
+      - name: Run cargo-prusti on Prusti
+        run: python x.py prusti
+        env:
+          LD_LIBRARY_PATH=target/release:${{ env.LD_LIBRARY_PATH }}
+          PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS=true
+          PRUSTI_FULL_COMPILATION=true
+          PRUSTI_CHECK_PANICS=false

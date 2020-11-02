@@ -91,7 +91,7 @@ pub enum ErrorCtxt {
     /// of a method implementation of a trait.
     AssertMethodPostconditionStrengthening(MultiSpan),
     /// A Viper `assert false` that encodes an unsupported feature
-    Unsupported(String, String),
+    Unsupported(String),
 }
 
 /// The error manager
@@ -474,12 +474,11 @@ impl<'tcx> ErrorManager<'tcx>
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason, ref help)) => {
+            ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason)) => {
                 PrustiError::unsupported(
                     format!("an unsupported Rust feature might be reachable: {}.", reason),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
-                .set_help(help)
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {

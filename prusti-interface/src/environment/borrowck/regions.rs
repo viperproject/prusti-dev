@@ -45,6 +45,11 @@ lazy_static! {
 #[derive(Debug)]
 pub struct PlaceRegions(HashMap<(mir::Local, Vec<usize>), facts::Region>);
 
+#[derive(Clone, Debug)]
+pub enum PlaceRegionsError {
+    Unsupported(String),
+}
+
 impl PlaceRegions {
     fn new() -> Self {
         PlaceRegions(HashMap::new())
@@ -58,25 +63,35 @@ impl PlaceRegions {
         self.0.insert((local, projections), rvid);
     }
 
-    pub fn for_local(&self, local: mir::Local) -> Option<facts::Region> {
-        self.for_place(local.into())
+    pub fn for_local(&self, local: mir::Local)-> Option<facts::Region> {
+        self.for_place(local.into()).unwrap()
     }
 
     /// Determines the region of a MIR place. Right now, the only supported places are locals and tuples. Tuples cannot be nested inside other tuples.
-    pub fn for_place(&self, place: mir::Place) -> Option<facts::Region> {
-        let (local, fields) = Self::translate_place(place);
-        self.0.get(&(local, fields)).cloned()
+    pub fn for_place(&self, place: mir::Place)
+        -> Result<Option<facts::Region>, PlaceRegionsError>
+    {
+        let (local, fields) = Self::translate_place(place)?;
+        Ok(self.0.get(&(local, fields)).cloned())
     }
 
     /// Translates a place like _3.0.3.1 into a local (here _3) and a list of field projections like (here [0, 3, 1]).
-    fn translate_place(place: mir::Place) -> (mir::Local, Vec<usize>) {
+    fn translate_place(place: mir::Place)
+        -> Result<(mir::Local, Vec<usize>), PlaceRegionsError>
+    {
         let indices = place.projection.iter()
             .map(|elem| match elem {
-                mir::ProjectionElem::Field(f, _) => f.index(),
-                _ => unreachable!()
+                mir::ProjectionElem::Field(f, _) => Ok(f.index()),
+                mir::ProjectionElem::Deref => {
+                    return Err(PlaceRegionsError::Unsupported(
+                        "determining the region of a dereferentiation is \
+                        not supported".to_string()
+                    ));
+                }
+                x => unreachable!("{:?}", x),
             })
-            .collect();
-        (place.local, indices)
+            .collect::<Result<_, _>>()?;
+        Ok((place.local, indices))
     }
 }
 
