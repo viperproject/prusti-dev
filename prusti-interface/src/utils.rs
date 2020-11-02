@@ -312,7 +312,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             use rustc_ast::token::Token;
             use rustc_ast::token::TokenKind;
             use rustc_ast::tokenstream::TokenTree;
-            match &tokens.0[0].0 {
+            match tokens.trees().next().unwrap() {
                 TokenTree::Token(Token {
                                      kind: TokenKind::Literal(Lit { symbol, .. }),
                                      ..

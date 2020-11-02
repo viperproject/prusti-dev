@@ -537,22 +537,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             TerminatorKind::SwitchInt {
-                ref targets,
-                ref discr,
-                ref values,
                 switch_ty,
+                ref discr,
+                ref targets,
             } => {
                 trace!(
-                    "SwitchInt ty '{:?}', discr '{:?}', values '{:?}'",
+                    "SwitchInt ty '{:?}', discr '{:?}', targets '{:?}'",
                     switch_ty,
                     discr,
-                    values
+                    targets
                 );
                 let mut cfg_targets: Vec<(vir::Expr, mir::BasicBlock)> = vec![];
                 let discr_val = self.mir_encoder.encode_operand_expr(discr)
                     .with_span(span)?;
-                for (i, &value) in values.iter().enumerate() {
-                    let target = targets[i as usize];
+                for (value, target) in targets.iter() {
                     // Convert int to bool, if required
                     let viper_guard = match switch_ty.kind() {
                         ty::TyKind::Bool => {
@@ -576,7 +574,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     };
                     cfg_targets.push((viper_guard, target))
                 }
-                let default_target = targets[values.len()];
+                let default_target = targets.otherwise();
 
                 let default_target_terminator = self.mir.basic_blocks()[default_target]
                     .terminator

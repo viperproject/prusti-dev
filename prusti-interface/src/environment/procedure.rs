@@ -187,7 +187,9 @@ fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
             vec![*target]
         }
 
-        TerminatorKind::SwitchInt { ref targets, .. } => targets.clone(),
+        TerminatorKind::SwitchInt { ref targets, .. } => {
+            targets.all_targets().to_vec()
+        }
 
         TerminatorKind::Resume
         | TerminatorKind::Abort

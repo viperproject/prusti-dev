@@ -282,7 +282,9 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
             &ty::RegionKind::ReFree(free_region) => Some(free_region.bound_region),
             // TODO: is this correct?!
             &ty::RegionKind::ReLateBound(_, bound_region) => Some(bound_region),
-            &ty::RegionKind::ReEarlyBound(early_region) => Some(early_region.to_bound_region()),
+            &ty::RegionKind::ReEarlyBound(early_region) => Some(
+                ty::BoundRegion::BrNamed(early_region.def_id, early_region.name)
+            ),
             &ty::RegionKind::ReStatic => None,
             &ty::RegionKind::ReErased => None,
             // &ty::RegionKind::ReScope(_scope) => None,

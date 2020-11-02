@@ -106,7 +106,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         .map_or(false, |x| &x != "0");
 
     if backtrace {
-        TyCtxt::try_print_query_stack(&handler);
+        TyCtxt::try_print_query_stack(&handler, None);
     }
 }
 
@@ -135,56 +135,56 @@ fn main() {
     lazy_static::initialize(&ICE_HOOK);
     init_loggers();
 
-    user::message(format!("{}\n{}\n{}\n\n{}\n\n",
-        r"  __          __        __  ___             ",
-        r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ",
-        r" |      /\   |  \ \__/ .__/  |       /\   | ",
-        get_prusti_version_info(),
-    ));
-
-
-    let mut args = Vec::new();
-    let mut flags = ConfigFlags::default();
-    flags.skip_verify = config::no_verify();
-    for arg in rustc_args {
-        debug!("Arg: {}", arg);
-        if arg == "-Zprint-desugared-specs" {
-            flags.print_desugared_specs = true;
-        } else if arg == "-Zprint-typeckd-specs" {
-            flags.print_typeckd_specs = true;
-        } else if arg == "-Zprint-collected-verification-items" {
-            flags.print_collected_verfication_items = true;
-        } else if arg == "-Zskip-verify" {
-            flags.skip_verify = true;
-        } else if arg == "-Zhide-uuids" {
-            flags.hide_uuids = true;
-        } else {
-            args.push(arg);
-        }
-    }
-
-    env::set_var("POLONIUS_ALGORITHM", "Naive");
-    args.push("-Zborrowck=mir".to_owned());
-    args.push("-Zpolonius".to_owned());
-    args.push("-Znll-facts".to_owned());
-    args.push("-Zidentify-regions".to_owned());
-    args.push("-Zdump-mir-dir=log/mir/".to_owned());
-    args.push("-Zdump-mir=renumber".to_owned());
-    args.push("-Zalways-encode-mir".to_owned());
-    args.push("-Zcrate-attr=feature(register_tool)".to_owned());
-    args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
-    args.push("--cfg=prusti".to_owned());
-
-    if config::dump_debug_info() {
-        args.push("-Zdump-mir=all".to_owned());
-        args.push("-Zdump-mir-graphviz".to_owned());
-    }
-
-    let mut callbacks = PrustiCompilerCalls::new(flags);
-
-    // Invoke compiler, and handle return code.
     let exit_code = rustc_driver::catch_with_exit_code(move || {
-        rustc_driver::run_compiler(&args, &mut callbacks, None, None, None)
+
+        user::message(format!(
+            "{}\n{}\n{}\n\n{}\n\n",
+            r"  __          __        __  ___             ",
+            r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ",
+            r" |      /\   |  \ \__/ .__/  |       /\   | ",
+            get_prusti_version_info(),
+        ));
+
+        let mut args = Vec::new();
+        let mut flags = ConfigFlags::default();
+        flags.skip_verify = config::no_verify();
+        for arg in rustc_args {
+            debug!("Arg: {}", arg);
+            if arg == "-Zprint-desugared-specs" {
+                flags.print_desugared_specs = true;
+            } else if arg == "-Zprint-typeckd-specs" {
+                flags.print_typeckd_specs = true;
+            } else if arg == "-Zprint-collected-verification-items" {
+                flags.print_collected_verfication_items = true;
+            } else if arg == "-Zskip-verify" {
+                flags.skip_verify = true;
+            } else if arg == "-Zhide-uuids" {
+                flags.hide_uuids = true;
+            } else {
+                args.push(arg);
+            }
+        }
+
+        env::set_var("POLONIUS_ALGORITHM", "Naive");
+        args.push("-Zborrowck=mir".to_owned());
+        args.push("-Zpolonius".to_owned());
+        args.push("-Znll-facts".to_owned());
+        args.push("-Zidentify-regions".to_owned());
+        args.push("-Zdump-mir-dir=log/mir/".to_owned());
+        args.push("-Zdump-mir=renumber".to_owned());
+        args.push("-Zalways-encode-mir".to_owned());
+        args.push("-Zcrate-attr=feature(register_tool)".to_owned());
+        args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
+        args.push("--cfg=prusti".to_owned());
+
+        if config::dump_debug_info() {
+            args.push("-Zdump-mir=all".to_owned());
+            args.push("-Zdump-mir-graphviz".to_owned());
+        }
+
+        let mut callbacks = PrustiCompilerCalls::new(flags);
+
+        rustc_driver::RunCompiler::new(&args, &mut callbacks).run()
     });
     std::process::exit(exit_code)
 }

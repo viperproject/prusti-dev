@@ -970,7 +970,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 write_edge!(self, bb, target);
             }
             TerminatorKind::SwitchInt { ref targets, .. } => {
-                for target in targets {
+                for target in targets.all_targets() {
                     write_edge!(self, bb, target);
                 }
             }
