@@ -21,7 +21,7 @@ impl TestStruct {
     #[pure]
     #[ensures(result >= a && result >= b)]
     #[ensures(result == a || result == b)]
-    fn max(a: i32, b: i32) -> i32; //~ ERROR already specified function
+    fn max(a: i32, b: i32) -> i32; //~ ERROR external specification found for already specified function
 }
 
 fn main() {

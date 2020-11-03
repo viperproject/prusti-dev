@@ -10,10 +10,10 @@ impl<T> std::vec::Vec<T> {
     fn clear(&mut self);
 }
 
-#[extern_spec]
+#[extern_spec] //~ ERROR: duplicate specification
 impl<T> std::vec::Vec<T> {
     #[ensures(self.len() == 0)]
-    fn clear(&mut self); //~ ERROR: duplicate specification
+    fn clear(&mut self);
 }
 
 fn main() {}
