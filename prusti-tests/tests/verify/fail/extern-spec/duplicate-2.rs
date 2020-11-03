@@ -12,8 +12,8 @@ impl<T> std::vec::Vec<T> {
 
 #[extern_spec]
 impl<T> std::vec::Vec<T> {
-    #[ensures(self.len() == 0)] //~ ERROR: duplicate specification
-    fn clear(&mut self);
+    #[ensures(self.len() == 0)]
+    fn clear(&mut self); //~ ERROR: duplicate specification
 }
 
 fn main() {}
