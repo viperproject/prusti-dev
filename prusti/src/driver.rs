@@ -33,11 +33,10 @@ mod verifier;
 mod arg_value;
 
 use log::debug;
-use std::{env, panic};
+use std::{env, panic, borrow::Cow, path::PathBuf};
 use prusti_common::config::ConfigFlags;
 use prusti_common::report::user;
 use lazy_static::lazy_static;
-use std::borrow::Cow;
 use callbacks::PrustiCompilerCalls;
 use rustc_middle::ty::TyCtxt;
 use prusti_common::config;
@@ -169,12 +168,22 @@ fn main() {
         args.push("-Zborrowck=mir".to_owned());
         args.push("-Zpolonius".to_owned());
         args.push("-Znll-facts".to_owned());
+        args.push(format!(
+            "-Znll-facts-dir={}",
+            PathBuf::from(config::log_dir()).join("nll-facts").to_str()
+                .expect("failed to configure nll-facts-dir")
+        ));
         args.push("-Zidentify-regions".to_owned());
-        args.push("-Zdump-mir-dir=log/mir/".to_owned());
+        args.push(format!(
+            "-Zdump-mir-dir={}",
+            PathBuf::from(config::log_dir()).join("mir").to_str()
+                .expect("failed to configure dump-mir-dir")
+        ));
         args.push("-Zdump-mir=renumber".to_owned());
         args.push("-Zalways-encode-mir".to_owned());
         args.push("-Zcrate-attr=feature(register_tool)".to_owned());
         args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
+        //args.push("-Zforce-overflow-checks=true".to_owned());
         args.push("--cfg=prusti".to_owned());
 
         if config::dump_debug_info() {
