@@ -1,7 +1,7 @@
 use crate::specifications::common::{ExpressionIdGenerator, SpecificationIdGenerator};
 use crate::specifications::untyped::{self, EncodeTypeCheck};
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, format_ident};
+use quote::{quote_spanned, format_ident};
 use syn::spanned::Spanned;
 
 pub(crate) struct AstRewriter {
@@ -74,14 +74,15 @@ impl AstRewriter {
         None
     }
     fn generate_result_arg(&self, item: &untyped::AnyFnItem) -> syn::FnArg {
+        let item_span = item.span();
         let output_ty = match &item.sig().output {
-            syn::ReturnType::Default => syn::parse_quote!{ () },
+            syn::ReturnType::Default => parse_quote_spanned!(item_span=> ()),
             syn::ReturnType::Type(_, ty) => ty.clone(),
         };
         let fn_arg = syn::FnArg::Typed(
             syn::PatType {
                 attrs: Vec::new(),
-                pat: box syn::parse_quote! { result },
+                pat: box parse_quote_spanned!(item_span=> result),
                 colon_token: syn::Token![:](item.sig().output.span()),
                 ty: output_ty,
             }
@@ -105,15 +106,16 @@ impl AstRewriter {
                 "it is not allowed to use the keyword `result` as a function argument".to_string(),
             ));
         }
+        let item_span = item.span();
         let item_name = syn::Ident::new(
             &format!("prusti_{}_item_{}_{}", spec_type, item.sig().ident, spec_id),
-            item.span(),
+            item_span,
         );
         let mut statements = TokenStream::new();
         assertion.encode_type_check(&mut statements);
         let spec_id_str = spec_id.to_string();
         let assertion_json = crate::specifications::json::to_json_string(&assertion);
-        let mut spec_item: syn::ItemFn = syn::parse_quote! {
+        let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_variables)]
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
@@ -141,7 +143,8 @@ impl AstRewriter {
         assertion.encode_type_check(&mut statements);
         let spec_id_str = spec_id.to_string();
         let assertion_json = crate::specifications::json::to_json_string(&assertion);
-        quote! {
+        let callsite_span = Span::call_site();
+        quote_spanned! {callsite_span=>
             #[allow(unused_must_use, unused_variables)]
             #[prusti::spec_only]
             #[prusti::loop_body_invariant_spec]
@@ -166,7 +169,8 @@ impl AstRewriter {
             assertion.encode_type_check(&mut encoded);
             let assertion_json = crate::specifications::json::to_json_string(&assertion);
             let var_name = format_ident! ("_prusti_closure_{}{}", suffix, count.to_string());
-            ts.extend(quote! {
+            let callsite_span = Span::call_site();
+            ts.extend(quote_spanned! {callsite_span=>
                 #[prusti::spec_only]
                 #[prusti::spec_id = #spec_id_str]
                 #[prusti::assertion = #assertion_json]

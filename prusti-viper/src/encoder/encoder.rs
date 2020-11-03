@@ -211,8 +211,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.get_procedure_specs(*def_id).is_some() {
             self.register_encoding_error(EncodingError::incorrect(
                 "external specification found for already specified function",
-                self.env.tcx().def_span(self.extern_spec.get(def_id).unwrap().1))
-            );
+                self.env.tcx().def_span(self.extern_spec.get(def_id).unwrap().1)
+            ));
         }
         if (self.extern_spec.contains_key(def_id)) {
             &self.extern_spec.get(def_id).unwrap().1
