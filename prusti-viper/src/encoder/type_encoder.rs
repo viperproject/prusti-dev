@@ -415,8 +415,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Char => "char".to_string(),
 
-            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
-            | ty::TyKind::Ref(_, ref ty, _) => {
+            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
+                format!("raw_ref${}", self.encoder.encode_type_predicate_use(ty)?)
+            }
+            ty::TyKind::Ref(_, ref ty, _) => {
                 format!("ref${}", self.encoder.encode_type_predicate_use(ty)?)
             }
 
