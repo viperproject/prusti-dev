@@ -1033,7 +1033,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             encoded_left,
                             encoded_right,
                             ty,
-                        );
+                        ).with_span(span)?;
 
                         // Substitute a place of a value with an expression
                         state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value);
@@ -1056,13 +1056,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             encoded_left.clone(),
                             encoded_right.clone(),
                             operand_ty.expect_ty(),
-                        );
+                        ).with_span(span)?;
                         let encoded_check = self.mir_encoder.encode_bin_op_check(
                             op,
                             encoded_left,
                             encoded_right,
                             operand_ty.expect_ty(),
-                        );
+                        ).with_span(span)?;
 
                         let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind() {
                             x

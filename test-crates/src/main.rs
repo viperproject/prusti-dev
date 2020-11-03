@@ -106,7 +106,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .into_iter()
         .map(|c| c.into())
         // For the moment, test only a few of the crates.
-        .take(10)
+        .take(5)
         .collect();
 
     // List of crates that don't compile with the standard compiler.
