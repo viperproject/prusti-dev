@@ -266,6 +266,7 @@ pub enum PoloniusInfoError {
     MultipleMagicWandsPerLoop(mir::Location),
     MagicWandHasNoRepresentativeLoan(mir::Location),
     PlaceRegionsError(PlaceRegionsError, mir::Location),
+    LoanInUnsupportedStatement(String, mir::Location),
 }
 
 pub fn graphviz<'tcx>(
@@ -555,17 +556,17 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
     mir: &'a mir::Body<'tcx>,
     loan_position: &HashMap<facts::Loan, mir::Location>,
     loan: facts::Loan,
-) -> Vec<&'a mir::Place<'tcx>> {
+) -> Result<Vec<&'a mir::Place<'tcx>>, PoloniusInfoError> {
     let location = if let Some(location) = loan_position.get(&loan) {
         location
     } else {
         // FIXME (Vytautas): This is likely to be wrong.
         debug!("Not found: {:?}", loan);
-        return Vec::new();
+        return Ok(Vec::new());
     };
     let mir::BasicBlockData { ref statements, .. } = mir[location.block];
     if statements.len() == location.statement_index {
-        Vec::new()
+        Ok(Vec::new())
     } else {
         let statement = &statements[location.statement_index];
         match statement.kind {
@@ -573,10 +574,14 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
                 &mir::Rvalue::Ref(_, _, ref place) |
                 &mir::Rvalue::Discriminant(ref place) |
                 &mir::Rvalue::Use(mir::Operand::Copy(ref place)) |
-                &mir::Rvalue::Use(mir::Operand::Move(ref place)) => vec![place],
-                &mir::Rvalue::Use(mir::Operand::Constant(_)) => Vec::new(),
+                &mir::Rvalue::Use(mir::Operand::Move(ref place)) => {
+                    Ok(vec![place])
+                },
+                &mir::Rvalue::Use(mir::Operand::Constant(_)) => {
+                    Ok(Vec::new())
+                },
                 &mir::Rvalue::Aggregate(_, ref operands) => {
-                    operands
+                    Ok(operands
                         .iter()
                         .flat_map(|operand| {
                             match operand {
@@ -585,7 +590,13 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
                                 mir::Operand::Constant(_) => None,
                             }
                         })
-                        .collect()
+                        .collect())
+                }
+                &mir::Rvalue::Cast(..) => {
+                    Err(PoloniusInfoError::LoanInUnsupportedStatement(
+                        "cast statements that create loans are not supported".to_string(),
+                        *location,
+                    ))
                 }
                 x => unreachable!("{:?}", x),
             },
@@ -599,7 +610,7 @@ fn compute_loan_conflict_sets(
     loan_position: &HashMap<facts::Loan, mir::Location>,
     borrowck_in_facts: &facts::AllInputFacts,
     borrowck_out_facts: &facts::AllOutputFacts,
-) -> HashMap<facts::Loan, HashSet<facts::Loan>> {
+) -> Result<HashMap<facts::Loan, HashSet<facts::Loan>>, PoloniusInfoError> {
     trace!("[enter] compute_loan_conflict_sets");
 
     let mut loan_conflict_sets = HashMap::new();
@@ -616,13 +627,13 @@ fn compute_loan_conflict_sets(
         {
             continue;
         }
-        for borrowed_place in get_borrowed_places(mir, loan_position, loan_created) {
+        for borrowed_place in get_borrowed_places(mir, loan_position, loan_created)? {
             if let Some(live_borrows) = borrowck_out_facts.borrow_live_at.get(&point) {
                 for loan_alive in live_borrows {
                     if loan_created == *loan_alive {
                         continue;
                     }
-                    for place in get_borrowed_places(mir, loan_position, *loan_alive) {
+                    for place in get_borrowed_places(mir, loan_position, *loan_alive)? {
                         if utils::is_prefix(borrowed_place, place)
                             || utils::is_prefix(place, borrowed_place)
                         {
@@ -646,7 +657,7 @@ fn compute_loan_conflict_sets(
         loan_conflict_sets
     );
 
-    loan_conflict_sets
+    Ok(loan_conflict_sets)
 }
 
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
@@ -737,7 +748,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let initialization = compute_definitely_initialized(&mir, tcx, def_path.clone());
         let liveness = compute_liveness(&mir);
         let loan_conflict_sets =
-            compute_loan_conflict_sets(procedure, &loan_position, &all_facts, &output);
+            compute_loan_conflict_sets(procedure, &loan_position, &all_facts, &output)?;
 
         let mut info = Self {
             tcx: tcx,

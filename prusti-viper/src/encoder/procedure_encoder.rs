@@ -205,10 +205,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 PlaceRegionsError::Unsupported(msg),
                 location,
             ) => {
-                EncodingError::unsupported(
-                    msg,
-                    self.mir.source_info(location).span,
-                )
+                EncodingError::unsupported(msg, self.mir.source_info(location).span)
+            }
+
+            PoloniusInfoError::LoanInUnsupportedStatement(msg, location) => {
+                EncodingError::unsupported(msg, self.mir.source_info(location).span)
             }
         }
     }

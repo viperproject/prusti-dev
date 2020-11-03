@@ -695,11 +695,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 ty::TyKind::Uint(ast::UintTy::Usize),
             ) => self.encode_operand_expr(operand)?,
 
-            _ => unimplemented!(
-                "unimplemented cast from type '{:?}' to type '{:?}'",
-                src_ty,
-                dst_ty
-            ),
+            _ => {
+                return Err(PositionlessEncodingError::unsupported(format!(
+                    "unsupported cast from type '{:?}' to type '{:?}'",
+                    src_ty,
+                    dst_ty
+                )));
+            }
         };
 
         Ok(encoded_val)
