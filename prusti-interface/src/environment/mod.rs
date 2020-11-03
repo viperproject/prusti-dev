@@ -17,7 +17,7 @@ use rustc_span::{Span, MultiSpan, symbol::Symbol};
 use rustc_hir as hir;
 use std::collections::HashSet;
 use rustc_hir::def_id::LocalDefId;
-
+use rustc_ast::ast;
 use log::debug;
 
 pub mod borrowck;
@@ -289,12 +289,12 @@ impl<'tcx> Environment<'tcx> {
             ty::TyKind::Int(int_ty) => {
                 let lang_items = self.tcx.lang_items();
                 let impl_def = match int_ty {
-                    Isize => lang_items.isize_impl(),
-                    I8 => lang_items.i8_impl(),
-                    I16 => lang_items.i16_impl(),
-                    I32 => lang_items.i32_impl(),
-                    I64 => lang_items.i64_impl(),
-                    I128 => lang_items.i128_impl(),
+                    ast::IntTy::Isize => lang_items.isize_impl(),
+                    ast::IntTy::I8 => lang_items.i8_impl(),
+                    ast::IntTy::I16 => lang_items.i16_impl(),
+                    ast::IntTy::I32 => lang_items.i32_impl(),
+                    ast::IntTy::I64 => lang_items.i64_impl(),
+                    ast::IntTy::I128 => lang_items.i128_impl(),
                 };
                 self.primitive_type_implements_trait(
                     ty,
@@ -305,12 +305,12 @@ impl<'tcx> Environment<'tcx> {
             ty::TyKind::Uint(uint_ty) => {
                 let lang_items = self.tcx.lang_items();
                 let impl_def = match uint_ty {
-                    Usize => lang_items.usize_impl(),
-                    U8 => lang_items.u8_impl(),
-                    U16 => lang_items.u16_impl(),
-                    U32 => lang_items.u32_impl(),
-                    U64 => lang_items.u64_impl(),
-                    U128 => lang_items.u128_impl(),
+                    ast::UintTy::Usize => lang_items.usize_impl(),
+                    ast::UintTy::U8 => lang_items.u8_impl(),
+                    ast::UintTy::U16 => lang_items.u16_impl(),
+                    ast::UintTy::U32 => lang_items.u32_impl(),
+                    ast::UintTy::U64 => lang_items.u64_impl(),
+                    ast::UintTy::U128 => lang_items.u128_impl(),
                 };
                 self.primitive_type_implements_trait(
                     ty,
@@ -321,8 +321,8 @@ impl<'tcx> Environment<'tcx> {
             ty::TyKind::Float(float_ty) => {
                 let lang_items = self.tcx.lang_items();
                 let impl_def = match float_ty {
-                    F32 => lang_items.f32_impl(),
-                    F64 => lang_items.f64_impl(),
+                    ast::FloatTy::F32 => lang_items.f32_impl(),
+                    ast::FloatTy::F64 => lang_items.f64_impl(),
                 };
                 self.primitive_type_implements_trait(
                     ty,
@@ -346,12 +346,11 @@ impl<'tcx> Environment<'tcx> {
         trait_def_id: DefId
     ) -> bool {
         assert!(impl_def.is_some());
-        let impl_def_id = impl_def.unwrap();
         self.tcx.type_implements_trait(
             (
                 trait_def_id,
                 ty,
-                self.tcx.empty_substs_for_def_id(impl_def_id),
+                ty::List::empty(),
                 ParamEnv::empty()
             )
         )

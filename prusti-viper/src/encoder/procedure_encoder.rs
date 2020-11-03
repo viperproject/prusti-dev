@@ -1707,16 +1707,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             TerminatorKind::Goto { target } => (stmts, MirSuccessor::Goto(target)),
 
             TerminatorKind::SwitchInt {
-                ref targets,
-                ref discr,
-                ref values,
                 switch_ty,
+                ref discr,
+                ref targets,
             } => {
                 trace!(
-                    "SwitchInt ty '{:?}', discr '{:?}', values '{:?}'",
+                    "SwitchInt ty '{:?}', discr '{:?}', targets '{:?}'",
                     switch_ty,
                     discr,
-                    values
+                    targets
                 );
 
                 let mut cfg_targets: Vec<(vir::Expr, BasicBlockIndex)> = vec![];
@@ -1755,8 +1754,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     _ => false
                 };
 
-                for (i, &value) in values.iter().enumerate() {
-                    let target = targets[i as usize];
+                for (value, target) in targets.iter() {
                     // Convert int to bool, if required
                     let viper_guard = match switch_ty.kind() {
                         ty::TyKind::Bool => {
@@ -1780,7 +1778,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     };
                     cfg_targets.push((viper_guard, target))
                 }
-                let mut default_target = targets[values.len()];
+                let mut default_target = targets.otherwise();
                 let mut kill_default_target = false;
 
                 // Is the target an unreachable block?

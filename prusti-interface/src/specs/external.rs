@@ -78,9 +78,10 @@ impl<'tcx> ExternSpecResolver<'tcx> {
     /// Report errors for duplicate specifications found during specification
     /// collection.
     pub fn check_duplicates(&self, env: &Environment<'tcx>) {
-        for (def_id, specs) in self.spec_duplicates.iter() {
+        for (&def_id, specs) in self.spec_duplicates.iter() {
+            let function_name = env.get_item_name(def_id);
             PrustiError::incorrect(
-                format!("duplicate specification for {:?}", def_id),
+                format!("duplicate specification for {}", function_name),
                 MultiSpan::from_spans(specs.iter()
                     .map(|s| s.1)
                     .collect())
@@ -134,7 +135,7 @@ impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
             if let rustc_hir::ExprKind::Path(ref qself) = callee_expr.kind {
                 let res = self.tcx.typeck(callee_expr.hir_id.owner).qpath_res(qself, callee_expr.hir_id);
                 if let rustc_hir::def::Res::Def(_, def_id) = res {
-                    self.spec_found = Some((def_id, get_impl_type(qself), ex.span.source_callsite()));
+                    self.spec_found = Some((def_id, get_impl_type(qself), ex.span));
                     return;
                 }
             }

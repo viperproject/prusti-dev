@@ -2,14 +2,17 @@
 #![feature(box_patterns)]
 #![feature(drain_filter)]
 
+#[macro_use]
+mod parse_quote_spanned;
+mod span_overrider;
 mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
 mod spec_attribute_kind;
 pub mod specifications;
 
-use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use proc_macro2::{Span, TokenStream};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
 use syn::parse_quote;
 use std::convert::{TryFrom, TryInto};
@@ -62,7 +65,7 @@ pub fn rewrite_prusti_attributes(
         generate_spec_and_assertions(prusti_attributes, &item)
     );
 
-    quote!{
+    quote_spanned! {item.span()=>
         #(#generated_spec_items)*
         #(#generated_attributes)*
         #item
@@ -110,7 +113,9 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
     )?;
     Ok((
         vec![spec_item],
-        vec![parse_quote!(#[prusti::pre_spec_id_ref = #spec_id_str])],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::pre_spec_id_ref = #spec_id_str]
+        }],
     ))
 }
 
@@ -128,7 +133,9 @@ fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
     )?;
     Ok((
         vec![spec_item],
-        vec![parse_quote!(#[prusti::post_spec_id_ref = #spec_id_str])],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::post_spec_id_ref = #spec_id_str]
+        }],
     ))
 }
 
@@ -165,7 +172,9 @@ fn generate_for_after_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> Ge
     )?;
     Ok((
         vec![spec_item_rhs],
-        vec![parse_quote!(#[prusti::pledge_spec_id_ref = #spec_id_rhs_str])],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::pledge_spec_id_ref = #spec_id_rhs_str]
+        }],
     ))
 }
 
@@ -196,23 +205,29 @@ fn generate_for_after_expiry_if(attr: TokenStream, item: &untyped::AnyFnItem) ->
     )?;
     Ok((
         vec![spec_item_lhs, spec_item_rhs],
-        vec![parse_quote!(#[prusti::pledge_spec_id_ref = #spec_id_str])],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::pledge_spec_id_ref = #spec_id_str]
+        }],
     ))
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "pure" annotations.
-fn generate_for_pure(_attr: TokenStream, _item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_pure(_attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     Ok((
         vec![],
-        vec![parse_quote!(#[prusti::pure])],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::pure]
+        }],
     ))
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "trusted" annotations.
-fn generate_for_trusted(_attr: TokenStream, _item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_trusted(_attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     Ok((
         vec![],
-        vec![parse_quote!(#[prusti::trusted])],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::trusted]
+        }],
     ))
 }
 
@@ -221,7 +236,8 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     let spec_id = rewriter.generate_spec_id();
     let invariant = handle_result!(rewriter.parse_assertion(spec_id, tokens));
     let check = rewriter.generate_spec_loop(spec_id, invariant);
-    quote! {
+    let callsite_span = Span::call_site();
+    quote_spanned! {callsite_span=>
         if false {
             #check
         }
@@ -236,11 +252,8 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
 /// the function whether to keep the specification (for -internal) or
 /// drop it (for -impl).
 pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
-    let cl_spec = syn::parse::<ClosureWithSpec>(tokens.into());
-    if let Err(err) = cl_spec {
-        return err.to_compile_error();
-    }
-    let cl_spec = cl_spec.unwrap();
+    let cl_spec: ClosureWithSpec = handle_result!(syn::parse(tokens.into()));
+    let callsite_span = Span::call_site();
 
     if drop_spec {
         cl_spec.cl.into_token_stream()
@@ -257,7 +270,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             let precond = handle_result!(rewriter.parse_assertion(spec_id, r.to_token_stream()));
             preconds.push((spec_id, precond));
             let spec_id_str = spec_id.to_string();
-            cl_annotations.extend(quote! {
+            cl_annotations.extend(quote_spanned! {callsite_span=>
                 #[prusti::pre_spec_id_ref = #spec_id_str]
             });
         }
@@ -267,7 +280,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             let postcond = handle_result!(rewriter.parse_assertion(spec_id, e.to_token_stream()));
             postconds.push((spec_id, postcond));
             let spec_id_str = spec_id.to_string();
-            cl_annotations.extend(quote! {
+            cl_annotations.extend(quote_spanned! {callsite_span=>
                 #[prusti::post_spec_id_ref = #spec_id_str]
             });
         }
@@ -283,7 +296,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             attrs_ts.extend(a.into_token_stream());
         }
 
-        quote! {
+        quote_spanned! {callsite_span=>
             {
                 #cl_annotations #attrs_ts
                 let _prusti_closure =
@@ -331,7 +344,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                         x => unimplemented!("Unexpected variant: {:?}", x),
                     }
                 }));
-                let new_item = parse_quote!{
+                let new_item = parse_quote_spanned! {method_item.span()=>
                     #(#generated_attributes)*
                     #method_item
                 };
@@ -352,7 +365,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
         brace_token: impl_block.brace_token,
         items: generated_spec_items,
     };
-    quote! {
+    quote_spanned! {impl_block.span()=>
         #spec_impl_block
         #impl_block
     }
@@ -360,21 +373,25 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
+    let item_span = item.span();
     match item {
         syn::Item::Impl(mut item_impl) => {
-            let new_struct = handle_result!(extern_spec_rewriter::generate_new_struct(&mut item_impl));
+            let new_struct = handle_result!(
+                extern_spec_rewriter::generate_new_struct(&mut item_impl)
+            );
 
             let struct_ident = &new_struct.ident;
             let generics = &new_struct.generics;
 
-            let struct_ty: syn::Type = syn::parse_quote! {
+            let struct_ty: syn::Type = parse_quote_spanned! {item_span=>
                 #struct_ident #generics
             };
 
-            let rewritten_item =
-                handle_result!(extern_spec_rewriter::rewrite_impl(&mut item_impl, Box::from(struct_ty)));
+            let rewritten_item = handle_result!(
+                extern_spec_rewriter::rewrite_impl(&mut item_impl, Box::from(struct_ty))
+            );
 
-            quote! {
+            quote_spanned! {item_span=>
                 #new_struct
                 #rewritten_item
             }
@@ -385,9 +402,7 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
                 segments: syn::punctuated::Punctuated::new(),
             };
             handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
-            quote! {
-                #item_mod
-            }
+            quote!(#item_mod)
         }
         _ => { unimplemented!() }
     }

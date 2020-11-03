@@ -18,10 +18,10 @@ impl TestStruct {
 
 #[extern_spec]
 impl TestStruct {
-    #[pure] //~ ERROR already specified function
+    #[pure]
     #[ensures(result >= a && result >= b)]
     #[ensures(result == a || result == b)]
-    fn max(a: i32, b: i32) -> i32;
+    fn max(a: i32, b: i32) -> i32; //~ ERROR external specification cannot be attached to already specified function
 }
 
 fn main() {
