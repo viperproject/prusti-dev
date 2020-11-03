@@ -183,8 +183,13 @@ fn main() {
         args.push("-Zalways-encode-mir".to_owned());
         args.push("-Zcrate-attr=feature(register_tool)".to_owned());
         args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
-        //args.push("-Zforce-overflow-checks=true".to_owned());
         args.push("--cfg=prusti".to_owned());
+
+        if config::check_binary_operations() {
+            // Some crates might have a `overflow-checks = false` in their `Cargo.toml` to
+            // disable integer overflow checks, but we want to ignore that.
+            args.push("-Zforce-overflow-checks=yes".to_owned());
+        }
 
         if config::dump_debug_info() {
             args.push("-Zdump-mir=all".to_owned());
