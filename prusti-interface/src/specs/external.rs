@@ -78,9 +78,10 @@ impl<'tcx> ExternSpecResolver<'tcx> {
     /// Report errors for duplicate specifications found during specification
     /// collection.
     pub fn check_duplicates(&self, env: &Environment<'tcx>) {
-        for (def_id, specs) in self.spec_duplicates.iter() {
+        for (&def_id, specs) in self.spec_duplicates.iter() {
+            let function_name = env.get_item_name(def_id);
             PrustiError::incorrect(
-                format!("duplicate specification for {:?}", def_id),
+                format!("duplicate specification for {}", function_name),
                 MultiSpan::from_spans(specs.iter()
                     .map(|s| s.1)
                     .collect())
