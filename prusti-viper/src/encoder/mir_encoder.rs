@@ -474,7 +474,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     "bitwise operations on non-boolean types are not supported"
                 ))
             }
-            x => unimplemented!("{:?}", x),
+            unsupported_op => {
+                return Err(PositionlessEncodingError::unsupported(format!(
+                    "operation '{:?}' is not supported",
+                    unsupported_op
+                )))
+            }
         })
     }
 

@@ -1203,6 +1203,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             location
                         )?
                     }
+                    &mir::Rvalue::Len(..) => {
+                        return Err(EncodingError::unsupported(
+                            "obtaining the length of an array is unsupported",
+                            stmt.source_info.span,
+                        ))
+                    }
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
                     }
