@@ -106,7 +106,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .into_iter()
         .map(|c| c.into())
         // For the moment, test only a few of the crates.
-        .take(50)
+        .take(10)
         .collect();
 
     // List of crates that don't compile with the standard compiler.
@@ -174,6 +174,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .env("PRUSTI_ASSERT_TIMEOUT", "60000")
                         // Skip unsupported language features
                         .env("PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS", "true")
+                        .env("PRUSTI_LOG_DIR", "/tmp/prusti_log")
                         .run()?;
                     Ok(())
                 })

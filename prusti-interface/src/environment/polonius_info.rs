@@ -663,11 +663,13 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let facts_loader = load_polonius_facts(tcx, &def_path);
 
         // Read relations between region IDs and local variables.
-        let renumber_path = PathBuf::from(format!(
-            "log/mir/{}.{}.-------.renumber.0.mir",
-            tcx.crate_name(LOCAL_CRATE),
-            def_path.to_filename_friendly_no_crate()
-        ));
+        let renumber_path = PathBuf::from(config::log_dir())
+            .join("mir")
+            .join(format!(
+                "{}.{}.-------.renumber.0.mir",
+                tcx.crate_name(LOCAL_CRATE),
+                def_path.to_filename_friendly_no_crate()
+            ));
         debug!("Renumber path: {:?}", renumber_path);
         let place_regions = regions::load_place_regions(&renumber_path).unwrap();
 
