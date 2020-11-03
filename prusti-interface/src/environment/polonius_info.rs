@@ -18,7 +18,6 @@ use polonius_engine::Algorithm;
 use polonius_engine::Atom;
 use polonius_engine::Output;
 use rustc_hash::FxHashMap;
-
 use rustc_index::vec::Idx;
 use rustc_middle::mir;
 use rustc_middle::ty;
@@ -41,6 +40,7 @@ use super::mir_analyses::initialization::DefinitelyInitializedAnalysisResult;
 use super::mir_analyses::liveness::compute_liveness;
 use super::mir_analyses::liveness::LivenessAnalysisResult;
 use super::procedure::Procedure;
+use prusti_common::config;
 
 /// This represents the assignment in which a loan was created. The `source`
 /// will contain the creation of the loan, while the `dest` will store the
@@ -298,7 +298,8 @@ pub fn graphviz<'tcx>(
     let borrowck_out_facts = Output::compute(&borrowck_in_facts, Algorithm::Naive, true);
 
     use std::io::Write;
-    let graph_path = PathBuf::from("nll-facts")
+    let graph_path = PathBuf::from(config::log_dir())
+            .join("nll-facts")
             .join(def_path.to_filename_friendly_no_crate())
             .join("polonius.dot");
     let graph_file = std::fs::File::create(graph_path).expect("Unable to create file");
@@ -367,7 +368,9 @@ fn load_polonius_facts<'tcx>(
     tcx: rustc_middle::ty::TyCtxt<'tcx>,
     def_path: &rustc_hir::definitions::DefPath,
 ) -> facts::FactLoader {
-    let dir_path = PathBuf::from("nll-facts").join(def_path.to_filename_friendly_no_crate());
+    let dir_path = PathBuf::from(config::log_dir())
+        .join("nll-facts")
+        .join(def_path.to_filename_friendly_no_crate());
     debug!("Reading facts from: {:?}", dir_path);
     let mut facts_loader = facts::FactLoader::new();
     facts_loader.load_all_facts(&dir_path);
