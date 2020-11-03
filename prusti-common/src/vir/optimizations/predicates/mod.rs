@@ -7,9 +7,5 @@
 use crate::vir::{ast::*, cfg, cfg::CfgMethod, Successor};
 
 mod delete_unused_predicates;
-mod remove_unnecessary_bodies;
 
-pub use self::{
-    delete_unused_predicates::delete_unused_predicates,
-    remove_unnecessary_bodies::remove_unnecessary_bodies,
-};
+pub use self::delete_unused_predicates::delete_unused_predicates;
