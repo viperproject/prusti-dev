@@ -205,10 +205,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 PlaceRegionsError::Unsupported(msg),
                 location,
             ) => {
-                EncodingError::unsupported(
-                    msg,
-                    self.mir.source_info(location).span,
-                )
+                EncodingError::unsupported(msg, self.mir.source_info(location).span)
+            }
+
+            PoloniusInfoError::LoanInUnsupportedStatement(msg, location) => {
+                EncodingError::unsupported(msg, self.mir.source_info(location).span)
             }
         }
     }
@@ -1201,6 +1202,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             ty,
                             location
                         )?
+                    }
+                    &mir::Rvalue::Len(..) => {
+                        return Err(EncodingError::unsupported(
+                            "obtaining the length of an array is unsupported",
+                            stmt.source_info.span,
+                        ))
                     }
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
@@ -4492,17 +4499,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             left,
             right
         );
+        let span = self.mir_encoder.get_span_of_location(location);
         let encoded_left = self.mir_encoder.encode_operand_expr(left)
-            .with_span(
-                self.mir_encoder.get_span_of_location(location)
-            )?;
+            .with_span(span)?;
         let encoded_right = self.mir_encoder.encode_operand_expr(right)
-            .with_span(
-                self.mir_encoder.get_span_of_location(location)
-            )?;
+            .with_span(span)?;
         let encoded_value =
-            self.mir_encoder
-                .encode_bin_op_expr(op, encoded_left, encoded_right, ty);
+            self.mir_encoder.encode_bin_op_expr(op, encoded_left, encoded_right, ty)
+                .with_span(span)?;
         self.encode_copy_value_assign(encoded_lhs, encoded_value, ty, location)
     }
 
@@ -4552,10 +4556,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             encoded_left.clone(),
             encoded_right.clone(),
             operand_ty.expect_ty(),
-        );
+        ).with_span(span)?;
         let encoded_check =
             self.mir_encoder
-                .encode_bin_op_check(op, encoded_left, encoded_right, operand_ty.expect_ty());
+                .encode_bin_op_check(op, encoded_left, encoded_right, operand_ty.expect_ty())
+                .with_span(span)?;
         let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind() {
             x
         } else {

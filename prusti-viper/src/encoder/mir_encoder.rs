@@ -450,9 +450,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         left: vir::Expr,
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> vir::Expr {
+    ) -> PositionlessResult<vir::Expr> {
         let is_bool = ty.kind() == &ty::TyKind::Bool;
-        match op {
+        Ok(match op {
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
             mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
             mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
@@ -467,8 +467,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
             mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
             mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
-            x => unimplemented!("{:?}", x),
-        }
+            mir::BinOp::BitAnd |
+            mir::BinOp::BitOr |
+            mir::BinOp::BitXor => {
+                return Err(PositionlessEncodingError::unsupported(
+                    "bitwise operations on non-boolean types are not supported"
+                ))
+            }
+            unsupported_op => {
+                return Err(PositionlessEncodingError::unsupported(format!(
+                    "operation '{:?}' is not supported",
+                    unsupported_op
+                )))
+            }
+        })
     }
 
     pub fn encode_unary_op_expr(&self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {
@@ -485,13 +497,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         left: vir::Expr,
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> vir::Expr {
+    ) -> PositionlessResult<vir::Expr> {
         if !op.is_checkable() || !config::check_binary_operations() {
-            false.into()
+            return Ok(false.into())
         } else {
-            let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty);
+            let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty)?;
 
-            match op {
+            Ok(match op {
                 mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.kind() {
                     // Unsigned
                     ty::TyKind::Uint(ast::UintTy::U8) => vir::Expr::or(
@@ -545,21 +557,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     ),
 
                     _ => {
-                        debug!(
-                            "Encoding of bin op check '{:?}' is incomplete for type {:?}",
-                            op, ty
-                        );
-                        false.into()
+                        return Err(PositionlessEncodingError::unsupported(format!(
+                            "overflow checks are unsupported for operation '{:?}' on type '{:?}'",
+                            op,
+                            ty,
+                        )));
                     }
                 },
 
                 mir::BinOp::Shl | mir::BinOp::Shr => {
-                    debug!("Encoding of bin op check '{:?}' is incomplete", op);
-                    false.into()
+                    return Err(PositionlessEncodingError::unsupported(
+                        "overflow checks on a shift operation are unsupported",
+                    ));
                 }
 
                 _ => unreachable!("{:?}", op),
-            }
+            })
         }
     }
 
@@ -695,11 +708,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 ty::TyKind::Uint(ast::UintTy::Usize),
             ) => self.encode_operand_expr(operand)?,
 
-            _ => unimplemented!(
-                "unimplemented cast from type '{:?}' to type '{:?}'",
-                src_ty,
-                dst_ty
-            ),
+            _ => {
+                return Err(PositionlessEncodingError::unsupported(format!(
+                    "unsupported cast from type '{:?}' to type '{:?}'",
+                    src_ty,
+                    dst_ty
+                )));
+            }
         };
 
         Ok(encoded_val)

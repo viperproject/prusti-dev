@@ -827,14 +827,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let name = type_encoder.encode_predicate_use()?;
             self.type_predicate_names
                 .borrow_mut()
-                .insert(ty.kind().clone(), name);
+                .insert(ty.kind().clone(), name.clone());
+            self.predicate_types
+                .borrow_mut()
+                .insert(name, ty);
             // Trigger encoding of definition
             self.encode_type_predicate_def(ty)?;
         }
         let predicate_name = self.type_predicate_names.borrow()[&ty.kind()].clone();
-        self.predicate_types
-            .borrow_mut()
-            .insert(predicate_name.clone(), ty);
         Ok(predicate_name)
     }
 

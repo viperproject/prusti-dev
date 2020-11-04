@@ -160,8 +160,12 @@ impl MemoryEqEncoder {
             }
             ty::TyKind::Ref(..) => {
                 return Err(PositionlessEncodingError::unsupported(
-                    "memory equality between reference types is not \
-                    supported"
+                    "memory equality between reference types is unsupported"
+                ));
+            }
+            ty::TyKind::RawPtr(..) => {
+                return Err(PositionlessEncodingError::unsupported(
+                    "memory equality between raw pointers is unsupported"
                 ));
             }
 
