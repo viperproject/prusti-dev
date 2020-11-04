@@ -526,9 +526,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 ));
             }
 
+            ty::TyKind::Foreign(..) => {
+                return Err(PositionlessEncodingError::unsupported(
+                    "foreign types are not supported"
+                ));
+            }
+
             ref ty_variant => {
-                return Err(PositionlessEncodingError::internal(
-                    format!("failed to encode type {:?}", ty_variant)
+                return Err(PositionlessEncodingError::unsupported(
+                    format!("type {:?} is not supported", ty_variant)
                 ));
             }
         };
