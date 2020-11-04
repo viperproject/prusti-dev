@@ -374,12 +374,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vec![vir::Predicate::new_abstract(typ)]
             }
 
-            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
-                return Err(PositionlessEncodingError::unsupported(
-                    "raw pointer types are not supported"
-                ));
-            }
-
             ref ty_variant => {
                 debug!("Encoding of type '{:?}' is incomplete", ty_variant);
                 vec![vir::Predicate::new_abstract(typ)]
