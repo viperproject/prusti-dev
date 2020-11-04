@@ -71,7 +71,7 @@ fn get_used_predicates_in_predicate_map(
     return map;
 }
 
-/// Return the set of the predicates in the predicate map that are accutally
+/// Return the set of the predicates in the predicate map that are actually
 /// reachable from the provided set of predicates
 fn compute_reachable_predicates(
     predicates_in_predicates: &BTreeMap<String, BTreeSet<String>>,
