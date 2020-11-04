@@ -119,21 +119,10 @@ fn run_no_verification(group_name: &str, filter: &Option<String>) {
     run_prusti_tests(group_name, filter, None);
 }
 
-fn run_filter(group_name: &str, filter: &Option<String>) {
-    let _temporary_env_vars = (
-        TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
-        TemporaryEnvVar::set("PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS", "true"),
-        TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
-    );
-
-    run_prusti_tests(group_name, filter, Some("-A warnings"));
-}
-
 fn run_verification(group_name: &str, filter: &Option<String>) {
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
         TemporaryEnvVar::set("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true"),
-        TemporaryEnvVar::set("PRUSTI_REPORT_SUPPORT_STATUS", "false"),
         TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
     );
 
@@ -171,10 +160,6 @@ fn test_runner(_tests: &[&()]) {
     // Test the type-checking of specifications. This doesn't run the verifier.
     println!("[typecheck]");
     run_no_verification("typecheck", &filter);
-
-    // Test the error messages of prusti-filter.
-    println!("[filter]");
-    run_filter("filter", &filter);
 
     // Test the verifier.
     println!("[verify]");

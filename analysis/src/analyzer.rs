@@ -10,7 +10,7 @@ pub use crate::PointwiseState;
 pub use crate::AnalysisError;
 pub use crate::abstract_domains::*;
 
-type AnalysisResult<T> = std::result::Result<T, AnalysisError>;
+type Result<T> = std::result::Result<T, AnalysisError>;
 
 pub struct Analyzer<'tcx> {
     tcx: TyCtxt<'tcx>,
@@ -26,21 +26,21 @@ impl<'tcx> Analyzer<'tcx> {
     pub fn liveness_analysis(
         &self,
         mir: &mir::Body<'tcx>,
-    ) -> AnalysisResult<PointwiseState<LivenessState>> {
+    ) -> Result<PointwiseState<LivenessState>> {
         unimplemented!();
     }
 
     pub fn definitely_initialized_analysis(
         &self,
         mir: &mir::Body<'tcx>,
-    ) -> AnalysisResult<PointwiseState<DefinitelyInitializedState>> {
+    ) -> Result<PointwiseState<DefinitelyInitializedState>> {
         unimplemented!();
     }
 
     pub fn pcs_analysis(
         &self,
         mir: &mir::Body<'tcx>,
-    ) -> AnalysisResult<PointwiseState<PCSState>> {
+    ) -> Result<PointwiseState<PCSState>> {
         unimplemented!();
     }
 }

@@ -52,7 +52,6 @@ lazy_static! {
         settings.set_default("QUIET", false).unwrap();
         settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
-        settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
         settings.set_default("SKIP_UNSUPPORTED_FUNCTIONS", false).unwrap();
         settings.set_default("ALLOW_UNREACHABLE_UNSUPPORTED_CODE", false).unwrap();
         settings.set_default("NO_VERIFY", false).unwrap();
@@ -219,11 +218,6 @@ pub fn assert_timeout() -> u64 {
 /// Use the Silicon configuration option `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("USE_MORE_COMPLETE_EXHALE")
-}
-
-/// Report the support status of functions using the compiler's error messages
-pub fn report_support_status() -> bool {
-    read_setting("REPORT_SUPPORT_STATUS")
 }
 
 /**
