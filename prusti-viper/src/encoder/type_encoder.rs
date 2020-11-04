@@ -520,10 +520,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 ));
             }
 
-            ty::TyKind::Projection(..) => {
-                return Err(PositionlessEncodingError::unsupported(
-                    "projection of associated types is not supported"
-                ));
+            ty::TyKind::Projection(ty::ProjectionTy { item_def_id, .. }) => {
+                self.encoder.encode_item_name(*item_def_id)
             }
 
             ty::TyKind::Foreign(..) => {
