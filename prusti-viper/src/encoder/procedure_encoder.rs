@@ -2219,7 +2219,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // the equality check involves some unsupported feature;
             // treat it as any other function
             debug!(
-                "The equality check of {:?} involves some unsupported feature ({:?})",
+                "The equality check of {:?} involves an unsupported feature ({:?})",
                 arg_ty,
                 snapshot_res.err().unwrap()
             );
