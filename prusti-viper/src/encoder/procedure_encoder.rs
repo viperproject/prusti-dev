@@ -2379,7 +2379,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                             let value_field = self
                                 .encoder
-                                .encode_raw_ref_field(format!("tuple_{}", field_num), arg_ty);
+                                .encode_raw_ref_field(format!("tuple_{}", field_num), arg_ty)
+                                .with_span(call_site_span)?;
 
                             let encoded_operand = self.mir_encoder.encode_operand_place(&args[1])
                                 .with_span(call_site_span)?;
@@ -2433,7 +2434,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     None => {
                         // We have a constant.
                         constant_args.push(arg_place.clone());
-                        let arg_val_expr = self.mir_encoder.encode_operand_expr(operand);
+                        let arg_val_expr = self.mir_encoder.encode_operand_expr(operand)
+                            .with_span(call_site_span)?;
                         debug!("arg_val_expr: {} {}", arg_place, arg_val_expr);
                         let val_field = self.encoder.encode_value_field(arg_ty);
                         fake_exprs.insert(arg_place.clone().field(val_field), arg_val_expr);
@@ -5251,7 +5253,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            &mir::AggregateKind::Closure(_def_id, _substs) => {
+            &mir::AggregateKind::Closure(def_id, _substs) => {
                 debug_assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {:?}", def_id);
                 // TODO: assign to closure; this case should only handle assign
                 // of the same closure type (== instances of the same syntactic
@@ -5262,7 +5264,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 //
                 // for now we generate nothing to at least allow
                 // let f = closure!(...);
-                Vec::new()
             }
 
             &mir::AggregateKind::Array(..) => {

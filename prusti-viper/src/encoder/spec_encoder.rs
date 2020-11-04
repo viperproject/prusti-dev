@@ -266,7 +266,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                         ty::TyKind::Closure(def_id, substs) => {
                             let encoded_pres = pres.iter()
                                 .map(|x| self.encode_assertion(x))
-                                .collect::<Vec<vir::Expr>>()
+                                .collect::<Result<Vec<vir::Expr>, _>>()?
                                 .into_iter()
                                 .conjoin();
 
@@ -351,7 +351,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                                         ),
                                         posts.iter()
                                             .map(|x| self.encode_assertion(x))
-                                            .collect::<Vec<vir::Expr>>()
+                                            .collect::<Result<Vec<vir::Expr>, _>>()?
                                             .into_iter()
                                             .conjoin()
                                     )

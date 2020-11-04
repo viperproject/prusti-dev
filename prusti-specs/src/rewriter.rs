@@ -176,14 +176,14 @@ impl AstRewriter {
             assertion.encode_type_check(&mut encoded);
             let assertion_json = crate::specifications::json::to_json_string(&assertion);
             let name = format_ident!("prusti_{}_closure_{}", if is_post { "post" } else { "pre" }, spec_id_str);
+            let callsite_span = Span::call_site();
             let result = if is_post && !inputs.empty_or_trailing() {
-                quote! { , result: #output }
+                quote_spanned! { callsite_span => , result: #output }
             } else if is_post {
-                quote! { result: #output }
+                quote_spanned! { callsite_span => result: #output }
             } else {
                 TokenStream::new()
             };
-            let callsite_span = Span::call_site();
             quote_spanned! { callsite_span =>
                 #[prusti::spec_only]
                 #[prusti::spec_id = #spec_id_str]

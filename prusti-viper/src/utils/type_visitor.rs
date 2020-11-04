@@ -61,7 +61,7 @@ pub trait TypeVisitor<'tcx>: Sized {
                 self.visit_projection(data)
             }
             TyKind::Closure(def_id, substs) => {
-                self.visit_closure(def_id, substs);
+                self.visit_closure(def_id, substs)
             }
             ref x => {
                 self.visit_unsupported_sty(x)
@@ -174,9 +174,14 @@ pub trait TypeVisitor<'tcx>: Sized {
         walk_raw_ptr(self, ty, mutability)
     }
 
-    fn visit_closure(&mut self, def_id: DefId, substs: SubstsRef<'tcx>) {
+    fn visit_closure(
+        &mut self,
+        def_id: DefId,
+        substs: SubstsRef<'tcx>
+    ) -> Result<(), Self::Error> {
         trace!("visit_closure({:?})", def_id);
         // TODO: visit types of closure
+        Ok(())
     }
 }
 
