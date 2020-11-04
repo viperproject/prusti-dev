@@ -24,9 +24,7 @@ use rustc_ast::ast;
 use prusti_interface::specs::typed;
 use rustc_attr::IntType::SignedInt;
 use log::{debug, trace};
-use crate::encoder::errors::PositionlessEncodingError;
-
-type PositionlessResult<T> = std::result::Result<T, PositionlessEncodingError>;
+use crate::encoder::errors::{PositionlessEncodingError, PositionlessEncodingResult};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -98,12 +96,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         supported_fields && self.is_supported_subst(subst)
     }
 
-    pub fn encode_type(self) -> PositionlessResult<vir::Type> {
+    pub fn encode_type(self) -> PositionlessEncodingResult<vir::Type> {
         debug!("Encode type '{:?}'", self.ty);
         Ok(vir::Type::TypedRef(self.encode_predicate_use()?))
     }
 
-    pub fn encode_value_type(self) -> PositionlessResult<vir::Type> {
+    pub fn encode_value_type(self) -> PositionlessEncodingResult<vir::Type> {
         debug!("Encode value type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vir::Type::Bool,
@@ -139,7 +137,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     /// provides the type of the underlying value or a reference in case of composed
     /// data structures
-    pub fn encode_value_or_ref_type(self) -> PositionlessResult<vir::Type> {
+    pub fn encode_value_or_ref_type(self) -> PositionlessEncodingResult<vir::Type> {
         debug!("Encode ref value type '{:?}'", self.ty);
         match self.ty.kind() {
             ty::TyKind::Adt(_, _)
@@ -158,7 +156,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_value_field(self) -> PositionlessResult<vir::Field> {
+    pub fn encode_value_field(self) -> PositionlessEncodingResult<vir::Field> {
         trace!("Encode value field for type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vir::Field::new("val_bool", vir::Type::Bool),
@@ -233,7 +231,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_predicate_def(self) -> PositionlessResult<Vec<vir::Predicate>> {
+    pub fn encode_predicate_def(self) -> PositionlessEncodingResult<Vec<vir::Predicate>> {
         debug!("Encode type predicate '{:?}'", self.ty);
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
         let typ = vir::Type::TypedRef(predicate_name.clone());
@@ -393,7 +391,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    pub fn encode_predicate_use(self) -> PositionlessResult<String> {
+    pub fn encode_predicate_use(self) -> PositionlessEncodingResult<String> {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
         let result = match self.ty.kind() {
@@ -444,7 +442,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Tuple(elems) => {
-                let elem_predicate_names: PositionlessResult<Vec<_>> = elems
+                let elem_predicate_names: PositionlessEncodingResult<Vec<_>> = elems
                     .iter()
                     .map(|ty| {
                         self.encoder.encode_type_predicate_use(ty.expect_ty())
@@ -537,7 +535,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(result)
     }
 
-    pub fn encode_invariant_def(self) -> PositionlessResult<vir::Function> {
+    pub fn encode_invariant_def(self) -> PositionlessEncodingResult<vir::Function> {
         debug!("[enter] encode_invariant_def({:?})", self.ty);
 
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
@@ -705,7 +703,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(final_function)
     }
 
-    pub fn encode_invariant_use(self) -> PositionlessResult<String> {
+    pub fn encode_invariant_use(self) -> PositionlessEncodingResult<String> {
         debug!("Encode type invariant name '{:?}'", self.ty);
         Ok(format!("{}$inv", self.encode_predicate_use()?))
     }
@@ -746,7 +744,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         function
     }
 
-    pub fn encode_tag_use(self) -> PositionlessResult<String> {
+    pub fn encode_tag_use(self) -> PositionlessEncodingResult<String> {
         debug!("Encode type tag name '{:?}'", self.ty);
         Ok(format!("{}$tag", self.encode_predicate_use()?))
     }

@@ -6,7 +6,8 @@
 
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{
-    ErrorCtxt, PanicCause, EncodingError, PositionlessEncodingError, WithSpan
+    ErrorCtxt, PanicCause, EncodingError, PositionlessEncodingError, WithSpan,
+    EncodingResult, PositionlessEncodingResult
 };
 use crate::encoder::Encoder;
 use prusti_common::vir;
@@ -22,9 +23,6 @@ use std::collections::HashMap;
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
 
-type Result<T> = std::result::Result<T, EncodingError>;
-type PositionlessResult<T> = std::result::Result<T, PositionlessEncodingError>;
-
 pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
     fn encoder(&self) -> &Encoder<'v, 'tcx>;
@@ -37,7 +35,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         format!("{:?}", local)
     }
 
-    fn encode_local(&self, local: mir::Local) -> Result<vir::LocalVar> {
+    fn encode_local(&self, local: mir::Local) -> EncodingResult<vir::LocalVar> {
         let var_name = self.encode_local_var_name(local);
         let type_name = self
             .encoder()
@@ -53,7 +51,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> PositionlessResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode place {:?}", place);
         let result = if place.projection.is_empty() {
             let local = place.local;
@@ -79,7 +77,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         index: usize,
         place: mir::Place<'tcx>,
         encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>,
-    ) -> PositionlessResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode projection {}: {:?}", index, place);
 
         assert!(index >= 1, "place: {:?} index: {}", place, index);
@@ -219,7 +217,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         &self,
         encoded_base: vir::Expr,
         base_ty: ty::Ty<'tcx>,
-    ) -> PositionlessResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("encode_deref {} {}", encoded_base, base_ty);
         assert!(
             self.can_be_dereferenced(base_ty),
@@ -367,7 +365,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn eval_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> PositionlessResult<vir::Expr> {
+    ) -> PositionlessEncodingResult<vir::Expr> {
         let (encoded_place, place_ty, _) = self.encode_place(place)?;
         Ok(self.encoder.encode_value_expr(encoded_place, place_ty))
     }
@@ -376,7 +374,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_expr(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> PositionlessResult<vir::Expr> {
+    ) -> PositionlessEncodingResult<vir::Expr> {
         trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
             &mir::Operand::Constant(box mir::Constant {
@@ -450,7 +448,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         left: vir::Expr,
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> PositionlessResult<vir::Expr> {
+    ) -> PositionlessEncodingResult<vir::Expr> {
         let is_bool = ty.kind() == &ty::TyKind::Bool;
         Ok(match op {
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
@@ -497,7 +495,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         left: vir::Expr,
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> PositionlessResult<vir::Expr> {
+    ) -> PositionlessEncodingResult<vir::Expr> {
         if !op.is_checkable() || !config::check_binary_operations() {
             return Ok(false.into())
         } else {
@@ -580,7 +578,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         &self,
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
-    ) -> PositionlessResult<vir::Expr> {
+    ) -> PositionlessEncodingResult<vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
         let encoded_val = match (src_ty.kind(), dst_ty.kind()) {
@@ -723,7 +721,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_place(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> PositionlessResult<Option<vir::Expr>> {
+    ) -> PositionlessEncodingResult<Option<vir::Expr>> {
         debug!("Encode operand place {:?}", operand);
         Ok(match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {

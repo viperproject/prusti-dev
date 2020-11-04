@@ -21,6 +21,8 @@ pub enum PositionlessEncodingError {
     Internal(String),
 }
 
+pub type PositionlessEncodingResult<T> = Result<T, PositionlessEncodingError>;
+
 impl PositionlessEncodingError {
     /// Usage of an unsupported Rust feature (e.g. dereferencing raw pointers)
     pub fn unsupported<M: ToString>(message: M) -> Self {

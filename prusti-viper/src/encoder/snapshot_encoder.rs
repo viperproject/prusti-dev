@@ -9,7 +9,7 @@ use crate::encoder::Encoder;
 use rustc_middle::ty;
 use prusti_common::vir::{PermAmount};
 use log::warn;
-use crate::encoder::errors::PositionlessEncodingError;
+use crate::encoder::errors::{PositionlessEncodingError, PositionlessEncodingResult};
 
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
@@ -20,8 +20,6 @@ pub const SNAPSHOT_NOT_EQUALS: &str = "not_equals$";
 const SNAPSHOT_ARG: &str = "_arg";
 const SNAPSHOT_LEFT: &str = "_left";
 const SNAPSHOT_RIGHT: &str = "_right";
-
-type PositionlessResult<T> = std::result::Result<T, PositionlessEncodingError>;
 
 pub struct SnapshotEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -165,7 +163,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         SnapshotEncoder { encoder, ty, predicate_name }
     }
 
-    pub fn encode(&self) -> PositionlessResult<Snapshot> {
+    pub fn encode(&self) -> PositionlessEncodingResult<Snapshot> {
         if !self.is_supported() {
             return Ok(Snapshot {
                 predicate_name: self.predicate_name.clone(),
@@ -309,7 +307,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         vir::Type::TypedRef(self.predicate_name.clone())
     }
 
-    fn encode_snap_generic(&self) -> PositionlessResult<Snapshot> {
+    fn encode_snap_generic(&self) -> PositionlessEncodingResult<Snapshot> {
         let snap_domain = self.encode_snap_domain()?;
         Ok(Snapshot {
             predicate_name: self.predicate_name.clone(),
@@ -318,7 +316,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    fn encode_snap_domain(&self) -> PositionlessResult<SnapshotDomain> {
+    fn encode_snap_domain(&self) -> PositionlessEncodingResult<SnapshotDomain> {
         Ok(SnapshotDomain{
             domain: self.encode_domain()?,
             equals_func: self.encode_equals_func(),
@@ -339,7 +337,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    fn encode_snap_struct(&self) -> PositionlessResult<Snapshot> {
+    fn encode_snap_struct(&self) -> PositionlessEncodingResult<Snapshot> {
         let snap_domain = self.encode_snap_domain()?;
         Ok(Snapshot {
             predicate_name: self.predicate_name.clone(),
@@ -353,7 +351,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    fn encode_domain(&self) -> PositionlessResult<vir::Domain> {
+    fn encode_domain(&self) -> PositionlessEncodingResult<vir::Domain> {
         let domain_name = self.encode_domain_name();
         let cons_func = self.encode_domain_cons(&domain_name)?;
         let cons_axiom_injectivity = self.encode_cons_injectivity(&domain_name, &cons_func);
@@ -375,7 +373,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_domain_cons(&self, domain_name: &String)
-        -> PositionlessResult<vir::DomainFunc>
+        -> PositionlessEncodingResult<vir::DomainFunc>
     {
         Ok(vir::DomainFunc {
             name: SNAPSHOT_CONS.to_string(),
@@ -501,7 +499,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_domain_cons_formal_args(&self)
-        -> PositionlessResult<Vec<vir::LocalVar>>
+        -> PositionlessEncodingResult<Vec<vir::LocalVar>>
     {
         let mut formal_args = vec![];
         match self.ty.kind() {
@@ -552,7 +550,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         vir::LocalVar::new(name, typ)
     }
 
-    fn encode_snap_func_args(&self) -> PositionlessResult<Vec<vir::Expr>> {
+    fn encode_snap_func_args(&self) -> PositionlessEncodingResult<Vec<vir::Expr>> {
         Ok(match self.ty.kind() {
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 let tcx = self.encoder.env().tcx();
@@ -598,7 +596,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_snap_arg(&self, field: vir::Field, field_ty: ty::Ty<'tcx>)
-        -> PositionlessResult<vir::Expr>
+        -> PositionlessEncodingResult<vir::Expr>
     {
         let snapshot = self.encoder.encode_snapshot(field_ty)?;
         Ok(snapshot.get_snap_call(

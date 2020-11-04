@@ -6,7 +6,10 @@
 
 use crate::encoder::borrows::ProcedureContract;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{EncodingError, ErrorCtxt, PanicCause, PositionlessEncodingError, WithSpan, RunIfErr};
+use crate::encoder::errors::{
+    EncodingError, ErrorCtxt, PanicCause, PositionlessEncodingError, WithSpan, RunIfErr,
+    PositionlessEncodingResult, EncodingResult
+};
 use crate::encoder::foldunfold;
 use crate::encoder::initialisation::InitInfo;
 use crate::encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
@@ -64,9 +67,6 @@ use ::log::{trace, debug, error};
 use std::borrow::Borrow as StdBorrow;
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 
-type Result<T> = std::result::Result<T, EncodingError>;
-type PositionlessResult<T> = std::result::Result<T, PositionlessEncodingError>;
-
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: ProcedureDefId,
@@ -107,7 +107,10 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'tcx>, procedure: &'p Procedure<'p, 'tcx>) -> Result<Self> {
+    pub fn new(
+        encoder: &'p Encoder<'v, 'tcx>,
+        procedure: &'p Procedure<'p, 'tcx>
+    ) -> EncodingResult<Self> {
         debug!("ProcedureEncoder constructor");
 
         let mir = procedure.get_mir();
@@ -226,7 +229,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.procedure_contract.as_mut().unwrap()
     }
 
-    pub fn encode(mut self) -> Result<vir::CfgMethod> {
+    pub fn encode(mut self) -> EncodingResult<vir::CfgMethod> {
         trace!("Encode procedure {}", self.cfg_method.name());
         let mir_span = self.mir.span;
 
@@ -528,7 +531,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ordered_group_blocks: &[BasicBlockIndex],
         group_loop_depth: usize,
         return_block: CfgBlockIndex,
-    ) -> Result<(Option<CfgBlockIndex>, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
+    ) -> EncodingResult<(Option<CfgBlockIndex>, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
         // Encode the CFG blocks
         let mut bb_map: HashMap<_, _> = HashMap::new();
         let mut unresolved_edges: Vec<_> = vec![];
@@ -577,7 +580,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         mut unresolved_edges: Vec<(CfgBlockIndex, BasicBlockIndex)>,
         resolver: F,
-    ) -> Result<Vec<(CfgBlockIndex, BasicBlockIndex)>> {
+    ) -> EncodingResult<Vec<(CfgBlockIndex, BasicBlockIndex)>> {
         let mut still_unresolved_edges: Vec<_> = vec![];
         for (curr_block, target) in unresolved_edges.drain(..) {
             if let Some(target_block) = resolver(target) {
@@ -623,7 +626,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         label_prefix: &str,
         loop_head: BasicBlockIndex,
         return_block: CfgBlockIndex,
-    ) -> Result<(CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
+    ) -> EncodingResult<(CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
         let loop_info = self.loop_encoder.loops();
         debug_assert!(loop_info.is_loop_head(loop_head));
         trace!("encode_loop: {:?}", loop_head);
@@ -912,7 +915,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         label_prefix: &str,
         bbi: BasicBlockIndex,
         return_block: CfgBlockIndex,
-    ) -> Result<(CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
+    ) -> EncodingResult<(CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>)> {
         debug_assert!(!self.procedure.is_spec_block(bbi));
 
         let curr_block = self.cfg_method.add_block(
@@ -983,7 +986,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         bbi: BasicBlockIndex,
         cfg_block: CfgBlockIndex,
-    ) -> Result<()> {
+    ) -> EncodingResult<()> {
         let pos = self
             .mir_encoder
             .encode_expr_pos(self.mir_encoder.get_span_of_basic_block(bbi));
@@ -1004,7 +1007,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         bbi: BasicBlockIndex,
         cfg_block: CfgBlockIndex,
-    ) -> Result<()> {
+    ) -> EncodingResult<()> {
         debug_assert!(!self.procedure.is_spec_block(bbi));
         let bb_data = &self.mir.basic_blocks()[bbi];
         let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
@@ -1033,7 +1036,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         bbi: BasicBlockIndex,
         curr_block: CfgBlockIndex,
-    ) -> Result<MirSuccessor> {
+    ) -> EncodingResult<MirSuccessor> {
         trace!("Encode terminator of {:?}", bbi);
         let bb_data = &self.mir.basic_blocks()[bbi];
         let location = mir::Location {
@@ -1050,7 +1053,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_statement_at(
         &mut self,
         location: mir::Location,
-    ) -> Result<(Vec<vir::Stmt>, Option<MirSuccessor>)> {
+    ) -> EncodingResult<(Vec<vir::Stmt>, Option<MirSuccessor>)> {
         debug!("Encode location {:?}", location);
         let bb_data = &self.mir[location.block];
         let index = location.statement_index;
@@ -1108,7 +1111,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         stmt: &mir::Statement<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         debug!(
             "Encode statement '{:?}', span: {:?}",
             stmt.kind, stmt.source_info.span
@@ -1239,7 +1242,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         location: mir::Location,
         place: vir::Expr,
-    ) -> Result<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let span = self.mir_encoder.get_span_of_location(location);
         let (all_active_loans, _) = self.polonius_info().get_all_active_loans(location);
         let mut relevant_active_loan_places = vec![];
@@ -1360,7 +1363,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// A borrow is mutable if it was a MIR unique borrow, a move of
     /// a borrow, or a argument of a function.
     fn is_mutable_borrow(&self, loan: facts::Loan)
-        -> PositionlessResult<bool>
+        -> PositionlessEncodingResult<bool>
     {
         if let Some(stmt) = self.polonius_info().get_assignment_for_loan(loan)? {
             Ok(match stmt.kind {
@@ -1385,7 +1388,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         zombie_loans: &[facts::Loan],
         location: mir::Location,
         end_location: Option<mir::Location>,
-    ) -> Result<vir::borrows::DAG> {
+    ) -> EncodingResult<vir::borrows::DAG> {
         let mir_dag = self
             .polonius_info()
             .construct_reborrowing_dag(&loans, &zombie_loans, location)
@@ -1452,7 +1455,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         node: &ReborrowingDAGNode,
         location: mir::Location,
         end_location: Option<mir::Location>,
-    ) -> Result<vir::borrows::Node> {
+    ) -> EncodingResult<vir::borrows::Node> {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
         let span = self.mir_encoder.get_span_of_location(location);
         let node_is_leaf = node.reborrowed_loans.is_empty();
@@ -1537,7 +1540,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loan: facts::Loan,
         node: &ReborrowingDAGNode,
         location: mir::Location,
-    ) -> Result<vir::borrows::Node> {
+    ) -> EncodingResult<vir::borrows::Node> {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
         let span = self.mir_encoder.get_span_of_location(location);
 
@@ -1648,7 +1651,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         zombie_loans: &[facts::Loan],
         location: mir::Location,
         end_location: Option<mir::Location>,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "encode_expiration_of_loans '{:?}' '{:?}'",
             loans,
@@ -1667,7 +1670,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         begin_loc: mir::Location,
         end_loc: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         debug!(
             "encode_expiring_borrows_beteewn '{:?}' '{:?}'",
             begin_loc, end_loc
@@ -1679,7 +1682,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
     }
 
-    fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Result<Vec<vir::Stmt>> {
+    fn encode_expiring_borrows_at(&mut self, location: mir::Location)
+        -> EncodingResult<Vec<vir::Stmt>>
+    {
         debug!("encode_expiring_borrows_at '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info().get_all_loans_dying_at(location);
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
@@ -1690,7 +1695,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         term: &mir::Terminator<'tcx>,
         location: mir::Location,
-    ) -> Result<(Vec<vir::Stmt>, MirSuccessor)> {
+    ) -> EncodingResult<(Vec<vir::Stmt>, MirSuccessor)> {
         debug!(
             "Encode terminator '{:?}', span: {:?}",
             term.kind, term.source_info.span
@@ -2175,7 +2180,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         bin_op: vir::BinOpKind,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
 
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
@@ -2231,7 +2236,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         source: BasicBlockIndex,
         destination: BasicBlockIndex,
         force_block: bool,
-    ) -> Result<Option<CfgBlockIndex>> {
+    ) -> EncodingResult<Option<CfgBlockIndex>> {
         let source_loc = mir::Location {
             block: source,
             statement_index: self.mir[source].statements.len(),
@@ -2271,7 +2276,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
         self_ty: Option<&'tcx ty::TyS<'tcx>>,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         let full_func_proc_name = &self
             .encoder
             .env()
@@ -2577,7 +2582,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id);
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
@@ -2609,7 +2614,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         function_name: String,
         arg_exprs: Vec<Expr>,
         return_type: Type,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         let formal_args: Vec<vir::LocalVar> = args
             .iter()
             .enumerate()
@@ -2661,7 +2666,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_pure_function_call_lhs_value(
         &mut self,
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
-    ) -> PositionlessResult<vir::Expr> {
+    ) -> PositionlessEncodingResult<vir::Expr> {
         match destination.as_ref() {
             Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
             None => unreachable!(),
@@ -2728,7 +2733,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         stmts: &mut Vec<vir::Stmt>,
         label: String,
-    ) -> Result<()> {
+    ) -> EncodingResult<()> {
         let span = self.mir_encoder.get_span_of_location(location);
         for operand in args.iter() {
             let operand_ty = self.mir_encoder.get_operand_ty(operand);
@@ -2787,7 +2792,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Encode permissions that are implicitly carried by the given local variable.
     fn encode_local_variable_permission(&self, local: Local)
-        -> Result<vir::Expr>
+        -> EncodingResult<vir::Expr>
     {
         Ok(match self.locals.get_type(local).kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut {
@@ -2829,7 +2834,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         contract: &ProcedureContract<'tcx>,
         precondition_weakening: Option<typed::Assertion<'tcx>>,
-    ) -> Result<(
+    ) -> EncodingResult<(
         vir::Expr,
         Vec<vir::Expr>,
         vir::Expr,
@@ -2952,7 +2957,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .patch_spec(spec)
                         .with_span(precondition_spans.clone())
                 )
-                .collect::<Result<Vec<_>>>()?
+                .collect::<EncodingResult<Vec<_>>>()?
                 .into_iter()
                 .conjoin(),
             precondition_weakening,
@@ -2964,7 +2969,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         start_cfg_block: CfgBlockIndex,
         precondition_weakening: Option<typed::Assertion<'tcx>>,
-    ) -> Result<()> {
+    ) -> EncodingResult<()> {
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
         let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
@@ -3015,7 +3020,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
-    ) -> PositionlessResult<Option<(vir::Expr, vir::Expr)>> {
+    ) -> PositionlessEncodingResult<Option<(vir::Expr, vir::Expr)>> {
         // Encode args and return.
         let encoded_args: Vec<vir::Expr> = contract
             .args
@@ -3061,12 +3066,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .blocking_paths
                 .iter()
                 .map(|(place, mutability)| encode_place_perm(place, *mutability, post_label))
-                .collect::<Result<_>>()?;
+                .collect::<EncodingResult<_>>()?;
             let mut rhs: Vec<_> = borrow_info
                 .blocked_paths
                 .iter()
                 .map(|(place, mutability)| encode_place_perm(place, *mutability, pre_label))
-                .collect::<Result<_>>()?;
+                .collect::<EncodingResult<_>>()?;
             if let Some(typed::Pledge { reference, lhs: body_lhs, rhs: body_rhs}) = pledges.first() {
                 debug!(
                     "pledge reference={:?} lhs={:?} rhs={:?}",
@@ -3151,7 +3156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         pre_label: &str,
         contract: &ProcedureContract<'tcx>,
         encoded_args: &[vir::Expr],
-    ) -> Result<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
             let ty = self.locals.get_type(arg);
             if self.mir_encoder.is_reference(ty) {
@@ -3197,7 +3202,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         _diverging: bool,
         loan: Option<facts::Loan>,
         function_end: bool,
-    ) -> Result<(
+    ) -> EncodingResult<(
         vir::Expr,                   // Returned permissions from types.
         Option<vir::Expr>,           // Permission of the return value.
         vir::Expr,                   // Invariants.
@@ -3361,7 +3366,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .patch_spec(spec)
                         .with_span(postcondition_span.clone())
             )
-            .collect::<Result<Vec<_>>>()?
+            .collect::<EncodingResult<Vec<_>>>()?
             .into_iter()
             .conjoin()
             .set_default_pos(func_spec_pos);
@@ -3446,7 +3451,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         pre_label: &str,
         post_label: &str,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         debug!("encode_package_end_of_method '{:?}'", location);
         let mut stmts = Vec::new();
         let span = self.mir.source_info(location).span;
@@ -3573,7 +3578,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         return_cfg_block: CfgBlockIndex,
         postcondition_strengthening: Option<typed::Assertion<'tcx>>,
-    ) -> Result<()> {
+    ) -> EncodingResult<()> {
         // This clone is only due to borrow checker restrictions
         let contract = self.procedure_contract().clone();
 
@@ -3832,7 +3837,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loop_head: BasicBlockIndex,
         loop_inv: BasicBlockIndex,
         drop_read_references: bool,
-    ) -> PositionlessResult<(Vec<vir::Expr>, Vec<vir::Expr>)> {
+    ) -> PositionlessEncodingResult<(Vec<vir::Expr>, Vec<vir::Expr>)> {
         trace!(
             "[enter] encode_loop_invariant_permissions \
              loop_head={:?} drop_read_references={}",
@@ -4015,7 +4020,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
-    ) -> Result<(Vec<vir::Expr>, MultiSpan)> {
+    ) -> EncodingResult<(Vec<vir::Expr>, MultiSpan)> {
         let spec_blocks = self.get_loop_spec_blocks(loop_head);
         trace!(
             "loop head {:?} has spec blocks {:?}",
@@ -4080,7 +4085,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop_iteration: bool,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_loop_invariant_exhale_stmts loop_head={:?} \
              after_loop_iteration={}",
@@ -4160,7 +4165,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
         after_loop: bool,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_loop_invariant_inhale_stmts loop_head={:?} after_loop={}",
             loop_head,
@@ -4227,7 +4232,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         containing_def_id: rustc_hir::def_id::DefId,
         location: Option<mir::Location>,
         place: &Place<'tcx>,
-    ) -> PositionlessResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         let mir_encoder = if let Some(location) = location {
             let block = &self.mir.basic_blocks()[location.block];
             assert_eq!(block.statements.len(), location.statement_index, "expected terminator location");
@@ -4331,7 +4336,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         lhs: &vir::Expr,
         operand: &mir::Operand<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})",
             lhs, operand, location
@@ -4492,7 +4497,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_binary_op(op={:?}, left={:?}, right={:?})",
             op,
@@ -4516,7 +4521,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_rhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         let field = self.encoder.encode_value_field(ty);
         self.encode_copy_value_assign2(
             encoded_lhs,
@@ -4534,7 +4539,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_checked_binary_op(op={:?}, left={:?}, right={:?})",
             op,
@@ -4629,7 +4634,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_unary_op(op={:?}, operand={:?})",
             op,
@@ -4651,7 +4656,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_nullary_op(op={:?}, op_ty={:?})",
             op,
@@ -4689,7 +4694,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_discriminant(src={:?}, location={:?})",
             src,
@@ -4751,7 +4756,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_assign_ref(mir_borrow_kind={:?}, place={:?}, location={:?})",
             mir_borrow_kind,
@@ -4794,7 +4799,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_cast(operand={:?}, dst_ty={:?})",
             operand,
@@ -4865,7 +4870,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         field: vir::Field,
         location: mir::Location,
         vir_assign_kind: vir::AssignKind,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] prepare_assign_target(dst={}, field={}, location={:?})",
             dst,
@@ -4907,7 +4912,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         rhs: vir::Expr,
         field: vir::Field,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         let mut stmts = self.prepare_assign_target(
             lhs.clone(),
             field.clone(),
@@ -4930,7 +4935,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         let field = self.encoder.encode_value_field(ty);
         self.encode_copy_value_assign2(
             dst,
@@ -4967,7 +4972,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst: vir::Expr,
         elems: ty::subst::SubstsRef<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         let mut stmts = self.encode_havoc(&dst);
         for (field_num, arg) in elems.iter().enumerate() {
             let ty = arg.expect_ty();
@@ -5002,7 +5007,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst: vir::Expr,
         self_ty: ty::Ty<'tcx>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         let stmts = match self_ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
@@ -5041,7 +5046,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         aggregate: &mir::AggregateKind<'tcx>,
         operands: &Vec<mir::Operand<'tcx>>,
         location: mir::Location,
-    ) -> Result<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         debug!(
             "[enter] encode_assign_aggregate({:?}, {:?})",
             aggregate, operands
@@ -5156,7 +5161,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
-    fn check_vir(&self) -> Result<()> {
+    fn check_vir(&self) -> EncodingResult<()> {
         if self.cfg_method.has_loops() {
             return Err(EncodingError::internal(
                 "The Viper encoding contains unexpected loops in the CFG",
