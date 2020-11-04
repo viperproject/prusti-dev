@@ -63,7 +63,7 @@ use rustc_attr::IntType::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
 use rustc_span::{MultiSpan, Span};
 use prusti_interface::specs::typed;
-use ::log::{trace, debug, error};
+use ::log::{trace, debug};
 use std::borrow::Borrow as StdBorrow;
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 
@@ -2181,7 +2181,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         bin_op: vir::BinOpKind,
     ) -> EncodingResult<Vec<vir::Stmt>> {
-
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
         let snapshot_res = self.encoder.encode_snapshot(&arg_ty);
@@ -2219,6 +2218,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         } else {
             // the equality check involves some unsupported feature;
             // treat it as any other function
+            debug!(
+                "The equality check of {:?} involves some unsupported feature ({:?})",
+                arg_ty,
+                snapshot_res.err().unwrap()
+            );
             self.encode_impure_function_call(
                 location,
                 call_site_span,
