@@ -13,13 +13,7 @@ pub trait RunIfErr {
     fn run_if_err<F: Fn() -> ()>(self, f: F) -> Self;
 }
 
-impl<T> RunIfErr for Result<T, EncodingError> {
-    fn run_if_err<F: Fn() -> ()>(self, f: F) -> Self {
-        self.map_err(|err| { f(); err })
-    }
-}
-
-impl<T> RunIfErr for Result<T, PositionlessEncodingError> {
+impl<T, E> RunIfErr for Result<T, E> {
     fn run_if_err<F: Fn() -> ()>(self, f: F) -> Self {
         self.map_err(|err| { f(); err })
     }

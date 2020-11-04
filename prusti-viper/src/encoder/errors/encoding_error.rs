@@ -15,6 +15,8 @@ pub struct EncodingError {
     span: MultiSpan,
 }
 
+pub type EncodingResult<T> = Result<T, EncodingError>;
+
 impl Into<PrustiError> for EncodingError {
     fn into(self) -> PrustiError {
         match self.error {

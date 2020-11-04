@@ -106,7 +106,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .into_iter()
         .map(|c| c.into())
         // For the moment, test only a few of the crates.
-        .take(1)
+        .take(2)
         .collect();
 
     // List of crates that don't compile with the standard compiler.
@@ -118,7 +118,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     info!("Iterate over all {} crates...", crates_list.len());
     for (index, krate) in crates_list.iter().enumerate() {
-        info!("Crate {}/{}: {}", index, crates_list.len(), krate);
+        info!("Crate {}/{}: {}", index + 1, crates_list.len(), krate);
 
         info!("Fetch crate...");
         krate.fetch(&workspace)?;
