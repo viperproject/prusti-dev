@@ -9,7 +9,7 @@ These properties include:
 - [Overflow checks](overflow.md)
 
 More intricate properties require users to write suitable [specifications](syntax.html).
-The following features are either currently supported or planned to be supported by Prusti:
+The following features are either currently supported or planned to be supported in Prusti:
 
 - [Pre- and postconditions](prepost.md)
 - [Trusted functions](trusted.md)

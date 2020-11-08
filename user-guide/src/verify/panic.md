@@ -33,8 +33,8 @@ pub fn main() {
 }
 ```
 
-Since Prusti is conservative, if it reports no verification errors then it means that the program is provably correct *with regard to the checked properties.*
+Since Prusti is conservative, if it reports no verification errors then the program is provably correct *with regard to the checked properties.*
 The last part is important because [overflow checks](overflow.html) are *not* enabled by default. 
-Similarly, Prusti may verify although some (or even all) program executions do not terminate because it verifies partial correctness properties.
+Furthermore, Prusti may verify a program although some (or even all) of its executions do not terminate because it verifies partial correctness properties.
 
 
