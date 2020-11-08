@@ -1,7 +1,7 @@
 # Prusti processing stage
 
 - The MIR of functions that should be checked is obtained.
-- MIR is encoded into VIR.
+- MIR is encoded into VIR - Prusti's intermediate representation.
 - VIR is enriched with `fold`/`unfold` statements and other ghost code.
 - VIR is simplified and optimised.
 

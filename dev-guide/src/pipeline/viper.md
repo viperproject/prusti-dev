@@ -2,7 +2,7 @@
 
 - (With Prusti server only) Send VIR to the server.
 - VIR is encoded into Viper.
-- Viper verifier is called and the results are obtained.
+- The Viper verifier is called and the results are obtained.
 - (With Prusti server only) Send verification results back to the client.
 
 ## Prusti server

@@ -1,6 +1,6 @@
 # Binary stage
 
-- User invokes the binary `prusti-rustc <file.rs>`.
+- The user invokes the binary `prusti-rustc <file.rs>`.
 - The binary sets up important environment variables, then invokes `prusti_driver`.
 
 This is a short stage responsible for setting up the correct environment variables for the Rust compiler and the Prusti-supporting libraries. To invoke `prusti-driver` correctly, the following arguments are set up:

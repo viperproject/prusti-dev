@@ -1,6 +1,6 @@
 # Reporting stage
 
-- Prusti client reports Rust errors.
+- The Prusti client reports compilation and verification errors.
 
 In this final stage, any errors and warnings that occurred during verification are reported to the user.
 
