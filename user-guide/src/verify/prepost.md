@@ -11,6 +11,6 @@ use prusti_contracts::*;
 fn example() { ... }
 ```
 
-`#[requires(...)]` is a precondition, `#[ensures(...)]` is a postcondition. There can be any number (including none) of preconditions and postconditions on a function. When no precondition is specified, `#[requires(true)]` is assumed, and likewise for postconditions. The expression inside the parentheses of `requires` or `ensures` should be a [Prusti specification](../syntax.md).
+`#[requires(...)]` is a precondition, `#[ensures(...)]` is a postcondition. There can be any number (including none) of preconditions and postconditions attached to a function. When no precondition is specified, `#[requires(true)]` is assumed, and likewise for postconditions. The expression inside the parentheses of `requires` or `ensures` should be a [Prusti specification](../syntax.md).
 
 Preconditions are checked whenever the given function is called. Postconditions are checked at any exit point of the function, i.e. explicit `return` statements, as well as the end of the function body.

@@ -21,7 +21,8 @@ error[P0004]: unreachable!(..) statement might be reachable
 
 This message correctly points out that the `unreachable!()` statement might actually be reachable.
 
-The message says "might" because by design Prusti is conservative, so it reports a verification error *unless* it can prove that the statement is unreachable, like in the following example:
+The message says "might" because Prusti is conservative, i.e., it reports a verification error *unless* it can prove that the statement is unreachable.
+Hence, Prusti successfully the example below as it can rule out that the condition in the conditional statement, `a <= 0`, holds.
 
 ```rust
 pub fn main() {
@@ -32,6 +33,8 @@ pub fn main() {
 }
 ```
 
-In this program, Prusti proves that the condition of the `if` branch is `false`, so no verification error is reported.
+Since Prusti is conservative, if it reports no verification errors then it means that the program is provably correct *with regard to the checked properties.*
+The last part is important because [overflow checks](overflow.html) are *not* enabled by default. 
+Similarly, Prusti may verify although some (or even all) program executions do not terminate because it verifies partial correctness properties.
 
-Since Prusti is conservative, if it reports no verification errors then it means that the program is provably correct with regard to the checked properties.
+

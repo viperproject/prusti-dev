@@ -34,7 +34,7 @@ Implications express a [relationship](https://en.wikipedia.org/wiki/Material_con
 pub fn is_empty(&self) -> bool;
 ```
 
-There is no syntax for biconditionals ("if and only if"), because this is equivalent to a `==`:
+There is no syntax for logical equivalences ("if and only if"), because this coincides with `==`:
 
 ```rust
 #[pure]
