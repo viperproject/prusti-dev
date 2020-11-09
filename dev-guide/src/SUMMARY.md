@@ -10,6 +10,7 @@
   - [Prusti processing stage](pipeline/prusti.md)
   - [Viper verification stage](pipeline/viper.md)
   - [Reporting stage](pipeline/report.md)
+- [Macros](macros.md)
 - [Viper Encoding](encoding/summary.md)
   - [Types](encoding/types.md)
     - [Heap-based type encoding](encoding/types-heap.md)
