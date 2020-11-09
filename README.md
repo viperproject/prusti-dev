@@ -1,1 +1,1 @@
-This is the source directory for Prusti's GitHub page (https://viperproject.github.io/prusti-dev/). Modifications should consists of pushes or pull requests to this branch (`gh-pages-src`). Deployment is done automatically via GitHub actions.
+This is the source directory for Prusti's GitHub page (https://viperproject.github.io/prusti-dev/). Modifications should consist of pushes or pull requests to this branch (`gh-pages-src`). Deployment (on `gh-pages`) is done automatically via GitHub actions.
