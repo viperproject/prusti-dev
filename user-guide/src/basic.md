@@ -64,7 +64,7 @@ In the above program, the first two lines are required to enable Prusti-specific
 
 > **Warning:** Due to limitations in Rust procedural macros, `use prusti_contracts::*;` should *always* be used, and the Prusti specification attributes should not be imported with an alias.
 
-After that, we used `#[ensures(...)` to attach two [postconditions](verify/prepost.md) to the function `max`. 
+After that, we used `#[ensures(...)]` to attach two [postconditions](verify/prepost.md) to the function `max`. 
 The syntax of specifications is a superset of Rust expressions, where `result` is a keyword referring to the function's return value. 
 
 Again, verifying the above code with Prusti should succeed. 
