@@ -1,0 +1,822 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Prusti user guide</title>
+        
+        <meta name="robots" content="noindex" />
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="install.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="basic.html"><strong aria-hidden="true">3.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="verify/summary.html"><strong aria-hidden="true">4.</strong> Verification Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="verify/panic.html"><strong aria-hidden="true">4.1.</strong> Absence of panics</a></li><li class="chapter-item expanded "><a href="verify/overflow.html"><strong aria-hidden="true">4.2.</strong> Overflow checks</a></li><li class="chapter-item expanded "><a href="verify/prepost.html"><strong aria-hidden="true">4.3.</strong> Pre- and postconditions</a></li><li class="chapter-item expanded "><a href="verify/trusted.html"><strong aria-hidden="true">4.4.</strong> Trusted functions</a></li><li class="chapter-item expanded "><a href="verify/pure.html"><strong aria-hidden="true">4.5.</strong> Pure functions</a></li><li class="chapter-item expanded "><a href="verify/external.html"><strong aria-hidden="true">4.6.</strong> External specifications</a></li><li class="chapter-item expanded "><a href="verify/loop.html"><strong aria-hidden="true">4.7.</strong> Loop body invariants</a></li><li class="chapter-item expanded "><a href="verify/pledge.html"><strong aria-hidden="true">4.8.</strong> Pledges</a></li><li class="chapter-item expanded "><a href="verify/traits.html"><strong aria-hidden="true">4.9.</strong> Trait contract refinement</a></li><li class="chapter-item expanded "><a href="verify/closure.html"><strong aria-hidden="true">4.10.</strong> Closures</a></li><li class="chapter-item expanded "><a href="verify/spec_ent.html"><strong aria-hidden="true">4.11.</strong> Specification entailments</a></li></ol></li><li class="chapter-item expanded "><a href="syntax.html"><strong aria-hidden="true">5.</strong> Specification Syntax</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Prusti user guide</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#introduction" id="introduction">Introduction</a></h1>
+<p>This is the user guide for <a href="https://github.com/viperproject/prusti-dev/">Prusti</a> - a Rust verifier built upon the the <a href="https://www.pm.inf.ethz.ch/research/viper.html">Viper verification infrastructure</a>.
+This guide replaces the <a href="https://github.com/viperproject/prusti-dev/wiki/Tutorial">wiki-based tutorial</a> from the GitHub repository.</p>
+<h1><a class="header" href="#installation" id="installation">Installation</a></h1>
+<h2><a class="header" href="#prusti-assistant" id="prusti-assistant">Prusti Assistant</a></h2>
+<p>The easiest way to try out Prusti is by using the <a href="https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant">&quot;Prusti Assistant&quot;</a> extension for <a href="https://code.visualstudio.com/">Visual Studio Code</a>. Please confer the extension's webpage for detailed installation instructions.</p>
+<p>To update the currently installed version of Prusti within Prusti Assistant, it suffices to open the <a href="https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette">Command Palette</a> and run the command <code>Prusti: update dependencies</code>.</p>
+<blockquote>
+<p><strong>Warning:</strong> Some of the Prusti-specific syntax described in this guide is currently only available in the &quot;nightly&quot; build channel, which corresponds to the latest development version of Prusti.
+The settings for switching to this version in Prusti Assistant are found in
+<code>File → Preferences → Settings → Prusti Assistant → Build Channel</code>.</p>
+</blockquote>
+<h2><a class="header" href="#command-line-setup" id="command-line-setup">Command-line setup</a></h2>
+<p>Alternatively, Prusti can be set up by downloading the <a href="https://github.com/viperproject/prusti-dev/releases">precompiled binaries</a> available from the project page. We currently provide binaries for Windows, macOS, and Ubuntu. Releases marked as &quot;Pre-release&quot; may contain unstable or experimental features.</p>
+<p>For a command-line setup with Prusti built from source, please confer the <a href="https://viperproject.github.io/prusti-dev/dev-guide/development/setup.html">developer guide</a>.</p>
+<h1><a class="header" href="#basic-usage" id="basic-usage">Basic Usage</a></h1>
+<h2><a class="header" href="#prusti-assistant-1" id="prusti-assistant-1">Prusti Assistant</a></h2>
+<p>When the Prusti Assistant extension is active, Rust files can be verified in one of the following ways:</p>
+<ul>
+<li>By clicking the &quot;Verify with Prusti&quot; button in the status bar.</li>
+<li>By opening the <a href="https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette">Command Palette</a> and running the command &quot;Prusti: save and verify this file&quot;.</li>
+<li>By saving a Rust document, if &quot;Verify on save&quot; is enabled.</li>
+<li>By opening a Rust document, if &quot;Verify on open&quot; is enabled.</li>
+</ul>
+<p>See the <a href="verify/summary.html">following chapter</a> for a list of verification features available in Prusti.</p>
+<h2><a class="header" href="#command-line" id="command-line">Command line</a></h2>
+<p>To run Prusti on a file using the command-line setup:</p>
+<pre><code class="language-bash">$ prusti-rustc --edition=2018 path/to/file.rs
+</code></pre>
+<h2><a class="header" href="#introductory-example" id="introductory-example">Introductory example</a></h2>
+<p>Let us verify that the function <code>max</code> below, which takes two integers and returns the greater one, is implemented correctly.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn max(a: i32, b: i32) -&gt; i32 {
+    if a &gt; b {
+        a
+    } else {
+        b
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>When pasting the above code into a Rust file and then verifying it with Prusti (as outlined at the top of the page), Prusti should report that verification succeeded.
+This tells us that</p>
+<ol>
+<li>the file consists of valid Rust code that can be compiled successfuly, and</li>
+<li>no execution reaches a Rust panic (explicit call of the <a href="https://doc.rust-lang.org/std/macro.panic.html"><code>panic!()</code></a> macro, a failed assertion, etc).</li>
+</ol>
+<p>To also verify that <code>max</code> indeed always returns the maximum of its two inputs, we have to add a corresponding specification, which states
+that the return value of <code>max</code> is at least as large as both <code>a</code> and <code>b</code> and, additionally, coincides with <code>a</code> or <code>b</code>:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[ensures(result &gt;= a &amp;&amp; result &gt;= b)]
+#[ensures(result == a || result == b)]
+fn max(a: i32, b: i32) -&gt; i32 {
+    if a &gt; b {
+        a
+    } else {
+        b
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>In the above program, the first two lines are required to enable Prusti-specific syntax for writing specifications:</p>
+<ul>
+<li>The first line, <code>extern crate prusti_contracts;</code>, is needed by Prusti to typecheck the specifications.</li>
+<li>The second line, <code>use prusti_contracts::*;</code>, allows us to write <code>#[ensures(...)]</code> instead of <code>#[prusti_contracts::ensures(...)]</code>.</li>
+</ul>
+<blockquote>
+<p><strong>Warning:</strong> Due to limitations in Rust procedural macros, <code>use prusti_contracts::*;</code> should <em>always</em> be used, and the Prusti specification attributes should not be imported with an alias.</p>
+</blockquote>
+<p>After that, we used <code>#[ensures(...)</code> to attach two <a href="verify/prepost.html">postconditions</a> to the function <code>max</code>. 
+The syntax of specifications is a superset of Rust expressions, where <code>result</code> is a keyword referring to the function's return value. </p>
+<p>Again, verifying the above code with Prusti should succeed. 
+Notice that Prusti assumes by default that integer types are unbounded; it thus ignores <a href="verify/overflow.html">overflow and underflow checks</a> unless corresponding options are provided.</p>
+<p>Next, we add a second function <code>max3</code> which returns the maximum of three instead of two integers; we reuse the already verified function <code>max</code> in the new function's specification to show that this function is implemented correctly.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[pure]
+#[ensures(result &gt;= a &amp;&amp; result &gt;= b)]
+#[ensures(result == a || result == b)]
+fn max(a: i32, b: i32) -&gt; i32 {
+    if a &gt; b {
+        a
+    } else {
+        b
+    }
+}
+
+#[ensures(result == max(a, max(b, c)))]
+fn max3(a: i32, b: i32, c: i32) -&gt; i32 {
+    if a &gt; b &amp;&amp; a &gt; c {
+        a
+    } else {
+        if b &gt; c {
+            b
+        } else {
+            c
+        }
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>Again, Prusti should successfully verify the above program.
+Notice that we additionally declared the function <code>max</code> as <a href="verify/pure.html">pure</a> such that it can be used within specifications.
+If we omit this annotation, Prusti will complain that the postcondition of function <code>max3</code> is invalid because it uses an <code>impure</code> function, which may potentially have side-effects.</p>
+<p>So far, we only considered programs that meet their specification and that, consequently, Prusti successfully verified.
+To conclude this example, assume we accidentally return <code>c</code> instead of <code>b</code> if <code>b &gt; c</code> holds:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[ensures(result == max(a, max(b, c)))]
+fn max3(a: i32, b: i32, c: i32) -&gt; i32 {
+    if a &gt; b &amp;&amp; a &gt; c {
+        a
+    } else {
+        if b &gt; c {
+            c // ERROR
+        } else {
+            c
+        }
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>In this case, Prusti will highlight the line with the error and report that the <code>postcondition might not hold</code>.</p>
+<p>For debugging purposes, it is often useful to add <code>assert!(...)</code> macros to our code to locate the issue. For example, in the code below, we added an assertion that fails because <code>b &gt; c</code> and thus the maximum of <code>b</code> and <code>c</code> is <code>b</code> instead of <code>c</code>. </p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[pure]
+#[ensures(result &gt;= a &amp;&amp; result &gt;= b)]
+#[ensures(result == a || result == b)]
+fn max(a: i32, b: i32) -&gt; i32 {
+    if a &gt; b {
+        a
+    } else {
+        b
+    }
+}
+
+#[ensures(result == max(a, max(b, c)))]
+fn max3(a: i32, b: i32, c: i32) -&gt; i32 {
+    if a &gt; b &amp;&amp; a &gt; c {
+        a
+    } else {
+        if b &gt; c {
+            assert!(max(b, c) == c); // FAILS
+            c
+        } else {
+            c
+        }
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>When running Prusti on this example, it highlights the failing assertion and thus enables us to quickly locate and fix the issue. </p>
+<h1><a class="header" href="#verification-features" id="verification-features">Verification Features</a></h1>
+<p>Even if no specifications are provided, Prusti is capable of verifying a few basic properties about the supplied Rust code.
+These properties include:</p>
+<ul>
+<li><a href="verify/panic.html">Absence of panics</a></li>
+<li><a href="verify/overflow.html">Overflow checks</a></li>
+</ul>
+<p>More intricate properties require users to write suitable <a href="verify/syntax.html">specifications</a>.
+The following features are either currently supported or planned to be supported in Prusti:</p>
+<ul>
+<li><a href="verify/prepost.html">Pre- and postconditions</a></li>
+<li><a href="verify/trusted.html">Trusted functions</a></li>
+<li><a href="verify/pure.html">Pure functions</a></li>
+<li><a href="verify/external.html">External specifications</a></li>
+<li><a href="verify/loop.html">Loop body invariants</a></li>
+<li><a href="verify/pledge.html">Pledges</a></li>
+<li><a href="verify/traits.html">Trait contract refinement</a></li>
+<li><a href="verify/closure.html">Closures</a></li>
+<li><a href="verify/spec_ent.html">Specification entailments</a></li>
+</ul>
+<p>By default, Prusti only checks absence of panics.
+Moreover, Prusti verifies <em>partial</em> correctness. That is, it only verifies that <em>terminating</em> program executions meet the supplied specification.</p>
+<h1><a class="header" href="#absence-of-panics" id="absence-of-panics">Absence of panics</a></h1>
+<p>With the default settings, Prusti checks absence of panics. For example, consider the following program which always panics when executed:</p>
+<pre><pre class="playground"><code class="language-rust">pub fn main() {
+    unreachable!();
+}
+</code></pre></pre>
+<p>When run on the previous program, Prusti reports a verification error:</p>
+<pre><code class="language-plain">error[P0004]: unreachable!(..) statement might be reachable
+ --&gt; src/lib.rs:2:5
+  |
+2 |     unreachable!();
+  |     ^^^^^^^^^^^^^^^
+  |
+</code></pre>
+<p>This message correctly points out that the <code>unreachable!()</code> statement might actually be reachable.</p>
+<p>The message says &quot;might&quot; because Prusti is conservative, i.e., it reports a verification error <em>unless</em> it can prove that the statement is unreachable.
+Hence, Prusti successfully the example below as it can rule out that the condition in the conditional statement, <code>a &lt;= 0</code>, holds.</p>
+<pre><pre class="playground"><code class="language-rust">pub fn main() {
+    let a = 5;
+    if a &lt;= 0 {
+        unreachable!();
+    }
+}
+</code></pre></pre>
+<p>Since Prusti is conservative, if it reports no verification errors then the program is provably correct <em>with regard to the checked properties.</em>
+The last part is important because <a href="verify/overflow.html">overflow checks</a> are <em>not</em> enabled by default. 
+Furthermore, Prusti may verify a program although some (or even all) of its executions do not terminate because it verifies partial correctness properties.</p>
+<h1><a class="header" href="#overflow-checks" id="overflow-checks">Overflow checks</a></h1>
+<p>There are two ways to enable overflow checks in Prusti, depending on how you use the tool:</p>
+<ul>
+<li>If you use Prusti from the IDE, create a file named <code>Prusti.toml</code> containing <code>CHECK_BINARY_OPERATIONS=true</code> in the same folder of the program that you want to verify.</li>
+<li>If you run Prusti from the command line, place the <code>Prusti.toml</code> in the folder from which you run Prusti, or set the <code>PRUSTI_CHECK_BINARY_OPERATIONS=true</code> environment variable.</li>
+</ul>
+<p>By default, overflow checks are disabled and Prusti models each integer type as an unbounded integer. When overflow checks are enabled, instead, Prusti models integers as bounded values with a range that depends on the type of the integer. Values of <code>u32</code> types, for example, would be modeled to be between <code>0</code> and <code>2^32 - 1</code>.</p>
+<h1><a class="header" href="#pre--and-postconditions" id="pre--and-postconditions">Pre- and postconditions</a></h1>
+<p>In Prusti, the externally observable behaviour of a function can be specified with preconditions and postconditions. They can be provided using <a href="https://doc.rust-lang.org/reference/attributes.html">Rust attributes</a>:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[requires(...)]
+#[ensures(...)]
+fn example() { ... }
+<span class="boring">}
+</span></code></pre></pre>
+<p><code>#[requires(...)]</code> is a precondition, <code>#[ensures(...)]</code> is a postcondition. There can be any number (including none) of preconditions and postconditions attached to a function. When no precondition is specified, <code>#[requires(true)]</code> is assumed, and likewise for postconditions. The expression inside the parentheses of <code>requires</code> or <code>ensures</code> should be a <a href="verify/../syntax.html">Prusti specification</a>.</p>
+<p>Preconditions are checked whenever the given function is called. Postconditions are checked at any exit point of the function, i.e. explicit <code>return</code> statements, as well as the end of the function body.</p>
+<h1><a class="header" href="#trusted-functions" id="trusted-functions">Trusted functions</a></h1>
+<p>Sometimes specifications express a fact which is true about a function, but the verifier cannot prove it automatically, or it uses features not yet supported by Prusti. In such cases, it is possible to mark a function as <code>#[trusted]</code>:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[trusted]
+#[ensures(*a == old(*b) &amp;&amp; *b == old(*a))]
+fn xor_swap(a: &amp;mut i32, b: &amp;mut i32) {
+    *a ^= *b;
+    *b ^= *a;
+    *a ^= *b;
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>In the above example, the contract for <code>xor_swap</code> is correct, but Prusti would not be able to verify it because it uses currently unsupported XOR operations.</p>
+<p>While a common application of <code>#[trusted]</code> is to wrap functions from the standard library or external libraries, notice that <a href="verify/external.html">external specifications</a> provide a more robust solution for this use case.</p>
+<h2><a class="header" href="#why-trusted-functions-are-dangerous" id="why-trusted-functions-are-dangerous">Why trusted functions are dangerous</a></h2>
+<p>When declaring a function as <code>#[trusted]</code>, Prusti ignores the function's body and assumes the provided pre- and postconditions have already been successfully verified.
+As the example below demonstrates, a single wrong, yet trusted, specification may lead to wrong and unexpected verification results.
+Hence, some care is needed to ensure that the specifications of trusted functions are indeed correct.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[trusted]
+#[ensures(42 == 23)] // assumed correct since we trust foo()
+fn foo() { unreachable!() }
+
+fn test() {
+    foo();
+    assert!(1 == 2); // verifies successfully
+}
+<span class="boring">}
+</span></code></pre></pre>
+<h1><a class="header" href="#pure-functions" id="pure-functions">Pure functions</a></h1>
+<p>Pure functions are functions which are deterministic and side-effect free. In Prusti, such functions can be marked with the <code>#[pure]</code> attribute. They can take shared references as arguments, but they cannot take mutable references, because modifying the heap is considered a side effect.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[pure]
+#[ensures(result == *a + *b)]
+fn pure_example(a: &amp;i32, b: &amp;i32) -&gt; i32 {
+  *a + *b
+}
+
+#[ensures(*c == a + b)]
+fn impure_example(a: &amp;i32, b: &amp;i32, c: &amp;mut i32) {
+  *c = *a + *b
+}
+<span class="boring">}
+</span></code></pre></pre>
+<h1><a class="header" href="#external-specifications" id="external-specifications">External specifications</a></h1>
+<p>Since the Rust standard library and external libraries do not specify contracts for their functions, Prusti allows specifying the contract for functions separately from where they are implemented. Such a specification looks like a regular <code>impl</code>, with the exception that there are no bodies in the implementation functions, and that the <code>impl</code> has an <code>#[extern_spec]</code> attribute.</p>
+<p>The standard library type <code>std::option::Option</code> could be specified as follows:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[extern_spec]
+impl&lt;T&gt; std::option::Option&lt;T&gt; {
+    #[pure]
+    #[ensures(matches!(*self, Some(_)) == result)]
+    pub fn is_some(&amp;self) -&gt; bool;
+
+    #[pure]
+    #[ensures(self.is_some() == !result)]
+    pub fn is_none(&amp;self) -&gt; bool;
+
+    #[requires(self.is_some())]
+    pub fn unwrap(self) -&gt; T;
+
+    // ...
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>Any function in an external specification is implicitly <a href="verify/trusted.html">trusted</a> (as if marked with <code>#[trusted]</code>). It is possible to specify multiple <code>#[extern_spec]</code> implementations for the same type, but it is an error to externally specify the same function multiple times.</p>
+<p>Module functions can be specified using a nested <code>mod</code> syntax:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[extern_spec]
+mod std {
+    mod mem {
+        use prusti_contracts::*;
+
+        #[ensures(*a == old(*b) &amp;&amp; *b == old(*a))]
+        pub fn swap(a: &amp;mut i32, b: &amp;mut i32);
+        // pub fn swap&lt;T: std::cmp::PartialEq + Copy&gt;(a: &amp;mut T, b: &amp;mut T);
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>There are currently issues with external specifications combined with generics, so the function <code>swap</code> above is specified for <code>i32</code> arguments only.</p>
+<h1><a class="header" href="#loop-body-invariants" id="loop-body-invariants">Loop body invariants</a></h1>
+<p>To verify loops, including loops in which the loop condition has side effects, Prusti allows specifying the <em>invariant of the loop body</em> using the <code>body_invariant!(...);</code> statement. The expression inside the parentheses should be a <a href="verify/../syntax.html">Prusti specification</a>. There may be any number of body invariants in any given loop, but they must all be written at the beginning of the loop body.</p>
+<table><thead><tr><th>Feature</th><th>Status</th></tr></thead><tbody>
+<tr><td>Loop conditions without side-effects</td><td>Supported</td></tr>
+<tr><td>Loop conditions with side-effects</td><td>Supported</td></tr>
+<tr><td>Loops with <code>break</code>, <code>continue</code>, or <code>return</code> statements</td><td>Supported</td></tr>
+<tr><td>Loans that cross a loop boundary (e.g. loans defined outside the loop, expiring in the loop)</td><td>Not supported yet</td></tr>
+</tbody></table>
+<p>In general, given the loop:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>while {
+  G; // possibly side-effectful
+  g // loop condition
+} {
+  body_invariant!(I); // loop body invariant
+  B // loop body
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>Prusti checks the following:</p>
+<ol>
+<li>The first time that <code>G</code> has been executed, if <code>g</code> evaluates to <code>true</code> then the property <code>I</code> must hold.</li>
+<li>Assuming that the property <code>I</code> holds, after executing <code>B; G</code>, if <code>g</code> evaluates to <code>true</code> then <code>I</code> must hold (again).</li>
+</ol>
+<p>After the loop, Prusti knows that the program is in a state in which the loop condition evaluated to <code>false</code>. This can happen for two reasons:</p>
+<ol>
+<li>The loop body has never been executed, because the first evaluation of the loop condition resulted in <code>false</code>. In this case, the invariant in the loop body is never reached.</li>
+<li>The loop executed at least one iteration, then after executing <code>B</code> the evaluation of <code>{ G; g }</code> resulted in <code>false</code>.</li>
+</ol>
+<p>Finally, the loop body invariant is not enforced when exiting from a loop with a <code>break</code> or <code>return</code> statement.</p>
+<p>As an example, consider the following program. The loop condition calls <code>test_and_increment</code>, and the call has side effects:</p>
+<pre><pre class="playground"><code class="language-rust">extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[ensures(result == (old(*i) &gt;= 0))]
+#[ensures(*i == 1 + old(*i))]
+fn test_and_increment(i: &amp;mut usize) -&gt; bool {
+    let old_i = *i;
+    *i += 1;
+    old_i &gt;= 0
+}
+
+#[requires(*i &gt; 0)]
+fn work(i: &amp;mut usize) {
+    // ...
+}
+
+fn main() {
+    let mut i = 0;
+
+    while test_and_increment(&amp;mut i) {
+        body_invariant!(i &gt; 0);
+        work(i);
+    }
+
+    assert!(i &lt;= 0);
+}
+</code></pre></pre>
+<p>We can assert <code>i &lt;= 0</code> after the loop, because in the last evaluation of the loop condition <code>i &gt;= 0</code> was <code>false</code>, and <code>i</code> was then incremented by one.</p>
+<p>Note that it would be wrong to assert <code>i &lt; 0</code> after the loop, because it is possible to have <code>i == 0</code>. Note also that the loop body invariant <code>i &gt;= 0</code> is not strong enough to verify the program, since <code>work</code> requires <code>i &gt; 0</code>. In fact, after <code>test_and_increment</code> returns <code>true</code>, <code>i</code> cannot be <code>0</code> because of the <code>+= 1</code>.</p>
+<h1><a class="header" href="#pledges" id="pledges">Pledges</a></h1>
+<p>Pledges are a construct that can be used to specify the behaviour of functions that reborrow. For example, pledges should be used for modelling an assignment to a vector element because, in Rust, <code>v[i] = 4</code> is not a method call <code>v.store(i, 4)</code> but rather <code>let tmp = v.get_mut(i); *tmp = 4</code>, where <code>get_mut</code> is a method that reborrows the <code>v</code> receiver to return a reference to a particular element.</p>
+<p>As a full example, a wrapper around Rust <code>Vec&lt;i32&gt;</code> could be implemented as follows:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+pub struct VecWrapperI32 {
+    v: Vec&lt;i32&gt;
+}
+
+impl VecWrapperI32 {
+    #[trusted]
+    #[pure]
+    #[ensures(result &gt;= 0)]
+    pub fn len(&amp;self) -&gt; usize {
+        self.v.len()
+    }
+
+    /// A ghost function for specifying values stored in the vector.
+    #[trusted]
+    #[pure]
+    #[requires(0 &lt;= index &amp;&amp; index &lt; self.len())]
+    pub fn lookup(&amp;self, index: usize) -&gt; i32 {
+        self.v[index]
+    }
+
+    #[trusted]
+    #[requires(0 &lt;= index &amp;&amp; index &lt; self.len())]
+    #[ensures(*result == old(self.lookup(index)))]
+    #[after_expiry(
+        self.len() == old(self.len()) &amp;&amp;
+        self.lookup(index) == before_expiry(*result) &amp;&amp;
+        (
+            forall i: usize :: (0 &lt;= i &amp;&amp; i &lt; self.len() &amp;&amp; i != index) ==&gt;
+            self.lookup(i) == old(self.lookup(i))
+        )
+    )]
+    pub fn index_mut(&amp;mut self, index: usize) -&gt; &amp;mut i32 {
+        self.v.get_mut(index).unwrap()
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>The syntax for a pledge is <code>#[after_expiry&lt;reference&gt;(condition)]</code> where
+<code>reference</code> is the reborrowing reference (defaults to <code>result</code>, which is
+currently the only thing one can write until we have support for
+reference fields) and <code>condition</code> is a <a href="verify/../syntax.html">Prusti specification</a> that specifies how the borrowed data
+structure will look once the borrow expires. To refer to the state that
+a memory location pointed at by the reference has just before expiring,
+use <code>before_expiry(*reference)</code>.</p>
+<h1><a class="header" href="#trait-contract-refinement" id="trait-contract-refinement">Trait contract refinement</a></h1>
+<blockquote>
+<p><strong>NOT YET SUPPORTED:</strong> This feature is not yet supported in the new version of Prusti.</p>
+</blockquote>
+<p>In some cases, marker traits simply modify the behavior of methods in their super-traits. For instance consider the <code>PartialEq&lt;T&gt;</code> and <code>Eq</code> traits. In order to consider this additional behavior for verification, traits support contract refinement on trait level:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub trait PartialEq&lt;Rhs: ?Sized = Self&gt; {
+    #[ensures(/* partial equivalence formulas */)]
+    fn eq(&amp;self, other: &amp;Rhs) -&gt; bool;
+}
+
+#[refine_ensures(PartialEq::eq = &quot;self.eq(&amp;self)&quot;)]
+pub trait Eq: PartialEq&lt;Self&gt; {}
+<span class="boring">}
+</span></code></pre></pre>
+<p>Thus, any client implementing <code>Eq</code> on a custom type can take advantage of the additional semantics of the total equivalence. Similarly <code>#[refine_requires]</code> can be used to refine the precondition of a super-trait.</p>
+<blockquote>
+<p>Such trait refinement is not scoped. Therefore, considering the previous example, implementing <code>Eq</code> on a type implies that the total equivalence contract is always considered on the type, irrespective of whether <code>Eq</code> is in scope or not.</p>
+</blockquote>
+<h1><a class="header" href="#closures" id="closures">Closures</a></h1>
+<blockquote>
+<p><strong>NOT YET SUPPORTED:</strong> This feature is not yet supported in Prusti. See <a href="https://github.com/viperproject/prusti-dev/pull/138">PR #138</a> for the status of this feature as well as a prototype. The syntax described here is subject to change.</p>
+</blockquote>
+<p><a href="https://doc.rust-lang.org/book/ch13-01-closures.html">Rust closures</a> can be given a specification using the <code>closure!(...)</code> syntax:</p>
+<pre><pre class="playground"><code class="language-rust">extern crate prusti_contracts;
+use prusti_contracts::*;
+
+fn main() {
+    let cl = closure!(
+        requires(a &gt; b),
+        ensures(result &gt; b),
+        |a: i32, b: i32| -&gt; i32 { a }
+    );
+}
+</code></pre></pre>
+<p><code>closure!</code> can have any number of pre- and postconditions. The arguments and return type for the closure must be given explicitly. See <a href="verify/spec_ent.html">specification entailments</a> for specifying the contract of a higher-order function (e.g. when taking a closure as an argument).</p>
+<h1><a class="header" href="#specification-entailments" id="specification-entailments">Specification entailments</a></h1>
+<blockquote>
+<p><strong>NOT YET SUPPORTED:</strong> This feature is not yet supported in Prusti. See <a href="https://github.com/viperproject/prusti-dev/pull/138">PR #138</a> for the status of this feature as well as a prototype. The syntax described here is subject to change.</p>
+</blockquote>
+<p>The contract for a closure or function pointer variable can be given using the specification entailment syntax:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[requires(
+  f |= |a: i32, b: i32| [
+    requires(a == 5),
+    requires(b == 4),
+    ensures(result &gt; 4)
+  ]
+)]
+fn example&lt;F: Fn (i32, i32) -&gt; i32&gt; (f: F) { ... }
+<span class="boring">}
+</span></code></pre></pre>
+<p>In the above example, <code>f</code>, the argument to <code>example</code>, must be a function that takes two <code>i32</code> arguments. A call to <code>f</code> inside the body of <code>example</code> is only valid if the preconditions are satisfied, and the result of that call must satisfy the postcondition given.</p>
+<blockquote>
+<p>TODO:</p>
+<ul>
+<li>arrow syntax (<code>~~&gt;</code>)</li>
+<li>ghost arguments</li>
+<li>history invariants</li>
+<li>multiple-call specification entailment</li>
+</ul>
+</blockquote>
+<h1><a class="header" href="#specification-syntax" id="specification-syntax">Specification syntax</a></h1>
+<p>Prusti specifications are a superset of Rust boolean expressions. They must be deterministic and side-effect free. Therefore, they can only call only <a href="verify/pure.html">pure functions</a>. The extensions to Rust expressions are summarised below:</p>
+<table><thead><tr><th>Syntax</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><a href="syntax.html#old-expressions"><code>old(...)</code></a></td><td>Value of expression in a previous state</td></tr>
+<tr><td><a href="syntax.html#implications"><code>... ==&gt; ...</code></a></td><td>Implication</td></tr>
+<tr><td><a href="syntax.html#quantifiers"><code>forall ...</code></a></td><td>Universal quantifier</td></tr>
+<tr><td><a href="syntax.html#specification-entailments"><code>... |= ...</code></a></td><td>Specification entailment</td></tr>
+</tbody></table>
+<h2><a class="header" href="#old-expressions" id="old-expressions">Old expressions</a></h2>
+<p>Old expressions are used to refer to the value that a memory location pointed at by a mutable reference had at the beginning of the function:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>extern crate prusti_contracts;
+use prusti_contracts::*;
+
+#[ensures(*x == old(*x) + 1)]
+pub fn inc(x: &amp;mut u32) {
+    *x += 1;
+}
+<span class="boring">}
+</span></code></pre></pre>
+<h2><a class="header" href="#implications" id="implications">Implications</a></h2>
+<p>Implications express a <a href="https://en.wikipedia.org/wiki/Material_conditional">relationship</a> between two boolean expressions:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[pure]
+#[ensures(result ==&gt; self.len() == 0)]
+#[ensures(!result ==&gt; self.len() &gt; 0)]
+pub fn is_empty(&amp;self) -&gt; bool;
+<span class="boring">}
+</span></code></pre></pre>
+<p>There is no syntax for logical equivalences (&quot;if and only if&quot;), because this coincides with <code>==</code>:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[pure]
+#[ensures(result == (self.len() == 0))]
+pub fn is_empty(&amp;self) -&gt; bool;
+<span class="boring">}
+</span></code></pre></pre>
+<h2><a class="header" href="#quantifiers" id="quantifiers">Quantifiers</a></h2>
+<p>Quantifiers are typically used for describing how a method call changes a container such as a vector:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[requires(0 &lt;= index &amp;&amp; index &lt; self.len())]
+#[ensures(self.len() == old(self.len()))]
+#[ensures(self.lookup(index) == value)]
+#[ensures(
+    forall i: usize :: (0 &lt;= i &amp;&amp; i &lt; self.len() &amp;&amp; i != index) ==&gt;
+        self.lookup(i) == old(self.lookup(i))
+)]
+pub fn store(&amp;mut self, index: usize, value: i32) {
+    ...
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>The syntax of quantifiers is:</p>
+<pre><code class="language-plain">forall &lt;bound variable&gt;: &lt;bound variable type&gt; :: &lt;filter&gt; ==&gt; &lt;expression&gt;
+</code></pre>
+<h2><a class="header" href="#specification-entailments-1" id="specification-entailments-1">Specification entailments</a></h2>
+<p>Specification entailments provide the contract for a given closure or function variable. See the <a href="verify/spec_ent.html">specification entailments</a> chapter for more details.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+        
+        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+        
+        
+
+    </body>
+</html>
