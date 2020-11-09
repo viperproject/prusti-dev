@@ -1,5 +1,7 @@
 # Basic Usage
 
+## Prusti Assistant
+
 When the Prusti Assistant extension is active, Rust files can be verified in one of the following ways:
 
 - By clicking the "Verify with Prusti" button in the status bar.
@@ -8,6 +10,14 @@ When the Prusti Assistant extension is active, Rust files can be verified in one
 - By opening a Rust document, if "Verify on open" is enabled.
 
 See the [following chapter](verify/summary.md) for a list of verification features available in Prusti.
+
+## Command line
+
+To run Prusti on a file using the command-line setup:
+
+```bash
+$ prusti-rustc --edition=2018 path/to/file.rs
+```
 
 ## Introductory example
 
