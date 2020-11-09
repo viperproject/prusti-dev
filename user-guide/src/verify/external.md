@@ -1,6 +1,6 @@
 # External specifications
 
-Since the Rust standard library and external libraries do not specify contracts for their functions, Prusti allows specifying the contract for functions separately from where they are implemented. Such a specification looks like a regular `impl`, with the exception that there are no bodies in the implementation functions, and that the `impl` has a `#[extern_spec]` attribute.
+Since the Rust standard library and external libraries do not specify contracts for their functions, Prusti allows specifying the contract for functions separately from where they are implemented. Such a specification looks like a regular `impl`, with the exception that there are no bodies in the implementation functions, and that the `impl` has an `#[extern_spec]` attribute.
 
 The standard library type `std::option::Option` could be specified as follows:
 
@@ -25,7 +25,7 @@ impl<T> std::option::Option<T> {
 }
 ```
 
-Any function in an external specification is implicitly trusted (as if marked with `#[trusted]`). It is possible to specify multiple `#[extern_spec]` implementations for the same type, but it is an error to externally specify the same function multiple times.
+Any function in an external specification is implicitly [trusted](trusted.md) (as if marked with `#[trusted]`). It is possible to specify multiple `#[extern_spec]` implementations for the same type, but it is an error to externally specify the same function multiple times.
 
 Module functions can be specified using a nested `mod` syntax:
 

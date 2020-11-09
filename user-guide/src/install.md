@@ -12,6 +12,6 @@ To update the currently installed version of Prusti within Prusti Assistant, it 
 
 ## Command-line setup
 
-Alternatively, Prusti can be set up by downloading the [precompiled binaries](https://github.com/viperproject/prusti-dev/releases) available from the project page. We currently provide for Windows, macOS, and Ubuntu. Releases marked as "Pre-release" may contain unstable or experimental features.
+Alternatively, Prusti can be set up by downloading the [precompiled binaries](https://github.com/viperproject/prusti-dev/releases) available from the project page. We currently provide binaries for Windows, macOS, and Ubuntu. Releases marked as "Pre-release" may contain unstable or experimental features.
 
 For a command-line setup with Prusti built from source, please confer the [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/development/setup.html).

@@ -1,14 +1,12 @@
 # Verification Features
 
-
-
-Even if no specifications are provided, Prusti is capable of verifying a few basic properties about the supplied Rust code. 
+Even if no specifications are provided, Prusti is capable of verifying a few basic properties about the supplied Rust code.
 These properties include:
 
 - [Absence of panics](panic.md)
 - [Overflow checks](overflow.md)
 
-More intricate properties require users to write suitable [specifications](syntax.html).
+More intricate properties require users to write suitable [specifications](syntax.md).
 The following features are either currently supported or planned to be supported in Prusti:
 
 - [Pre- and postconditions](prepost.md)
@@ -23,4 +21,3 @@ The following features are either currently supported or planned to be supported
 
 By default, Prusti only checks absence of panics.
 Moreover, Prusti verifies *partial* correctness. That is, it only verifies that *terminating* program executions meet the supplied specification.
-

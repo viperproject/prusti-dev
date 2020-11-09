@@ -19,7 +19,7 @@ In the above example, the contract for `xor_swap` is correct, but Prusti would n
 
 While a common application of `#[trusted]` is to wrap functions from the standard library or external libraries, notice that [external specifications](external.md) provide a more robust solution for this use case.
 
-## Why Trusted Functions are Dangerous
+## Why trusted functions are dangerous
 
 When declaring a function as `#[trusted]`, Prusti ignores the function's body and assumes the provided pre- and postconditions have already been successfully verified.
 As the example below demonstrates, a single wrong, yet trusted, specification may lead to wrong and unexpected verification results.
@@ -38,8 +38,3 @@ fn test() {
     assert!(1 == 2); // verifies successfully
 }
 ```
-
-
-
-
-
