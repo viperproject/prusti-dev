@@ -1,4 +1,4 @@
-# Snapshot-Based Type Encoding
+# Snapshot-based type encoding
 
 Prusti's [default encoding of types](types-heap.md) heavily relies on the heap component of the Viper program state to model parts of Rust's ownership system through [permissions](http://viper.ethz.ch/tutorial/?page=1&section=#permissions).
 
@@ -51,10 +51,10 @@ To guarantee that there is a bijection between instances of `SomeStruct` and `Sn
 
 ```viper
 axiom Snap$SomeStruct$surjectivity {
-    forall
-      s: Snap$SomeStruct ::
-      (forall a: Int, b: Int :: {cons$SomeStruct(a, b)} s != cons$SomeStruct(a, b)) ==> false
-  }
+  forall
+    s: Snap$SomeStruct ::
+    (forall a: Int, b: Int :: {cons$SomeStruct(a, b)} s != cons$SomeStruct(a, b)) ==> false
+}
 ```
 
 Finally, component (4), i.e., the heap-dependent function for converting instances of `SomeStruct` in the heap-based encoding into the snapshot-based representation, is defined as follows:
@@ -72,7 +72,7 @@ function snap$SomeStruct(self: Ref): Snap$SomeStruct
 The above function recursively unfolds all predicates involved in the encoding of `SomeStruct`.
 It then calls the constructor of `Snap$SomeStruct`. Furthermore, for each argument, it calls the `snap$` function of the argument's type to obtain a heap-independent deep value instead of a reference.
 
-## Primitive Types
+## Primitive types
 
 Prusti also generates `snap$` functions for primitive types such that we do not have to check whether a type is primitive or not; these functions return the primitive type itself instead of a domain type. For instance, the function `snap$i32` used in the above example is defined as follows:
 
@@ -145,8 +145,8 @@ For example, consider the enumeration below, which defines a custom Option type.
 ```rust
 // assuming SomeStruct as before
 enum MyOption {
-    _Some(SomeStruct),
-    _None,
+  _Some(SomeStruct),
+  _None,
 }
 ```
 
@@ -160,8 +160,9 @@ domain Snap$MyOption {
 
   // injectivity axioms for all constructors with parameters
   axiom Snap$MyOption$injectivity$1 {
-    forall i: Snap$SomeStruct, j: Snap$SomeStruct :: { cons$MyOption$1(i),cons$MyOption$1(j) } 
-        cons$MyOption$1(i) == cons$MyOption$1(j) ==> i == j
+    forall
+      i: Snap$SomeStruct, j: Snap$SomeStruct :: { cons$MyOption$1(i), cons$MyOption$1(j) }
+      cons$MyOption$1(i) == cons$MyOption$1(j) ==> i == j
   }
 
   // map snapshot values to variant discriminant
@@ -169,9 +170,9 @@ domain Snap$MyOption {
 
   // axiom defining possible discriminant values 
   axiom Snap$MyOption$discriminants {
-    forall x: Snap$MyOption :: 
-        discriminant$MyOption(x) == 0
-     || discriminant$MyOption(x) == 1
+    forall
+      x: Snap$MyOption :: 
+      discriminant$MyOption(x) == 0 || discriminant$MyOption(x) == 1
   }
 
   // one axiom characterizing the discriminant for each constructor
@@ -180,8 +181,9 @@ domain Snap$MyOption {
   }
   
   axiom Snap$MyOption$1 {
-    forall i: Snap$SomeStruct :: { cons$MyOption$1(i) } 
-        discriminant$MyOption(cons$MyOption$1(i)) == 1
+    forall
+      i: Snap$SomeStruct :: { cons$MyOption$1(i) } 
+      discriminant$MyOption(cons$MyOption$1(i)) == 1
   }
 }
 
@@ -191,28 +193,27 @@ function snap$MyOption(x: Ref): Snap$MyOption
 {
   // call the cons function matching the discriminant
   unfolding acc(MyOption(x), read$()) in 
-    x.discriminant == 1 ?
-        unfolding acc(MyOption$_Some(x.enum_val), read$()) 
-            in cons$MyOption$1( snap$SomeStruct(x.enum_val) )
-    :
-        cons$MyOption$0()
+    x.discriminant == 1
+      ? unfolding acc(MyOption$_Some(x.enum_val), read$()) in
+          cons$MyOption$1(snap$SomeStruct(x.enum_val))
+      : cons$MyOption$0()
 }
 ```
 
-## Applications of Snapshots 
+## Applications of snapshots 
 
 Prusti makes use of the heap-independent encoding of types via snapshots 
 to implement several features, which are collected below.
 
-### Structural Equality
+### Structural equality
 
 Prusti uses the snapshot-based encoding for checking whether two instances of a data structure are equal. That is, both `x == y` and `std::cmp::eq(x,y)` are encoded as a comparison of the snapshot values of `x` and `y`:
 
 ```viper
-  snap$Type(x) == snap$Type(y)
+snap$Type(x) == snap$Type(y)
 ```
 
-Disequalities `x != y` are encoded analogously. 
+Inequalities `x != y` are encoded analogously. 
 
 Notice that Prusti only uses snapshots for a subset of *supported* types. More precisely, a type `T` has to meet the following conditions:
 
@@ -221,9 +222,9 @@ Notice that Prusti only uses snapshots for a subset of *supported* types. More p
 
 If a type does not meet these criteria, it either invokes a user-supplied custom implementation or a bodyless stub function.
 
-### Comparing Return Values of Pure Functions
+### Comparing return values of pure functions
 
-Whenever one invokes a [pure function](pure.html) with equal arguments, the function should yield the same return value, i.e., a function `f` with one argument should satisfy the following specification:
+Whenever one invokes a [pure function](pure.md) with equal arguments, the function should yield the same return value, i.e., a function `f` with one argument should satisfy the following specification:
 
 ```
 x == y  ==> f(x) == f(y)
@@ -234,23 +235,22 @@ For non-recursive types, the snapshot function `snap$type(ref)` recursively unfo
 For example, the following piece of Rust code verifies while internally using snapshots to discharge equality checks:
 
 ```rust
-
 // as before, but derives Eq
-#[derive(PartialEq,Eq)]
+#[derive(PartialEq, Eq)]
 struct SomeStruct {
   a: i32,
   b: i32,
 }
 
 #[pure]
-#[requires("x == y)"]
-#[ensures="result == get_a(_y)"]
-fn f(x: SomeStruct, y: SomeStruct) -> i32 {
-    x.a
+#[requires(x == y)]
+#[ensures(result == y.a)]
+fn foo(x: SomeStruct, y: SomeStruct) -> i32 {
+  x.a
 }
 
 #[requires(x == y)]
-#[ensures(result == 2 * f(x)"]
+#[ensures(result == 2 * foo(x))]
 fn test(x: SomeStruct, y: SomeStruct) -> i32 {
     foo(x) + foo(y)
 }
@@ -274,9 +274,9 @@ function f(x:Ref) : Int
 }
 ```
 
-### Pure Functions Returning Copy Types
+### Pure functions returning copy types
 
-Prusti uses snapshots to encode [pure Rust functions](pure.html) that return structures or enumerations.
+Prusti uses snapshots to encode [pure Rust functions](pure.md) that return structures or enumerations.
 This is necessary because Viper does not allow resource assertions within the postcondition of functions.
 At the moment, only types implementing the [`Copy`](https://doc.rust-lang.org/core/marker/trait.Copy.html) trait are supported.
 
@@ -286,7 +286,7 @@ Moreover, consider the following pure function `get` mapping every instance of `
 ```rust
 #[pure]
 fn get(x: BiggerStruct) -> SomeStruct {
-    x.bar
+  x.bar
 }
 ```
 
@@ -295,9 +295,9 @@ Prusti encodes the function `get` as a Viper function that first computes the re
 ```viper
 // snapshot domains are encoded as in previous examples
 function get(x: Ref): Snap$SomeStruct
-    requires BiggerStruct(x)
+  requires BiggerStruct(x)
 {
-    unfolding BiggerStruct(x) in snap$SomeStruct( x.bar )
+  unfolding BiggerStruct(x) in snap$SomeStruct(x.bar)
 }
 ```
 
@@ -311,10 +311,9 @@ inhale acc(SomeStruct(x), write) && snap$SomeStruct(x) == get(y)
 ```
 
 > **Warning:** Pure functions returning non-primitive types are partially supported by Prusti.
-> In particular, chaining pure functions, e.g., `f(g(h(x,y)))`, and constructing new
+> In particular, chaining pure functions, e.g., `f(g(h(x, y)))`, and constructing new
 > instances of Copy types within pure functions is currently not fully supported.
 
-
-### Quantification over Structures
+### Quantification over structures
 
 > **TODO**: Has this been added in the context of closures?
