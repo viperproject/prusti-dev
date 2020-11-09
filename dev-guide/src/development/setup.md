@@ -9,7 +9,7 @@ This section details the setup required before Prusti can be built from source.
 
 ## `x.py`
 
-`x.py` is a Python script that provides a convenient wrapper for a Prusti development setup. It can be initialised by running:
+`x.py` is a Python script that provides a convenient wrapper for a Prusti development setup. It can be initialized by running:
 
 ```bash
 $ ./x.py setup

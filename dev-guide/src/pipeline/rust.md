@@ -1,7 +1,7 @@
 # Rust compilation stage
 
 - `prusti_driver` registers callbacks and calls the Rust compiler.
-- The compiler expands all procedural macros, which includes the specifications.
+- The compiler expands all [procedural macros](../macros.md), which includes the specifications.
 - The compiler does the type-checking.
 - The Prusti callback is called.
 

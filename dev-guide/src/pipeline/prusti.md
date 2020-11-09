@@ -3,7 +3,7 @@
 - The MIR of functions that should be checked is obtained.
 - MIR is encoded into VIR - Prusti's intermediate representation.
 - VIR is enriched with `fold`/`unfold` statements and other ghost code.
-- VIR is simplified and optimised.
+- VIR is simplified and optimized.
 
 > - [`prusti/src/verifier.rs` - `verify`](https://github.com/viperproject/prusti-dev/blob/143e673dc19b4c1363efade90ffee4f77641ec11/prusti/src/verifier.rs#L15-L72) - function combining the steps in this stage.
 
@@ -32,7 +32,7 @@ In this step, Rust MIR is encoded to VIR. Pure functions are treated separately,
 
 ## VIR processing
 
-At the end of procedure encoding, `fold`/`unfold` statements are added. The VIR may also be optimised, e.g. by removing empty branches in `if` chains.
+At the end of procedure encoding, `fold`/`unfold` statements are added. The VIR may also be optimized, e.g. by removing empty branches in `if` chains.
 
 > - [`prusti-viper/src/encoder/foldunfold/mod.rs`](https://github.com/viperproject/prusti-dev/blob/143e673dc19b4c1363efade90ffee4f77641ec11/prusti-viper/src/encoder/foldunfold/mod.rs) - `fold`/`unfold` logic.
 > - [`prusti-viper/src/verifier.rs` - `Verifier::verify`](https://github.com/viperproject/prusti-dev/blob/143e673dc19b4c1363efade90ffee4f77641ec11/prusti-viper/src/verifier.rs#L246-L249) - optional optimisation.
