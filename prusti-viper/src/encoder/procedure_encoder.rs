@@ -1897,7 +1897,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
                     };
 
-                    let def_id = *self.encoder.get_specification_def_id(def_id);
+                    let def_id = *def_id;
                     let full_func_proc_name: &str =
                         &self.encoder.env().tcx().def_path_str(def_id);
                         // &self.encoder.env().tcx().absolute_item_path_str(def_id);

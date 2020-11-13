@@ -5,7 +5,6 @@ use rustc_middle::ty::TyCtxt;
 use rustc_span::{Span, MultiSpan};
 
 use std::collections::HashMap;
-use crate::specs::typed::ExternSpecificationMap;
 use crate::environment::Environment;
 use crate::PrustiError;
 
@@ -18,7 +17,7 @@ pub struct ExternSpecResolver<'tcx> {
     /// functions with specifications. The mapping may also optionally contain
     /// the `DefId` of the implementing type to account for trait
     /// implementations.
-    extern_fn_map: ExternSpecificationMap<'tcx>,
+    extern_fn_map: HashMap<DefId, (Option<DefId>, DefId)>,
 
     /// Duplicate specifications detected, keyed by the `DefId` of the function
     /// to be specified.
@@ -89,7 +88,7 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         }
     }
 
-    pub fn get_extern_fn_map(&self) -> ExternSpecificationMap<'tcx> {
+    pub fn get_extern_fn_map(&self) -> HashMap<DefId, (Option<DefId>, DefId)> {
         self.extern_fn_map.clone()
     }
 }

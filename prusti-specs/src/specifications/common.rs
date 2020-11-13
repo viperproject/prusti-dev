@@ -47,6 +47,14 @@ impl<'a> TryFrom<&'a str> for SpecType {
 /// or postcondition.
 pub struct SpecificationId(Uuid);
 
+/// A reference to a procedure specification.
+#[derive(Debug, Clone, Copy)]
+pub enum SpecIdRef {
+    Precondition(SpecificationId),
+    Postcondition(SpecificationId),
+    Pledge { lhs: Option<SpecificationId>, rhs: SpecificationId },
+}
+
 impl Display for SpecificationId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
