@@ -6,6 +6,7 @@
 
 use rustc_middle::mir;
 
+#[derive(Debug)]
 pub enum AnalysisError {
     UnsupportedStatement(mir::Location),
     SuccessorWithoutState(mir::Location, mir::BasicBlock),      // Location of Terminator & successor BB without state

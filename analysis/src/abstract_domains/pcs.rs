@@ -7,14 +7,23 @@
 use crate::{AbstractState, AnalysisError};
 use rustc_middle::mir;
 use rustc_middle::ty::TyCtxt;
+use serde::{Serialize, Serializer};
 
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct PCSState {}
-impl<'tcx> AbstractState<'tcx> for PCSState {
-    fn new_bottom(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+
+impl Serialize for PCSState {
+    fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
+        unimplemented!()
+    }
+}
+
+impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for PCSState {
+    fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         unimplemented!()
     }
 
-    fn new_initial(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         unimplemented!()
     }
 

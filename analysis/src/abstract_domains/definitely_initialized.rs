@@ -7,9 +7,12 @@
 use crate::{AbstractState, AnalysisError};
 use crate::abstract_domains::place_utils::*;
 use rustc_middle::mir;
-use std::collections::HashSet;
+use std::collections::{HashSet, BTreeSet};
 use rustc_middle::ty::TyCtxt;
 use std::mem;
+use std::fmt;
+use serde::{Serialize, Serializer};
+use serde::ser::SerializeSeq;
 
 
 /// A set of MIR places that are definitely initialized at a program point
@@ -17,12 +20,32 @@ use std::mem;
 /// Invariant: we never have a place and any of its descendants in the
 /// set at the same time. For example, having `x.f` and `x.f.g` in the
 /// set at the same time is illegal.
+#[derive(Clone)]
 pub struct DefinitelyInitializedState<'tcx> {
     def_init_places: HashSet<mir::Place<'tcx>>,
     //mir: &'a mir::Body<'tcx>, TODO: store mir instead of giving it to apply_statement/terminator_effect?
     tcx: TyCtxt<'tcx>,
 }
 
+impl fmt::Debug for DefinitelyInitializedState<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // ignore tcx
+        write!(f, "{:?}", self.def_init_places)
+    }
+}
+
+//TODO: impl Eq (ignoring tcx)
+
+impl Serialize for DefinitelyInitializedState<'_> {
+    fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
+        let mut seq = serializer.serialize_seq(Some(self.def_init_places.len()))?;
+        let ordered_place_set: BTreeSet<_> = self.def_init_places.iter().collect();
+        for place in ordered_place_set {
+            seq.serialize_element(&format!("{:?}", place))?;
+        }
+        seq.end()
+    }
+}
 
 
 impl<'tcx>  DefinitelyInitializedState<'tcx>  {
@@ -107,11 +130,11 @@ impl<'tcx>  DefinitelyInitializedState<'tcx>  {
     }
 }
 
-impl<'tcx> AbstractState<'tcx> for DefinitelyInitializedState<'tcx>
+impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx>
     where Self: Clone {
 
     /// contains all possible places = all locals  //TODO: correct: only locals?
-    fn new_bottom(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         let mut places = HashSet::new();
         for local in mir.local_decls.indices().skip(1) {        // skip return value pointer
             places.insert(local.clone().into());
@@ -119,7 +142,7 @@ impl<'tcx> AbstractState<'tcx> for DefinitelyInitializedState<'tcx>
         Self {def_init_places: places, tcx}
     }
 
-    fn new_initial(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         // Top = empty set
         let mut places = HashSet::new();
         // join/insert places in arguments

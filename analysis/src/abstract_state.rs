@@ -8,14 +8,15 @@ use rustc_middle::mir;
 use rustc_middle::ty::TyCtxt;
 use std::vec::Vec;
 use crate::AnalysisError;
+use serde::Serialize;
 
 
-pub trait AbstractState<'tcx>: Sized {   // Sized needed for apply_terminator_effect's return type
+pub trait AbstractState<'a, 'tcx: 'a>: Sized + Serialize {   // Sized needed for apply_terminator_effect's return type
     //fn make_top(&mut self) -> Self;
     //fn make_bottom(&mut self) -> Self;
-    fn new_bottom(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
+    fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
     //fn new_top() -> Self;
-    fn new_initial(mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
+    fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;
 
     fn need_to_widen(counter: &u32) -> bool;
 

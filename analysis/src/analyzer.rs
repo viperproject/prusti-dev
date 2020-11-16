@@ -21,7 +21,7 @@ pub struct Analyzer<'tcx> {         // S: AbstractState<'tcx>
     //p_state: PointwiseState<S>,
 }
 
-impl<'tcx> Analyzer<'tcx> {
+impl<'a, 'tcx: 'a> Analyzer<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>) -> Self {
         Analyzer {
             tcx,
@@ -30,10 +30,10 @@ impl<'tcx> Analyzer<'tcx> {
     }
 
     //TODO: add tracing like in initialization.rs?
-    pub fn run_fwd_analysis<S>(&self, mir:  &mir::Body<'tcx>) -> Result<PointwiseState<'tcx, S>>
-        where S: AbstractState<'tcx> + Clone + Eq
+    pub fn run_fwd_analysis<S>(&self, mir:  &'a mir::Body<'tcx>) -> Result<PointwiseState<'a, 'tcx, S>>
+        where S: AbstractState<'a, 'tcx> + Clone + Eq
     {
-        let mut p_state = PointwiseState::new();
+        let mut p_state = PointwiseState::new(mir);
         //use https://crates.io/crates/linked_hash_set for set preserving insertion order?
         let mut work_set: BTreeSet<mir::BasicBlock> = BTreeSet::from_iter(mir.basic_blocks().indices());
 

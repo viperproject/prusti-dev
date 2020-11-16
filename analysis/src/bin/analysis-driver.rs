@@ -34,6 +34,11 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
             // TODO: switch analysis based on some flag or envirnoment variable
             let result = analyzer.run_fwd_analysis::<ReachingDefsState>(&main_body);
             // TODO: dump the result to stdout (e.g. using the serde library)
+            match result {
+                Ok(state) => println!("{}", serde_json::to_string_pretty(&state).unwrap()),        //TODO: unwrap error
+                Err(e) => eprintln!("{:#?}", e),
+            }
+
         });
 
         compiler.session().abort_if_errors();
@@ -44,6 +49,7 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
 
 fn main() {
     let args: Vec<_> = std::env::args().collect();
+    //println!("ARGS: {:?}", args);
     let mut callbacks = OurCompilerCalls;
     // Invoke compiler, and handle return code.
     let exit_code = rustc_driver::catch_with_exit_code(move || {
