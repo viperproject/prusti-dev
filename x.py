@@ -263,7 +263,7 @@ def ide(args):
 
 def run_benchmarks(args):
     warmup_iterations = 3
-    bench_iterations = 2
+    bench_iterations = 10
     results = {}
 
     report("running benchmarks")
