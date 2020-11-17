@@ -11,6 +11,10 @@ import os
 import platform
 import subprocess
 import glob
+import csv
+import time
+import json 
+import signal
 
 verbose = False
 dry_run = False
@@ -257,6 +261,55 @@ def ide(args):
     """Start VS Code with the given arguments."""
     run_command(['code'] + args)
 
+def run_benchmarks(args):
+    warmup_iterations = 3
+    bench_iterations = 2
+    results = {}
+
+    report("running benchmarks")
+    env = get_env()
+    report("Starting prusti-server")
+    server_process = subprocess.Popen(["./target/release/prusti-server-driver","--port","12345"], env=env)
+    time.sleep(2)
+    if server_process.poll() != None:
+        raise RuntimeError('Could not start prusti-server') 
+
+    env["PRUSTI_SERVER_ADDRESS"]="localhost:12345"
+    try:
+        with open('benchmarks.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            for row in csv_reader:
+                file_path = row[0]
+                results[file_path] = []
+                report("Starting to benchmark {}", row)
+                for i in range(warmup_iterations):
+                    t = measure_time(file_path, env)
+                    report("warmup run {} took {}", i, t)
+                for i in range(bench_iterations):
+                    t = measure_time(file_path, env)
+                    results[file_path].append(t)
+    finally:
+        report("terminating prusti-server")
+        server_process.send_signal(signal.SIGINT)
+
+    if not os.path.exists('benchmark-output'):
+        os.makedirs('benchmark-output')
+
+    json_result = json.dumps(results, indent = 2)
+    timestamp = time.time()
+    with open("benchmark-output/benchmark" + str(timestamp) + ".json", "w") as outfile: 
+        outfile.write(json_result) 
+
+                
+
+def measure_time(path, env):
+    start_time = time.perf_counter()
+    run_command(["./target/debug/prusti-rustc","--edition=2018", path],env=env)
+    end_time = time.perf_counter()
+    elapsed = end_time - start_time
+    return elapsed  
+
+
 
 def select_newest_file(paths):
     """Select a file that exists and has the newest modification timestamp."""
@@ -322,6 +375,9 @@ def main(argv):
             break
         elif arg == 'ide':
             ide(argv[i+1:])
+            break
+        elif arg == 'run-benchmarks':
+            run_benchmarks(argv[i+1:])
             break
         elif arg == 'verify-test':
             arg_count = len(argv) - i
