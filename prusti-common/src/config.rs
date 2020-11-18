@@ -9,6 +9,14 @@ use std::env;
 use std::sync::RwLock;
 use serde::Deserialize;
 
+
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub enum Optimizations {
+    InlineConstantFunctions,
+    DeleteUnusedPredicates,
+    All
+}
 /// The flags provided by using `-Z` arguments on the command line. These are
 /// almost exclusively used for testing.
 #[derive(Clone, Copy, Default)]
@@ -65,6 +73,8 @@ lazy_static! {
         settings.set_default("ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH", false).unwrap();
         settings.set_default::<Vec<String>>("VERIFY_ONLY_BASIC_BLOCK_PATH", vec![]).unwrap();
         settings.set_default::<Vec<String>>("DELETE_BASIC_BLOCKS", vec![]).unwrap();
+        settings.set_default::<Vec<String>>("OPTIMIZATIONS", vec!["all".to_string()]).unwrap();
+
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -281,6 +291,11 @@ pub fn enable_verify_only_basic_block_path() -> bool {
 /// **Note:** This flag is only for debugging Prusti!
 pub fn verify_only_basic_block_path() -> Vec<String> {
     read_setting("VERIFY_ONLY_BASIC_BLOCK_PATH")
+}
+
+/// Which optimizations should be enabled
+pub fn optimizations() -> Vec<Optimizations> {
+    read_setting("OPTIMIZATIONS")
 }
 
 /// Replace the given basic blocks with ``assume false``.
