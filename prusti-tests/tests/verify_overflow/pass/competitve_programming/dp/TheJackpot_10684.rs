@@ -64,6 +64,20 @@ fn solve_rec(seq: &VecWrapperI32, i: usize) -> i32 {
     }
 }
 
+#[pure]
+#[requires (seq.len() > 0)]
+#[requires (idx >= 0)]
+#[requires (idx < seq.len())]
+fn the_jackpot_rec(seq: &VecWrapperI32, idx: usize) -> i32 {
+    if idx == 0 {
+        max(0, solve_rec(seq, idx))
+    }else {
+        max(solve_rec(seq, idx), the_jackpot_rec(seq, idx - 1))
+    }
+}
+
+// Soluttion >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 #[requires (seq.len() > 0)]
 #[ensures (forall(|k:usize| (k >= 0 && k < seq.len()) ==> (seq.len() == result.len() && result.lookup(k) == solve_rec(seq, k))))]
 #[ensures (result.len() == seq.len())]
@@ -86,18 +100,6 @@ fn solve(seq: &VecWrapperI32) -> VecWrapperI32 {
         i += 1;
     }
     dp
-}
-
-#[pure]
-#[requires (seq.len() > 0)]
-#[requires (idx >= 0)]
-#[requires (idx < seq.len())]
-fn the_jackpot_rec(seq: &VecWrapperI32, idx: usize) -> i32 {
-    if idx == 0 {
-        max(0, solve_rec(seq, idx))
-    }else {
-        max(solve_rec(seq, idx), the_jackpot_rec(seq, idx - 1))
-    }
 }
 
 #[requires (seq.len() > 0)]
