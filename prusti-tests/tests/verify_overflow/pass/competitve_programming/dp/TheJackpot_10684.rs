@@ -66,6 +66,7 @@ fn solve_rec(seq: &VecWrapperI32, i: usize) -> i32 {
 
 #[requires (seq.len() > 0)]
 #[ensures (forall(|k:usize| (k >= 0 && k < seq.len()) ==> (seq.len() == result.len() && result.lookup(k) == solve_rec(seq, k))))]
+#[ensures (result.len() == seq.len())]
 fn solve(seq: &VecWrapperI32) -> VecWrapperI32 {
     let mut dp = VecWrapperI32::new();
     dp.push(seq.lookup(0));
@@ -93,9 +94,9 @@ fn solve(seq: &VecWrapperI32) -> VecWrapperI32 {
 #[requires (idx < seq.len())]
 fn the_jackpot_rec(seq: &VecWrapperI32, idx: usize) -> i32 {
     if idx == 0 {
-        max(0, seq.lookup(idx))
+        max(0, solve_rec(seq, idx))
     }else {
-        max(seq.lookup(idx), the_jackpot_rec(seq, idx - 1))
+        max(solve_rec(seq, idx), the_jackpot_rec(seq, idx - 1))
     }
 }
 
@@ -110,7 +111,7 @@ fn the_jackpot(seq: &VecWrapperI32) -> i32 {
         body_invariant!(idx >= 1);
         body_invariant!(idx < len);
         body_invariant!(answer == the_jackpot_rec(seq, idx - 1));
-        answer = max(answer, seq.lookup(idx));
+        answer = max(answer, dp.lookup(idx));
         idx+=1;
     }
     answer
