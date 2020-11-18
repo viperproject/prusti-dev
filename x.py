@@ -262,49 +262,78 @@ def ide(args):
     run_command(['code'] + args)
 
 def run_benchmarks(args):
-    warmup_iterations = 3
+    """Run the benchmarks and report the time in a json file"""
+    warmup_iterations = 6
     bench_iterations = 10
+    warmup_path = "prusti-tests/tests/verify/pass/quick/fibonacci.rs"
+    prusti_server_exe = get_prusti_server_path_for_benchmark()
+    server_port = "12345"
+    output_dir = "benchmark-output"
+    benchmark_csv = "benchmarks.csv"
     results = {}
 
-    report("running benchmarks")
     env = get_env()
-    report("Starting prusti-server")
-    server_process = subprocess.Popen(["./target/release/prusti-server-driver","--port","12345"], env=env)
+    report("Starting prusti-server ({})", prusti_server_exe)
+    server_process = subprocess.Popen([prusti_server_exe,"--port",server_port], env=env)
     time.sleep(2)
     if server_process.poll() != None:
         raise RuntimeError('Could not start prusti-server') 
 
-    env["PRUSTI_SERVER_ADDRESS"]="localhost:12345"
+    env["PRUSTI_SERVER_ADDRESS"]="localhost:" + server_port
     try:
-        with open('benchmarks.csv') as csv_file:
+        report("Starting warmup of the server")
+        for i in range(warmup_iterations):
+            t = measure_prusti_time(warmup_path, env)
+            report("warmup run {} took {}", i + 1, t)
+        
+        report("Finished warmup. Starting benchmark")
+        with open(benchmark_csv) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
                 file_path = row[0]
                 results[file_path] = []
-                report("Starting to benchmark {}", row)
-                for i in range(warmup_iterations):
-                    t = measure_time(file_path, env)
-                    report("warmup run {} took {}", i, t)
+                report("Starting to benchmark {}", file_path)
                 for i in range(bench_iterations):
-                    t = measure_time(file_path, env)
+                    t = measure_prusti_time(file_path, env)
                     results[file_path].append(t)
     finally:
         report("terminating prusti-server")
         server_process.send_signal(signal.SIGINT)
 
-    if not os.path.exists('benchmark-output'):
-        os.makedirs('benchmark-output')
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     json_result = json.dumps(results, indent = 2)
     timestamp = time.time()
-    with open("benchmark-output/benchmark" + str(timestamp) + ".json", "w") as outfile: 
+    output_file = os.path.join(output_dir, "benchmark" + str(timestamp) + ".json")
+    with open(output_file, "w") as outfile: 
         outfile.write(json_result) 
+    
+    report("Wrote results of benchmark to {}", output_file)
 
-                
 
-def measure_time(path, env):
+def get_prusti_server_path_for_benchmark():
+    project_root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+    
+    if sys.platform in ("linux", "linux2"):
+        return os.path.join(project_root_dir, 'target', 'release', 'prusti-server-driver')
+    else:
+        error("unsupported platform for benchmarks: {}", sys.platform)
+
+
+def get_prusti_rustc_path_for_benchmark():
+    project_root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+    
+    if sys.platform in ("linux", "linux2"):
+        return os.path.join(project_root_dir, 'target', 'release', 'prusti-rustc')
+    else:
+        error("unsupported platform for benchmarks: {}", sys.platform)
+
+
+def measure_prusti_time(input_path, env):
+    prusti_rustc_exe = get_prusti_rustc_path_for_benchmark()
     start_time = time.perf_counter()
-    run_command(["./target/debug/prusti-rustc","--edition=2018", path],env=env)
+    run_command([prusti_rustc_exe,"--edition=2018", input_path], env=env)
     end_time = time.perf_counter()
     elapsed = end_time - start_time
     return elapsed  
