@@ -76,7 +76,7 @@ fn the_jackpot_rec(seq: &VecWrapperI32, idx: usize) -> i32 {
     }
 }
 
-// Soluttion >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// Solution >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 #[requires (seq.len() > 0)]
 #[ensures (forall(|k:usize| (k >= 0 && k < seq.len()) ==> (seq.len() == result.len() && result.lookup(k) == solve_rec(seq, k))))]
