@@ -388,6 +388,11 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
             },
+            &Expr::SetOp(op, ref left, ref right, ref pos) => match op {
+                SetOpKind::Contains => {
+                    ast.any_set_contains(right.to_viper(ast), left.to_viper(ast))
+                }
+            },
             &Expr::Unfolding(
                 ref predicate_name,
                 ref args,

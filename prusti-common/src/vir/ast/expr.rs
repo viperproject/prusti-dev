@@ -31,6 +31,7 @@ pub enum Expr {
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>, Position),
+    SetOp(SetOpKind, Box<Expr>, Box<Expr>, Position),
     /// Unfolding: predicate name, predicate_args, in_expr, permission amount, enum variant
     Unfolding(String, Vec<Expr>, Box<Expr>, PermAmount, MaybeEnumVariantIndex, Position),
     /// Cond: guard, then_expr, else_expr
@@ -80,6 +81,11 @@ pub enum BinOpKind {
     Implies,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum SetOpKind {
+    Contains,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
@@ -98,6 +104,9 @@ impl fmt::Display for Expr {
             Expr::AddrOf(ref base, _, ref _pos) => write!(f, "&({})", base),
             Expr::Const(ref value, ref _pos) => write!(f, "{}", value),
             Expr::BinOp(op, ref left, ref right, ref _pos) => {
+                write!(f, "({}) {} ({})", left, op, right)
+            }
+            Expr::SetOp(op, ref left, ref right, ref _pos) => {
                 write!(f, "({}) {} ({})", left, op, right)
             }
             Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{}({})", op, expr),
@@ -230,6 +239,14 @@ impl fmt::Display for BinOpKind {
     }
 }
 
+impl fmt::Display for SetOpKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &SetOpKind::Contains => write!(f, "contains"),
+        }
+    }
+}
+
 impl fmt::Display for Const {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -254,6 +271,7 @@ impl Expr {
             Expr::FieldAccessPredicate(_, _, p) => p,
             Expr::UnaryOp(_, _, p) => p,
             Expr::BinOp(_, _, _, p) => p,
+            Expr::SetOp(_, _, _, p) => p,
             Expr::Unfolding(_, _, _, _, _, p) => p,
             Expr::Cond(_, _, _, p) => p,
             Expr::ForAll(_, _, _, p) => p,
@@ -280,6 +298,7 @@ impl Expr {
             Expr::FieldAccessPredicate(x, y, _) => Expr::FieldAccessPredicate(x, y, pos),
             Expr::UnaryOp(x, y, _) => Expr::UnaryOp(x, y, pos),
             Expr::BinOp(x, y, z, _) => Expr::BinOp(x, y, z, pos),
+            Expr::SetOp(x, y, z, _) => Expr::SetOp(x, y, z, pos),
             Expr::Unfolding(x, y, z, perm, variant, _) => {
                 Expr::Unfolding(x, y, z, perm, variant, pos)
             },
@@ -415,6 +434,10 @@ impl Expr {
 
     pub fn implies(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Implies, box left, box right, Position::default())
+    }
+
+    pub fn contains(left: Expr, right: Expr) -> Self {
+        Expr::SetOp(SetOpKind::Contains, box left, box right, Position::default())
     }
 
     pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
@@ -1238,6 +1261,7 @@ impl Expr {
                     }
 
                     Expr::BinOp(..)
+                    | Expr::SetOp(..)
                     | Expr::MagicWand(..)
                     | Expr::Unfolding(..)
                     | Expr::Cond(..)
@@ -1458,6 +1482,7 @@ impl Hash for Expr {
             Expr::FieldAccessPredicate(box ref base, perm, _) => (base, perm).hash(state),
             Expr::UnaryOp(op, box ref arg, _) => (op, arg).hash(state),
             Expr::BinOp(op, box ref left, box ref right, _) => (op, left, right).hash(state),
+            Expr::SetOp(op, box ref left, box ref right, _) => (op, left, right).hash(state),
             Expr::Cond(box ref cond, box ref then_expr, box ref else_expr, _) => {
                 (cond, then_expr, else_expr).hash(state)
             }

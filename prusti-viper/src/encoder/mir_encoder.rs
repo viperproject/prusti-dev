@@ -483,6 +483,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         })
     }
 
+    pub fn encode_set_op_expr(
+        &self,
+        op: vir::SetOpKind,
+        left: vir::Expr,
+        right: vir::Expr
+    ) -> vir::Expr {
+        match op {
+            vir::SetOpKind::Contains => vir::Expr::contains(left, right),
+        }
+    }
+
     pub fn encode_unary_op_expr(&self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {
         match op {
             mir::UnOp::Not => vir::Expr::not(expr),

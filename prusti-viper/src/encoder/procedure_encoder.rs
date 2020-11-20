@@ -2023,6 +2023,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             stmts.extend(self.encode_assign_operand(&dst.clone().field(value_field), &args[0], location));
                         }
 
+                        "prusti_contracts::ghost::GhostSet::push" => {
+                            unimplemented!();
+                        }
+
+                        "prusti_contracts::ghost::GhostSet::remove" => {
+                            unimplemented!();
+                        }
+
+                        "prusti_contracts::ghost::GhostSeq::union" => {
+                            unimplemented!();
+                        }
+
+                        "prusti_contracts::ghost::GhostSeq::is_element" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            //stmts.extend(self.encode_set_op(vir::SetOpKind::Contains));
+                        }
+
                         "std::cmp::PartialEq::eq" |
                         "core::cmp::PartialEq::eq"
                             if args.len() == 2 &&
@@ -2197,6 +2217,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | TerminatorKind::InlineAsm { .. } => unimplemented!("{:?}", term.kind),
         };
         Ok(result)
+    }
+
+    fn encode_set_operation(
+        &mut self,
+        lhs: &vir::Expr,
+        left: &mir::Operand<'tcx>,
+        right: &mir::Operand<'tcx>,
+        location: mir::Location,
+        set_op: vir::SetOpKind,
+        ty: ty::Ty<'tcx>,
+    ) -> Vec<vir::Stmt> {
+        trace!(
+            "[enter] encode_set_operation(location={:?}, set_op={:?})", location, set_op);
+        let span = self.mir_encoder.get_span_of_location(location);
+        let encoded_left = self.mir_encoder.encode_operand_expr(left)
+            .with_span(span)?;
+        let encoded_right = self.mir_encoder.encode_operand_expr(right)
+            .with_span(span)?;
+        let encoded_value = self.mir_encoder.encode_set_op_expr(set_op, encoded_left, encoded_right)
+                            .with_span(span)?;
+        self.encode_copy_value_assign(lhs, encoded_value, ty, location)
     }
 
     fn encode_cmp_function_call(
