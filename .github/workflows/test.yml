@@ -68,36 +68,6 @@ jobs:
         cd prusti-contracts-test/
         cargo build
 
-  benchmark:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-      fail-fast: false
-    runs-on: ${{ matrix.os }}
-    steps:
-    - name: Check out the repo
-      uses: actions/checkout@v2
-    - name: Set up Python 3
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Set up Rust
-      uses: actions-rs/toolchain@v1.0.6
-    - name: Set up the environment
-      run: python x.py setup
-    - name: Build with cargo
-      run: python x.py build --release --all --verbose
-    - name: Run benchmark
-      run: python x.py run-benchmarks
-    - name: Publish to GitHub pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./benchmark-output
-        keep_files: true
-        destination_dir: benchmark-output
-
-
   # Run Prusti on itself. Currently disabled because of many bugs in Prusti.
   test-on-prusti:
     runs-on: ubuntu-latest
