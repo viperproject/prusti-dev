@@ -1203,7 +1203,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             dst_ty,
                             encoded_lhs,
                             ty,
-                            location
+                            location,
+                            stmt.source_info.span,
                         )?
                     }
                     &mir::Rvalue::Len(..) => {
@@ -4803,13 +4804,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
+        span: Span,
     ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_cast(operand={:?}, dst_ty={:?})",
             operand,
             dst_ty
         );
-        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty)
+        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty, span)
             .with_span(
                 self.mir_encoder.get_span_of_location(location)
             )?;

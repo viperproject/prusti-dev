@@ -90,6 +90,8 @@ pub enum ErrorCtxt {
     /// A Viper `assert e1 ==> e2` that encodes a strengthening of the precondition
     /// of a method implementation of a trait.
     AssertMethodPostconditionStrengthening(MultiSpan),
+    /// A cast like `usize as u32`.
+    TypeCast,
     /// A Viper `assert false` that encodes an unsupported feature
     Unsupported(String),
 }
@@ -431,6 +433,13 @@ impl<'tcx> ErrorManager<'tcx>
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             },
+
+            ("application.precondition:assertion.false", ErrorCtxt::TypeCast) => {
+                PrustiError::verification(
+                    "value might not fit into the target type.",
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
 
             ("apply.failed:assertion.false", ErrorCtxt::ApplyMagicWandOnExpiry) => {
                 PrustiError::verification("obligation might not hold on borrow expiry", error_span)

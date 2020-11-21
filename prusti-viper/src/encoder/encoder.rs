@@ -92,6 +92,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_invariants: RefCell<HashMap<String, vir::Function>>,
     type_tags: RefCell<HashMap<String, vir::Function>>,
     type_discriminant_funcs: RefCell<HashMap<String, vir::Function>>,
+    type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::Function>>,
     memory_eq_encoder: RefCell<MemoryEqEncoder>,
     fields: RefCell<HashMap<String, vir::Field>>,
     snapshots: RefCell<HashMap<String, Box<Snapshot>>>, // maps predicate names to snapshots
@@ -147,6 +148,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_invariants: RefCell::new(HashMap::new()),
             type_tags: RefCell::new(HashMap::new()),
             type_discriminant_funcs: RefCell::new(HashMap::new()),
+            type_cast_functions: RefCell::new(HashMap::new()),
             memory_eq_encoder: RefCell::new(MemoryEqEncoder::new()),
             fields: RefCell::new(HashMap::new()),
             closures_collector: RefCell::new(SpecsClosuresCollector::new()),
@@ -300,6 +302,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             functions.push(function.clone());
         }
         for function in self.type_discriminant_funcs.borrow().values() {
+            functions.push(function.clone());
+        }
+        for function in self.type_cast_functions.borrow().values() {
             functions.push(function.clone());
         }
         functions.extend(
@@ -717,7 +722,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         builtin_encoder.encode_builtin_method_name(method_kind)
     }
 
-    pub fn encode_builtin_function_def(&self, function_kind: BuiltinFunctionKind) -> vir::Function {
+    pub fn encode_builtin_function_def(&self, function_kind: BuiltinFunctionKind) {
         trace!("encode_builtin_function_def({:?})", function_kind);
         if !self.builtin_functions.borrow().contains_key(&function_kind) {
             let builtin_encoder = BuiltinEncoder::new();
@@ -727,7 +732,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 .borrow_mut()
                 .insert(function_kind.clone(), function);
         }
-        self.builtin_functions.borrow()[&function_kind].clone()
     }
 
     pub fn encode_builtin_function_use(&self, function_kind: BuiltinFunctionKind) -> String {
@@ -738,6 +742,31 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
         let builtin_encoder = BuiltinEncoder::new();
         builtin_encoder.encode_builtin_function_name(&function_kind)
+    }
+
+    pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>) -> String {
+        trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
+        let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
+        if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
+            let arg = vir::LocalVar::new(
+                String::from("number"),
+                self.encode_value_type(src_ty),
+            );
+            let result = vir::LocalVar::new("__result", self.encode_value_type(dst_ty));
+            let mut precondition = self.encode_type_bounds(&arg.clone().into(), src_ty);
+            precondition.extend(self.encode_type_bounds(&arg.clone().into(), dst_ty));
+            let postcondition = self.encode_type_bounds(&result.into(), dst_ty);
+            let function = vir::Function {
+                name: function_name.clone(),
+                formal_args: vec![arg.clone()],
+                return_type: self.encode_value_type(dst_ty),
+                pres: precondition,
+                posts: postcondition,
+                body: Some(arg.into()),
+            };
+            self.type_cast_functions.borrow_mut().insert((src_ty, dst_ty), function);
+        }
+        function_name
     }
 
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> Result<vir::CfgMethod, EncodingError> {
