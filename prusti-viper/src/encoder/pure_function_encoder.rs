@@ -1167,7 +1167,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
                         let encoded_val = self.mir_encoder
-                            .encode_cast_expr(operand, dst_ty)
+                            .encode_cast_expr(operand, dst_ty, stmt.source_info.span)
                             .expect("failed to encode unsupported type");
 
                         // Substitute a place of a value with an expression

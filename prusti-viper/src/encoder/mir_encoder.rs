@@ -578,6 +578,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         &self,
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
+        span: Span,
     ) -> PositionlessEncodingResult<vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
@@ -707,11 +708,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             ) => self.encode_operand_expr(operand)?,
 
             _ => {
-                return Err(PositionlessEncodingError::unsupported(format!(
-                    "unsupported cast from type '{:?}' to type '{:?}'",
-                    src_ty,
-                    dst_ty
-                )));
+                let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty);
+                let encoded_args = vec![self.encode_operand_expr(operand)?];
+                let formal_args = vec![vir::LocalVar::new(
+                    String::from("number"),
+                    self.encode_operand_expr_type(operand),
+                )];
+                let pos = self
+                    .encoder
+                    .error_manager()
+                    .register(span, ErrorCtxt::TypeCast);
+                let return_type = self.encoder.encode_value_type(dst_ty);
+                return Ok(vir::Expr::func_app(
+                    function_name,
+                    encoded_args,
+                    formal_args,
+                    return_type,
+                    pos,
+                ));
             }
         };
 
