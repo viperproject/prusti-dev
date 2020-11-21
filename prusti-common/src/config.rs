@@ -9,6 +9,31 @@ use std::env;
 use std::sync::RwLock;
 use serde::Deserialize;
 
+
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct Optimizations {
+    pub inline_constant_functions: bool,
+    pub delete_unused_predicates: bool,
+}
+
+impl Optimizations {
+    fn all_disabled() -> Self {
+        Optimizations {
+            inline_constant_functions: false,
+            delete_unused_predicates: false,
+        }
+    }
+
+    fn all_enabled() -> Self {
+        Optimizations{
+            inline_constant_functions: true,
+            delete_unused_predicates: true,
+        }
+    }
+
+}
+
 /// The flags provided by using `-Z` arguments on the command line. These are
 /// almost exclusively used for testing.
 #[derive(Clone, Copy, Default)]
@@ -58,6 +83,7 @@ lazy_static! {
         settings.set_default("FULL_COMPILATION", false).unwrap();
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
+        settings.set_default("OPTIMIZATIONS","all").unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
@@ -65,6 +91,7 @@ lazy_static! {
         settings.set_default("ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH", false).unwrap();
         settings.set_default::<Vec<String>>("VERIFY_ONLY_BASIC_BLOCK_PATH", vec![]).unwrap();
         settings.set_default::<Vec<String>>("DELETE_BASIC_BLOCKS", vec![]).unwrap();
+
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -281,6 +308,25 @@ pub fn enable_verify_only_basic_block_path() -> bool {
 /// **Note:** This flag is only for debugging Prusti!
 pub fn verify_only_basic_block_path() -> Vec<String> {
     read_setting("VERIFY_ONLY_BASIC_BLOCK_PATH")
+}
+
+/// Which optimizations should be enabled
+pub fn optimizations() -> Optimizations {
+    let optimizations_string = read_setting::<String>("OPTIMIZATIONS");
+
+    let mut opt = Optimizations::all_disabled();
+
+    for s in optimizations_string.split(","){
+        let trimmed = s.trim();
+        match trimmed {
+            "all" => opt = Optimizations::all_enabled(),
+            "inline_constant_functions" => opt.inline_constant_functions = true,
+            "delete_unused_predicates" => opt.delete_unused_predicates = true,
+            _ => warn!("Ignoring Unkown optimization '{}'", trimmed)
+        }
+    }
+
+    return opt;
 }
 
 /// Replace the given basic blocks with ``assume false``.
