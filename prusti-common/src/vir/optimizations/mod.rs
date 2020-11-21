@@ -20,7 +20,7 @@ impl Program {
         info!("Enabled optimisations: {:?}", optimizations);
 
         // can't borrow self because we need to move fields
-        if optimizations.contains(&Optimizations::All) || optimizations.contains(&Optimizations::InlineConstantFunctions) {
+        if optimizations.inline_constant_functions {
             let (new_methods, new_functions) =
                 functions::inline_constant_functions(self.methods, self.functions);
             
@@ -36,7 +36,7 @@ impl Program {
                 .map(|f| folding::FoldingOptimizer::optimize(f))
                 .collect();
         }
-        if optimizations.contains(&Optimizations::All) || optimizations.contains(&Optimizations::DeleteUnusedPredicates) {
+        if optimizations.delete_unused_predicates {
             self.viper_predicates = predicates::delete_unused_predicates(
                 &self.methods,
                 &self.functions,
