@@ -55,3 +55,27 @@ Rust versions and components are managed with `rustup`. The toolchain version in
  - `rustc-dev`
  - `llvm-tools-preview`
  - `rustfmt` (optional)
+
+## Using locally built version in Prusti Assistant
+
+**Note:** These instructions were tested only on Ubuntu.
+
+To use the locally compiled version in Prusti Assistant, make sure to build Prusti in release mode:
+
+```bash
+./x.py build --release
+```
+
+Add necessary symlinks to the release directory:
+
+```bash
+ln -s $(pwd)/viper_tools $(pwd)/target/release/
+ln -s $(pwd)/rust-toolchain $(pwd)/target/release/
+```
+
+Open VS Code and its settings change as follows:
+
+ - Set `prusti-assistant.buildChannel` to `Local`.
+ - Set `prusti-assistant.localPrustiPath` to `<prusti-dev-dir>/target/release/`.
+
+Now, you should be able to verify Rust programs with a locally built version of Prusti.
