@@ -146,13 +146,15 @@ impl AstRewriter {
         let callsite_span = Span::call_site();
         quote_spanned! {callsite_span=>
             #[allow(unused_must_use, unused_variables)]
-            #[prusti::spec_only]
-            #[prusti::loop_body_invariant_spec]
-            #[prusti::spec_id = #spec_id_str]
-            #[prusti::assertion = #assertion_json]
-            || {
-                #statements
-            };
+            {
+                #[prusti::spec_only]
+                #[prusti::loop_body_invariant_spec]
+                #[prusti::spec_id = #spec_id_str]
+                #[prusti::assertion = #assertion_json]
+                || {
+                    #statements
+                };
+            }
         }
     }
 
