@@ -10,7 +10,7 @@ Flags can be set in one of three ways, in increasing order of priority:
 | --- | --- | --- |
 | [`ASSERT_TIMEOUT`](#assert_timeout) | `u64` | `10_000` |
 | [`BE_RUSTC`](#be_rustc) | `bool` | `false` |
-| [`CHECK_BINARY_OPERATIONS`](#check_binary_operations) | `bool` | `false` |
+| [`CHECK_OVERFLOWS`](#check_overflows) | `bool` | `false` |
 | [`CHECK_FOLDUNFOLD_STATE`](#check_foldunfold_state) | `bool` | `false` |
 | [`CHECK_PANICS`](#check_panics) | `bool` | `true` |
 | [`CONTRACTS_LIB`](#contracts_lib) | `String` | `""` |
@@ -56,9 +56,9 @@ Maximum time (in milliseconds) for the verifier to spend on a single assertion. 
 
 When enabled, Prusti will behave like `rustc`.
 
-## `CHECK_BINARY_OPERATIONS`
+## `CHECK_OVERFLOWS`
 
-When enabled, binary operations will be checked for overflows. See [integer type encoding](../encoding/types.md#i-u-char).
+When enabled, binary operations and numeric casts will be checked for overflows. See [integer type encoding](../encoding/types.md#i-u-char).
 
 ## `CHECK_FOLDUNFOLD_STATE`
 
