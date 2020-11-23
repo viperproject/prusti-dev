@@ -56,4 +56,35 @@ pub fn i16_u8_min(x: i16) -> u8 {
     x as u8  //~ ERROR value might not fit into the target type.
 }
 
+fn preserve_sign() {
+    assert!(5u8 as i128 == 5i128);
+    assert!(5u16 as i128 == 5i128);
+    assert!(5u32 as i128 == 5i128);
+    assert!(5u64 as i128 == 5i128);
+    assert!(5i128 as i128 == 5i128);
+
+    assert!(5u8 as u128 == 5u128);
+    assert!(5u16 as u128 == 5u128);
+    assert!(5u32 as u128 == 5u128);
+    assert!(5u64 as u128 == 5u128);
+    assert!(5i128 as u128 == 5u128);
+
+    assert!(5i8 as i128 == 5i128);
+    assert!(5i16 as i128 == 5i128);
+    assert!(5i32 as i128 == 5i128);
+    assert!(5i64 as i128 == 5i128);
+    assert!(5i128 as i128 == 5i128);
+
+    assert!(-5i8 as i128 == -5i128);
+    assert!(-5i16 as i128 == -5i128);
+    assert!(-5i32 as i128 == -5i128);
+    assert!(-5i64 as i128 == -5i128);
+    assert!(-5i128 as i128 == -5i128);
+
+    assert!(
+        -5i8 as u128 //~ ERROR value might not fit into the target type.
+        == 5u128
+    );
+}
+
 fn main() {}
