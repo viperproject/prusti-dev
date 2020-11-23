@@ -496,7 +496,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> PositionlessEncodingResult<vir::Expr> {
-        if !op.is_checkable() || !config::check_binary_operations() {
+        if !op.is_checkable() || !config::check_overflows() {
             return Ok(false.into())
         } else {
             let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty)?;

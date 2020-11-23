@@ -185,7 +185,7 @@ fn main() {
         args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
         args.push("--cfg=prusti".to_owned());
 
-        if config::check_binary_operations() {
+        if config::check_overflows() {
             // Some crates might have a `overflow-checks = false` in their `Cargo.toml` to
             // disable integer overflow checks, but we want to ignore that.
             args.push("-Zforce-overflow-checks=yes".to_owned());

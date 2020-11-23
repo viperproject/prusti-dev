@@ -274,7 +274,7 @@ impl VarPurifier {
     }
     fn get_replacement_bounds(&self, var_expr: &ast::Expr) -> ast::Expr {
         let replacement = self.get_replacement(var_expr);
-        if config::check_binary_operations() {
+        if config::check_overflows() {
             ast::Expr::and(
                 ast::Expr::ge_cmp(replacement.clone().into(), 0.into()),
                 ast::Expr::ge_cmp(std::usize::MAX.into(), replacement.into()),
