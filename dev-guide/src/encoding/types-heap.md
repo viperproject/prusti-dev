@@ -28,16 +28,16 @@ predicate i32(self: Ref) {
 }
 ```
 
-When the [`CHECK_BINARY_OPERATIONS`](../config/flags.md#check_binary_operations) flag is enabled, integer bounds are encoded with the type.
+When the [`CHECK_OVERFLOWS`](../config/flags.md#check_overflows) flag is enabled, integer bounds are encoded with the type.
 
 ```viper
-// with CHECK_BINARY_OPERATIONS
+// with CHECK_OVERFLOWS
 predicate i32(self: Ref) {
   acc(self.val_i32, write) && -2147483648 <= self.val_i32 && self.val_i32 <= 2147483647
 }
 ```
 
-When the [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](../config/flags.md#encode_unsigned_num_constraint) flag is enabled (even when `CHECK_BINARY_OPERATIONS` is not), non-negativity of unsigned integers is always encoded.
+When the [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](../config/flags.md#encode_unsigned_num_constraint) flag is enabled (even when `CHECK_OVERFLOWS` is not), non-negativity of unsigned integers is always encoded.
 
 ```viper
 // with ENCODE_UNSIGNED_NUM_CONSTRAINT
