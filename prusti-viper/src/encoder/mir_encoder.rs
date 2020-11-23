@@ -496,7 +496,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> PositionlessEncodingResult<vir::Expr> {
-        if !op.is_checkable() || !config::check_binary_operations() {
+        if !op.is_checkable() || !config::check_overflows() {
             return Ok(false.into())
         } else {
             let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty)?;
@@ -635,32 +635,42 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             | (ty::TyKind::Uint(_), ty::TyKind::Int(_))
             | (ty::TyKind::Uint(_), ty::TyKind::Uint(_))
             => {
-                let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty);
-                let encoded_args = vec![self.encode_operand_expr(operand).with_span(span)?];
-                let formal_args = vec![vir::LocalVar::new(
-                    String::from("number"),
-                    self.encode_operand_expr_type(operand),
-                )];
-                let pos = self
-                    .encoder
-                    .error_manager()
-                    .register(span, ErrorCtxt::TypeCast);
-                let return_type = self.encoder.encode_value_type(dst_ty);
-                return Ok(vir::Expr::func_app(
-                    function_name,
-                    encoded_args,
-                    formal_args,
-                    return_type,
-                    pos,
-                ));
+                let encoded_operand = self.encode_operand_expr(operand).with_span(span)?;
+                if config::check_overflows() {
+                    // Check the cast
+                    let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty);
+                    let encoded_args = vec![encoded_operand];
+                    let formal_args = vec![vir::LocalVar::new(
+                        String::from("number"),
+                        self.encode_operand_expr_type(operand),
+                    )];
+                    let pos = self
+                        .encoder
+                        .error_manager()
+                        .register(span, ErrorCtxt::TypeCast);
+                    let return_type = self.encoder.encode_value_type(dst_ty);
+                    return Ok(vir::Expr::func_app(
+                        function_name,
+                        encoded_args,
+                        formal_args,
+                        return_type,
+                        pos,
+                    ));
+                } else {
+                    // Don't check the cast
+                    encoded_operand
+                }
             }
 
             _ => {
-                return Err(EncodingError::unsupported(format!(
-                    "unsupported cast from type '{:?}' to type '{:?}'",
-                    src_ty,
-                    dst_ty
-                ), span));
+                return Err(EncodingError::unsupported(
+                    format!(
+                        "unsupported cast from type '{:?}' to type '{:?}'",
+                        src_ty,
+                        dst_ty
+                    ),
+                    span
+                ));
             }
         };
 

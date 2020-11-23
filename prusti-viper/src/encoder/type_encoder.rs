@@ -245,7 +245,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             )],
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
-                let bounds = if config::check_binary_operations() {
+                let bounds = if config::check_overflows() {
                     self.get_integer_bounds()
                 } else {
                     None

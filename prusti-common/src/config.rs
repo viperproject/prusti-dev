@@ -58,7 +58,7 @@ lazy_static! {
         // 1. Default values
         settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
         settings.set_default("CHECK_FOLDUNFOLD_STATE", false).unwrap();
-        settings.set_default("CHECK_BINARY_OPERATIONS", false).unwrap();
+        settings.set_default("CHECK_OVERFLOWS", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("ENCODE_UNSIGNED_NUM_CONSTRAINT", false).unwrap();
         settings.set_default("SIMPLIFY_ENCODING", true).unwrap();
@@ -208,8 +208,8 @@ pub fn log_dir() -> String {
 }
 
 /// Check binary operations for overflows
-pub fn check_binary_operations() -> bool {
-    read_setting("CHECK_BINARY_OPERATIONS")
+pub fn check_overflows() -> bool {
+    read_setting("CHECK_OVERFLOWS")
 }
 
 /// Encode (and check) that unsigned integers are non-negative.

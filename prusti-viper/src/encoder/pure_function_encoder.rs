@@ -201,7 +201,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let pure_fn_return_variable =
             vir::LocalVar::new("__result", self.encode_function_return_type());
         // Add value range of the arguments and return value to the pre/postconditions
-        if config::check_binary_operations() {
+        if config::check_overflows() {
             let return_bounds: Vec<_> = self
                 .encoder
                 .encode_type_bounds(

@@ -131,7 +131,7 @@ fn run_verification(group_name: &str, filter: &Option<String>) {
 
 fn run_verification_overflow(group_name: &str, filter: &Option<String>) {
     let _temporary_env_vars = (
-        TemporaryEnvVar::set("PRUSTI_CHECK_BINARY_OPERATIONS", "true"),
+        TemporaryEnvVar::set("PRUSTI_CHECK_OVERFLOWS", "true"),
     );
 
     run_verification(group_name, filter);

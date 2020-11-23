@@ -384,9 +384,9 @@ def verify_test(test):
         report("Additional compile flags: {}", compile_flags)
     env = get_env()
     if test_path.startswith('prusti-tests/tests/verify_overflow/'):
-        env['PRUSTI_CHECK_BINARY_OPERATIONS'] = 'true'
+        env['PRUSTI_CHECK_OVERFLOWS'] = 'true'
     else:
-        env['PRUSTI_CHECK_BINARY_OPERATIONS'] = 'false'
+        env['PRUSTI_CHECK_OVERFLOWS'] = 'false'
     run_command([prusti_path, '--edition=2018', test_path] + compile_flags, env)
 
 
