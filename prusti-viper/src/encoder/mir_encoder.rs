@@ -579,137 +579,64 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
         span: Span,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
         let encoded_val = match (src_ty.kind(), dst_ty.kind()) {
-            (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I8))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I16))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I32))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I64))
-            | (
-                ty::TyKind::Int(ast::IntTy::I8),
-                ty::TyKind::Int(ast::IntTy::I128),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I16),
-                ty::TyKind::Int(ast::IntTy::I16),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I16),
-                ty::TyKind::Int(ast::IntTy::I32),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I16),
-                ty::TyKind::Int(ast::IntTy::I64),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I16),
-                ty::TyKind::Int(ast::IntTy::I128),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I32),
-                ty::TyKind::Int(ast::IntTy::I32),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I32),
-                ty::TyKind::Int(ast::IntTy::I64),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I32),
-                ty::TyKind::Int(ast::IntTy::I128),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I64),
-                ty::TyKind::Int(ast::IntTy::I64),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I64),
-                ty::TyKind::Int(ast::IntTy::I128),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I128),
-                ty::TyKind::Int(ast::IntTy::I128),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::Isize),
-                ty::TyKind::Int(ast::IntTy::Isize),
-            )
+            // Numeric casts that cannot fail
             | (ty::TyKind::Char, ty::TyKind::Char)
             | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U8))
             | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U16))
             | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U32))
             | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U64))
             | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U128))
+            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I8))
+            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I16))
+            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I32))
+            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I64))
+            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I128))
+            | (ty::TyKind::Int(ast::IntTy::I16), ty::TyKind::Int(ast::IntTy::I16))
+            | (ty::TyKind::Int(ast::IntTy::I16), ty::TyKind::Int(ast::IntTy::I32))
+            | (ty::TyKind::Int(ast::IntTy::I16), ty::TyKind::Int(ast::IntTy::I64))
+            | (ty::TyKind::Int(ast::IntTy::I16), ty::TyKind::Int(ast::IntTy::I128))
+            | (ty::TyKind::Int(ast::IntTy::I32), ty::TyKind::Int(ast::IntTy::I32))
+            | (ty::TyKind::Int(ast::IntTy::I32), ty::TyKind::Int(ast::IntTy::I64))
+            | (ty::TyKind::Int(ast::IntTy::I32), ty::TyKind::Int(ast::IntTy::I128))
+            | (ty::TyKind::Int(ast::IntTy::I64), ty::TyKind::Int(ast::IntTy::I64))
+            | (ty::TyKind::Int(ast::IntTy::I64), ty::TyKind::Int(ast::IntTy::I128))
+            | (ty::TyKind::Int(ast::IntTy::I128), ty::TyKind::Int(ast::IntTy::I128))
+            | (ty::TyKind::Int(ast::IntTy::Isize), ty::TyKind::Int(ast::IntTy::Isize))
             | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Char)
-            | (
-                ty::TyKind::Uint(ast::UintTy::U8),
-                ty::TyKind::Uint(ast::UintTy::U8),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U8),
-                ty::TyKind::Uint(ast::UintTy::U16),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U8),
-                ty::TyKind::Uint(ast::UintTy::U32),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U8),
-                ty::TyKind::Uint(ast::UintTy::U64),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U8),
-                ty::TyKind::Uint(ast::UintTy::U128),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U16),
-                ty::TyKind::Uint(ast::UintTy::U16),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U16),
-                ty::TyKind::Uint(ast::UintTy::U32),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U16),
-                ty::TyKind::Uint(ast::UintTy::U64),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U16),
-                ty::TyKind::Uint(ast::UintTy::U128),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U32),
-                ty::TyKind::Uint(ast::UintTy::U32),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U32),
-                ty::TyKind::Uint(ast::UintTy::U64),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U32),
-                ty::TyKind::Uint(ast::UintTy::U128),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U64),
-                ty::TyKind::Uint(ast::UintTy::U64),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U64),
-                ty::TyKind::Uint(ast::UintTy::U128),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U128),
-                ty::TyKind::Uint(ast::UintTy::U128),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::Usize),
-                ty::TyKind::Uint(ast::UintTy::Usize),
-            ) => self.encode_operand_expr(operand)?,
+            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Uint(ast::UintTy::U8))
+            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Uint(ast::UintTy::U16))
+            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Uint(ast::UintTy::U32))
+            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Uint(ast::UintTy::U64))
+            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Uint(ast::UintTy::U128))
+            | (ty::TyKind::Uint(ast::UintTy::U16), ty::TyKind::Uint(ast::UintTy::U16))
+            | (ty::TyKind::Uint(ast::UintTy::U16), ty::TyKind::Uint(ast::UintTy::U32))
+            | (ty::TyKind::Uint(ast::UintTy::U16), ty::TyKind::Uint(ast::UintTy::U64))
+            | (ty::TyKind::Uint(ast::UintTy::U16), ty::TyKind::Uint(ast::UintTy::U128))
+            | (ty::TyKind::Uint(ast::UintTy::U32), ty::TyKind::Uint(ast::UintTy::U32))
+            | (ty::TyKind::Uint(ast::UintTy::U32), ty::TyKind::Uint(ast::UintTy::U64))
+            | (ty::TyKind::Uint(ast::UintTy::U32), ty::TyKind::Uint(ast::UintTy::U128))
+            | (ty::TyKind::Uint(ast::UintTy::U64), ty::TyKind::Uint(ast::UintTy::U64))
+            | (ty::TyKind::Uint(ast::UintTy::U64), ty::TyKind::Uint(ast::UintTy::U128))
+            | (ty::TyKind::Uint(ast::UintTy::U128), ty::TyKind::Uint(ast::UintTy::U128))
+            | (ty::TyKind::Uint(ast::UintTy::Usize), ty::TyKind::Uint(ast::UintTy::Usize))
+            => self.encode_operand_expr(operand).with_span(span)?,
 
-            _ => {
+            // Numeric casts where the source value might not fit into the target type
+            (ty::TyKind::Char, ty::TyKind::Int(_))
+            | (ty::TyKind::Char, ty::TyKind::Uint(_))
+            | (ty::TyKind::Int(_), ty::TyKind::Char)
+            | (ty::TyKind::Int(_), ty::TyKind::Int(_))
+            | (ty::TyKind::Int(_), ty::TyKind::Uint(_))
+            | (ty::TyKind::Uint(_), ty::TyKind::Char)
+            | (ty::TyKind::Uint(_), ty::TyKind::Int(_))
+            | (ty::TyKind::Uint(_), ty::TyKind::Uint(_))
+            => {
                 let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty);
-                let encoded_args = vec![self.encode_operand_expr(operand)?];
+                let encoded_args = vec![self.encode_operand_expr(operand).with_span(span)?];
                 let formal_args = vec![vir::LocalVar::new(
                     String::from("number"),
                     self.encode_operand_expr_type(operand),
@@ -726,6 +653,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     return_type,
                     pos,
                 ));
+            }
+
+            _ => {
+                return Err(EncodingError::unsupported(format!(
+                    "unsupported cast from type '{:?}' to type '{:?}'",
+                    src_ty,
+                    dst_ty
+                ), span));
             }
         };
 

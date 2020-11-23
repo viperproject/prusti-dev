@@ -429,10 +429,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
 
         // Encode preconditions
-        self.encode_preconditions(start_cfg_block, precondition_weakening);
+        self.encode_preconditions(start_cfg_block, precondition_weakening)?;
 
         // Encode postcondition
-        self.encode_postconditions(return_cfg_block, postcondition_strengthening);
+        self.encode_postconditions(return_cfg_block, postcondition_strengthening)?;
 
         let local_vars: Vec<_> = self
             .locals
@@ -4811,10 +4811,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             operand,
             dst_ty
         );
-        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty, span)
-            .with_span(
-                self.mir_encoder.get_span_of_location(location)
-            )?;
+        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty, span)?;
         self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
     }
 
