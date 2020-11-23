@@ -14,7 +14,6 @@ pub mod specifications;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use syn::parse_quote;
 use std::convert::{TryFrom, TryInto};
 
 use specifications::untyped;
