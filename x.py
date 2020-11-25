@@ -352,8 +352,19 @@ def select_newest_file(paths):
         error("Could not select the newest file from {}", paths)
 
 
-def verify_test(test):
+def verify_test(args):
     """Runs prusti on the specified files."""
+    test = None
+    compile_flags = []
+    for arg in args:
+        if arg.startswith('-'):
+            compile_flags.append(arg)
+        else:
+            if test is None:
+                test = arg
+            else:
+                error("Expected a single argument (test file). Got: {}", args)
+
     current_path = os.path.abspath(os.path.curdir)
     candidate_prusti_paths = [
         os.path.join(current_path, 'target', 'release', 'prusti-rustc'),
@@ -376,7 +387,6 @@ def verify_test(test):
             )
         test_path = candidate_test_paths[0]
     report("Found test: {}", test_path)
-    compile_flags = []
     with open(test_path) as fp:
         for line in fp:
             if line.startswith('// compile-flags:'):
@@ -409,10 +419,7 @@ def main(argv):
             run_benchmarks(argv[i+1:])
             break
         elif arg == 'verify-test':
-            arg_count = len(argv) - i
-            if arg_count != 2:
-                error("Expected a single argument (test file). Got: ", arg_count)
-            verify_test(argv[i+1])
+            verify_test(argv[i+1:])
             break
         else:
             cargo(argv[i:])
