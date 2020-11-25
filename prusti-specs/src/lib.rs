@@ -237,6 +237,7 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     let check = rewriter.generate_spec_loop(spec_id, invariant);
     let callsite_span = Span::call_site();
     quote_spanned! {callsite_span=>
+        #[allow(unused_must_use, unused_variables)]
         if false {
             #check
         }

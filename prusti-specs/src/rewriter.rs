@@ -116,7 +116,7 @@ impl AstRewriter {
         let spec_id_str = spec_id.to_string();
         let assertion_json = crate::specifications::json::to_json_string(&assertion);
         let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
-            #[allow(unused_must_use, unused_variables)]
+            #[allow(unused_must_use, unused_variables, dead_code)]
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
             #[prusti::assertion = #assertion_json]
