@@ -46,8 +46,8 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
             ast.perm_type(),
             &[],
             &[
-                ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
-                ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm()),
+                ast.lt_cmp(ast.no_perm(), ast.result_with_pos(ast.perm_type(), ast.no_position())),
+                ast.lt_cmp(ast.result_with_pos(ast.perm_type(), ast.no_position()), ast.full_perm()),
             ],
             ast.no_position(),
             None,
@@ -84,7 +84,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
 impl<'v, 'a, 'b> ToViper<'v, viper::Expr<'v>> for (&'a LocalVar, &'b Position) {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         if self.0.name == "__result" {
-            ast.result(self.0.typ.to_viper(ast))
+            ast.result_with_pos(self.0.typ.to_viper(ast), self.1.to_viper(ast))
         } else {
             ast.local_var_with_pos(&self.0.name, self.0.typ.to_viper(ast), self.1.to_viper(ast))
         }
