@@ -36,7 +36,6 @@ impl VecWrapperI32 {
     }
 }
 
-
 #[pure]
 #[ensures (result >= a && result >= b)]
 #[ensures (result == a || result == b)]
@@ -80,7 +79,7 @@ fn max_seq_sum_rec(seq: &VecWrapperI32, i: usize) -> i32 {
 fn solve_rec(seq: &VecWrapperI32, idx: usize) -> i32 {
     if idx == 0 {
         max_seq_sum_rec(seq, idx)
-    }else {
+    } else {
         max(max_seq_sum_rec(seq, idx), solve_rec(seq, idx - 1))
     }
 }
@@ -95,6 +94,7 @@ fn the_jackpot_rec(seq: &VecWrapperI32) -> i32 {
 
 // Naive Solution
 
+#[pure]
 #[requires (seq.len() > 0)]
 #[requires (start >= 0)]
 #[requires (start <=  end)]
@@ -105,11 +105,39 @@ fn the_jackpot_rec(seq: &VecWrapperI32) -> i32 {
 #[ensures(result  >=  ((end - start + 1) as  i32)  * -10000)]
 #[ensures(result  <=  ((end - start + 1) as  i32)  * 10000)]
 fn seq_sum(seq: &VecWrapperI32, start: usize, end: usize) -> i32 {
-    if end  == start {
+    if end == start {
         seq.lookup(end)
     } else {
         seq.lookup(end) + seq_sum(seq, start, end - 1)
     }
+}
+
+#[pure]
+#[requires (a >= b)]
+#[ensures (result == a - b)]
+fn sub(a: usize, b: usize) -> usize {
+    a - b
+}
+
+#[requires (seq.len() > 0)]
+#[requires (start >= 0)]
+#[requires (start <=  end)]
+#[requires (end < seq.len())]
+#[requires (forall(|k: usize| (k >= 0 && k < seq.len()) ==> (seq.lookup(k) >= -1000 && seq.lookup(k) <= 1000)))]
+#[requires (seq.len() <= 10000)]
+#[ensures (result == seq_sum(seq, start, end))]
+fn seq_sum_iter(seq: &VecWrapperI32, start: usize, end: usize) -> i32 {
+    let mut sum = seq.lookup(start);
+    let mut i = start + 1;
+
+    while i <= end {
+        body_invariant!(i > start);
+        body_invariant!(i <= end);
+        body_invariant!(sum == seq_sum(seq, start, sub(i, 1)));
+        sum += seq.lookup(i);
+        i += 1;
+    }
+    sum
 }
 
 #[requires (seq.len() > 0)]
@@ -119,11 +147,11 @@ fn seq_sum(seq: &VecWrapperI32, start: usize, end: usize) -> i32 {
 #[requires (forall(|k: usize| (k >= 0 && k < seq.len()) ==> (seq.lookup(k) >= -1000 && seq.lookup(k) <= 1000)))]
 #[requires (seq.len() <= 10000)]
 #[ensures (result <= solve_rec(seq, end))]
-fn max_seq_sum(seq: &VecWrapperI32, start:  usize, end: usize) -> i32 {
+fn max_seq_sum(seq: &VecWrapperI32, start: usize, end: usize) -> i32 {
     if start == end {
         seq_sum(seq, start, end)
-    }else {
-        max(max_seq_sum(seq, start + 1, end),  seq_sum(seq, start, end))
+    } else {
+        max(max_seq_sum(seq, start + 1, end), seq_sum(seq, start, end))
     }
 }
 
@@ -136,8 +164,8 @@ fn max_seq_sum(seq: &VecWrapperI32, start:  usize, end: usize) -> i32 {
 fn solve_naive(seq: &VecWrapperI32, end: usize) -> i32 {
     if end == 0 {
         max_seq_sum(seq, 0, end)
-    }  else {
-        max(solve_naive(seq, end -  1),  max_seq_sum(seq, 0, end))
+    } else {
+        max(solve_naive(seq, end - 1), max_seq_sum(seq, 0, end))
     }
 }
 
@@ -146,7 +174,7 @@ fn solve_naive(seq: &VecWrapperI32, end: usize) -> i32 {
 #[requires (seq.len() <= 10000)]
 #[ensures (result <= the_jackpot_rec(seq))]
 fn the_jackpot_naive(seq: &VecWrapperI32) -> i32 {
-    max(0, solve_naive(seq, seq.len()  -  1))
+    max(0, solve_naive(seq, seq.len() - 1))
 }
 
 // Solution >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -187,15 +215,14 @@ fn the_jackpot(seq: &VecWrapperI32) -> i32 {
     let mut answer = seq.lookup(0);
     let len = seq.len();
     let mut idx = 1;
-    while idx < len  {
+    while idx < len {
         body_invariant!(idx >= 1);
         body_invariant!(idx < len);
         body_invariant!(answer == solve_rec(seq, idx - 1));
         answer = max(answer, dp.lookup(idx));
-        idx+=1;
+        idx += 1;
     }
     max(0, answer)
 }
 
-pub fn main() {
-}
+pub fn main() {}
