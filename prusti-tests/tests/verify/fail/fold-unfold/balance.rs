@@ -16,7 +16,6 @@ impl Account {
         self.bal = self.bal + amount;
     }
 
-
     #[ensures(self.bal == old(self.bal) - amount)]
     fn withdraw(&mut self, amount: u32) { //~ ERROR implicit type invariants might not hold at the end of the method.
         self.bal = self.bal - amount;
