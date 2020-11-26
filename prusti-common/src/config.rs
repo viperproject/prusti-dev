@@ -334,7 +334,7 @@ pub fn delete_basic_blocks() -> Vec<String> {
     read_setting("DELETE_BASIC_BLOCKS")
 }
 
-/// Skip functions that are unsupported or partially supported
+/// Skip features that are unsupported or partially supported
 pub fn skip_unsupported_features() -> bool {
     read_setting("SKIP_UNSUPPORTED_FEATURES")
 }
