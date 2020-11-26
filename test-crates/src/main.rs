@@ -174,7 +174,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .env("PRUSTI_ASSERT_TIMEOUT", "60000")
                         .env("PRUSTI_CHECK_PANICS", "false")
                         // Skip unsupported language features
-                        .env("PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS", "true")
+                        .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true")
                         .env("PRUSTI_LOG_DIR", "/tmp/prusti_log")
                         .run()?;
                     Ok(())
