@@ -173,7 +173,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .env("RUST_BACKTRACE", "1")
                         .env("PRUSTI_ASSERT_TIMEOUT", "60000")
                         .env("PRUSTI_CHECK_PANICS", "false")
-                        // Skip unsupported language features
+                        // Do not report errors for unsupported language features
                         .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true")
                         .env("PRUSTI_LOG_DIR", "/tmp/prusti_log")
                         .run()?;
@@ -193,6 +193,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
+    // Report summary
     if !successful_crates.is_empty() {
         info!("Successfully verified {} crates:", successful_crates.len());
         for krate in &successful_crates {
@@ -210,6 +211,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         for krate in &failed_crates {
             error!(" - {}", krate);
         }
+    }
+
+    // Panic
+    if !failed_crates.is_empty() {
         panic!("Failed to verify {} crates", failed_crates.len());
     }
 
