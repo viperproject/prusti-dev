@@ -15,6 +15,7 @@ use crate::encoder::mir_interpreter::{
 };
 use crate::encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
 use crate::encoder::Encoder;
+use prusti_common::config;
 use prusti_common::vir;
 use prusti_common::vir::ExprIterator;
 use prusti_interface::specs::typed;
@@ -169,18 +170,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     self.encode_assertion(assertion)?
                 )
             }
-            box typed::AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => vir::Expr::forall(
-                vars.vars.iter()
-                    .map(|(arg, ty)|
-                        self.encode_forall_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id))
-                    ).collect(),
-                trigger_set
+            box typed::AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
+                let mut encoded_args = Vec::new();
+                let mut bounds = Vec::new();
+                for (arg, ty) in &vars.vars {
+                    let encoded_arg = self.encode_forall_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id));
+                    if config::check_overflows() {
+                        bounds.extend(self.encoder.encode_type_bounds(&encoded_arg.clone().into(), ty));
+                    } else if config::encode_unsigned_num_constraint() {
+                        if let ty::TyKind::Uint(_) = ty.kind() {
+                            let expr = vir::Expr::le_cmp(0.into(), encoded_arg.clone().into());
+                            bounds.push(expr);
+                        }
+                    }
+                    encoded_args.push(encoded_arg);
+                }
+                let encoded_triggers = trigger_set
                     .triggers()
                     .iter()
                     .map(|x| self.encode_trigger(x))
-                    .collect(),
-                self.encode_assertion(body)?,
-            ),
+                    .collect();
+                let encoded_body = self.encode_assertion(body)?;
+                let final_body = if bounds.is_empty() {
+                    encoded_body
+                } else {
+                    vir::Expr::implies(bounds.into_iter().conjoin(), encoded_body)
+                };
+                vir::Expr::forall(
+                    encoded_args,
+                    encoded_triggers,
+                    final_body,
+                )
+            },
         })
     }
 
