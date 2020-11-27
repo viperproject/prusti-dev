@@ -56,14 +56,13 @@ lazy_static! {
         let mut settings = Config::default();
 
         // 1. Default values
+        settings.set_default("BE_RUSTC", false).unwrap();
         settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
         settings.set_default("CHECK_FOLDUNFOLD_STATE", false).unwrap();
         settings.set_default("CHECK_OVERFLOWS", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("ENCODE_UNSIGNED_NUM_CONSTRAINT", false).unwrap();
         settings.set_default("SIMPLIFY_ENCODING", true).unwrap();
-        settings.set_default("ENABLE_WHITELIST", false).unwrap();
-        settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_PATH_CTXT_IN_DEBUG_INFO", false).unwrap();
@@ -131,6 +130,11 @@ where
     read_optional_setting(name).unwrap()
 }
 
+/// Should Prusti behave exactly like rustc?
+pub fn be_rustc() -> bool {
+    read_setting("BE_RUSTC")
+}
+
 /// Generate additional, *slow*, checks for the foldunfold algorithm
 pub fn check_foldunfold_state() -> bool {
     read_setting("CHECK_FOLDUNFOLD_STATE")
@@ -152,24 +156,6 @@ pub fn check_panics() -> bool {
 /// Should we simplify the encoding before passing it to Viper?
 pub fn simplify_encoding() -> bool {
     read_setting("SIMPLIFY_ENCODING")
-}
-
-/// Whether to use the verifiation whitelist
-pub fn enable_whitelist() -> bool {
-    SETTINGS
-        .read()
-        .unwrap()
-        .get::<bool>("ENABLE_WHITELIST")
-        .unwrap()
-}
-
-/// Get the whitelist of procedures that should be verified
-pub fn verification_whitelist() -> Vec<String> {
-    SETTINGS
-        .read()
-        .unwrap()
-        .get::<Vec<String>>("WHITELIST")
-        .unwrap()
 }
 
 /// Should we dump debug files?
