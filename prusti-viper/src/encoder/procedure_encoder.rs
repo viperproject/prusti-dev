@@ -453,8 +453,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         self.check_vir()?;
         let method_name = self.cfg_method.name();
-        let source_path = self.encoder.env().source_path();
-        let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+        let source_filename = self.encoder.env().source_file_name();
 
         self.encoder
             .log_vir_program_before_foldunfold(self.cfg_method.to_string());
@@ -501,7 +500,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Do some optimizations
         let final_method = if config::simplify_encoding() {
-            optimizer::rewrite(remove_trivial_assertions(remove_unused_vars(
+            optimizer::rewrite(self.encoder.borrow(), remove_trivial_assertions(remove_unused_vars(
                 remove_empty_if(fixed_method),
             )))
         } else {
