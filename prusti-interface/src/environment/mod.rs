@@ -62,6 +62,12 @@ impl<'tcx> Environment<'tcx> {
         self.tcx.sess.local_crate_source_file.clone().unwrap()
     }
 
+    /// Returns the file name of the source that is being compiled
+    pub fn source_file_name(&self) -> String {
+        let source_path = self.source_path();
+        source_path.file_name().unwrap().to_str().unwrap().to_owned()
+    }
+
     /// Returns the name of the crate that is being compiled
     pub fn crate_name(&self) -> String {
         self.tcx

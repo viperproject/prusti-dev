@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir;
+use crate::encoder::Encoder;
+use prusti_common::{vir, config};
 use std::collections::HashMap;
 use std::mem;
 use log::debug;
@@ -17,9 +18,29 @@ use log::debug;
 ///     with `let tmp == (...) in forall ..`.
 ///
 /// Note: this seems to be required to workaround some Silicon incompleteness.
-pub fn rewrite(cfg: vir::CfgMethod) -> vir::CfgMethod {
+pub fn rewrite(encoder: &Encoder<'_, '_>, cfg: vir::CfgMethod) -> vir::CfgMethod {
+    log_vir(encoder, &cfg, false);
     let mut optimizer = Optimizer::new();
-    optimizer.replace_cfg(cfg)
+    let optimized_cfg = optimizer.replace_cfg(cfg);
+    log_vir(encoder, &optimized_cfg, true);
+    optimized_cfg
+}
+
+fn log_vir(encoder: &Encoder<'_, '_>, cfg: &vir::CfgMethod, after_optimization: bool) {
+    if config::dump_debug_info() {
+        let namespace = if after_optimization {
+            "graphviz_method_optimization_00_after"
+        } else {
+            "graphviz_method_optimization_00_before"
+        };
+        let source_file_name = encoder.env().source_file_name();
+        prusti_common::report::log::report_with_writer(
+            namespace,
+            format!("{}.{}.dot", source_file_name, cfg.name()),
+            |writer| cfg.to_graphviz(writer),
+        );
+    }
+
 }
 
 struct Optimizer {}

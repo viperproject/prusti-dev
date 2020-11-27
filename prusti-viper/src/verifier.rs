@@ -247,7 +247,8 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
         if config::simplify_encoding() {
             stopwatch.start_next("optimizing Viper program");
-            program = program.optimized();
+            let source_file_name = self.encoder.env().source_file_name();
+            program = program.optimized(&source_file_name);
         }
 
         stopwatch.start_next("verifying Viper program");
