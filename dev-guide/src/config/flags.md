@@ -32,9 +32,7 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`LOG_DIR`](#log_dir) | `String` | `"./log/"` |
 | [`LOG_STYLE`](#log_style) | `String` | `"auto"` |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` |
-| [`NUM_PARENTS_FOR_DUMPS`](#num_parents_for_dumps) | `u64` | `0` |
 | [`QUIET`](#quiet) | `bool` | `false` |
-| [`REPORT_SUPPORT_STATUS`](#report_support_status) | `bool` | `true` |
 | [`SERVER_ADDRESS`](#server_address) | `Option<String>` | `None` |
 | [`SERVER_MAX_CONCURRENCY`](#server_max_concurrency) | `Option<usize>` | `None` |
 | [`SERVER_MAX_STORED_VERIFIERS`](#server_max_stored_verifiers) | `Option<usize>` | `None` |
@@ -145,17 +143,9 @@ Log style. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env
 
 When enabled, verification is skipped altogether.
 
-## `NUM_PARENTS_FOR_DUMPS`
-
-Number of parent folders used to disambiguate Viper dumps (and other debug files).
-
 ## `QUIET`
 
 When enabled, user messages are not printed. Otherwise, `message` outputs into `stderr`.
-
-## `REPORT_SUPPORT_STATUS`
-
-(deprecated)
 
 ## `SERVER_ADDRESS`
 
