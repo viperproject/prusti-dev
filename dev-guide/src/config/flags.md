@@ -22,9 +22,7 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`DUMP_REBORROWING_DAG_IN_DEBUG_INFO`](#dump_reborrowing_dag_in_debug_info) | `bool` | `false` |
 | [`DUMP_VIPER_PROGRAM`](#dump_viper_program) | `bool` | `false` |
 | [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) | `bool` | `false` |
-| [`ENABLE_WHITELIST`](#enable_whitelist) | `bool` | `false` |
 | [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](#encode_unsigned_num_constraint) | `bool` | `false` |
-| [`ERROR_ON_PARTIALLY_SUPPORTED`](#error_on_partially_supported) | `bool` | `false` |
 | [`EXTRA_JVM_ARGS`](#extra_jvm_args) | `Vec<String>` | `vec![]` |
 | [`EXTRA_VERIFIER_ARGS`](#extra_verifier_args) | `Vec<String>` | `vec![]` |
 | [`FOLDUNFOLD_STATE_FILTER`](#foldunfold_state_filter) | `String` | `""` |
@@ -41,12 +39,11 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`SERVER_MAX_CONCURRENCY`](#server_max_concurrency) | `Option<usize>` | `None` |
 | [`SERVER_MAX_STORED_VERIFIERS`](#server_max_stored_verifiers) | `Option<usize>` | `None` |
 | [`SIMPLIFY_ENCODING`](#simplify_encoding) | `bool` | `true` |
-| [`SKIP_UNSUPPORTED_FUNCTIONS`](#skip_unsupported_functions) | `bool` | `false` |
+| [`SKIP_UNSUPPORTED_FEATURES`](#skip_unsupported_features) | `bool` | `false` |
 | [`USE_MORE_COMPLETE_EXHALE`](#use_more_complete_exhale) | `bool` | `true` |
 | [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_only_basic_block_path) | `Vec<String>` | `vec![]` |
 | [`VERIFY_ONLY_PREAMBLE`](#verify_only_preamble) | `bool` | `false` |
 | [`VIPER_BACKEND`](#viper_backend) | `String` | `"Silicon"` |
-| [`WHITELIST`](#whitelist) | `Vec<String>` | `vec![]` |
 
 ## `ASSERT_TIMEOUT`
 
@@ -108,19 +105,9 @@ When enabled, only the path given in [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_on
 
 **Note:** This flag is only for debugging Prusti.
 
-## `ENABLE_WHITELIST`
-
-When enabled, the verification whitelist (specified using [`WHITELIST`](#whitelist)) will be used.
-
 ## `ENCODE_UNSIGNED_NUM_CONSTRAINT`
 
 When enabled, non-negativity of unsigned integers will be encoded and checked.
-
-## `ERROR_ON_PARTIALLY_SUPPORTED`
-
-When enabled, any feature not supported by Prusti will trigger an error during verification.
-
-This flag takes priority over [`SKIP_UNSUPPORTED_FUNCTIONS`](#skip_unsupported_functions).
 
 ## `EXTRA_JVM_ARGS`
 
@@ -190,11 +177,9 @@ The maximum amount of instantiated Viper verifiers the server will keep around f
 
 When enabled, the encoded program is simplified before it is passed to the Viper backend.
 
-## `SKIP_UNSUPPORTED_FUNCTIONS`
+## `SKIP_UNSUPPORTED_FEATURES`
 
 When enabled, features not supported by Prusti will be reported as warnings rather than errors.
-
-[`ERROR_ON_PARTIALLY_SUPPORTED`](#error_on_partially_supported) takes priority over this flag.
 
 ## `USE_MORE_COMPLETE_EXHALE`
 
@@ -218,7 +203,3 @@ Verification backend to use. Possible values:
 
  - `Carbon` - verification-condition-generation-based backend [Carbon](https://github.com/viperproject/carbon).
  - `Silicon` - symbolic-execution-based backend [Silicon](https://github.com/viperproject/silicon/).
-
-## `WHITELIST`
-
-Whitelist of procedure names that should be verified. Must be enabled using the [`ENABLE_WHITELIST`](#enable_whitelist) flag.
