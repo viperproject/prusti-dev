@@ -41,7 +41,7 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`SERVER_MAX_CONCURRENCY`](#server_max_concurrency) | `Option<usize>` | `None` |
 | [`SERVER_MAX_STORED_VERIFIERS`](#server_max_stored_verifiers) | `Option<usize>` | `None` |
 | [`SIMPLIFY_ENCODING`](#simplify_encoding) | `bool` | `true` |
-| [`SKIP_UNSUPPORTED_FUNCTIONS`](#skip_unsupported_functions) | `bool` | `false` |
+| [`SKIP_UNSUPPORTED_FEATURES`](#skip_unsupported_features) | `bool` | `false` |
 | [`USE_MORE_COMPLETE_EXHALE`](#use_more_complete_exhale) | `bool` | `true` |
 | [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_only_basic_block_path) | `Vec<String>` | `vec![]` |
 | [`VERIFY_ONLY_PREAMBLE`](#verify_only_preamble) | `bool` | `false` |
@@ -120,7 +120,7 @@ When enabled, non-negativity of unsigned integers will be encoded and checked.
 
 When enabled, any feature not supported by Prusti will trigger an error during verification.
 
-This flag takes priority over [`SKIP_UNSUPPORTED_FUNCTIONS`](#skip_unsupported_functions).
+This flag takes priority over [`SKIP_UNSUPPORTED_FEATURES`](#skip_unsupported_features).
 
 ## `EXTRA_JVM_ARGS`
 
@@ -190,7 +190,7 @@ The maximum amount of instantiated Viper verifiers the server will keep around f
 
 When enabled, the encoded program is simplified before it is passed to the Viper backend.
 
-## `SKIP_UNSUPPORTED_FUNCTIONS`
+## `SKIP_UNSUPPORTED_FEATURES`
 
 When enabled, features not supported by Prusti will be reported as warnings rather than errors.
 
