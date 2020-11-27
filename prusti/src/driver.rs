@@ -125,7 +125,7 @@ fn main() {
 
     // If the environment asks us to actually be rustc, then do that.
     // If cargo is compiling a dependency, then be rustc.
-    let prusti_be_rustc = env::var_os("PRUSTI_BE_RUSTC").is_some()
+    let prusti_be_rustc = config::be_rustc()
         || arg_value(&rustc_args, "--cap-lints", |val| val == "allow").is_some();
     if prusti_be_rustc {
         rustc_driver::main();

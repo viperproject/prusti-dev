@@ -56,6 +56,7 @@ lazy_static! {
         let mut settings = Config::default();
 
         // 1. Default values
+        settings.set_default("BE_RUSTC", false).unwrap();
         settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
         settings.set_default("CHECK_FOLDUNFOLD_STATE", false).unwrap();
         settings.set_default("CHECK_OVERFLOWS", false).unwrap();
@@ -129,6 +130,11 @@ where
     T: Deserialize<'static>,
 {
     read_optional_setting(name).unwrap()
+}
+
+/// Should Prusti behave exactly like rustc?
+pub fn be_rustc() -> bool {
+    read_setting("BE_RUSTC")
 }
 
 /// Generate additional, *slow*, checks for the foldunfold algorithm
