@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::errors::{
-    ErrorCtxt, EncodingError, PositionlessEncodingError, WithSpan
+    ErrorCtxt, EncodingResult, EncodingError, PositionlessEncodingError, WithSpan
 };
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
@@ -124,17 +124,68 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         vir::LocalVar::new(var_name, vir::Type::Int)
     }
 
-    fn encode_trigger(&self, trigger: &typed::Trigger) -> vir::Trigger {
+    fn encode_trigger(
+        &self,
+        trigger: &typed::Trigger,
+        bounded_vars: &[vir::LocalVar]
+    ) -> EncodingResult<vir::Trigger> {
         trace!("encode_trigger {:?}", trigger);
-        // TODO: `encode_hir_expr` generated also the final `.val_int` field access, that we may not want...
-        // vir::Trigger::new(
-        //     trigger
-        //         .terms()
-        //         .iter()
-        //         .map(|expr| self.encode_hir_expr(&expr.expr))
-        //         .collect(),
-        // )
-        unimplemented!();
+        struct TriggerChecker {
+            span: rustc_span::MultiSpan,
+            error: Option<EncodingError>,
+        }
+        impl vir::ExprWalker for TriggerChecker {
+            fn walk(&mut self, expr: &vir::Expr) {
+                match expr {
+                    vir::Expr::Local(..) |
+                    vir::Expr::Const(..) |
+                    vir::Expr::FuncApp(..) |
+                    vir::Expr::DomainFuncApp(..) => {
+                        // Legal triggers.
+                    }
+                    _ => {
+                        // Everything else is illegal in triggers.
+                        let msg = "Only function calls are allowed in triggers.";
+                        // TODO: We should use a more precise span.
+                        self.error = Some(EncodingError::incorrect(msg, self.span.clone()));
+                    }
+                }
+                if self.error.is_none() {
+                    vir::default_walk_expr(self, expr);
+                }
+            }
+        }
+        let bounded_vars: Vec<_> = bounded_vars.iter().map(|var| var.clone().into()).collect();
+        let mut found_bounded_vars = std::collections::HashSet::new();
+        let mut encoded_expressions = Vec::new();
+        for term in trigger.terms() {
+            let encoded_expr = self.encode_expression(term)?;
+            let mut checker = TriggerChecker {
+                error: None,
+                span: self.encoder.env().tcx().def_span(term.expr).into(),
+            };
+            vir::ExprWalker::walk(&mut checker, &encoded_expr);
+            if let Some(error) = checker.error {
+                return Err(error);
+            }
+            for var in &bounded_vars {
+                if encoded_expr.find(var) {
+                    found_bounded_vars.insert(var);
+                }
+            }
+            encoded_expressions.push(encoded_expr);
+        }
+        for var in &bounded_vars {
+            if !found_bounded_vars.contains(var) {
+                // FIXME: We should mention the missing variable in the error message.
+                let msg = "A trigger must mention all bounded variables.";
+                let span = rustc_span::MultiSpan::from_spans(
+                    trigger.terms().iter().map(|term| self.encoder.env().tcx().def_span(term.expr)).collect()
+                );
+                return Err(EncodingError::incorrect(msg, span));
+            }
+        }
+        Ok(vir::Trigger::new(encoded_expressions))
     }
 
     /// Encode a specification item as a single expression.
@@ -185,11 +236,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     }
                     encoded_args.push(encoded_arg);
                 }
-                let encoded_triggers = trigger_set
-                    .triggers()
-                    .iter()
-                    .map(|x| self.encode_trigger(x))
-                    .collect();
+                let mut encoded_triggers = Vec::new();
+                for trigger in trigger_set.triggers() {
+                    let encoded_trigger = self.encode_trigger(trigger, &encoded_args)?;
+                    encoded_triggers.push(encoded_trigger);
+                }
                 let encoded_body = self.encode_assertion(body)?;
                 let final_body = if bounds.is_empty() {
                     encoded_body

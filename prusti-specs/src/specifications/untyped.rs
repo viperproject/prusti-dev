@@ -309,7 +309,7 @@ impl EncodeTypeCheck for TriggerSet {
                     #[prusti::spec_only]
                     #[prusti::expr_id = #identifier]
                     || {
-                        #expr;
+                        #expr
                     };
                 };
                 tokens.extend(typeck_call);
