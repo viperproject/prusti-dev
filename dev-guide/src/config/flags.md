@@ -22,7 +22,6 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`DUMP_REBORROWING_DAG_IN_DEBUG_INFO`](#dump_reborrowing_dag_in_debug_info) | `bool` | `false` |
 | [`DUMP_VIPER_PROGRAM`](#dump_viper_program) | `bool` | `false` |
 | [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) | `bool` | `false` |
-| [`ENABLE_WHITELIST`](#enable_whitelist) | `bool` | `false` |
 | [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](#encode_unsigned_num_constraint) | `bool` | `false` |
 | [`EXTRA_JVM_ARGS`](#extra_jvm_args) | `Vec<String>` | `vec![]` |
 | [`EXTRA_VERIFIER_ARGS`](#extra_verifier_args) | `Vec<String>` | `vec![]` |
@@ -45,7 +44,6 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_only_basic_block_path) | `Vec<String>` | `vec![]` |
 | [`VERIFY_ONLY_PREAMBLE`](#verify_only_preamble) | `bool` | `false` |
 | [`VIPER_BACKEND`](#viper_backend) | `String` | `"Silicon"` |
-| [`WHITELIST`](#whitelist) | `Vec<String>` | `vec![]` |
 
 ## `ASSERT_TIMEOUT`
 
@@ -106,10 +104,6 @@ When enabled, the encoded Viper program will be output.
 When enabled, only the path given in [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_only_basic_block_path) will be verified.
 
 **Note:** This flag is only for debugging Prusti.
-
-## `ENABLE_WHITELIST`
-
-When enabled, the verification whitelist (specified using [`WHITELIST`](#whitelist)) will be used.
 
 ## `ENCODE_UNSIGNED_NUM_CONSTRAINT`
 
@@ -209,7 +203,3 @@ Verification backend to use. Possible values:
 
  - `Carbon` - verification-condition-generation-based backend [Carbon](https://github.com/viperproject/carbon).
  - `Silicon` - symbolic-execution-based backend [Silicon](https://github.com/viperproject/silicon/).
-
-## `WHITELIST`
-
-Whitelist of procedure names that should be verified. Must be enabled using the [`ENABLE_WHITELIST`](#enable_whitelist) flag.
