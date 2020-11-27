@@ -218,7 +218,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
-                if adt_def.variants.len() > 1 {
+                if adt_def.is_enum() { // CMFIXME: enums
                     return false
                 }
                 let tcx = self.encoder.env().tcx();
