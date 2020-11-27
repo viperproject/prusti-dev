@@ -24,7 +24,6 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) | `bool` | `false` |
 | [`ENABLE_WHITELIST`](#enable_whitelist) | `bool` | `false` |
 | [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](#encode_unsigned_num_constraint) | `bool` | `false` |
-| [`ERROR_ON_PARTIALLY_SUPPORTED`](#error_on_partially_supported) | `bool` | `false` |
 | [`EXTRA_JVM_ARGS`](#extra_jvm_args) | `Vec<String>` | `vec![]` |
 | [`EXTRA_VERIFIER_ARGS`](#extra_verifier_args) | `Vec<String>` | `vec![]` |
 | [`FOLDUNFOLD_STATE_FILTER`](#foldunfold_state_filter) | `String` | `""` |
@@ -116,12 +115,6 @@ When enabled, the verification whitelist (specified using [`WHITELIST`](#whiteli
 
 When enabled, non-negativity of unsigned integers will be encoded and checked.
 
-## `ERROR_ON_PARTIALLY_SUPPORTED`
-
-When enabled, any feature not supported by Prusti will trigger an error during verification.
-
-This flag takes priority over [`SKIP_UNSUPPORTED_FEATURES`](#skip_unsupported_features).
-
 ## `EXTRA_JVM_ARGS`
 
 Additional arguments to pass to the JVM when launching a verifier backend.
@@ -193,8 +186,6 @@ When enabled, the encoded program is simplified before it is passed to the Viper
 ## `SKIP_UNSUPPORTED_FEATURES`
 
 When enabled, features not supported by Prusti will be reported as warnings rather than errors.
-
-[`ERROR_ON_PARTIALLY_SUPPORTED`](#error_on_partially_supported) takes priority over this flag.
 
 ## `USE_MORE_COMPLETE_EXHALE`
 
