@@ -63,8 +63,6 @@ lazy_static! {
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("ENCODE_UNSIGNED_NUM_CONSTRAINT", false).unwrap();
         settings.set_default("SIMPLIFY_ENCODING", true).unwrap();
-        settings.set_default("ENABLE_WHITELIST", false).unwrap();
-        settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_PATH_CTXT_IN_DEBUG_INFO", false).unwrap();
@@ -158,24 +156,6 @@ pub fn check_panics() -> bool {
 /// Should we simplify the encoding before passing it to Viper?
 pub fn simplify_encoding() -> bool {
     read_setting("SIMPLIFY_ENCODING")
-}
-
-/// Whether to use the verifiation whitelist
-pub fn enable_whitelist() -> bool {
-    SETTINGS
-        .read()
-        .unwrap()
-        .get::<bool>("ENABLE_WHITELIST")
-        .unwrap()
-}
-
-/// Get the whitelist of procedures that should be verified
-pub fn verification_whitelist() -> Vec<String> {
-    SETTINGS
-        .read()
-        .unwrap()
-        .get::<Vec<String>>("WHITELIST")
-        .unwrap()
 }
 
 /// Should we dump debug files?
