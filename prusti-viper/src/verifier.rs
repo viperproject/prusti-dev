@@ -175,7 +175,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         // let validator = Validator::new(self.env.tcx());
 
         // let report_support_status = config::report_support_status();
-        // let skip_unsupported_functions = config::skip_unsupported_functions();
+        // let skip_unsupported_features = config::skip_unsupported_features();
         // let error_on_partially_supported = config::error_on_partially_supported();
         // let mut skipped_functions_count = 0;
 
@@ -197,11 +197,11 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         //             // true ==> raise compiler errors for partially supported functions
         //             error_on_partially_supported,
         //             // true ==> raise compiler errors for unsupported functions
-        //             error_on_partially_supported || !skip_unsupported_functions,
+        //             error_on_partially_supported || !skip_unsupported_features,
         //         );
         //     }
 
-        //     if !support_status.is_supported() && skip_unsupported_functions {
+        //     if !support_status.is_supported() && skip_unsupported_features {
         //         warn!(
         //             "Skip verification of {}, as it is not fully supported.",
         //             proc_name
@@ -214,13 +214,13 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         //                 proc_name
         //             ),
         //             &Some(if report_support_status {
-        //                 "Disable the SKIP_UNSUPPORTED_FUNCTIONS configuration flag to verify \
+        //                 "Disable the SKIP_UNSUPPORTED_FEATURES configuration flag to verify \
         //                     this function anyway."
         //                     .to_string()
         //             } else {
         //                 "Enable the REPORT_SUPPORT_STATUS configuration flag for more details \
         //                     on why the function is not fully supported, or disable \
-        //                     SKIP_UNSUPPORTED_FUNCTIONS to verify this function anyway."
+        //                     SKIP_UNSUPPORTED_FEATURES to verify this function anyway."
         //                     .to_string()
         //             }),
         //             &None,

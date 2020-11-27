@@ -77,7 +77,7 @@ lazy_static! {
         settings.set_default("QUIET", false).unwrap();
         settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
-        settings.set_default("SKIP_UNSUPPORTED_FUNCTIONS", false).unwrap();
+        settings.set_default("SKIP_UNSUPPORTED_FEATURES", false).unwrap();
         settings.set_default("ALLOW_UNREACHABLE_UNSUPPORTED_CODE", false).unwrap();
         settings.set_default("NO_VERIFY", false).unwrap();
         settings.set_default("FULL_COMPILATION", false).unwrap();
@@ -334,9 +334,9 @@ pub fn delete_basic_blocks() -> Vec<String> {
     read_setting("DELETE_BASIC_BLOCKS")
 }
 
-/// Skip functions that are unsupported or partially supported
-pub fn skip_unsupported_functions() -> bool {
-    read_setting("SKIP_UNSUPPORTED_FUNCTIONS")
+/// Skip features that are unsupported or partially supported
+pub fn skip_unsupported_features() -> bool {
+    read_setting("SKIP_UNSUPPORTED_FEATURES")
 }
 
 /// Encode unsupported code as `assert false`, so that we report error messages
