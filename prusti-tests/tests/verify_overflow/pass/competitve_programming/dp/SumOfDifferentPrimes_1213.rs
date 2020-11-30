@@ -117,6 +117,8 @@ impl Matrix {
     }
 }
 
+// Recursive solution
+
 #[pure]
 #[requires(n <= 1120)]
 #[requires(k <= 14)]
@@ -177,6 +179,8 @@ fn sum_of_different_primes_rec_helper(
             + sum_of_different_primes_rec(primes, n - primes.lookup(idx_prime), k - 1)
     }
 }
+
+// DP SOlution
 
 #[requires(n > 0 && n <= 1120)]
 #[requires(k > 0 && k <= 14)]
