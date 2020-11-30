@@ -630,7 +630,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_discriminant_func_app(
         &self,
         place: vir::Expr,
-        adt_def: &ty::AdtDef,
+        adt_def: &'tcx ty::AdtDef,
     ) -> vir::Expr {
         let typ = place.get_type().clone();
         let mut name = typ.name();
