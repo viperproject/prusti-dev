@@ -23,6 +23,7 @@ use std::hash::{Hash, Hasher};
 use rustc_ast::ast;
 use prusti_interface::specs::typed;
 use rustc_attr::IntType::SignedInt;
+use rustc_target::abi::Integer;
 use log::{debug, trace};
 use crate::encoder::errors::{PositionlessEncodingError, PositionlessEncodingResult};
 
@@ -755,34 +756,22 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 }
 
 /// Compute the values that a discriminant can take.
-pub fn compute_discriminant_values(adt_def: &ty::AdtDef, tcx: ty::TyCtxt) -> Vec<i128> {
+pub fn compute_discriminant_values<'tcx>(adt_def: &'tcx ty::AdtDef, tcx: ty::TyCtxt<'tcx>) -> Vec<i128> {
     let mut discr_values: Vec<i128> = vec![];
     // Handle *signed* discriminats
-    if let SignedInt(ity) = adt_def.repr.discr_type() {
-        let bit_size = abi::Integer::from_attr(&tcx, SignedInt(ity))
-            .size()
-            .bits();
-        let shift = 128 - bit_size;
-        for (variant_index, _) in adt_def.variants.iter().enumerate() {
-            let unsigned_discr = adt_def.discriminant_for_variant(tcx, abi::VariantIdx::from_usize(variant_index)).val;
-            let casted_discr = unsigned_discr as i128;
-            // sign extend the raw representation to be an i128
-            let signed_discr = (casted_discr << shift) >> shift;
-            discr_values.push(signed_discr);
-        }
-    } else {
-        for (variant_index, _) in adt_def.variants.iter().enumerate() {
-            let value = adt_def.discriminant_for_variant(tcx, abi::VariantIdx::from_usize(variant_index)).val;
-            discr_values.push(value as i128);
-        }
+    // See: https://github.com/rust-lang/rust/blob/b7ebc6b0c1ba3c27ebb17c0b496ece778ef11e18/compiler/rustc_middle/src/ty/util.rs#L35-L45
+    let size = ty::tls::with(|tcx| Integer::from_attr(&tcx, adt_def.repr.discr_type()).size());
+    for (_variant_idx, discr) in adt_def.discriminants(tcx) {
+        // sign extend the raw representation to be an i128
+        discr_values.push(size.sign_extend(discr.val) as i128);
     }
     discr_values
 }
 
 /// Encode a disjunction that lists all possible discrimintant values.
-pub fn compute_discriminant_bounds(
-    adt_def: &ty::AdtDef,
-    tcx: ty::TyCtxt,
+pub fn compute_discriminant_bounds<'tcx>(
+    adt_def: &'tcx ty::AdtDef,
+    tcx: ty::TyCtxt<'tcx>,
     discriminant_loc: &vir::Expr,
 ) -> vir::Expr {
     /// Try to produce the minimal disjunction.

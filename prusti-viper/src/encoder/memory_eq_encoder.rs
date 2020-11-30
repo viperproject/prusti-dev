@@ -184,7 +184,7 @@ impl MemoryEqEncoder {
         encoder: &Encoder<'_, 'tcx>,
         first: vir::Expr,
         second: vir::Expr,
-        adt_def: &ty::AdtDef,
+        adt_def: &'tcx ty::AdtDef,
         subst: ty::subst::SubstsRef<'tcx>,
     ) -> Result<vir::Expr, PositionlessEncodingError> {
         let tcx = encoder.env().tcx();
