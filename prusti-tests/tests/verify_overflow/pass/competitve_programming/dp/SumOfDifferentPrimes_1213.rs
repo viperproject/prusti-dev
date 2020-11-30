@@ -219,16 +219,20 @@ fn sum_of_different_primes(primes: &VecWrapperI32, n: isize, k: isize) -> isize 
                 if idx_prev >= 0 {
                     sum += dp.lookup(idx_k - 1, idx_prev);
                 } else {
+                    assert!(sum_of_different_primes_rec_helper(primes, idx_n, idx_k, idx_prime) == sum + sum_of_different_primes_rec(primes, idx_prev, idx_k - 1));
                     assert!(sum_of_different_primes_rec(primes, idx_prev, idx_k - 1) == 0);
-                    assume_false()
+                    assert!(
+                        sum == sum_of_different_primes_rec_helper(primes, idx_n, idx_k, idx_prime)
+                    );
                 }
                 idx_prime += 1;
             }
-            assert!(idx_k > 0 && idx_n >= 0);
-            assert!(idx_prime == primes_len);
+            
             assert!(
                 sum == sum_of_different_primes_rec_helper(primes, idx_n, idx_k, primes_len - 1)
             );
+            assert!(idx_k > 0 && idx_n >= 0);
+            assert!(idx_prime == primes_len);
             assert!(sum == sum_of_different_primes_rec(primes, idx_n, idx_k));
             dp.set(idx_k, idx_n, sum);
             idx_n += 1;
@@ -237,9 +241,5 @@ fn sum_of_different_primes(primes: &VecWrapperI32, n: isize, k: isize) -> isize 
     }
     dp.lookup(k, n)
 }
-
-#[trusted]
-#[ensures(false)]
-fn assume_false() {}
 
 fn main() {}
