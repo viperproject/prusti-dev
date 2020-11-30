@@ -13,7 +13,6 @@ use prusti_common::report::user;
 pub fn verify<'tcx>(
     flags: ConfigFlags,
     env: Environment<'tcx>,
-    spec: typed::SpecificationMap<'tcx>,
     def_spec: typed::DefSpecificationMap<'tcx>
 ) {
     trace!("[verify] enter");
@@ -21,7 +20,7 @@ pub fn verify<'tcx>(
     if env.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
-        debug!("Specification consists of {} elements.", spec.len());
+        // debug!("Specification consists of {} elements.", spec.len());
 
         debug!("Prepare verification task...");
         let annotated_procedures = env.get_annotated_procedures();
@@ -48,7 +47,7 @@ pub fn verify<'tcx>(
             debug!("Dump borrow checker info...");
             env.dump_borrowck_info(&verification_task.procedures);
 
-            let mut verifier = Verifier::new(&env, &spec, &def_spec);
+            let mut verifier = Verifier::new(&env, &def_spec);
             let verification_result = verifier.verify(&verification_task);
             debug!("Verifier returned {:?}", verification_result);
 

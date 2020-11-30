@@ -266,7 +266,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .get_procedure_contract_for_def(assoc_item.def_id)
                         .with_span(mir_span)?;
                     let (mut proc_pre_specs, mut proc_post_specs, mut proc_pledge_specs) = {
-                        if let typed::SpecificationSet::Procedure(typed::ProcedureSpecification{pres, posts, pledges}) =
+                        if let typed::SpecificationSet::Procedure(typed::ProcedureSpecification{pres, posts, pledges, ..}) =
                             &mut self.mut_contract().specification
                         {
                             (pres, posts, pledges)
@@ -4073,6 +4073,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|local| self.mir_encoder.encode_local(local).unwrap().into()) // will panic if attempting to encode unsupported type
                 .collect();
             for spec_id in &spec_ids {
+                unreachable!("TODO: use def_spec");
+                /*
                 let assertion = self.encoder.spec().get(spec_id).unwrap();
                 // TODO: Mmm... are these parameters correct?
                 let encoded_spec = self.encoder.encode_assertion(
@@ -4092,6 +4094,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .register_span(spec_spans.clone());
                 encoded_specs.push(encoded_spec.set_default_pos(spec_pos));
                 encoded_spec_spans.extend(spec_spans);
+                */
             }
             trace!("encoded_specs: {:?}", encoded_specs);
         }

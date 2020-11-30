@@ -291,6 +291,10 @@ pub struct ProcedureSpecification<EID, ET, AT> {
     pub posts: Vec<Assertion<EID, ET, AT>>,
     /// Pledges in the postcondition.
     pub pledges: Vec<Pledge<EID, ET, AT>>,
+
+    pub pure: bool,
+    pub trusted: bool,
+    pub is_extern_spec: bool,
 }
 
 impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
@@ -299,7 +303,14 @@ impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
         posts: Vec<Assertion<EID, ET, AT>>,
         pledges: Vec<Pledge<EID, ET, AT>>
     ) -> Self {
-        Self { pres, posts, pledges }
+        Self {
+            pres,
+            posts,
+            pledges,
+            pure: false,
+            trusted: false,
+            is_extern_spec: false,
+        }
     }
     pub fn empty() -> Self {
         Self::new(Vec::new(), Vec::new(), Vec::new())
@@ -312,7 +323,7 @@ impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
 #[derive(Debug, Clone)]
 /// Specification of a single element such as procedure or loop.
 pub enum SpecificationSet<EID, ET, AT> {
-    /// (Precondition, Postcondition)
+    /// Procedure specifications (preconditions, postconditions, pledges, attributes).
     Procedure(ProcedureSpecification<EID, ET, AT>),
     /// Loop invariant.
     Loop(LoopSpecification<EID, ET, AT>),
@@ -339,39 +350,62 @@ impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<
     /// In other words, any pre-/post-condition provided by `other` will overwrite any provided by
     /// `self`.
     pub fn refine(&self, other: &Self) -> Self {
-        let mut pres = vec![];
-        let mut posts = vec![];
-        let mut pledges = vec![];
-        let (ref_pre, ref_post, ref_pledges) = {
-            if let SpecificationSet::Procedure(ProcedureSpecification { ref pres, ref posts, ref pledges}) = other {
-                (pres, posts, pledges)
-            } else {
-                unreachable!("Unexpected: {:?}", other)
-            }
+        let ProcedureSpecification {
+            pres: ref other_pres,
+            posts: ref other_posts,
+            pledges: ref other_pledges,
+            ..
+        } = other.expect_procedure();
+        let ProcedureSpecification {
+            pres: ref base_pres,
+            posts: ref base_posts,
+            pledges: ref base_pledges,
+            ..
+        } = self.expect_procedure();
+        let pres = if other_pres.is_empty() {
+            base_pres.clone()
+        } else {
+            other_pres.clone()
         };
-        let (base_pre, base_post, base_pledges) = {
-            if let SpecificationSet::Procedure(ProcedureSpecification { ref pres, ref posts, ref pledges}) = self {
-                (pres, posts, pledges)
-            } else {
-                unreachable!("Unexpected: {:?}", self)
-            }
+        let posts = if other_posts.is_empty() {
+            base_posts.clone()
+        } else {
+            other_posts.clone()
         };
-        if ref_pre.is_empty() {
-            pres.append(&mut base_pre.clone());
+        let pledges = if other_pledges.is_empty() {
+            base_pledges.clone()
         } else {
-            pres.append(&mut ref_pre.clone());
-        }
-        if ref_post.is_empty() {
-            posts.append(&mut base_post.clone());
-        } else {
-            posts.append(&mut ref_post.clone());
-        }
-        if ref_pledges.is_empty() {
-            pledges.append(&mut base_pledges.clone());
-        } else {
-            pledges.append(&mut ref_pledges.clone());
-        }
-        SpecificationSet::Procedure(ProcedureSpecification { pres, posts, pledges })
+            other_pledges.clone()
+        };
+        SpecificationSet::Procedure(ProcedureSpecification {
+            pres,
+            posts,
+            pledges,
+            // TODO: attributes?
+            pure: false,
+            trusted: false,
+            is_extern_spec: false,
+        })
     }
 
+    pub fn expect_procedure(&self) -> &ProcedureSpecification<EID, ET, AT> {
+        if let SpecificationSet::Procedure(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Procedure: {:?}", self);
+    }
+
+    pub fn expect_loop(&self) -> &LoopSpecification<EID, ET, AT> {
+        if let SpecificationSet::Loop(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Loop: {:?}", self);
+    }
+
+    pub fn expect_struct(&self) -> &Vec<Specification<EID, ET, AT>> {
+        if let SpecificationSet::Struct(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Struct: {:?}", self);
+    }
 }

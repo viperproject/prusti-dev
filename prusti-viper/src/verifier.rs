@@ -144,12 +144,11 @@ where
 impl<'v, 'tcx> Verifier<'v, 'tcx> {
     pub fn new(
         env: &'v Environment<'tcx>,
-        spec: &'v typed::SpecificationMap<'tcx>,
         def_spec: &'v typed::DefSpecificationMap<'tcx>,
     ) -> Self {
         Verifier {
             env,
-            encoder: Encoder::new(env, spec, def_spec),
+            encoder: Encoder::new(env, def_spec),
         }
     }
 

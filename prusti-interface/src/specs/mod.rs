@@ -42,10 +42,21 @@ struct Item<'tcx> {
     attrs: &'tcx [ast::Attribute],
 }
 
+struct ProcedureSpecRef {
+    spec_id_refs: Vec<prusti_specs::specifications::common::SpecIdRef>,
+    pure: bool,
+    trusted: bool,
+}
+
+/// Specification collector, intended to be applied as a visitor over the crate
+/// HIR. After the visit, [determine_def_specs] can be used to get back
+/// a mapping of DefIds (which may not be local due to extern specs) to their
+/// [SpecificationSet], i.e. procedures, loops, and structs.
 pub struct SpecCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
     spec_items: Vec<SpecItem>,
-    def_spec: typed::DefSpecificationMap<'tcx>,
+    typed_specs: typed::SpecificationMap<'tcx>,
+    procedure_specs: HashMap<LocalDefId, ProcedureSpecRef>,
     typed_expressions: HashMap<String, LocalDefId>,
     extern_resolver: ExternSpecResolver<'tcx>,
 }
@@ -55,21 +66,22 @@ impl<'tcx> SpecCollector<'tcx> {
         Self {
             tcx: tcx,
             spec_items: Vec::new(),
-            def_spec: HashMap::new(),
+            typed_specs: HashMap::new(),
+            procedure_specs: HashMap::new(),
             typed_expressions: HashMap::new(),
             extern_resolver: ExternSpecResolver::new(tcx),
         }
     }
 
-    pub fn determine_typed_procedure_specs(self) -> typed::SpecificationMap<'tcx> {
-        let typed_expressions = self.typed_expressions;
+    fn determine_typed_procedure_specs(&mut self) -> typed::SpecificationMap<'tcx> {
         let tcx = self.tcx;
-        self.spec_items
+        let spec_items:Vec<SpecItem> = self.spec_items.drain(..).collect();
+        spec_items
             .into_iter()
             .map(|spec_item| {
                 let assertion = reconstruct_typed_assertion(
                     spec_item.specification,
-                    &typed_expressions,
+                    &self.typed_expressions,
                     tcx
                 );
                 (spec_item.spec_id, assertion)
@@ -77,7 +89,19 @@ impl<'tcx> SpecCollector<'tcx> {
             .collect()
     }
 
-    pub fn determine_def_specs(&self, env: &Environment<'tcx>) -> typed::DefSpecificationMap<'tcx> {
+    pub fn determine_def_specs(&mut self, env: &Environment<'tcx>) -> typed::DefSpecificationMap<'tcx> {
+        self.typed_specs = self.determine_typed_procedure_specs();
+
+        let mut def_spec = HashMap::new();
+        self.determine_extern_specs(&mut def_spec);
+        self.determine_procedure_specs(&mut def_spec);
+        self.determine_loop_specs(&mut def_spec);
+        self.determine_struct_specs(&mut def_spec);
+        def_spec
+    }
+
+    fn determine_extern_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
+        /*
         let mut def_spec = self.def_spec.clone();
         self.extern_resolver.check_duplicates(env);
         // TODO: do something with the traits
@@ -91,11 +115,54 @@ impl<'tcx> SpecCollector<'tcx> {
                 def_spec.insert(*real_id, specs.to_vec());
             }
         }
-        def_spec
+        */
     }
+
+    fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
+        // TODO: procedure specs SpecIdRef -> typed::...
+        for (def_id, refs) in self.procedure_specs.iter() {
+            let mut pres = Vec::new();
+            let mut posts = Vec::new();
+            let mut pledges = Vec::new();
+            for spec_id_ref in &refs.spec_id_refs {
+                match spec_id_ref {
+                    SpecIdRef::Precondition(spec_id) => {
+                        pres.push(self.typed_specs.get(&spec_id).unwrap().clone());
+                    }
+                    SpecIdRef::Postcondition(spec_id) => {
+                        posts.push(self.typed_specs.get(&spec_id).unwrap().clone());
+                    }
+                    SpecIdRef::Pledge{ lhs, rhs } => {
+                        pledges.push(typed::Pledge {
+                            reference: None,    // FIXME: Currently only `result` is supported.
+                            lhs: lhs.map(|spec_id| self.typed_specs.get(&spec_id).unwrap().clone()),
+                            rhs: self.typed_specs.get(&rhs).unwrap().clone(),
+                        })
+                    }
+                }
+            }
+            def_spec.insert(
+                *def_id,
+                typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
+                    pres,
+                    posts,
+                    pledges,
+                    pure: refs.pure,
+                    trusted: refs.trusted,
+                    is_extern_spec: false,
+                })
+            );
+        }
+    }
+
+    // TODO: loop specs
+    fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {}
+
+    // TODO: struct specs
+    fn determine_struct_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {}
 }
 
-fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Vec<SpecIdRef> {
+fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<ProcedureSpecRef> {
     let mut spec_id_refs = vec![];
 
     let parse_spec_id = |spec_id: String| -> SpecificationId {
@@ -131,7 +198,19 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Vec<SpecId
         )
     );
     debug!("Function {:?} has specification ids {:?}", def_id, spec_id_refs);
-    spec_id_refs
+
+    let pure = has_prusti_attr(attrs, "pure");
+    let trusted = has_prusti_attr(attrs, "trusted");
+
+    if pure || trusted || spec_id_refs.len() > 0 {
+        Some(ProcedureSpecRef {
+            spec_id_refs,
+            pure,
+            trusted,
+        })
+    } else {
+        None
+    }
 }
 
 fn reconstruct_typed_assertion<'tcx>(
@@ -176,10 +255,9 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         }
 
         // Collect procedure specifications
-        let procedure_spec_ids = get_procedure_spec_ids(def_id, attrs);
-        if procedure_spec_ids.len() > 0 {
-            println!("{:#?} has {} specs", def_id, procedure_spec_ids.len());
-            self.def_spec.insert(def_id, procedure_spec_ids);
+        if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
+            println!("{:#?} has {} specs", local_id, procedure_spec_ref.spec_id_refs.len());
+            self.procedure_specs.insert(local_id, procedure_spec_ref);
         }
 
         // Collect a typed expression

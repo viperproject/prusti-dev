@@ -19,8 +19,8 @@ pub type LoopSpecification<'tcx> = common::LoopSpecification<ExpressionId, Local
 pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A map of untyped specifications for a specific crate. ?????
 pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, Assertion<'tcx>>;
-/// 
-pub type DefSpecificationMap<'tcx> = HashMap<ProcedureDefId, Vec<common::SpecIdRef>>;
+/// A map of specifications keyed by crate-local DefIds.
+pub type DefSpecificationMap<'tcx> = HashMap<LocalDefId, SpecificationSet<'tcx>>;
 // A map of untyped external specifications.
 //pub type ExternSpecificationMap<'tcx> = HashMap<ProcedureDefId, (Option<ProcedureDefId>, ProcedureDefId)>;
 /// An assertion that has no types associated with it.

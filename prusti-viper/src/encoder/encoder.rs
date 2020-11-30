@@ -60,7 +60,6 @@ const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
-    spec: &'v typed::SpecificationMap<'tcx>,
     def_spec: &'v typed::DefSpecificationMap<'tcx>,
     error_manager: RefCell<ErrorManager<'tcx>>,
     procedure_contracts: RefCell<HashMap<
@@ -100,7 +99,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn new(
         env: &'v Environment<'tcx>,
-        spec: &'v typed::SpecificationMap<'tcx>,
         def_spec: &'v typed::DefSpecificationMap<'tcx>,
     ) -> Self {
         let source_path = env.source_path();
@@ -124,7 +122,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         Encoder {
             env,
-            spec,
             def_spec,
             error_manager: RefCell::new(ErrorManager::new(env.codemap())),
             procedure_contracts: RefCell::new(HashMap::new()),
@@ -195,8 +192,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.env
     }
 
-    pub fn spec(&self) -> &'v typed::SpecificationMap<'tcx> {
-        self.spec
+    pub fn def_spec(&self) -> &'v typed::DefSpecificationMap<'tcx> {
+        self.def_spec
     }
 
     /*
@@ -364,6 +361,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
     pub fn get_loop_specs(&self, def_id: DefId) -> Vec<SpecificationId> {
+        unimplemented!("TODO: use def_spec");
+        /*
         let attrs = self.env().tcx().get_attrs(def_id);
         debug_assert!(has_prusti_attr(attrs, "loop_body_invariant_spec"));
         read_prusti_attrs("spec_id", attrs).into_iter().map(
@@ -371,6 +370,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 &format!("cannot parse the spec_id attached to {:?}", def_id)
             )
         ).collect()
+        */
     }
 
     /// Get the specifications attached to the `def_id` function.
@@ -379,34 +379,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         // Currently, we don't support specifications for external functions.
         // Since we have a collision of PRUSTI_SPEC_ATTR between different crates, we manually check
         // that the def_id does not point to an external crate.
-        if !def_id.is_local() {
-            return None;
-        }
-        if let Some(refs) = self.def_spec.get(&def_id) {
-            let mut pres = Vec::new();
-            let mut posts = Vec::new();
-            let mut pledges = Vec::new();
-            for spec_id_ref in refs {
-                match spec_id_ref {
-                    SpecIdRef::Precondition(spec_id) => {
-                        pres.push(self.spec().get(&spec_id).unwrap().clone());
-                    }
-                    SpecIdRef::Postcondition(spec_id) => {
-                        posts.push(self.spec().get(&spec_id).unwrap().clone());
-                    }
-                    SpecIdRef::Pledge{ lhs, rhs } => {
-                        pledges.push(typed::Pledge {
-                            reference: None,    // FIXME: Currently only `result` is supported.
-                            lhs: lhs.map(|spec_id| self.spec().get(&spec_id).unwrap().clone()),
-                            rhs: self.spec().get(&rhs).unwrap().clone(),
-                        })
-                    }
-                }
-            }
-            Some(typed::SpecificationSet::Procedure(typed::ProcedureSpecification::new(pres, posts, pledges)))
-        } else {
-            None
-        }
+        // TODO: external specs?
+        let local_id = def_id.as_local()?;
+        let spec = self.def_spec.get(&local_id)?;
+        Some(spec.clone())
     }
 
     fn get_procedure_contract(&self, proc_def_id: ProcedureDefId)
