@@ -758,11 +758,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 /// Compute the values that a discriminant can take.
 pub fn compute_discriminant_values<'tcx>(adt_def: &'tcx ty::AdtDef, tcx: ty::TyCtxt<'tcx>) -> Vec<i128> {
     let mut discr_values: Vec<i128> = vec![];
-    // Handle *signed* discriminats
-    // See: https://github.com/rust-lang/rust/blob/b7ebc6b0c1ba3c27ebb17c0b496ece778ef11e18/compiler/rustc_middle/src/ty/util.rs#L35-L45
     let size = ty::tls::with(|tcx| Integer::from_attr(&tcx, adt_def.repr.discr_type()).size());
     for (_variant_idx, discr) in adt_def.discriminants(tcx) {
-        // sign extend the raw representation to be an i128
+        // Sign extend the raw representation to be an i128, to handle *signed* discriminants.
+        // See also: https://github.com/rust-lang/rust/blob/b7ebc6b0c1ba3c27ebb17c0b496ece778ef11e18/compiler/rustc_middle/src/ty/util.rs#L35-L45
         discr_values.push(size.sign_extend(discr.val) as i128);
     }
     discr_values
