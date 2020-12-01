@@ -166,8 +166,9 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             if let ty::TyKind::FnDef(def_id, ..) = ty.kind() {
                 // let func_proc_name = self.tcx.absolute_item_path_str(def_id);
                 let func_proc_name = self.tcx.def_path_str(*def_id);
-                &func_proc_name == "std::panicking::begin_panic"
-                    || &func_proc_name == "std::rt::begin_panic"
+                &func_proc_name == "std::rt::begin_panic"
+                    || &func_proc_name == "core::panicking::panic"
+                    || &func_proc_name == "core::panicking::panic_fmt"
             } else {
                 false
             }
