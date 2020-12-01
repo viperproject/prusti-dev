@@ -395,6 +395,13 @@ impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<
         unreachable!("expected Procedure: {:?}", self);
     }
 
+    pub fn expect_mut_procedure(&mut self) -> &mut ProcedureSpecification<EID, ET, AT> {
+        if let SpecificationSet::Procedure(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Procedure: {:?}", self);
+    }
+
     pub fn expect_loop(&self) -> &LoopSpecification<EID, ET, AT> {
         if let SpecificationSet::Loop(spec) = self {
             return spec;

@@ -1,7 +1,7 @@
 use prusti_specs::specifications::common;
 use prusti_specs::specifications::json;
 use rustc_hir::BodyId;
-use rustc_hir::def_id::LocalDefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{mir, ty::{self, TyCtxt}};
 use rustc_span::Span;
 use std::collections::HashMap;
@@ -20,7 +20,7 @@ pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<Expressio
 /// A map of untyped specifications for a specific crate. ?????
 pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, Assertion<'tcx>>;
 /// A map of specifications keyed by crate-local DefIds.
-pub type DefSpecificationMap<'tcx> = HashMap<LocalDefId, SpecificationSet<'tcx>>;
+pub type DefSpecificationMap<'tcx> = HashMap<DefId, SpecificationSet<'tcx>>;
 // A map of untyped external specifications.
 //pub type ExternSpecificationMap<'tcx> = HashMap<ProcedureDefId, (Option<ProcedureDefId>, ProcedureDefId)>;
 /// An assertion that has no types associated with it.

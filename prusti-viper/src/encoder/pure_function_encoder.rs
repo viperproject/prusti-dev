@@ -704,8 +704,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             // simple function call
                             _ => {
                                 let mut is_cmp_call = false;
-                                let is_pure_function =
-                                    self.encoder.env().has_prusti_attribute(def_id, "pure");
+                                let is_pure_function = self.encoder.is_pure(def_id);
                                 let (function_name, return_type) = if is_pure_function {
                                     self.encoder.encode_pure_function_use(def_id)
                                 } else {

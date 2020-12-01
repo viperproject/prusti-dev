@@ -265,15 +265,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .encoder
                         .get_procedure_contract_for_def(assoc_item.def_id)
                         .with_span(mir_span)?;
-                    let (mut proc_pre_specs, mut proc_post_specs, mut proc_pledge_specs) = {
-                        if let typed::SpecificationSet::Procedure(typed::ProcedureSpecification{pres, posts, pledges, ..}) =
-                            &mut self.mut_contract().specification
-                        {
-                            (pres, posts, pledges)
-                        } else {
-                            unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
-                        }
-                    };
+                    let typed::ProcedureSpecification {
+                        pres: proc_pre_specs,
+                        posts: proc_post_specs,
+                        pledges: proc_pledge_specs,
+                        ..
+                    } = self.mut_contract().specification.expect_mut_procedure();
 
                     if proc_pre_specs.is_empty() {
                         proc_pre_specs
@@ -2041,8 +2038,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         _ => {
-                            let is_pure_function =
-                                self.encoder.env().has_prusti_attribute(def_id, "pure");
+                            let is_pure_function = self.encoder.is_pure(def_id);
                             if is_pure_function {
                                 let (function_name, _) = self.encoder.encode_pure_function_use(def_id);
                                 debug!("Encoding pure function call '{}'", function_name);

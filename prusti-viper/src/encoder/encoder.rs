@@ -28,7 +28,7 @@ use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::specs::typed;
 use prusti_interface::specs::typed::SpecificationId;
-use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs, has_prusti_attr};
+use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
 use prusti_interface::PrustiError;
 // use prusti_interface::specs::{
 //     SpecID, SpecificationSet, TypedAssertion,
@@ -380,8 +380,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         // Since we have a collision of PRUSTI_SPEC_ATTR between different crates, we manually check
         // that the def_id does not point to an external crate.
         // TODO: external specs?
-        let local_id = def_id.as_local()?;
-        let spec = self.def_spec.get(&local_id)?;
+        let spec = self.def_spec.get(&def_id)?;
         Some(spec.clone())
     }
 
@@ -698,12 +697,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> Result<vir::CfgMethod, EncodingError> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
-            !self.env.has_prusti_attribute(def_id, "pure"),
+            !self.is_pure(def_id),
             "procedure is marked as pure: {:?}",
             def_id
         );
         assert!(
-            !self.env.has_prusti_attribute(def_id, "trusted"),
+            !self.is_trusted(def_id),
             "procedure is marked as trusted: {:?}",
             def_id
         );
@@ -1110,7 +1109,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> Result<(), EncodingError> {
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
-            self.env.has_prusti_attribute(proc_def_id, "pure"),
+            self.is_pure(proc_def_id),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -1289,7 +1288,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let procedure = self.env.get_procedure(proc_def_id);
 
         assert!(
-            self.env.has_prusti_attribute(proc_def_id, "pure"),
+            self.is_pure(proc_def_id),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
@@ -1383,7 +1382,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 "Encoding: {} from {:?} ({})",
                 proc_name, proc_span, proc_def_path
             );
-            let is_pure_function = self.env.has_prusti_attribute(proc_def_id, "pure");
+            let is_pure_function = self.is_pure(proc_def_id);
             if is_pure_function {
                 self.encode_pure_function_def(proc_def_id, substs);
             } else {
@@ -1404,9 +1403,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
-        trace!("is_trusted {:?}", def_id);
-        let result = self.env().has_prusti_attribute(def_id, "trusted");
+        let result = self.def_spec.get(&def_id).unwrap().expect_procedure().trusted;
         trace!("is_trusted {:?} = {}", def_id, result);
+        result
+    }
+
+    pub fn is_pure(&self, def_id: ProcedureDefId) -> bool {
+        let result = self.def_spec.get(&def_id).unwrap().expect_procedure().pure;
+        trace!("is_pure {:?} = {}", def_id, result);
         result
     }
 

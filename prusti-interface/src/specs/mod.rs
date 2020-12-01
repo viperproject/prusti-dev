@@ -120,7 +120,7 @@ impl<'tcx> SpecCollector<'tcx> {
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
         // TODO: procedure specs SpecIdRef -> typed::...
-        for (def_id, refs) in self.procedure_specs.iter() {
+        for (local_id, refs) in self.procedure_specs.iter() {
             let mut pres = Vec::new();
             let mut posts = Vec::new();
             let mut pledges = Vec::new();
@@ -142,7 +142,7 @@ impl<'tcx> SpecCollector<'tcx> {
                 }
             }
             def_spec.insert(
-                *def_id,
+                local_id.to_def_id(),
                 typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
                     pres,
                     posts,

@@ -20,8 +20,6 @@ pub fn verify<'tcx>(
     if env.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
-        // debug!("Specification consists of {} elements.", spec.len());
-
         debug!("Prepare verification task...");
         let annotated_procedures = env.get_annotated_procedures();
         let verification_task = VerificationTask {
