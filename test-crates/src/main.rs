@@ -60,6 +60,24 @@ impl cmd::Runnable for CargoPrusti {
     }
 }
 
+#[derive(Deserialize)]
+struct RustToolchainFile {
+    toolchain: RustToolchain,
+}
+
+#[derive(Deserialize)]
+struct RustToolchain {
+    channel: String,
+    components: Option<Vec<String>>,
+}
+
+fn get_rust_toolchain() -> RustToolchain {
+    let content = include_str!("../../rust-toolchain");
+    let rust_toolchain: RustToolchainFile = toml::from_str(content)
+        .expect("failed to parse rust-toolchain file");
+    rust_toolchain.toolchain
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     color_backtrace::install();
     setup_logs();
@@ -85,17 +103,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     ).init()?;
 
     info!("Install the toolchain...");
-    let toolchain = {
-        let mut contents = String::new();
-        fs::File::open("rust-toolchain")?
-            .read_to_string(&mut contents)?;
-        let dist = contents.trim().to_string();
-        info!("toolchain: {}", dist);
-        Toolchain::dist(&dist)
-    };
+    let rust_toolchain = get_rust_toolchain();
+    info!("toolchain: {}", rust_toolchain.channel);
+    let toolchain = Toolchain::dist(&rust_toolchain.channel);
     toolchain.install(&workspace)?;
-    toolchain.add_component(&workspace, "rustc-dev")?;
-    toolchain.add_component(&workspace, "llvm-tools-preview")?;
+    for component in rust_toolchain.components.as_ref().unwrap_or(&vec![]).iter() {
+        if component != "rustfmt" {
+            toolchain.add_component(&workspace, component)?;
+        }
+    }
 
     info!("Read lists of crates...");
     // TODO: do something to freeze the version of the dependencies.

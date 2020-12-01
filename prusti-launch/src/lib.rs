@@ -92,12 +92,12 @@ pub fn find_java_home() -> Option<PathBuf> {
 
 pub fn get_rust_toolchain_channel() -> String {
     #[derive(Deserialize)]
-    struct RustToolchain {
-        toolchain: RustToolchainZone,
+    struct RustToolchainFile {
+        toolchain: RustToolchain,
     }
 
     #[derive(Deserialize)]
-    struct RustToolchainZone {
+    struct RustToolchain {
         channel: String,
         components: Option<Vec<String>>,
     }
@@ -106,7 +106,7 @@ pub fn get_rust_toolchain_channel() -> String {
     // Be ready to accept TOML format
     // See: https://github.com/rust-lang/rustup/pull/2438
     if content.starts_with("[toolchain]") {
-        let rust_toolchain: RustToolchain = toml::from_str(content)
+        let rust_toolchain: RustToolchainFile = toml::from_str(content)
             .expect("failed to parse rust-toolchain file");
         rust_toolchain.toolchain.channel
     } else {
