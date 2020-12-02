@@ -229,6 +229,7 @@ impl<'a> Into<EnumVariantIndex> for &'a Field {
     }
 }
 
+
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "enum_predicate {}({}){{\n", self.name, self.this)?;

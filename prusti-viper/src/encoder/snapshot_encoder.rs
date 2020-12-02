@@ -232,6 +232,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                         }
                     }
                 }
+
                 true
             }
             ty::TyKind::Tuple(elems) => {
@@ -537,6 +538,19 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     {
         let mut formal_args = vec![];
         match self.ty.kind() {
+            ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
+                let tcx = self.encoder.env().tcx();
+                let mut field_num = 0;
+                for field in &adt_def.non_enum_variant().fields {
+                    let field_ty = field.ty(tcx, subst);
+                    let snapshot = self.encoder.encode_snapshot(&field_ty)?;
+                    formal_args.push(
+                        self.encode_local_var(field_num, &snapshot.get_type())
+                    );
+                    field_num += 1;
+                }
+            },
+
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
             | ty::TyKind::Char

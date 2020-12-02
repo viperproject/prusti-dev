@@ -1,6 +1,6 @@
 use prusti_contracts::*;
 
-#[derive(Clone,PartialEq)]
+#[derive(Clone,PartialEq,Eq)]
 enum A {
     ANone(u32),
     ASome(i32),

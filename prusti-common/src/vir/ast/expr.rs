@@ -434,6 +434,13 @@ impl Expr {
         Expr::Cond(box guard, box left, box right, Position::default())
     }
 
+    pub fn int(value: i64) -> Self {
+        Expr::Const(
+            Const::Int(value),
+            Position::default(),
+        )
+    }
+
     pub fn unfolding(
         pred_name: String,
         args: Vec<Expr>,
