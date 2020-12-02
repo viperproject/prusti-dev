@@ -500,6 +500,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             vec![vir::Expr::local(var.clone())],
         );
 
+        // TODO this is potentially dangerous as the variant range is not the same as the
+        // discriminant range
         let variant_range = adt_def.variant_range();
         let start = vir::Expr::int(variant_range.start.as_usize() as i64);
         let end = vir::Expr::int(variant_range.end.as_usize() as i64);
@@ -517,7 +519,16 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             domain_name: domain_name.to_string()
         });
 
-        // TODO injectivity
+        for (variant_index, cons_func) in constructors.iter().enumerate() {
+            result.push(self.encode_cons_injectivity(
+                self.encode_injectivity_axiom_name(
+                    &domain_name,
+                    variant_index as i64
+                ),
+                &domain_name,
+                &cons_func
+            ))
+        }
 
         Ok(result)
     }
@@ -650,7 +661,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     fn encode_domain(&self) -> EncodingResult<vir::Domain> {
         let domain_name = self.encode_domain_name();
         let cons_func = self.encode_domain_cons(&domain_name)?;
-        let cons_axiom_injectivity = self.encode_cons_injectivity(&domain_name, &cons_func);
+        let cons_axiom_injectivity = self.encode_cons_injectivity(
+            self.encode_injectivity_axiom_name(&domain_name, 0),
+            &domain_name,
+            &cons_func
+        );
 
         Ok(vir::Domain {
             name: domain_name,
@@ -680,7 +695,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    fn encode_cons_injectivity(&self, domain_name: &String, cons_func: &vir::DomainFunc)
+    fn encode_cons_injectivity(&self, axiom_name: String, domain_name: &String, cons_func: &vir::DomainFunc)
         -> vir::DomainAxiom
     {
         let (lhs_args, lhs_call) = self.encode_injectivity_args_call(
@@ -709,7 +724,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         let trigger = vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()]);
 
         vir::DomainAxiom {
-            name: format!("{}$injectivity", domain_name.to_string()),
+            name: axiom_name,
             expr: vir::Expr::forall(
                 vars,
                 vec![trigger],
@@ -723,6 +738,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             ),
             domain_name: domain_name.to_string()
         }
+    }
+
+    fn encode_injectivity_axiom_name(&self, domain_name: &String, variant_index: i64) -> String {
+        format!("{}$injectivity${}", domain_name.to_string(), variant_index)
     }
 
     fn encode_injectivity_args_call(&self, cons_func: &vir::DomainFunc, suffix: String)
