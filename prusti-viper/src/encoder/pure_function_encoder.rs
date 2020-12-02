@@ -735,7 +735,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         self.encoder.encode_stub_pure_function_use(def_id)
                                     }
                                 };
-                                if is_pure_function{
+                                if is_pure_function {
                                     trace!("Encoding pure function call '{}'", function_name);
                                 } else {
                                     trace!("Encoding stub pure function call '{}'", function_name);

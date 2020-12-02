@@ -2,12 +2,12 @@ use super::untyped;
 use serde::{Deserialize, Serialize};
 use super::common;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Assertion {
     pub kind: Box<AssertionKind>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum AssertionKind {
     Expr(Expression),
     And(Vec<Assertion>),
@@ -15,7 +15,7 @@ pub enum AssertionKind {
     ForAll(ForAllVars, Assertion, TriggerSet),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Expression {
     /// Identifier of the specification to which this expression belongs.
     pub spec_id: untyped::SpecificationId,
@@ -23,17 +23,17 @@ pub struct Expression {
     pub expr_id: untyped::ExpressionId,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ForAllVars {
     pub spec_id: untyped::SpecificationId,
     pub expr_id: untyped::ExpressionId,
     pub count: usize,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TriggerSet(pub Vec<Trigger>);
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Trigger(pub Vec<Expression>);
 
 impl untyped::Expression {

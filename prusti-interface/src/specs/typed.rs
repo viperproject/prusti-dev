@@ -19,8 +19,6 @@ pub type LoopSpecification<'tcx> = common::LoopSpecification<ExpressionId, Local
 pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A map of untyped specifications for a specific crate. ?????
 pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, Assertion<'tcx>>;
-/// A map of specifications keyed by crate-local DefIds.
-pub type DefSpecificationMap<'tcx> = HashMap<DefId, SpecificationSet<'tcx>>;
 // A map of untyped external specifications.
 //pub type ExternSpecificationMap<'tcx> = HashMap<ProcedureDefId, (Option<ProcedureDefId>, ProcedureDefId)>;
 /// An assertion that has no types associated with it.
@@ -37,6 +35,29 @@ pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, (mir::Local, ty::Ty
 pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
 /// A pledge in the postcondition.
 pub type Pledge<'tcx> = common::Pledge<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
+
+/// A map of specifications keyed by crate-local DefIds.
+pub struct DefSpecificationMap<'tcx> {
+    pub specs: HashMap<LocalDefId, SpecificationSet<'tcx>>,
+    pub extern_specs: HashMap<DefId, LocalDefId>,
+}
+
+impl<'tcx> DefSpecificationMap<'tcx> {
+    pub fn new() -> Self {
+        Self {
+            specs: HashMap::new(),
+            extern_specs: HashMap::new(),
+        }
+    }
+    pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet<'tcx>> {
+        let id = if let Some(spec_id) = self.extern_specs.get(def_id) {
+            *spec_id
+        } else {
+            def_id.as_local()?
+        };
+        self.specs.get(&id)
+    }
+}
 
 /// This trait is implemented for specification-related types that have one or
 /// more associated spans (positions within the source code). The spans are not

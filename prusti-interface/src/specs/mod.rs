@@ -23,6 +23,7 @@ use std::fmt;
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
 
+#[derive(Clone)]
 struct SpecItem {
     spec_id: typed::SpecificationId,
     spec_type: SpecType,
@@ -73,16 +74,14 @@ impl<'tcx> SpecCollector<'tcx> {
         }
     }
 
-    fn determine_typed_procedure_specs(&mut self) -> typed::SpecificationMap<'tcx> {
-        let tcx = self.tcx;
-        let spec_items:Vec<SpecItem> = self.spec_items.drain(..).collect();
-        spec_items
+    pub fn determine_typed_procedure_specs(&self) -> typed::SpecificationMap<'tcx> {
+        self.spec_items.clone()
             .into_iter()
             .map(|spec_item| {
                 let assertion = reconstruct_typed_assertion(
                     spec_item.specification,
                     &self.typed_expressions,
-                    tcx
+                    self.tcx
                 );
                 (spec_item.spec_id, assertion)
             })
@@ -92,30 +91,25 @@ impl<'tcx> SpecCollector<'tcx> {
     pub fn determine_def_specs(&mut self, env: &Environment<'tcx>) -> typed::DefSpecificationMap<'tcx> {
         self.typed_specs = self.determine_typed_procedure_specs();
 
-        let mut def_spec = HashMap::new();
-        self.determine_extern_specs(&mut def_spec);
+        let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
+        self.determine_extern_specs(&mut def_spec, env);
         self.determine_loop_specs(&mut def_spec);
         self.determine_struct_specs(&mut def_spec);
         def_spec
     }
 
-    fn determine_extern_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
-        /*
-        let mut def_spec = self.def_spec.clone();
+    fn determine_extern_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, env: &Environment<'tcx>) {
         self.extern_resolver.check_duplicates(env);
         // TODO: do something with the traits
         for (real_id, (_, spec_id)) in self.extern_resolver.get_extern_fn_map().iter() {
-            if def_spec.contains_key(real_id) {
-                panic!("duplicate spec"); // TODO: proper error
-            }
-            println!("real: {:#?} specs: {:#?}", real_id, spec_id);
-            if let Some(specs) = def_spec.get(spec_id) {
-                println!("> {:#?}", specs);
-                def_spec.insert(*real_id, specs.to_vec());
+            // if def_spec.specs.contains_key(real_id) {
+            //     panic!("duplicate spec"); // TODO: proper error
+            // }
+            if let Some(spec) = def_spec.specs.get(&spec_id.expect_local()) {
+                def_spec.extern_specs.insert(*real_id, spec_id.expect_local());
             }
         }
-        */
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
@@ -141,8 +135,8 @@ impl<'tcx> SpecCollector<'tcx> {
                     }
                 }
             }
-            def_spec.insert(
-                local_id.to_def_id(),
+            def_spec.specs.insert(
+                *local_id,
                 typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
                     pres,
                     posts,
@@ -256,7 +250,6 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
 
         // Collect procedure specifications
         if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
-            println!("{:#?} has {} specs", local_id, procedure_spec_ref.spec_id_refs.len());
             self.procedure_specs.insert(local_id, procedure_spec_ref);
         }
 

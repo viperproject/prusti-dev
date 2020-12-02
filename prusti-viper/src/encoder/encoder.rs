@@ -1136,7 +1136,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         if !self.pure_functions.borrow().contains_key(&key) {
             trace!("not encoded: {:?}", key);
-            let procedure = self.env.get_procedure(proc_def_id);
+            let pure_def_id = self.def_spec.extern_specs.get(&proc_def_id)
+                .map(|local_id| local_id.to_def_id())
+                .unwrap_or(proc_def_id);
+            let procedure = self.env.get_procedure(pure_def_id);
             let pure_function_encoder =
                 PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
             let function = if self.is_trusted(proc_def_id) {
@@ -1280,12 +1283,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Encode the use (call) of a pure function, returning the name of the
     /// function and its type.
     ///
-    /// The called function must be marked as pure.
+    /// The called function must be marked as pure. It should be local unless
+    /// there is an external specification defined.
     pub fn encode_pure_function_use(
         &self,
         proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
-        let procedure = self.env.get_procedure(proc_def_id);
+        let pure_def_id = self.def_spec.extern_specs.get(&proc_def_id)
+            .map(|local_id| local_id.to_def_id())
+            .unwrap_or(proc_def_id);
+        let procedure = self.env.get_procedure(pure_def_id);
 
         assert!(
             self.is_pure(proc_def_id),
@@ -1298,7 +1305,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         self.queue_pure_function_encoding(proc_def_id);
 
-        // FIXME: encode_function_return_type assumes that pure functions cannot return generic values.
         (
             pure_function_encoder.encode_function_name(),
             pure_function_encoder.encode_function_return_type(),
@@ -1342,6 +1348,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> (String, vir::Type) {
         // The stub function may come from another module for which we can have
         // only optimized_mir.
+        //let body = self.env.tcx().optimized_mir(proc_def_id.expect_local()).borrow();
         let body = self.env.mir(proc_def_id.expect_local());
         let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body);
 
@@ -1377,10 +1384,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let (proc_def_id, substs) = self.encoding_queue.borrow_mut().pop().unwrap();
             let proc_name = self.env.get_absolute_item_name(proc_def_id);
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
-            let proc_span = self.env.get_item_span(proc_def_id);
+            //let proc_span = self.env.get_item_span(proc_def_id);
             info!(
-                "Encoding: {} from {:?} ({})",
-                proc_name, proc_span, proc_def_path
+                "Encoding: {} ({})", // from {:?}
+                proc_name, /*proc_span, */proc_def_path
             );
             let is_pure_function = self.is_pure(proc_def_id);
             if is_pure_function {
@@ -1403,14 +1410,20 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
-        let result = self.def_spec.get(&def_id).unwrap().expect_procedure().trusted;
+        let result = self.def_spec.get(&def_id).map_or(false, |spec| spec.expect_procedure().trusted);
         trace!("is_trusted {:?} = {}", def_id, result);
         result
     }
 
     pub fn is_pure(&self, def_id: ProcedureDefId) -> bool {
-        let result = self.def_spec.get(&def_id).unwrap().expect_procedure().pure;
+        let result = self.def_spec.get(&def_id).map_or(false, |spec| spec.expect_procedure().pure);
         trace!("is_pure {:?} = {}", def_id, result);
+        result
+    }
+
+    pub fn has_extern_spec(&self, def_id: ProcedureDefId) -> bool {
+        let result = self.def_spec.extern_specs.contains_key(&def_id);
+        trace!("has_extern_spec {:?} = {}", def_id, result);
         result
     }
 
