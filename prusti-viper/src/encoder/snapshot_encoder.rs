@@ -506,11 +506,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         let start = vir::Expr::int(variant_range.start.as_usize() as i64);
         let end = vir::Expr::int(variant_range.end.as_usize() as i64);
 
+
         result.push(vir::DomainAxiom {
             name: format!("{}$variants", domain_name.to_string()),
             expr: vir::Expr::forall(
                 vec![var],
-                vec![], // TODO add trigger
+                vec![vir::Trigger::new(vec![variant_call.clone()])],
                 vir::Expr::and(
                     vir::Expr::le_cmp(start, variant_call.clone()),
                     vir::Expr::lt_cmp(variant_call, end)
@@ -593,9 +594,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 index,
             )
         } else {
-
-            // TODO CMFIXME Somehow all unfoldings are generated first instead of being properly nested
-            let test = vir::Expr::ite(
+            Ok(vir::Expr::ite(
                 vir::Expr::eq_cmp(
                     variant_arg.clone(),
                     vir::Expr::int(index as i64),
@@ -613,11 +612,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                     variant_arg,
                     index+1,
                 )?,
-            );
-
-            println!("CMFIXME: {}", test);
-
-            Ok(test)
+            ))
         }
     }
 
