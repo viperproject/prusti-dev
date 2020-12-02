@@ -215,6 +215,10 @@ impl EnumVariantIndex {
     pub fn get_variant_name(&self) -> &str {
         &self.0
     }
+
+    pub fn new(s: String) -> Self {
+        EnumVariantIndex(s)
+    }
 }
 
 impl<'a> Into<EnumVariantIndex> for &'a Field {
@@ -224,6 +228,7 @@ impl<'a> Into<EnumVariantIndex> for &'a Field {
         EnumVariantIndex(self.name[5..].to_string())
     }
 }
+
 
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

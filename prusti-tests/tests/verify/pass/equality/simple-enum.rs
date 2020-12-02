@@ -1,8 +1,9 @@
 use prusti_contracts::*;
 
-#[derive(Clone,PartialEq)]
+#[derive(Clone,PartialEq,Eq)]
 enum A {
-    ANone,
+    ANone(u32),
+    ASome(i32),
 }
 
 #[requires(_x == _y)]

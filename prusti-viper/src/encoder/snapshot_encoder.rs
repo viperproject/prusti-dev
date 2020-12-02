@@ -7,13 +7,15 @@
 use prusti_common::vir;
 use crate::encoder::Encoder;
 use rustc_middle::ty;
-use prusti_common::vir::{PermAmount};
+use prusti_common::vir::{PermAmount, EnumVariantIndex};
 use log::warn;
-use crate::encoder::errors::{EncodingError, EncodingResult};
-use crate::encoder::errors::SpannedEncodingResult;
+use crate::encoder::errors::{EncodingError, EncodingResult, SpannedEncodingResult};
+use crate::encoder::type_encoder::compute_discriminant_values;
+use std::borrow::Borrow;
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
 const SNAPSHOT_CONS: &str = "cons$";
+const SNAPSHOT_VARIANT: &str = "variant$";
 const SNAPSHOT_GET: &str = "snap$";
 pub const SNAPSHOT_EQUALS: &str = "equals$";
 pub const SNAPSHOT_NOT_EQUALS: &str = "not_equals$";
@@ -120,7 +122,7 @@ impl Snapshot {
     pub fn get_snap_call(&self, arg: vir::Expr) -> vir::Expr {
         match &self.snap_func {
             Some(func) => {
-                vir::Expr::FuncApp(
+                vir::Expr::func_app(
                     self.get_snap_name(),
                     vec![self.dereference_expr(arg)],
                     func.formal_args.clone(),
@@ -140,21 +142,11 @@ impl Snapshot {
     }
 
     pub fn encode_equals(&self, lhs: vir::Expr, rhs: vir::Expr, pos: vir::Position) -> vir::Expr {
-        vir::Expr::BinOp(
-            vir::BinOpKind::EqCmp,
-            box self.get_snap_call(lhs),
-            box self.get_snap_call(rhs),
-            pos,
-        )
+        vir::Expr::eq_cmp(self.get_snap_call(lhs), self.get_snap_call(rhs))
     }
 
     pub fn encode_not_equals(&self, lhs: vir::Expr, rhs: vir::Expr, pos: vir::Position) -> vir::Expr {
-        vir::Expr::BinOp(
-            vir::BinOpKind::NeCmp,
-            box self.get_snap_call(lhs),
-            box self.get_snap_call(rhs),
-            pos,
-        )
+        vir::Expr::ne_cmp(self.get_snap_call(lhs), self.get_snap_call(rhs))
     }
 }
 
@@ -184,11 +176,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Param(_) => {
                 self.encode_snap_generic()?
             }
-            ty::TyKind::Adt(adt_def, _) if !adt_def.is_box() => {
-                if adt_def.variants.len() != 1 {
-                    warn!("Generating equality tests for enums is not supported");
+            ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
+                if adt_def.is_struct() {
+                    self.encode_snap_struct()?
+                } else if adt_def.is_enum() {
+                    self.encode_snap_enum(adt_def, subst)?
+                } else {
+                    unreachable!()
                 }
-                self.encode_snap_struct()?
             }
             ty::TyKind::Tuple(_) => {
                 self.encode_snap_struct()?
@@ -218,16 +213,16 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
-                if adt_def.is_enum() { // CMFIXME: enums
-                    return false
-                }
                 let tcx = self.encoder.env().tcx();
-                for field in &adt_def.non_enum_variant().fields {
-                    let field_ty = field.ty(tcx, subst);
-                    if !self.is_ty_supported(field_ty) {
-                        return false
+                for variant in &adt_def.variants {
+                    for field in &variant.fields {
+                        let field_ty = field.ty(tcx, subst);
+                        if !self.is_ty_supported(field_ty) {
+                            return false
+                        }
                     }
                 }
+
                 true
             }
             ty::TyKind::Tuple(elems) => {
@@ -269,38 +264,33 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 self.encode_snap_arg_local(SNAPSHOT_ARG)
             )],
             posts: vec![],
-            body: Some(vir::Expr::Unfolding(
-                self.predicate_name.clone(),
-                vec![self.encode_snap_arg_local(SNAPSHOT_ARG)],
-                box body,
-                vir::PermAmount::Read,
-                None,
-                vir::Position::default(),
-            )),
+            body: Some(
+                vir::Expr::wrap_in_unfolding(
+                    self.encode_snap_arg_local(SNAPSHOT_ARG),
+                    body
+                )
+            ),
         }
     }
 
     fn encode_snap_predicate_access(&self, expr: vir::Expr) -> vir::Expr {
-        vir::Expr::PredicateAccessPredicate(
+        vir::Expr::predicate_access_predicate(
             self.predicate_name.clone(),
-            box expr,
+            expr,
             PermAmount::Read,
-            vir::Position::default()
         )
     }
 
     fn encode_snap_arg_local<S: Into<String>>(&self, arg_name: S) -> vir::Expr {
-        vir::Expr::Local(
+        vir::Expr::local(
             self.encode_snap_arg_var(arg_name),
-            vir::Position::default()
         )
     }
 
-    fn encode_snap_arg_field(&self, field: vir::Field) -> vir::Expr {
-        vir::Expr::Field(
-            box self.encode_snap_arg_local(SNAPSHOT_ARG),
+    fn encode_snap_arg_field(&self, location: vir::Expr, field: vir::Field) -> vir::Expr {
+        vir::Expr::field(
+            location,
             field,
-            vir::Position::default()
         )
     }
 
@@ -356,6 +346,307 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         })
     }
 
+    // TODO CMFIXME: START
+    fn encode_snap_enum(
+        &self,
+        adt_def: &ty::AdtDef,
+        subst: ty::subst::SubstsRef<'tcx>,
+    ) -> EncodingResult<Snapshot>
+    {
+        let snap_domain = self.encode_enum_snap_domain(adt_def, subst)?;
+        let snap_func = self.encode_enum_snap_func(&snap_domain, adt_def, subst)?;
+
+        Ok(Snapshot {
+            predicate_name: self.predicate_name.clone(),
+            snap_func: Some(snap_func),
+            snap_domain: Some(snap_domain),
+        })
+    }
+
+    fn encode_enum_snap_domain(
+        &self,
+        adt_def: &ty::AdtDef,
+        subst: ty::subst::SubstsRef<'tcx>,
+    ) -> EncodingResult<SnapshotDomain>
+    {
+        Ok(SnapshotDomain{
+            domain: self.encode_enum_domain(adt_def, subst)?,
+            equals_func: self.encode_equals_func(),
+            equals_func_ref: self.encode_equals_func_ref(),
+            not_equals_func: self.encode_not_equals_func(),
+            not_equals_func_ref: self.encode_not_equals_func_ref(),
+        })
+    }
+
+    fn encode_enum_domain(
+        &self,
+        adt_def: &ty::AdtDef,
+        subst: ty::subst::SubstsRef<'tcx>,
+    ) -> EncodingResult<vir::Domain>
+    {
+        let domain_name = self.encode_domain_name();
+
+        let mut functions = self.encode_enum_constructors(
+            &domain_name,
+            adt_def,
+            subst,
+        )?;
+
+        let variant_func = self.encode_enum_variant_func(&domain_name)?;
+
+        let axioms = self.encode_enum_axioms(
+            &domain_name,
+            adt_def,
+            subst,
+            &variant_func,
+            &functions
+        )?;
+
+        functions.push(variant_func);
+
+        Ok(vir::Domain {
+            name: domain_name,
+            functions,
+            axioms,
+            type_vars: vec![]
+        })
+    }
+
+    fn encode_enum_variant_func(
+        &self,
+        domain_name: &String,
+    ) -> EncodingResult<vir::DomainFunc>
+    {
+        let snap_type = vir::Type::Domain(domain_name.to_string());
+        let arg = vir::LocalVar::new("self", snap_type);
+        Ok(vir::DomainFunc {
+            name: SNAPSHOT_VARIANT.to_string(),
+            formal_args: vec![arg],
+            return_type: vir::Type::Int,
+            unique: false,
+            domain_name: domain_name.to_string(),
+        })
+    }
+
+    fn encode_enum_constructors(
+        &self,
+        domain_name: &String,
+        adt_def: &ty::AdtDef,
+        subst: ty::subst::SubstsRef<'tcx>,
+    ) -> EncodingResult<Vec<vir::DomainFunc>>
+    {
+        let mut result = vec![];
+        for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
+            result.push(
+                vir::DomainFunc {
+                    name: self.encode_enum_cons_name(variant_index),
+                    formal_args: self.encode_enum_cons_formal_args(variant_def, subst)?,
+                    return_type: vir::Type::Domain(domain_name.to_string()),
+                    unique: false,
+                    domain_name: domain_name.to_string(),
+                }
+            )
+        }
+
+        Ok(result)
+    }
+
+    fn encode_enum_cons_formal_args(
+        &self,
+        variant_def: &ty::VariantDef,
+        subst: ty::subst::SubstsRef<'tcx>,
+    ) -> EncodingResult<Vec<vir::LocalVar>>
+    {
+        let mut formal_args = vec![];
+        let tcx = self.encoder.env().tcx();
+        let mut field_num = 0;
+        for field in &variant_def.fields {
+            let field_ty = field.ty(tcx, subst);
+            let snapshot = self.encoder.encode_snapshot(&field_ty)?;
+            formal_args.push(
+                self.encode_local_var(field_num, &snapshot.get_type())
+            );
+            field_num += 1;
+        }
+        Ok(formal_args)
+    }
+
+    fn encode_enum_cons_name(&self, variant_index: usize) -> String {
+        format!(
+            "{}{}$",
+            SNAPSHOT_CONS,
+            variant_index,
+        )
+    }
+
+    fn encode_enum_axioms(
+        &self,
+        domain_name: &String,
+        adt_def: &ty::AdtDef,
+        subst: ty::subst::SubstsRef<'tcx>,
+        variant_func: &vir::DomainFunc,
+        constructors: &Vec<vir::DomainFunc>,
+    ) -> EncodingResult<Vec<vir::DomainAxiom>>
+    {
+        let mut result = vec![];
+
+        let var = vir::LocalVar::new(
+            SNAPSHOT_ARG,
+            vir::Type::Domain(domain_name.to_string()), // TODO outsource into function
+        );
+
+        let variant_call = vir::Expr::domain_func_app(
+            variant_func.clone(),
+            vec![vir::Expr::local(var.clone())],
+        );
+
+        let variant_range = adt_def.variant_range();
+        let start = vir::Expr::int(variant_range.start.as_usize() as i64);
+        let end = vir::Expr::int(variant_range.end.as_usize() as i64);
+
+        result.push(vir::DomainAxiom {
+            name: format!("{}$variants", domain_name.to_string()),
+            expr: vir::Expr::forall(
+                vec![var],
+                vec![], // TODO add trigger
+                vir::Expr::and(
+                    vir::Expr::le_cmp(start, variant_call.clone()),
+                    vir::Expr::lt_cmp(variant_call, end)
+                )
+            ),
+            domain_name: domain_name.to_string()
+        });
+
+        // TODO injectivity
+
+        Ok(result)
+    }
+
+    fn encode_enum_snap_func(
+        &self,
+        snap_domain: &SnapshotDomain,
+        adt_def: &ty::AdtDef,
+        subst: ty::subst::SubstsRef<'tcx>
+    ) -> EncodingResult<vir::Function> {
+
+        // TODO: there is a potential difference here!
+        let variant_arg = vir::Expr::field(
+            self.encode_snap_arg_local(SNAPSHOT_ARG),
+            self.encoder.encode_discriminant_field(),
+        );
+
+        let body = self.encode_enum_fold_snap_func_conditional(
+            snap_domain,
+            adt_def,
+            subst,
+            variant_arg,
+            0,
+        )?;
+
+        Ok(
+            self.encode_snap_func(
+                snap_domain.get_type(),
+                body,
+            )
+        )
+    }
+
+    fn encode_enum_predicate(
+        &self,
+    ) -> EncodingResult<vir::EnumPredicate>
+    {
+        let predicate = self.encoder.encode_type_predicate_def(self.ty)?;
+        if let vir::Predicate::Enum(enum_predicate) = predicate {
+            Ok(enum_predicate)
+        } else {
+            Err(EncodingError::Incorrect(
+                "predicate does not correspond to an enum".to_string()
+            ))
+        }
+    }
+
+    fn encode_enum_fold_snap_func_conditional(
+        &self,
+        snap_domain: &SnapshotDomain,
+        adt_def: &ty::AdtDef,
+        subst: ty::subst::SubstsRef<'tcx>,
+        variant_arg: vir::Expr,
+        index: usize,
+    ) -> EncodingResult<vir::Expr>
+    {
+        if index >= adt_def.variants.len() - 1 {
+            self.encode_enum_snap_func_call_variant(
+                snap_domain,
+                adt_def,
+                subst,
+                index,
+            )
+        } else {
+
+            // TODO CMFIXME Somehow all unfoldings are generated first instead of being properly nested
+            let test = vir::Expr::ite(
+                vir::Expr::eq_cmp(
+                    variant_arg.clone(),
+                    vir::Expr::int(index as i64),
+                ),
+                self.encode_enum_snap_func_call_variant(
+                    snap_domain,
+                    adt_def,
+                    subst,
+                    index,
+                )?,
+                self.encode_enum_fold_snap_func_conditional(
+                    snap_domain,
+                    adt_def,
+                    subst,
+                    variant_arg,
+                    index+1,
+                )?,
+            );
+
+            println!("CMFIXME: {}", test);
+
+            Ok(test)
+        }
+    }
+
+    fn encode_enum_snap_func_call_variant(
+        &self,
+        snap_domain: &SnapshotDomain,
+        adt_def: &ty::AdtDef,
+        subst: ty::subst::SubstsRef<'tcx>,
+        variant_index: usize,
+    ) -> EncodingResult<vir::Expr>
+    {
+        let cons_func = snap_domain.domain.functions[variant_index].clone();
+        let variant = &adt_def.variants[rustc_target::abi::VariantIdx::from_usize(variant_index)];
+
+        // TODO store once
+        let (_, variant_name, variant_predicate) = self.encode_enum_predicate()?.variants[variant_index].clone();
+
+        let variant_location = self
+            .encode_snap_arg_local(SNAPSHOT_ARG)
+            .variant(variant_name.borrow());
+
+        let args = self.encode_snap_func_variant_args(
+            variant_location.clone(),
+            variant,
+            subst
+        )?;
+
+        Ok(
+            vir::Expr::unfolding(
+                format!("{}{}", self.predicate_name.to_string(), variant_name.to_string()),
+                vec![variant_location],
+                vir::Expr::domain_func_app(cons_func, args),
+                vir::PermAmount::Read,
+                Some(EnumVariantIndex::new(variant_name.to_string())),
+            )
+        )
+    }
+
+    // TODO CMFIXME: END
+
     fn encode_domain(&self) -> EncodingResult<vir::Domain> {
         let domain_name = self.encode_domain_name();
         let cons_func = self.encode_domain_cons(&domain_name)?;
@@ -389,7 +680,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    fn encode_cons_injectivity(&self, domain_name: &String, cons_func: &vir::DomainFunc) -> vir::DomainAxiom {
+    fn encode_cons_injectivity(&self, domain_name: &String, cons_func: &vir::DomainFunc)
+        -> vir::DomainAxiom
+    {
         let (lhs_args, lhs_call) = self.encode_injectivity_args_call(
             cons_func,
             "_1".to_string()
@@ -441,10 +734,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             )
         ).collect();
 
-        let call = vir::Expr::DomainFuncApp(
+        let call = vir::Expr::domain_func_app(
             cons_func.clone(),
             args.iter().map(|v| vir::Expr::local(v.clone())).collect(),
-            vir::Position::default()
         );
 
         (args, call)
@@ -494,7 +786,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
 
     fn encode_snapshot_call<S: Into<String>>(&self, formal_arg_name: S, arg: vir::Expr) -> vir::Expr {
         let name = formal_arg_name.into();
-        vir::Expr::FuncApp(
+        vir::Expr::func_app(
             SNAPSHOT_GET.to_string(),
             vec![arg],
             vec![self.encode_snap_arg_var(name)],
@@ -507,7 +799,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         -> EncodingResult<Vec<vir::LocalVar>>
     {
         let mut formal_args = vec![];
-        match self.ty.kind() {
+        match self.ty.kind() { // TODO simplify
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 let tcx = self.encoder.env().tcx();
                 let mut field_num = 0;
@@ -559,20 +851,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         Ok(match self.ty.kind() {
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
                 let tcx = self.encoder.env().tcx();
-                adt_def.non_enum_variant()
-                    .fields
-                    .iter()
-                    .map(|f|
-                         self.encoder.encode_struct_field(
-                             &f.ident.to_string(),
-                             &f.ty(tcx, subst)
-                         ).and_then(|encoded_field|
-                             self.encode_snap_arg(
-                                 encoded_field,
-                                &f.ty(tcx, subst)
-                             )
-                         )
-                    ).collect::<Result<_, _>>()?
+                self.encode_snap_func_variant_args(
+                    self.encode_snap_arg_local(SNAPSHOT_ARG), // TODO: outsource
+                    adt_def.non_enum_variant(),
+                    subst,
+                )?
             },
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
@@ -590,7 +873,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                         field_ty.expect_ty()
                     )?;
                     args.push(
-                        self.encode_snap_arg(field, field_ty.expect_ty())?
+                        self.encode_snap_arg(
+                            self.encode_snap_arg_local(SNAPSHOT_ARG),
+                            field,
+                            field_ty.expect_ty()
+                        )?
                     );
                 }
                 args
@@ -600,12 +887,37 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    fn encode_snap_arg(&self, field: vir::Field, field_ty: ty::Ty<'tcx>)
+    fn encode_snap_func_variant_args(
+        &self,
+        variant_arg: vir::Expr,
+        variant: &ty::VariantDef,
+        subst: ty::subst::SubstsRef<'tcx>,
+    ) -> EncodingResult<Vec<vir::Expr>>
+    {
+        let tcx = self.encoder.env().tcx();
+        variant
+            .fields
+            .iter()
+            .map(|f|
+                self.encoder.encode_struct_field(
+                    &f.ident.to_string(),
+                    &f.ty(tcx, subst)
+                ).and_then(|encoded_field|
+                    self.encode_snap_arg(
+                        variant_arg.clone(),
+                        encoded_field,
+                        &f.ty(tcx, subst)
+                    )
+                )
+            ).collect::<Result<_, _>>()
+    }
+
+    fn encode_snap_arg(&self, location: vir::Expr, field: vir::Field, field_ty: ty::Ty<'tcx>)
         -> EncodingResult<vir::Expr>
     {
         let snapshot = self.encoder.encode_snapshot(field_ty)?;
         Ok(snapshot.get_snap_call(
-            self.encode_snap_arg_field(field)
+            self.encode_snap_arg_field(location, field)
         ))
     }
 
@@ -647,18 +959,16 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn get_ref_field(&self, var: vir::LocalVar) -> vir::Expr {
-        vir::Expr::Field(
-            box vir::Expr::Local(var, vir::Position::default()),
+        vir::Expr::field(
+            vir::Expr::local(var),
             vir::Field::new("val_ref", self.get_predicate_type()),
-            vir::Position::default()
         )
     }
 
     fn get_ref_field_perm(&self, expr: vir::Expr) -> vir::Expr {
-        vir::Expr::FieldAccessPredicate(
-            box expr,
+        vir::Expr::field_access_predicate(
+            expr,
             PermAmount::Read,
-            vir::Position::default()
         )
     }
 
