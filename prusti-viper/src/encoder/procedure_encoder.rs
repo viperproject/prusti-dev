@@ -1947,7 +1947,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     };
 
                     match full_func_proc_name {
-                        "std::rt::begin_panic" | "std::panicking::begin_panic" => {
+                        "std::rt::begin_panic"
+                        | "core::panicking::panic"
+                        | "core::panicking::panic_fmt" => {
                             // This is called when a Rust assertion fails
                             // args[0]: message
                             // args[1]: position of failing assertions

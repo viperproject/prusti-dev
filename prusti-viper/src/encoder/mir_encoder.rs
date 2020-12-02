@@ -748,11 +748,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             .map(|x| x.as_str())
             .collect();
         match &macro_names_str[..] {
-            ["std::panic", "std::assert", "std::debug_assert", ..] =>
-                PanicCause::DebugAssert,
+            ["core::macros::panic", "std::unimplemented", ..] => PanicCause::Unimplemented,
+            ["core::macros::panic", "std::unreachable", ..] => PanicCause::Unreachable,
+            ["std::assert", "std::debug_assert", ..] => PanicCause::DebugAssert,
+            ["std::assert", ..] => PanicCause::Assert,
+            ["std::panic", "std::assert", "std::debug_assert", ..] => PanicCause::DebugAssert,
             ["std::panic", "std::assert", ..] => PanicCause::Assert,
-            ["std::panic", "std::unreachable", ..] => PanicCause::Unreachable,
-            ["std::panic", "std::unimplemented", ..] => PanicCause::Unimplemented,
             ["std::panic", ..] => PanicCause::Panic,
             _ => PanicCause::Generic,
         }

@@ -87,4 +87,8 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
         trace!("Add {} to result", item_def_path);
         self.result.push(def_id);
     }
+
+    fn visit_foreign_item(&mut self, _foreign_item: &hir::ForeignItem) {
+        // Nothing
+    }
 }

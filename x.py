@@ -225,11 +225,8 @@ def setup_win():
 
 
 def setup_rustup():
-    # Setup rustc components.
-    shell('rustup component add rustfmt', term_on_nzec=False)
-    shell('rustup component add rust-src')
-    shell('rustup component add rustc-dev')
-    shell('rustup component add llvm-tools-preview')
+    # Update rustup
+    shell('rustup self update')
 
 
 def setup(args):
