@@ -264,10 +264,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )]
             }
 
-            ty::TyKind::Ref(_, ref ty, _) => vec![vir::Predicate::new_struct(
-                typ,
-                vec![self.encoder.encode_dereference_field(ty)?],
-            )],
+            ty::TyKind::Ref(_, ref ty, _) => {
+                vec![vir::Predicate::new_struct(
+                    typ,
+                    vec![self.encoder.encode_dereference_field(ty)?],
+                )]
+            },
 
             ty::TyKind::Tuple(elems) => {
                 let fields = elems
@@ -550,8 +552,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let invariant_name = self.encoder.encode_type_invariant_use(self.ty)?;
 
         let field_invariants = match self.ty.kind() {
-            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
-            | ty::TyKind::Ref(_, ref ty, _) => {
+            ty::TyKind::Ref(_, ref ty, _) => {
                 let elem_field = self.encoder.encode_dereference_field(ty)?;
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 Some(vec![

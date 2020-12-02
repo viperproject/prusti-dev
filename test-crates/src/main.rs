@@ -6,7 +6,6 @@
 
 use std::path::{Path, PathBuf};
 use std::error::Error;
-use std::io::Read;
 use std::fs;
 
 use rustwide::{
