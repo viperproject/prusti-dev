@@ -490,6 +490,28 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     {
         let mut result = vec![];
 
+        result.push(self.encode_enum_axiom_variants(domain_name, adt_def, variant_func)?);
+
+        for (variant_index, cons_func) in constructors.iter().enumerate() {
+            result.push(self.encode_cons_injectivity(
+                self.encode_injectivity_axiom_name(
+                    &domain_name,
+                    variant_index as i64
+                ),
+                &domain_name,
+                &cons_func
+            ))
+        }
+
+        Ok(result)
+    }
+
+    fn encode_enum_axiom_variants(
+        &self,
+        domain_name: &String,
+        adt_def: &ty::AdtDef,
+        variant_func: &vir::DomainFunc,
+    ) -> PositionlessEncodingResult<vir::DomainAxiom> {
         let var = vir::LocalVar::new(
             SNAPSHOT_ARG,
             vir::Type::Domain(domain_name.to_string()), // TODO outsource into function
@@ -507,7 +529,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         let end = vir::Expr::int(variant_range.end.as_usize() as i64);
 
 
-        result.push(vir::DomainAxiom {
+        Ok(vir::DomainAxiom {
             name: format!("{}$variants", domain_name.to_string()),
             expr: vir::Expr::forall(
                 vec![var],
@@ -518,20 +540,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 )
             ),
             domain_name: domain_name.to_string()
-        });
-
-        for (variant_index, cons_func) in constructors.iter().enumerate() {
-            result.push(self.encode_cons_injectivity(
-                self.encode_injectivity_axiom_name(
-                    &domain_name,
-                    variant_index as i64
-                ),
-                &domain_name,
-                &cons_func
-            ))
-        }
-
-        Ok(result)
+        })
     }
 
     fn encode_enum_snap_func(
