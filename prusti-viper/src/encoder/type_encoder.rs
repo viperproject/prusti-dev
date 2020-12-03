@@ -509,8 +509,23 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 self.encoder.encode_item_name(*item_def_id)
             }
 
+            ty::TyKind::Dynamic(..) => {
+                "unsupported$dynamic".to_string()
+            }
+
+            ty::TyKind::FnPtr(..) => {
+                "unsupported$fnptr".to_string()
+            }
+
+            ty::TyKind::FnDef(..) => {
+                "unsupported$fndef".to_string()
+            }
+
+            ty::TyKind::Foreign(..) => {
+                "unsupported$foreign".to_string()
+            }
+
             ref ty_variant => {
-                debug!("Type {:?} is not supported", ty_variant);
                 "unsupported".to_string()
             }
         };
