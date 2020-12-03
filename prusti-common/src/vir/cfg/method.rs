@@ -36,7 +36,7 @@ pub struct CfgMethod {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgBlock {
     // FIXME: Hack, should be pub(super).
-    pub(super) invs: Vec<Expr>,
+    pub(in super::super) invs: Vec<Expr>,
     pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
     pub(in super::super) successor: Successor,
 }
@@ -363,16 +363,26 @@ impl CfgMethod {
     }
 
     pub fn get_topological_sort(&self) -> Vec<CfgBlockIndex> {
-        let mut visited: Vec<bool> = vec![false; self.basic_blocks.len()];
-        let mut topo_sorted: Vec<CfgBlockIndex> = vec![];
+        if self.basic_blocks.is_empty() {
+            Vec::new()
+        } else {
+            let mut visited: Vec<bool> = vec![false; self.basic_blocks.len()];
+            let mut topo_sorted: Vec<CfgBlockIndex> = vec![];
 
-        for index in 0..self.basic_blocks.len() {
-            if !visited[index] {
-                self.topological_sort_impl(&mut visited, &mut topo_sorted, index);
+            // The first basic block always stays first.
+            visited[0] = true;
+
+            // The remaining basic blocks.
+            for index in 1..self.basic_blocks.len() {
+                if !visited[index] {
+                    self.topological_sort_impl(&mut visited, &mut topo_sorted, index);
+                }
             }
-        }
 
-        topo_sorted.into_iter().rev().collect()
+            let mut final_blocks = vec![self.block_index(0)];
+            final_blocks.extend(topo_sorted.into_iter().rev());
+            final_blocks
+        }
     }
 
     fn topological_sort_impl(

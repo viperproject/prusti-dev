@@ -29,7 +29,7 @@ use prusti_common::{
         borrows::Borrow,
         collect_assigned_vars,
         fixes::fix_ghost_vars,
-        optimizations::methods::{remove_empty_if, remove_trivial_assertions, remove_unused_vars},
+        optimizations::methods::{clean_cfg, remove_empty_if, remove_trivial_assertions, remove_unused_vars},
         CfgBlockIndex, Expr, ExprIterator, FoldingBehaviour, Successor, Type,
     },
 };
@@ -500,8 +500,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Do some optimizations
         let final_method = if config::simplify_encoding() {
-            optimizer::rewrite(self.encoder.borrow(), remove_trivial_assertions(remove_unused_vars(
-                remove_empty_if(fixed_method),
+            optimizer::rewrite(self.encoder.borrow(), clean_cfg(remove_trivial_assertions(remove_unused_vars(
+                remove_empty_if(fixed_method)),
             )))
         } else {
             fixed_method
