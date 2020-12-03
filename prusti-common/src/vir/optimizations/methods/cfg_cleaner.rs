@@ -19,6 +19,7 @@ pub fn clean_cfg(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
                 // If the current basic block has only one successor.
                 if predecessors[&target.block_index].len() == 1 {
                     // If the successor block has only one predecessor.
+
                     assert!(new_indices.insert(target.block_index, new_index).is_none());
                     let mut target_block = basic_blocks.remove(&target.block_index).unwrap();
 
