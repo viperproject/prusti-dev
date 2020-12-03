@@ -505,38 +505,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 format!("__TYPARAM__${}$__", param_ty.name.as_str())
             }
 
-            ty::TyKind::Dynamic(..) => {
-                return Err(PositionlessEncodingError::unsupported(
-                    "trait objects are not supported"
-                ));
-            }
-
-            ty::TyKind::FnPtr(..) => {
-                return Err(PositionlessEncodingError::unsupported(
-                    "function pointer types are not supported"
-                ));
-            }
-
-            ty::TyKind::FnDef(..) => {
-                return Err(PositionlessEncodingError::unsupported(
-                    "function types are not supported"
-                ));
-            }
-
             ty::TyKind::Projection(ty::ProjectionTy { item_def_id, .. }) => {
                 self.encoder.encode_item_name(*item_def_id)
             }
 
-            ty::TyKind::Foreign(..) => {
-                return Err(PositionlessEncodingError::unsupported(
-                    "foreign types are not supported"
-                ));
-            }
-
             ref ty_variant => {
-                return Err(PositionlessEncodingError::unsupported(
-                    format!("type {:?} is not supported", ty_variant)
-                ));
+                debug!("Type {:?} is not supported", ty_variant);
+                "unsupported".to_string()
             }
         };
         Ok(result)
