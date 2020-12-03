@@ -507,7 +507,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Dynamic(..) => {
                 return Err(PositionlessEncodingError::unsupported(
-                    "dynamic trait types are not supported"
+                    "trait objects are not supported"
                 ));
             }
 
