@@ -127,7 +127,7 @@ impl CfgMethod {
             let (index, block) = remaining_blocks.remove(&label).unwrap();
             let fake_position = Position::default();
             let stmts: Vec<viper::Stmt> = vec![
-                ast.label(&label, &block.invs.to_viper(ast)),
+                ast.label(&label, &[]),
                 ast.inhale(
                     ast.false_lit_with_pos(fake_position.to_viper(ast)),
                     fake_position.to_viper(ast),
@@ -191,7 +191,7 @@ fn block_to_viper<'a>(
 ) -> viper::Stmt<'a> {
     let label = &basic_block_labels[index];
     let mut stmts: Vec<viper::Stmt> = vec![];
-    stmts.push(ast.label(label, &block.invs.to_viper(ast)));
+    stmts.push(ast.label(label, &[]));
     stmts.extend(block.stmts.to_viper(ast));
     stmts.push(successor_to_viper(
         ast,

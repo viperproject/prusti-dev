@@ -367,7 +367,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Initialize CFG blocks
         let start_cfg_block = self.cfg_method.add_block(
             "start",
-            vec![],
             vec![
                 vir::Stmt::comment("========== start =========="),
                 // vir::Stmt::comment(format!("Name: {:?}", self.procedure.get_name())),
@@ -378,7 +377,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let return_cfg_block = self.cfg_method.add_block(
             "return",
-            vec![],
             vec![
                 vir::Stmt::comment(format!("========== return ==========")),
                 vir::Stmt::comment("Target of any 'return' statement."),
@@ -704,7 +702,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Build the "start" CFG block (*start* - G - B1 - invariant - B2 - G - B1 - end)
         let start_block = self.cfg_method.add_block(
             &format!("{}_start", loop_label_prefix),
-            vec![],
             vec![vir::Stmt::comment(format!(
                 "========== {}_start ==========",
                 loop_label_prefix
@@ -735,7 +732,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // (2) havocs the invariant and the local variables.
         let inv_pre_block = self.cfg_method.add_block(
             &format!("{}_inv_pre", loop_label_prefix),
-            vec![],
             vec![vir::Stmt::comment(format!(
                 "========== {}_inv_pre ==========",
                 loop_label_prefix
@@ -743,7 +739,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let inv_post_block = self.cfg_method.add_block(
             &format!("{}_inv_post", loop_label_prefix),
-            vec![],
             vec![vir::Stmt::comment(format!(
                 "========== {}_inv_post ==========",
                 loop_label_prefix
@@ -796,7 +791,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // (2) kills the program path with an `assume false`
         let end_body_block = self.cfg_method.add_block(
             &format!("{}_end_body", loop_label_prefix),
-            vec![],
             vec![vir::Stmt::comment(format!(
                 "========== {}_end_body ==========",
                 loop_label_prefix
@@ -919,7 +913,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let curr_block = self.cfg_method.add_block(
             &format!("{}{:?}", label_prefix, bbi),
-            vec![],
             vec![vir::Stmt::comment(format!(
                 "========== {}{:?} ==========",
                 label_prefix, bbi
@@ -2257,7 +2250,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let edge_label = self.cfg_method.get_fresh_label_name();
             let edge_block = self.cfg_method.add_block(
                 &edge_label,
-                vec![],
                 vec![
                     vir::Stmt::comment(format!("========== {} ==========", edge_label)),
                     vir::Stmt::comment(format!("MIR edge {:?} --> {:?}", source, destination)),

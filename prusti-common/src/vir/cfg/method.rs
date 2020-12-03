@@ -35,8 +35,6 @@ pub struct CfgMethod {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgBlock {
-    // FIXME: Hack, should be pub(super).
-    pub(in super::super) invs: Vec<Expr>,
     pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
     pub(in super::super) successor: Successor,
 }
@@ -250,7 +248,7 @@ impl CfgMethod {
         }
     }
 
-    pub fn add_block(&mut self, label: &str, invs: Vec<Expr>, stmts: Vec<Stmt>) -> CfgBlockIndex {
+    pub fn add_block(&mut self, label: &str, stmts: Vec<Stmt>) -> CfgBlockIndex {
         assert!(label.chars().take(1).all(|c| c.is_alphabetic() || c == '_'));
         assert!(label
             .chars()
@@ -265,7 +263,6 @@ impl CfgMethod {
         let index = self.basic_blocks.len();
         self.basic_blocks_labels.push(label.to_string());
         self.basic_blocks.push(CfgBlock {
-            invs,
             stmts,
             successor: Successor::Undefined,
         });

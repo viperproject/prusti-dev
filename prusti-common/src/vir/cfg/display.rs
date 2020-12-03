@@ -34,9 +34,6 @@ impl fmt::Display for CfgMethod {
                 "  label {} // {}",
                 self.basic_blocks_labels[index], index
             )?;
-            for inv in &block.invs {
-                writeln!(f, "    inv {}", inv)?;
-            }
             for stmt in &block.stmts {
                 writeln!(f, "    {}", stmt)?;
             }
