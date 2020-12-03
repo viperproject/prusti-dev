@@ -110,7 +110,7 @@ pub trait CfgReplacer<
         // Initialize the blocks of the new cfg
         for (index, block) in cfg.basic_blocks.iter().enumerate() {
             let label = &cfg.basic_blocks_labels[index];
-            new_cfg.add_block(label, block.invs.clone(), vec![]);
+            new_cfg.add_block(label, vec![]);
         }
 
         // Find the blocks
@@ -193,7 +193,6 @@ pub trait CfgReplacer<
                         let new_label = new_cfg.get_fresh_label_name();
                         let new_block_index = new_cfg.add_block(
                             &new_label,
-                            vec![],
                             vec![Stmt::comment(format!(
                                 "========== {} ==========",
                                 new_label
