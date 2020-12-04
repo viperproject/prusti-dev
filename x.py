@@ -226,7 +226,7 @@ def setup_win():
 
 def setup_rustup():
     # Update rustup
-    shell('rustup self update')
+    shell('rustup self update', term_on_nzec=False)
 
 
 def setup(args):

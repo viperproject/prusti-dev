@@ -18,13 +18,10 @@ jobs:
     # Only run when triggered by a pull request event
     if: github.event_name == 'pull_request'
     steps:
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
       - name: Check out the repo
         uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
       - name: Set up Python 3
         uses: actions/setup-python@v2
         with:
@@ -52,40 +49,34 @@ jobs:
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Setup Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-    - name: Check out the repo
-      uses: actions/checkout@v2
-    - name: Set up Python 3
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Set up the environment
-      run: python x.py setup
-    - name: Build with cargo
-      run: python x.py build --all --verbose
-    - name: Run cargo tests
-      run: python x.py test --all --verbose
-    - name: Check prusti-contracts
-      run: |
-        cd prusti-contracts-test/
-        cargo build
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Build with cargo
+        run: python x.py build --all --verbose
+      - name: Run cargo tests
+        run: python x.py test --all --verbose
+      - name: Check prusti-contracts
+        run: |
+          cd prusti-contracts-test/
+          cargo build
 
   # Run Prusti on itself. Currently disabled because of many bugs in Prusti.
   test-on-prusti:
     runs-on: ubuntu-latest
     if: false
     steps:
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
       - name: Check out the repo
         uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
       - name: Set up Python 3
         uses: actions/setup-python@v2
         with:
