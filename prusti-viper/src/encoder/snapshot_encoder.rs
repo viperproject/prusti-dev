@@ -47,7 +47,9 @@ pub struct SnapshotDomain {
 
 impl SnapshotDomain {
     pub fn get_type(&self) -> vir::Type {
-        self.domain.functions[0].return_type.clone()
+        vir::Type::Domain(
+            self.domain.name.to_string()
+        )
     }
 
     pub fn call_cons_func(&self, args: Vec<vir::Expr>) -> vir::Expr {
@@ -845,6 +847,17 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
         snap_domain: &SnapshotDomain,
     ) -> PositionlessEncodingResult<vir::Function>
     {
+        if self.adt_def.variants.is_empty() {
+            return Ok(vir::Function {
+                name: SNAPSHOT_GET.to_string(),
+                formal_args: vec![self.snapshot_encoder.encode_arg_var(SNAPSHOT_ARG)],
+                return_type: snap_domain.get_type(),
+                pres: vec![],
+                posts: vec![],
+                body: None
+            })
+        }
+
         let body = if self.adt_def.is_struct() {
             snap_domain.call_cons_func(
                 self.snapshot_encoder.encode_cons_func_args(
@@ -853,8 +866,6 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
                     self.subst,
                 )?
             )
-        } else if self.adt_def.variants.is_empty() {
-            unimplemented!("CMFIXME")
         } else {
             let variant_arg = vir::Expr::field(
                 self.snapshot_encoder.encode_arg_local(SNAPSHOT_ARG),
