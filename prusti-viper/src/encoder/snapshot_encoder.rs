@@ -976,12 +976,12 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
                 ))
             }
             vir::Predicate::Struct(_) => {
-                assert_eq!(variant_index, 0);
+                debug_assert_eq!(variant_index, 0);
                 Ok((
                     self.snapshot_encoder.encode_arg_local(SNAPSHOT_ARG),
                     self.snapshot_encoder.predicate_name.to_string(),
                     // Notice that we *cannot* use &self.adt_def.non_enum_variant()
-                    // here as an enum with just one variant is encoded internally as a struct
+                    // here as an enum with just one variant is internally treated as a struct
                     &self.adt_def.variants[rustc_target::abi::VariantIdx::from_usize(variant_index)],
                     None,
                 ))
