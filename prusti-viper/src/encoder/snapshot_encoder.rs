@@ -27,7 +27,13 @@ pub struct SnapshotEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     ty: ty::Ty<'tcx>,
     predicate_name: String,
+}
 
+struct SnapshotAdtEncoder<'s, 'p: 's, 'v: 'p, 'tcx: 'v> {
+    snapshot_encoder: &'s SnapshotEncoder<'p, 'v, 'tcx>,
+    adt_def: &'s ty::AdtDef,
+    subst: ty::subst::SubstsRef<'tcx>,
+    predicate: vir::Predicate,
 }
 
 #[derive(Clone)]
@@ -180,7 +186,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 if adt_def.is_struct() {
                     self.encode_snap_struct()?
                 } else if adt_def.is_enum() {
-                    self.encode_snap_enum(adt_def, subst)?
+                    SnapshotAdtEncoder::new(
+                        &self,
+                        adt_def,
+                        subst,
+                    ).encode_snapshot()?
                 } else {
                     unreachable!()
                 }
@@ -346,333 +356,15 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    // TODO CMFIXME: START
-    fn encode_snap_enum(
-        &self,
-        adt_def: &ty::AdtDef,
-        subst: ty::subst::SubstsRef<'tcx>,
-    ) -> EncodingResult<Snapshot>
-    {
-        let snap_domain = self.encode_enum_snap_domain(adt_def, subst)?;
-        let snap_func = self.encode_enum_snap_func(&snap_domain, adt_def, subst)?;
-
-        Ok(Snapshot {
-            predicate_name: self.predicate_name.clone(),
-            snap_func: Some(snap_func),
-            snap_domain: Some(snap_domain),
-        })
-    }
-
-    fn encode_enum_snap_domain(
-        &self,
-        adt_def: &ty::AdtDef,
-        subst: ty::subst::SubstsRef<'tcx>,
-    ) -> EncodingResult<SnapshotDomain>
-    {
-        Ok(SnapshotDomain{
-            domain: self.encode_enum_domain(adt_def, subst)?,
-            equals_func: self.encode_equals_func(),
-            equals_func_ref: self.encode_equals_func_ref(),
-            not_equals_func: self.encode_not_equals_func(),
-            not_equals_func_ref: self.encode_not_equals_func_ref(),
-        })
-    }
-
-    fn encode_enum_domain(
-        &self,
-        adt_def: &ty::AdtDef,
-        subst: ty::subst::SubstsRef<'tcx>,
-    ) -> EncodingResult<vir::Domain>
-    {
-        let domain_name = self.encode_domain_name();
-
-        let mut functions = self.encode_enum_constructors(
-            &domain_name,
-            adt_def,
-            subst,
-        )?;
-
-        let variant_func = self.encode_enum_variant_func(&domain_name)?;
-
-        let axioms = self.encode_enum_axioms(
-            &domain_name,
-            adt_def,
-            subst,
-            &variant_func,
-            &functions
-        )?;
-
-        functions.push(variant_func);
-
-        Ok(vir::Domain {
-            name: domain_name,
-            functions,
-            axioms,
-            type_vars: vec![]
-        })
-    }
-
-    fn encode_enum_variant_func(
-        &self,
-        domain_name: &String,
-    ) -> EncodingResult<vir::DomainFunc>
-    {
-        let snap_type = vir::Type::Domain(domain_name.to_string());
-        let arg = vir::LocalVar::new("self", snap_type);
-        Ok(vir::DomainFunc {
-            name: SNAPSHOT_VARIANT.to_string(),
-            formal_args: vec![arg],
-            return_type: vir::Type::Int,
-            unique: false,
-            domain_name: domain_name.to_string(),
-        })
-    }
-
-    fn encode_enum_constructors(
-        &self,
-        domain_name: &String,
-        adt_def: &ty::AdtDef,
-        subst: ty::subst::SubstsRef<'tcx>,
-    ) -> EncodingResult<Vec<vir::DomainFunc>>
-    {
-        let mut result = vec![];
-        for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
-            result.push(
-                vir::DomainFunc {
-                    name: self.encode_enum_cons_name(variant_index),
-                    formal_args: self.encode_enum_cons_formal_args(variant_def, subst)?,
-                    return_type: vir::Type::Domain(domain_name.to_string()),
-                    unique: false,
-                    domain_name: domain_name.to_string(),
-                }
-            )
-        }
-
-        Ok(result)
-    }
-
-    fn encode_enum_cons_formal_args(
-        &self,
-        variant_def: &ty::VariantDef,
-        subst: ty::subst::SubstsRef<'tcx>,
-    ) -> EncodingResult<Vec<vir::LocalVar>>
-    {
-        let mut formal_args = vec![];
-        let tcx = self.encoder.env().tcx();
-        let mut field_num = 0;
-        for field in &variant_def.fields {
-            let field_ty = field.ty(tcx, subst);
-            let snapshot = self.encoder.encode_snapshot(&field_ty)?;
-            formal_args.push(
-                self.encode_local_var(field_num, &snapshot.get_type())
-            );
-            field_num += 1;
-        }
-        Ok(formal_args)
-    }
-
-    fn encode_enum_cons_name(&self, variant_index: usize) -> String {
-        format!(
-            "{}{}$",
-            SNAPSHOT_CONS,
-            variant_index,
-        )
-    }
-
-    fn encode_enum_axioms(
-        &self,
-        domain_name: &String,
-        adt_def: &ty::AdtDef,
-        subst: ty::subst::SubstsRef<'tcx>,
-        variant_func: &vir::DomainFunc,
-        constructors: &Vec<vir::DomainFunc>,
-    ) -> EncodingResult<Vec<vir::DomainAxiom>>
-    {
-        let mut result = vec![];
-
-        result.push(self.encode_enum_axiom_variants(domain_name, adt_def, variant_func)?);
-
-        for (variant_index, cons_func) in constructors.iter().enumerate() {
-            result.push(self.encode_cons_injectivity(
-                self.encode_injectivity_axiom_name(
-                    &domain_name,
-                    variant_index as i64
-                ),
-                &domain_name,
-                &cons_func
-            ))
-        }
-
-        Ok(result)
-    }
-
-    fn encode_enum_axiom_variants(
-        &self,
-        domain_name: &String,
-        adt_def: &ty::AdtDef,
-        variant_func: &vir::DomainFunc,
-    ) -> PositionlessEncodingResult<vir::DomainAxiom> {
-        let var = vir::LocalVar::new(
-            SNAPSHOT_ARG,
-            vir::Type::Domain(domain_name.to_string()), // TODO outsource into function
-        );
-
-        let variant_call = vir::Expr::domain_func_app(
-            variant_func.clone(),
-            vec![vir::Expr::local(var.clone())],
-        );
-
-        // TODO this is potentially dangerous as the variant range is not the same as the
-        // discriminant range
-        let variant_range = adt_def.variant_range();
-        let start = vir::Expr::int(variant_range.start.as_usize() as i64);
-        let end = vir::Expr::int(variant_range.end.as_usize() as i64);
-
-
-        Ok(vir::DomainAxiom {
-            name: format!("{}$variants", domain_name.to_string()),
-            expr: vir::Expr::forall(
-                vec![var],
-                vec![vir::Trigger::new(vec![variant_call.clone()])],
-                vir::Expr::and(
-                    vir::Expr::le_cmp(start, variant_call.clone()),
-                    vir::Expr::lt_cmp(variant_call, end)
-                )
-            ),
-            domain_name: domain_name.to_string()
-        })
-    }
-
-    fn encode_enum_snap_func(
-        &self,
-        snap_domain: &SnapshotDomain,
-        adt_def: &ty::AdtDef,
-        subst: ty::subst::SubstsRef<'tcx>
-    ) -> EncodingResult<vir::Function> {
-
-        // TODO: there is a potential difference here!
-        let variant_arg = vir::Expr::field(
-            self.encode_snap_arg_local(SNAPSHOT_ARG),
-            self.encoder.encode_discriminant_field(),
-        );
-
-        let body = self.encode_enum_fold_snap_func_conditional(
-            snap_domain,
-            adt_def,
-            subst,
-            variant_arg,
-            0,
-        )?;
-
-        Ok(
-            self.encode_snap_func(
-                snap_domain.get_type(),
-                body,
-            )
-        )
-    }
-
-    fn encode_enum_predicate(
-        &self,
-    ) -> EncodingResult<vir::EnumPredicate>
-    {
-        let predicate = self.encoder.encode_type_predicate_def(self.ty)?;
-        if let vir::Predicate::Enum(enum_predicate) = predicate {
-            Ok(enum_predicate)
-        } else {
-            Err(EncodingError::Incorrect(
-                "predicate does not correspond to an enum".to_string()
-            ))
-        }
-    }
-
-    fn encode_enum_fold_snap_func_conditional(
-        &self,
-        snap_domain: &SnapshotDomain,
-        adt_def: &ty::AdtDef,
-        subst: ty::subst::SubstsRef<'tcx>,
-        variant_arg: vir::Expr,
-        index: usize,
-    ) -> EncodingResult<vir::Expr>
-    {
-        if index >= adt_def.variants.len() - 1 {
-            self.encode_enum_snap_func_call_variant(
-                snap_domain,
-                adt_def,
-                subst,
-                index,
-            )
-        } else {
-            Ok(vir::Expr::ite(
-                vir::Expr::eq_cmp(
-                    variant_arg.clone(),
-                    vir::Expr::int(index as i64),
-                ),
-                self.encode_enum_snap_func_call_variant(
-                    snap_domain,
-                    adt_def,
-                    subst,
-                    index,
-                )?,
-                self.encode_enum_fold_snap_func_conditional(
-                    snap_domain,
-                    adt_def,
-                    subst,
-                    variant_arg,
-                    index+1,
-                )?,
-            ))
-        }
-    }
-
-    fn encode_enum_snap_func_call_variant(
-        &self,
-        snap_domain: &SnapshotDomain,
-        adt_def: &ty::AdtDef,
-        subst: ty::subst::SubstsRef<'tcx>,
-        variant_index: usize,
-    ) -> EncodingResult<vir::Expr>
-    {
-        let cons_func = snap_domain.domain.functions[variant_index].clone();
-        let variant = &adt_def.variants[rustc_target::abi::VariantIdx::from_usize(variant_index)];
-
-        // TODO store once
-        let (_, variant_name, variant_predicate) = self.encode_enum_predicate()?.variants[variant_index].clone();
-
-        let variant_location = self
-            .encode_snap_arg_local(SNAPSHOT_ARG)
-            .variant(variant_name.borrow());
-
-        let args = self.encode_snap_func_variant_args(
-            variant_location.clone(),
-            variant,
-            subst
-        )?;
-
-        Ok(
-            vir::Expr::unfolding(
-                format!("{}{}", self.predicate_name.to_string(), variant_name.to_string()),
-                vec![variant_location],
-                vir::Expr::domain_func_app(cons_func, args),
-                vir::PermAmount::Read,
-                Some(EnumVariantIndex::new(variant_name.to_string())),
-            )
-        )
-    }
-
-    // TODO CMFIXME: END
-
     fn encode_domain(&self) -> EncodingResult<vir::Domain> {
-        let domain_name = self.encode_domain_name();
-        let cons_func = self.encode_domain_cons(&domain_name)?;
+        let cons_func = self.encode_domain_cons()?;
         let cons_axiom_injectivity = self.encode_cons_injectivity(
-            self.encode_injectivity_axiom_name(&domain_name, 0),
-            &domain_name,
-            &cons_func
+            self.encode_injectivity_axiom_name(0),
+            &cons_func,
         );
 
         Ok(vir::Domain {
-            name: domain_name,
+            name: self.encode_domain_name(),
             functions: vec![cons_func],
             axioms: vec![cons_axiom_injectivity],
             type_vars: vec![]
@@ -687,19 +379,19 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         )
     }
 
-    fn encode_domain_cons(&self, domain_name: &String)
+    fn encode_domain_cons(&self)
         -> EncodingResult<vir::DomainFunc>
     {
         Ok(vir::DomainFunc {
             name: SNAPSHOT_CONS.to_string(),
             formal_args: self.encode_domain_cons_formal_args()?,
-            return_type: vir::Type::Domain(domain_name.to_string()),
+            return_type: vir::Type::Domain(self.encode_domain_name()),
             unique: false,
-            domain_name: domain_name.to_string(),
+            domain_name: self.encode_domain_name(),
         })
     }
 
-    fn encode_cons_injectivity(&self, axiom_name: String, domain_name: &String, cons_func: &vir::DomainFunc)
+    fn encode_cons_injectivity(&self, axiom_name: String, cons_func: &vir::DomainFunc)
         -> vir::DomainAxiom
     {
         let (lhs_args, lhs_call) = self.encode_injectivity_args_call(
@@ -740,12 +432,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                     conjunction
                 )
             ),
-            domain_name: domain_name.to_string()
+            domain_name: self.encode_domain_name(),
         }
     }
 
-    fn encode_injectivity_axiom_name(&self, domain_name: &String, variant_index: i64) -> String {
-        format!("{}$injectivity${}", domain_name.to_string(), variant_index)
+    fn encode_injectivity_axiom_name(&self, variant_index: i64) -> String {
+        format!("{}$injectivity${}", self.encode_domain_name(), variant_index)
     }
 
     fn encode_injectivity_args_call(&self, cons_func: &vir::DomainFunc, suffix: String)
@@ -1000,4 +692,290 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         let arg = self.get_ref_field(self.encode_snap_arg_var(name.to_string()));
         self.encode_snapshot_call(name, arg)
     }
+}
+
+
+impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 'tcx> {
+    pub fn new(
+        snapshot_encoder: &'s SnapshotEncoder<'p, 'v, 'tcx>,
+        adt_def: &'s ty::AdtDef,
+        subst: ty::subst::SubstsRef<'tcx>,
+    ) -> Self {
+        SnapshotAdtEncoder {
+            snapshot_encoder,
+            adt_def,
+            subst,
+            predicate: snapshot_encoder.encoder.encode_type_predicate_def(snapshot_encoder.ty).unwrap(),
+        }
+    }
+
+    fn encode_snapshot(&self) -> PositionlessEncodingResult<Snapshot> {
+        let snap_domain = self.encode_snap_domain()?;
+        let snap_func = self.encode_snap_func(&snap_domain)?;
+
+        Ok(Snapshot {
+            predicate_name: self.snapshot_encoder.predicate_name.clone(),
+            snap_func: Some(snap_func),
+            snap_domain: Some(snap_domain),
+        })
+    }
+
+    fn encode_snap_domain(&self) -> PositionlessEncodingResult<SnapshotDomain>
+    {
+        Ok(SnapshotDomain{
+            domain: self.encode_domain()?,
+            equals_func: self.snapshot_encoder.encode_equals_func(),
+            equals_func_ref: self.snapshot_encoder.encode_equals_func_ref(),
+            not_equals_func: self.snapshot_encoder.encode_not_equals_func(),
+            not_equals_func_ref: self.snapshot_encoder.encode_not_equals_func_ref(),
+        })
+    }
+
+    fn encode_domain(&self) -> PositionlessEncodingResult<vir::Domain>
+    {
+        let mut functions = self.encode_constructors()?;
+        let variant_func = self.encode_variant_func()?;
+        let axioms = self.encode_axioms(
+            &variant_func,
+            &functions
+        )?;
+
+        functions.push(variant_func);
+
+        Ok(vir::Domain {
+            name: self.snapshot_encoder.encode_domain_name(),
+            functions,
+            axioms,
+            type_vars: vec![]
+        })
+    }
+
+    fn encode_variant_func(&self) -> PositionlessEncodingResult<vir::DomainFunc>
+    {
+        let domain_name = self.snapshot_encoder.encode_domain_name();
+        let snap_type = vir::Type::Domain(domain_name.to_string());
+        let arg = vir::LocalVar::new("self", snap_type);
+        Ok(vir::DomainFunc {
+            name: SNAPSHOT_VARIANT.to_string(),
+            formal_args: vec![arg],
+            return_type: vir::Type::Int,
+            unique: false,
+            domain_name: domain_name.to_string(),
+        })
+    }
+
+    fn encode_constructors(&self) -> PositionlessEncodingResult<Vec<vir::DomainFunc>>
+    {
+        let domain_name = self.snapshot_encoder.encode_domain_name();
+        let mut result = vec![];
+        for (variant_index, variant_def) in self.adt_def.variants.iter().enumerate() {
+            result.push(
+                vir::DomainFunc {
+                    name: self.encode_constructor_name(variant_index),
+                    formal_args: self.encode_constructor_args(variant_def)?,
+                    return_type: vir::Type::Domain(domain_name.to_string()),
+                    unique: false,
+                    domain_name: domain_name.to_string(),
+                }
+            )
+        }
+
+        Ok(result)
+    }
+
+    fn encode_constructor_args(
+        &self,
+        variant_def: &ty::VariantDef
+    ) -> PositionlessEncodingResult<Vec<vir::LocalVar>>
+    {
+        let mut formal_args = vec![];
+        let tcx = self.snapshot_encoder.encoder.env().tcx();
+        let mut field_num = 0;
+        for field in &variant_def.fields {
+            let field_ty = field.ty(tcx, self.subst);
+            let snapshot = self.snapshot_encoder.encoder.encode_snapshot(&field_ty)?;
+            formal_args.push(
+                self.snapshot_encoder.encode_local_var(field_num, &snapshot.get_type())
+            );
+            field_num += 1;
+        }
+        Ok(formal_args)
+    }
+
+    fn encode_constructor_name(&self, variant_index: usize) -> String {
+        format!(
+            "{}{}$",
+            SNAPSHOT_CONS,
+            variant_index,
+        )
+    }
+
+    fn encode_axioms(
+        &self,
+        variant_func: &vir::DomainFunc,
+        constructors: &Vec<vir::DomainFunc>,
+    ) -> PositionlessEncodingResult<Vec<vir::DomainAxiom>>
+    {
+        let mut result = vec![
+            self.encode_axiom_variants(variant_func)?
+        ];
+
+        for (variant_index, cons_func) in constructors.iter().enumerate() {
+            result.push(self.snapshot_encoder.encode_cons_injectivity(
+                self.snapshot_encoder.encode_injectivity_axiom_name(variant_index as i64),
+                &cons_func
+            ))
+        }
+
+        Ok(result)
+    }
+
+    fn encode_axiom_variants(
+        &self,
+        variant_func: &vir::DomainFunc,
+    ) -> PositionlessEncodingResult<vir::DomainAxiom> {
+
+        let domain_name = self.snapshot_encoder.encode_domain_name();
+        let var = vir::LocalVar::new(
+            SNAPSHOT_ARG,
+            vir::Type::Domain(domain_name.to_string()),
+        );
+        let variant_call = vir::Expr::domain_func_app(
+            variant_func.clone(),
+            vec![vir::Expr::local(var.clone())],
+        );
+
+        // TODO this is potentially dangerous as the variant range is not the same as the
+        // discriminant range
+        let variant_range = self.adt_def.variant_range();
+        let start = vir::Expr::int(variant_range.start.as_usize() as i64);
+        let end = vir::Expr::int(variant_range.end.as_usize() as i64);
+
+        Ok(vir::DomainAxiom {
+            name: format!("{}$variants", domain_name.to_string()),
+            expr: vir::Expr::forall(
+                vec![var],
+                vec![vir::Trigger::new(vec![variant_call.clone()])],
+                vir::Expr::and(
+                    vir::Expr::le_cmp(start, variant_call.clone()),
+                    vir::Expr::lt_cmp(variant_call, end)
+                )
+            ),
+            domain_name: domain_name.to_string()
+        })
+    }
+
+    fn encode_snap_func(
+        &self,
+        snap_domain: &SnapshotDomain,
+    ) -> PositionlessEncodingResult<vir::Function> {
+
+        // TODO: there is a potential difference here!
+        let variant_arg = vir::Expr::field(
+            self.snapshot_encoder.encode_snap_arg_local(SNAPSHOT_ARG),
+            self.snapshot_encoder.encoder.encode_discriminant_field(),
+        );
+
+        let body = self.fold_snap_func_conditional(
+            snap_domain,
+            variant_arg,
+            0,
+        )?;
+
+        Ok(
+            self.snapshot_encoder.encode_snap_func(
+                snap_domain.get_type(),
+                body,
+            )
+        )
+    }
+
+    fn fold_snap_func_conditional(
+        &self,
+        snap_domain: &SnapshotDomain,
+        variant_arg: vir::Expr,
+        index: usize,
+    ) -> PositionlessEncodingResult<vir::Expr>
+    {
+        if index >= self.adt_def.variants.len() - 1 {
+            self.encode_snap_variant(snap_domain, index)
+        } else {
+            Ok(vir::Expr::ite(
+                vir::Expr::eq_cmp(
+                    variant_arg.clone(),
+                    vir::Expr::int(index as i64),
+                ),
+                self.encode_snap_variant(snap_domain, index)?,
+                self.fold_snap_func_conditional(
+                    snap_domain,
+                    variant_arg,
+                    index+1,
+                )?,
+            ))
+        }
+    }
+
+    fn encode_snap_variant(
+        &self,
+        snap_domain: &SnapshotDomain,
+        variant_index: usize,
+    ) -> PositionlessEncodingResult<vir::Expr>
+    {
+        let (
+                variant_location,
+                predicate_name,
+                variant,
+                enum_variant_index
+        ) = self.obtain_variant(variant_index)?;
+
+        let cons_func = snap_domain.domain.functions[variant_index].clone();
+        let args = self.snapshot_encoder.encode_snap_func_variant_args(
+            variant_location.clone(),
+            variant,
+            self.subst
+        )?;
+
+        Ok(
+            vir::Expr::unfolding(
+                predicate_name,
+                vec![variant_location],
+                vir::Expr::domain_func_app(cons_func, args),
+                vir::PermAmount::Read,
+                enum_variant_index,
+            )
+        )
+    }
+
+    fn obtain_variant(&self, variant_index: usize)
+        -> PositionlessEncodingResult<(vir::Expr, String, &ty::VariantDef, vir::MaybeEnumVariantIndex)>
+    {
+        match &self.predicate {
+            vir::Predicate::Enum(enum_predicate) => {
+                let (_, variant_name, _) = enum_predicate.variants[variant_index].clone();
+                Ok((
+                    self.snapshot_encoder
+                        .encode_snap_arg_local(SNAPSHOT_ARG)
+                        .variant(variant_name.borrow()),
+                    format!("{}{}", self.snapshot_encoder.predicate_name.to_string(), variant_name.to_string()),
+                    &self.adt_def.variants[rustc_target::abi::VariantIdx::from_usize(variant_index)],
+                    Some(EnumVariantIndex::new(variant_name.to_string())),
+                ))
+            }
+            vir::Predicate::Struct(_) => {
+                assert_eq!(variant_index, 0);
+                Ok((
+                    self.snapshot_encoder.encode_snap_arg_local(SNAPSHOT_ARG),
+                    self.snapshot_encoder.predicate_name.to_string(),
+                    &self.adt_def.non_enum_variant(),
+                    None,
+                ))
+            }
+            _ => {
+                Err(PositionlessEncodingError::Incorrect(
+                    "predicate does not correspond to an enum or struct".to_string()
+                ))
+            }
+        }
+    }
+
 }
