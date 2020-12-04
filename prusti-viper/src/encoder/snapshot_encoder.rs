@@ -853,6 +853,8 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
                     self.subst,
                 )?
             )
+        } else if self.adt_def.variants.is_empty() {
+            unimplemented!("CMFIXME")
         } else {
             let variant_arg = vir::Expr::field(
                 self.snapshot_encoder.encode_arg_local(SNAPSHOT_ARG),
