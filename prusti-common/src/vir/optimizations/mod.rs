@@ -6,6 +6,7 @@
 
 //! A module that contains various VIR optimizations.
 
+use config::optimizations;
 use vir::{CfgMethod, Program};
 use crate::config::{self, Optimizations};
 
@@ -60,37 +61,42 @@ impl Program {
             );
             let (new_methods, new_functions) =
                 functions::inline_constant_functions(self.methods, self.functions);
+            self.methods = new_methods;
+            self.functions = new_functions;
             log_methods(
                 source_file_name,
-                &new_methods,
+                &self.methods,
                 "inline_constant_functions",
                 true
             );
-
+        }
+        if optimizations.optimize_folding {
             log_methods(
                 source_file_name,
-                &new_methods,
-                "purifier",
+                &self.methods,
+                "folding",
                 false
             );
-            self.methods = new_methods
+            self.methods = self.methods
                 .into_iter()
-                .map(|m| {
-                    let purified = methods::purify_vars(m);
-                    folding::FoldingOptimizer::optimize(purified)
+                .map(|cfg| {
+                    folding::FoldingOptimizer::optimize(cfg)
                 })
                 .collect();
-            self.functions = new_functions
+            self.functions = self.functions
                 .into_iter()
                 .map(|f| folding::FoldingOptimizer::optimize(f))
                 .collect();
             log_methods(
                 source_file_name,
                 &self.methods,
-                "purifier",
+                "folding",
                 true
             );
         }
+        self.methods = self.methods.into_iter().map(|method| {
+            methods::optimize_method_encoding(method, source_file_name, &optimizations)
+        }).collect();
         if optimizations.delete_unused_predicates {
             self.viper_predicates = predicates::delete_unused_predicates(
                 &self.methods,

@@ -183,7 +183,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             encoder,
             initial_pctxt,
             pctxt_at_label: HashMap::new(),
-            dump_debug_info: config::dump_debug_info(),
+            dump_debug_info: config::dump_debug_info_during_fold(),
             check_foldunfold_state: config::check_foldunfold_state(),
             foldunfold_state_filter: config::foldunfold_state_filter(),
             cfg,

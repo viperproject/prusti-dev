@@ -9,12 +9,17 @@ use std::env;
 use std::sync::RwLock;
 use serde::Deserialize;
 
-
-
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
     pub inline_constant_functions: bool,
     pub delete_unused_predicates: bool,
+    pub optimize_folding: bool,
+    pub remove_empty_if: bool,
+    pub purify_vars: bool,
+    pub fix_quantifiers: bool,
+    pub remove_unused_vars: bool,
+    pub remove_trivial_assertions: bool,
+    pub clean_cfg: bool,
 }
 
 impl Optimizations {
@@ -22,6 +27,13 @@ impl Optimizations {
         Optimizations {
             inline_constant_functions: false,
             delete_unused_predicates: false,
+            optimize_folding: false,
+            remove_empty_if: false,
+            purify_vars: false,
+            fix_quantifiers: false,
+            remove_unused_vars: false,
+            remove_trivial_assertions: false,
+            clean_cfg: false,
         }
     }
 
@@ -29,6 +41,13 @@ impl Optimizations {
         Optimizations{
             inline_constant_functions: true,
             delete_unused_predicates: true,
+            optimize_folding: true,
+            remove_empty_if: true,
+            purify_vars: true,
+            fix_quantifiers: true,
+            remove_unused_vars: true,
+            remove_trivial_assertions: true,
+            clean_cfg: true,
         }
     }
 
@@ -65,6 +84,7 @@ lazy_static! {
         settings.set_default("SIMPLIFY_ENCODING", true).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
+        settings.set_default("DUMP_DEBUG_INFO_DURING_FOLD", false).unwrap();
         settings.set_default("DUMP_PATH_CTXT_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_REBORROWING_DAG_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
@@ -161,6 +181,11 @@ pub fn simplify_encoding() -> bool {
 /// Should we dump debug files?
 pub fn dump_debug_info() -> bool {
     read_setting("DUMP_DEBUG_INFO")
+}
+
+/// Should we dump debug files for fold/unfold generation?
+pub fn dump_debug_info_during_fold() -> bool {
+    read_setting("DUMP_DEBUG_INFO_DURING_FOLD")
 }
 
 /// Should we dump the branch context state in debug files?
@@ -308,6 +333,13 @@ pub fn optimizations() -> Optimizations {
             "all" => opt = Optimizations::all_enabled(),
             "inline_constant_functions" => opt.inline_constant_functions = true,
             "delete_unused_predicates" => opt.delete_unused_predicates = true,
+            "optimize_folding" => opt.optimize_folding = true,
+            "remove_empty_if" => opt.remove_empty_if = true,
+            "purify_vars" => opt.purify_vars = true,
+            "fix_quantifiers" => opt.fix_quantifiers = true,
+            "remove_unused_vars" => opt.remove_unused_vars = true,
+            "remove_trivial_assertions" => opt.remove_trivial_assertions = true,
+            "clean_cfg" => opt.clean_cfg = true,
             _ => warn!("Ignoring Unkown optimization '{}'", trimmed)
         }
     }

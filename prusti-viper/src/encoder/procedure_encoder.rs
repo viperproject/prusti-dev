@@ -16,7 +16,6 @@ use crate::encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
 use crate::encoder::mir_encoder::{MirEncoder, FakeMirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_successor::MirSuccessor;
-use crate::encoder::optimizer;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
 use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
@@ -29,7 +28,6 @@ use prusti_common::{
         borrows::Borrow,
         collect_assigned_vars,
         fixes::fix_ghost_vars,
-        optimizations::methods::{clean_cfg, remove_empty_if, remove_trivial_assertions, remove_unused_vars},
         CfgBlockIndex, Expr, ExprIterator, FoldingBehaviour, Successor, Type,
     },
 };
@@ -494,16 +492,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         })?;
 
         // Fix variable declarations.
-        let fixed_method = fix_ghost_vars(method_with_fold_unfold);
-
-        // Do some optimizations
-        let final_method = if config::simplify_encoding() {
-            optimizer::rewrite(self.encoder.borrow(), clean_cfg(remove_trivial_assertions(remove_unused_vars(
-                remove_empty_if(fixed_method)),
-            )))
-        } else {
-            fixed_method
-        };
+        let final_method = fix_ghost_vars(method_with_fold_unfold);
 
         // Dump final CFG
         if config::dump_debug_info() {

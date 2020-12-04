@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::Encoder;
-use prusti_common::{vir, config};
+use crate::{vir, config};
 use std::collections::HashMap;
 use std::mem;
 use log::debug;
@@ -18,36 +17,18 @@ use log::debug;
 ///     with `let tmp == (...) in forall ..`.
 ///
 /// Note: this seems to be required to workaround some Silicon incompleteness.
-pub fn rewrite(encoder: &Encoder<'_, '_>, cfg: vir::CfgMethod) -> vir::CfgMethod {
-    log_vir(encoder, &cfg, false);
+pub fn fix_quantifiers(cfg: vir::CfgMethod) -> vir::CfgMethod {
     let mut optimizer = Optimizer::new();
-    let optimized_cfg = optimizer.replace_cfg(cfg);
-    log_vir(encoder, &optimized_cfg, true);
-    optimized_cfg
+    optimizer.replace_cfg(cfg)
 }
 
-fn log_vir(encoder: &Encoder<'_, '_>, cfg: &vir::CfgMethod, after_optimization: bool) {
-    if config::dump_debug_info() {
-        let namespace = if after_optimization {
-            "graphviz_method_optimization_00_after"
-        } else {
-            "graphviz_method_optimization_00_before"
-        };
-        let source_file_name = encoder.env().source_file_name();
-        prusti_common::report::log::report_with_writer(
-            namespace,
-            format!("{}.{}.dot", source_file_name, cfg.name()),
-            |writer| cfg.to_graphviz(writer),
-        );
-    }
-
+struct Optimizer {
+    counter: u32,
 }
-
-struct Optimizer {}
 
 impl Optimizer {
     fn new() -> Self {
-        Self {}
+        Self { counter: 0 }
     }
 
     fn replace_cfg(&mut self, mut cfg: vir::CfgMethod) -> vir::CfgMethod {
@@ -95,11 +76,15 @@ impl vir::StmtFolder for Optimizer {
     }
     fn fold_inhale(&mut self, expr: vir::Expr, folding: vir::FoldingBehaviour) -> vir::Stmt {
         let pulled_unfodling = self.replace_expr_unfolding(expr);
-        vir::Stmt::Inhale(pulled_unfodling, folding)
+        let replaced_old = self.replace_expr_old(pulled_unfodling);
+        vir::Stmt::Inhale(replaced_old, folding)
     }
 }
 
 impl vir::ExprFolder for Optimizer {
+    fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>, borrow: Option<vir::borrows::Borrow>, pos: vir::Position) -> vir::Expr {
+        vir::Expr::MagicWand(lhs, rhs, borrow, pos)
+    }
     fn fold_forall(
         &mut self,
         variables: Vec<vir::LocalVar>,
@@ -108,12 +93,15 @@ impl vir::ExprFolder for Optimizer {
         pos: vir::Position,
     ) -> vir::Expr {
         debug!("original body: {}", body);
-        let mut replacer = Replacer::new(&variables);
-        let replaced_body = replacer.fold_boxed(body);
+        let folded_body = self.fold_boxed(body);
+        debug!("Folded body: {}", folded_body);
+        let old_counter = self.counter;
+        let mut replacer = Replacer::new(&variables, &mut self.counter);
+        let replaced_body = replacer.fold_boxed(folded_body);
         debug!("replaced body: {}", replaced_body);
         let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos);
 
-        if replacer.counter > 0 {
+        if *replacer.counter > old_counter {
             for (expr, variable) in replacer.map {
                 forall = vir::Expr::LetExpr(variable, box expr, box forall, pos);
             }
@@ -124,16 +112,16 @@ impl vir::ExprFolder for Optimizer {
     }
 }
 
-struct Replacer {
-    counter: u32,
+struct Replacer<'a> {
+    counter: &'a mut u32,
     map: HashMap<vir::Expr, vir::LocalVar>,
     bound_vars: Vec<vir::Expr>,
 }
 
-impl Replacer {
-    fn new(bound_vars: &Vec<vir::LocalVar>) -> Self {
+impl<'a> Replacer<'a> {
+    fn new(bound_vars: &Vec<vir::LocalVar>, counter: &'a mut u32) -> Self {
         Self {
-            counter: 0,
+            counter: counter,
             map: HashMap::new(),
             bound_vars: bound_vars.iter().cloned().map(|v| v.into()).collect(),
         }
@@ -141,15 +129,26 @@ impl Replacer {
 
     fn construct_fresh_local(&mut self, ty: &vir::Type) -> vir::LocalVar {
         let name = format!("_LET_{}", self.counter);
-        self.counter += 1;
+        (*self.counter) += 1;
         vir::LocalVar {
             name: name,
             typ: ty.clone(),
         }
     }
+
+    fn replace_expr(&mut self, original_expr: vir::Expr, pos: vir::Position) -> vir::Expr {
+        if let Some(local) = self.map.get(&original_expr) {
+            vir::Expr::Local(local.clone(), pos)
+        } else {
+            let typ = original_expr.get_type();
+            let local = self.construct_fresh_local(&typ);
+            self.map.insert(original_expr, local.clone());
+            vir::Expr::Local(local, pos)
+        }
+    }
 }
 
-impl vir::ExprFolder for Replacer {
+impl<'a> vir::ExprFolder for Replacer<'a> {
     fn fold_labelled_old(
         &mut self,
         label: String,
@@ -177,26 +176,39 @@ impl vir::ExprFolder for Replacer {
         second: Box<vir::Expr>,
         pos: vir::Position,
     ) -> vir::Expr {
-        let folded_first = self.fold_boxed(first);
-        let folded_second = self.fold_boxed(second);
-        let original_expr = vir::Expr::BinOp(kind, folded_first, folded_second, pos);
-        if (kind == vir::BinOpKind::Add
-            || kind == vir::BinOpKind::Sub
-            || kind == vir::BinOpKind::Mul
-            || kind == vir::BinOpKind::Div
-            || kind == vir::BinOpKind::Mod)
-            && !self.bound_vars.iter().any(|v| original_expr.find(v))
-        {
-            if let Some(local) = self.map.get(&original_expr) {
-                vir::Expr::Local(local.clone(), pos)
-            } else {
-                let local = self.construct_fresh_local(&vir::Type::Int);
-                self.map.insert(original_expr, local.clone());
-                vir::Expr::Local(local, pos)
-            }
+        let first_contains_bounded = self.bound_vars.iter().any(|v| first.find(v));
+        let second_contains_bounded = self.bound_vars.iter().any(|v| second.find(v));
+
+        if first_contains_bounded || second_contains_bounded {
+            // The expression contains bounded variables. Cannot pull it out.
+            let folded_first = self.fold_boxed(first);
+            let folded_second = self.fold_boxed(second);
+            vir::Expr::BinOp(kind, folded_first, folded_second, pos)
         } else {
-            original_expr
+            // Pull out the expression.
+            let original_expr = vir::Expr::BinOp(kind, first, second, pos);
+            self.replace_expr(original_expr, pos)
         }
+    }
+    fn fold_field(&mut self, receiver: Box<vir::Expr>, field: vir::Field, pos: vir::Position) -> vir::Expr {
+        match &*receiver {
+            vir::Expr::Local(..) => {
+                let original_expr = vir::Expr::Field(receiver, field, pos);
+                self.replace_expr(original_expr, pos)
+            }
+            _ => {
+                vir::Expr::Field(receiver, field, pos)
+            }
+        }
+    }
+    fn fold_forall(
+        &mut self,
+        variables: Vec<vir::LocalVar>,
+        triggers: Vec<vir::Trigger>,
+        body: Box<vir::Expr>,
+        pos: vir::Position,
+    ) -> vir::Expr {
+        vir::Expr::ForAll(variables, triggers, body, pos)
     }
 }
 
