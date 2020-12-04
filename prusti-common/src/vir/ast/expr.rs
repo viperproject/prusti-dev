@@ -845,23 +845,68 @@ impl Expr {
     /// For function applications, the return type is provided.
     pub fn get_type(&self) -> &Type {
         match self {
-            &Expr::Local(LocalVar { ref typ, .. }, _)
-            | &Expr::Variant(_, Field { ref typ, .. }, _)
-            | &Expr::Field(_, Field { ref typ, .. }, _)
-            | &Expr::AddrOf(_, ref typ, _) => {
+            Expr::Local(LocalVar { ref typ, .. }, _)
+            | Expr::Variant(_, Field { ref typ, .. }, _)
+            | Expr::Field(_, Field { ref typ, .. }, _)
+            | Expr::AddrOf(_, ref typ, _)
+            | Expr::LetExpr(LocalVar { ref typ, ..}, _, _, _) => {
                 &typ
             },
-            &Expr::LabelledOld(_, box ref base, _)
-            | &Expr::Unfolding(_, _, box ref base, _, _, _) => {
+            Expr::LabelledOld(_, box ref base, _)
+            | Expr::Unfolding(_, _, box ref base, _, _, _)
+            | Expr::UnaryOp(_, box ref base, _) => {
                 base.get_type()
             },
-            &Expr::FuncApp(_, _, _, ref typ, _) => {
+            Expr::FuncApp(_, _, _, ref typ, _) => {
                 &typ
             },
-            &Expr::DomainFuncApp(ref func, _, _) => {
+            Expr::DomainFuncApp(ref func, _, _) => {
                 &func.return_type
             },
-            _ => panic!(),
+            Expr::Const(constant, ..) => {
+                match constant {
+                    Const::Bool(..) => &Type::Bool,
+                    Const::Int(..) | Const::BigInt(..) => &Type::Int,
+                }
+            }
+            Expr::BinOp(ref kind, box ref base1, box ref base2, _pos) => {
+                match kind {
+                    BinOpKind::EqCmp |
+                    BinOpKind::NeCmp |
+                    BinOpKind::GtCmp |
+                    BinOpKind::GeCmp |
+                    BinOpKind::LtCmp |
+                    BinOpKind::LeCmp |
+                    BinOpKind::And |
+                    BinOpKind::Or |
+                    BinOpKind::Implies => { &Type::Bool },
+                    BinOpKind::Add |
+                    BinOpKind::Sub |
+                    BinOpKind::Mul |
+                    BinOpKind::Div |
+                    BinOpKind::Mod => {
+                        let typ1 = base1.get_type();
+                        let typ2 = base2.get_type();
+                        assert_eq!(typ1, typ2, "expr: {:?}", self);
+                        typ1
+                    }
+                }
+            }
+            Expr::Cond(_, box ref base1, box ref base2, _pos) => {
+                let typ1 = base1.get_type();
+                let typ2 = base2.get_type();
+                assert_eq!(typ1, typ2, "expr: {:?}", self);
+                typ1
+            }
+            Expr::ForAll(..) => {
+                &Type::Bool
+            }
+            Expr::MagicWand(..) |
+            Expr::PredicateAccessPredicate(..) |
+            Expr::FieldAccessPredicate(..) |
+            Expr::InhaleExhale(..) => {
+                unreachable!("Unexpected expression: {:?}", self);
+            }
         }
     }
 

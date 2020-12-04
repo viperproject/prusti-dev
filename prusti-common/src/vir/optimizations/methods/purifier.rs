@@ -69,7 +69,7 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
 }
 
 fn is_purifiable_predicate(name: &str) -> bool {
-    name == "usize"
+    name == "usize" || name == "isize"
 }
 
 fn is_purifiable_method(name: &str) -> bool {
@@ -114,6 +114,7 @@ impl ast::ExprWalker for VarCollector {
                 let original = var.clone();
                 new_var.typ = match name {
                     "usize" => ast::Type::Int,
+                    "isize" => ast::Type::Int,
                     x => unreachable!("{}", x),
                 };
                 self.replacements.insert(original, new_var);
