@@ -854,7 +854,6 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
                 )?
             )
         } else {
-            // TODO: there is a potential difference here!
             let variant_arg = vir::Expr::field(
                 self.snapshot_encoder.encode_arg_local(SNAPSHOT_ARG),
                 self.snapshot_encoder.encoder.encode_discriminant_field(),
@@ -885,11 +884,11 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
         if index >= self.adt_def.variants.len() - 1 {
             self.encode_snap_variant(snap_domain, index)
         } else {
-            let tcx = self.encoder.env().tcx();
-            let variant_index =  adt_def.discriminant_for_variant(
+            let tcx = self.snapshot_encoder.encoder.env().tcx();
+            let variant_index = self.adt_def.discriminant_for_variant(
                 tcx,
                 rustc_target::abi::VariantIdx::from_usize(index)
-            );
+            ).val;
             let discriminant = convert_discriminant_value(
                 variant_index,
                 self.adt_def,
