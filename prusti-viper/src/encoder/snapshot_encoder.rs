@@ -11,7 +11,9 @@ use prusti_common::vir::{PermAmount, EnumVariantIndex};
 use log::warn;
 use crate::encoder::errors::{EncodingError, EncodingResult, SpannedEncodingResult};
 use std::borrow::Borrow;
-use crate::encoder::type_encoder::{compute_discriminant_values, convert_discriminant_value};
+use rustc_target::abi;
+use rustc_middle::ty::layout::IntegerExt;
+use rustc_target::abi::Integer;
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
 const SNAPSHOT_CONS: &str = "cons$";
@@ -681,7 +683,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
         }
     }
 
-    fn encode_snapshot(&self) -> PositionlessEncodingResult<Snapshot> {
+    fn encode_snapshot(&self) -> EncodingResult<Snapshot> {
         let snap_domain = self.encode_snap_domain()?;
         let snap_func = self.encode_snap_func(&snap_domain)?;
 
@@ -692,7 +694,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
         })
     }
 
-    fn encode_snap_domain(&self) -> PositionlessEncodingResult<SnapshotDomain>
+    fn encode_snap_domain(&self) -> EncodingResult<SnapshotDomain>
     {
         Ok(SnapshotDomain{
             domain: self.encode_domain()?,
@@ -703,7 +705,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
         })
     }
 
-    fn encode_domain(&self) -> PositionlessEncodingResult<vir::Domain>
+    fn encode_domain(&self) -> EncodingResult<vir::Domain>
     {
         let mut functions = self.encode_constructors()?;
         let mut axioms = self.encode_axioms(&functions);
@@ -780,7 +782,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
         }
     }
 
-    fn encode_constructors(&self) -> PositionlessEncodingResult<Vec<vir::DomainFunc>>
+    fn encode_constructors(&self) -> EncodingResult<Vec<vir::DomainFunc>>
     {
         let domain_name = self.snapshot_encoder.encode_domain_name();
         let mut result = vec![];
@@ -802,7 +804,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
     fn encode_constructor_args(
         &self,
         variant_def: &ty::VariantDef
-    ) -> PositionlessEncodingResult<Vec<vir::LocalVar>>
+    ) -> EncodingResult<Vec<vir::LocalVar>>
     {
         let mut formal_args = vec![];
         let tcx = self.snapshot_encoder.encoder.env().tcx();
@@ -845,7 +847,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
     fn encode_snap_func(
         &self,
         snap_domain: &SnapshotDomain,
-    ) -> PositionlessEncodingResult<vir::Function>
+    ) -> EncodingResult<vir::Function>
     {
         if self.adt_def.variants.is_empty() {
             return Ok(vir::Function {
@@ -892,7 +894,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
         snap_domain: &SnapshotDomain,
         variant_arg: vir::Expr,
         index: usize,
-    ) -> PositionlessEncodingResult<vir::Expr>
+    ) -> EncodingResult<vir::Expr>
     {
         if index >= self.adt_def.variants.len() - 1 {
             self.encode_snap_variant(snap_domain, index)
@@ -902,11 +904,8 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
                 tcx,
                 rustc_target::abi::VariantIdx::from_usize(index)
             ).val;
-            let discriminant = convert_discriminant_value(
-                variant_index,
-                self.adt_def,
-                tcx
-            );
+            let size = ty::tls::with(|tcx| Integer::from_attr(&tcx, self.adt_def.repr.discr_type()).size());
+            let discriminant = size.sign_extend(variant_index) as i128;
 
             Ok(vir::Expr::ite(
                 vir::Expr::eq_cmp(
@@ -929,7 +928,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
         &self,
         snap_domain: &SnapshotDomain,
         variant_index: usize,
-    ) -> PositionlessEncodingResult<vir::Expr>
+    ) -> EncodingResult<vir::Expr>
     {
         let (
                 variant_location,
@@ -961,7 +960,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
     }
 
     fn obtain_variant(&self, variant_index: usize)
-        -> PositionlessEncodingResult<(vir::Expr, String, &ty::VariantDef, vir::MaybeEnumVariantIndex)>
+        -> EncodingResult<(vir::Expr, String, &ty::VariantDef, vir::MaybeEnumVariantIndex)>
     {
         match &self.predicate {
             vir::Predicate::Enum(enum_predicate) => {
@@ -987,7 +986,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
                 ))
             }
             _ => {
-                Err(PositionlessEncodingError::Incorrect(
+                Err(EncodingError::incorrect(
                     "predicate does not correspond to an enum or struct".to_string()
                 ))
             }

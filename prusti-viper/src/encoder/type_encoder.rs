@@ -797,7 +797,7 @@ pub fn compute_discriminant_values<'tcx>(adt_def: &'tcx ty::AdtDef, tcx: ty::TyC
         // See also: https://github.com/rust-lang/rust/blob/b7ebc6b0c1ba3c27ebb17c0b496ece778ef11e18/compiler/rustc_middle/src/ty/util.rs#L35-L45
         discr_values.push(size.sign_extend(discr.val) as i128);
     }
-    discriminant_values
+    discr_values
 }
 
 /// Encode a disjunction that lists all possible discrimintant values.
