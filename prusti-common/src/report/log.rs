@@ -26,8 +26,17 @@ pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<dyn
         Some(log_dir) => {
             let mut path = log_dir.join(namespace);
             fs::create_dir_all(&path)?;
-            let name_path = PathBuf::from(name.to_string());
+            let mut name_path = PathBuf::from(name.to_string());
             debug_assert!(!name_path.is_absolute(), "The name cannot be absolute");
+            // Truncate the file name if it's too big, preserving the extension.
+            let file_stem = name_path.file_name().unwrap().to_owned();
+            if file_stem.len() > 250 {
+                let opt_extension = name_path.extension().map(|s| s.to_owned());
+                name_path.set_file_name(&file_stem.to_str().unwrap()[0..250]);
+                if let Some(extension) = opt_extension {
+                    name_path.set_extension(extension);
+                }
+            }
             path.push(name_path);
             box fs::File::create(path)?
         }
