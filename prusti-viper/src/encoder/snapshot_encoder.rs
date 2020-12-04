@@ -926,21 +926,25 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
         ) = self.obtain_variant(variant_index)?;
 
         let cons_func = snap_domain.domain.functions[variant_index].clone();
-        let args = self.snapshot_encoder.encode_cons_func_args(
-            variant_location.clone(),
-            variant,
-            self.subst
-        )?;
 
-        Ok(
-            vir::Expr::unfolding(
-                predicate_name,
-                vec![variant_location],
-                vir::Expr::domain_func_app(cons_func, args),
-                vir::PermAmount::Read,
-                enum_variant_index,
+        if variant.fields.is_empty() {
+            Ok(vir::Expr::domain_func_app(cons_func, vec![]))
+        } else {
+            let args = self.snapshot_encoder.encode_cons_func_args(
+                variant_location.clone(),
+                variant,
+                self.subst
+            )?;
+            Ok(
+                vir::Expr::unfolding(
+                    predicate_name,
+                    vec![variant_location],
+                    vir::Expr::domain_func_app(cons_func, args),
+                    vir::PermAmount::Read,
+                    enum_variant_index,
+                )
             )
-        )
+        }
     }
 
     fn obtain_variant(&self, variant_index: usize)
