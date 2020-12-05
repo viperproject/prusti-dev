@@ -26,7 +26,13 @@ pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<dyn
         Some(log_dir) => {
             let mut path = log_dir.join(namespace);
             fs::create_dir_all(&path)?;
-            let name_path = PathBuf::from(name.to_string());
+            let mut name_string = name.to_string();
+            if name_string.len() > config::max_log_file_name_length() {
+                let end = name_string.find('.').unwrap();
+                let start = end - (name_string.len() - config::max_log_file_name_length());
+                name_string.drain(start..end);
+            }
+            let name_path = PathBuf::from(name_string);
             debug_assert!(!name_path.is_absolute(), "The name cannot be absolute");
             path.push(name_path);
             box fs::File::create(path)?

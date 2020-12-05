@@ -85,6 +85,7 @@ lazy_static! {
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_DEBUG_INFO_DURING_FOLD", false).unwrap();
+        settings.set_default("MAX_LOG_FILE_NAME_LENGTH", 60).unwrap();
         settings.set_default("DUMP_PATH_CTXT_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_REBORROWING_DAG_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
@@ -186,6 +187,12 @@ pub fn dump_debug_info() -> bool {
 /// Should we dump debug files for fold/unfold generation?
 pub fn dump_debug_info_during_fold() -> bool {
     read_setting("DUMP_DEBUG_INFO_DURING_FOLD")
+}
+
+/// What is the longest allowed length of a log file name? If this is exceeded,
+/// the file name is truncated.
+pub fn max_log_file_name_length() -> usize {
+    read_setting("MAX_LOG_FILE_NAME_LENGTH")
 }
 
 /// Should we dump the branch context state in debug files?
