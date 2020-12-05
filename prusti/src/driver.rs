@@ -159,6 +159,8 @@ fn main() {
                 flags.skip_verify = true;
             } else if arg == "-Zhide-uuids" {
                 flags.hide_uuids = true;
+            } else if arg == "-Zdisable_more_complete_exhale" {
+                config::disable_more_complete_exhale();
             } else {
                 args.push(arg);
             }

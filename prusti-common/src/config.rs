@@ -265,6 +265,12 @@ pub fn use_more_complete_exhale() -> bool {
     read_setting("USE_MORE_COMPLETE_EXHALE")
 }
 
+/// Disable the Silicon configuration option `--enableMoreCompleteExhale`.
+pub fn disable_more_complete_exhale() {
+    let mut settings = SETTINGS.write().unwrap();
+    settings.set("USE_MORE_COMPLETE_EXHALE", false);
+}
+
 /**
 The maximum amount of instantiated viper verifiers the server will keep around for reuse.
 If not set, this defaults to `SERVER_MAX_CONCURRENT_VERIFICATION_OPERATIONS`.
