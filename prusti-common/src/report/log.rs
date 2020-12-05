@@ -28,7 +28,7 @@ pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<dyn
             fs::create_dir_all(&path)?;
             let mut name_string = name.to_string();
             if name_string.len() > config::max_log_file_name_length() {
-                let end = name_string.find('.').unwrap();
+                let end = name_string.rfind('.').unwrap();
                 let start = end - (name_string.len() - config::max_log_file_name_length());
                 name_string.drain(start..end);
             }
