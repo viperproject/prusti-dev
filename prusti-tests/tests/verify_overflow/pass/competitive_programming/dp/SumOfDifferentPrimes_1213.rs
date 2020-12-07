@@ -21,7 +21,7 @@ impl VecWrapperI32 {
 
     #[trusted]
     #[pure]
-    #[requires (0 <= index as usize && index < self.len())]
+    #[requires (0 <= index && index < self.len())]
     pub fn lookup(&self, index: isize) -> isize {
         self.v[index as usize]
     }
@@ -119,24 +119,50 @@ impl Matrix {
 
 // Recursive solution
 
+#[trusted]
+#[pure]
+#[ensures(result == a + b)]
+fn add(a: isize, b: isize) -> isize {
+    a.checked_add(b).unwrap()
+}
+
 #[pure]
 #[requires(n <= 1120)]
-#[requires(k <= 14)]
+#[requires(k >= 0 && k <= 14)]
 #[requires(primes.len() > 0)]
 #[requires(forall(|k: isize| (k >= 0 && k < primes.len()) ==> (primes.lookup(k) >= 2)))]
-#[ensures(k > 0 && n >= 0 ==> result  == sum_of_different_primes_rec_helper(primes, n, k, primes.len() - 1))]
+#[ensures(result  == sum_of_different_primes_rec_helper(primes, n, k, primes.len() - 1))]
 fn sum_of_different_primes_rec(primes: &VecWrapperI32, n: isize, k: isize) -> isize {
+        sum_of_different_primes_rec_helper(primes, n, k, primes.len() - 1)
+}
+
+#[pure]
+#[requires(n <= 1120)]
+#[requires(k >= 0 && k <= 14)]
+#[requires(idx_prime >= -1 && idx_prime < primes.len())]
+#[requires(primes.len() > 0)]
+#[requires(forall(|k: isize| (k >= 0 && k < primes.len()) ==> (primes.lookup(k) >= 2)))]
+fn sum_of_different_primes_rec_helper(
+    primes: &VecWrapperI32,
+    n: isize,
+    k: isize,
+    idx_prime: isize,
+) -> isize {
     if k == 0 && n == 0 {
         1
     } else if (k <= 0 || n < 0) {
         0
+    } else if idx_prime == -1 {
+        0
     } else {
-        sum_of_different_primes_rec_helper(primes, n, k, primes.len() - 1)
+        let take = sum_of_different_primes_rec_helper(primes, n - primes.lookup(idx_prime), k - 1, primes.len() - 1);
+        let leave = sum_of_different_primes_rec_helper(primes, n, k, idx_prime - 1);
+        add(leave, take)
     }
 }
 
 #[requires(n <= 1120)]
-#[requires(k <= 14)]
+#[requires(k >= 0 && k <= 14)]
 #[requires(primes.len() > 0)]
 #[requires(forall(|k: isize| (k >= 0 && k < primes.len()) ==> (primes.lookup(k) >= 2)))]
 #[ensures((k > 0 && n >= 0) ==> result == sum_of_different_primes_rec_helper(primes, n, k, primes.len() - 1))]
@@ -153,30 +179,10 @@ fn sum_of_different_primes_rec_iter(primes: &VecWrapperI32, n: isize, k: isize) 
             body_invariant!(idx >= 0 && idx < primes.len());
             body_invariant!(n >= 0);
             body_invariant!(answer == sum_of_different_primes_rec_helper(primes, n, k, idx - 1));
-            answer += sum_of_different_primes_rec(primes, n - primes.lookup(idx), k - 1);
+            answer = add(answer, sum_of_different_primes_rec_iter(primes, n - primes.lookup(idx), k - 1));
             idx += 1;
         }
         answer
-    }
-}
-
-#[pure]
-#[requires(n >= 0 && n <= 1120)]
-#[requires(k > 0 && k <= 14)]
-#[requires(idx_prime >= -1 && idx_prime < primes.len())]
-#[requires(primes.len() > 0)]
-#[requires(forall(|k: isize| (k >= 0 && k < primes.len()) ==> (primes.lookup(k) >= 2)))]
-fn sum_of_different_primes_rec_helper(
-    primes: &VecWrapperI32,
-    n: isize,
-    k: isize,
-    idx_prime: isize,
-) -> isize {
-    if idx_prime == -1 {
-        0
-    } else {
-        sum_of_different_primes_rec_helper(primes, n, k, idx_prime - 1)
-            + sum_of_different_primes_rec(primes, n - primes.lookup(idx_prime), k - 1)
     }
 }
 
@@ -221,7 +227,10 @@ fn sum_of_different_primes(primes: &VecWrapperI32, n: isize, k: isize) -> isize 
                 );
                 idx_prev = idx_n - primes.lookup(idx_prime);
                 if idx_prev >= 0 {
-                    sum += dp.lookup(idx_k - 1, idx_prev);
+                    assert!(dp.lookup(idx_k - 1, idx_prev) == sum_of_different_primes_rec(primes, idx_prev, idx_k - 1));
+                    assert!(dp.lookup(idx_k - 1, idx_prev) == sum_of_different_primes_rec_helper(primes, idx_prev, idx_k - 1, primes_len - 1));
+                    sum = add(sum, dp.lookup(idx_k - 1, idx_prev));
+                    assert!(sum == sum_of_different_primes_rec_helper(primes, idx_n, idx_k, idx_prime));
                 } else {
                     assert!(sum_of_different_primes_rec_helper(primes, idx_n, idx_k, idx_prime) == sum + sum_of_different_primes_rec(primes, idx_prev, idx_k - 1));
                     assert!(sum_of_different_primes_rec(primes, idx_prev, idx_k - 1) == 0);
@@ -231,7 +240,7 @@ fn sum_of_different_primes(primes: &VecWrapperI32, n: isize, k: isize) -> isize 
                 }
                 idx_prime += 1;
             }
-            
+
             assert!(
                 sum == sum_of_different_primes_rec_helper(primes, idx_n, idx_k, primes_len - 1)
             );
