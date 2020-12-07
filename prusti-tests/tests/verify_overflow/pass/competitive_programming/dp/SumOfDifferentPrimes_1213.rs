@@ -1,3 +1,4 @@
+// compile-flags: -Zdisable_more_complete_exhale
 // https://onlinejudge.org/external/12/1213.pdf
 use prusti_contracts::*;
 
