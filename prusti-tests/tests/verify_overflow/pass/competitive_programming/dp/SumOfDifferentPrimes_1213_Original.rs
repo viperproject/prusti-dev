@@ -117,7 +117,7 @@ impl Matrix {
 #[pure]
 #[ensures(result == a + b)]
 fn add(a: isize, b: isize) -> isize {
-  a.checked_add(b).unwrap()
+    a.checked_add(b).unwrap()
 }
 
 #[pure]
@@ -145,32 +145,116 @@ fn sum_of_different_primes_rec(primes: &VecWrapperI32, n: isize, k: isize, p: is
 }
 
 // DP SOlution
+#[requires(size_n > 1 && size_n <= 1121)]
+#[requires(size_k > 1 && size_k <= 15)]
+#[requires(size_p == primes.len() + 1)]
+#[requires(primes.len() > 0 && primes.len() < size_n)]
+#[requires(forall(|k: isize| (k >= 0 && k < primes.len()) ==> (primes.lookup(k) >= 2 && primes.lookup(k) < size_n)))]
+#[requires(idx_k > 0 && idx_k < size_k)]
+#[requires(idx_n >= 0 && idx_n < size_n)]
+#[requires(idx_p > 0 && idx_p < size_p)]
+#[requires(dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == size_p)]
+#[requires(forall(|i: isize, j: isize, k: isize| (i >= 0 && i < idx_k && j >= 0 && j < size_n && k >= 0 && k < size_p) ==>  dp.lookup(i, j, k) == sum_of_different_primes_rec(primes, j, i, k - 1)))]
+#[requires(forall(|j: isize, k: isize| (j >= 0 && j <  idx_n && k >= 0 && k < size_p) ==>  dp.lookup(idx_k, j, k) == sum_of_different_primes_rec(primes, j, idx_k, k -  1)))]
+#[requires(forall(|k: isize| (k >= 0 && k < idx_p) ==>  dp.lookup(idx_k, idx_n, k) == sum_of_different_primes_rec(primes, idx_n, idx_k, k - 1)))]
+#[ensures(result == sum_of_different_primes_rec(primes, idx_n, idx_k, idx_p -  1))]
+fn helper(
+    primes: &VecWrapperI32,
+    size_k: isize,
+    size_n: isize,
+    size_p: isize,
+    idx_k: isize,
+    idx_n: isize,
+    idx_p: isize,
+    dp: &Matrix,
+) -> isize {
+    let mut result = 0;
+    assert!(idx_p > 0);
+    let idx_prev = idx_n - primes.lookup(idx_p - 1);
+    let mut result = 0;
+
+    if idx_prev >= 0 {
+        assert!(
+            dp.lookup(idx_k - 1, idx_prev, idx_p - 1)
+                == sum_of_different_primes_rec(primes, idx_prev, idx_k - 1, idx_p - 2)
+        );
+        assert!(
+            dp.lookup(idx_k, idx_n, idx_p - 1)
+                == sum_of_different_primes_rec(primes, idx_n, idx_k, idx_p - 2)
+        );
+        let take = dp.lookup(idx_k - 1, idx_prev, idx_p - 1);
+        let leave = dp.lookup(idx_k, idx_n, idx_p - 1);
+        result = add(take, leave);
+        assert!(result == sum_of_different_primes_rec(primes, idx_n, idx_k, idx_p - 1));
+    } else {
+        assert!(sum_of_different_primes_rec(primes, idx_prev, idx_k - 1, idx_p - 2) == 0);
+        assert!(
+            dp.lookup(idx_k, idx_n, idx_p - 1)
+                == sum_of_different_primes_rec(primes, idx_n, idx_k, idx_p - 2)
+        );
+        let take = 0;
+        let leave = dp.lookup(idx_k, idx_n, idx_p - 1);
+        result = add(take, leave);
+        assert!(result == sum_of_different_primes_rec(primes, idx_n, idx_k, idx_p - 1));
+    }
+    assert!(result == sum_of_different_primes_rec(primes, idx_n, idx_k, idx_p - 1));
+    result
+}
+
+#[requires(size_n > 1 && size_n <= 1121)]
+#[requires(size_k > 1 && size_k <= 15)]
+#[requires(size_p == primes.len() + 1)]
+#[requires(primes.len() > 0 && primes.len() < size_n)]
+#[requires(forall(|k: isize| (k >= 0 && k < primes.len()) ==> (primes.lookup(k) >= 2 && primes.lookup(k) < size_n)))]
+#[requires(idx_k > 0 && idx_k < size_k)]
+#[requires(idx_n >= 0 && idx_n < size_n)]
+#[requires(idx_p >= 0 && idx_p < size_p)]
+#[requires(dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == size_p)]
+#[requires(forall(|i: isize, j: isize, k: isize| (i >= 0 && i < idx_k && j >= 0 && j < size_n && k >= 0 && k < size_p) ==>  dp.lookup(i, j, k) == sum_of_different_primes_rec(primes, j, i, k - 1)))]
+#[requires(forall(|j: isize, k: isize| (j >= 0 && j <  idx_n && k >= 0 && k < size_p) ==>  dp.lookup(idx_k, j, k) == sum_of_different_primes_rec(primes, j, idx_k, k -  1)))]
+#[requires(forall(|k: isize| (k >= 0 && k < idx_p) ==>  dp.lookup(idx_k, idx_n, k) == sum_of_different_primes_rec(primes, idx_n, idx_k, k - 1)))]
+#[ensures(result == sum_of_different_primes_rec(primes, idx_n, idx_k, idx_p -  1))]
+fn helper2(
+    primes: &VecWrapperI32,
+    size_k: isize,
+    size_n: isize,
+    size_p: isize,
+    idx_k: isize,
+    idx_n: isize,
+    idx_p: isize,
+    dp: &Matrix,
+) -> isize {
+    if idx_p == 0 {
+        0
+    } else {
+        helper(primes, size_k, size_n, size_p, idx_k, idx_n, idx_p, dp)
+    }
+}
 
 #[requires(n > 0 && n <= 1120)]
 #[requires(k > 0 && k <= 14)]
-#[requires(primes.len() > 0)]
+#[requires(primes.len() > 0 && primes.len() <= n)]
 #[requires(forall(|k: isize| (k >= 0 && k < primes.len()) ==> (primes.lookup(k) >= 2 && primes.lookup(k) <= n)))]
 #[ensures(result == sum_of_different_primes_rec(primes, n, k, primes.len() - 1))]
 fn sum_of_different_primes(primes: &VecWrapperI32, n: isize, k: isize) -> isize {
     let size_k = k + 1;
     let size_n = n + 1;
     let primes_len = primes.len();
-    let mut dp = Matrix::new(size_k, size_n, primes_len);
+    let size_p = primes_len + 1;
+    let mut dp = Matrix::new(size_k, size_n, size_p);
     let mut idx_n = 0isize;
     while idx_n < size_n {
         body_invariant!(idx_n >= 0 && idx_n < dp.y_size());
-        body_invariant!(
-            dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == primes_len
-        );
-        body_invariant!(forall(|j: isize, k: isize| (j >= 0 && j < idx_n && k >= 0 && k < primes_len) ==>  dp.lookup(0, j, k) == sum_of_different_primes_rec(primes, j, 0, k)));
+        body_invariant!(dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == size_p);
+        body_invariant!(forall(|j: isize, k: isize| (j >= 0 && j < idx_n && k >= 0 && k < size_p) ==>  dp.lookup(0, j, k) == sum_of_different_primes_rec(primes, j, 0, k - 1)));
         let mut idx_p = 0isize;
-        while idx_p < primes_len {
+        while idx_p < size_p {
             body_invariant!(idx_p >= 0 && idx_p < dp.x_size());
             body_invariant!(
-                dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == primes_len
+                dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == size_p
             );
-            body_invariant!(forall(|j: isize, k: isize| (j >= 0 && j < idx_n && k >= 0 && k < primes_len) ==>  dp.lookup(0, j, k) == sum_of_different_primes_rec(primes, j, 0, k)));
-            body_invariant!(forall(|k: isize| (k >= 0 && k < idx_p) ==>  dp.lookup(0, idx_n, k) == sum_of_different_primes_rec(primes, idx_n, 0, k)));
+            body_invariant!(forall(|j: isize, k: isize| (j >= 0 && j < idx_n && k >= 0 && k < size_p) ==>  dp.lookup(0, j, k) == sum_of_different_primes_rec(primes, j, 0, k - 1)));
+            body_invariant!(forall(|k: isize| (k >= 0 && k < idx_p) ==>  dp.lookup(0, idx_n, k) == sum_of_different_primes_rec(primes, idx_n, 0, k - 1)));
             let one = 1isize;
             let zero = 0isize;
             if idx_n == 0 {
@@ -180,40 +264,34 @@ fn sum_of_different_primes(primes: &VecWrapperI32, n: isize, k: isize) -> isize 
             }
             idx_p += 1;
         }
-        idx_n += 1;
+        idx_n += 1
     }
 
     let mut idx_k = 1isize;
     while idx_k < size_k {
         body_invariant!(idx_k >= 0 && idx_k < size_k);
-        body_invariant!(
-            dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == primes_len
-        );
+        body_invariant!(dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == size_p);
         body_invariant!(idx_k > 0);
-        body_invariant!(forall(|i: isize, j: isize, k: isize| (i >= 0 && i < idx_k && j >= 0 && j <=  n && k >= 0 && k < primes_len) ==>  dp.lookup(i, j, k) == sum_of_different_primes_rec(primes, j, i, k)));
+        body_invariant!(forall(|i: isize, j: isize, k: isize| (i >= 0 && i < idx_k && j >= 0 && j <=  n && k >= 0 && k < size_p) ==>  dp.lookup(i, j, k) == sum_of_different_primes_rec(primes, j, i, k - 1)));
         let mut idx_n = 0isize;
         while idx_n < size_n {
             body_invariant!(idx_n >= 0 && idx_n < size_n);
             body_invariant!(
-                dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == primes_len
+                dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == size_p
             );
-            body_invariant!(forall(|i: isize, j: isize, k: isize| (i >= 0 && i < idx_k && j >= 0 && j <=  n && k >= 0 && k < primes_len) ==>  dp.lookup(i, j, k) == sum_of_different_primes_rec(primes, j, i, k)));
-            body_invariant!(forall(|j: isize, k: isize| (j >= 0 && j < idx_n && k >= 0 && k < primes_len) ==>  dp.lookup(idx_k, j, k) == sum_of_different_primes_rec(primes, j, idx_k, k)));
+            body_invariant!(forall(|i: isize, j: isize, k: isize| (i >= 0 && i < idx_k && j >= 0 && j <=  n && k >= 0 && k < size_p) ==>  dp.lookup(i, j, k) == sum_of_different_primes_rec(primes, j, i, k - 1)));
+            body_invariant!(forall(|j: isize, k: isize| (j >= 0 && j < idx_n && k >= 0 && k < size_p) ==>  dp.lookup(idx_k, j, k) == sum_of_different_primes_rec(primes, j, idx_k, k - 1)));
             let mut idx_p = 0isize;
-            while idx_p < primes_len {
-                body_invariant!(idx_p >= 0 && idx_p < primes_len);
+            while idx_p < size_p {
+                body_invariant!(idx_p >= 0 && idx_p < size_p);
                 body_invariant!(
-                    dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == primes_len
+                    dp.z_size() == size_k && dp.y_size() == size_n && dp.x_size() == size_p
                 );
-                body_invariant!(forall(|i: isize, j: isize, k: isize| (i >= 0 && i < idx_k && j >= 0 && j <= n && k >= 0 && k < primes_len) ==>  dp.lookup(i, j, k) == sum_of_different_primes_rec(primes, j, i, k)));
-                body_invariant!(forall(|j: isize, k: isize| (j >= 0 && j <  idx_n && k >= 0 && k < primes_len) ==>  dp.lookup(idx_k, j, k) == sum_of_different_primes_rec(primes, j, idx_k, k)));
-                body_invariant!(forall(|k: isize| (k >= 0 && k < idx_p) ==>  dp.lookup(idx_k, idx_n, k) == sum_of_different_primes_rec(primes, idx_n, idx_k, k)));
-                dp.set(
-                    idx_k,
-                    idx_n,
-                    idx_p,
-                    sum_of_different_primes_rec(primes, idx_n, idx_k, idx_p),
-                );
+                body_invariant!(forall(|i: isize, j: isize, k: isize| (i >= 0 && i < idx_k && j >= 0 && j <= n && k >= 0 && k < size_p) ==>  dp.lookup(i, j, k) == sum_of_different_primes_rec(primes, j, i, k - 1)));
+                body_invariant!(forall(|j: isize, k: isize| (j >= 0 && j <  idx_n && k >= 0 && k < size_p) ==>  dp.lookup(idx_k, j, k) == sum_of_different_primes_rec(primes, j, idx_k, k -  1)));
+                body_invariant!(forall(|k: isize| (k >= 0 && k < idx_p) ==>  dp.lookup(idx_k, idx_n, k) == sum_of_different_primes_rec(primes, idx_n, idx_k, k - 1)));
+                let mut result = helper2(primes, size_k, size_n, size_p, idx_k, idx_n, idx_p, &dp);
+                dp.set(idx_k, idx_n, idx_p, result);
                 idx_p += 1;
             }
             idx_n += 1;
@@ -222,5 +300,9 @@ fn sum_of_different_primes(primes: &VecWrapperI32, n: isize, k: isize) -> isize 
     }
     dp.lookup(k, n, primes_len - 1)
 }
+
+
+
+
 
 fn main() {}
