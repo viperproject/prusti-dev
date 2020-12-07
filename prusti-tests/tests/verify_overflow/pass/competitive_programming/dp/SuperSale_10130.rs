@@ -2,8 +2,6 @@
 // https://onlinejudge.org/external/101/10130.pdf
 use prusti_contracts::*;
 
-use prusti_contracts::*;
-
 pub struct VecWrapperI32 {
     v: Vec<isize>,
 }
