@@ -298,7 +298,7 @@ fn sum_of_different_primes(primes: &VecWrapperI32, n: isize, k: isize) -> isize 
         }
         idx_k += 1;
     }
-    dp.lookup(k, n, primes_len - 1)
+    dp.lookup(k, n, primes_len)
 }
 
 
