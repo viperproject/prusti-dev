@@ -69,20 +69,26 @@ fn min(a: isize, b: isize) -> isize {
 #[requires(last_positions.lookup(positions.len() - 1) == positions.len() - 1)]
 #[ensures(forall(|i: isize, j:  isize| (i >= idx && i < positions.len() - 1 && j > i && j < positions.len()) ==> solve_rec(positions, last_positions, i) >= solve_rec(positions, last_positions, j)))]
 #[ensures(forall(|i: isize| (i >= idx && i < positions.len() - 1) ==> solve_rec(positions, last_positions, i) >= solve_rec(positions, last_positions, i + 1)))]
+#[ensures(result < positions.len() - idx)]
+#[ensures(result < positions.len() && result >= 0)]
 fn solve_rec(positions: &VecWrapperI32, last_positions: &VecWrapperI32, idx: isize) -> isize {
     if idx == positions.len() - 1 {
         0
     } else {
-        helper(
+        assert!(positions.len() - idx > 0 && positions.len() - idx <= positions.len());
+        let end = last_positions.lookup(idx);
+        let x = helper(
             positions,
             last_positions,
             idx + 1,
-            last_positions.lookup(idx),
-        ) + 1
+            end,
+        );
+        x + 1
     }
 }
 
 #[pure]
+#[trusted]
 #[requires(positions.len() >= 2 && positions.len() <= 100000)]
 #[requires(idx >= 0 && idx < positions.len())]
 #[requires(end >= idx && end < positions.len())]
@@ -94,6 +100,8 @@ fn solve_rec(positions: &VecWrapperI32, last_positions: &VecWrapperI32, idx: isi
         (last_positions.lookup(i) <= last_positions.lookup(j))))]
 #[ensures (result == solve_rec(positions, last_positions, end))]
 #[ensures (forall(|i: isize| (i >= idx && i <= end) ==> result <= solve_rec(positions,  last_positions, i)))]
+#[ensures(result < positions.len() - idx)]
+#[ensures(result < positions.len() && result >= 0)]
 fn helper(
     positions: &VecWrapperI32,
     last_positions: &VecWrapperI32,
@@ -103,10 +111,9 @@ fn helper(
     if idx == end {
         solve_rec(positions, last_positions, idx)
     } else {
-        min(
-            solve_rec(positions, last_positions, idx),
-            helper(positions, last_positions, idx + 1, end),
-        )
+        let x = solve_rec(positions, last_positions, idx);
+        let y = helper(positions, last_positions, idx + 1, end);
+        min(x, y)
     }
 }
 
@@ -133,6 +140,8 @@ fn frog_jumping_greedy(positions: &VecWrapperI32, r: isize) -> isize {
         (last_positions.lookup(i) <= last_positions.lookup(j))))]
 #[requires(last_positions.lookup(positions.len() - 1) == positions.len() - 1)]
 #[ensures(result == solve_rec(positions, last_positions, idx))]
+#[ensures(result < positions.len() - idx)]
+#[ensures(result < positions.len() && result >= 0)]
 fn solve_greedy(positions: &VecWrapperI32, last_positions: &VecWrapperI32, idx: isize) -> isize {
     if idx == positions.len() - 1 {
         0
