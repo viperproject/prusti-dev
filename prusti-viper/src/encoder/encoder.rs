@@ -360,17 +360,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
-    pub fn get_loop_specs(&self, def_id: DefId) -> Vec<SpecificationId> {
-        unimplemented!("TODO: use def_spec");
-        /*
-        let attrs = self.env().tcx().get_attrs(def_id);
-        debug_assert!(has_prusti_attr(attrs, "loop_body_invariant_spec"));
-        read_prusti_attrs("spec_id", attrs).into_iter().map(
-            |raw_spec_id| raw_spec_id.try_into().expect(
-                &format!("cannot parse the spec_id attached to {:?}", def_id)
-            )
-        ).collect()
-        */
+    pub fn get_loop_specs(&self, def_id: DefId) -> Option<Vec<typed::Assertion<'tcx>>> {
+        let spec = self.def_spec.get(&def_id)?;
+        Some(spec.expect_loop().invariant.clone())
     }
 
     /// Get the specifications attached to the `def_id` function.

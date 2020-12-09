@@ -4045,33 +4045,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // `body_invariant!(..)` is desugared to a closure with special attributes,
         // which we can detect and use to retrieve the specification.
-        let mut spec_ids = vec![];
+        let mut specs = vec![];
         for bbi in spec_blocks {
             for stmt in &self.mir.basic_blocks()[bbi].statements {
                 if let mir::StatementKind::Assign(box (
                     _,
                     mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
                 )) = stmt.kind {
-                    spec_ids.extend(
-                        self.encoder.get_loop_specs(cl_def_id)
-                    );
+                    specs.extend(self.encoder.get_loop_specs(cl_def_id).unwrap());
                 }
             }
         }
-        trace!("spec_ids: {:?}", spec_ids);
+        trace!("specs: {:?}", specs);
 
         let mut encoded_specs = vec![];
         let mut encoded_spec_spans = vec![];
-        if !spec_ids.is_empty() {
+        if !specs.is_empty() {
             let encoded_args: Vec<vir::Expr> = self
                 .mir
                 .args_iter()
                 .map(|local| self.mir_encoder.encode_local(local).unwrap().into()) // will panic if attempting to encode unsupported type
                 .collect();
-            for spec_id in &spec_ids {
-                unreachable!("TODO: use def_spec");
-                /*
-                let assertion = self.encoder.spec().get(spec_id).unwrap();
+            for assertion in &specs {
                 // TODO: Mmm... are these parameters correct?
                 let encoded_spec = self.encoder.encode_assertion(
                     &assertion,
@@ -4090,7 +4085,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .register_span(spec_spans.clone());
                 encoded_specs.push(encoded_spec.set_default_pos(spec_pos));
                 encoded_spec_spans.extend(spec_spans);
-                */
             }
             trace!("encoded_specs: {:?}", encoded_specs);
         }

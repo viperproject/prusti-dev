@@ -38,11 +38,6 @@ impl fmt::Debug for SpecItem {
     }
 }
 
-struct Item<'tcx> {
-    name: Symbol,
-    attrs: &'tcx [ast::Attribute],
-}
-
 struct ProcedureSpecRef {
     spec_id_refs: Vec<prusti_specs::specifications::common::SpecIdRef>,
     pure: bool,
@@ -52,12 +47,13 @@ struct ProcedureSpecRef {
 /// Specification collector, intended to be applied as a visitor over the crate
 /// HIR. After the visit, [determine_def_specs] can be used to get back
 /// a mapping of DefIds (which may not be local due to extern specs) to their
-/// [SpecificationSet], i.e. procedures, loops, and structs.
+/// [SpecificationSet], i.e. procedures, loop invariants, and structs.
 pub struct SpecCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
     spec_items: Vec<SpecItem>,
     typed_specs: typed::SpecificationMap<'tcx>,
     procedure_specs: HashMap<LocalDefId, ProcedureSpecRef>,
+    loop_specs: HashMap<LocalDefId, Vec<SpecificationId>>,
     typed_expressions: HashMap<String, LocalDefId>,
     extern_resolver: ExternSpecResolver<'tcx>,
 }
@@ -69,6 +65,7 @@ impl<'tcx> SpecCollector<'tcx> {
             spec_items: Vec::new(),
             typed_specs: HashMap::new(),
             procedure_specs: HashMap::new(),
+            loop_specs: HashMap::new(),
             typed_expressions: HashMap::new(),
             extern_resolver: ExternSpecResolver::new(tcx),
         }
@@ -149,8 +146,16 @@ impl<'tcx> SpecCollector<'tcx> {
         }
     }
 
-    // TODO: loop specs
-    fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {}
+    fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
+        for (local_id, spec_ids) in self.loop_specs.iter() {
+            let specs = spec_ids.iter()
+                .map(|spec_id| self.typed_specs.get(&spec_id).unwrap().clone())
+                .collect();
+            def_spec.specs.insert(*local_id, typed::SpecificationSet::Loop(typed::LoopSpecification {
+                invariant: specs
+            }));
+        }
+    }
 
     // TODO: struct specs
     fn determine_struct_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {}
@@ -287,6 +292,13 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
 
             let spec_item = SpecItem {spec_id, spec_type, specification};
             self.spec_items.push(spec_item);
+
+            if spec_type == SpecType::Invariant {
+                self.loop_specs
+                    .entry(local_id)
+                    .or_insert(vec![])
+                    .push(spec_id);
+            }
         }
     }
 }
