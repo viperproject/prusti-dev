@@ -30,7 +30,6 @@ extern crate prusti_common;
 
 mod callbacks;
 mod verifier;
-mod arg_value;
 
 use log::debug;
 use std::{env, panic, borrow::Cow, path::PathBuf};
@@ -40,7 +39,6 @@ use lazy_static::lazy_static;
 use callbacks::PrustiCompilerCalls;
 use rustc_middle::ty::TyCtxt;
 use prusti_common::config;
-use arg_value::arg_value;
 
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
@@ -125,8 +123,11 @@ fn main() {
 
     // If the environment asks us to actually be rustc, then do that.
     // If cargo is compiling a dependency, then be rustc.
+    let is_prusti_test = env::var("PRUSTI_TESTS").is_ok();
+    let is_cargo_running = env::var("CARGO_PKG_NAME").is_ok();
+    let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
     let prusti_be_rustc = config::be_rustc()
-        || arg_value(&rustc_args, "--cap-lints", |val| val == "allow").is_some();
+        || (!is_prusti_test && is_cargo_running && !in_primary_package);
     if prusti_be_rustc {
         rustc_driver::main();
     }
