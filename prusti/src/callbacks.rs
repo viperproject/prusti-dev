@@ -51,10 +51,10 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             let mut visitor = specs::SpecCollector::new(tcx);
             intravisit::walk_crate(&mut visitor, &krate);
             let env = Environment::new(tcx);
-            let def_spec = visitor.determine_def_specs(&env);
+            let def_spec = visitor.build_def_specs(&env);
             if self.flags.print_typeckd_specs {
-                let type_map = visitor.determine_typed_procedure_specs();
-                let mut values: Vec<_> = type_map
+                let mut values: Vec<_> = def_spec
+                    .specs
                     .values()
                     .map(|spec| format!("{:?}", spec))
                     .collect();

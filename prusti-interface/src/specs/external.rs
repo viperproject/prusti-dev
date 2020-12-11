@@ -17,7 +17,7 @@ pub struct ExternSpecResolver<'tcx> {
     /// functions with specifications. The mapping may also optionally contain
     /// the `DefId` of the implementing type to account for trait
     /// implementations.
-    extern_fn_map: HashMap<DefId, (Option<DefId>, DefId)>,
+    pub extern_fn_map: HashMap<DefId, (Option<DefId>, DefId)>,
 
     /// Duplicate specifications detected, keyed by the `DefId` of the function
     /// to be specified.
@@ -86,10 +86,6 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                     .collect())
             ).emit(env);
         }
-    }
-
-    pub fn get_extern_fn_map(&self) -> HashMap<DefId, (Option<DefId>, DefId)> {
-        self.extern_fn_map.clone()
     }
 }
 

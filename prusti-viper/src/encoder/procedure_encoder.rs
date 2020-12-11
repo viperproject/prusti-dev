@@ -4052,7 +4052,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     _,
                     mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
                 )) = stmt.kind {
-                    specs.extend(self.encoder.get_loop_specs(cl_def_id).unwrap());
+                    specs.extend(self.encoder.get_loop_specs(cl_def_id).unwrap().invariant);
                 }
             }
         }

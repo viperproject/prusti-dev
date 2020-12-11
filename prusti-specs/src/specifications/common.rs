@@ -285,16 +285,15 @@ impl<EID, ET, AT> LoopSpecification<EID, ET, AT> {
 /// Specification of a procedure.
 #[derive(Debug, Clone)]
 pub struct ProcedureSpecification<EID, ET, AT> {
-    /// Precondition.
+    /// Preconditions.
     pub pres: Vec<Assertion<EID, ET, AT>>,
-    /// Postcondition.
+    /// Postconditions.
     pub posts: Vec<Assertion<EID, ET, AT>>,
     /// Pledges in the postcondition.
     pub pledges: Vec<Pledge<EID, ET, AT>>,
 
     pub pure: bool,
     pub trusted: bool,
-    pub is_extern_spec: bool,
 }
 
 impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
@@ -309,7 +308,6 @@ impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
             pledges,
             pure: false,
             trusted: false,
-            is_extern_spec: false,
         }
     }
     pub fn empty() -> Self {
@@ -317,6 +315,40 @@ impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
     }
     pub fn is_empty(&self) -> bool {
         self.pres.is_empty() && self.posts.is_empty()
+    }
+}
+
+impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> ProcedureSpecification<EID, ET, AT> {
+    /// Trait implementation method refinement
+    /// Choosing alternative C as discussed in
+    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+    /// pp 19-23
+    ///
+    /// In other words, any pre-/post-condition provided by `other` will overwrite any provided by
+    /// `self`.
+    pub fn refine(&self, other: &Self) -> Self {
+        let pres = if other.pres.is_empty() {
+            self.pres.clone()
+        } else {
+            other.pres.clone()
+        };
+        let posts = if other.posts.is_empty() {
+            self.posts.clone()
+        } else {
+            other.posts.clone()
+        };
+        let pledges = if other.pledges.is_empty() {
+            self.pledges.clone()
+        } else {
+            other.pledges.clone()
+        };
+        Self {
+            pres,
+            posts,
+            pledges,
+            pure: other.pure,
+            trusted: other.trusted,
+        }
     }
 }
 
@@ -342,52 +374,6 @@ impl<EID, ET, AT> SpecificationSet<EID, ET, AT> {
 }
 
 impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<EID, ET, AT> {
-    /// Trait implementation method refinement
-    /// Choosing alternative C as discussed in
-    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
-    /// pp 19-23
-    ///
-    /// In other words, any pre-/post-condition provided by `other` will overwrite any provided by
-    /// `self`.
-    pub fn refine(&self, other: &Self) -> Self {
-        let ProcedureSpecification {
-            pres: ref other_pres,
-            posts: ref other_posts,
-            pledges: ref other_pledges,
-            ..
-        } = other.expect_procedure();
-        let ProcedureSpecification {
-            pres: ref base_pres,
-            posts: ref base_posts,
-            pledges: ref base_pledges,
-            ..
-        } = self.expect_procedure();
-        let pres = if other_pres.is_empty() {
-            base_pres.clone()
-        } else {
-            other_pres.clone()
-        };
-        let posts = if other_posts.is_empty() {
-            base_posts.clone()
-        } else {
-            other_posts.clone()
-        };
-        let pledges = if other_pledges.is_empty() {
-            base_pledges.clone()
-        } else {
-            other_pledges.clone()
-        };
-        SpecificationSet::Procedure(ProcedureSpecification {
-            pres,
-            posts,
-            pledges,
-            // TODO: attributes?
-            pure: false,
-            trusted: false,
-            is_extern_spec: false,
-        })
-    }
-
     pub fn expect_procedure(&self) -> &ProcedureSpecification<EID, ET, AT> {
         if let SpecificationSet::Procedure(spec) = self {
             return spec;

@@ -3,12 +3,13 @@ use rustc_ast::ast;
 use rustc_hir::{intravisit, ItemKind};
 use rustc_middle::hir::map::Map;
 use rustc_middle::ty::TyCtxt;
-use rustc_span::Span;
+use rustc_span::{Span, MultiSpan};
 use rustc_span::symbol::Symbol;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use std::collections::HashMap;
 use std::convert::TryInto;
 use crate::environment::Environment;
+use crate::PrustiError;
 use crate::utils::{
     has_spec_only_attr, has_extern_spec_attr, read_prusti_attr, read_prusti_attrs, has_prusti_attr
 };
@@ -23,7 +24,6 @@ use std::fmt;
 use crate::specs::external::ExternSpecResolver;
 use prusti_specs::specifications::common::SpecificationId;
 
-#[derive(Clone)]
 struct SpecItem {
     spec_id: typed::SpecificationId,
     spec_type: SpecType,
@@ -50,12 +50,19 @@ struct ProcedureSpecRef {
 /// [SpecificationSet], i.e. procedures, loop invariants, and structs.
 pub struct SpecCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
+    extern_resolver: ExternSpecResolver<'tcx>,
+
+    /// Collected assertions before deserialisation.
     spec_items: Vec<SpecItem>,
+
+    typed_expressions: HashMap<String, LocalDefId>,
+
+    /// Collected, deserialised assertions, keyed by their specification id.
     typed_specs: typed::SpecificationMap<'tcx>,
+
+    /// Resolved specifications.
     procedure_specs: HashMap<LocalDefId, ProcedureSpecRef>,
     loop_specs: HashMap<LocalDefId, Vec<SpecificationId>>,
-    typed_expressions: HashMap<String, LocalDefId>,
-    extern_resolver: ExternSpecResolver<'tcx>,
 }
 
 impl<'tcx> SpecCollector<'tcx> {
@@ -71,8 +78,9 @@ impl<'tcx> SpecCollector<'tcx> {
         }
     }
 
-    pub fn determine_typed_procedure_specs(&self) -> typed::SpecificationMap<'tcx> {
-        self.spec_items.clone()
+    fn prepare_typed_procedure_specs(&mut self) {
+        let mut spec_items = std::mem::replace(&mut self.spec_items, vec![]);
+        self.typed_specs = spec_items
             .into_iter()
             .map(|spec_item| {
                 let assertion = reconstruct_typed_assertion(
@@ -85,8 +93,8 @@ impl<'tcx> SpecCollector<'tcx> {
             .collect()
     }
 
-    pub fn determine_def_specs(&mut self, env: &Environment<'tcx>) -> typed::DefSpecificationMap<'tcx> {
-        self.typed_specs = self.determine_typed_procedure_specs();
+    pub fn build_def_specs(mut self, env: &Environment<'tcx>) -> typed::DefSpecificationMap<'tcx> {
+        self.prepare_typed_procedure_specs();
 
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
@@ -99,10 +107,16 @@ impl<'tcx> SpecCollector<'tcx> {
     fn determine_extern_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, env: &Environment<'tcx>) {
         self.extern_resolver.check_duplicates(env);
         // TODO: do something with the traits
-        for (real_id, (_, spec_id)) in self.extern_resolver.get_extern_fn_map().iter() {
-            // if def_spec.specs.contains_key(real_id) {
-            //     panic!("duplicate spec"); // TODO: proper error
-            // }
+        for (real_id, (_, spec_id)) in self.extern_resolver.extern_fn_map.iter() {
+            if let Some(local_id) = real_id.as_local() {
+                if def_spec.specs.contains_key(&local_id) {
+                    PrustiError::incorrect(
+                        format!("external specification provided for {}, which already has a specification",
+                            env.get_item_name(*real_id)),
+                        MultiSpan::from_span(env.get_item_span(*spec_id)),
+                    ).emit(env);
+                }
+            }
             if let Some(spec) = def_spec.specs.get(&spec_id.expect_local()) {
                 def_spec.extern_specs.insert(*real_id, spec_id.expect_local());
             }
@@ -110,7 +124,6 @@ impl<'tcx> SpecCollector<'tcx> {
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
-        // TODO: procedure specs SpecIdRef -> typed::...
         for (local_id, refs) in self.procedure_specs.iter() {
             let mut pres = Vec::new();
             let mut posts = Vec::new();
@@ -140,7 +153,6 @@ impl<'tcx> SpecCollector<'tcx> {
                     pledges,
                     pure: refs.pure,
                     trusted: refs.trusted,
-                    is_extern_spec: false,
                 })
             );
         }
@@ -234,6 +246,23 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         intravisit::NestedVisitorMap::All(map)
     }
 
+    fn visit_trait_item(
+        &mut self,
+        ti: &'tcx rustc_hir::TraitItem,
+    ) {
+        intravisit::walk_trait_item(self, ti);
+
+        let id = ti.hir_id;
+        let local_id = self.tcx.hir().local_def_id(id);
+        let def_id = local_id.to_def_id();
+        let attrs = ti.attrs;
+
+        // Collect procedure specifications
+        if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
+            self.procedure_specs.insert(local_id, procedure_spec_ref);
+        }
+    }
+
     fn visit_fn(
         &mut self,
         fn_kind: intravisit::FnKind<'tcx>,
@@ -270,6 +299,11 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
             let specification = deserialize_spec_from_attrs(attrs);
 
             // Detect the kind of specification
+            // FIXME: (minor) there is some redundancy here: the type of the
+            // specification doesn't need to be checked. A procedure will refer
+            // to its precondition with a #[pre_spec_id_ref=<id>] attribute,
+            // where <id> is the unique identifier of the specification. Same
+            // for postconditions and invariants.
             let spec_type = if has_prusti_attr(attrs, "loop_body_invariant_spec") {
                 SpecType::Invariant
             } else {
@@ -293,6 +327,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
             let spec_item = SpecItem {spec_id, spec_type, specification};
             self.spec_items.push(spec_item);
 
+            // Collect loop invariant
             if spec_type == SpecType::Invariant {
                 self.loop_specs
                     .entry(local_id)

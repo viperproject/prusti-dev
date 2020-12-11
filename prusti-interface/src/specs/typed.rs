@@ -9,6 +9,7 @@ use std::collections::HashMap;
 pub use common::{ExpressionId, SpecType, SpecificationId, SpecIdRef};
 use crate::data::ProcedureDefId;
 
+// FIXME: these comments are not terribly useful and are a copy of the untyped ones...
 /// A specification that has no types associated with it.
 pub type Specification<'tcx> = common::Specification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A set of untyped specifications associated with a single element.
@@ -17,10 +18,8 @@ pub type SpecificationSet<'tcx> = common::SpecificationSet<ExpressionId, LocalDe
 pub type LoopSpecification<'tcx> = common::LoopSpecification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A set of untyped specifications associated with a procedure.
 pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
-/// A map of untyped specifications for a specific crate. ?????
+/// A map of untyped specifications for a specific crate.
 pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, Assertion<'tcx>>;
-// A map of untyped external specifications.
-//pub type ExternSpecificationMap<'tcx> = HashMap<ProcedureDefId, (Option<ProcedureDefId>, ProcedureDefId)>;
 /// An assertion that has no types associated with it.
 pub type Assertion<'tcx> = common::Assertion<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// An assertion kind that has no types associated with it.

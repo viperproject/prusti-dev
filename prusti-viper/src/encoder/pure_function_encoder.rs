@@ -151,26 +151,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             );
         }
 
-        // TODO: Clean up code duplication:
-        //let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
-        let contract = {
-            let opt_fun_spec = self.encoder.get_procedure_specs(self.proc_def_id);
-            let fun_spec = match opt_fun_spec {
-                Some(fun_spec) => fun_spec.clone(),
-                None => {
-                    debug!("Procedure {:?} has no specification", self.proc_def_id);
-                    typed::SpecificationSet::Procedure(typed::ProcedureSpecification::empty())
-                }
-            };
-            let tymap = self.encoder.current_tymap();
-            let contract = compute_procedure_contract(
-                self.proc_def_id,
-                self.encoder.env().tcx(),
-                fun_spec,
-                Some(&tymap),
-            ).with_span(self.mir.span)?;
-            contract.to_def_site_contract()
-        };
+        let contract = self.encoder
+            .get_procedure_contract_for_def(self.proc_def_id)
+            .with_span(self.mir.span)?;
         let subst_strings = self.encoder.type_substitution_strings();
 
         let (type_precondition, func_precondition) = self.encode_precondition_expr(&contract)?;

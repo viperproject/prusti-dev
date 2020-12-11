@@ -23,17 +23,12 @@ use prusti_common::vir;
 use prusti_common::vir::WithIdentifier;
 use prusti_common::config;
 use prusti_common::report::log;
-// use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::specs::typed;
 use prusti_interface::specs::typed::SpecificationId;
 use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
 use prusti_interface::PrustiError;
-// use prusti_interface::specs::{
-//     SpecID, SpecificationSet, TypedAssertion,
-//     TypedSpecificationMap, TypedSpecificationSet,
-// };
 use prusti_specs::specifications::common::SpecIdRef;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
@@ -196,26 +191,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.def_spec
     }
 
-    /*
-    /// Returns the def_id of the element containing the specifications.
-    /// This can be different from the def_id that was passed in if the
-    /// specifications were externally declared.
-    pub fn get_specification_def_id(&self, def_id: &'v ProcedureDefId) -> &'v ProcedureDefId {
-        if def_id.is_local() && self.extern_spec.contains_key(def_id) &&
-            self.get_procedure_specs(*def_id).is_some() {
-            self.register_encoding_error(EncodingError::incorrect(
-                "external specification cannot be attached to already specified function",
-                self.env.tcx().def_span(self.extern_spec.get(def_id).unwrap().1)
-            ));
-        }
-        if (self.extern_spec.contains_key(def_id)) {
-            &self.extern_spec.get(def_id).unwrap().1
-        } else {
-            def_id
-        }
-    }
-    */
-
     pub fn error_manager(&self) -> RefMut<ErrorManager<'tcx>> {
         self.error_manager.borrow_mut()
     }
@@ -360,34 +335,33 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
-    pub fn get_loop_specs(&self, def_id: DefId) -> Option<Vec<typed::Assertion<'tcx>>> {
+    pub fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification<'tcx>> {
         let spec = self.def_spec.get(&def_id)?;
-        Some(spec.expect_loop().invariant.clone())
+        Some(spec.expect_loop().clone())
     }
 
     /// Get the specifications attached to the `def_id` function.
-    pub fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::SpecificationSet<'tcx>> {
-        debug!("get spec for: {:?}", def_id);
-        // Currently, we don't support specifications for external functions.
-        // Since we have a collision of PRUSTI_SPEC_ATTR between different crates, we manually check
-        // that the def_id does not point to an external crate.
-        // TODO: external specs?
+    pub fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::ProcedureSpecification<'tcx>> {
         let spec = self.def_spec.get(&def_id)?;
-        Some(spec.clone())
+        Some(spec.expect_procedure().clone())
+    }
+
+    /// Get a local wrapper `DefId` for functions that have external specs.
+    /// Return the original `DefId` for everything else.
+    fn get_wrapper_def_id(&self, def_id: DefId) -> DefId {
+        self.def_spec.extern_specs.get(&def_id)
+            .map(|local_id| local_id.to_def_id())
+            .unwrap_or(def_id)
     }
 
     fn get_procedure_contract(&self, proc_def_id: ProcedureDefId)
         -> Result<ProcedureContractMirDef<'tcx>, PositionlessEncodingError>
     {
-        let opt_fun_spec = self.get_procedure_specs(proc_def_id);
-        let fun_spec = match opt_fun_spec {
-            Some(fun_spec) => fun_spec.clone(),
-            None => {
-                debug!("Procedure {:?} has no specification", proc_def_id);
-                typed::SpecificationSet::Procedure(typed::ProcedureSpecification::empty())
-            }
-        };
-        compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, None)
+        let spec = typed::SpecificationSet::Procedure(
+            self.get_procedure_specs(proc_def_id)
+                .unwrap_or_else(|| typed::ProcedureSpecification::empty())
+        );
+        compute_procedure_contract(proc_def_id, self.env().tcx(), spec, None)
     }
 
     pub fn get_procedure_contract_for_def(
@@ -410,12 +384,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         target: places::Local,
     ) -> Result<ProcedureContract<'tcx>, PositionlessEncodingError> {
         // get specification on trait declaration method or inherent impl
-        let fun_spec = if let Some(spec) = self.get_procedure_specs(proc_def_id) {
-            spec.clone()
-        } else {
-            debug!("Procedure {:?} has no specification", proc_def_id);
-            typed::SpecificationSet::Procedure(typed::ProcedureSpecification::empty())
-        };
+        let trait_spec = self.get_procedure_specs(proc_def_id)
+            .unwrap_or_else(|| {
+                debug!("Procedure {:?} has no specification", proc_def_id);
+                typed::ProcedureSpecification::empty()
+            });
 
         let tymap = self.typaram_repl.borrow();
 
@@ -426,7 +399,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
 
         // get receiver object base type
-        let mut impl_spec = typed::SpecificationSet::Procedure(typed::ProcedureSpecification::empty());
+        let mut impl_spec = typed::ProcedureSpecification::empty();
 
         // let mut self_ty = None;
 
@@ -445,7 +418,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     // one to pick.
                     let item = procs[0];
                     if let Some(spec) = self.get_procedure_specs(item.def_id) {
-                        impl_spec = spec.clone();
+                        impl_spec = spec;
                     } else {
                         debug!("Procedure {:?} has no specification", item.def_id);
                     }
@@ -454,12 +427,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
 
         // merge specifications
-        let final_spec = fun_spec.refine(&impl_spec);
+        let final_spec = trait_spec.refine(&impl_spec);
 
         let contract = compute_procedure_contract(
             proc_def_id,
             self.env().tcx(),
-            final_spec,
+            typed::SpecificationSet::Procedure(final_spec),
             Some(&tymap[0])
         )?;
         Ok(contract.to_call_site_contract(args, target))
@@ -1128,10 +1101,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         if !self.pure_functions.borrow().contains_key(&key) {
             trace!("not encoded: {:?}", key);
-            let pure_def_id = self.def_spec.extern_specs.get(&proc_def_id)
-                .map(|local_id| local_id.to_def_id())
-                .unwrap_or(proc_def_id);
-            let procedure = self.env.get_procedure(pure_def_id);
+            let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
+            let procedure = self.env.get_procedure(wrapper_def_id);
             let pure_function_encoder =
                 PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
             let function = if self.is_trusted(proc_def_id) {
@@ -1281,10 +1252,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
-        let pure_def_id = self.def_spec.extern_specs.get(&proc_def_id)
-            .map(|local_id| local_id.to_def_id())
-            .unwrap_or(proc_def_id);
-        let procedure = self.env.get_procedure(pure_def_id);
+        let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
+        let procedure = self.env.get_procedure(wrapper_def_id);
 
         assert!(
             self.is_pure(proc_def_id),
@@ -1340,7 +1309,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> (String, vir::Type) {
         // The stub function may come from another module for which we can have
         // only optimized_mir.
-        //let body = self.env.tcx().optimized_mir(proc_def_id.expect_local()).borrow();
         let body = self.env.mir(proc_def_id.expect_local());
         let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body);
 
@@ -1376,10 +1344,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let (proc_def_id, substs) = self.encoding_queue.borrow_mut().pop().unwrap();
             let proc_name = self.env.get_absolute_item_name(proc_def_id);
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
-            //let proc_span = self.env.get_item_span(proc_def_id);
+            let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
+            let proc_span = self.env.get_item_span(wrapper_def_id);
             info!(
-                "Encoding: {} ({})", // from {:?}
-                proc_name, /*proc_span, */proc_def_path
+                "Encoding: {} from {:?} ({})",
+                proc_name, proc_span, proc_def_path
             );
             let is_pure_function = self.is_pure(proc_def_id);
             if is_pure_function {
@@ -1414,6 +1383,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn has_extern_spec(&self, def_id: ProcedureDefId) -> bool {
+        // FIXME: eventually, procedure specs (the entries in def_spec) should
+        // have an `is_extern_spec` field. For now, due to the way we handle
+        // MIR, extern specs create a wrapper function with a different DefId,
+        // so since we already have this remapping, it is enough to check if
+        // there is a wrapper present for the given external DefId.
         let result = self.def_spec.extern_specs.contains_key(&def_id);
         trace!("has_extern_spec {:?} = {}", def_id, result);
         result
