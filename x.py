@@ -191,7 +191,7 @@ def setup_ubuntu():
     shell('sudo apt-get update')
     shell('sudo apt-get install -y '
           'build-essential pkg-config '
-          'wget gcc libssl-dev openjdk-11-jdk')
+          'wget gcc libssl-dev')
     # Download Viper.
     shell('wget -q http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
     shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
