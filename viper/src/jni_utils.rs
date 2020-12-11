@@ -106,7 +106,7 @@ impl<'a> JniUtils<'a> {
         for obj in objects.iter() {
             self.unwrap_result(array_buffer_wrapper.call_append(res, *obj));
         }
-        res
+        self.unwrap_result(array_buffer_wrapper.call_toSeq(res))
     }
 
     /// Converts a Java String to a Rust String

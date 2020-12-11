@@ -110,6 +110,7 @@ fn main() {
             java_class!("scala.collection.mutable.ArrayBuffer", vec![
                 constructor!("(I)V"),
                 method!("append", "(Ljava/lang/Object;)Lscala/collection/mutable/Buffer;"),
+                method!("toSeq"),
             ]),
             java_class!("scala.collection.mutable.ListBuffer", vec![
                 constructor!(),
@@ -117,6 +118,9 @@ fn main() {
             java_class!("scala.collection.immutable.HashMap", vec![
                 constructor!("()V"),
                 method!("updated", "(Ljava/lang/Object;Ljava/lang/Object;)Lscala/collection/immutable/HashMap;"),
+            ]),
+            java_class!("scala.collection.immutable.Nil$", vec![
+                object_getter!(),
             ]),
             java_class!("scala.collection.Seq", vec![
                 method!("length"),
