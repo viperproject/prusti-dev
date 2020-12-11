@@ -100,11 +100,11 @@ impl<'a> JniUtils<'a> {
 
     /// Converts a Rust Vec<JObject> to a Scala Seq
     pub fn new_seq(&self, objects: &[JObject]) -> JObject {
-        let array_seq_wrapper = scala::collection::mutable::ArraySeq::with(self.env);
+        let array_buffer_wrapper = scala::collection::mutable::ArrayBuffer::with(self.env);
         let len = objects.len();
-        let res = self.unwrap_result(array_seq_wrapper.new(len as i32));
-        for (i, obj) in objects.iter().enumerate() {
-            self.unwrap_result(array_seq_wrapper.call_update(res, i as i32, *obj));
+        let res = self.unwrap_result(array_buffer_wrapper.new(len as i32));
+        for obj in objects.iter() {
+            self.unwrap_result(array_buffer_wrapper.call_append(res, *obj));
         }
         res
     }

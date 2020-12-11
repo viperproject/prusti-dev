@@ -107,15 +107,15 @@ fn main() {
             java_class!("scala.math.BigInt", vec![
                 constructor!(),
             ]),
-            java_class!("scala.collection.mutable.ArraySeq", vec![
-                constructor!(),
-                method!("update"),
+            java_class!("scala.collection.mutable.ArrayBuffer", vec![
+                constructor!("(I)V"),
+                method!("append", "(Ljava/lang/Object;)Lscala/collection/mutable/Buffer;"),
             ]),
             java_class!("scala.collection.mutable.ListBuffer", vec![
                 constructor!(),
             ]),
             java_class!("scala.collection.immutable.HashMap", vec![
-                constructor!(),
+                constructor!("()V"),
                 method!("updated", "(Ljava/lang/Object;Ljava/lang/Object;)Lscala/collection/immutable/HashMap;"),
             ]),
             java_class!("scala.collection.Seq", vec![
@@ -129,7 +129,7 @@ fn main() {
             ]),
             // Silicon
             java_class!("viper.silicon.Silicon", vec![
-                constructor!("(Lviper/silver/plugin/PluginAwareReporter;Lscala/collection/Seq;)V"),
+                constructor!("(Lviper/silver/plugin/PluginAwareReporter;Lscala/collection/immutable/Seq;)V"),
             ]),
             // Carbon
             java_class!("viper.carbon.CarbonVerifier", vec![
@@ -229,7 +229,7 @@ fn main() {
             ]),
             java_class!("viper.silver.ast.DomainFuncApp$", vec![
                 object_getter!(),
-                method!("apply", "(Lviper/silver/ast/DomainFunc;Lscala/collection/Seq;Lscala/collection/immutable/Map;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/DomainFuncApp;"),
+                method!("apply", "(Lviper/silver/ast/DomainFunc;Lscala/collection/immutable/Seq;Lscala/collection/immutable/Map;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/DomainFuncApp;"),
             ]),
             java_class!("viper.silver.ast.DomainType", vec![
                 constructor!(),
@@ -299,11 +299,11 @@ fn main() {
             ]),
             java_class!("viper.silver.ast.FuncApp", vec![
                 constructor!(),
-                method!("apply", "(Ljava/lang/String;Lscala/collection/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/Type;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/FuncApp;"),
+                method!("apply", "(Ljava/lang/String;Lscala/collection/immutable/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/Type;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/FuncApp;"),
             ]),
             java_class!("viper.silver.ast.FuncApp$", vec![
                 object_getter!(),
-                method!("apply", "(Lviper/silver/ast/Function;Lscala/collection/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/FuncApp;"),
+                method!("apply", "(Lviper/silver/ast/Function;Lscala/collection/immutable/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/FuncApp;"),
             ]),
             java_class!("viper.silver.ast.Function", vec![
                 constructor!(),
