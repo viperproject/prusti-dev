@@ -4,8 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use config_crate::{Config, Environment, File};
+use config_crate::{Config, Environment, File, Source, Value, ConfigError};
 use std::env;
+use std::collections::HashMap;
 use std::sync::RwLock;
 use serde::Deserialize;
 
@@ -50,9 +51,65 @@ impl Optimizations {
             clean_cfg: true,
         }
     }
-
 }
 
+/// Parses command line options of the form -P<arg>=<val>
+/// and merges them with the SETTINGS object. This allows
+/// command line arguments to override environment settings.
+/// NOTE: when merging arguments get stripped of the -P and
+/// are normalized
+#[derive(Clone, Debug)]
+pub struct CommandLinePrustiOptions {
+    flags: Vec<(String, String)>,
+}
+
+impl CommandLinePrustiOptions {
+    pub fn from_command_line_args() -> CommandLinePrustiOptions {
+        let args: Vec<(String, String)> = 
+            env::args()
+                .filter(|s| CommandLinePrustiOptions::arg_match(s))
+                .map(|s|{ // Split into (arg, val) and normalize the arg
+                    let vec: Vec<&str> = s[2..].split("=").collect();
+                    let a = vec[0].replace("-", "_").to_uppercase().to_owned();
+                    let v = vec[1].to_owned();
+                    (a, v)
+                })
+                .collect();
+
+        println!("{:?}", args);
+
+        CommandLinePrustiOptions { flags: args }
+    }
+
+    pub fn get_filtered_args() -> Vec<String> {
+        env::args()
+            .filter(|arg| !CommandLinePrustiOptions::arg_match(arg))
+            .collect::<Vec<String>>()
+    }
+
+    /// Match the pattern -P<arg>=<val> avoiding the use of Regex
+    fn arg_match(arg: &str) -> bool {
+        arg.starts_with("-P") && arg.matches("=").count() == 1
+    }
+}
+
+impl Source for CommandLinePrustiOptions {
+    fn clone_into_box(&self) -> Box<Source + Send + Sync> {
+        Box::new((*self).clone())
+    }
+
+    fn collect(&self) -> Result<HashMap<String, Value>, ConfigError> {
+        let mut m = HashMap::new();
+        // NOTE ValueKind is currently unexposed, to create a Value
+        // I'll have to find a workaround until that changes. 
+        // for (key, value) in &self.flags {
+        //     m.insert(key.to_owned(), Value::new(None, ....));
+        // }
+        Ok(m)
+    }
+}
+
+// TODO: remove the ConfigFlags struct from the project
 /// The flags provided by using `-Z` arguments on the command line. These are
 /// almost exclusively used for testing.
 #[derive(Clone, Copy, Default)]
@@ -105,6 +162,13 @@ lazy_static! {
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("OPTIMIZATIONS","all").unwrap();
 
+        // Default flags from the old ConfigFlags object
+        settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
+        settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
+        settings.set_default("PRINT_COLLECTED_VERIFICATION_ITEMS", false).unwrap();
+        settings.set_default("SKIP_VERITY", false).unwrap();
+        settings.set_default("HIDE_UUIDS", false).unwrap();
+        
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
         settings.set_default("VERIFY_ONLY_PREAMBLE", false).unwrap();
@@ -126,6 +190,11 @@ lazy_static! {
         // 4. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)
         settings.merge(
             Environment::with_prefix("PRUSTI").ignore_empty(true)
+        ).unwrap();
+
+        // 5. Override with command line arguments -P<arg>=<val>
+        settings.merge(
+            CommandLinePrustiOptions::from_command_line_args()
         ).unwrap();
 
         settings
@@ -150,6 +219,12 @@ where
 {
     read_optional_setting(name).unwrap()
 }
+
+/// Merge command line argument configurations with setings
+// pub fn merge_config_flags(config_flags: &ConfigFlags) {
+//     let mut settings = SETTINGS.write().unwrap();
+//     settings.merge(config_flags);
+// }
 
 /// Should Prusti behave exactly like rustc?
 pub fn be_rustc() -> bool {
@@ -266,10 +341,10 @@ pub fn use_more_complete_exhale() -> bool {
 }
 
 /// Disable the Silicon configuration option `--enableMoreCompleteExhale`.
-pub fn disable_more_complete_exhale() {
-    let mut settings = SETTINGS.write().unwrap();
-    settings.set("USE_MORE_COMPLETE_EXHALE", false);
-}
+// pub fn disable_more_complete_exhale() {
+//     let mut settings = SETTINGS.write().unwrap();
+//     settings.set("USE_MORE_COMPLETE_EXHALE", false);
+// }
 
 /**
 The maximum amount of instantiated viper verifiers the server will keep around for reuse.
