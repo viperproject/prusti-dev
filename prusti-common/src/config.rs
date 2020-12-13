@@ -6,6 +6,7 @@
 
 use config_crate::{Config, Environment, File, CommandLine};
 use std::env;
+use std::collections::HashMap;
 use std::sync::RwLock;
 use serde::Deserialize;
 
@@ -151,6 +152,12 @@ where
 {
     read_optional_setting(name).unwrap()
 }
+
+/// Merge command line argument configurations with setings
+// pub fn merge_config_flags(config_flags: &ConfigFlags) {
+//     let mut settings = SETTINGS.write().unwrap();
+//     settings.merge(config_flags);
+// }
 
 /// Should Prusti behave exactly like rustc?
 pub fn be_rustc() -> bool {
