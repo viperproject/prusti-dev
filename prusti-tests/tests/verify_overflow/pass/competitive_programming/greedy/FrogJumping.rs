@@ -74,15 +74,13 @@ fn min(a: isize, b: isize) -> isize {
 #[ensures(result < positions.len() - idx && result < 100000 && result >= 0)]
 #[ensures (forall(|i: isize| (i > next && i <= last_positions.lookup(idx)) ==> 
             result <= solve_rec(positions,  last_positions, idx, i)))]
-#[ensures((idx < positions.len() - 1 && next == last_positions.lookup(idx)) ==> 
-            result == solve_rec(positions, last_positions, next, next + 1) + 1)]
 #[ensures((idx < positions.len() - 1 && next == idx + 1) ==> 
-            result >= solve_rec(positions, last_positions, next, next + 1))]
+            result >= solve_rec(positions, last_positions, next, inc(next)))]
 #[ensures(next == idx + 1 ==> forall(|j:  isize| (j > idx && j < positions.len()) ==> 
-            result >= solve_rec(positions, last_positions, j, j + 1)))]
+            result >= solve_rec(positions, last_positions, j, inc(j))))]
 #[ensures(idx < positions.len() - 1 ==> result == solve_rec(positions, last_positions, idx, last_positions.lookup(idx)))]
 #[ensures(idx < positions.len() - 1 ==> 
-            result == solve_rec(positions, last_positions, last_positions.lookup(idx), last_positions.lookup(idx) + 1) + 1)]
+            result == solve_rec(positions, last_positions, last_positions.lookup(idx), inc(last_positions.lookup(idx))) + 1)]
 fn solve_rec(
     positions: &VecWrapperI32,
     last_positions: &VecWrapperI32,
@@ -92,20 +90,43 @@ fn solve_rec(
     if idx == positions.len() - 1 {
         0
     } else if next == last_positions.lookup(idx) {
-        assert!(idx < positions.len() - 1 && next == last_positions.lookup(idx));
-        solve_rec(positions, last_positions, next, next + 1) + 1
+        solve_rec(positions, last_positions, next, inc(next)) + 1
     } else {
-        assert!(idx < positions.len() - 1 && next < last_positions.lookup(idx));
-        let take = solve_rec(positions, last_positions, next, next + 1) + 1;
-        let leave = solve_rec(positions, last_positions, idx, next + 1);
-        let x1 = last_positions.lookup(idx) + 1;
-        let tmp1  = solve_rec(positions, last_positions, last_positions.lookup(idx), x1);
-        assert!(leave ==  tmp1 + 1);
-        let x2 = next + 1;
-        assert!(x2 ==  next + 1);
-        assert!(last_positions.lookup(idx) >  next && last_positions.lookup(idx) < positions.len());
-        let tmp2 = solve_rec(positions, last_positions, next, x2);
-        assert!(tmp2 >= tmp1);
+        let take = solve_rec(positions, last_positions, next, inc(next)) + 1;
+        let leave = solve_rec(positions, last_positions, idx, inc(next));
         min(take, leave)
+    }
+}
+
+#[pure]
+#[requires(a <= 100000)]
+#[ensures(result == a + 1)]
+fn inc(a: isize) -> isize {
+    a + 1
+}
+
+
+#[pure]
+#[requires(positions.len() >= 2 && positions.len() <= 100000)]
+#[requires(idx >= 0 && idx < positions.len())]
+#[requires(last_positions.len() == positions.len())]
+#[requires(positions.lookup(0) == 0)]
+#[requires(forall(|i: isize| (i >= 0 && i < positions.len() - 1) ==>  (last_positions.lookup(i) > i && last_positions.lookup(i) <= last_positions.lookup(i + 1) && last_positions.lookup(i) < positions.len())))]
+#[requires(last_positions.lookup(positions.len() - 1) == positions.len() - 1)]
+#[requires(forall(|i: isize, j: isize| (i >= 0 && i < positions.len() - 1 && j > i && j < positions.len()) ==>
+            (last_positions.lookup(i) <= last_positions.lookup(j))))]
+#[ensures(result < positions.len() - idx && result < 100000 && result >= 0)]
+#[ensures(result == solve_rec(positions, last_positions, idx, inc(idx)))]
+fn solve_greedy(
+    positions: &VecWrapperI32,
+    last_positions: &VecWrapperI32,
+    idx: isize,
+) -> isize {
+    if idx == positions.len() - 1 {
+        0
+    } else {
+        let result = solve_greedy(positions, last_positions, last_positions.lookup(idx));
+        assert!(result  == solve_rec(positions, last_positions, last_positions.lookup(idx), inc(last_positions.lookup(idx))));
+        result + 1
     }
 }
