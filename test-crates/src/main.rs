@@ -4,9 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::path::{Path, PathBuf};
+use std::env;
 use std::error::Error;
 use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use rustwide::{
     cmd,
@@ -44,6 +46,7 @@ struct CargoPrusti {
     prusti_home: PathBuf,
     viper_home: PathBuf,
     z3_exe: PathBuf,
+    java_home: Option<PathBuf>,
 }
 
 impl cmd::Runnable for CargoPrusti {
@@ -52,9 +55,12 @@ impl cmd::Runnable for CargoPrusti {
     }
 
     fn prepare_command<'w, 'pl>(&self, cmd: cmd::Command<'w, 'pl>) -> cmd::Command<'w, 'pl> {
+        let java_home = self.java_home.as_ref()
+            .map(|p| p.to_str().unwrap())
+            .unwrap_or("/usr/lib/jvm/default-java");
         cmd.env("VIPER_HOME", self.viper_home.to_str().unwrap())
             .env("Z3_EXE", self.z3_exe.join("z3").to_str().unwrap())
-            .env("JAVA_HOME", "/usr/lib/jvm/java-8-openjdk-amd64")
+            .env("JAVA_HOME", java_home)
             .env("CARGO_PATH", "/opt/rustwide/cargo-home/bin/cargo")
     }
 }
@@ -77,6 +83,27 @@ fn get_rust_toolchain() -> RustToolchain {
     rust_toolchain.toolchain
 }
 
+/// Find the Java home directory
+pub fn find_java_home() -> Option<PathBuf> {
+    Command::new("java")
+        .arg("-XshowSettings:properties")
+        .arg("-version")
+        .output()
+        .ok()
+        .and_then(|output| {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            for line in stdout.lines().chain(stderr.lines()) {
+                if line.contains("java.home") {
+                    let pos = line.find('=').unwrap() + 1;
+                    let path = line[pos..].trim();
+                    return Some(PathBuf::from(path));
+                }
+            }
+            None
+        })
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     color_backtrace::install();
     setup_logs();
@@ -85,14 +112,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     let host_prusti_home = Path::new("target/release");
     let host_viper_home = Path::new("viper_tools/backends");
     let host_z3_home = Path::new("viper_tools/z3/bin");
+    let host_java_home = env::var("JAVA_HOME").ok().map(|s| s.into())
+        .or_else(|| find_java_home())
+        .expect("Please set JAVA_HOME");
     let guest_prusti_home = Path::new("/opt/rustwide/prusti-home");
     let guest_viper_home = Path::new("/opt/rustwide/viper-home");
     let guest_z3_home = Path::new("/opt/rustwide/z3-home");
+    let guest_java_home = Path::new("/opt/rustwide/java-home");
 
+    info!("Using host's Java home {:?}", host_java_home);
     let cargo_prusti = CargoPrusti {
         prusti_home: guest_prusti_home.to_path_buf(),
         viper_home: guest_viper_home.to_path_buf(),
         z3_exe: guest_z3_home.to_path_buf(),
+        java_home: Some(guest_java_home.to_path_buf()),
     };
 
     info!("Crate a new workspace...");
@@ -177,7 +210,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .enable_networking(false)
                 .mount(&host_prusti_home, &guest_prusti_home, cmd::MountKind::ReadOnly)
                 .mount(&host_viper_home, &guest_viper_home, cmd::MountKind::ReadOnly)
-                .mount(&host_z3_home, &guest_z3_home, cmd::MountKind::ReadOnly);
+                .mount(&host_z3_home, &guest_z3_home, cmd::MountKind::ReadOnly)
+                .mount(&host_java_home, &guest_java_home, cmd::MountKind::ReadOnly);
 
             let mut storage = LogStorage::new(LevelFilter::Info);
             storage.set_max_size(1024 * 1024);
