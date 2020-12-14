@@ -67,14 +67,14 @@ fn min(a: isize, b: isize) -> isize {
 #[requires(idx < positions.len() - 1 ==> next <= last_positions.lookup(idx))]
 #[requires(positions.lookup(0) == 0)]
 #[requires(forall(|i: isize| (i >= 0 && i < positions.len() - 1) ==> 
-            (last_positions.lookup(i) > i && last_positions.lookup(i) <= last_positions.lookup(i + 1) && last_positions.lookup(i) < positions.len())))]
+            (last_positions.lookup(i) > i && last_positions.lookup(i) <= last_positions.lookup(inc(i)) && last_positions.lookup(i) < positions.len())))]
 #[requires(last_positions.lookup(positions.len() - 1) == positions.len() - 1)]
 #[requires(forall(|i: isize, j: isize| (i >= 0 && i < positions.len() - 1 && j > i && j < positions.len()) ==>
             (last_positions.lookup(i) <= last_positions.lookup(j))))]
 #[ensures(result < positions.len() - idx && result < 100000 && result >= 0)]
 #[ensures (forall(|i: isize| (i > next && i <= last_positions.lookup(idx)) ==> 
             result <= solve_rec(positions,  last_positions, idx, i)))]
-#[ensures((idx < positions.len() - 1 && next == idx + 1) ==> 
+#[ensures((idx < positions.len() - 1 && next == inc(idx)) ==> 
             result >= solve_rec(positions, last_positions, next, inc(next)))]
 #[ensures(next == idx + 1 ==> forall(|j:  isize| (j > idx && j < positions.len()) ==> 
             result >= solve_rec(positions, last_positions, j, inc(j))))]
