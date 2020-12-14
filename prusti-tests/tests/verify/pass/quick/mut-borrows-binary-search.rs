@@ -1,6 +1,8 @@
 //! Regression tests extracted from
 //! https://rosettacode.org/wiki/Binary_search#Rust
 
+// ignore-test: this test is flaky.
+
 use prusti_contracts::*;
 
 pub struct VecWrapperI32{
