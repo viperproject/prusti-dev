@@ -66,11 +66,11 @@ fn min(a: isize, b: isize) -> isize {
 #[requires(last_positions.len() == positions.len())]
 #[requires(idx < positions.len() - 1 ==> next <= last_positions.lookup(idx))]
 #[requires(positions.lookup(0) == 0)]
-#[requires(forall(|i: isize| (i >= 0 && i < positions.len() - 1) ==>  (last_positions.lookup(i) > i && last_positions.lookup(i) <= last_positions.lookup(i + 1) && last_positions.lookup(i) < positions.len())))]
+#[requires(forall(|i: isize| (i >= 0 && i < positions.len() - 1) ==> 
+            (last_positions.lookup(i) > i && last_positions.lookup(i) <= last_positions.lookup(i + 1) && last_positions.lookup(i) < positions.len())))]
 #[requires(last_positions.lookup(positions.len() - 1) == positions.len() - 1)]
 #[requires(forall(|i: isize, j: isize| (i >= 0 && i < positions.len() - 1 && j > i && j < positions.len()) ==>
             (last_positions.lookup(i) <= last_positions.lookup(j))))]
-#[ensures(result < positions.len() - idx && result < 100000 && result >= 0)]
 #[ensures(result < positions.len() - idx && result < 100000 && result >= 0)]
 #[ensures (forall(|i: isize| (i > next && i <= last_positions.lookup(idx)) ==> 
             result <= solve_rec(positions,  last_positions, idx, i)))]
@@ -105,6 +105,7 @@ fn inc(a: isize) -> isize {
     a + 1
 }
 
+// Greedy Solution
 
 #[pure]
 #[requires(positions.len() >= 2 && positions.len() <= 100000)]
@@ -126,7 +127,6 @@ fn solve_greedy(
         0
     } else {
         let result = solve_greedy(positions, last_positions, last_positions.lookup(idx));
-        assert!(result  == solve_rec(positions, last_positions, last_positions.lookup(idx), inc(last_positions.lookup(idx))));
         result + 1
     }
 }
