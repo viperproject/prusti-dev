@@ -4,7 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use config_crate::{Config, Environment, File, Source, Value, ConfigError};
+use config_crate::{
+    Config, 
+    Environment, 
+    File, 
+    Source, 
+    Value, 
+    ValueKind, 
+    ConfigError
+};
 use std::env;
 use std::collections::HashMap;
 use std::sync::RwLock;
