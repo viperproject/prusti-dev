@@ -311,16 +311,23 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             use rustc_ast::token::Lit;
             use rustc_ast::token::Token;
             use rustc_ast::token::TokenKind;
-            use rustc_ast::tokenstream::TokenTree;
-            match tokens.trees().next().unwrap() {
-                TokenTree::Token(Token {
-                                     kind: TokenKind::Literal(Lit { symbol, .. }),
-                                     ..
-                                 }) => {
-                    strings.push(symbol.as_str().replace("\\\"", "\""))
+            use rustc_ast::tokenstream::{TokenTree, TokenStream};
+            use rustc_ast::token::DelimToken;
+            fn extract_string(tokens: &TokenStream) -> String {
+                match tokens.trees().next().unwrap() {
+                    TokenTree::Token(Token {
+                                         kind: TokenKind::Literal(Lit { symbol, .. }),
+                                         ..
+                                     }) => {
+                        symbol.as_str().replace("\\\"", "\"")
+                    }
+                    TokenTree::Delimited(_, DelimToken::NoDelim, tokens) => {
+                        extract_string(&tokens)
+                    }
+                    x => unreachable!("{:?}", x),
                 }
-                x => unreachable!("{:?}", x),
             }
+            strings.push(extract_string(tokens));
         };
     }
     strings
