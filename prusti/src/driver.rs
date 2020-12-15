@@ -147,12 +147,6 @@ fn main() {
             get_prusti_version_info(),
         ));
 
-        if config::use_more_complete_exhale() {
-            println!("COMPLETE EXHALE!");
-        } else {
-            println!("MINIMAL EXHALE!");
-        }
-
         env::set_var("POLONIUS_ALGORITHM", "Naive");
         rustc_args.push("-Zborrowck=mir".to_owned());
         rustc_args.push("-Zpolonius".to_owned());
