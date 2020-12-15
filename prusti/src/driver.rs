@@ -34,7 +34,7 @@ mod arg_value;
 
 use log::debug;
 use std::{env, panic, borrow::Cow, path::PathBuf};
-use prusti_common::config::{ConfigFlags, CommandLineOptions};
+use prusti_common::config::CommandLine;
 use prusti_common::report::user;
 use lazy_static::lazy_static;
 use callbacks::PrustiCompilerCalls;
@@ -122,7 +122,7 @@ fn main() {
     // We assume that prusti-rustc already removed the first "rustc" argument
     // added by RUSTC_WRAPPER and all command line arguments -P<arg>=<val>
     // have been filtered out.
-    let mut rustc_args: Vec<String> = CommandLineOptions::with_prefix("-P")
+    let mut rustc_args: Vec<String> = CommandLine::with_prefix("-P")
         .get_remaining_args()
         .collect();
 
@@ -185,7 +185,7 @@ fn main() {
             rustc_args.push("-Zdump-mir-graphviz".to_owned());
         }
 
-        let mut callbacks = PrustiCompilerCalls::new(ConfigFlags::default());
+        let mut callbacks = PrustiCompilerCalls::default();
 
         rustc_driver::RunCompiler::new(&rustc_args, &mut callbacks).run()
     });
