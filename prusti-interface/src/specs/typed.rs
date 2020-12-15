@@ -1,14 +1,15 @@
 use prusti_specs::specifications::common;
 use prusti_specs::specifications::json;
 use rustc_hir::BodyId;
-use rustc_hir::def_id::LocalDefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{mir, ty::{self, TyCtxt}};
 use rustc_span::Span;
 use std::collections::HashMap;
 
-pub use common::{ExpressionId, SpecType, SpecificationId};
+pub use common::{ExpressionId, SpecType, SpecificationId, SpecIdRef};
 use crate::data::ProcedureDefId;
 
+// FIXME: these comments are not terribly useful and are a copy of the untyped ones...
 /// A specification that has no types associated with it.
 pub type Specification<'tcx> = common::Specification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A set of untyped specifications associated with a single element.
@@ -19,8 +20,6 @@ pub type LoopSpecification<'tcx> = common::LoopSpecification<ExpressionId, Local
 pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A map of untyped specifications for a specific crate.
 pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, Assertion<'tcx>>;
-/// A map of untyped external specifications.
-pub type ExternSpecificationMap<'tcx> = HashMap<ProcedureDefId, (Option<ProcedureDefId>, ProcedureDefId)>;
 /// An assertion that has no types associated with it.
 pub type Assertion<'tcx> = common::Assertion<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// An assertion kind that has no types associated with it.
@@ -35,6 +34,29 @@ pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, (mir::Local, ty::Ty
 pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
 /// A pledge in the postcondition.
 pub type Pledge<'tcx> = common::Pledge<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
+
+/// A map of specifications keyed by crate-local DefIds.
+pub struct DefSpecificationMap<'tcx> {
+    pub specs: HashMap<LocalDefId, SpecificationSet<'tcx>>,
+    pub extern_specs: HashMap<DefId, LocalDefId>,
+}
+
+impl<'tcx> DefSpecificationMap<'tcx> {
+    pub fn new() -> Self {
+        Self {
+            specs: HashMap::new(),
+            extern_specs: HashMap::new(),
+        }
+    }
+    pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet<'tcx>> {
+        let id = if let Some(spec_id) = self.extern_specs.get(def_id) {
+            *spec_id
+        } else {
+            def_id.as_local()?
+        };
+        self.specs.get(&id)
+    }
+}
 
 /// This trait is implemented for specification-related types that have one or
 /// more associated spans (positions within the source code). The spans are not

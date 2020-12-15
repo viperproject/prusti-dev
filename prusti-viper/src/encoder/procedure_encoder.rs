@@ -265,15 +265,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .encoder
                         .get_procedure_contract_for_def(assoc_item.def_id)
                         .with_span(mir_span)?;
-                    let (mut proc_pre_specs, mut proc_post_specs, mut proc_pledge_specs) = {
-                        if let typed::SpecificationSet::Procedure(typed::ProcedureSpecification{pres, posts, pledges}) =
-                            &mut self.mut_contract().specification
-                        {
-                            (pres, posts, pledges)
-                        } else {
-                            unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
-                        }
-                    };
+                    let typed::ProcedureSpecification {
+                        pres: proc_pre_specs,
+                        posts: proc_post_specs,
+                        pledges: proc_pledge_specs,
+                        ..
+                    } = self.mut_contract().specification.expect_mut_procedure();
 
                     if proc_pre_specs.is_empty() {
                         proc_pre_specs
@@ -1897,7 +1894,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
                     };
 
-                    let def_id = *self.encoder.get_specification_def_id(def_id);
+                    let def_id = *def_id;
                     let full_func_proc_name: &str =
                         &self.encoder.env().tcx().def_path_str(def_id);
                         // &self.encoder.env().tcx().absolute_item_path_str(def_id);
@@ -2041,8 +2038,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         _ => {
-                            let is_pure_function =
-                                self.encoder.env().has_prusti_attribute(def_id, "pure");
+                            let is_pure_function = self.encoder.is_pure(def_id);
                             if is_pure_function {
                                 let (function_name, _) = self.encoder.encode_pure_function_use(def_id);
                                 debug!("Encoding pure function call '{}'", function_name);
@@ -4049,31 +4045,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // `body_invariant!(..)` is desugared to a closure with special attributes,
         // which we can detect and use to retrieve the specification.
-        let mut spec_ids = vec![];
+        let mut specs = vec![];
         for bbi in spec_blocks {
             for stmt in &self.mir.basic_blocks()[bbi].statements {
                 if let mir::StatementKind::Assign(box (
                     _,
                     mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
                 )) = stmt.kind {
-                    spec_ids.extend(
-                        self.encoder.get_loop_specs(cl_def_id)
-                    );
+                    specs.extend(self.encoder.get_loop_specs(cl_def_id).unwrap().invariant);
                 }
             }
         }
-        trace!("spec_ids: {:?}", spec_ids);
+        trace!("specs: {:?}", specs);
 
         let mut encoded_specs = vec![];
         let mut encoded_spec_spans = vec![];
-        if !spec_ids.is_empty() {
+        if !specs.is_empty() {
             let encoded_args: Vec<vir::Expr> = self
                 .mir
                 .args_iter()
                 .map(|local| self.mir_encoder.encode_local(local).unwrap().into()) // will panic if attempting to encode unsupported type
                 .collect();
-            for spec_id in &spec_ids {
-                let assertion = self.encoder.spec().get(spec_id).unwrap();
+            for assertion in &specs {
                 // TODO: Mmm... are these parameters correct?
                 let encoded_spec = self.encoder.encode_assertion(
                     &assertion,

@@ -577,15 +577,22 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     let tcx = self.encoder.env().tcx();
 
                     let mut specs: Vec<typed::SpecificationSet> = Vec::new();
-                    if let Some(spec) = self.encoder.get_procedure_specs(adt_def.did) {
-                        specs.push(spec);
-                    }
+                    // FIXME: type invariants need to be collected separately
+                    // in `SpecCollector`, and encoder should get a
+                    // `get_struct_specs` method or similar.
+                    // `get_procedure_specs` now only returns procedure specs,
+                    // so the match below for `SpecSet::Struct` would never
+                    // succeed.
+
+                    //if let Some(spec) = self.encoder.get_procedure_specs(adt_def.did) {
+                    //    specs.push(spec);
+                    //}
 
                     let traits = self.encoder.env().get_traits_decls_for_type(&self.ty);
                     for trait_id in traits {
-                        if let Some(spec) = self.encoder.get_procedure_specs(trait_id) {
-                            specs.push(spec);
-                        }
+                        //if let Some(spec) = self.encoder.get_procedure_specs(trait_id) {
+                        //    specs.push(spec);
+                        //}
                     }
 
                     for spec in specs.into_iter() {
