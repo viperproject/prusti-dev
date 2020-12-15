@@ -1,5 +1,3 @@
-#![feature(stmt_expr_attributes)]
-
 use prusti_contracts::*;
 
 #[requires(add |= |a: i32, b: i32| [

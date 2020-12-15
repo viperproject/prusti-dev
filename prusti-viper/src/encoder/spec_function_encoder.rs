@@ -28,7 +28,6 @@ pub struct SpecFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     procedure: &'p Procedure<'p, 'tcx>,
     proc_def_id: ProcedureDefId,
-    contract: Option<typed::SpecificationSet<'tcx>>,
     mir: &'p mir::Body<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
 }
@@ -41,7 +40,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             encoder: encoder,
             procedure: procedure,
             proc_def_id: procedure.get_id(),
-            contract: encoder.get_procedure_specs(procedure.get_id()),
             mir: procedure.get_mir(),
             mir_encoder: MirEncoder::new(encoder, procedure.get_mir(), procedure.get_id())
         }
@@ -53,21 +51,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         let post_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                            SpecFunctionKind::Post);
 
-        if let None = self.contract {
-            return Ok(Vec::new());
-        }
+        let specs = if let Some(specs) = self.encoder.get_procedure_specs(self.proc_def_id) {
+            specs
+        } else {
+            return Ok(vec![]);
+        };
 
         let contract = compute_procedure_contract(
             self.proc_def_id,
             self.encoder.env().tcx(),
-            self.contract.clone().unwrap(),
+            typed::SpecificationSet::Procedure(specs),
             Some(&self.encoder.current_tymap())
         ).map_err(|err| err.with_span(self.procedure.get_span()))?.to_def_site_contract();
 
         let pre_func = self.encode_pre_spec_func(&contract)?;
         let post_func = self.encode_post_spec_func(&contract)?;
 
-        Ok(vec! [pre_func, post_func])
+        Ok(vec![pre_func, post_func])
     }
 
     fn encode_pre_spec_func(&self, contract: &ProcedureContract<'tcx>)

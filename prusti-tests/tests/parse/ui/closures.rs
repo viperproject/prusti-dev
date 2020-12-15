@@ -2,8 +2,6 @@
 // normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
 // normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
 
-#![feature(stmt_expr_attributes)]
-
 /// Tests for closure macro parsing.
 
 use prusti_contracts::*;

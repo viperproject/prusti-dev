@@ -270,7 +270,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             let precond = handle_result!(rewriter.parse_assertion(spec_id, r.to_token_stream()));
             preconds.push((spec_id, precond));
             let spec_id_str = spec_id.to_string();
-            cl_annotations.extend(quote_spanned! {callsite_span=>
+            cl_annotations.extend(quote_spanned! { callsite_span =>
                 #[prusti::pre_spec_id_ref = #spec_id_str]
             });
         }
@@ -280,7 +280,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             let postcond = handle_result!(rewriter.parse_assertion(spec_id, e.to_token_stream()));
             postconds.push((spec_id, postcond));
             let spec_id_str = spec_id.to_string();
-            cl_annotations.extend(quote_spanned! {callsite_span=>
+            cl_annotations.extend(quote_spanned! { callsite_span =>
                 #[prusti::post_spec_id_ref = #spec_id_str]
             });
         }
@@ -309,7 +309,9 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         quote_spanned! {callsite_span=>
             {
                 #[allow(unused_variables)]
+                #[prusti::closure]
                 #cl_annotations #attrs_ts
+                let _prusti_closure =
                 #asyncness #movability #capture
                 #or1_token #inputs #or2_token #output
                 {
@@ -323,7 +325,8 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
                         #spec_toks_post
                     }
                     result
-                }
+                };
+                _prusti_closure
             }
         }
     }
