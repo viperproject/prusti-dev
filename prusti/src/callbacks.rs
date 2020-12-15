@@ -70,8 +70,17 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                     println!("{}", value);
                 }
             }
+<<<<<<< HEAD
             if !config::skip_verify() {
+=======
+<<<<<<< HEAD
+            if !self.flags.skip_verify {
+>>>>>>> Removed ConfigFlags from project
                 verify(self.flags, env, def_spec);
+=======
+            if !config::skip_verify() {
+                verify(env, type_map, extern_specs);
+>>>>>>> Removed ConfigFlags from project
             }
         });
 
