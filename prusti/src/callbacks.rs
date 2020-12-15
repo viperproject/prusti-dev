@@ -1,5 +1,4 @@
 use prusti_interface::{specs, environment::Environment};
-use prusti_common::config::ConfigFlags;
 use rustc_driver::Compilation;
 use rustc_hir::intravisit;
 use rustc_interface::interface::Compiler;
@@ -8,15 +7,8 @@ use regex::Regex;
 use prusti_common::config;
 use crate::verifier::verify;
 
-pub struct PrustiCompilerCalls {
-    flags: ConfigFlags,
-}
-
-impl PrustiCompilerCalls {
-    pub fn new(flags: ConfigFlags) -> Self {
-        Self { flags }
-    }
-}
+#[derive(Default)]
+pub struct PrustiCompilerCalls;
 
 impl rustc_driver::Callbacks for PrustiCompilerCalls {
     fn after_expansion<'tcx>(
@@ -26,7 +18,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
         let (krate, _resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
-        if self.flags.print_desugared_specs {
+        if config::print_desugared_specs() {
             rustc_driver::pretty::print_after_parsing(
                 compiler.session(),
                 compiler.input(),
@@ -52,13 +44,13 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             intravisit::walk_crate(&mut visitor, &krate);
             let env = Environment::new(tcx);
             let def_spec = visitor.build_def_specs(&env);
-            if self.flags.print_typeckd_specs {
+            if config::print_typeckd_specs() {
                 let mut values: Vec<_> = def_spec
                     .specs
                     .values()
                     .map(|spec| format!("{:?}", spec))
                     .collect();
-                if self.flags.hide_uuids {
+                if config::hide_uuids() {
                     let uuid = Regex::new(
                         "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}"
                     ).unwrap();
@@ -78,7 +70,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                     println!("{}", value);
                 }
             }
-            if !self.flags.skip_verify {
+            if !config::skip_verify() {
                 verify(self.flags, env, def_spec);
             }
         });
