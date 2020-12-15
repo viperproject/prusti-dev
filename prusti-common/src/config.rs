@@ -10,7 +10,7 @@ use config_crate::{
     File, 
     Source, 
     Value, 
-    ValueKind, 
+    ValueKind, // NOTE not public in crates.io
     ConfigError
 };
 use std::env;
@@ -61,65 +61,117 @@ impl Optimizations {
     }
 }
 
-/// Parses command line options of the form -P<arg>=<val>
-/// and merges them with the SETTINGS object. This allows
-/// command line arguments to override environment settings.
-/// NOTE: when merging arguments get stripped of the -P and
-/// are normalized
 #[derive(Clone, Debug)]
-pub struct CommandLinePrustiOptions {
-    flags: Vec<(String, String)>,
+pub struct CommandLineOptions {
+    /// Optional prefix that will limit args to those keys 
+    /// that begin with the defined prefix.
+    prefix: Option<String>,
+
+    /// Character sequence that separates key, value pairs.
+    /// The default separator is '=', the separator char
+    /// must only occur once in the flag or it will be 
+    /// ignored.
+    separator: String,
+
+    // Normalizer function for command line keys, the
+    // default normalizer is the identity function.
+    // key_normalizer: Box<dyn Fn(&str) -> String>, 
 }
 
-impl CommandLinePrustiOptions {
-    pub fn from_command_line_args() -> CommandLinePrustiOptions {
-        let args: Vec<(String, String)> = 
-            env::args()
-                .filter(|s| CommandLinePrustiOptions::arg_match(s))
-                .map(|s|{ // Split into (arg, val) and normalize the arg
-                    let vec: Vec<&str> = s[2..].split("=").collect();
-                    let a = vec[0].replace("-", "_").to_uppercase().to_owned();
-                    let v = vec[1].to_owned();
-                    (a, v)
-                })
-                .collect();
-
-        println!("{:?}", args);
-
-        CommandLinePrustiOptions { flags: args }
+impl CommandLineOptions {
+    pub fn new() -> Self {
+        CommandLineOptions::default()
     }
 
-    pub fn get_filtered_args() -> Vec<String> {
+    pub fn with_prefix(s: &str) -> Self {
+        CommandLineOptions {
+            prefix: Some(s.into()),
+            ..CommandLineOptions::default()
+        }
+    }
+
+    pub fn prefix(mut self, s: &str) -> Self {
+        self.prefix = Some(s.into());
+        self
+    }
+
+    pub fn separator(mut self, s: &str) -> Self {
+        self.separator = s.into();
+        self
+    }
+
+    // pub fn key_normalizer(mut self, norm: impl Fn(&str) -> String) -> Self {
+    //     self.key_normalizer = Box::new(norm);
+    //     self
+    // }
+
+    pub fn get_remaining_args(self) -> impl Iterator<Item = String> {
         env::args()
-            .filter(|arg| !CommandLinePrustiOptions::arg_match(arg))
-            .collect::<Vec<String>>()
+            .filter(move |arg| !self.valid_arg(arg))
     }
 
-    /// Match the pattern -P<arg>=<val> avoiding the use of Regex
-    fn arg_match(arg: &str) -> bool {
-        arg.starts_with("-P") && arg.matches("=").count() == 1
+    fn valid_arg(&self, arg: &str) -> bool {
+        let matches_pref = match self.prefix {
+            Some(ref pattern) => arg.starts_with(pattern),
+            None => true,
+        };
+        matches_pref && arg.matches(&self.separator).count() == 1
     }
 }
 
-impl Source for CommandLinePrustiOptions {
+impl Default for CommandLineOptions {
+    fn default() -> CommandLineOptions {
+        CommandLineOptions {
+            prefix: None,
+            separator: String::from("=")
+            // key_normalizer: Box::new(|s| s.to_owned())
+        }
+    }
+}
+
+impl Source for CommandLineOptions {
     fn clone_into_box(&self) -> Box<Source + Send + Sync> {
         Box::new((*self).clone())
     }
 
+    // TODO include error handling
     fn collect(&self) -> Result<HashMap<String, Value>, ConfigError> {
         let mut m = HashMap::new();
-        // NOTE ValueKind is currently unexposed, to create a Value
-        // I'll have to find a workaround until that changes. 
-        // for (key, value) in &self.flags {
-        //     m.insert(key.to_owned(), Value::new(None, ....));
-        // }
+        let uri = String::from("command line");
+
+        let prefix_pattern = match self.prefix {
+            Some(ref prefix) => prefix,
+            _ => "",
+        };
+
+        for arg in env::args() {
+            // ignore invalid args
+            if !self.valid_arg(&arg) {
+                continue;
+            }
+
+            let parts: Vec<&str> = arg.split(&self.separator).collect();
+
+            // TODO remove the to_uppercase in favor of a normalize function
+            let key = parts[0][prefix_pattern.len()..].to_string().to_uppercase();
+            let val = parts[1].to_string();
+
+            // TODO remove, debugging
+            println!("KEY: {} VAL {}", key, val);
+
+            m.insert(
+                key,
+                // TODO do we need to check the type of ValueKind?
+                Value::new(Some(&uri), ValueKind::String(val)),
+            );
+        } 
+
         Ok(m)
     }
 }
 
 // TODO: remove the ConfigFlags struct from the project
-/// The flags provided by using `-Z` arguments on the command line. These are
-/// almost exclusively used for testing.
+// and replace conditions with getters on SETTINGS
 #[derive(Clone, Copy, Default)]
 pub struct ConfigFlags {
     /// Should Prusti print the AST with desugared specifications.
@@ -202,7 +254,7 @@ lazy_static! {
 
         // 5. Override with command line arguments -P<arg>=<val>
         settings.merge(
-            CommandLinePrustiOptions::from_command_line_args()
+            CommandLineOptions::with_prefix("-P")
         ).unwrap();
 
         settings
