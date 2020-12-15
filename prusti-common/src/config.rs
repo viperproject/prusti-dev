@@ -62,7 +62,7 @@ impl Optimizations {
 }
 
 #[derive(Clone, Debug)]
-pub struct CommandLineOptions {
+pub struct CommandLine {
     /// Optional prefix that will limit args to those keys 
     /// that begin with the defined prefix.
     prefix: Option<String>,
@@ -73,20 +73,24 @@ pub struct CommandLineOptions {
     /// ignored.
     separator: String,
 
-    // Normalizer function for command line keys, the
-    // default normalizer is the identity function.
-    // key_normalizer: Box<dyn Fn(&str) -> String>, 
+    /// Boolean indicating whether invalid flags
+    /// should be ignored or result in a ConfigError
+    /// 
+    /// Note: the method get_remaining_args always
+    /// returns the invalid args regardless if this 
+    /// flag is set.
+    ignore_invalid: bool,
 }
 
-impl CommandLineOptions {
+impl CommandLine {
     pub fn new() -> Self {
-        CommandLineOptions::default()
+        CommandLine::default()
     }
 
     pub fn with_prefix(s: &str) -> Self {
-        CommandLineOptions {
+        CommandLine {
             prefix: Some(s.into()),
-            ..CommandLineOptions::default()
+            ..CommandLine::default()
         }
     }
 
@@ -100,10 +104,10 @@ impl CommandLineOptions {
         self
     }
 
-    // pub fn key_normalizer(mut self, norm: impl Fn(&str) -> String) -> Self {
-    //     self.key_normalizer = Box::new(norm);
-    //     self
-    // }
+    pub fn ignore_invalid(mut self, b: bool) -> Self {
+        self.ignore_invalid = b;
+        self
+    }
 
     pub fn get_remaining_args(self) -> impl Iterator<Item = String> {
         env::args()
@@ -115,21 +119,26 @@ impl CommandLineOptions {
             Some(ref pattern) => arg.starts_with(pattern),
             None => true,
         };
+        // TODO check string lengths before and after separator
         matches_pref && arg.matches(&self.separator).count() == 1
+    }
+
+    fn ident(s: &str) -> String {
+        s.to_owned()
     }
 }
 
-impl Default for CommandLineOptions {
-    fn default() -> CommandLineOptions {
-        CommandLineOptions {
+impl Default for CommandLine {
+    fn default() -> CommandLine {
+        CommandLine {
             prefix: None,
-            separator: String::from("=")
-            // key_normalizer: Box::new(|s| s.to_owned())
+            separator: String::from("="),
+            ignore_invalid: false
         }
     }
 }
 
-impl Source for CommandLineOptions {
+impl Source for CommandLine {
     fn clone_into_box(&self) -> Box<Source + Send + Sync> {
         Box::new((*self).clone())
     }
@@ -146,7 +155,11 @@ impl Source for CommandLineOptions {
 
         for arg in env::args() {
             // ignore invalid args
-            if !self.valid_arg(&arg) {
+            let valid_arg = self.valid_arg(&arg);
+
+            if !valid_arg && self.ignore_invalid {
+                return Err(ConfigError::Message(format!("Invalid Arg: {}", arg)));
+            } else if !valid_arg {
                 continue;
             }
 
@@ -168,22 +181,6 @@ impl Source for CommandLineOptions {
 
         Ok(m)
     }
-}
-
-// TODO: remove the ConfigFlags struct from the project
-// and replace conditions with getters on SETTINGS
-#[derive(Clone, Copy, Default)]
-pub struct ConfigFlags {
-    /// Should Prusti print the AST with desugared specifications.
-    pub print_desugared_specs: bool,
-    /// Should Prusti print the type-checked specifications.
-    pub print_typeckd_specs: bool,
-    /// Should Prusti print the items collected for verification.
-    pub print_collected_verfication_items: bool,
-    /// Should Prusti skip the verification part.
-    pub skip_verify: bool,
-    /// Should Prusti hide the UUIDs of expressions and specifications.
-    pub hide_uuids: bool,
 }
 
 lazy_static! {
@@ -226,7 +223,7 @@ lazy_static! {
         settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
         settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
         settings.set_default("PRINT_COLLECTED_VERIFICATION_ITEMS", false).unwrap();
-        settings.set_default("SKIP_VERITY", false).unwrap();
+        settings.set_default("SKIP_VERIFY", false).unwrap();
         settings.set_default("HIDE_UUIDS", false).unwrap();
         
         // Flags for debugging Prusti that can change verification results.
@@ -254,7 +251,7 @@ lazy_static! {
 
         // 5. Override with command line arguments -P<arg>=<val>
         settings.merge(
-            CommandLineOptions::with_prefix("-P")
+            CommandLine::with_prefix("-P")
         ).unwrap();
 
         settings
@@ -279,12 +276,6 @@ where
 {
     read_optional_setting(name).unwrap()
 }
-
-/// Merge command line argument configurations with setings
-// pub fn merge_config_flags(config_flags: &ConfigFlags) {
-//     let mut settings = SETTINGS.write().unwrap();
-//     settings.merge(config_flags);
-// }
 
 /// Should Prusti behave exactly like rustc?
 pub fn be_rustc() -> bool {
@@ -395,16 +386,33 @@ pub fn assert_timeout() -> u64 {
     read_setting("ASSERT_TIMEOUT")
 }
 
+// TODO
+// NOTE: I don't know why we can't do these with a macro? 
+
 /// Use the Silicon configuration option `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("USE_MORE_COMPLETE_EXHALE")
 }
 
-/// Disable the Silicon configuration option `--enableMoreCompleteExhale`.
-// pub fn disable_more_complete_exhale() {
-//     let mut settings = SETTINGS.write().unwrap();
-//     settings.set("USE_MORE_COMPLETE_EXHALE", false);
-// }
+pub fn print_collected_verification_items() -> bool {
+    read_setting("PRINT_COLLECTED_VERIFICATION_ITEMS")
+}
+
+pub fn print_desugared_specs() -> bool {
+    read_setting("PRINT_DESUGARED_SPECS")
+}
+
+pub fn skip_verify() -> bool {
+    read_setting("SKIP_VERIFY")
+}
+
+pub fn print_typeckd_specs() -> bool {
+    read_setting("PRINT_TYPECKD_SPECS")
+}
+
+pub fn hide_uuids() -> bool {
+    read_setting("HIDE_UUIDS")
+}
 
 /**
 The maximum amount of instantiated viper verifiers the server will keep around for reuse.
