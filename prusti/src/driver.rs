@@ -34,7 +34,7 @@ mod arg_value;
 
 use log::debug;
 use std::{env, panic, borrow::Cow, path::PathBuf};
-use prusti_common::config::{ConfigFlags, CommandLinePrustiOptions};
+use prusti_common::config::{ConfigFlags, CommandLineOptions};
 use prusti_common::report::user;
 use lazy_static::lazy_static;
 use callbacks::PrustiCompilerCalls;
@@ -122,7 +122,9 @@ fn main() {
     // We assume that prusti-rustc already removed the first "rustc" argument
     // added by RUSTC_WRAPPER and all command line arguments -P<arg>=<val>
     // have been filtered out.
-    let mut rustc_args = CommandLinePrustiOptions::get_filtered_args();
+    let mut rustc_args: Vec<String> = CommandLineOptions::with_prefix("-P")
+        .get_remaining_args()
+        .collect();
 
     // If the environment asks us to actually be rustc, then do that.
     // If cargo is compiling a dependency, then be rustc.
