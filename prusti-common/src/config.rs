@@ -63,22 +63,23 @@ impl Optimizations {
 
 #[derive(Clone, Debug)]
 pub struct CommandLine {
-    /// Optional prefix that will limit args to those keys 
-    /// that begin with the defined prefix.
+    /// Optional prefix that will limit args to those keys that begin with the defined prefix.
+    /// 
+    /// Example: The arg -Zdebug=true would become debug=true with a prefix of -Z
     prefix: Option<String>,
 
-    /// Character sequence that separates key, value pairs.
-    /// The default separator is '=', the separator char
-    /// must only occur once in the flag or it will be 
-    /// ignored.
+    /// Character sequence that separates key, value pairs. The default separator is '=', 
+    /// the separator char must only occur once in the flag or it will be ignored.
+    /// 
+    /// Example: debug=true is a valid key,val pair with separator of '='
+    ///          debug= would be invalid because there is no value.
+    ///          debug+true would be valid with a separator of '+' 
     separator: String,
 
-    /// Boolean indicating whether invalid flags
-    /// should be ignored or result in a ConfigError
+    /// Boolean indicating whether invalid flags should be ignored or result in a ConfigError
     /// 
     /// Note: the method get_remaining_args always
-    /// returns the invalid args regardless if this 
-    /// flag is set.
+    ///       returns the invalid args regardless of this boolean 
     ignore_invalid: bool,
 }
 
@@ -109,22 +110,26 @@ impl CommandLine {
         self
     }
 
+    /// Return String iterator of arguments that are not valid.
     pub fn get_remaining_args(self) -> impl Iterator<Item = String> {
         env::args()
             .filter(move |arg| !self.valid_arg(arg))
     }
 
     fn valid_arg(&self, arg: &str) -> bool {
-        let matches_pref = match self.prefix {
-            Some(ref pattern) => arg.starts_with(pattern),
-            None => true,
-        };
-        // TODO check string lengths before and after separator
-        matches_pref && arg.matches(&self.separator).count() == 1
+        let pref = self.get_prefix();
+        let matches_pref = arg.starts_with(&pref);
+        let valid_lens = arg[pref.len()..].split(&self.separator)
+            .map(|s| if s.is_empty() { 0 } else { 1 })
+            .sum::<i32>() == 2;
+        matches_pref && valid_lens
     }
 
-    fn ident(s: &str) -> String {
-        s.to_owned()
+    fn get_prefix(&self) -> String {
+        match self.prefix {
+            Some(ref prefix) => prefix.to_owned(),
+            _ => String::default(),
+        }
     }
 }
 
@@ -143,38 +148,33 @@ impl Source for CommandLine {
         Box::new((*self).clone())
     }
 
-    // TODO include error handling
     fn collect(&self) -> Result<HashMap<String, Value>, ConfigError> {
         let mut m = HashMap::new();
         let uri = String::from("command line");
 
-        let prefix_pattern = match self.prefix {
-            Some(ref prefix) => prefix,
-            _ => "",
-        };
+        let prefix_pattern = self.get_prefix();
 
         for arg in env::args() {
             // ignore invalid args
             let valid_arg = self.valid_arg(&arg);
 
-            if !valid_arg && self.ignore_invalid {
-                return Err(ConfigError::Message(format!("Invalid Arg: {}", arg)));
+            if !valid_arg && !self.ignore_invalid {
+                debug!("ignoring argument: {}", arg);
+                return Err(ConfigError::Message(format!("Invalid CLI arg: {}", arg)));
             } else if !valid_arg {
                 continue;
             }
 
             let parts: Vec<&str> = arg.split(&self.separator).collect();
 
-            // TODO remove the to_uppercase in favor of a normalize function
-            let key = parts[0][prefix_pattern.len()..].to_string().to_uppercase();
-            let val = parts[1].to_string();
+            // TODO do we need the to_uppercase for normalization? 
+            let key = parts[0][prefix_pattern.len()..].to_uppercase().to_owned();
+            let val = parts[1].to_owned();
 
-            // TODO remove, debugging
-            println!("KEY: {} VAL {}", key, val);
+            debug!("(key, val) ({}, {})", key, val);
 
             m.insert(
                 key,
-                // TODO do we need to check the type of ValueKind?
                 Value::new(Some(&uri), ValueKind::String(val)),
             );
         } 
@@ -251,7 +251,7 @@ lazy_static! {
 
         // 5. Override with command line arguments -P<arg>=<val>
         settings.merge(
-            CommandLine::with_prefix("-P")
+            CommandLine::with_prefix("-P").ignore_invalid(true)
         ).unwrap();
 
         settings
