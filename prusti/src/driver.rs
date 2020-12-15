@@ -34,6 +34,10 @@ mod arg_value;
 
 use log::debug;
 use std::{env, panic, borrow::Cow, path::PathBuf};
+<<<<<<< HEAD
+=======
+use prusti_common::config::{ConfigFlags, CommandLineOptions};
+>>>>>>> updating CommandLineOptions use
 use prusti_common::report::user;
 use lazy_static::lazy_static;
 use callbacks::PrustiCompilerCalls;
