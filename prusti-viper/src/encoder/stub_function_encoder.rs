@@ -10,6 +10,8 @@ use prusti_common::vir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use log::{trace, debug};
+use crate::encoder::errors::EncodingError;
+use crate::encoder::errors::WithSpan;
 
 pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -33,10 +35,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_function(&self) -> vir::Function {
+    pub fn encode_function(&self) -> Result<vir::Function, EncodingError> {
         let function_name = self.encode_function_name();
         debug!("Encode stub function {}", function_name);
-        let subst_strings = self.encoder.type_substitution_strings();
+        let subst_strings = self.encoder.type_substitution_strings().with_span(self.mir.span)?;
 
         let formal_args: Vec<_> = self
             .mir
@@ -44,15 +46,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
             .map(|local| {
                 let var_name = self.mir_encoder.encode_local_var_name(local);
                 let mir_type = self.mir_encoder.get_local_ty(local);
-                let var_type = self
-                    .encoder
-                    .encode_value_type(self.encoder.resolve_typaram(mir_type));
-                let var_type = var_type.patch(&subst_strings);
-                vir::LocalVar::new(var_name, var_type)
+                self.encoder.encode_value_type(self.encoder.resolve_typaram(mir_type))
+                    .map(|var_type| {
+                        let var_type = var_type.patch(&subst_strings);
+                        vir::LocalVar::new(var_name, var_type)
+                    })
             })
-            .collect();
+            .collect::<Result<_, _>>()
+            .with_span(self.mir.span)?;
 
-        let return_type = self.encode_function_return_type();
+        let return_type = self.encode_function_return_type()?;
 
         let function = vir::Function {
             name: function_name,
@@ -69,7 +72,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
             .log_vir_program_before_foldunfold(function.to_string());
 
         // No need to fold/unfold, as this function is body-less and the contract is trivial
-        function
+        Ok(function)
     }
 
     pub fn encode_function_name(&self) -> String {
@@ -79,8 +82,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         base_name
     }
 
-    pub fn encode_function_return_type(&self) -> vir::Type {
+    pub fn encode_function_return_type(&self) -> Result<vir::Type, EncodingError> {
         let ty = self.encoder.resolve_typaram(self.mir.return_ty());
-        self.encoder.encode_value_type(ty)
+        let return_local = mir::Place::return_place().as_local().unwrap();
+        let span = self.mir_encoder.get_local_span(return_local);
+        self.encoder.encode_value_type(ty).with_span(span)
     }
 }

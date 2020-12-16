@@ -2040,7 +2040,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         _ => {
                             let is_pure_function = self.encoder.is_pure(def_id);
                             if is_pure_function {
-                                let (function_name, _) = self.encoder.encode_pure_function_use(def_id);
+                                let (function_name, _) = self.encoder
+                                    .encode_pure_function_use(def_id)
+                                    .with_span(term.source_info.span)?;
                                 debug!("Encoding pure function call '{}'", function_name);
                                 assert!(destination.is_some());
 
@@ -2566,7 +2568,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
     ) -> EncodingResult<Vec<vir::Stmt>> {
-        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id);
+        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id)
+            .with_span(call_site_span)?;
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
 
@@ -2602,12 +2605,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .iter()
             .enumerate()
             .map(|(i, arg)| {
-                vir::LocalVar::new(
-                    format!("x{}", i),
-                    self.mir_encoder.encode_operand_expr_type(arg),
-                )
+                self.mir_encoder.encode_operand_expr_type(arg)
+                    .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
             })
-            .collect();
+            .collect::<Result<_, _>>()
+            .with_span(call_site_span)?;
 
         let pos = self
             .encoder
@@ -4064,8 +4066,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let encoded_args: Vec<vir::Expr> = self
                 .mir
                 .args_iter()
-                .map(|local| self.mir_encoder.encode_local(local).unwrap().into()) // will panic if attempting to encode unsupported type
-                .collect();
+                .map(|local| self.mir_encoder.encode_local(local).map(|l| l.into()))
+                .collect::<Result<Vec<_>, _>>()?;
             for assertion in &specs {
                 // TODO: Mmm... are these parameters correct?
                 let encoded_spec = self.encoder.encode_assertion(
@@ -4313,7 +4315,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     //                 None,
     //             ),
     //             None => (
-    //                 self.mir_encoder.encode_local(local).unwrap().into(), // will panic if attempting to encode unsupported type
+    //                 self.mir_encoder.encode_local(local)?.into(),
     //                 self.mir_encoder.get_local_ty(local),
     //                 None,
     //             )
@@ -4329,7 +4331,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     //     //             None,
     //     //         ),
     //     //         None => (
-    //     //             self.mir_encoder.encode_local(local).unwrap().into(), // will panic if attempting to encode unsupported type
+    //     //             self.mir_encoder.encode_local(local)?.into(),
     //     //             self.mir_encoder.get_local_ty(local),
     //     //             None,
     //     //         ),

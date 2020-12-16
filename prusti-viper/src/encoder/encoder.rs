@@ -50,6 +50,7 @@ use std::borrow::Borrow;
 use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
 use crate::encoder::memory_eq_encoder::MemoryEqEncoder;
 use rustc_span::MultiSpan;
+use crate::encoder::utils::transpose;
 
 const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
 
@@ -634,29 +635,31 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         builtin_encoder.encode_builtin_function_name(&function_kind)
     }
 
-    pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>) -> String {
+    pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>)
+        -> Result<String, PositionlessEncodingError>
+    {
         trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
             let arg = vir::LocalVar::new(
                 String::from("number"),
-                self.encode_value_type(src_ty),
+                self.encode_value_type(src_ty)?,
             );
-            let result = vir::LocalVar::new("__result", self.encode_value_type(dst_ty));
+            let result = vir::LocalVar::new("__result", self.encode_value_type(dst_ty)?);
             let mut precondition = self.encode_type_bounds(&arg.clone().into(), src_ty);
             precondition.extend(self.encode_type_bounds(&arg.clone().into(), dst_ty));
             let postcondition = self.encode_type_bounds(&result.into(), dst_ty);
             let function = vir::Function {
                 name: function_name.clone(),
                 formal_args: vec![arg.clone()],
-                return_type: self.encode_value_type(dst_ty),
+                return_type: self.encode_value_type(dst_ty)?,
                 pres: precondition,
                 posts: postcondition,
                 body: Some(arg.into()),
             };
             self.type_cast_functions.borrow_mut().insert((src_ty, dst_ty), function);
         }
-        function_name
+        Ok(function_name)
     }
 
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> Result<vir::CfgMethod, EncodingError> {
@@ -688,22 +691,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(self.procedures.borrow()[&def_id].clone())
     }
 
-    pub fn encode_value_or_ref_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
+    pub fn encode_value_or_ref_type(&self, ty: ty::Ty<'tcx>)
+        -> Result<vir::Type, PositionlessEncodingError>
+    {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_value_or_ref_type()
-            .expect("failed to encode unsupported type")
     }
 
-    pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
+    pub fn encode_value_type(&self, ty: ty::Ty<'tcx>)
+        -> Result<vir::Type, PositionlessEncodingError>
+    {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_value_type()
-            .expect("failed to encode unsupported type")
     }
 
-    pub fn encode_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
+    pub fn encode_type(&self, ty: ty::Ty<'tcx>)
+        -> Result<vir::Type, PositionlessEncodingError>
+    {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_type()
-            .expect("failed to encode unsupported type")
     }
 
     pub fn encode_type_bounds(&self, var: &vir::Expr, ty: ty::Ty<'tcx>) -> Vec<vir::Expr> {
@@ -1049,7 +1055,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId)
         -> Result<vir::Expr, EncodingError>
     {
-        let substs_key = self.type_substitution_key();
+        let mir_span = self.env.mir(proc_def_id.expect_local()).span;
+        let substs_key = self.type_substitution_key().with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
         if !self.pure_function_bodies.borrow().contains_key(&key) {
             let procedure = self.env.get_procedure(proc_def_id);
@@ -1096,7 +1103,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         };
 
         // FIXME: Using substitutions as a key is most likely wrong.
-        let substs_key = self.type_substitution_key();
+        let mir_span = self.env.mir(proc_def_id.expect_local()).span;
+        let substs_key = self.type_substitution_key().with_span(mir_span).run_if_err(cleanup)?;
         let key = (proc_def_id, substs_key);
 
         if !self.pure_functions.borrow().contains_key(&key) {
@@ -1251,7 +1259,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_pure_function_use(
         &self,
         proc_def_id: ProcedureDefId,
-    ) -> (String, vir::Type) {
+    ) -> Result<(String, vir::Type), EncodingError> {
         let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
         let procedure = self.env.get_procedure(wrapper_def_id);
 
@@ -1266,10 +1274,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         self.queue_pure_function_encoding(proc_def_id);
 
-        (
+        Ok((
             pure_function_encoder.encode_function_name(),
-            pure_function_encoder.encode_function_return_type(),
-        )
+            pure_function_encoder.encode_function_return_type()?,
+        ))
     }
 
     /// Encode the use (call) of either a comparison (equality or disequality)
@@ -1280,18 +1288,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         proc_def_id: ProcedureDefId,
         arg_ty: ty::Ty<'tcx>, // type arguments
         is_equality: bool // true = equality, false = disequality
-    ) -> (String, vir::Type) {
+    ) -> Result<(String, vir::Type), EncodingError> {
         let snapshot_res = self.encode_snapshot(&arg_ty);
         if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().is_defined() {
             let snapshot = snapshot_res.unwrap();
-            (
+            Ok((
                 if is_equality {
                     snapshot.get_equals_func_name()
                 } else {
                     snapshot.get_not_equals_func_name()
                 },
                 vir::Type::Bool
-            )
+            ))
         } else {
             // TODO: Use the error message from `encode_snapshot`.
             self.encode_stub_pure_function_use(proc_def_id)
@@ -1306,25 +1314,28 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_stub_pure_function_use(
         &self,
         proc_def_id: ProcedureDefId,
-    ) -> (String, vir::Type) {
+    ) -> Result<(String, vir::Type), EncodingError> {
         // The stub function may come from another module for which we can have
         // only optimized_mir.
         let body = self.env.mir(proc_def_id.expect_local());
         let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body);
 
+        let mir_span = self.env.mir(proc_def_id.expect_local()).span;
+        let substs_key = self.type_substitution_key().with_span(mir_span)?;
+        let key = (proc_def_id, substs_key);
+
         // If we haven't seen this particular stub before, generate and insert it.
-        let key = (proc_def_id, self.type_substitution_key());
         if !self.pure_functions.borrow().contains_key(&key) {
-            let function = stub_encoder.encode_function();
+            let function = stub_encoder.encode_function()?;
 
             self.log_vir_program_before_viper(function.to_string());
 
             self.stub_pure_functions.borrow_mut().insert(key, function);
         }
-        (
+        Ok((
             stub_encoder.encode_function_name(),
-            stub_encoder.encode_function_return_type(),
-        )
+            stub_encoder.encode_function_return_type()?,
+        ))
     }
 
     pub fn queue_procedure_encoding(&self, proc_def_id: ProcedureDefId) {
@@ -1424,33 +1435,35 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// TODO: This is a hack, it generates strings that can be used to instantiate generic pure
     /// functions.
-    pub fn type_substitution_strings(&self) -> HashMap<String, String> {
+    pub fn type_substitution_strings(&self)
+        -> Result<HashMap<String, String>, PositionlessEncodingError>
+    {
         self.current_tymap()
             .iter()
             .map(|(typ, subst)| {
-                let encoded_typ = match self.encode_type(typ) {
+                let encoded_typ = self.encode_type(typ).map(|t| match t {
                     vir::Type::TypedRef(s) => s.clone(),
                     x => unreachable!("{:?}", x),
-                };
-                let encoded_subst = match self.encode_type(subst) {
+                });
+                let encoded_subst = self.encode_type(subst).map(|s| match s {
                     vir::Type::TypedRef(s) => s.clone(),
                     x => unreachable!("{:?}", x),
-                };
-                (encoded_typ, encoded_subst)
+                });
+                transpose((encoded_typ, encoded_subst))
             })
-            .collect()
+            .collect::<Result<_, _>>()
     }
 
     /// TODO: This is a hack, it generates a String that can be used for uniquely identifying this
     /// type substitution.
-    pub fn type_substitution_key(&self) -> String {
+    pub fn type_substitution_key(&self) -> Result<String, PositionlessEncodingError> {
         let mut substs: Vec<_> = self
-            .type_substitution_strings()
+            .type_substitution_strings()?
             .into_iter()
             .filter(|(typ, subst)| typ != subst)
             .map(|(typ, subst)| format!("({},{})", typ, subst))
             .collect();
         substs.sort();
-        substs.join(";")
+        Ok(substs.join(";"))
     }
 }
