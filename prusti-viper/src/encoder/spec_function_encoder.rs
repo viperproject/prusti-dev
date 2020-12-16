@@ -1,5 +1,5 @@
 use crate::encoder::{Encoder, borrows::ProcedureContract};
-use crate::encoder::errors::{EncodingError, ErrorCtxt};
+use crate::encoder::errors::{EncodingError, EncodingResult, ErrorCtxt, WithSpan};
 use crate::encoder::borrows::compute_procedure_contract;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
@@ -45,7 +45,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode(&self) -> Result<Vec<vir::Function>, EncodingError> {
+    pub fn encode(&self) -> EncodingResult<Vec<vir::Function>> {
         let pre_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                           SpecFunctionKind::Pre);
         let post_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
@@ -62,7 +62,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             self.encoder.env().tcx(),
             typed::SpecificationSet::Procedure(specs),
             Some(&self.encoder.current_tymap())
-        ).map_err(|err| err.with_span(self.procedure.get_span()))?.to_def_site_contract();
+        ).with_span(self.procedure.get_span())?.to_def_site_contract();
 
         let pre_func = self.encode_pre_spec_func(&contract)?;
         let post_func = self.encode_post_spec_func(&contract)?;
@@ -71,7 +71,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_pre_spec_func(&self, contract: &ProcedureContract<'tcx>)
-        -> Result<vir::Function, EncodingError> {
+        -> EncodingResult<vir::Function> {
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         let encoded_args: Vec<vir::LocalVar> = contract
@@ -107,14 +107,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             body: Some(func_spec.into_iter()
                                 .map(|post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post))
                                 .collect::<Result<Vec<vir::Expr>, _>>()
-                                .map_err(|err| err.with_span(self.procedure.get_span()))?
+                                .with_span(self.procedure.get_span())?
                                 .into_iter()
                                 .conjoin()),
         })
     }
 
     fn encode_post_spec_func(&self, contract: &ProcedureContract<'tcx>)
-        -> Result<vir::Function, EncodingError> {
+        -> EncodingResult<vir::Function> {
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         let mut encoded_args: Vec<vir::LocalVar> = contract
@@ -156,7 +156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             body: Some(func_spec.into_iter()
                                 .map(|post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post))
                                 .collect::<Result<Vec<vir::Expr>, _>>()
-                                .map_err(|err| err.with_span(self.procedure.get_span()))?
+                                .with_span(self.procedure.get_span())?
                                 .into_iter()
                                 .conjoin()),
         })
