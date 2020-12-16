@@ -10,7 +10,7 @@ use rustc_middle::ty;
 use prusti_common::vir::{PermAmount};
 use log::warn;
 use crate::encoder::errors::{PositionlessEncodingError, PositionlessEncodingResult};
-
+use crate::encoder::errors::EncodingResult;
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
 const SNAPSHOT_CONS: &str = "cons$";
@@ -179,7 +179,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Bool => {
                 self.encode_snap_primitive(
                     self.encoder.encode_value_field(self.ty)
-                )
+                )?
             }
             ty::TyKind::Param(_) => {
                 self.encode_snap_generic()?
@@ -242,19 +242,24 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    fn encode_snap_primitive(&self, field: vir::Field) -> Snapshot {
-        Snapshot {
+    fn encode_snap_primitive(&self, field: vir::Field)
+        -> PositionlessEncodingResult<Snapshot>
+    {
+        Ok(Snapshot {
             predicate_name: self.predicate_name.clone(),
-            snap_func: Some(self.encode_snap_func_primitive(field)),
+            snap_func: Some(self.encode_snap_func_primitive(field)?),
             snap_domain: None,
-        }
+        })
     }
 
-    fn encode_snap_func_primitive(&self, field: vir::Field) -> vir::Function {
-        let return_type = self.encoder.encode_value_type(self.ty);
+    fn encode_snap_func_primitive(&self, field: vir::Field)
+        -> PositionlessEncodingResult<vir::Function>
+    {
+        let return_type = self.encoder.encode_value_type(self.ty)?;
         let body = self.encode_snap_arg_field(field);
-        self.encode_snap_func(return_type, body)
+        Ok(self.encode_snap_func(return_type, body))
     }
+
     fn encode_snap_func(&self, return_type: vir::Type, body: vir::Expr) -> vir::Function {
         vir::Function {
             name: SNAPSHOT_GET.to_string(),
@@ -527,7 +532,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Tuple(elems) => {
                 for (field_num, field_ty) in elems.iter().enumerate() {
                     self.encoder.encode_snapshot(field_ty.expect_ty()); // ensure there is a snapshot
-                    let field_type = self.encoder.encode_value_type(field_ty.expect_ty());
+                    let field_type = self.encoder.encode_value_type(field_ty.expect_ty())?;
                     formal_args.push(
                         self.encode_local_var(field_num, &field_type)
                     );

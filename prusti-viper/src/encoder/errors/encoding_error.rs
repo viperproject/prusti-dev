@@ -68,4 +68,12 @@ impl EncodingError {
     pub fn as_positionless(&self) -> &PositionlessEncodingError {
         &self.error
     }
+
+    pub fn with_span<S: Into<MultiSpan>>(self, span: S) -> EncodingError {
+        // TODO: Stack error spans
+        EncodingError {
+            span: span.into(),
+            ..self
+        }
+    }
 }

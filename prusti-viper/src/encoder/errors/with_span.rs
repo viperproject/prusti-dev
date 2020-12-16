@@ -15,10 +15,15 @@ pub trait WithSpan<T> {
 }
 
 impl<T> WithSpan<T> for Result<T, PositionlessEncodingError> {
-    fn with_span<S: Into<MultiSpan>>(self, span: S)
-        -> Result<T, EncodingError>
-    {
+    fn with_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, EncodingError> {
         trace!("Converting a PositionlessEncodingError to EncodingError in a Result");
+        self.map_err(|err| err.with_span(span))
+    }
+}
+
+impl<T> WithSpan<T> for Result<T, EncodingError> {
+    fn with_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, EncodingError> {
+        trace!("Replacing the span of an EncodingError in a Result");
         self.map_err(|err| err.with_span(span))
     }
 }

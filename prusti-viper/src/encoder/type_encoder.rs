@@ -121,7 +121,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 if snapshot.is_defined() {
                     snapshot.get_type()
                 } else {
-                    unreachable!()
+                    return Err(PositionlessEncodingError::internal(
+                        format!(
+                            "unexpected failure while encoding the snapshot of the '{:?}' type",
+                            self.ty
+                        )
+                    ))
                 }
             },
 
@@ -149,7 +154,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         .encode_type_predicate_use(self.ty)?;
                     Ok(vir::Type::TypedRef(type_name))
                 } else {
-                    unreachable!()
+                    Err(PositionlessEncodingError::internal(
+                        format!(
+                            "unexpected failure while encoding the snapshot of the '{:?}' type",
+                            self.ty
+                        )
+                    ))
                 }
             },
 

@@ -57,7 +57,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
     target_return: Option<&vir::Expr>,
     targets_are_values: bool,
     assertion_location: Option<mir::BasicBlock>,
-) -> Result<vir::Expr, EncodingError> {
+) -> EncodingResult<vir::Expr> {
     let spec_encoder = SpecEncoder::new(
         encoder,
         pre_label.unwrap_or(""),
@@ -190,7 +190,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
     /// Encode a specification item as a single expression.
     pub fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>)
-        -> Result<vir::Expr, EncodingError>
+        -> EncodingResult<vir::Expr>
     {
         trace!("encode_assertion {:?}", assertion);
         Ok(match assertion.kind {
@@ -271,9 +271,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         &self,
         expr: vir::Expr,
         inner_def_id: DefId,
-    ) -> Result<(vir::Expr, DefId, mir::Location), EncodingError> {
+    ) -> EncodingResult<(vir::Expr, DefId, mir::Location)> {
         debug!("translate_expr_to_closure_def_site {} {:?}", expr, inner_def_id);
-        let inner_mir = self.encoder.env().mir(inner_def_id.expect_local());
+        let inner_mir = self.encoder.env().local_mir(inner_def_id.expect_local());
         let inner_mir_encoder = MirEncoder::new(self.encoder, &inner_mir, inner_def_id);
         let inner_attrs = self.encoder.env().tcx().get_attrs(inner_def_id);
 
@@ -288,7 +288,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         ) = opt_instantiation.expect(
             &format!("cannot find definition site for closure {:?}", inner_def_id)
         );
-        let outer_mir = self.encoder.env().mir(outer_def_id.expect_local());
+        let outer_mir = self.encoder.env().local_mir(outer_def_id.expect_local());
         let outer_mir_encoder = MirEncoder::new(self.encoder, &outer_mir, outer_def_id);
         let outer_span = outer_mir_encoder.get_span_of_location(outer_location);
         trace!("Replacing variables of {:?} captured from {:?}", inner_def_id, outer_def_id);
@@ -372,7 +372,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     local_arg.ty,
                     &forall_id
                 );
-                let encoded_arg = inner_mir_encoder.encode_local(local_arg_index).unwrap();
+                let encoded_arg = inner_mir_encoder.encode_local(local_arg_index)?;
                 let value_field = self.encoder.encode_value_field(local_arg.ty);
                 let encoded_arg_value = vir::Expr::local(encoded_arg).field(value_field);
                 trace!(
@@ -404,9 +404,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         def_id: DefId,
         expr_location: mir::Location,
         target_location: mir::BasicBlock,
-    ) -> Result<vir::Expr, EncodingError> {
+    ) -> EncodingResult<vir::Expr> {
         debug!("translate_expr_to_state {} {:?} {:?}", expr, def_id, expr_location);
-        let mir = self.encoder.env().mir(def_id.expect_local());
+        let mir = self.encoder.env().local_mir(def_id.expect_local());
 
         // Translate an intermediate state to the state at the beginning of the method
         let state = MultiExprBackwardInterpreterState::new_single(
@@ -436,7 +436,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
     /// Encode the assertion of a contract or loop invariant.
     fn encode_expression(&self, assertion_expr: &typed::Expression)
-        -> Result<vir::Expr, EncodingError>
+        -> EncodingResult<vir::Expr>
     {
         debug!("encode_expression {:?}", assertion_expr);
 
@@ -470,39 +470,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
         // At this point `curr_def_id` should be either a SPEC item (when encoding a contract) or
         // the method being verified (when encoding a loop invariant).
-        let mir = self.encoder.env().mir(curr_def_id.expect_local());
+        let mir = self.encoder.env().local_mir(curr_def_id.expect_local());
         let mir_encoder = MirEncoder::new(self.encoder, &mir, curr_def_id);
 
         // Replacements to use the provided `target_args` and `target_return`
         let mut replacements: Vec<(vir::Expr, vir::Expr)> = vec![];
 
         // Replacement 1: replace the arguments with the `target_args`.
-        replacements.extend(
-            mir.args_iter()
-                .zip(self.target_args)
-                .map(|(local, target_arg)| {
-                    let local_ty = mir.local_decls[local].ty;
-                    // will panic if attempting to encode unsupported type
-                    let spec_local = mir_encoder.encode_local(local).unwrap();
-                    let spec_local_place: vir::Expr = if self.targets_are_values {
-                        self.encoder.encode_value_expr(
-                            vir::Expr::local(spec_local),
-                            local_ty
-                        )
-                    } else {
-                        spec_local.into()
-                    };
-                    (spec_local_place, target_arg.clone())
-                })
-        );
+        for (local, target_arg) in mir.args_iter().zip(self.target_args) {
+            let local_ty = mir.local_decls[local].ty;
+            let spec_local = mir_encoder.encode_local(local)?;
+            let spec_local_place: vir::Expr = if self.targets_are_values {
+                self.encoder.encode_value_expr(
+                    vir::Expr::local(spec_local),
+                    local_ty
+                )
+            } else {
+                spec_local.into()
+            };
+            replacements.push((spec_local_place, target_arg.clone()));
+        }
 
         // Replacement 2: replace the fake return variable (last argument) of SPEC items with
         // `target_return`
         if let Some(target_return) = self.target_return {
             let fake_return_local = mir.args_iter().last().unwrap();
             let fake_return_ty = mir.local_decls[fake_return_local].ty;
-            // will panic if attempting to encode unsupported type
-            let spec_fake_return = mir_encoder.encode_local(fake_return_local).unwrap();
+            let spec_fake_return = mir_encoder.encode_local(fake_return_local)?;
             let spec_fake_return_place: vir::Expr = if self.targets_are_values {
                 self.encoder.encode_value_expr(
                     vir::Expr::local(spec_fake_return),
