@@ -312,20 +312,20 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
                 #[prusti::closure]
                 #cl_annotations #attrs_ts
                 let _prusti_closure =
-                #asyncness #movability #capture
-                #or1_token #inputs #or2_token #output
-                {
-                    #[allow(unused_must_use)]
-                    if false {
-                        #spec_toks_pre
-                    }
-                    let result = #body ;
-                    #[allow(unused_must_use)]
-                    if false {
-                        #spec_toks_post
-                    }
-                    result
-                };
+                    #asyncness #movability #capture
+                    #or1_token #inputs #or2_token #output
+                    {
+                        #[allow(unused_must_use)]
+                        if false {
+                            #spec_toks_pre
+                        }
+                        let result = #body ;
+                        #[allow(unused_must_use)]
+                        if false {
+                            #spec_toks_post
+                        }
+                        result
+                    };
                 _prusti_closure
             }
         }
