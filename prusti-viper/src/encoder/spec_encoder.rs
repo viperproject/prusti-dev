@@ -57,7 +57,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
     target_return: Option<&vir::Expr>,
     targets_are_values: bool,
     assertion_location: Option<mir::BasicBlock>,
-) -> Result<vir::Expr, EncodingError> {
+) -> EncodingResult<vir::Expr> {
     let spec_encoder = SpecEncoder::new(
         encoder,
         pre_label.unwrap_or(""),
@@ -190,7 +190,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
     /// Encode a specification item as a single expression.
     pub fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>)
-        -> Result<vir::Expr, EncodingError>
+        -> EncodingResult<vir::Expr>
     {
         trace!("encode_assertion {:?}", assertion);
         Ok(match assertion.kind {
@@ -271,7 +271,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         &self,
         expr: vir::Expr,
         inner_def_id: DefId,
-    ) -> Result<(vir::Expr, DefId, mir::Location), EncodingError> {
+    ) -> EncodingResult<(vir::Expr, DefId, mir::Location)> {
         debug!("translate_expr_to_closure_def_site {} {:?}", expr, inner_def_id);
         let inner_mir = self.encoder.env().mir(inner_def_id.expect_local());
         let inner_mir_encoder = MirEncoder::new(self.encoder, &inner_mir, inner_def_id);
@@ -404,7 +404,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         def_id: DefId,
         expr_location: mir::Location,
         target_location: mir::BasicBlock,
-    ) -> Result<vir::Expr, EncodingError> {
+    ) -> EncodingResult<vir::Expr> {
         debug!("translate_expr_to_state {} {:?} {:?}", expr, def_id, expr_location);
         let mir = self.encoder.env().mir(def_id.expect_local());
 
@@ -436,7 +436,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
     /// Encode the assertion of a contract or loop invariant.
     fn encode_expression(&self, assertion_expr: &typed::Expression)
-        -> Result<vir::Expr, EncodingError>
+        -> EncodingResult<vir::Expr>
     {
         debug!("encode_expression {:?}", assertion_expr);
 

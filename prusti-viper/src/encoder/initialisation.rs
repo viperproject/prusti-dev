@@ -15,6 +15,8 @@ use rustc_middle::{mir, ty::{self, TyCtxt}};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use crate::encoder::errors::{EncodingError, PositionlessEncodingError};
+use crate::encoder::errors::PositionlessEncodingResult;
+use crate::encoder::errors::EncodingResult;
 
 pub struct InitInfo {
     //mir_acc_before_block: HashMap<mir::BasicBlock, HashSet<mir::Place<'tcx>>>,
@@ -56,7 +58,7 @@ fn contains_prefix(set: &HashSet<vir::Expr>, place: &vir::Expr) -> bool {
 fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
     map: &HashMap<T, HashSet<mir::Place<'tcx>>>,
     mir_encoder: &MirEncoder<'_, '_, 'tcx>,
-) -> Result<HashMap<T, HashSet<vir::Expr>>, PositionlessEncodingError> {
+) -> PositionlessEncodingResult<HashMap<T, HashSet<vir::Expr>>> {
     let mut result = HashMap::new();
     for (loc, set) in map.iter() {
         let mut new_set = HashSet::new();
@@ -75,7 +77,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {
         tcx: ty::TyCtxt<'tcx>,
         def_id: DefId,
         mir_encoder: &MirEncoder<'p, 'v, 'tcx>,
-    ) -> Result<Self, PositionlessEncodingError> {
+    ) -> PositionlessEncodingResult<Self> {
         let def_path = tcx.hir().def_path(def_id.expect_local());
         let initialisation = compute_definitely_initialized(&mir, tcx, def_path);
         let mir_acc_before_block: HashMap<_, _> = initialisation

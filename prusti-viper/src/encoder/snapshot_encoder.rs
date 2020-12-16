@@ -10,7 +10,7 @@ use rustc_middle::ty;
 use prusti_common::vir::{PermAmount};
 use log::warn;
 use crate::encoder::errors::{PositionlessEncodingError, PositionlessEncodingResult};
-
+use crate::encoder::errors::EncodingResult;
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
 const SNAPSHOT_CONS: &str = "cons$";
@@ -243,7 +243,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_snap_primitive(&self, field: vir::Field)
-        -> Result<Snapshot, PositionlessEncodingError>
+        -> PositionlessEncodingResult<Snapshot>
     {
         Ok(Snapshot {
             predicate_name: self.predicate_name.clone(),
@@ -253,7 +253,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_snap_func_primitive(&self, field: vir::Field)
-        -> Result<vir::Function, PositionlessEncodingError>
+        -> PositionlessEncodingResult<vir::Function>
     {
         let return_type = self.encoder.encode_value_type(self.ty)?;
         let body = self.encode_snap_arg_field(field);
