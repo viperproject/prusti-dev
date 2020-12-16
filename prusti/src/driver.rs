@@ -123,11 +123,11 @@ fn main() {
     // added by RUSTC_WRAPPER.
     let rustc_args: Vec<String> = env::args().collect();
 
-    // If the environment asks us to actually be rustc, then do that.
-    // If cargo is compiling a dependency, then be rustc.
-    let prusti_be_rustc = config::be_rustc()
-        || arg_value(&rustc_args, "--cap-lints", |val| val == "allow").is_some();
-    if prusti_be_rustc {
+    // If the environment asks us to actually be rustc, or if lints have been disabled, then
+    // run `rustc` instead of Prusti.
+    let prusti_be_rustc = config::be_rustc();
+    let are_lints_disabled = arg_value(&rustc_args, "--cap-lints", |val| val == "allow").is_some();
+    if prusti_be_rustc || are_lints_disabled {
         rustc_driver::main();
     }
 
