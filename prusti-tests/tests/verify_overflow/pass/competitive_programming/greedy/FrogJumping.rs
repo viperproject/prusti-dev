@@ -130,3 +130,7 @@ fn solve_greedy(
         result + 1
     }
 }
+
+fn main() {
+    
+}
