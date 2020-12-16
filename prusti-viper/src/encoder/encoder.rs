@@ -1057,7 +1057,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId)
         -> EncodingResult<vir::Expr>
     {
-        let mir_span = self.env.mir(proc_def_id.expect_local()).span;
+        let mir_span = self.env.tcx().def_span(proc_def_id);
         let substs_key = self.type_substitution_key().with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
         if !self.pure_function_bodies.borrow().contains_key(&key) {
@@ -1105,7 +1105,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         };
 
         // FIXME: Using substitutions as a key is most likely wrong.
-        let mir_span = self.env.mir(proc_def_id.expect_local()).span;
+        let mir_span = self.env.tcx().def_span(proc_def_id);
         let substs_key = self.type_substitution_key().with_span(mir_span).run_if_err(cleanup)?;
         let key = (proc_def_id, substs_key);
 
@@ -1317,13 +1317,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
     ) -> EncodingResult<(String, vir::Type)> {
-        // The stub function may come from another module for which we can have
-        // only optimized_mir.
-        let body = self.env.mir(proc_def_id.expect_local());
+        // The stub function may come from an external module.
+        let body = self.env.external_mir(proc_def_id);
         let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body);
 
-        let mir_span = self.env.mir(proc_def_id.expect_local()).span;
-        let substs_key = self.type_substitution_key().with_span(mir_span)?;
+        let substs_key = self.type_substitution_key().with_span(body.span)?;
         let key = (proc_def_id, substs_key);
 
         // If we haven't seen this particular stub before, generate and insert it.

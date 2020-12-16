@@ -4260,7 +4260,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 kind => unreachable!("Only calls are expected. Found: {:?}", kind),
             }
         } else {
-            let ref_mir = self.encoder.env().mir(containing_def_id.expect_local());
+            let ref_mir = self.encoder.env().local_mir(containing_def_id.expect_local());
             let mir = ref_mir.borrow();
             let return_ty = mir.return_ty();
             let arg_tys = mir.args_iter().map(|arg| mir.local_decls[arg].ty).collect();

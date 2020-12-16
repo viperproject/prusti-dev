@@ -6,18 +6,16 @@
 
 //! This module defines the interface provided to a verifier.
 
+use rustc_ast::ast;
+use rustc_hir as hir;
 use rustc_middle::mir;
 use rustc_hir::hir_id::HirId;
-use rustc_hir::def_id::DefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt, ParamEnv};
 use std::path::PathBuf;
 use std::cell::Ref;
-
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
-use rustc_hir as hir;
 use std::collections::HashSet;
-use rustc_hir::def_id::LocalDefId;
-use rustc_ast::ast;
 use log::debug;
 
 pub mod borrowck;
@@ -211,11 +209,16 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self.tcx(), proc_def_id)
     }
 
-    /// Get the MIR or a procedure.
-    pub fn mir<'a>(&self, def_id: LocalDefId) -> Ref<'a, mir::Body<'tcx>> {
+    /// Get the MIR body of a local procedure.
+    pub fn local_mir<'a>(&self, def_id: LocalDefId) -> Ref<'a, mir::Body<'tcx>> {
         self.tcx().mir_promoted(
             ty::WithOptConstParam::unknown(def_id)
         ).0.borrow()
+    }
+
+    /// Get the MIR body of an external procedure.
+    pub fn external_mir<'a>(&self, def_id: DefId) -> &'a mir::Body<'tcx> {
+        self.tcx().optimized_mir(def_id)
     }
 
     /// Get all relevant trait declarations for some type.
