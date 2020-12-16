@@ -146,8 +146,6 @@ fn run_verification_core_proof(group_name: &str, filter: &Option<String>) {
 }
 
 fn test_runner(_tests: &[&()]) {
-    env::set_var("PRUSTI_TESTS", "1");
-
     // Spawn server process as child (so it stays around until main function terminates)
     let server_address = ServerSideService::spawn_off_thread();
     env::set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());

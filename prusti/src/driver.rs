@@ -30,6 +30,7 @@ extern crate prusti_common;
 
 mod callbacks;
 mod verifier;
+mod arg_value;
 
 use log::debug;
 use std::{env, panic, borrow::Cow, path::PathBuf};
@@ -39,6 +40,7 @@ use lazy_static::lazy_static;
 use callbacks::PrustiCompilerCalls;
 use rustc_middle::ty::TyCtxt;
 use prusti_common::config;
+use arg_value::arg_value;
 
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
@@ -121,14 +123,11 @@ fn main() {
     // added by RUSTC_WRAPPER.
     let rustc_args: Vec<String> = env::args().collect();
 
-    // If the environment asks us to actually be rustc, then do that.
-    // If cargo is compiling a dependency, then be rustc.
-    let is_prusti_test = env::var("PRUSTI_TESTS").is_ok();
-    let is_cargo_running = env::var("CARGO_PKG_NAME").is_ok();
-    let in_primary_package = env::var("CARGO_PRIMARY_PACKAGE").is_ok();
-    let prusti_be_rustc = config::be_rustc()
-        || (!is_prusti_test && is_cargo_running && !in_primary_package);
-    if prusti_be_rustc {
+    // If the environment asks us to actually be rustc, or if lints have been disabled, then
+    // run `rustc` instead of Prusti.
+    let prusti_be_rustc = config::be_rustc();
+    let are_lints_disabled = arg_value(&rustc_args, "--cap-lints", |val| val == "allow").is_some();
+    if prusti_be_rustc || are_lints_disabled {
         rustc_driver::main();
     }
 
