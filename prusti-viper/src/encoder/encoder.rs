@@ -724,7 +724,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Encodes the specification functions for the function/closure def_id.
     pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
-        -> PositionlessEncodingResult<Vec<vir::Function>>
+        -> EncodingResult<Vec<vir::Function>>
     {
         if !self.spec_functions.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);

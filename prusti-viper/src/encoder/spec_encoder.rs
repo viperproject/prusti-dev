@@ -256,7 +256,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             },
             box typed::AssertionKind::SpecEnt(ref cl, ref vars, ref pres, ref posts) => {
                 let tcx = self.encoder.env().tcx();
-                let mir = self.encoder.env().mir(cl.expr);
+                let mir = self.encoder.env().local_mir(cl.expr);
                 let result = &mir.local_decls[(0 as u32).into()];
                 let ty = result.ty;
                 if let Some(ty_repl) = self.encoder.current_tymap().get(ty) {
