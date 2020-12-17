@@ -212,15 +212,28 @@ impl<EID, ET> IntoIterator for TriggerSet<EID, ET> {
 }
 
 #[derive(Debug, Clone)]
-/// A sequence of variables used in the forall.
+/// Variables used in a forall.
 pub struct ForAllVars<EID, AT> {
-    /// Identifier of the specification to which this sequence of variables
-    /// belongs.
+    /// Identifier of the specification to which these variables belongs.
     pub spec_id: SpecificationId,
     /// Unique id for this sequence of variables.
     pub id: EID,
     /// Variables.
     pub vars: Vec<AT>,
+}
+
+#[derive(Debug, Clone)]
+/// Variables used in a specification entailment.
+pub struct SpecEntailmentVars<EID, AT> {
+    /// Identifier of the specification to which these variables belongs.
+    pub spec_id: SpecificationId,
+    /// Unique id of the pre state.
+    pub pre_id: EID,
+    /// Unique id of the post state.
+    pub post_id: EID,
+    /// Variables.
+    pub args: Vec<AT>,
+    pub result: AT,
 }
 
 #[derive(Debug, Clone)]
@@ -240,6 +253,13 @@ pub enum AssertionKind<EID, ET, AT> {
         TriggerSet<EID, ET>,
         Assertion<EID, ET, AT>,
     ),
+    /// Specification entailment
+    SpecEntailment {
+        closure: Expression<EID, ET>,
+        arg_binders: SpecEntailmentVars<EID, AT>,
+        pres: Vec<Assertion<EID, ET, AT>>,
+        posts: Vec<Assertion<EID, ET, AT>>,
+    }
 }
 
 #[derive(Debug, Clone)]

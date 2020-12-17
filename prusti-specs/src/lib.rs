@@ -270,7 +270,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             let precond = handle_result!(rewriter.parse_assertion(spec_id, r.to_token_stream()));
             preconds.push((spec_id, precond));
             let spec_id_str = spec_id.to_string();
-            cl_annotations.extend(quote_spanned! {callsite_span=>
+            cl_annotations.extend(quote_spanned! { callsite_span =>
                 #[prusti::pre_spec_id_ref = #spec_id_str]
             });
         }
@@ -280,16 +280,26 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             let postcond = handle_result!(rewriter.parse_assertion(spec_id, e.to_token_stream()));
             postconds.push((spec_id, postcond));
             let spec_id_str = spec_id.to_string();
-            cl_annotations.extend(quote_spanned! {callsite_span=>
+            cl_annotations.extend(quote_spanned! { callsite_span =>
                 #[prusti::post_spec_id_ref = #spec_id_str]
             });
         }
 
-        let (spec_toks_pre, spec_toks_post) = rewriter.generate_cl_spec(preconds, postconds);
         let syn::ExprClosure {
             attrs, asyncness, movability, capture, or1_token,
             inputs, or2_token, output, body
         } = cl_spec.cl;
+
+        let output_type: syn::Type = match output {
+            syn::ReturnType::Default => {
+                return syn::Error::new(output.span(), "closure must specify return type")
+                    .to_compile_error();
+            }
+            syn::ReturnType::Type(_, ref ty) => (**ty).clone()
+        };
+
+        let (spec_toks_pre, spec_toks_post) = rewriter.generate_cl_spec(
+            inputs.clone(), output_type, preconds, postconds);
 
         let mut attrs_ts = TokenStream::new();
         for a in attrs {
@@ -298,15 +308,19 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
         quote_spanned! {callsite_span=>
             {
+                #[allow(unused_variables)]
+                #[prusti::closure]
                 #cl_annotations #attrs_ts
                 let _prusti_closure =
                     #asyncness #movability #capture
                     #or1_token #inputs #or2_token #output
                     {
+                        #[allow(unused_must_use)]
                         if false {
                             #spec_toks_pre
                         }
                         let result = #body ;
+                        #[allow(unused_must_use)]
                         if false {
                             #spec_toks_post
                         }

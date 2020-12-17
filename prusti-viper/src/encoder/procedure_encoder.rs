@@ -435,10 +435,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .collect();
         for local in local_vars.iter() {
             let local_ty = self.locals.get_type(*local);
-            if let ty::TyKind::Closure(..) = local_ty.kind() {
-                // Do not encode closures
-                continue;
-            }
             let type_name = self.encoder.encode_type_predicate_use(local_ty).unwrap(); // will panic if attempting to encode unsupported type
             let var_name = self.locals.get_name(*local);
             self.cfg_method
@@ -1254,7 +1250,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Encode the lhs and the rhs of the assignment that create the loan
     fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Expr, vir::Expr, bool) {
-        debug!("encode_loan_rvalue '{:?}'", loan_places);
+        debug!("encode_loan_places '{:?}'", loan_places);
         // will panic if attempting to encode unsupported type
         let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&loan_places.dest).unwrap();
         let encode = |rhs_place| {
@@ -1288,7 +1284,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (expiring, restored, false)
             }
 
-            ref x => unreachable!("Borrow restores rvalue {:?}", x),
+            ref x => unreachable!("Borrow restores value {:?}", x),
         }
     }
 
@@ -1877,7 +1873,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         literal:
                             ty::Const {
                                 ty,
-                                val: _
+                                val: func_const_val
                             },
                         ..
                     }),
@@ -2036,6 +2032,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     vir::BinOpKind::NeCmp,
                                 ).run_if_err(|| cleanup(&self))?
                             );
+                        }
+
+                        "std::ops::Fn::call" => {
+                            let cl_type: ty::Ty = substs[0].expect_ty();
+                            match cl_type.kind() {
+                                ty::TyKind::Closure(cl_def_id, _) => {
+                                    debug!("Encoding call to closure {:?} with func {:?}", cl_def_id, func_const_val);
+                                    stmts.extend(self.encode_impure_function_call(
+                                        location,
+                                        term.source_info.span,
+                                        args,
+                                        destination,
+                                        *cl_def_id,
+                                        self_ty,
+                                    )?);
+                                }
+
+                                _ => unreachable!()
+                            }
                         }
 
                         _ => {
@@ -2258,7 +2273,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         location: mir::Location,
         call_site_span: rustc_span::Span,
-        args: &[mir::Operand<'tcx>],
+        mir_args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
         self_ty: Option<&'tcx ty::TyS<'tcx>>,
@@ -2269,10 +2284,73 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .tcx()
             .def_path_str(called_def_id);
             // .absolute_item_path_str(called_def_id);
-        debug!("Encoding non-pure function call '{}'", full_func_proc_name);
+        debug!("Encoding non-pure function call '{}' with args {:?}", full_func_proc_name, mir_args);
 
-        let mut stmts = vec![];
-        let mut stmts_after: Vec<vir::Stmt> = vec![];
+        // First we construct the "operands" vector. This construction differs
+        // for closure calls, where we need to unpack a tuple into the actual
+        // call arguments. The components of the operands tuples are:
+        // - the original MIR Operand
+        // - the VIR Local that will hold hold the argument before the call
+        // - the type of the argument
+        // - if not constant, the VIR expression for the argument
+        let mut operands: Vec<(&mir::Operand<'tcx>, Local, ty::Ty<'tcx>, Option<vir::Expr>)> = vec![];
+        let mut encoded_operands = mir_args.iter()
+            .map(|arg| self.mir_encoder.encode_operand_place(&arg))
+            .collect::<Result<Vec<Option<vir::Expr>>, _>>()
+            .with_span(call_site_span)?;
+        if self.encoder.env().tcx().is_closure(called_def_id) {
+            // Closure calls are wrapped around std::ops::Fn::call(), which receives
+            // two arguments: The closure instance, and the tupled-up arguments
+            assert_eq!(mir_args.len(), 2);
+
+            let cl_ty = self.mir_encoder.get_operand_ty(&mir_args[0]);
+            operands.push((
+                &mir_args[0],
+                mir_args[0].place()
+                    .and_then(|place| place.as_local())
+                    .map_or_else(
+                        || self.locals.get_fresh(cl_ty),
+                        |local| local.into()
+                    ),
+                cl_ty,
+                encoded_operands[0].take(),
+            ));
+
+            let arg_tuple_ty = self.mir_encoder.get_operand_ty(&mir_args[1]);
+            if let ty::TyKind::Tuple(substs) = arg_tuple_ty.kind() {
+                for (field_num, ty) in substs.iter().enumerate() {
+                    let arg_ty = ty.expect_ty();
+                    let arg = self.locals.get_fresh(arg_ty);
+                    let value_field = self
+                        .encoder
+                        .encode_raw_ref_field(format!("tuple_{}", field_num), arg_ty)
+                        .with_span(call_site_span)?;
+                    operands.push((
+                        &mir_args[1], // not actually used ...
+                        arg,
+                        arg_ty,
+                        Some(encoded_operands[1].take().unwrap().field(value_field)),
+                    ));
+                }
+            } else {
+                unimplemented!();
+            }
+        } else {
+            for (arg, encoded_operand) in mir_args.iter().zip(encoded_operands.iter_mut()) {
+                let arg_ty = self.mir_encoder.get_operand_ty(arg);
+                operands.push((
+                    arg,
+                    arg.place()
+                        .and_then(|place| place.as_local())
+                        .map_or_else(
+                            || self.locals.get_fresh(arg_ty),
+                            |local| local.into()
+                        ),
+                    arg_ty,
+                    encoded_operand.take(),
+                ));
+            }
+        };
 
         // Arguments can be places or constants. For constants, we pretend they're places by
         // creating a new local variable of the same type. For arguments that are not just local
@@ -2285,24 +2363,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let mut const_arg_vars: HashSet<vir::Expr> = HashSet::new();
         let mut type_invs: HashMap<String, vir::Function> = HashMap::new();
-        let mut constant_args = Vec::new();
-        let mut arg_tys = Vec::new();
+        let mut constant_args = vec![];
 
-        for operand in args.iter() {
-            let arg_ty = self.mir_encoder.get_operand_ty(operand);
-            arg_tys.push(arg_ty);
-
-            let arg = match operand {
-                mir::Operand::Copy(place) | mir::Operand::Move(place) => {
-                    if let Some(local) = place.as_local() {
-                        local.into()
-                    } else {
-                        self.locals.get_fresh(arg_ty)
-                    }
-                }
-                mir::Operand::Constant(_) =>
-                    self.locals.get_fresh(arg_ty)
-            };
+        for (mir_arg, arg, arg_ty, encoded_operand) in operands {
             arguments.push(arg.clone());
 
             let encoded_local = self.encode_prusti_local(arg);
@@ -2313,8 +2376,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let arg_inv = self.encoder.encode_type_invariant_def(arg_ty)
                 .with_span(call_site_span)?;
             type_invs.insert(inv_name, arg_inv);
-            let encoded_operand = self.mir_encoder.encode_operand_place(operand)
-                .with_span(call_site_span)?;
+
             match encoded_operand {
                 Some(place) => {
                     debug!("arg: {} {}", arg_place, place);
@@ -2323,7 +2385,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 None => {
                     // We have a constant.
                     constant_args.push(arg_place.clone());
-                    let arg_val_expr = self.mir_encoder.encode_operand_expr(operand)
+                    let arg_val_expr = self.mir_encoder.encode_operand_expr(mir_arg)
                         .with_span(call_site_span)?;
                     debug!("arg_val_expr: {} {}", arg_place, arg_val_expr);
                     let val_field = self.encoder.encode_value_field(arg_ty);
@@ -2343,6 +2405,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
         }
+
+        let mut stmts = vec![];
+        let mut stmts_after: Vec<vir::Stmt> = vec![];
 
         let (target_local, encoded_target) = {
             match destination.as_ref() {
@@ -3888,10 +3953,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // will panic if attempting to encode unsupported type
                 let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place).unwrap();
                 debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
-                if let ty::TyKind::Closure(..) = ty.kind() {
-                    // Do not encode closures
-                    continue;
-                }
                 match kind {
                     // Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
@@ -5046,6 +5107,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
                 stmts
             }
+            ty::TyKind::Closure(_, _) => {
+                // TODO: (can a closure be copy-assigned?)
+                // encode a closure deep copy or at least a stub
+                debug!("warning: ty::TyKind::Closure not implemented yet");
+                Vec::new()
+            }
 
             ref x => unimplemented!("{:?}", x),
         };
@@ -5141,19 +5208,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             &mir::AggregateKind::Closure(def_id, _substs) => {
-                //assert!(self.encoder.is_spec_closure(def_id), "closure: {:?}", def_id);
-                // Specification only. Just ignore in the encoding.
-                // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
-                if self.encoder.is_spec_closure(def_id) {
-                    // Specification only. Just ignore in the encoding.
-                    // FIXME: Filtering of specification blocks is broken, so we need to handle this here.
-                    stmts = Vec::new()
-                } else {
-                    return Err(SpannedEncodingError::unsupported(
-                        "construction of closures is not supported",
-                        span
-                    ));
-                }
+                debug_assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {:?}", def_id);
+                // TODO: assign to closure; this case should only handle assign
+                // of the same closure type (== instances of the same syntactic
+                // closure)
+                // closure state encoding should first be implemented in
+                // type_encoder
+                // this case might also need to assert history invariants?
+                //
+                // for now we generate nothing to at least allow
+                // let f = closure!(...);
             }
 
             &mir::AggregateKind::Array(..) => {

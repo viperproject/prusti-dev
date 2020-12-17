@@ -315,9 +315,11 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
                         prusti::loop_body_invariant_spec"
                     ),
                 };
-                if fn_name.starts_with("prusti_pre_item_") {
+                if fn_name.starts_with("prusti_pre_item_")
+                    || fn_name.starts_with("prusti_pre_closure_") {
                     SpecType::Precondition
-                } else if fn_name.starts_with("prusti_post_item_") {
+                } else if fn_name.starts_with("prusti_post_item_")
+                    || fn_name.starts_with("prusti_post_closure_") {
                     SpecType::Postcondition
                 } else {
                     unreachable!()
@@ -333,6 +335,28 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
                     .entry(local_id)
                     .or_insert(vec![])
                     .push(spec_id);
+            }
+        }
+    }
+
+    fn visit_stmt(
+        &mut self,
+        stmt: &'tcx rustc_hir::Stmt,
+    ) {
+        intravisit::walk_stmt(self, stmt);
+
+        // Collect closure specifications
+        if let rustc_hir::StmtKind::Local(local) = stmt.kind {
+            let attrs = &local.attrs;
+            if has_prusti_attr(attrs, "closure") {
+                let init_expr = local.init
+                    .expect("closure on Local without assignment");
+                let local_id = self.tcx.hir().local_def_id(init_expr.hir_id);
+                let def_id = local_id.to_def_id();
+                // Collect procedure specifications
+                if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
+                    self.procedure_specs.insert(local_id, procedure_spec_ref);
+                }
             }
         }
     }
