@@ -13,11 +13,11 @@ use ::log::warn;
 ///
 /// A Prusti message can originate from:
 /// * invalid usage detected during specification collection
-/// * an encoding error (see the `EncodingError` type)
+/// * an encoding error (see the `SpannedEncodingError` type)
 /// * a Viper verification error
 ///
 /// A `PrustiError` can be displayed as a *warning* to the user. (We should rename `PrustiError`,
-/// `EncodingError` and similar types to something less confusing.)
+/// `SpannedEncodingError` and similar types to something less confusing.)
 #[derive(Clone, Debug)]
 pub struct PrustiError {
     is_error: bool,

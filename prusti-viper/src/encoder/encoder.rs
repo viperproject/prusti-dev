@@ -9,7 +9,7 @@ use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, Pro
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PositionlessEncodingError, WithSpan, RunIfErr};
+use crate::encoder::errors::{ErrorCtxt, ErrorManager, SpannedEncodingError, PositionlessEncodingError, WithSpan, RunIfErr};
 use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
@@ -52,7 +52,7 @@ use crate::encoder::memory_eq_encoder::MemoryEqEncoder;
 use rustc_span::MultiSpan;
 use crate::encoder::utils::transpose;
 use crate::encoder::errors::PositionlessEncodingResult;
-use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
 
@@ -209,7 +209,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: EncodingError) {
+    pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
         debug!("Encoding error: {:?}", encoding_error);
         let prusti_error: PrustiError = encoding_error.into();
         if prusti_error.is_error() {
@@ -664,7 +664,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(function_name)
     }
 
-    pub fn encode_procedure(&self, def_id: ProcedureDefId) -> EncodingResult<vir::CfgMethod> {
+    pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<vir::CfgMethod> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
             !self.is_pure(def_id),
@@ -729,7 +729,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         targets_are_values: bool,
         assertion_location: Option<mir::BasicBlock>,
         error: ErrorCtxt,
-    ) -> EncodingResult<vir::Expr> {
+    ) -> SpannedEncodingResult<vir::Expr> {
         trace!("encode_assertion {:?}", assertion);
         let encoded_assertion = encode_spec_assertion(
             self,
@@ -1055,7 +1055,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Encode either a pure function body or a specification assertion (stored in the given MIR).
     pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId)
-        -> EncodingResult<vir::Expr>
+        -> SpannedEncodingResult<vir::Expr>
     {
         let mir_span = self.env.tcx().def_span(proc_def_id);
         let substs_key = self.type_substitution_key().with_span(mir_span)?;
@@ -1080,7 +1080,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
         substs: Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>,
-    ) -> EncodingResult<()> {
+    ) -> SpannedEncodingResult<()> {
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
             self.is_pure(proc_def_id),
@@ -1261,7 +1261,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_pure_function_use(
         &self,
         proc_def_id: ProcedureDefId,
-    ) -> EncodingResult<(String, vir::Type)> {
+    ) -> SpannedEncodingResult<(String, vir::Type)> {
         let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
         let procedure = self.env.get_procedure(wrapper_def_id);
 
@@ -1290,7 +1290,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         proc_def_id: ProcedureDefId,
         arg_ty: ty::Ty<'tcx>, // type arguments
         is_equality: bool // true = equality, false = disequality
-    ) -> EncodingResult<(String, vir::Type)> {
+    ) -> SpannedEncodingResult<(String, vir::Type)> {
         let snapshot_res = self.encode_snapshot(&arg_ty);
         if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().is_defined() {
             let snapshot = snapshot_res.unwrap();
@@ -1316,7 +1316,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_stub_pure_function_use(
         &self,
         proc_def_id: ProcedureDefId,
-    ) -> EncodingResult<(String, vir::Type)> {
+    ) -> SpannedEncodingResult<(String, vir::Type)> {
         // The stub function may come from an external module.
         let body = self.env.external_mir(proc_def_id);
         let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body);

@@ -10,7 +10,7 @@ use prusti_common::vir;
 use crate::encoder::snapshot_encoder::Snapshot;
 use crate::encoder::errors::PositionlessEncodingError;
 use crate::encoder::errors::PositionlessEncodingResult;
-use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 pub struct SnapshotSpecPatcher<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,

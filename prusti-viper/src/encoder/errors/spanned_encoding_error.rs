@@ -8,16 +8,16 @@ use prusti_interface::PrustiError;
 use rustc_span::MultiSpan;
 use crate::encoder::errors::PositionlessEncodingError;
 
-/// An error in the encoding
+/// An error in the encoding with information regarding the source code span that caused it.
 #[derive(Clone, Debug)]
-pub struct EncodingError {
+pub struct SpannedEncodingError {
     pub(super) error: PositionlessEncodingError,
     span: MultiSpan,
 }
 
-pub type EncodingResult<T> = Result<T, EncodingError>;
+pub type SpannedEncodingResult<T> = Result<T, SpannedEncodingError>;
 
-impl Into<PrustiError> for EncodingError {
+impl Into<PrustiError> for SpannedEncodingError {
     fn into(self) -> PrustiError {
         match self.error {
             PositionlessEncodingError::Unsupported(msg) => {
@@ -33,9 +33,9 @@ impl Into<PrustiError> for EncodingError {
     }
 }
 
-impl EncodingError {
+impl SpannedEncodingError {
     fn new<S: Into<MultiSpan>>(error: PositionlessEncodingError, span: S) -> Self {
-        EncodingError {
+        SpannedEncodingError {
             error,
             span: span.into(),
         }
@@ -43,7 +43,7 @@ impl EncodingError {
 
     /// Usage of an unsupported Rust feature (e.g. dereferencing raw pointers)
     pub fn unsupported<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
-        EncodingError::new(
+        SpannedEncodingError::new(
             PositionlessEncodingError::unsupported(message),
             span
         )
@@ -51,7 +51,7 @@ impl EncodingError {
 
     /// Report an incorrect usage of Prusti (e.g. call an impure function in a contract)
     pub fn incorrect<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
-        EncodingError::new(
+        SpannedEncodingError::new(
             PositionlessEncodingError::incorrect(message),
             span
         )
@@ -59,7 +59,7 @@ impl EncodingError {
 
     /// An internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
-        EncodingError::new(
+        SpannedEncodingError::new(
             PositionlessEncodingError::internal(message),
             span
         )
@@ -69,9 +69,9 @@ impl EncodingError {
         &self.error
     }
 
-    pub fn with_span<S: Into<MultiSpan>>(self, span: S) -> EncodingError {
+    pub fn with_span<S: Into<MultiSpan>>(self, span: S) -> SpannedEncodingError {
         // TODO: Stack error spans
-        EncodingError {
+        SpannedEncodingError {
             span: span.into(),
             ..self
         }

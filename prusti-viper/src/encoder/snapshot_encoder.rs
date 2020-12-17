@@ -10,7 +10,7 @@ use rustc_middle::ty;
 use prusti_common::vir::{PermAmount};
 use log::warn;
 use crate::encoder::errors::{PositionlessEncodingError, PositionlessEncodingResult};
-use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
 const SNAPSHOT_CONS: &str = "cons$";

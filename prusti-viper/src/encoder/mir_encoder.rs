@@ -6,8 +6,8 @@
 
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{
-    ErrorCtxt, PanicCause, EncodingError, PositionlessEncodingError, WithSpan,
-    EncodingResult, PositionlessEncodingResult
+    ErrorCtxt, PanicCause, SpannedEncodingError, PositionlessEncodingError, WithSpan,
+    SpannedEncodingResult, PositionlessEncodingResult
 };
 use crate::encoder::Encoder;
 use prusti_common::vir;
@@ -35,7 +35,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         format!("{:?}", local)
     }
 
-    fn encode_local(&self, local: mir::Local) -> EncodingResult<vir::LocalVar> {
+    fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
         let var_name = self.encode_local_var_name(local);
         let type_name = self
             .encoder()
@@ -581,7 +581,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
         span: Span,
-    ) -> EncodingResult<vir::Expr> {
+    ) -> SpannedEncodingResult<vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
         let encoded_val = match (src_ty.kind(), dst_ty.kind()) {
@@ -666,7 +666,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             }
 
             _ => {
-                return Err(EncodingError::unsupported(
+                return Err(SpannedEncodingError::unsupported(
                     format!(
                         "unsupported cast from type '{:?}' to type '{:?}'",
                         src_ty,

@@ -4,13 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::errors::EncodingError;
+use crate::encoder::errors::SpannedEncodingError;
 use rustc_span::MultiSpan;
 use log::trace;
-use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 
 /// An error in the encoding with no information regarding the source code span.
-/// This type is meant to be translated to `EncodingError` as soon as possible.
+/// This type is meant to be translated to `SpannedEncodingError` as soon as possible.
 #[derive(Clone, Debug)]
 pub enum PositionlessEncodingError {
     /// Usage of an unsupported Rust feature (e.g. dereferencing raw pointers)
@@ -39,34 +38,25 @@ impl PositionlessEncodingError {
         PositionlessEncodingError::Internal(message.to_string())
     }
 
-    pub fn with_span<S: Into<MultiSpan>>(self, span: S) -> EncodingError {
+    pub fn with_span<S: Into<MultiSpan>>(self, span: S) -> SpannedEncodingError {
         match self {
             PositionlessEncodingError::Unsupported(msg) => {
-                EncodingError::unsupported(msg, span)
+                SpannedEncodingError::unsupported(msg, span)
             }
             PositionlessEncodingError::Incorrect(msg) => {
-                EncodingError::incorrect(msg, span)
+                SpannedEncodingError::incorrect(msg, span)
             }
             PositionlessEncodingError::Internal(msg) => {
-                EncodingError::internal(msg, span)
+                SpannedEncodingError::internal(msg, span)
             }
         }
     }
 }
 
 /// Lossy conversion
-impl From<EncodingError> for PositionlessEncodingError {
-    fn from(other: EncodingError) -> Self {
-        trace!("Converting a EncodingError to PositionlessEncodingError");
+impl From<SpannedEncodingError> for PositionlessEncodingError {
+    fn from(other: SpannedEncodingError) -> Self {
+        trace!("Converting a SpannedEncodingError to PositionlessEncodingError");
         other.error
-    }
-}
-
-impl From<PlaceRegionsError> for PositionlessEncodingError {
-    fn from(err: PlaceRegionsError) -> Self {
-        match err {
-            PlaceRegionsError::Unsupported(msg) =>
-                PositionlessEncodingError::unsupported(msg)
-        }
     }
 }

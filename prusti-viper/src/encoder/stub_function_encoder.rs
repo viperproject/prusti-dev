@@ -10,10 +10,10 @@ use prusti_common::vir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use log::{trace, debug};
-use crate::encoder::errors::EncodingError;
+use crate::encoder::errors::SpannedEncodingError;
 use crate::encoder::errors::WithSpan;
 use crate::encoder::errors::PositionlessEncodingResult;
-use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -37,7 +37,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_function(&self) -> EncodingResult<vir::Function> {
+    pub fn encode_function(&self) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode stub function {}", function_name);
         let subst_strings = self.encoder.type_substitution_strings().with_span(self.mir.span)?;
@@ -84,7 +84,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         base_name
     }
 
-    pub fn encode_function_return_type(&self) -> EncodingResult<vir::Type> {
+    pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
         let ty = self.encoder.resolve_typaram(self.mir.return_ty());
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.mir_encoder.get_local_span(return_local);

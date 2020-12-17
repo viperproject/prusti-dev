@@ -22,7 +22,7 @@ use prusti_interface::specs::typed;
 use log::{trace, debug};
 use crate::encoder::errors::PositionlessEncodingError;
 use crate::encoder::errors::PositionlessEncodingResult;
-use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 #[derive(Clone, Debug)]
 pub struct BorrowInfo<P>

@@ -14,7 +14,7 @@ use crate::encoder::Encoder;
 use crate::encoder::type_encoder::compute_discriminant_values;
 use crate::encoder::errors::PositionlessEncodingError;
 use crate::encoder::errors::PositionlessEncodingResult;
-use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 /// Encoder of memory equality functions
 pub struct MemoryEqEncoder {
