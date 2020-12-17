@@ -7,7 +7,7 @@ use syn::spanned::Spanned;
 
 pub use common::{ExpressionId, SpecType, SpecificationId};
 pub use super::preparser::{Parser, Arg};
-use crate::specifications::common::{ForAllVars, SpecEntVars};
+use crate::specifications::common::{ForAllVars, SpecEntailmentVars};
 
 /// A specification that has no types associated with it.
 pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
@@ -208,13 +208,13 @@ impl AssignExpressionId<ForAllVars<ExpressionId, Arg>> for common::ForAllVars<()
     }
 }
 
-impl AssignExpressionId<SpecEntVars<ExpressionId, Arg>> for common::SpecEntVars<(), Arg> {
+impl AssignExpressionId<SpecEntailmentVars<ExpressionId, Arg>> for common::SpecEntailmentVars<(), Arg> {
     fn assign_id(
         self,
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
-    ) -> SpecEntVars<ExpressionId, Arg> {
-        SpecEntVars {
+    ) -> SpecEntailmentVars<ExpressionId, Arg> {
+        SpecEntailmentVars {
             spec_id,
             pre_id: id_generator.generate(),
             post_id: id_generator.generate(),
@@ -268,18 +268,18 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
                 triggers.assign_id(spec_id, id_generator),
                 body.assign_id(spec_id, id_generator)
             ),
-            SpecEnt(cl, args, pres, posts) => SpecEnt(
-                cl.assign_id(spec_id, id_generator),
-                args.assign_id(spec_id, id_generator),
-                pres.into_iter()
+            SpecEntailment {closure, arg_binders, pres, posts} => SpecEntailment {
+                closure: closure.assign_id(spec_id, id_generator),
+                arg_binders: arg_binders.assign_id(spec_id, id_generator),
+                pres: pres.into_iter()
                     .map(|assertion|
                         Assertion { kind: assertion.kind.assign_id(spec_id, id_generator) })
                     .collect(),
-                posts.into_iter()
+                posts: posts.into_iter()
                      .map(|assertion|
                          Assertion { kind: assertion.kind.assign_id(spec_id, id_generator) })
                      .collect(),
-            ),
+            },
             x => unimplemented!("{:?}", x),
         }
     }
@@ -387,11 +387,11 @@ impl EncodeTypeCheck for Assertion {
                 };
                 tokens.extend(typeck_call);
             }
-            AssertionKind::SpecEnt(cl, vars, pres, posts) => {
+            AssertionKind::SpecEntailment {closure, arg_binders, pres, posts} => {
                 // cl needs special handling because it's not a boolean expression
-                let span = cl.expr.span();
-                let expr = &cl.expr;
-                let cl_id = format!("{}_{}", cl.spec_id, cl.id);
+                let span = closure.expr.span();
+                let expr = &closure.expr;
+                let cl_id = format!("{}_{}", closure.spec_id, closure.id);
                 let typeck_call_cl = quote_spanned! { span =>
                     #[prusti::spec_only]
                     #[prusti::expr_id = #cl_id]
@@ -402,15 +402,15 @@ impl EncodeTypeCheck for Assertion {
                 tokens.extend(typeck_call_cl);
 
                 let span = Span::call_site();
-                let pre_id = format!("{}_{}", vars.spec_id, vars.pre_id);
-                let post_id = format!("{}_{}", vars.spec_id, vars.post_id);
+                let pre_id = format!("{}_{}", arg_binders.spec_id, arg_binders.pre_id);
+                let post_id = format!("{}_{}", arg_binders.spec_id, arg_binders.post_id);
 
-                let vec_of_args = &vars.args;
+                let vec_of_args = &arg_binders.args;
                 let vec_of_args_with_result: Vec<_> =
-                    vars.args
+                    arg_binders.args
                         .clone()
                         .into_iter()
-                        .chain(std::iter::once(vars.result.clone()))
+                        .chain(std::iter::once(arg_binders.result.clone()))
                         .collect();
 
                 let mut pre_assertion = TokenStream::new();

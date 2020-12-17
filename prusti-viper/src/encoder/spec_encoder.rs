@@ -254,9 +254,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     final_body,
                 )
             },
-            box typed::AssertionKind::SpecEnt(ref cl, ref vars, ref pres, ref posts) => {
+            box typed::AssertionKind::SpecEntailment {
+                closure: ref closure,
+                arg_binders: ref vars,
+                pres: ref pres,
+                posts: ref posts,
+            } => {
+                // TODO: refactor, simplify, or extract into a function
                 let tcx = self.encoder.env().tcx();
-                let mir = self.encoder.env().local_mir(cl.expr);
+                let mir = self.encoder.env().local_mir(closure.expr);
                 let result = &mir.local_decls[(0 as u32).into()];
                 let ty = result.ty;
                 if let Some(ty_repl) = self.encoder.current_tymap().get(ty) {

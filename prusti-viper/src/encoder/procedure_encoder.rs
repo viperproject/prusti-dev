@@ -2393,7 +2393,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
                     if in_loop {
                         const_arg_vars.insert(arg_place);
-                        return Err(EncodingError::unsupported(
+                        return Err(SpannedEncodingError::unsupported(
                             format!(
                                 "please use a local variable as argument for function '{}', not a \
                                 constant, when calling the function from a loop",

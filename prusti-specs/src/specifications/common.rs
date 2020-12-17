@@ -224,7 +224,7 @@ pub struct ForAllVars<EID, AT> {
 
 #[derive(Debug, Clone)]
 /// Variables used in a specification entailment.
-pub struct SpecEntVars<EID, AT> {
+pub struct SpecEntailmentVars<EID, AT> {
     /// Identifier of the specification to which these variables belongs.
     pub spec_id: SpecificationId,
     /// Unique id of the pre state.
@@ -253,13 +253,13 @@ pub enum AssertionKind<EID, ET, AT> {
         TriggerSet<EID, ET>,
         Assertion<EID, ET, AT>,
     ),
-    /// Specification entailment: spec_ent(closure, argument binders, pres, posts)
-    SpecEnt(
-        Expression<EID, ET>, // closure
-        SpecEntVars<EID, AT>, // argument binders
-        Vec<Assertion<EID, ET, AT>>, // preconditions
-        Vec<Assertion<EID, ET, AT>>, // postconditions
-    )
+    /// Specification entailment
+    SpecEntailment {
+        closure: Expression<EID, ET>,
+        arg_binders: SpecEntailmentVars<EID, AT>,
+        pres: Vec<Assertion<EID, ET, AT>>,
+        posts: Vec<Assertion<EID, ET, AT>>,
+    }
 }
 
 #[derive(Debug, Clone)]

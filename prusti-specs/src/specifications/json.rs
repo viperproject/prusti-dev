@@ -13,7 +13,12 @@ pub enum AssertionKind {
     And(Vec<Assertion>),
     Implies(Assertion, Assertion),
     ForAll(ForAllVars, Assertion, TriggerSet),
-    SpecEnt(Expression, SpecEntVars, Vec<Assertion>, Vec<Assertion>),
+    SpecEntailment {
+        closure: Expression,
+        arg_binders: SpecEntailmentVars,
+        pres: Vec<Assertion>,
+        posts: Vec<Assertion>,
+    },
 }
 
 #[derive(Serialize, Deserialize)]
@@ -32,7 +37,7 @@ pub struct ForAllVars {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct SpecEntVars {
+pub struct SpecEntailmentVars {
     pub spec_id: untyped::SpecificationId,
     pub pre_expr_id: untyped::ExpressionId,
     pub post_expr_id: untyped::ExpressionId,
@@ -64,9 +69,9 @@ impl common::ForAllVars<untyped::ExpressionId, untyped::Arg> {
     }
 }
 
-impl common::SpecEntVars<untyped::ExpressionId, untyped::Arg> {
-    fn to_structure(&self) -> SpecEntVars {
-        SpecEntVars {
+impl common::SpecEntailmentVars<untyped::ExpressionId, untyped::Arg> {
+    fn to_structure(&self) -> SpecEntailmentVars {
+        SpecEntailmentVars {
             spec_id: self.spec_id.clone(),
             arg_count: self.args.len(),
             pre_expr_id: self.pre_id.clone(),
@@ -117,12 +122,12 @@ impl untyped::AssertionKind {
                 body.to_structure(),
                 triggers.to_structure(),
             ),
-            SpecEnt(cl, args, pre, post) => AssertionKind::SpecEnt(
-                cl.to_structure(),
-                args.to_structure(),
-                pre.iter().map(|pre| pre.to_structure()).collect(),
-                post.iter().map(|post| post.to_structure()).collect(),
-            ),
+            SpecEntailment {closure, arg_binders, pres, posts} => AssertionKind::SpecEntailment {
+                closure: closure.to_structure(),
+                arg_binders: arg_binders.to_structure(),
+                pres: pres.iter().map(|pre| pre.to_structure()).collect(),
+                posts: posts.iter().map(|post| post.to_structure()).collect(),
+            },
             x => {
                 unimplemented!("{:?}", x);
             }

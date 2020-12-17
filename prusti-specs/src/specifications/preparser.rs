@@ -10,7 +10,7 @@ use syn::{self, Token, Error};
 use quote::quote;
 
 use super::common;
-use crate::specifications::common::{ForAllVars, SpecEntVars, TriggerSet, Trigger};
+use crate::specifications::common::{ForAllVars, SpecEntailmentVars, TriggerSet, Trigger};
 use syn::spanned::Spanned;
 
 pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
@@ -591,9 +591,9 @@ impl Parser {
             }
 
             let conjunct = AssertionWithoutId {
-                kind: Box::new(common::AssertionKind::SpecEnt(
-                    lhs,
-                    SpecEntVars {
+                kind: Box::new(common::AssertionKind::SpecEntailment {
+                    closure: lhs,
+                    arg_binders: SpecEntailmentVars {
                         spec_id: common::SpecificationId::dummy(),
                         pre_id: (),
                         post_id: (),
@@ -603,7 +603,7 @@ impl Parser {
                     },
                     pres,
                     posts,
-                ))
+                })
             };
 
             self.conjuncts.push(conjunct);

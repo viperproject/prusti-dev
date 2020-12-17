@@ -1,5 +1,5 @@
 use crate::encoder::{Encoder, borrows::ProcedureContract};
-use crate::encoder::errors::{EncodingError, EncodingResult, PositionlessEncodingResult, ErrorCtxt, WithSpan};
+use crate::encoder::errors::{SpannedEncodingResult, ErrorCtxt, WithSpan};
 use crate::encoder::borrows::compute_procedure_contract;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
@@ -48,7 +48,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode(&self) -> EncodingResult<Vec<vir::Function>> {
+    pub fn encode(&self) -> SpannedEncodingResult<Vec<vir::Function>> {
         let pre_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                           SpecFunctionKind::Pre);
         let post_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
@@ -74,7 +74,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_pre_spec_func(&self, contract: &ProcedureContract<'tcx>)
-        -> EncodingResult<vir::Function> {
+        -> SpannedEncodingResult<vir::Function> {
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         let encoded_args: Vec<vir::LocalVar> = contract
@@ -117,7 +117,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_post_spec_func(&self, contract: &ProcedureContract<'tcx>)
-        -> EncodingResult<vir::Function> {
+        -> SpannedEncodingResult<vir::Function> {
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         let mut encoded_args: Vec<vir::LocalVar> = contract
@@ -165,7 +165,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    fn encode_local(&self, local: mir::Local) -> EncodingResult<vir::LocalVar> {
+    fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
         let var_name = self.mir_encoder.encode_local_var_name(local);
         let var_type = self
             .encoder
