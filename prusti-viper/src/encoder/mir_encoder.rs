@@ -6,8 +6,8 @@
 
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{
-    ErrorCtxt, PanicCause, EncodingError, PositionlessEncodingError, WithSpan,
-    EncodingResult, PositionlessEncodingResult
+    ErrorCtxt, PanicCause, SpannedEncodingError, EncodingError, WithSpan,
+    SpannedEncodingResult, EncodingResult
 };
 use crate::encoder::Encoder;
 use prusti_common::vir;
@@ -35,7 +35,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         format!("{:?}", local)
     }
 
-    fn encode_local(&self, local: mir::Local) -> EncodingResult<vir::LocalVar> {
+    fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
         let var_name = self.encode_local_var_name(local);
         let type_name = self
             .encoder()
@@ -51,7 +51,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode place {:?}", place);
         let result = if place.projection.is_empty() {
             let local = place.local;
@@ -77,7 +77,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         index: usize,
         place: mir::Place<'tcx>,
         encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>,
-    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode projection {}: {:?}", index, place);
 
         assert!(index >= 1, "place: {:?} index: {}", place, index);
@@ -129,7 +129,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             num
                         } else {
                             if num_variants != 1 {
-                                return Err(PositionlessEncodingError::internal(
+                                return Err(EncodingError::internal(
                                     format!(
                                         "unexpected number of type variants: \
                                         {} (should be 1)", num_variants
@@ -217,7 +217,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         &self,
         encoded_base: vir::Expr,
         base_ty: ty::Ty<'tcx>,
-    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("encode_deref {} {}", encoded_base, base_ty);
         assert!(
             self.can_be_dereferenced(base_ty),
@@ -365,7 +365,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn eval_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let (encoded_place, place_ty, _) = self.encode_place(place)?;
         Ok(self.encoder.encode_value_expr(encoded_place, place_ty))
     }
@@ -374,7 +374,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_expr(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
             &mir::Operand::Constant(box mir::Constant {
@@ -424,7 +424,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 
     /// Returns an `vir::Type` that corresponds to the type of the value of the operand
     pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>)
-        -> PositionlessEncodingResult<vir::Type>
+        -> EncodingResult<vir::Type>
     {
         trace!("Encode operand expr {:?}", operand);
         // match operand {
@@ -450,7 +450,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         left: vir::Expr,
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let is_bool = ty.kind() == &ty::TyKind::Bool;
         Ok(match op {
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
@@ -470,12 +470,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd |
             mir::BinOp::BitOr |
             mir::BinOp::BitXor => {
-                return Err(PositionlessEncodingError::unsupported(
+                return Err(EncodingError::unsupported(
                     "bitwise operations on non-boolean types are not supported"
                 ))
             }
             unsupported_op => {
-                return Err(PositionlessEncodingError::unsupported(format!(
+                return Err(EncodingError::unsupported(format!(
                     "operation '{:?}' is not supported",
                     unsupported_op
                 )))
@@ -497,7 +497,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         left: vir::Expr,
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         if !op.is_checkable() || !config::check_overflows() {
             return Ok(false.into())
         } else {
@@ -557,7 +557,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     ),
 
                     _ => {
-                        return Err(PositionlessEncodingError::unsupported(format!(
+                        return Err(EncodingError::unsupported(format!(
                             "overflow checks are unsupported for operation '{:?}' on type '{:?}'",
                             op,
                             ty,
@@ -566,7 +566,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 },
 
                 mir::BinOp::Shl | mir::BinOp::Shr => {
-                    return Err(PositionlessEncodingError::unsupported(
+                    return Err(EncodingError::unsupported(
                         "overflow checks on a shift operation are unsupported",
                     ));
                 }
@@ -581,7 +581,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
         span: Span,
-    ) -> EncodingResult<vir::Expr> {
+    ) -> SpannedEncodingResult<vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
         let encoded_val = match (src_ty.kind(), dst_ty.kind()) {
@@ -666,7 +666,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             }
 
             _ => {
-                return Err(EncodingError::unsupported(
+                return Err(SpannedEncodingError::unsupported(
                     format!(
                         "unsupported cast from type '{:?}' to type '{:?}'",
                         src_ty,
@@ -683,7 +683,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_place(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> PositionlessEncodingResult<Option<vir::Expr>> {
+    ) -> EncodingResult<Option<vir::Expr>> {
         debug!("Encode operand place {:?}", operand);
         Ok(match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {

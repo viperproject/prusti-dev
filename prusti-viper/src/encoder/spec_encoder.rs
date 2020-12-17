@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::errors::{
-    ErrorCtxt, EncodingResult, EncodingError, PositionlessEncodingError, WithSpan
+    ErrorCtxt, SpannedEncodingResult, SpannedEncodingError, EncodingError, WithSpan
 };
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
@@ -57,7 +57,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
     target_return: Option<&vir::Expr>,
     targets_are_values: bool,
     assertion_location: Option<mir::BasicBlock>,
-) -> EncodingResult<vir::Expr> {
+) -> SpannedEncodingResult<vir::Expr> {
     let spec_encoder = SpecEncoder::new(
         encoder,
         pre_label.unwrap_or(""),
@@ -128,11 +128,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         &self,
         trigger: &typed::Trigger,
         bounded_vars: &[vir::LocalVar]
-    ) -> EncodingResult<vir::Trigger> {
+    ) -> SpannedEncodingResult<vir::Trigger> {
         trace!("encode_trigger {:?}", trigger);
         struct TriggerChecker {
             span: rustc_span::MultiSpan,
-            error: Option<EncodingError>,
+            error: Option<SpannedEncodingError>,
         }
         impl vir::ExprWalker for TriggerChecker {
             fn walk(&mut self, expr: &vir::Expr) {
@@ -147,7 +147,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                         // Everything else is illegal in triggers.
                         let msg = "Only function calls are allowed in triggers.";
                         // TODO: We should use a more precise span.
-                        self.error = Some(EncodingError::incorrect(msg, self.span.clone()));
+                        self.error = Some(SpannedEncodingError::incorrect(msg, self.span.clone()));
                     }
                 }
                 if self.error.is_none() {
@@ -182,7 +182,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 let span = rustc_span::MultiSpan::from_spans(
                     trigger.terms().iter().map(|term| self.encoder.env().tcx().def_span(term.expr)).collect()
                 );
-                return Err(EncodingError::incorrect(msg, span));
+                return Err(SpannedEncodingError::incorrect(msg, span));
             }
         }
         Ok(vir::Trigger::new(encoded_expressions))
@@ -190,7 +190,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
     /// Encode a specification item as a single expression.
     pub fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>)
-        -> EncodingResult<vir::Expr>
+        -> SpannedEncodingResult<vir::Expr>
     {
         trace!("encode_assertion {:?}", assertion);
         Ok(match assertion.kind {
@@ -271,7 +271,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         &self,
         expr: vir::Expr,
         inner_def_id: DefId,
-    ) -> EncodingResult<(vir::Expr, DefId, mir::Location)> {
+    ) -> SpannedEncodingResult<(vir::Expr, DefId, mir::Location)> {
         debug!("translate_expr_to_closure_def_site {} {:?}", expr, inner_def_id);
         let inner_mir = self.encoder.env().local_mir(inner_def_id.expect_local());
         let inner_mir_encoder = MirEncoder::new(self.encoder, &inner_mir, inner_def_id);
@@ -404,7 +404,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         def_id: DefId,
         expr_location: mir::Location,
         target_location: mir::BasicBlock,
-    ) -> EncodingResult<vir::Expr> {
+    ) -> SpannedEncodingResult<vir::Expr> {
         debug!("translate_expr_to_state {} {:?} {:?}", expr, def_id, expr_location);
         let mir = self.encoder.env().local_mir(def_id.expect_local());
 
@@ -436,7 +436,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
     /// Encode the assertion of a contract or loop invariant.
     fn encode_expression(&self, assertion_expr: &typed::Expression)
-        -> EncodingResult<vir::Expr>
+        -> SpannedEncodingResult<vir::Expr>
     {
         debug!("encode_expression {:?}", assertion_expr);
 
@@ -556,7 +556,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
     for StraightLineBackwardInterpreter<'p, 'v, 'tcx>
 {
     type State = MultiExprBackwardInterpreterState;
-    type Error = EncodingError;
+    type Error = SpannedEncodingError;
 
     fn apply_terminator(
         &self,

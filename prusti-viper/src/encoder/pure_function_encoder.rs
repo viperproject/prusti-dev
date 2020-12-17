@@ -7,7 +7,7 @@
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{PanicCause, RunIfErr};
-use crate::encoder::errors::{EncodingError, ErrorCtxt, WithSpan};
+use crate::encoder::errors::{SpannedEncodingError, ErrorCtxt, WithSpan};
 use crate::encoder::foldunfold;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
@@ -28,8 +28,8 @@ use std::collections::HashMap;
 use log::{debug, trace};
 use prusti_interface::PrustiError;
 use rustc_span::Span;
-use crate::encoder::errors::PositionlessEncodingResult;
 use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -61,7 +61,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     /// Used to encode expressions in assertions
-    pub fn encode_body(&self) -> EncodingResult<vir::Expr> {
+    pub fn encode_body(&self) -> SpannedEncodingResult<vir::Expr> {
         let function_name = self.encoder.env().get_absolute_item_name(self.proc_def_id);
         debug!("Encode body of pure function {}", function_name);
 
@@ -77,7 +77,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         Ok(patched_body_expr)
     }
 
-    pub fn encode_function(&self) -> EncodingResult<vir::Function> {
+    pub fn encode_function(&self) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode pure function {}", function_name);
         let mut state = run_backward_interpretation(self.mir, &self.interpreter)?
@@ -110,7 +110,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
             if !self.encoder.env().type_is_copy(ty) {
                 self.encoder
-                    .register_encoding_error(EncodingError::unsupported(
+                    .register_encoding_error(SpannedEncodingError::unsupported(
                         "return type of pure function does not implement Copy",
                         self.mir.span,
                     ));
@@ -127,7 +127,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_bodyless_function(&self)
-        -> EncodingResult<vir::Function>
+        -> SpannedEncodingResult<vir::Function>
     {
         let function_name = self.encode_function_name();
         debug!("Encode trusted (bodyless) pure function {}", function_name);
@@ -138,7 +138,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     // Private
 
     fn encode_function_given_body(&self, body: Option<vir::Expr>)
-        -> EncodingResult<vir::Function>
+        -> SpannedEncodingResult<vir::Function>
     {
         let function_name = self.encode_function_name();
         let is_bodyless = body.is_none();
@@ -266,7 +266,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
-    ) -> EncodingResult<(vir::Expr, vir::Expr)> {
+    ) -> SpannedEncodingResult<(vir::Expr, vir::Expr)> {
         let mut type_spec = vec![];
         for &local in contract.args.iter() {
             let local_ty = self.interpreter.mir_encoder().get_local_ty(local.into());
@@ -322,7 +322,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     /// Encode the postcondition with one expression just for the functional specification (no
     /// type encoding).
     fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>)
-        -> EncodingResult<vir::Expr>
+        -> SpannedEncodingResult<vir::Expr>
     {
         let mut func_spec: Vec<vir::Expr> = vec![];
 
@@ -372,7 +372,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         )
     }
 
-    fn encode_local(&self, local: mir::Local) -> EncodingResult<vir::LocalVar> {
+    fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
         let mir_encoder = self.interpreter.mir_encoder();
         let var_name = mir_encoder.encode_local_var_name(local);
         let var_span = mir_encoder.get_local_span(local);
@@ -390,7 +390,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.encoder.encode_item_name(self.proc_def_id)
     }
 
-    pub fn encode_function_return_type(&self) -> EncodingResult<vir::Type> {
+    pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
         let ty = self.encoder.resolve_typaram(self.mir.return_ty());
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.interpreter.mir_encoder().get_local_span(return_local);
@@ -436,7 +436,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
     for PureFunctionBackwardInterpreter<'p, 'v, 'tcx>
 {
     type State = MultiExprBackwardInterpreterState;
-    type Error = EncodingError;
+    type Error = SpannedEncodingError;
 
     fn apply_terminator(
         &self,
@@ -741,7 +741,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     trace!("Encoding stub pure function call '{}'", function_name);
                                     if !is_cmp_call {
                                         self.encoder
-                                            .register_encoding_error(EncodingError::incorrect(
+                                            .register_encoding_error(SpannedEncodingError::incorrect(
                                                 format!(
                                                     "use of impure function {:?} in assertion is not allowed",
                                                     func_proc_name

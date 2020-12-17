@@ -20,9 +20,9 @@ use std::fmt;
 use crate::utils::type_visitor::{self, TypeVisitor};
 use prusti_interface::specs::typed;
 use log::{trace, debug};
-use crate::encoder::errors::PositionlessEncodingError;
-use crate::encoder::errors::PositionlessEncodingResult;
+use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 #[derive(Clone, Debug)]
 pub struct BorrowInfo<P>
@@ -260,7 +260,7 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
     }
 
     fn analyse_return_ty(&mut self, ty: Ty<'tcx>)
-        -> PositionlessEncodingResult<()>
+        -> EncodingResult<()>
     {
         self.is_path_blocking = true;
         self.current_path = Some(mir::RETURN_PLACE.into());
@@ -270,7 +270,7 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
     }
 
     fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>)
-        -> PositionlessEncodingResult<()>
+        -> EncodingResult<()>
     {
         self.is_path_blocking = false;
         self.current_path = Some(arg.into());
@@ -313,13 +313,13 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
 }
 
 impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
-    type Error = PositionlessEncodingError;
+    type Error = EncodingError;
 
     fn visit_unsupported_sty(
         &mut self,
         sty: &TyKind<'tcx>
     ) -> Result<(), Self::Error> {
-        Err(PositionlessEncodingError::unsupported(
+        Err(EncodingError::unsupported(
             format!("unsupported type {:?}", sty)
         ))
     }
@@ -418,7 +418,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     tcx: TyCtxt<'tcx>,
     specification: typed::SpecificationSet<'tcx>,
     maybe_tymap: Option<&HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
-) -> PositionlessEncodingResult<ProcedureContractMirDef<'tcx>>
+) -> EncodingResult<ProcedureContractMirDef<'tcx>>
 where
     'a: 'p,
     'tcx: 'a,

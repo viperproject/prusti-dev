@@ -8,9 +8,9 @@ use crate::encoder::{Encoder, snapshot_encoder};
 use prusti_common::vir::{ExprFolder, compute_identifier, FallibleExprFolder};
 use prusti_common::vir;
 use crate::encoder::snapshot_encoder::Snapshot;
-use crate::encoder::errors::PositionlessEncodingError;
-use crate::encoder::errors::PositionlessEncodingResult;
+use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 pub struct SnapshotSpecPatcher<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -24,7 +24,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotSpecPatcher<'p, 'v, 'tcx> {
     }
 
     pub fn patch_spec(&self, spec: vir::Expr)
-        -> PositionlessEncodingResult<vir::Expr>
+        -> EncodingResult<vir::Expr>
     {
         PostSnapshotPatcher {
             encoder: self.encoder
@@ -37,7 +37,7 @@ struct PostSnapshotPatcher<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for PostSnapshotPatcher<'p, 'v, 'tcx> {
-    type Error = PositionlessEncodingError;
+    type Error = EncodingError;
 
     fn fallible_fold_func_app(
         &mut self,
@@ -129,7 +129,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PostSnapshotPatcher<'p, 'v, 'tcx> {
         mirror_func: vir::DomainFunc,
         args: Vec<vir::Expr>,
         pos: vir::Position
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let patched_args = args
             .into_iter()
             .map(|a|
@@ -169,7 +169,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PostSnapshotPatcher<'p, 'v, 'tcx> {
         formal_args: Vec<vir::LocalVar>,
         return_type: vir::Type,
         pos: vir::Position,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         // we need to rectify cases in which there is a mismatch between the
         // functions formal arguments (which do not involve snapshots)
         // and its actual arguments (which may involve snapshots)
