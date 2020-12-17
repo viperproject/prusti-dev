@@ -28,7 +28,7 @@ use std::collections::HashMap;
 use log::{debug, trace};
 use prusti_interface::PrustiError;
 use rustc_span::Span;
-use crate::encoder::errors::PositionlessEncodingResult;
+use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {

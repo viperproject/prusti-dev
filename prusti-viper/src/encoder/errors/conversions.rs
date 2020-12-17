@@ -4,14 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::errors::PositionlessEncodingError;
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
+use crate::encoder::errors::EncodingError;
 
-impl From<PlaceRegionsError> for PositionlessEncodingError {
+impl From<PlaceRegionsError> for EncodingError {
     fn from(err: PlaceRegionsError) -> Self {
         match err {
-            PlaceRegionsError::Unsupported(msg) =>
-                PositionlessEncodingError::unsupported(msg)
+            PlaceRegionsError::Unsupported(msg) => EncodingError::unsupported(msg)
         }
     }
 }

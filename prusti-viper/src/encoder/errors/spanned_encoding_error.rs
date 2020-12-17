@@ -4,37 +4,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_interface::PrustiError;
 use rustc_span::MultiSpan;
-use crate::encoder::errors::PositionlessEncodingError;
+use prusti_interface::PrustiError;
+use crate::encoder::errors::EncodingError;
+use crate::encoder::errors::EncodingErrorKind;
 
 /// An error in the encoding with information regarding the source code span that caused it.
 #[derive(Clone, Debug)]
 pub struct SpannedEncodingError {
-    pub(super) error: PositionlessEncodingError,
+    pub(super) error: EncodingErrorKind,
     span: MultiSpan,
 }
 
 pub type SpannedEncodingResult<T> = Result<T, SpannedEncodingError>;
 
-impl Into<PrustiError> for SpannedEncodingError {
-    fn into(self) -> PrustiError {
-        match self.error {
-            PositionlessEncodingError::Unsupported(msg) => {
-                PrustiError::unsupported(msg, self.span)
+impl From<SpannedEncodingError> for PrustiError {
+    fn from(other: SpannedEncodingError) -> Self {
+        match other.error {
+            EncodingErrorKind::Unsupported(msg) => {
+                PrustiError::unsupported(msg, other.span)
             }
-            PositionlessEncodingError::Incorrect(msg) => {
-                PrustiError::incorrect(msg, self.span)
+            EncodingErrorKind::Incorrect(msg) => {
+                PrustiError::incorrect(msg, other.span)
             }
-            PositionlessEncodingError::Internal(msg) => {
-                PrustiError::internal(msg, self.span)
+            EncodingErrorKind::Internal(msg) => {
+                PrustiError::internal(msg, other.span)
             }
         }
     }
 }
 
 impl SpannedEncodingError {
-    fn new<S: Into<MultiSpan>>(error: PositionlessEncodingError, span: S) -> Self {
+    pub(super) fn new<S: Into<MultiSpan>>(error: EncodingErrorKind, span: S) -> Self {
         SpannedEncodingError {
             error,
             span: span.into(),
@@ -44,15 +45,15 @@ impl SpannedEncodingError {
     /// Usage of an unsupported Rust feature (e.g. dereferencing raw pointers)
     pub fn unsupported<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
         SpannedEncodingError::new(
-            PositionlessEncodingError::unsupported(message),
+            EncodingErrorKind::unsupported(message),
             span
         )
     }
 
-    /// Report an incorrect usage of Prusti (e.g. call an impure function in a contract)
+    /// An incorrect usage of Prusti (e.g. call an impure function in a contract)
     pub fn incorrect<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
         SpannedEncodingError::new(
-            PositionlessEncodingError::incorrect(message),
+            EncodingErrorKind::incorrect(message),
             span
         )
     }
@@ -60,12 +61,12 @@ impl SpannedEncodingError {
     /// An internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
         SpannedEncodingError::new(
-            PositionlessEncodingError::internal(message),
+            EncodingErrorKind::internal(message),
             span
         )
     }
 
-    pub fn as_positionless(&self) -> &PositionlessEncodingError {
+    pub fn kind(&self) -> &EncodingErrorKind {
         &self.error
     }
 

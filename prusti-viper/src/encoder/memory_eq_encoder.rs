@@ -12,8 +12,8 @@ use prusti_common::vir;
 use prusti_common::vir::ExprIterator;
 use crate::encoder::Encoder;
 use crate::encoder::type_encoder::compute_discriminant_values;
-use crate::encoder::errors::PositionlessEncodingError;
-use crate::encoder::errors::PositionlessEncodingResult;
+use crate::encoder::errors::EncodingError;
+use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 
 /// Encoder of memory equality functions
@@ -42,7 +42,7 @@ impl MemoryEqEncoder {
         second: vir::Expr,
         self_ty: ty::Ty<'tcx>,
         position: vir::Position,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let typ = first.get_type().clone();
         assert!(&typ == second.get_type());
         let mut name = typ.name();
@@ -68,7 +68,7 @@ impl MemoryEqEncoder {
         encoder: &Encoder<'_, 'tcx>,
         name: String,
         self_ty: ty::Ty<'tcx>
-    ) -> PositionlessEncodingResult<()> {
+    ) -> EncodingResult<()> {
         assert!(!self.memory_eq_funcs.contains_key(&name));
         // Mark that we started encoding this function to avoid infinite recursion.
         self.memory_eq_funcs.insert(name.clone(), None);
@@ -127,7 +127,7 @@ impl MemoryEqEncoder {
         first: vir::Expr,
         second: vir::Expr,
         self_ty: ty::Ty<'tcx>
-    ) -> PositionlessEncodingResult<Option<vir::Expr>> {
+    ) -> EncodingResult<Option<vir::Expr>> {
         let eq = match self_ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
@@ -161,12 +161,12 @@ impl MemoryEqEncoder {
                 None
             }
             ty::TyKind::Ref(..) => {
-                return Err(PositionlessEncodingError::unsupported(
+                return Err(EncodingError::unsupported(
                     "memory equality between reference types is unsupported"
                 ));
             }
             ty::TyKind::RawPtr(..) => {
-                return Err(PositionlessEncodingError::unsupported(
+                return Err(EncodingError::unsupported(
                     "memory equality between raw pointers is unsupported"
                 ));
             }
@@ -188,7 +188,7 @@ impl MemoryEqEncoder {
         second: vir::Expr,
         adt_def: &'tcx ty::AdtDef,
         subst: ty::subst::SubstsRef<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let tcx = encoder.env().tcx();
         let num_variants = adt_def.variants.len();
         let mut conjuncts = Vec::new();
@@ -254,7 +254,7 @@ impl MemoryEqEncoder {
         first: vir::Expr,
         second: vir::Expr,
         elems: ty::subst::SubstsRef<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let mut conjuncts = Vec::new();
         for (field_num, arg) in elems.iter().enumerate() {
             let ty = arg.expect_ty();
@@ -316,7 +316,7 @@ impl MemoryEqEncoder {
         typ: vir::Type,
         self_variant: &ty::VariantDef,
         subst: ty::subst::SubstsRef<'tcx>,
-    ) -> PositionlessEncodingResult<()> {
+    ) -> EncodingResult<()> {
         assert!(!self.memory_eq_funcs.contains_key(&name));
         // Mark that we started encoding this function to avoid infinite recursion.
         self.memory_eq_funcs.insert(name.clone(), None);

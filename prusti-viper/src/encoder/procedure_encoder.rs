@@ -7,8 +7,8 @@
 use crate::encoder::borrows::ProcedureContract;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{
-    SpannedEncodingError, ErrorCtxt, PanicCause, PositionlessEncodingError, WithSpan, RunIfErr,
-    PositionlessEncodingResult, SpannedEncodingResult
+    SpannedEncodingError, ErrorCtxt, PanicCause, EncodingError, WithSpan, RunIfErr,
+    EncodingResult, SpannedEncodingResult
 };
 use crate::encoder::foldunfold;
 use crate::encoder::initialisation::InitInfo;
@@ -64,6 +64,7 @@ use prusti_interface::specs::typed;
 use ::log::{trace, debug};
 use std::borrow::Borrow as StdBorrow;
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
+use crate::encoder::errors::EncodingErrorKind;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -1049,8 +1050,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         match stmts_succ_res {
             Ok(stmts_succ) => Ok(stmts_succ),
             Err(err) => {
-                let unsupported_msg = match err.as_positionless() {
-                    PositionlessEncodingError::Unsupported(msg)
+                let unsupported_msg = match err.kind() {
+                    EncodingErrorKind::Unsupported(msg)
                         if config::allow_unreachable_unsupported_code() => {
                         msg.to_string()
                     },
@@ -1227,7 +1228,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut relevant_active_loan_places = vec![];
         for loan in &all_active_loans {
             let opt_places = self.polonius_info().get_loan_places(loan)
-                .map_err(PositionlessEncodingError::from)
+                .map_err(EncodingError::from)
                 .with_span(span)?;
             if let Some(loan_places) = opt_places {
                 let (_, encoded_source, _) = self.encode_loan_places(&loan_places);
@@ -1342,7 +1343,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// A borrow is mutable if it was a MIR unique borrow, a move of
     /// a borrow, or a argument of a function.
     fn is_mutable_borrow(&self, loan: facts::Loan)
-        -> PositionlessEncodingResult<bool>
+        -> EncodingResult<bool>
     {
         if let Some(stmt) = self.polonius_info().get_assignment_for_loan(loan)? {
             Ok(match stmt.kind {
@@ -1441,7 +1442,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let loan_location = self.polonius_info().get_loan_location(&loan);
         let loan_places = self.polonius_info().get_loan_places(&loan)
-            .map_err(PositionlessEncodingError::from)
+            .map_err(EncodingError::from)
             .with_span(span)?.unwrap();
         let (expiring, restored, is_mut) = self.encode_loan_places(&loan_places);
         let borrowed_places = vec![restored.clone()];
@@ -2651,7 +2652,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_pure_function_call_lhs_value(
         &mut self,
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         match destination.as_ref() {
             Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
             None => unreachable!(),
@@ -3005,7 +3006,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
-    ) -> PositionlessEncodingResult<Option<(vir::Expr, vir::Expr)>> {
+    ) -> EncodingResult<Option<(vir::Expr, vir::Expr)>> {
         // Encode args and return.
         let encoded_args: Vec<vir::Expr> = contract
             .args
@@ -3854,7 +3855,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loop_head: BasicBlockIndex,
         loop_inv: BasicBlockIndex,
         drop_read_references: bool,
-    ) -> PositionlessEncodingResult<(Vec<vir::Expr>, Vec<vir::Expr>)> {
+    ) -> EncodingResult<(Vec<vir::Expr>, Vec<vir::Expr>)> {
         trace!(
             "[enter] encode_loop_invariant_permissions \
              loop_head={:?} drop_read_references={}",
@@ -4246,7 +4247,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         containing_def_id: rustc_hir::def_id::DefId,
         location: Option<mir::Location>,
         place: &Place<'tcx>,
-    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         let mir_encoder = if let Some(location) = location {
             let block = &self.mir.basic_blocks()[location.block];
             assert_eq!(block.statements.len(), location.statement_index, "expected terminator location");

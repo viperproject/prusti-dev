@@ -5,18 +5,18 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_span::MultiSpan;
-use crate::encoder::errors::{SpannedEncodingError, PositionlessEncodingError};
+use crate::encoder::errors::{SpannedEncodingError, EncodingError};
 use log::trace;
 
-/// Helper trait to convert a `Result<T, PositionlessEncodingError>` to a
+/// Helper trait to convert a `Result<T, EncodingError>` to a
 /// `Result<T, SpannedEncodingError>`.
 pub trait WithSpan<T> {
     fn with_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, SpannedEncodingError>;
 }
 
-impl<T> WithSpan<T> for Result<T, PositionlessEncodingError> {
+impl<T> WithSpan<T> for Result<T, EncodingError> {
     fn with_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, SpannedEncodingError> {
-        trace!("Converting a PositionlessEncodingError to SpannedEncodingError in a Result");
+        trace!("Converting a EncodingError to SpannedEncodingError in a Result");
         self.map_err(|err| err.with_span(span))
     }
 }

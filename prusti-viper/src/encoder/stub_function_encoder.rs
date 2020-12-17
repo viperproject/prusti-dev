@@ -12,7 +12,7 @@ use rustc_middle::mir;
 use log::{trace, debug};
 use crate::encoder::errors::SpannedEncodingError;
 use crate::encoder::errors::WithSpan;
-use crate::encoder::errors::PositionlessEncodingResult;
+use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 
 pub struct StubFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {

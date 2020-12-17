@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::errors::{
-    ErrorCtxt, SpannedEncodingResult, SpannedEncodingError, PositionlessEncodingError, WithSpan
+    ErrorCtxt, SpannedEncodingResult, SpannedEncodingError, EncodingError, WithSpan
 };
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;

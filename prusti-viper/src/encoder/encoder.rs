@@ -9,7 +9,7 @@ use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, Pro
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{ErrorCtxt, ErrorManager, SpannedEncodingError, PositionlessEncodingError, WithSpan, RunIfErr};
+use crate::encoder::errors::{ErrorCtxt, ErrorManager, SpannedEncodingError, EncodingError, WithSpan, RunIfErr};
 use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
@@ -51,7 +51,7 @@ use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
 use crate::encoder::memory_eq_encoder::MemoryEqEncoder;
 use rustc_span::MultiSpan;
 use crate::encoder::utils::transpose;
-use crate::encoder::errors::PositionlessEncodingResult;
+use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 
 const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
@@ -62,7 +62,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     error_manager: RefCell<ErrorManager<'tcx>>,
     procedure_contracts: RefCell<HashMap<
         ProcedureDefId,
-        PositionlessEncodingResult<ProcedureContractMirDef<'tcx>>
+        EncodingResult<ProcedureContractMirDef<'tcx>>
     >>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::Function>>,
@@ -358,7 +358,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn get_procedure_contract(&self, proc_def_id: ProcedureDefId)
-        -> PositionlessEncodingResult<ProcedureContractMirDef<'tcx>>
+        -> EncodingResult<ProcedureContractMirDef<'tcx>>
     {
         let spec = typed::SpecificationSet::Procedure(
             self.get_procedure_specs(proc_def_id)
@@ -370,7 +370,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn get_procedure_contract_for_def(
         &self,
         proc_def_id: ProcedureDefId,
-    ) -> PositionlessEncodingResult<ProcedureContract<'tcx>> {
+    ) -> EncodingResult<ProcedureContract<'tcx>> {
         self.procedure_contracts
             .borrow_mut()
             .entry(proc_def_id)
@@ -385,7 +385,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         proc_def_id: ProcedureDefId,
         args: &Vec<places::Local>,
         target: places::Local,
-    ) -> PositionlessEncodingResult<ProcedureContract<'tcx>> {
+    ) -> EncodingResult<ProcedureContract<'tcx>> {
         // get specification on trait declaration method or inherent impl
         let trait_spec = self.get_procedure_specs(proc_def_id)
             .unwrap_or_else(|| {
@@ -396,7 +396,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let tymap = self.typaram_repl.borrow();
 
         if tymap.len() != 1 {
-            return Err(PositionlessEncodingError::internal(
+            return Err(EncodingError::internal(
                 format!("tymap.len() = {}, but should be 1", tymap.len())
             ));
         }
@@ -472,7 +472,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         viper_field_name: String,
         ty: ty::Ty<'tcx>
-    ) -> PositionlessEncodingResult<vir::Field> {
+    ) -> EncodingResult<vir::Field> {
         let type_name = self.encode_type_predicate_use(ty)?;
         self.fields
             .borrow_mut()
@@ -488,13 +488,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_dereference_field(&self, ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<vir::Field>
+        -> EncodingResult<vir::Field>
     {
         self.encode_raw_ref_field("val_ref".to_string(), ty)
     }
 
     pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<vir::Field>
+        -> EncodingResult<vir::Field>
     {
         let viper_field_name = format!("f${}", field_name);
         self.encode_raw_ref_field(viper_field_name, ty)
@@ -638,7 +638,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_cast_function_use(&self, src_ty: ty::Ty<'tcx>, dst_ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<String>
+        -> EncodingResult<String>
     {
         trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
@@ -694,21 +694,21 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_value_or_ref_type(&self, ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<vir::Type>
+        -> EncodingResult<vir::Type>
     {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_value_or_ref_type()
     }
 
     pub fn encode_value_type(&self, ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<vir::Type>
+        -> EncodingResult<vir::Type>
     {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_value_type()
     }
 
     pub fn encode_type(&self, ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<vir::Type>
+        -> EncodingResult<vir::Type>
     {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_type()
@@ -747,7 +747,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<String>
+        -> EncodingResult<String>
     {
         if !self.type_predicate_names.borrow().contains_key(ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
@@ -766,7 +766,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<vir::Predicate>
+        -> EncodingResult<vir::Predicate>
     {
         let predicate_name = self.encode_type_predicate_use(ty).unwrap();
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
@@ -784,7 +784,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_snapshot(&self, ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<Box<Snapshot>>
+        -> EncodingResult<Box<Snapshot>>
     {
         let ty = self.dereference_ty(ty);
         let predicate_name = self.encode_type_predicate_use(ty)
@@ -837,7 +837,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_snapshot_use(&self, predicate_name: String)
-        -> PositionlessEncodingResult<Box<Snapshot>>
+        -> EncodingResult<Box<Snapshot>>
     {
         if !self.snapshots.borrow().contains_key(&predicate_name) {
             if !self.predicate_types.borrow().contains_key(&predicate_name) {
@@ -858,7 +858,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<String>
+        -> EncodingResult<String>
     {
         // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
         if !self.type_invariant_names.borrow().contains_key(ty.kind()) {
@@ -876,7 +876,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_type_invariant_def(&self, ty: ty::Ty<'tcx>)
-        -> PositionlessEncodingResult<vir::Function>
+        -> EncodingResult<vir::Function>
     {
         let invariant_name = self.encode_type_invariant_use(ty)?;
         if !self.type_invariants.borrow().contains_key(&invariant_name) {
@@ -918,7 +918,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         ty: &ty::TyS<'tcx>,
         value: &ty::ConstKind<'tcx>
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         trace!("encode_const_expr {:?}", value);
         let opt_scalar_value = match value {
             ty::ConstKind::Value(ref const_value) => {
@@ -938,7 +938,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let scalar_value = if let Some(v) = opt_scalar_value {
             v
         } else {
-            return Err(PositionlessEncodingError::Unsupported(
+            return Err(EncodingError::unsupported(
                 format!("unsupported constant value: {:?}", value)
             ));
         };
@@ -1027,7 +1027,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         ty: ty::Ty<'tcx>,
         encoded_arg: vir::Expr
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let type_pred = self.encode_type_predicate_use(ty)
             .expect("failed to encode unsupported type");
         Ok(vir::Expr::FuncApp(
@@ -1136,7 +1136,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn patch_pure_post_with_mirror_call(&self, function: vir::Function)
-        -> PositionlessEncodingResult<vir::Function>
+        -> EncodingResult<vir::Function>
     {
         // use function identifier to be more robust in the presence of generics
         let mirror = self.encode_pure_snapshot_mirror(
@@ -1199,7 +1199,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         pure_func_name: String,
         pure_formal_args: &Vec<vir::LocalVar>,
         pure_return_type: &vir::Type
-    ) -> PositionlessEncodingResult<Option<vir::DomainFunc>> {
+    ) -> EncodingResult<Option<vir::DomainFunc>> {
         if !self.snap_mirror_funcs
             .borrow()
             .contains_key(&pure_func_name)
@@ -1436,7 +1436,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// TODO: This is a hack, it generates strings that can be used to instantiate generic pure
     /// functions.
     pub fn type_substitution_strings(&self)
-        -> PositionlessEncodingResult<HashMap<String, String>>
+        -> EncodingResult<HashMap<String, String>>
     {
         self.current_tymap()
             .iter()
@@ -1456,7 +1456,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// TODO: This is a hack, it generates a String that can be used for uniquely identifying this
     /// type substitution.
-    pub fn type_substitution_key(&self) -> PositionlessEncodingResult<String> {
+    pub fn type_substitution_key(&self) -> EncodingResult<String> {
         let mut substs: Vec<_> = self
             .type_substitution_strings()?
             .into_iter()
