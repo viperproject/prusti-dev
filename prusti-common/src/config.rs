@@ -127,6 +127,7 @@ lazy_static! {
     });
 }
 
+/// Return vector of arguments filtered out by prefix
 pub fn get_filtered_args() -> Vec<String> {
     CommandLine::with_prefix("-P")
         .get_remaining_args()
@@ -261,30 +262,32 @@ pub fn assert_timeout() -> u64 {
     read_setting("ASSERT_TIMEOUT")
 }
 
-// TODO
-// NOTE: I don't know why we can't do these with a macro? 
-
 /// Use the Silicon configuration option `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("USE_MORE_COMPLETE_EXHALE")
 }
 
+/// Should Prusti print the items collected for verification.
 pub fn print_collected_verification_items() -> bool {
     read_setting("PRINT_COLLECTED_VERIFICATION_ITEMS")
 }
 
+/// Should Prusti print the AST with desugared specifications.
 pub fn print_desugared_specs() -> bool {
     read_setting("PRINT_DESUGARED_SPECS")
 }
 
+/// Should Prusti skip the verification part.
 pub fn skip_verify() -> bool {
     read_setting("SKIP_VERIFY")
 }
 
+/// Should Prusti print the type-checked specifications.
 pub fn print_typeckd_specs() -> bool {
     read_setting("PRINT_TYPECKD_SPECS")
 }
 
+/// Should Prusti hide the UUIDs of expressions and specifications.
 pub fn hide_uuids() -> bool {
     read_setting("HIDE_UUIDS")
 }
