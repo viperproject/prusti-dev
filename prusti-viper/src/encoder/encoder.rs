@@ -700,7 +700,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.procedures.borrow_mut().insert(def_id, method);
         }
 
-        // TODO: not just for closures
+        // TODO: specification functions are currently only encoded for closures
+        // but we want them (on demand) for all functions when they are passed
+        // as a function pointer; likewise we want them for function *signatures*,
+        // when Fn* values are passed dynamically in boxes.
+        // This is not the correct place to trigger the encoding, it should be
+        // moved to where the spec function is used. `encode_spec_funcs` already
+        // ensures that spec functions for a particular `DefId` are encoded only
+        // once.
         if self.env.tcx().is_closure(def_id) {
             self.encode_spec_funcs(def_id)?;
         }

@@ -180,8 +180,7 @@ pub trait TypeVisitor<'tcx>: Sized {
         substs: SubstsRef<'tcx>
     ) -> Result<(), Self::Error> {
         trace!("visit_closure({:?})", def_id);
-        // TODO: visit types of closure
-        Ok(())
+        walk_closure(self, def_id, substs)
     }
 }
 
@@ -249,4 +248,18 @@ pub fn walk_raw_ptr<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     _: Mutability,
 ) -> Result<(), E> {
     visitor.visit_ty(ty)
+}
+
+pub fn walk_closure<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
+    visitor: &mut V,
+    def_id: DefId,
+    substs: SubstsRef<'tcx>
+) -> Result<(), E> {
+    let cl_substs = substs.as_closure();
+    // TODO: when are there bound typevars? can type visitor deal with generics?
+    let fn_sig = cl_substs.sig().no_bound_vars().unwrap();
+    for ty in fn_sig.inputs() {
+        visitor.visit_ty(ty)?;
+    }
+    visitor.visit_ty(fn_sig.output())
 }
