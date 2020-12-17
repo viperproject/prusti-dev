@@ -6,7 +6,6 @@
 
 use config_crate::{Config, Environment, File, CommandLine};
 use std::env;
-use std::collections::HashMap;
 use std::sync::RwLock;
 use serde::Deserialize;
 
