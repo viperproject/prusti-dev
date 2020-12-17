@@ -10,8 +10,10 @@ use prusti_viper::verifier::Verifier;
 use prusti_common::config;
 use prusti_common::report::user;
 
-pub fn verify<'tcx>(env: Environment<'tcx>, spec: typed::SpecificationMap<'tcx>,
-                    extern_spec: typed::ExternSpecificationMap<'tcx>) {
+pub fn verify<'tcx>(
+    env: Environment<'tcx>,
+    def_spec: typed::DefSpecificationMap<'tcx>
+) {
     trace!("[verify] enter");
 
     if env.has_errors() {
