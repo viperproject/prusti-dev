@@ -4,17 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use config_crate::{
-    Config, 
-    Environment, 
-    File, 
-    Source, 
-    Value, 
-    ValueKind, // NOTE not public in crates.io
-    ConfigError
-};
+use config_crate::{Config, Environment, File, CommandLine};
 use std::env;
-use std::collections::HashMap;
 use std::sync::RwLock;
 use serde::Deserialize;
 
@@ -58,128 +49,6 @@ impl Optimizations {
             remove_trivial_assertions: true,
             clean_cfg: true,
         }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct CommandLine {
-    /// Optional prefix that will limit args to those keys that begin with the defined prefix.
-    /// 
-    /// Example: The arg -Zdebug=true would become debug=true with a prefix of -Z
-    prefix: Option<String>,
-
-    /// Character sequence that separates key, value pairs. The default separator is '=', 
-    /// the separator char must only occur once in the flag or it will be ignored.
-    /// 
-    /// Example: debug=true is a valid key,val pair with separator of '='
-    ///          debug= would be invalid because there is no value.
-    ///          debug+true would be valid with a separator of '+' 
-    separator: String,
-
-    /// Boolean indicating whether invalid flags should be ignored or result in a ConfigError
-    /// 
-    /// Note: the method get_remaining_args always
-    ///       returns the invalid args regardless of this boolean 
-    ignore_invalid: bool,
-}
-
-impl CommandLine {
-    pub fn new() -> Self {
-        CommandLine::default()
-    }
-
-    pub fn with_prefix(s: &str) -> Self {
-        CommandLine {
-            prefix: Some(s.into()),
-            ..CommandLine::default()
-        }
-    }
-
-    pub fn prefix(mut self, s: &str) -> Self {
-        self.prefix = Some(s.into());
-        self
-    }
-
-    pub fn separator(mut self, s: &str) -> Self {
-        self.separator = s.into();
-        self
-    }
-
-    pub fn ignore_invalid(mut self, b: bool) -> Self {
-        self.ignore_invalid = b;
-        self
-    }
-
-    /// Return String iterator of arguments that are not valid.
-    pub fn get_remaining_args(self) -> impl Iterator<Item = String> {
-        env::args()
-            .filter(move |arg| !self.valid_arg(arg))
-    }
-
-    fn valid_arg(&self, arg: &str) -> bool {
-        let pref = self.get_prefix();
-        let matches_pref = arg.starts_with(&pref);
-        let valid_lens = arg[pref.len()..].split(&self.separator)
-            .map(|s| if s.is_empty() { 0 } else { 1 })
-            .sum::<i32>() == 2;
-        matches_pref && valid_lens
-    }
-
-    fn get_prefix(&self) -> String {
-        match self.prefix {
-            Some(ref prefix) => prefix.to_owned(),
-            _ => String::default(),
-        }
-    }
-}
-
-impl Default for CommandLine {
-    fn default() -> CommandLine {
-        CommandLine {
-            prefix: None,
-            separator: String::from("="),
-            ignore_invalid: false
-        }
-    }
-}
-
-impl Source for CommandLine {
-    fn clone_into_box(&self) -> Box<Source + Send + Sync> {
-        Box::new((*self).clone())
-    }
-
-    fn collect(&self) -> Result<HashMap<String, Value>, ConfigError> {
-        let mut m = HashMap::new();
-        let uri = String::from("command line");
-
-        let prefix_pattern = self.get_prefix();
-
-        for arg in env::args() {
-            // ignore invalid args
-            let valid_arg = self.valid_arg(&arg);
-
-            if !valid_arg && !self.ignore_invalid {
-                debug!("ignoring argument: {}", arg);
-                return Err(ConfigError::Message(format!("Invalid CLI arg: {}", arg)));
-            } else if !valid_arg {
-                continue;
-            }
-
-            let parts: Vec<&str> = arg.split(&self.separator).collect();
-
-            // TODO do we need the to_uppercase for normalization? 
-            let key = parts[0][prefix_pattern.len()..].to_uppercase().to_owned();
-            let val = parts[1].to_owned();
-
-            debug!("(key, val) ({}, {})", key, val);
-
-            m.insert(
-                key,
-                Value::new(Some(&uri), ValueKind::String(val)),
-            );
-        } 
-
-        Ok(m)
     }
 }
 
@@ -256,6 +125,12 @@ lazy_static! {
 
         settings
     });
+}
+
+pub fn get_filtered_args() -> Vec<String> {
+    CommandLine::with_prefix("-P")
+        .get_remaining_args()
+        .collect::<Vec<String>>()
 }
 
 /// Generate a dump of the settings
