@@ -4,10 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use config_crate::{Config, Environment, File, CommandLine};
+mod commandline;
+
+use config_crate::{Config, Environment, File};
+use self::commandline::CommandLine;
 use std::env;
 use std::sync::RwLock;
 use serde::Deserialize;
+
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
@@ -88,7 +92,7 @@ lazy_static! {
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("OPTIMIZATIONS","all").unwrap();
 
-        // Default flags from the old ConfigFlags object
+        // Default cl arguments from the old ConfigFlags struct
         settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
         settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
         settings.set_default("PRINT_COLLECTED_VERIFICATION_ITEMS", false).unwrap();
