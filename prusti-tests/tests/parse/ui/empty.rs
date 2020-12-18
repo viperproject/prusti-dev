@@ -1,3 +1,3 @@
-// compile-flags: -Zprint-desugared-specs -Zskip-verify -Zhide-uuids
+// compile-flags: -Pprint_desugared_specs=true -Pskip_verify=true -Phide_uuids=true
 
 fn main() {}
