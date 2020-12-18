@@ -85,6 +85,8 @@ pub enum Const {
     Bool(bool),
     Int(i64),
     BigInt(String),
+    /// Used for encoding function pointers.
+    Dummy,
 }
 
 impl fmt::Display for Expr {
@@ -236,6 +238,7 @@ impl fmt::Display for Const {
             &Const::Bool(val) => write!(f, "{}", val),
             &Const::Int(val) => write!(f, "{}", val),
             &Const::BigInt(ref val) => write!(f, "{}", val),
+            &Const::Dummy => write!(f, "Dummy"),
         }
     }
 }
@@ -867,6 +870,7 @@ impl Expr {
                 match constant {
                     Const::Bool(..) => &Type::Bool,
                     Const::Int(..) | Const::BigInt(..) => &Type::Int,
+                    Const::Dummy => &Type::Int,
                 }
             }
             Expr::BinOp(ref kind, box ref base1, box ref base2, _pos) => {

@@ -63,6 +63,9 @@ pub trait TypeVisitor<'tcx>: Sized {
             TyKind::Closure(def_id, substs) => {
                 self.visit_closure(def_id, substs)
             }
+            TyKind::FnDef(def_id, substs) => {
+                self.visit_fndef(def_id, substs)
+            }
             ref x => {
                 self.visit_unsupported_sty(x)
             }
@@ -182,6 +185,15 @@ pub trait TypeVisitor<'tcx>: Sized {
         trace!("visit_closure({:?})", def_id);
         walk_closure(self, def_id, substs)
     }
+
+    fn visit_fndef(
+        &mut self,
+        def_id: DefId,
+        substs: SubstsRef<'tcx>
+    ) -> Result<(), Self::Error> {
+        trace!("visit_fndef({:?})", def_id);
+        walk_fndef(self, def_id, substs)
+    }
 }
 
 pub fn walk_adt<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
@@ -262,4 +274,15 @@ pub fn walk_closure<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
         visitor.visit_ty(ty)?;
     }
     visitor.visit_ty(fn_sig.output())
+}
+
+pub fn walk_fndef<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
+    visitor: &mut V,
+    def_id: DefId,
+    substs: SubstsRef<'tcx>
+) -> Result<(), E> {
+    for ty in substs.types() {
+        visitor.visit_ty(ty)?;
+    }
+    Ok(())
 }

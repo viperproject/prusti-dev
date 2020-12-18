@@ -269,7 +269,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     debug!("spec ent repl: {:?} -> {:?}", ty, ty_repl);
 
                     match ty_repl.kind() {
-                        ty::TyKind::Closure(def_id, substs) => {
+                        ty::TyKind::Closure(def_id, _substs)
+                        | ty::TyKind::FnDef(def_id, _substs) => {
                             let encoded_pres = pres.iter()
                                 .map(|x| self.encode_assertion(x))
                                 .collect::<Result<Vec<vir::Expr>, _>>()?
