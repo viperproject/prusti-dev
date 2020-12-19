@@ -1,5 +1,6 @@
 use config_crate::{Value, Source, ConfigError};
 use std::collections::HashMap;
+use itertools::Itertools;
 use std::env;
 
 #[derive(Clone, Debug)]
@@ -57,24 +58,29 @@ impl CommandLine {
             .filter(move |arg| !self.is_valid_arg(arg))
     }
 
-    // An argument is valid if it begins with the optional
-    // prefix, the separator pattern occurrs exactly once, 
-    // and the separator separates two non-empty strings.
-    fn is_valid_arg(&self, arg: &str) -> bool {
-        let prefix = self.get_prefix();
-        if arg.starts_with(&prefix) {
-            return arg[prefix.len()..].split(&self.separator)
-                .map(|s| if s.is_empty() { 3 } else { 1 })
-                .sum::<i32>() == 2;
-        }
-        false
-    }
-
     fn get_prefix(&self) -> String {
         match self.prefix {
             Some(ref prefix) => prefix.to_owned(),
             _ => String::default(),
         }
+    }
+
+    fn split_arg<'a>(&'a self, arg: &'a str) -> impl Iterator<Item = String> + 'a {
+        arg.splitn(2, &self.separator)
+            .map(|s| s.to_owned())
+    }
+
+    // An argument is valid if it begins with the optional
+    // prefix, the first occurrence of the separator pattern
+    // separates two non-empty strings.
+    fn is_valid_arg(&self, arg: &str) -> bool {
+        let prefix = self.get_prefix();
+        if arg.starts_with(&prefix) {
+            return self.split_arg(&arg[prefix.len()..])
+                .map(|s| if s.is_empty() { 3 } else { 1 })
+                .sum::<i32>() == 2;
+        }
+        false
     }
 }
 
@@ -103,19 +109,18 @@ impl Source for CommandLine {
 
             if !self.is_valid_arg(&arg) {
                 if !self.ignore_invalid {
-                    return Err(ConfigError::Message(format!("Invalid commandline arg: '{}'", arg)));
+                    return Err(ConfigError::Message(format!("Invalid command-line arg: '{}'", arg)));
                 }
 
                 continue;
             } 
 
-            let parts: Vec<&str> = arg.split(&self.separator).collect();
-
-            let key = parts[0][prefix_pattern.len()..].to_lowercase().to_owned();
-            let val = parts[1].to_owned();
-
+            // If arg is valid this can't panic
+            let (key, val) = self.split_arg(&arg[prefix_pattern.len()..])
+                                .next_tuple()
+                                .unwrap();
             m.insert(
-                key,
+                key.to_lowercase(),
                 Value::new(Some(&uri), val),
             );
         } 
