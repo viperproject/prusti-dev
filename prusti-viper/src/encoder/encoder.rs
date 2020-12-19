@@ -252,8 +252,80 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 type_vars: vec![],
             });
         }
+
+
+        if config::enable_purification_optimization() {
+                domains.push(self.get_axiomatized_functions_domain());
+                domains.push(self.get_nat_domain());
+        }
+
         domains.sort_by_key(|d| d.get_identifier());
         domains
+    }
+
+
+
+    fn get_nat_domain(&self) -> vir::Domain {
+        let nat_domain_name = "Nat";
+        let zero = vir::DomainFunc{ name: "zero".to_owned(),
+            formal_args:vec![],
+            return_type: vir::Type::Domain(nat_domain_name.to_owned()),
+            unique: false,
+            domain_name: "WhatIsThisValueSupposedToBe".to_owned()};
+            let succ = vir::DomainFunc{ name: "succ".to_owned(),
+            formal_args:vec![ vir::LocalVar{name: "val".to_owned(), typ: vir::Type::Domain(nat_domain_name.to_owned()) }],
+            return_type: vir::Type::Domain(nat_domain_name.to_owned()),
+            unique: false,
+            domain_name: "WhatIsThisValueSupposedToBe".to_owned()};
+            let functions = vec![zero, succ];
+
+        vir::Domain { name: nat_domain_name.to_owned(), functions, axioms: vec![], type_vars: vec![]}
+
+    }
+    fn get_axiomatized_functions_domain(&self) -> vir::Domain {
+        let new_domain_name: String = "domainThatContainsTheAxiomatizedPureFunctions".to_owned();
+
+        let mut axiomatized_functions_domain =vir::Domain { name: new_domain_name, functions: vec![], axioms: vec![], type_vars: vec![]};
+        let snapshots_info : HashMap<String, Box<Snapshot>> = self
+        .snapshots
+        .borrow()
+        .clone();
+
+        for f in self.pure_functions.borrow().values().into_iter() {
+            let domain_func_name = format!("domainVersionOf{}", f.name);
+            let mut domain_func_args = f.formal_args.iter().map(|e| {
+
+                    let old_type = e.typ.clone();
+                    let new_type = match old_type {
+                        vir::Type::TypedRef(r) => { 
+                            let domain_name = snapshots_info.get(&r)
+                            .and_then(|snap| snap.domain())
+                            .map(|domain| domain.name)
+                            .expect(&format!("No matching domain for {}", r));
+
+                            vir::Type::Domain(domain_name)
+                        
+                        },
+                        o @ _  => o
+
+                    };
+                    vir::LocalVar {
+                        name: e.name.clone(),
+                        typ: new_type,
+                    }
+
+            }).collect();
+            let domain_func_return_type =  f.return_type.clone();
+
+
+
+            let df = vir::DomainFunc {name : domain_func_name, formal_args:domain_func_args, return_type:domain_func_return_type, unique: false, domain_name: "DoesThisHaveToMatch".to_owned() };
+            axiomatized_functions_domain.functions.push(df);
+
+        }
+
+        axiomatized_functions_domain
+
     }
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
