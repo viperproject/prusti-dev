@@ -271,30 +271,29 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             formal_args:vec![],
             return_type: vir::Type::Domain(nat_domain_name.to_owned()),
             unique: false,
-            domain_name: "WhatIsThisValueSupposedToBe".to_owned()};
+            domain_name: nat_domain_name.to_owned()}; 
             let succ = vir::DomainFunc{ name: "succ".to_owned(),
             formal_args:vec![ vir::LocalVar{name: "val".to_owned(), typ: vir::Type::Domain(nat_domain_name.to_owned()) }],
             return_type: vir::Type::Domain(nat_domain_name.to_owned()),
             unique: false,
-            domain_name: "WhatIsThisValueSupposedToBe".to_owned()};
+            domain_name: nat_domain_name.to_owned()}; 
             let functions = vec![zero, succ];
 
         vir::Domain { name: nat_domain_name.to_owned(), functions, axioms: vec![], type_vars: vec![]}
 
     }
-    fn get_axiomatized_functions_domain(&self) -> vir::Domain {
-        let new_domain_name: String = "domainThatContainsTheAxiomatizedPureFunctions".to_owned();
 
-        let mut axiomatized_functions_domain =vir::Domain { name: new_domain_name, functions: vec![], axioms: vec![], type_vars: vec![]};
+    fn get_axiomatized_functions_domain(&self) -> vir::Domain {
+        let new_domain_name: String = "domainThatContainsTheAxiomatizedPureFunctions".to_owned(); //TODO
+
+        let mut axiomatized_functions_domain = vir::Domain { name: new_domain_name.clone(), functions: vec![], axioms: vec![], type_vars: vec![]};
         let snapshots_info : HashMap<String, Box<Snapshot>> = self
         .snapshots
         .borrow()
         .clone();
 
         for f in self.pure_functions.borrow().values().into_iter() {
-            let domain_func_name = format!("domainVersionOf{}", f.name);
-            let mut domain_func_args = f.formal_args.iter().map(|e| {
-
+            let mut formal_args: Vec<vir::LocalVar> = f.formal_args.iter().map(|e| {
                     let old_type = e.typ.clone();
                     let new_type = match old_type {
                         vir::Type::TypedRef(r) => { 
@@ -315,18 +314,51 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     }
 
             }).collect();
-            let domain_func_return_type =  f.return_type.clone();
+
+            formal_args.push(vir::LocalVar {
+                name: "count".to_string(),
+                typ: vir::Type::Domain("Nat".to_owned()),
+            });
+
+            let return_type =  f.return_type.clone();
+            let name = format!("domainVersionOf{}", f.name);
+
+            let df = vir::DomainFunc {name, formal_args: formal_args.clone(), return_type, unique: false, domain_name: new_domain_name.clone() }; 
+            axiomatized_functions_domain.functions.push(df.clone());
 
 
+            let pre_conds : vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
+            let post_conds : vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
+            let function_body = self.purify_function_body(&f.body.clone().unwrap());
+            info!("function_body {:?}", function_body);
 
-            let df = vir::DomainFunc {name : domain_func_name, formal_args:domain_func_args, return_type:domain_func_return_type, unique: false, domain_name: "DoesThisHaveToMatch".to_owned() };
-            axiomatized_functions_domain.functions.push(df);
+            let args: Vec<vir::Expr> = formal_args.clone().into_iter().map(|e|{ vir::Expr::Local(e, Default::default()) }).collect();
+            let function_call  = vir::Expr::DomainFuncApp(df, args, Default::default());
+            let function_identiry = vir::Expr::BinOp(vir::BinOpKind::EqCmp, Box::new(function_call), Box::new( function_body  ),Default::default());
+
+            let rhs : vir::Expr = vir::Expr::BinOp(vir::BinOpKind::And, Box::new(post_conds), Box::new(function_identiry),Default::default());
+
+            let e : vir::Expr = vir::Expr::BinOp(vir::BinOpKind::Implies, Box::new(pre_conds), Box::new(rhs),Default::default());
+            axiomatized_functions_domain.axioms.push(vir::DomainAxiom {
+                name: format!("axioms_for_{}", f.name), //TODO
+                expr: vir::Expr::ForAll(formal_args, vec![], Box::new(e) , vir::Position::default()),
+                domain_name: new_domain_name.clone(),
+            })
+
 
         }
 
         axiomatized_functions_domain
-
     }
+
+    fn purify_function_body(&self, f : &vir::Expr) -> vir::Expr {
+        match f {
+            vir::Expr::Unfolding(_,_,e,_,_,_) => self.purify_function_body(e),
+            _ => f.clone()
+        }
+    }
+    
+
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
         let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
