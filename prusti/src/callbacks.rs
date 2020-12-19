@@ -70,7 +70,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                     println!("{}", value);
                 }
             }
-            if !config::skip_verify() {
+            if !config::no_verify() {
                 verify(env, def_spec);
             }
         });

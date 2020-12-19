@@ -96,7 +96,6 @@ lazy_static! {
         settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
         settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
         settings.set_default("PRINT_COLLECTED_VERIFICATION_ITEMS", false).unwrap();
-        settings.set_default("SKIP_VERIFY", false).unwrap();
         settings.set_default("HIDE_UUIDS", false).unwrap();
         
         // Flags for debugging Prusti that can change verification results.
@@ -122,7 +121,7 @@ lazy_static! {
             Environment::with_prefix("PRUSTI").ignore_empty(true)
         ).unwrap();
 
-        // 5. Override with command line arguments -P<arg>=<val>
+        // 5. Override with command-line arguments -P<arg>=<val>
         settings.merge(
             CommandLine::with_prefix("-P").ignore_invalid(true)
         ).unwrap();
@@ -279,11 +278,6 @@ pub fn print_collected_verification_items() -> bool {
 /// Should Prusti print the AST with desugared specifications.
 pub fn print_desugared_specs() -> bool {
     read_setting("PRINT_DESUGARED_SPECS")
-}
-
-/// Should Prusti skip the verification part.
-pub fn skip_verify() -> bool {
-    read_setting("SKIP_VERIFY")
 }
 
 /// Should Prusti print the type-checked specifications.
