@@ -13,6 +13,7 @@
 #[macro_use]
 extern crate log;
 extern crate config as config_crate;
+extern crate itertools;
 #[macro_use]
 extern crate lazy_static;
 extern crate regex;
