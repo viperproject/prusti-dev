@@ -91,6 +91,7 @@ lazy_static! {
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("OPTIMIZATIONS","all").unwrap();
+        settings.set_default("ENABLE_PURIFICATION_OPTIMIZATION", false).unwrap();
 
         settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
         settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
@@ -376,6 +377,10 @@ pub fn optimizations() -> Optimizations {
     }
 
     return opt;
+}
+
+pub fn enable_purification_optimization() -> bool {
+    read_setting("ENABLE_PURIFICATION_OPTIMIZATION")
 }
 
 /// Replace the given basic blocks with ``assume false``.
