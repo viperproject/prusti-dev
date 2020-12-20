@@ -92,7 +92,6 @@ lazy_static! {
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("OPTIMIZATIONS","all").unwrap();
 
-        // Default cl arguments from the old ConfigFlags struct
         settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
         settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
         settings.set_default("PRINT_COLLECTED_VERIFICATION_ITEMS", false).unwrap();
