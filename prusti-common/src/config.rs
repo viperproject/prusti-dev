@@ -4,10 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+mod commandline;
+
 use config_crate::{Config, Environment, File};
+use self::commandline::CommandLine;
 use std::env;
 use std::sync::RwLock;
 use serde::Deserialize;
+
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
@@ -50,23 +54,6 @@ impl Optimizations {
             clean_cfg: true,
         }
     }
-
-}
-
-/// The flags provided by using `-Z` arguments on the command line. These are
-/// almost exclusively used for testing.
-#[derive(Clone, Copy, Default)]
-pub struct ConfigFlags {
-    /// Should Prusti print the AST with desugared specifications.
-    pub print_desugared_specs: bool,
-    /// Should Prusti print the type-checked specifications.
-    pub print_typeckd_specs: bool,
-    /// Should Prusti print the items collected for verification.
-    pub print_collected_verfication_items: bool,
-    /// Should Prusti skip the verification part.
-    pub skip_verify: bool,
-    /// Should Prusti hide the UUIDs of expressions and specifications.
-    pub hide_uuids: bool,
 }
 
 lazy_static! {
@@ -105,6 +92,11 @@ lazy_static! {
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("OPTIMIZATIONS","all").unwrap();
 
+        settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
+        settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
+        settings.set_default("PRINT_COLLECTED_VERIFICATION_ITEMS", false).unwrap();
+        settings.set_default("HIDE_UUIDS", false).unwrap();
+        
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
         settings.set_default("VERIFY_ONLY_PREAMBLE", false).unwrap();
@@ -128,8 +120,20 @@ lazy_static! {
             Environment::with_prefix("PRUSTI").ignore_empty(true)
         ).unwrap();
 
+        // 5. Override with command-line arguments -P<arg>=<val>
+        settings.merge(
+            CommandLine::with_prefix("-P").ignore_invalid(true)
+        ).unwrap();
+
         settings
     });
+}
+
+/// Return vector of arguments filtered out by prefix
+pub fn get_filtered_args() -> Vec<String> {
+    CommandLine::with_prefix("-P")
+        .get_remaining_args()
+        .collect::<Vec<String>>()
 }
 
 /// Generate a dump of the settings
@@ -265,10 +269,24 @@ pub fn use_more_complete_exhale() -> bool {
     read_setting("USE_MORE_COMPLETE_EXHALE")
 }
 
-/// Disable the Silicon configuration option `--enableMoreCompleteExhale`.
-pub fn disable_more_complete_exhale() {
-    let mut settings = SETTINGS.write().unwrap();
-    settings.set("USE_MORE_COMPLETE_EXHALE", false);
+/// Should Prusti print the items collected for verification.
+pub fn print_collected_verification_items() -> bool {
+    read_setting("PRINT_COLLECTED_VERIFICATION_ITEMS")
+}
+
+/// Should Prusti print the AST with desugared specifications.
+pub fn print_desugared_specs() -> bool {
+    read_setting("PRINT_DESUGARED_SPECS")
+}
+
+/// Should Prusti print the type-checked specifications.
+pub fn print_typeckd_specs() -> bool {
+    read_setting("PRINT_TYPECKD_SPECS")
+}
+
+/// Should Prusti hide the UUIDs of expressions and specifications.
+pub fn hide_uuids() -> bool {
+    read_setting("HIDE_UUIDS")
 }
 
 /**

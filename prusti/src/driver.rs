@@ -34,7 +34,6 @@ mod arg_value;
 
 use log::debug;
 use std::{env, panic, borrow::Cow, path::PathBuf};
-use prusti_common::config::ConfigFlags;
 use prusti_common::report::user;
 use lazy_static::lazy_static;
 use callbacks::PrustiCompilerCalls;
@@ -120,8 +119,9 @@ fn init_loggers() {
 
 fn main() {
     // We assume that prusti-rustc already removed the first "rustc" argument
-    // added by RUSTC_WRAPPER.
-    let rustc_args: Vec<String> = env::args().collect();
+    // added by RUSTC_WRAPPER and all command line arguments -P<arg>=<val>
+    // have been filtered out.
+    let mut rustc_args = config::get_filtered_args();
 
     // If the environment asks us to actually be rustc, or if lints have been disabled, then
     // run `rustc` instead of Prusti.
@@ -144,63 +144,41 @@ fn main() {
             get_prusti_version_info(),
         ));
 
-        let mut args = Vec::new();
-        let mut flags = ConfigFlags::default();
-        flags.skip_verify = config::no_verify();
-        for arg in rustc_args {
-            debug!("Arg: {}", arg);
-            if arg == "-Zprint-desugared-specs" {
-                flags.print_desugared_specs = true;
-            } else if arg == "-Zprint-typeckd-specs" {
-                flags.print_typeckd_specs = true;
-            } else if arg == "-Zprint-collected-verification-items" {
-                flags.print_collected_verfication_items = true;
-            } else if arg == "-Zskip-verify" {
-                flags.skip_verify = true;
-            } else if arg == "-Zhide-uuids" {
-                flags.hide_uuids = true;
-            } else if arg == "-Zdisable_more_complete_exhale" {
-                config::disable_more_complete_exhale();
-            } else {
-                args.push(arg);
-            }
-        }
-
         env::set_var("POLONIUS_ALGORITHM", "Naive");
-        args.push("-Zborrowck=mir".to_owned());
-        args.push("-Zpolonius".to_owned());
-        args.push("-Znll-facts".to_owned());
-        args.push(format!(
+        rustc_args.push("-Zborrowck=mir".to_owned());
+        rustc_args.push("-Zpolonius".to_owned());
+        rustc_args.push("-Znll-facts".to_owned());
+        rustc_args.push(format!(
             "-Znll-facts-dir={}",
             PathBuf::from(config::log_dir()).join("nll-facts").to_str()
                 .expect("failed to configure nll-facts-dir")
         ));
-        args.push("-Zidentify-regions".to_owned());
-        args.push(format!(
+        rustc_args.push("-Zidentify-regions".to_owned());
+        rustc_args.push(format!(
             "-Zdump-mir-dir={}",
             PathBuf::from(config::log_dir()).join("mir").to_str()
                 .expect("failed to configure dump-mir-dir")
         ));
-        args.push("-Zdump-mir=renumber".to_owned());
-        args.push("-Zalways-encode-mir".to_owned());
-        args.push("-Zcrate-attr=feature(register_tool)".to_owned());
-        args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
-        args.push("--cfg=prusti".to_owned());
+        rustc_args.push("-Zdump-mir=renumber".to_owned());
+        rustc_args.push("-Zalways-encode-mir".to_owned());
+        rustc_args.push("-Zcrate-attr=feature(register_tool)".to_owned());
+        rustc_args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
+        rustc_args.push("--cfg=prusti".to_owned());
 
         if config::check_overflows() {
             // Some crates might have a `overflow-checks = false` in their `Cargo.toml` to
             // disable integer overflow checks, but we want to ignore that.
-            args.push("-Zforce-overflow-checks=yes".to_owned());
+            rustc_args.push("-Zforce-overflow-checks=yes".to_owned());
         }
 
         if config::dump_debug_info() {
-            args.push("-Zdump-mir=all".to_owned());
-            args.push("-Zdump-mir-graphviz".to_owned());
+            rustc_args.push("-Zdump-mir=all".to_owned());
+            rustc_args.push("-Zdump-mir-graphviz".to_owned());
         }
 
-        let mut callbacks = PrustiCompilerCalls::new(flags);
+        let mut callbacks = PrustiCompilerCalls::default();
 
-        rustc_driver::RunCompiler::new(&args, &mut callbacks).run()
+        rustc_driver::RunCompiler::new(&rustc_args, &mut callbacks).run()
     });
     std::process::exit(exit_code)
 }
