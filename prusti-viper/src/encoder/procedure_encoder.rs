@@ -2231,13 +2231,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     fn encode_set_operation(
         &mut self,
-        lhs: &vir::Expr,
+        lhs: vir::Expr,
         left: &mir::Operand<'tcx>,
         right: &mir::Operand<'tcx>,
         location: mir::Location,
         set_op: vir::SetOpKind,
         ty: ty::Ty<'tcx>,
-    ) -> Vec<vir::Stmt> {
+    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_set_operation(location={:?}, set_op={:?})", location, set_op);
         let span = self.mir_encoder.get_span_of_location(location);

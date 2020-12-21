@@ -426,6 +426,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     }
                 }
             }
+        }
 
             ty::TyKind::Adt(ref adt_def, ref _subst) if adt_def.is_box() => {
                 let num_variants = adt_def.variants.len();
