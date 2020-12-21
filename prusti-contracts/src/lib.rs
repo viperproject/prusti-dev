@@ -1,4 +1,4 @@
-#![feature(optin_builtin_traits)]
+#![feature(auto_traits)]
 
 extern crate proc_macro;
 pub mod ghost;
