@@ -2033,7 +2033,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
                                 location,
-                                vir::SetOpKind::Union,
+                                vir::ContainerOpKind::SetUnion,
                                 dest_ty)
                                 .run_if_err(|| cleanup(&self))?);
                         }
@@ -2048,12 +2048,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
                                 location,
-                                vir::SetOpKind::Remove,
+                                vir::ContainerOpKind::SetRemove,
                                 dest_ty)
                                 .run_if_err(|| cleanup(&self))?);
                         }
 
-                        "prusti_contracts::ghost::GhostSeq::union" => {
+                        "prusti_contracts::ghost::GhostSet::union" => {
                             let &(ref target_place, _) = destination.as_ref().unwrap();
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
@@ -2063,12 +2063,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
                                 location,
-                                vir::SetOpKind::Union,
+                                vir::ContainerOpKind::SetUnion,
                                 dest_ty)
                                 .run_if_err(|| cleanup(&self))?);
                         }
 
-                        "prusti_contracts::ghost::GhostSeq::is_element" => {
+                        "prusti_contracts::ghost::GhostSet::is_element" => {
                             let &(ref target_place, _) = destination.as_ref().unwrap();
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
@@ -2078,7 +2078,67 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
                                 location,
-                                vir::SetOpKind::Contains,
+                                vir::ContainerOpKind::SetContains,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostMultiSet::push" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_set_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::MultiSetUnion,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostMultiSet::remove" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_set_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::MultiSetRemove,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostMultiSet::union" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_set_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::MultiSetUnion,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostMultiSet::is_element" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_set_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::MultiSetContains,
                                 dest_ty)
                                 .run_if_err(|| cleanup(&self))?);
                         }
@@ -2265,7 +2325,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         left: &mir::Operand<'tcx>,
         right: &mir::Operand<'tcx>,
         location: mir::Location,
-        set_op: vir::SetOpKind,
+        set_op: vir::ContainerOpKind,
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!(

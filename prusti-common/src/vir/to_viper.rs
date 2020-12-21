@@ -388,19 +388,34 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
             },
-            &Expr::SetOp(op, ref left, ref right, ref pos) => match op {
-                SetOpKind::Contains => {
+            &Expr::ContainerOp(op, ref left, ref right, ref pos) => match op {
+                ContainerOpKind::SetContains|
+                ContainerOpKind::MultiSetContains => {
                     ast.any_set_contains(right.to_viper(ast), left.to_viper(ast))
                 }
-                SetOpKind::Push|
-                SetOpKind::Union => {
+                ContainerOpKind::SetPush|
+                ContainerOpKind::SetUnion|
+                ContainerOpKind::MultiSetPush|
+                ContainerOpKind::MultiSetUnion => {
                     ast.any_set_union(left.to_viper(ast), right.to_viper(ast))
                 }
-                SetOpKind::Intersection => {
+                ContainerOpKind::SetIntersection|
+                ContainerOpKind::MultiSetIntersection => {
                     ast.any_set_intersection(left.to_viper(ast), right.to_viper(ast))
                 }
-                SetOpKind::Remove => {
+                ContainerOpKind::SetRemove|
+                ContainerOpKind::MultiSetRemove=> {
                     ast.any_set_minus(left.to_viper(ast), right.to_viper(ast))
+                }
+                ContainerOpKind::SeqAppend => {
+                    ast.seq_append(left.to_viper(ast), right.to_viper(ast))
+                }
+                ContainerOpKind::SeqChain => {
+                    // closure?
+                    ast.seq_append(left.to_viper(ast), right.to_viper(ast))
+                }
+                ContainerOpKind::SeqDrop => {
+                    ast.seq_drop(left.to_viper(ast), right.to_viper(ast))
                 }
             },
             &Expr::Unfolding(
