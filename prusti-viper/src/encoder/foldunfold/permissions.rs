@@ -246,6 +246,10 @@ impl RequiredPermissionsGetter for vir::Expr {
                 vec![left, right].get_required_permissions(predicates)
             }
 
+            vir::Expr::SetOp(_, box left, box right, _) => {
+                vec![left, right].get_required_permissions(predicates)
+            }
+
             vir::Expr::Cond(box guard, box left, box right, _) => {
                 vec![guard, left, right].get_required_permissions(predicates)
             }
@@ -376,6 +380,11 @@ impl ExprPermissionsGetter for vir::Expr {
             vir::Expr::UnaryOp(_, ref expr, _) => expr.get_permissions(predicates),
 
             vir::Expr::BinOp(_, box left, box right, _) => union(
+                &left.get_permissions(predicates),
+                &right.get_permissions(predicates),
+            ),
+
+            vir::Expr::SetOp(_, box left, box right, _) => union(
                 &left.get_permissions(predicates),
                 &right.get_permissions(predicates),
             ),
