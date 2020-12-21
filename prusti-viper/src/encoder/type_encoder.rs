@@ -350,44 +350,41 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
-                if !self.is_supported_struct_type(adt_def, subst) {
-                    vec![vir::Predicate::new_abstract(typ)]
-                } else {
-                    let num_variants = adt_def.variants.len();
-                    let tcx = self.encoder.env().tcx();
-                    if num_variants == 1 {
-                        debug!("ADT {:?} has only one variant", adt_def);
-                        let fields = adt_def.variants[0usize.into()]
-                            .fields
-                            .iter()
-                            .map(|field| {
-                                let field_name = field.ident.to_string();
-                                let field_ty = field.ty(tcx, subst);
-                                self.encoder.encode_struct_field(&field_name, field_ty)
-                            })
-                            .collect();
-
+            let num_variants = adt_def.variants.len();
+                let tcx = self.encoder.env().tcx();
+                if num_variants == 1 {
+                    debug!("ADT {:?} has only one variant", adt_def);
+                    let mut fields = vec![];
+                    for field in &adt_def.variants[0usize.into()].fields {
+                        let field_name = field.ident.to_string();
+                        let field_ty = field.ty(tcx, subst);
+                        fields.push(
+                            self.encoder.encode_struct_field(
+                                &field_name,
+                                field_ty
+                            )?
+                        );
+                    }
+                    let ty_layout = {
                         let env_and_value = self.encoder.env().tcx().param_env(adt_def.did).and(self.ty);
-                        let ty_layout = match self.encoder.env().tcx().layout_of(env_and_value) {
-                            Ok(layout) => layout,
-                            Err(_) => return vec![vir::Predicate::new_struct(typ, fields)],
-                        };
+                        self.encoder.env().tcx().layout_of(env_and_value).unwrap()
+                    };
 
-                        if adt_def.is_struct() && ty_layout.is_zst()
-                        {   
-                                let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
-                                if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
-                                    debug!("Ghost Type {}", ghost_type);
-                                    return TypeEncoder::encode_ghost_predicate(typ, &ghost_type, self.encoder.encode_value_field(self.ty));
-                                }
-                                else {
-                                    vec![vir::Predicate::new_struct(typ, fields)]
-                                }
-                        }
-                        else {
-                            vec![vir::Predicate::new_struct(typ, fields)]
-                        }
-                    } else {
+                    if adt_def.is_struct() && ty_layout.is_zst()
+                    {   
+                            let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
+                            if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
+                                debug!("Ghost Type {}", ghost_type);
+                                TypeEncoder::encode_ghost_predicate(typ, &ghost_type, self.encoder.encode_value_field(self.ty))
+                            }
+                            else {
+                                vec![vir::Predicate::new_struct(typ, fields)]
+                            }
+                    }
+                    else {
+                        vec![vir::Predicate::new_struct(typ, fields)]
+                    }
+                } else {
                     debug!("ADT {:?} has {} variants", adt_def, num_variants);
                     let discriminant_field = self.encoder.encode_discriminant_field();
                     let this = vir::Predicate::construct_this(typ.clone());
@@ -443,7 +440,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     predicates
                 }
             }
-        }
 
             ty::TyKind::Adt(ref adt_def, ref _subst) if adt_def.is_box() => {
                 let num_variants = adt_def.variants.len();
