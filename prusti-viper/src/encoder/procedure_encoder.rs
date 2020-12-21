@@ -2015,12 +2015,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     value_field.clone(),
                                     location,
                                     vir::AssignKind::Move,
-                                )
+                                ).run_if_err(|| cleanup(&self))?
                             );
                             // N.B. Is encode_value_field the right choice here?
                             //let value_field = self.encoder.encode_value_field(dest_ty);
                             // Step2. assign value = `ghost_val` to the above created destination/ location (unsure about the terminology)
-                            stmts.extend(self.encode_assign_operand(&dst.clone().field(value_field), &args[0], location));
+                            stmts.extend(self.encode_assign_operand(&dst.clone().field(value_field), &args[0], location).run_if_err(|| cleanup(&self))?);
                         }
 
                         "prusti_contracts::ghost::GhostSet::push" => {
@@ -2221,13 +2221,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     fn encode_set_operation(
         &mut self,
-        lhs: &vir::Expr,
+        lhs: vir::Expr,
         left: &mir::Operand<'tcx>,
         right: &mir::Operand<'tcx>,
         location: mir::Location,
         set_op: vir::SetOpKind,
         ty: ty::Ty<'tcx>,
-    ) -> Vec<vir::Stmt> {
+    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] encode_set_operation(location={:?}, set_op={:?})", location, set_op);
         let span = self.mir_encoder.get_span_of_location(location);

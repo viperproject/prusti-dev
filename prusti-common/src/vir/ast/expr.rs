@@ -915,6 +915,14 @@ impl Expr {
                     }
                 }
             }
+            Expr::SetOp(ref kind, box ref base1, box ref base2, _pos) => {
+                match kind {
+                    SetOpKind::Contains => {
+                        let typ1 = base1.get_type();
+                        typ1
+                    }
+                }
+            }
             Expr::Cond(_, box ref base1, box ref base2, _pos) => {
                 let typ1 = base1.get_type();
                 let typ2 = base2.get_type();

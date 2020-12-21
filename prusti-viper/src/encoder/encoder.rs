@@ -1039,7 +1039,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub fn encode_item_name(&self, def_id: DefId) -> String {
+    pub fn encode_identifier(&self, ident: String) -> String {
         // Rule: the rhs must always have an even number of "$"
         ident
             .replace("::", "$$")
