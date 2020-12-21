@@ -84,6 +84,10 @@ pub enum BinOpKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum SetOpKind {
     Contains,
+    Push,
+    Union,
+    Intersection,
+    Remove,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -243,6 +247,10 @@ impl fmt::Display for SetOpKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &SetOpKind::Contains => write!(f, "contains"),
+            &SetOpKind::Push => write!(f, "push"),
+            &SetOpKind::Union => write!(f, "union"),
+            &SetOpKind::Intersection => write!(f, "intersection"),
+            &SetOpKind::Remove => write!(f, "remove"),
         }
     }
 }
@@ -436,8 +444,20 @@ impl Expr {
         Expr::BinOp(BinOpKind::Implies, box left, box right, Position::default())
     }
 
-    pub fn contains(left: Expr, right: Expr) -> Self {
+    pub fn set_contains(left: Expr, right: Expr) -> Self {
         Expr::SetOp(SetOpKind::Contains, box left, box right, Position::default())
+    }
+
+    pub fn set_union(left: Expr, right: Expr) -> Self {
+        Expr::SetOp(SetOpKind::Union, box left, box right, Position::default())
+    }
+
+    pub fn set_intersection(left: Expr, right: Expr) -> Self {
+        Expr::SetOp(SetOpKind::Intersection, box left, box right, Position::default())
+    }
+
+    pub fn set_remove(left: Expr, right: Expr) -> Self {
+        Expr::SetOp(SetOpKind::Remove, box left, box right, Position::default())
     }
 
     pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
@@ -917,7 +937,11 @@ impl Expr {
             }
             Expr::SetOp(ref kind, box ref base1, box ref base2, _pos) => {
                 match kind {
-                    SetOpKind::Contains => {
+                    SetOpKind::Contains|
+                    SetOpKind::Push|
+                    SetOpKind::Union|
+                    SetOpKind::Intersection|
+                    SetOpKind::Remove => {
                         let typ1 = base1.get_type();
                         typ1
                     }

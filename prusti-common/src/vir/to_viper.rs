@@ -392,6 +392,16 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 SetOpKind::Contains => {
                     ast.any_set_contains(right.to_viper(ast), left.to_viper(ast))
                 }
+                SetOpKind::Push|
+                SetOpKind::Union => {
+                    ast.any_set_union(left.to_viper(ast), right.to_viper(ast))
+                }
+                SetOpKind::Intersection => {
+                    ast.any_set_intersection(left.to_viper(ast), right.to_viper(ast))
+                }
+                SetOpKind::Remove => {
+                    ast.any_set_minus(left.to_viper(ast), right.to_viper(ast))
+                }
             },
             &Expr::Unfolding(
                 ref predicate_name,

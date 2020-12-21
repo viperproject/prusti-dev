@@ -2024,15 +2024,48 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         "prusti_contracts::ghost::GhostSet::push" => {
-                            unimplemented!();
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_set_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::SetOpKind::Union,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
                         }
 
                         "prusti_contracts::ghost::GhostSet::remove" => {
-                            unimplemented!();
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_set_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::SetOpKind::Remove,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
                         }
 
                         "prusti_contracts::ghost::GhostSeq::union" => {
-                            unimplemented!();
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_set_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::SetOpKind::Union,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
                         }
 
                         "prusti_contracts::ghost::GhostSeq::is_element" => {
@@ -2040,7 +2073,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
                             let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            //stmts.extend(self.encode_set_op(vir::SetOpKind::Contains));
+                            stmts.extend(self.encode_set_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::SetOpKind::Contains,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
                         }
 
                         "std::cmp::PartialEq::eq" |

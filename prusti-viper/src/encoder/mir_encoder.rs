@@ -490,7 +490,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         right: vir::Expr
     ) -> EncodingResult<vir::Expr> {
         Ok(match op {
-            vir::SetOpKind::Contains => vir::Expr::contains(left, right),
+            vir::SetOpKind::Contains => vir::Expr::set_contains(left, right),
+            vir::SetOpKind::Push|
+            vir::SetOpKind::Union => vir::Expr::set_union(left, right),
+            vir::SetOpKind::Intersection => vir::Expr::set_intersection(left, right),
+            vir::SetOpKind::Remove => vir::Expr::set_remove(left, right),
         })
     }
 
