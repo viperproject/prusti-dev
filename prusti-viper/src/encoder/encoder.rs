@@ -978,14 +978,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ));
         };
 
-        fn with_sign(unsigned_val: u128, bit_size: u64) -> i128 {
-            // Handle *signed* integers
-            let shift = 128 - bit_size;
-            let casted_val = unsigned_val as i128;
-            // sign extend the raw representation to be an i128
-            ((casted_val << shift) >> shift).into()
-        }
-
         let expr = match ty.kind() {
             ty::TyKind::Bool => scalar_value.to_bool().unwrap().into(),
             ty::TyKind::Char => scalar_value.to_char().unwrap().into(),
@@ -1001,6 +993,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Uint(ast::UintTy::U64) => scalar_value.to_u64().unwrap().into(),
             ty::TyKind::Uint(ast::UintTy::U128) => scalar_value.to_u128().unwrap().into(),
             ty::TyKind::Uint(ast::UintTy::Usize) => scalar_value.to_machine_usize(&self.env().tcx()).unwrap().into(),
+            ty::TyKind::FnDef(def_id, _) => {
+                self.encode_spec_funcs(*def_id)?;
+                vir::Expr::Const(vir::Const::FnPtr, vir::Position::default())
+            }
             ref x => unimplemented!("{:?}", x),
         };
         debug!("encode_const_expr {:?} --> {:?}", value, expr);

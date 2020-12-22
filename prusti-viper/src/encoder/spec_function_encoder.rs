@@ -30,6 +30,7 @@ pub struct SpecFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     procedure: &'p Procedure<'p, 'tcx>,
     span: Span,
     proc_def_id: ProcedureDefId,
+    is_closure: bool,
     mir: &'p mir::Body<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
 }
@@ -43,6 +44,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             procedure: procedure,
             span: procedure.get_span(),
             proc_def_id: procedure.get_id(),
+            is_closure: encoder.env().tcx().is_closure(procedure.get_id()),
             mir: procedure.get_mir(),
             mir_encoder: MirEncoder::new(encoder, procedure.get_mir(), procedure.get_id())
         }
@@ -102,7 +104,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Pre),
             formal_args: encoded_args.into_iter()
-                                     .skip(1) // FIXME: "self" is skipped, see TypeEncoder
+                                     .skip(if self.is_closure { 1 } else { 0 }) // FIXME: "self" is skipped, see TypeEncoder
                                      .collect(),
             return_type: vir::Type::Bool,
             pres: Vec::new(),
@@ -150,7 +152,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Post),
             formal_args: encoded_args.into_iter()
-                                     .skip(1) // FIXME: "self" is skipped, see TypeEncoder
+                                     .skip(if self.is_closure { 1 } else { 0 }) // FIXME: "self" is skipped, see TypeEncoder
                                      .chain(std::iter::once(encoded_return))
                                      .collect(),
             return_type: vir::Type::Bool,

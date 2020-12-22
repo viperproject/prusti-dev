@@ -185,7 +185,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             // To unify how parameters are passed to functions, we treat them like a reference.
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_)
-            | ty::TyKind::Closure(_, _) => {
+            | ty::TyKind::Closure(_, _)
+            | ty::TyKind::FnDef(_, _) => {
                 let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
