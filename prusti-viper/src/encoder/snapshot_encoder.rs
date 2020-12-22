@@ -738,62 +738,63 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     }
 
 
-
-
     /// returns the name of the viper function that represents the field `ident` on the type with the `domain_name`
     fn encode_field_function_name(domain_name: &str, ident: &str) -> String {
         //TODO: What is the name of the domain function encoding a field? is it a field function?
         format!("{}$field${}", domain_name, ident)
-
     }
 
-    fn encode_field_domain_func(&self, field: &ty::FieldDef) -> PositionlessEncodingResult<vir::DomainFunc> {
+    fn encode_field_domain_func(
+        &self,
+        field: &ty::FieldDef,
+    ) -> PositionlessEncodingResult<vir::DomainFunc> {
         let domain_name = self.snapshot_encoder.encode_domain_name();
 
         let tcx = self.snapshot_encoder.encoder.env().tcx();
         let field_ty = field.ty(tcx, self.subst);
         let snapshot = self.snapshot_encoder.encoder.encode_snapshot(&field_ty)?;
         let field_name = field.ident.name.to_ident_string();
-        let field_type : vir::Type = snapshot.get_type();
-
-        info!("domain_name from fieldDef {}", domain_name);
+        let field_type: vir::Type = snapshot.get_type();
 
         Self::encode_field_domain_func_from_snapshot(field_type, field_name, domain_name)
     }
 
-    pub fn encode_field_domain_func_from_snapshot(field_type : vir::Type, field_name: String,  domain_name: String) -> PositionlessEncodingResult<vir::DomainFunc> {
-        info!("encode_field_domain_func_from_snapshot field_type={} field_name={} domain_name={}", field_type,field_name, domain_name );
+    pub fn encode_field_domain_func_from_snapshot(
+        field_type: vir::Type,
+        field_name: String,
+        domain_name: String,
+    ) -> PositionlessEncodingResult<vir::DomainFunc> {
+        info!(
+            "encode_field_domain_func_from_snapshot field_type={} field_name={} domain_name={}",
+            field_type, field_name, domain_name
+        );
         //let return_type_name : String = snapshot.domain().map(|e|e.name.clone()).unwrap();
 
-        let return_type : vir::Type = match field_type.clone() {
-            vir::Type::TypedRef(ref name) => {
-                vir::Type::Domain(name.clone())
-            },
+        let return_type: vir::Type = match field_type.clone() {
+            vir::Type::TypedRef(ref name) => vir::Type::Domain(name.clone()),
             t => t,
         };
 
         //let return_type = vir::Type::Domain(return_type_name);
 
         Ok(vir::DomainFunc {
-            name:format!("{}$field${}", domain_name, field_name), //TODO get the right name
+            name: format!("{}$field${}", domain_name, field_name), //TODO get the right name
             formal_args: vec![vir::LocalVar {
-                 name: "self".to_string(),
-                 typ: vir::Type::Domain(domain_name.to_string()),
-            }], 
+                name: "self".to_string(),
+                typ: vir::Type::Domain(domain_name.to_string()),
+            }],
             return_type,
             unique: false,
             domain_name: domain_name.to_string(),
         })
     }
 
-    fn encode_field_funcs(&self)
-        -> Option<(Vec<vir::DomainFunc>, Vec<String>)>
-    {
+    fn encode_field_funcs(&self) -> Option<(Vec<vir::DomainFunc>, Vec<String>)> {
         if self.adt_def.is_struct() {
             let mut funcs = vec![];
             let domain_name = self.snapshot_encoder.encode_domain_name();
             let mut fields = vec![];
-            //let variant_func = self.encode_variant_func(); 
+            //let variant_func = self.encode_variant_func();
             //let variant_axiom = self.encode_axiom_variants(&variant_func); //TODO
 
             for field in self.adt_def.all_fields() {
