@@ -264,86 +264,126 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     fn get_nat_domain(&self) -> vir::Domain {
         let nat_domain_name = "Nat";
-        let zero = vir::DomainFunc{ name: "zero".to_owned(),
-            formal_args:vec![],
+        let zero = vir::DomainFunc {
+            name: "zero".to_owned(),
+            formal_args: vec![],
             return_type: vir::Type::Domain(nat_domain_name.to_owned()),
             unique: false,
-            domain_name: nat_domain_name.to_owned()}; 
-            let succ = vir::DomainFunc{ name: "succ".to_owned(),
-            formal_args:vec![ vir::LocalVar{name: "val".to_owned(), typ: vir::Type::Domain(nat_domain_name.to_owned()) }],
+            domain_name: nat_domain_name.to_owned(),
+        };
+        let succ = vir::DomainFunc {
+            name: "succ".to_owned(),
+            formal_args: vec![vir::LocalVar {
+                name: "val".to_owned(),
+                typ: vir::Type::Domain(nat_domain_name.to_owned()),
+            }],
             return_type: vir::Type::Domain(nat_domain_name.to_owned()),
             unique: false,
-            domain_name: nat_domain_name.to_owned()}; 
-            let functions = vec![zero, succ];
-
-        vir::Domain { name: nat_domain_name.to_owned(), functions, axioms: vec![], type_vars: vec![]}
-
+            domain_name: nat_domain_name.to_owned(),
+        };
+        let functions = vec![zero, succ];
+    
+        vir::Domain {
+            name: nat_domain_name.to_owned(),
+            functions,
+            axioms: vec![],
+            type_vars: vec![],
+        }
     }
+    
+
+   
 
     fn get_axiomatized_functions_domain(&self) -> vir::Domain {
         let new_domain_name: String = "domainThatContainsTheAxiomatizedPureFunctions".to_owned(); //TODO
-
-        let mut axiomatized_functions_domain = vir::Domain { name: new_domain_name.clone(), functions: vec![], axioms: vec![], type_vars: vec![]};
-        let snapshots_info : HashMap<String, Box<Snapshot>> = self
-        .snapshots
-        .borrow()
-        .clone();
-
+    
+        let mut axiomatized_functions_domain = vir::Domain {
+            name: new_domain_name.clone(),
+            functions: vec![],
+            axioms: vec![],
+            type_vars: vec![],
+        };
+        let snapshots_info: HashMap<String, Box<Snapshot>> = self.snapshots.borrow().clone();
+    
         for f in self.pure_functions.borrow().values().into_iter() {
             let old_formal_args = f.formal_args.clone();
-            let mut purifier = ExprPurifier {old_formal_args: old_formal_args.clone(), snapshots: snapshots_info.clone()};
-
-            let mut formal_args: Vec<vir::LocalVar> = f.formal_args.iter().map(|e| {
+            let mut purifier = ExprPurifier {
+                old_formal_args: old_formal_args.clone(),
+                snapshots: snapshots_info.clone(),
+            };
+    
+            let mut formal_args: Vec<vir::LocalVar> = f
+                .formal_args
+                .iter()
+                .map(|e| {
                     let old_type = e.typ.clone();
-                    let new_type =  purifier.transalte_type(old_type);
-                    
-                   
-
+                    let new_type = purifier.transalte_type(old_type);
+    
                     vir::LocalVar {
                         name: e.name.clone(),
                         typ: new_type,
                     }
-
-            }).collect();
-
+                })
+                .collect();
+    
             formal_args.push(vir::LocalVar {
                 name: "count".to_string(),
                 typ: vir::Type::Domain("Nat".to_owned()),
             });
-
-            let return_type =  f.return_type.clone();
+    
+            let return_type = f.return_type.clone();
             let name = format!("domainVersionOf{}", f.name);
-
-            let df = vir::DomainFunc {name, formal_args: formal_args.clone(), return_type, unique: false, domain_name: new_domain_name.clone() }; 
+    
+            let df = vir::DomainFunc {
+                name,
+                formal_args: formal_args.clone(),
+                return_type,
+                unique: false,
+                domain_name: new_domain_name.clone(),
+            };
             axiomatized_functions_domain.functions.push(df.clone());
-
-
-            let pre_conds : vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
-            let post_conds : vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
-
+    
+            let pre_conds: vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
+            let post_conds: vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
+    
             let function_body = vir::ExprFolder::fold(&mut purifier, f.body.clone().unwrap());
-
-
-            let args: Vec<vir::Expr> = formal_args.clone().into_iter().map(|e|{ vir::Expr::Local(e, Default::default()) }).collect();
-            let function_call  = vir::Expr::DomainFuncApp(df, args, Default::default());
-            let function_identiry = vir::Expr::BinOp(vir::BinOpKind::EqCmp, Box::new(function_call), Box::new( function_body  ),Default::default());
-
-            let rhs : vir::Expr = vir::Expr::BinOp(vir::BinOpKind::And, Box::new(post_conds), Box::new(function_identiry),Default::default());
-
-            let e : vir::Expr = vir::Expr::BinOp(vir::BinOpKind::Implies, Box::new(pre_conds), Box::new(rhs),Default::default());
+    
+            let args: Vec<vir::Expr> = formal_args
+                .clone()
+                .into_iter()
+                .map(|e| vir::Expr::Local(e, Default::default()))
+                .collect();
+            let function_call = vir::Expr::DomainFuncApp(df, args, Default::default());
+            let function_identiry = vir::Expr::BinOp(
+                vir::BinOpKind::EqCmp,
+                Box::new(function_call),
+                Box::new(function_body),
+                Default::default(),
+            );
+    
+            let rhs: vir::Expr = vir::Expr::BinOp(
+                vir::BinOpKind::And,
+                Box::new(post_conds),
+                Box::new(function_identiry),
+                Default::default(),
+            );
+    
+            let e: vir::Expr = vir::Expr::BinOp(
+                vir::BinOpKind::Implies,
+                Box::new(pre_conds),
+                Box::new(rhs),
+                Default::default(),
+            );
             axiomatized_functions_domain.axioms.push(vir::DomainAxiom {
                 name: format!("axioms_for_{}", f.name), //TODO
-                expr: vir::Expr::ForAll(formal_args, vec![], Box::new(e) , vir::Position::default()),
+                expr: vir::Expr::ForAll(formal_args, vec![], Box::new(e), vir::Position::default()),
                 domain_name: new_domain_name.clone(),
             })
-
-
         }
-
+    
         axiomatized_functions_domain
     }
-
-     
+      
 
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
@@ -1614,62 +1654,43 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
 struct ExprPurifier {
     old_formal_args: Vec<vir::LocalVar>,
-    snapshots: HashMap<String, Box<Snapshot>>
+    snapshots: HashMap<String, Box<Snapshot>>,
 }
 
-
 impl ExprPurifier {
-    fn find_possible_domain_for_field_name(&self, field_name: &str) -> Option<String>{
+    fn find_possible_domain_for_field_name(&self, field_name: &str) -> Option<String> {
         for snap in self.snapshots.values() {
             if let Some(d) = &snap.snap_domain {
                 for f in &d.fields {
-                 //   info!("looking at the field {} in domain {}",f, d.domain.name.to_string());
+                    //   info!("looking at the field {} in domain {}",f, d.domain.name.to_string());
                     if f == field_name {
                         return Some(d.domain.name.to_string());
                     }
                 }
             }
         }
-      
 
         None
     }
 
     fn transalte_type(&self, t: vir::Type) -> vir::Type {
-
-        /*
-        match t.clone() {
-            vir::Type::TypedRef(ref name) => {
-                match name.as_str() {
-                    "i32" => vir::Type::Int,
-                    _ => vir::Type::Domain(name.clone())
-                }
-            },
-            t => t,
-        }*/
-
-
         match t {
-            vir::Type::TypedRef(name) => { 
-                match name.as_str() {
-                    "i32" => vir::Type::Int,
-                    _ => {
-                let domain_name = self.snapshots.get(&name)
-                .and_then(|snap| snap.domain())
-                .map(|domain| domain.name)
-                .expect(&format!("No matching domain for {}", name));
+            vir::Type::TypedRef(name) => match name.as_str() {
+                "i32" => vir::Type::Int,
+                _ => {
+                    let domain_name = self
+                        .snapshots
+                        .get(&name)
+                        .and_then(|snap| snap.domain())
+                        .map(|domain| domain.name)
+                        .expect(&format!("No matching domain for {}", name));
 
-                vir::Type::Domain(domain_name)
-                    }
+                    vir::Type::Domain(domain_name)
                 }
-            
             },
-            o @ _  => o
-
+            o @ _ => o,
         }
-
     }
-
 }
 
 impl vir::ExprFolder for ExprPurifier {
@@ -1682,11 +1703,15 @@ impl vir::ExprFolder for ExprPurifier {
         variant: vir::MaybeEnumVariantIndex,
         pos: vir::Position,
     ) -> vir::Expr {
-            *self.fold_boxed(expr)
+        *self.fold_boxed(expr)
     }
 
-
-    fn fold_field(&mut self, receiver: Box<vir::Expr>, field: vir::Field, pos: vir::Position) -> vir::Expr {
+    fn fold_field(
+        &mut self,
+        receiver: Box<vir::Expr>,
+        field: vir::Field,
+        pos: vir::Position,
+    ) -> vir::Expr {
         let inner = self.fold_boxed(receiver);
         let field_name = field.name.to_string();
         info!("translating field {}", field_name);
@@ -1696,17 +1721,29 @@ impl vir::ExprFolder for ExprPurifier {
                 let field_name: String = field_name.chars().skip(2).collect();
                 let field_type = field.typ.clone();
                 let purified_field_type = self.transalte_type(field_type);
-                let domain_name = self.find_possible_domain_for_field_name(&field_name).expect(&format!("No doman found with a field named {}", field_name));
+                let domain_name = self
+                    .find_possible_domain_for_field_name(&field_name)
+                    .expect(&format!("No doman found with a field named {}", field_name));
                 info!("found domain {}", domain_name);
-                let domain_func = SnapshotAdtEncoder::encode_field_domain_func_from_snapshot(purified_field_type, field_name, domain_name).unwrap();
-                vir::Expr::DomainFuncApp(domain_func,vec![*inner],pos)
+                let domain_func = SnapshotAdtEncoder::encode_field_domain_func_from_snapshot(
+                    purified_field_type,
+                    field_name,
+                    domain_name,
+                )
+                .unwrap();
+                vir::Expr::DomainFuncApp(domain_func, vec![*inner], pos)
             }
         }
     }
 
     fn fold_local(&mut self, v: vir::LocalVar, p: vir::Position) -> vir::Expr {
-        
-        vir::Expr::Local(vir::LocalVar {name : v.name, typ: self.transalte_type(v.typ)}, p)
+        vir::Expr::Local(
+            vir::LocalVar {
+                name: v.name,
+                typ: self.transalte_type(v.typ),
+            },
+            p,
+        )
     }
-
 }
+
