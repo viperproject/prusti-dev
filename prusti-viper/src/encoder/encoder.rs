@@ -995,7 +995,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Uint(ast::UintTy::Usize) => scalar_value.to_machine_usize(&self.env().tcx()).unwrap().into(),
             ty::TyKind::FnDef(def_id, _) => {
                 self.encode_spec_funcs(*def_id)?;
-                vir::Expr::Const(vir::Const::Dummy, vir::Position::default())
+                vir::Expr::Const(vir::Const::FnPtr, vir::Position::default())
             }
             ref x => unimplemented!("{:?}", x),
         };
