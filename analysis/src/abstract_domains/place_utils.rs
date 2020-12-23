@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 //! Various helper functions for working with `mir::Place`.
-//TODO: copied from prusti-interface/utils -> use directly?
+//! copied from prusti-interface/utils
 
 use std::collections::HashSet;
 use rustc_middle::mir;

@@ -10,7 +10,8 @@ use crate::serialization_utils::location_to_stmt_str;
 #[derive(Debug)]
 pub enum AnalysisError {
     UnsupportedStatement(mir::Location),
-    SuccessorWithoutState(mir::Location, mir::BasicBlock),      // Location of Terminator & successor BB without state
+    /// *Contains the Location of Terminator & successor BB without state*
+    SuccessorWithoutState(mir::Location, mir::BasicBlock),
 }
 
 impl AnalysisError {

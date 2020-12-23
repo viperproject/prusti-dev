@@ -142,13 +142,18 @@ impl<'tcx>  DefinitelyInitializedState<'tcx>  {
 impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx>
     where Self: Clone {
 
-    /// contains all possible places = all locals  //TODO: correct: only locals?
+    /// Contains all possible places = all locals
     fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         let mut places = HashSet::new();
         for local in mir.local_decls.indices().skip(1) {        // skip return value pointer
             places.insert(local.clone().into());
         }
         Self {def_init_places: places, tcx}
+    }
+
+    fn is_bottom(&self) -> bool {
+        unimplemented!()
+        //TODO: only possible, if Body is being stored
     }
 
     fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
@@ -240,7 +245,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx>
         let terminator = mir[location.block].terminator();
         match terminator.kind {
             mir::TerminatorKind::SwitchInt { ref discr, .. } => {
-                // only operand has an effect on definitely intialized places, all successors get the same state
+                // only operand has an effect on definitely initialized places, all successors get the same state
                 new_state.apply_operand_effect(discr, mir);
 
                 for bb in terminator.successors() {

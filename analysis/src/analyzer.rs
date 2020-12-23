@@ -30,7 +30,9 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
     }
 
     //TODO: add tracing like in initialization.rs?
-    pub fn run_fwd_analysis<S>(&self, mir:  &'a mir::Body<'tcx>) -> Result<PointwiseState<'a, 'tcx, S>>
+    /// Produces an abstract state for every program point in `mir` by iterating over all statements
+    /// in program order until a fixed point is reached (i.e. by abstract interpretation)
+    pub fn run_fwd_analysis<S>(&self, mir: &'a mir::Body<'tcx>) -> Result<PointwiseState<'a, 'tcx, S>>
         where S: AbstractState<'a, 'tcx>
     {
         let mut p_state = PointwiseState::new(mir);
@@ -124,7 +126,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
                         if let Some(s) = new_map.remove(next_bb) {
                             let prev_state = map_after_block.insert(*next_bb, s);
                             let new_state_ref = map_after_block.get(&next_bb);
-                            if !prev_state.iter().any(|ps| ps == new_state_ref.unwrap()) {       //use .contains when it becomes stable
+                            if !prev_state.iter().any(|ps| ps == new_state_ref.unwrap()) {       // TODO: use .contains when it becomes stable
                                 // input state has changed => add next_bb to worklist
                                 work_set.insert(*next_bb);
                             }

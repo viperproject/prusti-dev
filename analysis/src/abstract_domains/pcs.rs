@@ -23,6 +23,10 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for PCSState {
         unimplemented!()
     }
 
+    fn is_bottom(&self) -> bool {
+        unimplemented!()
+    }
+
     fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         unimplemented!()
     }

@@ -42,7 +42,6 @@ impl<'a, 'tcx: 'a> PartialEq for ReachingDefsState<'a, 'tcx> {      // manual im
 }
 impl<'a, 'tcx: 'a> Eq for ReachingDefsState<'a, 'tcx> {}
 
-
 impl<'a, 'tcx: 'a> Serialize for ReachingDefsState<'a, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut map = serializer.serialize_map(Some(self.reaching_assignments.len()))?;
@@ -66,11 +65,16 @@ impl<'a, 'tcx: 'a> Serialize for ReachingDefsState<'a, 'tcx> {
 }
 
 impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
+    /// all sets are empty  //TODO: insert locals?
     fn new_bottom(mir: &'a mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Self {
         Self {
             reaching_assignments: HashMap::new(),
             mir,
         }
+    }
+
+    fn is_bottom(&self) -> bool {
+        self.reaching_assignments.iter().all(|(_, set)| set.is_empty())
     }
 
     fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
@@ -98,7 +102,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
     }
 
     fn widen(&mut self, _previous: &Self) {
-        // assignments are static info -> cannot grow infinitely -> widening should not be needed
+        // assignments are static info => cannot grow infinitely => widening should not be needed
         unimplemented!()
     }
 
@@ -115,7 +119,6 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
                 }
                 Ok(())
             }
-            //TODO: StorageDead -> remove def?
             _ => {Ok(())}
         }
     }
