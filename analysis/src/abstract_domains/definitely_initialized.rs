@@ -49,6 +49,15 @@ impl Serialize for DefinitelyInitializedState<'_> {
 
 
 impl<'tcx>  DefinitelyInitializedState<'tcx>  {
+    /// empty place set
+    fn new_top(tcx: TyCtxt<'tcx>) -> Self {
+        Self {def_init_places: HashSet::new(), tcx}
+    }
+
+    fn is_top(&self) -> bool {
+        self.def_init_places.is_empty()
+    }
+
     pub fn check_invariant(&self) {
         for place1 in self.def_init_places.iter() {
             for place2 in self.def_init_places.iter() {
@@ -240,52 +249,61 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx>
             }
             mir::TerminatorKind::Drop { ref place, target, unwind } => {
                 new_state.set_place_uninitialised(place, mir);
-                if let Some(bb) = unwind {
-                    res_vec.push((bb, new_state.clone()));       // TODO: correct? still uninit?
-                }
                 res_vec.push((target, new_state));
+
+                if let Some(bb) = unwind {
+                    res_vec.push((bb, Self::new_top(self.tcx)));       // imprecision for error states
+                }
             }
             mir::TerminatorKind::DropAndReplace { ref place, ref value, target, unwind } => {
-                //TODO: setting uninit necessary?
                 new_state.set_place_uninitialised(place, mir);
                 new_state.apply_operand_effect(value, mir);
                 new_state.set_place_initialised(place, mir);
-                if let Some(bb) = unwind {
-                    res_vec.push((bb, new_state.clone()));
-                }
                 res_vec.push((target, new_state));
+
+                if let Some(bb) = unwind {
+                    res_vec.push((bb, Self::new_top(self.tcx)));       // imprecision for error states
+                }
             }
             mir::TerminatorKind::Call { ref func, ref args, ref destination, cleanup, .. } => {
-                new_state.apply_operand_effect(func, mir);
                 for arg in args.iter() {
                     new_state.apply_operand_effect(arg, mir);
                 }
-                if let Some(bb) = cleanup {
-                    //TODO: correct? assignment failed? what else?
-                    res_vec.push((bb, new_state.clone()));
-                }
+                new_state.apply_operand_effect(func, mir);
                 if let Some((place, bb)) = destination {
                     new_state.set_place_initialised(place, mir);
                     res_vec.push((*bb, new_state));
                 }
+
+                if let Some(bb) = cleanup {
+                    res_vec.push((bb, Self::new_top(self.tcx)));       // imprecision for error states
+                }
             }
             mir::TerminatorKind::Assert { ref cond, target, cleanup, .. } => {
-                if let Some(bb) = cleanup {
-                    //TODO: correct? operand failed?
-                    res_vec.push((bb, new_state.clone()));
-                }
                 new_state.apply_operand_effect(cond, mir);
                 res_vec.push((target, new_state));
+
+                if let Some(bb) = cleanup {
+                    res_vec.push((bb, Self::new_top(self.tcx)));       // imprecision for error states
+                }
             }
             mir::TerminatorKind::Yield { ref value, resume, drop, .. } => { //TODO: resume_arg
-                if let Some(bb) = drop {
-                    //TODO: correct? operand not executed?
-                    res_vec.push((bb, new_state.clone()));
-                }
                 new_state.apply_operand_effect(value, mir);
                 res_vec.push((resume, new_state));
+
+                if let Some(bb) = drop {
+                    res_vec.push((bb, Self::new_top( self.tcx)));       // imprecision for error states
+                }
             }
-            _ => {return Err(AnalysisError::UnsupportedStatement(*location))}
+            mir::TerminatorKind::InlineAsm { .. } =>
+                return Err(AnalysisError::UnsupportedStatement(*location)),
+
+            _ => {
+                for bb in terminator.successors() {
+                    // no operation -> no change of state
+                    res_vec.push((*bb, self.clone()));
+                }
+            }
         }
 
         Ok(res_vec)

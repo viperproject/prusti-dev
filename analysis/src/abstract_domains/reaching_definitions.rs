@@ -123,6 +123,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
     fn apply_terminator_effect(&self, location: &mir::Location, mir: &mir::Body<'tcx>)
         -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
 
+        let mut res_vec = Vec::new();
         let terminator = mir[location.block].terminator();
         match terminator.kind {
             mir::TerminatorKind::Call {
@@ -137,20 +138,30 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
                     }
                     res_vec.push((*bb, dest_state));
                 }
+
                 if let Some(bb) = cleanup {
-                    //TODO: correct? assignment failed?
-                    res_vec.push((bb, self.clone()));
+                    let mut cleanup_state = self.clone();
+                    // error state -> be conservative & add destination as possible reaching def while keeping all others
+                    if let Some((place, _)) = destination {
+                        if let Some(local) = place.as_local() {
+                            let location_set = cleanup_state.reaching_assignments.entry(local).or_insert(HashSet::new());
+                            location_set.insert(Ok(*location));
+                        }
+                    }
+                    res_vec.push((bb, cleanup_state));
                 }
-                Ok(res_vec)
             }
+            mir::TerminatorKind::InlineAsm { .. }  =>
+                return Err(AnalysisError::UnsupportedStatement(*location)),
+
             _ => {
-                let mut res_vec = Vec::new();
                 for bb in terminator.successors() {
                     // no assignment -> no change of state
                     res_vec.push((*bb, self.clone()));
                 }
-                Ok(res_vec)
             }
         }
+
+        Ok(res_vec)
     }
 }
