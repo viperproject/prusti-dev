@@ -34,7 +34,12 @@ impl fmt::Debug for DefinitelyInitializedState<'_> {
     }
 }
 
-//TODO: impl Eq (ignoring tcx)
+impl PartialEq for DefinitelyInitializedState<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.def_init_places == other.def_init_places
+    }
+}
+impl Eq for DefinitelyInitializedState<'_> {}
 
 impl Serialize for DefinitelyInitializedState<'_> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
@@ -139,8 +144,7 @@ impl<'tcx>  DefinitelyInitializedState<'tcx>  {
     }
 }
 
-impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx>
-    where Self: Clone {
+impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx> {
 
     /// Contains all possible places = all locals
     fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
