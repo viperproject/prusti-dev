@@ -4,12 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//! This module provides the reaching definitions analysis state for MIR.
-//!
-//! For each program point it stores which assignments to local
-//! variables MAY reach that program point.
-//! derived from mir_analyses/liveness
-
+use std::fmt;
 use std::collections::{HashMap, HashSet, BTreeMap, BTreeSet};
 use crate::{AbstractState, AnalysisError};
 use rustc_middle::mir;
@@ -19,23 +14,24 @@ use serde::ser::SerializeMap;
 use crate::serialization_utils::location_to_stmt_str;
 use serde::export::Formatter;
 
-/*#[derive(PartialEq, Eq, Hash, Copy, Clone, Ord, PartialOrd)]
-pub struct Assignment {
-    pub target: mir::Local,
-    pub location: mir::Location,
-}
 
-impl fmt::Debug for Assignment {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}={:?}", self.target, self.location)
-    }
-}*/
-
-#[derive(Clone, Debug)]
+/// A set of definition locations and function parameter indices per Local,
+/// meaning that the Local might still have the value
+/// which was assigned at the location or passed as a parameter
+///
+/// derived from prusti-interface/.../mir_analyses/liveness
+#[derive(Clone)]
 pub struct ReachingDefsState<'a, 'tcx: 'a> {
     // Local -> Location OR index of function parameter
     reaching_assignments: HashMap<mir::Local, HashSet<Result<mir::Location, usize>>>,
     mir: &'a mir::Body<'tcx>,   // just for context
+}
+
+impl<'a, 'tcx: 'a> fmt::Debug for ReachingDefsState<'a, 'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // ignore mir
+        write!(f, "{:?}", self.reaching_assignments)
+    }
 }
 
 impl<'a, 'tcx: 'a> PartialEq for ReachingDefsState<'a, 'tcx> {      // manual implementation needed, because not implemented for Body
