@@ -11,7 +11,7 @@ use crate::AnalysisError;
 use serde::Serialize;
 
 
-pub trait AbstractState<'a, 'tcx: 'a>: Sized + Serialize {   // Sized needed for apply_terminator_effect's return type
+pub trait AbstractState<'a, 'tcx: 'a>: Clone + Eq + Sized + Serialize {   // Sized needed for apply_terminator_effect's return type
     //fn make_top(&mut self) -> Self;
     //fn make_bottom(&mut self) -> Self;
     fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self;

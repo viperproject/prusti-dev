@@ -31,7 +31,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
 
     //TODO: add tracing like in initialization.rs?
     pub fn run_fwd_analysis<S>(&self, mir:  &'a mir::Body<'tcx>) -> Result<PointwiseState<'a, 'tcx, S>>
-        where S: AbstractState<'a, 'tcx> + Clone + Eq
+        where S: AbstractState<'a, 'tcx>
     {
         let mut p_state = PointwiseState::new(mir);
         //use https://crates.io/crates/linked_hash_set for set preserving insertion order?
