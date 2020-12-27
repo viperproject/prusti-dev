@@ -35,15 +35,15 @@ pub trait AbstractState<'a, 'tcx: 'a>: Clone + Eq + Sized + Serialize {   // Siz
     /// Make the state less precise to make the iteration stop by using the difference to the state from the previous iteration given in `previous`
     fn widen(&mut self, previous: &Self);
 
-    /// Change the state according to the statement at `location`
+    /// Modify the state according to the statement at `location`
     ///
-    /// *The statement can be extracted using `&mir[location.block].statements[location.statement_index]`*
-    fn apply_statement_effect(&mut self, location: &mir::Location, mir: &mir::Body<'tcx>)
+    /// *The statement can be extracted using `self.mir[location.block].statements[location.statement_index]`*
+    fn apply_statement_effect(&mut self, location: &mir::Location)
         -> Result<(), AnalysisError>;
 
-    /// Change the state according to the terminator at `location`
+    /// Modify the state according to the terminator at `location`
     ///
-    /// *The statement can be extracted using `mir[location.block].terminator()`*
-    fn apply_terminator_effect(&self, location: &mir::Location, mir: &mir::Body<'tcx>)
+    /// *The statement can be extracted using `self.mir[location.block].terminator()`*
+    fn apply_terminator_effect(&self, location: &mir::Location)
         -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError>;
 }

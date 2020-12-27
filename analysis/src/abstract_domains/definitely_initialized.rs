@@ -21,27 +21,27 @@ use serde::ser::SerializeSeq;
 /// set at the same time. For example, having `x.f` and `x.f.g` in the
 /// set at the same time is illegal.
 #[derive(Clone)]
-pub struct DefinitelyInitializedState<'tcx> {
+pub struct DefinitelyInitializedState<'a, 'tcx: 'a> {
     def_init_places: HashSet<mir::Place<'tcx>>,
-    //mir: &'a mir::Body<'tcx>, TODO: store mir instead of giving it to apply_statement/terminator_effect?
+    mir: &'a mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
 }
 
-impl fmt::Debug for DefinitelyInitializedState<'_> {
+impl<'a, 'tcx: 'a> fmt::Debug for DefinitelyInitializedState<'a, 'tcx> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // ignore tcx
         write!(f, "{:?}", self.def_init_places)
     }
 }
 
-impl PartialEq for DefinitelyInitializedState<'_> {
+impl<'a, 'tcx: 'a> PartialEq for DefinitelyInitializedState<'a, 'tcx> {
     fn eq(&self, other: &Self) -> bool {
         self.def_init_places == other.def_init_places
     }
 }
-impl Eq for DefinitelyInitializedState<'_> {}
+impl<'a, 'tcx: 'a> Eq for DefinitelyInitializedState<'a, 'tcx> {}
 
-impl Serialize for DefinitelyInitializedState<'_> {
+impl<'a, 'tcx: 'a> Serialize for DefinitelyInitializedState<'a, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut seq = serializer.serialize_seq(Some(self.def_init_places.len()))?;
         let ordered_place_set: BTreeSet<_> = self.def_init_places.iter().collect();
@@ -53,10 +53,10 @@ impl Serialize for DefinitelyInitializedState<'_> {
 }
 
 
-impl<'tcx>  DefinitelyInitializedState<'tcx>  {
+impl<'a, 'tcx: 'a>  DefinitelyInitializedState<'a, 'tcx>  {
     /// empty place set
-    fn new_top(tcx: TyCtxt<'tcx>) -> Self {
-        Self {def_init_places: HashSet::new(), tcx}
+    fn new_top(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+        Self {def_init_places: HashSet::new(), mir, tcx}
     }
 
     fn is_top(&self) -> bool {
@@ -85,7 +85,7 @@ impl<'tcx>  DefinitelyInitializedState<'tcx>  {
     }
 
     /// Sets `place` as definitely initialized (see place_set/insert()
-    fn set_place_initialised(&mut self, place: &mir::Place<'tcx>, mir: &mir::Body<'tcx>) {
+    fn set_place_initialised(&mut self, place: &mir::Place<'tcx>) {
         self.check_invariant();
 
         // First, check that the place is not already marked as
@@ -98,20 +98,20 @@ impl<'tcx>  DefinitelyInitializedState<'tcx>  {
             self.def_init_places.insert(place.clone());
             // If all fields of a struct are definitely initialized,
             // just keep info that the struct is definitely initialized.
-            collapse(mir, self.tcx, &mut self.def_init_places, place);
+            collapse(self.mir, self.tcx, &mut self.def_init_places, place);
         }
         self.check_invariant();
     }
 
     /// Sets `place` as (possibly) uninitialized (see place_set/remove())
-    fn set_place_uninitialised(&mut self, place: &mir::Place<'tcx>, mir: &mir::Body<'tcx>) {
+    fn set_place_uninitialised(&mut self, place: &mir::Place<'tcx>) {
         self.check_invariant();
 
         let old_places = mem::replace(&mut self.def_init_places, HashSet::new());
         for old_place in old_places {
             if is_prefix(place, &old_place) {
                 // We are uninitializing a field of the place `old_place`.
-                self.def_init_places.extend(expand(mir, self.tcx, &old_place, place));
+                self.def_init_places.extend(expand(self.mir, self.tcx, &old_place, place));
             } else if is_prefix(&old_place, place) {
                 // We are uninitializing a place of which only some
                 // fields are initialized. Just remove all initialized
@@ -137,14 +137,14 @@ impl<'tcx>  DefinitelyInitializedState<'tcx>  {
     }
 
     /// If the operand is move, make the place uninitialized
-    fn apply_operand_effect(&mut self, operand: &mir::Operand<'tcx>, mir: &mir::Body<'tcx>) {
+    fn apply_operand_effect(&mut self, operand: &mir::Operand<'tcx>) {
         if let mir::Operand::Move(place) = operand {
-            self.set_place_uninitialised(place, mir);
+            self.set_place_uninitialised(place);
         }
     }
 }
 
-impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx> {
+impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 'tcx> {
 
     /// Contains all possible places = all locals
     fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
@@ -152,12 +152,16 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx> 
         for local in mir.local_decls.indices().skip(1) {        // skip return value pointer
             places.insert(local.clone().into());
         }
-        Self {def_init_places: places, tcx}
+        Self {def_init_places: places, mir, tcx}
     }
 
     fn is_bottom(&self) -> bool {
-        unimplemented!()
-        //TODO: only possible, if Body is being stored
+        if self.def_init_places.len() == (self.mir.local_decls.len() - 1) {
+            self.mir.local_decls.indices().skip(1).all(|local| self.def_init_places.contains(&local.into()))
+        }
+        else {
+            false
+        }
     }
 
     fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
@@ -169,7 +173,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx> 
         for local in mir.args_iter() {
             places.insert(local.clone().into());
         }
-        Self {def_init_places: places, tcx}
+        Self {def_init_places: places, mir, tcx}
     }
 
     fn need_to_widen(_counter: &u32) -> bool {
@@ -209,8 +213,8 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx> 
         unimplemented!()
     }
 
-    fn apply_statement_effect(&mut self, location: &mir::Location, mir: &mir::Body<'tcx>)-> Result<(), AnalysisError> {
-        let statement = &mir[location.block].statements[location.statement_index];
+    fn apply_statement_effect(&mut self, location: &mir::Location)-> Result<(), AnalysisError> {
+        let statement = &self.mir[location.block].statements[location.statement_index];
         match statement.kind {
             mir::StatementKind::Assign(box (ref target, ref source)) => {
                 match source {
@@ -218,22 +222,22 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx> 
                     | mir::Rvalue::Cast(_, ref operand, _)
                     | mir::Rvalue::UnaryOp(_, ref operand)
                     | mir::Rvalue::Use(ref operand) => {
-                        self.apply_operand_effect(operand, mir);
+                        self.apply_operand_effect(operand);
                     }
                     mir::Rvalue::BinaryOp(_, ref operand1, ref operand2)
                     | mir::Rvalue::CheckedBinaryOp(_, ref operand1, ref operand2) => {
-                        self.apply_operand_effect(operand1, mir);
-                        self.apply_operand_effect(operand2, mir);
+                        self.apply_operand_effect(operand1);
+                        self.apply_operand_effect(operand2);
                     }
                     mir::Rvalue::Aggregate(_, ref operands) => {
                         for operand in operands.iter() {
-                            self.apply_operand_effect(operand, mir);
+                            self.apply_operand_effect(operand);
                         }
                     }
                     _ => {}
                 }
 
-                self.set_place_initialised(target, mir);
+                self.set_place_initialised(target);
             }
             _ => {}
         }
@@ -241,67 +245,67 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'tcx> 
         Ok(())
     }
 
-    fn apply_terminator_effect(&self, location: &mir::Location, mir: &mir::Body<'tcx>)
+    fn apply_terminator_effect(&self, location: &mir::Location)
         -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
 
         let mut new_state = self.clone();
         let mut res_vec = Vec::new();
-        let terminator = mir[location.block].terminator();
+        let terminator = self.mir[location.block].terminator();
         match terminator.kind {
             mir::TerminatorKind::SwitchInt { ref discr, .. } => {
                 // only operand has an effect on definitely initialized places, all successors get the same state
-                new_state.apply_operand_effect(discr, mir);
+                new_state.apply_operand_effect(discr);
 
                 for bb in terminator.successors() {
                     res_vec.push((*bb, new_state.clone()));
                 }
             }
             mir::TerminatorKind::Drop { ref place, target, unwind } => {
-                new_state.set_place_uninitialised(place, mir);
+                new_state.set_place_uninitialised(place);
                 res_vec.push((target, new_state));
 
                 if let Some(bb) = unwind {
-                    res_vec.push((bb, Self::new_top(self.tcx)));       // imprecision for error states
+                    res_vec.push((bb, Self::new_top(self.mir, self.tcx)));       // imprecision for error states
                 }
             }
             mir::TerminatorKind::DropAndReplace { ref place, ref value, target, unwind } => {
-                new_state.set_place_uninitialised(place, mir);
-                new_state.apply_operand_effect(value, mir);
-                new_state.set_place_initialised(place, mir);
+                new_state.set_place_uninitialised(place);
+                new_state.apply_operand_effect(value);
+                new_state.set_place_initialised(place);
                 res_vec.push((target, new_state));
 
                 if let Some(bb) = unwind {
-                    res_vec.push((bb, Self::new_top(self.tcx)));       // imprecision for error states
+                    res_vec.push((bb, Self::new_top(self.mir, self.tcx)));       // imprecision for error states
                 }
             }
             mir::TerminatorKind::Call { ref func, ref args, ref destination, cleanup, .. } => {
                 for arg in args.iter() {
-                    new_state.apply_operand_effect(arg, mir);
+                    new_state.apply_operand_effect(arg);
                 }
-                new_state.apply_operand_effect(func, mir);
+                new_state.apply_operand_effect(func);
                 if let Some((place, bb)) = destination {
-                    new_state.set_place_initialised(place, mir);
+                    new_state.set_place_initialised(place);
                     res_vec.push((*bb, new_state));
                 }
 
                 if let Some(bb) = cleanup {
-                    res_vec.push((bb, Self::new_top(self.tcx)));       // imprecision for error states
+                    res_vec.push((bb, Self::new_top(self.mir, self.tcx)));       // imprecision for error states
                 }
             }
             mir::TerminatorKind::Assert { ref cond, target, cleanup, .. } => {
-                new_state.apply_operand_effect(cond, mir);
+                new_state.apply_operand_effect(cond);
                 res_vec.push((target, new_state));
 
                 if let Some(bb) = cleanup {
-                    res_vec.push((bb, Self::new_top(self.tcx)));       // imprecision for error states
+                    res_vec.push((bb, Self::new_top(self.mir, self.tcx)));       // imprecision for error states
                 }
             }
-            mir::TerminatorKind::Yield { ref value, resume, drop, .. } => { //TODO: resume_arg
-                new_state.apply_operand_effect(value, mir);
+            mir::TerminatorKind::Yield { ref value, resume, drop, .. } => { //TODO: resume_arg?
+                new_state.apply_operand_effect(value);
                 res_vec.push((resume, new_state));
 
                 if let Some(bb) = drop {
-                    res_vec.push((bb, Self::new_top( self.tcx)));       // imprecision for error states
+                    res_vec.push((bb, Self::new_top(self.mir, self.tcx)));       // imprecision for error states
                 }
             }
             mir::TerminatorKind::InlineAsm { .. } =>

@@ -65,6 +65,7 @@ impl<'a, 'tcx: 'a> Serialize for ReachingDefsState<'a, 'tcx> {
 }
 
 impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
+
     /// all sets are empty  //TODO: insert locals?
     fn new_bottom(mir: &'a mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Self {
         Self {
@@ -106,10 +107,10 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         unimplemented!()
     }
 
-    fn apply_statement_effect(&mut self, location: &mir::Location, mir: &mir::Body<'tcx>)
+    fn apply_statement_effect(&mut self, location: &mir::Location)
         -> Result<(), AnalysisError> {
 
-        let stmt = &mir[location.block].statements[location.statement_index];
+        let stmt = &self.mir[location.block].statements[location.statement_index];
         match stmt.kind {
             mir::StatementKind::Assign(box (ref target, _)) => {
                 if let Some(local) = target.as_local() {
@@ -123,11 +124,11 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         }
     }
 
-    fn apply_terminator_effect(&self, location: &mir::Location, mir: &mir::Body<'tcx>)
+    fn apply_terminator_effect(&self, location: &mir::Location)
         -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
 
         let mut res_vec = Vec::new();
-        let terminator = mir[location.block].terminator();
+        let terminator = self.mir[location.block].terminator();
         match terminator.kind {
             mir::TerminatorKind::Call {
                 ref destination, cleanup, ..

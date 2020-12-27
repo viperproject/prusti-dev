@@ -88,7 +88,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
                 }*/
                 p_state.set_before(&location, current_state.clone());
                 // normal statement
-                let res = current_state.apply_statement_effect(&location, mir);
+                let res = current_state.apply_statement_effect(&location);
                 if res.is_err() {
                     return Err(res.unwrap_err());
                 }
@@ -104,7 +104,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
             }*/
             p_state.set_before(&location, current_state.clone());
 
-            let term_res = current_state.apply_terminator_effect(&location, mir);
+            let term_res = current_state.apply_terminator_effect(&location);
 
             match term_res {
                 Err(e) => {return Err(e);}
@@ -126,7 +126,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
                         if let Some(s) = new_map.remove(next_bb) {
                             let prev_state = map_after_block.insert(*next_bb, s);
                             let new_state_ref = map_after_block.get(&next_bb);
-                            if !prev_state.iter().any(|ps| ps == new_state_ref.unwrap()) {       // TODO: use .contains when it becomes stable
+                            if !prev_state.iter().any(|ps| ps == new_state_ref.unwrap()) {       // TODO: use .contains when it becomes stable?
                                 // input state has changed => add next_bb to worklist
                                 work_set.insert(*next_bb);
                             }
