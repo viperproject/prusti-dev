@@ -9,17 +9,18 @@ use std::collections::{BTreeMap, HashMap};
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
 
+use rustc_middle::ty::TyCtxt;
 use rustc_middle::mir;
 
 use crate::AbstractState;
 
 /// Records the abstract state at every program point and CFG edge of `mir`
-#[derive(Debug)]
 pub struct PointwiseState<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> {
     state_before: HashMap<mir::Location, S>,
     /// maps each basic block to a map of its successor blocks to the state on the CFG edge
     state_after_block: HashMap<mir::BasicBlock, HashMap<mir::BasicBlock, S>>,
     mir: &'a mir::Body<'tcx>,       // needed for translation of location to statement/terminator in serialization
+    tcx: TyCtxt<'tcx>,              // needed for construction of bottom element in serialization
 }
 
 impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 'tcx, S> {
@@ -28,6 +29,8 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 
         /* Serialize PointwiseState by translating it to a combination of vectors, tuples and maps,
            such that serde can automatically translate it.
         */
+        let bottom = S::new_bottom(self.mir, self.tcx);
+
         let mut map = serializer.serialize_map(Some(self.mir.basic_blocks().len()))?;
 
         for bb in self.mir.basic_blocks().indices() {
@@ -39,13 +42,13 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 
                     statement_index,
                 };
 
-                let state = self.lookup_before(&location).unwrap(); //TODO: or bottom?
+                let state = self.lookup_before(&location).unwrap_or(&bottom);
                 // output statement
                 stmt_vec.push(("state:", state, format!("statement: {:?}", stmt)));
             }
 
             let term_location = self.mir.terminator_loc(bb);
-            let state_before = self.lookup_before(&term_location).unwrap(); //TODO: or bottom?
+            let state_before = self.lookup_before(&term_location).unwrap_or(&bottom);
 
             let terminator_str = format!("terminator: {:?}", self.mir[bb].terminator().kind);
 
@@ -64,11 +67,12 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 
 }
 
 impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> PointwiseState<'a, 'tcx, S> {
-    pub fn new(mir: &'a mir::Body<'tcx>) -> Self {
+    pub fn new(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {
             state_before: HashMap::new(),
             state_after_block: HashMap::new(),
             mir,
+            tcx
         }
     }
 

@@ -35,7 +35,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
     pub fn run_fwd_analysis<S>(&self, mir: &'a mir::Body<'tcx>) -> Result<PointwiseState<'a, 'tcx, S>>
         where S: AbstractState<'a, 'tcx>
     {
-        let mut p_state = PointwiseState::new(mir);
+        let mut p_state = PointwiseState::new(mir, self.tcx);
         //use https://crates.io/crates/linked_hash_set for set preserving insertion order?
         let mut work_set: BTreeSet<mir::BasicBlock> = BTreeSet::from_iter(mir.basic_blocks().indices());
 
@@ -56,7 +56,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
 
             for pred_bb in &mir.predecessors()[bb] {
                 if let Some(map) = p_state.lookup_after_block(pred_bb) {
-                    state_before_block.join(map.get(&bb).unwrap());      //TODO: handle unwrap error?
+                    state_before_block.join(map.get(&bb).unwrap());      //map should contain bb, because we ensure that we have a state for every successor
                 }
                 // if no state is present: assume bottom => no effect on join
             }
