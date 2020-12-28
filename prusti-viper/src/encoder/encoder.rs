@@ -307,7 +307,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     
         for f in self.pure_functions.borrow().values().into_iter() {
             let old_formal_args = f.formal_args.clone();
-            let mut purifier = ExprPurifier {
+            let mut purifier = snapshot::ExprPurifier {
                 old_formal_args: old_formal_args.clone(),
                 snapshots: snapshots_info.clone(),
             };
@@ -1650,100 +1650,4 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 }
 
-
-
-struct ExprPurifier {
-    old_formal_args: Vec<vir::LocalVar>,
-    snapshots: HashMap<String, Box<Snapshot>>,
-}
-
-impl ExprPurifier {
-    fn find_possible_domain_for_field_name(&self, field_name: &str) -> Option<String> {
-        for snap in self.snapshots.values() {
-            if let Some(d) = &snap.snap_domain {
-                for f in &d.fields {
-                    //   info!("looking at the field {} in domain {}",f, d.domain.name.to_string());
-                    if f == field_name {
-                        return Some(d.domain.name.to_string());
-                    }
-                }
-            }
-        }
-
-        None
-    }
-
-    fn transalte_type(&self, t: vir::Type) -> vir::Type {
-        match t {
-            vir::Type::TypedRef(name) => match name.as_str() {
-                "i32" => vir::Type::Int,
-                _ => {
-                    let domain_name = self
-                        .snapshots
-                        .get(&name)
-                        .and_then(|snap| snap.domain())
-                        .map(|domain| domain.name)
-                        .expect(&format!("No matching domain for {}", name));
-
-                    vir::Type::Domain(domain_name)
-                }
-            },
-            o @ _ => o,
-        }
-    }
-}
-
-impl vir::ExprFolder for ExprPurifier {
-    fn fold_unfolding(
-        &mut self,
-        name: String,
-        args: Vec<vir::Expr>,
-        expr: Box<vir::Expr>,
-        perm: vir::PermAmount,
-        variant: vir::MaybeEnumVariantIndex,
-        pos: vir::Position,
-    ) -> vir::Expr {
-        *self.fold_boxed(expr)
-    }
-
-    fn fold_field(
-        &mut self,
-        receiver: Box<vir::Expr>,
-        field: vir::Field,
-        pos: vir::Position,
-    ) -> vir::Expr {
-        let inner = self.fold_boxed(receiver);
-        let field_name = field.name.to_string();
-        info!("translating field {}", field_name);
-        match field_name.as_str() {
-            "val_bool" | "val_int" => *inner,
-            _ => {
-                let field_name: String = field_name.chars().skip(2).collect();
-                let field_type = field.typ.clone();
-                let purified_field_type = self.transalte_type(field_type);
-                let domain_name = self
-                    .find_possible_domain_for_field_name(&field_name)
-                    .expect(&format!("No doman found with a field named {}", field_name));
-                info!("found domain {}", domain_name);
-                let domain_func = SnapshotAdtEncoder::encode_field_domain_func_from_snapshot(
-                    purified_field_type,
-                    field_name,
-                    domain_name,
-                )
-                .unwrap();
-                vir::Expr::DomainFuncApp(domain_func, vec![*inner], pos)
-            }
-        }
-    }
-
-    fn fold_local(&mut self, v: vir::LocalVar, p: vir::Position) -> vir::Expr {
-        vir::Expr::Local(
-            vir::LocalVar {
-                name: v.name,
-                typ: self.transalte_type(v.typ),
-            },
-            p,
-        )
-    }
-}
 

@@ -30,3 +30,4 @@ mod stub_function_encoder;
 mod stub_procedure_encoder;
 mod type_encoder;
 mod utils;
+mod snapshot;
