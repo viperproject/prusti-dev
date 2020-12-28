@@ -12,7 +12,6 @@ use rustc_middle::ty::TyCtxt;
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
 use crate::serialization_utils::location_to_stmt_str;
-use serde::export::Formatter;
 
 
 /// A set of definition locations and function parameter indices per Local,
@@ -80,7 +79,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         self.reaching_assignments.iter().all(|(_, set)| set.is_empty())
     }
 
-    fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    fn new_initial(mir: &'a mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Self {
         let mut reaching_assignments: HashMap<mir::Local, HashSet<Result<mir::Location, usize>>> = HashMap::new();
         // insert parameters
         for (idx, local) in mir.args_iter().enumerate() {

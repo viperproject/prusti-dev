@@ -57,11 +57,11 @@ impl<'a, 'tcx: 'a> Serialize for DefinitelyInitializedState<'a, 'tcx> {
 
 impl<'a, 'tcx: 'a>  DefinitelyInitializedState<'a, 'tcx>  {
     /// empty place set
-    fn new_top(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
+    pub fn new_top(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {def_init_places: HashSet::new(), mir, tcx}
     }
 
-    fn is_top(&self) -> bool {
+    pub fn is_top(&self) -> bool {
         self.def_init_places.is_empty()
     }
 
