@@ -15,6 +15,7 @@ mod abstract_state;
 mod analysis_error;
 mod analyzer;
 pub mod abstract_domains;
+mod serialization_utils;
 
 pub use pointwise_state::PointwiseState;
 pub use abstract_state::AbstractState;
