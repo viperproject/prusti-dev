@@ -11,7 +11,6 @@ extern crate rustc_session;
 
 use rustc_ast::ast;
 use rustc_middle::ty;
-use rustc_middle::mir;
 use rustc_hir::def_id::{DefId, LOCAL_CRATE};
 use rustc_driver::Compilation;
 use rustc_interface::{interface, Queries};
@@ -30,7 +29,7 @@ fn get_attribute<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: DefId, segment1: &str, seg
                                   path: ast::Path { span: _, segments, tokens: _ },
                                   args: ast::MacArgs::Empty,
                                   tokens: _,
-                              }) => {
+                              }, _) => {
             segments.len() == 2
                 && segments[0].ident.as_str() == segment1
                 && segments[1].ident.as_str() == segment2
@@ -122,7 +121,7 @@ fn main() {
     let mut callbacks = OurCompilerCalls { args: callback_args };
     // Invoke compiler, and handle return code.
     let exit_code = rustc_driver::catch_with_exit_code(move || {
-        rustc_driver::run_compiler(&compiler_args, &mut callbacks, None, None, None)
+        rustc_driver::RunCompiler::new(&compiler_args, &mut callbacks).run()
     });
     std::process::exit(exit_code)
 }
