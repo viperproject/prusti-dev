@@ -5,7 +5,6 @@ use rustc_middle::ty::TyCtxt;
 use rustc_span::{Span, MultiSpan};
 
 use std::collections::HashMap;
-use crate::specs::typed::ExternSpecificationMap;
 use crate::environment::Environment;
 use crate::PrustiError;
 
@@ -18,7 +17,7 @@ pub struct ExternSpecResolver<'tcx> {
     /// functions with specifications. The mapping may also optionally contain
     /// the `DefId` of the implementing type to account for trait
     /// implementations.
-    extern_fn_map: ExternSpecificationMap<'tcx>,
+    pub extern_fn_map: HashMap<DefId, (Option<DefId>, DefId)>,
 
     /// Duplicate specifications detected, keyed by the `DefId` of the function
     /// to be specified.
@@ -78,18 +77,15 @@ impl<'tcx> ExternSpecResolver<'tcx> {
     /// Report errors for duplicate specifications found during specification
     /// collection.
     pub fn check_duplicates(&self, env: &Environment<'tcx>) {
-        for (def_id, specs) in self.spec_duplicates.iter() {
+        for (&def_id, specs) in self.spec_duplicates.iter() {
+            let function_name = env.get_item_name(def_id);
             PrustiError::incorrect(
-                format!("duplicate specification for {:?}", def_id),
+                format!("duplicate specification for {}", function_name),
                 MultiSpan::from_spans(specs.iter()
                     .map(|s| s.1)
                     .collect())
             ).emit(env);
         }
-    }
-
-    pub fn get_extern_fn_map(&self) -> ExternSpecificationMap<'tcx> {
-        self.extern_fn_map.clone()
     }
 }
 
@@ -134,7 +130,7 @@ impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
             if let rustc_hir::ExprKind::Path(ref qself) = callee_expr.kind {
                 let res = self.tcx.typeck(callee_expr.hir_id.owner).qpath_res(qself, callee_expr.hir_id);
                 if let rustc_hir::def::Res::Def(_, def_id) = res {
-                    self.spec_found = Some((def_id, get_impl_type(qself), ex.span.source_callsite()));
+                    self.spec_found = Some((def_id, get_impl_type(qself), ex.span));
                     return;
                 }
             }

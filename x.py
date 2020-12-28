@@ -11,6 +11,10 @@ import os
 import platform
 import subprocess
 import glob
+import csv
+import time
+import json 
+import signal
 
 verbose = False
 dry_run = False
@@ -187,7 +191,7 @@ def setup_ubuntu():
     shell('sudo apt-get update')
     shell('sudo apt-get install -y '
           'build-essential pkg-config '
-          'wget gcc libssl-dev openjdk-8-jdk')
+          'wget gcc libssl-dev')
     # Download Viper.
     shell('wget -q http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
     shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
@@ -221,11 +225,8 @@ def setup_win():
 
 
 def setup_rustup():
-    # Setup rustc components.
-    shell('rustup component add rustfmt', term_on_nzec=False)
-    shell('rustup component add rust-src')
-    shell('rustup component add rustc-dev')
-    shell('rustup component add llvm-tools-preview')
+    # Update rustup
+    shell('rustup self update', term_on_nzec=False)
 
 
 def setup(args):
@@ -257,6 +258,84 @@ def ide(args):
     """Start VS Code with the given arguments."""
     run_command(['code'] + args)
 
+def run_benchmarks(args):
+    """Run the benchmarks and report the time in a json file"""
+    warmup_iterations = 6
+    bench_iterations = 10
+    warmup_path = "prusti-tests/tests/verify/pass/quick/fibonacci.rs"
+    prusti_server_exe = get_prusti_server_path_for_benchmark()
+    server_port = "12345"
+    output_dir = "benchmark-output"
+    benchmark_csv = "benchmarks.csv"
+    results = {}
+
+    env = get_env()
+    report("Starting prusti-server ({})", prusti_server_exe)
+    server_process = subprocess.Popen([prusti_server_exe,"--port",server_port], env=env)
+    time.sleep(2)
+    if server_process.poll() != None:
+        raise RuntimeError('Could not start prusti-server') 
+
+    env["PRUSTI_SERVER_ADDRESS"]="localhost:" + server_port
+    try:
+        report("Starting warmup of the server")
+        for i in range(warmup_iterations):
+            t = measure_prusti_time(warmup_path, env)
+            report("warmup run {} took {}", i + 1, t)
+        
+        report("Finished warmup. Starting benchmark")
+        with open(benchmark_csv) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            for row in csv_reader:
+                file_path = row[0]
+                results[file_path] = []
+                report("Starting to benchmark {}", file_path)
+                for i in range(bench_iterations):
+                    t = measure_prusti_time(file_path, env)
+                    results[file_path].append(t)
+    finally:
+        report("terminating prusti-server")
+        server_process.send_signal(signal.SIGINT)
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    json_result = json.dumps(results, indent = 2)
+    timestamp = time.time()
+    output_file = os.path.join(output_dir, "benchmark" + str(timestamp) + ".json")
+    with open(output_file, "w") as outfile: 
+        outfile.write(json_result) 
+    
+    report("Wrote results of benchmark to {}", output_file)
+
+
+def get_prusti_server_path_for_benchmark():
+    project_root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+    
+    if sys.platform in ("linux", "linux2"):
+        return os.path.join(project_root_dir, 'target', 'release', 'prusti-server-driver')
+    else:
+        error("unsupported platform for benchmarks: {}", sys.platform)
+
+
+def get_prusti_rustc_path_for_benchmark():
+    project_root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+    
+    if sys.platform in ("linux", "linux2"):
+        return os.path.join(project_root_dir, 'target', 'release', 'prusti-rustc')
+    else:
+        error("unsupported platform for benchmarks: {}", sys.platform)
+
+
+def measure_prusti_time(input_path, env):
+    prusti_rustc_exe = get_prusti_rustc_path_for_benchmark()
+    start_time = time.perf_counter()
+    run_command([prusti_rustc_exe,"--edition=2018", input_path], env=env)
+    end_time = time.perf_counter()
+    elapsed = end_time - start_time
+    return elapsed  
+
+
 
 def select_newest_file(paths):
     """Select a file that exists and has the newest modification timestamp."""
@@ -270,8 +349,19 @@ def select_newest_file(paths):
         error("Could not select the newest file from {}", paths)
 
 
-def verify_test(test):
+def verify_test(args):
     """Runs prusti on the specified files."""
+    test = None
+    compile_flags = []
+    for arg in args:
+        if arg.startswith('-'):
+            compile_flags.append(arg)
+        else:
+            if test is None:
+                test = arg
+            else:
+                error("Expected a single argument (test file). Got: {}", args)
+
     current_path = os.path.abspath(os.path.curdir)
     candidate_prusti_paths = [
         os.path.join(current_path, 'target', 'release', 'prusti-rustc'),
@@ -294,7 +384,6 @@ def verify_test(test):
             )
         test_path = candidate_test_paths[0]
     report("Found test: {}", test_path)
-    compile_flags = []
     with open(test_path) as fp:
         for line in fp:
             if line.startswith('// compile-flags:'):
@@ -302,9 +391,9 @@ def verify_test(test):
         report("Additional compile flags: {}", compile_flags)
     env = get_env()
     if test_path.startswith('prusti-tests/tests/verify_overflow/'):
-        env['PRUSTI_CHECK_BINARY_OPERATIONS'] = 'true'
+        env['PRUSTI_CHECK_OVERFLOWS'] = 'true'
     else:
-        env['PRUSTI_CHECK_BINARY_OPERATIONS'] = 'false'
+        env['PRUSTI_CHECK_OVERFLOWS'] = 'false'
     run_command([prusti_path, '--edition=2018', test_path] + compile_flags, env)
 
 
@@ -323,11 +412,11 @@ def main(argv):
         elif arg == 'ide':
             ide(argv[i+1:])
             break
+        elif arg == 'run-benchmarks':
+            run_benchmarks(argv[i+1:])
+            break
         elif arg == 'verify-test':
-            arg_count = len(argv) - i
-            if arg_count != 2:
-                error("Expected a single argument (test file). Got: ", arg_count)
-            verify_test(argv[i+1])
+            verify_test(argv[i+1:])
             break
         else:
             cargo(argv[i:])

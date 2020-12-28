@@ -26,6 +26,7 @@ use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::PathBuf;
 use log::{trace, debug};
+use prusti_common::config;
 
 pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'tcx>, procedures: &Vec<ProcedureDefId>) {
     trace!("[dump_borrowck_info] enter");
@@ -71,7 +72,8 @@ impl<'tcx> InfoPrinter<'tcx> {
 
         let loop_info = loops::ProcedureLoops::new(&mir);
 
-        let graph_path = PathBuf::from("nll-facts")
+        let graph_path = PathBuf::from(config::log_dir())
+            .join("nll-facts")
             .join(def_path.to_filename_friendly_no_crate())
             .join("graph.dot");
         debug!("Writing graph to {:?}", graph_path);
@@ -970,7 +972,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 write_edge!(self, bb, target);
             }
             TerminatorKind::SwitchInt { ref targets, .. } => {
-                for target in targets {
+                for target in targets.all_targets() {
                     write_edge!(self, bb, target);
                 }
             }

@@ -14,28 +14,33 @@ use log::trace;
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {
+    type Error: Sized;
     type State: Sized;
     fn apply_terminator(
         &self,
         bb: mir::BasicBlock,
         terminator: &mir::Terminator<'tcx>,
         states: HashMap<mir::BasicBlock, &Self::State>,
-    ) -> Self::State;
+    ) -> Result<Self::State, Self::Error>;
     fn apply_statement(
         &self,
         bb: mir::BasicBlock,
         stmt_index: usize,
         stmt: &mir::Statement<'tcx>,
         state: &mut Self::State,
-    );
+    ) -> Result<(), Self::Error>;
 }
 
 /// Interpret a loop-less MIR starting from the end and return the **initial** state.
 /// The result is None if the CFG contains a loop.
-pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tcx, State = S>>(
+pub fn run_backward_interpretation<'tcx, S, E, I>(
     mir: &mir::Body<'tcx>,
     interpreter: &I,
-) -> Option<S> {
+) -> Result<Option<S>, E> where
+    S: Debug,
+    E: Debug,
+    I: BackwardMirInterpreter<'tcx, State = S, Error = E>
+{
     let basic_blocks = mir.basic_blocks();
     let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
 
@@ -59,14 +64,14 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
         let states = HashMap::from_iter(terminator.successors().map(|bb| (*bb, &heads[bb])));
         trace!("States before: {:?}", states);
         trace!("Apply terminator {:?}", terminator);
-        let mut curr_state = interpreter.apply_terminator(curr_bb, terminator, states);
+        let mut curr_state = interpreter.apply_terminator(curr_bb, terminator, states)?;
         trace!("State after: {:?}", curr_state);
 
         // Apply each statement, from the last
         for (stmt_index, stmt) in bb_data.statements.iter().enumerate().rev() {
             trace!("State before: {:?}", curr_state);
             trace!("Apply statement {:?}", stmt);
-            interpreter.apply_statement(curr_bb, stmt_index, stmt, &mut curr_state);
+            interpreter.apply_statement(curr_bb, stmt_index, stmt, &mut curr_state)?;
             trace!("State after: {:?}", curr_state);
         }
 
@@ -89,7 +94,7 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
         trace!("heads: {:?}", heads);
     }
 
-    result
+    Ok(result)
 }
 
 /// Interpret a loop-less MIR starting from the end and return the **initial** state.
@@ -97,7 +102,8 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
 pub fn run_backward_interpretation_point_to_point<
     'tcx,
     S: Debug + Clone,
-    I: BackwardMirInterpreter<'tcx, State = S>,
+    E,
+    I: BackwardMirInterpreter<'tcx, State = S, Error = E>,
 >(
     mir: &mir::Body<'tcx>,
     interpreter: &I,
@@ -106,7 +112,7 @@ pub fn run_backward_interpretation_point_to_point<
     final_stmt_index: usize,
     final_state: S,
     empty_state: S,
-) -> Option<S> {
+) -> Result<Option<S>, E> {
     let basic_blocks = mir.basic_blocks();
     let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
     trace!(
@@ -145,7 +151,11 @@ pub fn run_backward_interpretation_point_to_point<
         };
         trace!("States before: {:?}", states);
         trace!("Apply terminator {:?}", terminator);
-        let mut curr_state = interpreter.apply_terminator(curr_bb, terminator, states);
+        let mut curr_state = interpreter.apply_terminator(
+            curr_bb,
+            terminator,
+            states
+        )?;
         trace!("State after: {:?}", curr_state);
         if curr_bb == final_bbi && final_stmt_index == terminator_index {
             trace!("Final location reached in terminator");
@@ -157,7 +167,7 @@ pub fn run_backward_interpretation_point_to_point<
         for (stmt_index, stmt) in bb_data.statements.iter().enumerate().rev() {
             trace!("State before: {:?}", curr_state);
             trace!("Apply statement {:?}", stmt);
-            interpreter.apply_statement(curr_bb, stmt_index, stmt, &mut curr_state);
+            interpreter.apply_statement(curr_bb, stmt_index, stmt, &mut curr_state)?;
             trace!("State after: {:?}", curr_state);
             if curr_bb == final_bbi && final_stmt_index == stmt_index {
                 trace!("Final location reached in statement");
@@ -196,7 +206,7 @@ pub fn run_backward_interpretation_point_to_point<
         result
     );
 
-    result
+    Ok(result)
 }
 
 /// Forward interpreter for a loop-less MIR

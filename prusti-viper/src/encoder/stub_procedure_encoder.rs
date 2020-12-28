@@ -68,7 +68,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         // Initialize a single CFG block
         let stub_cfg_block = cfg_method.add_block(
             "stub",
-            vec![],
             vec![
                 vir::Stmt::comment("========== stub =========="),
                 // vir::Stmt::comment(format!("Name: {:?}", self.procedure.get_name())),

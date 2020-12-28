@@ -27,4 +27,4 @@ The easiest way to try out Prusti is by using the ["Prusti Assistant"](https://m
 
 Alternatively, if you wish to use Prusti from the command line there are two options:
 * Download the precompiled binaries for Ubuntu, Windows, or MacOS from a [GitHub release](https://github.com/viperproject/prusti-dev/releases).
-* Compile from the source code, running `./x.py setup` and `./x.py build --release`.
+* Compile from the source code, by first running `./x.py setup` and then afterwards `./x.py build --release`.

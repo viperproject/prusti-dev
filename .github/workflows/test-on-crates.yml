@@ -2,40 +2,27 @@ name: Test on crates
 
 on:
   push:
-    branches: #[ '**' ]
-      - non-existant-master # Disable temporarily
+    branches: 'master'
   pull_request:
-    branches: #[ '**' ]
-      - non-existant-master # Disable temporarily
-
-env:
-  RUST_BACKTRACE: 1
-  PRUSTI_ASSERT_TIMEOUT: 60000
-  TOP_CRATES_DIR: "../top-crates"
+    branches: [ '**' ]
 
 jobs:
-
-  top-crates:
+  # Test `cargo-prusti` on a collection of crates.
+  test-crates:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Prepare environment
-        run: .github/workflows/prepare-environment.sh
-      - name: Compile Prusti in release mode
-        run: cargo build --all --release
-      - name: Download top crates
-        run: |
-          mkdir -p "$TOP_CRATES_DIR"
-          ./test-crates/download-top-20.sh "$TOP_CRATES_DIR"
-          ./test-crates/set-cargo-lock.sh "$TOP_CRATES_DIR"
-      - name: Compile crates with standard rustc
-        run: ./test-crates/compile-crates.sh "$TOP_CRATES_DIR"
-      - name: Run Prusti on the top crates
-        run: ./test-crates/core-evaluation.sh "$TOP_CRATES_DIR"
-      - name: Check outcome
-        run: |
-          if grep "^[^,]*,false," "$TOP_CRATES_DIR"/coarse-grained-verification-report.csv; then
-              echo "Prusti failed on some crates"
-              exit 2
-          fi
+      - name: Setup Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Build with cargo --release
+        run: python x.py build --release --all --verbose
+      - name: Test Prusti on a collection of crates
+        run: ./target/release/test-crates

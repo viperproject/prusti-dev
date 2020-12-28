@@ -69,7 +69,7 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
 }
 
 fn is_purifiable_predicate(name: &str) -> bool {
-    name == "usize"
+    name == "usize" || name == "isize"
 }
 
 fn is_purifiable_method(name: &str) -> bool {
@@ -114,6 +114,7 @@ impl ast::ExprWalker for VarCollector {
                 let original = var.clone();
                 new_var.typ = match name {
                     "usize" => ast::Type::Int,
+                    "isize" => ast::Type::Int,
                     x => unreachable!("{}", x),
                 };
                 self.replacements.insert(original, new_var);
@@ -274,7 +275,7 @@ impl VarPurifier {
     }
     fn get_replacement_bounds(&self, var_expr: &ast::Expr) -> ast::Expr {
         let replacement = self.get_replacement(var_expr);
-        if config::check_binary_operations() {
+        if config::check_overflows() {
             ast::Expr::and(
                 ast::Expr::ge_cmp(replacement.clone().into(), 0.into()),
                 ast::Expr::ge_cmp(std::usize::MAX.into(), replacement.into()),

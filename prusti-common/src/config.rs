@@ -4,25 +4,56 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+mod commandline;
+
 use config_crate::{Config, Environment, File};
+use self::commandline::CommandLine;
 use std::env;
 use std::sync::RwLock;
 use serde::Deserialize;
 
-/// The flags provided by using `-Z` arguments on the command line. These are
-/// almost exclusively used for testing.
-#[derive(Clone, Copy, Default)]
-pub struct ConfigFlags {
-    /// Should Prusti print the AST with desugared specifications.
-    pub print_desugared_specs: bool,
-    /// Should Prusti print the type-checked specifications.
-    pub print_typeckd_specs: bool,
-    /// Should Prusti print the items collected for verification.
-    pub print_collected_verfication_items: bool,
-    /// Should Prusti skip the verification part.
-    pub skip_verify: bool,
-    /// Should Prusti hide the UUIDs of expressions and specifications.
-    pub hide_uuids: bool,
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct Optimizations {
+    pub inline_constant_functions: bool,
+    pub delete_unused_predicates: bool,
+    pub optimize_folding: bool,
+    pub remove_empty_if: bool,
+    pub purify_vars: bool,
+    pub fix_quantifiers: bool,
+    pub remove_unused_vars: bool,
+    pub remove_trivial_assertions: bool,
+    pub clean_cfg: bool,
+}
+
+impl Optimizations {
+    fn all_disabled() -> Self {
+        Optimizations {
+            inline_constant_functions: false,
+            delete_unused_predicates: false,
+            optimize_folding: false,
+            remove_empty_if: false,
+            purify_vars: false,
+            fix_quantifiers: false,
+            remove_unused_vars: false,
+            remove_trivial_assertions: false,
+            clean_cfg: false,
+        }
+    }
+
+    fn all_enabled() -> Self {
+        Optimizations{
+            inline_constant_functions: true,
+            delete_unused_predicates: true,
+            optimize_folding: true,
+            remove_empty_if: true,
+            purify_vars: true,
+            fix_quantifiers: true,
+            remove_unused_vars: true,
+            remove_trivial_assertions: true,
+            clean_cfg: true,
+        }
+    }
 }
 
 lazy_static! {
@@ -31,16 +62,17 @@ lazy_static! {
         let mut settings = Config::default();
 
         // 1. Default values
+        settings.set_default("BE_RUSTC", false).unwrap();
         settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
         settings.set_default("CHECK_FOLDUNFOLD_STATE", false).unwrap();
-        settings.set_default("CHECK_BINARY_OPERATIONS", false).unwrap();
+        settings.set_default("CHECK_OVERFLOWS", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("ENCODE_UNSIGNED_NUM_CONSTRAINT", false).unwrap();
         settings.set_default("SIMPLIFY_ENCODING", true).unwrap();
-        settings.set_default("ENABLE_WHITELIST", false).unwrap();
-        settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
+        settings.set_default("DUMP_DEBUG_INFO_DURING_FOLD", false).unwrap();
+        settings.set_default("MAX_LOG_FILE_NAME_LENGTH", 60).unwrap();
         settings.set_default("DUMP_PATH_CTXT_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_REBORROWING_DAG_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
@@ -52,18 +84,26 @@ lazy_static! {
         settings.set_default("QUIET", false).unwrap();
         settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
-        settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
-        settings.set_default("SKIP_UNSUPPORTED_FUNCTIONS", false).unwrap();
+        settings.set_default("SKIP_UNSUPPORTED_FEATURES", false).unwrap();
+        settings.set_default("ALLOW_UNREACHABLE_UNSUPPORTED_CODE", false).unwrap();
         settings.set_default("NO_VERIFY", false).unwrap();
         settings.set_default("FULL_COMPILATION", false).unwrap();
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
+        settings.set_default("JSON_COMMUNICATION", false).unwrap();
+        settings.set_default("OPTIMIZATIONS","all").unwrap();
 
+        settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
+        settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
+        settings.set_default("PRINT_COLLECTED_VERIFICATION_ITEMS", false).unwrap();
+        settings.set_default("HIDE_UUIDS", false).unwrap();
+        
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
         settings.set_default("VERIFY_ONLY_PREAMBLE", false).unwrap();
         settings.set_default("ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH", false).unwrap();
         settings.set_default::<Vec<String>>("VERIFY_ONLY_BASIC_BLOCK_PATH", vec![]).unwrap();
         settings.set_default::<Vec<String>>("DELETE_BASIC_BLOCKS", vec![]).unwrap();
+
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -80,8 +120,20 @@ lazy_static! {
             Environment::with_prefix("PRUSTI").ignore_empty(true)
         ).unwrap();
 
+        // 5. Override with command-line arguments -P<arg>=<val>
+        settings.merge(
+            CommandLine::with_prefix("-P").ignore_invalid(true)
+        ).unwrap();
+
         settings
     });
+}
+
+/// Return vector of arguments filtered out by prefix
+pub fn get_filtered_args() -> Vec<String> {
+    CommandLine::with_prefix("-P")
+        .get_remaining_args()
+        .collect::<Vec<String>>()
 }
 
 /// Generate a dump of the settings
@@ -101,6 +153,11 @@ where
     T: Deserialize<'static>,
 {
     read_optional_setting(name).unwrap()
+}
+
+/// Should Prusti behave exactly like rustc?
+pub fn be_rustc() -> bool {
+    read_setting("BE_RUSTC")
 }
 
 /// Generate additional, *slow*, checks for the foldunfold algorithm
@@ -126,27 +183,20 @@ pub fn simplify_encoding() -> bool {
     read_setting("SIMPLIFY_ENCODING")
 }
 
-/// Whether to use the verifiation whitelist
-pub fn enable_whitelist() -> bool {
-    SETTINGS
-        .read()
-        .unwrap()
-        .get::<bool>("ENABLE_WHITELIST")
-        .unwrap()
-}
-
-/// Get the whitelist of procedures that should be verified
-pub fn verification_whitelist() -> Vec<String> {
-    SETTINGS
-        .read()
-        .unwrap()
-        .get::<Vec<String>>("WHITELIST")
-        .unwrap()
-}
-
 /// Should we dump debug files?
 pub fn dump_debug_info() -> bool {
     read_setting("DUMP_DEBUG_INFO")
+}
+
+/// Should we dump debug files for fold/unfold generation?
+pub fn dump_debug_info_during_fold() -> bool {
+    read_setting("DUMP_DEBUG_INFO_DURING_FOLD")
+}
+
+/// What is the longest allowed length of a log file name? If this is exceeded,
+/// the file name is truncated.
+pub fn max_log_file_name_length() -> usize {
+    read_setting("MAX_LOG_FILE_NAME_LENGTH")
 }
 
 /// Should we dump the branch context state in debug files?
@@ -180,8 +230,8 @@ pub fn log_dir() -> String {
 }
 
 /// Check binary operations for overflows
-pub fn check_binary_operations() -> bool {
-    read_setting("CHECK_BINARY_OPERATIONS")
+pub fn check_overflows() -> bool {
+    read_setting("CHECK_OVERFLOWS")
 }
 
 /// Encode (and check) that unsigned integers are non-negative.
@@ -219,9 +269,24 @@ pub fn use_more_complete_exhale() -> bool {
     read_setting("USE_MORE_COMPLETE_EXHALE")
 }
 
-/// Report the support status of functions using the compiler's error messages
-pub fn report_support_status() -> bool {
-    read_setting("REPORT_SUPPORT_STATUS")
+/// Should Prusti print the items collected for verification.
+pub fn print_collected_verification_items() -> bool {
+    read_setting("PRINT_COLLECTED_VERIFICATION_ITEMS")
+}
+
+/// Should Prusti print the AST with desugared specifications.
+pub fn print_desugared_specs() -> bool {
+    read_setting("PRINT_DESUGARED_SPECS")
+}
+
+/// Should Prusti print the type-checked specifications.
+pub fn print_typeckd_specs() -> bool {
+    read_setting("PRINT_TYPECKD_SPECS")
+}
+
+/// Should Prusti hide the UUIDs of expressions and specifications.
+pub fn hide_uuids() -> bool {
+    read_setting("HIDE_UUIDS")
 }
 
 /**
@@ -287,14 +352,46 @@ pub fn verify_only_basic_block_path() -> Vec<String> {
     read_setting("VERIFY_ONLY_BASIC_BLOCK_PATH")
 }
 
+/// Which optimizations should be enabled
+pub fn optimizations() -> Optimizations {
+    let optimizations_string = read_setting::<String>("OPTIMIZATIONS");
+
+    let mut opt = Optimizations::all_disabled();
+
+    for s in optimizations_string.split(","){
+        let trimmed = s.trim();
+        match trimmed {
+            "all" => opt = Optimizations::all_enabled(),
+            "inline_constant_functions" => opt.inline_constant_functions = true,
+            "delete_unused_predicates" => opt.delete_unused_predicates = true,
+            "optimize_folding" => opt.optimize_folding = true,
+            "remove_empty_if" => opt.remove_empty_if = true,
+            "purify_vars" => opt.purify_vars = true,
+            "fix_quantifiers" => opt.fix_quantifiers = true,
+            "remove_unused_vars" => opt.remove_unused_vars = true,
+            "remove_trivial_assertions" => opt.remove_trivial_assertions = true,
+            "clean_cfg" => opt.clean_cfg = true,
+            _ => warn!("Ignoring Unkown optimization '{}'", trimmed)
+        }
+    }
+
+    return opt;
+}
+
 /// Replace the given basic blocks with ``assume false``.
 pub fn delete_basic_blocks() -> Vec<String> {
     read_setting("DELETE_BASIC_BLOCKS")
 }
 
-/// Skip functions that are unsupported or partially supported
-pub fn skip_unsupported_functions() -> bool {
-    read_setting("SKIP_UNSUPPORTED_FUNCTIONS")
+/// Skip features that are unsupported or partially supported
+pub fn skip_unsupported_features() -> bool {
+    read_setting("SKIP_UNSUPPORTED_FEATURES")
+}
+
+/// Encode unsupported code as `assert false`, so that we report error messages
+/// only for unsupported code that is actually reachable.
+pub fn allow_unreachable_unsupported_code() -> bool {
+    read_setting("ALLOW_UNREACHABLE_UNSUPPORTED_CODE")
 }
 
 /// Skip the verification

@@ -20,8 +20,6 @@ pub struct CollectPrustiSpecVisitor<'a, 'tcx: 'a> {
     env: &'a Environment<'tcx>,
     tcx: TyCtxt<'tcx>,
     result: Vec<DefId>,
-    use_whitelist: bool,
-    whitelist: HashSet<String>,
 }
 
 impl<'a, 'tcx> CollectPrustiSpecVisitor<'a, 'tcx> {
@@ -30,8 +28,6 @@ impl<'a, 'tcx> CollectPrustiSpecVisitor<'a, 'tcx> {
             env,
             tcx: env.tcx(),
             result: Vec::new(),
-            use_whitelist: config::enable_whitelist(),
-            whitelist: HashSet::from_iter(config::verification_whitelist()),
         }
     }
     pub fn get_annotated_procedures(self) -> Vec<DefId> {
@@ -90,5 +86,9 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
         let item_def_path = self.env.get_item_def_path(def_id);
         trace!("Add {} to result", item_def_path);
         self.result.push(def_id);
+    }
+
+    fn visit_foreign_item(&mut self, _foreign_item: &hir::ForeignItem) {
+        // Nothing
     }
 }

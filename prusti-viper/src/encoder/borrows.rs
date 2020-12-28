@@ -20,6 +20,9 @@ use std::fmt;
 use crate::utils::type_visitor::{self, TypeVisitor};
 use prusti_interface::specs::typed;
 use log::{trace, debug};
+use crate::encoder::errors::EncodingError;
+use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 #[derive(Clone, Debug)]
 pub struct BorrowInfo<P>
@@ -256,18 +259,24 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
         }
     }
 
-    fn analyse_return_ty(&mut self, ty: Ty<'tcx>) {
+    fn analyse_return_ty(&mut self, ty: Ty<'tcx>)
+        -> EncodingResult<()>
+    {
         self.is_path_blocking = true;
         self.current_path = Some(mir::RETURN_PLACE.into());
-        self.visit_ty(ty);
+        self.visit_ty(ty)?;
         self.current_path = None;
+        Ok(())
     }
 
-    fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>) {
+    fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>)
+        -> EncodingResult<()>
+    {
         self.is_path_blocking = false;
         self.current_path = Some(arg.into());
-        self.visit_ty(ty);
+        self.visit_ty(ty)?;
         self.current_path = None;
+        Ok(())
     }
 
     fn extract_bound_region(&self, region: ty::Region<'tcx>) -> Option<ty::BoundRegion> {
@@ -275,7 +284,9 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
             &ty::RegionKind::ReFree(free_region) => Some(free_region.bound_region),
             // TODO: is this correct?!
             &ty::RegionKind::ReLateBound(_, bound_region) => Some(bound_region),
-            &ty::RegionKind::ReEarlyBound(early_region) => Some(early_region.to_bound_region()),
+            &ty::RegionKind::ReEarlyBound(early_region) => Some(
+                ty::BoundRegion::BrNamed(early_region.def_id, early_region.name)
+            ),
             &ty::RegionKind::ReStatic => None,
             &ty::RegionKind::ReErased => None,
             // &ty::RegionKind::ReScope(_scope) => None,
@@ -302,6 +313,17 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
 }
 
 impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
+    type Error = EncodingError;
+
+    fn visit_unsupported_sty(
+        &mut self,
+        sty: &TyKind<'tcx>
+    ) -> Result<(), Self::Error> {
+        Err(EncodingError::unsupported(
+            format!("unsupported type {:?}", sty)
+        ))
+    }
+
     fn tcx(&self) -> TyCtxt<'tcx> {
         self.tcx
     }
@@ -311,7 +333,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         index: usize,
         field: &ty::FieldDef,
         substs: ty::subst::SubstsRef<'tcx>,
-    ) {
+    ) -> Result<(), Self::Error> {
         trace!("visit_field({}, {:?})", index, field);
         let old_path = self.current_path.take().unwrap();
         let ty = field.ty(self.tcx(), substs);
@@ -319,8 +341,9 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         let new_path = self.tcx.mk_place_field(old_path, field_id, ty);
         self.current_path = Some(new_path);
         // self.current_path = Some(old_path.clone().field(field_id, ty));
-        type_visitor::walk_field(self, field, substs);
+        type_visitor::walk_field(self, field, substs)?;
         self.current_path = Some(old_path);
+        Ok(())
     }
 
     fn visit_ref(
@@ -328,7 +351,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         region: ty::Region<'tcx>,
         ty: ty::Ty<'tcx>,
         mutability: hir::Mutability,
-    ) {
+    ) -> Result<(), Self::Error> {
         trace!(
             "visit_ref({:?}, {:?}, {:?}) current_path={:?}",
             region,
@@ -351,31 +374,42 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
             self.references_in.push((current_path, mutability));
         }
         self.is_path_blocking = true;
-        //type_visitor::walk_ref(self, region, ty, mutability);
+        //type_visitor::walk_ref(self, region, ty, mutability)?;
         self.is_path_blocking = is_path_blocking;
         self.current_path = Some(old_path);
+        Ok(())
     }
 
-    fn visit_tuple(&mut self, parts: SubstsRef<'tcx>) {
+    fn visit_tuple(
+        &mut self,
+        parts: SubstsRef<'tcx>,
+    ) -> Result<(), Self::Error> {
         let old_path = self.current_path.take().unwrap();
         for (i, part) in parts.iter().enumerate() {
             let field = mir::Field::new(i);
             let ty = part.expect_ty();
-            self.current_path = Some(self.tcx().mk_place_field(old_path.clone(), field, ty));
+            self.current_path = Some(
+                self.tcx().mk_place_field(old_path.clone(), field, ty)
+            );
             self.visit_ty(ty);
         }
         self.current_path = Some(old_path);
+        Ok(())
     }
 
-    fn visit_raw_ptr(&mut self, ty: ty::Ty<'tcx>, mutability: hir::Mutability) {
+    fn visit_raw_ptr(
+        &mut self,
+        ty: ty::Ty<'tcx>,
+        mutability: hir::Mutability,
+    ) -> Result<(), Self::Error> {
         trace!(
             "visit_raw_ptr({:?}, {:?}) current_path={:?}",
             ty,
             mutability,
             self.current_path
         );
-        // TODO
-        debug!("BorrowInfoCollectingVisitor::visit_raw_ptr is unimplemented");
+        // Do nothing.
+        Ok(())
     }
 }
 
@@ -384,44 +418,55 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     tcx: TyCtxt<'tcx>,
     specification: typed::SpecificationSet<'tcx>,
     maybe_tymap: Option<&HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
-) -> ProcedureContractMirDef<'tcx>
+) -> EncodingResult<ProcedureContractMirDef<'tcx>>
 where
     'a: 'p,
     'tcx: 'a,
 {
     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
 
-    let fn_sig: FnSig = if tcx.is_closure(proc_def_id) {
-        let typeck_results: &TypeckResults<'_> = tcx.typeck(proc_def_id.expect_local());
-        let fn_sigs = typeck_results.liberated_fn_sigs();
-        *(fn_sigs.get(tcx.hir().local_def_id_to_hir_id(proc_def_id.expect_local())).unwrap())
+    let args_ty:Vec<(mir::Local, ty::Ty<'tcx>)>;
+    let return_ty;
+
+    if !tcx.is_closure(proc_def_id) {
+        // FIXME: "skip_binder" is most likely wrong
+        // FIXME: Replace with FakeMirEncoder.
+        let fn_sig: FnSig = tcx.fn_sig(proc_def_id).skip_binder();
+        args_ty = (0usize .. fn_sig.inputs().len())
+            .map(|i| (mir::Local::from_usize(i + 1), fn_sig.inputs()[i]))
+            .collect();
+        return_ty = fn_sig.output().clone(); // FIXME: Shouldn't this also go through maybe_tymap?
     } else {
-        tcx.fn_sig(proc_def_id).skip_binder()
-    };
-    trace!("fn_sig: {:?}", fn_sig);
+        let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
+        let mir = mir.borrow();
+        // local_decls:
+        // _0    - return, with closure's return type
+        // _1    - closure's self
+        // _2... - actual arguments
+        // arg_count includes the extra self _1
+        args_ty = (1usize ..= mir.arg_count)
+            .map(|i| (mir::Local::from_usize(i), mir.local_decls[mir::Local::from_usize(i)].ty))
+            .collect();
+        return_ty = mir.local_decls[mir::Local::from_usize(0)].ty;
+    }
 
     let mut fake_mir_args = Vec::new();
     let mut fake_mir_args_ty = Vec::new();
 
-    // FIXME; "skip_binder" is most likely wrong
-    // FIXME: Replace with FakeMirEncoder.
-    for i in 0usize..fn_sig.inputs().len() {
-        fake_mir_args.push(mir::Local::from_usize(i + 1));
-        let arg_ty = fn_sig.inputs()[i];
-        let ty = if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
+    for (local, arg_ty) in args_ty {
+        fake_mir_args.push(local);
+        fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
             replaced_arg_ty.clone()
         } else {
             arg_ty.clone()
-        };
-        fake_mir_args_ty.push(ty);
+        });
     }
-    let return_ty = fn_sig.output().clone();  // FIXME: Shouldn't this also go through maybe_tymap?
 
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
-        visitor.analyse_arg(*arg, arg_ty);
+        visitor.analyse_arg(*arg, arg_ty)?;
     }
-    visitor.analyse_return_ty(return_ty);
+    visitor.analyse_return_ty(return_ty)?;
     let borrow_infos: Vec<_> = visitor
         .borrow_infos
         .into_iter()
@@ -449,5 +494,5 @@ where
     };
 
     trace!("[compute_borrow_infos] exit result={}", contract);
-    contract
+    Ok(contract)
 }

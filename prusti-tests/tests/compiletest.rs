@@ -1,3 +1,9 @@
+// © 2020, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 #![feature(custom_test_frameworks)]
 // Custom test runner, to avoid libtest being wrapped around compiletest which
 // wraps libtest.
@@ -6,11 +12,11 @@
 extern crate compiletest_rs;
 extern crate prusti_server;
 
-use compiletest_rs::{common, run_tests, Config};
+use compiletest_rs::{common::Mode, run_tests, Config};
 use prusti_server::ServerSideService;
 use std::{env, path::PathBuf};
 
-fn get_prusti_rustc_path() -> PathBuf {
+fn find_prusti_rustc_path() -> PathBuf {
     let target_directory = if cfg!(debug_assertions) {
         "debug"
     } else {
@@ -66,7 +72,7 @@ impl Drop for TemporaryEnvVar {
 
 fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Option<&str>) {
     let mut config = Config::default();
-    config.rustc_path = get_prusti_rustc_path();
+    config.rustc_path = find_prusti_rustc_path();
 
     // Filter the tests to run
     config.filter = filter.clone();
@@ -83,21 +89,21 @@ fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Opti
             "--color=never {}",
             config.target_rustcflags.unwrap_or("".to_string())
         ));
-        config.mode = common::Mode::Ui;
+        config.mode = Mode::Ui;
         config.src_base = path;
         run_tests(&config);
     }
 
     let path: PathBuf = ["tests", group_name, "pass"].iter().collect();
     if path.exists() {
-        config.mode = common::Mode::RunPass;
+        config.mode = Mode::RunPass;
         config.src_base = path;
         run_tests(&config);
     }
 
     let path: PathBuf = ["tests", group_name, "fail"].iter().collect();
     if path.exists() {
-        config.mode = common::Mode::CompileFail;
+        config.mode = Mode::CompileFail;
         config.src_base = path;
         run_tests(&config);
     }
@@ -113,22 +119,10 @@ fn run_no_verification(group_name: &str, filter: &Option<String>) {
     run_prusti_tests(group_name, filter, None);
 }
 
-fn run_filter(group_name: &str, filter: &Option<String>) {
-    let _temporary_env_vars = (
-        TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
-        TemporaryEnvVar::set("PRUSTI_ERROR_ON_PARTIALLY_SUPPORTED", "true"),
-        TemporaryEnvVar::set("PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS", "true"),
-        TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
-    );
-
-    run_prusti_tests(group_name, filter, Some("-A warnings"));
-}
-
 fn run_verification(group_name: &str, filter: &Option<String>) {
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
         TemporaryEnvVar::set("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true"),
-        TemporaryEnvVar::set("PRUSTI_REPORT_SUPPORT_STATUS", "false"),
         TemporaryEnvVar::set("PRUSTI_QUIET", "true"),
     );
 
@@ -137,7 +131,7 @@ fn run_verification(group_name: &str, filter: &Option<String>) {
 
 fn run_verification_overflow(group_name: &str, filter: &Option<String>) {
     let _temporary_env_vars = (
-        TemporaryEnvVar::set("PRUSTI_CHECK_BINARY_OPERATIONS", "true"),
+        TemporaryEnvVar::set("PRUSTI_CHECK_OVERFLOWS", "true"),
     );
 
     run_verification(group_name, filter);
@@ -166,10 +160,6 @@ fn test_runner(_tests: &[&()]) {
     // Test the type-checking of specifications. This doesn't run the verifier.
     println!("[typecheck]");
     run_no_verification("typecheck", &filter);
-
-    // Test the error messages of prusti-filter.
-    println!("[filter]");
-    run_filter("filter", &filter);
 
     // Test the verifier.
     println!("[verify]");

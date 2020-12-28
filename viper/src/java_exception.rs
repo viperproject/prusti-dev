@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /// The structure describing a Java exception
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct JavaException {
     message: String,
     stack_trace: String,
@@ -31,5 +31,11 @@ impl JavaException {
 impl std::fmt::Display for JavaException {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Java exception: {}", self.message)
+    }
+}
+
+impl std::fmt::Debug for JavaException {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Java exception: {} - {}", self.message, self.stack_trace)
     }
 }

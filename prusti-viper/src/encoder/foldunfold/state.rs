@@ -12,6 +12,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
 use log::{trace, debug};
+use crate::encoder::foldunfold::FoldUnfoldError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {
@@ -349,10 +350,12 @@ impl State {
         info.join(",\n")
     }
 
-    pub fn insert_acc(&mut self, place: vir::Expr, perm: PermAmount) {
+    pub fn insert_acc(&mut self, place: vir::Expr, perm: PermAmount)
+        -> Result<(), FoldUnfoldError>
+    {
         trace!("insert_acc {}, {}", place, perm);
         if self.acc.contains_key(&place) {
-            let new_perm = self.acc[&place] + perm;
+            let new_perm = self.acc[&place].add(perm)?;
             assert!(
                 new_perm == PermAmount::Write || new_perm == PermAmount::Read,
                 "Trying to inhale {} access permission, while there is already {}",
@@ -363,21 +366,26 @@ impl State {
         } else {
             self.acc.insert(place, perm);
         }
+        Ok(())
     }
 
     pub fn insert_all_acc<I>(&mut self, items: I)
+        -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = (vir::Expr, PermAmount)>,
     {
         for (place, perm) in items {
-            self.insert_acc(place, perm);
+            self.insert_acc(place, perm)?;
         }
+        Ok(())
     }
 
-    pub fn insert_pred(&mut self, place: vir::Expr, perm: PermAmount) {
+    pub fn insert_pred(&mut self, place: vir::Expr, perm: PermAmount)
+        -> Result<(), FoldUnfoldError>
+    {
         trace!("insert_pred {}, {}", place, perm);
         if self.pred.contains_key(&place) {
-            let new_perm = self.pred[&place] + perm;
+            let new_perm = self.pred[&place].add(perm)?;
             assert!(
                 new_perm == PermAmount::Write || new_perm == PermAmount::Read,
                 "Trying to inhale {} predicate permission, while there is already {}",
@@ -388,15 +396,18 @@ impl State {
         } else {
             self.pred.insert(place, perm);
         }
+        Ok(())
     }
 
     pub fn insert_all_pred<I>(&mut self, items: I)
+        -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = (vir::Expr, PermAmount)>,
     {
         for (place, perm) in items {
-            self.insert_pred(place, perm);
+            self.insert_pred(place, perm)?;
         }
+        Ok(())
     }
 
     pub fn insert_moved(&mut self, place: vir::Expr) {
@@ -408,20 +419,22 @@ impl State {
         self.dropped.contains(item)
     }
 
-    pub fn insert_perm(&mut self, item: Perm) {
+    pub fn insert_perm(&mut self, item: Perm) -> Result<(), FoldUnfoldError> {
         match item {
             Perm::Acc(place, perm) => self.insert_acc(place, perm),
             Perm::Pred(place, perm) => self.insert_pred(place, perm),
-        };
+        }
     }
 
     pub fn insert_all_perms<I>(&mut self, items: I)
+        -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = Perm>,
     {
         for item in items {
-            self.insert_perm(item);
+            self.insert_perm(item)?;
         }
+        Ok(())
     }
 
     pub fn remove_acc_place(&mut self, place: &vir::Expr) -> PermAmount {
@@ -442,7 +455,9 @@ impl State {
         self.pred.remove(place).unwrap()
     }
 
-    pub fn remove_acc(&mut self, place: &vir::Expr, perm: PermAmount) {
+    pub fn remove_acc(&mut self, place: &vir::Expr, perm: PermAmount)
+        -> Result<(), FoldUnfoldError>
+    {
         assert!(
             self.acc.contains_key(place),
             "Place {} is not in state (acc), so it can not be removed.",
@@ -451,38 +466,44 @@ impl State {
         if self.acc[place] == perm {
             self.acc.remove(place);
         } else {
-            self.acc.insert(place.clone(), self.acc[place] - perm);
+            self.acc.insert(place.clone(), self.acc[place].sub(perm)?);
         }
+        Ok(())
     }
 
-    pub fn remove_pred(&mut self, place: &vir::Expr, perm: PermAmount) {
+    pub fn remove_pred(&mut self, place: &vir::Expr, perm: PermAmount)
+        -> Result<(), FoldUnfoldError>
+    {
         trace!("remove_pred {}, {}", place, perm);
-        assert!(
-            self.pred.contains_key(place),
-            "Place {} is not in state (pred), so it can not be removed.",
-            place
-        );
-        if self.pred[place] == perm {
-            self.pred.remove(place);
-        } else {
-            self.pred.insert(place.clone(), self.pred[place] - perm);
+        if !self.pred.contains_key(place) {
+            return Err(
+                FoldUnfoldError::FailedToRemovePred(place.clone())
+            );
         }
+        if self.pred[place] == perm {
+            self.pred.remove(place).unwrap();
+        } else {
+            self.pred.insert(place.clone(), self.pred[place].sub(perm)?);
+        }
+        Ok(())
     }
 
-    pub fn remove_perm(&mut self, item: &Perm) {
+    pub fn remove_perm(&mut self, item: &Perm) -> Result<(), FoldUnfoldError> {
         match item {
             &Perm::Acc(_, perm) => self.remove_acc(item.get_place(), perm),
             &Perm::Pred(_, perm) => self.remove_pred(item.get_place(), perm),
-        };
+        }
     }
 
     pub fn remove_all_perms<'a, I>(&mut self, items: I)
+       -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = &'a Perm>,
     {
         for item in items {
-            self.remove_perm(item);
+            self.remove_perm(item)?;
         }
+        Ok(())
     }
 
     /// Restores the provided permission. It could be that the dropped
@@ -521,10 +542,12 @@ impl State {
         trace!("[exit] restore_dropped_perm");
     }
 
-    fn restore_acc(&mut self, acc_place: vir::Expr, mut perm: PermAmount) {
+    fn restore_acc(&mut self, acc_place: vir::Expr, mut perm: PermAmount)
+        -> Result<(), FoldUnfoldError>
+    {
         trace!("restore_acc {}, {}", acc_place, perm);
         if let Some(curr_perm_amount) = self.acc.get(&acc_place) {
-            perm = perm + *curr_perm_amount;
+            perm = perm.add(*curr_perm_amount)?;
         }
         if acc_place.is_simple_place() {
             for pred_place in self.pred.keys() {
@@ -534,17 +557,20 @@ impl State {
                         acc_place,
                         pred_place
                     );
-                    return;
+                    return Ok(());
                 }
             }
         }
         self.acc.insert(acc_place, perm);
+        Ok(())
     }
 
-    fn restore_pred(&mut self, pred_place: vir::Expr, mut perm: PermAmount) {
+    fn restore_pred(&mut self, pred_place: vir::Expr, mut perm: PermAmount)
+        -> Result<(), FoldUnfoldError>
+    {
         trace!("restore_pred {}, {}", pred_place, perm);
         if let Some(curr_perm_amount) = self.pred.get(&pred_place) {
-            perm = perm + *curr_perm_amount;
+            perm = perm.add(*curr_perm_amount)?;
             //trace!("restore_pred {}: ignored (state already contains place)", pred_place);
             //return;
         }
@@ -563,6 +589,7 @@ impl State {
             });
         }
         self.pred.insert(pred_place, perm);
+        Ok(())
     }
 
     pub fn restore_dropped_perms<I>(&mut self, items: I)
@@ -605,7 +632,7 @@ impl State {
         let mut framed_perms = PermSet::empty();
         for (place, perm) in self.acc.clone().into_iter() {
             if !place.is_local() {
-                self.acc.remove(&place);
+                self.acc.remove(&place).unwrap();
                 framed_perms.add(Perm::Acc(place.clone(), perm));
             }
         }
@@ -620,7 +647,7 @@ impl State {
         );
     }
 
-    pub fn end_frame(&mut self) {
+    pub fn end_frame(&mut self) -> Result<(), FoldUnfoldError> {
         trace!("end_frame");
         trace!(
             "Before: {} frames are on the stack",
@@ -629,13 +656,14 @@ impl State {
         let framed_perms = self.framing_stack.pop().unwrap();
         debug!("Framed permissions: {}", framed_perms);
         for perm in framed_perms.perms().drain(..) {
-            self.insert_perm(perm);
+            self.insert_perm(perm)?;
         }
 
         trace!(
             "After: {} frames are on the stack",
             self.framing_stack.len()
         );
+        Ok(())
     }
 }
 

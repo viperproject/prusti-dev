@@ -1,0 +1,209 @@
+// compile-flags: -Pprint_desugared_specs=true -Pprint_typeckd_specs=true -Pno_verify=true -Phide_uuids=true
+// normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
+// normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
+
+
+
+#![feature(register_tool)]
+#![register_tool(prusti)]
+#[prelude_import]
+use std::prelude::v1::*;
+#[macro_use]
+extern crate std;
+/// Tests for closure macro parsing.
+use prusti_contracts::*;
+fn main() {
+    let f1 =
+        {
+            #[allow(unused_variables)]
+            #[prusti::closure]
+            #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
+            #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+            let _prusti_closure =
+                |i: i32| -> i32
+                    {
+
+                        #[allow(unused_must_use)]
+                        if false {
+                            #[prusti::spec_only]
+                            #[prusti::spec_id =
+                              "$(NUM_UUID)"]
+                            #[prusti::assertion =
+                              "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
+                            fn prusti_pre_closure_$(NUM_UUID)(i:
+                                                                                       i32) {
+
+                                #[prusti::spec_only]
+                                #[prusti::expr_id =
+                                  "$(NUM_UUID)_101"]
+                                || -> bool { i >= 0 };
+                            }
+                        }
+                        let result = { i + 1 };
+
+                        #[allow(unused_must_use)]
+                        if false {
+                            #[prusti::spec_only]
+                            #[prusti::spec_id =
+                              "$(NUM_UUID)"]
+                            #[prusti::assertion =
+                              "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}}"]
+                            fn prusti_post_closure_$(NUM_UUID)(i:
+                                                                                        i32,
+                                                                                    result:
+                                                                                        i32) {
+
+                                #[prusti::spec_only]
+                                #[prusti::expr_id =
+                                  "$(NUM_UUID)_102"]
+                                || -> bool { result == i + 1 };
+                            }
+                        }
+                        result
+                    };
+            _prusti_closure
+        };
+    let f2 =
+        {
+            #[allow(unused_variables)]
+            #[prusti::closure]
+            #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+            let _prusti_closure =
+                |i: i32| -> i32
+                    {
+
+                        #[allow(unused_must_use)]
+                        if false { }
+                        let result = { i + 1 };
+
+                        #[allow(unused_must_use)]
+                        if false {
+                            #[prusti::spec_only]
+                            #[prusti::spec_id =
+                              "$(NUM_UUID)"]
+                            #[prusti::assertion =
+                              "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
+                            fn prusti_post_closure_$(NUM_UUID)(i:
+                                                                                        i32,
+                                                                                    result:
+                                                                                        i32) {
+
+                                #[prusti::spec_only]
+                                #[prusti::expr_id =
+                                  "$(NUM_UUID)_101"]
+                                || -> bool { result == i + 1 };
+                            }
+                        }
+                        result
+                    };
+            _prusti_closure
+        };
+    let f3 =
+        {
+            #[allow(unused_variables)]
+            #[prusti::closure]
+            #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
+            let _prusti_closure =
+                |i: i32| -> i32
+                    {
+
+                        #[allow(unused_must_use)]
+                        if false {
+                            #[prusti::spec_only]
+                            #[prusti::spec_id =
+                              "$(NUM_UUID)"]
+                            #[prusti::assertion =
+                              "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
+                            fn prusti_pre_closure_$(NUM_UUID)(i:
+                                                                                       i32) {
+
+                                #[prusti::spec_only]
+                                #[prusti::expr_id =
+                                  "$(NUM_UUID)_101"]
+                                || -> bool { i >= 0 };
+                            }
+                        }
+                        let result = { i + 1 };
+
+                        #[allow(unused_must_use)]
+                        if false { }
+                        result
+                    };
+            _prusti_closure
+        };
+    let f4 =
+        {
+            #[allow(unused_variables)]
+            #[prusti::closure]
+            let _prusti_closure =
+                |i: i32| -> i32
+                    {
+
+                        #[allow(unused_must_use)]
+                        if false { }
+                        let result = { i + 1 };
+
+                        #[allow(unused_must_use)]
+                        if false { }
+                        result
+                    };
+            _prusti_closure
+        };
+    let f5 =
+        {
+            #[allow(unused_variables)]
+            #[prusti::closure]
+            let _prusti_closure =
+                || -> i32
+                    {
+
+                        #[allow(unused_must_use)]
+                        if false { }
+                        let result = { 1 };
+
+                        #[allow(unused_must_use)]
+                        if false { }
+                        result
+                    };
+            _prusti_closure
+        };
+    let f6 =
+        {
+            #[allow(unused_variables)]
+            #[prusti::closure]
+            let _prusti_closure =
+                |i: i32, j: i32| -> i32
+                    {
+
+                        #[allow(unused_must_use)]
+                        if false { }
+                        let result = { i + j };
+
+                        #[allow(unused_must_use)]
+                        if false { }
+                        result
+                    };
+            _prusti_closure
+        };
+    let f7 =
+        {
+            #[allow(unused_variables)]
+            #[prusti::closure]
+            let _prusti_closure =
+                |i: i32, j: i32, k: i32| -> i32
+                    {
+
+                        #[allow(unused_must_use)]
+                        if false { }
+                        let result = { i + j + k };
+
+                        #[allow(unused_must_use)]
+                        if false { }
+                        result
+                    };
+            _prusti_closure
+        };
+}
+Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:15 ~ closures[317d]::main::{closure#2}::prusti_pre_closure_$(NUM_UUID)::{closure#0}) }) }], posts: [], pledges: [], pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [], posts: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:12 ~ closures[317d]::main::{closure#1}::prusti_post_closure_$(NUM_UUID)::{closure#0}) }) }], pledges: [], pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:7 ~ closures[317d]::main::{closure#0}::prusti_pre_closure_$(NUM_UUID)::{closure#0}) }) }], posts: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:9 ~ closures[317d]::main::{closure#0}::prusti_post_closure_$(NUM_UUID)::{closure#0}) }) }], pledges: [], pure: false, trusted: false })

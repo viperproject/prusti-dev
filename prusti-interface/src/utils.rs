@@ -272,7 +272,7 @@ pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
                                   path: ast::Path { span: _, segments, tokens: _ },
                                   args: ast::MacArgs::Empty,
                                   tokens: _,
-                              }) => {
+                              }, _) => {
             segments.len() == 2
                 && segments[0].ident.as_str() == "prusti"
                 && segments[1].ident.as_str() == name
@@ -299,7 +299,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
                                          path: ast::Path { span: _, segments, tokens: _ },
                                          args: ast::MacArgs::Eq(_, tokens),
                                          tokens: _,
-                                     }) = &attr.kind {
+                                     }, _) = &attr.kind {
             // Skip attributes whose path don't match with "prusti::<attr_name>"
             if !(
                 segments.len() == 2
@@ -311,16 +311,23 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             use rustc_ast::token::Lit;
             use rustc_ast::token::Token;
             use rustc_ast::token::TokenKind;
-            use rustc_ast::tokenstream::TokenTree;
-            match &tokens.0[0].0 {
-                TokenTree::Token(Token {
-                                     kind: TokenKind::Literal(Lit { symbol, .. }),
-                                     ..
-                                 }) => {
-                    strings.push(symbol.as_str().replace("\\\"", "\""))
+            use rustc_ast::tokenstream::{TokenTree, TokenStream};
+            use rustc_ast::token::DelimToken;
+            fn extract_string(tokens: &TokenStream) -> String {
+                match tokens.trees().next().unwrap() {
+                    TokenTree::Token(Token {
+                                         kind: TokenKind::Literal(Lit { symbol, .. }),
+                                         ..
+                                     }) => {
+                        symbol.as_str().replace("\\\"", "\"")
+                    }
+                    TokenTree::Delimited(_, DelimToken::NoDelim, tokens) => {
+                        extract_string(&tokens)
+                    }
+                    x => unreachable!("{:?}", x),
                 }
-                x => unreachable!("{:?}", x),
             }
+            strings.push(extract_string(tokens));
         };
     }
     strings

@@ -14,6 +14,7 @@
 // #![deny(unused_variables)]
 // #![deny(unused_imports)]
 // #![deny(unused_doc_comments)]
+#![deny(must_use)]
 
 extern crate rustc_middle;
 extern crate rustc_hir;

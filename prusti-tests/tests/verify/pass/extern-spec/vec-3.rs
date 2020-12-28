@@ -3,6 +3,10 @@ use prusti_contracts::*;
 use std::vec::Vec;
 use std::option::Option;
 
+// ignore-test is_none and is_some doubly encoded, probably because of the
+// typestack hack (is_none and is_some are mentioned both in Option and in
+// Vec's pop)
+
 #[extern_spec]
 impl<T> Option<T> {
     #[pure]

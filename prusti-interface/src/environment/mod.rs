@@ -6,18 +6,16 @@
 
 //! This module defines the interface provided to a verifier.
 
+use rustc_ast::ast;
+use rustc_hir as hir;
 use rustc_middle::mir;
 use rustc_hir::hir_id::HirId;
-use rustc_hir::def_id::DefId;
-use rustc_middle::ty::{self, TyCtxt};
+use rustc_hir::def_id::{DefId, LocalDefId};
+use rustc_middle::ty::{self, TyCtxt, ParamEnv};
 use std::path::PathBuf;
 use std::cell::Ref;
-
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
-use rustc_hir as hir;
 use std::collections::HashSet;
-use rustc_hir::def_id::LocalDefId;
-
 use log::debug;
 
 pub mod borrowck;
@@ -60,6 +58,12 @@ impl<'tcx> Environment<'tcx> {
     /// Returns the path of the source that is being compiled
     pub fn source_path(&self) -> PathBuf {
         self.tcx.sess.local_crate_source_file.clone().unwrap()
+    }
+
+    /// Returns the file name of the source that is being compiled
+    pub fn source_file_name(&self) -> String {
+        let source_path = self.source_path();
+        source_path.file_name().unwrap().to_str().unwrap().to_owned()
     }
 
     /// Returns the name of the crate that is being compiled
@@ -205,11 +209,16 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self.tcx(), proc_def_id)
     }
 
-    /// Get the MIR or a procedure.
-    pub fn mir<'a>(&self, def_id: LocalDefId) -> Ref<'a, mir::Body<'tcx>> {
+    /// Get the MIR body of a local procedure.
+    pub fn local_mir<'a>(&self, def_id: LocalDefId) -> Ref<'a, mir::Body<'tcx>> {
         self.tcx().mir_promoted(
             ty::WithOptConstParam::unknown(def_id)
         ).0.borrow()
+    }
+
+    /// Get the MIR body of an external procedure.
+    pub fn external_mir<'a>(&self, def_id: DefId) -> &'a mir::Body<'tcx> {
+        self.tcx().optimized_mir(def_id)
     }
 
     /// Get all relevant trait declarations for some type.
@@ -244,5 +253,115 @@ impl<'tcx> Environment<'tcx> {
             }
         });
         result
+    }
+
+    pub fn type_is_copy(&self, ty: ty::Ty<'tcx>) -> bool {
+        let copy_trait = self.tcx.lang_items().copy_trait();
+        if let Some(copy_trait_def_id) = copy_trait {
+            self.type_implements_trait(ty, copy_trait_def_id)
+        } else {
+            false
+        }
+    }
+
+    /// Checks whether the given type implements the trait with the given DefId.
+    pub fn type_implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId) -> bool {
+        assert!(self.tcx.is_trait(trait_def_id));
+        match &ty.kind() {
+            ty::TyKind::Adt(_, subst)
+            | ty::TyKind::FnDef(_, subst)
+            | ty::TyKind::Closure(_, subst)
+            | ty::TyKind::Opaque(_, subst)
+            | ty::TyKind::Generator(_, subst, _)
+            | ty::TyKind::Tuple(subst) => {
+                self.tcx.type_implements_trait((
+                    trait_def_id,
+                    ty,
+                    subst,
+                    ParamEnv::empty()
+                ))
+            }
+            ty::TyKind::Bool => {
+                self.primitive_type_implements_trait(
+                    ty,
+                    self.tcx.lang_items().bool_impl(),
+                    trait_def_id
+                )
+            }
+            ty::TyKind::Char => {
+                self.primitive_type_implements_trait(
+                    ty,
+                    self.tcx.lang_items().char_impl(),
+                    trait_def_id
+                )
+            }
+            ty::TyKind::Int(int_ty) => {
+                let lang_items = self.tcx.lang_items();
+                let impl_def = match int_ty {
+                    ast::IntTy::Isize => lang_items.isize_impl(),
+                    ast::IntTy::I8 => lang_items.i8_impl(),
+                    ast::IntTy::I16 => lang_items.i16_impl(),
+                    ast::IntTy::I32 => lang_items.i32_impl(),
+                    ast::IntTy::I64 => lang_items.i64_impl(),
+                    ast::IntTy::I128 => lang_items.i128_impl(),
+                };
+                self.primitive_type_implements_trait(
+                    ty,
+                    impl_def,
+                    trait_def_id
+                )
+            }
+            ty::TyKind::Uint(uint_ty) => {
+                let lang_items = self.tcx.lang_items();
+                let impl_def = match uint_ty {
+                    ast::UintTy::Usize => lang_items.usize_impl(),
+                    ast::UintTy::U8 => lang_items.u8_impl(),
+                    ast::UintTy::U16 => lang_items.u16_impl(),
+                    ast::UintTy::U32 => lang_items.u32_impl(),
+                    ast::UintTy::U64 => lang_items.u64_impl(),
+                    ast::UintTy::U128 => lang_items.u128_impl(),
+                };
+                self.primitive_type_implements_trait(
+                    ty,
+                    impl_def,
+                    trait_def_id
+                )
+            }
+            ty::TyKind::Float(float_ty) => {
+                let lang_items = self.tcx.lang_items();
+                let impl_def = match float_ty {
+                    ast::FloatTy::F32 => lang_items.f32_impl(),
+                    ast::FloatTy::F64 => lang_items.f64_impl(),
+                };
+                self.primitive_type_implements_trait(
+                    ty,
+                    impl_def,
+                    trait_def_id
+                )
+            }
+            ty::TyKind::Ref(_, ref_ty, _) => {
+                self.type_implements_trait(ref_ty, trait_def_id)
+            }
+            _ => {
+                unimplemented!() // none of the remaining types should be supported yet
+            }
+        }
+    }
+
+    fn primitive_type_implements_trait(
+        &self,
+        ty: ty::Ty<'tcx>,
+        impl_def: Option<DefId>,
+        trait_def_id: DefId
+    ) -> bool {
+        assert!(impl_def.is_some());
+        self.tcx.type_implements_trait(
+            (
+                trait_def_id,
+                ty,
+                ty::List::empty(),
+                ParamEnv::empty()
+            )
+        )
     }
 }

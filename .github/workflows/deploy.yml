@@ -13,7 +13,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
@@ -23,8 +23,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1.0.6
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15'
       - name: Set up the environment
         run: python x.py setup
       - name: Build with cargo --release
@@ -46,6 +47,7 @@ jobs:
             target/release/cargo-prusti*
             target/release/libprusti_contracts.rlib
             target/release/deps/libprusti_contracts_internal-*
+            target/release/deps/prusti_contracts_internal-*.dll
             !target/release/prusti-driver.d
             !target/release/prusti-server-driver.d
             !target/release/prusti-server.d
@@ -74,16 +76,15 @@ jobs:
       - name: Create release tag
         shell: bash
         run: echo "TAG_NAME=$(date +v-%Y-%m-%d-%H%M)" >> $GITHUB_ENV
-      - name: Create GitHub release
+      - name: Create a nightly release
         id: create_release
-        uses: actions/create-release@v1
+        uses: viperproject/create-nightly-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.TAG_NAME }}
-          release_name: Release ${{ env.TAG_NAME }}
-          draft: false
-          prerelease: true
+          release_name: Nightly Release ${{ env.TAG_NAME }}
+          keep_num: 2
       - name: Upload release asset for Ubuntu
         uses: actions/upload-release-asset@v1
         env:

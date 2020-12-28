@@ -11,6 +11,10 @@
 //! 1.  There is a conflicting folding requirement coming from a
 //!     function application.
 //! 2.  There is an implication that branches on a enum discriminant.
+//!
+//! This transformation is also needed to work around some bugs of Silicon,
+//! when unfolding are used inside a quantifiers and other cases.
+//! See: https://github.com/viperproject/silicon/issues/387
 
 
 use super::super::super::{ast, borrows, cfg};

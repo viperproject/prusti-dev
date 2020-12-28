@@ -4,13 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-extern crate walkdir;
-
 use std::{
     env,
     path::{Path, PathBuf},
     process::Command,
 };
+use serde::Deserialize;
 
 /// Append paths to the loader environment variable
 pub fn add_to_loader_path(paths: Vec<PathBuf>, cmd: &mut Command) {
@@ -91,11 +90,35 @@ pub fn find_java_home() -> Option<PathBuf> {
         })
 }
 
+pub fn get_rust_toolchain_channel() -> String {
+    #[derive(Deserialize)]
+    struct RustToolchainFile {
+        toolchain: RustToolchain,
+    }
+
+    #[derive(Deserialize)]
+    struct RustToolchain {
+        channel: String,
+        components: Option<Vec<String>>,
+    }
+
+    let content = include_str!("../../rust-toolchain");
+    // Be ready to accept TOML format
+    // See: https://github.com/rust-lang/rustup/pull/2438
+    if content.starts_with("[toolchain]") {
+        let rust_toolchain: RustToolchainFile = toml::from_str(content)
+            .expect("failed to parse rust-toolchain file");
+        rust_toolchain.toolchain.channel
+    } else {
+        content.trim().to_string()
+    }
+}
+
 /// Find Prusti's sysroot
 pub fn prusti_sysroot() -> Option<PathBuf> {
     Command::new("rustup")
         .arg("run")
-        .arg(include_str!("../../rust-toolchain").trim())
+        .arg(get_rust_toolchain_channel())
         .arg("rustc")
         .arg("--print")
         .arg("sysroot")

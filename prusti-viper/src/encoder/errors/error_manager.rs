@@ -90,8 +90,10 @@ pub enum ErrorCtxt {
     /// A Viper `assert e1 ==> e2` that encodes a strengthening of the precondition
     /// of a method implementation of a trait.
     AssertMethodPostconditionStrengthening(MultiSpan),
+    /// A cast like `usize as u32`.
+    TypeCast,
     /// A Viper `assert false` that encodes an unsupported feature
-    Unsupported(String, String),
+    Unsupported(String),
 }
 
 /// The error manager
@@ -432,6 +434,13 @@ impl<'tcx> ErrorManager<'tcx>
                 ).set_failing_assertion(opt_cause_span)
             },
 
+            ("application.precondition:assertion.false", ErrorCtxt::TypeCast) => {
+                PrustiError::verification(
+                    "value might not fit into the target type.",
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
             ("apply.failed:assertion.false", ErrorCtxt::ApplyMagicWandOnExpiry) => {
                 PrustiError::verification("obligation might not hold on borrow expiry", error_span)
                     .set_failing_assertion(opt_cause_span)
@@ -474,12 +483,11 @@ impl<'tcx> ErrorManager<'tcx>
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason, ref help)) => {
+            ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason)) => {
                 PrustiError::unsupported(
                     format!("an unsupported Rust feature might be reachable: {}.", reason),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
-                .set_help(help)
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {

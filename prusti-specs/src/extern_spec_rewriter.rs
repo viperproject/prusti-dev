@@ -1,8 +1,10 @@
 use crate::specifications::common::NameGenerator;
+use super::parse_quote_spanned;
 use proc_macro2::{TokenStream, TokenTree, Group};
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::ImplItemMethod;
 use syn::spanned::Spanned;
+use crate::span_overrider::SpanOverrider;
 
 /// Process external specifications in Rust modules marked with the
 /// #[extern_spec] attribute. Nested modules are processed recursively.
@@ -54,9 +56,7 @@ pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Re
                 if let syn::Item::Fn(item_fn) = &mut item {
                     rewrite_fn(item_fn, path);
                 }
-                *tokens = quote! {
-                    #item
-                }
+                *tokens = quote!(#item)
             }
             syn::Item::Use(_) => {}
             _ => return Err(syn::Error::new(
@@ -73,15 +73,16 @@ pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Re
 fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) {
     let ident = &item_fn.sig.ident;
     let args = &item_fn.sig.inputs;
-    item_fn.block = syn::parse_quote! {
+    let item_fn_span = item_fn.span();
+    item_fn.block = parse_quote_spanned! {item_fn_span=>
         {
             #path :: #ident (#args);
             unimplemented!()
         }
     };
 
-    item_fn.attrs.push(syn::parse_quote! { #[prusti::extern_spec] });
-    item_fn.attrs.push(syn::parse_quote! { #[trusted] });
+    item_fn.attrs.push(parse_quote_spanned!(item_fn_span=> #[prusti::extern_spec]));
+    item_fn.attrs.push(parse_quote_spanned!(item_fn_span=> #[trusted]));
 }
 
 /// Rewrite all methods in an impl block to calls to the specified methods.
@@ -100,6 +101,7 @@ pub fn rewrite_impl(
     }
 
     for item in impl_item.items.iter_mut() {
+        let item_span = item.span();
         match item {
             syn::ImplItem::Method(method) => {
                 for attr in method.attrs.iter_mut() {
@@ -109,12 +111,22 @@ pub fn rewrite_impl(
                 let args = rewrite_method_inputs(item_ty, method);
                 let ident = &method.sig.ident;
 
-                method.attrs.push(syn::parse_quote! { #[prusti::extern_spec] });
-                method.attrs.push(syn::parse_quote! { #[trusted] });
+                method.attrs.push(parse_quote_spanned!(item_span=> #[prusti::extern_spec]));
+                method.attrs.push(parse_quote_spanned!(item_span=> #[trusted]));
 
-                method.block = syn::parse_quote! {
+                let mut method_path: syn::ExprPath = parse_quote_spanned! {ident.span()=>
+                    #item_ty :: #ident
+                };
+
+                // Fix the span
+                syn::visit_mut::visit_expr_path_mut(
+                    &mut SpanOverrider::new(ident.span()),
+                    &mut method_path
+                );
+
+                method.block = parse_quote_spanned! {item_span=>
                     {
-                        #item_ty :: #ident (#args);
+                        #method_path (#args);
                         unimplemented!()
                     }
                 };
@@ -163,24 +175,27 @@ fn rewrite_method_inputs(item_ty: &Box<syn::Type>, method: &mut ImplItemMethod) 
         syn::punctuated::Punctuated::new();
 
     for input in method.sig.inputs.iter_mut() {
+        let input_span = input.span();
         match input {
             syn::FnArg::Receiver(receiver) => {
                 let and = if receiver.reference.is_some() {
                     // TODO: do lifetimes need to be specified here?
-                    quote! {&}
+                    quote_spanned! {input_span=> &}
                 } else {
                     quote! { }
                 };
                 let mutability = &receiver.mutability;
-                let fn_arg: syn::FnArg = syn::parse_quote! { _self : #and #mutability #item_ty };
+                let fn_arg: syn::FnArg = parse_quote_spanned! {input_span=>
+                    _self : #and #mutability #item_ty
+                };
                 *input = fn_arg;
-                let expr: syn::Expr = syn::parse_quote! { _self };
+                let expr: syn::Expr = parse_quote_spanned!(input_span=> _self);
                 args.push_value(expr);
             }
             syn::FnArg::Typed(typed) => {
                 if let syn::Pat::Ident(ident) = &*typed.pat {
                     let arg = &ident.ident;
-                    let expr: syn::Expr = syn::parse_quote! { #arg };
+                    let expr: syn::Expr = syn::parse_quote!(#arg);
                     args.push_value(expr);
                 }
             }
@@ -204,7 +219,7 @@ pub fn generate_new_struct(item: &syn::ItemImpl) -> syn::Result<syn::ItemStruct>
     let struct_ident = syn::Ident::new(&struct_name,
                                        item.span());
 
-    let mut new_struct: syn::ItemStruct = syn::parse_quote! {
+    let mut new_struct: syn::ItemStruct = parse_quote_spanned! {item.span()=>
         struct #struct_ident {}
     };
 

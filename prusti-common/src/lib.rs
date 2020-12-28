@@ -13,14 +13,14 @@
 #[macro_use]
 extern crate log;
 extern crate config as config_crate;
+extern crate itertools;
 #[macro_use]
 extern crate lazy_static;
 extern crate regex;
+#[macro_use]
 extern crate serde;
 extern crate uuid;
 extern crate viper;
-#[macro_use]
-extern crate serde_derive;
 
 pub mod config;
 pub mod report;

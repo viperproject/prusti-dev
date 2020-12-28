@@ -13,7 +13,7 @@ use crate::encoder::Encoder;
 use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
 use prusti_common::vir::borrows::Borrow;
-use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
+use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction, PermAmountError};
 use prusti_common::vir::{ExprFolder, FallibleExprFolder, PermAmount};
 use prusti_common::config;
 use prusti_common::report;
@@ -47,6 +47,32 @@ pub enum FoldUnfoldError {
         vir::MaybeEnumVariantIndex,
         vir::Position,
     ),
+    /// The algorithm tried to add permissions in an invalid way.
+    InvalidPermAmountAdd(String),
+    /// The algorithm tried to add permissions in an invalid way.
+    InvalidPermAmountSub(String),
+    /// The algorithm couldn' find a predicate definition.
+    MissingPredicate(String),
+    /// The algorithms tried to remove a predicate that is not in the
+    /// fold-unfold state.
+    FailedToRemovePred(vir::Expr),
+}
+
+impl From<PermAmountError> for FoldUnfoldError {
+    fn from(err: PermAmountError) -> Self {
+        match err {
+            PermAmountError::InvalidAdd(a, b) => {
+                FoldUnfoldError::InvalidPermAmountAdd(
+                    format!("invalid addition: {} + {}", a, b)
+                )
+            }
+            PermAmountError::InvalidSub(a, b) => {
+                FoldUnfoldError::InvalidPermAmountSub(
+                    format!("invalid substraction: {} - {}", a, b)
+                )
+            }
+        }
+    }
 }
 
 pub fn add_folding_unfolding_to_expr(
@@ -54,7 +80,9 @@ pub fn add_folding_unfolding_to_expr(
     pctxt: &PathCtxt,
 ) -> Result<vir::Expr, FoldUnfoldError> {
     let pctxt_at_label = HashMap::new();
+    // First, add unfolding only inside old expressions
     let expr = ExprReplacer::new(pctxt.clone(), &pctxt_at_label, true).fallible_fold(expr)?;
+    // Then, add unfolding expressions everywhere else
     ExprReplacer::new(pctxt.clone(), &pctxt_at_label, false).fallible_fold(expr)
 }
 
@@ -62,6 +90,14 @@ pub fn add_folding_unfolding_to_function(
     function: vir::Function,
     predicates: HashMap<String, vir::Predicate>,
 ) -> Result<vir::Function, FoldUnfoldError> {
+    if config::dump_debug_info() {
+        prusti_common::report::log::report(
+            "vir_function_before_foldunfold",
+            format!("{}.dot", function.name),
+            &function,
+        );
+    }
+
     // Compute inner state
     let formal_vars = function.formal_args.clone();
     let mut pctxt = PathCtxt::new(formal_vars, &predicates);
@@ -69,7 +105,7 @@ pub fn add_folding_unfolding_to_function(
         pctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone(), vir::FoldingBehaviour::Expr));
     }
     // Add appropriate unfolding around expressions
-    let result = Ok(vir::Function {
+    let result = vir::Function {
         pres: function
             .pres
             .into_iter()
@@ -85,8 +121,17 @@ pub fn add_folding_unfolding_to_function(
             .map(|e| add_folding_unfolding_to_expr(e, &pctxt))
             .map_or(Ok(None), |r| r.map(Some))?,
         ..function
-    });
-    result
+    };
+
+    if config::dump_debug_info() {
+        prusti_common::report::log::report(
+            "vir_function_after_foldunfold",
+            format!("{}.dot", result.name),
+            &result,
+        );
+    }
+
+    Ok(result)
 }
 
 pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
@@ -138,7 +183,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             encoder,
             initial_pctxt,
             pctxt_at_label: HashMap::new(),
-            dump_debug_info: config::dump_debug_info(),
+            dump_debug_info: config::dump_debug_info_during_fold(),
             check_foldunfold_state: config::check_foldunfold_state(),
             foldunfold_state_filter: config::foldunfold_state_filter(),
             cfg,
@@ -193,7 +238,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     expr.get_permissions(pctxt.predicates())
                         .into_iter()
                         .filter(|p| !p.get_place().is_local() && p.is_curr()),
-                );
+                )?;
 
                 // Rewrite statement
                 Ok(vir::Stmt::Inhale(
@@ -210,7 +255,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     rhs.get_permissions(pctxt.predicates())
                         .into_iter()
                         .filter(|p| p.is_pred())
-                );
+                )?;
                 */
                 let new_lhs = if unchecked {
                     lhs
@@ -519,7 +564,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 if let vir::Expr::PredicateAccessPredicate(ref _name, box ref arg, perm_amount, _) =
                     lhs
                 {
-                    labelled_state.insert_acc(arg.clone(), *perm_amount);
+                    labelled_state.insert_acc(arg.clone(), *perm_amount)?;
                 }
                 labelled_state.replace_places(|place| place.old(&label));
                 self.pctxt_at_label
@@ -1138,7 +1183,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
-        );
+        )?;
         lhs_state.replace_places(|place| {
             let pos = place.pos();
             place.old("lhs").set_pos(pos)
@@ -1164,7 +1209,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
-        );
+        )?;
         new_lhs_state.replace_places(|place| {
             let pos = place.pos();
             place.old("lhs").set_pos(pos)
@@ -1180,7 +1225,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
-        );
+        )?;
         debug!("State of rhs of magic wand: {}", rhs_state);
 
         // Store states
@@ -1251,8 +1296,11 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         let res = if self.wait_old_expr || !expr.is_pure() {
             vir::default_fallible_fold_expr(self, expr)?
         } else {
-            // Try to add unfolding
+            // Add unfoldings in the subexpressions
             let inner_expr = vir::default_fallible_fold_expr(self, expr)?;
+
+            // Compute the permissions that are still missing in order for the current expression
+            // to be well-formed
             let perms: Vec<_> = inner_expr
                 .get_required_permissions(self.curr_pctxt.predicates())
                 .into_iter()
@@ -1269,8 +1317,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                     .join(",\n  ")
             );
 
-            // Add appropriate unfolding around this old expression
-            // Note: unfoldings must have no effect on siblings
+            // Add appropriate unfoldings around this expression, to obtain the missing permissions
             let mut result = inner_expr;
             for action in self
                 .curr_pctxt
