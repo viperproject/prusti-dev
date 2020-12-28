@@ -46,7 +46,6 @@ pub struct SnapshotDomain {
     pub equals_func_ref: vir::Function,
     pub not_equals_func: vir::Function,
     pub not_equals_func_ref: vir::Function,
-    pub fields: Vec<String>,
 }
 
 impl SnapshotDomain {
@@ -354,7 +353,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             equals_func_ref: self.encode_equals_func_ref(),
             not_equals_func: self.encode_not_equals_func(),
             not_equals_func_ref: self.encode_not_equals_func_ref(),
-            fields: vec![],
         })
     }
 
@@ -699,10 +697,9 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
     fn encode_snap_domain(&self) -> EncodingResult<SnapshotDomain>
     {
-        let (domain, fields) =  self.encode_domain()?;
+        let domain =  self.encode_domain()?;
         Ok(SnapshotDomain{
             domain,
-            fields,
             equals_func: self.snapshot_encoder.encode_equals_func(),
             equals_func_ref: self.snapshot_encoder.encode_equals_func_ref(),
             not_equals_func: self.snapshot_encoder.encode_not_equals_func(),
@@ -721,20 +718,18 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         }
 
 
-        let mut fields = vec![];
 
         if let Some((field_funcs, new_fields)) = self.encode_field_funcs() {
             functions.append(&mut field_funcs.clone()); //TODO don't clone this
             //axioms.push(field_axioms);
-            fields.append(&mut new_fields.clone());
         }
 
-        Ok((vir::Domain {
+        Ok(vir::Domain {
             name: self.snapshot_encoder.encode_domain_name(),
             functions,
             axioms,
             type_vars: vec![]
-        }, fields))
+        })
     }
 
 
