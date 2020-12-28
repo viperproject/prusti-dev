@@ -30,7 +30,9 @@ pub struct ReachingDefsState<'a, 'tcx: 'a> {
 impl<'a, 'tcx: 'a> fmt::Debug for ReachingDefsState<'a, 'tcx> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // ignore mir
-        write!(f, "{:?}", self.reaching_assignments)
+        f.debug_struct("ReachingDefsState")
+            .field("reaching_assignments", &self.reaching_assignments)
+            .finish()
     }
 }
 
@@ -66,7 +68,7 @@ impl<'a, 'tcx: 'a> Serialize for ReachingDefsState<'a, 'tcx> {
 
 impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
 
-    /// all sets are empty  //TODO: insert locals?
+    /// all sets are empty
     fn new_bottom(mir: &'a mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Self {
         Self {
             reaching_assignments: HashMap::new(),

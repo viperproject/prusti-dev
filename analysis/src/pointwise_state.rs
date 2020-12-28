@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::collections::{BTreeMap, HashMap};
+use std::fmt;
 
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
@@ -21,6 +22,17 @@ pub struct PointwiseState<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> {
     state_after_block: HashMap<mir::BasicBlock, HashMap<mir::BasicBlock, S>>,
     mir: &'a mir::Body<'tcx>,       // needed for translation of location to statement/terminator in serialization
     tcx: TyCtxt<'tcx>,              // needed for construction of bottom element in serialization
+}
+
+impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx> + fmt::Debug> fmt::Debug for PointwiseState<'a, 'tcx, S> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // ignore tcx
+        f.debug_struct("PointwiseState")
+            .field("state_before", &self.state_before)
+            .field("state_after_block", &self.state_after_block)
+            .field("mir", &self.mir)
+            .finish()
+    }
 }
 
 impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 'tcx, S> {

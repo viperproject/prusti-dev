@@ -29,8 +29,10 @@ pub struct DefinitelyInitializedState<'a, 'tcx: 'a> {
 
 impl<'a, 'tcx: 'a> fmt::Debug for DefinitelyInitializedState<'a, 'tcx> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // ignore tcx
-        write!(f, "{:?}", self.def_init_places)
+        // ignore tcx & mir
+        f.debug_struct("DefinitelyInitializedState")
+            .field("def_init_places", &self.def_init_places)
+            .finish()
     }
 }
 
