@@ -1,55 +1,9 @@
 use ::log::{info, debug, trace};
-use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
-use crate::encoder::builtin_encoder::BuiltinEncoder;
-use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::builtin_encoder::BuiltinMethodKind;
-use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PositionlessEncodingError, WithSpan, RunIfErr};
-use crate::encoder::foldunfold;
-use crate::encoder::places;
-use crate::encoder::procedure_encoder::ProcedureEncoder;
-use crate::encoder::pure_function_encoder::PureFunctionEncoder;
-use crate::encoder::stub_function_encoder::StubFunctionEncoder;
-use crate::encoder::spec_encoder::encode_spec_assertion;
 use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder};
-use crate::encoder::type_encoder::{
-    compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use prusti_common::vir;
-use prusti_common::vir::WithIdentifier;
-use prusti_common::config;
-use prusti_common::report::log;
-// use prusti_interface::constants::PRUSTI_SPEC_ATTR;
-use prusti_interface::data::ProcedureDefId;
-use prusti_interface::environment::Environment;
-use prusti_interface::specs::typed;
-use prusti_interface::specs::typed::SpecificationId;
-use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs, has_prusti_attr};
-use prusti_interface::PrustiError;
-// use prusti_interface::specs::{
-//     SpecID, SpecificationSet, TypedAssertion,
-//     TypedSpecificationMap, TypedSpecificationSet,
-// };
-use rustc_hir as hir;
-use rustc_hir::def_id::DefId;
-// use rustc::middle::const_val::ConstVal;
-use rustc_middle::mir;
-// use rustc::mir::interpret::GlobalId;
-use rustc_middle::ty;
-use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
-use std::io::Write;
-use std::mem;
-// use syntax::ast;
-use rustc_ast::ast;
-// use viper;
-use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
-use std::ops::AddAssign;
-use std::convert::TryInto;
-use std::borrow::Borrow;
-use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
-use crate::encoder::memory_eq_encoder::MemoryEqEncoder;
-use rustc_span::MultiSpan;
 
-use super::super::snapshot_encoder::SnapshotAdtEncoder;
+
 
 pub struct ExprPurifier {
     pub old_formal_args: Vec<vir::LocalVar>,
@@ -111,7 +65,7 @@ impl vir::ExprFolder for ExprPurifier {
                    
                     info!("found domain {} ", receiver_domain);
 
-                    let domain_func = SnapshotAdtEncoder::encode_field_domain_func_from_snapshot(
+                    let domain_func = super::encode_field_domain_func_from_snapshot(
                         purified_field_type,
                         field_name,
                         receiver_domain,
