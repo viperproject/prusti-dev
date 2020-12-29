@@ -765,12 +765,13 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         let all_fields: Vec<vir::LocalVar> = vec![]; //TODO
         let all_field_exprs : Vec<vir::Expr> = all_fields.iter().cloned().map(|lv| vir::Expr::local(lv)).collect();
 
+        /*
         let constructor_func = self.snapshot_encoder.encode_domain_cons()?;
         let constructor_call = vir::Expr::domain_func_app(constructor_func, all_field_exprs);
         let triggers = vec![];
         let forall_body = vir::Expr::eq_cmp(true.into(), true.into()); //TODO
         let axiom_body : vir::Expr = vir::Expr::forall(all_fields,triggers,forall_body );
-
+        */
 
         let axiom_body = true.into(); //TODO here we don't return the previous axiom_body because that causes an error. 
         Ok(vir::DomainAxiom {
