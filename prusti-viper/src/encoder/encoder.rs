@@ -95,6 +95,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     vir_program_before_viper_writer: RefCell<Box<Write>>,
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
+    axiomatized_function_domain: RefCell<vir::Domain>
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -120,6 +121,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .ok()
             .unwrap(),
         );
+
+
+
+        let mut axiomatized_functions_domain = vir::Domain {
+            name: "domainThatContainsTheAxiomatizedPureFunctions".to_owned(), //TODO
+            functions: vec![],
+            axioms: vec![],
+            type_vars: vec![],
+        };
 
         Encoder {
             env,
@@ -153,6 +163,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_snapshots: RefCell::new(HashMap::new()),
             snap_mirror_funcs: RefCell::new(HashMap::new()),
             encoding_errors_counter: RefCell::new(0),
+            axiomatized_function_domain: RefCell::new(axiomatized_functions_domain),
         }
     }
 
@@ -252,7 +263,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
 
         if config::enable_purification_optimization() {
-                domains.push(self.get_axiomatized_functions_domain());
+                domains.push(self.axiomatized_function_domain.borrow().clone());
                 domains.push(self.get_nat_domain());
         }
 
@@ -294,96 +305,90 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
    
 
-    fn get_axiomatized_functions_domain(&self) -> vir::Domain {
-        let new_domain_name: String = "domainThatContainsTheAxiomatizedPureFunctions".to_owned(); //TODO
-    
-        let mut axiomatized_functions_domain = vir::Domain {
-            name: new_domain_name.clone(),
-            functions: vec![],
-            axioms: vec![],
-            type_vars: vec![],
-        };
+    fn encode_axiomatized_pure_function(&self, f: &vir::Function) {
+        let old_formal_args = f.formal_args.clone();
         let snapshots_info: HashMap<String, Box<Snapshot>> = self.snapshots.borrow().clone();
-    
-        for f in self.pure_functions.borrow().values().into_iter() {
-            let old_formal_args = f.formal_args.clone();
-            let mut purifier = snapshot::ExprPurifier {
-                old_formal_args: old_formal_args.clone(),
-                snapshots: snapshots_info.clone(),
-            };
-    
-            let mut formal_args: Vec<vir::LocalVar> = f
-                .formal_args
-                .iter()
-                .map(|e| {
-                    let old_type = e.typ.clone();
-                    let new_type = purifier.transalte_type(old_type);
-    
-                    vir::LocalVar {
-                        name: e.name.clone(),
-                        typ: new_type,
-                    }
-                })
-                .collect();
-    
-            formal_args.push(vir::LocalVar {
-                name: "count".to_string(),
-                typ: vir::Type::Domain("Nat".to_owned()),
-            });
-    
-            let return_type = f.return_type.clone();
-            let name = format!("domainVersionOf{}", f.name);
-    
-            let df = vir::DomainFunc {
-                name,
-                formal_args: formal_args.clone(),
-                return_type,
-                unique: false,
-                domain_name: new_domain_name.clone(),
-            };
-            axiomatized_functions_domain.functions.push(df.clone());
-    
-            let pre_conds: vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
-            let post_conds: vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
-    
-            let function_body = vir::ExprFolder::fold(&mut purifier, f.body.clone().unwrap());
-    
-            let args: Vec<vir::Expr> = formal_args
-                .clone()
-                .into_iter()
-                .map(|e| vir::Expr::Local(e, Default::default()))
-                .collect();
-            let function_call = vir::Expr::DomainFuncApp(df, args, Default::default());
-            let function_identiry = vir::Expr::BinOp(
-                vir::BinOpKind::EqCmp,
-                Box::new(function_call),
-                Box::new(function_body),
-                Default::default(),
-            );
-    
-            let rhs: vir::Expr = vir::Expr::BinOp(
-                vir::BinOpKind::And,
-                Box::new(post_conds),
-                Box::new(function_identiry),
-                Default::default(),
-            );
-    
-            let e: vir::Expr = vir::Expr::BinOp(
-                vir::BinOpKind::Implies,
-                Box::new(pre_conds),
-                Box::new(rhs),
-                Default::default(),
-            );
-            axiomatized_functions_domain.axioms.push(vir::DomainAxiom {
-                name: format!("axioms_for_{}", f.name), //TODO
-                expr: vir::Expr::ForAll(formal_args, vec![], Box::new(e), vir::Position::default()),
-                domain_name: new_domain_name.clone(),
+        let domain_name = self.axiomatized_function_domain.borrow().name.clone();
+
+        let mut purifier = snapshot::ExprPurifier {
+            old_formal_args: old_formal_args.clone(),
+            snapshots: snapshots_info.clone(),
+        };
+
+        let mut formal_args: Vec<vir::LocalVar> = f
+            .formal_args
+            .iter()
+            .map(|e| {
+                let old_type = e.typ.clone();
+                let new_type = purifier.transalte_type(old_type);
+
+                vir::LocalVar {
+                    name: e.name.clone(),
+                    typ: new_type,
+                }
             })
-        }
-    
-        axiomatized_functions_domain
+            .collect();
+
+        formal_args.push(vir::LocalVar {
+            name: "count".to_string(),
+            typ: vir::Type::Domain("Nat".to_owned()),
+        });
+
+        let return_type = f.return_type.clone();
+        let name = format!("domainVersionOf{}", f.name);
+
+        let df = vir::DomainFunc {
+            name,
+            formal_args: formal_args.clone(),
+            return_type,
+            unique: false,
+            domain_name: domain_name.to_string(),
+        };
+
+        let pre_conds: vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
+        let post_conds: vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
+
+        let function_body = vir::ExprFolder::fold(&mut purifier, f.body.clone().unwrap());
+
+        let args: Vec<vir::Expr> = formal_args
+            .clone()
+            .into_iter()
+            .map(|e| vir::Expr::Local(e, Default::default()))
+            .collect();
+        let function_call = vir::Expr::DomainFuncApp(df.clone(), args, Default::default());
+        let function_identiry = vir::Expr::BinOp(
+            vir::BinOpKind::EqCmp,
+            Box::new(function_call),
+            Box::new(function_body),
+            Default::default(),
+        );
+
+        let rhs: vir::Expr = vir::Expr::BinOp(
+            vir::BinOpKind::And,
+            Box::new(post_conds),
+            Box::new(function_identiry),
+            Default::default(),
+        );
+
+        let e: vir::Expr = vir::Expr::BinOp(
+            vir::BinOpKind::Implies,
+            Box::new(pre_conds),
+            Box::new(rhs),
+            Default::default(),
+        );
+        let da = vir::DomainAxiom {
+            name: format!("axioms_for_{}", f.name), //TODO
+            expr: vir::Expr::ForAll(formal_args, vec![], Box::new(e), vir::Position::default()),
+            domain_name: domain_name.to_string(),
+        };
+
+
+        self.axiomatized_function_domain.borrow_mut().functions.push(df);
+        self.axiomatized_function_domain.borrow_mut().axioms.push(da);
+
     }
-      
+
+     
 
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
@@ -1291,6 +1296,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     .with_span(procedure.get_span())
                     .run_if_err(cleanup)?
             };
+
+            if config::enable_purification_optimization() {
+                self.encode_axiomatized_pure_function(&function);
+            }
 
             self.log_vir_program_before_viper(function.to_string());
             self.pure_functions.borrow_mut().insert(key, function);
