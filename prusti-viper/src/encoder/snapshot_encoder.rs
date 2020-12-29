@@ -718,9 +718,9 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
 
 
-        if let Some((field_funcs, new_fields)) = self.encode_field_funcs()? {
-            functions.append(&mut field_funcs.clone()); //TODO don't clone this
-            //axioms.push(field_axioms);
+        if let Some((mut field_funcs, mut field_axioms)) = self.encode_field_funcs()? {
+            functions.append(&mut field_funcs);
+            axioms.append(&mut field_axioms);
         }
 
         Ok(vir::Domain {
@@ -757,18 +757,27 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     fn encode_field_domain_axiom(
         &self,
         field: &ty::FieldDef,
-    ) -> vir::DomainAxiom {
+    ) -> PositionlessEncodingResult<vir::DomainAxiom> {
 
         let domain_name = self.snapshot_encoder.encode_domain_name();
         let field_name = field.ident.name.to_ident_string();
 
-        let axiom_body : vir::Expr = true.into(); //TODO 
+        let all_fields: Vec<vir::LocalVar> = vec![]; //TODO
+        let all_field_exprs : Vec<vir::Expr> = all_fields.iter().cloned().map(|lv| vir::Expr::local(lv)).collect();
 
-        vir::DomainAxiom {
+        let constructor_func = self.snapshot_encoder.encode_domain_cons()?;
+        let constructor_call = vir::Expr::domain_func_app(constructor_func, all_field_exprs);
+        let triggers = vec![];
+        let forall_body = vir::Expr::eq_cmp(true.into(), true.into()); //TODO
+        let axiom_body : vir::Expr = vir::Expr::forall(all_fields,triggers,forall_body );
+
+
+        let axiom_body = true.into(); //TODO here we don't return the previous axiom_body because that causes an error. 
+        Ok(vir::DomainAxiom {
             name: format!("axiom_for_the_field_{}{}",domain_name, field_name), //TODO real name
             expr: axiom_body,
             domain_name: domain_name.clone(),
-        }
+        })
     }
 
 
@@ -782,7 +791,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
             for field in self.adt_def.all_fields() {
                 funcs.push(self.encode_field_domain_func(field)?);
-                axioms.push(self.encode_field_domain_axiom(field));
+                axioms.push(self.encode_field_domain_axiom(field)?);
             }
 
             Ok(Some((funcs, axioms)))
