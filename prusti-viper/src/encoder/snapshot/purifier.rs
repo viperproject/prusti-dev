@@ -1,16 +1,14 @@
-use ::log::{info, debug, trace};
 use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder};
+use log::{debug, info, trace};
 use prusti_common::vir;
 use std::collections::HashMap;
-
-
 
 pub struct ExprPurifier {
     pub old_formal_args: Vec<vir::LocalVar>,
     pub snapshots: HashMap<String, Box<Snapshot>>,
 }
 
- impl ExprPurifier {
+impl ExprPurifier {
     pub fn transalte_type(&self, t: vir::Type) -> vir::Type {
         match t {
             vir::Type::TypedRef(name) => match name.as_str() {
@@ -63,18 +61,17 @@ impl vir::ExprFolder for ExprPurifier {
                     let field_name: String = field_name.chars().skip(2).collect();
                     let field_type = field.typ.clone();
                     let purified_field_type = self.transalte_type(field_type);
-                   
+
                     let domain_func = super::encode_field_domain_func(
                         purified_field_type,
                         field_name,
                         receiver_domain,
                     );
-                    
+
                     vir::Expr::DomainFuncApp(domain_func, vec![*inner], pos)
                 }
             }
-        }
-        else {
+        } else {
             unreachable!();
         }
     }
@@ -89,4 +86,3 @@ impl vir::ExprFolder for ExprPurifier {
         )
     }
 }
-
