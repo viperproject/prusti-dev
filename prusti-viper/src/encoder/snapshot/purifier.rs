@@ -15,13 +15,14 @@ pub struct ExprPurifier {
         match t {
             vir::Type::TypedRef(name) => match name.as_str() {
                 "i32" => vir::Type::Int,
+                "bool" => vir::Type::Bool,
                 _ => {
                     let domain_name = self
                         .snapshots
                         .get(&name)
                         .and_then(|snap| snap.domain())
                         .map(|domain| domain.name)
-                        .expect(&format!("No matching domain for {}", name));
+                        .expect(&format!("No matching domain for '{}'", name));
 
                     vir::Type::Domain(domain_name)
                 }
