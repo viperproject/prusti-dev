@@ -95,7 +95,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     vir_program_before_viper_writer: RefCell<Box<Write>>,
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
-    axiomatized_function_domain: RefCell<vir::Domain>
+    axiomatized_function_domain: RefCell<vir::Domain>,
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -121,8 +121,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .ok()
             .unwrap(),
         );
-
-
 
         let mut axiomatized_functions_domain = vir::Domain {
             name: "domainThatContainsTheAxiomatizedPureFunctions".to_owned(), //TODO
@@ -261,17 +259,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             });
         }
 
-
         if config::enable_purification_optimization() {
-                domains.push(self.axiomatized_function_domain.borrow().clone());
-                domains.push(self.get_nat_domain());
+            domains.push(self.axiomatized_function_domain.borrow().clone());
+            domains.push(self.get_nat_domain());
         }
 
         domains.sort_by_key(|d| d.get_identifier());
         domains
     }
-
-
 
     fn get_nat_domain(&self) -> vir::Domain {
         let nat_domain_name = "Nat";
@@ -293,7 +288,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             domain_name: nat_domain_name.to_owned(),
         };
         let functions = vec![zero, succ];
-    
+
         vir::Domain {
             name: nat_domain_name.to_owned(),
             functions,
@@ -301,9 +296,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_vars: vec![],
         }
     }
-    
-
-   
 
     fn encode_axiomatized_pure_function(&self, f: &vir::Function) {
         let old_formal_args = f.formal_args.clone();
@@ -356,17 +348,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .map(vir::Expr::local)
             .collect();
         let function_call = vir::Expr::domain_func_app(df.clone(), args);
-        let function_identiry = vir::Expr::eq_cmp(
-            function_call,
-            function_body,
-        );
+        let function_identiry = vir::Expr::eq_cmp(function_call, function_body);
 
-        let rhs: vir::Expr = vir::Expr::and(
-            post_conds,
-            function_identiry
-        );
+        let rhs: vir::Expr = vir::Expr::and(post_conds, function_identiry);
 
-        let axiom_body= vir::Expr::implies(pre_conds,rhs);
+        let axiom_body = vir::Expr::implies(pre_conds, rhs);
         let triggers = vec![]; //TODO
         let da = vir::DomainAxiom {
             name: format!("axioms_for_{}", f.name), //TODO
@@ -374,14 +360,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             domain_name: domain_name.to_string(),
         };
 
-
-        self.axiomatized_function_domain.borrow_mut().functions.push(df);
-        self.axiomatized_function_domain.borrow_mut().axioms.push(da);
-
+        self.axiomatized_function_domain
+            .borrow_mut()
+            .functions
+            .push(df);
+        self.axiomatized_function_domain
+            .borrow_mut()
+            .axioms
+            .push(da);
     }
-
-     
-
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
         let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
@@ -1650,5 +1637,3 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         )
     }
 }
-
-

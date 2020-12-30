@@ -1,5 +1,3 @@
-
-
 use log::info;
 use prusti_common::vir;
 
@@ -9,19 +7,15 @@ use super::errors::PositionlessEncodingResult;
 
 mod purifier;
 
-
-
 pub fn encode_field_domain_func(
     field_type: vir::Type,
     field_name: String,
     domain_name: String,
 ) -> vir::DomainFunc {
-
     let return_type: vir::Type = match field_type.clone() {
         vir::Type::TypedRef(ref name) => vir::Type::Domain(name.clone()),
         t => t,
     };
-
 
     vir::DomainFunc {
         name: format!("{}$field${}", domain_name, field_name), //TODO get the right name
