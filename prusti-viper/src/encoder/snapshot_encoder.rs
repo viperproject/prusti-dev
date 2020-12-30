@@ -756,18 +756,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
     fn encode_valid_function(&self) -> vir::DomainFunc {
         let domain_name = self.snapshot_encoder.encode_domain_name();
-        let self_arg = vir::LocalVar {name: "self".to_string(), typ: vir::Type::Domain(domain_name.clone())};
-       let df = vir::DomainFunc {
-            name: format!("{}$valid", domain_name),
-            formal_args: vec![self_arg],
-            return_type: vir::Type::Bool,
-            unique: false,
-            domain_name,
-        };
-
-
-        df
-
+        snapshot::encode_valid_function(domain_name)
     }
 
 
@@ -781,12 +770,6 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         }
     }
     
-
-    /// returns the name of the viper function that represents the field `ident` on the type with the `domain_name`
-    fn encode_field_function_name(domain_name: &str, ident: &str) -> String {
-        //TODO: What is the name of the domain function encoding a field? is it a field function?
-        format!("{}$field${}", domain_name, ident)
-    }
 
     fn encode_field_domain_func(
         &self,
@@ -851,11 +834,11 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         let field_of_cons =
             vir::Expr::domain_func_app(this_field_func.clone(), vec![constructor_call.clone()]);
         let triggers: Vec<vir::Trigger> = vec![vir::Trigger::new(vec![field_of_cons.clone()])];
-        let forall_body = vir::Expr::eq_cmp(field_of_cons, vir::Expr::local(this_field)); //TODO
+        let forall_body = vir::Expr::eq_cmp(field_of_cons, vir::Expr::local(this_field));
         let axiom_body: vir::Expr = vir::Expr::forall(all_fields, triggers, forall_body);
 
         Ok(vir::DomainAxiom {
-            name: format!("{}${}$axiom", domain_name, this_field_name), //TODO real name
+            name: format!("{}${}$axiom", domain_name, this_field_name),
             expr: axiom_body,
             domain_name: domain_name.clone(),
         })

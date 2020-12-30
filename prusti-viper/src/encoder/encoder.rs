@@ -298,21 +298,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn encode_axiomatized_pure_function(&self, f: &vir::Function) {
-        let old_formal_args = f.formal_args.clone();
         let snapshots_info: HashMap<String, Box<Snapshot>> = self.snapshots.borrow().clone();
         let domain_name = self.axiomatized_function_domain.borrow().name.clone();
 
-        let mut purifier = snapshot::ExprPurifier {
-            old_formal_args: old_formal_args.clone(),
-            snapshots: snapshots_info.clone(),
-        };
+       
 
-        let mut formal_args: Vec<vir::LocalVar> = f
+        let formal_args_without_nat: Vec<vir::LocalVar> = f
             .formal_args
             .iter()
             .map(|e| {
                 let old_type = e.typ.clone();
-                let new_type = purifier.transalte_type(old_type);
+                let new_type = snapshot::transalte_type(old_type, &snapshots_info);
 
                 vir::LocalVar {
                     name: e.name.clone(),
@@ -321,6 +317,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             })
             .collect();
 
+        let mut formal_args = formal_args_without_nat.clone();
         formal_args.push(vir::LocalVar {
             name: "count".to_string(),
             typ: vir::Type::Domain("Nat".to_owned()),
@@ -337,22 +334,67 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             domain_name: domain_name.to_string(),
         };
 
-        let pre_conds: vir::Expr = true.into(); //TODO
-        let post_conds: vir::Expr = true.into(); //TODO
+        let args: Vec<vir::Expr> = formal_args
+        .clone()
+        .into_iter()
+        .map(vir::Expr::local)
+        .collect();
+        let function_call = vir::Expr::domain_func_app(df.clone(), args);
+
+        let mut purifier = snapshot::ExprPurifier {
+            snapshots: snapshots_info.clone(),
+            self_function: function_call.clone()
+        };
+
+
+
+        let pre_conds: vir::Expr = f.pres
+            .iter()
+            .cloned()
+            .map(|p| vir::ExprFolder::fold(&mut purifier, p))
+            .fold(true.into(),  vir::Expr::and);
+        let post_conds: vir::Expr = f.posts
+            .iter()
+            .cloned()
+            .enumerate()
+            .filter_map(|(i,p)|  {
+                if i == f.posts.len() -1 {
+                    // Skip the last post condition as it is only there to clarify the relation between the result of this function and snapshots
+                    None
+                }
+                else {
+                 Some(vir::ExprFolder::fold(&mut purifier, p))
+                }
+            })
+            .fold(true.into(),  vir::Expr::and);
 
         let function_body = vir::ExprFolder::fold(&mut purifier, f.body.clone().unwrap());
 
-        let args: Vec<vir::Expr> = formal_args
-            .clone()
-            .into_iter()
-            .map(vir::Expr::local)
-            .collect();
-        let function_call = vir::Expr::domain_func_app(df.clone(), args);
+
         let function_identiry = vir::Expr::eq_cmp(function_call, function_body);
 
         let rhs: vir::Expr = vir::Expr::and(post_conds, function_identiry);
 
-        let axiom_body = vir::Expr::implies(pre_conds, rhs);
+        let valids_anded : vir::Expr = formal_args_without_nat
+            .into_iter()
+            .map(|e| {
+                let var_domain_name : String = match e.typ.clone() {
+                    vir::Type::Domain(name) => name,
+                    vir::Type::Bool => "Bool".to_string(),
+                    vir::Type::Int => "Int".to_string(),
+                    vir::Type::TypedRef(_) => unreachable!()
+                };
+                let valid_function = snapshot::encode_valid_function(var_domain_name);
+
+                let self_arg = vir::Expr::local(e.clone());
+                vir::Expr::domain_func_app(valid_function, vec![self_arg])
+
+            })
+            .fold(true.into(),  vir::Expr::and);
+        
+
+        let pre_conds_and_valid = vir::Expr::and(pre_conds, valids_anded );
+        let axiom_body = vir::Expr::implies(pre_conds_and_valid, rhs);
         let triggers = vec![]; //TODO
         let da = vir::DomainAxiom {
             name: format!("axioms_for_{}", f.name), //TODO
