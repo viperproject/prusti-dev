@@ -796,7 +796,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         let field_type = self.compute_vir_type_for_field(field)?;
         let field_name = field.ident.name.to_ident_string();
 
-        snapshot::encode_field_domain_func_from_snapshot(field_type, field_name, domain_name)
+        Ok(snapshot::encode_field_domain_func(field_type, field_name, domain_name))
     }
 
     fn compute_vir_type_for_field(&self, field: &ty::FieldDef ) -> PositionlessEncodingResult<vir::Type> {
@@ -820,7 +820,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         let this_field : vir::LocalVar = vir::LocalVar {typ:this_field_type , name: this_field_name.clone()};
         let this_field_func: vir::DomainFunc = self.encode_field_domain_func(field)?; 
 
-        let all_fields : PositionlessEncodingResult<Vec<vir::LocalVar>> = self.adt_def
+        let all_fields: PositionlessEncodingResult<Vec<vir::LocalVar>> = self.adt_def
             .all_fields()
             .map(|f| {
                 let field_name = f.ident.name.to_ident_string();
@@ -829,7 +829,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
             })
             .collect();
         let all_fields: Vec<vir::LocalVar> = all_fields?;
-        let all_field_exprs : Vec<vir::Expr> = all_fields.iter().cloned().map(|lv| vir::Expr::local(lv)).collect();
+        let all_field_exprs : Vec<vir::Expr> = all_fields.iter().cloned().map(vir::Expr::local).collect();
         
         
         let constructors = self.encode_constructors()?;

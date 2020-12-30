@@ -345,40 +345,32 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             domain_name: domain_name.to_string(),
         };
 
-        let pre_conds: vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
-        let post_conds: vir::Expr = vir::Expr::Const(vir::Const::Bool(true), Default::default()); //TODO
+        let pre_conds: vir::Expr = true.into(); //TODO
+        let post_conds: vir::Expr = true.into(); //TODO
 
         let function_body = vir::ExprFolder::fold(&mut purifier, f.body.clone().unwrap());
 
         let args: Vec<vir::Expr> = formal_args
             .clone()
             .into_iter()
-            .map(|e| vir::Expr::Local(e, Default::default()))
+            .map(vir::Expr::local)
             .collect();
-        let function_call = vir::Expr::DomainFuncApp(df.clone(), args, Default::default());
-        let function_identiry = vir::Expr::BinOp(
-            vir::BinOpKind::EqCmp,
-            Box::new(function_call),
-            Box::new(function_body),
-            Default::default(),
+        let function_call = vir::Expr::domain_func_app(df.clone(), args);
+        let function_identiry = vir::Expr::eq_cmp(
+            function_call,
+            function_body,
         );
 
-        let rhs: vir::Expr = vir::Expr::BinOp(
-            vir::BinOpKind::And,
-            Box::new(post_conds),
-            Box::new(function_identiry),
-            Default::default(),
+        let rhs: vir::Expr = vir::Expr::and(
+            post_conds,
+            function_identiry
         );
 
-        let e: vir::Expr = vir::Expr::BinOp(
-            vir::BinOpKind::Implies,
-            Box::new(pre_conds),
-            Box::new(rhs),
-            Default::default(),
-        );
+        let axiom_body= vir::Expr::implies(pre_conds,rhs);
+        let triggers = vec![]; //TODO
         let da = vir::DomainAxiom {
             name: format!("axioms_for_{}", f.name), //TODO
-            expr: vir::Expr::ForAll(formal_args, vec![], Box::new(e), vir::Position::default()),
+            expr: vir::Expr::forall(formal_args, triggers, axiom_body),
             domain_name: domain_name.to_string(),
         };
 

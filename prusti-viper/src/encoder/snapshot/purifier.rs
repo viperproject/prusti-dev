@@ -64,14 +64,12 @@ impl vir::ExprFolder for ExprPurifier {
                     let field_type = field.typ.clone();
                     let purified_field_type = self.transalte_type(field_type);
                    
-                    info!("found domain {} ", receiver_domain);
-
-                    let domain_func = super::encode_field_domain_func_from_snapshot(
+                    let domain_func = super::encode_field_domain_func(
                         purified_field_type,
                         field_name,
                         receiver_domain,
-                    )
-                    .unwrap();
+                    );
+                    
                     vir::Expr::DomainFuncApp(domain_func, vec![*inner], pos)
                 }
             }
