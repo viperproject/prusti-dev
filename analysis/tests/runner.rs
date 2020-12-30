@@ -49,11 +49,12 @@ fn find_sysroot() -> String {
     }
 }
 
-fn run_tests(mode: &str, path: &str) {
+fn run_tests(mode: &str, path: &str, custom_args: Vec<String>) {
     let mut config = compiletest::Config::default();
     let mut flags = Vec::new();
     flags.push("--edition 2018".to_owned());
     flags.push(format!("--sysroot {}", find_sysroot()));
+    flags.extend(custom_args.into_iter());
     config.target_rustcflags = Some(flags.join(" "));
     config.mode = mode.parse().expect("Invalid mode");
     config.rustc_path = get_driver_path();
@@ -68,5 +69,6 @@ fn run_tests(mode: &str, path: &str) {
 fn test_runner(_tests: &[&()]) {
     env::set_var("RUST_BACKTRACE", "1");
 
-    run_tests("ui", "tests/test_cases");
+    run_tests("ui", "tests/test_cases/reaching_definitions", vec!["--ADdomain=ReachingDefsState".into()]);
+    run_tests("ui", "tests/test_cases/definitely_initialized", vec!["--ADdomain=DefinitelyInitializedState".into()]);
 }
