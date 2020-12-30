@@ -1,18 +1,18 @@
+
 fn main() {
     let a = abs(-1);
     let b = abs(1);
-
-    let c = a + b;
+    println!("{}", a+b);
 }
 
+#[analyzer::run]
 fn abs(x: i32) -> i32 {
-    let y: i32;
+    let res: i32;
     if x >= 0 {
-        y = x;
+        res = x;
     }
     else {
-        y = 0;
+        res = -x;
     }
-
-    return y;
+    return res;
 }
