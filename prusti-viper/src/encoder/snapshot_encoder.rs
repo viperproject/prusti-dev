@@ -784,63 +784,75 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         let field_type = self.compute_vir_type_for_field(field)?;
         let field_name = field.ident.name.to_ident_string();
 
-        Ok(snapshot::encode_field_domain_func(field_type, field_name, domain_name))
+        Ok(snapshot::encode_field_domain_func(
+            field_type,
+            field_name,
+            domain_name,
+        ))
     }
 
-    fn compute_vir_type_for_field(&self, field: &ty::FieldDef ) -> PositionlessEncodingResult<vir::Type> {
+    fn compute_vir_type_for_field(
+        &self,
+        field: &ty::FieldDef,
+    ) -> PositionlessEncodingResult<vir::Type> {
         let tcx = self.snapshot_encoder.encoder.env().tcx();
         let field_ty = field.ty(tcx, self.subst);
         let snapshot = self.snapshot_encoder.encoder.encode_snapshot(&field_ty)?;
         Ok(snapshot.get_type())
     }
 
-
-
     fn encode_field_domain_axiom(
         &self,
         field: &ty::FieldDef,
     ) -> PositionlessEncodingResult<vir::DomainAxiom> {
-
         let domain_name = self.snapshot_encoder.encode_domain_name();
 
         let this_field_name = field.ident.name.to_ident_string();
         let this_field_type = self.compute_vir_type_for_field(field)?;
-        let this_field : vir::LocalVar = vir::LocalVar {typ:this_field_type , name: this_field_name.clone()};
-        let this_field_func: vir::DomainFunc = self.encode_field_domain_func(field)?; 
+        let this_field: vir::LocalVar = vir::LocalVar {
+            typ: this_field_type,
+            name: this_field_name.clone(),
+        };
+        let this_field_func: vir::DomainFunc = self.encode_field_domain_func(field)?;
 
-        let all_fields: PositionlessEncodingResult<Vec<vir::LocalVar>> = self.adt_def
+        let all_fields: PositionlessEncodingResult<Vec<vir::LocalVar>> = self
+            .adt_def
             .all_fields()
             .map(|f| {
                 let field_name = f.ident.name.to_ident_string();
                 let field_type = self.compute_vir_type_for_field(f)?;
-                Ok(vir::LocalVar {name:field_name , typ: field_type.clone()})
+                Ok(vir::LocalVar {
+                    name: field_name,
+                    typ: field_type.clone(),
+                })
             })
             .collect();
         let all_fields: Vec<vir::LocalVar> = all_fields?;
-        let all_field_exprs : Vec<vir::Expr> = all_fields.iter().cloned().map(vir::Expr::local).collect();
-        
-        
+        let all_field_exprs: Vec<vir::Expr> =
+            all_fields.iter().cloned().map(vir::Expr::local).collect();
+
         let constructors = self.encode_constructors()?;
         //TODO handle enums
         let constructor_func = constructors[0].clone();
         let constructor_call = vir::Expr::domain_func_app(constructor_func, all_field_exprs);
-        
-        let field_of_cons = vir::Expr::domain_func_app(this_field_func.clone(), vec![constructor_call.clone()]);
+
+        let field_of_cons =
+            vir::Expr::domain_func_app(this_field_func.clone(), vec![constructor_call.clone()]);
         let triggers: Vec<vir::Trigger> = vec![vir::Trigger::new(vec![field_of_cons.clone()])];
         let forall_body = vir::Expr::eq_cmp(field_of_cons, vir::Expr::local(this_field)); //TODO
-        let axiom_body : vir::Expr = vir::Expr::forall(all_fields,triggers,forall_body );
-        
+        let axiom_body: vir::Expr = vir::Expr::forall(all_fields, triggers, forall_body);
 
         Ok(vir::DomainAxiom {
-            name: format!("{}${}$axiom",domain_name, this_field_name), //TODO real name
+            name: format!("{}${}$axiom", domain_name, this_field_name), //TODO real name
             expr: axiom_body,
             domain_name: domain_name.clone(),
         })
     }
 
-
     /// Encodes and returns the functions and axioms for each field of this struct
-    fn encode_field_funcs(&self) -> PositionlessEncodingResult<Option<(Vec<vir::DomainFunc>, Vec<vir::DomainAxiom>)>> {
+    fn encode_field_funcs(
+        &self,
+    ) -> PositionlessEncodingResult<Option<(Vec<vir::DomainFunc>, Vec<vir::DomainAxiom>)>> {
         if self.adt_def.is_struct() {
             let domain_name = self.snapshot_encoder.encode_domain_name();
 
