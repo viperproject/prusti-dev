@@ -723,6 +723,16 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
             axioms.append(&mut field_axioms);
         }
 
+        if prusti_common::config::enable_purification_optimization() {
+            let valid_function = self.encode_valid_function();
+            let valid_axiom = self.encode_valid_axiom();
+
+            functions.push(valid_function);
+            axioms.push(valid_axiom);
+
+        }
+
+
         Ok(vir::Domain {
             name: self.snapshot_encoder.encode_domain_name(),
             functions,
@@ -731,6 +741,34 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         })
     }
 
+
+    fn encode_valid_function(&self) -> vir::DomainFunc {
+        let domain_name = self.snapshot_encoder.encode_domain_name();
+        let self_arg = vir::LocalVar {name: "self".to_string(), typ: vir::Type::Domain(domain_name.clone())};
+       let df = vir::DomainFunc {
+            name: format!("{}$valid", domain_name),
+            formal_args: vec![self_arg],
+            return_type: vir::Type::Bool,
+            unique: false,
+            domain_name,
+        };
+
+
+        df
+
+    }
+
+
+    fn encode_valid_axiom(&self) -> vir::DomainAxiom {
+        let domain_name = self.snapshot_encoder.encode_domain_name();
+
+        vir::DomainAxiom {
+            name: format!("{}$valid$axiom", domain_name).to_string(), 
+            expr: true.into(), //TODO
+            domain_name,
+        }
+    }
+    
 
     /// returns the name of the viper function that represents the field `ident` on the type with the `domain_name`
     fn encode_field_function_name(domain_name: &str, ident: &str) -> String {
@@ -743,15 +781,19 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         field: &ty::FieldDef,
     ) -> PositionlessEncodingResult<vir::DomainFunc> {
         let domain_name = self.snapshot_encoder.encode_domain_name();
-
-        let tcx = self.snapshot_encoder.encoder.env().tcx();
-        let field_ty = field.ty(tcx, self.subst);
-        let snapshot = self.snapshot_encoder.encoder.encode_snapshot(&field_ty)?;
+        let field_type = self.compute_vir_type_for_field(field)?;
         let field_name = field.ident.name.to_ident_string();
-        let field_type: vir::Type = snapshot.get_type();
 
         snapshot::encode_field_domain_func_from_snapshot(field_type, field_name, domain_name)
     }
+
+    fn compute_vir_type_for_field(&self, field: &ty::FieldDef ) -> PositionlessEncodingResult<vir::Type> {
+        let tcx = self.snapshot_encoder.encoder.env().tcx();
+        let field_ty = field.ty(tcx, self.subst);
+        let snapshot = self.snapshot_encoder.encoder.encode_snapshot(&field_ty)?;
+        Ok(snapshot.get_type())
+    }
+
 
 
     fn encode_field_domain_axiom(
@@ -760,22 +802,37 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     ) -> PositionlessEncodingResult<vir::DomainAxiom> {
 
         let domain_name = self.snapshot_encoder.encode_domain_name();
-        let field_name = field.ident.name.to_ident_string();
 
-        let all_fields: Vec<vir::LocalVar> = vec![]; //TODO
+        let this_field_name = field.ident.name.to_ident_string();
+        let this_field_type = self.compute_vir_type_for_field(field)?;
+        let this_field : vir::LocalVar = vir::LocalVar {typ:this_field_type , name: this_field_name.clone()};
+        let this_field_func: vir::DomainFunc = self.encode_field_domain_func(field)?; 
+
+        let all_fields : PositionlessEncodingResult<Vec<vir::LocalVar>> = self.adt_def
+            .all_fields()
+            .map(|f| {
+                let field_name = f.ident.name.to_ident_string();
+                let field_type = self.compute_vir_type_for_field(f)?;
+                Ok(vir::LocalVar {name:field_name , typ: field_type.clone()})
+            })
+            .collect();
+        let all_fields: Vec<vir::LocalVar> = all_fields?;
         let all_field_exprs : Vec<vir::Expr> = all_fields.iter().cloned().map(|lv| vir::Expr::local(lv)).collect();
-
-        /*
-        let constructor_func = self.snapshot_encoder.encode_domain_cons()?;
+        
+        
+        let constructors = self.encode_constructors()?;
+        //TODO handle enums
+        let constructor_func = constructors[0].clone();
         let constructor_call = vir::Expr::domain_func_app(constructor_func, all_field_exprs);
-        let triggers = vec![];
-        let forall_body = vir::Expr::eq_cmp(true.into(), true.into()); //TODO
+        
+        let field_of_cons = vir::Expr::domain_func_app(this_field_func.clone(), vec![constructor_call.clone()]);
+        let triggers: Vec<vir::Trigger> = vec![vir::Trigger::new(vec![field_of_cons.clone()])];
+        let forall_body = vir::Expr::eq_cmp(field_of_cons, vir::Expr::local(this_field)); //TODO
         let axiom_body : vir::Expr = vir::Expr::forall(all_fields,triggers,forall_body );
-        */
+        
 
-        let axiom_body = true.into(); //TODO here we don't return the previous axiom_body because that causes an error. 
         Ok(vir::DomainAxiom {
-            name: format!("axiom_for_the_field_{}{}",domain_name, field_name), //TODO real name
+            name: format!("{}${}$axiom",domain_name, this_field_name), //TODO real name
             expr: axiom_body,
             domain_name: domain_name.clone(),
         })
