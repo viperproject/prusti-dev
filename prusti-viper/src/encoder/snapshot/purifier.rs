@@ -1,57 +1,35 @@
 use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder};
-use log::{debug, info, trace};
-use prusti_common::vir;
+use log::{debug, info, trace, warn};
+use prusti_common::vir::{self, Expr, Field, PermAmount, Position, Type, LocalVar, ExprFolder};
 use std::collections::HashMap;
 
 pub struct ExprPurifier {
-    pub old_formal_args: Vec<vir::LocalVar>,
     pub snapshots: HashMap<String, Box<Snapshot>>,
+    pub self_function: vir::Expr,
 }
 
-impl ExprPurifier {
-    pub fn transalte_type(&self, t: vir::Type) -> vir::Type {
-        match t {
-            vir::Type::TypedRef(name) => match name.as_str() {
-                "i32" => vir::Type::Int,
-                "bool" => vir::Type::Bool,
-                _ => {
-                    let domain_name = self
-                        .snapshots
-                        .get(&name)
-                        .and_then(|snap| snap.domain())
-                        .map(|domain| domain.name)
-                        .expect(&format!("No matching domain for '{}'", name));
-
-                    vir::Type::Domain(domain_name)
-                }
-            },
-            o @ _ => o,
-        }
-    }
-}
-
-impl vir::ExprFolder for ExprPurifier {
+impl ExprFolder for ExprPurifier {
     fn fold_unfolding(
         &mut self,
         name: String,
-        args: Vec<vir::Expr>,
-        expr: Box<vir::Expr>,
-        perm: vir::PermAmount,
+        args: Vec<Expr>,
+        expr: Box<Expr>,
+        perm: PermAmount,
         variant: vir::MaybeEnumVariantIndex,
-        pos: vir::Position,
-    ) -> vir::Expr {
+        pos: Position,
+    ) -> Expr {
         *self.fold_boxed(expr)
     }
 
     fn fold_field(
         &mut self,
-        receiver: Box<vir::Expr>,
-        field: vir::Field,
-        pos: vir::Position,
-    ) -> vir::Expr {
-        let receiver_type: vir::Type = receiver.get_type().clone();
-        if let vir::Type::TypedRef(receiver_domain) = receiver_type {
-            let receiver_domain = format!("Snap${}", receiver_domain);
+        receiver: Box<Expr>,
+        field: Field,
+        pos: Position,
+    ) -> Expr {
+        let receiver_type: Type = receiver.get_type().clone();
+        if let Type::TypedRef(receiver_domain) = receiver_type {
+            let receiver_domain = format!("Snap${}", receiver_domain); //FIXME this should come from a constant
             let inner = self.fold_boxed(receiver);
             let field_name = field.name.to_string();
             info!("translating field {}", field_name);
@@ -60,7 +38,7 @@ impl vir::ExprFolder for ExprPurifier {
                 _ => {
                     let field_name: String = field_name.chars().skip(2).collect();
                     let field_type = field.typ.clone();
-                    let purified_field_type = self.transalte_type(field_type);
+                    let purified_field_type = super::transalte_type(field_type, &self.snapshots);
 
                     let domain_func = super::encode_field_domain_func(
                         purified_field_type,
@@ -76,13 +54,39 @@ impl vir::ExprFolder for ExprPurifier {
         }
     }
 
-    fn fold_local(&mut self, v: vir::LocalVar, p: vir::Position) -> vir::Expr {
-        vir::Expr::Local(
-            vir::LocalVar {
-                name: v.name,
-                typ: self.transalte_type(v.typ),
-            },
-            p,
-        )
+    fn fold_local(&mut self, v: LocalVar, p: Position) -> Expr {
+        warn!("fold_local {}", v);
+
+        if v.name == "__result" {
+            self.self_function.clone()
+        }
+        else {
+		Expr::Local(
+		    LocalVar {
+		        name: v.name,
+		        typ: super::transalte_type(v.typ, &self.snapshots),
+		    },
+		    p,
+		)
+    	}
+    }
+
+    fn fold_predicate_access_predicate(
+        &mut self,
+        name: String,
+        arg: Box<Expr>,
+        perm_amount: PermAmount,
+        pos: Position,
+    ) -> Expr {
+       true.into()
+    }
+
+    fn fold_field_access_predicate(
+        &mut self,
+        receiver: Box<Expr>,
+        perm_amount: PermAmount,
+        pos: Position
+    ) -> Expr {
+        true.into()
     }
 }
