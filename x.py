@@ -217,9 +217,9 @@ def setup_mac():
 def setup_win():
     """Install the dependencies on Windows."""
     # Non-Viper dependencies must be installed manually.
+    os.mkdir('viper_tools')
     # Download Viper.
     shell('curl http://viper.ethz.ch/downloads/ViperToolsNightlyWin.zip -o ViperToolsNightlyWin.zip')
-    shell('mkdir viper_tools')
     shell('tar -xf ViperToolsNightlyWin.zip -C viper_tools')
     os.remove('ViperToolsNightlyWin.zip')
 
