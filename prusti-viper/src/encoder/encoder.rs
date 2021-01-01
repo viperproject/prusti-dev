@@ -302,7 +302,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn get_nat_domain(&self) -> vir::Domain {
-        let nat_domain_name = "Nat";
+        let nat_domain_name = snapshot::NAT_DOMAIN_NAME;
         let zero = vir::DomainFunc {
             name: "zero".to_owned(),
             formal_args: vec![],
@@ -351,10 +351,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .collect();
 
         let mut formal_args = formal_args_without_nat.clone();
-        formal_args.push(vir::LocalVar {
+        let nat_local = vir::LocalVar {
             name: "count".to_string(),
-            typ: vir::Type::Domain("Nat".to_owned()),
-        });
+            typ: vir::Type::Domain(snapshot::NAT_DOMAIN_NAME.to_owned()),
+        };
+        formal_args.push(nat_local.clone());
 
         let return_type = f.return_type.clone();
         let name = format!("domainVersionOf{}", f.name);
@@ -409,7 +410,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let rhs: vir::Expr = vir::Expr::and(post_conds, function_identiry);
 
         let valids_anded : vir::Expr = formal_args_without_nat
-            .into_iter()
+            .iter()
             .map(|e| {
                 let valid_function = snapshot::valid_func_for_type(&e.typ);
                 let self_arg = vir::Expr::local(e.clone());
@@ -421,9 +422,29 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         let pre_conds_and_valid = vir::Expr::and(pre_conds, valids_anded );
         let axiom_body = vir::Expr::implies(pre_conds_and_valid, rhs);
-        let triggers = vec![]; //TODO
+     
+
+       
+        let trigs : Vec<vir::Expr> = formal_args_without_nat.iter().filter_map(|arg| {
+            match &arg.typ {
+                vir::Type::Domain(arg_domain_name) => {
+                    let self_arg = vir::Expr::local(arg.clone());
+                    let unfold_func = snapshot::encode_unfold_witness(arg_domain_name.clone());
+                    let nat_arg = vir::Expr::local(nat_local.clone());
+                    let unfold_call = vir::Expr::domain_func_app(unfold_func, vec![self_arg, nat_arg.clone()]); //TODO add the count arg
+                    Some(unfold_call)
+                }
+                _ => None
+            }
+           
+        })
+        .collect();
+
+        //TODO add function call to trigs
+
+        let triggers = vec![vir::Trigger::new(trigs)]; //TODO
         let da = vir::DomainAxiom {
-            name: format!("axioms_for_{}", f.name), //TODO
+            name: format!("axioms_for_{}", f.name), //TODO better name
             expr: vir::Expr::forall(formal_args, triggers, axiom_body),
             domain_name: domain_name.to_string(),
         };
