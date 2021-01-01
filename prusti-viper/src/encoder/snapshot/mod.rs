@@ -15,8 +15,8 @@ pub fn encode_field_domain_func(
     field_name: String,
     domain_name: String,
 ) -> vir::DomainFunc {
-    let return_type: Type = match field_type.clone() {
-        vir::Type::TypedRef(ref name) => vir::Type::Domain(name.clone()),
+    let return_type: Type = match field_type {
+        vir::Type::TypedRef(name) => vir::Type::Domain(name),
         t => t,
     };
 
@@ -32,8 +32,24 @@ pub fn encode_field_domain_func(
     }
 }
 
-pub fn encode_valid_function(domain_name: String) -> vir::DomainFunc {
-    let self_arg = vir::LocalVar {name: "self".to_string(), typ: vir::Type::Domain(domain_name.clone())};
+
+/// Returns the T$valid function for the given type
+pub fn valid_func_for_type(typ : &vir::Type) -> vir::DomainFunc {
+    let domain_name : String = match typ {
+        Type::Domain(name) => name.clone(),
+        Type::Bool | Type::Int => "PrimitiveValidDomain".to_string(),
+        Type::TypedRef(_) => unreachable!()
+    };
+
+    let arg_typ: Type = match typ {
+        Type::Domain(name)  =>  vir::Type::Domain(domain_name.clone()),
+        Type::Bool => Type::Bool,
+        Type::Int => Type::Int,
+        Type::TypedRef(_) => unreachable!()
+    };
+
+
+    let self_arg = vir::LocalVar {name: "self".to_string(), typ: arg_typ};
     let df = vir::DomainFunc {
         name: format!("{}$valid", domain_name),
         formal_args: vec![self_arg],
@@ -44,6 +60,7 @@ pub fn encode_valid_function(domain_name: String) -> vir::DomainFunc {
 
     df
 }
+
 
 pub fn transalte_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>,) -> Type {
     match t {
