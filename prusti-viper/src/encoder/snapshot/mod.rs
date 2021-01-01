@@ -10,6 +10,9 @@ use vir::Type;
 
 mod purifier;
 
+
+pub const NAT_DOMAIN_NAME: &str = "$Nat$";
+
 pub fn encode_field_domain_func(
     field_type: vir::Type,
     field_name: String,
@@ -32,6 +35,23 @@ pub fn encode_field_domain_func(
     }
 }
 
+
+pub fn encode_unfold_witness(domain_name: String) -> vir::DomainFunc {
+
+    let self_type = Type::Domain(domain_name.clone());
+    let self_arg = vir::LocalVar {name: "self".to_string(), typ: self_type};
+
+    let nat_type = Type::Domain(NAT_DOMAIN_NAME.to_owned());
+    let nat_arg = vir::LocalVar {name: "count".to_string(), typ: nat_type};
+
+    vir::DomainFunc {
+        name: format!("{}$UnfoldWitness", domain_name),
+        formal_args: vec![self_arg, nat_arg],
+        return_type: vir::Type::Bool,
+        unique: false,
+        domain_name,
+    }
+}
 
 /// Returns the T$valid function for the given type
 pub fn valid_func_for_type(typ : &vir::Type) -> vir::DomainFunc {
