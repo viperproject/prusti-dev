@@ -298,6 +298,20 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+    fn get_succ_func(&self) -> vir::DomainFunc {
+        let succ = vir::DomainFunc {
+            name: "succ".to_owned(),
+            formal_args: vec![vir::LocalVar {
+                name: "val".to_owned(),
+                typ: vir::Type::Domain(snapshot::NAT_DOMAIN_NAME.to_owned()),
+            }],
+            return_type: vir::Type::Domain(snapshot::NAT_DOMAIN_NAME.to_owned()),
+            unique: false,
+            domain_name: snapshot::NAT_DOMAIN_NAME.to_owned(),
+        };
+
+        succ
+    }
     fn get_nat_domain(&self) -> vir::Domain {
         let nat_domain_name = snapshot::NAT_DOMAIN_NAME;
         let zero = vir::DomainFunc {
@@ -307,17 +321,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             unique: false,
             domain_name: nat_domain_name.to_owned(),
         };
-        let succ = vir::DomainFunc {
-            name: "succ".to_owned(),
-            formal_args: vec![vir::LocalVar {
-                name: "val".to_owned(),
-                typ: vir::Type::Domain(nat_domain_name.to_owned()),
-            }],
-            return_type: vir::Type::Domain(nat_domain_name.to_owned()),
-            unique: false,
-            domain_name: nat_domain_name.to_owned(),
-        };
-        let functions = vec![zero, succ];
+       
+        let functions = vec![zero, self.get_succ_func()];
 
         vir::Domain {
             name: nat_domain_name.to_owned(),
@@ -352,6 +357,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             name: "count".to_string(),
             typ: vir::Type::Domain(snapshot::NAT_DOMAIN_NAME.to_owned()),
         };
+        let nat_arg = vir::Expr::local(nat_local.clone());
+        let nat_succ = vir::Expr::domain_func_app(self.get_succ_func(), vec![nat_arg.clone()]);
         formal_args.push(nat_local.clone());
 
         let return_type = f.return_type.clone();
@@ -365,16 +372,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             domain_name: domain_name.to_string(),
         };
 
-        let args: Vec<vir::Expr> = formal_args
+        let mut args_with_succ: Vec<vir::Expr> = formal_args_without_nat
         .clone()
         .into_iter()
         .map(vir::Expr::local)
         .collect();
-        let function_call = vir::Expr::domain_func_app(df.clone(), args);
+        args_with_succ.push(nat_succ);
+
+        let args_without_nat: Vec<vir::Expr> = formal_args_without_nat
+        .clone()
+        .into_iter()
+        .map(vir::Expr::local)
+        .collect();
+
+       
+        let function_call_with_succ = vir::Expr::domain_func_app(df.clone(), args_with_succ.clone());
 
         let mut purifier = snapshot::ExprPurifier {
             snapshots: snapshots_info.clone(),
-            self_function: function_call.clone()
+            self_function: function_call_with_succ.clone()
         };
 
 
@@ -402,7 +418,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let function_body = vir::ExprFolder::fold(&mut purifier, f.body.clone().unwrap());
 
 
-        let function_identiry = vir::Expr::eq_cmp(function_call, function_body);
+        let function_identiry = vir::Expr::eq_cmp(function_call_with_succ.clone(), function_body);
 
         let rhs: vir::Expr = vir::Expr::and(post_conds, function_identiry);
 
@@ -422,13 +438,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
      
 
        
-        let trigs : Vec<vir::Expr> = formal_args_without_nat.iter().filter_map(|arg| {
+        let mut trigs : Vec<vir::Expr> = formal_args_without_nat.iter().filter_map(|arg| {
             match &arg.typ {
                 vir::Type::Domain(arg_domain_name) => {
                     let self_arg = vir::Expr::local(arg.clone());
                     let unfold_func = snapshot::encode_unfold_witness(arg_domain_name.clone());
-                    let nat_arg = vir::Expr::local(nat_local.clone());
-                    let unfold_call = vir::Expr::domain_func_app(unfold_func, vec![self_arg, nat_arg.clone()]); //TODO add the count arg
+                    let unfold_call = vir::Expr::domain_func_app(unfold_func, vec![self_arg, nat_arg.clone()]); 
                     Some(unfold_call)
                 }
                 _ => None
@@ -437,14 +452,35 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         })
         .collect();
 
-        //TODO add function call to trigs
 
-        let triggers = vec![vir::Trigger::new(trigs)]; //TODO
+        let triggers = vec![vir::Trigger::new(vec![function_call_with_succ.clone()]), vir::Trigger::new(trigs)]; //TODO should it be one Trigger per trig or as done here one Trigger with all trigs?
         let da = vir::DomainAxiom {
-            name: format!("axioms_for_{}", f.name), //TODO better name
-            expr: vir::Expr::forall(formal_args, triggers, axiom_body),
+            name: format!("{}$axiom", f.name), //TODO better name
+            expr: vir::Expr::forall(formal_args.clone(), triggers.clone(), axiom_body),
             domain_name: domain_name.to_string(),
         };
+
+
+
+
+        let mut args_without_succ: Vec<vir::Expr> = formal_args_without_nat
+        .clone()
+        .into_iter()
+        .map(vir::Expr::local)
+        .collect();
+
+        args_without_succ.push(vir::Expr::local(nat_local));
+
+        let function_call_without_succ = vir::Expr::domain_func_app(df.clone(), args_without_succ);
+
+        let axiom_body = vir::Expr::eq_cmp(function_call_without_succ, function_call_with_succ.clone());
+
+        let nat_da = vir::DomainAxiom {
+            name: format!("{}$nat_axiom", f.name), //TODO better name
+            expr: vir::Expr::forall(formal_args.clone(), triggers.clone(), axiom_body),
+            domain_name: domain_name.to_string(),
+        };
+
 
         self.axiomatized_function_domain
             .borrow_mut()
@@ -454,6 +490,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .borrow_mut()
             .axioms
             .push(da);
+        self.axiomatized_function_domain
+            .borrow_mut()
+            .axioms
+            .push(nat_da);
     }
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
