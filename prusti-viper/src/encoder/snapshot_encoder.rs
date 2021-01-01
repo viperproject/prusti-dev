@@ -737,7 +737,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
         if prusti_common::config::enable_purification_optimization() {
             let valid_function = self.encode_valid_function();
-            let valid_axiom = self.encode_valid_axiom();
+            let valid_axiom = self.encode_valid_axiom()?;
 
             functions.push(valid_function);
             axioms.push(valid_axiom);
@@ -756,18 +756,39 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
     fn encode_valid_function(&self) -> vir::DomainFunc {
         let domain_name = self.snapshot_encoder.encode_domain_name();
-        snapshot::encode_valid_function(domain_name)
+        let domain_type = vir::Type::Domain(domain_name);
+        snapshot::valid_func_for_type(&domain_type)
     }
 
 
-    fn encode_valid_axiom(&self) -> vir::DomainAxiom {
+    fn encode_valid_axiom(&self) -> PositionlessEncodingResult<vir::DomainAxiom> {
         let domain_name = self.snapshot_encoder.encode_domain_name();
 
-        vir::DomainAxiom {
+        let self_var = vir::LocalVar::new(
+            "self",
+            vir::Type::Domain(domain_name.to_string()),
+        );
+
+        let valid_func_apps: vir::Expr = self.adt_def.all_fields().map(|field| {
+            let field_type = self.compute_vir_type_for_field(field).unwrap(); //TODO don't unwrap
+            let field_name = field.ident.name.to_ident_string();
+
+
+            let field_func = snapshot::encode_field_domain_func(field_type.clone(), field_name, domain_name.clone());
+            let field_func_app = vir::Expr::domain_func_app(field_func, vec![vir::Expr::local(self_var.clone())]); //TODO args
+
+            let valid_func = snapshot::valid_func_for_type(&field_type);
+            vir::Expr::domain_func_app(valid_func, vec![field_func_app])
+        })
+       .fold(true.into(),  vir::Expr::and);
+
+        
+       let expr = vir::Expr::forall( vec![self_var], vec![], valid_func_apps); //TODO triggers
+        Ok(vir::DomainAxiom {
             name: format!("{}$valid$axiom", domain_name).to_string(), 
-            expr: true.into(), //TODO
+            expr,
             domain_name,
-        }
+        })
     }
     
 

@@ -262,10 +262,40 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if config::enable_purification_optimization() {
             domains.push(self.axiomatized_function_domain.borrow().clone());
             domains.push(self.get_nat_domain());
+            domains.push(self.get_primitive_valid_domain())
         }
 
         domains.sort_by_key(|d| d.get_identifier());
         domains
+    }
+
+    fn get_primitive_valid_domain(&self) -> vir::Domain {
+        //FIXME this does not check or handel the different sizes of primitve types
+        let domain_name = "PrimitiveValidDomain";
+
+        let mut functions = vec![];
+        let mut axioms = vec![];
+        for t in &[vir::Type::Bool , vir::Type::Int] {
+            let f = snapshot::valid_func_for_type(t);
+            functions.push(f.clone());
+
+            let forall_arg  = vir::LocalVar{name: "self".to_owned(), typ: t.clone()};
+            let function_app = vir::Expr::domain_func_app(f.clone(), vec![vir::Expr::local(forall_arg.clone())]);
+            let body = vir::Expr::and(function_app, true.into());
+            let e = vir::Expr::forall(vec![forall_arg], vec![], body); //TODO triggers
+            let ax = vir::DomainAxiom{  name: format!("{}$axiom", f.get_identifier()),
+                expr: e,
+                domain_name: domain_name.to_string()};
+            axioms.push(ax); //TODO
+        }
+
+
+        vir::Domain {
+            name: domain_name.to_owned(),
+            functions,
+            axioms,
+            type_vars: vec![],
+        }
     }
 
     fn get_nat_domain(&self) -> vir::Domain {
@@ -378,14 +408,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let valids_anded : vir::Expr = formal_args_without_nat
             .into_iter()
             .map(|e| {
-                let var_domain_name : String = match e.typ.clone() {
-                    vir::Type::Domain(name) => name,
-                    vir::Type::Bool => "Bool".to_string(),
-                    vir::Type::Int => "Int".to_string(),
-                    vir::Type::TypedRef(_) => unreachable!()
-                };
-                let valid_function = snapshot::encode_valid_function(var_domain_name);
-
+                let valid_function = snapshot::valid_func_for_type(&e.typ);
                 let self_arg = vir::Expr::local(e.clone());
                 vir::Expr::domain_func_app(valid_function, vec![self_arg])
 
