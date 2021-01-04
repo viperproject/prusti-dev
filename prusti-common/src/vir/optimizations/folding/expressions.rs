@@ -451,7 +451,6 @@ impl ast::ExprFolder for ExprOptimizer {
         conflicts.extend(check_requirements_conflict(&then_requirements, &else_requirements));
 
         if conflicts.is_empty() {
-
             self.requirements = guard_requirements;
             self.requirements.extend(then_requirements);
             self.requirements.extend(else_requirements);

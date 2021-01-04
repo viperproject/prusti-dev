@@ -434,13 +434,6 @@ impl Expr {
         Expr::Cond(box guard, box left, box right, Position::default())
     }
 
-    pub fn int(value: i64) -> Self {
-        Expr::Const(
-            Const::Int(value),
-            Position::default(),
-        )
-    }
-
     pub fn unfolding(
         pred_name: String,
         args: Vec<Expr>,
@@ -471,7 +464,9 @@ impl Expr {
     pub fn domain_func_app(
         func: DomainFunc,
         args: Vec<Expr>,
-    ) -> Self { Expr::DomainFuncApp(func, args, Position::default()) }
+    ) -> Self {
+        Expr::DomainFuncApp(func, args, Position::default())
+    }
 
     pub fn magic_wand(lhs: Expr, rhs: Expr, borrow: Option<Borrow>) -> Self {
         Expr::MagicWand(box lhs, box rhs, borrow, Position::default())

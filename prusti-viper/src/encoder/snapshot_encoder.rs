@@ -31,8 +31,8 @@ pub struct SnapshotEncoder<'p, 'v: 'p, 'tcx: 'v> {
     predicate_name: String,
 }
 
-struct SnapshotAdtEncoder<'s, 'p: 's, 'v: 'p, 'tcx: 'v> {
-    snapshot_encoder: &'s SnapshotEncoder<'p, 'v, 'tcx>,
+struct SnapshotAdtEncoder<'s, 'v: 's, 'tcx: 'v> {
+    snapshot_encoder: &'s SnapshotEncoder<'s, 'v, 'tcx>,
     adt_def: &'s ty::AdtDef,
     subst: ty::subst::SubstsRef<'tcx>,
     predicate: vir::Predicate,
@@ -81,7 +81,6 @@ pub struct Snapshot {
 }
 
 impl Snapshot {
-
     pub fn is_defined(&self) -> bool {
         self.snap_func.is_some()
     }
@@ -233,7 +232,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                         }
                     }
                 }
-
                 true
             }
             ty::TyKind::Tuple(elems) => {
@@ -557,7 +555,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            _ => unreachable!(), // notice that ADTs are handled separately
+            _ => unreachable!(), // note that ADTs are handled separately
         }
         Ok(formal_args)
     }
@@ -666,9 +664,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
 }
 
 
-impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 'tcx> {
+impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     pub fn new(
-        snapshot_encoder: &'s SnapshotEncoder<'p, 'v, 'tcx>,
+        snapshot_encoder: &'s SnapshotEncoder<'s, 'v, 'tcx>,
         adt_def: &'s ty::AdtDef,
         subst: ty::subst::SubstsRef<'tcx>,
     ) -> Self {
@@ -765,8 +763,8 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
         );
 
         let variant_range = self.adt_def.variant_range();
-        let start = vir::Expr::int(variant_range.start.as_usize() as i64);
-        let end = vir::Expr::int(variant_range.end.as_usize() as i64);
+        let start = vir::Expr::from(variant_range.start.as_usize());
+        let end = vir::Expr::from(variant_range.end.as_usize());
 
         vir::DomainAxiom {
             name: format!("{}$variants", domain_name.to_string()),
@@ -910,9 +908,7 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
             Ok(vir::Expr::ite(
                 vir::Expr::eq_cmp(
                     variant_arg.clone(),
-                    vir::Expr::int(
-                        discriminant as i64
-                    ),
+                    vir::Expr::from(discriminant),
                 ),
                 self.encode_snap_variant(snap_domain, index)?,
                 self.fold_snap_func_conditional(
@@ -992,5 +988,4 @@ impl<'s, 'p: 's, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotAdtEncoder<'s, 'p, 'v, 't
             }
         }
     }
-
 }
