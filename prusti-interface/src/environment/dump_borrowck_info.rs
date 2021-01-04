@@ -221,8 +221,12 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             );
             let mut var_names = HashMap::new();
             for info in &self.mir.var_debug_info {
-                if let Some(local) = info.place.as_local() {
-                    var_names.insert(local, info.name);
+                if let mir::VarDebugInfoContents::Place(place) = info.value {
+                    if let Some(local) = place.as_local() {
+                        var_names.insert(local, info.name);
+                    } else {
+                        unimplemented!();
+                    }
                 } else {
                     unimplemented!();
                 }
