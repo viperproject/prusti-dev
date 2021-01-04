@@ -17,7 +17,7 @@ Overflow checking can be enabled with a configuration flag, otherwise all intege
 In Prusti, the functional behaviour of a function can be specified by using annotations, among which are preconditions, postconditions, and loop invariants.
 The tool checks them, reporting error messages when the code does not adhere to the provided specification.
 
-For a tutorial and more information, check out [the wiki page](https://github.com/viperproject/prusti-dev/wiki).
+For a tutorial and more information, check out the [user guide](https://viperproject.github.io/prusti-dev/user-guide/).
 
 
 Using Prusti
@@ -30,3 +30,5 @@ Alternatively, if you wish to use Prusti from the command line there are two opt
 * Compile from the source code, by installing [rustup](https://rustup.rs/), running `./x.py setup` and then `./x.py build --release`.
 
 For more detailed instructions, refer to the [user guide](https://viperproject.github.io/prusti-dev/user-guide/) and to the [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/).
+
+Do you still have questions? Open an issue or contact us on [Zulip](https://prusti.zulipchat.com/).
