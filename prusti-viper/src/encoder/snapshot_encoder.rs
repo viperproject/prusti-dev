@@ -205,6 +205,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn is_supported(&self) -> bool {
+        warn!("encoded {}. self.encoder.has_structural_eq_impl={:?} self.is_ty_supported(self.ty)={:?}",  self.predicate_name.clone(), self.encoder.has_structural_eq_impl(self.ty), self.is_ty_supported(self.ty));
+
         self.encoder.has_structural_eq_impl(self.ty)
             && self.is_ty_supported(self.ty)
     }
@@ -313,6 +315,19 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_snap_func(&self, return_type: vir::Type, body: vir::Expr) -> vir::Function {
+        let posts = 
+        if prusti_common::config::enable_purification_optimization() {
+            let self_var = vir::LocalVar{name: "__result".to_owned(), typ: return_type.clone()};
+            let valid_func = snapshot::valid_func_for_type(&return_type);
+            let self_arg = vir::Expr::local(self_var.clone());
+            let valid_post = vir::Expr::domain_func_app(valid_func, vec![self_arg]); 
+            vec![valid_post];
+            vec![] //FIXME this should be the above vec but this currently doesn't verify
+        }
+        else {
+            vec![]
+        };
+
         vir::Function {
             name: SNAPSHOT_GET.to_string(),
             formal_args: vec![self.encode_arg_var(SNAPSHOT_ARG)],
@@ -320,7 +335,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             pres: vec![self.encode_predicate_access(
                 self.encode_arg_local(SNAPSHOT_ARG)
             )],
-            posts: vec![],
+            posts,
             body: Some(
                 vir::Expr::wrap_in_unfolding(
                     self.encode_arg_local(SNAPSHOT_ARG),
