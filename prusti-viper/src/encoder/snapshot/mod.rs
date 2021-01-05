@@ -85,14 +85,14 @@ pub fn valid_func_for_type(typ : &vir::Type) -> vir::DomainFunc {
 pub fn transalte_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>,) -> Type {
     match t {
         Type::TypedRef(name) => match name.as_str() {
-            "i32" => Type::Int,
+            "i32" | "usize" => Type::Int,
             "bool" => Type::Bool,
             _ => {
                 let domain_name = snapshots
                     .get(&name)
                     .and_then(|snap| snap.domain())
                     .map(|domain| domain.name)
-                    .expect(&format!("No matching domain for '{}'", name));
+                    .expect(&format!("No matching domain for '{}' in '{:?}'", name,snapshots));
 
                 vir::Type::Domain(domain_name)
             }

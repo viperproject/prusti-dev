@@ -32,7 +32,6 @@ impl ExprFolder for ExprPurifier {
             let receiver_domain = format!("Snap${}", receiver_domain); //FIXME this should come from a constant
             let inner = self.fold_boxed(receiver);
             let field_name = field.name.to_string();
-            info!("translating field {}", field_name);
             match field_name.as_str() {
                 "val_bool" | "val_int" => *inner,
                 _ => {
@@ -55,8 +54,6 @@ impl ExprFolder for ExprPurifier {
     }
 
     fn fold_local(&mut self, v: LocalVar, p: Position) -> Expr {
-        warn!("fold_local {}", v);
-
         if v.name == "__result" {
             self.self_function.clone()
         }
