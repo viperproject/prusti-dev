@@ -137,12 +137,16 @@ impl<T: Ghost> GhostSet<T> {
         GhostSet::new()
     }
 
-    pub fn union(self, other: GhostSeq<T>) -> Self {
+    pub fn union(self, other: GhostSet<T>) -> Self {
         GhostSet::new()
     }
 
-    pub fn intersection(self, other: GhostSeq<T>) -> Self {
+    pub fn intersection(self, other: GhostSet<T>) -> Self {
         GhostSet::new()
+    }
+
+    pub fn contains(self, other: GhostSet<T>) -> GhostBool {
+        GhostBool
     }
 }
 
@@ -166,7 +170,7 @@ impl<T: Ghost> GhostMultiSet<T> {
         GhostMultiSet::new()
     }
 
-    pub fn has_element(self, element: T) -> GhostBool {
+    pub fn contains(self, element: T) -> GhostBool {
         GhostBool
     }
 }
