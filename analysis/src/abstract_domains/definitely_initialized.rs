@@ -88,7 +88,9 @@ impl<'a, 'tcx: 'a>  DefinitelyInitializedState<'a, 'tcx>  {
 
     /// Sets `place` as definitely initialized (see place_set/insert()
     fn set_place_initialised(&mut self, place: &mir::Place<'tcx>) {
-        self.check_invariant();
+        if cfg!(debug_assertions) {
+            self.check_invariant();
+        }
 
         // First, check that the place is not already marked as
         // definitely initialized.
@@ -102,12 +104,17 @@ impl<'a, 'tcx: 'a>  DefinitelyInitializedState<'a, 'tcx>  {
             // just keep info that the struct is definitely initialized.
             collapse(self.mir, self.tcx, &mut self.def_init_places, place);
         }
-        self.check_invariant();
+
+        if cfg!(debug_assertions) {
+            self.check_invariant();
+        }
     }
 
     /// Sets `place` as (possibly) uninitialized (see place_set/remove())
     fn set_place_uninitialised(&mut self, place: &mir::Place<'tcx>) {
-        self.check_invariant();
+        if cfg!(debug_assertions) {
+            self.check_invariant();
+        }
 
         let old_places = mem::replace(&mut self.def_init_places, HashSet::new());
         for old_place in old_places {
@@ -135,7 +142,9 @@ impl<'a, 'tcx: 'a>  DefinitelyInitializedState<'a, 'tcx>  {
             );
         }
 
-        self.check_invariant();
+        if cfg!(debug_assertions) {
+            self.check_invariant();
+        }
     }
 
     /// If the operand is move, make the place uninitialized
@@ -184,8 +193,10 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
 
     /// = intersection of place sets
     fn join(&mut self, other: &Self) {
-        self.check_invariant();
-        other.check_invariant();
+        if cfg!(debug_assertions) {
+            self.check_invariant();
+            other.check_invariant();
+        }
 
         let mut intersection = HashSet::new();
         // TODO: make more efficient/modify self directly?
@@ -208,7 +219,10 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
         propagate_places_fn(self_places, other_places);
         propagate_places_fn(other_places, self_places);
         self.def_init_places = intersection;
-        self.check_invariant();
+
+        if cfg!(debug_assertions) {
+            self.check_invariant();
+        }
     }
 
     fn widen(&mut self, _previous: &Self) {
