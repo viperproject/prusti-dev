@@ -96,6 +96,7 @@ pub enum ContainerOpKind {
     SeqAppend,
     SeqChain,
     SeqDrop,
+    SeqContains,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -267,6 +268,7 @@ impl fmt::Display for ContainerOpKind {
             &ContainerOpKind::SeqAppend => write!(f, "sequence append"),
             &ContainerOpKind::SeqDrop => write!(f, "sequence drop"),
             &ContainerOpKind::SeqChain => write!(f, "sequence chain"),
+            &ContainerOpKind::SeqContains => write!(f, "sequence contains"),
         }
     }
 }
@@ -502,6 +504,10 @@ impl Expr {
 
     pub fn seq_chain(left: Expr, right: Expr) -> Self {
         Expr::ContainerOp(ContainerOpKind::SeqChain, box left, box right, Position::default())
+    }
+
+    pub fn seq_contains(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::SeqContains, box left, box right, Position::default())
     }
 
     pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {

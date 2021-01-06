@@ -408,14 +408,17 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.any_set_minus(left.to_viper(ast), right.to_viper(ast))
                 }
                 ContainerOpKind::SeqAppend => {
+                    //singleton_seq = ast.explicit_seq(&self, elems: &[Expr])
                     ast.seq_append(left.to_viper(ast), right.to_viper(ast))
                 }
                 ContainerOpKind::SeqChain => {
-                    // closure?
                     ast.seq_append(left.to_viper(ast), right.to_viper(ast))
                 }
                 ContainerOpKind::SeqDrop => {
                     ast.seq_drop(left.to_viper(ast), right.to_viper(ast))
+                }
+                ContainerOpKind::SeqContains => {
+                    ast.seq_contains(right.to_viper(ast), left.to_viper(ast))
                 }
             },
             &Expr::Unfolding(

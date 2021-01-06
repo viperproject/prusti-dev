@@ -503,6 +503,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             vir::ContainerOpKind::SeqAppend => vir::Expr::seq_append(left, right),
             vir::ContainerOpKind::SeqDrop => vir::Expr::seq_drop(left, right),
             vir::ContainerOpKind::SeqChain => vir::Expr::seq_chain(left, right),
+            vir::ContainerOpKind::SeqContains => vir::Expr::seq_contains(left, right),
         })
     }
 
