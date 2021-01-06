@@ -13,6 +13,13 @@ use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
 use crate::serialization_utils::location_to_stmt_str;
 
+#[derive(Hash, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum DefLocation {
+    Assignment(mir::Location),
+    /// Value is the index of the function parameter
+    Parameter(usize)
+}
+use DefLocation::*;
 
 /// A set of definition locations and function parameter indices per Local,
 /// meaning that the Local might still have the value
@@ -22,7 +29,7 @@ use crate::serialization_utils::location_to_stmt_str;
 #[derive(Clone)]
 pub struct ReachingDefsState<'a, 'tcx: 'a> {
     // Local -> Location OR index of function parameter
-    reaching_assignments: HashMap<mir::Local, HashSet<Result<mir::Location, usize>>>,
+    reaching_defs: HashMap<mir::Local, HashSet<DefLocation>>,
     mir: &'a mir::Body<'tcx>,   // just for context
 }
 
@@ -30,14 +37,14 @@ impl<'a, 'tcx: 'a> fmt::Debug for ReachingDefsState<'a, 'tcx> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // ignore mir
         f.debug_struct("ReachingDefsState")
-            .field("reaching_assignments", &self.reaching_assignments)
+            .field("reaching_defs", &self.reaching_defs)
             .finish()
     }
 }
 
 impl<'a, 'tcx: 'a> PartialEq for ReachingDefsState<'a, 'tcx> {      // manual implementation needed, because not implemented for Body
     fn eq(&self, other: &Self) -> bool {
-        self.reaching_assignments == other.reaching_assignments
+        self.reaching_defs == other.reaching_defs
         // ignore Body
     }
 }
@@ -45,18 +52,18 @@ impl<'a, 'tcx: 'a> Eq for ReachingDefsState<'a, 'tcx> {}
 
 impl<'a, 'tcx: 'a> Serialize for ReachingDefsState<'a, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
-        let mut map = serializer.serialize_map(Some(self.reaching_assignments.len()))?;
-        let ordered_ass_map: BTreeMap<_, _> = self.reaching_assignments.iter().collect();
+        let mut map = serializer.serialize_map(Some(self.reaching_defs.len()))?;
+        let ordered_ass_map: BTreeMap<_, _> = self.reaching_defs.iter().collect();
         for (local, location_set) in ordered_ass_map {
             let ordered_loc_set: BTreeSet<_> = location_set.iter().collect();
             let mut location_vec = Vec::new();
             for location in ordered_loc_set {
                 match location {
-                    Ok(l) => {
+                    Assignment(l) => {
                         let stmt = location_to_stmt_str(l, self.mir);
                         location_vec.push(format!("{:?}: {}", l, stmt));
                     },             // keep location for differentiation between same statement on different lines
-                    Err(idx) => location_vec.push(format!("arg{}", idx))
+                    Parameter(idx) => location_vec.push(format!("arg{}", idx))
                 }
             }
             map.serialize_entry(&format!("{:?}", local), &location_vec)?;
@@ -70,24 +77,24 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
     /// all sets are empty
     fn new_bottom(mir: &'a mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Self {
         Self {
-            reaching_assignments: HashMap::new(),
+            reaching_defs: HashMap::new(),
             mir,
         }
     }
 
     fn is_bottom(&self) -> bool {
-        self.reaching_assignments.iter().all(|(_, set)| set.is_empty())
+        self.reaching_defs.iter().all(|(_, set)| set.is_empty())
     }
 
     fn new_initial(mir: &'a mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Self {
-        let mut reaching_assignments: HashMap<mir::Local, HashSet<Result<mir::Location, usize>>> = HashMap::new();
+        let mut reaching_defs: HashMap<mir::Local, HashSet<DefLocation>> = HashMap::new();
         // insert parameters
         for (idx, local) in mir.args_iter().enumerate() {
-            let location_set = reaching_assignments.entry(local).or_insert(HashSet::new());
-            location_set.insert(Err(idx));
+            let location_set = reaching_defs.entry(local).or_insert(HashSet::new());
+            location_set.insert(Parameter(idx));
         }
         Self {
-            reaching_assignments,
+            reaching_defs,
             mir,
         }
     }
@@ -97,8 +104,8 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
     }
 
     fn join(&mut self, other: &Self) {
-        for (local, other_locations) in other.reaching_assignments.iter() {
-            let location_set = self.reaching_assignments.entry(*local).or_insert(HashSet::new());
+        for (local, other_locations) in other.reaching_defs.iter() {
+            let location_set = self.reaching_defs.entry(*local).or_insert(HashSet::new());
             location_set.extend(other_locations);
         }
     }
@@ -115,14 +122,15 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         match stmt.kind {
             mir::StatementKind::Assign(box (ref target, _)) => {
                 if let Some(local) = target.as_local() {
-                    let location_set = self.reaching_assignments.entry(local).or_insert(HashSet::new());
+                    let location_set = self.reaching_defs.entry(local).or_insert(HashSet::new());
                     location_set.clear();
-                    location_set.insert(Ok(*location));
+                    location_set.insert(Assignment(*location));
                 }
-                Ok(())
             }
-            _ => {Ok(())}
+            _ => {}
         }
+
+        Ok(())
     }
 
     fn apply_terminator_effect(&self, location: &mir::Location)
@@ -137,9 +145,9 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
                 if let Some((place, bb)) = destination {
                     let mut dest_state = self.clone();
                     if let Some(local) = place.as_local() {
-                        let location_set = dest_state.reaching_assignments.entry(local).or_insert(HashSet::new());
+                        let location_set = dest_state.reaching_defs.entry(local).or_insert(HashSet::new());
                         location_set.clear();
-                        location_set.insert(Ok(*location));
+                        location_set.insert(Assignment(*location));
                     }
                     res_vec.push((*bb, dest_state));
                 }
@@ -149,8 +157,8 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
                     // error state -> be conservative & add destination as possible reaching def while keeping all others
                     if let Some((place, _)) = destination {
                         if let Some(local) = place.as_local() {
-                            let location_set = cleanup_state.reaching_assignments.entry(local).or_insert(HashSet::new());
-                            location_set.insert(Ok(*location));
+                            let location_set = cleanup_state.reaching_defs.entry(local).or_insert(HashSet::new());
+                            location_set.insert(Assignment(*location));
                         }
                     }
                     res_vec.push((bb, cleanup_state));
