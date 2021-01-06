@@ -365,12 +365,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             )?
                         );
                     }
-                    let ty_layout = {
+                    let is_zst = {
                         let env_and_value = self.encoder.env().tcx().param_env(adt_def.did).and(self.ty);
-                        self.encoder.env().tcx().layout_of(env_and_value).unwrap()
+                        self.encoder.env().tcx().layout_of(env_and_value).map(|layout| layout.is_zst()).unwrap_or(false)
                     };
 
-                    if adt_def.is_struct() && ty_layout.is_zst()
+                    if adt_def.is_struct() && is_zst
                     {   
                             let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
                             if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
