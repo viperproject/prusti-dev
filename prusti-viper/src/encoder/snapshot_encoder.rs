@@ -78,11 +78,12 @@ pub struct Snapshot {
     pub predicate_name: String,
     pub snap_func: vir::Function,
     pub snap_domain: Option<SnapshotDomain>, // for types with fields
+    pub is_equality_supported: bool,
 }
 
 impl Snapshot {
     pub fn supports_equality(&self) -> bool {
-        self.snap_domain.is_some()
+        self.is_equality_supported
     }
 
     pub fn domain(&self) -> Option<vir::Domain> {
@@ -153,7 +154,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
 
     pub fn encode(&self) -> EncodingResult<Snapshot> {
         if !self.is_supported() {
-            return Ok(self.encode_generic()?); // fallback solution
+            return Ok(self.encode_generic(false)?); // fallback solution
         }
 
         Ok(match &self.ty.kind() {
@@ -166,7 +167,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 )?
             }
             ty::TyKind::Param(_) => {
-                self.encode_generic()?
+                self.encode_generic(true)?
             }
             ty::TyKind::Tuple(_) => {
                 self.encode_tuple()?
@@ -236,15 +237,17 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             predicate_name: self.predicate_name.clone(),
             snap_func: self.encode_snap_func_primitive(field)?,
             snap_domain: None,
+            is_equality_supported: true,
         })
     }
 
-    fn encode_generic(&self) -> EncodingResult<Snapshot> {
+    fn encode_generic(&self, is_equality_supported: bool) -> EncodingResult<Snapshot> {
         let snap_domain = self.encode_snap_domain()?;
         Ok(Snapshot {
             predicate_name: self.predicate_name.clone(),
             snap_func: self.encode_snap_func_generic(snap_domain.get_type()),
             snap_domain: Some(snap_domain),
+            is_equality_supported,
         })
     }
 
@@ -279,6 +282,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 )
             ),
             snap_domain: Some(snap_domain),
+            is_equality_supported: true,
         })
     }
 
@@ -665,6 +669,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
             predicate_name: self.snapshot_encoder.predicate_name.clone(),
             snap_func,
             snap_domain: Some(snap_domain),
+            is_equality_supported: true,
         })
     }
 
