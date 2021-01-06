@@ -348,23 +348,26 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             )?
                         );
                     }
+<<<<<<< HEAD
 
-                    let env_and_value = self.encoder.env().tcx().param_env(adt_def.did).and(self.ty);
-                    match self.encoder.env().tcx().layout_of(env_and_value) {
-                        Ok(layout) => {
-                            if adt_def.is_struct() && layout.is_zst() {
-                                let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
-                                if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
-                                    debug!("Ghost Type {}", ghost_type);
-                                    TypeEncoder::encode_ghost_predicate(typ, &ghost_type, self.encoder.encode_value_field(self.ty))
-                                } else {
-                                    vec![vir::Predicate::new_struct(typ, fields)]
-                                }
-                            } else {
-                                vec![vir::Predicate::new_struct(typ, fields)]
-                            }
+                    let is_zst = {
+                        let env_and_value = self.encoder.env().tcx().param_env(adt_def.did).and(self.ty);
+                        self.encoder.env().tcx()
+                            .layout_of(env_and_value)
+                            .map(|layout| layout.is_zst())
+                            .unwrap_or(false)
+                    };
+
+                    if adt_def.is_struct() && layout.is_zst() {
+                        let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
+                        if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
+                            debug!("Ghost Type {}", ghost_type);
+                            TypeEncoder::encode_ghost_predicate(typ, &ghost_type, self.encoder.encode_value_field(self.ty))
+                        } else {
+                            vec![vir::Predicate::new_struct(typ, fields)]
                         }
-                        Err(_) => vec![vir::Predicate::new_struct(typ, fields)],
+                    } else {
+                        vec![vir::Predicate::new_struct(typ, fields)]
                     }
                 } else {
                     debug!("ADT {:?} has {} variants", adt_def, num_variants);
