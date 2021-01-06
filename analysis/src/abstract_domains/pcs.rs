@@ -12,12 +12,14 @@ use serde::{Serialize, Serializer};
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct PCSState {}
 
+#[allow(unused_variables)]
 impl Serialize for PCSState {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         unimplemented!()
     }
 }
 
+#[allow(unused_variables)]
 impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for PCSState {
     fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         unimplemented!()
