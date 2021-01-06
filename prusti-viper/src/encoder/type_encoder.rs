@@ -800,7 +800,6 @@ pub fn compute_discriminant_values<'tcx>(adt_def: &'tcx ty::AdtDef, tcx: ty::TyC
     discr_values
 }
 
-
 /// Encode a disjunction that lists all possible discrimintant values.
 pub fn compute_discriminant_bounds<'tcx>(
     adt_def: &'tcx ty::AdtDef,

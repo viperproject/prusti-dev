@@ -1173,7 +1173,5 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
             }
         }
     }
-==== BASE ====
-
 }
-==== BASE ====
+
