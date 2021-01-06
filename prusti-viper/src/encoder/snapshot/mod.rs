@@ -5,7 +5,7 @@ use prusti_common::vir;
 
 pub use self::purifier::ExprPurifier;
 
-use super::{errors::PositionlessEncodingResult, snapshot_encoder::Snapshot};
+use super::{errors::EncodingResult, snapshot_encoder::Snapshot};
 use vir::Type;
 
 mod purifier;
