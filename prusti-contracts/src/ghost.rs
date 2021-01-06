@@ -80,6 +80,7 @@ impl Not for GhostBool {
     }
 }
 
+
 // Ghost variant of Viper type, Seq[T]
 implement_ghost_type_generic!(GhostSeq);
 // wrappers around standard operations on GhostSeq
@@ -117,6 +118,10 @@ impl<T: Ghost> GhostSeq<T> {
     /// ```
     pub fn chain(self, other: GhostSeq<T>) -> Self {
         GhostSeq::new()
+    }
+
+    pub fn contains(self, ele: T) -> GhostBool {
+        GhostBool
     }
 }
 
