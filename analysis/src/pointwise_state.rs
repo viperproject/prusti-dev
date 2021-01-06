@@ -18,7 +18,7 @@ use crate::AbstractState;
 /// Records the abstract state at every program point and CFG edge of `mir`
 pub struct PointwiseState<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> {
     state_before: HashMap<mir::Location, S>,
-    /// maps each basic block to a map of its successor blocks to the state on the CFG edge
+    /// Maps each basic block to a map of its successor blocks to the state on the CFG edge
     state_after_block: HashMap<mir::BasicBlock, HashMap<mir::BasicBlock, S>>,
     mir: &'a mir::Body<'tcx>,       // needed for translation of location to statement/terminator in serialization
     tcx: TyCtxt<'tcx>,              // needed for construction of bottom element in serialization

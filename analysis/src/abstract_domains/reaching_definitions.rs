@@ -16,7 +16,7 @@ use crate::serialization_utils::location_to_stmt_str;
 #[derive(Hash, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DefLocation {
     Assignment(mir::Location),
-    /// Value is the index of the function parameter
+    /// The value is the index of the function parameter in ``mir.args_iter()``
     Parameter(usize)
 }
 use DefLocation::*;
@@ -74,7 +74,10 @@ impl<'a, 'tcx: 'a> Serialize for ReachingDefsState<'a, 'tcx> {
 
 impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
 
-    /// all sets are empty
+    /// The bottom element of the lattice contains no definitions,
+    /// i.e. all sets of reaching definitions are empty
+    ///
+    /// For a completely new bottom element we do not even insert any locals with sets into the map.
     fn new_bottom(mir: &'a mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Self {
         Self {
             reaching_defs: HashMap::new(),

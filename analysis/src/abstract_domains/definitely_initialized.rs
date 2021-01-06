@@ -56,7 +56,7 @@ impl<'a, 'tcx: 'a> Serialize for DefinitelyInitializedState<'a, 'tcx> {
 
 
 impl<'a, 'tcx: 'a>  DefinitelyInitializedState<'a, 'tcx>  {
-    /// empty place set
+    /// The top element of the lattice contains no places
     pub fn new_top(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {def_init_places: HashSet::new(), mir, tcx}
     }
@@ -157,7 +157,8 @@ impl<'a, 'tcx: 'a>  DefinitelyInitializedState<'a, 'tcx>  {
 
 impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 'tcx> {
 
-    /// Contains all possible places = all locals
+    /// The bottom element of the lattice contains all possible places,
+    /// meaning all locals (which includes all their fields)
     fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         let mut places = HashSet::new();
         for local in mir.local_decls.indices().skip(1) {        // skip return value pointer
@@ -191,7 +192,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
         false   //TODO: check
     }
 
-    /// = intersection of place sets
+    /// The lattice join intersects the two place sets
     fn join(&mut self, other: &Self) {
         if cfg!(debug_assertions) {
             self.check_invariant();
