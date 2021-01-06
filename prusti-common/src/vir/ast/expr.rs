@@ -980,24 +980,7 @@ impl Expr {
                 }
             }
             Expr::ContainerOp(ref kind, box ref base1, box ref base2, _pos) => {
-                match kind {
-                    ContainerOpKind::SetContains|
-                    ContainerOpKind::SetPush|
-                    ContainerOpKind::SetUnion|
-                    ContainerOpKind::SetIntersection|
-                    ContainerOpKind::SetRemove|
-                    ContainerOpKind::MultiSetContains|
-                    ContainerOpKind::MultiSetPush|
-                    ContainerOpKind::MultiSetUnion|
-                    ContainerOpKind::MultiSetIntersection|
-                    ContainerOpKind::MultiSetRemove|
-                    ContainerOpKind::SeqAppend|
-                    ContainerOpKind::SeqChain|
-                    ContainerOpKind::SeqDrop => {
-                        let typ1 = base1.get_type();
-                        typ1
-                    }
-                }
+                base1.get_type()
             }
             Expr::Cond(_, box ref base1, box ref base2, _pos) => {
                 let typ1 = base1.get_type();

@@ -130,7 +130,7 @@ pub trait ExprFolder: Sized {
         Expr::BinOp(kind, self.fold_boxed(first), self.fold_boxed(second), pos)
     }
 
-    fn fold_set_op(
+    fn fold_container_op(
         &mut self,
         kind: ContainerOpKind,
         first: Box<Expr>,
@@ -263,7 +263,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::FieldAccessPredicate(x, y, p) => this.fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fold_bin_op(x, y, z, p),
-        Expr::ContainerOp(x, y, z, p) => this.fold_set_op(x, y, z, p),
+        Expr::ContainerOp(x, y, z, p) => this.fold_container_op(x, y, z, p),
         Expr::Unfolding(x, y, z, perm, variant, p) => {
             this.fold_unfolding(x, y, z, perm, variant, p)
         },
@@ -334,7 +334,7 @@ pub trait ExprWalker: Sized {
         self.walk(arg1);
         self.walk(arg2);
     }
-    fn walk_set_op(&mut self, _op: ContainerOpKind, arg1: &Expr, arg2: &Expr, _pos: &Position) {
+    fn walk_container_op(&mut self, _op: ContainerOpKind, arg1: &Expr, arg2: &Expr, _pos: &Position) {
         self.walk(arg1);
         self.walk(arg2);
     }
@@ -435,7 +435,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::FieldAccessPredicate(ref x, y, ref p) => this.walk_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, ref y, ref p) => this.walk_unary_op(x, y, p),
         Expr::BinOp(x, ref y, ref z, ref p) => this.walk_bin_op(x, y, z, p),
-        Expr::ContainerOp(x, ref y, ref z, ref p) => this.walk_set_op(x, y, z, p),
+        Expr::ContainerOp(x, ref y, ref z, ref p) => this.walk_container_op(x, y, z, p),
         Expr::Unfolding(ref x, ref y, ref z, perm, ref variant, ref p) => {
             this.walk_unfolding(x, y, z, perm, variant, p)
         },
@@ -537,7 +537,7 @@ pub trait FallibleExprFolder: Sized {
         ))
     }
 
-    fn fallible_fold_set_op(
+    fn fallible_fold_container_op(
         &mut self,
         kind: ContainerOpKind,
         first: Box<Expr>,
@@ -696,7 +696,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error=U>>(
         Expr::FieldAccessPredicate(x, y, p) => this.fallible_fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fallible_fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fallible_fold_bin_op(x, y, z, p),
-        Expr::ContainerOp(x, y, z, p) => this.fallible_fold_set_op(x, y, z, p),
+        Expr::ContainerOp(x, y, z, p) => this.fallible_fold_container_op(x, y, z, p),
         Expr::Unfolding(x, y, z, perm, variant, p) => {
             this.fallible_fold_unfolding(x, y, z, perm, variant, p)
         },

@@ -244,15 +244,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
     fn is_ghost_adt(ghost_adt_def: &ty::AdtDef, item_name: String) -> Option<String> {
         // check if crate is "prusti_contracts" and module is "ghost"
-        let item_name: Vec<&str> = item_name.split("::").collect();
-        // ghost types will be represented as prusti_contracts::ghost::Ghost*
-        if item_name.len() < 3 {
-            return None;
-        }
-        let crate_name = item_name[0];
-        let mod_name = item_name[1];
-        let adt_identifier = item_name[2];
-        if crate_name.eq("prusti_contracts") && mod_name.contains("ghost"){
+        if (item_name.starts_with("prusti_contracts::ghost::Ghost")) {
             let ghost_name = ghost_adt_def.non_enum_variant().ident.as_str();
             if ghost_name.contains("Ghost") {
                 return Some(ghost_name.to_string());

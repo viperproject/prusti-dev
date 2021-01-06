@@ -483,7 +483,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    pub fn encode_set_op_expr(
+    pub fn encode_container_op_expr(
         &self,
         op: vir::ContainerOpKind,
         left: vir::Expr,
