@@ -141,7 +141,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PostSnapshotPatcher<'p, 'v, 'tcx> {
                                     predicate_name.to_string()
                                 )
                                 .map(|snapshot|
-                                    if snapshot.is_defined() {
+                                    if snapshot.supports_equality() {
                                         snapshot.snap_call(a)
                                     } else {
                                         a

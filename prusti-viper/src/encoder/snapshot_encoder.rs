@@ -76,13 +76,13 @@ impl SnapshotDomain {
 #[derive(Clone)]
 pub struct Snapshot {
     pub predicate_name: String,
-    pub snap_func: Option<vir::Function>,
+    pub snap_func: vir::Function,
     pub snap_domain: Option<SnapshotDomain>, // for types with fields
 }
 
 impl Snapshot {
-    pub fn is_defined(&self) -> bool {
-        self.snap_func.is_some()
+    pub fn supports_equality(&self) -> bool {
+        self.snap_domain.is_some()
     }
 
     pub fn domain(&self) -> Option<vir::Domain> {
@@ -94,9 +94,7 @@ impl Snapshot {
 
     pub fn functions(&self) -> Vec<vir::Function> {
         let mut res = vec![];
-        if self.is_defined() {
-            res.push(self.snap_func.clone().unwrap())
-        }
+        res.push(self.snap_func.clone());
         if let Some(s) = &self.snap_domain {
             res.push(s.equals_func.clone());
             res.push(s.equals_func_ref.clone());
@@ -107,17 +105,11 @@ impl Snapshot {
     }
 
     pub fn snap_name(&self) -> String {
-        match &self.snap_func {
-            Some(func) => func.name.to_string(),
-            None => unreachable!(),
-        }
+        self.snap_func.name.to_string()
     }
 
     pub fn get_type(&self) -> vir::Type {
-        match &self.snap_func {
-            Some(func) => func.return_type.clone(),
-            None => unreachable!(),
-        }
+        self.snap_func.return_type.clone()
     }
 
     pub fn equals_func_name(&self) -> String {
@@ -129,18 +121,13 @@ impl Snapshot {
     }
 
     pub fn snap_call(&self, arg: vir::Expr) -> vir::Expr {
-        match &self.snap_func {
-            Some(func) => {
-                vir::Expr::func_app(
-                    self.snap_name(),
-                    vec![self.dereference_expr(arg)],
-                    func.formal_args.clone(),
-                    self.get_type(),
-                    vir::Position::default(),
-                )
-            }
-            None => unreachable!()
-        }
+        vir::Expr::func_app(
+            self.snap_name(),
+            vec![self.dereference_expr(arg)],
+            self.snap_func.formal_args.clone(),
+            self.get_type(),
+            vir::Position::default(),
+        )
     }
 
     fn dereference_expr(&self, expr: vir::Expr) -> vir::Expr {
@@ -166,11 +153,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
 
     pub fn encode(&self) -> EncodingResult<Snapshot> {
         if !self.is_supported() {
-            return Ok(Snapshot {
-                predicate_name: self.predicate_name.clone(),
-                snap_func: None,
-                snap_domain: None,
-            })
+            return Ok(self.encode_generic()?); // fallback solution
         }
 
         Ok(match &self.ty.kind() {
@@ -251,7 +234,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     {
         Ok(Snapshot {
             predicate_name: self.predicate_name.clone(),
-            snap_func: Some(self.encode_snap_func_primitive(field)?),
+            snap_func: self.encode_snap_func_primitive(field)?,
             snap_domain: None,
         })
     }
@@ -260,7 +243,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         let snap_domain = self.encode_snap_domain()?;
         Ok(Snapshot {
             predicate_name: self.predicate_name.clone(),
-            snap_func: Some(self.encode_snap_func_generic(snap_domain.get_type())),
+            snap_func: self.encode_snap_func_generic(snap_domain.get_type()),
             snap_domain: Some(snap_domain),
         })
     }
@@ -269,7 +252,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         let snap_domain = self.encode_snap_domain()?;
         Ok(Snapshot {
             predicate_name: self.predicate_name.clone(),
-            snap_func: Some(self.encode_snap_func(
+            snap_func: self.encode_snap_func(
                 snap_domain.get_type(),
                 snap_domain.call_cons_func(
                     match self.ty.kind() {
@@ -294,7 +277,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                         _ => unreachable!()
                     }
                 )
-            )),
+            ),
             snap_domain: Some(snap_domain),
         })
     }
@@ -537,14 +520,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     {
         let mut formal_args = vec![];
         match self.ty.kind() {
-            ty::TyKind::Int(_)
-            | ty::TyKind::Uint(_)
-            | ty::TyKind::Char
-            | ty::TyKind::Bool
-            | ty::TyKind::Param(_) => {
-                formal_args.push(self.encode_arg_var(SNAPSHOT_ARG))
-            },
-
             ty::TyKind::Tuple(elems) => {
                 for (field_num, field_ty) in elems.iter().enumerate() {
                     self.encoder.encode_snapshot(field_ty.expect_ty()); // ensure there is a snapshot
@@ -554,8 +529,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                     );
                 }
             }
-
-            _ => unreachable!(), // note that ADTs are handled separately
+            _ => {
+                formal_args.push(self.encode_arg_var(SNAPSHOT_ARG))
+            },
         }
         Ok(formal_args)
     }
@@ -687,7 +663,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
         Ok(Snapshot {
             predicate_name: self.snapshot_encoder.predicate_name.clone(),
-            snap_func: Some(snap_func),
+            snap_func,
             snap_domain: Some(snap_domain),
         })
     }

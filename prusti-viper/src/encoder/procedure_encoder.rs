@@ -2182,7 +2182,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
         let snapshot_res = self.encoder.encode_snapshot(&arg_ty);
-        if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().is_defined() {
+        if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().supports_equality() {
             let snapshot = snapshot_res.unwrap();
             let pos = self
                 .encoder

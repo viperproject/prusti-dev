@@ -118,16 +118,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => {
                 let snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                if snapshot.is_defined() {
-                    snapshot.get_type()
-                } else {
-                    return Err(EncodingError::internal(
-                        format!(
-                            "unexpected failure while encoding the snapshot of the '{:?}' type",
-                            self.ty
-                        )
-                    ))
-                }
+                snapshot.get_type()
             }
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
@@ -149,18 +140,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
                 let snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                if snapshot.is_defined() {
-                    let type_name = self.encoder
-                        .encode_type_predicate_use(self.ty)?;
-                    Ok(vir::Type::TypedRef(type_name))
-                } else {
-                    Err(EncodingError::internal(
-                        format!(
-                            "unexpected failure while encoding the snapshot of the '{:?}' type",
-                            self.ty
-                        )
-                    ))
-                }
+                let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
+                Ok(vir::Type::TypedRef(type_name))
             },
 
             _ => self.encode_value_type(),
