@@ -41,7 +41,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
 
         let mut counters: HashMap<mir::BasicBlock, u32> = HashMap::with_capacity(mir.basic_blocks().len());
 
-        'block_loop:    // extract the bb with the minimal index -> hopefully better performance
+        //'block_loop:    // extract the bb with the minimal index -> hopefully better performance
         while let Some(&bb) = work_set.iter().next() {      //use pop_first when it becomes stable?
             work_set.remove(&bb);
 
@@ -88,10 +88,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
                 }*/
                 p_state.set_before(&location, current_state.clone());
                 // normal statement
-                let res = current_state.apply_statement_effect(&location);
-                if res.is_err() {
-                    return Err(res.unwrap_err());
-                }
+                current_state.apply_statement_effect(&location)?;
             }
 
             // terminator effect
@@ -104,37 +101,32 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
             }*/
             p_state.set_before(&location, current_state.clone());
 
-            let term_res = current_state.apply_terminator_effect(&location);
+            let next_states = current_state.apply_terminator_effect(&location)?;
 
-            match term_res {
-                Err(e) => {return Err(e);}
-                Ok(next_states) => {
-                    let mut new_map: HashMap<mir::BasicBlock, S> = HashMap::new();
-                    for (next_bb, state) in next_states {
-                        if let Some(s) = new_map.get_mut(&next_bb) {
-                            s.join(&state);      // join states with same destination for Map
-                        }
-                        else {
-                            new_map.insert(next_bb, state);
-                        }
+            let mut new_map: HashMap<mir::BasicBlock, S> = HashMap::new();
+            for (next_bb, state) in next_states {
+                if let Some(s) = new_map.get_mut(&next_bb) {
+                    s.join(&state);      // join states with same destination for Map
+                }
+                else {
+                    new_map.insert(next_bb, state);
+                }
+            }
+
+            let terminator = mir[bb].terminator();
+
+            let map_after_block = p_state.lookup_mut_after_block(&bb);
+            for next_bb in terminator.successors() {
+                if let Some(s) = new_map.remove(next_bb) {
+                    let prev_state = map_after_block.insert(*next_bb, s);
+                    let new_state_ref = map_after_block.get(&next_bb);
+                    if !prev_state.iter().any(|ps| ps == new_state_ref.unwrap()) {       // TODO: use .contains when it becomes stable?
+                        // input state has changed => add next_bb to worklist
+                        work_set.insert(*next_bb);
                     }
-
-                    let terminator = mir[bb].terminator();
-
-                    let map_after_block = p_state.lookup_mut_after_block(&bb);
-                    for next_bb in terminator.successors() {
-                        if let Some(s) = new_map.remove(next_bb) {
-                            let prev_state = map_after_block.insert(*next_bb, s);
-                            let new_state_ref = map_after_block.get(&next_bb);
-                            if !prev_state.iter().any(|ps| ps == new_state_ref.unwrap()) {       // TODO: use .contains when it becomes stable?
-                                // input state has changed => add next_bb to worklist
-                                work_set.insert(*next_bb);
-                            }
-                        }
-                        else {
-                            return Err(SuccessorWithoutState(location, *next_bb));
-                        }
-                    }
+                }
+                else {
+                    return Err(SuccessorWithoutState(location, *next_bb));
                 }
             }
         }
