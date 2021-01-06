@@ -15,6 +15,7 @@ use rustc_target::abi;
 use rustc_middle::ty::layout::IntegerExt;
 use rustc_target::abi::Integer;
 use ::log::{info, debug, trace};
+use crate::encoder::snapshot;
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
 const SNAPSHOT_CONS: &str = "cons$";
@@ -778,7 +779,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     }
 
 
-    fn encode_valid_axiom(&self) -> PositionlessEncodingResult<vir::DomainAxiom> {
+    fn encode_valid_axiom(&self) -> EncodingResult<vir::DomainAxiom> {
         let domain_name = self.snapshot_encoder.encode_domain_name();
 
         let self_var = vir::LocalVar::new(
@@ -812,7 +813,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     fn encode_field_domain_func(
         &self,
         field: &ty::FieldDef,
-    ) -> PositionlessEncodingResult<vir::DomainFunc> {
+    ) -> EncodingResult<vir::DomainFunc> {
         let domain_name = self.snapshot_encoder.encode_domain_name();
         let field_type = self.compute_vir_type_for_field(field)?;
         let field_name = field.ident.name.to_ident_string();
@@ -827,7 +828,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     fn compute_vir_type_for_field(
         &self,
         field: &ty::FieldDef,
-    ) -> PositionlessEncodingResult<vir::Type> {
+    ) -> EncodingResult<vir::Type> {
         let tcx = self.snapshot_encoder.encoder.env().tcx();
         let field_ty = field.ty(tcx, self.subst);
         let snapshot = self.snapshot_encoder.encoder.encode_snapshot(&field_ty)?;
@@ -837,7 +838,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     fn encode_field_domain_axiom(
         &self,
         field: &ty::FieldDef,
-    ) -> PositionlessEncodingResult<vir::DomainAxiom> {
+    ) -> EncodingResult<vir::DomainAxiom> {
         let domain_name = self.snapshot_encoder.encode_domain_name();
 
         let this_field_name = field.ident.name.to_ident_string();
@@ -848,7 +849,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         };
         let this_field_func: vir::DomainFunc = self.encode_field_domain_func(field)?;
 
-        let all_fields: PositionlessEncodingResult<Vec<vir::LocalVar>> = self
+        let all_fields: EncodingResult<Vec<vir::LocalVar>> = self
             .adt_def
             .all_fields()
             .map(|f| {
@@ -885,7 +886,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     /// Encodes and returns the functions and axioms for each field of this struct
     fn encode_field_funcs(
         &self,
-    ) -> PositionlessEncodingResult<Option<(Vec<vir::DomainFunc>, Vec<vir::DomainAxiom>)>> {
+    ) -> EncodingResult<Option<(Vec<vir::DomainFunc>, Vec<vir::DomainAxiom>)>> {
         if self.adt_def.is_struct() {
             let domain_name = self.snapshot_encoder.encode_domain_name();
 
