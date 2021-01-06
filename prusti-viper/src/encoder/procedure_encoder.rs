@@ -2068,7 +2068,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 .run_if_err(|| cleanup(&self))?);
                         }
 
-                        "prusti_contracts::ghost::GhostSet::is_element" => {
+                        "prusti_contracts::ghost::GhostSet::contains" => {
                             let &(ref target_place, _) = destination.as_ref().unwrap();
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
@@ -2128,7 +2128,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 .run_if_err(|| cleanup(&self))?);
                         }
 
-                        "prusti_contracts::ghost::GhostMultiSet::is_element" => {
+                        "prusti_contracts::ghost::GhostMultiSet::contains" => {
                             let &(ref target_place, _) = destination.as_ref().unwrap();
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
