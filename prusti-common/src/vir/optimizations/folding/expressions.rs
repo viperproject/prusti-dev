@@ -251,9 +251,9 @@ fn find_common_unfoldings3<'a>(
     let mut common = HashMap::new();
     let mut new_first = HashMap::new();
     for (place, data) in first {
-        let second_agrees = second.contains_key(&place); ||
+        let second_agrees = second.contains_key(&place) ||
             second_reqs.iter().all(|p| !p.has_prefix(&place));
-        let third_agrees = third.contains_key(&place); ||
+        let third_agrees = third.contains_key(&place) ||
             third_reqs.iter().all(|p| !p.has_prefix(&place));
         if second_agrees && third_agrees {
             second.remove(&place);
@@ -340,7 +340,7 @@ impl ast::ExprFolder for ExprOptimizer {
                 new_expr
             }
             _ => {
-                if expr.is_place() { // CMTODO this might be the issue
+                if expr.is_place() {
                     self.requirements.insert(expr.clone());
                     expr
                 } else {
