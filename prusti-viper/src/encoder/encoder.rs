@@ -239,7 +239,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .borrow()
             .values()
             .into_iter()
-            .filter_map(|s| s.get_domain())
+            .filter_map(|s| s.domain())
             .collect();
         if !mirrors.is_empty() {
             domains.push(vir::Domain {
@@ -286,7 +286,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.memory_eq_encoder.borrow().get_encoded_functions()
         );
         for snap in self.snapshots.borrow().values() {
-            for function in snap.get_functions() {
+            for function in snap.functions() {
                 functions.push(function);
             }
         }
@@ -830,14 +830,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 predicate_name.to_string()
             );
             let snapshot = encoder.encode()?;
-            if snapshot.is_defined() {
-                self.type_snapshots
-                    .borrow_mut()
-                    .insert(
-                        snapshot.get_type().name().to_string(),
-                        predicate_name.to_string()
-                    );
-            }
+            self.type_snapshots
+                .borrow_mut()
+                .insert(
+                    snapshot.get_type().name().to_string(),
+                    predicate_name.to_string()
+                );
             self.snapshots
                 .borrow_mut()
                 .insert(predicate_name.to_string(), box snapshot);
@@ -1189,7 +1187,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 vir::Type::TypedRef(name) => {
                     mirror_args.push(
                         self.encode_snapshot_use(name.to_string())?
-                            .get_snap_call(arg),
+                            .snap_call(arg),
                     );
                 }
                 _ => mirror_args.push(arg),
@@ -1241,7 +1239,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 |a| match &a.typ {
                     vir::Type::TypedRef(name) => {
                         self.encode_snapshot_use(name.to_string()).map(
-                            |snap| snap.is_defined()
+                            |snap| snap.supports_equality()
                         )
                     }
                     _ => Ok(true),
@@ -1325,13 +1323,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         is_equality: bool // true = equality, false = disequality
     ) -> SpannedEncodingResult<(String, vir::Type)> {
         let snapshot_res = self.encode_snapshot(&arg_ty);
-        if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().is_defined() {
+        if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().supports_equality() {
             let snapshot = snapshot_res.unwrap();
             Ok((
                 if is_equality {
-                    snapshot.get_equals_func_name()
+                    snapshot.equals_func_name()
                 } else {
-                    snapshot.get_not_equals_func_name()
+                    snapshot.not_equals_func_name()
                 },
                 vir::Type::Bool
             ))

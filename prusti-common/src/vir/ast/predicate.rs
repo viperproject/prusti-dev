@@ -215,6 +215,10 @@ impl EnumVariantIndex {
     pub fn get_variant_name(&self) -> &str {
         &self.0
     }
+
+    pub fn new(s: String) -> Self {
+        EnumVariantIndex(s)
+    }
 }
 
 impl<'a> Into<EnumVariantIndex> for &'a Field {

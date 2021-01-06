@@ -2182,7 +2182,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
         let snapshot_res = self.encoder.encode_snapshot(&arg_ty);
-        if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().is_defined() {
+        if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().supports_equality() {
             let snapshot = snapshot_res.unwrap();
             let pos = self
                 .encoder
@@ -2698,7 +2698,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let snapshot = self.encoder.encode_snapshot_use(predicate_name)
                 .with_span(call_site_span)?;
             let target_place = self.encode_pure_function_call_lhs_place(destination);
-            let snap_call = snapshot.get_snap_call(target_place);
+            let snap_call = snapshot.snap_call(target_place);
             vir::Expr::eq_cmp(snap_call.clone(), func_call)
         } else {
             vir::Expr::eq_cmp(target_value.into(), func_call)

@@ -200,8 +200,13 @@ pub trait ExprFolder: Sized {
         func: DomainFunc,
         args: Vec<Expr>,
         pos: Position,
-    ) -> Expr {
-        Expr::DomainFuncApp(func, args, pos)
+    ) -> Expr
+    {
+        Expr::DomainFuncApp(
+            func,
+            args.into_iter().map(|e| self.fold(e)).collect(),
+            pos
+        )
     }
     /* TODO
     fn fold_domain_func_app(
