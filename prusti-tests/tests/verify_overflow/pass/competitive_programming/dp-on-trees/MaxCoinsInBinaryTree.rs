@@ -1,4 +1,5 @@
-//https://codeforces.com/blog/entry/20935
+// compile-flags: -Passert_timeout=60000
+// https://codeforces.com/blog/entry/20935
 
 #![feature(box_patterns)]
 #![feature(box_syntax)]
