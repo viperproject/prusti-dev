@@ -2038,7 +2038,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
                             let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            stmts.extend(self.encode_set_operation(
+                            stmts.extend(self.encode_container_operation(
                                 dst.clone().field(value_field), // lhs
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
@@ -2053,7 +2053,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
                             let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            stmts.extend(self.encode_set_operation(
+                            stmts.extend(self.encode_container_operation(
                                 dst.clone().field(value_field), // lhs
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
@@ -2068,7 +2068,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
                             let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            stmts.extend(self.encode_set_operation(
+                            stmts.extend(self.encode_container_operation(
                                 dst.clone().field(value_field), // lhs
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
@@ -2083,7 +2083,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
                             let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            stmts.extend(self.encode_set_operation(
+                            stmts.extend(self.encode_container_operation(
                                 dst.clone().field(value_field), // lhs
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
@@ -2098,7 +2098,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
                             let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            stmts.extend(self.encode_set_operation(
+                            stmts.extend(self.encode_container_operation(
                                 dst.clone().field(value_field), // lhs
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
@@ -2113,7 +2113,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
                             let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            stmts.extend(self.encode_set_operation(
+                            stmts.extend(self.encode_container_operation(
                                 dst.clone().field(value_field), // lhs
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
@@ -2128,7 +2128,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
                             let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            stmts.extend(self.encode_set_operation(
+                            stmts.extend(self.encode_container_operation(
                                 dst.clone().field(value_field), // lhs
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
@@ -2143,7 +2143,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
                             let value_field = self.encoder.encode_value_field(dest_ty);
                             let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            stmts.extend(self.encode_set_operation(
+                            stmts.extend(self.encode_container_operation(
                                 dst.clone().field(value_field), // lhs
                                 &args[0], // ghost instance
                                 &args[1], // argument to the ghost method
@@ -2329,23 +2329,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(result)
     }
 
-    fn encode_set_operation(
+    fn encode_container_operation(
         &mut self,
         lhs: vir::Expr,
         left: &mir::Operand<'tcx>,
         right: &mir::Operand<'tcx>,
         location: mir::Location,
-        set_op: vir::ContainerOpKind,
+        container_op: vir::ContainerOpKind,
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!(
-            "[enter] encode_set_operation(location={:?}, set_op={:?})", location, set_op);
+            "[enter] encode_container_operation(location={:?}, container_op={:?})", location, container_op);
         let span = self.mir_encoder.get_span_of_location(location);
         let encoded_left = self.mir_encoder.encode_operand_expr(left)
             .with_span(span)?;
         let encoded_right = self.mir_encoder.encode_operand_expr(right)
             .with_span(span)?;
-        let encoded_value = self.mir_encoder.encode_set_op_expr(set_op, encoded_left, encoded_right)
+        let encoded_value = self.mir_encoder.encode_container_op_expr(container_op, encoded_left, encoded_right)
                             .with_span(span)?;
         self.encode_copy_value_assign(lhs, encoded_value, ty, location)
     }
