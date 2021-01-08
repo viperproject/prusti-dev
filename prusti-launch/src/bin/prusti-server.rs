@@ -4,10 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{env, path::PathBuf, process::{self, Command, Stdio}};
-use prusti_launch::{find_viper_home, find_z3_exe};
+use std::{env, path::PathBuf, process::Command};
+use prusti_launch::{find_viper_home, find_z3_exe, sigint_handler};
 #[cfg(target_family = "unix")]
-use nix::{unistd::getpgrp, sys::signal::{Signal, killpg}};
+use nix::unistd::{setpgid, Pid};
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1).collect()) {
@@ -64,6 +64,9 @@ fn process(args: Vec<String>) -> Result<(), i32> {
         }
     };
 
+    // Move process to group leader if it isn't
+    #[cfg(target_family = "unix")]
+    let _ = setpgid(Pid::this(), Pid::this());
     // Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
     ctrlc::set_handler(sigint_handler).expect("Error setting Ctrl-C handler");
 
@@ -74,23 +77,4 @@ fn process(args: Vec<String>) -> Result<(), i32> {
     } else {
         Err(exit_status.code().unwrap_or(-1))
     }
-}
-
-#[cfg(target_family = "unix")]
-fn sigint_handler() {
-    // Killing the process group terminates the process tree
-    killpg(getpgrp(), Signal::SIGKILL).expect("Error killing process tree.");
-}
-
-#[cfg(target_family = "windows")]
-fn sigint_handler() {
-    // Kill process tree rooted at prusti-server.exe
-    let kill_command: &str = &*format!("TASKKILL /PID {} /T /F", process::id());
-
-    Command::new("cmd")
-        .args(&["/C", kill_command])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .expect("Error killing process tree.");
 }

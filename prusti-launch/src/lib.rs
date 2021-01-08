@@ -7,9 +7,11 @@
 use std::{
     env,
     path::{Path, PathBuf},
-    process::Command,
+    process::{self, Command, Stdio}
 };
 use serde::Deserialize;
+#[cfg(target_family = "unix")]
+use nix::{sys::signal::{Signal, killpg}, unistd::getpgrp};
 
 /// Append paths to the loader environment variable
 pub fn add_to_loader_path(paths: Vec<PathBuf>, cmd: &mut Command) {
@@ -165,4 +167,23 @@ pub fn find_z3_exe(base_dir: &PathBuf) -> Option<PathBuf> {
     }
 
     None
+}
+
+#[cfg(target_family = "unix")]
+pub fn sigint_handler() {
+    // Killing the process group terminates the process tree
+    killpg(getpgrp(), Signal::SIGKILL).expect("Error killing process tree.");
+}
+
+#[cfg(target_family = "windows")]
+pub fn sigint_handler() {
+    // Kill process tree rooted at prusti-server.exe
+    let pid: &str = &*process::id().to_string();
+
+    Command::new("TASKKILL")
+        .args(&["/PID", pid, "/T", "/F"])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("Error killing process tree.");
 }
