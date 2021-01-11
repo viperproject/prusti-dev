@@ -442,7 +442,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
      
 
        
-        let mut trigs : Vec<vir::Expr> = formal_args_without_nat.iter().filter_map(|arg| {
+        let mut triggers : Vec<vir::Trigger> = formal_args_without_nat.iter().filter_map(|arg| {
             match &arg.typ {
                 vir::Type::Domain(arg_domain_name) => {
                     let self_arg = vir::Expr::local(arg.clone());
@@ -454,10 +454,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
            
         })
+        .map(|t| {
+            vir::Trigger::new(vec![t])
+        })
         .collect();
 
+        triggers.push(vir::Trigger::new(vec![function_call_with_succ.clone()]));
 
-        let triggers = vec![vir::Trigger::new(vec![function_call_with_succ.clone()]), vir::Trigger::new(trigs)]; //TODO should it be one Trigger per trig or as done here one Trigger with all trigs?
+
         let da = vir::DomainAxiom {
             name: format!("{}$axiom", f.name), //TODO better name
             expr: vir::Expr::forall(formal_args.clone(), triggers.clone(), axiom_body),
