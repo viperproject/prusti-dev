@@ -64,7 +64,8 @@ fn process(args: Vec<String>) -> Result<(), i32> {
         }
     };
 
-    // Move process to group leader if it isn't
+    // Move process to group leader if it isn't. The only applicable error should be EPERM which
+    // can be thrown when the process is already the group leader. Thus, we ignore it.
     #[cfg(target_family = "unix")]
     let _ = setpgid(Pid::this(), Pid::this());
     // Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
