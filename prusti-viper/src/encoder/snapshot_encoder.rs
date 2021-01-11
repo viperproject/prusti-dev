@@ -183,6 +183,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                     unreachable!()
                 }
             }
+            // Refs should be stripped by now by [Encoder::encode_snapshot]
             x => unimplemented!("{:?}", x),
         })
     }
@@ -576,12 +577,29 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             ).collect::<Result<_, _>>()
     }
 
+    fn deref_with_unfolding(&self, expr: vir::Expr) -> vir::Expr {
+        if let vir::Type::TypedRef(ref predicate_name) = expr.get_type() {
+            // FIXME: We should not rely on string names for type conversions.
+            if predicate_name.starts_with("ref$") {
+                let field_predicate_name = predicate_name[4..predicate_name.len()].to_string();
+                let field = vir::Field::new("val_ref", vir::Type::TypedRef(field_predicate_name));
+                return vir::Expr::wrap_in_unfolding(
+                    expr.clone(),
+                    self.deref_with_unfolding(expr.try_deref().unwrap()).field(field),
+                );
+            }
+        }
+        expr
+    }
+
     fn encode_snap_arg(&self, location: vir::Expr, field: vir::Field, field_ty: ty::Ty<'tcx>)
         -> EncodingResult<vir::Expr>
     {
         let snapshot = self.encoder.encode_snapshot(field_ty)?;
         Ok(snapshot.snap_call(
-            self.encode_arg_field(location, field)
+            self.deref_with_unfolding(
+                self.encode_arg_field(location, field)
+            )
         ))
     }
 
