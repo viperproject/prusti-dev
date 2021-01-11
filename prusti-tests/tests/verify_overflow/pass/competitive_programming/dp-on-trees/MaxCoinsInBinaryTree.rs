@@ -128,20 +128,27 @@ fn max(a: isize, b: isize) -> isize {
     }
 }
 
+#[trusted]
+#[pure]
+#[ensures(result == a + b)]
+fn add(a: isize, b: isize) -> isize {
+    a + b
+}
+
 #[pure]
 fn solve1_rec(node: &Tree) -> isize {
     let mut result = node.coins;
     match &(*node).left {
         None => {}
         Some(box l) => {
-            result += solve2_rec(&l);
+            result = add(result, solve2_rec(&l));
         }
     }
 
     match &(*node).right {
         None => {}
         Some(box r) => {
-            result += solve2_rec(&r);
+            result = add(result, solve2_rec(&r));
         }
     }
     result
@@ -153,14 +160,14 @@ fn solve2_rec(node: &Tree) -> isize {
     match &(*node).left {
         None => {}
         Some(box l) => {
-            result += max(solve1_rec(&l), solve2_rec(&l));
+            result = add(result, max(solve1_rec(&l), solve2_rec(&l)));
         }
     }
 
     match &(*node).right {
         None => {}
         Some(box r) => {
-            result += max(solve1_rec(&r), solve2_rec(&r));
+            result = add(result, max(solve1_rec(&r), solve2_rec(&r)));
         }
     }
     result
@@ -189,8 +196,8 @@ fn solve(
         None => {}
         Some(box l) => {
             solve(&l, dp1, dp2, n);
-            result1 += dp2.lookup(l.idx());
-            result2 += max(dp1.lookup(l.idx()), dp2.lookup(l.idx()));
+            result1 = add(result1, dp2.lookup(l.idx()));
+            result2 = add(result2, max(dp1.lookup(l.idx()), dp2.lookup(l.idx())));
         }
     }
 
@@ -198,8 +205,8 @@ fn solve(
         None => {}
         Some(box r) => {
             solve(&r, dp1, dp2, n);
-            result1 += dp2.lookup(r.idx());
-            result2 += max(dp1.lookup(r.idx()), dp2.lookup(r.idx()));
+            result1 = add(result1, dp2.lookup(r.idx()));
+            result2 = add(result2, max(dp1.lookup(r.idx()), dp2.lookup(r.idx())));
         }
     }
 
