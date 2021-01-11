@@ -1,4 +1,4 @@
-// compile-flags: -Passert_timeout=60000
+// compile-flags: -Passert_timeout=120000
 // https://codeforces.com/blog/entry/20935
 
 #![feature(box_patterns)]
@@ -126,19 +126,6 @@ fn max(a: isize, b: isize) -> isize {
     } else {
         b
     }
-}
-
-#[pure]
-#[ensures(result == a - 1)]
-fn dec(a: isize) -> isize {
-    a - 1
-}
-
-#[trusted]
-#[pure]
-#[ensures(x == y)]
-fn is_eq(x: isize, y: isize) -> bool {
-    true
 }
 
 #[pure]
