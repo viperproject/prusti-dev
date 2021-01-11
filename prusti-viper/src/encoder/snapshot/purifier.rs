@@ -62,7 +62,7 @@ impl ExprFolder for ExprPurifier {
                 _ => {
                     let field_name: String = field_name.chars().skip(2).collect();
                     let field_type = field.typ.clone();
-                    let purified_field_type = super::transalte_type(field_type, &self.snapshots);
+                    let purified_field_type = super::translate_type(field_type, &self.snapshots);
                     warn!(
                         "fold_field field_name={:?}, receiver_domain={:?}",
                         field_name, receiver_domain
@@ -90,7 +90,7 @@ impl ExprFolder for ExprPurifier {
             Expr::Local(
                 LocalVar {
                     name: v.name,
-                    typ: super::transalte_type(v.typ, &self.snapshots),
+                    typ: super::translate_type(v.typ, &self.snapshots),
                 },
                 p,
             )
