@@ -347,7 +347,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .iter()
             .map(|e| {
                 let old_type = e.typ.clone();
-                let new_type = snapshot::transalte_type(old_type, &snapshots_info);
+                let new_type = snapshot::translate_type(old_type, &snapshots_info);
 
                 vir::LocalVar {
                     name: e.name.clone(),

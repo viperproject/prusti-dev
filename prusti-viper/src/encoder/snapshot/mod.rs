@@ -87,7 +87,7 @@ pub fn valid_func_for_type(typ : &vir::Type) -> vir::DomainFunc {
 }
 
 
-pub fn transalte_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>,) -> Type {
+pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>,) -> Type {
     match t {
         Type::TypedRef(name) => match name.as_str() {
             "i32" | "usize" => Type::Int,
