@@ -17,14 +17,19 @@ pub fn encode_field_domain_func(
     field_type: vir::Type,
     field_name: String,
     domain_name: String,
+    variant_name: Option<String>
 ) -> vir::DomainFunc {
+    let mut field_domain_name = domain_name.clone();
+    if let Some(s) = variant_name {
+        field_domain_name += &s;
+    }
     let return_type: Type = match field_type {
         vir::Type::TypedRef(name) => vir::Type::Domain(name),
         t => t,
     };
 
     vir::DomainFunc {
-        name: format!("{}$field${}", domain_name, field_name), //TODO get the right name
+        name: format!("{}$field${}", field_domain_name, field_name), //TODO get the right name
         formal_args: vec![vir::LocalVar {
             name: "self".to_string(),
             typ: vir::Type::Domain(domain_name.to_string()),
