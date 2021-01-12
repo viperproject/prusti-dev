@@ -577,19 +577,22 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             ).collect::<Result<_, _>>()
     }
 
-    fn deref_with_unfolding(&self, expr: vir::Expr) -> vir::Expr {
-        if let vir::Type::TypedRef(ref predicate_name) = expr.get_type() {
-            // FIXME: We should not rely on string names for type conversions.
-            if predicate_name.starts_with("ref$") {
-                let field_predicate_name = predicate_name[4..predicate_name.len()].to_string();
-                let field = vir::Field::new("val_ref", vir::Type::TypedRef(field_predicate_name));
-                return vir::Expr::wrap_in_unfolding(
-                    expr.clone(),
-                    self.deref_with_unfolding(expr.try_deref().unwrap()).field(field),
-                );
-            }
+    // FIXME: this is a copy of [dereference_expr], with a workaround for
+    // a bug in the folding/unfolding algorithm. In particular, when encoding
+    // reference fields, the permissions required to access [val_ref] fields
+    // are not obtained. Here they are generated explicitly.
+    fn dereference_expr_with_unfolding(&self, expr: vir::Expr) -> vir::Expr {
+        match expr.try_deref() {
+            Some(deref_expr) => {
+                self.dereference_expr_with_unfolding(
+                    vir::Expr::wrap_in_unfolding(
+                        expr.clone(),
+                        deref_expr,
+                    )
+                )
+            },
+            None => expr,
         }
-        expr
     }
 
     fn encode_snap_arg(&self, location: vir::Expr, field: vir::Field, field_ty: ty::Ty<'tcx>)
@@ -597,7 +600,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     {
         let snapshot = self.encoder.encode_snapshot(field_ty)?;
         Ok(snapshot.snap_call(
-            self.deref_with_unfolding(
+            self.dereference_expr_with_unfolding(
                 self.encode_arg_field(location, field)
             )
         ))
