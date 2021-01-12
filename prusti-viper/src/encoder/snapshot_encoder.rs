@@ -183,6 +183,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                     unreachable!()
                 }
             }
+            // Refs should be stripped by now by [Encoder::encode_snapshot]
             x => unimplemented!("{:?}", x),
         })
     }
@@ -576,12 +577,32 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             ).collect::<Result<_, _>>()
     }
 
+    // FIXME: this is a copy of [dereference_expr], with a workaround for
+    // a bug in the folding/unfolding algorithm. In particular, when encoding
+    // reference fields, the permissions required to access [val_ref] fields
+    // are not obtained. Here they are generated explicitly.
+    fn dereference_expr_with_unfolding(&self, expr: vir::Expr) -> vir::Expr {
+        match expr.try_deref() {
+            Some(deref_expr) => {
+                self.dereference_expr_with_unfolding(
+                    vir::Expr::wrap_in_unfolding(
+                        expr.clone(),
+                        deref_expr,
+                    )
+                )
+            },
+            None => expr,
+        }
+    }
+
     fn encode_snap_arg(&self, location: vir::Expr, field: vir::Field, field_ty: ty::Ty<'tcx>)
         -> EncodingResult<vir::Expr>
     {
         let snapshot = self.encoder.encode_snapshot(field_ty)?;
         Ok(snapshot.snap_call(
-            self.encode_arg_field(location, field)
+            self.dereference_expr_with_unfolding(
+                self.encode_arg_field(location, field)
+            )
         ))
     }
 
