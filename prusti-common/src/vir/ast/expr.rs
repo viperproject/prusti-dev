@@ -31,6 +31,7 @@ pub enum Expr {
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>, Position),
+    ContainerOp(ContainerOpKind, Box<Expr>, Box<Expr>, Position),
     /// Unfolding: predicate name, predicate_args, in_expr, permission amount, enum variant
     Unfolding(String, Vec<Expr>, Box<Expr>, PermAmount, MaybeEnumVariantIndex, Position),
     /// Cond: guard, then_expr, else_expr
@@ -80,6 +81,24 @@ pub enum BinOpKind {
     Implies,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ContainerOpKind {
+    SetContains,
+    SetPush,
+    SetUnion,
+    SetIntersection,
+    SetRemove,
+    MultiSetContains,
+    MultiSetPush,
+    MultiSetUnion,
+    MultiSetIntersection,
+    MultiSetRemove,
+    SeqAppend,
+    SeqChain,
+    SeqDrop,
+    SeqContains,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
@@ -101,6 +120,9 @@ impl fmt::Display for Expr {
             Expr::AddrOf(ref base, _, ref _pos) => write!(f, "&({})", base),
             Expr::Const(ref value, ref _pos) => write!(f, "{}", value),
             Expr::BinOp(op, ref left, ref right, ref _pos) => {
+                write!(f, "({}) {} ({})", left, op, right)
+            }
+            Expr::ContainerOp(op, ref left, ref right, ref _pos) => {
                 write!(f, "({}) {} ({})", left, op, right)
             }
             Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{}({})", op, expr),
@@ -233,6 +255,27 @@ impl fmt::Display for BinOpKind {
     }
 }
 
+impl fmt::Display for ContainerOpKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &ContainerOpKind::SetContains => write!(f, "set contains"),
+            &ContainerOpKind::SetPush => write!(f, "set push"),
+            &ContainerOpKind::SetUnion => write!(f, "set union"),
+            &ContainerOpKind::SetIntersection => write!(f, "set intersection"),
+            &ContainerOpKind::SetRemove => write!(f, "set remove"),
+            &ContainerOpKind::MultiSetContains => write!(f, "multiset contains"),
+            &ContainerOpKind::MultiSetPush => write!(f, "multiset push"),
+            &ContainerOpKind::MultiSetUnion => write!(f, "multiset union"),
+            &ContainerOpKind::MultiSetIntersection => write!(f, "multiset intersection"),
+            &ContainerOpKind::MultiSetRemove => write!(f, "multiset remove"),
+            &ContainerOpKind::SeqAppend => write!(f, "sequence append"),
+            &ContainerOpKind::SeqDrop => write!(f, "sequence drop"),
+            &ContainerOpKind::SeqChain => write!(f, "sequence chain"),
+            &ContainerOpKind::SeqContains => write!(f, "sequence contains"),
+        }
+    }
+}
+
 impl fmt::Display for Const {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -258,6 +301,7 @@ impl Expr {
             Expr::FieldAccessPredicate(_, _, p) => p,
             Expr::UnaryOp(_, _, p) => p,
             Expr::BinOp(_, _, _, p) => p,
+            Expr::ContainerOp(_, _, _, p) => p,
             Expr::Unfolding(_, _, _, _, _, p) => p,
             Expr::Cond(_, _, _, p) => p,
             Expr::ForAll(_, _, _, p) => p,
@@ -284,6 +328,7 @@ impl Expr {
             Expr::FieldAccessPredicate(x, y, _) => Expr::FieldAccessPredicate(x, y, pos),
             Expr::UnaryOp(x, y, _) => Expr::UnaryOp(x, y, pos),
             Expr::BinOp(x, y, z, _) => Expr::BinOp(x, y, z, pos),
+            Expr::ContainerOp(x, y, z, _) => Expr::ContainerOp(x, y, z, pos),
             Expr::Unfolding(x, y, z, perm, variant, _) => {
                 Expr::Unfolding(x, y, z, perm, variant, pos)
             },
@@ -424,6 +469,54 @@ impl Expr {
 
     pub fn implies(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Implies, box left, box right, Position::default())
+    }
+
+    pub fn set_contains(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::SetContains, box left, box right, Position::default())
+    }
+
+    pub fn set_union(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::SetUnion, box left, box right, Position::default())
+    }
+
+    pub fn set_intersection(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::SetIntersection, box left, box right, Position::default())
+    }
+
+    pub fn set_remove(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::SetRemove, box left, box right, Position::default())
+    }
+
+    pub fn multiset_contains(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::MultiSetContains, box left, box right, Position::default())
+    }
+
+    pub fn multiset_union(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::MultiSetUnion, box left, box right, Position::default())
+    }
+
+    pub fn multiset_intersection(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::MultiSetIntersection, box left, box right, Position::default())
+    }
+
+    pub fn multiset_remove(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::MultiSetRemove, box left, box right, Position::default())
+    }
+
+    pub fn seq_append(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::SeqAppend, box left, box right, Position::default())
+    }
+
+    pub fn seq_drop(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::SeqDrop, box left, box right, Position::default())
+    }
+
+    pub fn seq_chain(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::SeqChain, box left, box right, Position::default())
+    }
+
+    pub fn seq_contains(left: Expr, right: Expr) -> Self {
+        Expr::ContainerOp(ContainerOpKind::SeqContains, box left, box right, Position::default())
     }
 
     pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
@@ -912,6 +1005,9 @@ impl Expr {
                     }
                 }
             }
+            Expr::ContainerOp(ref kind, box ref base1, box ref base2, _pos) => {
+                base1.get_type()
+            }
             Expr::Cond(_, box ref base1, box ref base2, _pos) => {
                 let typ1 = base1.get_type();
                 let typ2 = base2.get_type();
@@ -1258,6 +1354,7 @@ impl Expr {
                     }
 
                     Expr::BinOp(..)
+                    | Expr::ContainerOp(..)
                     | Expr::MagicWand(..)
                     | Expr::Unfolding(..)
                     | Expr::Cond(..)
@@ -1478,6 +1575,7 @@ impl Hash for Expr {
             Expr::FieldAccessPredicate(box ref base, perm, _) => (base, perm).hash(state),
             Expr::UnaryOp(op, box ref arg, _) => (op, arg).hash(state),
             Expr::BinOp(op, box ref left, box ref right, _) => (op, left, right).hash(state),
+            Expr::ContainerOp(op, box ref left, box ref right, _) => (op, left, right).hash(state),
             Expr::Cond(box ref cond, box ref then_expr, box ref else_expr, _) => {
                 (cond, then_expr, else_expr).hash(state)
             }

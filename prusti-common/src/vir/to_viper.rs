@@ -74,6 +74,11 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
         match self {
             &Type::Int => ast.int_type(),
             &Type::Bool => ast.bool_type(),
+            // N.B. currently testing with T = Int
+            // FIXME: Implement support for generic arguments.
+            &Type::Seq => ast.seq_type(ast.int_type()),
+            &Type::Set => ast.set_type(ast.int_type()),
+            &Type::MultiSet => ast.multiset_type(ast.int_type()),
             //&Type::Ref |
             &Type::TypedRef(_) => ast.ref_type(),
             &Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
@@ -381,6 +386,39 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 }
                 BinOpKind::Implies => {
                     ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
+                }
+            },
+            &Expr::ContainerOp(op, ref left, ref right, ref pos) => match op {
+                ContainerOpKind::SetContains|
+                ContainerOpKind::MultiSetContains => {
+                    ast.any_set_contains(right.to_viper(ast), left.to_viper(ast))
+                }
+                ContainerOpKind::SetPush|
+                ContainerOpKind::SetUnion|
+                ContainerOpKind::MultiSetPush|
+                ContainerOpKind::MultiSetUnion => {
+                    ast.any_set_union(left.to_viper(ast), right.to_viper(ast))
+                }
+                ContainerOpKind::SetIntersection|
+                ContainerOpKind::MultiSetIntersection => {
+                    ast.any_set_intersection(left.to_viper(ast), right.to_viper(ast))
+                }
+                ContainerOpKind::SetRemove|
+                ContainerOpKind::MultiSetRemove=> {
+                    ast.any_set_minus(left.to_viper(ast), right.to_viper(ast))
+                }
+                ContainerOpKind::SeqAppend => {
+                    //singleton_seq = ast.explicit_seq(&self, elems: &[Expr])
+                    ast.seq_append(left.to_viper(ast), right.to_viper(ast))
+                }
+                ContainerOpKind::SeqChain => {
+                    ast.seq_append(left.to_viper(ast), right.to_viper(ast))
+                }
+                ContainerOpKind::SeqDrop => {
+                    ast.seq_drop(left.to_viper(ast), right.to_viper(ast))
+                }
+                ContainerOpKind::SeqContains => {
+                    ast.seq_contains(right.to_viper(ast), left.to_viper(ast))
                 }
             },
             &Expr::Unfolding(

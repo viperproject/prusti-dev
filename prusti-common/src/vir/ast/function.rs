@@ -72,6 +72,9 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
         match typ {
             Type::Int => "$int$",
             Type::Bool => "$bool$",
+            Type::Seq => "$seq$",
+            Type::Set => "$set$",
+            Type::MultiSet => "$multiset$",
             Type::TypedRef(ref name) => name,
             Type::Domain(ref name) => name,
         }

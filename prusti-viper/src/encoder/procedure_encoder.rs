@@ -868,6 +868,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Type::Bool => BuiltinMethodKind::HavocBool,
                 vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
+                vir::Type::Set => BuiltinMethodKind::HavocSet,
+                vir::Type::Seq => BuiltinMethodKind::HavocSeq,
+                vir::Type::MultiSet => BuiltinMethodKind::HavocMultiSet,
             };
             let stmt = vir::Stmt::MethodCall(
                 self.encoder.encode_builtin_method_use(builtin_method),
@@ -1994,6 +1997,197 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             );
                         }
 
+                        "prusti_contracts::ghost::GhostInt::new" => {
+                            // let sample_ghost_int = GhostInt::new(ghost_val);
+                            //args[0] will have the integer value `ghost_val`
+                             
+                            // N.B. Do we need to encode the destination for ghost variables as well?
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            // Step 1. get a destination location for `var sample_ghost_int: Int;`
+                            // Is this viper declaration of an Int type encoded in prepare_assign_target method?
+                            // Currently, it's using the destination field from the MIR to accomplish this. I'm not sure how
+                            // destination and location are related here.
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            stmts.extend(
+                                self.prepare_assign_target(
+                                    dst.clone(),
+                                    value_field.clone(),
+                                    location,
+                                    vir::AssignKind::Move,
+                                ).run_if_err(|| cleanup(&self))?
+                            );
+                            // N.B. Is encode_value_field the right choice here?
+                            //let value_field = self.encoder.encode_value_field(dest_ty);
+                            // Step2. assign value = `ghost_val` to the above created destination/ location (unsure about the terminology)
+                            stmts.extend(self.encode_assign_operand(&dst.clone().field(value_field), &args[0], location).run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostSet::push" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::SetUnion,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostSet::remove" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::SetRemove,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostSet::union" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::SetUnion,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostSet::contains" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::SetContains,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostMultiSet::push" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::MultiSetUnion,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostMultiSet::remove" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::MultiSetRemove,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostMultiSet::union" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::MultiSetUnion,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostMultiSet::contains" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::MultiSetContains,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostSeq::push" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::SeqAppend,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostSeq::chain" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::SeqChain,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
+                        "prusti_contracts::ghost::GhostSeq::contains" => {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let value_field = self.encoder.encode_value_field(dest_ty);
+                            let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            stmts.extend(self.encode_container_operation(
+                                dst.clone().field(value_field), // lhs
+                                &args[0], // ghost instance
+                                &args[1], // argument to the ghost method
+                                location,
+                                vir::ContainerOpKind::SeqContains,
+                                dest_ty)
+                                .run_if_err(|| cleanup(&self))?);
+                        }
+
                         "std::cmp::PartialEq::eq" |
                         "core::cmp::PartialEq::eq"
                             if args.len() == 2 &&
@@ -2168,6 +2362,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | TerminatorKind::InlineAsm { .. } => unimplemented!("{:?}", term.kind),
         };
         Ok(result)
+    }
+
+    fn encode_container_operation(
+        &mut self,
+        lhs: vir::Expr,
+        left: &mir::Operand<'tcx>,
+        right: &mir::Operand<'tcx>,
+        location: mir::Location,
+        container_op: vir::ContainerOpKind,
+        ty: ty::Ty<'tcx>,
+    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        trace!(
+            "[enter] encode_container_operation(location={:?}, container_op={:?})", location, container_op);
+        let span = self.mir_encoder.get_span_of_location(location);
+        let encoded_left = self.mir_encoder.encode_operand_expr(left)
+            .with_span(span)?;
+        let encoded_right = self.mir_encoder.encode_operand_expr(right)
+            .with_span(span)?;
+        let encoded_value = self.mir_encoder.encode_container_op_expr(container_op, encoded_left, encoded_right)
+                            .with_span(span)?;
+        self.encode_copy_value_assign(lhs, encoded_value, ty, location)
     }
 
     fn encode_cmp_function_call(

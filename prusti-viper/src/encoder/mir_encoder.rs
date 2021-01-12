@@ -483,6 +483,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         })
     }
 
+    pub fn encode_container_op_expr(
+        &self,
+        op: vir::ContainerOpKind,
+        left: vir::Expr,
+        right: vir::Expr
+    ) -> EncodingResult<vir::Expr> {
+        Ok(match op {
+            vir::ContainerOpKind::SetContains => vir::Expr::set_contains(left, right),
+            vir::ContainerOpKind::SetPush|
+            vir::ContainerOpKind::SetUnion => vir::Expr::set_union(left, right),
+            vir::ContainerOpKind::SetIntersection => vir::Expr::set_intersection(left, right),
+            vir::ContainerOpKind::SetRemove => vir::Expr::set_remove(left, right),
+            vir::ContainerOpKind::MultiSetContains => vir::Expr::multiset_contains(left, right),
+            vir::ContainerOpKind::MultiSetPush|
+            vir::ContainerOpKind::MultiSetUnion => vir::Expr::multiset_union(left, right),
+            vir::ContainerOpKind::MultiSetIntersection => vir::Expr::multiset_intersection(left, right),
+            vir::ContainerOpKind::MultiSetRemove => vir::Expr::multiset_remove(left, right),
+            vir::ContainerOpKind::SeqAppend => vir::Expr::seq_append(left, right),
+            vir::ContainerOpKind::SeqDrop => vir::Expr::seq_drop(left, right),
+            vir::ContainerOpKind::SeqChain => vir::Expr::seq_chain(left, right),
+            vir::ContainerOpKind::SeqContains => vir::Expr::seq_contains(left, right),
+        })
+    }
+
     pub fn encode_unary_op_expr(&self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {
         match op {
             mir::UnOp::Not => vir::Expr::not(expr),

@@ -1025,6 +1025,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         expr
     }
 
+    pub fn get_native_adt_item_name(&self, def_id: DefId) -> String {
+        if config::disable_name_mangling() {
+            self.env.get_item_name(def_id)
+        } else {
+            self.env.get_item_def_path(def_id)
+        }
+    }
+
     pub fn encode_identifier(&self, ident: String) -> String {
         // Rule: the rhs must always have an even number of "$"
         ident

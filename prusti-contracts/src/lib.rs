@@ -1,4 +1,7 @@
+#![feature(auto_traits)]
+
 extern crate proc_macro;
+pub mod ghost;
 
 #[cfg(not(feature = "prusti"))]
 mod private {
@@ -80,3 +83,4 @@ pub fn old<T>(arg: T) -> T {
 }
 
 pub use private::*;
+pub use ghost::*;

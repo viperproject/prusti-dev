@@ -224,7 +224,54 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             Vec::new()
         }
     }
+    fn is_ghost_adt(ghost_adt_def: &ty::AdtDef, item_name: String) -> Option<String> {
+        // check if crate is "prusti_contracts" and module is "ghost"
+        if (item_name.starts_with("prusti_contracts::ghost::Ghost")) {
+            let ghost_name = ghost_adt_def.non_enum_variant().ident.as_str();
+            if ghost_name.contains("Ghost") {
+                return Some(ghost_name.to_string());
+            }
+        }
+        None
+    }
 
+    fn encode_ghost_predicate(typ: vir::Type, ghost_type: &str, value_field: vir::Field) -> Vec<vir::Predicate> {
+        match ghost_type {
+            "GhostInt" => vec![vir::Predicate::new_primitive_value(
+                typ,
+                vir::Field::new("val_int", vir::Type::Int),
+                None,
+                false
+            )],
+            "GhostBool" => vec![vir::Predicate::new_primitive_value(
+                typ,
+                vir::Field::new("val_bool", vir::Type::Bool),
+                None,
+                false
+            )],
+            "GhostSeq" => vec![vir::Predicate::new_primitive_value(
+                typ,
+                vir::Field::new("val_seq", vir::Type::Seq),
+                None,
+                false
+            )],
+            "GhostSet" => vec![vir::Predicate::new_primitive_value(
+                typ,
+                vir::Field::new("val_set", vir::Type::Set),
+                None,
+                false
+            )],
+
+            "GhostMultiSet" => vec![vir::Predicate::new_primitive_value(
+                typ,
+                vir::Field::new("val_multiset", vir::Type::MultiSet),
+                None,
+                false
+            )],
+            // Is there any marker predicate for undefined viper types?
+            &_ => vec![],
+        }
+    }
     pub fn encode_predicate_def(self) -> EncodingResult<Vec<vir::Predicate>> {
         debug!("Encode type predicate '{:?}'", self.ty);
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
@@ -277,7 +324,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
-                let num_variants = adt_def.variants.len();
+            let num_variants = adt_def.variants.len();
                 let tcx = self.encoder.env().tcx();
                 if num_variants == 1 {
                     debug!("ADT {:?} has only one variant", adt_def);
@@ -292,7 +339,25 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             )?
                         );
                     }
-                    vec![vir::Predicate::new_struct(typ, fields)]
+                    let is_zst = {
+                        let env_and_value = self.encoder.env().tcx().param_env(adt_def.did).and(self.ty);
+                        self.encoder.env().tcx().layout_of(env_and_value).map(|layout| layout.is_zst()).unwrap_or(false)
+                    };
+
+                    if adt_def.is_struct() && is_zst
+                    {   
+                            let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
+                            if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
+                                debug!("Ghost Type {}", ghost_type);
+                                TypeEncoder::encode_ghost_predicate(typ, &ghost_type, self.encoder.encode_value_field(self.ty))
+                            }
+                            else {
+                                vec![vir::Predicate::new_struct(typ, fields)]
+                            }
+                    }
+                    else {
+                        vec![vir::Predicate::new_struct(typ, fields)]
+                    }
                 } else {
                     debug!("ADT {:?} has {} variants", adt_def, num_variants);
                     let discriminant_field = self.encoder.encode_discriminant_field();
