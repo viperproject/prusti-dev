@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use log::info;
+use log::{warn,info};
 use prusti_common::vir;
 
 pub use self::purifier::ExprPurifier;
@@ -86,13 +86,31 @@ pub fn valid_func_for_type(typ : &vir::Type) -> vir::DomainFunc {
     df
 }
 
+fn unbox(name: String) -> String {
+    let start = "m_alloc$$boxed$$Box$_beg_$";
+    let end = "$_sep_$m_alloc$$alloc$$Global$_beg_$_end_$_end_";
+    if !name.ends_with(end) {
+        return name;
+    }
+
+    if !name.starts_with(start) {
+        return name;
+    }
+
+    let remaining = name.len() - start.len() -end.len();
+
+    return name.chars().skip(start.len()).take(remaining).collect();
+}
+
 
 pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>,) -> Type {
+    warn!("translate_type t={:?} sn={:?}", t, snapshots.keys());
     match t {
         Type::TypedRef(name) => match name.as_str() {
-            "i32" | "usize" => Type::Int,
+            "i32" | "usize" | "u32" => Type::Int,
             "bool" => Type::Bool,
             _ => {
+                let name = unbox(name);
                 let domain_name = snapshots
                     .get(&name)
                     .and_then(|snap| snap.domain())
@@ -104,4 +122,19 @@ pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>,) -> T
         },
         o @ _ => o,
     }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_unbox() {
+    let res = unbox("m_alloc$$boxed$$Box$_beg_$m_len_lookup$$List$_beg_$_end_$_sep_$m_alloc$$alloc$$Global$_beg_$_end_$_end_".to_string());
+    assert_eq!(res, "m_len_lookup$$List$_beg_$_end_".to_string());
+
+    assert_eq!(unbox("u32".to_string()), "u32".to_string());
+    }
+
 }

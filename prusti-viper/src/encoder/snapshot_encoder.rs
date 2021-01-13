@@ -185,19 +185,40 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                     unreachable!()
                 }
             }
-            // Refs should be stripped by now by [Encoder::encode_snapshot]
+            ty::TyKind::Adt(adt_def, _) if adt_def.is_box() => { //TODO this breaks for lots of boxes. e.g. Box<Box<T>> or Box<i32>
+                let boxed_ty = self.ty.boxed_ty();
+                warn!("enocding boxed ty {:?}", boxed_ty);
+                match boxed_ty.kind() {
+                    ty::TyKind::Adt(adt_def, subst) => {
+                        if adt_def.is_struct() || adt_def.is_enum() {
+                            SnapshotAdtEncoder::new(
+                                &self,
+                                adt_def,
+                                subst,
+                            ).encode_snapshot()?
+                        } else {
+                            unreachable!()
+                        }
+                    }
+                    x => unimplemented!("{:?}", x),
+                }
+            }
             x => unimplemented!("{:?}", x),
         })
     }
 
     fn is_supported(&self) -> bool {
-        let is_possible = self.is_ty_supported(self.ty);
+        let is_possible = self.is_ty_supported(self.ty, &mut vec![]);
         let is_needed = prusti_common::config::enable_purification_optimization() || self.encoder.has_structural_eq_impl(self.ty);
-        
+
         is_possible && is_needed
     }
 
-    fn is_ty_supported(&self, ty: ty::Ty<'tcx>) -> bool {
+    fn is_ty_supported(&self, ty: ty::Ty<'tcx>, parent_boxes: &mut Vec<ty::Ty<'tcx>>) -> bool {
+        if parent_boxes.contains(&ty) {
+            return true;
+        }
+
         match ty.kind() {
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
@@ -208,7 +229,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Ref(_, ref ty, _) => {
-                self.is_ty_supported(ty)
+                self.is_ty_supported(ty, parent_boxes)
             }
 
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
@@ -216,16 +237,22 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                 for variant in &adt_def.variants {
                     for field in &variant.fields {
                         let field_ty = field.ty(tcx, subst);
-                        if !self.is_ty_supported(field_ty) {
+                        if !self.is_ty_supported(field_ty, parent_boxes) {
                             return false
                         }
                     }
                 }
                 true
             }
+            ty::TyKind::Adt(adt_def, subst) if adt_def.is_box() => {
+                parent_boxes.push(ty);
+                let is = self.is_ty_supported(ty.boxed_ty(), parent_boxes);
+                parent_boxes.retain(|&x| x != ty);
+                is
+            }
             ty::TyKind::Tuple(elems) => {
                 for field_ty in *elems {
-                    if !self.is_ty_supported(field_ty.expect_ty()) {
+                    if !self.is_ty_supported(field_ty.expect_ty(), parent_boxes) {
                         return false
                     }
                 }
@@ -303,12 +330,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_snap_func(&self, return_type: vir::Type, body: vir::Expr) -> vir::Function {
-        let posts = 
+        let posts =
         if prusti_common::config::enable_purification_optimization() {
             let self_var = vir::LocalVar{name: "__result".to_owned(), typ: return_type.clone()};
             let valid_func = snapshot::valid_func_for_type(&return_type);
             let self_arg = vir::Expr::local(self_var.clone());
-            let valid_post = vir::Expr::domain_func_app(valid_func, vec![self_arg]); 
+            let valid_post = vir::Expr::domain_func_app(valid_func, vec![self_arg]);
             vec![valid_post];
             vec![] //FIXME this should be the above vec but this currently doesn't verify
         }
@@ -615,12 +642,58 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     fn encode_snap_arg(&self, location: vir::Expr, field: vir::Field, field_ty: ty::Ty<'tcx>)
         -> EncodingResult<vir::Expr>
     {
-        let snapshot = self.encoder.encode_snapshot(field_ty)?;
-        Ok(snapshot.snap_call(
-            self.dereference_expr_with_unfolding(
-                self.encode_arg_field(location, field)
-            )
-        ))
+        warn!("encode_snap_arg begin");
+        let res = match field_ty.kind() {
+        ty::TyKind::Adt(adt_def, _) if adt_def.is_box() => { //TODO this breaks for lots of boxes. e.g. Box<Box<T>> or Box<i32>
+            let boxed_ty = field_ty.boxed_ty();
+            warn!("enocding boxed ty {:?}", boxed_ty);
+            match boxed_ty.kind() {
+                ty::TyKind::Adt(adt_def, subst) => {
+                    if adt_def.is_struct() || adt_def.is_enum() {
+
+                        let predicate_name = self.encoder.encode_type_predicate_use(boxed_ty)?;
+                        let field_snapshot_encoder = SnapshotEncoder::new(
+                            self.encoder,
+                            boxed_ty,
+                            predicate_name.to_string()
+                        );
+
+                        let field_sae = SnapshotAdtEncoder::new(
+                            &field_snapshot_encoder,
+                            adt_def,
+                            subst,
+                        );
+                         Ok(vir::Expr::func_app(
+                            SNAPSHOT_GET.to_string(),
+                            vec![self.encode_arg_field(location, field)],
+                            vec![field_snapshot_encoder.encode_arg_var(SNAPSHOT_ARG)],
+                            field_sae.get_snapshot_type(boxed_ty)?,
+                            vir::Position::default(),
+                        ))
+
+
+                    } else {
+                        unreachable!()
+                    }
+                }
+                x => unimplemented!("{:?}", x),
+            }
+        }
+        _ => {
+            let snapshot = self.encoder.encode_snapshot(field_ty)?;
+            Ok(snapshot.snap_call(
+                self.dereference_expr_with_unfolding(
+                    self.encode_arg_field(location, field)
+                )
+            ))
+        }
+
+        };
+
+
+
+        warn!("encode_snap_arg end");
+        res
     }
 
     pub fn encode_equals_func_ref(&self) -> vir::Function {
@@ -713,17 +786,22 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
     fn encode_snap_domain(&self) -> EncodingResult<SnapshotDomain>
     {
-        Ok(SnapshotDomain{
+       // warn!("encode_snap_domain start");
+       let res =  Ok(SnapshotDomain{
             domain: self.encode_domain()?,
             equals_func: self.snapshot_encoder.encode_equals_func(),
             equals_func_ref: self.snapshot_encoder.encode_equals_func_ref(),
             not_equals_func: self.snapshot_encoder.encode_not_equals_func(),
             not_equals_func_ref: self.snapshot_encoder.encode_not_equals_func_ref(),
-        })
+        });
+      //  warn!("encode_snap_domain end");
+        res
+
     }
 
     fn encode_domain(&self) -> EncodingResult<vir::Domain>
     {
+        warn!("encode_domain start {}", self.snapshot_encoder.encode_domain_name());
         let mut functions = self.encode_constructors()?;
         let mut axioms = self.encode_axioms(&functions);
 
@@ -747,6 +825,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
             functions.push(valid_function);
             axioms.push(valid_axiom);
         }
+        warn!("encode_domain bedore end {}", self.snapshot_encoder.encode_domain_name());
 
 
         Ok(vir::Domain {
@@ -772,13 +851,13 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         variant_name: Option<String>,
     ) -> vir::Expr {
         let domain_name = self.snapshot_encoder.encode_domain_name();
-    
+
         fields
             .iter()
             .map(|field| {
                 let field_type = self.compute_vir_type_for_field(field).unwrap(); //TODO don't unwrap
                 let field_name = field.ident.name.to_ident_string();
-    
+
                 let field_func = snapshot::encode_field_domain_func(
                     field_type.clone(),
                     field_name,
@@ -787,13 +866,13 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
                 );
                 let field_func_app =
                     vir::Expr::domain_func_app(field_func, vec![vir::Expr::local(self_var.clone())]);
-    
+
                 let valid_func = snapshot::valid_func_for_type(&field_type);
                 vir::Expr::domain_func_app(valid_func, vec![field_func_app])
             })
             .fold(true.into(), vir::Expr::and)
     }
-    
+
 
     fn encode_valid_axiom(&self) -> EncodingResult<vir::DomainAxiom> {
         let domain_name = self.snapshot_encoder.encode_domain_name();
@@ -822,7 +901,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
             variant_valids.iter().cloned().fold(true.into(),  vir::Expr::and)
 
         };
-       
+
 
 
        let self_valid_function = self.encode_valid_function();
@@ -830,22 +909,21 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
        let equality = vir::Expr::eq_cmp(self_valid_function_app, valid_func_apps);
 
-        
+
        let expr = vir::Expr::forall( vec![self_var], vec![], equality); //TODO triggers
         Ok(vir::DomainAxiom {
-            name: format!("{}$valid$axiom", domain_name).to_string(), 
+            name: format!("{}$valid$axiom", domain_name).to_string(),
             expr,
             domain_name,
         })
     }
-    
+
 
     fn encode_field_func(
         &self,
         field: &ty::FieldDef,
         variant_name: Option<String>
     ) -> EncodingResult<vir::DomainFunc> {
-        warn!("encode_field_domain_func field={:?} varienat_name={:?}", field, variant_name);
         let domain_name = self.snapshot_encoder.encode_domain_name();
 
         let field_type = self.compute_vir_type_for_field(field)?;
@@ -865,8 +943,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     ) -> EncodingResult<vir::Type> {
         let tcx = self.snapshot_encoder.encoder.env().tcx();
         let field_ty = field.ty(tcx, self.subst);
-        let snapshot = self.snapshot_encoder.encoder.encode_snapshot(&field_ty)?;
-        Ok(snapshot.get_type())
+        self.get_snapshot_type(&field_ty)
     }
 
     /// Encodes the axiom that ensures that T$variant(T$cons3(...)) == 3
@@ -884,14 +961,14 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         let variant_of_constructor_call =
             vir::Expr::domain_func_app(variant_fn, vec![constructor_call.clone()]);
         let body = vir::Expr::eq_cmp(variant_of_constructor_call, variant_index.into());
-    
+
         let axiom_body = if vars.is_empty() {
             body
         } else {
             let triggers = vec![vir::Trigger::new(vec![constructor_call.clone()])];
             vir::Expr::forall(vars, triggers, body)
         };
-    
+
         Ok(vir::DomainAxiom {
             name: format!(
                 "{}${}$variant_cons$axiom",
@@ -902,7 +979,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
             domain_name: domain_name.clone(),
         })
     }
-    
+
 
     /// Generates the axioms for the field accessing functions
     fn encode_field_axiom(
@@ -987,10 +1064,10 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         &self,
     ) -> EncodingResult<Option<(Vec<vir::DomainFunc>, Vec<vir::DomainAxiom>)>> {
         let domain_name = self.snapshot_encoder.encode_domain_name();
-    
+
         let mut funcs = vec![];
         let mut axioms = vec![];
-    
+
         match self.adt_def.adt_kind() {
             ty::AdtKind::Struct => {
                 for field in self.adt_def.all_fields() {
@@ -1012,10 +1089,10 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
                 unimplemented!();
             }
         }
-    
+
         Ok(Some((funcs, axioms)))
     }
-    
+
 
 
     fn encode_variant_func_and_axioms(&self)
@@ -1096,6 +1173,76 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         Ok(result)
     }
 
+    /// This calculates the type of a snapshot without causign infinite recursion
+    ///
+    /// This should be sematically equivalent to `self.snapshot_encoder.encoder.encode_snapshot(&ty).get_type())`
+    /// except that that expression could cause infinite recursion
+    fn get_snapshot_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Type> {
+
+       //warn!("/get_snapshot_type {:?}", ty);
+
+        // we would want to check here if we alread encoded this and reuse if but this dosn't woek because fields are private
+        /*
+        let predicate_name = self.snapshot_encoder.encoder.encode_type_predicate_use(&ty);
+        if !self.snapshot_encoder.encoder.snapshots.borrow().contains_key(&predicate_name) {
+            return Ok(self.snapshot_encoder.encoder.snapshots.borrow()[&predicate_name].clone())
+        }
+        */
+
+        let res = match ty.kind() {
+            ty::TyKind::Adt(adt_def, _) if adt_def.is_box() => {
+                let boxed_ty = ty.boxed_ty();
+
+                match boxed_ty.kind() {
+                    ty::TyKind::Adt(adt_def, subst) => {
+
+                        if adt_def.is_struct() || adt_def.is_enum() {
+                            let predicate_name = self.snapshot_encoder.encoder.encode_type_predicate_use(&boxed_ty)?;
+
+                            let snapshot_encoder = SnapshotEncoder::new(
+                                self.snapshot_encoder.encoder,
+                                boxed_ty,
+                                predicate_name.to_string()
+                            );
+
+
+                            let domain_name = snapshot_encoder.encode_domain_name();
+                            Ok(vir::Type::Domain(domain_name))
+
+                        } else {
+                            unreachable!()
+                        }
+                    }
+                    _ => {
+                        let snapshot = self.snapshot_encoder.encoder.encode_snapshot(&ty)?;
+                        Ok(snapshot.get_type())
+                    }
+                }
+
+            }
+            ty::TyKind::Adt(adt_def, _) if !adt_def.is_box() => {
+                let predicate_name = self.snapshot_encoder.encoder.encode_type_predicate_use(&ty)?;
+
+                let snapshot_encoder = SnapshotEncoder::new(
+                    self.snapshot_encoder.encoder,
+                    ty,
+                    predicate_name.to_string()
+                );
+                let domain_name = snapshot_encoder.encode_domain_name();
+                Ok(vir::Type::Domain(domain_name))
+            }
+            _ =>  {
+                let snapshot = self.snapshot_encoder.encoder.encode_snapshot(&ty)?;
+                Ok(snapshot.get_type())
+            }
+        };
+
+        //warn!("\\get_snapshot_type({:?})={:?}", ty,res);
+        res
+
+
+
+    }
     fn encode_constructor_args(
         &self,
         variant_def: &ty::VariantDef
@@ -1106,9 +1253,8 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         let mut field_num = 0;
         for field in &variant_def.fields {
             let field_ty = field.ty(tcx, self.subst);
-            let snapshot = self.snapshot_encoder.encoder.encode_snapshot(&field_ty)?;
             formal_args.push(
-                self.snapshot_encoder.encode_local_var(field_num, &snapshot.get_type())
+                self.snapshot_encoder.encode_local_var(field_num, &self.get_snapshot_type(&field_ty)?)
             );
             field_num += 1;
         }
