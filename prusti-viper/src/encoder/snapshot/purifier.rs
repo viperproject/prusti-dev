@@ -22,8 +22,6 @@ impl ExprFolder for ExprPurifier {
     }
 
     fn fold_variant(&mut self, base: Box<Expr>, variant: Field, p: Position) -> Expr {
-        // This should never be reached as I'm assuming that we only have the case Field(Variant) and never a bare Variant
-        //   log::error!("fold_variant base: {:?} variant: {:?}", base, variant);
         *self.fold_boxed(base)
     }
 
