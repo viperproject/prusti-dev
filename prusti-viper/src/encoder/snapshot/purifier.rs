@@ -113,4 +113,31 @@ impl ExprFolder for ExprPurifier {
     ) -> Expr {
         true.into()
     }
+
+    fn fold_func_app(
+        &mut self,
+        name: String,
+        mut args: Vec<Expr>,
+        formal_args: Vec<LocalVar>,
+        return_type: Type,
+        pos: Position
+    ) -> Expr {
+        if name == "snap$" {
+            // This is a snapshot function. Just drop it and use its argument.
+            // FIXME: We should have a proper way of discovering this.
+            assert_eq!(args.len(), 1, "The snapshot function must contain only a single argument.");
+            self.fold(args.pop().unwrap())
+        } else {
+            Expr::FuncApp(
+                format!("domainVersionOf{}", name),
+                args.into_iter().map(|arg| self.fold(arg)).collect(),
+                formal_args.into_iter().map(|parameter| LocalVar {
+                    name: parameter.name,
+                    typ: super::translate_type(parameter.typ, &self.snapshots),
+                }).collect(),
+                super::translate_type(return_type, &self.snapshots),
+                pos
+            )
+        }
+    }
 }

@@ -67,7 +67,12 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
         targets_are_values,
         assertion_location,
     );
-    spec_encoder.encode_assertion(assertion)
+    let mut encoded_assertion = spec_encoder.encode_assertion(assertion)?;
+    if config::enable_purification_optimization() {
+        encoded_assertion = super::snapshot::fix_assertion(
+            encoded_assertion, &spec_encoder.encoder.get_snapshots());
+    }
+    Ok(encoded_assertion)
 }
 
 struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -114,15 +119,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         forall_id: &str
     ) -> vir::LocalVar {
         trace!("encode_forall_arg: {:?} {:?} {:?}", arg, arg_ty, forall_id);
-        assert!(
-            match arg_ty.kind() {
-                ty::TyKind::Int(..) | ty::TyKind::Uint(..) => true,
-                _ => false,
-            },
-            "Quantification is only supported over integer values"
-        );
+        let snapshot = self.encoder.encode_snapshot(arg_ty).unwrap();
         let var_name = format!("{:?}_forall_{}", arg, forall_id);
-        vir::LocalVar::new(var_name, vir::Type::Int)
+        vir::LocalVar::new(var_name, snapshot.get_type())
     }
 
     fn encode_trigger(
@@ -190,7 +189,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode a specification item as a single expression.
-    pub fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>)
+    fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>)
         -> SpannedEncodingResult<vir::Expr>
     {
         trace!("encode_assertion {:?}", assertion);
@@ -496,8 +495,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     &forall_id
                 );
                 let encoded_arg = inner_mir_encoder.encode_local(local_arg_index)?;
-                let value_field = self.encoder.encode_value_field(local_arg.ty);
-                let encoded_arg_value = vir::Expr::local(encoded_arg).field(value_field);
+                let encoded_arg_value = match local_arg.ty.kind() {
+                    ty::TyKind::Uint(_) |
+                    ty::TyKind::Int(_) |
+                    ty::TyKind::Bool |
+                    ty::TyKind::Char => {
+                        let value_field = self.encoder.encode_value_field(local_arg.ty);
+                        vir::Expr::local(encoded_arg).field(value_field)
+                    }
+                    _ => {
+                        encoded_arg.into()
+                    }
+                };
                 trace!(
                     "Place {}: {} will be renamed to {} because a quantifier introduced it",
                     encoded_arg_value,
