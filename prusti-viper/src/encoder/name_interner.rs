@@ -28,7 +28,7 @@ impl NameInterner {
     pub fn intern<S: ToString>(&mut self, full_unique_name: S, readable_names: &[S]) -> String {
         let full_unique_name = full_unique_name.to_string();
         let readable_names: Vec<_> = readable_names.iter().map(|s| s.to_string()).collect();
-        assert!(!readable_names.contains(&"".to_string()));
+        debug_assert!(!readable_names.contains(&"".to_string()));
 
         // Return the symbol, if we already interned the full name
         if let Some(symbol) = self.name_to_symbol.get(&full_unique_name) {
@@ -37,10 +37,10 @@ impl NameInterner {
         }
 
         // Check that the readable name is not equal to full names passed in the past.
-        assert!(!readable_names.iter().any(|r| self.name_to_symbol.contains_key(r)));
+        debug_assert!(!readable_names.iter().any(|r| self.name_to_symbol.contains_key(r)));
 
         // Check that readable names passed in the past are not equal to the current full name.
-        assert!(!self.used_symbols.contains(&full_unique_name));
+        debug_assert!(!self.used_symbols.contains(&full_unique_name));
 
         let symbol = readable_names.into_iter()
             .find(|r| !self.used_symbols.contains(r))
