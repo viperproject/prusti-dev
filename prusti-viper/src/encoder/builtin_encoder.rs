@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir;
+use crate::encoder::snapshot;
+use prusti_common::{vir, vir::WithIdentifier};
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinMethodKind {
@@ -19,6 +20,11 @@ pub enum BuiltinFunctionKind {
     Unreachable(vir::Type),
     /// type
     Undefined(vir::Type),
+}
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub enum BuiltinDomainKind {
+    Nat,
+    Primitive,
 }
 
 pub struct BuiltinEncoder {}
@@ -86,6 +92,67 @@ impl BuiltinEncoder {
                 posts: vec![],
                 body: None,
             },
+        }
+    }
+
+    pub fn encode_builtin_domain(&self, kind: BuiltinDomainKind) -> vir::Domain {
+        match kind {
+            BuiltinDomainKind::Nat => self.encode_nat_builtin_domain(),
+            BuiltinDomainKind::Primitive => self.encode_primitive_builtin_domain(),
+        }
+    }
+
+    fn encode_nat_builtin_domain(&self) -> vir::Domain {
+        let nat_domain_name = snapshot::NAT_DOMAIN_NAME;
+        let zero = vir::DomainFunc {
+            name: "zero".to_owned(),
+            formal_args: vec![],
+            return_type: vir::Type::Domain(nat_domain_name.to_owned()),
+            unique: false,
+            domain_name: nat_domain_name.to_owned(),
+        };
+
+        let functions = vec![zero, snapshot::get_succ_func()];
+
+        vir::Domain {
+            name: nat_domain_name.to_owned(),
+            functions,
+            axioms: vec![],
+            type_vars: vec![],
+        }
+    }
+
+    fn encode_primitive_builtin_domain(&self) -> vir::Domain {
+        //FIXME this does not check or handel the different sizes of primitve types
+        let domain_name = "PrimitiveValidDomain";
+
+        let mut functions = vec![];
+        let mut axioms = vec![];
+        for t in &[vir::Type::Bool, vir::Type::Int] {
+            let f = snapshot::valid_func_for_type(t);
+            functions.push(f.clone());
+
+            let forall_arg = vir::LocalVar {
+                name: "self".to_owned(),
+                typ: t.clone(),
+            };
+            let function_app =
+                vir::Expr::domain_func_app(f.clone(), vec![vir::Expr::local(forall_arg.clone())]);
+            let body = vir::Expr::and(function_app, true.into());
+            let e = vir::Expr::forall(vec![forall_arg], vec![], body); //TODO triggers
+            let ax = vir::DomainAxiom {
+                name: format!("{}$axiom", f.get_identifier()),
+                expr: e,
+                domain_name: domain_name.to_string(),
+            };
+            axioms.push(ax); //TODO
+        }
+
+        vir::Domain {
+            name: domain_name.to_owned(),
+            functions,
+            axioms,
+            type_vars: vec![],
         }
     }
 }
