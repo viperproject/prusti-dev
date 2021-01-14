@@ -11,7 +11,6 @@ use vir::Type;
 mod purifier;
 mod fixer;
 
-
 pub const NAT_DOMAIN_NAME: &str = "$Nat$";
 pub const AXIOMATIZED_FUNCTION_DOMAIN_NAME: &str = "$AxiomatizedFunctions$";
 
@@ -105,13 +104,13 @@ pub fn encode_nat_argument() -> vir::LocalVar {
 /// Returns the arguments for the axiomatized version of a function but does not yet include the Nat argument
 pub fn encode_axiomatized_function_args_without_nat(
     formal_args: &[vir::LocalVar],
-    snapshots_info: &HashMap<String, Box<Snapshot>>,
+    snapshots: &HashMap<String, Box<Snapshot>>,
 ) -> Vec<vir::LocalVar> {
     formal_args
         .iter()
         .map(|e| {
             let old_type = e.typ.clone();
-            let new_type = translate_type(old_type, &snapshots_info);
+            let new_type = translate_type(old_type, &snapshots);
 
             vir::LocalVar {
                 name: e.name.clone(),
@@ -125,10 +124,10 @@ pub fn encode_axiomatized_function(
     name: &str,
     formal_args: &[vir::LocalVar],
     return_type: &vir::Type,
-    snapshots_info: &HashMap<String, Box<Snapshot>>,
+    snapshots: &HashMap<String, Box<Snapshot>>,
 ) -> vir::DomainFunc {
     let formal_args_without_nat: Vec<vir::LocalVar> =
-        encode_axiomatized_function_args_without_nat(formal_args, snapshots_info);
+        encode_axiomatized_function_args_without_nat(formal_args, snapshots);
 
     let mut formal_args = formal_args_without_nat.clone();
     formal_args.push(encode_nat_argument());
@@ -136,7 +135,7 @@ pub fn encode_axiomatized_function(
     let df = vir::DomainFunc {
         name: format!("domainVersionOf{}", name),
         formal_args: formal_args.clone(),
-        return_type: translate_type(return_type.clone(), &snapshots_info),
+        return_type: translate_type(return_type.clone(), &snapshots),
         unique: false,
         domain_name: AXIOMATIZED_FUNCTION_DOMAIN_NAME.to_owned(),
     };
@@ -187,6 +186,33 @@ pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>) -> Ty
 /// argument.
 pub fn fix_assertion(assertion: vir::Expr, snapshots: &HashMap<String, Box<Snapshot>>) -> vir::Expr {
     vir::ExprFolder::fold(&mut fixer::Fixer { snapshots }, assertion)
+}
+
+pub fn get_succ_func() -> vir::DomainFunc {
+    let succ = vir::DomainFunc {
+        name: "succ".to_owned(),
+        formal_args: vec![vir::LocalVar {
+            name: "val".to_owned(),
+            typ: vir::Type::Domain(NAT_DOMAIN_NAME.to_owned()),
+        }],
+        return_type: vir::Type::Domain(NAT_DOMAIN_NAME.to_owned()),
+        unique: false,
+        domain_name: NAT_DOMAIN_NAME.to_owned(),
+    };
+
+    succ
+}
+
+pub fn get_zero_func() -> vir::DomainFunc {
+    let zero = vir::DomainFunc {
+        name: "zero".to_owned(),
+        formal_args: Vec::new(),
+        return_type: vir::Type::Domain(NAT_DOMAIN_NAME.to_owned()),
+        unique: false,
+        domain_name: NAT_DOMAIN_NAME.to_owned(),
+    };
+
+    zero
 }
 
 #[cfg(test)]

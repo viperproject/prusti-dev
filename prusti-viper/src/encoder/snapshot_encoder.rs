@@ -200,10 +200,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
                             unreachable!()
                         }
                     }
-                    x => unimplemented!("{:?}", x),
+                    x => Err(EncodingError::unsupported(format!("{:?}", x)))?
                 }
             }
-            x => unimplemented!("{:?}", x),
+            x => Err(EncodingError::unsupported(format!("{:?}", x)))?
         })
     }
 
@@ -247,7 +247,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Adt(adt_def, subst) if adt_def.is_box() => {
                 parent_boxes.push(ty);
                 let is = self.is_ty_supported(ty.boxed_ty(), parent_boxes);
-                parent_boxes.retain(|&x| x != ty);
+                parent_boxes.pop();
                 is
             }
             ty::TyKind::Tuple(elems) => {
@@ -621,78 +621,47 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             ).collect::<Result<_, _>>()
     }
 
-    // FIXME: this is a copy of [dereference_expr], with a workaround for
-    // a bug in the folding/unfolding algorithm. In particular, when encoding
-    // reference fields, the permissions required to access [val_ref] fields
-    // are not obtained. Here they are generated explicitly.
-    fn dereference_expr_with_unfolding(&self, expr: vir::Expr) -> vir::Expr {
-        match expr.try_deref() {
-            Some(deref_expr) => {
-                self.dereference_expr_with_unfolding(
-                    vir::Expr::wrap_in_unfolding(
-                        expr.clone(),
-                        deref_expr,
-                    )
-                )
-            },
-            None => expr,
-        }
-    }
+    fn encode_snap_arg(
+        &self,
+        location: vir::Expr,
+        field: vir::Field,
+        field_ty: ty::Ty<'tcx>,
+    ) -> EncodingResult<vir::Expr> {
+        match field_ty.kind() {
+            ty::TyKind::Adt(adt_def, _) if adt_def.is_box() => {
+                //TODO this breaks for lots of boxes. e.g. Box<Box<T>> or Box<i32>
+                let boxed_ty = field_ty.boxed_ty();
+                match boxed_ty.kind() {
+                    ty::TyKind::Adt(adt_def, subst) => {
+                        if adt_def.is_struct() || adt_def.is_enum() {
+                            let predicate_name = self.encoder.encode_type_predicate_use(boxed_ty)?;
+                            let field_snapshot_encoder = SnapshotEncoder::new(
+                                self.encoder,
+                                boxed_ty,
+                                predicate_name.to_string(),
+                            );
 
-    fn encode_snap_arg(&self, location: vir::Expr, field: vir::Field, field_ty: ty::Ty<'tcx>)
-        -> EncodingResult<vir::Expr>
-    {
-        let res = match field_ty.kind() {
-        ty::TyKind::Adt(adt_def, _) if adt_def.is_box() => { //TODO this breaks for lots of boxes. e.g. Box<Box<T>> or Box<i32>
-            let boxed_ty = field_ty.boxed_ty();
-            warn!("enocding boxed ty {:?}", boxed_ty);
-            match boxed_ty.kind() {
-                ty::TyKind::Adt(adt_def, subst) => {
-                    if adt_def.is_struct() || adt_def.is_enum() {
-
-                        let predicate_name = self.encoder.encode_type_predicate_use(boxed_ty)?;
-                        let field_snapshot_encoder = SnapshotEncoder::new(
-                            self.encoder,
-                            boxed_ty,
-                            predicate_name.to_string()
-                        );
-
-                        let field_sae = SnapshotAdtEncoder::new(
-                            &field_snapshot_encoder,
-                            adt_def,
-                            subst,
-                        );
-                         Ok(vir::Expr::func_app(
-                            SNAPSHOT_GET.to_string(),
-                            vec![self.encode_arg_field(location, field)],
-                            vec![field_snapshot_encoder.encode_arg_var(SNAPSHOT_ARG)],
-                            field_sae.get_snapshot_type(boxed_ty)?,
-                            vir::Position::default(),
-                        ))
-
-
-                    } else {
-                        unreachable!()
+                            let field_sae =
+                                SnapshotAdtEncoder::new(&field_snapshot_encoder, adt_def, subst);
+                            Ok(vir::Expr::func_app(
+                                SNAPSHOT_GET.to_string(),
+                                vec![self.encode_arg_field(location, field)],
+                                vec![field_snapshot_encoder.encode_arg_var(SNAPSHOT_ARG)],
+                                field_sae.get_snapshot_type(boxed_ty)?,
+                                vir::Position::default(),
+                            ))
+                        } else {
+                            unreachable!()
+                        }
                     }
+                    x => Err(EncodingError::unsupported(format!("{:?}", x))),
                 }
-                x => unimplemented!("{:?}", x),
+            }
+            _ => {
+                let snapshot = self.encoder.encode_snapshot(field_ty)?;
+                Ok(snapshot.snap_call(self.encode_arg_field(location, field)))
             }
         }
-        _ => {
-            let snapshot = self.encoder.encode_snapshot(field_ty)?;
-            Ok(snapshot.snap_call(
-                self.dereference_expr_with_unfolding(
-                    self.encode_arg_field(location, field)
-                )
-            ))
-        }
-
-        };
-
-
-
-        warn!("encode_snap_arg end");
-        res
     }
 
     fn encode_equals_func_ref(&self) -> vir::Function {
@@ -1078,8 +1047,8 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
                     }
                 }
             }
-            _ => {
-                unimplemented!();
+            x => {
+                Err(EncodingError::unsupported(format!("{:?}", x)))?
             }
         }
 
