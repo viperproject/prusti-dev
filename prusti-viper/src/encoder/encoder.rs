@@ -1505,14 +1505,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.intern_viper_identifier(full_name, short_name)
     }
 
-    pub fn intern_viper_identifier<S: ToString>(&self, full_name: S, short_name: S) -> String {
+    pub fn intern_viper_identifier<S: AsRef<str>>(&self, full_name: S, short_name: S) -> String {
         let result = if config::disable_name_mangling() {
-            short_name.to_string()
+            short_name.as_ref().to_string()
         } else {
             if config::intern_names() {
                 self.name_interner.borrow_mut().intern(full_name, &[short_name])
             } else {
-                full_name.to_string()
+                full_name.as_ref().to_string()
             }
         };
         result

@@ -26,32 +26,37 @@ impl NameInterner {
     /// Intern a full unique name, returning a possibly readable string that uniquely identifies it.
     /// The `readable_names` must not collide with past or future `full_unique_name`s, except for
     /// the `full_unique_name` passed in the same call.
-    pub fn intern<S: ToString>(&mut self, full_unique_name: S, readable_names: &[S]) -> String {
-        let full_unique_name = full_unique_name.to_string();
-        let readable_names: Vec<_> = readable_names.iter().map(|s| s.to_string()).collect();
+    pub fn intern<S: AsRef<str>>(&mut self, full_unique_name: S, readable_names: &[S]) -> String {
+        let full_unique_name = full_unique_name.as_ref();
 
-        debug_assert!(!readable_names.contains(&"".to_string()));
+        debug_assert!(!readable_names.iter().any(|r| r.as_ref() == ""));
+
+        // Check that the readable name is not equal to full names passed in the past.
+        debug_assert!(!readable_names.iter().any(
+            |r| r.as_ref() != full_unique_name && self.name_to_symbol.contains_key(r.as_ref())
+        ));
+
+        // Check that readable names passed in the past are not equal to the current full name.
+        debug_assert!(
+            self.name_to_symbol.contains_key(full_unique_name)
+            || !self.used_symbols.contains(full_unique_name)
+        );
 
         // Return the symbol, if we already interned the full name
-        if let Some(symbol) = self.name_to_symbol.get(&full_unique_name) {
-            debug!("Interning of {:?} is {:?}", &full_unique_name, symbol);
+        if let Some(symbol) = self.name_to_symbol.get(full_unique_name) {
+            debug!("Interning of {:?} is {:?}", full_unique_name, symbol);
             return symbol.clone();
         }
 
-        // Check that the readable name is not equal to full names passed in the past.
-        debug_assert!(!readable_names.iter().any(|r| self.name_to_symbol.contains_key(r)));
+        let symbol = readable_names.iter()
+            .find(|r| !self.used_symbols.contains(r.as_ref()))
+            .map(|r| r.as_ref())
+            .unwrap_or(full_unique_name);
+        debug!("Interning of {:?} is {:?}", full_unique_name, symbol);
+        self.used_symbols.insert(symbol.to_string());
+        self.name_to_symbol.insert(full_unique_name.to_string(), symbol.to_string());
 
-        // Check that readable names passed in the past are not equal to the current full name.
-        debug_assert!(!self.used_symbols.contains(&full_unique_name));
-
-        let symbol = readable_names.into_iter()
-            .find(|r| !self.used_symbols.contains(r))
-            .unwrap_or(full_unique_name.clone());
-        debug!("Interning of {:?} is {:?}", &full_unique_name, symbol);
-        self.used_symbols.insert(symbol.clone());
-        self.name_to_symbol.insert(full_unique_name, symbol.clone());
-
-        symbol
+        symbol.to_string()
     }
 }
 
@@ -60,7 +65,6 @@ impl Default for NameInterner {
         NameInterner::new()
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -85,6 +89,14 @@ mod tests {
     fn test_full_name_eq_readable_names() {
         let mut interner = NameInterner::new();
         assert_eq!(interner.intern("my$first$name", &["my$first$name"]), "my$first$name");
+    }
+
+    #[test]
+    fn test_no_readable_names() {
+        let mut interner = NameInterner::new();
+        assert_eq!(interner.intern("first", &[]), "first");
+        assert_eq!(interner.intern("second", &[]), "second");
+        assert_eq!(interner.intern("second", &[]), "second");
     }
 
     #[test]
