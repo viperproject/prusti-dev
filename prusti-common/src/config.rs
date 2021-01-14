@@ -91,6 +91,7 @@ lazy_static! {
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("OPTIMIZATIONS","all").unwrap();
+        settings.set_default("INTERN_NAMES", true).unwrap();
 
         settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
         settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
@@ -402,4 +403,9 @@ pub fn no_verify() -> bool {
 /// Continue the compilation and generate the binary after Prusti terminates
 pub fn full_compilation() -> bool {
     read_setting("FULL_COMPILATION")
+}
+
+/// Intern Viper identifiers to shorten them when possible.
+pub fn intern_names() -> bool {
+    read_setting("INTERN_NAMES")
 }
