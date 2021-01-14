@@ -126,7 +126,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         );
 
         let mut axiomatized_functions_domain = vir::Domain {
-            name: "domainThatContainsTheAxiomatizedPureFunctions".to_owned(), //TODO
+            name: snapshot::AXIOMATIZED_FUNCTION_DOMAIN_NAME.to_owned(),
             functions: vec![],
             axioms: vec![],
             type_vars: vec![],
@@ -336,7 +336,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             unique: false,
             domain_name: nat_domain_name.to_owned(),
         };
-       
+
         let functions = vec![zero, self.get_succ_func()];
 
         vir::Domain {
@@ -351,42 +351,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let snapshots_info: HashMap<String, Box<Snapshot>> = self.snapshots.borrow().clone();
         let domain_name = self.axiomatized_function_domain.borrow().name.clone();
 
-       
 
-        let formal_args_without_nat: Vec<vir::LocalVar> = f
-            .formal_args
-            .iter()
-            .map(|e| {
-                let old_type = e.typ.clone();
-                let new_type = snapshot::translate_type(old_type, &snapshots_info);
 
-                vir::LocalVar {
-                    name: e.name.clone(),
-                    typ: new_type,
-                }
-            })
-            .collect();
+        let snapshots_info: HashMap<String, Box<Snapshot>> = self.snapshots.borrow().clone();
+        let formal_args_without_nat: Vec<vir::LocalVar> = snapshot::encode_axiomatized_function_args_without_nat(&f.formal_args, &snapshots_info);
 
-        let mut formal_args = formal_args_without_nat.clone();
-        let nat_local = vir::LocalVar {
-            name: "count".to_string(),
-            typ: vir::Type::Domain(snapshot::NAT_DOMAIN_NAME.to_owned()),
-        };
-        let nat_arg = vir::Expr::local(nat_local.clone());
+
+        let df = snapshot::encode_axiomatized_function(&f.name, &f.formal_args,&f.return_type, &snapshots_info);
+        let nat_arg = vir::Expr::local(snapshot::encode_nat_argument());
         let nat_succ = vir::Expr::domain_func_app(self.get_succ_func(), vec![nat_arg.clone()]);
-        formal_args.push(nat_local.clone());
-
-        let return_type = f.return_type.clone();
-        let name = format!("domainVersionOf{}", f.name);
-
-        let df = vir::DomainFunc {
-            name,
-            formal_args: formal_args.clone(),
-            return_type,
-            unique: false,
-            domain_name: domain_name.to_string(),
-        };
-
         let args_without_nat: Vec<vir::Expr> = formal_args_without_nat
         .clone()
         .into_iter()
@@ -446,13 +419,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
             })
             .fold(true.into(),  vir::Expr::and);
-        
+
 
         let pre_conds_and_valid = vir::Expr::and(pre_conds, valids_anded );
         let axiom_body = vir::Expr::implies(pre_conds_and_valid, rhs);
-     
 
-       
+
+
         let mut triggers : Vec<vir::Trigger> = formal_args_without_nat.iter().filter_map(|arg| {
             match &arg.typ {
                 vir::Type::Domain(arg_domain_name) => {
@@ -463,7 +436,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 }
                 _ => None
             }
-           
+
         })
         .map(|t| {
             vir::Trigger::new(vec![t, function_call_with_zero.clone()])
@@ -475,7 +448,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         let da = vir::DomainAxiom {
             name: format!("{}$axiom", f.name), //TODO better name
-            expr: vir::Expr::forall(formal_args.clone(), triggers.clone(), axiom_body),
+            expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
             domain_name: domain_name.to_string(),
         };
 
@@ -488,7 +461,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         .map(vir::Expr::local)
         .collect();
 
-        args_without_succ.push(vir::Expr::local(nat_local));
+        args_without_succ.push(vir::Expr::local(snapshot::encode_nat_argument()));
 
         let function_call_without_succ = vir::Expr::domain_func_app(df.clone(), args_without_succ);
 
@@ -496,7 +469,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         let nat_da = vir::DomainAxiom {
             name: format!("{}$nat_axiom", f.name), //TODO better name
-            expr: vir::Expr::forall(formal_args.clone(), triggers.clone(), axiom_body),
+            expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
             domain_name: domain_name.to_string(),
         };
 
