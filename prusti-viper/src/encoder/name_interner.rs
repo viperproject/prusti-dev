@@ -24,10 +24,12 @@ impl NameInterner {
     }
 
     /// Intern a full unique name, returning a possibly readable string that uniquely identifies it.
-    /// The `readable_names` must not collide with past or future `full_unique_name`s.
+    /// The `readable_names` must not collide with past or future `full_unique_name`s, except for
+    /// the `full_unique_name` passed in the same call.
     pub fn intern<S: ToString>(&mut self, full_unique_name: S, readable_names: &[S]) -> String {
         let full_unique_name = full_unique_name.to_string();
         let readable_names: Vec<_> = readable_names.iter().map(|s| s.to_string()).collect();
+
         debug_assert!(!readable_names.contains(&"".to_string()));
 
         // Return the symbol, if we already interned the full name
@@ -77,6 +79,12 @@ mod tests {
         assert_eq!(interner.intern("unreadable$name", &["name"]), "name");
         assert_eq!(interner.intern("another$name", &["name"]), "another$name");
         assert_eq!(interner.intern("third$name", &["third"]), "third");
+    }
+
+    #[test]
+    fn test_full_name_eq_readable_names() {
+        let mut interner = NameInterner::new();
+        assert_eq!(interner.intern("my$first$name", &["my$first$name"]), "my$first$name");
     }
 
     #[test]
