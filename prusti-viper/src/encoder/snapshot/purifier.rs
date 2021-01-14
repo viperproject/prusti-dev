@@ -1,6 +1,11 @@
-use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder};
+use crate::encoder::{
+    snapshot,
+    snapshot_encoder::{Snapshot, SnapshotEncoder},
+};
 use log::{debug, info, trace, warn};
-use prusti_common::vir::{self, Expr, ExprFolder, Field, LocalVar, PermAmount, Position, Type};
+use prusti_common::vir::{
+    self, Expr, ExprFolder, Field, LocalVar, PermAmount, Position, Type, WithIdentifier,
+};
 use std::collections::HashMap;
 
 pub struct ExprPurifier {
@@ -28,7 +33,7 @@ impl ExprFolder for ExprPurifier {
     fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
         let receiver_type: Type = receiver.get_type().clone();
         if let Type::TypedRef(receiver_domain) = receiver_type {
-            let mut receiver_domain  = format!("Snap${}", receiver_domain); //FIXME this should come from a constant
+            let mut receiver_domain = format!("Snap${}", receiver_domain); //FIXME this should come from a constant
 
             let variant_name = if let Expr::Variant(base, var, _) = *receiver.clone() {
                 warn!("fold_field with base: {:?} variant: {:?}", base, var);
@@ -42,7 +47,7 @@ impl ExprFolder for ExprPurifier {
             let inner = self.fold_boxed(receiver);
             let field_name = field.name.to_string();
             match field_name.as_str() {
-                "val_bool" | "val_int" => *inner,
+                "val_bool" | "val_int" | "val_ref" => *inner,
                 "discriminant" => {
                     let domain_name = receiver_domain;
                     let snap_type = vir::Type::Domain(domain_name.to_string());
@@ -61,10 +66,6 @@ impl ExprFolder for ExprPurifier {
                     let field_name: String = field_name.chars().skip(2).collect();
                     let field_type = field.typ.clone();
                     let purified_field_type = super::translate_type(field_type, &self.snapshots);
-                    warn!(
-                        "fold_field field_name={:?}, receiver_domain={:?}",
-                        field_name, receiver_domain
-                    );
 
                     let domain_func = super::encode_field_domain_func(
                         purified_field_type,
@@ -92,6 +93,39 @@ impl ExprFolder for ExprPurifier {
                 },
                 p,
             )
+        }
+    }
+
+    fn fold_func_app(
+        &mut self,
+        name: String,
+        args: Vec<Expr>,
+        formal_args: Vec<LocalVar>,
+        return_type: Type,
+        pos: Position,
+    ) -> Expr {
+        match name.as_str() {
+            "builtin$unreach_int" => Expr::FuncApp(
+                name,
+                args.into_iter().map(|e| self.fold(e)).collect(),
+                formal_args,
+                return_type,
+                pos,
+            ),
+            _ => {
+                let ident_name = vir::compute_identifier(&name, &formal_args, &return_type);
+
+                let df = snapshot::encode_axiomatized_function(
+                    &name,
+                    &formal_args,
+                    &return_type,
+                    &self.snapshots,
+                );
+
+                let mut folded_args: Vec<Expr> = args.into_iter().map(|e| self.fold(e)).collect();
+                folded_args.push(snapshot::encode_nat_argument().into());
+                Expr::DomainFuncApp(df, folded_args, pos)
+            }
         }
     }
 
