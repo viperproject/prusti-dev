@@ -9,6 +9,7 @@ use super::{errors::EncodingResult, snapshot_encoder::Snapshot};
 use vir::Type;
 
 mod purifier;
+mod fixer;
 
 
 pub const NAT_DOMAIN_NAME: &str = "$Nat$";
@@ -115,7 +116,7 @@ pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>,) -> T
                     .get(&name)
                     .and_then(|snap| snap.domain())
                     .map(|domain| domain.name)
-                    .expect(&format!("No matching domain for '{}' in '{:?}'", name,snapshots));
+                    .expect(&format!("No matching domain for '{}' in '{:?}'", name, snapshots.keys()));
 
                 vir::Type::Domain(domain_name)
             }
@@ -124,7 +125,11 @@ pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>,) -> T
     }
 }
 
-
+/// Fix assertion by purifying heap dependent function calls that get snapshot
+/// argument.
+pub fn fix_assertion(assertion: vir::Expr, snapshots: &HashMap<String, Box<Snapshot>>) -> vir::Expr {
+    vir::ExprFolder::fold(&mut fixer::Fixer { snapshots }, assertion)
+}
 
 #[cfg(test)]
 mod tests {

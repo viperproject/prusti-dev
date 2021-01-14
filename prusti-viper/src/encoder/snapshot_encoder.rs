@@ -511,11 +511,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         (args, call)
     }
 
-    pub fn encode_equals_func(&self) -> vir::Function {
+    fn encode_equals_func(&self) -> vir::Function {
         self.encode_cmp_func(SNAPSHOT_EQUALS.to_string(), vir::BinOpKind::EqCmp)
     }
 
-    pub fn encode_not_equals_func(&self) -> vir::Function {
+    fn encode_not_equals_func(&self) -> vir::Function {
         self.encode_cmp_func(SNAPSHOT_NOT_EQUALS.to_string(), vir::BinOpKind::NeCmp)
     }
 
@@ -696,11 +696,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         res
     }
 
-    pub fn encode_equals_func_ref(&self) -> vir::Function {
+    fn encode_equals_func_ref(&self) -> vir::Function {
         self.encode_cmp_func_ref(SNAPSHOT_EQUALS.to_string(), vir::BinOpKind::EqCmp)
     }
 
-    pub fn encode_not_equals_func_ref(&self) -> vir::Function {
+    fn encode_not_equals_func_ref(&self) -> vir::Function {
         self.encode_cmp_func_ref(SNAPSHOT_NOT_EQUALS.to_string(),vir::BinOpKind::NeCmp)
     }
 
