@@ -8,12 +8,12 @@ use prusti_common::vir::{
 };
 use std::collections::HashMap;
 
-pub struct ExprPurifier {
-    pub snapshots: HashMap<String, Box<Snapshot>>,
+pub struct ExprPurifier<'a> {
+    pub snapshots: &'a HashMap<String, Box<Snapshot>>,
     pub self_function: vir::Expr,
 }
 
-impl ExprFolder for ExprPurifier {
+impl<'a> ExprFolder for ExprPurifier<'a> {
     fn fold_unfolding(
         &mut self,
         name: String,

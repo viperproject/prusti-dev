@@ -9,6 +9,7 @@ use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, Pro
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
+use crate::encoder::builtin_encoder::BuiltinDomainKind;
 use crate::encoder::errors::{ErrorCtxt, ErrorManager, SpannedEncodingError, EncodingError, WithSpan, RunIfErr};
 use crate::encoder::foldunfold;
 use crate::encoder::places;
@@ -22,7 +23,7 @@ use crate::encoder::type_encoder::{
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
 use prusti_common::vir;
-use prusti_common::vir::WithIdentifier;
+use prusti_common::vir::{WithIdentifier, ExprIterator};
 use prusti_common::config;
 use prusti_common::report::log;
 use prusti_interface::data::ProcedureDefId;
@@ -265,106 +266,31 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         if config::enable_purification_optimization() {
             domains.push(self.axiomatized_function_domain.borrow().clone());
-            domains.push(self.get_nat_domain());
-            domains.push(self.get_primitive_valid_domain())
+            let builtin_encoder =  BuiltinEncoder::new();
+            domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Nat));
+            domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Primitive));
         }
 
         domains.sort_by_key(|d| d.get_identifier());
         domains
     }
 
-    fn get_primitive_valid_domain(&self) -> vir::Domain {
-        //FIXME this does not check or handel the different sizes of primitve types
-        let domain_name = "PrimitiveValidDomain";
-
-        let mut functions = vec![];
-        let mut axioms = vec![];
-        for t in &[vir::Type::Bool , vir::Type::Int] {
-            let f = snapshot::valid_func_for_type(t);
-            functions.push(f.clone());
-
-            let forall_arg  = vir::LocalVar{name: "self".to_owned(), typ: t.clone()};
-            let function_app = vir::Expr::domain_func_app(f.clone(), vec![vir::Expr::local(forall_arg.clone())]);
-            let body = vir::Expr::and(function_app, true.into());
-            let e = vir::Expr::forall(vec![forall_arg], vec![], body); //TODO triggers
-            let ax = vir::DomainAxiom{  name: format!("{}$axiom", f.get_identifier()),
-                expr: e,
-                domain_name: domain_name.to_string()};
-            axioms.push(ax); //TODO
-        }
-
-
-        vir::Domain {
-            name: domain_name.to_owned(),
-            functions,
-            axioms,
-            type_vars: vec![],
-        }
-    }
-
-    fn get_succ_func(&self) -> vir::DomainFunc {
-        let succ = vir::DomainFunc {
-            name: "succ".to_owned(),
-            formal_args: vec![vir::LocalVar {
-                name: "val".to_owned(),
-                typ: vir::Type::Domain(snapshot::NAT_DOMAIN_NAME.to_owned()),
-            }],
-            return_type: vir::Type::Domain(snapshot::NAT_DOMAIN_NAME.to_owned()),
-            unique: false,
-            domain_name: snapshot::NAT_DOMAIN_NAME.to_owned(),
-        };
-
-        succ
-    }
-    fn get_zero_func(&self) -> vir::DomainFunc {
-        let zero = vir::DomainFunc {
-            name: "zero".to_owned(),
-            formal_args: Vec::new(),
-            return_type: vir::Type::Domain(snapshot::NAT_DOMAIN_NAME.to_owned()),
-            unique: false,
-            domain_name: snapshot::NAT_DOMAIN_NAME.to_owned(),
-        };
-
-        zero
-    }
-    fn get_nat_domain(&self) -> vir::Domain {
-        let nat_domain_name = snapshot::NAT_DOMAIN_NAME;
-        let zero = vir::DomainFunc {
-            name: "zero".to_owned(),
-            formal_args: vec![],
-            return_type: vir::Type::Domain(nat_domain_name.to_owned()),
-            unique: false,
-            domain_name: nat_domain_name.to_owned(),
-        };
-
-        let functions = vec![zero, self.get_succ_func()];
-
-        vir::Domain {
-            name: nat_domain_name.to_owned(),
-            functions,
-            axioms: vec![],
-            type_vars: vec![],
-        }
-    }
-
     pub fn encode_axiomatized_pure_function(&self, f: &vir::Function) {
-        let snapshots_info: HashMap<String, Box<Snapshot>> = self.snapshots.borrow().clone();
+        let snapshots: &HashMap<String, Box<Snapshot>> = &self.snapshots.borrow();
         let domain_name = self.axiomatized_function_domain.borrow().name.clone();
 
+        let formal_args_without_nat: Vec<vir::LocalVar> =
+            snapshot::encode_axiomatized_function_args_without_nat(&f.formal_args, &snapshots);
 
-
-        let snapshots_info: HashMap<String, Box<Snapshot>> = self.snapshots.borrow().clone();
-        let formal_args_without_nat: Vec<vir::LocalVar> = snapshot::encode_axiomatized_function_args_without_nat(&f.formal_args, &snapshots_info);
-
-
-        let df = snapshot::encode_axiomatized_function(&f.name, &f.formal_args,&f.return_type, &snapshots_info);
+        let df =
+            snapshot::encode_axiomatized_function(&f.name, &f.formal_args, &f.return_type, &snapshots);
         let nat_arg = vir::Expr::local(snapshot::encode_nat_argument());
-        let nat_succ = vir::Expr::domain_func_app(self.get_succ_func(), vec![nat_arg.clone()]);
+        let nat_succ = vir::Expr::domain_func_app(snapshot::get_succ_func(), vec![nat_arg.clone()]);
         let args_without_nat: Vec<vir::Expr> = formal_args_without_nat
-        .clone()
-        .into_iter()
-        .map(vir::Expr::local)
-        .collect();
+            .clone()
+            .into_iter()
+            .map(vir::Expr::local)
+            .collect();
 
         let mut args_with_succ = args_without_nat.clone();
         args_with_succ.push(nat_succ);
@@ -372,79 +298,70 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let function_call_with_succ = vir::Expr::domain_func_app(df.clone(), args_with_succ.clone());
 
         let mut args_with_zero = args_without_nat.clone();
-        args_with_zero.push(vir::Expr::domain_func_app(self.get_zero_func(), Vec::new()));
+        args_with_zero.push(vir::Expr::domain_func_app(snapshot::get_zero_func(), Vec::new()));
 
         let function_call_with_zero = vir::Expr::domain_func_app(df.clone(), args_with_zero.clone());
 
         let mut purifier = snapshot::ExprPurifier {
-            snapshots: snapshots_info.clone(),
-            self_function: function_call_with_succ.clone()
+            snapshots: &snapshots,
+            self_function: function_call_with_succ.clone(),
         };
 
-
-
-        let pre_conds: vir::Expr = f.pres
+        let pre_conds: vir::Expr = f
+            .pres
             .iter()
             .cloned()
             .map(|p| vir::ExprFolder::fold(&mut purifier, p))
-            .fold(true.into(),  vir::Expr::and);
-        let post_conds: vir::Expr = f.posts
+            .conjoin();
+        let post_conds: vir::Expr = f
+            .posts
             .iter()
             .cloned()
             .enumerate()
-            .filter_map(|(i,p)|  {
-                if i == f.posts.len() -1 {
+            .filter_map(|(i, p)| {
+                if i == f.posts.len() - 1 {
                     // Skip the last post condition as it is only there to clarify the relation between the result of this function and snapshots
                     None
-                }
-                else {
-                 Some(vir::ExprFolder::fold(&mut purifier, p))
+                } else {
+                    Some(vir::ExprFolder::fold(&mut purifier, p))
                 }
             })
-            .fold(true.into(),  vir::Expr::and);
+            .conjoin();
 
         let function_body = vir::ExprFolder::fold(&mut purifier, f.body.clone().unwrap());
-
 
         let function_identiry = vir::Expr::eq_cmp(function_call_with_succ.clone(), function_body);
 
         let rhs: vir::Expr = vir::Expr::and(post_conds, function_identiry);
 
-        let valids_anded : vir::Expr = formal_args_without_nat
+        let valids_anded: vir::Expr = formal_args_without_nat
             .iter()
             .map(|e| {
                 let valid_function = snapshot::valid_func_for_type(&e.typ);
                 let self_arg = vir::Expr::local(e.clone());
                 vir::Expr::domain_func_app(valid_function, vec![self_arg])
-
             })
-            .fold(true.into(),  vir::Expr::and);
+            .conjoin();
 
-
-        let pre_conds_and_valid = vir::Expr::and(pre_conds, valids_anded );
+        let pre_conds_and_valid = vir::Expr::and(pre_conds, valids_anded);
         let axiom_body = vir::Expr::implies(pre_conds_and_valid, rhs);
 
-
-
-        let mut triggers : Vec<vir::Trigger> = formal_args_without_nat.iter().filter_map(|arg| {
-            match &arg.typ {
+        let mut triggers: Vec<vir::Trigger> = formal_args_without_nat
+            .iter()
+            .filter_map(|arg| match &arg.typ {
                 vir::Type::Domain(arg_domain_name) => {
                     let self_arg = vir::Expr::local(arg.clone());
                     let unfold_func = snapshot::encode_unfold_witness(arg_domain_name.clone());
-                    let unfold_call = vir::Expr::domain_func_app(unfold_func, vec![self_arg, nat_arg.clone()]);
+                    let unfold_call =
+                        vir::Expr::domain_func_app(unfold_func, vec![self_arg, nat_arg.clone()]);
                     Some(unfold_call)
                 }
-                _ => None
-            }
-
-        })
-        .map(|t| {
-            vir::Trigger::new(vec![t, function_call_with_zero.clone()])
-        })
-        .collect();
+                _ => None,
+            })
+            .map(|t| vir::Trigger::new(vec![t, function_call_with_zero.clone()]))
+            .collect();
 
         triggers.push(vir::Trigger::new(vec![function_call_with_succ.clone()]));
-
 
         let da = vir::DomainAxiom {
             name: format!("{}$axiom", f.name), //TODO better name
@@ -452,14 +369,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             domain_name: domain_name.to_string(),
         };
 
-
-
-
         let mut args_without_succ: Vec<vir::Expr> = formal_args_without_nat
-        .clone()
-        .into_iter()
-        .map(vir::Expr::local)
-        .collect();
+            .clone()
+            .into_iter()
+            .map(vir::Expr::local)
+            .collect();
 
         args_without_succ.push(vir::Expr::local(snapshot::encode_nat_argument()));
 
@@ -472,7 +386,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
             domain_name: domain_name.to_string(),
         };
-
 
         self.axiomatized_function_domain
             .borrow_mut()
