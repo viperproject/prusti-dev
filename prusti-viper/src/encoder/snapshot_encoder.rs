@@ -642,7 +642,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     fn encode_snap_arg(&self, location: vir::Expr, field: vir::Field, field_ty: ty::Ty<'tcx>)
         -> EncodingResult<vir::Expr>
     {
-        warn!("encode_snap_arg begin");
         let res = match field_ty.kind() {
         ty::TyKind::Adt(adt_def, _) if adt_def.is_box() => { //TODO this breaks for lots of boxes. e.g. Box<Box<T>> or Box<i32>
             let boxed_ty = field_ty.boxed_ty();
@@ -786,22 +785,17 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
     fn encode_snap_domain(&self) -> EncodingResult<SnapshotDomain>
     {
-       // warn!("encode_snap_domain start");
-       let res =  Ok(SnapshotDomain{
+       Ok(SnapshotDomain{
             domain: self.encode_domain()?,
             equals_func: self.snapshot_encoder.encode_equals_func(),
             equals_func_ref: self.snapshot_encoder.encode_equals_func_ref(),
             not_equals_func: self.snapshot_encoder.encode_not_equals_func(),
             not_equals_func_ref: self.snapshot_encoder.encode_not_equals_func_ref(),
-        });
-      //  warn!("encode_snap_domain end");
-        res
-
+        })
     }
 
     fn encode_domain(&self) -> EncodingResult<vir::Domain>
     {
-        warn!("encode_domain start {}", self.snapshot_encoder.encode_domain_name());
         let mut functions = self.encode_constructors()?;
         let mut axioms = self.encode_axioms(&functions);
 
@@ -825,7 +819,6 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
             functions.push(valid_function);
             axioms.push(valid_axiom);
         }
-        warn!("encode_domain bedore end {}", self.snapshot_encoder.encode_domain_name());
 
 
         Ok(vir::Domain {
