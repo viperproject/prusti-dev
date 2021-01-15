@@ -52,6 +52,7 @@ use std::borrow::Borrow;
 use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
 use crate::encoder::memory_eq_encoder::MemoryEqEncoder;
 use rustc_span::MultiSpan;
+use crate::encoder::name_interner::NameInterner;
 use crate::encoder::utils::transpose;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
@@ -95,6 +96,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     vir_program_before_viper_writer: RefCell<Box<Write>>,
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
+    name_interner: RefCell<NameInterner>,
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -153,6 +155,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_snapshots: RefCell::new(HashMap::new()),
             snap_mirror_funcs: RefCell::new(HashMap::new()),
             encoding_errors_counter: RefCell::new(0),
+            name_interner: RefCell::new(NameInterner::new()),
         }
     }
 
@@ -1025,33 +1028,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         expr
     }
 
-    pub fn encode_identifier(&self, ident: String) -> String {
-        // Rule: the rhs must always have an even number of "$"
-        ident
-            .replace("::", "$$")
-            .replace("#", "$sharp$")
-            .replace("<", "$openang$")
-            .replace(">", "$closeang$")
-            .replace("(", "$openrou$")
-            .replace(")", "$closerou$")
-            .replace("[", "$opensqu$")
-            .replace("]", "$closesqu$")
-            .replace("{", "$opencur$")
-            .replace("}", "$closecur$")
-            .replace(",", "$comma$")
-            .replace(";", "$semic$")
-            .replace(" ", "$space$")
-    }
-
     pub fn encode_item_name(&self, def_id: DefId) -> String {
-        format!(
-            "m_{}",
-            self.encode_identifier(if config::disable_name_mangling() {
-                self.env.get_item_name(def_id)
-            } else {
-                self.env.get_item_def_path(def_id)
-            })
-        )
+        let full_name = format!("m_{}", encode_identifier(self.env.get_item_def_path(def_id)));
+        let short_name = format!("m_{}", encode_identifier(
+            self.env.tcx().opt_item_name(def_id)
+                .map(|s| s.name.to_ident_string())
+                .unwrap_or(self.env.get_item_name(def_id))
+        ));
+        self.intern_viper_identifier(full_name, short_name)
     }
 
     pub fn encode_invariant_func_app(
@@ -1499,18 +1483,56 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {
-        format!(
+        let kind_name = match kind {
+            SpecFunctionKind::Pre => "pre",
+            SpecFunctionKind::Post => "post",
+            SpecFunctionKind::HistInv => "histinv",
+        };
+        let full_name = format!(
             "sf_{}_{}",
-            match kind {
-                SpecFunctionKind::Pre => "pre",
-                SpecFunctionKind::Post => "post",
-                SpecFunctionKind::HistInv => "histinv",
-            },
-            self.encode_identifier(if config::disable_name_mangling() {
-                self.env.get_item_name(def_id)
-            } else {
-                self.env.get_item_def_path(def_id)
-            })
-        )
+            kind_name,
+            encode_identifier(self.env.get_item_def_path(def_id))
+        );
+        let short_name = format!(
+            "sf_{}_{}",
+            kind_name,
+            encode_identifier(
+                self.env.tcx().opt_item_name(def_id)
+                    .map(|s| s.name.to_ident_string())
+                    .unwrap_or(self.env.get_item_name(def_id))
+            )
+        );
+        self.intern_viper_identifier(full_name, short_name)
     }
+
+    pub fn intern_viper_identifier<S: AsRef<str>>(&self, full_name: S, short_name: S) -> String {
+        let result = if config::disable_name_mangling() {
+            short_name.as_ref().to_string()
+        } else {
+            if config::intern_names() {
+                self.name_interner.borrow_mut().intern(full_name, &[short_name])
+            } else {
+                full_name.as_ref().to_string()
+            }
+        };
+        result
+    }
+}
+
+fn encode_identifier(ident: String) -> String {
+    // Rule: the rhs must always have an even number of "$"
+    ident
+        .replace("::", "$$")
+        .replace("#", "$sharp$")
+        .replace("<", "$openang$")
+        .replace(">", "$closeang$")
+        .replace("(", "$openrou$")
+        .replace(")", "$closerou$")
+        .replace("[", "$opensqu$")
+        .replace("]", "$closesqu$")
+        .replace("{", "$opencur$")
+        .replace("}", "$closecur$")
+        .replace(",", "$comma$")
+        .replace(";", "$semic$")
+        .replace(" ", "$space$")
 }

@@ -400,6 +400,28 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         })
     }
 
+    /// The string to be appended to the encoding of certain types to make generics "less fragile".
+    fn encode_substs(&self, substs: ty::subst::SubstsRef<'tcx>) -> EncodingResult<String> {
+        let mut composed_name = vec![];
+        composed_name.push("_beg_".to_string()); // makes generics "less fragile"
+        let mut first = true;
+        for kind in substs.iter() {
+            if first {
+                first = false
+            } else {
+                // makes generics "less fragile"
+                composed_name.push("_sep_".to_string());
+            }
+            if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
+                composed_name.push(
+                    self.encoder.encode_type_predicate_use(ty)?
+                )
+            }
+        }
+        composed_name.push("_end_".to_string()); // makes generics "less fragile"
+        Ok(composed_name.join("$"))
+    }
+
     pub fn encode_predicate_use(self) -> EncodingResult<String> {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
@@ -431,22 +453,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Adt(adt_def, subst) => {
                 let mut composed_name = vec![self.encoder.encode_item_name(adt_def.did)];
-                composed_name.push("_beg_".to_string()); // makes generics "less fragile"
-                let mut first = true;
-                for kind in subst.iter() {
-                    if first {
-                        first = false
-                    } else {
-                        // makes generics "less fragile"
-                        composed_name.push("_sep_".to_string());
-                    }
-                    if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                        composed_name.push(
-                            self.encoder.encode_type_predicate_use(ty)?
-                        )
-                    }
-                }
-                composed_name.push("_end_".to_string()); // makes generics "less fragile"
+                // makes generics "less fragile"
+                composed_name.push(self.encode_substs(subst)?);
                 composed_name.join("$")
             }
 
@@ -521,8 +529,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 format!("__TYPARAM__${}$__", param_ty.name.as_str())
             }
 
-            ty::TyKind::Projection(ty::ProjectionTy { item_def_id, .. }) => {
-                self.encoder.encode_item_name(*item_def_id)
+            ty::TyKind::Projection(ty::ProjectionTy { item_def_id, substs }) => {
+                let mut composed_name = vec![self.encoder.encode_item_name(*item_def_id)];
+                // makes generics "less fragile"
+                composed_name.push(self.encode_substs(substs)?);
+                composed_name.join("$")
             }
 
             ty::TyKind::Dynamic(..) => {
