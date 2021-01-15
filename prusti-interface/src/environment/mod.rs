@@ -11,7 +11,7 @@ use rustc_hir as hir;
 use rustc_middle::mir;
 use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::ty::{self, TyCtxt, ParamEnv};
+use rustc_middle::ty::{self, TyCtxt, ParamEnv, WithOptConstParam};
 use std::path::PathBuf;
 use std::cell::Ref;
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
@@ -218,7 +218,7 @@ impl<'tcx> Environment<'tcx> {
 
     /// Get the MIR body of an external procedure.
     pub fn external_mir<'a>(&self, def_id: DefId) -> &'a mir::Body<'tcx> {
-        self.tcx().optimized_mir(def_id)
+        self.tcx().optimized_mir_or_const_arg_mir(WithOptConstParam::unknown(def_id))
     }
 
     /// Get all relevant trait declarations for some type.

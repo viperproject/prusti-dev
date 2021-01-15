@@ -297,7 +297,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
     for attr in attrs {
         if let ast::AttrKind::Normal(ast::AttrItem {
                                          path: ast::Path { span: _, segments, tokens: _ },
-                                         args: ast::MacArgs::Eq(_, tokens),
+                                         args: ast::MacArgs::Eq(_, token),
                                          tokens: _,
                                      }, _) = &attr.kind {
             // Skip attributes whose path don't match with "prusti::<attr_name>"
@@ -313,21 +313,15 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             use rustc_ast::token::TokenKind;
             use rustc_ast::tokenstream::{TokenTree, TokenStream};
             use rustc_ast::token::DelimToken;
-            fn extract_string(tokens: &TokenStream) -> String {
-                match tokens.trees().next().unwrap() {
-                    TokenTree::Token(Token {
-                                         kind: TokenKind::Literal(Lit { symbol, .. }),
-                                         ..
-                                     }) => {
+            fn extract_string(token: &Token) -> String {
+                match &token.kind {
+                    TokenKind::Literal(Lit { symbol, .. }) => {
                         symbol.as_str().replace("\\\"", "\"")
-                    }
-                    TokenTree::Delimited(_, DelimToken::NoDelim, tokens) => {
-                        extract_string(&tokens)
                     }
                     x => unreachable!("{:?}", x),
                 }
             }
-            strings.push(extract_string(tokens));
+            strings.push(extract_string(token));
         };
     }
     strings
