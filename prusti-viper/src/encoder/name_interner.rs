@@ -114,6 +114,7 @@ mod tests {
 
     #[test]
     #[should_panic]
+    #[cfg(debug_assertions)]
     fn test_readable_name_eq_past_full_name_1() {
         let mut interner = NameInterner::new();
         assert_eq!(interner.intern("first", &["name"]), "name");
@@ -123,6 +124,7 @@ mod tests {
 
     #[test]
     #[should_panic]
+    #[cfg(debug_assertions)]
     fn test_readable_name_eq_past_full_name_2() {
         let mut interner = NameInterner::new();
         assert_eq!(interner.intern("first", &["first"]), "first");
@@ -132,6 +134,7 @@ mod tests {
 
     #[test]
     #[should_panic]
+    #[cfg(debug_assertions)]
     fn test_readable_name_eq_future_full_name() {
         let mut interner = NameInterner::new();
         // The readable name is one of the future full names
@@ -141,6 +144,7 @@ mod tests {
 
     #[test]
     #[should_panic]
+    #[cfg(debug_assertions)]
     fn test_empty_readable_name() {
         let mut interner = NameInterner::new();
         // The readable name is empty
