@@ -116,8 +116,33 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Type::TypedRef(type_name)
             }
 
-            ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => {
-                self.encoder.encode_snapshot_type(&self.ty)?;
+            ty::TyKind::Adt(adt_def, _) => {
+                let is_zst = {
+                    let env_and_value = self.encoder.env().tcx().param_env(adt_def.did).and(self.ty);
+                    self.encoder.env().tcx().layout_of(env_and_value).map(|layout| layout.is_zst()).unwrap_or(false)
+                };
+                
+                if adt_def.is_struct() && is_zst
+                {   
+                        let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
+                        if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
+                            debug!("Ghost Type {}", ghost_type);
+                            TypeEncoder::encode_ghost_value(&ghost_type, self.encoder.encode_value_field(self.ty))
+                        }
+                        else {
+                            let snapshot = self.encoder.encode_snapshot(&self.ty)?;
+                            snapshot.get_type()
+                        }
+                }
+                else {
+                    let snapshot = self.encoder.encode_snapshot(&self.ty)?;
+                    snapshot.get_type()
+                }
+            }
+
+            ty::TyKind::Tuple(_) => {
+                let snapshot = self.encoder.encode_snapshot(&self.ty)?;
+                snapshot.get_type()
             }
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
@@ -236,6 +261,18 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         None
     }
 
+    fn encode_ghost_value(ghost_type: &str, value_field: vir::Field) -> vir::Type{
+        match ghost_type {
+            "GhostInt" => vir::Type::Int,
+            "GhostBool" => vir::Type::Bool,
+            "GhostSeq" => vir::Type::Seq,
+            "GhostSet" => vir::Type::Set,
+            "GhostMultiSet" => vir::Type::MultiSet,
+            // Is there any marker predicate for undefined viper types?
+            &_ => vir::Type::Int,
+        }
+    }
+
     fn encode_ghost_predicate(typ: vir::Type, ghost_type: &str, value_field: vir::Field) -> Vec<vir::Predicate> {
         match ghost_type {
             "GhostInt" => vec![vir::Predicate::new_primitive_value(
@@ -349,7 +386,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             .unwrap_or(false)
                     };
 
-                    if adt_def.is_struct() && layout.is_zst() {
+                    if adt_def.is_struct() && is_zst {
                         let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
                         if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
                             debug!("Ghost Type {}", ghost_type);
@@ -645,6 +682,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(ref adt_def, ref subst) if !adt_def.is_box() => {
+                debug!("Encode invariant");
                 if self.is_supported_struct_type(adt_def, subst) {
                     let own_substs =
                         ty::List::identity_for_item(self.encoder.env().tcx(), adt_def.did);

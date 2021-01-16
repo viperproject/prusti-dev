@@ -168,7 +168,31 @@ impl SnapshotEncoder {
                         vir::Field::new("val_bool", Type::Bool),
                     ),
                     ty::TyKind::Tuple(substs) if substs.is_empty() => 0.into(),
-                    ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => 0.into(),
+
+                    // TODO: cache the DefId for prusti-reserved types
+                    // to avoid these string-based checks
+                    // similar to lang_items() of Rust
+                    ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostInt" => Expr::field(
+                        expr.clone(),
+                        vir::Field::new("val_int", Type::Int),
+                    ),
+                    ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostBool" => Expr::field(
+                        expr.clone(),
+                        vir::Field::new("val_bool", Type::Bool),
+                    ),
+                    ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostSeq" => Expr::field(
+                        expr.clone(),
+                        vir::Field::new("val_seq", Type::Seq),
+                    ),
+                    ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostSet" => Expr::field(
+                        expr.clone(),
+                        vir::Field::new("val_set", Type::Set),
+                    ),
+                    ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostMultiSet" => Expr::field(
+                        expr.clone(),
+                        vir::Field::new("val_multiset", Type::MultiSet),
+                    ),
+
                     ty::TyKind::Adt(adt_def, _) if adt_def.variants.len() == 1 && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)].fields.is_empty() => 0.into(),
                     ty::TyKind::Param(_) => 0.into(),
                     _ => {
@@ -238,6 +262,14 @@ impl SnapshotEncoder {
             ty::TyKind::Char => Type::Int,
             ty::TyKind::Bool => Type::Bool,
             ty::TyKind::Tuple(substs) if substs.is_empty() => Type::Int,
+
+            // TODO: cache ghost DefIds
+            ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostInt" => Type::Int,
+            ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostBool" => Type::Bool,
+            ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostSeq" => Type::Seq,
+            ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostSet" => Type::Set,
+            ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostMultiSet" => Type::MultiSet,
+
             ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => Type::Int,
             ty::TyKind::Adt(adt_def, _) if adt_def.variants.len() == 1 && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)].fields.is_empty() => Type::Int,
             ty::TyKind::Param(_) => Type::Int,
@@ -345,6 +377,14 @@ impl SnapshotEncoder {
                     fields,
                 }], predicate_name)
             }
+
+            // TODO: cache ghost DefIds
+            ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostInt" => Ok(Snapshot::Primitive(Type::Int)),
+            ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostBool" => Ok(Snapshot::Primitive(Type::Bool)),
+            ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostSeq" => Ok(Snapshot::Primitive(Type::Seq)),
+            ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostSet" => Ok(Snapshot::Primitive(Type::Set)),
+            ty::TyKind::Adt(adt_def, _) if encoder.get_item_name(adt_def.did) == "prusti_contracts::ghost::GhostMultiSet" => Ok(Snapshot::Primitive(Type::MultiSet)),
+
             ty::TyKind::Adt(adt_def, subst) if adt_def.is_struct() => {
                 let mut fields = vec![];
                 for field in adt_def.all_fields() { // or adt_def.variants[0].fields ?
