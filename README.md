@@ -1,5 +1,3 @@
-**WARNING:** We are currently upgrading Prusti to work with the latest version of the Rust compiler. As a result, the version of Prusti in the `master` branch has severe regressions. If you want to see the code of Prusti that matches the version used in [Prusti Assistant](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant), you can find it at the commit tagged with `rustc-2018-06-07`.
-
 Prusti
 ======
 
