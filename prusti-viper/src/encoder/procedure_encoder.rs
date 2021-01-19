@@ -2035,33 +2035,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                         "std::ops::Add::add" => {
                                 debug!("Ghost Int add operation");
-                                /*let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                let encoded_left = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
-                                let encoded_right = self.mir_encoder.encode_operand_expr(&args[1]).with_span(span)?;
-                                let encoded_value = self.mir_encoder.encode_bin_op_expr(
-                                    mir::BinOp::Add,
-                                    encoded_left,
-                                    encoded_right,
-                                    arg_ty,
-                                ).with_span(span)?;*/
-                                
-                                
-
-
-
                                 let &(ref target_place, _) = destination.as_ref().unwrap();
                                 let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
-                                // Step 1. get a destination location for `var sample_ghost_int: Int;`
-                                // Is this viper declaration of an Int type encoded in prepare_assign_target method?
-                                // Currently, it's using the destination field from the MIR to accomplish this. I'm not sure how
-                                // destination and location are related here.
                                 let value_field = self.encoder.encode_value_field(dest_ty);
-                                // N.B. Is encode_value_field the right choice here?
-                                //let value_field = self.encoder.encode_value_field(dest_ty);
-                                // Step2. assign value = `ghost_val` to the above created destination/ location (unsure about the terminology)
                                 let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                let encoded_left = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
-                                let encoded_right = self.mir_encoder.encode_operand_expr(&args[1]).with_span(span)?;
                                 stmts.extend(self.encode_assign_binary_op(
                                     mir::BinOp::Add,
                                     &args[0],
