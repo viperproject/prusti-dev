@@ -592,7 +592,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         match ty.kind() {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
-                base // don't use a field for tuples and ADTs
+                let value_field = self.encode_value_field(ty);
+                debug!("value field for ty {:?} is {:?}", ty, value_field);
+                base.field(value_field) // don't use a field for tuples and ADTs
             }
             _ => {
                 let value_field = self.encode_value_field(ty);

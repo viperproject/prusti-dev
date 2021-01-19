@@ -189,8 +189,30 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             // For composed data structures, we typically use a snapshot rather than a field.
             // To unify how parameters are passed to functions, we treat them like a reference.
-            ty::TyKind::Adt(_, _)
-            | ty::TyKind::Tuple(_)
+            ty::TyKind::Adt(adt_def, subst) => {
+                let is_zst = {
+                    let env_and_value = self.encoder.env().tcx().param_env(adt_def.did).and(self.ty);
+                    self.encoder.env().tcx().layout_of(env_and_value).map(|layout| layout.is_zst()).unwrap_or(false)
+                };
+
+                if adt_def.is_struct() && is_zst
+                {   
+                        let item_name = self.encoder.get_native_adt_item_name(adt_def.did);
+                        if let Some(ghost_type) = TypeEncoder::is_ghost_adt(adt_def, item_name) {
+                            debug!("Ghost Type value field {}", ghost_type);
+                            vir::Field::new("val_int", vir::Type::Int)
+                        }
+                        else {
+                            let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
+                            vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
+                        }
+                }
+                else {
+                    let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
+                    vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
+                }
+            }
+            ty::TyKind::Tuple(_)
             | ty::TyKind::Closure(_, _)
             | ty::TyKind::FnDef(_, _) => {
                 let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
