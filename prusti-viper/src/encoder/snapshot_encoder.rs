@@ -417,12 +417,28 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             &cons_func,
         );
 
+        let mut functions = vec![cons_func];
+
+        if prusti_common::config::enable_purification_optimization() {
+            let domain_name = self.encode_domain_name();
+            let valid_function = self.encode_valid_function();
+
+            functions.push(snapshot::encode_unfold_witness(domain_name));
+            functions.push(valid_function);
+        }
+
         Ok(vir::Domain {
             name: self.encode_domain_name(),
-            functions: vec![cons_func],
+            functions,
             axioms: vec![cons_axiom_injectivity],
             type_vars: vec![]
         })
+    }
+
+    fn encode_valid_function(&self) -> vir::DomainFunc {
+        let domain_name = self.encode_domain_name();
+        let domain_type = vir::Type::Domain(domain_name);
+        snapshot::valid_func_for_type(&domain_type)
     }
 
     fn encode_domain_name(&self) -> String {
@@ -661,13 +677,20 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
 
                             let field_sae =
                                 SnapshotAdtEncoder::new(&field_snapshot_encoder, adt_def, subst);
-                            Ok(vir::Expr::func_app(
+                            let boxed_snapshot_type = field_sae.get_snapshot_type(boxed_ty)?;
+                            let arg = self.encode_arg_field(location, field);
+                            let val_ref_field = vir::Field{ name: "val_ref".to_string(), typ: vir::Type::TypedRef(predicate_name.clone()) };
+                            let arg_val_ref = arg.clone().field(val_ref_field);
+
+                            let func_app = vir::Expr::func_app(
                                 SNAPSHOT_GET.to_string(),
-                                vec![self.encode_arg_field(location, field)],
+                                vec![arg_val_ref],
                                 vec![field_snapshot_encoder.encode_arg_var(SNAPSHOT_ARG)],
-                                field_sae.get_snapshot_type(boxed_ty)?,
+                                boxed_snapshot_type,
                                 vir::Position::default(),
-                            ))
+                            );
+                            Ok(vir::Expr::wrap_in_unfolding(arg, func_app))
+                            
                         } else {
                             unreachable!()
                         }
@@ -802,7 +825,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
             }
 
             let domain_name = self.snapshot_encoder.encode_domain_name();
-            let valid_function = self.encode_valid_function();
+            let valid_function = self.snapshot_encoder.encode_valid_function();
             let valid_axiom = self.encode_valid_axiom()?;
 
             functions.push(snapshot::encode_unfold_witness(domain_name));
@@ -817,13 +840,6 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
             axioms,
             type_vars: vec![]
         })
-    }
-
-
-    fn encode_valid_function(&self) -> vir::DomainFunc {
-        let domain_name = self.snapshot_encoder.encode_domain_name();
-        let domain_type = vir::Type::Domain(domain_name);
-        snapshot::valid_func_for_type(&domain_type)
     }
 
 
@@ -887,7 +903,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
 
 
 
-       let self_valid_function = self.encode_valid_function();
+       let self_valid_function = self.snapshot_encoder.encode_valid_function();
        let self_valid_function_app = vir::Expr::domain_func_app(self_valid_function, vec![vir::Expr::local(self_var.clone())]);
 
        let equality = vir::Expr::eq_cmp(self_valid_function_app, valid_func_apps);

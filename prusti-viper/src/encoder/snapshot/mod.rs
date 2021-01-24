@@ -8,8 +8,8 @@ pub use self::purifier::ExprPurifier;
 use super::{errors::EncodingResult, snapshot_encoder::Snapshot};
 use vir::Type;
 
-mod purifier;
 mod fixer;
+mod purifier;
 
 pub const NAT_DOMAIN_NAME: &str = "$Nat$";
 pub const AXIOMATIZED_FUNCTION_DOMAIN_NAME: &str = "$AxiomatizedFunctions$";
@@ -144,8 +144,8 @@ pub fn encode_axiomatized_function(
 }
 
 fn unbox(name: String) -> String {
-    let start = "m_alloc$$boxed$$Box$_beg_$";
-    let end = "$_sep_$m_alloc$$alloc$$Global$_beg_$_end_$_end_";
+    let start = "m_Box$_beg_$";
+    let end = "$_sep_$m_Global$_beg_$_end_$_end_";
     if !name.ends_with(end) {
         return name;
     }
@@ -172,7 +172,8 @@ pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>) -> Ty
                     .map(|domain| domain.name)
                     .expect(&format!(
                         "No matching domain for '{}' in '{:?}'",
-                        name, snapshots
+                        name,
+                        snapshots.keys(),
                     ));
 
                 vir::Type::Domain(domain_name)
@@ -184,7 +185,10 @@ pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>) -> Ty
 
 /// Fix assertion by purifying heap dependent function calls that get snapshot
 /// argument.
-pub fn fix_assertion(assertion: vir::Expr, snapshots: &HashMap<String, Box<Snapshot>>) -> vir::Expr {
+pub fn fix_assertion(
+    assertion: vir::Expr,
+    snapshots: &HashMap<String, Box<Snapshot>>,
+) -> vir::Expr {
     vir::ExprFolder::fold(&mut fixer::Fixer { snapshots }, assertion)
 }
 
@@ -220,9 +224,8 @@ mod tests {
     use super::*;
     #[test]
     fn test_unbox() {
-        let res = unbox("m_alloc$$boxed$$Box$_beg_$m_len_lookup$$List$_beg_$_end_$_sep_$m_alloc$$alloc$$Global$_beg_$_end_$_end_".to_string());
+        let res = unbox("m_Box$_beg_$m_len_lookup$$List$_beg_$_end_$_sep_$m_Global$_beg_$_end_$_end_".to_string());
         assert_eq!(res, "m_len_lookup$$List$_beg_$_end_".to_string());
-
         assert_eq!(unbox("u32".to_string()), "u32".to_string());
     }
 }

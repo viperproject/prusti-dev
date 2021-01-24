@@ -364,7 +364,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         triggers.push(vir::Trigger::new(vec![function_call_with_succ.clone()]));
 
         let da = vir::DomainAxiom {
-            name: format!("{}$axiom", f.name), //TODO better name
+            name: format!("{}$axiom", f.get_identifier()), //TODO better name
             expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
             domain_name: domain_name.to_string(),
         };
@@ -382,7 +382,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let axiom_body = vir::Expr::eq_cmp(function_call_without_succ, function_call_with_succ.clone());
 
         let nat_da = vir::DomainAxiom {
-            name: format!("{}$nat_axiom", f.name), //TODO better name
+            name: format!("{}$nat_axiom", f.get_identifier()), //TODO better name
             expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
             domain_name: domain_name.to_string(),
         };
