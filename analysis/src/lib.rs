@@ -8,6 +8,7 @@
 #![feature(box_patterns)]
 
 extern crate rustc_middle;
+extern crate rustc_data_structures;
 extern crate serde;
 
 mod pointwise_state;

@@ -9,6 +9,8 @@ use std::collections::{HashMap, HashSet, BTreeMap, BTreeSet};
 use crate::{AbstractState, AnalysisError};
 use rustc_middle::mir;
 use rustc_middle::ty::TyCtxt;
+use rustc_middle::ich::StableHashingContextProvider;
+use rustc_data_structures::stable_hasher::{HashStable, StableHasher};
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
 use crate::serialization_utils::location_to_stmt_str;
@@ -31,6 +33,7 @@ pub struct ReachingDefsState<'a, 'tcx: 'a> {
     // Local -> Location OR index of function parameter
     reaching_defs: HashMap<mir::Local, HashSet<DefLocation>>,
     mir: &'a mir::Body<'tcx>,   // just for context
+    tcx: TyCtxt<'tcx>,
 }
 
 impl<'a, 'tcx: 'a> fmt::Debug for ReachingDefsState<'a, 'tcx> {
@@ -44,8 +47,10 @@ impl<'a, 'tcx: 'a> fmt::Debug for ReachingDefsState<'a, 'tcx> {
 
 impl<'a, 'tcx: 'a> PartialEq for ReachingDefsState<'a, 'tcx> {      // manual implementation needed, because not implemented for Body
     fn eq(&self, other: &Self) -> bool {
+        // ignore mir
+        debug_assert_eq!(self.mir.hash_stable(&mut self.tcx.get_stable_hashing_context(), &mut StableHasher::new()),
+                         other.mir.hash_stable(&mut other.tcx.get_stable_hashing_context(), &mut StableHasher::new()));
         self.reaching_defs == other.reaching_defs
-        // ignore Body
     }
 }
 impl<'a, 'tcx: 'a> Eq for ReachingDefsState<'a, 'tcx> {}
@@ -78,10 +83,11 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
     /// i.e. all sets of reaching definitions are empty
     ///
     /// For a completely new bottom element we do not even insert any locals with sets into the map.
-    fn new_bottom(mir: &'a mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Self {
+    fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {
             reaching_defs: HashMap::new(),
             mir,
+            tcx,
         }
     }
 
@@ -89,7 +95,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         self.reaching_defs.iter().all(|(_, set)| set.is_empty())
     }
 
-    fn new_initial(mir: &'a mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Self {
+    fn new_initial(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         let mut reaching_defs: HashMap<mir::Local, HashSet<DefLocation>> = HashMap::new();
         // insert parameters
         for (idx, local) in mir.args_iter().enumerate() {
@@ -99,6 +105,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         Self {
             reaching_defs,
             mir,
+            tcx,
         }
     }
 

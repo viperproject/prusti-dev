@@ -9,6 +9,8 @@ use crate::abstract_domains::place_utils::*;
 use rustc_middle::mir;
 use std::collections::{HashSet, BTreeSet};
 use rustc_middle::ty::TyCtxt;
+use rustc_middle::ich::StableHashingContextProvider;
+use rustc_data_structures::stable_hasher::{HashStable, StableHasher};
 use std::mem;
 use std::fmt;
 use serde::{Serialize, Serializer};
@@ -38,6 +40,8 @@ impl<'a, 'tcx: 'a> fmt::Debug for DefinitelyInitializedState<'a, 'tcx> {
 
 impl<'a, 'tcx: 'a> PartialEq for DefinitelyInitializedState<'a, 'tcx> {
     fn eq(&self, other: &Self) -> bool {
+        debug_assert_eq!(self.mir.hash_stable(&mut self.tcx.get_stable_hashing_context(), &mut StableHasher::new()),
+                         other.mir.hash_stable(&mut other.tcx.get_stable_hashing_context(), &mut StableHasher::new()));
         self.def_init_places == other.def_init_places
     }
 }
