@@ -168,7 +168,7 @@
 <table><thead><tr><th>Syntax</th><th>Meaning</th></tr></thead><tbody>
 <tr><td><a href="#old-expressions"><code>old(...)</code></a></td><td>Value of expression in a previous state</td></tr>
 <tr><td><a href="#implications"><code>... ==&gt; ...</code></a></td><td>Implication</td></tr>
-<tr><td><a href="#quantifiers"><code>forall ...</code></a></td><td>Universal quantifier</td></tr>
+<tr><td><a href="#quantifiers"><code>forall(...)</code></a></td><td>Universal quantifier</td></tr>
 <tr><td><a href="#specification-entailments"><code>... |= ...</code></a></td><td>Specification entailment</td></tr>
 </tbody></table>
 <h2><a class="header" href="#old-expressions" id="old-expressions">Old expressions</a></h2>
@@ -214,16 +214,21 @@ pub fn is_empty(&amp;self) -&gt; bool;
 #[ensures(self.len() == old(self.len()))]
 #[ensures(self.lookup(index) == value)]
 #[ensures(
-    forall i: usize :: (0 &lt;= i &amp;&amp; i &lt; self.len() &amp;&amp; i != index) ==&gt;
-        self.lookup(i) == old(self.lookup(i))
+    forall(|i: usize|
+        (0 &lt;= i &amp;&amp; i &lt; self.len() &amp;&amp; i != index)
+        ==&gt; (self.lookup(i) == old(self.lookup(i)))
+    )
 )]
 pub fn store(&amp;mut self, index: usize, value: i32) {
     ...
 }
 <span class="boring">}
 </span></code></pre></pre>
+<p>There may be multiple bound variables:</p>
+<pre><code class="language-plain">forall(|x: isize, y: isize| ...)
+</code></pre>
 <p>The syntax of quantifiers is:</p>
-<pre><code class="language-plain">forall &lt;bound variable&gt;: &lt;bound variable type&gt; :: &lt;filter&gt; ==&gt; &lt;expression&gt;
+<pre><code class="language-plain">forall(|&lt;bound variable&gt;: &lt;bound variable type&gt;, ...| &lt;filter&gt; ==&gt; &lt;expression&gt;)
 </code></pre>
 <h2><a class="header" href="#specification-entailments" id="specification-entailments">Specification entailments</a></h2>
 <p>Specification entailments provide the contract for a given closure or function variable. See the <a href="verify/spec_ent.html">specification entailments</a> chapter for more details.</p>
