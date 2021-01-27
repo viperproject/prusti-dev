@@ -206,9 +206,11 @@ fn dfs2_compute(node: &Tree, upLucky: isize) -> isize {
         None => {}
         Some(box l) => {
             if l.isLucky() {
-                result +=  dfs2_compute(l, node.n() - sub_size(node))
+                let x = node.n() - sub_size(node);
+                result +=  dfs2_compute(l, x);
             } else {
-                result += dfs2_compute(l, upLucky + down_lucky(node) - down_lucky(l))
+                let x = upLucky + down_lucky(node) - down_lucky(l);
+                result += dfs2_compute(l, x);
             }
         }
     }
@@ -216,9 +218,11 @@ fn dfs2_compute(node: &Tree, upLucky: isize) -> isize {
         None => {}
         Some(box r) => {
             if r.isLucky() {
-                result +=  dfs2_compute(r, node.n() - sub_size(node))
+                let x = node.n() - sub_size(node);
+                result += dfs2_compute(r, x);
             } else {
-                result += dfs2_compute(r, upLucky + down_lucky(node) - down_lucky(r))
+                let  x =  upLucky + down_lucky(node) - down_lucky(r);
+                result += dfs2_compute(r, x);
             }
         }
     }
