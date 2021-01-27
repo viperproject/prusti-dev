@@ -165,15 +165,15 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
     /// meaning all locals (which includes all their fields)
     fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         let mut places = HashSet::new();
-        for local in mir.local_decls.indices().skip(1) {        // skip return value pointer
+        for local in mir.local_decls.indices(){
             places.insert(local.clone().into());
         }
         Self {def_init_places: places, mir, tcx}
     }
 
     fn is_bottom(&self) -> bool {
-        if self.def_init_places.len() == (self.mir.local_decls.len() - 1) {
-            self.mir.local_decls.indices().skip(1).all(|local| self.def_init_places.contains(&local.into()))
+        if self.def_init_places.len() == self.mir.local_decls.len() {
+            self.mir.local_decls.indices().all(|local| self.def_init_places.contains(&local.into()))
         }
         else {
             false
