@@ -6,7 +6,7 @@ Prusti specifications are a superset of Rust boolean expressions. They must be d
 | --- | --- |
 | [`old(...)`](#old-expressions) | Value of expression in a previous state |
 | [`... ==> ...`](#implications) | Implication |
-| [`forall ...`](#quantifiers) | Universal quantifier |
+| [`forall(...)`](#quantifiers) | Universal quantifier |
 | [<code>... &#x7C;= ...</code>](#specification-entailments) | Specification entailment |
 
 ## Old expressions
@@ -51,18 +51,26 @@ Quantifiers are typically used for describing how a method call changes a contai
 #[ensures(self.len() == old(self.len()))]
 #[ensures(self.lookup(index) == value)]
 #[ensures(
-    forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-        self.lookup(i) == old(self.lookup(i))
+    forall(|i: usize|
+        (0 <= i && i < self.len() && i != index)
+        ==> (self.lookup(i) == old(self.lookup(i)))
+    )
 )]
 pub fn store(&mut self, index: usize, value: i32) {
     ...
 }
 ```
 
+There may be multiple bound variables:
+
+```plain
+forall(|x: isize, y: isize| ...)
+```
+
 The syntax of quantifiers is:
 
 ```plain
-forall <bound variable>: <bound variable type> :: <filter> ==> <expression>
+forall(|<bound variable>: <bound variable type>, ...| <filter> ==> <expression>)
 ```
 
 ## Specification entailments

@@ -34,8 +34,8 @@ impl VecWrapperI32 {
     #[after_expiry(
         self.len() == old(self.len()) &&
         self.lookup(index) == before_expiry(*result) &&
-        (
-            forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
+        forall(
+            |i: usize| (0 <= i && i < self.len() && i != index) ==>
             self.lookup(i) == old(self.lookup(i))
         )
     )]
