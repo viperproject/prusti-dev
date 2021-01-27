@@ -12,7 +12,9 @@ mod fixer;
 mod purifier;
 
 pub const NAT_DOMAIN_NAME: &str = "$Nat$";
-pub const AXIOMATIZED_FUNCTION_DOMAIN_NAME: &str = "$AxiomatizedFunctions$";
+pub const AXIOMATIZED_FUNCTION_DOMAIN_NAME: &str = "$MirrorFunctions$";
+pub const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
+pub const MIRROR_FUNCTION_PREFIX: &str = "mirrorfn$";
 
 pub fn encode_field_domain_func(
     field_type: vir::Type,
@@ -67,7 +69,7 @@ pub fn encode_unfold_witness(domain_name: String) -> vir::DomainFunc {
 pub fn valid_func_for_type(typ: &vir::Type) -> vir::DomainFunc {
     let domain_name: String = match typ {
         Type::Domain(name) => name.clone(),
-        Type::Bool | Type::Int => "PrimitiveValidDomain".to_string(),
+        Type::Bool | Type::Int => PRIMITIVE_VALID_DOMAIN_NAME.to_string(),
         Type::TypedRef(_) => unreachable!(),
     };
 
@@ -102,7 +104,7 @@ pub fn encode_nat_argument() -> vir::LocalVar {
 }
 
 /// Returns the arguments for the axiomatized version of a function but does not yet include the Nat argument
-pub fn encode_axiomatized_function_args_without_nat(
+pub fn encode_mirror_function_args_without_nat(
     formal_args: &[vir::LocalVar],
     snapshots: &HashMap<String, Box<Snapshot>>,
 ) -> Vec<vir::LocalVar> {
@@ -120,20 +122,20 @@ pub fn encode_axiomatized_function_args_without_nat(
         .collect()
 }
 
-pub fn encode_axiomatized_function(
+pub fn encode_mirror_function(
     name: &str,
     formal_args: &[vir::LocalVar],
     return_type: &vir::Type,
     snapshots: &HashMap<String, Box<Snapshot>>,
 ) -> vir::DomainFunc {
     let formal_args_without_nat: Vec<vir::LocalVar> =
-        encode_axiomatized_function_args_without_nat(formal_args, snapshots);
+        encode_mirror_function_args_without_nat(formal_args, snapshots);
 
     let mut formal_args = formal_args_without_nat.clone();
     formal_args.push(encode_nat_argument());
 
     let df = vir::DomainFunc {
-        name: format!("domainVersionOf{}", name),
+        name: format!("{}{}", MIRROR_FUNCTION_PREFIX, name),
         formal_args: formal_args.clone(),
         return_type: translate_type(return_type.clone(), &snapshots),
         unique: false,
@@ -224,7 +226,10 @@ mod tests {
     use super::*;
     #[test]
     fn test_unbox() {
-        let res = unbox("m_Box$_beg_$m_len_lookup$$List$_beg_$_end_$_sep_$m_Global$_beg_$_end_$_end_".to_string());
+        let res = unbox(
+            "m_Box$_beg_$m_len_lookup$$List$_beg_$_end_$_sep_$m_Global$_beg_$_end_$_end_"
+                .to_string(),
+        );
         assert_eq!(res, "m_len_lookup$$List$_beg_$_end_".to_string());
         assert_eq!(unbox("u32".to_string()), "u32".to_string());
     }

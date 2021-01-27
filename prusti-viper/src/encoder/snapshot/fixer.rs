@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use prusti_common::vir::{self, ExprFolder};
 use crate::encoder::snapshot_encoder::Snapshot;
+use crate::encoder::snapshot;
 
 pub struct Fixer<'a> {
     pub snapshots: &'a HashMap<String, Box<Snapshot>>,
@@ -24,7 +25,7 @@ impl<'a> ExprFolder for Fixer<'a> {
             }
         });
         if type_mismatch {
-            name = format!("domainVersionOf{}", name);
+            name = format!("{}{}", snapshot::MIRROR_FUNCTION_PREFIX, name);
             formal_args = formal_args.into_iter().map(|parameter| {
                 vir::LocalVar {
                     name: parameter.name,

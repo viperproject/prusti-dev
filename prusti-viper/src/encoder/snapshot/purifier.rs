@@ -36,7 +36,6 @@ impl<'a> ExprFolder for ExprPurifier<'a> {
             let mut receiver_domain = format!("Snap${}", receiver_domain); //FIXME this should come from a constant
 
             let variant_name = if let Expr::Variant(base, var, _) = *receiver.clone() {
-                warn!("fold_field with base: {:?} variant: {:?}", base, var);
                 let name: String = var.name.chars().skip(5).collect(); //TODO this is probably not the best way to get the name of the variant
                 receiver_domain = receiver_domain[..receiver_domain.len() - name.len()].to_string();
 
@@ -96,32 +95,56 @@ impl<'a> ExprFolder for ExprPurifier<'a> {
         }
     }
 
+    fn fold_cond(
+        &mut self,
+        guard: Box<Expr>,
+        then_expr: Box<Expr>,
+        else_expr: Box<Expr>,
+        pos: Position,
+    ) -> Expr {
+        if let Expr::FuncApp(name, _, _, _, _) = &*then_expr {
+            if name == "builtin$unreach_int" {
+                return *self.fold_boxed(else_expr);
+            }
+        }
+
+        if let Expr::FuncApp(name, _, _, _, _) = &*else_expr {
+            if name == "builtin$unreach_int" {
+                return *self.fold_boxed(then_expr);
+            }
+        }
+
+        Expr::Cond(
+            self.fold_boxed(guard),
+            self.fold_boxed(then_expr),
+            self.fold_boxed(else_expr),
+            pos,
+        )
+    }
+
     fn fold_func_app(
         &mut self,
         name: String,
         mut args: Vec<Expr>,
         formal_args: Vec<LocalVar>,
         return_type: Type,
-        pos: Position
+        pos: Position,
     ) -> Expr {
         match name.as_str() {
-            "builtin$unreach_int" => Expr::FuncApp(
-                name,
-                args.into_iter().map(|e| self.fold(e)).collect(),
-                formal_args,
-                return_type,
-                pos,
-            ),
-            "snap$"  =>{
+            "snap$" => {
                 // This is a snapshot function. Just drop it and use its argument.
                 // FIXME: We should have a proper way of discovering this.
-                assert_eq!(args.len(), 1, "The snapshot function must contain only a single argument.");
+                assert_eq!(
+                    args.len(),
+                    1,
+                    "The snapshot function must contain only a single argument."
+                );
                 self.fold(args.pop().unwrap())
             }
             _ => {
                 let ident_name = vir::compute_identifier(&name, &formal_args, &return_type);
 
-                let df = snapshot::encode_axiomatized_function(
+                let df = snapshot::encode_mirror_function(
                     &name,
                     &formal_args,
                     &return_type,
@@ -153,5 +176,4 @@ impl<'a> ExprFolder for ExprPurifier<'a> {
     ) -> Expr {
         true.into()
     }
-
 }

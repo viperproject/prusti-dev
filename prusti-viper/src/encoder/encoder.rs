@@ -275,15 +275,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         domains
     }
 
-    pub fn encode_axiomatized_pure_function(&self, f: &vir::Function) {
+    pub fn encode_mirror_of_pure_function(&self, f: &vir::Function) {
         let snapshots: &HashMap<String, Box<Snapshot>> = &self.snapshots.borrow();
         let domain_name = self.axiomatized_function_domain.borrow().name.clone();
 
         let formal_args_without_nat: Vec<vir::LocalVar> =
-            snapshot::encode_axiomatized_function_args_without_nat(&f.formal_args, &snapshots);
+            snapshot::encode_mirror_function_args_without_nat(&f.formal_args, &snapshots);
 
         let df =
-            snapshot::encode_axiomatized_function(&f.name, &f.formal_args, &f.return_type, &snapshots);
+            snapshot::encode_mirror_function(&f.name, &f.formal_args, &f.return_type, &snapshots);
         let nat_arg = vir::Expr::local(snapshot::encode_nat_argument());
         let nat_succ = vir::Expr::domain_func_app(snapshot::get_succ_func(), vec![nat_arg.clone()]);
         let args_without_nat: Vec<vir::Expr> = formal_args_without_nat
@@ -989,8 +989,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 .insert(predicate_name.to_string(), box snapshot);
             if config::enable_purification_optimization() {
                 if let Some(domain) = &self.snapshots.borrow()[&predicate_name].snap_domain {
-                    self.encode_axiomatized_pure_function(&domain.equals_func);
-                    self.encode_axiomatized_pure_function(&domain.not_equals_func);
+                    self.encode_mirror_of_pure_function(&domain.equals_func);
+                    self.encode_mirror_of_pure_function(&domain.not_equals_func);
                 }
             }
         }
@@ -1304,7 +1304,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     let ty = local_decl.ty;
                     self.encode_snapshot(ty).with_span(procedure.get_span()).run_if_err(cleanup)?;
                 }
-                self.encode_axiomatized_pure_function(&function);
+                self.encode_mirror_of_pure_function(&function);
             }
 
             self.log_vir_program_before_viper(function.to_string());

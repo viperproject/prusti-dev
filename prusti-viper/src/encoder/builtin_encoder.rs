@@ -124,7 +124,7 @@ impl BuiltinEncoder {
 
     fn encode_primitive_builtin_domain(&self) -> vir::Domain {
         //FIXME this does not check or handel the different sizes of primitve types
-        let domain_name = "PrimitiveValidDomain";
+        let domain_name = snapshot::PRIMITIVE_VALID_DOMAIN_NAME;
 
         let mut functions = vec![];
         let mut axioms = vec![];
