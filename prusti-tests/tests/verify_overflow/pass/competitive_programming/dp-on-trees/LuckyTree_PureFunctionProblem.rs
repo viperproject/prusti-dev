@@ -198,17 +198,6 @@ fn assume_false() {}
 
 #[pure]
 #[requires(same_n(node))]
-#[requires(same_n(child))]
-fn compute_child_answer(node: &Tree, child: &Tree, upLucky: isize) -> isize {
-    if child.isLucky() {
-        dfs2_compute(child, node.n() - sub_size(node))
-    } else {
-        dfs2_compute(child, upLucky + down_lucky(node) - down_lucky(child))
-    }
-}
-
-#[pure]
-#[requires(same_n(node))]
 fn dfs2_compute(node: &Tree, upLucky: isize) -> isize {
     let d1 = down_lucky(node);
     let tot = upLucky + d1;
@@ -216,13 +205,21 @@ fn dfs2_compute(node: &Tree, upLucky: isize) -> isize {
     match &(*node).left {
         None => {}
         Some(box l) => {
-            result += compute_child_answer(node, l, upLucky);
+            if l.isLucky() {
+                result +=  dfs2_compute(l, node.n() - sub_size(node))
+            } else {
+                result += dfs2_compute(l, upLucky + down_lucky(node) - down_lucky(l))
+            }
         }
     }
     match &(*node).right {
         None => {}
         Some(box r) => {
-            result += compute_child_answer(node, r, upLucky);
+            if r.isLucky() {
+                result +=  dfs2_compute(r, node.n() - sub_size(node))
+            } else {
+                result += dfs2_compute(r, upLucky + down_lucky(node) - down_lucky(r))
+            }
         }
     }
     result
