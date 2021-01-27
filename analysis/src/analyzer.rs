@@ -41,7 +41,8 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
 
         let mut counters: HashMap<mir::BasicBlock, u32> = HashMap::with_capacity(mir.basic_blocks().len());
 
-        //'block_loop:    // extract the bb with the minimal index -> hopefully better performance
+        //'block_loop:
+        // extract the bb with the minimal index -> hopefully better performance
         while let Some(&bb) = work_set.iter().next() {      //use pop_first when it becomes stable?
             work_set.remove(&bb);
 
