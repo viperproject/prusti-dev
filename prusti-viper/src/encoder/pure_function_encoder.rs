@@ -119,7 +119,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let return_span = self.get_local_span(mir::RETURN_PLACE);
             let snapshot = self.encoder.encode_snapshot(&ty)
                 .with_span(return_span)?;
-            let body_expr = snapshot.get_snap_call(body_expr);
+            let body_expr = snapshot.snap_call(body_expr);
             self.encode_function_given_body(Some(body_expr))
         } else {
             self.encode_function_given_body(Some(body_expr))

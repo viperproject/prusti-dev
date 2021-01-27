@@ -320,6 +320,11 @@ impl Expr {
         Expr::PredicateAccessPredicate(name.to_string(), box place, perm, pos)
     }
 
+    pub fn field_access_predicate(place: Expr, perm: PermAmount) -> Self {
+        let pos = place.pos();
+        Expr::FieldAccessPredicate(box place, perm, pos)
+    }
+
     pub fn pred_permission(place: Expr, perm: PermAmount) -> Option<Self> {
         place
             .typed_ref_name()
@@ -454,6 +459,13 @@ impl Expr {
         pos: Position,
     ) -> Self {
         Expr::FuncApp(name, args, internal_args, return_type, pos)
+    }
+
+    pub fn domain_func_app(
+        func: DomainFunc,
+        args: Vec<Expr>,
+    ) -> Self {
+        Expr::DomainFuncApp(func, args, Position::default())
     }
 
     pub fn magic_wand(lhs: Expr, rhs: Expr, borrow: Option<Borrow>) -> Self {

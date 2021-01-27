@@ -1,5 +1,3 @@
-**WARNING:** We are currently upgrading Prusti to work with the latest version of the Rust compiler. As a result, the version of Prusti in the `master` branch has severe regressions. If you want to see the code of Prusti that matches the version used in [Prusti Assistant](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant), you can find it at the commit tagged with `rustc-2018-06-07`.
-
 Prusti
 ======
 
@@ -17,7 +15,7 @@ Overflow checking can be enabled with a configuration flag, otherwise all intege
 In Prusti, the functional behaviour of a function can be specified by using annotations, among which are preconditions, postconditions, and loop invariants.
 The tool checks them, reporting error messages when the code does not adhere to the provided specification.
 
-For a tutorial and more information, check out [the wiki page](https://github.com/viperproject/prusti-dev/wiki).
+For a tutorial and more information, check out the [user guide](https://viperproject.github.io/prusti-dev/user-guide/).
 
 
 Using Prusti
@@ -27,4 +25,8 @@ The easiest way to try out Prusti is by using the ["Prusti Assistant"](https://m
 
 Alternatively, if you wish to use Prusti from the command line there are two options:
 * Download the precompiled binaries for Ubuntu, Windows, or MacOS from a [GitHub release](https://github.com/viperproject/prusti-dev/releases).
-* Compile from the source code, by first running `./x.py setup` and then afterwards `./x.py build --release`.
+* Compile from the source code, by installing [rustup](https://rustup.rs/), running `./x.py setup` and then `./x.py build --release`.
+
+For more detailed instructions, refer to the [user guide](https://viperproject.github.io/prusti-dev/user-guide/) and to the [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/).
+
+Do you still have questions? Open an issue or contact us on [Zulip](https://prusti.zulipchat.com/).

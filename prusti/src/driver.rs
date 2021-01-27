@@ -32,7 +32,6 @@ mod callbacks;
 mod verifier;
 mod arg_value;
 
-use log::debug;
 use std::{env, panic, borrow::Cow, path::PathBuf};
 use prusti_common::report::user;
 use lazy_static::lazy_static;

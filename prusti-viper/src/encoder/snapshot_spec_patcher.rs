@@ -87,11 +87,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PostSnapshotPatcher<'p, 'v, 'tcx> {
         } else if lhs_is_snap /* && !rhs_is_snap */ {
             (
                 args[0].clone(),
-                self.get_snapshot(&args[0]).get_snap_call(args[1].clone())
+                self.get_snapshot(&args[0]).snap_call(args[1].clone())
             )
         } else /* rhs_is_snap && !lhs_is_snap */ {
             (
-                self.get_snapshot(&args[1]).get_snap_call(args[0].clone()),
+                self.get_snapshot(&args[1]).snap_call(args[0].clone()),
                 args[1].clone()
             )
         };
@@ -141,8 +141,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PostSnapshotPatcher<'p, 'v, 'tcx> {
                                     predicate_name.to_string()
                                 )
                                 .map(|snapshot|
-                                    if snapshot.is_defined() {
-                                        snapshot.get_snap_call(a)
+                                    if snapshot.supports_equality() {
+                                        snapshot.snap_call(a)
                                     } else {
                                         a
                                     }
