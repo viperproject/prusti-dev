@@ -297,11 +297,17 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 field.to_viper(ast),
                 pos.to_viper(ast),
             ),
-            &Expr::Field(ref base, ref field, ref pos) => ast.field_access_with_pos(
-                base.to_viper(ast),
-                field.to_viper(ast),
-                pos.to_viper(ast),
-            ),
+            &Expr::Field(ref base, ref field, ref pos) => {
+                match base.get_type() {
+                    &Type::TypedRef(_) => ast.field_access_with_pos(
+                        base.to_viper(ast),
+                        field.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    &Type::Snapshot(_) => unreachable!(), // TODO: domain_func_app with the correct name
+                    t => unreachable!("cannot access a field of a value of type {}", t),
+                }
+            }
             &Expr::AddrOf(..) => unreachable!(),
             &Expr::Const(ref val, ref pos) => (val, pos).to_viper(ast),
             &Expr::LabelledOld(ref old_label, ref expr, ref pos) => {
@@ -462,6 +468,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
                 ast.inhale_exhale_pred(inhale_expr.to_viper(ast), exhale_expr.to_viper(ast))
             }
+            &Expr::SnapApp(ref expr, ..) => unreachable!(),
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)

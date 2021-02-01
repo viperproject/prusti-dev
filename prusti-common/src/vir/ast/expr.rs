@@ -47,6 +47,8 @@ pub enum Expr {
     // DomainFuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, String, Position),
     /// Inhale Exhale: inhale expression, exhale expression, Viper position (unused)
     InhaleExhale(Box<Expr>, Box<Expr>, Position),
+    /// Snapshot call to convert from a Ref to a snapshot value
+    SnapApp(Box<Expr>, Type, Position),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -196,9 +198,9 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(", "),
             ),
-
             Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) =>
                 write!(f, "[({}), ({})]", inhale_expr, exhale_expr),
+            Expr::SnapApp(ref expr, _, _) => write!(f, "snap({})", expr.to_string()),
         }
     }
 }
@@ -266,6 +268,7 @@ impl Expr {
             Expr::DomainFuncApp(_, _, p) => p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::InhaleExhale(_, _, p) => p,
+            Expr::SnapApp(_, _, p) => p,
         }
     }
 
@@ -294,6 +297,7 @@ impl Expr {
             Expr::DomainFuncApp(x,y,_) => Expr::DomainFuncApp(x,y,pos),
             // TODO Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
             Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
+            Expr::SnapApp(e, t, _) => Expr::SnapApp(e, t, pos),
         }
     }
 
@@ -470,6 +474,14 @@ impl Expr {
 
     pub fn magic_wand(lhs: Expr, rhs: Expr, borrow: Option<Borrow>) -> Self {
         Expr::MagicWand(box lhs, box rhs, borrow, Position::default())
+    }
+
+    pub fn snap_app(expr: Expr) -> Self {
+        let typ = match expr.get_type() {
+            &Type::TypedRef(ref name) => Type::Snapshot(name.to_string()),
+            _ => unreachable!("cannot snapshot a non-ref value {:?}", expr),
+        };
+        Expr::SnapApp(box expr, typ, Position::default())
     }
 
     pub fn find(&self, sub_target: &Expr) -> bool {
@@ -674,6 +686,7 @@ impl Expr {
                 return Some(field_place);
             }
         }
+        // TODO: also allow for Snapshots?
         None
     }
 
@@ -926,6 +939,9 @@ impl Expr {
             Expr::FieldAccessPredicate(..) |
             Expr::InhaleExhale(..) => {
                 unreachable!("Unexpected expression: {:?}", self);
+            }
+            Expr::SnapApp(_, ref typ, _) => {
+                &typ
             }
         }
     }
@@ -1272,7 +1288,8 @@ impl Expr {
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)
-                    | Expr::InhaleExhale(..) => true.into(),
+                    | Expr::InhaleExhale(..)
+                    | Expr::SnapApp(..) => true.into(),
                 }
             }
         }
@@ -1450,6 +1467,10 @@ impl PartialEq for Expr {
                 (self_name, self_args, self_base, self_perm, self_variant)
                     == (other_name, other_args, other_base, other_perm, other_variant)
             }
+            (
+                Expr::SnapApp(ref self_expr, ref self_typ, _),
+                Expr::SnapApp(ref other_expr, ref other_typ, _),
+            ) => (self_expr, self_typ) == (other_expr, other_typ),
             (a, b) => {
                 debug_assert_ne!(discriminant(a), discriminant(b));
                 false
@@ -1494,6 +1515,7 @@ impl Hash for Expr {
             Expr::InhaleExhale(box ref inhale_expr, box ref exhale_expr, _) => {
                 (inhale_expr, exhale_expr).hash(state)
             }
+            Expr::SnapApp(ref expr, ref typ, _) => (expr, typ).hash(state),
         }
     }
 }
