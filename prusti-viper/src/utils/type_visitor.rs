@@ -6,11 +6,10 @@
 
 use rustc_hir::Mutability;
 use rustc_middle::ty::{
-    AdtDef, FieldDef, ParamTy, ProjectionTy, Region, Slice, Ty, TyCtxt, TypeFlags, TyKind,
-    VariantDef, subst::SubstsRef
+    AdtDef, FieldDef, ParamTy, ProjectionTy, Region, Slice, Ty, TyCtxt,
+    TypeFlags, TyKind, IntTy, UintTy, VariantDef, subst::SubstsRef
 };
 use rustc_hir::def_id::DefId;
-use rustc_ast::ast::{IntTy, UintTy};
 use log::trace;
 
 pub trait TypeVisitor<'tcx>: Sized {

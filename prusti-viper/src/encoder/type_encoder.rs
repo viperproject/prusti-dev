@@ -20,7 +20,6 @@ use rustc_middle::ty::layout::IntegerExt;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use rustc_ast::ast;
 use prusti_interface::specs::typed;
 use rustc_attr::IntType::SignedInt;
 use rustc_target::abi::Integer;
@@ -186,23 +185,23 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         match self.ty.kind() {
             ty::TyKind::Int(int_ty) => {
                 let bounds = match int_ty {
-                    ast::IntTy::I8 => (std::i8::MIN.into(), std::i8::MAX.into()),
-                    ast::IntTy::I16 => (std::i16::MIN.into(), std::i16::MAX.into()),
-                    ast::IntTy::I32 => (std::i32::MIN.into(), std::i32::MAX.into()),
-                    ast::IntTy::I64 => (std::i64::MIN.into(), std::i64::MAX.into()),
-                    ast::IntTy::I128 => (std::i128::MIN.into(), std::i128::MAX.into()),
-                    ast::IntTy::Isize => (std::isize::MIN.into(), std::isize::MAX.into()),
+                    ty::IntTy::I8 => (std::i8::MIN.into(), std::i8::MAX.into()),
+                    ty::IntTy::I16 => (std::i16::MIN.into(), std::i16::MAX.into()),
+                    ty::IntTy::I32 => (std::i32::MIN.into(), std::i32::MAX.into()),
+                    ty::IntTy::I64 => (std::i64::MIN.into(), std::i64::MAX.into()),
+                    ty::IntTy::I128 => (std::i128::MIN.into(), std::i128::MAX.into()),
+                    ty::IntTy::Isize => (std::isize::MIN.into(), std::isize::MAX.into()),
                 };
                 Some(bounds)
             }
             ty::TyKind::Uint(uint_ty) => {
                 let bounds = match uint_ty {
-                    ast::UintTy::U8 => (0.into(), std::u8::MAX.into()),
-                    ast::UintTy::U16 => (0.into(), std::u16::MAX.into()),
-                    ast::UintTy::U32 => (0.into(), std::u32::MAX.into()),
-                    ast::UintTy::U64 => (0.into(), std::u64::MAX.into()),
-                    ast::UintTy::U128 => (0.into(), std::u128::MAX.into()),
-                    ast::UintTy::Usize => (0.into(), std::usize::MAX.into()),
+                    ty::UintTy::U8 => (0.into(), std::u8::MAX.into()),
+                    ty::UintTy::U16 => (0.into(), std::u16::MAX.into()),
+                    ty::UintTy::U32 => (0.into(), std::u32::MAX.into()),
+                    ty::UintTy::U64 => (0.into(), std::u64::MAX.into()),
+                    ty::UintTy::U128 => (0.into(), std::u128::MAX.into()),
+                    ty::UintTy::Usize => (0.into(), std::usize::MAX.into()),
                 };
                 Some(bounds)
             }
@@ -428,19 +427,19 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let result = match self.ty.kind() {
             ty::TyKind::Bool => "bool".to_string(),
 
-            ty::TyKind::Int(ast::IntTy::I8) => "i8".to_string(),
-            ty::TyKind::Int(ast::IntTy::I16) => "i16".to_string(),
-            ty::TyKind::Int(ast::IntTy::I32) => "i32".to_string(),
-            ty::TyKind::Int(ast::IntTy::I64) => "i64".to_string(),
-            ty::TyKind::Int(ast::IntTy::I128) => "i128".to_string(),
-            ty::TyKind::Int(ast::IntTy::Isize) => "isize".to_string(),
+            ty::TyKind::Int(ty::IntTy::I8) => "i8".to_string(),
+            ty::TyKind::Int(ty::IntTy::I16) => "i16".to_string(),
+            ty::TyKind::Int(ty::IntTy::I32) => "i32".to_string(),
+            ty::TyKind::Int(ty::IntTy::I64) => "i64".to_string(),
+            ty::TyKind::Int(ty::IntTy::I128) => "i128".to_string(),
+            ty::TyKind::Int(ty::IntTy::Isize) => "isize".to_string(),
 
-            ty::TyKind::Uint(ast::UintTy::U8) => "u8".to_string(),
-            ty::TyKind::Uint(ast::UintTy::U16) => "u16".to_string(),
-            ty::TyKind::Uint(ast::UintTy::U32) => "u32".to_string(),
-            ty::TyKind::Uint(ast::UintTy::U64) => "u64".to_string(),
-            ty::TyKind::Uint(ast::UintTy::U128) => "u128".to_string(),
-            ty::TyKind::Uint(ast::UintTy::Usize) => "usize".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U8) => "u8".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U16) => "u16".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U32) => "u32".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U64) => "u64".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U128) => "u128".to_string(),
+            ty::TyKind::Uint(ty::UintTy::Usize) => "usize".to_string(),
 
             ty::TyKind::Char => "char".to_string(),
 
