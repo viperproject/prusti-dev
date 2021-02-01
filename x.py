@@ -78,7 +78,7 @@ def get_mac_env():
     """Get environment variables for Mac."""
     java_home = get_var_or('JAVA_HOME', None)
     if java_home is None:
-        java_home = subprocess.run(["/usr/libexec/java_home"], stdout=subprocess.PIPE).stdout.strip()
+        java_home = subprocess.run(["/usr/libexec/java_home"], stdout=subprocess.PIPE, encoding="utf8").stdout.strip()
     variables = [
         ('JAVA_HOME', java_home),
         ('RUST_TEST_THREADS', '1'),
