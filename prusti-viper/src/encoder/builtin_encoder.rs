@@ -65,10 +65,15 @@ impl BuiltinEncoder {
             BuiltinFunctionKind::Unreachable(vir::Type::Domain(_)) => {
                 format!("builtin$unreach_domain")
             }
+            BuiltinFunctionKind::Unreachable(vir::Type::Snapshot(_)) => {
+                format!("builtin$unreach_snap")
+            }
             BuiltinFunctionKind::Undefined(vir::Type::Int) => format!("builtin$undef_int"),
             BuiltinFunctionKind::Undefined(vir::Type::Bool) => format!("builtin$undef_bool"),
             BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => format!("builtin$undef_ref"),
+            // TODO: do Domain and Snapshot make sense here?
             BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => format!("builtin$undef_doman"),
+            BuiltinFunctionKind::Undefined(vir::Type::Snapshot(_)) => format!("builtin$undef_snap"),
         }
     }
 

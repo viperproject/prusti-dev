@@ -69,6 +69,7 @@ pub fn valid_func_for_type(typ: &vir::Type) -> vir::DomainFunc {
         Type::Domain(name) => name.clone(),
         Type::Bool | Type::Int => "PrimitiveValidDomain".to_string(),
         Type::TypedRef(_) => unreachable!(),
+        Type::Snapshot(_) => unreachable!(),
     };
 
     let arg_typ: Type = match typ {
@@ -76,6 +77,7 @@ pub fn valid_func_for_type(typ: &vir::Type) -> vir::DomainFunc {
         Type::Bool => Type::Bool,
         Type::Int => Type::Int,
         Type::TypedRef(_) => unreachable!(),
+        Type::Snapshot(_) => unreachable!(),
     };
 
     let self_arg = vir::LocalVar {

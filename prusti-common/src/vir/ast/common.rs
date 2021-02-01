@@ -144,6 +144,7 @@ pub enum Type {
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
     Domain(String),
+    Snapshot(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -152,6 +153,7 @@ pub enum TypeId {
     Bool,
     Ref,
     Domain,
+    Snapshot,
 }
 
 impl fmt::Display for Type {
@@ -162,6 +164,7 @@ impl fmt::Display for Type {
             //&Type::Ref => write!(f, "Ref"),
             &Type::TypedRef(ref name) => write!(f, "Ref({})", name),
             &Type::Domain(ref name) => write!(f, "Domain({})", name),
+            &Type::Snapshot(ref name) => write!(f, "Snapshot({})", name),
         }
     }
 }
@@ -182,12 +185,20 @@ impl Type {
         }
     }
 
+    pub fn is_snapshot(&self) -> bool {
+        match self {
+            &Type::Snapshot(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn name(&self) -> String {
         match self {
             &Type::Bool => "bool".to_string(),
             &Type::Int => "int".to_string(),
             &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
             &Type::Domain(ref pred_name) => format!("{}", pred_name),
+            &Type::Snapshot(ref pred_name) => format!("{}", pred_name),
         }
     }
 
@@ -222,6 +233,7 @@ impl Type {
             Type::Int => TypeId::Int,
             Type::TypedRef(_) => TypeId::Ref,
             Type::Domain(_) => TypeId::Domain,
+            Type::Snapshot(_) => TypeId::Snapshot,
         }
     }
 }

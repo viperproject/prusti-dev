@@ -68,19 +68,20 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
     let mut identifier = name.to_string();
     // Include the signature of the function in the function name
     identifier.push_str("__$TY$__");
-    fn type_name(typ: &Type) -> &str {
+    fn type_name(typ: &Type) -> String {
         match typ {
-            Type::Int => "$int$",
-            Type::Bool => "$bool$",
-            Type::TypedRef(ref name) => name,
-            Type::Domain(ref name) => name,
+            Type::Int => "$int$".to_string(),
+            Type::Bool => "$bool$".to_string(),
+            Type::TypedRef(ref name) => name.to_string(),
+            Type::Domain(ref name) => name.to_string(),
+            Type::Snapshot(ref name) => format!("Snap${}", name),
         }
     }
     for arg in formal_args {
-        identifier.push_str(type_name(&arg.typ));
+        identifier.push_str(&type_name(&arg.typ));
         identifier.push_str("$");
     }
-    identifier.push_str(type_name(return_type));
+    identifier.push_str(&type_name(return_type));
     identifier
 }
 
