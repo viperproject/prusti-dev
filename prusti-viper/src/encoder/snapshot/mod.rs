@@ -221,6 +221,23 @@ pub fn get_zero_func() -> vir::DomainFunc {
     zero
 }
 
+pub fn succ_of(e: vir::Expr) -> vir::Expr {
+    let succ_func = get_succ_func();
+    vir::Expr::domain_func_app(succ_func, vec![e])
+}
+pub fn zero_nat() -> vir::Expr {
+    let zero_func = get_zero_func();
+    vir::Expr::domain_func_app(zero_func, vec![])
+}
+
+pub fn one_nat() -> vir::Expr {
+    succ_of(zero_nat())
+}
+
+pub fn two_nat() -> vir::Expr {
+    succ_of(one_nat())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

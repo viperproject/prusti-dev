@@ -89,7 +89,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::Function>>,
     memory_eq_encoder: RefCell<MemoryEqEncoder>,
     fields: RefCell<HashMap<String, vir::Field>>,
-    snapshots: RefCell<HashMap<String, Box<Snapshot>>>, // maps predicate names to snapshots
+    pub snapshots: RefCell<HashMap<String, Box<Snapshot>>>, // maps predicate names to snapshots
     type_snapshots: RefCell<HashMap<String, String>>, // maps snapshot names to predicate names
     snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,

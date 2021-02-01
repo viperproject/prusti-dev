@@ -61,10 +61,11 @@ use rustc_attr::IntType::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
 use rustc_span::{MultiSpan, Span};
 use prusti_interface::specs::typed;
-use ::log::{trace, debug};
+use ::log::{trace, debug, warn};
 use std::borrow::Borrow as StdBorrow;
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
+use crate::encoder::snapshot;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -470,7 +471,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .register(self.mir.span, ErrorCtxt::Unexpected);
         let method_with_fold_unfold = foldunfold::add_fold_unfold(
             self.encoder,
-            self.cfg_method,
+            self.cfg_method.clone(),
             &loan_locations,
             &self.cfg_blocks_map,
             method_pos,
@@ -478,7 +479,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         .map_err(|foldunfold_error| {
             SpannedEncodingError::internal(
                 format!(
-                    "generating fold-unfold Viper statements failed ({:?})",
+                    "generating fold-unfold Viper statements for method {:?} failed ({:?})",
+                    self.cfg_method.name(),
                     foldunfold_error
                 ),
                 mir_span,
@@ -2639,12 +2641,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
 
-        let mut arg_exprs = vec![];
+        let mut non_snapshot_arg_exprs = vec![];
         for operand in args.iter() {
             let arg_expr = self.mir_encoder.encode_operand_expr(operand)
                 .with_span(call_site_span)?;
-            arg_exprs.push(arg_expr);
+                non_snapshot_arg_exprs.push(arg_expr);
         }
+
+        let arg_exprs = if prusti_common::config::enable_purification_optimization() {
+            let mut arg_exprs = vec![];
+            for arg in non_snapshot_arg_exprs {
+                let predicate_name = arg.get_type().name();
+                let snapshot = self.encoder.encode_snapshot_use(predicate_name).with_span(call_site_span)?;
+                let snap_call = snapshot.snap_call(arg);
+                arg_exprs.push(snap_call);
+            }
+
+            arg_exprs
+        }
+        else {
+            non_snapshot_arg_exprs
+        };
 
         self.encode_specified_pure_function_call(
             location,
@@ -2664,7 +2681,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         function_name: String,
-        arg_exprs: Vec<Expr>,
+        mut arg_exprs: Vec<Expr>,
         return_type: Type,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let formal_args: Vec<vir::LocalVar> = args
@@ -2682,13 +2699,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .error_manager()
             .register(call_site_span, ErrorCtxt::PureFunctionCall);
 
-        let func_call = vir::Expr::func_app(
-            function_name,
-            arg_exprs,
-            formal_args,
-            return_type.clone(),
-            pos
-        );
+        let func_call = if prusti_common::config::enable_purification_optimization() {
+            let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.snapshots.borrow() );
+            arg_exprs.push(snapshot::two_nat());
+
+            vir::Expr::domain_func_app(mirror_function, arg_exprs)
+        }
+        else {
+            vir::Expr::func_app(
+                function_name.clone(),
+                arg_exprs,
+                formal_args,
+                return_type.clone(),
+                pos
+            )
+        };
 
         let target_value = self.encode_pure_function_call_lhs_value(destination)
             .with_span(call_site_span)?;
@@ -2711,6 +2736,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
 
         self.encode_transfer_args_permissions(location, args,  &mut stmts, label);
+        warn!("encode_specified_pure_function_call({}) = {:#?}", function_name, stmts);
         Ok(stmts)
     }
 
