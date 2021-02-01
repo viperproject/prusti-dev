@@ -43,8 +43,6 @@ use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use std::io::Write;
 use std::mem;
-// use syntax::ast;
-use rustc_ast::ast;
 // use viper;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
@@ -489,7 +487,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Is the closure specified with the `def_id` is spec only?
     pub fn is_spec_closure(&self, def_id: DefId) -> bool {
-        use rustc_ast::ast;
         has_spec_only_attr(self.env().tcx().get_attrs(def_id))
     }
 
@@ -1137,18 +1134,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let expr = match ty.kind() {
             ty::TyKind::Bool => scalar_value.to_bool().unwrap().into(),
             ty::TyKind::Char => scalar_value.to_char().unwrap().into(),
-            ty::TyKind::Int(ast::IntTy::I8) => scalar_value.to_i8().unwrap().into(),
-            ty::TyKind::Int(ast::IntTy::I16) => scalar_value.to_i16().unwrap().into(),
-            ty::TyKind::Int(ast::IntTy::I32) => scalar_value.to_i32().unwrap().into(),
-            ty::TyKind::Int(ast::IntTy::I64) => scalar_value.to_i64().unwrap().into(),
-            ty::TyKind::Int(ast::IntTy::I128) => scalar_value.to_i128().unwrap().into(),
-            ty::TyKind::Int(ast::IntTy::Isize) => scalar_value.to_machine_isize(&self.env().tcx()).unwrap().into(),
-            ty::TyKind::Uint(ast::UintTy::U8) => scalar_value.to_u8().unwrap().into(),
-            ty::TyKind::Uint(ast::UintTy::U16) => scalar_value.to_u16().unwrap().into(),
-            ty::TyKind::Uint(ast::UintTy::U32) => scalar_value.to_u32().unwrap().into(),
-            ty::TyKind::Uint(ast::UintTy::U64) => scalar_value.to_u64().unwrap().into(),
-            ty::TyKind::Uint(ast::UintTy::U128) => scalar_value.to_u128().unwrap().into(),
-            ty::TyKind::Uint(ast::UintTy::Usize) => scalar_value.to_machine_usize(&self.env().tcx()).unwrap().into(),
+            ty::TyKind::Int(ty::IntTy::I8) => scalar_value.to_i8().unwrap().into(),
+            ty::TyKind::Int(ty::IntTy::I16) => scalar_value.to_i16().unwrap().into(),
+            ty::TyKind::Int(ty::IntTy::I32) => scalar_value.to_i32().unwrap().into(),
+            ty::TyKind::Int(ty::IntTy::I64) => scalar_value.to_i64().unwrap().into(),
+            ty::TyKind::Int(ty::IntTy::I128) => scalar_value.to_i128().unwrap().into(),
+            ty::TyKind::Int(ty::IntTy::Isize) => scalar_value.to_machine_isize(&self.env().tcx()).unwrap().into(),
+            ty::TyKind::Uint(ty::UintTy::U8) => scalar_value.to_u8().unwrap().into(),
+            ty::TyKind::Uint(ty::UintTy::U16) => scalar_value.to_u16().unwrap().into(),
+            ty::TyKind::Uint(ty::UintTy::U32) => scalar_value.to_u32().unwrap().into(),
+            ty::TyKind::Uint(ty::UintTy::U64) => scalar_value.to_u64().unwrap().into(),
+            ty::TyKind::Uint(ty::UintTy::U128) => scalar_value.to_u128().unwrap().into(),
+            ty::TyKind::Uint(ty::UintTy::Usize) => scalar_value.to_machine_usize(&self.env().tcx()).unwrap().into(),
             ty::TyKind::FnDef(def_id, _) => {
                 self.encode_spec_funcs(*def_id)?;
                 vir::Expr::Const(vir::Const::FnPtr, vir::Position::default())
@@ -1164,18 +1161,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         let expr = match ty.kind() {
             ty::TyKind::Bool => (value != 0).into(),
-            ty::TyKind::Int(ast::IntTy::I8) => (value as i8).into(),
-            ty::TyKind::Int(ast::IntTy::I16) => (value as i16).into(),
-            ty::TyKind::Int(ast::IntTy::I32) => (value as i32).into(),
-            ty::TyKind::Int(ast::IntTy::I64) => (value as i64).into(),
-            ty::TyKind::Int(ast::IntTy::I128) => (value as i128).into(),
-            ty::TyKind::Int(ast::IntTy::Isize) => (value as isize).into(),
-            ty::TyKind::Uint(ast::UintTy::U8) => (value as u8).into(),
-            ty::TyKind::Uint(ast::UintTy::U16) => (value as u16).into(),
-            ty::TyKind::Uint(ast::UintTy::U32) => (value as u32).into(),
-            ty::TyKind::Uint(ast::UintTy::U64) => (value as u64).into(),
-            ty::TyKind::Uint(ast::UintTy::U128) => (value as u128).into(),
-            ty::TyKind::Uint(ast::UintTy::Usize) => (value as usize).into(),
+            ty::TyKind::Int(ty::IntTy::I8) => (value as i8).into(),
+            ty::TyKind::Int(ty::IntTy::I16) => (value as i16).into(),
+            ty::TyKind::Int(ty::IntTy::I32) => (value as i32).into(),
+            ty::TyKind::Int(ty::IntTy::I64) => (value as i64).into(),
+            ty::TyKind::Int(ty::IntTy::I128) => (value as i128).into(),
+            ty::TyKind::Int(ty::IntTy::Isize) => (value as isize).into(),
+            ty::TyKind::Uint(ty::UintTy::U8) => (value as u8).into(),
+            ty::TyKind::Uint(ty::UintTy::U16) => (value as u16).into(),
+            ty::TyKind::Uint(ty::UintTy::U32) => (value as u32).into(),
+            ty::TyKind::Uint(ty::UintTy::U64) => (value as u64).into(),
+            ty::TyKind::Uint(ty::UintTy::U128) => (value as u128).into(),
+            ty::TyKind::Uint(ty::UintTy::Usize) => (value as usize).into(),
             ty::TyKind::Char => value.into(),
             ref x => unimplemented!("{:?}", x),
         };

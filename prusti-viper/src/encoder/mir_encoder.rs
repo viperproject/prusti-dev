@@ -16,7 +16,6 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
 use rustc_index::vec::{Idx, IndexVec};
 use rustc_span::{Span, DUMMY_SP};
-use rustc_ast::ast;
 use log::{trace, debug};
 use std::collections::HashMap;
 
@@ -506,52 +505,52 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             Ok(match op {
                 mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.kind() {
                     // Unsigned
-                    ty::TyKind::Uint(ast::UintTy::U8) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::U8) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u8::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u8::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ast::UintTy::U16) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::U16) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u16::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u16::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ast::UintTy::U32) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::U32) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u32::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u32::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ast::UintTy::U64) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::U64) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u64::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u64::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ast::UintTy::U128) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::U128) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u128::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u128::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ast::UintTy::Usize) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::Usize) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::usize::MIN.into()),
                         vir::Expr::gt_cmp(result, std::usize::MAX.into()),
                     ),
                     // Signed
-                    ty::TyKind::Int(ast::IntTy::I8) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::I8) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i8::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i8::MAX.into()),
                     ),
-                    ty::TyKind::Int(ast::IntTy::I16) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::I16) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i16::MIN.into()),
                     ),
-                    ty::TyKind::Int(ast::IntTy::I32) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::I32) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i32::MAX.into()),
                     ),
-                    ty::TyKind::Int(ast::IntTy::I64) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::I64) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i64::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i64::MAX.into()),
                     ),
-                    ty::TyKind::Int(ast::IntTy::I128) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::I128) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i128::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i128::MAX.into()),
                     ),
-                    ty::TyKind::Int(ast::IntTy::Isize) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::Isize) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::isize::MIN.into()),
                         vir::Expr::gt_cmp(result, std::isize::MAX.into()),
                     ),
@@ -587,44 +586,44 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         let encoded_val = match (src_ty.kind(), dst_ty.kind()) {
             // Numeric casts that cannot fail
             | (ty::TyKind::Char, ty::TyKind::Char)
-            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U8))
-            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U16))
-            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U32))
-            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U64))
-            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U128))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I8))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I16))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I32))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I64))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I128))
-            | (ty::TyKind::Int(ast::IntTy::I16), ty::TyKind::Int(ast::IntTy::I16))
-            | (ty::TyKind::Int(ast::IntTy::I16), ty::TyKind::Int(ast::IntTy::I32))
-            | (ty::TyKind::Int(ast::IntTy::I16), ty::TyKind::Int(ast::IntTy::I64))
-            | (ty::TyKind::Int(ast::IntTy::I16), ty::TyKind::Int(ast::IntTy::I128))
-            | (ty::TyKind::Int(ast::IntTy::I32), ty::TyKind::Int(ast::IntTy::I32))
-            | (ty::TyKind::Int(ast::IntTy::I32), ty::TyKind::Int(ast::IntTy::I64))
-            | (ty::TyKind::Int(ast::IntTy::I32), ty::TyKind::Int(ast::IntTy::I128))
-            | (ty::TyKind::Int(ast::IntTy::I64), ty::TyKind::Int(ast::IntTy::I64))
-            | (ty::TyKind::Int(ast::IntTy::I64), ty::TyKind::Int(ast::IntTy::I128))
-            | (ty::TyKind::Int(ast::IntTy::I128), ty::TyKind::Int(ast::IntTy::I128))
-            | (ty::TyKind::Int(ast::IntTy::Isize), ty::TyKind::Int(ast::IntTy::Isize))
-            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Char)
-            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Uint(ast::UintTy::U8))
-            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Uint(ast::UintTy::U16))
-            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Uint(ast::UintTy::U32))
-            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Uint(ast::UintTy::U64))
-            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Uint(ast::UintTy::U128))
-            | (ty::TyKind::Uint(ast::UintTy::U16), ty::TyKind::Uint(ast::UintTy::U16))
-            | (ty::TyKind::Uint(ast::UintTy::U16), ty::TyKind::Uint(ast::UintTy::U32))
-            | (ty::TyKind::Uint(ast::UintTy::U16), ty::TyKind::Uint(ast::UintTy::U64))
-            | (ty::TyKind::Uint(ast::UintTy::U16), ty::TyKind::Uint(ast::UintTy::U128))
-            | (ty::TyKind::Uint(ast::UintTy::U32), ty::TyKind::Uint(ast::UintTy::U32))
-            | (ty::TyKind::Uint(ast::UintTy::U32), ty::TyKind::Uint(ast::UintTy::U64))
-            | (ty::TyKind::Uint(ast::UintTy::U32), ty::TyKind::Uint(ast::UintTy::U128))
-            | (ty::TyKind::Uint(ast::UintTy::U64), ty::TyKind::Uint(ast::UintTy::U64))
-            | (ty::TyKind::Uint(ast::UintTy::U64), ty::TyKind::Uint(ast::UintTy::U128))
-            | (ty::TyKind::Uint(ast::UintTy::U128), ty::TyKind::Uint(ast::UintTy::U128))
-            | (ty::TyKind::Uint(ast::UintTy::Usize), ty::TyKind::Uint(ast::UintTy::Usize))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U8))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U16))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U32))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U64))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Int(ty::IntTy::I8), ty::TyKind::Int(ty::IntTy::I8))
+            | (ty::TyKind::Int(ty::IntTy::I8), ty::TyKind::Int(ty::IntTy::I16))
+            | (ty::TyKind::Int(ty::IntTy::I8), ty::TyKind::Int(ty::IntTy::I32))
+            | (ty::TyKind::Int(ty::IntTy::I8), ty::TyKind::Int(ty::IntTy::I64))
+            | (ty::TyKind::Int(ty::IntTy::I8), ty::TyKind::Int(ty::IntTy::I128))
+            | (ty::TyKind::Int(ty::IntTy::I16), ty::TyKind::Int(ty::IntTy::I16))
+            | (ty::TyKind::Int(ty::IntTy::I16), ty::TyKind::Int(ty::IntTy::I32))
+            | (ty::TyKind::Int(ty::IntTy::I16), ty::TyKind::Int(ty::IntTy::I64))
+            | (ty::TyKind::Int(ty::IntTy::I16), ty::TyKind::Int(ty::IntTy::I128))
+            | (ty::TyKind::Int(ty::IntTy::I32), ty::TyKind::Int(ty::IntTy::I32))
+            | (ty::TyKind::Int(ty::IntTy::I32), ty::TyKind::Int(ty::IntTy::I64))
+            | (ty::TyKind::Int(ty::IntTy::I32), ty::TyKind::Int(ty::IntTy::I128))
+            | (ty::TyKind::Int(ty::IntTy::I64), ty::TyKind::Int(ty::IntTy::I64))
+            | (ty::TyKind::Int(ty::IntTy::I64), ty::TyKind::Int(ty::IntTy::I128))
+            | (ty::TyKind::Int(ty::IntTy::I128), ty::TyKind::Int(ty::IntTy::I128))
+            | (ty::TyKind::Int(ty::IntTy::Isize), ty::TyKind::Int(ty::IntTy::Isize))
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Char)
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Uint(ty::UintTy::U8))
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Uint(ty::UintTy::U16))
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Uint(ty::UintTy::U32))
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Uint(ty::UintTy::U64))
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Uint(ty::UintTy::U16), ty::TyKind::Uint(ty::UintTy::U16))
+            | (ty::TyKind::Uint(ty::UintTy::U16), ty::TyKind::Uint(ty::UintTy::U32))
+            | (ty::TyKind::Uint(ty::UintTy::U16), ty::TyKind::Uint(ty::UintTy::U64))
+            | (ty::TyKind::Uint(ty::UintTy::U16), ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Uint(ty::UintTy::U32), ty::TyKind::Uint(ty::UintTy::U32))
+            | (ty::TyKind::Uint(ty::UintTy::U32), ty::TyKind::Uint(ty::UintTy::U64))
+            | (ty::TyKind::Uint(ty::UintTy::U32), ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Uint(ty::UintTy::U64), ty::TyKind::Uint(ty::UintTy::U64))
+            | (ty::TyKind::Uint(ty::UintTy::U64), ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Uint(ty::UintTy::U128), ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Uint(ty::UintTy::Usize), ty::TyKind::Uint(ty::UintTy::Usize))
             => self.encode_operand_expr(operand).with_span(span)?,
 
             // Numeric casts where the source value might not fit into the target type
