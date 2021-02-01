@@ -33,7 +33,6 @@ impl Tree {
 
     #[trusted]
     #[ensures (result.isLucky() == c)]
-    #[ensures(same_n(&result))]
     pub fn new(nn: isize, c: bool, l: Option<Box<Tree>>, r: Option<Box<Tree>>) -> Self {
         Tree {
             n: nn,
@@ -45,60 +44,33 @@ impl Tree {
         }
     }
 
-    #[trusted]
     #[pure]
     #[ensures (result == self.dp1)]
     pub fn dp1(&self) -> isize {
         self.dp1
     }
 
-    #[trusted]
-    #[ensures(self.dp1() == v)]
     #[ensures(self.n() == old(self.n()))]
     #[ensures(self.isLucky() == old(self.isLucky()))]
-    #[ensures(same_n(self) == old(same_n(self)))]
     #[ensures(self.dp2() == old(self.dp2()))]
+    #[ensures(self.dp1() == v)]
     pub fn set_dp1(&mut self, v: isize) {
         self.dp1 = v;
     }
 
-    #[trusted]
     #[pure]
     #[ensures (result == self.dp2)]
     pub fn dp2(&self) -> isize {
         self.dp2
     }
 
-    #[trusted]
     #[ensures(self.dp2() == v)]
     #[ensures(self.n() == old(self.n()))]
     #[ensures(self.isLucky() == old(self.isLucky()))]
-    #[ensures(same_n(self) == old(same_n(self)))]
     #[ensures(self.dp1() == old(self.dp1()))]
     pub fn set_dp2(&mut self, v: isize) {
         self.dp2 = v;
     }
-}
-
-#[pure]
-pub fn same_n(node: &Tree) -> bool {
-    let mut result = true;
-    match &(*node).left {
-        None => {}
-        Some(box l) => {
-            result &= same_n(&l);
-            result &= (node.n == l.n);
-        }
-    }
-
-    match &(*node).right {
-        None => {}
-        Some(box r) => {
-            result &= same_n(&r);
-            result &= (node.n == r.n);
-        }
-    }
-    result
 }
 
 pub struct VecWrapperI32 {
@@ -165,17 +137,16 @@ fn add(a: isize, b: isize) -> isize {
 // Naive Solution
 
 #[pure]
-#[requires(same_n(node))]
 fn sub_size(node: &Tree) -> isize {
     let mut sz = 1isize;
-    match &(*node).left {
+    match &node.left {
         None => {}
         Some(box l) => {
             sz += sub_size(l);
         }
     }
 
-    match &(*node).right {
+    match &node.right {
         None => {}
         Some(box r) => {
             sz += sub_size(r);
@@ -185,7 +156,6 @@ fn sub_size(node: &Tree) -> isize {
 }
 
 #[pure]
-#[requires(same_n(node))]
 #[ensures(node.isLucky() ==> result == sub_size(node))]
 #[ensures(!node.isLucky() ==> result == down_lucky(node))]
 fn calc_down_lucky(node: &Tree) -> isize {
@@ -197,17 +167,16 @@ fn calc_down_lucky(node: &Tree) -> isize {
 }
 
 #[pure]
-#[requires(same_n(node))]
 fn down_lucky(node: &Tree) -> isize {
     let mut d = 0isize;
-    match &(*node).left {
+    match &node.left {
         None => {}
         Some(box l) => {
             d += calc_down_lucky(l);
         }
     }
 
-    match &(*node).right {
+    match &node.right {
         None => {}
         Some(box r) => {
             d += calc_down_lucky(r);
@@ -220,14 +189,33 @@ fn down_lucky(node: &Tree) -> isize {
 #[ensures(false)]
 fn assume_false() {}
 
-#[requires(same_n(node))]
+#[ensures(node.n() == old(node.n()))]
+#[ensures(node.isLucky() == old(node.isLucky()))]
 #[ensures(node.dp1() == sub_size(node))]
 #[ensures(node.dp2() == down_lucky(node))]
 fn dfs1(node: &mut Tree) {
+    let answer = &mut VecWrapperI32::new(2);
+
+    helper(node, answer);
+
+    assert!(answer.lookup(0) == sub_size(node));
+    assert!(answer.lookup(1) == down_lucky(node));
+    node.set_dp1(answer.lookup(0));
+    assert!(node.dp1() == sub_size(node));
+    node.set_dp2(answer.lookup(1));
+    assert!(node.dp1() == sub_size(node));
+    assert!(node.dp2() == down_lucky(node));
+}
+
+#[requires(answer.len() == 2)]
+#[ensures(answer.len() == old(answer.len()))]
+#[ensures(answer.lookup(0) == sub_size(node))]
+#[ensures(answer.lookup(1) == down_lucky(node))]
+fn helper(node: &mut Tree, answer: &mut VecWrapperI32)  {
     let mut sz = 1isize;
     let mut d = 0isize;
 
-    match &(*node).left {
+    match &mut node.left {
         None => {}
         Some(box l) => {
             dfs1(l);
@@ -240,7 +228,7 @@ fn dfs1(node: &mut Tree) {
         }
     }
 
-    match &(*node).right {
+    match &mut node.right {
         None => {}
         Some(box r) => {
             dfs1(r);
@@ -252,7 +240,6 @@ fn dfs1(node: &mut Tree) {
             sz += r.dp1();
         }
     }
-
-    node.set_dp1(sz);
-    node.set_dp2(d);
+    answer.set(0, sz);
+    answer.set(1, d);
 }
