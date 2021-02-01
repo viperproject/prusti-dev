@@ -74,10 +74,15 @@ impl BuiltinEncoder {
             BuiltinFunctionKind::Unreachable(vir::Type::Domain(_)) => {
                 "builtin$unreach_domain".to_string()
             }
+            BuiltinFunctionKind::Unreachable(vir::Type::Snapshot(_)) => {
+                "builtin$unreach_snap".to_string()
+            }
             BuiltinFunctionKind::Undefined(vir::Type::Int) => "builtin$undef_int".to_string(),
             BuiltinFunctionKind::Undefined(vir::Type::Bool) => "builtin$undef_bool".to_string(),
             BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => "builtin$undef_ref".to_string(),
+            // TODO: do Domain and Snapshot make sense here?
             BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => "builtin$undef_doman".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::Snapshot(_)) => "builtin$undef_snap".to_string(),
             BuiltinFunctionKind::ArrayLookupPure { elem_ty_pred, array_len, .. } => {
                 format!("Array${}${}$lookup_pure", array_len, elem_ty_pred)
             }

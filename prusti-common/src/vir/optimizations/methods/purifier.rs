@@ -421,6 +421,7 @@ impl ast::StmtFolder for VarPurifier {
                 ast::Type::Bool => "builtin$havoc_bool",
                 ast::Type::TypedRef(_) => "builtin$havoc_ref",
                 ast::Type::Domain(_) => unreachable!(),
+                ast::Type::Snapshot(_) => unreachable!(),
             }.to_string();
             targets = vec![replacement];
         }
