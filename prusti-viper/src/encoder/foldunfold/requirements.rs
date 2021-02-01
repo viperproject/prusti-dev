@@ -338,7 +338,7 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::InhaleExhale(..) => HashSet::new(),
 
-            &vir::Expr::Downcast(_, ref enum_place, _) => {
+            vir::Expr::Downcast(_, ref enum_place, _) => {
                 let predicate_name = enum_place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
                 if let vir::Predicate::Enum(enum_predicate) = predicate {
@@ -351,6 +351,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                 }
             }
 
+            vir::Expr::SnapApp(expr, ..) => expr.get_required_permissions(predicates, old_exprs),
         };
         trace!(
             "[exit] get_required_permissions(expr={}): {:#?}",

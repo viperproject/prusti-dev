@@ -54,6 +54,8 @@ pub enum Expr {
     /// * place to the enumeration that is downcasted
     /// * field that encodes the variant
     Downcast(Box<Expr>, Box<Expr>, Field),
+    /// Snapshot call to convert from a Ref to a snapshot value
+    SnapApp(Box<Expr>, Type, Position),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -206,10 +208,8 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(", "),
             ),
-
             Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) =>
                 write!(f, "[({}), ({})]", inhale_expr, exhale_expr),
-
             Expr::Downcast(ref base, ref enum_place, ref field) => write!(
                 f,
                 "(downcast {} to {} in {})",
@@ -217,6 +217,7 @@ impl fmt::Display for Expr {
                 field,
                 base.to_string(),
             ),
+            Expr::SnapApp(ref expr, _, _) => write!(f, "snap({})", expr.to_string()),
         }
     }
 }
@@ -282,7 +283,8 @@ impl Expr {
             | Expr::LetExpr(_, _, _, p)
             | Expr::FuncApp(_, _, _, _, p)
             | Expr::DomainFuncApp(_, _, p)
-            | Expr::InhaleExhale(_, _, p) => *p,
+            | Expr::InhaleExhale(_, _, p)
+            | Expr::SnapApp(_, _, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::Downcast(box ref base, ..) => base.pos(),
         }
@@ -313,6 +315,7 @@ impl Expr {
             Expr::DomainFuncApp(x,y,_) => Expr::DomainFuncApp(x,y,pos),
             // TODO Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
             Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
+            Expr::SnapApp(e, t, _) => Expr::SnapApp(e, t, pos),
             x => x,
         }
     }
@@ -494,6 +497,14 @@ impl Expr {
 
     pub fn downcast(base: Expr, enum_place: Expr, variant_field: Field) -> Self {
         Expr::Downcast(box base, box enum_place, variant_field)
+    }
+
+    pub fn snap_app(expr: Expr) -> Self {
+        let typ = match expr.get_type() {
+            &Type::TypedRef(ref name) => Type::Snapshot(name.to_string()),
+            _ => unreachable!("cannot snapshot a non-ref value {:?}", expr),
+        };
+        Expr::SnapApp(box expr, typ, Position::default())
     }
 
     pub fn find(&self, sub_target: &Expr) -> bool {
@@ -692,6 +703,7 @@ impl Expr {
                 return Some(field_place);
             }
         }
+        // TODO: also allow for Snapshots?
         None
     }
 
@@ -1039,6 +1051,9 @@ impl Expr {
                 unreachable!("Unexpected expression: {:?}", self);
             }
             Expr::Downcast(box ref base, ..) => base.get_type(),
+            Expr::SnapApp(_, ref typ, _) => {
+                &typ
+            }
         }
     }
 
@@ -1385,7 +1400,8 @@ impl Expr {
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)
                     | Expr::InhaleExhale(..)
-                    | Expr::Downcast(..) => true.into(),
+                    | Expr::Downcast(..)
+                    | Expr::SnapApp(..) => true.into(),
                 }
             }
         }
@@ -1565,11 +1581,15 @@ impl PartialEq for Expr {
             }
             (
                 Expr::DomainFuncApp(ref self_function_name, ref self_args, _),
-                Expr::DomainFuncApp(ref other_function_name, ref other_args, _)
+                Expr::DomainFuncApp(ref other_function_name, ref other_args, _),
             ) => {
                 (self_function_name, self_args)
                     == (other_function_name, other_args)
             }
+            (
+                Expr::SnapApp(ref self_expr, ref self_typ, _),
+                Expr::SnapApp(ref other_expr, ref other_typ, _),
+            ) => (self_expr, self_typ) == (other_expr, other_typ),
             (a, b) => {
                 debug_assert_ne!(discriminant(a), discriminant(b));
                 false
@@ -1617,6 +1637,7 @@ impl Hash for Expr {
             Expr::Downcast(box ref base, box ref enum_place, ref field) => {
                 (base, enum_place, field).hash(state)
             }
+            Expr::SnapApp(ref expr, ref typ, _) => (expr, typ).hash(state),
         }
     }
 }

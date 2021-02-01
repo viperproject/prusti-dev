@@ -253,6 +253,10 @@ pub trait ExprFolder: Sized {
             field
         )
     }
+
+    fn fold_snap_app(&mut self, e: Box<Expr>, t: Type, p: Position) -> Expr {
+        Expr::SnapApp(self.fold_boxed(e), t, p)
+    }
 }
 
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
@@ -281,6 +285,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         // TODO Expr::DomainFuncApp(u, v, w, x, y, p) => this.fold_domain_func_app(u,v,w,x,y,p),
         Expr::InhaleExhale(x, y, p) => this.fold_inhale_exhale(x, y, p),
         Expr::Downcast(b, p, f) => this.fold_downcast(b, p, f),
+        Expr::SnapApp(e, t, p) => this.fold_snap_app(e, t, p),
     }
 }
 
@@ -421,10 +426,12 @@ pub trait ExprWalker: Sized {
         self.walk(inhale_expr);
         self.walk(exhale_expr);
     }
-
     fn walk_downcast(&mut self, base: &Expr, enum_place: &Expr, _field: &Field) {
         self.walk(base);
         self.walk(enum_place);
+    }
+    fn walk_snap_app(&mut self, expr: &Expr, _typ: &Type, _pos: &Position) {
+        self.walk(expr);
     }
 }
 
@@ -454,6 +461,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         // TODO Expr::DomainFuncApp(ref u, ref v, ref w, ref x, ref y,ref p) => this.walk_domain_func_app(u, v, w, x,y,p),
         Expr::InhaleExhale(ref x, ref y, ref p) => this.walk_inhale_exhale(x, y, p),
         Expr::Downcast(ref b, ref p, ref f) => this.walk_downcast(b, p, f),
+        Expr::SnapApp(ref e, ref t, ref p) => this.walk_snap_app(e, t, p),
     }
 }
 
@@ -667,7 +675,6 @@ pub trait FallibleExprFolder: Sized {
             pos
         ))
     }
-
     fn fallible_fold_downcast(
         &mut self,
         base: Box<Expr>,
@@ -679,6 +686,9 @@ pub trait FallibleExprFolder: Sized {
             self.fallible_fold_boxed(enum_expr)?,
             field
         ))
+    }
+    fn fallible_fold_snap_app(&mut self, e: Box<Expr>, t: Type, p: Position) -> Result<Expr, Self::Error> {
+        Ok(Expr::SnapApp(self.fallible_fold_boxed(e)?, t, p))
     }
 }
 
@@ -710,5 +720,6 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error=U>>(
         // TODO Expr::DomainFuncApp(u, v, w, x, y, p) => this.fallible_fold_domain_func_app(u,v,w,x,y,p),
         Expr::InhaleExhale(x, y, p) => this.fallible_fold_inhale_exhale(x,y,p),
         Expr::Downcast(b, p, f) => this.fallible_fold_downcast(b, p, f),
+        Expr::SnapApp(e, t, p) => this.fallible_fold_snap_app(e, t, p),
     }
 }
