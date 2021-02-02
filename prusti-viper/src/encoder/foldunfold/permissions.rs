@@ -281,7 +281,8 @@ impl RequiredPermissionsGetter for vir::Expr {
                 HashSet::new()
             }
 
-            vir::Expr::FuncApp(ref _name, ref args, ..) => {
+            vir::Expr::FuncApp(_, ref args, ..) |
+            vir::Expr::DomainFuncApp(_, ref args, _)=> {
                 args.iter()
                     .map(|arg| {
                         if arg.is_place() && arg.get_type().is_ref() {

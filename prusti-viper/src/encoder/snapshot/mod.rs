@@ -225,6 +225,16 @@ pub fn succ_of(e: vir::Expr) -> vir::Expr {
     let succ_func = get_succ_func();
     vir::Expr::domain_func_app(succ_func, vec![e])
 }
+
+fn plus_n_nat(e: vir::Expr, n: u32) -> vir::Expr {
+    let mut res = e;
+    for _ in 0..n {
+        res = succ_of(res);
+    }
+
+    res
+}
+
 pub fn zero_nat() -> vir::Expr {
     let zero_func = get_zero_func();
     vir::Expr::domain_func_app(zero_func, vec![])
@@ -238,6 +248,10 @@ pub fn two_nat() -> vir::Expr {
     succ_of(one_nat())
 }
 
+pub fn n_nat(n: u32) -> vir::Expr {
+    plus_n_nat(zero_nat(), n)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -249,5 +263,28 @@ mod tests {
         );
         assert_eq!(res, "m_len_lookup$$List$_beg_$_end_".to_string());
         assert_eq!(unbox("u32".to_string()), "u32".to_string());
+    }
+
+    #[test]
+    fn test_nat_basic() {
+        assert_eq!(n_nat(0), zero_nat());
+        assert_eq!(n_nat(1), one_nat());
+        assert_eq!(n_nat(2), two_nat());
+        assert_eq!(n_nat(6), succ_of(succ_of(succ_of(succ_of(two_nat())))));
+
+        assert_ne!(zero_nat(), two_nat());
+        assert_ne!(zero_nat(), one_nat());
+        assert_ne!(n_nat(12), n_nat(13));
+    }
+    #[test]
+    fn test_nat_plus() {
+        assert_eq!(plus_n_nat(zero_nat(), 1), n_nat(1));
+
+        assert_eq!(plus_n_nat(one_nat(), 1), n_nat(2));
+
+        assert_eq!(plus_n_nat(two_nat(), 1), n_nat(3));
+        assert_eq!(plus_n_nat(two_nat(), 4), n_nat(6));
+        assert_eq!(plus_n_nat(two_nat(), 0), n_nat(2));
+        assert_eq!(plus_n_nat(n_nat(2), 5), n_nat(7));
     }
 }

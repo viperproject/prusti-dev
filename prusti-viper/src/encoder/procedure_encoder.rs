@@ -2701,7 +2701,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let func_call = if prusti_common::config::enable_purification_optimization() {
             let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.snapshots.borrow() );
-            arg_exprs.push(snapshot::two_nat());
+            arg_exprs.push(snapshot::n_nat(12));
 
             vir::Expr::domain_func_app(mirror_function, arg_exprs)
         }
