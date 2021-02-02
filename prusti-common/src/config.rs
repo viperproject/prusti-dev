@@ -140,7 +140,7 @@ pub fn get_filtered_args() -> Vec<String> {
 
 /// Generate a dump of the settings
 pub fn dump() -> String {
-    format!("{:?}", SETTINGS.read().unwrap())
+    format!("{:#?}", SETTINGS.read().unwrap())
 }
 
 fn read_optional_setting<T>(name: &'static str) -> Option<T>
