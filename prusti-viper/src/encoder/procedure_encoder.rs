@@ -5211,9 +5211,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .encoder
                         .encode_discriminant_func_app(dst.clone(), adt_def);
                     stmts.push(vir::Stmt::Inhale(
-                        vir::Expr::eq_cmp(discriminant, discr_value),
+                        vir::Expr::eq_cmp(discriminant, discr_value.clone()),
                         vir::FoldingBehaviour::Stmt,
                     ));
+
+                    if config::enable_purification_optimization() {
+                        // Temporary fix 
+                        stmts.push(vir::Stmt::Assert(vir::Expr::eq_cmp(dst.clone().field(vir::Field {
+                            name: "discriminant".into(),
+                            typ: vir::Type::Int,
+                        }), discr_value.clone()), vir::FoldingBehaviour::Expr,  vir::Position::default()));
+                    }
+
                     let variant_name = &variant_def.ident.as_str();
                     dst_base = dst_base.variant(variant_name);
                 }
