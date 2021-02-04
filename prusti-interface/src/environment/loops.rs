@@ -19,14 +19,14 @@ use crate::environment::mir_utils::RealEdges;
 fn collect_loop_body<'tcx>(
     head: BasicBlockIndex,
     back_edge_source: BasicBlockIndex,
-    mir: &mir::Body<'tcx>,
+    real_edges: &RealEdges,
     body: &mut HashSet<BasicBlockIndex>,
 ) {
     let mut work_queue = vec![back_edge_source];
     body.insert(back_edge_source);
     while !work_queue.is_empty() {
         let current = work_queue.pop().unwrap();
-        for &predecessor in mir.predecessors()[current].iter() {
+        for &predecessor in real_edges.predecessors(current).iter() {
             if body.contains(&predecessor) {
                 continue;
             }
@@ -249,7 +249,7 @@ impl ProcedureLoops {
         let mut loop_bodies = HashMap::new();
         for &(source, target) in back_edges.iter() {
             let body = loop_bodies.entry(target).or_insert(HashSet::new());
-            collect_loop_body(target, source, mir, body);
+            collect_loop_body(target, source, real_edges, body);
         }
 
         let mut enclosing_loop_heads_set: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>> =
