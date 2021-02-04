@@ -617,7 +617,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let loop_body: Vec<BasicBlockIndex> = loop_info
             .get_loop_body(loop_head)
             .iter()
-            .filter(|&&bb| !self.procedure.is_spec_block(bb))
+            .filter(
+                |&&bb| self.procedure.is_reachable_block(bb) && !self.procedure.is_spec_block(bb)
+            )
             .cloned()
             .collect();
 
@@ -635,7 +637,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .filter(|&bb| loop_exit_blocks_set.contains(bb))
             .cloned()
             .collect();
-        // Heuristic: pick the first exit block before the invariant.
+        // HEURISTIC: pick the last exit block before the invariant.
         // An infinite loop will have no exit blocks, so we have to use an Option here
         let opt_loop_guard_switch = exit_blocks_before_inv.last().cloned();
         let after_guard_block_pos = opt_loop_guard_switch
@@ -649,6 +651,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let after_guard_block = loop_body[after_guard_block_pos];
         let after_inv_block = loop_body[after_inv_block_pos];
 
+        trace!("loop_head: {:?}", loop_head);
+        trace!("loop_body: {:?}", loop_body);
         trace!("opt_loop_guard_switch: {:?}", opt_loop_guard_switch);
         trace!("before_invariant_block: {:?}", before_invariant_block);
         trace!("after_guard_block: {:?}", after_guard_block);
@@ -4417,9 +4421,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})",
             lhs, operand, location
         );
+        let span = self.mir_encoder.get_span_of_location(location);
         let stmts = match operand {
             mir::Operand::Move(ref place) => {
-                let (src, ty, _) = self.mir_encoder.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
+                let (src, ty, _) = self.mir_encoder.encode_place(place).with_span(span)?;
                 let mut stmts = match ty.kind() {
                     ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => {
                         // Reborrow.
@@ -4455,8 +4460,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             mir::Operand::Copy(ref place) => {
-                let (src, ty, _) = self.mir_encoder.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
-
+                let (src, ty, _) = self.mir_encoder.encode_place(place).with_span(span)?;
                 let mut stmts = if self.mir_encoder.is_reference(ty) {
                     let loan = self.polonius_info().get_loan_at_location(location);
                     let ref_field = self.encoder.encode_value_field(ty);
@@ -4510,9 +4514,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // Initialize the constant
                     let const_val = self.encoder
                         .encode_const_expr(*ty, val)
-                        .with_span(
-                            self.mir_encoder.get_span_of_location(location)
-                        )?;
+                        .with_span(span)?;
                     // Initialize value of lhs
                     stmts.push(vir::Stmt::Assign(
                         lhs.clone().field(field),
