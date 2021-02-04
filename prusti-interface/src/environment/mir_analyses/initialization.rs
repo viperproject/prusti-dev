@@ -16,6 +16,7 @@
 //! the set at the same time. For example, having `x.f` and `x.f.g` in
 //! `S` at the same time is illegal.
 
+use prusti_common::Stopwatch;
 use super::common::{self, WorkItem};
 use crate::environment::place_set::PlaceSet;
 use csv::{ReaderBuilder, WriterBuilder};
@@ -354,16 +355,65 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
 /// Compute the which places are definitely initialized at each program
 /// point.
 pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
-    mir: &'a mir::Body<'tcx>,
+    body: &'a mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
 ) -> DefinitelyInitializedAnalysisResult<'tcx> {
-    let mut analysis = DefinitelyInitializedAnalysis::new(mir, tcx);
+    let mut stopwatch = Stopwatch::start("prusti-client", "initialization analysis");
+    let mut analysis = DefinitelyInitializedAnalysis::new(body, tcx);
     analysis.initialize();
     analysis.propagate_work_queue();
     analysis.run(JoinOperation::Union);
     analysis.propagate_work_queue();
     analysis.run(JoinOperation::Intersect);
-    analysis.result
+    let result = analysis.result;
+    stopwatch.finish();
+    result
+}
+
+pub fn new_compute_definitely_initialized<'a, 'tcx: 'a>(
+    body: &'a mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
+) -> DefinitelyInitializedAnalysisResult<'tcx> {
+    let mut stopwatch = Stopwatch::start("prusti-client", "new initialization analysis");
+    let analyzer = Analyzer::new(tcx);
+    let pointwise_state = analyzer.run_fwd_analysis::<DefinitelyInitializedState>(&body).unwrap();
+
+    // Convert the pointwise_state to analysis_result.
+    let mut analysis_result = common::AnalysisResult::new();
+    for (bb, bb_data) in body.basic_blocks().iter_enumerated() {
+        let num_statements = bb_data.statements.len();
+        let mut location = bb.start_location();
+        analysis_result.before_block.insert(
+            bb,
+            pointwise_state.lookup_before(location).unwrap().get_def_init_places().clone().into(),
+        );
+        while location.statement_index < num_statements {
+            // `location` identifies a statement
+            let state = pointwise_state.lookup_after(location).unwrap();
+            analysis_result.after_statement.insert(
+                location,
+                state.get_def_init_places().clone().into(),
+            );
+            location = location.successor_within_block();
+        }
+        // `location` identifies a terminator
+        let mut states_after_block = pointwise_state.lookup_after_block(bb).unwrap().values();
+        let mut opt_state_after_block = states_after_block.next().cloned();
+        if let Some(curr_state) = opt_state_after_block.as_mut() {
+            for state in states_after_block {
+                curr_state.join(state);
+            }
+        }
+        let state_after_block = opt_state_after_block.unwrap_or_else(
+            || DefinitelyInitializedState::new_bottom(body, tcx)
+        );
+        analysis_result.after_statement.insert(
+            location,
+            state_after_block.get_def_init_places().clone().into()
+        );
+    }
+    stopwatch.finish();
+    analysis_result
 }
 
 #[derive(Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
