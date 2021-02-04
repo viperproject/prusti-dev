@@ -5,17 +5,19 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![feature(rustc_private)]
+#![feature(box_patterns)]
 
 extern crate rustc_middle;
+extern crate rustc_data_structures;
+extern crate serde;
 
 mod pointwise_state;
 mod abstract_state;
 mod analysis_error;
 mod analyzer;
 pub mod abstract_domains;
+mod serialization_utils;
 
-use rustc_middle::ty::TyCtxt;
-use rustc_middle::mir;
 pub use pointwise_state::PointwiseState;
 pub use abstract_state::AbstractState;
 pub use analysis_error::AnalysisError;
