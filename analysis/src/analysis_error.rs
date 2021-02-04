@@ -18,11 +18,11 @@ impl AnalysisError {
     pub fn to_pretty_str(&self, mir: &mir::Body) -> String {
         match self {
             AnalysisError::UnsupportedStatement(location) => {
-                let stmt = location_to_stmt_str(location, mir);
+                let stmt = location_to_stmt_str(*location, mir);
                 format!("Unsupported statement at {:?}: {}", location, stmt)
             }
             AnalysisError::SuccessorWithoutState(location, bb) => {
-                let stmt = location_to_stmt_str(location, mir);
+                let stmt = location_to_stmt_str(*location, mir);
                 format!("Basic block {:?} after terminator at {:?} ({}) has no state assigned", bb, location, stmt)
             }
         }

@@ -45,12 +45,12 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for PCSState {
         unimplemented!()
     }
 
-    fn apply_statement_effect(&mut self, location: &mir::Location)
+    fn apply_statement_effect(&mut self, location: mir::Location)
     -> Result<(), AnalysisError> {
         unimplemented!()
     }
 
-    fn apply_terminator_effect(&self, location: &mir::Location)
+    fn apply_terminator_effect(&self, location: mir::Location)
         -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
         unimplemented!()
     }

@@ -7,7 +7,7 @@
 use rustc_middle::mir;
 
 /// Convert a `location` to a string representing the statement or terminator at that `location`
-pub fn location_to_stmt_str(location: &mir::Location, mir: &mir::Body) -> String {
+pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String {
     let bb_mir = &mir[location.block];
     if location.statement_index < bb_mir.statements.len() {
         let stmt = &bb_mir.statements[location.statement_index];

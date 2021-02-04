@@ -747,7 +747,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 &output_without_back_edges,
                 &incompatible_loans);
         // FIXME: Check whether the new info in Polonius could be used for computing initialization.
-        let initialization = compute_definitely_initialized(&mir, tcx, def_path.clone());
+        let initialization = compute_definitely_initialized(&mir, tcx);
         let liveness = compute_liveness(&mir);
         let loan_conflict_sets =
             compute_loan_conflict_sets(procedure, &loan_position, &all_facts, &output)?;

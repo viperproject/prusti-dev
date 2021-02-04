@@ -26,6 +26,8 @@ use rustc_index::vec::Idx;
 use std::path::Path;
 use log::trace;
 use serde::{Serialize, Deserialize};
+use analysis::{Analyzer, AbstractState};
+use analysis::abstract_domains::DefinitelyInitializedState;
 
 /// The result of the definitely initialized analysis.
 pub type DefinitelyInitializedAnalysisResult<'tcx> = common::AnalysisResult<PlaceSet<'tcx>>;
@@ -354,7 +356,6 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
 pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     mir: &'a mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    def_path: hir::definitions::DefPath,
 ) -> DefinitelyInitializedAnalysisResult<'tcx> {
     let mut analysis = DefinitelyInitializedAnalysis::new(mir, tcx);
     analysis.initialize();

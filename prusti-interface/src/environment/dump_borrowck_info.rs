@@ -82,7 +82,7 @@ impl<'tcx> InfoPrinter<'tcx> {
         let graph_file = File::create(graph_path).expect("Unable to create file");
         let graph = BufWriter::new(graph_file);
 
-        let initialization = compute_definitely_initialized(&mir, self.tcx, def_path.clone());
+        let initialization = compute_definitely_initialized(&mir, self.tcx);
         let liveness = compute_liveness(&mir);
 
         // FIXME: this computes the wrong loop invariant permission
