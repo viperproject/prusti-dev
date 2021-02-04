@@ -13,28 +13,7 @@ use rustc_data_structures::graph::dominators::Dominators;
 use std::collections::{HashMap, HashSet};
 use rustc_index::vec::{Idx, IndexVec};
 use log::{debug, trace};
-
-/// A visitor that collects the loop heads and bodies.
-struct LoopHeadCollector<'d> {
-    /// Back edges (a, b) where b is a loop head.
-    pub back_edges: HashSet<(BasicBlockIndex, BasicBlockIndex)>,
-    pub dominators: &'d Dominators<BasicBlockIndex>,
-}
-
-impl<'d, 'tcx> Visitor<'tcx> for LoopHeadCollector<'d> {
-    fn visit_terminator(
-        &mut self,
-        terminator: &mir::Terminator<'tcx>,
-        location: mir::Location
-    ) {
-        for successor in terminator.kind.successors() {
-            if self.dominators.is_dominated_by(location.block, *successor) {
-                self.back_edges.insert((location.block, *successor));
-                debug!("Loop head: {:?}", successor);
-            }
-        }
-    }
-}
+use crate::environment::mir_utils::RealEdges;
 
 /// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
 fn collect_loop_body<'tcx>(
@@ -150,6 +129,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
 /// Returns the list of basic blocks ordered in the topological order (ignoring back edges).
 fn order_basic_blocks<'tcx>(
     mir: &mir::Body<'tcx>,
+    real_edges: &RealEdges,
     back_edges: &HashSet<(BasicBlockIndex, BasicBlockIndex)>,
     loop_depth: &dyn Fn(BasicBlockIndex) -> usize,
 ) -> Vec<BasicBlockIndex> {
@@ -161,6 +141,7 @@ fn order_basic_blocks<'tcx>(
 
     fn visit<'tcx>(
         basic_blocks: &IndexVec<BasicBlockIndex, mir::BasicBlockData<'tcx>>,
+        real_edges: &RealEdges,
         back_edges: &HashSet<(BasicBlockIndex, BasicBlockIndex)>,
         loop_depth: &dyn Fn(BasicBlockIndex) -> usize,
         current: BasicBlockIndex,
@@ -176,10 +157,10 @@ fn order_basic_blocks<'tcx>(
         let curr_depth = loop_depth(current);
         // We want to order the loop body before exit edges
         let successors_groups: Vec<Vec<_>> = vec![
-            basic_blocks[current].terminator().successors().filter(
+            real_edges.successors(current).iter().filter(
                 |&&bb| loop_depth(bb) < curr_depth
             ).cloned().collect(),
-            basic_blocks[current].terminator().successors().filter(
+            real_edges.successors(current).iter().filter(
                 |&&bb| loop_depth(bb) >= curr_depth
             ).cloned().collect(),
         ];
@@ -190,6 +171,7 @@ fn order_basic_blocks<'tcx>(
                 }
                 visit(
                     basic_blocks,
+                    real_edges,
                     back_edges,
                     loop_depth,
                     successor,
@@ -211,6 +193,7 @@ fn order_basic_blocks<'tcx>(
         };
         visit(
             basic_blocks,
+            real_edges,
             back_edges,
             loop_depth,
             index,
@@ -250,16 +233,18 @@ pub struct ProcedureLoops {
 }
 
 impl ProcedureLoops {
-    pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Body<'tcx>) -> ProcedureLoops {
+    pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Body<'tcx>, real_edges: &RealEdges) -> ProcedureLoops {
         let dominators = mir.dominators();
-        let back_edges: HashSet<(_, _)> = {
-            let mut visitor = LoopHeadCollector {
-                back_edges: HashSet::new(),
-                dominators: &dominators,
-            };
-            visitor.visit_body(mir);
-            visitor.back_edges.into_iter().collect()
-        };
+
+        let mut back_edges: HashSet<(_, _)> = HashSet::new();
+        for bb in mir.basic_blocks().indices() {
+            for successor in real_edges.successors(bb) {
+                if dominators.is_dominated_by(bb, *successor) {
+                    back_edges.insert((bb, *successor));
+                    debug!("Loop head: {:?}", successor);
+                }
+            }
+        }
 
         let mut loop_bodies = HashMap::new();
         for &(source, target) in back_edges.iter() {
@@ -298,7 +283,7 @@ impl ProcedureLoops {
                 .unwrap_or(0)
         };
 
-        let ordered_blocks = order_basic_blocks(mir, &back_edges, &get_loop_depth);
+        let ordered_blocks = order_basic_blocks(mir, real_edges, &back_edges, &get_loop_depth);
         let block_order: HashMap<BasicBlockIndex, usize> = ordered_blocks
             .iter().cloned().enumerate().map(|(i, v)| (v, i)).collect();
         debug!("ordered_blocks: {:?}", ordered_blocks);
@@ -342,7 +327,7 @@ impl ProcedureLoops {
                     mir::TerminatorKind::SwitchInt { .. } => true,
                     _ => false
                 };
-                let has_exit_edge = term.successors().any(
+                let has_exit_edge = real_edges.successors(curr_bb).iter().any(
                     |&bb| get_loop_depth(bb) < loop_head_depth
                 );
                 if is_switch_int && has_exit_edge {
@@ -351,7 +336,7 @@ impl ProcedureLoops {
 
                 border.remove(&curr_bb);
 
-                for &succ_bb in mir[curr_bb].terminator().successors() {
+                for &succ_bb in real_edges.successors(curr_bb) {
                     if back_edges.contains(&(curr_bb, succ_bb)) {
                         if succ_bb == loop_head || !loop_body.contains(&succ_bb) {
                             // From this point, we consider all blocks to be conditional

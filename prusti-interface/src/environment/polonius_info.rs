@@ -41,6 +41,7 @@ use super::mir_analyses::liveness::compute_liveness;
 use super::mir_analyses::liveness::LivenessAnalysisResult;
 use super::procedure::Procedure;
 use prusti_common::config;
+use crate::environment::mir_utils::RealEdges;
 
 /// This represents the assignment in which a loan was created. The `source`
 /// will contain the creation of the loan, while the `dest` will store the
@@ -688,7 +689,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
         let mut all_facts = facts_loader.facts;
 
-        let loop_info = loops::ProcedureLoops::new(&mir);
+        let real_edges = RealEdges::new(&mir);
+        let loop_info = loops::ProcedureLoops::new(&mir, &real_edges);
         let (reference_moves, argument_moves, incompatible_loans) = add_fake_facts(
             &mut all_facts,
             &facts_loader.interner,

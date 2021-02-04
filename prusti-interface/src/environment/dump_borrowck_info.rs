@@ -27,6 +27,7 @@ use std::io::{self, BufWriter, Write};
 use std::path::PathBuf;
 use log::{trace, debug};
 use prusti_common::config;
+use crate::environment::mir_utils::RealEdges;
 
 pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'tcx>, procedures: &Vec<ProcedureDefId>) {
     trace!("[dump_borrowck_info] enter");
@@ -70,7 +71,8 @@ impl<'tcx> InfoPrinter<'tcx> {
         let (mir, _) = self.tcx.mir_promoted(ty::WithOptConstParam::unknown(local_def_id));
         let mir = mir.borrow();
 
-        let loop_info = loops::ProcedureLoops::new(&mir);
+        let real_edges = RealEdges::new(&mir);
+        let loop_info = loops::ProcedureLoops::new(&mir, &real_edges);
 
         let graph_path = PathBuf::from(config::log_dir())
             .join("nll-facts")
