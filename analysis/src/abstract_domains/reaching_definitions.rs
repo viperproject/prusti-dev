@@ -45,11 +45,19 @@ impl<'a, 'tcx: 'a> fmt::Debug for ReachingDefsState<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx: 'a> PartialEq for ReachingDefsState<'a, 'tcx> {      // manual implementation needed, because not implemented for Body
+impl<'a, 'tcx: 'a> PartialEq for ReachingDefsState<'a, 'tcx> {
     fn eq(&self, other: &Self) -> bool {
-        // ignore mir
-        debug_assert_eq!(self.mir.hash_stable(&mut self.tcx.get_stable_hashing_context(), &mut StableHasher::new()),
-                         other.mir.hash_stable(&mut other.tcx.get_stable_hashing_context(), &mut StableHasher::new()));
+        debug_assert_eq!(
+            self.mir.hash_stable(
+                &mut self.tcx.get_stable_hashing_context(),
+                &mut StableHasher::new()
+            ),
+            other.mir.hash_stable(
+                &mut other.tcx.get_stable_hashing_context(),
+                &mut StableHasher::new()
+            )
+        );
+        // Ignore the `mir` field.
         self.reaching_defs == other.reaching_defs
     }
 }
@@ -65,9 +73,11 @@ impl<'a, 'tcx: 'a> Serialize for ReachingDefsState<'a, 'tcx> {
             for location in ordered_loc_set {
                 match location {
                     Assignment(l) => {
-                        let stmt = location_to_stmt_str(l, self.mir);
+                        let stmt = location_to_stmt_str(*l, self.mir);
+                        // Include the location to differentiate between same statement on
+                        // different lines.
                         location_vec.push(format!("{:?}: {}", l, stmt));
-                    },             // keep location for differentiation between same statement on different lines
+                    },
                     Parameter(idx) => location_vec.push(format!("arg{}", idx))
                 }
             }
@@ -110,7 +120,8 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
     }
 
     fn need_to_widen(_counter: &u32) -> bool {
-        false       // only consider static information (assignments) => no lattice of infinite height
+        // only consider static information (assignments) => no lattice of infinite height
+        false
     }
 
     fn join(&mut self, other: &Self) {
@@ -125,7 +136,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         unimplemented!()
     }
 
-    fn apply_statement_effect(&mut self, location: &mir::Location)
+    fn apply_statement_effect(&mut self, location: mir::Location)
         -> Result<(), AnalysisError> {
 
         let stmt = &self.mir[location.block].statements[location.statement_index];
@@ -134,7 +145,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
                 if let Some(local) = target.as_local() {
                     let location_set = self.reaching_defs.entry(local).or_insert(HashSet::new());
                     location_set.clear();
-                    location_set.insert(Assignment(*location));
+                    location_set.insert(Assignment(location));
                 }
             }
             _ => {}
@@ -143,7 +154,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         Ok(())
     }
 
-    fn apply_terminator_effect(&self, location: &mir::Location)
+    fn apply_terminator_effect(&self, location: mir::Location)
         -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
 
         let mut res_vec = Vec::new();
@@ -155,32 +166,35 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
                 if let Some((place, bb)) = destination {
                     let mut dest_state = self.clone();
                     if let Some(local) = place.as_local() {
-                        let location_set = dest_state.reaching_defs.entry(local).or_insert(HashSet::new());
+                        let location_set = dest_state.reaching_defs.entry(local)
+                            .or_insert(HashSet::new());
                         location_set.clear();
-                        location_set.insert(Assignment(*location));
+                        location_set.insert(Assignment(location));
                     }
                     res_vec.push((*bb, dest_state));
                 }
 
                 if let Some(bb) = cleanup {
                     let mut cleanup_state = self.clone();
-                    // error state -> be conservative & add destination as possible reaching def while keeping all others
+                    // error state -> be conservative & add destination as possible reaching def
+                    // while keeping all others
                     if let Some((place, _)) = destination {
                         if let Some(local) = place.as_local() {
-                            let location_set = cleanup_state.reaching_defs.entry(local).or_insert(HashSet::new());
-                            location_set.insert(Assignment(*location));
+                            let location_set = cleanup_state.reaching_defs.entry(local)
+                                .or_insert(HashSet::new());
+                            location_set.insert(Assignment(location));
                         }
                     }
                     res_vec.push((bb, cleanup_state));
                 }
             }
-            mir::TerminatorKind::InlineAsm { .. }  =>
-                return Err(AnalysisError::UnsupportedStatement(*location)),
-
+            mir::TerminatorKind::InlineAsm { .. }  => {
+                return Err(AnalysisError::UnsupportedStatement(location));
+            }
             _ => {
-                for bb in terminator.successors() {
+                for &bb in terminator.successors() {
                     // no assignment -> no change of state
-                    res_vec.push((*bb, self.clone()));
+                    res_vec.push((bb, self.clone()));
                 }
             }
         }

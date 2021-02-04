@@ -78,8 +78,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {
         def_id: DefId,
         mir_encoder: &MirEncoder<'p, 'v, 'tcx>,
     ) -> EncodingResult<Self> {
-        let def_path = tcx.hir().def_path(def_id.expect_local());
-        let initialisation = compute_definitely_initialized(&mir, tcx, def_path);
+        let initialisation = compute_definitely_initialized(&mir, tcx);
         let mir_acc_before_block: HashMap<_, _> = initialisation
             .before_block
             .into_iter()
