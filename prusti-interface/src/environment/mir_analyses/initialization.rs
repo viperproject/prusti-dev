@@ -354,11 +354,11 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
 
 /// Compute the which places are definitely initialized at each program
 /// point.
-pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
+pub fn old_compute_definitely_initialized<'a, 'tcx: 'a>(
     body: &'a mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
 ) -> DefinitelyInitializedAnalysisResult<'tcx> {
-    let mut stopwatch = Stopwatch::start("prusti-client", "initialization analysis");
+    let mut stopwatch = Stopwatch::start("prusti-client", "old initialization analysis");
     let mut analysis = DefinitelyInitializedAnalysis::new(body, tcx);
     analysis.initialize();
     analysis.propagate_work_queue();
@@ -370,11 +370,11 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     result
 }
 
-pub fn new_compute_definitely_initialized<'a, 'tcx: 'a>(
+pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     body: &'a mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
 ) -> DefinitelyInitializedAnalysisResult<'tcx> {
-    let mut stopwatch = Stopwatch::start("prusti-client", "new initialization analysis");
+    let mut stopwatch = Stopwatch::start("prusti-client", "initialization analysis");
     let analyzer = Analyzer::new(tcx);
     let pointwise_state = analyzer.run_fwd_analysis::<DefinitelyInitializedState>(&body).unwrap();
 
