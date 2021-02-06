@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ::log::{info, debug, trace};
+use ::log::{info, debug, trace, warn};
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
@@ -89,7 +89,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::Function>>,
     memory_eq_encoder: RefCell<MemoryEqEncoder>,
     fields: RefCell<HashMap<String, vir::Field>>,
-    pub snapshots: RefCell<HashMap<String, Box<Snapshot>>>, // maps predicate names to snapshots
+    snapshots: RefCell<HashMap<String, Box<Snapshot>>>, // maps predicate names to snapshots
     type_snapshots: RefCell<HashMap<String, String>>, // maps snapshot names to predicate names
     snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
@@ -302,10 +302,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         let function_call_with_zero = vir::Expr::domain_func_app(df.clone(), args_with_zero.clone());
 
-        let mut purifier = snapshot::ExprPurifier {
-            snapshots: &snapshots,
-            self_function: function_call_with_succ.clone(),
-        };
+        let mut purifier = snapshot::ExprPurifier::new(&snapshots, snapshot::encode_nat_argument().into());
+        purifier.self_function(Some(function_call_with_succ.clone()));
 
         let pre_conds: vir::Expr = f
             .pres
@@ -317,10 +315,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .posts
             .iter()
             .cloned()
-            .enumerate()
-            .filter_map(|(i, p)| {
-                if i == f.posts.len() - 1 {
-                    // Skip the last post condition as it is only there to clarify the relation between the result of this function and snapshots
+            .filter_map(|(p)| {
+                 // Skip the post condition that it is only there to clarify the relation between the result of this function and the (old) mirror fucntion
+                 // FIXME: This is not at all the correct way to detect this
+                if p.to_string().contains("mirror$"){                    
                     None
                 } else {
                     Some(vir::ExprFolder::fold(&mut purifier, p))
@@ -328,11 +326,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             })
             .conjoin();
 
-        let function_body = vir::ExprFolder::fold(&mut purifier, f.body.clone().unwrap());
+        
+        let rhs: vir::Expr = if let Some(fbody) = f.body.clone() {
+            let function_body = vir::ExprFolder::fold(&mut purifier, fbody);
 
-        let function_identiry = vir::Expr::eq_cmp(function_call_with_succ.clone(), function_body);
-
-        let rhs: vir::Expr = vir::Expr::and(post_conds, function_identiry);
+            let function_identity = vir::Expr::eq_cmp(function_call_with_succ.clone(), function_body);
+            vir::Expr::and(post_conds, function_identity)
+        }
+        else {
+            post_conds
+        };
+        
 
         let valids_anded: vir::Expr = formal_args_without_nat
             .iter()

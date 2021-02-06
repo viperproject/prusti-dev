@@ -471,7 +471,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .register(self.mir.span, ErrorCtxt::Unexpected);
         let method_with_fold_unfold = foldunfold::add_fold_unfold(
             self.encoder,
-            self.cfg_method.clone(),
+            self.cfg_method,
             &loan_locations,
             &self.cfg_blocks_map,
             method_pos,
@@ -479,8 +479,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         .map_err(|foldunfold_error| {
             SpannedEncodingError::internal(
                 format!(
-                    "generating fold-unfold Viper statements for method {:?} failed ({:?})",
-                    self.cfg_method.name(),
+                    "generating fold-unfold Viper statements failed ({:?})",
                     foldunfold_error
                 ),
                 mir_span,
@@ -2700,7 +2699,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .register(call_site_span, ErrorCtxt::PureFunctionCall);
 
         let func_call = if prusti_common::config::enable_purification_optimization() {
-            let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.snapshots.borrow() );
+            debug!("we are replacing {} with the mirror function because it is pure", function_name);
+            let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.get_snapshots() );
             arg_exprs.push(snapshot::n_nat(12));
 
             vir::Expr::domain_func_app(mirror_function, arg_exprs)
@@ -2736,7 +2736,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
 
         self.encode_transfer_args_permissions(location, args,  &mut stmts, label);
-        warn!("encode_specified_pure_function_call({}) = {:#?}", function_name, stmts);
         Ok(stmts)
     }
 
@@ -3435,7 +3434,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ).map_or(Ok(None), |r| r.map(Some))
             )?;
 
-        let full_func_spec = func_spec
+        let mut full_func_spec_elements = func_spec
             .into_iter()
             .map( // patch type mismatches for specs involving pure functions returning copy types
                 |spec|
@@ -3443,10 +3442,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .patch_spec(spec)
                         .with_span(postcondition_span.clone())
             )
-            .collect::<SpannedEncodingResult<Vec<_>>>()?
-            .into_iter()
-            .conjoin()
-            .set_default_pos(func_spec_pos);
+            .collect::<SpannedEncodingResult<Vec<_>>>()?;
+           
+
+            if config::enable_purification_optimization() {
+                let snapshots = self.encoder.get_snapshots();
+                let mut ep = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
+                let mut purified_elems : Vec<vir::Expr> = full_func_spec_elements.clone().into_iter().map(|e| {
+                    let pure_spec = vir::ExprFolder::fold(&mut ep, e.clone());
+                    
+                    
+                    if format!("{:?}",e).contains("m_len"){
+                        debug!("{} becomes {}", e, pure_spec );
+                    }
+                    pure_spec
+                     
+                }).collect();
+
+                
+
+                full_func_spec_elements.append(&mut purified_elems);
+            }
+            let full_func_spec = full_func_spec_elements
+                .into_iter()
+                .conjoin()
+                .set_default_pos(func_spec_pos);
 
         Ok((
             type_spec.into_iter().conjoin(),

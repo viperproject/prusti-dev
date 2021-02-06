@@ -29,7 +29,7 @@ impl<'a> ExprFolder for Fixer<'a> {
             formal_args = formal_args.into_iter().map(|parameter| {
                 vir::LocalVar {
                     name: parameter.name,
-                    typ: super::translate_type(parameter.typ, self.snapshots),
+                    typ: super::translate_type(parameter.typ, self.snapshots).unwrap(),
                 }
             }).collect();
         };

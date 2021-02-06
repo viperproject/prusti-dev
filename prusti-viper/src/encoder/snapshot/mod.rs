@@ -4,6 +4,7 @@ use log::{info, warn};
 use prusti_common::vir;
 
 pub use self::purifier::ExprPurifier;
+pub use self::purifier::AssertPurifier;
 
 use super::{errors::EncodingResult, snapshot_encoder::Snapshot};
 use vir::Type;
@@ -112,7 +113,7 @@ pub fn encode_mirror_function_args_without_nat(
         .iter()
         .map(|e| {
             let old_type = e.typ.clone();
-            let new_type = translate_type(old_type, &snapshots);
+            let new_type = translate_type(old_type, &snapshots).unwrap();
 
             vir::LocalVar {
                 name: e.name.clone(),
@@ -137,7 +138,7 @@ pub fn encode_mirror_function(
     let df = vir::DomainFunc {
         name: format!("{}{}", MIRROR_FUNCTION_PREFIX, name),
         formal_args: formal_args.clone(),
-        return_type: translate_type(return_type.clone(), &snapshots),
+        return_type: translate_type(return_type.clone(), &snapshots).unwrap(),
         unique: false,
         domain_name: AXIOMATIZED_FUNCTION_DOMAIN_NAME.to_owned(),
     };
@@ -161,27 +162,27 @@ fn unbox(name: String) -> String {
     return name.chars().skip(start.len()).take(remaining).collect();
 }
 
-pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>) -> Type {
+pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>) -> Result<Type, String> {
     match t {
         Type::TypedRef(name) => match name.as_str() {
-            "i32" | "usize" | "u32" => Type::Int,
-            "bool" => Type::Bool,
+            "i32" | "usize" | "u32" => Ok(Type::Int),
+            "bool" => Ok(Type::Bool),
             _ => {
                 let name = unbox(name);
                 let domain_name = snapshots
                     .get(&name)
                     .and_then(|snap| snap.domain())
                     .map(|domain| domain.name)
-                    .expect(&format!(
+                    .ok_or(format!(
                         "No matching domain for '{}' in '{:?}'",
                         name,
                         snapshots.keys(),
-                    ));
+                    ))?;
 
-                vir::Type::Domain(domain_name)
+                Ok(vir::Type::Domain(domain_name))
             }
         },
-        o @ _ => o,
+        o @ _ => Ok(o),
     }
 }
 
@@ -250,6 +251,16 @@ pub fn two_nat() -> vir::Expr {
 
 pub fn n_nat(n: u32) -> vir::Expr {
     plus_n_nat(zero_nat(), n)
+}
+
+pub fn result_is_valid(typ: &vir::Type) -> vir::Expr {
+    let self_var = vir::LocalVar {
+        name: "__result".to_owned(),
+        typ: typ.clone(),
+    };
+    let valid_func = valid_func_for_type(&typ);
+    let self_arg = vir::Expr::local(self_var.clone());
+    vir::Expr::domain_func_app(valid_func, vec![self_arg])
 }
 
 #[cfg(test)]

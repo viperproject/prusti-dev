@@ -92,7 +92,7 @@ lazy_static! {
         settings.set_default("JSON_COMMUNICATION", false).unwrap();
         settings.set_default("OPTIMIZATIONS","all").unwrap();
         settings.set_default("INTERN_NAMES", true).unwrap();
-        settings.set_default("ENABLE_PURIFICATION_OPTIMIZATION", false).unwrap();
+        settings.set_default("ENABLE_PURIFICATION_OPTIMIZATION", true).unwrap(); //Temporary change to see the result of this in CI
 
         settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
         settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();

@@ -330,14 +330,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_snap_func(&self, return_type: vir::Type, body: vir::Expr) -> vir::Function {
-        let posts =
-        if prusti_common::config::enable_purification_optimization() {
-            let self_var = vir::LocalVar{name: "__result".to_owned(), typ: return_type.clone()};
-            let valid_func = snapshot::valid_func_for_type(&return_type);
-            let self_arg = vir::Expr::local(self_var.clone());
-            let valid_post = vir::Expr::domain_func_app(valid_func, vec![self_arg]);
-            vec![valid_post];
-            vec![] //FIXME this should be the above vec but this currently doesn't verify
+        let posts = if prusti_common::config::enable_purification_optimization() {
+            vec![snapshot::result_is_valid(&return_type)]
         }
         else {
             vec![]
@@ -400,12 +394,19 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_snap_func_generic(&self, return_type: vir::Type) -> vir::Function {
+        let posts = if prusti_common::config::enable_purification_optimization() {
+            vec![snapshot::result_is_valid(&return_type)]
+        }
+        else {
+            vec![]
+        };
+
         vir::Function {
             name: SNAPSHOT_GET.to_string(),
             formal_args: vec![self.encode_arg_var(SNAPSHOT_ARG)],
             return_type,
             pres: vec![],
-            posts: vec![],
+            posts,
             body: None,
         }
     }
@@ -1290,12 +1291,20 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     ) -> EncodingResult<vir::Function>
     {
         if self.adt_def.variants.is_empty() {
+
+            let posts = if prusti_common::config::enable_purification_optimization() {
+                vec![snapshot::result_is_valid(&snap_domain.get_type(),)]
+            }
+            else {
+                vec![]
+            };
+
             return Ok(vir::Function {
                 name: SNAPSHOT_GET.to_string(),
                 formal_args: vec![self.snapshot_encoder.encode_arg_var(SNAPSHOT_ARG)],
                 return_type: snap_domain.get_type(),
                 pres: vec![],
-                posts: vec![],
+                posts,
                 body: None
             })
         }
