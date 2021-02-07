@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use log::{info, warn};
 use prusti_common::vir;
 
-pub use self::purifier::ExprPurifier;
-pub use self::purifier::AssertPurifier;
+pub use self::purifier::{AssertPurifier, ExprPurifier};
 
 use super::{errors::EncodingResult, snapshot_encoder::Snapshot};
 use vir::Type;
@@ -108,17 +107,17 @@ pub fn encode_nat_argument() -> vir::LocalVar {
 pub fn encode_mirror_function_args_without_nat(
     formal_args: &[vir::LocalVar],
     snapshots: &HashMap<String, Box<Snapshot>>,
-) -> Vec<vir::LocalVar> {
+) -> Result<Vec<vir::LocalVar>, String> {
     formal_args
         .iter()
         .map(|e| {
             let old_type = e.typ.clone();
-            let new_type = translate_type(old_type, &snapshots).unwrap();
+            let new_type = translate_type(old_type, &snapshots)?;
 
-            vir::LocalVar {
+            Ok(vir::LocalVar {
                 name: e.name.clone(),
                 typ: new_type,
-            }
+            })
         })
         .collect()
 }
@@ -128,9 +127,9 @@ pub fn encode_mirror_function(
     formal_args: &[vir::LocalVar],
     return_type: &vir::Type,
     snapshots: &HashMap<String, Box<Snapshot>>,
-) -> vir::DomainFunc {
+) -> Result<vir::DomainFunc, String> {
     let formal_args_without_nat: Vec<vir::LocalVar> =
-        encode_mirror_function_args_without_nat(formal_args, snapshots);
+        encode_mirror_function_args_without_nat(formal_args, snapshots)?;
 
     let mut formal_args = formal_args_without_nat.clone();
     formal_args.push(encode_nat_argument());
@@ -143,7 +142,7 @@ pub fn encode_mirror_function(
         domain_name: AXIOMATIZED_FUNCTION_DOMAIN_NAME.to_owned(),
     };
 
-    df
+    Ok(df)
 }
 
 fn unbox(name: String) -> String {

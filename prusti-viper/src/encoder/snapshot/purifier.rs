@@ -190,7 +190,7 @@ impl<'a> FallibleExprFolder for ExprPurifier<'a> {
                     &formal_args,
                     &return_type,
                     &self.snapshots,
-                );
+                )?;
 
                 let mut folded_args: Vec<Expr> = args
                     .into_iter()
@@ -262,28 +262,30 @@ impl<'a> ExprFolder for AssertPurifier<'a> {
     ) -> Expr {
         let ident_name = vir::compute_identifier(&name, &formal_args, &return_type);
 
-        let df =
-            snapshot::encode_mirror_function(&name, &formal_args, &return_type, &self.snapshots);
-
-        let mut folded_args: Vec<Expr> = args
-            .into_iter()
-            .map(|e| self.fold(e.clone()))
-            .collect::<Vec<Expr>>()
-            .into_iter()
-            .map(|e| {
-                let typ: vir::Type = e.get_type().clone();
-                if let vir::Type::TypedRef(predicate_name) = typ {
-                    if let Some(snapshot) = self.snapshots.get(&predicate_name) {
-                        snapshot.snap_call(e)
-                    } else {
-                        e
-                    }
-                } else {
-                    e
-                }
-            })
-            .collect();
-        folded_args.push(self.nat_arg.clone());
-        Expr::DomainFuncApp(df, folded_args, pos)
+        match snapshot::encode_mirror_function(&name, &formal_args, &return_type, &self.snapshots) {
+            Err(_) => Expr::FuncApp(name, args, formal_args, return_type, pos),
+            Ok(df) => {
+                let mut folded_args: Vec<Expr> = args
+                    .into_iter()
+                    .map(|e| self.fold(e.clone()))
+                    .collect::<Vec<Expr>>()
+                    .into_iter()
+                    .map(|e| {
+                        let typ: vir::Type = e.get_type().clone();
+                        if let vir::Type::TypedRef(predicate_name) = typ {
+                            if let Some(snapshot) = self.snapshots.get(&predicate_name) {
+                                snapshot.snap_call(e)
+                            } else {
+                                e
+                            }
+                        } else {
+                            e
+                        }
+                    })
+                    .collect();
+                folded_args.push(self.nat_arg.clone());
+                Expr::DomainFuncApp(df, folded_args, pos)
+            }
+        }
     }
 }

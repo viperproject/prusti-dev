@@ -280,10 +280,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let domain_name = self.axiomatized_function_domain.borrow().name.clone();
 
         let formal_args_without_nat: Vec<vir::LocalVar> =
-            snapshot::encode_mirror_function_args_without_nat(&f.formal_args, &snapshots);
+            snapshot::encode_mirror_function_args_without_nat(&f.formal_args, &snapshots).unwrap();
 
         let df =
-            snapshot::encode_mirror_function(&f.name, &f.formal_args, &f.return_type, &snapshots);
+            snapshot::encode_mirror_function(&f.name, &f.formal_args, &f.return_type, &snapshots).unwrap();
         let nat_arg = vir::Expr::local(snapshot::encode_nat_argument());
         let nat_succ = vir::Expr::domain_func_app(snapshot::get_succ_func(), vec![nat_arg.clone()]);
         let args_without_nat: Vec<vir::Expr> = formal_args_without_nat

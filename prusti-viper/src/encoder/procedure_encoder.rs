@@ -2700,7 +2700,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let func_call = if prusti_common::config::enable_purification_optimization() {
             debug!("we are replacing {} with the mirror function because it is pure", function_name);
-            let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.get_snapshots() );
+            let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.get_snapshots() ).unwrap();
             arg_exprs.push(snapshot::n_nat(12));
 
             vir::Expr::domain_func_app(mirror_function, arg_exprs)
@@ -3450,18 +3450,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let mut ep = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
                 let mut purified_elems : Vec<vir::Expr> = full_func_spec_elements.clone().into_iter().map(|e| {
                     let pure_spec = vir::ExprFolder::fold(&mut ep, e.clone());
-                    
-                    
                     if format!("{:?}",e).contains("m_len"){
                         debug!("{} becomes {}", e, pure_spec );
                     }
                     pure_spec
-                     
                 }).collect();
 
                 
-
-                full_func_spec_elements.append(&mut purified_elems);
+                full_func_spec_elements =  purified_elems;
             }
             let full_func_spec = full_func_spec_elements
                 .into_iter()
