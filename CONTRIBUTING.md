@@ -1,5 +1,7 @@
 # Contributing
 
+For more detailed instructions, refer to the [development guide](https://viperproject.github.io/prusti-dev/dev-guide).
+
 ## Getting Started
 
 At the repository root, we provide a Python3 script `x.py` that sets up the necessary configuration flags and calls `cargo` with the provided arguments.
@@ -32,7 +34,5 @@ If you want to see what exactly environment variables `./x.py` is setting, pass 
 After a successful build, you can use the `prusti-rustc` as follows (note that Prusti works only with 2018 edition):
 
 ```bash
-# Set all env variables.
-export PRUSTI_LOAD_ALL_PROC_MACRO_CRATES=true
-./target/debug/prusti-rustc prusti/tests/pass/parse/pledges.rs --edition=2018
+./target/debug/prusti-rustc --edition=2018 prusti-tests/tests/verify/pass/no-annotations/assert-true.rs
 ```
