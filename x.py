@@ -266,7 +266,7 @@ def run_benchmarks(args):
     prusti_server_exe = get_prusti_server_path_for_benchmark()
     server_port = "12345"
     output_dir = "benchmark-output"
-    benchmark_csv = "benchmarks.csv"
+    benchmark_csv = "benchmarked-files.csv"
     results = {}
 
     env = get_env()
