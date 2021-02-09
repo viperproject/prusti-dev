@@ -418,20 +418,22 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             &cons_func,
         );
 
-        let mut functions = vec![cons_func];
-
+        let mut functions = vec![cons_func.clone()];
+        let mut axioms = vec![cons_axiom_injectivity];
         if prusti_common::config::enable_purification_optimization() {
             let domain_name = self.encode_domain_name();
             let valid_function = self.encode_valid_function();
+            let valid_axiom = self.encode_valid_axiom(cons_func)?;
 
             functions.push(snapshot::encode_unfold_witness(domain_name));
             functions.push(valid_function);
+            axioms.push(valid_axiom);
         }
 
         Ok(vir::Domain {
             name: self.encode_domain_name(),
             functions,
-            axioms: vec![cons_axiom_injectivity],
+            axioms,
             type_vars: vec![]
         })
     }
@@ -441,6 +443,34 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         let domain_type = vir::Type::Domain(domain_name);
         snapshot::valid_func_for_type(&domain_type)
     }
+
+    fn encode_valid_axiom(&self, cons_func: vir::DomainFunc) -> EncodingResult<vir::DomainAxiom> {
+        let domain_name = self.encode_domain_name();
+        let args = cons_func.formal_args;
+
+        let self_var = vir::LocalVar::new(
+            "self",
+            vir::Type::Domain(domain_name.to_string()),
+        );
+
+       // let all_fields : Vec<_> = self.adt_def.all_fields().collect();
+        let valid_func_apps= true.into(); //self.and_valid_fields(all_fields, &self_var, None)
+        //TODO actuall check the validity of the fields.
+
+       let self_valid_function = self.encode_valid_function();
+       let self_valid_function_app = vir::Expr::domain_func_app(self_valid_function, vec![vir::Expr::local(self_var.clone())]);
+
+       let equality = vir::Expr::eq_cmp(self_valid_function_app, valid_func_apps);
+
+
+       let expr = vir::Expr::forall( vec![self_var], vec![], equality); //TODO triggers
+        Ok(vir::DomainAxiom {
+            name: format!("{}$valid$axiom", domain_name).to_string(),
+            expr,
+            domain_name,
+        })
+    }
+
 
     fn encode_domain_name(&self) -> String {
         format!(
@@ -888,17 +918,25 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
         }
         else {
             let mut variant_valids: Vec<vir::Expr> = vec![];
-            for (variant_index, variant) in self.adt_def.variants.iter().enumerate() {
-                let variant_name = variant.ident.name.to_ident_string();
-                let fields_for_this_variant : Vec<_> = variant.fields.iter().collect();
-                let anded_for_this_variant = self.and_valid_fields(fields_for_this_variant, &self_var, Some(variant_name));
 
-                let get_variant = vir::Expr::domain_func_app(self.encode_variant_func(), vec![vir::Expr::local(self_var.clone())]);
-                let lhs = vir::Expr::eq_cmp(get_variant, variant_index.into());
-                variant_valids.push(vir::Expr::implies(lhs, anded_for_this_variant));
-            }
+                for (variant_index, variant) in self.adt_def.variants.iter().enumerate() {
+                    let variant_name = variant.ident.name.to_ident_string();
+                    let fields_for_this_variant : Vec<_> = variant.fields.iter().collect();
+                    let get_variant = vir::Expr::domain_func_app(self.encode_variant_func(), vec![vir::Expr::local(self_var.clone())]);
+                    let lhs = vir::Expr::eq_cmp(get_variant, variant_index.into());
+                    if fields_for_this_variant.is_empty() {
+                        variant_valids.push(lhs);
+                    }
+                    else {
+                        let anded_for_this_variant = self.and_valid_fields(fields_for_this_variant, &self_var, Some(variant_name.clone()));
 
-            variant_valids.iter().cloned().fold(true.into(),  vir::Expr::and)
+                        variant_valids.push(vir::Expr::and(lhs, anded_for_this_variant));
+                    }
+                }
+                variant_valids.iter().cloned().fold(false.into(),  vir::Expr::or); //TODO return this instead
+
+                true.into()
+
 
         };
 

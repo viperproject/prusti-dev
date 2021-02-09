@@ -14,6 +14,7 @@ use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
 use crate::encoder::mir_interpreter::{
     run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
 };
+use crate::encoder::snapshot;
 use crate::encoder::Encoder;
 use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 use prusti_common::vir;
@@ -771,13 +772,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .encoder
                                     .error_manager()
                                     .register(term.source_info.span, err_ctxt);
-                                let encoded_rhs = vir::Expr::func_app(
+                                let mut encoded_rhs = vir::Expr::func_app(
                                     function_name,
                                     encoded_args,
                                     formal_args,
                                     return_type,
                                     pos,
                                 );
+                                if config::enable_purification_optimization() {
+                                    let snapshots = self.encoder.get_snapshots();
+                                    let mut ap = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
+                                    encoded_rhs = vir::ExprFolder::fold(&mut ap, encoded_rhs.clone());
+                                }
                                 let mut state = states[&target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state

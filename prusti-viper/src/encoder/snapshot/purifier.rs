@@ -261,15 +261,20 @@ impl<'a> ExprFolder for AssertPurifier<'a> {
         pos: Position,
     ) -> Expr {
         let ident_name = vir::compute_identifier(&name, &formal_args, &return_type);
-
+        let mut folded_args: Vec<Expr> = args
+            .into_iter()
+            .map(|e| self.fold(e.clone()))
+            .collect::<Vec<Expr>>();
+            
         match snapshot::encode_mirror_function(&name, &formal_args, &return_type, &self.snapshots) {
-            Err(_) => Expr::FuncApp(name, args, formal_args, return_type, pos),
+            Err(_) => {
+                let fun =  Expr::FuncApp(name, folded_args, formal_args, return_type, pos);
+                //warn!("Not AssertPurifing {:?} because we cannot get the mirror function", fun );
+                fun
+            }
             Ok(df) => {
-                let mut folded_args: Vec<Expr> = args
-                    .into_iter()
-                    .map(|e| self.fold(e.clone()))
-                    .collect::<Vec<Expr>>()
-                    .into_iter()
+                
+                let mut folded_domain_func_args: Vec<Expr> = folded_args.into_iter()
                     .map(|e| {
                         let typ: vir::Type = e.get_type().clone();
                         if let vir::Type::TypedRef(predicate_name) = typ {
@@ -283,8 +288,8 @@ impl<'a> ExprFolder for AssertPurifier<'a> {
                         }
                     })
                     .collect();
-                folded_args.push(self.nat_arg.clone());
-                Expr::DomainFuncApp(df, folded_args, pos)
+                folded_domain_func_args.push(self.nat_arg.clone());
+                Expr::DomainFuncApp(df, folded_domain_func_args, pos)
             }
         }
     }

@@ -3457,7 +3457,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }).collect();
 
                 
-                full_func_spec_elements =  purified_elems;
+              //  full_func_spec_elements =  purified_elems;
             }
             let full_func_spec = full_func_spec_elements
                 .into_iter()
