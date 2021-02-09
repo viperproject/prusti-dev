@@ -2650,10 +2650,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let arg_exprs = if prusti_common::config::enable_purification_optimization() {
             let mut arg_exprs = vec![];
             for arg in non_snapshot_arg_exprs {
-                let predicate_name = arg.get_type().name();
-                let snapshot = self.encoder.encode_snapshot_use(predicate_name).with_span(call_site_span)?;
-                let snap_call = snapshot.snap_call(arg);
-                arg_exprs.push(snap_call);
+                match arg.get_type() {
+                    Type::TypedRef(predicate_name) => {
+                        let snapshot = self.encoder.encode_snapshot_use(predicate_name.clone()).with_span(call_site_span)?;
+                        let snap_call = snapshot.snap_call(arg);
+                        arg_exprs.push(snap_call);
+                    }
+                    _ => {
+                        arg_exprs.push(arg);
+                    }
+                }
+               
             }
 
             arg_exprs
