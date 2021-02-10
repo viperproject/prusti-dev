@@ -1,3 +1,3 @@
 # Contributing
 
-Please refer to the [development guide](https://viperproject.github.io/prusti-dev/dev-guide).
+Please refer to the [developer guide](https://viperproject.github.io/prusti-dev/dev-guide).
