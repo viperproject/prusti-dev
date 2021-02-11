@@ -267,9 +267,9 @@ impl<'a> ExprFolder for AssertPurifier<'a> {
             .collect::<Vec<Expr>>();
             
         match snapshot::encode_mirror_function(&name, &formal_args, &return_type, &self.snapshots) {
-            Err(_) => {
+            Err(e) => {
                 let fun =  Expr::FuncApp(name, folded_args, formal_args, return_type, pos);
-                //warn!("Not AssertPurifing {:?} because we cannot get the mirror function", fun );
+                warn!("Not AssertPurifing {:?} because we cannot get the mirror function because {}", fun,e  );
                 fun
             }
             Ok(df) => {

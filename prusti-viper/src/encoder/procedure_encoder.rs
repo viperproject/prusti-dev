@@ -2710,7 +2710,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.get_snapshots() ).unwrap();
             arg_exprs.push(snapshot::n_nat(12));
 
-            vir::Expr::domain_func_app(mirror_function, arg_exprs)
+            snapshot::mirror_function_caller_call(mirror_function, arg_exprs)
         }
         else {
             vir::Expr::func_app(

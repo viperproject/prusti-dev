@@ -15,6 +15,22 @@ pub const NAT_DOMAIN_NAME: &str = "$Nat$";
 pub const AXIOMATIZED_FUNCTION_DOMAIN_NAME: &str = "$MirrorFunctions$";
 pub const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
 pub const MIRROR_FUNCTION_PREFIX: &str = "mirrorfn$";
+const MIRROR_FUNCTION_CALLER_PREFIX: &str = "caller_for$$";
+
+pub fn mirror_function_caller_call(mirror_fn: vir::DomainFunc, args: Vec<vir::Expr>) -> vir::Expr {
+    let caller_func_name = caller_function_name(&mirror_fn.name);
+    vir::Expr::FuncApp(
+        caller_func_name,
+        args,
+        mirror_fn.formal_args,
+        mirror_fn.return_type,
+        Default::default(),
+    )
+}
+
+pub fn caller_function_name(df_name: &str) -> String {
+    format!("{}{}", MIRROR_FUNCTION_CALLER_PREFIX, df_name)
+}
 
 pub fn encode_field_domain_func(
     field_type: vir::Type,

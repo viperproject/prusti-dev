@@ -99,7 +99,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
-    axiomatized_function_domain: RefCell<vir::Domain>,
+    mirror_function_domain: RefCell<vir::Domain>,
+    mirror_caller_functions: RefCell<Vec<vir::Function>>
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -166,7 +167,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             snap_mirror_funcs: RefCell::new(HashMap::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
-            axiomatized_function_domain: RefCell::new(axiomatized_functions_domain),
+            mirror_function_domain: RefCell::new(axiomatized_functions_domain),
+            mirror_caller_functions: RefCell::new(vec![])
         }
     }
 
@@ -265,7 +267,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
 
         if config::enable_purification_optimization() {
-            domains.push(self.axiomatized_function_domain.borrow().clone());
+            domains.push(self.mirror_function_domain.borrow().clone());
             let builtin_encoder =  BuiltinEncoder::new();
             domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Nat));
             domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Primitive));
@@ -275,9 +277,23 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         domains
     }
 
+    fn encode_mirror_caller(&self, df: vir::DomainFunc, pres: vir::Expr) {
+        let arg_call : Vec<vir::Expr> = df.formal_args.iter().map(|e| { vir::Expr::local(e.clone()) }).collect(); 
+        let foo = vir::Function {
+            name: snapshot::caller_function_name(&df.name),
+            formal_args: df.formal_args.clone(),
+            return_type: df.return_type.clone(),
+            pres: vec![pres],
+            posts: vec![],
+            body: Some(vir::Expr::domain_func_app(df.clone(), arg_call))
+        };
+
+        self.mirror_caller_functions.borrow_mut().push(foo);
+    }
+
     pub fn encode_mirror_of_pure_function(&self, f: &vir::Function) {
         let snapshots: &HashMap<String, Box<Snapshot>> = &self.snapshots.borrow();
-        let domain_name = self.axiomatized_function_domain.borrow().name.clone();
+        let domain_name = self.mirror_function_domain.borrow().name.clone();
 
         let formal_args_without_nat: Vec<vir::LocalVar> =
             snapshot::encode_mirror_function_args_without_nat(&f.formal_args, &snapshots).unwrap();
@@ -347,7 +363,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             })
             .conjoin();
 
-        let pre_conds_and_valid = vir::Expr::and(pre_conds, valids_anded);
+        let pre_conds_and_valid = vir::Expr::and(pre_conds.clone(), valids_anded);
         let axiom_body = vir::Expr::implies(pre_conds_and_valid, rhs);
 
         let mut triggers: Vec<vir::Trigger> = formal_args_without_nat
@@ -391,15 +407,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             domain_name: domain_name.to_string(),
         };
 
-        self.axiomatized_function_domain
+        self.encode_mirror_caller(df.clone(), pre_conds);
+        self.mirror_function_domain
             .borrow_mut()
             .functions
             .push(df);
-        self.axiomatized_function_domain
+        self.mirror_function_domain
             .borrow_mut()
             .axioms
             .push(da);
-        self.axiomatized_function_domain
+        self.mirror_function_domain
             .borrow_mut()
             .axioms
             .push(nat_da);
@@ -432,6 +449,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             functions.push(function.clone());
         }
         for function in self.type_cast_functions.borrow().values() {
+            functions.push(function.clone());
+        }
+        for function in self.mirror_caller_functions.borrow().iter() {
             functions.push(function.clone());
         }
         functions.extend(
@@ -1032,7 +1052,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     {
         if !self.snapshots.borrow().contains_key(&predicate_name) {
             if !self.predicate_types.borrow().contains_key(&predicate_name) {
-                unreachable!(); // some type has not been encoded before.
+                unreachable!("The type {:?} has not been encoded before", predicate_name); // some type has not been encoded before.
             }
             let ty = self.predicate_types.borrow()[&predicate_name];
             return self.encode_snapshot(&ty);
