@@ -18,7 +18,6 @@ use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
-use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 use prusti_common::{
     config,
     report::log,
@@ -456,6 +455,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 |writer| self.cfg_method.to_graphviz(writer),
             );
         }
+
+        // Patch snapshots
+        self.cfg_method = self.encoder.patch_snapshots_method(self.cfg_method)
+            .with_span(mir_span)?;
 
         // Add fold/unfold
         let loan_locations = self
@@ -2182,9 +2185,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
-        let snapshot_res = self.encoder.encode_snapshot(&arg_ty);
-        if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().supports_equality() {
-            let snapshot = snapshot_res.unwrap();
+        if self.encoder.has_snapshot_eq(&arg_ty).with_span(call_site_span)? {
             let pos = self
                 .encoder
                 .error_manager()
@@ -2196,8 +2197,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .with_span(call_site_span)?;
 
             let expr = match bin_op {
-                vir::BinOpKind::EqCmp => snapshot.encode_equals(lhs, rhs, pos),
-                vir::BinOpKind::NeCmp => snapshot.encode_not_equals(lhs, rhs, pos),
+                // TODO: put this in the snapshot module?
+                vir::BinOpKind::EqCmp => vir::Expr::eq_cmp(
+                    vir::Expr::snap_app(lhs),
+                    vir::Expr::snap_app(rhs),
+                ),
+                vir::BinOpKind::NeCmp => vir::Expr::ne_cmp(
+                    vir::Expr::snap_app(lhs),
+                    vir::Expr::snap_app(rhs),
+                ),
                 _ => unreachable!()
             };
 
@@ -2217,11 +2225,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         } else {
             // the equality check involves some unsupported feature;
             // treat it as any other function
-            debug!(
+            /*debug!(
                 "The equality check of {:?} involves an unsupported feature ({:?})",
                 arg_ty,
                 snapshot_res.err().unwrap()
-            );
+            );*/
             self.encode_impure_function_call(
                 location,
                 call_site_span,
@@ -2696,11 +2704,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let inhaled_expr = if return_type.is_domain() {
             let predicate_name = target_value.get_type().name();
-            let snapshot = self.encoder.encode_snapshot_use(predicate_name)
-                .with_span(call_site_span)?;
             let target_place = self.encode_pure_function_call_lhs_place(destination);
-            let snap_call = snapshot.snap_call(target_place);
-            vir::Expr::eq_cmp(snap_call.clone(), func_call)
+            let snap_app = vir::Expr::snap_app(target_place);
+            vir::Expr::eq_cmp(snap_app, func_call)
         } else {
             vir::Expr::eq_cmp(target_value.into(), func_call)
         };
@@ -3002,16 +3008,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             type_spec.into_iter().conjoin(),
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
-            func_spec
-                .into_iter()
-                .map(|spec|
-                    SnapshotSpecPatcher::new(self.encoder)
-                        .patch_spec(spec)
-                        .with_span(precondition_spans.clone())
-                )
-                .collect::<SpannedEncodingResult<Vec<_>>>()?
-                .into_iter()
-                .conjoin(),
+            func_spec.into_iter().conjoin(),
             precondition_weakening,
         ))
     }
@@ -3410,16 +3407,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ).map_or(Ok(None), |r| r.map(Some))
             )?;
 
-        let full_func_spec = func_spec
-            .into_iter()
-            .map( // patch type mismatches for specs involving pure functions returning copy types
-                |spec|
-                    SnapshotSpecPatcher::new(self.encoder)
-                        .patch_spec(spec)
-                        .with_span(postcondition_span.clone())
-            )
-            .collect::<SpannedEncodingResult<Vec<_>>>()?
-            .into_iter()
+        let full_func_spec = func_spec.into_iter()
             .conjoin()
             .set_default_pos(func_spec_pos);
 

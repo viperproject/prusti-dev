@@ -468,7 +468,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
                 ast.inhale_exhale_pred(inhale_expr.to_viper(ast), exhale_expr.to_viper(ast))
             }
-            &Expr::SnapApp(ref expr, ..) => unreachable!(),
+            &Expr::SnapApp(..) => unreachable!("unpatched snapshot operation"),
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)

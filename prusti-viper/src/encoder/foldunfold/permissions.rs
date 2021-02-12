@@ -318,10 +318,9 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::InhaleExhale(..) => HashSet::new(),
 
-            vir::Expr::SnapApp(expr, ..) => expr
-                .get_required_permissions(predicates)
-                .into_iter()
-                .collect(),
+            vir::Expr::SnapApp(..) => {
+                unreachable!("Snapshots should be patched before fold/unfold. {:?}", self);
+            }
         };
         trace!(
             "[exit] get_required_permissions(expr={}): {:#?}",
@@ -350,8 +349,7 @@ impl ExprPermissionsGetter for vir::Expr {
             | vir::Expr::Const(_, _)
             | vir::Expr::FuncApp(..)
             | vir::Expr::DomainFuncApp(..)
-            | vir::Expr::InhaleExhale(..)
-            | vir::Expr::SnapApp(..) => HashSet::new(),
+            | vir::Expr::InhaleExhale(..) => HashSet::new(),
 
             vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {
                 assert_eq!(args.len(), 1);
@@ -431,6 +429,10 @@ impl ExprPermissionsGetter for vir::Expr {
 
             vir::Expr::LetExpr(ref _variable, ref _expr, ref _body, _) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
+            }
+
+            vir::Expr::SnapApp(..) => {
+                unreachable!("Snapshots should be patched before fold/unfold. {:?}", self);
             }
         }
     }

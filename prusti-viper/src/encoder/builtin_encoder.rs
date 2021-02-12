@@ -108,7 +108,8 @@ impl BuiltinEncoder {
     }
 
     fn encode_nat_builtin_domain(&self) -> vir::Domain {
-        let nat_domain_name = snapshot::NAT_DOMAIN_NAME;
+        let nat_domain_name = "NatDomain";
+        // snapshot::NAT_DOMAIN_NAME;
         let zero = vir::DomainFunc {
             name: "zero".to_owned(),
             formal_args: vec![],
@@ -117,7 +118,7 @@ impl BuiltinEncoder {
             domain_name: nat_domain_name.to_owned(),
         };
 
-        let functions = vec![zero, snapshot::get_succ_func()];
+        let functions = vec![zero]; // , snapshot::get_succ_func()];
 
         vir::Domain {
             name: nat_domain_name.to_owned(),
@@ -133,7 +134,7 @@ impl BuiltinEncoder {
 
         let mut functions = vec![];
         let mut axioms = vec![];
-        for t in &[vir::Type::Bool, vir::Type::Int] {
+        /*for t in &[vir::Type::Bool, vir::Type::Int] {
             let f = snapshot::valid_func_for_type(t);
             functions.push(f.clone());
 
@@ -151,7 +152,7 @@ impl BuiltinEncoder {
                 domain_name: domain_name.to_string(),
             };
             axioms.push(ax); //TODO
-        }
+        }*/
 
         vir::Domain {
             name: domain_name.to_owned(),

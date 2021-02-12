@@ -48,7 +48,7 @@ pub enum Expr {
     /// Inhale Exhale: inhale expression, exhale expression, Viper position (unused)
     InhaleExhale(Box<Expr>, Box<Expr>, Position),
     /// Snapshot call to convert from a Ref to a snapshot value
-    SnapApp(Box<Expr>, Type, Position),
+    SnapApp(Box<Expr>, Position),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -200,7 +200,7 @@ impl fmt::Display for Expr {
             ),
             Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) =>
                 write!(f, "[({}), ({})]", inhale_expr, exhale_expr),
-            Expr::SnapApp(ref expr, _, _) => write!(f, "snap({})", expr.to_string()),
+            Expr::SnapApp(ref expr, _) => write!(f, "snap({})", expr.to_string()),
         }
     }
 }
@@ -268,7 +268,7 @@ impl Expr {
             Expr::DomainFuncApp(_, _, p) => p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::InhaleExhale(_, _, p) => p,
-            Expr::SnapApp(_, _, p) => p,
+            Expr::SnapApp(_, p) => p,
         }
     }
 
@@ -297,7 +297,7 @@ impl Expr {
             Expr::DomainFuncApp(x,y,_) => Expr::DomainFuncApp(x,y,pos),
             // TODO Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
             Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
-            Expr::SnapApp(e, t, _) => Expr::SnapApp(e, t, pos),
+            Expr::SnapApp(e, _) => Expr::SnapApp(e, pos),
         }
     }
 
@@ -477,11 +477,7 @@ impl Expr {
     }
 
     pub fn snap_app(expr: Expr) -> Self {
-        let typ = match expr.get_type() {
-            &Type::TypedRef(ref name) => Type::Snapshot(name.to_string()),
-            _ => unreachable!("cannot snapshot a non-ref value {:?}", expr),
-        };
-        Expr::SnapApp(box expr, typ, Position::default())
+        Expr::SnapApp(box expr, Position::default())
     }
 
     pub fn find(&self, sub_target: &Expr) -> bool {
@@ -940,8 +936,11 @@ impl Expr {
             Expr::InhaleExhale(..) => {
                 unreachable!("Unexpected expression: {:?}", self);
             }
-            Expr::SnapApp(_, ref typ, _) => {
-                &typ
+            // Note: SnapApp returns the same type as the wrapped expression,
+            // to allow for e.g. field access without special considerations.
+            // SnapApps are replaced later in the encoder.
+            Expr::SnapApp(box ref expr, _) => {
+                expr.get_type()
             }
         }
     }
@@ -1012,7 +1011,7 @@ impl Expr {
             assert!(
                 // for copy types references are replaced by snapshots
                 target.get_type() == replacement.get_type()
-                    || replacement.get_type().is_domain(),
+                    || replacement.get_type().is_snapshot(),
                 "Cannot substitute '{}' with '{}', because they have incompatible types '{}' and '{}'",
                 target,
                 replacement,
@@ -1114,7 +1113,7 @@ impl Expr {
             if dst.is_place() {
                 assert!(
                     // for copy types references are replaced by snapshots
-                    src.get_type() == dst.get_type() || dst.get_type().is_domain(),
+                    src.get_type() == dst.get_type() || dst.get_type().is_snapshot(),
                     "Cannot substitute '{}' with '{}', because they have incompatible \
                     types '{}' and '{}'",
                     src,
@@ -1468,9 +1467,9 @@ impl PartialEq for Expr {
                     == (other_name, other_args, other_base, other_perm, other_variant)
             }
             (
-                Expr::SnapApp(ref self_expr, ref self_typ, _),
-                Expr::SnapApp(ref other_expr, ref other_typ, _),
-            ) => (self_expr, self_typ) == (other_expr, other_typ),
+                Expr::SnapApp(ref self_expr, _),
+                Expr::SnapApp(ref other_expr, _),
+            ) => self_expr == other_expr,
             (a, b) => {
                 debug_assert_ne!(discriminant(a), discriminant(b));
                 false
@@ -1515,7 +1514,7 @@ impl Hash for Expr {
             Expr::InhaleExhale(box ref inhale_expr, box ref exhale_expr, _) => {
                 (inhale_expr, exhale_expr).hash(state)
             }
-            Expr::SnapApp(ref expr, ref typ, _) => (expr, typ).hash(state),
+            Expr::SnapApp(ref expr, _) => expr.hash(state),
         }
     }
 }

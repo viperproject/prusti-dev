@@ -351,6 +351,19 @@ impl CfgMethod {
         }
     }
 
+    // TODO: maybe just let basic_blocks be public and modify those directly?
+    pub fn patch_statements<E, F: FnMut(Stmt)->Result<Stmt, E>>(
+        mut self,
+        mut walker: F
+    ) -> Result<Self, E> {
+        for block in self.basic_blocks.iter_mut() {
+            block.stmts = block.stmts.drain(..)
+                .map(&mut walker)
+                .collect::<Result<Vec<_>, _>>()?;
+        }
+        Ok(self)
+    }
+
     pub fn walk_successors<F: FnMut(&Successor)>(&self, mut walker: F) {
         for block in self.basic_blocks.iter() {
             walker(&block.successor);

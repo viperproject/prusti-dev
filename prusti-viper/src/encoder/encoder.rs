@@ -17,7 +17,6 @@ use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 use crate::encoder::spec_encoder::encode_spec_assertion;
-use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder};
 use crate::encoder::type_encoder::{
     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use crate::encoder::SpecFunctionKind;
@@ -55,7 +54,7 @@ use crate::encoder::name_interner::NameInterner;
 use crate::encoder::utils::transpose;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
-use crate::encoder::snapshot;
+use crate::encoder::snapshot::{Snapshot, encoder::SnapshotEncoder};
 
 const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
 
@@ -87,8 +86,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::Function>>,
     memory_eq_encoder: RefCell<MemoryEqEncoder>,
     fields: RefCell<HashMap<String, vir::Field>>,
-    snapshots: RefCell<HashMap<String, Box<Snapshot>>>, // maps predicate names to snapshots
-    type_snapshots: RefCell<HashMap<String, String>>, // maps snapshot names to predicate names
+    snapshot_encoder: RefCell<SnapshotEncoder>,
     snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
@@ -97,7 +95,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
-    axiomatized_function_domain: RefCell<vir::Domain>,
+    // axiomatized_function_domain: RefCell<vir::Domain>,
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -124,12 +122,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .unwrap(),
         );
 
-        let mut axiomatized_functions_domain = vir::Domain {
+        /*let mut axiomatized_functions_domain = vir::Domain {
             name: snapshot::AXIOMATIZED_FUNCTION_DOMAIN_NAME.to_owned(),
             functions: vec![],
             axioms: vec![],
             type_vars: vec![],
-        };
+        };*/
 
         Encoder {
             env,
@@ -159,12 +157,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
             typaram_repl: RefCell::new(Vec::new()),
-            snapshots: RefCell::new(HashMap::new()),
-            type_snapshots: RefCell::new(HashMap::new()),
+            snapshot_encoder: RefCell::new(SnapshotEncoder::new()),
             snap_mirror_funcs: RefCell::new(HashMap::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
-            axiomatized_function_domain: RefCell::new(axiomatized_functions_domain),
+            // axiomatized_function_domain: RefCell::new(axiomatized_functions_domain),
         }
     }
 
@@ -246,13 +243,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .filter_map(|f| f.clone())
             .collect();
 
-        let mut domains: Vec<vir::Domain> = self
-            .snapshots
-            .borrow()
-            .values()
-            .into_iter()
-            .filter_map(|s| s.domain())
-            .collect();
+        let mut domains = self.snapshot_encoder.borrow().get_viper_domains();
+
         if !mirrors.is_empty() {
             domains.push(vir::Domain {
                 name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
@@ -262,18 +254,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             });
         }
 
-        if config::enable_purification_optimization() {
+        /*if config::enable_purification_optimization() {
             domains.push(self.axiomatized_function_domain.borrow().clone());
             let builtin_encoder =  BuiltinEncoder::new();
             domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Nat));
             domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Primitive));
-        }
+        }*/
 
         domains.sort_by_key(|d| d.get_identifier());
         domains
     }
 
-    pub fn encode_axiomatized_pure_function(&self, f: &vir::Function) {
+    /*pub fn encode_axiomatized_pure_function(&self, f: &vir::Function) {
         let snapshots: &HashMap<String, Box<Snapshot>> = &self.snapshots.borrow();
         let domain_name = self.axiomatized_function_domain.borrow().name.clone();
 
@@ -397,7 +389,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .borrow_mut()
             .axioms
             .push(nat_da);
-    }
+    }*/
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
         let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
@@ -431,10 +423,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         functions.extend(
             self.memory_eq_encoder.borrow().get_encoded_functions()
         );
-        for snap in self.snapshots.borrow().values() {
-            for function in snap.functions() {
-                functions.push(function);
-            }
+        for function in self.snapshot_encoder.borrow().get_viper_functions() {
+            functions.push(function);
         }
         for sfs in self.spec_functions.borrow().values() {
             for sf in sfs {
@@ -818,6 +808,28 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(function_name)
     }
 
+    pub fn patch_snapshots_method(&self, method: vir::CfgMethod)
+        -> EncodingResult<vir::CfgMethod>
+    {
+        self.snapshot_encoder
+            .borrow_mut()
+            .patch_snapshots_method(self, method)
+    }
+
+    pub fn patch_snapshots_function(&self, function: vir::Function)
+        -> EncodingResult<vir::Function>
+    {
+        self.snapshot_encoder
+            .borrow_mut()
+            .patch_snapshots_function(self, function)
+    }
+
+    pub fn patch_snapshots(&self, expr: vir::Expr) -> EncodingResult<vir::Expr> {
+        self.snapshot_encoder
+            .borrow_mut()
+            .patch_snapshots_expr(self, expr)
+    }
+
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<vir::CfgMethod> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
@@ -926,6 +938,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ))
     }
 
+    pub fn decode_type_predicate(&self, name: &str)
+        -> EncodingResult<ty::Ty<'tcx>>
+    {
+        if let Some(ty) = self.predicate_types.borrow().get(name) {
+            Ok(ty)
+        } else {
+            Err(EncodingError::internal(
+                format!("type predicate not known: {:?}", name)
+            ))
+        }
+    }
+
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>)
         -> EncodingResult<String>
     {
@@ -963,48 +987,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(self.type_predicates.borrow()[&predicate_name].clone())
     }
 
-    pub fn encode_snapshot(&self, ty: ty::Ty<'tcx>)
-        -> EncodingResult<Box<Snapshot>>
-    {
-        let ty = self.dereference_ty(ty);
-        let predicate_name = self.encode_type_predicate_use(ty)
-            .expect("failed to encode unsupported type");
-        if !self.snapshots.borrow().contains_key(&predicate_name) {
-            let encoder = SnapshotEncoder::new(
-                self, ty,
-                predicate_name.to_string()
-            );
-            let snapshot = encoder.encode()?;
-            self.type_snapshots
-                .borrow_mut()
-                .insert(
-                    snapshot.get_type().name().to_string(),
-                    predicate_name.to_string()
-                );
-            self.snapshots
-                .borrow_mut()
-                .insert(predicate_name.to_string(), box snapshot);
-            if config::enable_purification_optimization() {
-                if let Some(domain) = &self.snapshots.borrow()[&predicate_name].snap_domain {
-                    self.encode_axiomatized_pure_function(&domain.equals_func);
-                    self.encode_axiomatized_pure_function(&domain.not_equals_func);
-                }
-            }
-        }
-        Ok(self.snapshots.borrow()[&predicate_name].clone())
-    }
-
-    fn dereference_ty(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-        match ty.kind() {
-            ty::TyKind::Ref(_, ref val_ty, _) => self.dereference_ty(val_ty),
-            _ => ty,
-        }
-    }
-
     /// Checks whether the given type implements structural equality
     /// by either being a primitive type or by deriving the Eq trait.
     pub fn has_structural_eq_impl(&self, ty: ty::Ty<'tcx>) -> bool {
-        let ty = self.dereference_ty(ty);
+        let ty = ty.peel_refs();
         match ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
@@ -1020,29 +1006,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub fn encode_snapshot_use(&self, predicate_name: String)
-        -> EncodingResult<Box<Snapshot>>
+    pub fn encode_snapshot_type(&self, ty: ty::Ty<'tcx>)
+        -> EncodingResult<vir::Type>
     {
-        if !self.snapshots.borrow().contains_key(&predicate_name) {
-            if !self.predicate_types.borrow().contains_key(&predicate_name) {
-                unreachable!(); // some type has not been encoded before.
-            }
-            let ty = self.predicate_types.borrow()[&predicate_name];
-            return self.encode_snapshot(&ty);
-        }
-        Ok(self.snapshots.borrow()[&predicate_name].clone())
+        self.snapshot_encoder.borrow_mut().encode_type(self, ty)
     }
 
-    pub fn get_snapshot(&self, snapshot_name: String) -> Box<Snapshot> {
-        // fails if we have not encoded a snapshot with that name before
-        // should be safe as we should never construct a snapshot name outside
-        // of the snapshot encoder.
-        let predicate_name = self.type_snapshots.borrow()[&snapshot_name].to_string();
-        self.snapshots.borrow()[&predicate_name].clone()
-    }
-
-    pub fn get_snapshots(&self) -> std::cell::Ref<HashMap<String, Box<Snapshot>>> {
-        self.snapshots.borrow()
+    pub fn has_snapshot_eq(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
+        self.snapshot_encoder.borrow_mut().supports_equality(self, ty)
     }
 
     pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>)
@@ -1288,12 +1259,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             } else {
                 let pure_function = pure_function_encoder.encode_function()
                     .run_if_err(cleanup)?;
-                self.patch_pure_post_with_mirror_call(pure_function)
-                    .with_span(procedure.get_span())
-                    .run_if_err(cleanup)?
+                //self.patch_pure_post_with_mirror_call(pure_function)
+                //    .with_span(procedure.get_span())
+                //    .run_if_err(cleanup)?
+                pure_function
             };
 
-            if config::enable_purification_optimization() {
+            let function = self.snapshot_encoder
+                .borrow_mut()
+                .patch_snapshots_function(self, function)
+                .with_span(procedure.get_span())?;
+
+            /*if config::enable_purification_optimization() {
                 // Ensure that snapshots of all types used in the function are
                 // already encoded.
                 let body = procedure.get_mir();
@@ -1302,7 +1279,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     self.encode_snapshot(ty).with_span(procedure.get_span()).run_if_err(cleanup)?;
                 }
                 self.encode_axiomatized_pure_function(&function);
-            }
+            }*/
 
             self.log_vir_program_before_viper(function.to_string());
             self.pure_functions.borrow_mut().insert(key, function);
@@ -1313,7 +1290,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(())
     }
 
-    fn patch_pure_post_with_mirror_call(&self, function: vir::Function)
+    /*fn patch_pure_post_with_mirror_call(&self, function: vir::Function)
         -> EncodingResult<vir::Function>
     {
         // use function identifier to be more robust in the presence of generics
@@ -1425,7 +1402,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
         }
         Ok(self.snap_mirror_funcs.borrow()[&pure_func_name].clone())
-    }
+    }*/
 
     pub fn get_item_name(&self, proc_def_id: ProcedureDefId) -> String {
         self.env.get_item_name(proc_def_id)
@@ -1458,32 +1435,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             pure_function_encoder.encode_function_name(),
             pure_function_encoder.encode_function_return_type()?,
         ))
-    }
-
-    /// Encode the use (call) of either a comparison (equality or disequality)
-    /// returning the name of the encoded function and its type.
-    /// If the comparison is not supported, a stub function will be encoded
-    pub fn encode_cmp_pure_function_use(
-        &self,
-        proc_def_id: ProcedureDefId,
-        arg_ty: ty::Ty<'tcx>, // type arguments
-        is_equality: bool // true = equality, false = disequality
-    ) -> SpannedEncodingResult<(String, vir::Type)> {
-        let snapshot_res = self.encode_snapshot(&arg_ty);
-        if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().supports_equality() {
-            let snapshot = snapshot_res.unwrap();
-            Ok((
-                if is_equality {
-                    snapshot.equals_func_name()
-                } else {
-                    snapshot.not_equals_func_name()
-                },
-                vir::Type::Bool
-            ))
-        } else {
-            // TODO: Use the error message from `encode_snapshot`.
-            self.encode_stub_pure_function_use(proc_def_id)
-        }
     }
 
     /// Encode the use (call) of a stub pure function, returning the name of the

@@ -2,7 +2,6 @@ use crate::encoder::{Encoder, borrows::ProcedureContract};
 use crate::encoder::errors::{SpannedEncodingResult, ErrorCtxt, WithSpan};
 use crate::encoder::borrows::compute_procedure_contract;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
-use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 use prusti_interface::{
     environment::{
         Procedure,
@@ -109,12 +108,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             return_type: vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),
-            body: Some(func_spec.into_iter()
-                                .map(|post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post))
-                                .collect::<Result<Vec<vir::Expr>, _>>()
-                                .with_span(self.span)?
-                                .into_iter()
-                                .conjoin()),
+            body: Some(func_spec.into_iter().conjoin()),
         })
     }
 
@@ -158,12 +152,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             return_type: vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),
-            body: Some(func_spec.into_iter()
-                                .map(|post| SnapshotSpecPatcher::new(self.encoder).patch_spec(post))
-                                .collect::<Result<Vec<vir::Expr>, _>>()
-                                .with_span(self.span)?
-                                .into_iter()
-                                .conjoin()),
+            body: Some(func_spec.into_iter().conjoin()),
         })
     }
 
