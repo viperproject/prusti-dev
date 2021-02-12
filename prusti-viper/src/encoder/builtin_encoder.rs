@@ -4,9 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::snapshot;
 use prusti_common::{vir, vir_local, vir::WithIdentifier};
-use rustc_middle::ty;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinMethodKind {
@@ -147,7 +145,8 @@ impl BuiltinEncoder {
     }
 
     fn encode_nat_builtin_domain(&self) -> vir::Domain {
-        let nat_domain_name = snapshot::NAT_DOMAIN_NAME;
+        let nat_domain_name = "NatDomain";
+        // snapshot::NAT_DOMAIN_NAME;
         let zero = vir::DomainFunc {
             name: "zero".to_owned(),
             formal_args: vec![],
@@ -156,7 +155,7 @@ impl BuiltinEncoder {
             domain_name: nat_domain_name.to_owned(),
         };
 
-        let functions = vec![zero, snapshot::get_succ_func()];
+        let functions = vec![zero]; // , snapshot::get_succ_func()];
 
         vir::Domain {
             name: nat_domain_name.to_owned(),
@@ -168,12 +167,45 @@ impl BuiltinEncoder {
 
     fn encode_primitive_builtin_domain(&self) -> vir::Domain {
         //FIXME this does not check or handle the different sizes of primitve types
-        let domain_name = snapshot::PRIMITIVE_VALID_DOMAIN_NAME;
+        let domain_name = "PrimitiveValidDomain"; // snapshot::PRIMITIVE_VALID_DOMAIN_NAME;
 
         let mut functions = vec![];
         let mut axioms = vec![];
+
         for t in &[vir::Type::Bool, vir::Type::Int] {
-            let f = snapshot::valid_func_for_type(t);
+            //let f = snapshot::valid_func_for_type(t);
+            let f = {
+                let domain_name: String = match t {
+                    // vir::Type::Domain(name) => name.clone(),
+                    vir::Type::Bool | vir::Type::Int => domain_name.to_string(),
+                    // vir::Type::TypedRef(_) => unreachable!(),
+                    // vir::Type::Snapshot(_) => unreachable!(),
+                    _ => unreachable!(),
+                };
+
+                let arg_typ: vir::Type = match t {
+                    // vir::Type::Domain(name) => vir::Type::Domain(domain_name.clone()),
+                    vir::Type::Bool => vir::Type::Bool,
+                    vir::Type::Int => vir::Type::Int,
+                    // vir::Type::TypedRef(_) => unreachable!(),
+                    // vir::Type::Snapshot(_) => unreachable!(),
+                    _ => unreachable!(),
+                };
+
+                let self_arg = vir::LocalVar {
+                    name: "self".to_string(),
+                    typ: arg_typ,
+                };
+                let df = vir::DomainFunc {
+                    name: format!("{}$valid", domain_name),
+                    formal_args: vec![self_arg],
+                    return_type: vir::Type::Bool,
+                    unique: false,
+                    domain_name,
+                };
+
+                df
+            };
             functions.push(f.clone());
 
             let forall_arg = vir_local!{ self: {t.clone()} };

@@ -108,6 +108,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_value_type(self) -> EncodingResult<vir::Type> {
+        /*
         debug!("Encode value type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vir::Type::Bool,
@@ -122,8 +123,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => {
-                let snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                snapshot.get_type()
+                self.encoder.encode_snapshot_type(&self.ty)?;
             }
 
             ty::TyKind::RawPtr(ty::TypeAndMut { .. }) => {
@@ -133,7 +133,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ref x => unimplemented!("{:?}", x),
-        })
+        })*/
+        self.encoder.encode_snapshot_type(&self.ty)
     }
 
 
@@ -144,7 +145,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         match self.ty.kind() {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
-                let _snapshot = self.encoder.encode_snapshot(&self.ty)?;
+                //let snapshot = self.encoder.encode_snapshot(&self.ty)?;
                 let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
                 Ok(vir::Type::TypedRef(type_name))
             },
@@ -714,6 +715,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             posts: Vec::new(),
             body: field_invariants.map(|invs| invs.into_iter().conjoin()),
         };
+
+        // Patch snapshots
+        let function = self.encoder.patch_snapshots_function(function)?;
 
         self.encoder
             .log_vir_program_before_foldunfold(function.to_string());

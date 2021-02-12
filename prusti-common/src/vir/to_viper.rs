@@ -469,7 +469,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             Expr::Downcast(ref base, ..) => {
                 base.to_viper(ast)
             }
-            Expr::SnapApp(ref expr, ..) => unreachable!(),
+            Expr::SnapApp(..) => unreachable!("unpatched snapshot operation"),
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)

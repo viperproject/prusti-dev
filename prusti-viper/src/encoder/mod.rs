@@ -22,8 +22,8 @@ mod name_interner;
 mod places;
 mod procedure_encoder;
 mod pure_function_encoder;
-mod snapshot_encoder;
-mod snapshot_spec_patcher;
+//mod snapshot_encoder;
+//mod snapshot_spec_patcher;
 mod spec_encoder;
 mod spec_function_encoder;
 pub use spec_function_encoder::SpecFunctionKind;
@@ -32,6 +32,4 @@ mod stub_procedure_encoder;
 mod type_encoder;
 mod utils;
 mod snapshot;
-// FIXME: This function should be in prusti-common, but it depends on encoder.
-pub use snapshot::optimizer::purify_shared_borrows;
 mod mirror_function_encoder;

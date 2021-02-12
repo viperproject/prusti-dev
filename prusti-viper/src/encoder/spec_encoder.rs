@@ -68,10 +68,10 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
         assertion_location,
     );
     let mut encoded_assertion = spec_encoder.encode_assertion(assertion)?;
-    if config::enable_purification_optimization() {
+    /* if config::enable_purification_optimization() {
         encoded_assertion = super::snapshot::fix_assertion(
             encoded_assertion, &spec_encoder.encoder.get_snapshots());
-    }
+    } */
     Ok(encoded_assertion)
 }
 
@@ -119,9 +119,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         forall_id: &str
     ) -> vir::LocalVar {
         trace!("encode_forall_arg: {:?} {:?} {:?}", arg, arg_ty, forall_id);
-        let snapshot = self.encoder.encode_snapshot(arg_ty).unwrap();
+        let ty = self.encoder.encode_type(arg_ty).unwrap();
+        // FIXME: find a reasonable position when using this function below,
+        // change return to EncodingResult<...>, then unwrap with ?
         let var_name = format!("{:?}_forall_{}", arg, forall_id);
-        vir::LocalVar::new(var_name, snapshot.get_type())
+        vir::LocalVar::new(var_name, ty)
     }
 
     fn encode_trigger(

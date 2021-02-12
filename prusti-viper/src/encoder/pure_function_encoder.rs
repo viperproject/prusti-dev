@@ -16,7 +16,6 @@ use crate::encoder::mir_interpreter::{
 };
 use crate::encoder::snapshot;
 use crate::encoder::Encoder;
-use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 use prusti_common::{vir, vir_local};
 use prusti_common::vir::ExprIterator;
 use prusti_common::config;
@@ -99,14 +98,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             state.substitute_place(&target_place, new_place);
         }
 
-        let body_expr = state.into_expressions().remove(0);
+        let mut body_expr = state.into_expressions().remove(0);
         debug!(
             "Pure function {} has been encoded with expr: {}",
             function_name, body_expr
         );
 
         // if the function returns a snapshot, we take a snapshot of the body
-        if self.encode_function_return_type()?.is_domain() {
+        if self.encode_function_return_type()?.is_snapshot() {
             let ty = self.encoder.resolve_typaram(self.mir.return_ty());
             let return_span = self.get_local_span(mir::RETURN_PLACE);
 
@@ -117,13 +116,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 ));
             }
 
-            let snapshot = self.encoder.encode_snapshot(&ty)
-                .with_span(return_span)?;
-            let body_expr = snapshot.snap_call(body_expr);
-            self.encode_function_given_body(Some(body_expr))
-        } else {
-            self.encode_function_given_body(Some(body_expr))
+            body_expr = vir::Expr::snap_app(body_expr);
         }
+        self.encode_function_given_body(Some(body_expr))
     }
 
     pub fn encode_bodyless_function(&self)
@@ -249,15 +244,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             postcondition
         );
 
-        let postcondition = postcondition
-            .into_iter()
-            .map(|post|
-                SnapshotSpecPatcher::new(self.encoder)
-                    .patch_spec(post)
-                    // TODO: use a better span
-                    .with_span(self.mir.span)
-            ).collect::<Result<_, _>>()?;
-
         let mut function = vir::Function {
             name: function_name.clone(),
             formal_args,
@@ -273,6 +259,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         if config::simplify_encoding() {
             function = vir::optimizations::functions::Simplifier::simplify(function);
         }
+
+        // Patch snapshots
+        function = self.encoder.patch_snapshots_function(function)
+            .with_span(self.mir.span)?;
 
         // Add folding/unfolding
         foldunfold::add_folding_unfolding_to_function(
@@ -335,17 +325,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         Ok((
             type_spec.into_iter().conjoin(),
-            func_spec
-                .into_iter()
-                .map(|post|
-                    SnapshotSpecPatcher::new(self.encoder)
-                        .patch_spec(post)
-                        // TODO: use a better span
-                        .with_span(self.mir.span)
-                )
-                .collect::<Result<Vec<_>, _>>()?
-                .into_iter()
-                .conjoin(),
+            func_spec.into_iter().conjoin(),
         ))
     }
 
@@ -394,11 +374,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos);
 
-        // TODO: use a better span
-        Ok(SnapshotSpecPatcher::new(self.encoder)
-            .patch_spec(post)
-            .with_span(self.mir.span)?
-        )
+        Ok(post)
     }
 
     fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
@@ -789,42 +765,48 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state
                             }
+
+                            "std::cmp::PartialEq::eq"
+                            if self.encoder.has_structural_eq_impl(
+                                self.mir_encoder.get_operand_ty(&args[0])
+                            ) => {
+                                assert_eq!(args.len(), 2);
+                                let encoded_rhs = vir::Expr::eq_cmp(
+                                    vir::Expr::snap_app(encoded_args[0].clone()),
+                                    vir::Expr::snap_app(encoded_args[1].clone()),
+                                );
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state
+                            }
+
+                            "std::cmp::PartialEq::ne"
+                            if self.encoder.has_structural_eq_impl(
+                                self.mir_encoder.get_operand_ty(&args[0])
+                            ) => {
+                                assert_eq!(args.len(), 2);
+                                let encoded_rhs = vir::Expr::ne_cmp(
+                                    vir::Expr::snap_app(encoded_args[0].clone()),
+                                    vir::Expr::snap_app(encoded_args[1].clone()),
+                                );
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state
+                            }
+
                             // simple function call
                             _ => {
-                                let mut is_cmp_call = false;
                                 let is_pure_function = self.encoder.is_pure(def_id);
                                 let (function_name, return_type) = if is_pure_function {
                                     self.encoder.encode_pure_function_use(def_id)
                                         .with_span(term.source_info.span)?
                                 } else {
-                                    // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
-                                    // function
-                                    if args.len() == 2 {
-                                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                        match self.encoder.get_item_name(def_id).as_str() {
-                                            "std::cmp::PartialEq::eq"
-                                            if self.encoder.has_structural_eq_impl(arg_ty) => {
-                                                is_cmp_call = true;
-                                                self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, true)?
-                                            }
-                                            "std::cmp::PartialEq::ne"
-                                            if self.encoder.has_structural_eq_impl(arg_ty) => {
-                                                is_cmp_call = true;
-                                                self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, false)?
-                                            }
-                                            _ => {
-                                                // TODO: interestingly, this crashes for
-                                                // custom implementations of eq as the def_id
-                                                // is not local; for details, see
-                                                // https://github.com/viperproject/prusti-dev/issues/188.
-                                                self.encoder.encode_stub_pure_function_use(def_id)?
-                                            }
-                                        }
-                                    } else {
-                                        self.encoder.encode_stub_pure_function_use(def_id)?
-                                    }
-                                };
-                                if !is_pure_function && !is_cmp_call {
+                                    // TODO: interestingly, this crashes for
+                                    // custom implementations of eq as the def_id
+                                    // is not local; for details, see
+                                    // https://github.com/viperproject/prusti-dev/issues/188.
+                                    //self.encoder.encode_stub_pure_function_use(def_id)
+                                    //    .run_if_err(cleanup)?
                                     return Err(SpannedEncodingError::incorrect(
                                         format!(
                                             "use of impure function {:?} in pure code is not allowed",
@@ -832,7 +814,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         ),
                                         term.source_info.span,
                                     ));
-                                }
+                                };
                                 trace!("Encoding pure function call '{}'", function_name);
 
                                 let formal_args: Vec<vir::LocalVar> = args
@@ -856,6 +838,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     return_type,
                                     pos,
                                 );
+                                // TODO: ???
+                                /*
                                 if config::enable_purification_optimization() {
                                     if let Some(proc_id) = self.encoder.current_proc.borrow().clone() {
                                         if !self.encoder.is_pure(proc_id) {
@@ -865,6 +849,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         }
                                     }
                                 }
+                                */
                                 let mut state = states[&target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state

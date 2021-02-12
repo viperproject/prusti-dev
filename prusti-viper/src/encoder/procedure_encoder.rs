@@ -18,7 +18,6 @@ use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
-use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 use prusti_common::{
     config,
     report::log,
@@ -449,6 +448,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.cfg_method
                 .add_local_var(&var_name, vir::Type::TypedRef(type_name));
         }
+
+        // TODO: ??? this probably only ensures snapshots are made...
+        /*
         if config::enable_purification_optimization() {
             // FIXME: The purification optimization may need snapshots of all
             // variables.
@@ -461,6 +463,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.encoder.encode_snapshot(ty).with_span(mir_span)?;
             }
         }
+        */
 
         self.check_vir()?;
         let method_name = self.cfg_method.name();
@@ -477,6 +480,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 |writer| self.cfg_method.to_graphviz(writer),
             );
         }
+
+        // Patch snapshots
+        self.cfg_method = self.encoder.patch_snapshots_method(self.cfg_method)
+            .with_span(mir_span)?;
 
         // Add fold/unfold
         let loan_locations = self
@@ -2202,9 +2209,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
-        let snapshot_res = self.encoder.encode_snapshot(&arg_ty);
-        if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().supports_equality() {
-            let snapshot = snapshot_res.unwrap();
+        if self.encoder.has_snapshot_eq(&arg_ty).with_span(call_site_span)? {
             let pos = self
                 .encoder
                 .error_manager()
@@ -2216,8 +2221,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .with_span(call_site_span)?;
 
             let expr = match bin_op {
-                vir::BinOpKind::EqCmp => snapshot.encode_equals(lhs, rhs, pos),
-                vir::BinOpKind::NeCmp => snapshot.encode_not_equals(lhs, rhs, pos),
+                // TODO: put this in the snapshot module?
+                vir::BinOpKind::EqCmp => vir::Expr::eq_cmp(
+                    vir::Expr::snap_app(lhs),
+                    vir::Expr::snap_app(rhs),
+                ),
+                vir::BinOpKind::NeCmp => vir::Expr::ne_cmp(
+                    vir::Expr::snap_app(lhs),
+                    vir::Expr::snap_app(rhs),
+                ),
                 _ => unreachable!()
             };
 
@@ -2238,11 +2250,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         } else {
             // the equality check involves some unsupported feature;
             // treat it as any other function
-            debug!(
+            /*debug!(
                 "The equality check of {:?} involves an unsupported feature ({:?})",
                 arg_ty,
                 snapshot_res.err().unwrap()
-            );
+            );*/
             self.encode_impure_function_call(
                 location,
                 call_site_span,
@@ -2664,7 +2676,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             non_snapshot_arg_exprs.push(arg_expr);
         }
 
-        let arg_exprs = if prusti_common::config::enable_purification_optimization() {
+        // TODO: ???
+        let arg_exprs = /* if prusti_common::config::enable_purification_optimization() {
             let mut arg_exprs = vec![];
             for arg in non_snapshot_arg_exprs {
                 match arg.get_type() {
@@ -2680,10 +2693,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             arg_exprs
-        }
-        else {
+        } else {*/
             non_snapshot_arg_exprs
-        };
+        /*}*/;
 
         self.encode_specified_pure_function_call(
             location,
@@ -2721,14 +2733,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .error_manager()
             .register(call_site_span, ErrorCtxt::PureFunctionCall);
 
-        let func_call = if prusti_common::config::enable_purification_optimization() {
+        // TODO: ???
+        let func_call = /*if prusti_common::config::enable_purification_optimization() {
             debug!("we are replacing {} with the mirror function because it is pure", function_name);
             let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.get_snapshots() ).unwrap();
             arg_exprs.push(snapshot::n_nat(2));
 
             snapshot::mirror_function_caller_call(mirror_function, arg_exprs)
-        }
-        else {
+        } else {*/
             vir::Expr::func_app(
                 function_name.clone(),
                 arg_exprs,
@@ -2736,19 +2748,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 return_type.clone(),
                 pos
             )
-        };
+        /*}*/;
 
         let (target_value, mut stmts) = self.encode_pure_function_call_lhs_value(destination)
             .with_span(call_site_span)?;
 
         let inhaled_expr = if return_type.is_domain() {
             let predicate_name = target_value.get_type().name();
-            let snapshot = self.encoder.encode_snapshot_use(predicate_name)
-                .with_span(call_site_span)?;
-            let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination);
-            stmts.extend(pre_stmts);
-            let snap_call = snapshot.snap_call(target_place);
-            vir::Expr::eq_cmp(snap_call.clone(), func_call)
+            let target_place = self.encode_pure_function_call_lhs_place(destination);
+            let snap_app = vir::Expr::snap_app(target_place);
+            vir::Expr::eq_cmp(snap_app, func_call)
         } else {
             vir::Expr::eq_cmp(target_value.into(), func_call)
         };
@@ -3059,16 +3068,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             type_spec.into_iter().conjoin(),
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
-            func_spec
-                .into_iter()
-                .map(|spec|
-                    SnapshotSpecPatcher::new(self.encoder)
-                        .patch_spec(spec)
-                        .with_span(precondition_spans.clone())
-                )
-                .collect::<SpannedEncodingResult<Vec<_>>>()?
-                .into_iter()
-                .conjoin(),
+            func_spec.into_iter().conjoin(),
             precondition_weakening,
         ))
     }
@@ -3469,6 +3469,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ).map_or(Ok(None), |r| r.map(Some))
             )?;
 
+        // TODO: at least the assert purification (which replaces pure function
+        // calls with their mirrors afaict) should happen
+        /*
         let full_func_spec_elements = func_spec
             .into_iter()
             .map( // patch type mismatches for specs involving pure functions returning copy types
@@ -3493,7 +3496,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let full_func_spec = full_func_spec_elements
                 .into_iter()
                 .conjoin()
-                .set_default_pos(func_spec_pos);
+                .set_default_pos(func_spec_pos);*/
+
+        let full_func_spec = func_spec.into_iter()
+            .conjoin()
+            .set_default_pos(func_spec_pos);
 
         Ok((
             type_spec.into_iter().conjoin(),
