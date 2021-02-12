@@ -1,3 +1,4 @@
+// ignore-test
 #![allow(dead_code)]
 use prusti_contracts::*;
 

@@ -1,3 +1,4 @@
+// ignore-test
 use prusti_contracts::*;
 
 #[pure]
