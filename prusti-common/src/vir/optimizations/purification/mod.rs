@@ -61,14 +61,25 @@ impl Collector {
     }
 }
 
-impl ExprWalker for Collector {}
+impl ExprWalker for Collector {
+    fn walk_local(&mut self, local_var: &LocalVar, _pos: &Position) {
+        if self.tp.remove(&local_var.name).is_some() {
+            warn!("not purifiny {}", local_var)
+        }
+    }
+
+    fn walk_field(&mut self, receiver: &Expr, _field: &Field, _pos: &Position) {
+        match receiver {
+            Expr::Local(_, _) => {}
+            _ => ExprWalker::walk(self, receiver),
+        }
+    }
+}
 
 impl StmtWalker for Collector {
     fn walk_expr(&mut self, expr: &Expr) {
         ExprWalker::walk(self, expr);
     }
-
-    fn walk_local_var(&mut self, local_var: &LocalVar) {}
 }
 
 #[derive(Debug)]
@@ -109,6 +120,49 @@ impl StmtFolder for Purifier {
             )
         }
     }
+
+    fn fold_fold(
+        &mut self,
+        predicate_name: String,
+        args: Vec<Expr>,
+        perm_amount: PermAmount,
+        variant: MaybeEnumVariantIndex,
+        pos: Position,
+    ) -> Stmt {
+        if let [Expr::Local(l, _)] = &*args.clone() {
+            if self.targets.contains(&l.name) {
+                return Stmt::Comment(format!("replaced fold",));
+            }
+        }
+        Stmt::Fold(
+            predicate_name,
+            args.into_iter().map(|e| self.fold_expr(e)).collect(),
+            perm_amount,
+            variant,
+            pos,
+        )
+    }
+
+    fn fold_unfold(
+        &mut self,
+        predicate_name: String,
+        args: Vec<Expr>,
+        perm_amount: PermAmount,
+        variant: MaybeEnumVariantIndex,
+    ) -> Stmt {
+        if let [Expr::Local(l, _)] = &*args.clone() {
+            if self.targets.contains(&l.name) {
+                return Stmt::Comment(format!("replaced unfold",));
+            }
+        }
+
+        Stmt::Unfold(
+            predicate_name,
+            args.into_iter().map(|e| self.fold_expr(e)).collect(),
+            perm_amount,
+            variant,
+        )
+    }
 }
 
 impl ExprFolder for Purifier {
@@ -117,17 +171,37 @@ impl ExprFolder for Purifier {
 
         if let Expr::Local(l, lp) = *rec.clone() {
             if self.targets.contains(&l.name) {
-                warn!(
-                    "Replacng {:?} with {:?}",
-                    Expr::Field(rec.clone(), field, pos),
-                    rec
-                );
-
                 return Expr::Local(LocalVar::new(l.name, translate_type(&l.typ)), lp);
             }
         }
 
         Expr::Field(rec, field, pos)
+    }
+
+    fn fold_predicate_access_predicate(
+        &mut self,
+        name: String,
+        arg: Box<Expr>,
+        perm_amount: PermAmount,
+        pos: Position,
+    ) -> Expr {
+        //warn!("fold_predicate_access_predicate {} on {}", name, arg);
+
+        //if name == "bool" {
+        if let Expr::Local(local, _) = *arg.clone() {
+            if self.targets.contains(&local.name) {
+                /*warn!(
+                    "replaced with true fold_predicate_access_predicate {} on {}",
+                    name, arg
+                );*/
+
+                return true.into();
+            }
+        }
+        // }
+
+        Expr::PredicateAccessPredicate(name, self.fold_boxed(arg), perm_amount, pos)
+        //TODO might have to arg
     }
 
     fn fold_field_access_predicate(
@@ -136,21 +210,50 @@ impl ExprFolder for Purifier {
         perm_amount: PermAmount,
         pos: Position,
     ) -> Expr {
-        warn!("fold_field_access_predicate {:?}", receiver);
-
         if let Expr::Field(a, _field, _) = *receiver.clone() {
             if let Expr::Local(l, _) = *a {
                 if self.targets.contains(&l.name) {
-                    warn!(
-                        "fold_field_access_predicate replaced with true {:?} ",
-                        receiver
-                    );
-
                     return true.into();
                 }
             }
         }
 
         Expr::FieldAccessPredicate(receiver, perm_amount, pos)
+    }
+
+    fn fold_unfolding(
+        &mut self,
+        name: String,
+        args: Vec<Expr>,
+        expr: Box<Expr>,
+        perm: PermAmount,
+        variant: MaybeEnumVariantIndex,
+        pos: Position,
+    ) -> Expr {
+        //warn!("fold_unfolding {} {:?}", name, args);
+
+        if name == "bool" {
+            if let [Expr::Local(local, _)] = &*args.clone() {
+                if self.targets.contains(&local.name) {
+                    /*warn!(
+                        "replaced with true fold_predicate_access_predicate {} on {}",
+                        name, arg
+                    );*/
+
+                    return true.into();
+                }
+            }
+        }
+
+        Expr::Unfolding(
+            name,
+            args.into_iter()
+                .map(|e| ExprFolder::fold(self, e))
+                .collect(),
+            self.fold_boxed(expr),
+            perm,
+            variant,
+            pos,
+        )
     }
 }
