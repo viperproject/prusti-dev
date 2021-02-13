@@ -14,6 +14,7 @@ pub mod folding;
 pub mod functions;
 pub mod methods;
 pub mod predicates;
+pub mod purification;
 
 fn log_method(
     source_file_name: &str,
@@ -103,6 +104,10 @@ impl Program {
                 &self.functions,
                 self.viper_predicates,
             );
+        }
+
+        if config::enable_purification_optimization() {
+            self.methods=purification::purify_methods(self.methods);
         }
 
         self
