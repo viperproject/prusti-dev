@@ -193,25 +193,25 @@ def setup_ubuntu():
           'build-essential pkg-config '
           'wget gcc libssl-dev')
     # Download Viper.
-    shell('wget -q https://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
-    shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
-    os.remove('ViperToolsNightlyLinux.zip')
+    shell('wget -q https://viper.ethz.ch/downloads/ViperToolsLastReleaseLinux.zip')
+    shell('unzip ViperToolsLastReleaseLinux.zip -d viper_tools')
+    os.remove('ViperToolsLastReleaseLinux.zip')
 
 
 def setup_linux():
     """Install the dependencies on generic Linux."""
-    shell('curl https://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip -o ViperToolsNightlyLinux.zip')
-    shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
-    os.remove('ViperToolsNightlyLinux.zip')
+    shell('curl https://viper.ethz.ch/downloads/ViperToolsLastReleaseLinux.zip -o ViperToolsLastReleaseLinux.zip')
+    shell('unzip ViperToolsLastReleaseLinux.zip -d viper_tools')
+    os.remove('ViperToolsLastReleaseLinux.zip')
 
 
 def setup_mac():
     """Install the dependencies on Mac."""
     # Non-Viper dependencies must be installed manually.
     # Download Viper.
-    shell('curl https://viper.ethz.ch/downloads/ViperToolsNightlyMac.zip -o ViperToolsNightlyMac.zip')
-    shell('unzip ViperToolsNightlyMac.zip -d viper_tools')
-    os.remove('ViperToolsNightlyMac.zip')
+    shell('curl https://viper.ethz.ch/downloads/ViperToolsLastReleaseMac.zip -o ViperToolsLastReleaseMac.zip')
+    shell('unzip ViperToolsLastReleaseMac.zip -d viper_tools')
+    os.remove('ViperToolsLastReleaseMac.zip')
 
 
 def setup_win():
@@ -219,9 +219,9 @@ def setup_win():
     # Non-Viper dependencies must be installed manually.
     os.mkdir('viper_tools')
     # Download Viper.
-    shell('curl https://viper.ethz.ch/downloads/ViperToolsNightlyWin.zip -o ViperToolsNightlyWin.zip')
-    shell('tar -xf ViperToolsNightlyWin.zip -C viper_tools')
-    os.remove('ViperToolsNightlyWin.zip')
+    shell('curl https://viper.ethz.ch/downloads/ViperToolsLastReleaseWin.zip -o ViperToolsLastReleaseWin.zip')
+    shell('tar -xf ViperToolsLastReleaseWin.zip -C viper_tools')
+    os.remove('ViperToolsLastReleaseWin.zip')
 
 
 def setup_rustup():
