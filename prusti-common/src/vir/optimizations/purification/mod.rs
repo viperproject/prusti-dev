@@ -21,18 +21,29 @@ fn translate_type(typ: &Type) -> Type {
     }
 }
 
+static SUPPORTED_TYPES: &'static [&str] = &["bool", "i32", "usize", "u32"];
+
 fn purify_method(method: &mut CfgMethod) {
     let mut collector = Collector::new();
     for var in &method.local_vars {
         match &var.typ {
-            &Type::TypedRef(ref t) if t == "bool" => {
+            &Type::TypedRef(ref t) if SUPPORTED_TYPES.contains(&t.as_str()) => {
                 collector.tp.insert(var.name.clone(), var.typ.clone());
             }
             _ => {}
         };
     }
+    warn!(
+        "Collector for method {} before filtering {:?}",
+        method.name(),
+        collector
+    );
     walk_method(method, &mut collector);
-    warn!("Collector {:?}", collector);
+    warn!(
+        "Collector for method {} after filterng {:?}",
+        method.name(),
+        collector
+    );
 
     for var in &mut method.local_vars {
         if collector.tp.contains_key(&var.name) {
@@ -64,7 +75,7 @@ impl Collector {
 impl ExprWalker for Collector {
     fn walk_local(&mut self, local_var: &LocalVar, _pos: &Position) {
         if self.tp.remove(&local_var.name).is_some() {
-            warn!("not purifiny {}", local_var)
+            warn!("Will not purify {:?} ", local_var)
         }
     }
 
@@ -131,7 +142,7 @@ impl StmtFolder for Purifier {
     ) -> Stmt {
         if let [Expr::Local(l, _)] = &*args.clone() {
             if self.targets.contains(&l.name) {
-                return Stmt::Comment(format!("replaced fold",));
+                return Stmt::Comment(format!("replaced fold"));
             }
         }
         Stmt::Fold(
@@ -152,7 +163,7 @@ impl StmtFolder for Purifier {
     ) -> Stmt {
         if let [Expr::Local(l, _)] = &*args.clone() {
             if self.targets.contains(&l.name) {
-                return Stmt::Comment(format!("replaced unfold",));
+                return Stmt::Comment(format!("replaced unfold"));
             }
         }
 
@@ -185,23 +196,13 @@ impl ExprFolder for Purifier {
         perm_amount: PermAmount,
         pos: Position,
     ) -> Expr {
-        //warn!("fold_predicate_access_predicate {} on {}", name, arg);
-
-        //if name == "bool" {
         if let Expr::Local(local, _) = *arg.clone() {
             if self.targets.contains(&local.name) {
-                /*warn!(
-                    "replaced with true fold_predicate_access_predicate {} on {}",
-                    name, arg
-                );*/
-
                 return true.into();
             }
         }
-        // }
 
         Expr::PredicateAccessPredicate(name, self.fold_boxed(arg), perm_amount, pos)
-        //TODO might have to arg
     }
 
     fn fold_field_access_predicate(
@@ -230,18 +231,9 @@ impl ExprFolder for Purifier {
         variant: MaybeEnumVariantIndex,
         pos: Position,
     ) -> Expr {
-        //warn!("fold_unfolding {} {:?}", name, args);
-
-        if name == "bool" {
-            if let [Expr::Local(local, _)] = &*args.clone() {
-                if self.targets.contains(&local.name) {
-                    /*warn!(
-                        "replaced with true fold_predicate_access_predicate {} on {}",
-                        name, arg
-                    );*/
-
-                    return true.into();
-                }
+        if let [Expr::Local(local, _)] = &*args.clone() {
+            if self.targets.contains(&local.name) {
+                return true.into();
             }
         }
 

@@ -268,6 +268,8 @@ def run_benchmarks(args):
     output_dir = "benchmark-output"
     benchmark_csv = "benchmarks.csv"
     results = {}
+    
+    report_name_suffix = ("-" + args[0]) if len(args) > 0 else ''
 
     env = get_env()
     report("Starting prusti-server ({})", prusti_server_exe)
@@ -302,7 +304,7 @@ def run_benchmarks(args):
 
     json_result = json.dumps(results, indent = 2)
     timestamp = time.time()
-    output_file = os.path.join(output_dir, "benchmark" + str(timestamp) + ".json")
+    output_file = os.path.join(output_dir, "benchmark" + report_name_suffix + str(timestamp) + ".json")
     with open(output_file, "w") as outfile: 
         outfile.write(json_result) 
     

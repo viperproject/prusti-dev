@@ -187,7 +187,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             }
             ty::TyKind::Adt(adt_def, _) if adt_def.is_box() => { //TODO this breaks for lots of boxes. e.g. Box<Box<T>> or Box<i32>
                 let boxed_ty = self.ty.boxed_ty();
-                warn!("enocding boxed ty {:?}", boxed_ty);
                 match boxed_ty.kind() {
                     ty::TyKind::Adt(adt_def, subst) => {
                         if adt_def.is_struct() || adt_def.is_enum() {
@@ -445,14 +444,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     ) -> EncodingResult<Option<(Vec<vir::DomainFunc>, Vec<vir::DomainAxiom>)>> {
         let domain_name = self.encode_domain_name();
 
-        warn!("encode_field_funcs for {}", domain_name.clone());
         let mut funcs: Vec<vir::DomainFunc> = vec![];
         let mut axioms = vec![];
 
         match self.ty.kind() {
             ty::TyKind::Tuple(elems) => {
-                warn!("encode_field_funcs for TUPLE {}", domain_name.clone());
-
                 for (field_num, field_ty) in self.get_all_tuple_fields()? {
                     funcs.push(self.encode_field_func(field_ty.clone(), field_num)?);
 
