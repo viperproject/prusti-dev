@@ -78,7 +78,7 @@ def get_mac_env():
     """Get environment variables for Mac."""
     java_home = get_var_or('JAVA_HOME', None)
     if java_home is None:
-        java_home = subprocess.run(["/usr/libexec/java_home"], stdout=subprocess.PIPE).stdout.strip()
+        java_home = subprocess.run(["/usr/libexec/java_home"], stdout=subprocess.PIPE, encoding="utf8").stdout.strip()
     variables = [
         ('JAVA_HOME', java_home),
         ('RUST_TEST_THREADS', '1'),
@@ -193,14 +193,14 @@ def setup_ubuntu():
           'build-essential pkg-config '
           'wget gcc libssl-dev')
     # Download Viper.
-    shell('wget -q http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
+    shell('wget -q https://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
     shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
     os.remove('ViperToolsNightlyLinux.zip')
 
 
 def setup_linux():
     """Install the dependencies on generic Linux."""
-    shell('curl http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip -o ViperToolsNightlyLinux.zip')
+    shell('curl https://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip -o ViperToolsNightlyLinux.zip')
     shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
     os.remove('ViperToolsNightlyLinux.zip')
 
@@ -209,7 +209,7 @@ def setup_mac():
     """Install the dependencies on Mac."""
     # Non-Viper dependencies must be installed manually.
     # Download Viper.
-    shell('curl http://viper.ethz.ch/downloads/ViperToolsNightlyMac.zip -o ViperToolsNightlyMac.zip')
+    shell('curl https://viper.ethz.ch/downloads/ViperToolsNightlyMac.zip -o ViperToolsNightlyMac.zip')
     shell('unzip ViperToolsNightlyMac.zip -d viper_tools')
     os.remove('ViperToolsNightlyMac.zip')
 
@@ -219,7 +219,7 @@ def setup_win():
     # Non-Viper dependencies must be installed manually.
     os.mkdir('viper_tools')
     # Download Viper.
-    shell('curl http://viper.ethz.ch/downloads/ViperToolsNightlyWin.zip -o ViperToolsNightlyWin.zip')
+    shell('curl https://viper.ethz.ch/downloads/ViperToolsNightlyWin.zip -o ViperToolsNightlyWin.zip')
     shell('tar -xf ViperToolsNightlyWin.zip -C viper_tools')
     os.remove('ViperToolsNightlyWin.zip')
 
@@ -266,7 +266,7 @@ def run_benchmarks(args):
     prusti_server_exe = get_prusti_server_path_for_benchmark()
     server_port = "12345"
     output_dir = "benchmark-output"
-    benchmark_csv = "benchmarks.csv"
+    benchmark_csv = "benchmarked-files.csv"
     results = {}
     
     report_name_suffix = ("-" + args[0]) if len(args) > 0 else ''

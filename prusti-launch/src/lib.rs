@@ -7,7 +7,7 @@
 use std::{
     env,
     path::{Path, PathBuf},
-    process::{self, Command, Stdio}
+    process::Command,
 };
 use serde::Deserialize;
 #[cfg(target_family = "unix")]
@@ -101,6 +101,7 @@ pub fn get_rust_toolchain_channel() -> String {
     #[derive(Deserialize)]
     struct RustToolchain {
         channel: String,
+        #[allow(dead_code)]
         components: Option<Vec<String>>,
     }
 
@@ -177,6 +178,8 @@ pub fn sigint_handler() {
 
 #[cfg(target_family = "windows")]
 pub fn sigint_handler() {
+    use std::process::{self, Stdio};
+
     // Kill process tree rooted at prusti-server.exe
     let pid: &str = &*process::id().to_string();
 

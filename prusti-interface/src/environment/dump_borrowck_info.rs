@@ -27,6 +27,7 @@ use std::io::{self, BufWriter, Write};
 use std::path::PathBuf;
 use log::{trace, debug};
 use prusti_common::config;
+use crate::environment::mir_utils::RealEdges;
 
 pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'tcx>, procedures: &Vec<ProcedureDefId>) {
     trace!("[dump_borrowck_info] enter");
@@ -70,7 +71,8 @@ impl<'tcx> InfoPrinter<'tcx> {
         let (mir, _) = self.tcx.mir_promoted(ty::WithOptConstParam::unknown(local_def_id));
         let mir = mir.borrow();
 
-        let loop_info = loops::ProcedureLoops::new(&mir);
+        let real_edges = RealEdges::new(&mir);
+        let loop_info = loops::ProcedureLoops::new(&mir, &real_edges);
 
         let graph_path = PathBuf::from(config::log_dir())
             .join("nll-facts")
@@ -80,7 +82,7 @@ impl<'tcx> InfoPrinter<'tcx> {
         let graph_file = File::create(graph_path).expect("Unable to create file");
         let graph = BufWriter::new(graph_file);
 
-        let initialization = compute_definitely_initialized(&mir, self.tcx, def_path.clone());
+        let initialization = compute_definitely_initialized(&mir, self.tcx);
         let liveness = compute_liveness(&mir);
 
         // FIXME: this computes the wrong loop invariant permission

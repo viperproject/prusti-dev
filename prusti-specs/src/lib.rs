@@ -211,7 +211,14 @@ fn generate_for_after_expiry_if(attr: TokenStream, item: &untyped::AnyFnItem) ->
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "pure" annotations.
-fn generate_for_pure(_attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_pure(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    if !attr.is_empty() {
+        return Err(syn::Error::new(
+            attr.span(),
+            "the `#[pure]` attribute does not take parameters"
+        ));
+    }
+
     Ok((
         vec![],
         vec![parse_quote_spanned! {item.span()=>
@@ -221,7 +228,14 @@ fn generate_for_pure(_attr: TokenStream, item: &untyped::AnyFnItem) -> Generated
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "trusted" annotations.
-fn generate_for_trusted(_attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_trusted(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    if !attr.is_empty() {
+        return Err(syn::Error::new(
+            attr.span(),
+            "the `#[trusted]` attribute does not take parameters"
+        ));
+    }
+
     Ok((
         vec![],
         vec![parse_quote_spanned! {item.span()=>

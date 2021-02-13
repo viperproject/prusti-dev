@@ -328,7 +328,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                                          &format!("{}_{}", vars.spec_id, vars.post_id)))
                                 .chain(std::iter::once(
                                     self.encode_forall_arg(
-                                        result_var, tcx.mk_ty(ty::TyKind::Int(rustc_ast::ast::IntTy::I32)),
+                                        result_var, tcx.mk_ty(ty::TyKind::Int(ty::IntTy::I32)),
                                         &format!("{}_{}", vars.spec_id, vars.post_id))))
                                 .collect();
 

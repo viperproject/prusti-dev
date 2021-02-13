@@ -51,7 +51,7 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
                 let variant = def.non_enum_variant();
                 for (index, field_def) in variant.fields.iter().enumerate() {
                     if Some(index) != without_field {
-                        let field = mir::Field::new(index);
+                        let field = mir::Field::from_usize(index);
                         let field_place = tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
                         places.push(field_place);
                     }
@@ -60,7 +60,7 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
             ty::Tuple(slice) => {
                 for (index, arg) in slice.iter().enumerate() {
                     if Some(index) != without_field {
-                        let field = mir::Field::new(index);
+                        let field = mir::Field::from_usize(index);
                         let field_place = tcx.mk_place_field(*place, field, arg.expect_ty());
                         places.push(field_place);
                     }
@@ -297,7 +297,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
     for attr in attrs {
         if let ast::AttrKind::Normal(ast::AttrItem {
                                          path: ast::Path { span: _, segments, tokens: _ },
-                                         args: ast::MacArgs::Eq(_, tokens),
+                                         args: ast::MacArgs::Eq(_, token),
                                          tokens: _,
                                      }, _) = &attr.kind {
             // Skip attributes whose path don't match with "prusti::<attr_name>"
@@ -313,21 +313,15 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             use rustc_ast::token::TokenKind;
             use rustc_ast::tokenstream::{TokenTree, TokenStream};
             use rustc_ast::token::DelimToken;
-            fn extract_string(tokens: &TokenStream) -> String {
-                match tokens.trees().next().unwrap() {
-                    TokenTree::Token(Token {
-                                         kind: TokenKind::Literal(Lit { symbol, .. }),
-                                         ..
-                                     }) => {
+            fn extract_string(token: &Token) -> String {
+                match &token.kind {
+                    TokenKind::Literal(Lit { symbol, .. }) => {
                         symbol.as_str().replace("\\\"", "\"")
-                    }
-                    TokenTree::Delimited(_, DelimToken::NoDelim, tokens) => {
-                        extract_string(&tokens)
                     }
                     x => unreachable!("{:?}", x),
                 }
             }
-            strings.push(extract_string(tokens));
+            strings.push(extract_string(token));
         };
     }
     strings
