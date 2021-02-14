@@ -1,3 +1,6 @@
+// compile-flags: -Zdisable_more_complete_exhale
+// https://codeforces.com/problemset/problem/110/E
+
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
@@ -204,108 +207,115 @@ fn down_lucky(node: &Tree) -> isize {
 #[ensures(result.0.lookup(0) == sub_size(node))]
 #[ensures(result.1.lookup(0) == down_lucky(node))]
 #[ensures(sub_tree_sub_size_computed(node, 0, sub_size(node), &result.0))]
+#[ensures(sub_tree_down_lucky_computed(node, 0, sub_size(node), &result.1))]
 fn dfs1(node: &Tree) -> (Slice, Slice) {
-    let (subSize, downLucky, nodeSubSize, childrenSubSize) = dfs1_helper(node);
-    let _a = nodeSubSize;
-    let _b = childrenSubSize;
-    let _c = node;
-    (subSize, downLucky)
-
-}
-
-
-#[ensures(result.0.len() == sub_size(node))]
-#[ensures(result.1.len() == sub_size(node))]
-#[ensures(result.0.lookup(0) == sub_size(node))]
-#[ensures(result.1.lookup(0) == down_lucky(node))]
-#[ensures(result.2.len() == 1)]
-#[ensures(result.3.len() == sub_size(node) - 1)]
-#[ensures(result.0.len() == result.2.len() + result.3.len())]
-#[ensures(forall(|i: isize| (i >= 0 && i < result.2.len()) ==> result.2.lookup(i) == result.0.lookup(i)))]
-#[ensures(forall(|i: isize| (i >= 0 && i < result.3.len()) ==> result.3.lookup(i) == result.0.lookup(i + 1)))]
-#[ensures(match &(*node).left {
-    None => {
-        match &(*node).right {
-            None => {
-                true
-            }
-            Some(box r) => {
-                sub_tree_sub_size_computed(r, 0, sub_size(r), &result.3) &&
-                sub_tree_sub_size_computed_helper(
-                    r,
-                    1,
-                    1 + sub_size(r),
-                    &result.0,
-                    0,
-                    sub_size(r),
-                    &result.3,
-                ) &&
-                sub_tree_sub_size_computed(r, 1, 1 + sub_size(r), &result.0)
-            }
-        }
-    }
-    Some(box l) => {
-        sub_tree_sub_size_computed(l, 0, sub_size(l), &result.3) &&
-        sub_tree_sub_size_computed_helper(
-            l,
-            1,
-            1 + sub_size(l),
-            &result.0,
-            0,
-            sub_size(l),
-            &result.3,
-        ) &&
-        sub_tree_sub_size_computed(l, 1, 1 + sub_size(l), &result.0) &&        
-        match &(*node).right {
-            None => {
-                true
-            }
-            Some(box r) => {
-                sub_tree_sub_size_computed(r, sub_size(l), sub_size(l) + sub_size(r), &result.3) &&
-                sub_tree_sub_size_computed_helper(
-                    r,
-                    1 + sub_size(l),
-                    1 + sub_size(l) + sub_size(r),
-                    &result.0,
-                    sub_size(l),
-                    sub_size(l) + sub_size(r),
-                    &result.3,
-                ) &&
-                sub_tree_sub_size_computed(r, 1 + sub_size(l), 1 + sub_size(l) + sub_size(r), &result.0)
-            }
-        }
-    }
-})]
-#[ensures(sub_tree_sub_size_computed(node, 0, sub_size(node), &result.0))]
-fn dfs1_helper(node: &Tree) -> (Slice, Slice, Slice, Slice) {
     let answer = &mut VecWrapperI32::new(2);
-    let (childrenSubSize, childrenDownLucky) = helper(node, answer);
+    let (childrenSubSize, childrenDownLucky) = dfs1_helper(node, answer);
     let mut nodeSubSize = Slice::new(1);
     nodeSubSize.set(0, answer.lookup(0));
     let mut nodeDownLucky = Slice::new(1);
     nodeDownLucky.set(0, answer.lookup(1));
     let subSize = Slice::append(&nodeSubSize, &childrenSubSize);
     let downLucky = Slice::append(&nodeDownLucky, &childrenDownLucky);
-    
-    (subSize, downLucky, nodeSubSize, childrenSubSize)
 
-}
+    let mut inc = 0;
+    let tL = &node.left;
+    match tL {
+        None => {}
+        Some(box l) => {
+            assert!(sub_tree_sub_size_computed(
+                l,
+                0,
+                sub_size(l),
+                &childrenSubSize
+            ));
+            sub_tree_sub_size_computed_helper(
+                l,
+                1,
+                1 + sub_size(l),
+                &subSize,
+                0,
+                sub_size(l),
+                &childrenSubSize,
+            );
+            assert!(sub_tree_sub_size_computed(l, 1, 1 + sub_size(l), &subSize));
 
+            assert!(sub_tree_down_lucky_computed(
+                l,
+                0,
+                sub_size(l),
+                &childrenDownLucky
+            ));
+            sub_tree_down_lucky_computed_helper(
+                l,
+                1,
+                1 + sub_size(l),
+                &downLucky,
+                0,
+                sub_size(l),
+                &childrenDownLucky,
+            );
+            assert!(sub_tree_down_lucky_computed(
+                l,
+                1,
+                1 + sub_size(l),
+                &downLucky
+            ));
+            inc += sub_size(l);
+        }
+    }
 
-#[trusted]
-#[requires(answer.len() == 2)]
-#[ensures(answer.len() == old(answer.len()))]
-#[ensures(answer.lookup(0) == sub_size(node))]
-#[ensures(answer.lookup(1) == down_lucky(node))]
-#[ensures(result.0.len() == sub_size(node) - 1)]
-#[ensures(result.1.len() == sub_size(node) - 1)]
-#[ensures(result.0.len() == sub_size(node) - 1)]
-#[ensures(h1(node, &result.0))]
-fn helper(node: &Tree, answer: &mut VecWrapperI32) -> (Slice, Slice) {
+    let tR = &node.right;
+    match tR {
+        None => {}
+        Some(box r) => {
+            assert!(sub_tree_sub_size_computed(
+                r,
+                inc,
+                inc + sub_size(r),
+                &childrenSubSize
+            ));
+            sub_tree_sub_size_computed_helper(
+                r,
+                1 + inc,
+                1 + inc + sub_size(r),
+                &subSize,
+                inc,
+                inc + sub_size(r),
+                &childrenSubSize,
+            );
+            assert!(sub_tree_sub_size_computed(
+                r,
+                1 + inc,
+                1 + inc + sub_size(r),
+                &subSize
+            ));
 
-    let (subSize, downLucky, leftSubSize, rightSubSize) = helper_helper(node, answer);
+            assert!(sub_tree_down_lucky_computed(
+                r,
+                inc,
+                inc + sub_size(r),
+                &childrenDownLucky
+            ));
+            sub_tree_down_lucky_computed_helper(
+                r,
+                1 + inc,
+                1 + inc + sub_size(r),
+                &downLucky,
+                inc,
+                inc + sub_size(r),
+                &childrenDownLucky,
+            );
+            assert!(sub_tree_down_lucky_computed(
+                r,
+                1 + inc,
+                1 + inc + sub_size(r),
+                &downLucky
+            ));
+        }
+    }
+
     (subSize, downLucky)
-
 }
 
 #[requires(answer.len() == 2)]
@@ -315,64 +325,9 @@ fn helper(node: &Tree, answer: &mut VecWrapperI32) -> (Slice, Slice) {
 #[ensures(result.0.len() == sub_size(node) - 1)]
 #[ensures(result.1.len() == sub_size(node) - 1)]
 #[ensures(result.0.len() == sub_size(node) - 1)]
-#[ensures(result.0.len() == result.2.len() + result.3.len())]
-#[ensures(forall(|i: isize| (i >= 0 && i < result.2.len()) ==> result.2.lookup(i) == result.0.lookup(i)))]
-#[ensures(forall(|i: isize| (i >= 0 && i < result.3.len()) ==> result.3.lookup(i) == result.0.lookup(i + result.2.len())))]
-#[ensures(match &(*node).left {
-    None => {
-        match &(*node).right {
-            None => {
-                true
-            }
-            Some(box r) => {
-                sub_tree_sub_size_computed(r, 0, sub_size(r), &result.3) &&
-                sub_tree_sub_size_computed_helper(
-                    r,
-                    0,
-                    sub_size(r),
-                    &result.0,
-                    0,
-                    sub_size(r),
-                    &result.3,
-                ) &&
-                sub_tree_sub_size_computed(r, 0, sub_size(r), &result.0)
-            }
-        }
-    }
-    Some(box l) => {
-        sub_tree_sub_size_computed(l, 0, sub_size(l), &result.2) &&
-        sub_tree_sub_size_computed_helper(
-            l,
-            0,
-            sub_size(l),
-            &result.0,
-            0,
-            sub_size(l),
-            &result.2,
-        ) &&
-        sub_tree_sub_size_computed(l, 0, sub_size(l), &result.0) &&        
-        match &(*node).right {
-            None => {
-                true
-            }
-            Some(box r) => {
-                sub_tree_sub_size_computed(r, 0, sub_size(r), &result.3) &&
-                sub_tree_sub_size_computed_helper(
-                    r,
-                    sub_size(l),
-                    sub_size(l) + sub_size(r),
-                    &result.0,
-                    0,
-                    sub_size(r),
-                    &result.3,
-                ) &&
-                sub_tree_sub_size_computed(r, sub_size(l), sub_size(l) + sub_size(r), &result.0)
-            }
-        }
-    }
-})]
 #[ensures(h1(node, &result.0))]
-fn helper_helper(node: &Tree, answer: &mut VecWrapperI32) -> (Slice, Slice, Slice, Slice) {
+#[ensures(h2(node, &result.1))]
+fn dfs1_helper(node: &Tree, answer: &mut VecWrapperI32) -> (Slice, Slice) {
     let mut sz = 1isize;
     let mut d = 0isize;
     let mut leftSubSize = Slice::new(0);
@@ -395,8 +350,7 @@ fn helper_helper(node: &Tree, answer: &mut VecWrapperI32) -> (Slice, Slice, Slic
     }
 
     match &(*node).right {
-        None => {
-        }
+        None => {}
         Some(box r) => {
             let (a, b) = dfs1(r);
             rightSubSize = a;
@@ -412,14 +366,92 @@ fn helper_helper(node: &Tree, answer: &mut VecWrapperI32) -> (Slice, Slice, Slic
 
     let subSize = Slice::append(&leftSubSize, &rightSubSize);
     let downLucky = Slice::append(&leftDownLucky, &rightDownLucky);
-    
 
     answer.set(0, sz);
     answer.set(1, d);
-    
+    let mut inc = 0;
+    let tL = &node.left;
+    match tL {
+        None => {}
+        Some(box l) => {
+            assert!(sub_tree_sub_size_computed(l, 0, sub_size(l), &leftSubSize));
+            sub_tree_sub_size_computed_helper(
+                l,
+                0,
+                sub_size(l),
+                &subSize,
+                0,
+                sub_size(l),
+                &leftSubSize,
+            );
+            assert!(sub_tree_sub_size_computed(l, 0, sub_size(l), &subSize));
 
-    (subSize, downLucky, leftSubSize, rightSubSize)
+            assert!(sub_tree_down_lucky_computed(
+                l,
+                0,
+                sub_size(l),
+                &leftDownLucky
+            ));
+            sub_tree_down_lucky_computed_helper(
+                l,
+                0,
+                sub_size(l),
+                &downLucky,
+                0,
+                sub_size(l),
+                &leftDownLucky,
+            );
+            assert!(sub_tree_down_lucky_computed(l, 0, sub_size(l), &downLucky));
+            inc += sub_size(l);
+        }
+    }
 
+    let tR = &node.right;
+    match tR {
+        None => {}
+        Some(box r) => {
+            assert!(sub_tree_sub_size_computed(r, 0, sub_size(r), &rightSubSize));
+            sub_tree_sub_size_computed_helper(
+                r,
+                inc,
+                inc + sub_size(r),
+                &subSize,
+                0,
+                sub_size(r),
+                &rightSubSize,
+            );
+            assert!(sub_tree_sub_size_computed(
+                r,
+                inc,
+                inc + sub_size(r),
+                &subSize
+            ));
+
+            assert!(sub_tree_down_lucky_computed(
+                r,
+                0,
+                sub_size(r),
+                &rightDownLucky
+            ));
+            sub_tree_down_lucky_computed_helper(
+                r,
+                inc,
+                inc + sub_size(r),
+                &downLucky,
+                0,
+                sub_size(r),
+                &rightDownLucky,
+            );
+            assert!(sub_tree_down_lucky_computed(
+                r,
+                inc,
+                inc + sub_size(r),
+                &downLucky
+            ));
+        }
+    }
+
+    (subSize, downLucky)
 }
 
 #[pure]
@@ -456,7 +488,6 @@ fn sub_tree_sub_size_computed(
     result
 }
 
-#[pure]
 #[requires(subSize1.len() >= sub_size(node))]
 #[requires(subSize2.len() >= sub_size(node))]
 #[requires(leftIdx1 >= 0 && leftIdx1 < subSize1.len())]
@@ -467,8 +498,7 @@ fn sub_tree_sub_size_computed(
 #[requires(rightIdx2 - leftIdx2 == sub_size(node))]
 #[requires(forall(|i: isize| (i >= leftIdx1 &&  i < rightIdx1) ==> subSize1.lookup(i) == subSize2.lookup(leftIdx2 + i - leftIdx1)))]
 #[requires(sub_tree_sub_size_computed(node, leftIdx2, rightIdx2, subSize2))]
-#[ensures(result ==> sub_tree_sub_size_computed(node, leftIdx1, rightIdx1, subSize1))]
-#[ensures(result)]
+#[ensures(sub_tree_sub_size_computed(node, leftIdx1, rightIdx1, subSize1))]
 fn sub_tree_sub_size_computed_helper(
     node: &Tree,
     leftIdx1: isize,
@@ -477,16 +507,16 @@ fn sub_tree_sub_size_computed_helper(
     leftIdx2: isize,
     rightIdx2: isize,
     subSize2: &Slice,
-) -> bool{
+) {
     assert!(subSize1.lookup(leftIdx1) == sub_size(node));
     let mut inc = 1;
 
-    match &(*node).left {
+    let t1 = &node.left;
+    match t1 {
         None => {}
-        Some(box l) => {
+        Some(l) => {
             let leftSubSize = sub_size(l);
-            assert!(sub_tree_sub_size_computed(l, leftIdx2 + inc, leftIdx2 + inc + leftSubSize, subSize2));
-            assert!(sub_tree_sub_size_computed_helper(
+            sub_tree_sub_size_computed_helper(
                 l,
                 leftIdx1 + inc,
                 leftIdx1 + inc + leftSubSize,
@@ -494,29 +524,33 @@ fn sub_tree_sub_size_computed_helper(
                 leftIdx2 + inc,
                 leftIdx2 + inc + leftSubSize,
                 subSize2,
-            ));
-            assert!(sub_tree_sub_size_computed(l, leftIdx1 + inc, leftIdx1 + inc + leftSubSize, subSize1));
+            );
             inc += leftSubSize;
         }
     }
+    let _t = t1;
+    let _a = subSize1;
+    let _a = subSize2;
 
-    match &(*node).right {
+    let t = &node.right;
+    match t {
         None => {}
-        Some(box r) => {
-            assert!(sub_tree_sub_size_computed(r, leftIdx2 + inc, rightIdx2, subSize2));
-            assert!(sub_tree_sub_size_computed_helper(
+        Some(r) => {
+            let rightSubSize = sub_size(r);
+            sub_tree_sub_size_computed_helper(
                 r,
                 leftIdx1 + inc,
-                rightIdx1,
+                leftIdx1 + inc + rightSubSize,
                 subSize1,
                 leftIdx2 + inc,
-                rightIdx2,
+                leftIdx2 + inc + rightSubSize,
                 subSize2,
-            ));
-            assert!(sub_tree_sub_size_computed(r, leftIdx1 + inc, rightIdx1, subSize1));
+            );
         }
     }
-    sub_tree_sub_size_computed(node, leftIdx1, rightIdx1, subSize1)
+    let _t = t;
+    let _a = subSize1;
+    let _a = subSize2;
 }
 
 #[pure]
@@ -544,3 +578,400 @@ fn h1(node: &Tree, subSize: &Slice) -> bool {
 
     result
 }
+
+#[pure]
+#[requires(downLucky.len() >= sub_size(node))]
+#[requires(leftIdx >= 0 && leftIdx < downLucky.len())]
+#[requires(rightIdx > leftIdx && rightIdx <= downLucky.len())]
+#[requires(rightIdx - leftIdx == sub_size(node))]
+fn sub_tree_down_lucky_computed(
+    node: &Tree,
+    leftIdx: isize,
+    rightIdx: isize,
+    downLucky: &Slice,
+) -> bool {
+    let mut result = downLucky.lookup(leftIdx) == down_lucky(node);
+    let mut lIdx = leftIdx + 1;
+    let mut rIdx = leftIdx + 1;
+    match &(*node).left {
+        None => {}
+        Some(box l) => {
+            let leftSubSize = sub_size(l);
+            result = result && sub_tree_down_lucky_computed(l, lIdx, lIdx + sub_size(l), downLucky);
+            rIdx += leftSubSize;
+        }
+    }
+
+    match &(*node).right {
+        None => {}
+        Some(box r) => {
+            let rightSubSize = sub_size(r);
+            result =
+                result && sub_tree_down_lucky_computed(r, rIdx, rIdx + rightSubSize, downLucky);
+        }
+    }
+
+    result
+}
+
+#[requires(downLucky1.len() >= sub_size(node))]
+#[requires(downLucky2.len() >= sub_size(node))]
+#[requires(leftIdx1 >= 0 && leftIdx1 < downLucky1.len())]
+#[requires(rightIdx1 > leftIdx1 && rightIdx1 <= downLucky1.len())]
+#[requires(rightIdx1 - leftIdx1 == sub_size(node))]
+#[requires(leftIdx2 >= 0 && leftIdx2 < downLucky2.len())]
+#[requires(rightIdx2 > leftIdx2 && rightIdx2 <= downLucky2.len())]
+#[requires(rightIdx2 - leftIdx2 == sub_size(node))]
+#[requires(forall(|i: isize| (i >= leftIdx1 &&  i < rightIdx1) ==> downLucky1.lookup(i) == downLucky2.lookup(leftIdx2 + i - leftIdx1)))]
+#[requires(sub_tree_down_lucky_computed(node, leftIdx2, rightIdx2, downLucky2))]
+#[ensures(sub_tree_down_lucky_computed(node, leftIdx1, rightIdx1, downLucky1))]
+fn sub_tree_down_lucky_computed_helper(
+    node: &Tree,
+    leftIdx1: isize,
+    rightIdx1: isize,
+    downLucky1: &Slice,
+    leftIdx2: isize,
+    rightIdx2: isize,
+    downLucky2: &Slice,
+) {
+    assert!(downLucky1.lookup(leftIdx1) == down_lucky(node));
+    let mut inc = 1;
+
+    let t1 = &node.left;
+    match t1 {
+        None => {}
+        Some(l) => {
+            let leftSubSize = sub_size(l);
+            sub_tree_down_lucky_computed_helper(
+                l,
+                leftIdx1 + inc,
+                leftIdx1 + inc + leftSubSize,
+                downLucky1,
+                leftIdx2 + inc,
+                leftIdx2 + inc + leftSubSize,
+                downLucky2,
+            );
+            inc += leftSubSize;
+        }
+    }
+    let _t = t1;
+    let _a = downLucky1;
+    let _a = downLucky2;
+
+    let t = &node.right;
+    match t {
+        None => {}
+        Some(r) => {
+            let rightSubSize = sub_size(r);
+            sub_tree_down_lucky_computed_helper(
+                r,
+                leftIdx1 + inc,
+                leftIdx1 + inc + rightSubSize,
+                downLucky1,
+                leftIdx2 + inc,
+                leftIdx2 + inc + rightSubSize,
+                downLucky2,
+            );
+        }
+    }
+    let _t = t;
+    let _a = downLucky1;
+    let _a = downLucky2;
+}
+
+#[pure]
+#[requires(downLucky.len() == sub_size(node) - 1)]
+fn h2(node: &Tree, downLucky: &Slice) -> bool {
+    let mut result = true;
+    let mut lIdx = 0;
+    let mut rIdx = 0;
+    match &(*node).left {
+        None => {}
+        Some(box l) => {
+            let leftSubSize = sub_size(l);
+            result = result && sub_tree_down_lucky_computed(l, lIdx, lIdx + sub_size(l), downLucky);
+            rIdx += leftSubSize;
+        }
+    }
+
+    match &(*node).right {
+        None => {}
+        Some(box r) => {
+            let rightSubSize = sub_size(r);
+            result =
+                result && sub_tree_down_lucky_computed(r, rIdx, rIdx + rightSubSize, downLucky);
+        }
+    }
+
+    result
+}
+
+#[pure]
+fn dfs2_compute_left(node: &Tree, x1: isize, x2: isize) -> isize {
+    match &(*node).left {
+        None => 0,
+        Some(box l) => {
+            if l.isLucky() {
+                dfs2_compute(l, x1)
+            } else {
+                dfs2_compute(l, x2 - down_lucky(l))
+            }
+        }
+    }
+}
+
+#[pure]
+fn dfs2_compute_right(node: &Tree, x1: isize, x2: isize) -> isize {
+    match &(*node).right {
+        None => 0,
+        Some(box r) => {
+            if r.isLucky() {
+                dfs2_compute(r, x1)
+            } else {
+                dfs2_compute(r, x2 - down_lucky(r))
+            }
+        }
+    }
+}
+
+#[pure]
+fn dfs2_compute(node: &Tree, upLucky: isize) -> isize {
+    let d1 = down_lucky(node);
+    let tot = upLucky + d1;
+    let mut result = tot * (tot - 1);
+    let x1 = node.n() - sub_size(node);
+    let x2 = upLucky + down_lucky(node);
+    result += dfs2_compute_left(node, x1, x2);
+    result += dfs2_compute_right(node, x1, x2);
+    result
+}
+
+#[requires(subSize.len() == downLucky.len())]
+#[requires(subSize.len() >= sub_size(node))]
+#[requires(leftIdx >= 0 && leftIdx < subSize.len())]
+#[requires(rightIdx > leftIdx && rightIdx <= subSize.len())]
+#[requires(rightIdx - leftIdx == sub_size(node))]
+#[requires(sub_tree_sub_size_computed(node, leftIdx, rightIdx, subSize))]
+#[requires(sub_tree_down_lucky_computed(node, leftIdx, rightIdx, downLucky))]
+#[ensures(result == dfs2_compute_left(node, x1, x2))]
+fn dfs2_left(
+    node: &Tree,
+    leftIdx: isize,
+    rightIdx: isize,
+    subSize: &Slice,
+    downLucky: &Slice,
+    x1: isize,
+    x2: isize,
+) -> isize {
+
+    let mut resultL = 0;
+
+    let lT = &node.left;
+    let mut lSize = 0;
+    match lT {
+        None => {}
+        Some(box l) => {
+            lSize = subSize.lookup(leftIdx + 1);
+            assert!(sub_tree_sub_size_computed(
+                l,
+                leftIdx + 1,
+                leftIdx + 1 + sub_size(l),
+                &subSize
+            ));
+            assert!(lSize == sub_size(l));
+            assert!(sub_tree_down_lucky_computed(
+                l,
+                leftIdx + 1,
+                leftIdx + 1 + sub_size(l),
+                &downLucky
+            ));
+            assert!(downLucky.lookup(leftIdx + 1) == down_lucky(l));
+
+            if l.isLucky() {
+                assert!(dfs2(
+                    l,
+                    leftIdx + 1,
+                    leftIdx + 1 + lSize,
+                    x1,
+                    subSize,
+                    downLucky,
+                ) == dfs2_compute(l, x1));
+                resultL += dfs2(
+                    l,
+                    leftIdx + 1,
+                    leftIdx + 1 + lSize,
+                    x1,
+                    subSize,
+                    downLucky,
+                );
+            } else {
+                assert!(dfs2(
+                    l,
+                    leftIdx + 1,
+                    leftIdx + 1 + lSize,
+                    x2 - downLucky.lookup(leftIdx + 1),
+                    subSize,
+                    downLucky,
+                ) == dfs2_compute(l, x2 - down_lucky(l)));
+                resultL += dfs2(
+                    l,
+                    leftIdx + 1,
+                    leftIdx + 1 + lSize,
+                    x2 - downLucky.lookup(leftIdx + 1),
+                    subSize,
+                    downLucky,
+                );
+            }
+        }
+    }
+
+
+    let _t = lT;
+    let _a = subSize;
+    let _b = downLucky;
+
+    resultL
+}
+
+#[requires(subSize.len() == downLucky.len())]
+#[requires(subSize.len() >= sub_size(node))]
+#[requires(leftIdx >= 0 && leftIdx < subSize.len())]
+#[requires(rightIdx > leftIdx && rightIdx <= subSize.len())]
+#[requires(rightIdx - leftIdx == sub_size(node))]
+#[requires(sub_tree_sub_size_computed(node, leftIdx, rightIdx, subSize))]
+#[requires(sub_tree_down_lucky_computed(node, leftIdx, rightIdx, downLucky))]
+#[ensures(result == dfs2_compute_right(node, x1, x2))]
+fn dfs2_right(
+    node: &Tree,
+    leftIdx: isize,
+    rightIdx: isize,
+    subSize: &Slice,
+    downLucky: &Slice,
+    x1: isize,
+    x2: isize,
+) -> isize {
+
+    let lT = &node.left;
+    let mut lSize = 0;
+    match lT {
+        None => {}
+        Some(box l) => {
+            lSize = subSize.lookup(leftIdx + 1);
+            assert!(sub_tree_sub_size_computed(
+                l,
+                leftIdx + 1,
+                leftIdx + 1 + sub_size(l),
+                &subSize
+            ));
+            assert!(lSize == sub_size(l));
+        }
+    }
+
+    let mut resultR = 0;
+
+    let rT = &node.right;
+    let mut rSize = 0;
+    match rT {
+        None => {}
+        Some(box r) => {
+            rSize = subSize.lookup(leftIdx + 1 + lSize);
+            assert!(sub_tree_sub_size_computed(
+                r,
+                leftIdx + 1 + lSize,
+                leftIdx + 1 + lSize + sub_size(r),
+                &subSize
+            ));
+            assert!(rSize == sub_size(r));
+            assert!(sub_tree_down_lucky_computed(
+                r,
+                leftIdx + 1 + lSize,
+                leftIdx + 1 + lSize + sub_size(r),
+                &downLucky
+            ));
+            assert!(downLucky.lookup(leftIdx + 1 + lSize) == down_lucky(r));
+            if r.isLucky() {
+                assert!(dfs2(
+                    r,
+                    leftIdx + 1 + lSize,
+                    leftIdx + 1 + lSize + rSize,
+                    x1,
+                    subSize,
+                    downLucky,
+                )  == dfs2_compute(r, x1));
+                resultR += dfs2(
+                    r,
+                    leftIdx + 1 + lSize,
+                    leftIdx + 1 + lSize + rSize,
+                    x1,
+                    subSize,
+                    downLucky,
+                );
+            } else {
+                assert!(dfs2(
+                    r,
+                    leftIdx + 1 + lSize,
+                    leftIdx + 1 + lSize + rSize,
+                    x2 - downLucky.lookup(leftIdx + 1 + lSize),
+                    subSize,
+                    downLucky,
+                ) == dfs2_compute(r, x2 - down_lucky(r)));
+                resultR += dfs2(
+                    r,
+                    leftIdx + 1 + lSize,
+                    leftIdx + 1 + lSize + rSize,
+                    x2 - downLucky.lookup(leftIdx + 1 + lSize),
+                    subSize,
+                    downLucky,
+                );
+            }
+        }
+    }
+
+    let _t = rT;
+    let _a = subSize;
+    let _b = downLucky;
+
+    resultR
+}
+
+#[requires(subSize.len() == downLucky.len())]
+#[requires(subSize.len() >= sub_size(node))]
+#[requires(leftIdx >= 0 && leftIdx < subSize.len())]
+#[requires(rightIdx > leftIdx && rightIdx <= subSize.len())]
+#[requires(rightIdx - leftIdx == sub_size(node))]
+#[requires(sub_tree_sub_size_computed(node, leftIdx, rightIdx, subSize))]
+#[requires(sub_tree_down_lucky_computed(node, leftIdx, rightIdx, downLucky))]
+#[ensures(result == dfs2_compute(node, upLucky))]
+fn dfs2(
+    node: &Tree,
+    leftIdx: isize,
+    rightIdx: isize,
+    upLucky: isize,
+    subSize: &Slice,
+    downLucky: &Slice,
+) -> isize {
+
+    let d1 = downLucky.lookup(leftIdx);
+    assert!(d1 == down_lucky(node));
+    let tot = upLucky + d1;
+    let mut result = tot * (tot - 1);
+    let s1 = subSize.lookup(leftIdx);
+    assert!(s1 == sub_size(node));
+    let x1 = node.n() - s1;
+    let x2 = upLucky + d1;
+    let resultL = dfs2_left(node, leftIdx, rightIdx, subSize, downLucky, x1, x2);
+    let resultR = dfs2_right(node, leftIdx, rightIdx, subSize, downLucky, x1, x2);
+    assert!(resultL == dfs2_compute_left(node, x1, x2));
+    assert!(resultR == dfs2_compute_right(node, x1, x2));
+    result += resultL;
+    result += resultR;
+    result
+}
+
+#[ensures(result == dfs2_compute(node, 0))]
+fn solve(node: &Tree) -> isize {
+    let (subSize, downLucky) = dfs1(node);
+    dfs2(node, 0, subSize.lookup(0), 0isize, &subSize, &downLucky)
+}
+
+fn main() {}
