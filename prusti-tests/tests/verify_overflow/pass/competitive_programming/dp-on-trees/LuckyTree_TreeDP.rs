@@ -1,5 +1,5 @@
-// compile-flags: -Passert_timeout=120000
-// https://codeforces.com/blog/entry/20935
+// compile-flags: -Zdisable_more_complete_exhale
+// https://codeforces.com/problemset/problem/110/E
 
 #![feature(box_patterns)]
 #![feature(box_syntax)]
@@ -54,6 +54,11 @@ impl Tree {
     #[ensures(self.isLucky() == old(self.isLucky()))]
     #[ensures(self.dp2() == old(self.dp2()))]
     #[ensures(self.dp1() == v)]
+    #[ensures(sub_size(self) == old(sub_size(self)))]
+    #[ensures(down_lucky(self) == old(down_lucky(self)))]
+    #[ensures(h1(self) == old(h1(self)))]
+    #[ensures(h2(self) == old(h2(self)))]
+    #[ensures(sub_tree_down_lucky_computed(self) == old(sub_tree_down_lucky_computed(self)))]
     pub fn set_dp1(&mut self, v: isize) {
         self.dp1 = v;
     }
@@ -68,6 +73,11 @@ impl Tree {
     #[ensures(self.n() == old(self.n()))]
     #[ensures(self.isLucky() == old(self.isLucky()))]
     #[ensures(self.dp1() == old(self.dp1()))]
+    #[ensures(sub_size(self) == old(sub_size(self)))]
+    #[ensures(down_lucky(self) == old(down_lucky(self)))]
+    #[ensures(h1(self) == old(h1(self)))]
+    #[ensures(h2(self) == old(h2(self)))]
+    #[ensures(sub_tree_sub_size_computed(self) == old(sub_tree_sub_size_computed(self)))]
     pub fn set_dp2(&mut self, v: isize) {
         self.dp2 = v;
     }
@@ -185,33 +195,36 @@ fn down_lucky(node: &Tree) -> isize {
     d
 }
 
-#[trusted]
-#[ensures(false)]
-fn assume_false() {}
-
 #[ensures(node.n() == old(node.n()))]
 #[ensures(node.isLucky() == old(node.isLucky()))]
-#[ensures(node.dp1() == sub_size(node))]
-#[ensures(node.dp2() == down_lucky(node))]
+#[ensures(sub_tree_sub_size_computed(node))]
+#[ensures(sub_tree_down_lucky_computed(node))]
 fn dfs1(node: &mut Tree) {
     let answer = &mut VecWrapperI32::new(2);
-
     helper(node, answer);
-
-    assert!(answer.lookup(0) == sub_size(node));
-    assert!(answer.lookup(1) == down_lucky(node));
     node.set_dp1(answer.lookup(0));
-    assert!(node.dp1() == sub_size(node));
     node.set_dp2(answer.lookup(1));
-    assert!(node.dp1() == sub_size(node));
-    assert!(node.dp2() == down_lucky(node));
 }
 
 #[requires(answer.len() == 2)]
 #[ensures(answer.len() == old(answer.len()))]
 #[ensures(answer.lookup(0) == sub_size(node))]
 #[ensures(answer.lookup(1) == down_lucky(node))]
-fn helper(node: &mut Tree, answer: &mut VecWrapperI32)  {
+#[ensures(node.n() == old(node.n()))]
+#[ensures(node.isLucky() == old(node.isLucky()))]
+#[ensures(match &node.left {
+    None => {true}
+    Some(box l) => {
+        sub_tree_sub_size_computed(l) && sub_tree_down_lucky_computed(l)
+    }
+})]
+#[ensures(match &node.right {
+    None => {true}
+    Some(box r) => {
+        sub_tree_sub_size_computed(r) && sub_tree_down_lucky_computed(r)
+    }
+})]
+fn helper(node: &mut Tree, answer: &mut VecWrapperI32) {
     let mut sz = 1isize;
     let mut d = 0isize;
 
@@ -243,3 +256,166 @@ fn helper(node: &mut Tree, answer: &mut VecWrapperI32)  {
     answer.set(0, sz);
     answer.set(1, d);
 }
+
+#[pure]
+fn sub_tree_sub_size_computed(node: &Tree) -> bool {
+    let mut result = node.dp1() == sub_size(node);
+    match &(*node).left {
+        None => {}
+        Some(box l) => {
+            result = result && sub_tree_sub_size_computed(l);
+        }
+    }
+
+    match &(*node).right {
+        None => {}
+        Some(box r) => {
+            result = result && sub_tree_sub_size_computed(r);
+        }
+    }
+
+    result
+}
+
+#[pure]
+fn h1(node: &Tree) -> bool {
+    let mut result = true;
+    match &(*node).left {
+        None => {}
+        Some(box l) => {
+            result = result && sub_tree_sub_size_computed(l);
+        }
+    }
+
+    match &(*node).right {
+        None => {}
+        Some(box r) => {
+            result = result && sub_tree_sub_size_computed(r);
+        }
+    }
+
+    result
+}
+
+#[pure]
+fn sub_tree_down_lucky_computed(node: &Tree) -> bool {
+    let mut result = node.dp2() == down_lucky(node);
+    match &(*node).left {
+        None => {}
+        Some(box l) => {
+            result = result && sub_tree_down_lucky_computed(l);
+        }
+    }
+
+    match &(*node).right {
+        None => {}
+        Some(box r) => {
+            result = result && sub_tree_down_lucky_computed(r);
+        }
+    }
+
+    result
+}
+
+#[pure]
+fn h2(node: &Tree) -> bool {
+    let mut result = true;
+    match &(*node).left {
+        None => {}
+        Some(box l) => {
+            result = result && sub_tree_down_lucky_computed(l);
+        }
+    }
+
+    match &(*node).right {
+        None => {}
+        Some(box r) => {
+            result = result && sub_tree_down_lucky_computed(r);
+        }
+    }
+
+    result
+}
+
+#[pure]
+fn dfs2_compute_left(node: &Tree, x1: isize, x2: isize) -> isize {
+    match &(*node).left {
+        None => {
+            0
+        }
+        Some(box l) => {
+            if l.isLucky() {
+                dfs2_compute(l, x1)
+            } else {
+                dfs2_compute(l, x2 - down_lucky(l))
+            }
+        }
+    }
+}
+
+#[pure]
+fn dfs2_compute_right(node: &Tree, x1: isize, x2: isize) -> isize {
+    match &(*node).right {
+        None => {
+            0
+        }
+        Some(box r) => {
+            if r.isLucky() {
+                dfs2_compute(r, x1)
+            } else {
+                dfs2_compute(r, x2 - down_lucky(r))
+            }
+        }
+    }
+}
+
+#[pure]
+fn dfs2_compute(node: &Tree, upLucky: isize) -> isize {
+    let d1 = down_lucky(node);
+    let tot = upLucky + d1;
+    let mut result = tot * (tot - 1);
+    let x1 = node.n() - sub_size(node);
+    let x2 = upLucky + down_lucky(node);
+    result += dfs2_compute_left(node, x1, x2);
+    result += dfs2_compute_right(node, x1, x2);
+    result
+}
+
+#[requires(sub_tree_sub_size_computed(node))]
+#[requires(sub_tree_down_lucky_computed(node))]
+#[ensures(result == dfs2_compute(node, upLucky))]
+fn dfs2(node: &Tree, upLucky: isize) -> isize {
+    let d1 = node.dp2();
+    let tot = upLucky + d1;
+    let mut result = tot * (tot - 1);
+    match &(*node).left {
+        None => {}
+        Some(box l) => {
+            if l.isLucky() {
+                result += dfs2(l, node.n - node.dp1);
+            } else {
+                result += dfs2(l, upLucky + d1 - l.dp2());
+            }
+        }
+    }
+
+    match &(*node).right {
+        None => {}
+        Some(box r) => {
+            if r.isLucky() {
+                result += dfs2(r, node.n - node.dp1());
+            } else {
+                result += dfs2(r, upLucky + d1 - r.dp2());
+            }
+        }
+    }
+    result
+}
+ 
+#[ensures(result == dfs2_compute(node, 0))]
+fn solve(node: &mut Tree) -> isize {
+    dfs1(node);
+    dfs2(node, 0isize)
+}
+
+fn main() {}
