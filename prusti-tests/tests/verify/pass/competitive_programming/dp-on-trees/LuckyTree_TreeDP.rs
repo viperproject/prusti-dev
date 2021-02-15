@@ -1,4 +1,4 @@
-// compile-flags: -Pdisable_more_complete_exhale
+// compile-flags: -Puse_more_complete_exhale=false
 // https://codeforces.com/problemset/problem/110/E
 
 #![feature(box_patterns)]
