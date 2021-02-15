@@ -37,10 +37,28 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
-      - name: Build with cargo
-        run: python x.py build --all --verbose
-      - name: Run "quick" cargo tests
-        run: python x.py test --all --verbose quick
+      - name: Check out silicon
+        uses: actions/checkout@v2
+        with:
+            repository: 'viperproject/silicon'
+            ref: 'state-consolidation-modes'
+            path: 'silicon'
+      - name: Check out silver
+        uses: actions/checkout@v2
+        with:
+            repository: 'viperproject/silver'
+            ref: 'master'
+            path: 'silver'
+      - name: Build Silicon
+        run: |
+            cd silicon
+            ln -s ../silver silver
+            sbt compile
+
+      #- name: Build with cargo
+        #run: python x.py build --all --verbose
+      #- name: Run "quick" cargo tests
+        #run: python x.py test --all --verbose quick
 
   # Run all the tests.
   all-tests:
