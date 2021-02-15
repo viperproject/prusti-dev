@@ -35,7 +35,8 @@ impl Default for ViperBackendConfig {
                 verifier_args.push("--stateConsolidationMode".to_string());
                 //verifier_args.push("0".to_string()); – most tests fails with permission errors
                 //verifier_args.push("1".to_string()); – Successful in 15m
-                verifier_args.push("2".to_string());
+                //verifier_args.push("2".to_string()); – Successful in 13m
+                verifier_args.push("3".to_string());
                 verifier_args.extend(vec![
                     "--assertTimeout".to_string(),
                     config::assert_timeout().to_string(),
