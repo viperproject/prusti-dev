@@ -750,13 +750,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             .map(|x| x.as_str())
             .collect();
         match &macro_names_str[..] {
-            ["core::macros::panic", "std::unimplemented", ..] => PanicCause::Unimplemented,
-            ["core::macros::panic", "std::unreachable", ..] => PanicCause::Unreachable,
+            ["core::panic::panic_2015", "core::macros::panic", "std::unimplemented"] => PanicCause::Unimplemented,
+            ["core::panic::panic_2015", "core::macros::panic", "std::unreachable"] => PanicCause::Unreachable,
             ["std::assert", "std::debug_assert", ..] => PanicCause::DebugAssert,
             ["std::assert", ..] => PanicCause::Assert,
-            ["std::panic", "std::assert", "std::debug_assert", ..] => PanicCause::DebugAssert,
-            ["std::panic", "std::assert", ..] => PanicCause::Assert,
-            ["std::panic", ..] => PanicCause::Panic,
+            ["std::panic::panic_2015", "std::panic", "std::debug_assert"] => PanicCause::DebugAssert,
+            // TODO: assert!(_, "") currently has the same backtrace as panic!()
+            // see https://github.com/rust-lang/rust/issues/82157
+            //["std::panic::panic_2015", "std::panic", ..] => PanicCause::Assert,
+            ["std::panic::panic_2015", "std::panic", ..] => PanicCause::Panic,
             _ => PanicCause::Generic,
         }
     }
