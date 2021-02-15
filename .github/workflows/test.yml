@@ -61,14 +61,25 @@ jobs:
             repository: 'viperproject/viperserver'
             ref: 'master'
             path: 'viperserver'
+      - name: Symbolically link Silver to Carbon
+        run: cd carbon; ln --symbolic ../silver
+      - name: Symbolically link Silver to Silicon
+        run: cd silicon; ln --symbolic ../silver
+      - name: Symbolically link Silver to ViperServer
+        run: cd viperserver; ln --symbolic ../silver
+      - name: Symbolically link Carbon to ViperServer
+        run: cd viperserver; ln --symbolic ../carbon
+      - name: Symbolically link Silicon to ViperServer
+        run: cd viperserver; ln --symbolic ../silicon
       - name: Build Silicon
         run: |
             cd viperserver
-            ln -s ../silver silver
-            ln -s ../silicon silicon
-            ln -s ../carbon carbon
+            #ln -s ../silver silver
+            #ln -s ../silicon silicon
+            #ln -s ../carbon carbon
             sbt compile
             sbt assembly
+            sbt stage
             rm -rf ../viper_tools/backends/*
             find target -iname "*.jar"
             cp target/scala-2.13/viperserver.jar ../viper_tools/backends/
