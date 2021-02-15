@@ -29,9 +29,11 @@ impl Default for ViperBackendConfig {
         let mut verifier_args = config::extra_verifier_args();
         match backend {
             VerificationBackend::Silicon => {
-                if config::use_more_complete_exhale() {
-                    verifier_args.push("--enableMoreCompleteExhale".to_string());
-                }
+                //if config::use_more_complete_exhale() {
+                    //verifier_args.push("--enableMoreCompleteExhale".to_string());
+                //}
+                verifier_args.push("--stateConsolidationMode".to_string());
+                verifier_args.push("0".to_string());
                 verifier_args.extend(vec![
                     "--assertTimeout".to_string(),
                     config::assert_timeout().to_string(),
