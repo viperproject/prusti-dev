@@ -37,6 +37,12 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
+      - name: Check out carbon
+        uses: actions/checkout@v2
+        with:
+            repository: 'viperproject/carbon'
+            ref: 'master'
+            path: 'carbon'
       - name: Check out silicon
         uses: actions/checkout@v2
         with:
@@ -49,14 +55,23 @@ jobs:
             repository: 'viperproject/silver'
             ref: 'master'
             path: 'silver'
+      - name: Check out Viper server
+        uses: actions/checkout@v2
+        with:
+            repository: 'viperproject/viperserver'
+            ref: 'master'
+            path: 'viperserver'
       - name: Build Silicon
         run: |
-            cd silicon
+            cd viperserver
             ln -s ../silver silver
+            ln -s ../silicon silicon
+            ln -s ../carbon carbon
             sbt compile
             sbt assembly
             rm -rf ../viper_tools/backends/*
-            cp target/scala-2.13/silicon.jar ../viper_tools/backends/
+            find target -iname "*.jar"
+            cp target/scala-2.13/viperserver.jar ../viper_tools/backends/
       - name: Build with cargo
         run: python x.py build --all --verbose
       - name: Run "quick" cargo tests
