@@ -33,7 +33,8 @@ impl Default for ViperBackendConfig {
                     //verifier_args.push("--enableMoreCompleteExhale".to_string());
                 //}
                 verifier_args.push("--stateConsolidationMode".to_string());
-                verifier_args.push("0".to_string());
+                //verifier_args.push("0".to_string()); – most tests fails with permission errors
+                verifier_args.push("1".to_string());
                 verifier_args.extend(vec![
                     "--assertTimeout".to_string(),
                     config::assert_timeout().to_string(),
