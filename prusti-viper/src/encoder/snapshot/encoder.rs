@@ -1,8 +1,10 @@
+use ::log::debug;
 use rustc_middle::ty;
 use rustc_middle::ty::layout::IntegerExt;
 use rustc_target::abi::Integer;
 use std::collections::HashMap;
 use prusti_common::vir::{self, Expr, FallibleExprFolder, FallibleStmtFolder, Type, PermAmount, EnumVariantIndex};
+use crate::encoder::foldunfold;
 use crate::encoder::Encoder;
 use crate::encoder::errors::{EncodingError, EncodingResult, SpannedEncodingResult, RunIfErr};
 use crate::encoder::snapshot::{Snapshot, patcher::SnapshotPatcher};
@@ -40,9 +42,6 @@ fn strip_refs_and_boxes_expr<'p, 'v: 'p, 'tcx: 'v>(
     ty: ty::Ty<'tcx>,
     expr: Expr,
 ) -> EncodingResult<(ty::Ty<'tcx>, Expr)> {
-    // TODO: fold/unfold fails to add correct unfolding for val_ref (adding it
-    // here does not work either), e.g. [cons(self.f$i.val_ref.val_int)]
-    // misses the unfolding for [ref$i32].
     match ty.kind() {
         _ if ty.is_box() => strip_refs_and_boxes_expr(
             encoder,
@@ -157,23 +156,16 @@ impl SnapshotEncoder {
                 let ty = encoder.decode_type_predicate(name)?;
                 let (ty, expr) = strip_refs_and_boxes_expr(encoder, ty, expr)?;
                 // TODO: move to snapshot mod?
-                // TODO: unfolding might not be necessary?
                 Ok(match ty.kind() {
                     ty::TyKind::Int(_)
                     | ty::TyKind::Uint(_)
-                    | ty::TyKind::Char => Expr::wrap_in_unfolding(
+                    | ty::TyKind::Char => Expr::field(
                         expr.clone(),
-                        Expr::field(
-                            expr.clone(),
-                            vir::Field::new("val_int", Type::Int)
-                        ),
+                        vir::Field::new("val_int", Type::Int),
                     ),
-                    ty::TyKind::Bool => Expr::wrap_in_unfolding(
+                    ty::TyKind::Bool => Expr::field(
                         expr.clone(),
-                        Expr::field(
-                            expr.clone(),
-                            vir::Field::new("val_bool", Type::Bool)
-                        ),
+                        vir::Field::new("val_bool", Type::Bool),
                     ),
                     ty::TyKind::Tuple(substs) if substs.is_empty() => 0.into(),
                     ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => 0.into(),
@@ -310,7 +302,6 @@ impl SnapshotEncoder {
         predicate_name: &str,
     ) -> EncodingResult<Snapshot> {
         let tcx = encoder.env().tcx();
-        let predicate = encoder.encode_type_predicate_def(ty)?;
 
         let arg_self = vir::LocalVar::new(
             "self",
@@ -352,7 +343,7 @@ impl SnapshotEncoder {
                 self.encode_complex(encoder, vec![SnapshotVariant {
                     discriminant: -1,
                     fields,
-                }], predicate, predicate_name)
+                }], predicate_name)
             }
             ty::TyKind::Adt(adt_def, subst) if adt_def.is_struct() => {
                 let mut fields = vec![];
@@ -370,10 +361,11 @@ impl SnapshotEncoder {
                 self.encode_complex(encoder, vec![SnapshotVariant {
                     discriminant: -1,
                     fields,
-                }], predicate, predicate_name)
+                }], predicate_name)
             }
             ty::TyKind::Adt(adt_def, subst) if adt_def.is_enum() => {
                 let mut variants = vec![];
+                let predicate = encoder.encode_type_predicate_def(ty)?;
                 for (variant_idx, variant) in adt_def.variants.iter_enumerated() {
                     let mut fields = vec![];
                     let variant_idx: usize = variant_idx.into();
@@ -409,7 +401,7 @@ impl SnapshotEncoder {
                         fields,
                     });
                 }
-                self.encode_complex(encoder, variants, predicate, predicate_name)
+                self.encode_complex(encoder, variants, predicate_name)
             }
 
             // TODO: Abstract ?
@@ -426,7 +418,6 @@ impl SnapshotEncoder {
         &self,
         encoder: &'p Encoder<'v, 'tcx>,
         variants: Vec<SnapshotVariant>,
-        predicate: vir::Predicate,
         predicate_name: &str,
     ) -> EncodingResult<Snapshot> {
         if variants.is_empty()
@@ -628,15 +619,6 @@ impl SnapshotEncoder {
                     .map(|f| f.access.clone())
                     .collect(),
             );
-            if !variant.fields.is_empty() {
-                snap_body = self.unfolding_enum_variant(
-                    arg_ref_expr.clone(),
-                    snap_body,
-                    &predicate,
-                    predicate_name,
-                    variant_idx,
-                )?;
-            }
             variant_snap_bodies.push(snap_body);
         }
 
@@ -672,12 +654,13 @@ impl SnapshotEncoder {
                     PermAmount::Read,
                 )],
                 posts: vec![], // TODO: with optimisations there should be a post ...
-                body: Some(Expr::wrap_in_unfolding(
-                    arg_ref_expr.clone(),
-                    body,
-                )),
+                body: Some(body),
             }
         };
+        let snap_func = foldunfold::add_folding_unfolding_to_function(
+            snap_func,
+            encoder.get_used_viper_predicates_map(),
+        ).unwrap();
 
         // create domain
         let domain = vir::Domain {
@@ -693,44 +676,6 @@ impl SnapshotEncoder {
             snap_func,
             variants: variant_field_funcs,
         })
-    }
-
-    fn unfolding_enum_variant(
-        &self,
-        expr_self: Expr,
-        expr_call: Expr,
-        predicate: &vir::Predicate,
-        predicate_name: &str,
-        variant_idx: usize,
-    ) -> EncodingResult<Expr> {
-        // TODO: why is this not generated by fold/unfold automatically?
-        match predicate {
-            vir::Predicate::Enum(enum_predicate) => {
-                let (_, ref variant_name, _) = enum_predicate.variants[variant_idx];
-                Ok(Expr::unfolding(
-                    format!("{}{}", predicate_name, variant_name),
-                    vec![expr_self.variant(variant_name)],
-                    expr_call,
-                    vir::PermAmount::Read,
-                    Some(EnumVariantIndex::new(variant_name.to_string())),
-                ))
-            }
-            vir::Predicate::Struct(_) => {
-                debug_assert_eq!(variant_idx, 0);
-                Ok(Expr::unfolding(
-                    predicate_name.to_string(),
-                    vec![expr_self.clone()],
-                    expr_call,
-                    vir::PermAmount::Read,
-                    None,
-                ))
-            }
-            _ => {
-                Err(EncodingError::incorrect(
-                    "predicate does not correspond to an enum or struct".to_string()
-                ))
-            }
-        }
     }
 }
 
