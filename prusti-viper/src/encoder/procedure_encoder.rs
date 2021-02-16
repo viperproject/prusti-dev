@@ -2053,7 +2053,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     )?);
                                 }
 
-                                _ => unreachable!()
+                                _ => {
+                                    unimplemented!(
+                                        "Only calls to closures are supported. The term at {:?} is a {:?}, not a closure.",
+                                        term.source_info.span, cl_type.kind()
+                                    )
+                                }
                             }
                         }
 
