@@ -17,7 +17,7 @@ use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 use crate::encoder::spec_encoder::encode_spec_assertion;
-use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder};
+use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder, self};
 use crate::encoder::type_encoder::{
     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use crate::encoder::SpecFunctionKind;
@@ -713,13 +713,27 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .or_insert_with(|| {
                 let predicate_name = place.get_type().name();
                 let precondition = vir::Expr::predicate_access_predicate(
-                    predicate_name,
+                    predicate_name.clone(),
                     self_local_var.clone().into(),
                     vir::PermAmount::Read,
                 );
                 let result = vir::LocalVar::new("__result", vir::Type::Int);
-                let postcondition = compute_discriminant_bounds(
-                    adt_def, self.env.tcx(), &result.into());
+                let mut postcondition = compute_discriminant_bounds(
+                    adt_def, self.env.tcx(), &result.clone().into());
+                if config::enable_purification_optimization() {
+                    if let Some(snapshot) =  self.get_snapshots().get(&predicate_name) {
+                        let snap_call = snapshot.snap_call(self_local_var.clone().into());
+                        let variant_func = snapshot::encode_variant_func( format!(
+                            "{}{}",
+                            snapshot_encoder::SNAPSHOT_DOMAIN_PREFIX,
+                            snapshot.predicate_name,
+                        ));
+                        let variant_func_call = vir::Expr::domain_func_app(variant_func, vec![snap_call]);
+                        let new_post: vir::Expr = vir::Expr::eq_cmp(vir::Expr::local(result.clone()), variant_func_call);
+                        postcondition = vir::Expr::and(postcondition, new_post);
+                    }
+                }
+                
                 let discr_field = self.encode_discriminant_field();
                 let self_local_var_expr: vir::Expr = self_local_var.clone().into();
                 let function = vir::Function {

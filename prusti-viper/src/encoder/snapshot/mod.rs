@@ -5,7 +5,7 @@ use prusti_common::vir;
 
 pub use self::purifier::{AssertPurifier, ExprPurifier};
 
-use super::{errors::EncodingResult, snapshot_encoder::Snapshot};
+use super::{errors::EncodingResult, snapshot_encoder::{SNAPSHOT_VARIANT,Snapshot}};
 use vir::Type;
 
 mod fixer;
@@ -26,6 +26,19 @@ pub fn mirror_function_caller_call(mirror_fn: vir::DomainFunc, args: Vec<vir::Ex
         mirror_fn.return_type,
         Default::default(),
     )
+}
+
+pub fn encode_variant_func(domain_name: String) -> vir::DomainFunc
+{
+    let snap_type = vir::Type::Domain(domain_name.to_string());
+    let arg = vir::LocalVar::new("self", snap_type);
+    vir::DomainFunc {
+        name: SNAPSHOT_VARIANT.to_string(),
+        formal_args: vec![arg],
+        return_type: vir::Type::Int,
+        unique: false,
+        domain_name: domain_name.to_string(),
+    }
 }
 
 pub fn caller_function_name(df_name: &str) -> String {

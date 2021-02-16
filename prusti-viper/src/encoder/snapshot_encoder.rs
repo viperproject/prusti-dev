@@ -17,9 +17,9 @@ use rustc_target::abi::Integer;
 use ::log::{info, debug, trace};
 use crate::encoder::snapshot;
 
-const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
+pub const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";
 const SNAPSHOT_CONS: &str = "cons$";
-const SNAPSHOT_VARIANT: &str = "variant$";
+pub const SNAPSHOT_VARIANT: &str = "variant$";
 const SNAPSHOT_GET: &str = "snap$";
 pub const SNAPSHOT_EQUALS: &str = "equals$";
 pub const SNAPSHOT_NOT_EQUALS: &str = "not_equals$";
@@ -1249,15 +1249,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     fn encode_variant_func(&self) -> vir::DomainFunc
     {
         let domain_name = self.snapshot_encoder.encode_domain_name();
-        let snap_type = vir::Type::Domain(domain_name.to_string());
-        let arg = vir::LocalVar::new("self", snap_type);
-        vir::DomainFunc {
-            name: SNAPSHOT_VARIANT.to_string(),
-            formal_args: vec![arg],
-            return_type: vir::Type::Int,
-            unique: false,
-            domain_name: domain_name.to_string(),
-        }
+        snapshot::encode_variant_func(domain_name)
     }
 
     fn encode_axiom_variants(
