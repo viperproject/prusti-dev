@@ -268,10 +268,10 @@ pub fn walk_closure<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
 ) -> Result<(), E> {
     let cl_substs = substs.as_closure();
     // TODO: when are there bound typevars? can type visitor deal with generics?
-    let fn_sig = match cl_substs.sig().no_bound_vars() {
-        Some(t) => t,
-        None => unimplemented!("Bound variables not supported at {:?}", def_id)
-    };
+    let fn_sig =
+        cl_substs.sig()
+                 .no_bound_vars()
+                 .expect(&format!("bound variables are not supported at {:?}", def_id));
     for ty in fn_sig.inputs() {
         visitor.visit_ty(ty)?;
     }

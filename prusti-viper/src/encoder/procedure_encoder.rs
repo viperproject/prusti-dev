@@ -2054,10 +2054,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 }
 
                                 _ => {
-                                    unimplemented!(
-                                        "Only calls to closures are supported. The term at {:?} is a {:?}, not a closure.",
-                                        term.source_info.span, cl_type.kind()
-                                    )
+                                    cleanup(&self);
+                                    return Err(SpannedEncodingError::internal(
+                                        format!("only calls to closures are supported. The term is a {:?}, not a closure.", cl_type.kind()),
+                                        term.source_info.span,
+                                    ));
                                 }
                             }
                         }
