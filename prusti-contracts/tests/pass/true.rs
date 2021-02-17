@@ -25,4 +25,9 @@ fn test4() {
     }
 }
 
+#[predicate]
+fn pred_ok() -> bool {
+    true
+}
+
 fn main() {}

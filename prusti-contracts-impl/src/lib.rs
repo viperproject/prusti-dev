@@ -54,3 +54,8 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 pub fn extern_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
+
+#[proc_macro_attribute]
+pub fn predicate(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}

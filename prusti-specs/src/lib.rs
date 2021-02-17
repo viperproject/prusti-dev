@@ -11,9 +11,10 @@ mod parse_closure_macro;
 mod spec_attribute_kind;
 pub mod specifications;
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
+use untyped::EncodeTypeCheck;
 use std::convert::{TryFrom, TryInto};
 
 use specifications::untyped;
@@ -118,7 +119,7 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
     ))
 }
 
-/// Generate spec items and attributes to typecheck th and later retrieve "ensures" annotations.
+/// Generate spec items and attributes to typecheck the and later retrieve "ensures" annotations.
 fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
@@ -433,5 +434,67 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
             quote!(#item_mod)
         }
         _ => { unimplemented!() }
+    }
+}
+
+pub fn predicate(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    if !attr.is_empty() {
+        return syn::Error::new(
+            attr.span(),
+            "the `#[predicate]` attribute does not take parameters"
+        ).to_compile_error();
+    }
+
+    let item: syn::Item = handle_result!(syn::parse2(tokens));
+    let item_span = item.span();
+    match item {
+        syn::Item::Fn(pred_func) => {
+            let block_tokens = pred_func.block.to_token_stream();
+            let pred_tokens = if let Some(TokenTree::Group(group)) = block_tokens.into_iter().next() {
+                group.stream()
+            } else {
+                unreachable!("a function's block must be a brace-delimited `TokenTree::Group`")
+            };
+
+            // TODO: this is very similar to generate_spec_item_fn, should extract that into a common function
+            let mut rewriter = rewriter::AstRewriter::new();
+            let spec_id = rewriter.generate_spec_id();
+            let assertion = handle_result!(rewriter.parse_assertion(spec_id, pred_tokens));
+            let predicate = untyped::Predicate::new(assertion);
+
+            let item_name = syn::Ident::new(
+                &format!("prusti_pred_item_{}_{}", pred_func.sig.ident, spec_id),
+                item_span);
+            let mut assertion_typechecks = TokenStream::new();
+            predicate.encode_type_check(&mut assertion_typechecks);
+            let spec_id_str = spec_id.to_string();
+            let assertion_json = crate::specifications::json::to_json_string(&predicate.assertion);
+
+            let generics = pred_func.sig.generics.clone();
+            let inputs = pred_func.sig.inputs.clone();
+            let sig = pred_func.sig.to_token_stream();
+            parse_quote_spanned! {item_span =>
+                // this is to typecheck the assertion
+                #[allow(unused_must_use, unused_variables, dead_code)]
+                #[prusti::spec_only]
+                #[prusti::assertion = #assertion_json]
+                #[prusti::spec_id = #spec_id_str]
+                fn #item_name #generics(#inputs) {
+                    #assertion_typechecks
+                }
+
+                // this is the assertion's remaining, empty fn
+                #[pure]
+                #[trusted]
+                #[prusti::pred_spec_id_ref = #spec_id_str]
+                #sig {
+                    unimplemented!("predicate")
+                }
+            }
+        },
+
+        _ => parse_quote_spanned! {item_span =>
+            compile_error!("you can only use `#[predicate]` on function definitions")
+        }
     }
 }

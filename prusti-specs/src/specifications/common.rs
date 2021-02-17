@@ -263,6 +263,19 @@ pub enum AssertionKind<EID, ET, AT> {
 }
 
 #[derive(Debug, Clone)]
+/// Predicate: function annotated with `#[predicate]`
+pub struct Predicate<EID, ET, AT> {
+    // The predicate body
+    pub assertion: Assertion<EID, ET, AT>,
+}
+
+impl<EID, ET, AT> Predicate<EID, ET, AT> {
+    pub fn new(assertion: Assertion<EID, ET, AT>) -> Self {
+        Self { assertion }
+    }
+}
+
+#[derive(Debug, Clone)]
 /// Pledge `after_expiry(ref => rhs)`
 ///     or `after_expiry_if(ref => lhs, rhs)`
 pub struct Pledge<EID, ET, AT> {
