@@ -2055,7 +2055,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                                 _ => {
                                     cleanup(&self);
-                                    return Err(SpannedEncodingError::internal(
+                                    return Err(SpannedEncodingError::unsupported(
                                         format!("only calls to closures are supported. The term is a {:?}, not a closure.", cl_type.kind()),
                                         term.source_info.span,
                                     ));
