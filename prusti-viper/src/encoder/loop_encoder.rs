@@ -34,7 +34,6 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
             initialization: compute_definitely_initialized(
                 procedure.get_mir(),
                 tcx,
-                tcx.hir().def_path(procedure.get_id().expect_local())
             ),
         }
     }

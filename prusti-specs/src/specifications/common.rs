@@ -47,6 +47,14 @@ impl<'a> TryFrom<&'a str> for SpecType {
 /// or postcondition.
 pub struct SpecificationId(Uuid);
 
+/// A reference to a procedure specification.
+#[derive(Debug, Clone, Copy)]
+pub enum SpecIdRef {
+    Precondition(SpecificationId),
+    Postcondition(SpecificationId),
+    Pledge { lhs: Option<SpecificationId>, rhs: SpecificationId },
+}
+
 impl Display for SpecificationId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -204,15 +212,28 @@ impl<EID, ET> IntoIterator for TriggerSet<EID, ET> {
 }
 
 #[derive(Debug, Clone)]
-/// A sequence of variables used in the forall.
+/// Variables used in a forall.
 pub struct ForAllVars<EID, AT> {
-    /// Identifier of the specification to which this sequence of variables
-    /// belongs.
+    /// Identifier of the specification to which these variables belongs.
     pub spec_id: SpecificationId,
     /// Unique id for this sequence of variables.
     pub id: EID,
     /// Variables.
     pub vars: Vec<AT>,
+}
+
+#[derive(Debug, Clone)]
+/// Variables used in a specification entailment.
+pub struct SpecEntailmentVars<EID, AT> {
+    /// Identifier of the specification to which these variables belongs.
+    pub spec_id: SpecificationId,
+    /// Unique id of the pre state.
+    pub pre_id: EID,
+    /// Unique id of the post state.
+    pub post_id: EID,
+    /// Variables.
+    pub args: Vec<AT>,
+    pub result: AT,
 }
 
 #[derive(Debug, Clone)]
@@ -232,6 +253,13 @@ pub enum AssertionKind<EID, ET, AT> {
         TriggerSet<EID, ET>,
         Assertion<EID, ET, AT>,
     ),
+    /// Specification entailment
+    SpecEntailment {
+        closure: Expression<EID, ET>,
+        arg_binders: SpecEntailmentVars<EID, AT>,
+        pres: Vec<Assertion<EID, ET, AT>>,
+        posts: Vec<Assertion<EID, ET, AT>>,
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -277,12 +305,15 @@ impl<EID, ET, AT> LoopSpecification<EID, ET, AT> {
 /// Specification of a procedure.
 #[derive(Debug, Clone)]
 pub struct ProcedureSpecification<EID, ET, AT> {
-    /// Precondition.
+    /// Preconditions.
     pub pres: Vec<Assertion<EID, ET, AT>>,
-    /// Postcondition.
+    /// Postconditions.
     pub posts: Vec<Assertion<EID, ET, AT>>,
     /// Pledges in the postcondition.
     pub pledges: Vec<Pledge<EID, ET, AT>>,
+
+    pub pure: bool,
+    pub trusted: bool,
 }
 
 impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
@@ -291,7 +322,13 @@ impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
         posts: Vec<Assertion<EID, ET, AT>>,
         pledges: Vec<Pledge<EID, ET, AT>>
     ) -> Self {
-        Self { pres, posts, pledges }
+        Self {
+            pres,
+            posts,
+            pledges,
+            pure: false,
+            trusted: false,
+        }
     }
     pub fn empty() -> Self {
         Self::new(Vec::new(), Vec::new(), Vec::new())
@@ -301,10 +338,44 @@ impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
     }
 }
 
+impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> ProcedureSpecification<EID, ET, AT> {
+    /// Trait implementation method refinement
+    /// Choosing alternative C as discussed in
+    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+    /// pp 19-23
+    ///
+    /// In other words, any pre-/post-condition provided by `other` will overwrite any provided by
+    /// `self`.
+    pub fn refine(&self, other: &Self) -> Self {
+        let pres = if other.pres.is_empty() {
+            self.pres.clone()
+        } else {
+            other.pres.clone()
+        };
+        let posts = if other.posts.is_empty() {
+            self.posts.clone()
+        } else {
+            other.posts.clone()
+        };
+        let pledges = if other.pledges.is_empty() {
+            self.pledges.clone()
+        } else {
+            other.pledges.clone()
+        };
+        Self {
+            pres,
+            posts,
+            pledges,
+            pure: other.pure,
+            trusted: other.trusted,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 /// Specification of a single element such as procedure or loop.
 pub enum SpecificationSet<EID, ET, AT> {
-    /// (Precondition, Postcondition)
+    /// Procedure specifications (preconditions, postconditions, pledges, attributes).
     Procedure(ProcedureSpecification<EID, ET, AT>),
     /// Loop invariant.
     Loop(LoopSpecification<EID, ET, AT>),
@@ -323,47 +394,31 @@ impl<EID, ET, AT> SpecificationSet<EID, ET, AT> {
 }
 
 impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<EID, ET, AT> {
-    /// Trait implementation method refinement
-    /// Choosing alternative C as discussed in
-    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
-    /// pp 19-23
-    ///
-    /// In other words, any pre-/post-condition provided by `other` will overwrite any provided by
-    /// `self`.
-    pub fn refine(&self, other: &Self) -> Self {
-        let mut pres = vec![];
-        let mut posts = vec![];
-        let mut pledges = vec![];
-        let (ref_pre, ref_post, ref_pledges) = {
-            if let SpecificationSet::Procedure(ProcedureSpecification { ref pres, ref posts, ref pledges}) = other {
-                (pres, posts, pledges)
-            } else {
-                unreachable!("Unexpected: {:?}", other)
-            }
-        };
-        let (base_pre, base_post, base_pledges) = {
-            if let SpecificationSet::Procedure(ProcedureSpecification { ref pres, ref posts, ref pledges}) = self {
-                (pres, posts, pledges)
-            } else {
-                unreachable!("Unexpected: {:?}", self)
-            }
-        };
-        if ref_pre.is_empty() {
-            pres.append(&mut base_pre.clone());
-        } else {
-            pres.append(&mut ref_pre.clone());
+    pub fn expect_procedure(&self) -> &ProcedureSpecification<EID, ET, AT> {
+        if let SpecificationSet::Procedure(spec) = self {
+            return spec;
         }
-        if ref_post.is_empty() {
-            posts.append(&mut base_post.clone());
-        } else {
-            posts.append(&mut ref_post.clone());
-        }
-        if ref_pledges.is_empty() {
-            pledges.append(&mut base_pledges.clone());
-        } else {
-            pledges.append(&mut ref_pledges.clone());
-        }
-        SpecificationSet::Procedure(ProcedureSpecification { pres, posts, pledges })
+        unreachable!("expected Procedure: {:?}", self);
     }
 
+    pub fn expect_mut_procedure(&mut self) -> &mut ProcedureSpecification<EID, ET, AT> {
+        if let SpecificationSet::Procedure(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Procedure: {:?}", self);
+    }
+
+    pub fn expect_loop(&self) -> &LoopSpecification<EID, ET, AT> {
+        if let SpecificationSet::Loop(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Loop: {:?}", self);
+    }
+
+    pub fn expect_struct(&self) -> &Vec<Specification<EID, ET, AT>> {
+        if let SpecificationSet::Struct(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Struct: {:?}", self);
+    }
 }

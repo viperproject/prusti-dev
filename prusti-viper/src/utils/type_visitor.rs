@@ -6,10 +6,10 @@
 
 use rustc_hir::Mutability;
 use rustc_middle::ty::{
-    AdtDef, FieldDef, ParamTy, ProjectionTy, Region, Slice, Ty, TyCtxt, TypeFlags, TyKind,
-    VariantDef, subst::SubstsRef
+    AdtDef, FieldDef, ParamTy, ProjectionTy, Region, Slice, Ty, TyCtxt,
+    TypeFlags, TyKind, IntTy, UintTy, VariantDef, subst::SubstsRef
 };
-use rustc_ast::ast::{IntTy, UintTy};
+use rustc_hir::def_id::DefId;
 use log::trace;
 
 pub trait TypeVisitor<'tcx>: Sized {
@@ -58,6 +58,12 @@ pub trait TypeVisitor<'tcx>: Sized {
             }
             TyKind::Projection(data) => {
                 self.visit_projection(data)
+            }
+            TyKind::Closure(def_id, substs) => {
+                self.visit_closure(def_id, substs)
+            }
+            TyKind::FnDef(def_id, substs) => {
+                self.visit_fndef(def_id, substs)
             }
             ref x => {
                 self.visit_unsupported_sty(x)
@@ -169,6 +175,24 @@ pub trait TypeVisitor<'tcx>: Sized {
         trace!("visit_raw_ptr({:?}, {:?})", ty, mutability);
         walk_raw_ptr(self, ty, mutability)
     }
+
+    fn visit_closure(
+        &mut self,
+        def_id: DefId,
+        substs: SubstsRef<'tcx>
+    ) -> Result<(), Self::Error> {
+        trace!("visit_closure({:?})", def_id);
+        walk_closure(self, def_id, substs)
+    }
+
+    fn visit_fndef(
+        &mut self,
+        def_id: DefId,
+        substs: SubstsRef<'tcx>
+    ) -> Result<(), Self::Error> {
+        trace!("visit_fndef({:?})", def_id);
+        walk_fndef(self, def_id, substs)
+    }
 }
 
 pub fn walk_adt<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
@@ -235,4 +259,32 @@ pub fn walk_raw_ptr<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     _: Mutability,
 ) -> Result<(), E> {
     visitor.visit_ty(ty)
+}
+
+pub fn walk_closure<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
+    visitor: &mut V,
+    def_id: DefId,
+    substs: SubstsRef<'tcx>
+) -> Result<(), E> {
+    let cl_substs = substs.as_closure();
+    // TODO: when are there bound typevars? can type visitor deal with generics?
+    let fn_sig =
+        cl_substs.sig()
+                 .no_bound_vars()
+                 .expect(&format!("bound variables are not supported at {:?}", def_id));
+    for ty in fn_sig.inputs() {
+        visitor.visit_ty(ty)?;
+    }
+    visitor.visit_ty(fn_sig.output())
+}
+
+pub fn walk_fndef<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
+    visitor: &mut V,
+    def_id: DefId,
+    substs: SubstsRef<'tcx>
+) -> Result<(), E> {
+    for ty in substs.types() {
+        visitor.visit_ty(ty)?;
+    }
+    Ok(())
 }

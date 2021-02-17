@@ -80,7 +80,9 @@ pub fn add_folding_unfolding_to_expr(
     pctxt: &PathCtxt,
 ) -> Result<vir::Expr, FoldUnfoldError> {
     let pctxt_at_label = HashMap::new();
+    // First, add unfolding only inside old expressions
     let expr = ExprReplacer::new(pctxt.clone(), &pctxt_at_label, true).fallible_fold(expr)?;
+    // Then, add unfolding expressions everywhere else
     ExprReplacer::new(pctxt.clone(), &pctxt_at_label, false).fallible_fold(expr)
 }
 
@@ -88,6 +90,14 @@ pub fn add_folding_unfolding_to_function(
     function: vir::Function,
     predicates: HashMap<String, vir::Predicate>,
 ) -> Result<vir::Function, FoldUnfoldError> {
+    if config::dump_debug_info() {
+        prusti_common::report::log::report(
+            "vir_function_before_foldunfold",
+            format!("{}.dot", function.name),
+            &function,
+        );
+    }
+
     // Compute inner state
     let formal_vars = function.formal_args.clone();
     let mut pctxt = PathCtxt::new(formal_vars, &predicates);
@@ -95,7 +105,7 @@ pub fn add_folding_unfolding_to_function(
         pctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone(), vir::FoldingBehaviour::Expr));
     }
     // Add appropriate unfolding around expressions
-    let result = Ok(vir::Function {
+    let result = vir::Function {
         pres: function
             .pres
             .into_iter()
@@ -111,8 +121,17 @@ pub fn add_folding_unfolding_to_function(
             .map(|e| add_folding_unfolding_to_expr(e, &pctxt))
             .map_or(Ok(None), |r| r.map(Some))?,
         ..function
-    });
-    result
+    };
+
+    if config::dump_debug_info() {
+        prusti_common::report::log::report(
+            "vir_function_after_foldunfold",
+            format!("{}.dot", result.name),
+            &result,
+        );
+    }
+
+    Ok(result)
 }
 
 pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
@@ -164,7 +183,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             encoder,
             initial_pctxt,
             pctxt_at_label: HashMap::new(),
-            dump_debug_info: config::dump_debug_info(),
+            dump_debug_info: config::dump_debug_info_during_fold(),
             check_foldunfold_state: config::check_foldunfold_state(),
             foldunfold_state_filter: config::foldunfold_state_filter(),
             cfg,
@@ -1277,8 +1296,11 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         let res = if self.wait_old_expr || !expr.is_pure() {
             vir::default_fallible_fold_expr(self, expr)?
         } else {
-            // Try to add unfolding
+            // Add unfoldings in the subexpressions
             let inner_expr = vir::default_fallible_fold_expr(self, expr)?;
+
+            // Compute the permissions that are still missing in order for the current expression
+            // to be well-formed
             let perms: Vec<_> = inner_expr
                 .get_required_permissions(self.curr_pctxt.predicates())
                 .into_iter()
@@ -1295,8 +1317,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                     .join(",\n  ")
             );
 
-            // Add appropriate unfolding around this old expression
-            // Note: unfoldings must have no effect on siblings
+            // Add appropriate unfoldings around this expression, to obtain the missing permissions
             let mut result = inner_expr;
             for action in self
                 .curr_pctxt

@@ -3,7 +3,7 @@
 /// Adapted from
 /// [here](https://github.com/nikomatsakis/nll-rfc/blob/master/0000-nonlexical-lifetimes.md).
 ///
-/// Some lower bounds could be omitted if `CHECK_BINARY_OPERATIONS` is
+/// Some lower bounds could be omitted if `CHECK_OVERFLOWS` is
 /// set to `true`.
 
 use prusti_contracts::*;

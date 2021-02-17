@@ -167,7 +167,7 @@ pub fn run_backward_interpretation_point_to_point<
         for (stmt_index, stmt) in bb_data.statements.iter().enumerate().rev() {
             trace!("State before: {:?}", curr_state);
             trace!("Apply statement {:?}", stmt);
-            interpreter.apply_statement(curr_bb, stmt_index, stmt, &mut curr_state);
+            interpreter.apply_statement(curr_bb, stmt_index, stmt, &mut curr_state)?;
             trace!("State after: {:?}", curr_state);
             if curr_bb == final_bbi && final_stmt_index == stmt_index {
                 trace!("Final location reached in statement");

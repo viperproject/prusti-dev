@@ -1,0 +1,61 @@
+name: Update dependencies
+
+on:
+  workflow_dispatch:
+  schedule:
+    # At 07:00 UTC on day-of-month 1 and 15. Use https://crontab.guru/ to edit this.
+    - cron:  '0 7 1,15 * *'
+
+jobs:
+  # Update the version of rustc, open a PR and assign a developer.
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Install cargo-outdated
+        run: cargo install --locked cargo-outdated
+
+      - name: Update dependencies
+        run: |
+          NIGHTLY_VERSION="nightly-$(
+            curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/rustc-dev
+          )"
+          echo "The latest usable version of rustc is $NIGHTLY_VERSION"
+          sed -i 's/^channel\s*=.*$/channel = "'"$NIGHTLY_VERSION"'"/' rust-toolchain
+          declare -a DEVELOPERS=(Aurel300 fpoli vakaras)
+          UPDATE_NUMBER=$(( $(date +%m) * 2 + ($(date +%d) / 15) - 2 ))
+          DEVELOPER="${DEVELOPERS[ $UPDATE_NUMBER % ${#DEVELOPERS[@]} ]}"
+          echo "The assigned developer is $DEVELOPER"
+          OUTDATED_DEPENDENCIES="$(cargo outdated --root-deps-only --workspace)"
+          echo "NIGHTLY_VERSION=$NIGHTLY_VERSION" >> $GITHUB_ENV
+          echo "OUTDATED_DEPENDENCIES=$OUTDATED_DEPENDENCIES" >> $GITHUB_ENV
+          echo "DEVELOPER=$DEVELOPER" >> $GITHUB_ENV
+
+      - name: Open a pull request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          # Use viper-admin's token to workaround a restriction of GitHub.
+          # See: https://github.com/peter-evans/create-pull-request/issues/48
+          token: ${{ secrets.VIPER_ADMIN_TOKEN }}
+          commit-message: Update rustc to ${{ env.NIGHTLY_VERSION }}
+          title: Update dependencies (${{ env.NIGHTLY_VERSION }})
+          branch: auto-update-deps
+          delete-branch: true
+          assignees: ${{ env.DEVELOPER }}
+          body: |
+            * [x] Update rustc version to `${{ env.NIGHTLY_VERSION }}`.
+            * [ ] Manualy update outdated dependencies (see the list below).
+            * [ ] Manualy run `cargo update`.
+            
+            <details><summary>List of direct outdated dependencies:</summary>
+
+            ```
+            $ cargo outdated --root-deps-only --workspace
+            
+            ${{ env.OUTDATED_DEPENDENCIES }}
+            ```
+            </details>
+
+            @${{ env.DEVELOPER }} could you take care of this?

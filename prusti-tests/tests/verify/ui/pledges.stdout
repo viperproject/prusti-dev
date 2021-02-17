@@ -1,4 +1,4 @@
-// compile-flags: -Zprint-desugared-specs -Zprint-typeckd-specs -Zhide-uuids
+// compile-flags: -Pprint_desugared_specs=true -Pprint_typeckd_specs=true -Phide_uuids=true
 // normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
 // normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
 
@@ -22,39 +22,27 @@ struct T {
 }
 fn borrows(_x: &mut u32) {
     let mut a = T{f: 1, g: 2,};
-    if !(a.f == 1) {
-        { ::std::rt::begin_panic("assertion failed: a.f == 1") }
-    };
-    if !(a.g == 2) {
-        { ::std::rt::begin_panic("assertion failed: a.g == 2") }
-    };
+    if !(a.f == 1) { ::core::panicking::panic("assertion failed: a.f == 1") };
+    if !(a.g == 2) { ::core::panicking::panic("assertion failed: a.g == 2") };
     let x = &mut a;
     let y = &mut x.f;
     let z = &x.g;
     *y = 5;
-    if !(*z == 2) { { ::std::rt::begin_panic("assertion failed: *z == 2") } };
-    if !(a.f == 5) {
-        { ::std::rt::begin_panic("assertion failed: a.f == 5") }
-    };
+    if !(*z == 2) { ::core::panicking::panic("assertion failed: *z == 2") };
+    if !(a.f == 5) { ::core::panicking::panic("assertion failed: a.f == 5") };
 }
 fn borrows_fail(_x: &mut u32) {
     let mut a = T{f: 1, g: 2,};
-    if !(a.f == 1) {
-        { ::std::rt::begin_panic("assertion failed: a.f == 1") }
-    };
-    if !(a.g == 2) {
-        { ::std::rt::begin_panic("assertion failed: a.g == 2") }
-    };
+    if !(a.f == 1) { ::core::panicking::panic("assertion failed: a.f == 1") };
+    if !(a.g == 2) { ::core::panicking::panic("assertion failed: a.g == 2") };
     let x = &mut a;
     let y = &mut x.f;
     let z = &x.g;
     *y = 5;
-    if !(*z == 2) { { ::std::rt::begin_panic("assertion failed: *z == 2") } };
-    if !(a.f == 6) {
-        { ::std::rt::begin_panic("assertion failed: a.f == 6") }
-    };
+    if !(*z == 2) { ::core::panicking::panic("assertion failed: *z == 2") };
+    if !(a.f == 6) { ::core::panicking::panic("assertion failed: a.f == 6") };
 }
-#[allow(unused_must_use, unused_variables)]
+#[allow(unused_must_use, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 #[prusti::assertion =
@@ -76,9 +64,7 @@ fn reborrow_caller(a: T) {
     let x = &mut a;
     let y = reborrow(x);
     *y = 5;
-    if !(a.f == 5) {
-        { ::std::rt::begin_panic("assertion failed: a.f == 5") }
-    };
+    if !(a.f == 5) { ::core::panicking::panic("assertion failed: a.f == 5") };
 }
 fn main() { }
-Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:14 ~ pledges[317d]::prusti_post_item_reborrow_$(NUM_UUID)::{closure#0}) }) }
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [Pledge { reference: None, lhs: None, rhs: Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:14 ~ pledges[317d]::prusti_post_item_reborrow_$(NUM_UUID)::{closure#0}) }) } }], pure: false, trusted: false })

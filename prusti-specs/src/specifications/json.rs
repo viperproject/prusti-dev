@@ -13,6 +13,12 @@ pub enum AssertionKind {
     And(Vec<Assertion>),
     Implies(Assertion, Assertion),
     ForAll(ForAllVars, Assertion, TriggerSet),
+    SpecEntailment {
+        closure: Expression,
+        arg_binders: SpecEntailmentVars,
+        pres: Vec<Assertion>,
+        posts: Vec<Assertion>,
+    },
 }
 
 #[derive(Serialize, Deserialize)]
@@ -28,6 +34,14 @@ pub struct ForAllVars {
     pub spec_id: untyped::SpecificationId,
     pub expr_id: untyped::ExpressionId,
     pub count: usize,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SpecEntailmentVars {
+    pub spec_id: untyped::SpecificationId,
+    pub pre_expr_id: untyped::ExpressionId,
+    pub post_expr_id: untyped::ExpressionId,
+    pub arg_count: usize,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -51,6 +65,17 @@ impl common::ForAllVars<untyped::ExpressionId, untyped::Arg> {
             spec_id: self.spec_id.clone(),
             count: self.vars.len(),
             expr_id: self.id.clone(),
+        }
+    }
+}
+
+impl common::SpecEntailmentVars<untyped::ExpressionId, untyped::Arg> {
+    fn to_structure(&self) -> SpecEntailmentVars {
+        SpecEntailmentVars {
+            spec_id: self.spec_id.clone(),
+            arg_count: self.args.len(),
+            pre_expr_id: self.pre_id.clone(),
+            post_expr_id: self.post_id.clone(),
         }
     }
 }
@@ -97,6 +122,12 @@ impl untyped::AssertionKind {
                 body.to_structure(),
                 triggers.to_structure(),
             ),
+            SpecEntailment {closure, arg_binders, pres, posts} => AssertionKind::SpecEntailment {
+                closure: closure.to_structure(),
+                arg_binders: arg_binders.to_structure(),
+                pres: pres.iter().map(|pre| pre.to_structure()).collect(),
+                posts: posts.iter().map(|post| post.to_structure()).collect(),
+            },
             x => {
                 unimplemented!("{:?}", x);
             }

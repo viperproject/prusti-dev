@@ -10,6 +10,8 @@ use std::{
     process::Command,
 };
 use serde::Deserialize;
+#[cfg(target_family = "unix")]
+use nix::{sys::signal::{Signal, killpg}, unistd::getpgrp};
 
 /// Append paths to the loader environment variable
 pub fn add_to_loader_path(paths: Vec<PathBuf>, cmd: &mut Command) {
@@ -92,13 +94,14 @@ pub fn find_java_home() -> Option<PathBuf> {
 
 pub fn get_rust_toolchain_channel() -> String {
     #[derive(Deserialize)]
-    struct RustToolchain {
-        toolchain: RustToolchainZone,
+    struct RustToolchainFile {
+        toolchain: RustToolchain,
     }
 
     #[derive(Deserialize)]
-    struct RustToolchainZone {
+    struct RustToolchain {
         channel: String,
+        #[allow(dead_code)]
         components: Option<Vec<String>>,
     }
 
@@ -106,7 +109,7 @@ pub fn get_rust_toolchain_channel() -> String {
     // Be ready to accept TOML format
     // See: https://github.com/rust-lang/rustup/pull/2438
     if content.starts_with("[toolchain]") {
-        let rust_toolchain: RustToolchain = toml::from_str(content)
+        let rust_toolchain: RustToolchainFile = toml::from_str(content)
             .expect("failed to parse rust-toolchain file");
         rust_toolchain.toolchain.channel
     } else {
@@ -165,4 +168,25 @@ pub fn find_z3_exe(base_dir: &PathBuf) -> Option<PathBuf> {
     }
 
     None
+}
+
+#[cfg(target_family = "unix")]
+pub fn sigint_handler() {
+    // Killing the process group terminates the process tree
+    killpg(getpgrp(), Signal::SIGKILL).expect("Error killing process tree.");
+}
+
+#[cfg(target_family = "windows")]
+pub fn sigint_handler() {
+    use std::process::{self, Stdio};
+
+    // Kill process tree rooted at prusti-server.exe
+    let pid: &str = &*process::id().to_string();
+
+    Command::new("TASKKILL")
+        .args(&["/PID", pid, "/T", "/F"])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("Error killing process tree.");
 }
