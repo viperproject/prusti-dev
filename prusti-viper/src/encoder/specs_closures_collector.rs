@@ -58,7 +58,7 @@ impl<'tcx> SpecsClosuresCollector<'tcx> {
             self.visited.insert(def_id);
         }
         let tcx = env.tcx();
-        let mir = env.mir(def_id);
+        let mir = env.local_mir(def_id);
         for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
             for (stmt_index, stmt) in bb_data.statements.iter().enumerate() {
                 if let mir::StatementKind::Assign(

@@ -6,8 +6,8 @@
 
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{
-    ErrorCtxt, PanicCause, EncodingError, PositionlessEncodingError, WithSpan,
-    EncodingResult, PositionlessEncodingResult
+    ErrorCtxt, PanicCause, SpannedEncodingError, EncodingError, WithSpan,
+    SpannedEncodingResult, EncodingResult
 };
 use crate::encoder::Encoder;
 use prusti_common::vir;
@@ -16,7 +16,6 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
 use rustc_index::vec::{Idx, IndexVec};
 use rustc_span::{Span, DUMMY_SP};
-use rustc_ast::ast;
 use log::{trace, debug};
 use std::collections::HashMap;
 
@@ -35,7 +34,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         format!("{:?}", local)
     }
 
-    fn encode_local(&self, local: mir::Local) -> EncodingResult<vir::LocalVar> {
+    fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
         let var_name = self.encode_local_var_name(local);
         let type_name = self
             .encoder()
@@ -51,7 +50,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode place {:?}", place);
         let result = if place.projection.is_empty() {
             let local = place.local;
@@ -77,7 +76,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         index: usize,
         place: mir::Place<'tcx>,
         encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>,
-    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode projection {}: {:?}", index, place);
 
         assert!(index >= 1, "place: {:?} index: {}", place, index);
@@ -89,7 +88,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 if index == 1 {
                     let local = place.local;
                     (
-                        self.encode_local(local).unwrap().into(),
+                        self.encode_local(local)?.into(),
                         self.get_local_ty(local),
                         None,
                     )
@@ -129,7 +128,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             num
                         } else {
                             if num_variants != 1 {
-                                return Err(PositionlessEncodingError::internal(
+                                return Err(EncodingError::internal(
                                     format!(
                                         "unexpected number of type variants: \
                                         {} (should be 1)", num_variants
@@ -187,7 +186,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         //     res
                         // });
 
-                        let encoded_field_type = self.encoder().encode_type(field_ty);
+                        let encoded_field_type = self.encoder().encode_type(field_ty)?;
                         // debug!("Rust closure projection {:?}", place_projection);
                         debug!("encoded_projection: {:?}", encoded_projection);
 
@@ -217,7 +216,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         &self,
         encoded_base: vir::Expr,
         base_ty: ty::Ty<'tcx>,
-    ) -> PositionlessEncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("encode_deref {} {}", encoded_base, base_ty);
         assert!(
             self.can_be_dereferenced(base_ty),
@@ -365,7 +364,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn eval_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let (encoded_place, place_ty, _) = self.encode_place(place)?;
         Ok(self.encoder.encode_value_expr(encoded_place, place_ty))
     }
@@ -374,7 +373,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_expr(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
             &mir::Operand::Constant(box mir::Constant {
@@ -423,7 +422,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     /// Returns an `vir::Type` that corresponds to the type of the value of the operand
-    pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>) -> vir::Type {
+    pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>)
+        -> EncodingResult<vir::Type>
+    {
         trace!("Encode operand expr {:?}", operand);
         // match operand {
         //     &mir::Operand::Constant(box mir::Constant { ty, .. }) => {
@@ -448,7 +449,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         left: vir::Expr,
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         let is_bool = ty.kind() == &ty::TyKind::Bool;
         Ok(match op {
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
@@ -468,12 +469,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd |
             mir::BinOp::BitOr |
             mir::BinOp::BitXor => {
-                return Err(PositionlessEncodingError::unsupported(
+                return Err(EncodingError::unsupported(
                     "bitwise operations on non-boolean types are not supported"
                 ))
             }
             unsupported_op => {
-                return Err(PositionlessEncodingError::unsupported(format!(
+                return Err(EncodingError::unsupported(format!(
                     "operation '{:?}' is not supported",
                     unsupported_op
                 )))
@@ -495,8 +496,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         left: vir::Expr,
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
-        if !op.is_checkable() || !config::check_binary_operations() {
+    ) -> EncodingResult<vir::Expr> {
+        if !op.is_checkable() || !config::check_overflows() {
             return Ok(false.into())
         } else {
             let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty)?;
@@ -504,58 +505,58 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             Ok(match op {
                 mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.kind() {
                     // Unsigned
-                    ty::TyKind::Uint(ast::UintTy::U8) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::U8) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u8::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u8::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ast::UintTy::U16) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::U16) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u16::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u16::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ast::UintTy::U32) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::U32) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u32::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u32::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ast::UintTy::U64) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::U64) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u64::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u64::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ast::UintTy::U128) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::U128) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u128::MIN.into()),
                         vir::Expr::gt_cmp(result, std::u128::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ast::UintTy::Usize) => vir::Expr::or(
+                    ty::TyKind::Uint(ty::UintTy::Usize) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::usize::MIN.into()),
                         vir::Expr::gt_cmp(result, std::usize::MAX.into()),
                     ),
                     // Signed
-                    ty::TyKind::Int(ast::IntTy::I8) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::I8) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i8::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i8::MAX.into()),
                     ),
-                    ty::TyKind::Int(ast::IntTy::I16) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::I16) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i16::MIN.into()),
                     ),
-                    ty::TyKind::Int(ast::IntTy::I32) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::I32) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i32::MAX.into()),
                     ),
-                    ty::TyKind::Int(ast::IntTy::I64) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::I64) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i64::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i64::MAX.into()),
                     ),
-                    ty::TyKind::Int(ast::IntTy::I128) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::I128) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i128::MIN.into()),
                         vir::Expr::gt_cmp(result, std::i128::MAX.into()),
                     ),
-                    ty::TyKind::Int(ast::IntTy::Isize) => vir::Expr::or(
+                    ty::TyKind::Int(ty::IntTy::Isize) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::isize::MIN.into()),
                         vir::Expr::gt_cmp(result, std::isize::MAX.into()),
                     ),
 
                     _ => {
-                        return Err(PositionlessEncodingError::unsupported(format!(
+                        return Err(EncodingError::unsupported(format!(
                             "overflow checks are unsupported for operation '{:?}' on type '{:?}'",
                             op,
                             ty,
@@ -564,7 +565,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 },
 
                 mir::BinOp::Shl | mir::BinOp::Shr => {
-                    return Err(PositionlessEncodingError::unsupported(
+                    return Err(EncodingError::unsupported(
                         "overflow checks on a shift operation are unsupported",
                     ));
                 }
@@ -578,140 +579,100 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         &self,
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
-    ) -> PositionlessEncodingResult<vir::Expr> {
+        span: Span,
+    ) -> SpannedEncodingResult<vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
         let encoded_val = match (src_ty.kind(), dst_ty.kind()) {
-            (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I8))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I16))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I32))
-            | (ty::TyKind::Int(ast::IntTy::I8), ty::TyKind::Int(ast::IntTy::I64))
-            | (
-                ty::TyKind::Int(ast::IntTy::I8),
-                ty::TyKind::Int(ast::IntTy::I128),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I16),
-                ty::TyKind::Int(ast::IntTy::I16),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I16),
-                ty::TyKind::Int(ast::IntTy::I32),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I16),
-                ty::TyKind::Int(ast::IntTy::I64),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I16),
-                ty::TyKind::Int(ast::IntTy::I128),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I32),
-                ty::TyKind::Int(ast::IntTy::I32),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I32),
-                ty::TyKind::Int(ast::IntTy::I64),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I32),
-                ty::TyKind::Int(ast::IntTy::I128),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I64),
-                ty::TyKind::Int(ast::IntTy::I64),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I64),
-                ty::TyKind::Int(ast::IntTy::I128),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::I128),
-                ty::TyKind::Int(ast::IntTy::I128),
-            )
-            | (
-                ty::TyKind::Int(ast::IntTy::Isize),
-                ty::TyKind::Int(ast::IntTy::Isize),
-            )
+            // Numeric casts that cannot fail
             | (ty::TyKind::Char, ty::TyKind::Char)
-            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U8))
-            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U16))
-            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U32))
-            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U64))
-            | (ty::TyKind::Char, ty::TyKind::Uint(ast::UintTy::U128))
-            | (ty::TyKind::Uint(ast::UintTy::U8), ty::TyKind::Char)
-            | (
-                ty::TyKind::Uint(ast::UintTy::U8),
-                ty::TyKind::Uint(ast::UintTy::U8),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U8),
-                ty::TyKind::Uint(ast::UintTy::U16),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U8),
-                ty::TyKind::Uint(ast::UintTy::U32),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U8),
-                ty::TyKind::Uint(ast::UintTy::U64),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U8),
-                ty::TyKind::Uint(ast::UintTy::U128),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U16),
-                ty::TyKind::Uint(ast::UintTy::U16),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U16),
-                ty::TyKind::Uint(ast::UintTy::U32),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U16),
-                ty::TyKind::Uint(ast::UintTy::U64),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U16),
-                ty::TyKind::Uint(ast::UintTy::U128),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U32),
-                ty::TyKind::Uint(ast::UintTy::U32),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U32),
-                ty::TyKind::Uint(ast::UintTy::U64),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U32),
-                ty::TyKind::Uint(ast::UintTy::U128),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U64),
-                ty::TyKind::Uint(ast::UintTy::U64),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U64),
-                ty::TyKind::Uint(ast::UintTy::U128),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::U128),
-                ty::TyKind::Uint(ast::UintTy::U128),
-            )
-            | (
-                ty::TyKind::Uint(ast::UintTy::Usize),
-                ty::TyKind::Uint(ast::UintTy::Usize),
-            ) => self.encode_operand_expr(operand)?,
+            | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U8))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U16))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U32))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U64))
+            | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Int(ty::IntTy::I8), ty::TyKind::Int(ty::IntTy::I8))
+            | (ty::TyKind::Int(ty::IntTy::I8), ty::TyKind::Int(ty::IntTy::I16))
+            | (ty::TyKind::Int(ty::IntTy::I8), ty::TyKind::Int(ty::IntTy::I32))
+            | (ty::TyKind::Int(ty::IntTy::I8), ty::TyKind::Int(ty::IntTy::I64))
+            | (ty::TyKind::Int(ty::IntTy::I8), ty::TyKind::Int(ty::IntTy::I128))
+            | (ty::TyKind::Int(ty::IntTy::I16), ty::TyKind::Int(ty::IntTy::I16))
+            | (ty::TyKind::Int(ty::IntTy::I16), ty::TyKind::Int(ty::IntTy::I32))
+            | (ty::TyKind::Int(ty::IntTy::I16), ty::TyKind::Int(ty::IntTy::I64))
+            | (ty::TyKind::Int(ty::IntTy::I16), ty::TyKind::Int(ty::IntTy::I128))
+            | (ty::TyKind::Int(ty::IntTy::I32), ty::TyKind::Int(ty::IntTy::I32))
+            | (ty::TyKind::Int(ty::IntTy::I32), ty::TyKind::Int(ty::IntTy::I64))
+            | (ty::TyKind::Int(ty::IntTy::I32), ty::TyKind::Int(ty::IntTy::I128))
+            | (ty::TyKind::Int(ty::IntTy::I64), ty::TyKind::Int(ty::IntTy::I64))
+            | (ty::TyKind::Int(ty::IntTy::I64), ty::TyKind::Int(ty::IntTy::I128))
+            | (ty::TyKind::Int(ty::IntTy::I128), ty::TyKind::Int(ty::IntTy::I128))
+            | (ty::TyKind::Int(ty::IntTy::Isize), ty::TyKind::Int(ty::IntTy::Isize))
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Char)
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Uint(ty::UintTy::U8))
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Uint(ty::UintTy::U16))
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Uint(ty::UintTy::U32))
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Uint(ty::UintTy::U64))
+            | (ty::TyKind::Uint(ty::UintTy::U8), ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Uint(ty::UintTy::U16), ty::TyKind::Uint(ty::UintTy::U16))
+            | (ty::TyKind::Uint(ty::UintTy::U16), ty::TyKind::Uint(ty::UintTy::U32))
+            | (ty::TyKind::Uint(ty::UintTy::U16), ty::TyKind::Uint(ty::UintTy::U64))
+            | (ty::TyKind::Uint(ty::UintTy::U16), ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Uint(ty::UintTy::U32), ty::TyKind::Uint(ty::UintTy::U32))
+            | (ty::TyKind::Uint(ty::UintTy::U32), ty::TyKind::Uint(ty::UintTy::U64))
+            | (ty::TyKind::Uint(ty::UintTy::U32), ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Uint(ty::UintTy::U64), ty::TyKind::Uint(ty::UintTy::U64))
+            | (ty::TyKind::Uint(ty::UintTy::U64), ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Uint(ty::UintTy::U128), ty::TyKind::Uint(ty::UintTy::U128))
+            | (ty::TyKind::Uint(ty::UintTy::Usize), ty::TyKind::Uint(ty::UintTy::Usize))
+            => self.encode_operand_expr(operand).with_span(span)?,
+
+            // Numeric casts where the source value might not fit into the target type
+            (ty::TyKind::Char, ty::TyKind::Int(_))
+            | (ty::TyKind::Char, ty::TyKind::Uint(_))
+            | (ty::TyKind::Int(_), ty::TyKind::Char)
+            | (ty::TyKind::Int(_), ty::TyKind::Int(_))
+            | (ty::TyKind::Int(_), ty::TyKind::Uint(_))
+            | (ty::TyKind::Uint(_), ty::TyKind::Char)
+            | (ty::TyKind::Uint(_), ty::TyKind::Int(_))
+            | (ty::TyKind::Uint(_), ty::TyKind::Uint(_))
+            => {
+                let encoded_operand = self.encode_operand_expr(operand).with_span(span)?;
+                if config::check_overflows() {
+                    // Check the cast
+                    let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty)
+                        .with_span(span)?;
+                    let encoded_args = vec![encoded_operand];
+                    let formal_args = vec![vir::LocalVar::new(
+                        String::from("number"),
+                        self.encode_operand_expr_type(operand).with_span(span)?,
+                    )];
+                    let pos = self
+                        .encoder
+                        .error_manager()
+                        .register(span, ErrorCtxt::TypeCast);
+                    let return_type = self.encoder.encode_value_type(dst_ty).with_span(span)?;
+                    return Ok(vir::Expr::func_app(
+                        function_name,
+                        encoded_args,
+                        formal_args,
+                        return_type,
+                        pos,
+                    ));
+                } else {
+                    // Don't check the cast
+                    encoded_operand
+                }
+            }
 
             _ => {
-                return Err(PositionlessEncodingError::unsupported(format!(
-                    "unsupported cast from type '{:?}' to type '{:?}'",
-                    src_ty,
-                    dst_ty
-                )));
+                return Err(SpannedEncodingError::unsupported(
+                    format!(
+                        "unsupported cast from type '{:?}' to type '{:?}'",
+                        src_ty,
+                        dst_ty
+                    ),
+                    span
+                ));
             }
         };
 
@@ -721,7 +682,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_place(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> PositionlessEncodingResult<Option<vir::Expr>> {
+    ) -> EncodingResult<Option<vir::Expr>> {
         debug!("Encode operand place {:?}", operand);
         Ok(match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
@@ -789,12 +750,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             .map(|x| x.as_str())
             .collect();
         match &macro_names_str[..] {
-            ["std::panic", "std::assert", "std::debug_assert", ..] =>
-                PanicCause::DebugAssert,
-            ["std::panic", "std::assert", ..] => PanicCause::Assert,
-            ["std::panic", "std::unreachable", ..] => PanicCause::Unreachable,
-            ["std::panic", "std::unimplemented", ..] => PanicCause::Unimplemented,
-            ["std::panic", ..] => PanicCause::Panic,
+            ["core::panic::panic_2015", "core::macros::panic", "std::unimplemented"] => PanicCause::Unimplemented,
+            ["core::panic::panic_2015", "core::macros::panic", "std::unreachable"] => PanicCause::Unreachable,
+            ["std::assert", "std::debug_assert", ..] => PanicCause::DebugAssert,
+            ["std::assert", ..] => PanicCause::Assert,
+            ["std::panic::panic_2015", "std::panic", "std::debug_assert"] => PanicCause::DebugAssert,
+            // TODO: assert!(_, "") currently has the same backtrace as panic!()
+            // see https://github.com/rust-lang/rust/issues/82157
+            //["std::panic::panic_2015", "std::panic", ..] => PanicCause::Assert,
+            ["std::panic::panic_2015", "std::panic", ..] => PanicCause::Panic,
             _ => PanicCause::Generic,
         }
     }

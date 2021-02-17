@@ -1,14 +1,15 @@
 use prusti_specs::specifications::common;
 use prusti_specs::specifications::json;
 use rustc_hir::BodyId;
-use rustc_hir::def_id::LocalDefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{mir, ty::{self, TyCtxt}};
 use rustc_span::Span;
 use std::collections::HashMap;
 
-pub use common::{ExpressionId, SpecType, SpecificationId};
+pub use common::{ExpressionId, SpecType, SpecificationId, SpecIdRef};
 use crate::data::ProcedureDefId;
 
+// FIXME: these comments are not terribly useful and are a copy of the untyped ones...
 /// A specification that has no types associated with it.
 pub type Specification<'tcx> = common::Specification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A set of untyped specifications associated with a single element.
@@ -19,8 +20,6 @@ pub type LoopSpecification<'tcx> = common::LoopSpecification<ExpressionId, Local
 pub type ProcedureSpecification<'tcx> = common::ProcedureSpecification<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// A map of untyped specifications for a specific crate.
 pub type SpecificationMap<'tcx> = HashMap<common::SpecificationId, Assertion<'tcx>>;
-/// A map of untyped external specifications.
-pub type ExternSpecificationMap<'tcx> = HashMap<ProcedureDefId, (Option<ProcedureDefId>, ProcedureDefId)>;
 /// An assertion that has no types associated with it.
 pub type Assertion<'tcx> = common::Assertion<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// An assertion kind that has no types associated with it.
@@ -31,10 +30,35 @@ pub type Expression = common::Expression<ExpressionId, LocalDefId>;
 pub type TriggerSet = common::TriggerSet<ExpressionId, LocalDefId>;
 /// For all variables that have no types associated with it.
 pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
+/// Specification entailment variables that have no types associated.
+pub type SpecEntailmentVars<'tcx> = common::SpecEntailmentVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
 /// A trigger that has no types associated with it.
 pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
 /// A pledge in the postcondition.
 pub type Pledge<'tcx> = common::Pledge<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
+
+/// A map of specifications keyed by crate-local DefIds.
+pub struct DefSpecificationMap<'tcx> {
+    pub specs: HashMap<LocalDefId, SpecificationSet<'tcx>>,
+    pub extern_specs: HashMap<DefId, LocalDefId>,
+}
+
+impl<'tcx> DefSpecificationMap<'tcx> {
+    pub fn new() -> Self {
+        Self {
+            specs: HashMap::new(),
+            extern_specs: HashMap::new(),
+        }
+    }
+    pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet<'tcx>> {
+        let id = if let Some(spec_id) = self.extern_specs.get(def_id) {
+            *spec_id
+        } else {
+            def_id.as_local()?
+        };
+        self.specs.get(&id)
+    }
+}
 
 /// This trait is implemented for specification-related types that have one or
 /// more associated spans (positions within the source code). The spans are not
@@ -91,6 +115,23 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
             AssertionKind::TypeCond(ref vars, ref body) => {
                 let mut spans = vars.get_spans(mir_body, tcx);
                 spans.extend(body.get_spans(mir_body, tcx));
+                spans
+            }
+            AssertionKind::SpecEntailment {
+                closure: ref closure,
+                pres: ref pres,
+                posts: ref posts,
+                ..
+            } => {
+                let mut spans = closure.get_spans(mir_body, tcx);
+                spans.extend(pres
+                    .iter()
+                    .flat_map(|pre| pre.get_spans(mir_body, tcx))
+                    .collect::<Vec<Span>>());
+                spans.extend(posts
+                    .iter()
+                    .flat_map(|post| post.get_spans(mir_body, tcx))
+                    .collect::<Vec<Span>>());
                 spans
             }
         }
@@ -163,6 +204,48 @@ impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
     }
 }
 
+impl<'tcx> StructuralToTyped<'tcx, SpecEntailmentVars<'tcx>> for json::SpecEntailmentVars {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> SpecEntailmentVars<'tcx> {
+        let local_pre_id = typed_expressions[&format!("{}_{}", self.spec_id, self.pre_expr_id)];
+        let local_post_id = typed_expressions[&format!("{}_{}", self.spec_id, self.post_expr_id)];
+        let (pre_body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_pre_id));
+        let (post_body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_post_id));
+        let pre_body = pre_body.borrow();
+        let post_body = post_body.borrow();
+
+        let pre_args: Vec<(mir::Local, ty::Ty)> = pre_body
+            .args_iter()
+            .skip(1)
+            .map(|arg| (arg, pre_body.local_decls
+                                     .get(arg)
+                                     .unwrap()
+                                     .ty
+                                     .clone()))
+            .collect();
+        let post_args: Vec<(mir::Local, ty::Ty)> = post_body
+            .args_iter()
+            .skip(1)
+            .map(|arg| (arg, post_body.local_decls
+                                      .get(arg)
+                                      .unwrap()
+                                      .ty
+                                      .clone()))
+            .collect();
+
+        assert!(pre_body.arg_count - 1 == self.arg_count);
+        assert!(post_body.arg_count - 1 == self.arg_count + 1); // arguments + "result"
+        assert_eq!(pre_args.len(), self.arg_count);
+        assert_eq!(post_args.len(), self.arg_count + 1);
+        return SpecEntailmentVars {
+            spec_id: self.spec_id,
+            pre_id: self.pre_expr_id,
+            post_id: self.post_expr_id,
+            args: pre_args,
+            result: *post_args.last().unwrap()
+        }
+    }
+}
+
 impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind {
     fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> AssertionKind<'tcx> {
         use json::AssertionKind::*;
@@ -181,7 +264,17 @@ impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind 
                 vars.to_typed(typed_expressions, tcx),
                 triggers.to_typed(typed_expressions, tcx),
                 body.to_typed(typed_expressions, tcx),
-            )
+            ),
+            SpecEntailment {closure, arg_binders, pres, posts} => AssertionKind::SpecEntailment {
+                closure: closure.to_typed(typed_expressions, tcx),
+                arg_binders: arg_binders.to_typed(typed_expressions, tcx),
+                pres: pres.into_iter()
+                    .map(|pre| pre.to_typed(typed_expressions, tcx))
+                    .collect(),
+                posts: posts.into_iter()
+                    .map(|post| post.to_typed(typed_expressions, tcx))
+                    .collect(),
+            },
         }
     }
 }

@@ -18,6 +18,7 @@ use log::{trace, debug};
 use rustc_middle::mir::StatementKind;
 use rustc_hir::def_id;
 use std::iter::FromIterator;
+use crate::environment::mir_utils::RealEdges;
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
@@ -27,6 +28,7 @@ pub struct Procedure<'a, 'tcx: 'a> {
     tcx: TyCtxt<'tcx>,
     proc_def_id: ProcedureDefId,
     mir: Ref<'a, Mir<'tcx>>,
+    real_edges: RealEdges,
     loop_info: loops::ProcedureLoops,
     reachable_basic_blocks: HashSet<BasicBlock>,
     nonspec_basic_blocks: HashSet<BasicBlock>,
@@ -39,15 +41,16 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         trace!("Encoding procedure {:?}", proc_def_id);
         let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
         let mir = mir.borrow();
-        let reachable_basic_blocks = build_reachable_basic_blocks(&mir);
-        let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir, &tcx);
-
-        let loop_info = loops::ProcedureLoops::new(&mir);
+        let real_edges = RealEdges::new(&mir);
+        let reachable_basic_blocks = build_reachable_basic_blocks(&mir, &real_edges);
+        let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir, &real_edges, &tcx);
+        let loop_info = loops::ProcedureLoops::new(&mir, &real_edges);
 
         Self {
             tcx,
             proc_def_id,
             mir,
+            real_edges,
             loop_info,
             reachable_basic_blocks,
             nonspec_basic_blocks,
@@ -166,8 +169,9 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             if let ty::TyKind::FnDef(def_id, ..) = ty.kind() {
                 // let func_proc_name = self.tcx.absolute_item_path_str(def_id);
                 let func_proc_name = self.tcx.def_path_str(*def_id);
-                &func_proc_name == "std::panicking::begin_panic"
-                    || &func_proc_name == "std::rt::begin_panic"
+                &func_proc_name == "std::rt::begin_panic"
+                    || &func_proc_name == "core::panicking::panic"
+                    || &func_proc_name == "core::panicking::panic_fmt"
             } else {
                 false
             }
@@ -176,50 +180,13 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         }
     }
 
-    pub fn successors(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
-        get_normal_targets(self.mir[bbi].terminator())
-    }
-}
-
-fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
-    match terminator.kind {
-        TerminatorKind::Goto { ref target } | TerminatorKind::Assert { ref target, .. } => {
-            vec![*target]
-        }
-
-        TerminatorKind::SwitchInt { ref targets, .. } => {
-            targets.all_targets().to_vec()
-        }
-
-        TerminatorKind::Resume
-        | TerminatorKind::Abort
-        | TerminatorKind::Return
-        | TerminatorKind::Unreachable => vec![],
-
-        TerminatorKind::DropAndReplace { ref target, .. }
-        | TerminatorKind::Drop { ref target, .. } => vec![*target],
-
-        TerminatorKind::Call {
-            ref destination, ..
-        } => match *destination {
-            Some((_, target)) => vec![target],
-            None => vec![],
-        },
-
-        TerminatorKind::FalseEdge {
-            ref real_target, ..
-        } => vec![*real_target],
-
-        TerminatorKind::FalseUnwind {
-            ref real_target, ..
-        } => vec![*real_target],
-
-        TerminatorKind::Yield { .. } | TerminatorKind::GeneratorDrop | TerminatorKind::InlineAsm { .. } => unimplemented!(),
+    pub fn successors(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
+        self.real_edges.successors(bbi)
     }
 }
 
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
-fn build_reachable_basic_blocks(mir: &Mir) -> HashSet<BasicBlock> {
+fn build_reachable_basic_blocks(mir: &Mir, real_edges: &RealEdges) -> HashSet<BasicBlock> {
     let mut reachable_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     let mut visited: HashSet<BasicBlock> = HashSet::new();
     let mut to_visit: Vec<BasicBlock> = vec![];
@@ -235,8 +202,7 @@ fn build_reachable_basic_blocks(mir: &Mir) -> HashSet<BasicBlock> {
         visited.insert(source);
         reachable_basic_blocks.insert(source);
 
-        let term = mir[source].terminator();
-        for target in get_normal_targets(term) {
+        for &target in real_edges.successors(source) {
             if !visited.contains(&target) {
                 to_visit.push(target);
             }
@@ -306,22 +272,18 @@ fn get_nonspec_basic_blocks(bb_graph: HashMap<BasicBlock, BasicBlockNode>, mir: 
 }
 
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
-fn build_nonspec_basic_blocks(mir: &Mir, tcx: &TyCtxt) -> HashSet<BasicBlock> {
+fn build_nonspec_basic_blocks(mir: &Mir, real_edges: &RealEdges, tcx: &TyCtxt) -> HashSet<BasicBlock> {
     let dominators = mir.dominators();
     let mut loop_heads: HashSet<BasicBlock> = HashSet::new();
 
     for source in mir.basic_blocks().indices() {
-        let terminator = &mir[source].terminator;
-        if let Some(ref term) = *terminator {
-            for target in get_normal_targets(term) {
-                if dominators.is_dominated_by(source, target) {
-                    loop_heads.insert(target);
-                }
+        for &target in real_edges.successors(source) {
+            if dominators.is_dominated_by(source, target) {
+                loop_heads.insert(target);
             }
         }
     }
 
-    let mut nonspec_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     let mut visited: HashSet<BasicBlock> = HashSet::new();
     let mut to_visit: Vec<BasicBlock> = vec![];
     to_visit.push(mir.basic_blocks().indices().next().unwrap());
@@ -344,12 +306,11 @@ fn build_nonspec_basic_blocks(mir: &Mir, tcx: &TyCtxt) -> HashSet<BasicBlock> {
 
         visited.insert(source);
 
-        let term = mir[source].terminator();
         let is_loop_head = loop_heads.contains(&source);
         if is_loop_head {
             trace!("MIR block {:?} is a loop head", source);
         }
-        for target in get_normal_targets(term) {
+        for &target in real_edges.successors(source) {
             if !visited.contains(&target) {
                 to_visit.push(target);
             }

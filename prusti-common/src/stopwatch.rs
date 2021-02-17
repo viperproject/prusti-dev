@@ -91,11 +91,11 @@ pub mod log_level {
 
                 fn log_finish(prefix: &String, name: &String, duration: Duration) {
                     $level!(
-                        "{}Completed: {} ({}.{} seconds)",
+                        "{}Completed: {} ({}.{:03} seconds)",
                         prefix,
                         name,
                         duration.as_secs(),
-                        duration.subsec_millis() / 10
+                        duration.subsec_millis()
                     )
                 }
             }

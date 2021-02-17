@@ -8,7 +8,9 @@ use crate::encoder::{Encoder, snapshot_encoder};
 use prusti_common::vir::{ExprFolder, compute_identifier, FallibleExprFolder};
 use prusti_common::vir;
 use crate::encoder::snapshot_encoder::Snapshot;
-use crate::encoder::errors::PositionlessEncodingError;
+use crate::encoder::errors::EncodingError;
+use crate::encoder::errors::EncodingResult;
+use crate::encoder::errors::SpannedEncodingResult;
 
 pub struct SnapshotSpecPatcher<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -22,7 +24,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotSpecPatcher<'p, 'v, 'tcx> {
     }
 
     pub fn patch_spec(&self, spec: vir::Expr)
-        -> Result<vir::Expr, PositionlessEncodingError>
+        -> EncodingResult<vir::Expr>
     {
         PostSnapshotPatcher {
             encoder: self.encoder
@@ -35,7 +37,7 @@ struct PostSnapshotPatcher<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for PostSnapshotPatcher<'p, 'v, 'tcx> {
-    type Error = PositionlessEncodingError;
+    type Error = EncodingError;
 
     fn fallible_fold_func_app(
         &mut self,
@@ -85,11 +87,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PostSnapshotPatcher<'p, 'v, 'tcx> {
         } else if lhs_is_snap /* && !rhs_is_snap */ {
             (
                 args[0].clone(),
-                self.get_snapshot(&args[0]).get_snap_call(args[1].clone())
+                self.get_snapshot(&args[0]).snap_call(args[1].clone())
             )
         } else /* rhs_is_snap && !lhs_is_snap */ {
             (
-                self.get_snapshot(&args[1]).get_snap_call(args[0].clone()),
+                self.get_snapshot(&args[1]).snap_call(args[0].clone()),
                 args[1].clone()
             )
         };
@@ -127,7 +129,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PostSnapshotPatcher<'p, 'v, 'tcx> {
         mirror_func: vir::DomainFunc,
         args: Vec<vir::Expr>,
         pos: vir::Position
-    ) -> Result<vir::Expr, PositionlessEncodingError> {
+    ) -> EncodingResult<vir::Expr> {
         let patched_args = args
             .into_iter()
             .map(|a|
@@ -139,8 +141,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PostSnapshotPatcher<'p, 'v, 'tcx> {
                                     predicate_name.to_string()
                                 )
                                 .map(|snapshot|
-                                    if snapshot.is_defined() {
-                                        snapshot.get_snap_call(a)
+                                    if snapshot.supports_equality() {
+                                        snapshot.snap_call(a)
                                     } else {
                                         a
                                     }
@@ -167,7 +169,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PostSnapshotPatcher<'p, 'v, 'tcx> {
         formal_args: Vec<vir::LocalVar>,
         return_type: vir::Type,
         pos: vir::Position,
-    ) -> Result<vir::Expr, PositionlessEncodingError> {
+    ) -> EncodingResult<vir::Expr> {
         // we need to rectify cases in which there is a mismatch between the
         // functions formal arguments (which do not involve snapshots)
         // and its actual arguments (which may involve snapshots)

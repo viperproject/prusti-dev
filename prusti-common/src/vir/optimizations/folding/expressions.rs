@@ -11,6 +11,10 @@
 //! 1.  There is a conflicting folding requirement coming from a
 //!     function application.
 //! 2.  There is an implication that branches on a enum discriminant.
+//!
+//! This transformation is also needed to work around some bugs of Silicon,
+//! when unfolding are used inside a quantifiers and other cases.
+//! See: https://github.com/viperproject/silicon/issues/387
 
 
 use super::super::super::{ast, borrows, cfg};
@@ -238,7 +242,7 @@ fn find_common_unfoldings2(
 /// Find unfoldings that are in all three sets.
 fn find_common_unfoldings3<'a>(
     mut first: UnfoldingMap,
-    mut first_reqs: &'a RequirementSet,
+    mut _first_reqs: &'a RequirementSet,
     mut second: UnfoldingMap,
     mut second_reqs: &'a RequirementSet,
     mut third: UnfoldingMap,
@@ -246,11 +250,6 @@ fn find_common_unfoldings3<'a>(
 ) -> (UnfoldingMap, UnfoldingMap, UnfoldingMap, UnfoldingMap) {
     let mut common = HashMap::new();
     let mut new_first = HashMap::new();
-    let swap = first.is_empty();
-    if swap {
-        mem::swap(&mut first, &mut second);
-        mem::swap(&mut first_reqs, &mut second_reqs);
-    }
     for (place, data) in first {
         let second_agrees = second.contains_key(&place) ||
             second_reqs.iter().all(|p| !p.has_prefix(&place));
@@ -264,11 +263,7 @@ fn find_common_unfoldings3<'a>(
             new_first.insert(place, data);
         }
     }
-    if swap {
-        (common, second, new_first, third)
-    } else {
-        (common, new_first, second, third)
-    }
+    (common, new_first, second, third)
 }
 
 fn update_requirements(requirements: &mut RequirementSet, mut new_requirements: Vec<ast::Expr>) {
@@ -436,6 +431,7 @@ impl ast::ExprFolder for ExprOptimizer {
         let g = guard.clone();
         let f = then_expr.clone();
         let s = else_expr.clone();
+
         let guard_folded = self.fold_boxed(guard);
         let guard_unfoldings = self.get_unfoldings();
         let guard_requirements = self.get_requirements();
@@ -455,7 +451,6 @@ impl ast::ExprFolder for ExprOptimizer {
         conflicts.extend(check_requirements_conflict(&then_requirements, &else_requirements));
 
         if conflicts.is_empty() {
-
             self.requirements = guard_requirements;
             self.requirements.extend(then_requirements);
             self.requirements.extend(else_requirements);
@@ -471,6 +466,7 @@ impl ast::ExprFolder for ExprOptimizer {
                 pos,
             )
         } else {
+
             let (common, guard_unfoldings, then_unfoldings, else_unfoldings
                  ) = find_common_unfoldings3(
                 guard_unfoldings, &guard_requirements,

@@ -14,7 +14,6 @@ pub mod specifications;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use syn::parse_quote;
 use std::convert::{TryFrom, TryInto};
 
 use specifications::untyped;
@@ -212,7 +211,14 @@ fn generate_for_after_expiry_if(attr: TokenStream, item: &untyped::AnyFnItem) ->
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "pure" annotations.
-fn generate_for_pure(_attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_pure(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    if !attr.is_empty() {
+        return Err(syn::Error::new(
+            attr.span(),
+            "the `#[pure]` attribute does not take parameters"
+        ));
+    }
+
     Ok((
         vec![],
         vec![parse_quote_spanned! {item.span()=>
@@ -222,7 +228,14 @@ fn generate_for_pure(_attr: TokenStream, item: &untyped::AnyFnItem) -> Generated
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "trusted" annotations.
-fn generate_for_trusted(_attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_trusted(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    if !attr.is_empty() {
+        return Err(syn::Error::new(
+            attr.span(),
+            "the `#[trusted]` attribute does not take parameters"
+        ));
+    }
+
     Ok((
         vec![],
         vec![parse_quote_spanned! {item.span()=>
@@ -238,6 +251,7 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     let check = rewriter.generate_spec_loop(spec_id, invariant);
     let callsite_span = Span::call_site();
     quote_spanned! {callsite_span=>
+        #[allow(unused_must_use, unused_variables)]
         if false {
             #check
         }
@@ -270,7 +284,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             let precond = handle_result!(rewriter.parse_assertion(spec_id, r.to_token_stream()));
             preconds.push((spec_id, precond));
             let spec_id_str = spec_id.to_string();
-            cl_annotations.extend(quote_spanned! {callsite_span=>
+            cl_annotations.extend(quote_spanned! { callsite_span =>
                 #[prusti::pre_spec_id_ref = #spec_id_str]
             });
         }
@@ -280,16 +294,26 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             let postcond = handle_result!(rewriter.parse_assertion(spec_id, e.to_token_stream()));
             postconds.push((spec_id, postcond));
             let spec_id_str = spec_id.to_string();
-            cl_annotations.extend(quote_spanned! {callsite_span=>
+            cl_annotations.extend(quote_spanned! { callsite_span =>
                 #[prusti::post_spec_id_ref = #spec_id_str]
             });
         }
 
-        let (spec_toks_pre, spec_toks_post) = rewriter.generate_cl_spec(preconds, postconds);
         let syn::ExprClosure {
             attrs, asyncness, movability, capture, or1_token,
             inputs, or2_token, output, body
         } = cl_spec.cl;
+
+        let output_type: syn::Type = match output {
+            syn::ReturnType::Default => {
+                return syn::Error::new(output.span(), "closure must specify return type")
+                    .to_compile_error();
+            }
+            syn::ReturnType::Type(_, ref ty) => (**ty).clone()
+        };
+
+        let (spec_toks_pre, spec_toks_post) = rewriter.generate_cl_spec(
+            inputs.clone(), output_type, preconds, postconds);
 
         let mut attrs_ts = TokenStream::new();
         for a in attrs {
@@ -298,15 +322,19 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
 
         quote_spanned! {callsite_span=>
             {
+                #[allow(unused_variables)]
+                #[prusti::closure]
                 #cl_annotations #attrs_ts
                 let _prusti_closure =
                     #asyncness #movability #capture
                     #or1_token #inputs #or2_token #output
                     {
+                        #[allow(unused_must_use)]
                         if false {
                             #spec_toks_pre
                         }
                         let result = #body ;
+                        #[allow(unused_must_use)]
                         if false {
                             #spec_toks_post
                         }

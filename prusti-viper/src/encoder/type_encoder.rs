@@ -20,11 +20,11 @@ use rustc_middle::ty::layout::IntegerExt;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use rustc_ast::ast;
 use prusti_interface::specs::typed;
 use rustc_attr::IntType::SignedInt;
+use rustc_target::abi::Integer;
 use log::{debug, trace};
-use crate::encoder::errors::{PositionlessEncodingError, PositionlessEncodingResult};
+use crate::encoder::errors::{EncodingError, EncodingResult};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -96,12 +96,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         supported_fields && self.is_supported_subst(subst)
     }
 
-    pub fn encode_type(self) -> PositionlessEncodingResult<vir::Type> {
+    pub fn encode_type(self) -> EncodingResult<vir::Type> {
         debug!("Encode type '{:?}'", self.ty);
         Ok(vir::Type::TypedRef(self.encode_predicate_use()?))
     }
 
-    pub fn encode_value_type(self) -> PositionlessEncodingResult<vir::Type> {
+    pub fn encode_value_type(self) -> EncodingResult<vir::Type> {
         debug!("Encode value type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vir::Type::Bool,
@@ -117,15 +117,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => {
                 let snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                if snapshot.is_defined() {
-                    snapshot.get_type()
-                } else {
-                    unreachable!()
-                }
-            },
+                snapshot.get_type()
+            }
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
-                return Err(PositionlessEncodingError::unsupported(
+                return Err(EncodingError::unsupported(
                     "raw pointers are not supported"
                 ));
             }
@@ -137,26 +133,21 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     /// provides the type of the underlying value or a reference in case of composed
     /// data structures
-    pub fn encode_value_or_ref_type(self) -> PositionlessEncodingResult<vir::Type> {
+    pub fn encode_value_or_ref_type(self) -> EncodingResult<vir::Type> {
         debug!("Encode ref value type '{:?}'", self.ty);
         match self.ty.kind() {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
                 let snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                if snapshot.is_defined() {
-                    let type_name = self.encoder
-                        .encode_type_predicate_use(self.ty)?;
-                    Ok(vir::Type::TypedRef(type_name))
-                } else {
-                    unreachable!()
-                }
+                let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
+                Ok(vir::Type::TypedRef(type_name))
             },
 
             _ => self.encode_value_type(),
         }
     }
 
-    pub fn encode_value_field(self) -> PositionlessEncodingResult<vir::Field> {
+    pub fn encode_value_field(self) -> EncodingResult<vir::Field> {
         trace!("Encode value field for type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vir::Field::new("val_bool", vir::Type::Bool),
@@ -173,13 +164,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             // For composed data structures, we typically use a snapshot rather than a field.
             // To unify how parameters are passed to functions, we treat them like a reference.
             ty::TyKind::Adt(_, _)
-            | ty::TyKind::Tuple(_) => {
+            | ty::TyKind::Tuple(_)
+            | ty::TyKind::Closure(_, _)
+            | ty::TyKind::FnDef(_, _) => {
                 let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
-                return Err(PositionlessEncodingError::unsupported(
+                return Err(EncodingError::unsupported(
                     "raw pointers are not supported"
                 ));
             }
@@ -192,23 +185,23 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         match self.ty.kind() {
             ty::TyKind::Int(int_ty) => {
                 let bounds = match int_ty {
-                    ast::IntTy::I8 => (std::i8::MIN.into(), std::i8::MAX.into()),
-                    ast::IntTy::I16 => (std::i16::MIN.into(), std::i16::MAX.into()),
-                    ast::IntTy::I32 => (std::i32::MIN.into(), std::i32::MAX.into()),
-                    ast::IntTy::I64 => (std::i64::MIN.into(), std::i64::MAX.into()),
-                    ast::IntTy::I128 => (std::i128::MIN.into(), std::i128::MAX.into()),
-                    ast::IntTy::Isize => (std::isize::MIN.into(), std::isize::MAX.into()),
+                    ty::IntTy::I8 => (std::i8::MIN.into(), std::i8::MAX.into()),
+                    ty::IntTy::I16 => (std::i16::MIN.into(), std::i16::MAX.into()),
+                    ty::IntTy::I32 => (std::i32::MIN.into(), std::i32::MAX.into()),
+                    ty::IntTy::I64 => (std::i64::MIN.into(), std::i64::MAX.into()),
+                    ty::IntTy::I128 => (std::i128::MIN.into(), std::i128::MAX.into()),
+                    ty::IntTy::Isize => (std::isize::MIN.into(), std::isize::MAX.into()),
                 };
                 Some(bounds)
             }
             ty::TyKind::Uint(uint_ty) => {
                 let bounds = match uint_ty {
-                    ast::UintTy::U8 => (0.into(), std::u8::MAX.into()),
-                    ast::UintTy::U16 => (0.into(), std::u16::MAX.into()),
-                    ast::UintTy::U32 => (0.into(), std::u32::MAX.into()),
-                    ast::UintTy::U64 => (0.into(), std::u64::MAX.into()),
-                    ast::UintTy::U128 => (0.into(), std::u128::MAX.into()),
-                    ast::UintTy::Usize => (0.into(), std::usize::MAX.into()),
+                    ty::UintTy::U8 => (0.into(), std::u8::MAX.into()),
+                    ty::UintTy::U16 => (0.into(), std::u16::MAX.into()),
+                    ty::UintTy::U32 => (0.into(), std::u32::MAX.into()),
+                    ty::UintTy::U64 => (0.into(), std::u64::MAX.into()),
+                    ty::UintTy::U128 => (0.into(), std::u128::MAX.into()),
+                    ty::UintTy::Usize => (0.into(), std::usize::MAX.into()),
                 };
                 Some(bounds)
             }
@@ -231,7 +224,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_predicate_def(self) -> PositionlessEncodingResult<Vec<vir::Predicate>> {
+    pub fn encode_predicate_def(self) -> EncodingResult<Vec<vir::Predicate>> {
         debug!("Encode type predicate '{:?}'", self.ty);
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
         let typ = vir::Type::TypedRef(predicate_name.clone());
@@ -245,7 +238,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             )],
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
-                let bounds = if config::check_binary_operations() {
+                let bounds = if config::check_overflows() {
                     self.get_integer_bounds()
                 } else {
                     None
@@ -263,10 +256,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )]
             }
 
-            ty::TyKind::Ref(_, ref ty, _) => vec![vir::Predicate::new_struct(
-                typ,
-                vec![self.encoder.encode_dereference_field(ty)?],
-            )],
+            ty::TyKind::Ref(_, ref ty, _) => {
+                vec![vir::Predicate::new_struct(
+                    typ,
+                    vec![self.encoder.encode_dereference_field(ty)?],
+                )]
+            },
 
             ty::TyKind::Tuple(elems) => {
                 let fields = elems
@@ -374,6 +369,29 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vec![vir::Predicate::new_abstract(typ)]
             }
 
+            ty::TyKind::Closure(_def_id, internal_substs) => {
+                let closure_substs = internal_substs.as_closure();
+                match closure_substs.tupled_upvars_ty().kind() {
+                    ty::TyKind::Tuple(upvar_substs) => {
+                        // TODO: this should encode the state of a closure, i.e.
+                        // the "self" parameter passed into the implementation
+                        // function generated for every closure. This should
+                        // work using snapshots. For now, the "self" parameter
+                        // is skipped in encoding.
+
+                        // let field_name = "upvars".to_owned();
+                        // let field = self.encoder.encode_raw_ref_field(field_name, cl_upvars);
+                        // let pred = vir::Predicate::new_struct(typ.clone(), vec![field.clone()]);
+                        let pred = vir::Predicate::new_struct(typ.clone(), vec![]);
+                        // trace!("Encoded closure type {:?} as {:?} with field {:?}", typ, pred, field);
+                        trace!("Encoded closure type {:?} as {:?}", typ, pred);
+                        vec![pred]
+                    }
+
+                    _ => unreachable!()
+                }
+            }
+
             ref ty_variant => {
                 debug!("Encoding of type '{:?}' is incomplete", ty_variant);
                 vec![vir::Predicate::new_abstract(typ)]
@@ -381,25 +399,47 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    pub fn encode_predicate_use(self) -> PositionlessEncodingResult<String> {
+    /// The string to be appended to the encoding of certain types to make generics "less fragile".
+    fn encode_substs(&self, substs: ty::subst::SubstsRef<'tcx>) -> EncodingResult<String> {
+        let mut composed_name = vec![];
+        composed_name.push("_beg_".to_string()); // makes generics "less fragile"
+        let mut first = true;
+        for kind in substs.iter() {
+            if first {
+                first = false
+            } else {
+                // makes generics "less fragile"
+                composed_name.push("_sep_".to_string());
+            }
+            if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
+                composed_name.push(
+                    self.encoder.encode_type_predicate_use(ty)?
+                )
+            }
+        }
+        composed_name.push("_end_".to_string()); // makes generics "less fragile"
+        Ok(composed_name.join("$"))
+    }
+
+    pub fn encode_predicate_use(self) -> EncodingResult<String> {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
         let result = match self.ty.kind() {
             ty::TyKind::Bool => "bool".to_string(),
 
-            ty::TyKind::Int(ast::IntTy::I8) => "i8".to_string(),
-            ty::TyKind::Int(ast::IntTy::I16) => "i16".to_string(),
-            ty::TyKind::Int(ast::IntTy::I32) => "i32".to_string(),
-            ty::TyKind::Int(ast::IntTy::I64) => "i64".to_string(),
-            ty::TyKind::Int(ast::IntTy::I128) => "i128".to_string(),
-            ty::TyKind::Int(ast::IntTy::Isize) => "isize".to_string(),
+            ty::TyKind::Int(ty::IntTy::I8) => "i8".to_string(),
+            ty::TyKind::Int(ty::IntTy::I16) => "i16".to_string(),
+            ty::TyKind::Int(ty::IntTy::I32) => "i32".to_string(),
+            ty::TyKind::Int(ty::IntTy::I64) => "i64".to_string(),
+            ty::TyKind::Int(ty::IntTy::I128) => "i128".to_string(),
+            ty::TyKind::Int(ty::IntTy::Isize) => "isize".to_string(),
 
-            ty::TyKind::Uint(ast::UintTy::U8) => "u8".to_string(),
-            ty::TyKind::Uint(ast::UintTy::U16) => "u16".to_string(),
-            ty::TyKind::Uint(ast::UintTy::U32) => "u32".to_string(),
-            ty::TyKind::Uint(ast::UintTy::U64) => "u64".to_string(),
-            ty::TyKind::Uint(ast::UintTy::U128) => "u128".to_string(),
-            ty::TyKind::Uint(ast::UintTy::Usize) => "usize".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U8) => "u8".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U16) => "u16".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U32) => "u32".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U64) => "u64".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U128) => "u128".to_string(),
+            ty::TyKind::Uint(ty::UintTy::Usize) => "usize".to_string(),
 
             ty::TyKind::Char => "char".to_string(),
 
@@ -412,27 +452,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Adt(adt_def, subst) => {
                 let mut composed_name = vec![self.encoder.encode_item_name(adt_def.did)];
-                composed_name.push("_beg_".to_string()); // makes generics "less fragile"
-                let mut first = true;
-                for kind in subst.iter() {
-                    if first {
-                        first = false
-                    } else {
-                        // makes generics "less fragile"
-                        composed_name.push("_sep_".to_string());
-                    }
-                    if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                        composed_name.push(
-                            self.encoder.encode_type_predicate_use(ty)?
-                        )
-                    }
-                }
-                composed_name.push("_end_".to_string()); // makes generics "less fragile"
+                // makes generics "less fragile"
+                composed_name.push(self.encode_substs(subst)?);
                 composed_name.join("$")
             }
 
             ty::TyKind::Tuple(elems) => {
-                let elem_predicate_names: PositionlessEncodingResult<Vec<_>> = elems
+                let elem_predicate_names: EncodingResult<Vec<_>> = elems
                     .iter()
                     .map(|ty| {
                         self.encoder.encode_type_predicate_use(ty.expect_ty())
@@ -502,44 +528,37 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 format!("__TYPARAM__${}$__", param_ty.name.as_str())
             }
 
+            ty::TyKind::Projection(ty::ProjectionTy { item_def_id, substs }) => {
+                let mut composed_name = vec![self.encoder.encode_item_name(*item_def_id)];
+                // makes generics "less fragile"
+                composed_name.push(self.encode_substs(substs)?);
+                composed_name.join("$")
+            }
+
             ty::TyKind::Dynamic(..) => {
-                return Err(PositionlessEncodingError::unsupported(
-                    "dynamic trait types are not supported"
-                ));
+                "unsupported$dynamic".to_string()
             }
 
             ty::TyKind::FnPtr(..) => {
-                return Err(PositionlessEncodingError::unsupported(
-                    "function pointer types are not supported"
-                ));
+                "unsupported$fnptr".to_string()
             }
 
             ty::TyKind::FnDef(..) => {
-                return Err(PositionlessEncodingError::unsupported(
-                    "function types are not supported"
-                ));
-            }
-
-            ty::TyKind::Projection(ty::ProjectionTy { item_def_id, .. }) => {
-                self.encoder.encode_item_name(*item_def_id)
+                "unsupported$fndef".to_string()
             }
 
             ty::TyKind::Foreign(..) => {
-                return Err(PositionlessEncodingError::unsupported(
-                    "foreign types are not supported"
-                ));
+                "unsupported$foreign".to_string()
             }
 
             ref ty_variant => {
-                return Err(PositionlessEncodingError::unsupported(
-                    format!("type {:?} is not supported", ty_variant)
-                ));
+                "unsupported".to_string()
             }
         };
         Ok(result)
     }
 
-    pub fn encode_invariant_def(self) -> PositionlessEncodingResult<vir::Function> {
+    pub fn encode_invariant_def(self) -> EncodingResult<vir::Function> {
         debug!("[enter] encode_invariant_def({:?})", self.ty);
 
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
@@ -549,8 +568,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let invariant_name = self.encoder.encode_type_invariant_use(self.ty)?;
 
         let field_invariants = match self.ty.kind() {
-            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
-            | ty::TyKind::Ref(_, ref ty, _) => {
+            ty::TyKind::Ref(_, ref ty, _) => {
                 let elem_field = self.encoder.encode_dereference_field(ty)?;
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 Some(vec![
@@ -585,15 +603,22 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     let tcx = self.encoder.env().tcx();
 
                     let mut specs: Vec<typed::SpecificationSet> = Vec::new();
-                    if let Some(spec) = self.encoder.get_procedure_specs(adt_def.did) {
-                        specs.push(spec);
-                    }
+                    // FIXME: type invariants need to be collected separately
+                    // in `SpecCollector`, and encoder should get a
+                    // `get_struct_specs` method or similar.
+                    // `get_procedure_specs` now only returns procedure specs,
+                    // so the match below for `SpecSet::Struct` would never
+                    // succeed.
+
+                    //if let Some(spec) = self.encoder.get_procedure_specs(adt_def.did) {
+                    //    specs.push(spec);
+                    //}
 
                     let traits = self.encoder.env().get_traits_decls_for_type(&self.ty);
                     for trait_id in traits {
-                        if let Some(spec) = self.encoder.get_procedure_specs(trait_id) {
-                            specs.push(spec);
-                        }
+                        //if let Some(spec) = self.encoder.get_procedure_specs(trait_id) {
+                        //    specs.push(spec);
+                        //}
                     }
 
                     for spec in specs.into_iter() {
@@ -707,7 +732,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(final_function)
     }
 
-    pub fn encode_invariant_use(self) -> PositionlessEncodingResult<String> {
+    pub fn encode_invariant_use(self) -> EncodingResult<String> {
         debug!("Encode type invariant name '{:?}'", self.ty);
         Ok(format!("{}$inv", self.encode_predicate_use()?))
     }
@@ -748,41 +773,28 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         function
     }
 
-    pub fn encode_tag_use(self) -> PositionlessEncodingResult<String> {
+    pub fn encode_tag_use(self) -> EncodingResult<String> {
         debug!("Encode type tag name '{:?}'", self.ty);
         Ok(format!("{}$tag", self.encode_predicate_use()?))
     }
 }
 
 /// Compute the values that a discriminant can take.
-pub fn compute_discriminant_values(adt_def: &ty::AdtDef, tcx: ty::TyCtxt) -> Vec<i128> {
+pub fn compute_discriminant_values<'tcx>(adt_def: &'tcx ty::AdtDef, tcx: ty::TyCtxt<'tcx>) -> Vec<i128> {
     let mut discr_values: Vec<i128> = vec![];
-    // Handle *signed* discriminats
-    if let SignedInt(ity) = adt_def.repr.discr_type() {
-        let bit_size = abi::Integer::from_attr(&tcx, SignedInt(ity))
-            .size()
-            .bits();
-        let shift = 128 - bit_size;
-        for (variant_index, _) in adt_def.variants.iter().enumerate() {
-            let unsigned_discr = adt_def.discriminant_for_variant(tcx, abi::VariantIdx::from_usize(variant_index)).val;
-            let casted_discr = unsigned_discr as i128;
-            // sign extend the raw representation to be an i128
-            let signed_discr = (casted_discr << shift) >> shift;
-            discr_values.push(signed_discr);
-        }
-    } else {
-        for (variant_index, _) in adt_def.variants.iter().enumerate() {
-            let value = adt_def.discriminant_for_variant(tcx, abi::VariantIdx::from_usize(variant_index)).val;
-            discr_values.push(value as i128);
-        }
+    let size = ty::tls::with(|tcx| Integer::from_attr(&tcx, adt_def.repr.discr_type()).size());
+    for (_variant_idx, discr) in adt_def.discriminants(tcx) {
+        // Sign extend the raw representation to be an i128, to handle *signed* discriminants.
+        // See also: https://github.com/rust-lang/rust/blob/b7ebc6b0c1ba3c27ebb17c0b496ece778ef11e18/compiler/rustc_middle/src/ty/util.rs#L35-L45
+        discr_values.push(size.sign_extend(discr.val) as i128);
     }
     discr_values
 }
 
 /// Encode a disjunction that lists all possible discrimintant values.
-pub fn compute_discriminant_bounds(
-    adt_def: &ty::AdtDef,
-    tcx: ty::TyCtxt,
+pub fn compute_discriminant_bounds<'tcx>(
+    adt_def: &'tcx ty::AdtDef,
+    tcx: ty::TyCtxt<'tcx>,
     discriminant_loc: &vir::Expr,
 ) -> vir::Expr {
     /// Try to produce the minimal disjunction.

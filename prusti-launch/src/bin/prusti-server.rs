@@ -5,7 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::{env, path::PathBuf, process::Command};
-use prusti_launch::{find_viper_home, find_z3_exe};
+use prusti_launch::{find_viper_home, find_z3_exe, sigint_handler};
+#[cfg(target_family = "unix")]
+use nix::unistd::{setpgid, Pid};
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1).collect()) {
@@ -61,6 +63,13 @@ fn process(args: Vec<String>) -> Result<(), i32> {
             );
         }
     };
+
+    // Move process to group leader if it isn't. The only applicable error should be EPERM which
+    // can be thrown when the process is already the group leader. Thus, we ignore it.
+    #[cfg(target_family = "unix")]
+    let _ = setpgid(Pid::this(), Pid::this());
+    // Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
+    ctrlc::set_handler(sigint_handler).expect("Error setting Ctrl-C handler");
 
     let exit_status = cmd.status().expect("could not run prusti-server-driver");
 

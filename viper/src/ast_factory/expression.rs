@@ -764,8 +764,8 @@ impl<'a> AstFactory<'a> {
         self.local_var_with_pos(name, var_type, self.no_position())
     }
 
-    pub fn result(&self, var_type: Type) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::Result, var_type.to_jobject())
+    pub fn result_with_pos(&self, var_type: Type, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::Result, var_type.to_jobject(), pos.to_jobject())
     }
 
     pub fn empty_seq(&self, elem_type: Type) -> Expr<'a> {

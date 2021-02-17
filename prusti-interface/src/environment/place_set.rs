@@ -189,3 +189,11 @@ impl<'tcx> PlaceSet<'tcx> {
         Self { places: places }
     }
 }
+
+impl<'tcx> From<HashSet<mir::Place<'tcx>>> for PlaceSet<'tcx> {
+    fn from(places: HashSet<mir::Place<'tcx>>) -> Self {
+        Self {
+            places
+        }
+    }
+}
