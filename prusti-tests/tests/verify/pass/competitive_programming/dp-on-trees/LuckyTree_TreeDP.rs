@@ -1,4 +1,4 @@
-// compile-flags: -Puse_more_complete_exhale=false
+// compile-flags: -Puse_more_complete_exhale=false -Passert_timeout=1200000
 // https://codeforces.com/problemset/problem/110/E
 
 #![feature(box_patterns)]
