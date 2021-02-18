@@ -11,7 +11,7 @@ use jni::strings::JNIString;
 use jni::sys::jsize;
 use jni::JNIEnv;
 use viper_sys::wrappers::*;
-use java_exception::JavaException;
+use crate::java_exception::JavaException;
 use std::collections::HashMap;
 
 #[derive(Clone, Copy)]

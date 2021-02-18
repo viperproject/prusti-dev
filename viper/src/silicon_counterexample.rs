@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use jni::JNIEnv;
 use jni::objects::JObject;
-use jni_utils::JniUtils;
+use crate::jni_utils::JniUtils;
 use viper_sys::wrappers::viper::silicon;
 use viper_sys::wrappers::scala;
 

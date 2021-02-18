@@ -36,6 +36,6 @@ pub use verification_backend::*;
 pub use verification_context::*;
 pub use verification_result::*;
 pub use verifier::*;
-pub use viper::*;
+pub use crate::viper::*;
 pub use java_exception::*;
 pub use silicon_counterexample::*;

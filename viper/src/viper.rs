@@ -5,10 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use jni::*;
-use jni_utils::JniUtils;
+use crate::jni_utils::JniUtils;
 use std::env;
 use std::fs;
-use verification_context::*;
+use crate::verification_context::*;
 use viper_sys::wrappers::*;
 use std::path::Path;
 
