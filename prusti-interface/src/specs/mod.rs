@@ -17,6 +17,7 @@ use log::debug;
 
 pub mod external;
 pub mod typed;
+pub mod checker;
 
 use typed::StructuralToTyped;
 use typed::SpecIdRef;

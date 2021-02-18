@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_span::MultiSpan;
+use rustc_span::{Span, MultiSpan};
 use crate::environment::Environment;
 use prusti_common::config;
 use ::log::warn;
@@ -90,6 +90,11 @@ impl PrustiError {
 
     pub fn set_help<S: ToString>(mut self, message: S) -> Self {
         self.help = Some(message.to_string());
+        self
+    }
+
+    pub fn set_note<S: ToString>(mut self, note: S, note_span: Span) -> Self {
+        self.note = Some((note.to_string(), MultiSpan::from_span(note_span)));
         self
     }
 
