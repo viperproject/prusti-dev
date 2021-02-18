@@ -23,12 +23,106 @@ impl Tree {
 
     #[trusted]
     #[ensures (result.v() == vv)]
-    pub fn new(vv: isize, l: Option<Box<Tree>>, r: Option<Box<Tree>>) -> Self {
+    #[ensures(is_equal(&result.left, &l))]
+    #[ensures(is_equal(&result.right, &r))]
+    pub fn new(vv: isize, l: Tree, r: Tree) -> Self {
         Tree {
             v: vv,
-            left: l,
-            right: r,
+            left: Some(box l),
+            right: Some(box r),
         }
+    }
+
+    #[trusted]
+    #[ensures (result.v() == vv)]
+    #[ensures(is_leaf(&result))]
+    pub fn new_leaf(vv: isize) -> Self {
+        Tree {
+            v: vv,
+            left: None,
+            right: None,
+        }
+    }
+}
+
+#[pure]
+fn is_equal(a: &Option<Box<Tree>>, b: &Tree) -> bool {
+    match a {
+        None => false,
+        Some(box aa) => is_equal_helper(&aa, b),
+    }
+}
+
+#[pure]
+fn is_equal_helper(a: &Tree, b: &Tree) -> bool {
+    let mut result = a.v() == b.v();
+    let lTA = &a.left;
+    match lTA {
+        None => {
+            let lTB = &b.left;
+            match lTB {
+                None => {},
+                Some(box bb) => {result = false;},
+            }
+        }
+        Some(box aa) => {
+            let lTB = &b.left;
+            match lTB {
+                None => {result = false;},
+                Some(box bb) => {result &= is_equal_helper(aa, bb);},
+            }
+        }
+    }
+
+    let rTA =  &a.right;
+    match rTA {
+        None => {
+            let rTB = &b.right;
+            match rTB {
+                None => {},
+                Some(box bb) => {result = false;},
+            }
+        }
+        Some(box aa) => {
+            let rTB = &b.right;
+            match rTB {
+                None => {result = false;},
+                Some(box bb) => {result &= is_equal_helper(aa, bb);},
+            }
+        }
+    }
+    result
+}
+
+pub struct VecWrapperI32 {
+    _ghost_size: usize,
+    v: Vec<isize>,
+}
+
+impl VecWrapperI32 {
+    #[trusted]
+    #[pure]
+    #[ensures (0 <= result)]
+    pub fn len(&self) -> isize {
+        self._ghost_size as isize
+    }
+
+    #[trusted]
+    #[requires(size > 0)]
+    #[ensures (result.len() == size)]
+    #[ensures (forall(|i: isize| (0 <= i && i < result.len()) ==> result.lookup(i) == 0))]
+    pub fn new(size: isize) -> Self {
+        Self {
+            _ghost_size: size as usize,
+            v: vec![0; size as usize],
+        }
+    }
+
+    #[trusted]
+    #[pure]
+    #[requires (0 <= index && index < self.len())]
+    pub fn lookup(&self, index: isize) -> isize {
+        self.v[index as usize]
     }
 }
 
@@ -332,6 +426,36 @@ fn range_sum(node: &Tree, lIdx: isize, rIdx: isize, leavesCount: isize) -> isize
         }
 
         result
+    }
+}
+
+#[requires(lIdx >= 0 && rIdx <= array.len() && lIdx < rIdx)]
+#[requires(power_of_two(rIdx -  lIdx))]
+#[ensures(is_complete(&result))]
+#[ensures(sum_property(&result))]
+fn build(array: &VecWrapperI32, lIdx: isize, rIdx: isize) -> Tree {
+    if lIdx == rIdx - 1 {
+        let result = Tree::new_leaf(array.lookup(lIdx));
+        assert!(is_leaf(&result));
+        assert!(sub_size(&result) == 1);
+        result
+    } else {
+        assert!((rIdx + lIdx) % 2 == 0);
+        let mid = (rIdx + lIdx) / 2;
+        let left = build(array, lIdx, mid);
+        let right = build(array, mid, rIdx);
+        assert!(sub_size(&left) == sub_size(&right));
+        Tree::new(left.v() + right.v(), left, right)
+    }
+}
+
+#[pure]
+fn power_of_two(v: isize) -> bool {
+    if v == 1 {
+        true
+    } else {
+        let even = v % 2 == 0;
+        even && power_of_two(v / 2)
     }
 }
 
