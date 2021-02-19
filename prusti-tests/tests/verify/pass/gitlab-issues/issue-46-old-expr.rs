@@ -1,5 +1,7 @@
 /// Issue #46 "Field access of an old expressions"
 
+// ignore-test: this requires encoding old expressions of type `&mut S` using snapshots
+
 use prusti_contracts::*;
 
 struct S {

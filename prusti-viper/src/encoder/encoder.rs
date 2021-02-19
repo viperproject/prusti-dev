@@ -1220,8 +1220,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         )
     }
 
-    /// Encode either a pure function body or a specification assertion (stored in the given MIR).
-    pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId)
+    /// Encode the body of the given procedure as a pure expression.
+    pub fn encode_pure_expression(&self, proc_def_id: ProcedureDefId)
         -> SpannedEncodingResult<vir::Expr>
     {
         let mir_span = self.env.tcx().def_span(proc_def_id);
@@ -1541,7 +1541,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             );
             let is_pure_function = self.is_pure(proc_def_id);
             if is_pure_function {
-                self.encode_pure_function_def(proc_def_id, substs);
+                if let Err(error) = self.encode_pure_function_def(proc_def_id, substs) {
+                    self.register_encoding_error(error);
+                    debug!("Error encoding pure function: {:?}", proc_def_id);
+                }
             } else {
                 assert!(substs.is_empty());
                 if self.is_trusted(proc_def_id) {
