@@ -397,9 +397,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let return_span = self.get_local_span(mir::RETURN_PLACE);
 
         // Return an error for unsupported return types
-        if !is_supported_type_of_pure_expression(ty) {
+        let tcx = self.encoder.env().tcx();
+        if !is_supported_type_of_pure_expression(tcx, ty) {
             return Err(SpannedEncodingError::incorrect(
-                "invalid return type of pure function. Only boolean, integers and chars are supported.",
+                "invalid return type of pure function",
                 return_span,
             ));
         }
@@ -691,11 +692,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 assert_eq!(args.len(), 1);
 
                                 // Return an error for unsupported old(..) types
-                                if !is_supported_type_of_pure_expression(ty) {
+                                let tcx = self.encoder.env().tcx();
+                                if !is_supported_type_of_pure_expression(tcx, ty) {
                                     cleanup();
                                     return Err(SpannedEncodingError::incorrect(
-                                        "the type of the old expression is invalid. \
-                                        Only boolean, integers and chars are supported.",
+                                        "the type of the old expression is invalid",
                                         term.source_info.span,
                                     ));
                                 }
@@ -1210,12 +1211,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
     }
 }
 
-fn is_supported_type_of_pure_expression(ty: ty::Ty) -> bool {
+fn is_supported_type_of_pure_expression<'tcx>(tcx: ty::TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> bool {
+    // Since we don't support box, references and raw pointers this will not recurse forever.
     match ty.kind() {
         ty::TyKind::Bool
         | ty::TyKind::Int(_)
         | ty::TyKind::Uint(_)
         | ty::TyKind::Char => true,
+
+        ty::TyKind::Tuple(elems) => {
+            elems.types().all(|t| is_supported_type_of_pure_expression(tcx, t))
+        }
+
+        ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
+            adt_def.all_fields()
+                    .map(|field| field.ty(tcx, subst))
+                    .all(|t| is_supported_type_of_pure_expression(tcx, t))
+        }
+
         _ => false,
     }
 }
