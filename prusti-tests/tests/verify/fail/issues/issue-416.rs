@@ -13,7 +13,7 @@ impl<T> SafeVec<T> {
 
     #[pure]
     #[trusted]
-    pub unsafe fn get_unchecked_2(&self, idx: usize) -> &T //~ ERROR unsupported return type of pure function
+    pub unsafe fn get_unchecked_2(&self, idx: usize) -> &T //~ ERROR invalid return type of pure function
     {
         self.0.get_unchecked(idx)
     }

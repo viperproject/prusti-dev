@@ -396,16 +396,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let ty = self.encoder.resolve_typaram(self.mir.return_ty());
         let return_span = self.get_local_span(mir::RETURN_PLACE);
 
-        // Raise an error for unsupported return types
-        match ty.kind() {
-            ty::TyKind::Bool
-            | ty::TyKind::Int(_)
-            | ty::TyKind::Uint(_)
-            | ty::TyKind::Char => {} // ok
-            _ => return Err(SpannedEncodingError::unsupported(
-                "unsupported return type of pure function. Only boolean, integers and chars are supported.",
+        // Return an error for unsupported return types
+        if !is_supported_type_of_pure_expression(ty) {
+            return Err(SpannedEncodingError::incorrect(
+                "invalid return type of pure function. Only boolean, integers and chars are supported.",
                 return_span,
-            )),
+            ));
         }
 
         let return_local = mir::Place::return_place().as_local().unwrap();
@@ -693,6 +689,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             "prusti_contracts::old" => {
                                 trace!("Encoding old expression {:?}", args[0]);
                                 assert_eq!(args.len(), 1);
+
+                                // Return an error for unsupported old(..) types
+                                if !is_supported_type_of_pure_expression(ty) {
+                                    cleanup();
+                                    return Err(SpannedEncodingError::incorrect(
+                                        "the type of the old expression is invalid. \
+                                        Only boolean, integers and chars are supported.",
+                                        term.source_info.span,
+                                    ));
+                                }
+
                                 let encoded_rhs = self
                                     .mir_encoder
                                     .encode_old_expr(encoded_args[0].clone(), PRECONDITION_LABEL);
@@ -1209,5 +1216,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         }
 
         Ok(())
+    }
+}
+
+fn is_supported_type_of_pure_expression(ty: ty::Ty) -> bool {
+    match ty.kind() {
+        ty::TyKind::Bool
+        | ty::TyKind::Int(_)
+        | ty::TyKind::Uint(_)
+        | ty::TyKind::Char => true,
+        _ => false,
     }
 }
