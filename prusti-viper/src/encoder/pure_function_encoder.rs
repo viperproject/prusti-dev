@@ -758,21 +758,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                             .run_if_err(cleanup)?
                                     }
                                 };
-                                if is_pure_function {
-                                    trace!("Encoding pure function call '{}'", function_name);
-                                } else {
-                                    trace!("Encoding stub pure function call '{}'", function_name);
-                                    if !is_cmp_call {
-                                        cleanup();
-                                        return Err(SpannedEncodingError::incorrect(
-                                            format!(
-                                                "use of impure function {:?} in pure code is not allowed",
-                                                func_proc_name
-                                            ),
-                                            term.source_info.span,
-                                        ));
-                                    }
+                                if !is_pure_function && !is_cmp_call {
+                                    cleanup();
+                                    return Err(SpannedEncodingError::incorrect(
+                                        format!(
+                                            "use of impure function {:?} in pure code is not allowed",
+                                            func_proc_name
+                                        ),
+                                        term.source_info.span,
+                                    ));
                                 }
+                                trace!("Encoding pure function call '{}'", function_name);
 
                                 let formal_args: Vec<vir::LocalVar> = args
                                     .iter()
@@ -785,15 +781,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .with_span(term.source_info.span)
                                     .run_if_err(cleanup)?;
 
-                                let err_ctxt = if is_pure_function {
-                                    ErrorCtxt::PureFunctionCall
-                                } else {
-                                    ErrorCtxt::StubPureFunctionCall
-                                };
                                 let pos = self
                                     .encoder
                                     .error_manager()
-                                    .register(term.source_info.span, err_ctxt);
+                                    .register(term.source_info.span, ErrorCtxt::PureFunctionCall);
                                 let encoded_rhs = vir::Expr::func_app(
                                     function_name,
                                     encoded_args,
