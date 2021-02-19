@@ -107,16 +107,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // if the function returns a snapshot, we take a snapshot of the body
         if self.encode_function_return_type()?.is_domain() {
             let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+            let return_span = self.get_local_span(mir::RETURN_PLACE);
 
             if !self.encoder.env().type_is_copy(ty) {
-                self.encoder
-                    .register_encoding_error(SpannedEncodingError::unsupported(
-                        "return type of pure function does not implement Copy",
-                        self.mir.span,
-                    ));
+                return Err(SpannedEncodingError::unsupported(
+                    "return type of pure function does not implement Copy",
+                    return_span,
+                ));
             }
 
-            let return_span = self.get_local_span(mir::RETURN_PLACE);
             let snapshot = self.encoder.encode_snapshot(&ty)
                 .with_span(return_span)?;
             let body_expr = snapshot.snap_call(body_expr);
@@ -248,16 +247,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         }
 
         // Add folding/unfolding
-        Ok(
-            foldunfold::add_folding_unfolding_to_function(
-                function,
-                self.encoder.get_used_viper_predicates_map(),
-            )
-            .ok()
-            .expect(
-                &format!("failed generation of folding/unfolding in {:?}", self.proc_def_id)
-            ) // TODO: return a `Result<..>`
+        foldunfold::add_folding_unfolding_to_function(
+            function,
+            self.encoder.get_used_viper_predicates_map(),
         )
+        .map_err(|foldunfold_error| {
+            SpannedEncodingError::internal(
+                format!(
+                    "generating unfolding Viper expressions failed ({:?})",
+                    foldunfold_error
+                ),
+                self.mir.span,
+            )
+        })
     }
 
     /// Encode the precondition with two expressions:
@@ -392,6 +394,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
         let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+        let return_span = self.get_local_span(mir::RETURN_PLACE);
+
+        // Raise an error for unsupported return types
+        match ty.kind() {
+            ty::TyKind::Bool
+            | ty::TyKind::Int(_)
+            | ty::TyKind::Uint(_)
+            | ty::TyKind::Char => {} // ok
+            _ => return Err(SpannedEncodingError::unsupported(
+                "unsupported return type of pure function. Only boolean, integers and chars are supported.",
+                return_span,
+            )),
+        }
+
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.interpreter.mir_encoder().get_local_span(return_local);
         self.encoder.encode_value_type(ty).with_span(span)
@@ -740,14 +756,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 } else {
                                     trace!("Encoding stub pure function call '{}'", function_name);
                                     if !is_cmp_call {
-                                        self.encoder
-                                            .register_encoding_error(SpannedEncodingError::incorrect(
-                                                format!(
-                                                    "use of impure function {:?} in assertion is not allowed",
-                                                    func_proc_name
-                                                ),
-                                                term.source_info.span,
-                                            ));
+                                        cleanup();
+                                        return Err(SpannedEncodingError::incorrect(
+                                            format!(
+                                                "use of impure function {:?} in pure code is not allowed",
+                                                func_proc_name
+                                            ),
+                                            term.source_info.span,
+                                        ));
                                     }
                                 }
 
