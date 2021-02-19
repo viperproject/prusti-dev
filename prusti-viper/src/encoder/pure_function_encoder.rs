@@ -203,6 +203,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let res_value_range_pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::PureFunctionPostconditionValueRangeOfResult,
+            self.proc_def_id,
         );
         let pure_fn_return_variable = vir_local!{ __result: {return_type.clone()} };
         // Add value range of the arguments and return value to the pre/postconditions
@@ -320,6 +321,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 true,
                 None,
                 ErrorCtxt::GenericExpression,
+                self.proc_def_id
             )?);
         }
 
@@ -355,6 +357,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 true,
                 None,
                 ErrorCtxt::GenericExpression,
+                self.proc_def_id
             )?;
             debug_assert!(!encoded_postcond.pos().is_default());
             func_spec.push(encoded_postcond);
@@ -366,7 +369,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let postcondition_pos = self
             .encoder
             .error_manager()
-            .register(self.mir.span, ErrorCtxt::GenericExpression);
+            .register(self.mir.span, ErrorCtxt::GenericExpression, self.proc_def_id);
 
         // Fix return variable
         let pure_fn_return_variable = vir_local!{ __result: {self.encode_function_return_type()?} };
@@ -597,7 +600,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let pos = self
                     .encoder
                     .error_manager()
-                    .register(term.source_info.span, ErrorCtxt::Unexpected);
+                    .register(term.source_info.span, ErrorCtxt::Unexpected, self.mir_encoder.def_id());
                 MultiExprBackwardInterpreterState::new_single(
                     undef_expr(pos).with_span(term.source_info.span)?
                 )
@@ -608,7 +611,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let pos = self
                     .encoder
                     .error_manager()
-                    .register(term.source_info.span, ErrorCtxt::Unexpected);
+                    .register(term.source_info.span, ErrorCtxt::Unexpected, self.mir_encoder.def_id());
                 MultiExprBackwardInterpreterState::new_single(
                     unreachable_expr(pos).with_span(term.source_info.span)?
                 )
@@ -937,7 +940,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let pos = self
                                     .encoder
                                     .error_manager()
-                                    .register(term.source_info.span, ErrorCtxt::PureFunctionCall);
+                                    .register(term.source_info.span, ErrorCtxt::PureFunctionCall, self.mir_encoder.def_id());
                                 let encoded_rhs = vir::Expr::func_app(
                                     function_name,
                                     encoded_args,
@@ -973,7 +976,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let pos = self
                             .encoder
                             .error_manager()
-                            .register(term.source_info.span, error_ctxt);
+                            .register(term.source_info.span, error_ctxt, self.mir_encoder.def_id());
                         MultiExprBackwardInterpreterState::new_single(
                             unreachable_expr(pos).with_span(term.source_info.span)?
                         )
@@ -1016,6 +1019,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
                     error_ctxt,
+                    self.mir_encoder.def_id(),
                 );
 
                 MultiExprBackwardInterpreterState::new(
@@ -1344,7 +1348,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     let pos = self
                                         .encoder
                                         .error_manager()
-                                        .register(stmt.source_info.span, ErrorCtxt::Unexpected);
+                                        .register(stmt.source_info.span, ErrorCtxt::Unexpected, self.mir_encoder.def_id());
                                     let function_name = self.encoder.encode_builtin_function_use(
                                         BuiltinFunctionKind::Unreachable(vir::Type::Int),
                                     );
