@@ -269,7 +269,7 @@ impl<'a> ExprFolder for AssertPurifier<'a> {
         match snapshot::encode_mirror_function(&name, &formal_args, &return_type, &self.snapshots) {
             Err(e) => {
                 let fun =  Expr::FuncApp(name, folded_args, formal_args, return_type, pos);
-                warn!("Not AssertPurifing {:?} because we cannot get the mirror function because {}", fun,e  );
+                //warn!("Not AssertPurifing {:?} because we cannot get the mirror function because {}", fun,e  );
                 fun
             }
             Ok(df) => {
@@ -280,7 +280,7 @@ impl<'a> ExprFolder for AssertPurifier<'a> {
                         if let vir::Type::TypedRef(predicate_name) = typ {
                             if let Some(snapshot) = self.snapshots.get(&predicate_name) {
                                 snapshot.snap_call(e)
-                            } else {
+                           } else {
                                 e
                             }
                         } else {
@@ -289,7 +289,8 @@ impl<'a> ExprFolder for AssertPurifier<'a> {
                     })
                     .collect();
                 folded_domain_func_args.push(self.nat_arg.clone());
-                Expr::DomainFuncApp(df, folded_domain_func_args, pos)
+                snapshot::mirror_function_caller_call(df, folded_domain_func_args)
+
             }
         }
     }

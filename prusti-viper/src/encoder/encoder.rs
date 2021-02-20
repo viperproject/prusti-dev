@@ -98,7 +98,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
     mirror_function_domain: RefCell<vir::Domain>,
-    mirror_caller_functions: RefCell<Vec<vir::Function>>
+    mirror_caller_functions: RefCell<Vec<vir::Function>>,
+    pub current_proc: RefCell<Option<ProcedureDefId>>
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -166,7 +167,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
             mirror_function_domain: RefCell::new(axiomatized_functions_domain),
-            mirror_caller_functions: RefCell::new(vec![])
+            mirror_caller_functions: RefCell::new(vec![]),
+            current_proc:  RefCell::new(None),
         }
     }
 
@@ -721,16 +723,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 let mut postcondition = compute_discriminant_bounds(
                     adt_def, self.env.tcx(), &result.clone().into());
                 if config::enable_purification_optimization() {
-                    if let Some(snapshot) =  self.get_snapshots().get(&predicate_name) {
-                        let snap_call = snapshot.snap_call(self_local_var.clone().into());
-                        let variant_func = snapshot::encode_variant_func( format!(
-                            "{}{}",
-                            snapshot_encoder::SNAPSHOT_DOMAIN_PREFIX,
-                            snapshot.predicate_name,
-                        ));
-                        let variant_func_call = vir::Expr::domain_func_app(variant_func, vec![snap_call]);
-                        let new_post: vir::Expr = vir::Expr::eq_cmp(vir::Expr::local(result.clone()), variant_func_call);
-                        postcondition = vir::Expr::and(postcondition, new_post);
+                    if let Some(snapshot) = self.get_snapshots().get(&predicate_name) {
+                        if let Some(snapshot_domain) = snapshot.domain() {
+                            let snap_call = snapshot.snap_call(self_local_var.clone().into());
+                            let variant_func = snapshot::encode_variant_func( format!(
+                                "{}{}",
+                                snapshot_encoder::SNAPSHOT_DOMAIN_PREFIX,
+                                snapshot.predicate_name,
+                            )); // TODO instead use snapshot_domain.name
+                            let variant_func_call = vir::Expr::domain_func_app(variant_func, vec![snap_call]);
+                            let new_post: vir::Expr = vir::Expr::eq_cmp(vir::Expr::local(result.clone()), variant_func_call);
+                            postcondition = vir::Expr::and(postcondition, new_post);
+                        }
                     }
                 }
                 
@@ -1569,6 +1573,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.initialize();
         while !self.encoding_queue.borrow().is_empty() {
             let (proc_def_id, substs) = self.encoding_queue.borrow_mut().pop().unwrap();
+            self.current_proc.replace(Some(proc_def_id.clone()));
+
             let proc_name = self.env.get_absolute_item_name(proc_def_id);
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
@@ -1594,6 +1600,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     }
                 }
             }
+
+            self.current_proc.replace(None);
         }
     }
 

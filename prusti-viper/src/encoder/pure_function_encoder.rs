@@ -780,9 +780,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     pos,
                                 );
                                 if config::enable_purification_optimization() {
-                                    let snapshots = self.encoder.get_snapshots();
-                                    let mut ap = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
-                                    encoded_rhs = vir::ExprFolder::fold(&mut ap, encoded_rhs.clone());
+                                    if let Some(proc_id) = self.encoder.current_proc.borrow().clone() {
+                                        if !self.encoder.is_pure(proc_id) {
+                                            let snapshots = self.encoder.get_snapshots();
+                                            let mut ap = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
+                                            encoded_rhs = vir::ExprFolder::fold(&mut ap, encoded_rhs.clone());
+                                        }
+                                    }
                                 }
                                 let mut state = states[&target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
