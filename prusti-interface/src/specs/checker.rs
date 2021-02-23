@@ -20,11 +20,15 @@ use crate::{
 };
 
 
+/// Checker visitor for the specifications. Currently checks that `#[predicate]`
+/// functions are never called from non-specification code, but more checks may follow.
 pub struct SpecChecker<'tcx> {
     tcx: TyCtxt<'tcx>,
 
+    /// Map of the `DefID`s to the `Span`s of `#[predicate]` functions found in the first pass.
     predicates: HashMap<DefId, Span>,
-    // span of call and definition of predicates illegally called
+
+    /// Span of call and definition of predicates illegally called, collected in the second pass.
     pred_calls: Vec<(Span, Span)>,
 }
 
