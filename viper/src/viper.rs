@@ -74,11 +74,11 @@ impl Viper {
             .fold(init_args, |curr_args, opt| curr_args.option(&opt))
             .build()
             .unwrap_or_else(|e| {
-                panic!(e.display_chain().to_string());
+                panic!("{}", e.display_chain());
             });
 
         let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
-            panic!(e.display_chain().to_string());
+            panic!("{}", e.display_chain());
         });
 
         // Log JVM and Java version

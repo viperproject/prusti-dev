@@ -23,7 +23,7 @@ fn main() {
     let generated_dir = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("gen");
 
     let deps_dir = TempDir::new("deps").unwrap_or_else(|e| {
-        panic!(e.to_string());
+        panic!("{}", e);
     });
 
     // If ASM_JAR is set, use it. Otherwise, download asm.jar to a temporary location.
@@ -33,14 +33,14 @@ fn main() {
             let target = "https://repo.maven.apache.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar";
             let response = ureq::get(target).call();
             if let Some(error) = response.synthetic_error() {
-                panic!(error.to_string());
+                panic!("{}", error);
             }
             let fname = deps_dir.path().join("asm.jar");
             let mut dest = File::create(fname.clone()).unwrap_or_else(|e| {
-                panic!(e.to_string());
+                panic!("{}", e);
             });
             copy(&mut response.into_reader(), &mut dest).unwrap_or_else(|e| {
-                panic!(e.to_string());
+                panic!("{}", e);
             });
             fname.to_str().unwrap().to_string()
         }
@@ -625,7 +625,7 @@ fn main() {
         ])
         .generate(&generated_dir)
         .unwrap_or_else(|e| {
-            panic!(e.display_chain().to_string());
+            panic!("{}", e.display_chain());
         });
 
     // Remove the temporary directory
