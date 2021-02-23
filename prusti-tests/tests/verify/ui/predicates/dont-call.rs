@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use prusti_contracts::*;
 
 #[predicate]
@@ -10,6 +12,25 @@ fn illegal_use() {
 }
 
 fn illegal_ref(_pred: fn(bool) -> bool) {}
+
+struct Outer;
+
+impl Outer {
+    pub fn nested() {
+        struct Inner;
+
+        impl Inner {
+            #[predicate]
+            fn inner_pred(b: bool) -> bool {
+                b
+            }
+
+            fn illegal() {
+                illegal_ref(Self::inner_pred)
+            }
+        }
+    }
+}
 
 fn main() {
     illegal_use();

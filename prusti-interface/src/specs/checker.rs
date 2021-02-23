@@ -1,30 +1,24 @@
-use log::{info, debug};
-use rustc_middle::{
-    hir::map::Map,
-    ty::TyCtxt,
-};
-use rustc_span::{Span, MultiSpan};
+use log::{debug, info};
 use rustc_hir::{
     self as hir,
+    def_id::{DefId, LocalDefId},
     intravisit::{self, Visitor},
     itemlikevisit::ItemLikeVisitor,
-    def_id::{DefId, LocalDefId},
 };
+use rustc_middle::{hir::map::Map, ty::TyCtxt};
+use rustc_span::{MultiSpan, Span};
 
 use std::collections::HashMap;
 
 use crate::{
     environment::Environment,
-    utils::has_prusti_attr,
+    utils::{has_prusti_attr, has_spec_only_attr},
     PrustiError,
 };
 
-
 /// Checker visitor for the specifications. Currently checks that `#[predicate]`
 /// functions are never called from non-specification code, but more checks may follow.
-pub struct SpecChecker<'tcx> {
-    tcx: TyCtxt<'tcx>,
-
+pub struct SpecChecker {
     /// Map of the `DefID`s to the `Span`s of `#[predicate]` functions found in the first pass.
     predicates: HashMap<DefId, Span>,
 
@@ -32,41 +26,74 @@ pub struct SpecChecker<'tcx> {
     pred_calls: Vec<(Span, Span)>,
 }
 
-// shallow visitor, just to collect all function items that originate from
-// predicates
-impl<'tcx> ItemLikeVisitor<'tcx> for SpecChecker<'tcx> {
-    fn visit_item(&mut self, item: &'tcx hir::Item<'tcx>) {
-        // collect DefIds for all predicate function items
-        if has_prusti_attr(item.attrs, "pred_spec_id_ref") {
-            let def_id = self.tcx.hir().local_def_id(item.hir_id).to_def_id();
-            self.predicates.insert(def_id, item.span);
-        }
-    }
+/// First predicate checks visitor: collect all function items that originate
+/// from predicates
+struct CollectPredicatesVisitor<'v, 'tcx> {
+    tcx: TyCtxt<'tcx>,
 
-    fn visit_trait_item(&mut self, _: &'tcx hir::TraitItem<'tcx>) {
-        // nothing here
-    }
-
-    fn visit_impl_item(&mut self, _: &'tcx hir::ImplItem<'tcx>) {
-        // nothing here
-    }
-
-    fn visit_foreign_item(&mut self, _: &'tcx hir::ForeignItem<'tcx>) {
-        // nothing here
-    }
+    predicates: &'v mut HashMap<DefId, Span>,
 }
 
-// deep visitor, check any calls
-impl<'tcx> Visitor<'tcx> for SpecChecker<'tcx> {
+impl<'v, 'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'v, 'tcx> {
     type Map = Map<'tcx>;
 
     fn nested_visit_map(&mut self) -> intravisit::NestedVisitorMap<Self::Map> {
         intravisit::NestedVisitorMap::All(self.tcx.hir())
     }
 
+    fn visit_fn(
+        &mut self,
+        fk: intravisit::FnKind<'tcx>,
+        fd: &'tcx hir::FnDecl<'tcx>,
+        b: hir::BodyId,
+        s: Span,
+        id: hir::HirId,
+    ) {
+        // collect this fn's DefId if predicate function
+        let attrs = fk.attrs();
+        if has_prusti_attr(attrs, "pred_spec_id_ref") {
+            let def_id = self.tcx.hir().local_def_id(id).to_def_id();
+            self.predicates.insert(def_id, s);
+        }
+
+        intravisit::walk_fn(self, fk, fd, b, s, id);
+    }
+}
+
+// Second predicate checks visitor: check any references to predicate functions
+// from non-specification code
+struct CheckPredicatesVisitor<'v, 'tcx> {
+    tcx: TyCtxt<'tcx>,
+
+    predicates: &'v HashMap<DefId, Span>,
+    pred_calls: &'v mut Vec<(Span, Span)>,
+}
+
+impl<'v, 'tcx> Visitor<'tcx> for CheckPredicatesVisitor<'v, 'tcx> {
+    type Map = Map<'tcx>;
+
+    fn nested_visit_map(&mut self) -> intravisit::NestedVisitorMap<Self::Map> {
+        intravisit::NestedVisitorMap::All(self.tcx.hir())
+    }
+
+    fn visit_item(&mut self, i: &'tcx hir::Item<'tcx>) {
+        // restrict to "interesting" sub-nodes to visit, i.e. anything that
+        // could be or contain call expressions
+        use hir::ItemKind::*;
+
+        match i.kind {
+            Static(_, _, _) | Fn(_, _, _) | Mod(_) | Impl { .. } => {
+                intravisit::walk_item(self, i);
+            }
+            _ => {
+                // don't recurse into e.g. struct decls, type aliases, consts etc.
+            }
+        }
+    }
+
     fn visit_expr(&mut self, ex: &'tcx hir::Expr<'tcx>) {
-        if let hir::ExprKind::Path(ref qself) = ex.kind {
-            let res = self.tcx.typeck(ex.hir_id.owner).qpath_res(qself, ex.hir_id);
+        if let hir::ExprKind::Path(ref path) = ex.kind {
+            let res = self.tcx.typeck(ex.hir_id.owner).qpath_res(path, ex.hir_id);
             if let hir::def::Res::Def(_, def_id) = res {
                 if let Some(pred_def_span) = self.predicates.get(&def_id) {
                     self.pred_calls.push((ex.span, *pred_def_span));
@@ -86,7 +113,7 @@ impl<'tcx> Visitor<'tcx> for SpecChecker<'tcx> {
         id: hir::HirId,
     ) {
         // Stop checking inside `prusti::spec_only` functions
-        if has_prusti_attr(fk.attrs(), "spec_only") {
+        if has_spec_only_attr(fk.attrs()) {
             return;
         }
 
@@ -94,18 +121,33 @@ impl<'tcx> Visitor<'tcx> for SpecChecker<'tcx> {
     }
 }
 
-impl<'tcx> SpecChecker<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>) -> Self {
+impl<'tcx> SpecChecker {
+    pub fn new() -> Self {
         Self {
-            tcx,
             predicates: HashMap::new(),
             pred_calls: Vec::new(),
         }
     }
 
-    pub fn report_errors(&self, env: &Environment<'tcx>) {
+    pub fn check_predicate_calls(&mut self, tcx: TyCtxt<'tcx>, krate: &'tcx hir::Crate<'tcx>) {
+        let mut collect = CollectPredicatesVisitor {
+            tcx,
+            predicates: &mut self.predicates,
+        };
+        intravisit::walk_crate(&mut collect, krate);
+
+        let mut visit = CheckPredicatesVisitor {
+            tcx: collect.tcx,
+            predicates: &self.predicates,
+            pred_calls: &mut self.pred_calls,
+        };
+        intravisit::walk_crate(&mut visit, krate);
+
         debug!("Predicate funcs: {:?}", self.predicates);
         debug!("Predicate calls: {:?}", self.pred_calls);
+    }
+
+    pub fn report_errors(&self, env: &Environment<'tcx>) {
         for &(call_span, def_span) in &self.pred_calls {
             PrustiError::incorrect(
                 "using predicate from non-specification code is not allowed".to_string(),
