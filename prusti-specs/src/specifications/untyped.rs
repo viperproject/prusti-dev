@@ -29,8 +29,6 @@ pub type Expression = common::Expression<ExpressionId, syn::Expr>;
 pub type TriggerSet = common::TriggerSet<ExpressionId, syn::Expr>;
 /// A pledge that has not types associated with it.
 pub type Pledge = common::Pledge<ExpressionId, syn::Expr, Arg>;
-/// A predicate
-pub type Predicate = common::Predicate<ExpressionId, syn::Expr, Arg>;
 
 /// An abstraction over all kinds of function items.
 pub enum AnyFnItem {
@@ -323,12 +321,6 @@ impl EncodeTypeCheck for Vec<Specification> {
 }
 
 impl EncodeTypeCheck for Specification {
-    fn encode_type_check(&self, tokens: &mut TokenStream) {
-        self.assertion.encode_type_check(tokens);
-    }
-}
-
-impl EncodeTypeCheck for Predicate {
     fn encode_type_check(&self, tokens: &mut TokenStream) {
         self.assertion.encode_type_check(tokens);
     }

@@ -460,15 +460,15 @@ pub fn predicate(attr: TokenStream, tokens: TokenStream) -> TokenStream {
             let mut rewriter = rewriter::AstRewriter::new();
             let spec_id = rewriter.generate_spec_id();
             let assertion = handle_result!(rewriter.parse_assertion(spec_id, pred_tokens));
-            let predicate = untyped::Predicate::new(assertion);
 
             let item_name = syn::Ident::new(
                 &format!("prusti_pred_item_{}_{}", pred_func.sig.ident, spec_id),
-                item_span);
+                item_span,
+            );
             let mut assertion_typechecks = TokenStream::new();
-            predicate.encode_type_check(&mut assertion_typechecks);
+            assertion.encode_type_check(&mut assertion_typechecks);
             let spec_id_str = spec_id.to_string();
-            let assertion_json = crate::specifications::json::to_json_string(&predicate.assertion);
+            let assertion_json = crate::specifications::json::to_json_string(&assertion);
 
             let generics = pred_func.sig.generics.clone();
             let inputs = pred_func.sig.inputs.clone();
