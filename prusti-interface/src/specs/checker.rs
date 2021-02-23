@@ -65,15 +65,11 @@ impl<'tcx> Visitor<'tcx> for SpecChecker<'tcx> {
     }
 
     fn visit_expr(&mut self, ex: &'tcx hir::Expr<'tcx>) {
-        if let hir::ExprKind::Call(ref callee_expr, _) = ex.kind {
-            debug!("spec-checking call expr {:#?}", ex);
-            if let hir::ExprKind::Path(ref qself) = callee_expr.kind {
-                let res = self.tcx.typeck(callee_expr.hir_id.owner).qpath_res(qself, callee_expr.hir_id);
-                if let hir::def::Res::Def(_, def_id) = res {
-                    if let Some(pred_def_span) = self.predicates.get(&def_id) {
-                        info!("found predicate call");
-                        self.pred_calls.push((ex.span, *pred_def_span));
-                    }
+        if let hir::ExprKind::Path(ref qself) = ex.kind {
+            let res = self.tcx.typeck(ex.hir_id.owner).qpath_res(qself, ex.hir_id);
+            if let hir::def::Res::Def(_, def_id) = res {
+                if let Some(pred_def_span) = self.predicates.get(&def_id) {
+                    self.pred_calls.push((ex.span, *pred_def_span));
                 }
             }
         }
@@ -112,11 +108,11 @@ impl<'tcx> SpecChecker<'tcx> {
         debug!("Predicate calls: {:?}", self.pred_calls);
         for &(call_span, def_span) in &self.pred_calls {
             PrustiError::incorrect(
-                "call to predicate from non-specification code is not allowed".to_string(),
-                MultiSpan::from_span(call_span)
+                "using predicate from non-specification code is not allowed".to_string(),
+                MultiSpan::from_span(call_span),
             )
-                .set_note("this is a specification-only predicate function", def_span)
-                .emit(env);
+            .set_note("this is a specification-only predicate function", def_span)
+            .emit(env);
         }
     }
 }
