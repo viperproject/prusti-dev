@@ -252,7 +252,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
     ) {
         intravisit::walk_trait_item(self, ti);
 
-        let id = ti.hir_id;
+        let id = ti.hir_id();
         let local_id = self.tcx.hir().local_def_id(id);
         let def_id = local_id.to_def_id();
         let attrs = ti.attrs;
