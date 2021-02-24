@@ -1,7 +1,8 @@
 use crate::vir::{ast::*, cfg, cfg::CfgMethod, utils::walk_method, CfgBlock, Type};
-use log::warn;
+use log::debug;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
+/// This purifies local variables in a method body
 pub fn purify_methods(mut methods: Vec<CfgMethod>) -> Vec<CfgMethod> {
     for method in &mut methods {
         purify_method(method);
@@ -24,34 +25,37 @@ fn translate_type(typ: &Type) -> Type {
 static SUPPORTED_TYPES: &'static [&str] = &["bool", "i32", "usize", "u32"];
 
 fn purify_method(method: &mut CfgMethod) {
-    let mut collector = Collector::new();
+    let mut candidates = HashMap::new();
     for var in &method.local_vars {
         match &var.typ {
             &Type::TypedRef(ref t) if SUPPORTED_TYPES.contains(&t.as_str()) => {
-                collector.tp.insert(var.name.clone(), var.typ.clone());
+                candidates.insert(var.name.clone(), var.typ.clone());
             }
             _ => {}
         };
     }
-    warn!(
-        "Collector for method {} before filtering {:?}",
+    let mut collector = PurifiableVariableCollector::new(candidates);
+
+    debug!(
+        "PurifiableVariableCollector for method {} before filtering {:?}",
         method.name(),
         collector
     );
     walk_method(method, &mut collector);
-    warn!(
-        "Collector for method {} after filterng {:?}",
+    debug!(
+        "PurifiableVariableCollector for method {} after filterng {:?}",
         method.name(),
         collector
     );
 
     for var in &mut method.local_vars {
-        if collector.tp.contains_key(&var.name) {
+        if collector.vars.contains_key(&var.name) {
             var.typ = translate_type(&var.typ);
         }
     }
     let mut p = Purifier::new(collector);
-    //for stmt in method.
+
+    //for stmt in method
     for block in &mut method.basic_blocks {
         block.stmts = block
             .stmts
@@ -61,21 +65,26 @@ fn purify_method(method: &mut CfgMethod) {
             .collect();
     }
 }
+
+/// This is a ExprWalkerand StmtWalker used to collect information about which local variables can be purified.
+///
+/// The current implementation is only for ints/bools. So to check if a reference is borrowed
+/// we simple check if a variable is ever mentioned without a field access.
 #[derive(Debug)]
-struct Collector {
-    tp: HashMap<String, Type>,
+struct PurifiableVariableCollector {
+    vars: HashMap<String, Type>,
 }
 
-impl Collector {
-    fn new() -> Self {
-        Collector { tp: HashMap::new() }
+impl PurifiableVariableCollector {
+    fn new(initial_vars: HashMap<String, Type>) -> Self {
+        PurifiableVariableCollector { vars: initial_vars }
     }
 }
 
-impl ExprWalker for Collector {
+impl ExprWalker for PurifiableVariableCollector {
     fn walk_local(&mut self, local_var: &LocalVar, _pos: &Position) {
-        if self.tp.remove(&local_var.name).is_some() {
-            warn!("Will not purify {:?} ", local_var)
+        if self.vars.remove(&local_var.name).is_some() {
+            debug!("Will not purify the variable {:?} ", local_var)
         }
     }
 
@@ -87,21 +96,23 @@ impl ExprWalker for Collector {
     }
 }
 
-impl StmtWalker for Collector {
+impl StmtWalker for PurifiableVariableCollector {
     fn walk_expr(&mut self, expr: &Expr) {
         ExprWalker::walk(self, expr);
     }
 }
 
+/// StmtFolder and ExprFolder used to purify local variables
 #[derive(Debug)]
 struct Purifier {
+    /// names of local variables that can be purified
     targets: BTreeSet<String>,
 }
 
 impl Purifier {
-    fn new(c: Collector) -> Self {
+    fn new(c: PurifiableVariableCollector) -> Self {
         let mut targets = BTreeSet::new();
-        for (k, v) in c.tp {
+        for (k, v) in c.vars {
             targets.insert(k);
         }
 
@@ -113,9 +124,6 @@ impl StmtFolder for Purifier {
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         ExprFolder::fold(self, expr)
     }
-    /*fn fold(&mut self, e: Stmt) -> Stmt {
-        Stmt::Comment(format!("Replace all {:?}", e))
-    }*/
 
     fn fold_method_call(&mut self, name: String, args: Vec<Expr>, targets: Vec<LocalVar>) -> Stmt {
         if name.starts_with("builtin$havoc")

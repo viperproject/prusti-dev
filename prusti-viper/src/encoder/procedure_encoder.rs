@@ -2648,7 +2648,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for operand in args.iter() {
             let arg_expr = self.mir_encoder.encode_operand_expr(operand)
                 .with_span(call_site_span)?;
-                non_snapshot_arg_exprs.push(arg_expr);
+            non_snapshot_arg_exprs.push(arg_expr);
         }
 
         let arg_exprs = if prusti_common::config::enable_purification_optimization() {
@@ -2664,7 +2664,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         arg_exprs.push(arg);
                     }
                 }
-               
             }
 
             arg_exprs
@@ -3460,16 +3459,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let snapshots = self.encoder.get_snapshots();
                 let mut ep = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
                 let mut purified_elems : Vec<vir::Expr> = full_func_spec_elements.clone().into_iter().map(|e| {
-                    let pure_spec = vir::ExprFolder::fold(&mut ep, e.clone());
-                    if format!("{:?}",e).contains("m_len"){
-                        debug!("{} becomes {}", e, pure_spec );
-                    }
-                    pure_spec
+                    vir::ExprFolder::fold(&mut ep, e.clone())
                 }).collect();
 
-                
-              //  full_func_spec_elements =  purified_elems;
+              //  full_func_spec_elements =  purified_elems; //TODO this might or might not be needed
             }
+
             let full_func_spec = full_func_spec_elements
                 .into_iter()
                 .conjoin()

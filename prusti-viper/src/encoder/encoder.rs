@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ::log::{info, debug, trace, warn};
+use ::log::{info, debug, trace};
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
@@ -384,7 +384,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         triggers.push(vir::Trigger::new(vec![function_call_with_succ.clone()]));
 
         let da = vir::DomainAxiom {
-            name: format!("{}$axiom", f.get_identifier()), //TODO better name
+            name: format!("{}$axiom", f.get_identifier()),
             expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
             domain_name: domain_name.to_string(),
         };
@@ -402,7 +402,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let axiom_body = vir::Expr::eq_cmp(function_call_without_succ, function_call_with_succ.clone());
 
         let nat_da = vir::DomainAxiom {
-            name: format!("{}$nat_axiom", f.get_identifier()), //TODO better name
+            name: format!("{}$nat_axiom", f.get_identifier()),
             expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
             domain_name: domain_name.to_string(),
         };

@@ -2,7 +2,7 @@ use crate::encoder::{
     snapshot,
     snapshot_encoder::{Snapshot, SnapshotEncoder},
 };
-use log::{debug, info, trace, warn};
+use log::{debug, info, trace};
 use prusti_common::vir::{
     self, Expr, ExprFolder, FallibleExprFolder, Field, LocalVar, PermAmount, Position, Type,
     WithIdentifier,
@@ -13,7 +13,6 @@ pub struct ExprPurifier<'a> {
     snapshots: &'a HashMap<String, Box<Snapshot>>,
     self_function: Option<vir::Expr>,
     nat_arg: vir::Expr,
-    create_snaps: bool,
 }
 
 impl<'a> ExprPurifier<'a> {
@@ -22,16 +21,11 @@ impl<'a> ExprPurifier<'a> {
             snapshots,
             self_function: None,
             nat_arg,
-            create_snaps: false,
         }
     }
 
     pub fn self_function(&mut self, f: Option<vir::Expr>) {
         self.self_function = f;
-    }
-
-    pub fn create_snaps(&mut self, create_snaps: bool) {
-        self.create_snaps = create_snaps;
     }
 }
 
@@ -111,7 +105,7 @@ impl<'a> FallibleExprFolder for ExprPurifier<'a> {
                         purified_field_type,
                         field_name,
                         receiver_domain,
-                        variant_name, //TODO
+                        variant_name,
                     );
 
                     vir::Expr::DomainFuncApp(domain_func, vec![*inner], pos)
@@ -197,22 +191,7 @@ impl<'a> FallibleExprFolder for ExprPurifier<'a> {
                     .map(|e| self.fallible_fold(e.clone()).map(|n| (e, n)))
                     .collect::<Result<Vec<(Expr, Expr)>, _>>()?
                     .into_iter()
-                    .map(|(orig, e)| {
-                        if !self.create_snaps {
-                            Ok(e)
-                        } else {
-                            let typ: vir::Type = orig.get_type().clone();
-                            if let vir::Type::TypedRef(predicate_name) = typ {
-                                if let Some(snapshot) = self.snapshots.get(&predicate_name) {
-                                    Ok(snapshot.snap_call(e))
-                                } else {
-                                    Ok(e)
-                                }
-                            } else {
-                                Ok(e)
-                            }
-                        }
-                    })
+                    .map(|(orig, e)| Ok(e))
                     .collect::<Result<Vec<Expr>, String>>()?;
                 folded_args.push(self.nat_arg.clone());
                 Ok(Expr::DomainFuncApp(df, folded_args, pos))
@@ -265,22 +244,20 @@ impl<'a> ExprFolder for AssertPurifier<'a> {
             .into_iter()
             .map(|e| self.fold(e.clone()))
             .collect::<Vec<Expr>>();
-            
+
         match snapshot::encode_mirror_function(&name, &formal_args, &return_type, &self.snapshots) {
             Err(e) => {
-                let fun =  Expr::FuncApp(name, folded_args, formal_args, return_type, pos);
-                //warn!("Not AssertPurifing {:?} because we cannot get the mirror function because {}", fun,e  );
-                fun
+                Expr::FuncApp(name, folded_args, formal_args, return_type, pos)
             }
             Ok(df) => {
-                
-                let mut folded_domain_func_args: Vec<Expr> = folded_args.into_iter()
+                let mut folded_domain_func_args: Vec<Expr> = folded_args
+                    .into_iter()
                     .map(|e| {
                         let typ: vir::Type = e.get_type().clone();
                         if let vir::Type::TypedRef(predicate_name) = typ {
                             if let Some(snapshot) = self.snapshots.get(&predicate_name) {
                                 snapshot.snap_call(e)
-                           } else {
+                            } else {
                                 e
                             }
                         } else {
@@ -290,7 +267,6 @@ impl<'a> ExprFolder for AssertPurifier<'a> {
                     .collect();
                 folded_domain_func_args.push(self.nat_arg.clone());
                 snapshot::mirror_function_caller_call(df, folded_domain_func_args)
-
             }
         }
     }

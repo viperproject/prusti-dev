@@ -166,7 +166,7 @@ pub fn encode_mirror_function(
     let df = vir::DomainFunc {
         name: format!("{}{}", MIRROR_FUNCTION_PREFIX, name),
         formal_args: formal_args.clone(),
-        return_type: translate_type(return_type.clone(), &snapshots).unwrap(),
+        return_type: translate_type(return_type.clone(), &snapshots)?,
         unique: false,
         domain_name: AXIOMATIZED_FUNCTION_DOMAIN_NAME.to_owned(),
     };
