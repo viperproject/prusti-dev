@@ -45,11 +45,11 @@ fn verify_empty_program() {
         //.option("-XX:+TraceJNICalls")
         .build()
         .unwrap_or_else(|e| {
-            panic!(e.display_chain().to_string());
+            panic!("{}", e.display_chain());
         });
 
     let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
-        panic!(e.display_chain().to_string());
+        panic!("{}", e.display_chain());
     });
 
     let env = jvm
@@ -121,11 +121,11 @@ fn verify_empty_program() {
     .unwrap_or_else(|e| {
         let exception_occurred = env
             .exception_check()
-            .unwrap_or_else(|e| panic!(format!("{:?}", e)));
+            .unwrap_or_else(|e| panic!("{:?}", e));
         if exception_occurred {
             env.exception_describe()
-                .unwrap_or_else(|e| panic!(format!("{:?}", e)));
+                .unwrap_or_else(|e| panic!("{:?}", e));
         }
-        panic!(e.display_chain().to_string());
+        panic!("{}", e.display_chain());
     });
 }
