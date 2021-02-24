@@ -42,7 +42,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             let krate = hir.krate();
             let env = Environment::new(tcx);
             let mut spec_checker = specs::checker::SpecChecker::new();
-            spec_checker.check_predicate_calls(tcx, krate);
+            spec_checker.check_predicate_usages(tcx, krate);
             spec_checker.report_errors(&env);
             compiler.session().abort_if_errors();
 

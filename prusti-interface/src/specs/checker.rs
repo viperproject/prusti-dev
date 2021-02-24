@@ -17,13 +17,13 @@ use crate::{
 };
 
 /// Checker visitor for the specifications. Currently checks that `#[predicate]`
-/// functions are never called from non-specification code, but more checks may follow.
+/// functions are never used from non-specification code, but more checks may follow.
 pub struct SpecChecker {
     /// Map of the `DefID`s to the `Span`s of `#[predicate]` functions found in the first pass.
     predicates: HashMap<DefId, Span>,
 
-    /// Span of call and definition of predicates illegally called, collected in the second pass.
-    pred_calls: Vec<(Span, Span)>,
+    /// Span of use and definition of predicates used outside of specifications, collected in the second pass.
+    pred_usages: Vec<(Span, Span)>,
 }
 
 /// First predicate checks visitor: collect all function items that originate
@@ -66,7 +66,7 @@ struct CheckPredicatesVisitor<'v, 'tcx> {
     tcx: TyCtxt<'tcx>,
 
     predicates: &'v HashMap<DefId, Span>,
-    pred_calls: &'v mut Vec<(Span, Span)>,
+    pred_usages: &'v mut Vec<(Span, Span)>,
 }
 
 impl<'v, 'tcx> Visitor<'tcx> for CheckPredicatesVisitor<'v, 'tcx> {
@@ -78,7 +78,7 @@ impl<'v, 'tcx> Visitor<'tcx> for CheckPredicatesVisitor<'v, 'tcx> {
 
     fn visit_item(&mut self, i: &'tcx hir::Item<'tcx>) {
         // restrict to "interesting" sub-nodes to visit, i.e. anything that
-        // could be or contain call expressions
+        // could be or contain call (or other usage of predicate) expressions
         use hir::ItemKind::*;
 
         match i.kind {
@@ -96,7 +96,7 @@ impl<'v, 'tcx> Visitor<'tcx> for CheckPredicatesVisitor<'v, 'tcx> {
             let res = self.tcx.typeck(ex.hir_id.owner).qpath_res(path, ex.hir_id);
             if let hir::def::Res::Def(_, def_id) = res {
                 if let Some(pred_def_span) = self.predicates.get(&def_id) {
-                    self.pred_calls.push((ex.span, *pred_def_span));
+                    self.pred_usages.push((ex.span, *pred_def_span));
                 }
             }
         }
@@ -125,11 +125,11 @@ impl<'tcx> SpecChecker {
     pub fn new() -> Self {
         Self {
             predicates: HashMap::new(),
-            pred_calls: Vec::new(),
+            pred_usages: Vec::new(),
         }
     }
 
-    pub fn check_predicate_calls(&mut self, tcx: TyCtxt<'tcx>, krate: &'tcx hir::Crate<'tcx>) {
+    pub fn check_predicate_usages(&mut self, tcx: TyCtxt<'tcx>, krate: &'tcx hir::Crate<'tcx>) {
         let mut collect = CollectPredicatesVisitor {
             tcx,
             predicates: &mut self.predicates,
@@ -139,19 +139,19 @@ impl<'tcx> SpecChecker {
         let mut visit = CheckPredicatesVisitor {
             tcx: collect.tcx,
             predicates: &self.predicates,
-            pred_calls: &mut self.pred_calls,
+            pred_usages: &mut self.pred_usages,
         };
         intravisit::walk_crate(&mut visit, krate);
 
         debug!("Predicate funcs: {:?}", self.predicates);
-        debug!("Predicate calls: {:?}", self.pred_calls);
+        debug!("Predicate usages: {:?}", self.pred_usages);
     }
 
     pub fn report_errors(&self, env: &Environment<'tcx>) {
-        for &(call_span, def_span) in &self.pred_calls {
+        for &(usage_span, def_span) in &self.pred_usages {
             PrustiError::incorrect(
                 "using predicate from non-specification code is not allowed".to_string(),
-                MultiSpan::from_span(call_span),
+                MultiSpan::from_span(usage_span),
             )
             .set_note("this is a specification-only predicate function", def_span)
             .emit(env);
