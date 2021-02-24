@@ -11,4 +11,7 @@ fn pred(a: bool) -> bool {
     forall(|b: bool| a == b)
 }
 
+#[requires(pred(true))]
+fn use_pred() {}
+
 fn main() {}
