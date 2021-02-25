@@ -45,62 +45,20 @@ impl VecWrapperI32 {
 }
 
 #[pure]
-#[requires(n >= 1)]
-#[ensures(result >= 0)]
-fn log(n: isize) -> isize {
-    if n == 1 {
-        0
-    } else {
-        1 + log(n / 2)
-    }
-}
-
-#[pure]
-#[requires(n >= 0)]
-#[ensures(result > 0)]
-fn pow(n: isize) -> isize {
-    if n == 0 {
-        1
-    } else  {
-        2 * pow(n - 1)
-    }
-}
-
-#[pure]
 #[trusted]
-#[ensures((y % 2) == 0 ==> (x / (y / 2)) == (2 * x) / y)]
-fn lemma(x: isize, y: isize) {
-
-}
-
-#[pure]
 #[requires(power_of_two(len))]
 #[requires(idx >= 1 && idx < len * 2)]
 #[ensures(result >= 1)]
 #[ensures(power_of_two(result))]
-#[ensures(result == len / pow(log(idx)))]
+#[ensures(idx == 1 ==> result == len)]
+#[ensures(idx >  1 ==> result == range_length(idx / 2, len) / 2)]
 #[ensures(idx < len  ==> result > 1)]
 #[ensures(idx >= len ==> result == 1)]
 fn range_length(idx: isize, len: isize) -> isize {
     if idx == 1 {
-        assert!(len == len / pow(log(idx)));
         len
     } else {
-        let x = range_length(idx / 2, len);
-        let y = log(idx / 2);
-        let z = log(idx);
-        assert!(z == y + 1);
-        let a = pow(y);
-        let b = pow(z);
-        assert!(b == a * 2);
-        assert!(a == b / 2);
-        assert!(x == len / a);
-        let result = x / 2;
-        assert!(x == len / (b / 2));
-        assert!(b % 2 == 0);
-        assert!(x == (2 * len) / b);
-        assert!(x == (2 * len) / b);
-        x / 2
+        range_length(idx / 2, len) / 2
     }
 }
 
