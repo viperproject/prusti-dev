@@ -41,7 +41,7 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
             return;
         }
         if let hir::ItemKind::Fn(..) = item.kind {
-            let def_id = self.tcx.hir().local_def_id(item.hir_id).to_def_id();
+            let def_id = self.tcx.hir().local_def_id(item.hir_id()).to_def_id();
             let item_def_path = self.env.get_item_def_path(def_id);
             trace!("Add {} to result", item_def_path);
             self.result.push(def_id);
@@ -64,7 +64,7 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
         if let hir::TraitItemKind::Fn(_, hir::TraitFn::Required(_)) = trait_item.kind {
             return;
         }
-        let def_id = self.tcx.hir().local_def_id(trait_item.hir_id).to_def_id();
+        let def_id = self.tcx.hir().local_def_id(trait_item.hir_id()).to_def_id();
         let item_def_path = self.env.get_item_def_path(def_id);
         trace!("Add {} to result", item_def_path);
         self.result.push(def_id);
@@ -82,7 +82,7 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
             return;
         }
 
-        let def_id = self.tcx.hir().local_def_id(impl_item.hir_id).to_def_id();
+        let def_id = self.tcx.hir().local_def_id(impl_item.hir_id()).to_def_id();
         let item_def_path = self.env.get_item_def_path(def_id);
         trace!("Add {} to result", item_def_path);
         self.result.push(def_id);

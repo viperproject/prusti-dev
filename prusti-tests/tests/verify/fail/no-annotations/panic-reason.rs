@@ -7,7 +7,8 @@ fn test_assert(x: bool) {
 }
 
 fn test_assert_msg(x: bool) {
-    assert!(false, "msg");  //~ ERROR the asserted expression might not hold
+    // FIXME: see mir_encoder encode_panic_cause
+    assert!(false, "msg");  //~ ERROR panic!(..) statement might be reachable
 }
 
 fn test_debug_assert(x: bool) {
@@ -65,7 +66,8 @@ fn test_inner_assert(x: bool) {
 macro_rules! inner_assert_msg {
     () => {
         {
-            assert!(false, "msg");  //~ ERROR the asserted expression might not hold
+            // FIXME: see mir_encoder encode_panic_cause
+            assert!(false, "msg");  //~ ERROR panic!(..) statement might be reachable
         }
     };
 }

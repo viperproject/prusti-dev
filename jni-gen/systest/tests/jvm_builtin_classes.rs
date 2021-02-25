@@ -21,11 +21,11 @@ fn test_jvm_builtin_classes() {
         //.option("-XX:+TraceJNICalls")
         .build()
         .unwrap_or_else(|e| {
-            panic!(e.display_chain().to_string());
+            panic!("{}", e.display_chain());
         });
 
     let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
-        panic!(e.display_chain().to_string());
+        panic!("{}", e.display_chain());
     });
 
     let env = jvm
@@ -52,7 +52,7 @@ fn test_jvm_builtin_classes() {
             })
             .unwrap_or_else(|e| {
                 print_exception(&env);
-                panic!(e.display_chain().to_string());
+                panic!("{}", e.display_chain());
             });
         }
     }

@@ -56,6 +56,8 @@ pub enum FoldUnfoldError {
     /// The algorithms tried to remove a predicate that is not in the
     /// fold-unfold state.
     FailedToRemovePred(vir::Expr),
+    /// The algorithm tried to lookup a never-seen-before label
+    MissingLabel(String),
 }
 
 impl From<PermAmountError> for FoldUnfoldError {
@@ -1257,7 +1259,10 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         let mut tmp_curr_pctxt = if label == "lhs" && self.lhs_pctxt.is_some() {
             self.lhs_pctxt.as_ref().unwrap().clone()
         } else {
-            self.pctxt_at_label.get(&label).unwrap().clone()
+            self.pctxt_at_label.get(&label).map_or_else(
+                || Err(FoldUnfoldError::MissingLabel(label.clone())),
+                |pctxt| Ok(pctxt),
+            )?.clone()
         };
 
         // Replace old[label] with curr

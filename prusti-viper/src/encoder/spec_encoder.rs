@@ -573,7 +573,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         debug!("encode_expression {:?}", assertion_expr);
 
         let mut curr_def_id = assertion_expr.expr.to_def_id();
-        let mut curr_expr = self.encoder.encode_pure_function_body(curr_def_id)?;
+        let mut curr_expr = self.encoder.encode_pure_expression(curr_def_id)?;
 
         loop {
             let done = self.encoder.get_single_closure_instantiation(curr_def_id).is_none();

@@ -36,9 +36,9 @@ use std::{env, panic, borrow::Cow, path::PathBuf};
 use prusti_common::report::user;
 use lazy_static::lazy_static;
 use callbacks::PrustiCompilerCalls;
-use rustc_middle::ty::TyCtxt;
 use prusti_common::config;
 use arg_value::arg_value;
+use rustc_interface::interface::try_print_query_stack;
 
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
@@ -103,7 +103,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         .map_or(false, |x| &x != "0");
 
     if backtrace {
-        TyCtxt::try_print_query_stack(&handler, None);
+        try_print_query_stack(&handler, None);
     }
 }
 
