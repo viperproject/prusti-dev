@@ -787,7 +787,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .encoder
                                     .error_manager()
                                     .register(term.source_info.span, ErrorCtxt::PureFunctionCall);
-                                let encoded_rhs = vir::Expr::func_app(
+                                let mut encoded_rhs = vir::Expr::func_app(
                                     function_name,
                                     encoded_args,
                                     formal_args,
