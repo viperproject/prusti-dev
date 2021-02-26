@@ -899,6 +899,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         type_encoder.encode_bounds(var)
     }
 
+    /// See `spec_encoder::encode_spec_assertion` for a description of the arguments.
     pub fn encode_assertion(
         &self,
         assertion: &typed::Assertion<'tcx>,
