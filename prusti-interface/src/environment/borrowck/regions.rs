@@ -25,20 +25,16 @@ use crate::environment::borrowck::facts;
 lazy_static! {
     static ref FN_SIG: Regex =
         Regex::new(r"^fn [a-zA-Z\d_]+\((?P<args>.*)\) -> (?P<result>.*)\{$").unwrap();
-}
-lazy_static! {
+
     static ref ARG: Regex =
         Regex::new(r"^_(?P<local>\d+): &'_#(?P<rvid>\d+)r (mut)? [a-zA-Z\d_]+\s*$").unwrap();
-}
-lazy_static! {
+
     static ref LOCAL: Regex =
         Regex::new(r"let( mut)? _(?P<local>\d+): &'_#(?P<rvid>\d+)r ").unwrap();
-}
-lazy_static! {
+
     static ref LOCAL_TUPLE: Regex =
         Regex::new(r"let( mut)? _(?P<local>\d+): \((?P<items>.*)\);").unwrap();
-}
-lazy_static! {
+
     static ref REF: Regex = Regex::new(r"&'_#(?P<rvid>\d+)r ").unwrap();
 }
 
