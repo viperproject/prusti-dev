@@ -19,6 +19,7 @@ jobs:
 
       - name: Update dependencies
         run: |
+          # Update the rustc version
           NIGHTLY_VERSION="nightly-$(
             curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/rustc-dev
           )"
@@ -28,12 +29,12 @@ jobs:
           UPDATE_NUMBER=$(( $(date +%m) * 2 + ($(date +%d) / 15) - 2 ))
           DEVELOPER="${DEVELOPERS[ $UPDATE_NUMBER % ${#DEVELOPERS[@]} ]}"
           echo "The assigned developer is $DEVELOPER"
-          OUTDATED_DEPENDENCIES="$(cargo outdated --root-deps-only --workspace)"
           echo "NIGHTLY_VERSION=$NIGHTLY_VERSION" >> $GITHUB_ENV
           echo "DEVELOPER=$DEVELOPER" >> $GITHUB_ENV
-          echo "OUTDATED_DEPENDENCIES=<<EOF" >> $GITHUB_ENV
-          echo "$OUTDATED_DEPENDENCIES" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          # Find outdated dependencies
+          echo 'OUTDATED_DEPENDENCIES=<<EOF' >> $GITHUB_ENV
+          cargo outdated --root-deps-only --workspace >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Open a pull request
         uses: peter-evans/create-pull-request@v3
