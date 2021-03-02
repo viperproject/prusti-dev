@@ -39,6 +39,7 @@ use callbacks::PrustiCompilerCalls;
 use prusti_common::config;
 use arg_value::arg_value;
 use rustc_interface::interface::try_print_query_stack;
+use log::info;
 
 /// Link to report Prusti bugs
 const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
@@ -53,7 +54,7 @@ lazy_static! {
 
 fn get_prusti_version_info() -> String {
     format!(
-        "{{commit {} {}, built on {}}}",
+        "commit {} {}, built on {}",
         option_env!("COMMIT_HASH").unwrap_or("<unknown>"),
         option_env!("COMMIT_TIME").unwrap_or("<unknown>"),
         option_env!("BUILD_TIME").unwrap_or("<unknown>"),
@@ -136,12 +137,12 @@ fn main() {
     let exit_code = rustc_driver::catch_with_exit_code(move || {
 
         user::message(format!(
-            "{}\n{}\n{}\n\n{}\n\n",
+            "{}\n{}\n{}\n\n",
             r"  __          __        __  ___             ",
             r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ",
             r" |      /\   |  \ \__/ .__/  |       /\   | ",
-            get_prusti_version_info(),
         ));
+        info!("Prusti version: {}", get_prusti_version_info());
 
         env::set_var("POLONIUS_ALGORITHM", "Naive");
         rustc_args.push("-Zborrowck=mir".to_owned());
