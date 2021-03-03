@@ -14,7 +14,6 @@ pub mod specifications;
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use untyped::EncodeTypeCheck;
 use std::convert::{TryFrom, TryInto};
 
 use specifications::untyped;
@@ -497,32 +496,21 @@ pub fn predicate(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         unreachable!("a function's block must be a brace-delimited `TokenTree::Group`")
     };
 
-    // TODO: this is very similar to generate_spec_item_fn, should extract that into a common function
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let assertion = handle_result!(rewriter.parse_assertion(spec_id, pred_tokens));
 
-    let item_name = syn::Ident::new(
-        &format!("prusti_pred_item_{}_{}", item.sig().ident, spec_id),
-        item_span,
-    );
-    let mut assertion_typechecks = TokenStream::new();
-    assertion.encode_type_check(&mut assertion_typechecks);
-    let spec_id_str = spec_id.to_string();
-    let assertion_json = specifications::json::to_json_string(&assertion);
-
-    let generics = item.sig().generics.clone();
-    let inputs = item.sig().inputs.clone();
+    let spec_fn = handle_result!(rewriter.generate_spec_item_fn(
+        rewriter::SpecItemType::Predicate,
+        spec_id,
+        assertion,
+        &item,
+    ));
     let sig = item.sig().to_token_stream();
+    let spec_id_str = spec_id.to_string();
     parse_quote_spanned! {item_span =>
         // this is to typecheck the assertion
-        #[allow(unused_must_use, unused_variables, dead_code)]
-        #[prusti::spec_only]
-        #[prusti::assertion = #assertion_json]
-        #[prusti::spec_id = #spec_id_str]
-        fn #item_name #generics(#inputs) {
-            #assertion_typechecks
-        }
+        #spec_fn
 
         // this is the assertion's remaining, empty fn
         #[pure]
