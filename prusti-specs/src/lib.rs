@@ -61,6 +61,17 @@ pub fn rewrite_prusti_attributes(
     // Collect the remaining Prusti attributes, removing them from `item`.
     prusti_attributes.extend(extract_prusti_attributes(&mut item));
 
+    // make sure to also update the check in the #[predicate] handling method
+    if prusti_attributes
+        .iter()
+        .any(|(ak, _)| ak == &SpecAttributeKind::Predicate)
+    {
+        return syn::Error::new(
+            item.span(),
+            "`#[predicate]` is incompatible with other prusti attributes",
+        ).to_compile_error();
+    }
+
     let (generated_spec_items, generated_attributes) = handle_result!(
         generate_spec_and_assertions(prusti_attributes, &item)
     );
@@ -90,6 +101,10 @@ fn generate_spec_and_assertions(
             SpecAttributeKind::AfterExpiryIf => generate_for_after_expiry_if(attr_tokens, item),
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, item),
             SpecAttributeKind::Trusted => generate_for_trusted(attr_tokens, item),
+            // Predicates are handled separately below; the entry in the SpecAttributeKind enum
+            // only exists so we successfully parse it and emit an error in
+            // `check_incompatible_attrs`; so we'll never reach here.
+            SpecAttributeKind::Predicate => unreachable!(),
         };
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
@@ -445,57 +460,77 @@ pub fn predicate(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         ).to_compile_error();
     }
 
-    let item: syn::Item = handle_result!(syn::parse2(tokens));
+    // emit a custom error to the user instead of a parse error
+    let mut item: untyped::AnyFnItem = handle_result!(
+        syn::parse2(tokens)
+            .map_err(|e| syn::Error::new(
+                e.span(),
+                "you can only use `#[predicate]` on function definitions"
+            ))
+    );
     let item_span = item.span();
-    match item {
-        syn::Item::Fn(pred_func) => {
-            let block_tokens = pred_func.block.to_token_stream();
-            let pred_tokens = if let Some(TokenTree::Group(group)) = block_tokens.into_iter().next() {
-                group.stream()
-            } else {
-                unreachable!("a function's block must be a brace-delimited `TokenTree::Group`")
-            };
 
-            // TODO: this is very similar to generate_spec_item_fn, should extract that into a common function
-            let mut rewriter = rewriter::AstRewriter::new();
-            let spec_id = rewriter.generate_spec_id();
-            let assertion = handle_result!(rewriter.parse_assertion(spec_id, pred_tokens));
+    // check for other attributes -- #[predicate] is incompatible with all others currently
+    // make sure to also update the check in `rewrite_prusti_attributes`
+    let other_prusti_attrs = extract_prusti_attributes(&mut item);
+    if other_prusti_attrs.count() != 0 {
+        return syn::Error::new(
+            item.span(),
+            "`#[predicate]` is incompatible with other prusti attributes",
+        ).to_compile_error();
+    }
 
-            let item_name = syn::Ident::new(
-                &format!("prusti_pred_item_{}_{}", pred_func.sig.ident, spec_id),
-                item_span,
-            );
-            let mut assertion_typechecks = TokenStream::new();
-            assertion.encode_type_check(&mut assertion_typechecks);
-            let spec_id_str = spec_id.to_string();
-            let assertion_json = crate::specifications::json::to_json_string(&assertion);
+    // need to check here, as methods defined in trait definitions may not have a body, but for
+    // predicates we need them
+    let block_tokens = if let Some(block) = item.block() {
+        block.to_token_stream()
+    } else {
+        return syn::Error::new(
+            item.span(),
+            "Cannot use `#[predicate]` on bodyless functions",
+        ).to_compile_error();
+    };
 
-            let generics = pred_func.sig.generics.clone();
-            let inputs = pred_func.sig.inputs.clone();
-            let sig = pred_func.sig.to_token_stream();
-            parse_quote_spanned! {item_span =>
-                // this is to typecheck the assertion
-                #[allow(unused_must_use, unused_variables, dead_code)]
-                #[prusti::spec_only]
-                #[prusti::assertion = #assertion_json]
-                #[prusti::spec_id = #spec_id_str]
-                fn #item_name #generics(#inputs) {
-                    #assertion_typechecks
-                }
+    let pred_tokens = if let Some(TokenTree::Group(group)) = block_tokens.into_iter().next() {
+        group.stream()
+    } else {
+        unreachable!("a function's block must be a brace-delimited `TokenTree::Group`")
+    };
 
-                // this is the assertion's remaining, empty fn
-                #[pure]
-                #[trusted]
-                #[prusti::pred_spec_id_ref = #spec_id_str]
-                #[allow(unused_must_use, unused_variables, dead_code)]
-                #sig {
-                    unimplemented!("predicate")
-                }
-            }
-        },
+    // TODO: this is very similar to generate_spec_item_fn, should extract that into a common function
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let assertion = handle_result!(rewriter.parse_assertion(spec_id, pred_tokens));
 
-        _ => parse_quote_spanned! {item_span =>
-            compile_error!("you can only use `#[predicate]` on function definitions")
+    let item_name = syn::Ident::new(
+        &format!("prusti_pred_item_{}_{}", item.sig().ident, spec_id),
+        item_span,
+    );
+    let mut assertion_typechecks = TokenStream::new();
+    assertion.encode_type_check(&mut assertion_typechecks);
+    let spec_id_str = spec_id.to_string();
+    let assertion_json = specifications::json::to_json_string(&assertion);
+
+    let generics = item.sig().generics.clone();
+    let inputs = item.sig().inputs.clone();
+    let sig = item.sig().to_token_stream();
+    parse_quote_spanned! {item_span =>
+        // this is to typecheck the assertion
+        #[allow(unused_must_use, unused_variables, dead_code)]
+        #[prusti::spec_only]
+        #[prusti::assertion = #assertion_json]
+        #[prusti::spec_id = #spec_id_str]
+        fn #item_name #generics(#inputs) {
+            #assertion_typechecks
+        }
+
+        // this is the assertion's remaining, empty fn
+        #[pure]
+        #[trusted]
+        #[prusti::pred_spec_id_ref = #spec_id_str]
+        #[allow(unused_must_use, unused_variables, dead_code)]
+        #sig {
+            unimplemented!("predicate")
         }
     }
 }

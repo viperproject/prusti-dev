@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 /// This type identifies one of the procedural macro attributes of Prusti
-#[derive(Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum SpecAttributeKind {
     Requires,
     Ensures,
@@ -9,6 +9,7 @@ pub enum SpecAttributeKind {
     AfterExpiryIf,
     Pure,
     Trusted,
+    Predicate,
 }
 
 impl TryFrom<String> for SpecAttributeKind {
@@ -22,6 +23,7 @@ impl TryFrom<String> for SpecAttributeKind {
             "after_expiry_if" => Ok(SpecAttributeKind::AfterExpiryIf),
             "pure" => Ok(SpecAttributeKind::Pure),
             "trusted" => Ok(SpecAttributeKind::Trusted),
+            "predicate" => Ok(SpecAttributeKind::Predicate),
             _ => Err(name),
         }
     }
