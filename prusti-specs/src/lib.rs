@@ -513,10 +513,10 @@ pub fn predicate(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         #spec_fn
 
         // this is the assertion's remaining, empty fn
-        #[pure]
-        #[trusted]
-        #[prusti::pred_spec_id_ref = #spec_id_str]
         #[allow(unused_must_use, unused_variables, dead_code)]
+        #[prusti::pure]
+        #[prusti::trusted]
+        #[prusti::pred_spec_id_ref = #spec_id_str]
         #sig {
             unimplemented!("predicate")
         }
