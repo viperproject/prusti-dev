@@ -23,8 +23,8 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                 compiler.session(),
                 compiler.input(),
                 krate,
-                rustc_session::config::PpMode::PpmSource(
-                    rustc_session::config::PpSourceMode::PpmNormal,
+                rustc_session::config::PpMode::Source(
+                    rustc_session::config::PpSourceMode::Normal,
                 ),
                 None,
             );
