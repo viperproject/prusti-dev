@@ -37,11 +37,11 @@ On a Linux-based OS, the required libraries are:
  - `wget`
  - `gcc`
  - `libssl-dev`
- - `openjdk-8-jdk`
+ - `openjdk-11-jdk`
 
 ### macOS
 
-On macOS, [Java JDK 8](https://www.oracle.com/java/technologies/javase-downloads.html) is required.
+On macOS, [Java JDK 11](https://www.oracle.com/java/technologies/javase-downloads.html) is required.
 
 ## Viper tools
 
