@@ -163,7 +163,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#snapshot-based-type-encoding" id="snapshot-based-type-encoding">Snapshot-based type encoding</a></h1>
+                        <h1 id="snapshot-based-type-encoding"><a class="header" href="#snapshot-based-type-encoding">Snapshot-based type encoding</a></h1>
 <p>Prusti's <a href="types-heap.html">default encoding of types</a> heavily relies on the heap component of the Viper program state to model parts of Rust's ownership system through <a href="http://viper.ethz.ch/tutorial/?page=1&amp;section=#permissions">permissions</a>.</p>
 <p>However, some Viper features do not work well with Prusti's heap-based encoding.
 For example, <a href="http://viper.ethz.ch/tutorial/?page=1&amp;section=#quantifiers">quantification</a> over structs is problematic because they are encoded using predicates instead of heap-independent types.
@@ -179,7 +179,7 @@ Instances of <code>Snap$T</code> can be thought of as deep values representing a
 <li><em>Axioms</em> that ensure that each Rust value of type <code>T</code> corresponds to exactly one deep value of type <code>Snap$T</code> and the other way around, i.e., there is a bijection between instances of the Rust type and its snapshot encoding.</li>
 <li>A heap-dependent <em>snapshot function</em> that converts the heap-based encoding of a Rust value of type <code>T</code> into a heap-independent representation of type <code>Snap$T</code>.</li>
 </ol>
-<h2><a class="header" href="#example" id="example">Example</a></h2>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
 <p>Consider the Rust struct declared below.</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
@@ -223,7 +223,7 @@ function snap$SomeStruct(self: Ref): Snap$SomeStruct
 </code></pre>
 <p>The above function recursively unfolds all predicates involved in the encoding of <code>SomeStruct</code>.
 It then calls the constructor of <code>Snap$SomeStruct</code>. Furthermore, for each argument, it calls the <code>snap$</code> function of the argument's type to obtain a heap-independent deep value instead of a reference.</p>
-<h2><a class="header" href="#primitive-types" id="primitive-types">Primitive types</a></h2>
+<h2 id="primitive-types"><a class="header" href="#primitive-types">Primitive types</a></h2>
 <p>Prusti also generates <code>snap$</code> functions for primitive types such that we do not have to check whether a type is primitive or not; these functions return the primitive type itself instead of a domain type. For instance, the function <code>snap$i32</code> used in the above example is defined as follows:</p>
 <pre><code class="language-viper">function snap$i32(self: Ref): Int
   requires acc(i32(self), read$())
@@ -243,7 +243,7 @@ function snap$SomeStruct(self: Ref): Snap$SomeStruct
       cons$SomeStruct(self.SomeStruct_a.val_int, self.SomeStruct_b.val_int)
 }
 </code></pre>
-<h2><a class="header" href="#nested-structures" id="nested-structures">Nested structures</a></h2>
+<h2 id="nested-structures"><a class="header" href="#nested-structures">Nested structures</a></h2>
 <p>Nested Rust structures are encoded as in the previous example - the main difference is that every reference to another structure needs to be replaced with the corresponding snapshot type in every constructor.</p>
 <p>For instance, assume we extend the previous example with another structure that re-uses <code>SomeStruct</code>:</p>
 <pre><pre class="playground"><code class="language-rust">
@@ -270,7 +270,7 @@ function snap$BiggerStruct(self: Ref): Snap$BiggerStruct
     cons$BiggerStruct(snap$i32(self.BiggerStruct_foo), snap$SomeStruct(self.BiggerStruct_bar))
 }
 </code></pre>
-<h2><a class="header" href="#enumerations" id="enumerations">Enumerations</a></h2>
+<h2 id="enumerations"><a class="header" href="#enumerations">Enumerations</a></h2>
 <blockquote>
 <p><strong>This feature is not fully implemented in Prusti yet.</strong></p>
 </blockquote>
@@ -339,10 +339,10 @@ function snap$MyOption(x: Ref): Snap$MyOption
       : cons$MyOption$0()
 }
 </code></pre>
-<h2><a class="header" href="#applications-of-snapshots" id="applications-of-snapshots">Applications of snapshots</a></h2>
+<h2 id="applications-of-snapshots"><a class="header" href="#applications-of-snapshots">Applications of snapshots</a></h2>
 <p>Prusti makes use of the heap-independent encoding of types via snapshots 
 to implement several features, which are collected below.</p>
-<h3><a class="header" href="#structural-equality" id="structural-equality">Structural equality</a></h3>
+<h3 id="structural-equality"><a class="header" href="#structural-equality">Structural equality</a></h3>
 <p>Prusti uses the snapshot-based encoding for checking whether two instances of a data structure are equal. That is, both <code>x == y</code> and <code>std::cmp::eq(x,y)</code> are encoded as a comparison of the snapshot values of <code>x</code> and <code>y</code>:</p>
 <pre><code class="language-viper">snap$Type(x) == snap$Type(y)
 </code></pre>
@@ -353,7 +353,7 @@ to implement several features, which are collected below.</p>
 <li><code>T</code> is composed of other supported types, i.e., primitive types and other types that derive <code>Eq</code>.</li>
 </ol>
 <p>If a type does not meet these criteria, it either invokes a user-supplied custom implementation or a bodyless stub function.</p>
-<h3><a class="header" href="#comparing-return-values-of-pure-functions" id="comparing-return-values-of-pure-functions">Comparing return values of pure functions</a></h3>
+<h3 id="comparing-return-values-of-pure-functions"><a class="header" href="#comparing-return-values-of-pure-functions">Comparing return values of pure functions</a></h3>
 <p>Whenever one invokes a <a href="pure.html">pure function</a> with equal arguments, the function should yield the same return value, i.e., a function <code>f</code> with one argument should satisfy the following specification:</p>
 <pre><code>x == y  ==&gt; f(x) == f(y)
 </code></pre>
@@ -398,7 +398,7 @@ function f(x:Ref) : Int
   // ... 
 }
 </code></pre>
-<h3><a class="header" href="#pure-functions-returning-copy-types" id="pure-functions-returning-copy-types">Pure functions returning copy types</a></h3>
+<h3 id="pure-functions-returning-copy-types"><a class="header" href="#pure-functions-returning-copy-types">Pure functions returning copy types</a></h3>
 <p>Prusti uses snapshots to encode <a href="pure.html">pure Rust functions</a> that return structures or enumerations.
 This is necessary because Viper does not allow resource assertions within the postcondition of functions.
 At the moment, only types implementing the <a href="https://doc.rust-lang.org/core/marker/trait.Copy.html"><code>Copy</code></a> trait are supported.</p>
@@ -432,7 +432,7 @@ inhale acc(SomeStruct(x), write) &amp;&amp; snap$SomeStruct(x) == get(y)
 In particular, chaining pure functions, e.g., <code>f(g(h(x, y)))</code>, and constructing new
 instances of Copy types within pure functions is currently not fully supported.</p>
 </blockquote>
-<h3><a class="header" href="#quantification-over-structures" id="quantification-over-structures">Quantification over structures</a></h3>
+<h3 id="quantification-over-structures"><a class="header" href="#quantification-over-structures">Quantification over structures</a></h3>
 <blockquote>
 <p><strong>TODO</strong>: Has this been added in the context of closures?</p>
 </blockquote>

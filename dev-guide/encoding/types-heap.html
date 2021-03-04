@@ -163,18 +163,18 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#heap-based-type-encoding" id="heap-based-type-encoding">Heap-based type encoding</a></h1>
+                        <h1 id="heap-based-type-encoding"><a class="header" href="#heap-based-type-encoding">Heap-based type encoding</a></h1>
 <p>This encoding uses Viper <a href="http://viper.ethz.ch/tutorial/?page=1&amp;section=#predicates">predicates</a> and <code>Ref</code>s.</p>
-<h2><a class="header" href="#primitive-types" id="primitive-types">Primitive types</a></h2>
+<h2 id="primitive-types"><a class="header" href="#primitive-types">Primitive types</a></h2>
 <p>A small number of Rust types have direct analogues in the Viper type system. However, because it is possible to reference local variables and arguments in Rust, all variables are encoded as <code>Ref</code>s, and specific fields are used to refer to the &quot;primitive value&quot; contained in those <code>Ref</code>s.</p>
-<h3><a class="header" href="#bool" id="bool"><code>Bool</code></a></h3>
+<h3 id="bool"><a class="header" href="#bool"><code>Bool</code></a></h3>
 <p><code>Bool</code> is encoded to Viper <code>Bool</code>.</p>
 <pre><code class="language-viper">field val_bool: Bool
 predicate bool(self: Ref) {
   acc(self.val_bool, write)
 }
 </code></pre>
-<h3><a class="header" href="#i-u-char" id="i-u-char"><code>i*</code>, <code>u*</code>, <code>char</code></a></h3>
+<h3 id="i-u-char"><a class="header" href="#i-u-char"><code>i*</code>, <code>u*</code>, <code>char</code></a></h3>
 <p>All Rust integers (<code>i8</code>, <code>i16</code>, <code>i32</code>, <code>i64</code>, <code>i128</code>, <code>isize</code>, <code>u8</code>, <code>u16</code>, <code>u32</code>, <code>u64</code>, <code>u128</code>, <code>usize</code>) and <code>char</code> are encoded to Viper <code>Int</code>.</p>
 <pre><code class="language-viper">field val_i32: Int
 predicate i32(self: Ref) {
@@ -193,9 +193,9 @@ predicate u32(self: Ref) {
   acc(self.val_u32, write) &amp;&amp; 0 &lt;= self.val_u32
 }
 </code></pre>
-<h2><a class="header" href="#composite-types" id="composite-types">Composite types</a></h2>
+<h2 id="composite-types"><a class="header" href="#composite-types">Composite types</a></h2>
 <p>There are no classes in Viper (every <code>Ref</code> instance has all fields), so non-primitive Rust types are encoded as predicates composed of multiple components.</p>
-<h3><a class="header" href="#tuples" id="tuples">Tuples</a></h3>
+<h3 id="tuples"><a class="header" href="#tuples">Tuples</a></h3>
 <p>Each component of a tuple is a field of type <code>Ref</code>, named <code>tuple_0</code>, <code>tuple_1</code>, etc. The type of each component is encoded recursively.</p>
 <pre><code class="language-viper">field tuple_0: Ref
 field tuple_1: Ref
@@ -207,7 +207,7 @@ predicate Tuple_X_Y(self: Ref) {
   acc(self.tuple_1, write) &amp;&amp; Y(self.tuple_1)
 }
 </code></pre>
-<h3><a class="header" href="#structures" id="structures">Structures</a></h3>
+<h3 id="structures"><a class="header" href="#structures">Structures</a></h3>
 <p>Structures are encoded similarly to tuples, except that fields names correspond to the names defined in the Rust type.</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
@@ -226,7 +226,7 @@ predicate SomeStruct(self:Ref) {
   acc(self.SomeStruct_b, write) &amp;&amp; Y(self.SomeStruct_b)
 }
 </code></pre>
-<h3><a class="header" href="#enumerations" id="enumerations">Enumerations</a></h3>
+<h3 id="enumerations"><a class="header" href="#enumerations">Enumerations</a></h3>
 <p>Enumerations (ADTs) have values corresponding to one of their variants. Each variant can hold different types of data, so the Viper encoding contains implications of the form &quot;if the variant of the value is X, the value contains the following fields&quot;. The variant index is encoded as the <code>discriminant</code> field.</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
@@ -251,7 +251,7 @@ predicate SomeEnum(self: Ref) {
   (self.discriminant == 1 ==&gt; acc(self.elt0, write) &amp;&amp; X(self.elt0))
 }
 </code></pre>
-<h3><a class="header" href="#references" id="references">References</a></h3>
+<h3 id="references"><a class="header" href="#references">References</a></h3>
 <p>Rust references, mutable or otherwise, are encoded using the <code>val_ref</code> field.</p>
 <pre><code class="language-viper">field val_ref: Ref
 
