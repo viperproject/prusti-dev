@@ -6,7 +6,6 @@ use prusti_common::vir;
 pub use self::purifier::{AssertPurifier, ExprPurifier};
 
 use super::{errors::EncodingResult, snapshot_encoder::{SNAPSHOT_VARIANT,Snapshot}};
-use vir::Type;
 
 mod fixer;
 mod purifier;
@@ -55,7 +54,7 @@ pub fn encode_field_domain_func(
     if let Some(s) = variant_name {
         field_domain_name += &s;
     }
-    let return_type: Type = match field_type {
+    let return_type: vir::Type = match field_type {
         vir::Type::TypedRef(name) => vir::Type::Domain(name),
         t => t,
     };
@@ -73,13 +72,13 @@ pub fn encode_field_domain_func(
 }
 
 pub fn encode_unfold_witness(domain_name: String) -> vir::DomainFunc {
-    let self_type = Type::Domain(domain_name.clone());
+    let self_type = vir::Type::Domain(domain_name.clone());
     let self_arg = vir::LocalVar {
         name: "self".to_string(),
         typ: self_type,
     };
 
-    let nat_type = Type::Domain(NAT_DOMAIN_NAME.to_owned());
+    let nat_type = vir::Type::Domain(NAT_DOMAIN_NAME.to_owned());
     let nat_arg = vir::LocalVar {
         name: "count".to_string(),
         typ: nat_type,
@@ -97,16 +96,16 @@ pub fn encode_unfold_witness(domain_name: String) -> vir::DomainFunc {
 /// Returns the T$valid function for the given type
 pub fn valid_func_for_type(typ: &vir::Type) -> vir::DomainFunc {
     let domain_name: String = match typ {
-        Type::Domain(name) => name.clone(),
-        Type::Bool | Type::Int => PRIMITIVE_VALID_DOMAIN_NAME.to_string(),
-        Type::TypedRef(_) => unreachable!(),
+        vir::Type::Domain(name) => name.clone(),
+        vir::Type::Bool | vir::Type::Int => PRIMITIVE_VALID_DOMAIN_NAME.to_string(),
+        vir::Type::TypedRef(_) => unreachable!(),
     };
 
-    let arg_typ: Type = match typ {
-        Type::Domain(name) => vir::Type::Domain(domain_name.clone()),
-        Type::Bool => Type::Bool,
-        Type::Int => Type::Int,
-        Type::TypedRef(_) => unreachable!(),
+    let arg_typ: vir::Type = match typ {
+        vir::Type::Domain(name) => vir::Type::Domain(domain_name.clone()),
+        vir::Type::Bool => vir::Type::Bool,
+        vir::Type::Int => vir::Type::Int,
+        vir::Type::TypedRef(_) => unreachable!(),
     };
 
     let self_arg = vir::LocalVar {
@@ -191,11 +190,11 @@ fn unbox(name: String) -> String {
     return name.chars().skip(start.len()).take(remaining).collect();
 }
 
-pub fn translate_type(t: Type, snapshots: &HashMap<String, Box<Snapshot>>) -> Result<Type, String> {
+pub fn translate_type(t: vir::Type, snapshots: &HashMap<String, Box<Snapshot>>) -> Result<vir::Type, String> {
     match t {
-        Type::TypedRef(name) => match name.as_str() {
-            "i32" | "usize" | "u32" => Ok(Type::Int),
-            "bool" => Ok(Type::Bool),
+        vir::Type::TypedRef(name) => match name.as_str() {
+            "i32" | "usize" | "u32" => Ok(vir::Type::Int),
+            "bool" => Ok(vir::Type::Bool),
             _ => {
                 let name = unbox(name);
                 let domain_name = snapshots
