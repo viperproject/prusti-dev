@@ -99,6 +99,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     name_interner: RefCell<NameInterner>,
     mirror_function_domain: RefCell<vir::Domain>,
     mirror_caller_functions: RefCell<Vec<vir::Function>>,
+    /// The procedure that is currently being encoded.
     pub current_proc: RefCell<Option<ProcedureDefId>>
 }
 

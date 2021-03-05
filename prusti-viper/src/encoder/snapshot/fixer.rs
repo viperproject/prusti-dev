@@ -8,6 +8,14 @@ pub struct Fixer<'a> {
 }
 
 impl<'a> ExprFolder for Fixer<'a> {
+    // FIXME: An almost identical function is in
+    // prusti-viper/src/encoder/snapshot_spec_patcher.rs. However, that function
+    // patches the expression to use a different kind of mirror function (yes,
+    // we currently have two kinds of them: one for equality and other for all
+    // purified functions). Once we trust our purified function encoding, we
+    // should replace the mirror functions from equality with our new encoding.
+    // However, for that we need to develop a strategy how we are going to check
+    // the encoding of the functions.
     fn fold_func_app(
         &mut self,
         mut name: String,
