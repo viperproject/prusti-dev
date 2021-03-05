@@ -1209,6 +1209,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             if config::enable_purification_optimization() {
                 // Ensure that snapshots of all types used in the function are
                 // already encoded.
+                // TODO: In theory, this should be done on demand, but it
+                // complicates the snapshot code (requires it to support
+                // reentrance).
                 let body = procedure.get_mir();
                 for local_decl in &body.local_decls {
                     let ty = local_decl.ty;
