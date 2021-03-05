@@ -3459,7 +3459,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .with_span(postcondition_span.clone())
             )
             .collect::<SpannedEncodingResult<Vec<_>>>()?;
-           
+
 
             if config::enable_purification_optimization() {
                 let snapshots = self.encoder.get_snapshots();
@@ -5242,7 +5242,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ));
 
                     if config::enable_purification_optimization() {
-                        // Temporary fix 
+                        // Temporary fix
                         stmts.push(vir::Stmt::Assert(vir::Expr::eq_cmp(dst.clone().field(vir::Field {
                             name: "discriminant".into(),
                             typ: vir::Type::Int,

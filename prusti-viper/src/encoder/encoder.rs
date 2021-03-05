@@ -280,7 +280,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn encode_mirror_caller(&self, df: vir::DomainFunc, pres: vir::Expr) {
-        let arg_call : Vec<vir::Expr> = df.formal_args.iter().map(|e| { vir::Expr::local(e.clone()) }).collect(); 
+        let arg_call : Vec<vir::Expr> = df.formal_args.iter().map(|e| { vir::Expr::local(e.clone()) }).collect();
         let foo = vir::Function {
             name: snapshot::caller_function_name(&df.name),
             formal_args: df.formal_args.clone(),
@@ -336,7 +336,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .filter_map(|(p)| {
                  // Skip the post condition that it is only there to clarify the relation between the result of this function and the (old) mirror fucntion
                  // FIXME: This is not at all the correct way to detect this
-                if p.to_string().contains("mirror$"){                    
+                if p.to_string().contains("mirror$"){
                     None
                 } else {
                     Some(vir::ExprFolder::fold(&mut purifier, p))
@@ -344,7 +344,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             })
             .conjoin();
 
-        
+
         let rhs: vir::Expr = if let Some(fbody) = f.body.clone() {
             let function_body = vir::ExprFolder::fold(&mut purifier, fbody);
 
@@ -354,7 +354,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         else {
             post_conds
         };
-        
+
 
         let valids_anded: vir::Expr = formal_args_without_nat
             .iter()
@@ -739,7 +739,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         }
                     }
                 }
-                
+
                 let discr_field = self.encode_discriminant_field();
                 let self_local_var_expr: vir::Expr = self_local_var.clone().into();
                 let function = vir::Function {
