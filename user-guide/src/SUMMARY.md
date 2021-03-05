@@ -9,6 +9,7 @@
   - [Pre- and postconditions](verify/prepost.md)
   - [Trusted functions](verify/trusted.md)
   - [Pure functions](verify/pure.md)
+  - [Predicates](verify/predicate.md)
   - [External specifications](verify/external.md)
   - [Loop body invariants](verify/loop.md)
   - [Pledges](verify/pledge.md)

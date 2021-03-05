@@ -12,6 +12,7 @@ The following features are either currently supported or planned to be supported
 - [Pre- and postconditions](prepost.md)
 - [Trusted functions](trusted.md)
 - [Pure functions](pure.md)
+- [Predicates](predicate.md)
 - [External specifications](external.md)
 - [Loop body invariants](loop.md)
 - [Pledges](pledge.md)
