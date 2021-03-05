@@ -14,4 +14,20 @@ fn result_is_one() -> bool;
 #[predicate]
 static FOO: usize = 0;
 
+
+// incompatible with other prusti attributes
+#[pure]
+#[predicate]
+fn something() -> bool {
+    true
+}
+
+// parsing is different depending on the 'outermost' predicate, so a test the other way around
+// makes sense as well
+#[predicate]
+#[trusted]
+fn other_thing() -> bool {
+    false
+}
+
 fn main() {}
