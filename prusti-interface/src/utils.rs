@@ -265,12 +265,12 @@ impl<'tcx> VecPlace<'tcx> {
 }
 
 /// Check if `prusti::<name>` is among the attributes.
-/// The attribute must not have any arguments.
+/// Any arguments of the attribute are ignored.
 pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
     attrs.iter().any(|attr| match &attr.kind {
         ast::AttrKind::Normal(ast::AttrItem {
                                   path: ast::Path { span: _, segments, tokens: _ },
-                                  args: ast::MacArgs::Empty,
+                                  args: _,
                                   tokens: _,
                               }, _) => {
             segments.len() == 2

@@ -14,6 +14,7 @@ pub(crate) struct AstRewriter {
 pub enum SpecItemType {
     Precondition,
     Postcondition,
+    Predicate,
 }
 
 impl std::fmt::Display for SpecItemType {
@@ -21,6 +22,7 @@ impl std::fmt::Display for SpecItemType {
         match self {
             SpecItemType::Precondition => write!(f, "pre"),
             SpecItemType::Postcondition => write!(f, "post"),
+            SpecItemType::Predicate => write!(f, "pred"),
         }
     }
 }
@@ -91,9 +93,9 @@ impl AstRewriter {
         fn_arg
     }
 
-    /// Generate a dummy function for checking the given precondition or postcondition.
+    /// Generate a dummy function for checking the given precondition, postcondition or predicate.
     ///
-    /// `spec_type` should be either `"pre"` or `"post"`.
+    /// `spec_type` should be either `"pre"`, `"post"` or `"pred"`.
     pub fn generate_spec_item_fn(
         &mut self,
         spec_type: SpecItemType,
@@ -116,6 +118,7 @@ impl AstRewriter {
         assertion.encode_type_check(&mut statements);
         let spec_id_str = spec_id.to_string();
         let assertion_json = crate::specifications::json::to_json_string(&assertion);
+
         let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_variables, dead_code)]
             #[prusti::spec_only]

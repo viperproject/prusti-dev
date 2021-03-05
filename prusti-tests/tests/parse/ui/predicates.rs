@@ -2,18 +2,16 @@
 // normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
 // normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
 
+/// Tests for predicate parsing and desugaring
+
 use prusti_contracts::*;
 
-
-#[pure(dont write things here)]
-fn pure_err() -> bool {
-    true
+#[predicate]
+fn pred(a: bool) -> bool {
+    forall(|b: bool| a == b)
 }
 
-#[trusted(dont write things here)]
-fn trusted_err() {}
-
-#[predicate(dont put anything here)]
-fn pred_err() {}
+#[requires(pred(true))]
+fn use_pred() {}
 
 fn main() {}

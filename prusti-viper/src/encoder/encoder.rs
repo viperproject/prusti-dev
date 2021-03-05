@@ -1327,7 +1327,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let procedure = self.env.get_procedure(wrapper_def_id);
             let pure_function_encoder =
                 PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
-            let (function, needs_patching) = if self.is_trusted(proc_def_id) {
+            let (function, needs_patching) = if let Some(predicate_body) = self.get_predicate_body(proc_def_id) {
+                (pure_function_encoder.encode_predicate_function(predicate_body)
+                    .run_if_err(cleanup)?, false)
+            } else if self.is_trusted(proc_def_id) {
                 (pure_function_encoder.encode_bodyless_function()
                     .run_if_err(cleanup)?, false)
             } else {
@@ -1651,6 +1654,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn is_pure(&self, def_id: ProcedureDefId) -> bool {
         let result = self.def_spec.get(&def_id).map_or(false, |spec| spec.expect_procedure().pure);
         trace!("is_pure {:?} = {}", def_id, result);
+        result
+    }
+
+    pub fn get_predicate_body(&self, def_id: ProcedureDefId) -> Option<&typed::Assertion<'tcx>> {
+        let result = self.def_spec.get(&def_id).map_or(None, |spec| spec.expect_procedure().predicate_body.as_ref());
+        trace!("get_predicate_body {:?} = {:?}", def_id, result);
         result
     }
 
