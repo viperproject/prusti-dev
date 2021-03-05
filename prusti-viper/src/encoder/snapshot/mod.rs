@@ -151,6 +151,7 @@ pub fn encode_mirror_function_args_without_nat(
         .collect()
 }
 
+// TODO: CHange the return type to return a proper error instead of the String.
 pub fn encode_mirror_function(
     name: &str,
     formal_args: &[vir::LocalVar],

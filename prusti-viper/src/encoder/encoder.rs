@@ -258,6 +258,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .filter_map(|s| s.domain())
             .collect();
         if !mirrors.is_empty() {
+            // TODO: Once purification is stable, we should use the purification
+            // mirror functions instead of these ones.
             domains.push(vir::Domain {
                 name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
                 functions: mirrors,
@@ -1325,15 +1327,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let procedure = self.env.get_procedure(wrapper_def_id);
             let pure_function_encoder =
                 PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
-            let function = if self.is_trusted(proc_def_id) {
-                pure_function_encoder.encode_bodyless_function()
-                    .run_if_err(cleanup)?
+            let (function, needs_patching) = if self.is_trusted(proc_def_id) {
+                (pure_function_encoder.encode_bodyless_function()
+                    .run_if_err(cleanup)?, false)
             } else {
-                let pure_function = pure_function_encoder.encode_function()
-                    .run_if_err(cleanup)?;
-                self.patch_pure_post_with_mirror_call(pure_function)
-                    .with_span(procedure.get_span())
-                    .run_if_err(cleanup)?
+                (pure_function_encoder.encode_function()
+                    .run_if_err(cleanup)?, true)
             };
 
             if config::enable_purification_optimization() {
@@ -1347,8 +1346,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 self.encode_mirror_of_pure_function(&function);
             }
 
-            self.log_vir_program_before_viper(function.to_string());
-            self.pure_functions.borrow_mut().insert(key, function);
+            let final_function = if needs_patching {
+                self.patch_pure_post_with_mirror_call(function)
+                    .with_span(procedure.get_span())
+                    .run_if_err(cleanup)?
+            } else {
+                function
+            };
+
+            self.log_vir_program_before_viper(final_function.to_string());
+            self.pure_functions.borrow_mut().insert(key, final_function);
         }
 
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
@@ -1361,7 +1368,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     {
         // use function identifier to be more robust in the presence of generics
         let mirror = self.encode_pure_snapshot_mirror(
-            function.get_identifier().to_string(),
+            function.get_identifier(),
             &function.formal_args,
             &function.return_type,
         )?;
@@ -1385,6 +1392,32 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
 
         let mut posts = function.posts.clone();
+        if config::enable_purification_optimization() {
+            // TODO: Once we trust the purified functions enough, we should keep
+            // only this implementation.
+            let mirror_function = snapshot::encode_mirror_function(
+                &function.name, &function.formal_args, &function.return_type, &self.get_snapshots()
+            ).unwrap();
+            let mut mirror_args_with_nat = mirror_args.clone();
+            mirror_args_with_nat.push(snapshot::n_nat(2));
+            posts.push(vir::Expr::InhaleExhale(
+                box vir::Expr::BinOp(
+                    vir::BinOpKind::EqCmp,
+                    box vir::Expr::Local(
+                        vir::LocalVar::new("__result", function.return_type.clone()),
+                        vir::Position::default(),
+                    ),
+                    box vir::Expr::DomainFuncApp(
+                        mirror_function,
+                        mirror_args_with_nat,
+                        vir::Position::default(),
+                    ),
+                    vir::Position::default(),
+                ),
+                box vir::Expr::Const(vir::Const::Bool(true), vir::Position::default()),
+                vir::Position::default()
+            ));
+        }
         posts.push(vir::Expr::InhaleExhale(
             box vir::Expr::BinOp(
                 vir::BinOpKind::EqCmp,

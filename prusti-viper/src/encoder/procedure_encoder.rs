@@ -2717,7 +2717,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let func_call = if prusti_common::config::enable_purification_optimization() {
             debug!("we are replacing {} with the mirror function because it is pure", function_name);
             let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.get_snapshots() ).unwrap();
-            arg_exprs.push(snapshot::n_nat(12));
+            arg_exprs.push(snapshot::n_nat(2));
 
             snapshot::mirror_function_caller_call(mirror_function, arg_exprs)
         }
