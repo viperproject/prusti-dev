@@ -134,6 +134,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.encode_function_given_body(None)
     }
 
+    pub fn encode_predicate_function(&self, predicate_body: &typed::Assertion<'tcx>)
+        -> SpannedEncodingResult<vir::Function>
+    {
+        let function_name = self.encode_function_name();
+        debug!("Encode predicate function {}", function_name);
+
+        let mir_span = self.encoder.env().tcx().def_span(self.proc_def_id);
+        let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id).with_span(mir_span)?;
+        let encoded_args = contract
+            .args
+            .iter()
+            .map(|local| self.encode_local(local.clone().into()).map(|l| l.into()))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let predicate_body_encoded = self.encoder.encode_assertion(
+            predicate_body,
+            self.mir,
+            None,
+            &encoded_args,
+            None,
+            true,
+            None,
+            ErrorCtxt::GenericExpression)?;
+
+        self.encode_function_given_body(Some(predicate_body_encoded))
+    }
+
     // Private
 
     fn encode_function_given_body(&self, body: Option<vir::Expr>)

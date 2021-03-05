@@ -65,11 +65,20 @@ impl AnyFnItem {
             AnyFnItem::ImplMethod(item) => &mut item.attrs,
         }
     }
+
     pub fn sig(&self) -> &syn::Signature {
         match self {
             AnyFnItem::Fn(item) => &item.sig,
             AnyFnItem::TraitMethod(item) => &item.sig,
             AnyFnItem::ImplMethod(item) => &item.sig,
+        }
+    }
+
+    pub fn block(&self) -> Option<&syn::Block> {
+        match self {
+            AnyFnItem::Fn(item) => Some(&item.block),
+            AnyFnItem::ImplMethod(item) => Some(&item.block),
+            AnyFnItem::TraitMethod(item) => item.default.as_ref(),
         }
     }
 }

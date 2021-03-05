@@ -17,6 +17,8 @@ pub enum SpecType {
     Postcondition,
     /// Loop invariant or struct invariant
     Invariant,
+    /// Predicate
+    Predicate,
 }
 
 #[derive(Debug)]
@@ -35,6 +37,7 @@ impl<'a> TryFrom<&'a str> for SpecType {
             "requires" => Ok(SpecType::Precondition),
             "ensures" => Ok(SpecType::Postcondition),
             "invariant" => Ok(SpecType::Invariant),
+            "predicate" => Ok(SpecType::Predicate),
             _ => Err(TryFromStringError::UnknownSpecificationType),
         }
     }
@@ -52,7 +55,11 @@ pub struct SpecificationId(Uuid);
 pub enum SpecIdRef {
     Precondition(SpecificationId),
     Postcondition(SpecificationId),
-    Pledge { lhs: Option<SpecificationId>, rhs: SpecificationId },
+    Pledge {
+        lhs: Option<SpecificationId>,
+        rhs: SpecificationId,
+    },
+    Predicate(SpecificationId),
 }
 
 impl Display for SpecificationId {
@@ -259,7 +266,7 @@ pub enum AssertionKind<EID, ET, AT> {
         arg_binders: SpecEntailmentVars<EID, AT>,
         pres: Vec<Assertion<EID, ET, AT>>,
         posts: Vec<Assertion<EID, ET, AT>>,
-    }
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -312,6 +319,11 @@ pub struct ProcedureSpecification<EID, ET, AT> {
     /// Pledges in the postcondition.
     pub pledges: Vec<Pledge<EID, ET, AT>>,
 
+    /// Body of a `#[predicate]` function if this assertion originates from one.
+    /// This will be encoded to viper instead of the translation from Rust
+    /// otherwise.
+    pub predicate_body: Option<Assertion<EID, ET, AT>>,
+
     pub pure: bool,
     pub trusted: bool,
 }
@@ -320,21 +332,24 @@ impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
     pub fn new(
         pres: Vec<Assertion<EID, ET, AT>>,
         posts: Vec<Assertion<EID, ET, AT>>,
-        pledges: Vec<Pledge<EID, ET, AT>>
+        pledges: Vec<Pledge<EID, ET, AT>>,
+        predicate_body: Option<Assertion<EID, ET, AT>>,
     ) -> Self {
         Self {
             pres,
             posts,
             pledges,
+            predicate_body,
             pure: false,
             trusted: false,
         }
     }
     pub fn empty() -> Self {
-        Self::new(Vec::new(), Vec::new(), Vec::new())
+        Self::new(Vec::new(), Vec::new(), Vec::new(), None)
     }
     pub fn is_empty(&self) -> bool {
-        self.pres.is_empty() && self.posts.is_empty()
+        // TODO: should pledges be here as well?
+        self.pres.is_empty() && self.posts.is_empty() && self.predicate_body.is_none()
     }
 }
 
@@ -362,10 +377,16 @@ impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> ProcedureSpecific
         } else {
             other.pledges.clone()
         };
+        let predicate_body = if other.predicate_body.is_none() {
+            self.predicate_body.clone()
+        } else {
+            other.predicate_body.clone()
+        };
         Self {
             pres,
             posts,
             pledges,
+            predicate_body,
             pure: other.pure,
             trusted: other.trusted,
         }
