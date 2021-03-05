@@ -67,7 +67,7 @@ pub fn rewrite_prusti_attributes(
     {
         return syn::Error::new(
             item.span(),
-            "`#[predicate]` is incompatible with other prusti attributes",
+            "`#[predicate]` is incompatible with other Prusti attributes",
         ).to_compile_error();
     }
 
@@ -464,7 +464,7 @@ pub fn predicate(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         syn::parse2(tokens)
             .map_err(|e| syn::Error::new(
                 e.span(),
-                "you can only use `#[predicate]` on function definitions"
+                "`#[predicate]` can only be used on function definitions"
             ))
     );
     let item_span = item.span();
@@ -475,7 +475,7 @@ pub fn predicate(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     if other_prusti_attrs.count() != 0 {
         return syn::Error::new(
             item.span(),
-            "`#[predicate]` is incompatible with other prusti attributes",
+            "`#[predicate]` is incompatible with other Prusti attributes",
         ).to_compile_error();
     }
 

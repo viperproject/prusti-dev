@@ -60,8 +60,8 @@ impl<'v, 'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'v, 'tcx> 
     }
 }
 
-// Second predicate checks visitor: check any references to predicate functions
-// from non-specification code
+/// Second predicate checks visitor: check any references to predicate functions
+/// from non-specification code
 struct CheckPredicatesVisitor<'v, 'tcx> {
     tcx: TyCtxt<'tcx>,
 
