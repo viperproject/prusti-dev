@@ -56,6 +56,7 @@ use crate::encoder::utils::transpose;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 use crate::encoder::snapshot;
+use crate::encoder::mirror_function_encoder;
 
 const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
 
@@ -280,149 +281,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         domains
     }
 
-    fn encode_mirror_caller(&self, df: vir::DomainFunc, pres: vir::Expr) {
-        let arg_call : Vec<vir::Expr> = df.formal_args.iter().map(|e| { vir::Expr::local(e.clone()) }).collect();
-        let foo = vir::Function {
-            name: snapshot::caller_function_name(&df.name),
-            formal_args: df.formal_args.clone(),
-            return_type: df.return_type.clone(),
-            pres: vec![pres],
-            posts: vec![],
-            body: Some(vir::Expr::domain_func_app(df.clone(), arg_call))
-        };
-
-        self.mirror_caller_functions.borrow_mut().push(foo);
+    pub fn encode_mirror_of_pure_function(&self, function: &vir::Function) {
+        mirror_function_encoder::encode_mirror_of_pure_function(
+            self,
+            &mut *self.mirror_function_domain.borrow_mut(),
+            function);
     }
 
-    pub fn encode_mirror_of_pure_function(&self, f: &vir::Function) {
-        let snapshots: &HashMap<String, Box<Snapshot>> = &self.snapshots.borrow();
-        let domain_name = self.mirror_function_domain.borrow().name.clone();
-
-        let formal_args_without_nat: Vec<vir::LocalVar> =
-            snapshot::encode_mirror_function_args_without_nat(&f.formal_args, &snapshots).unwrap();
-
-        let df =
-            snapshot::encode_mirror_function(&f.name, &f.formal_args, &f.return_type, &snapshots).unwrap();
-        let nat_arg = vir::Expr::local(snapshot::encode_nat_argument());
-        let nat_succ = vir::Expr::domain_func_app(snapshot::get_succ_func(), vec![nat_arg.clone()]);
-        let args_without_nat: Vec<vir::Expr> = formal_args_without_nat
-            .clone()
-            .into_iter()
-            .map(vir::Expr::local)
-            .collect();
-
-        let mut args_with_succ = args_without_nat.clone();
-        args_with_succ.push(nat_succ);
-
-        let function_call_with_succ = vir::Expr::domain_func_app(df.clone(), args_with_succ.clone());
-
-        let mut args_with_zero = args_without_nat.clone();
-        args_with_zero.push(vir::Expr::domain_func_app(snapshot::get_zero_func(), Vec::new()));
-
-        let function_call_with_zero = vir::Expr::domain_func_app(df.clone(), args_with_zero.clone());
-
-        let mut purifier = snapshot::ExprPurifier::new(&snapshots, snapshot::encode_nat_argument().into());
-        purifier.self_function(Some(function_call_with_succ.clone()));
-
-        let pre_conds: vir::Expr = f
-            .pres
-            .iter()
-            .cloned()
-            .map(|p| vir::ExprFolder::fold(&mut purifier, p))
-            .conjoin();
-        let post_conds: vir::Expr = f
-            .posts
-            .iter()
-            .cloned()
-            .filter_map(|(p)| {
-                 // Skip the post condition that it is only there to clarify the relation between the result of this function and the (old) mirror fucntion
-                 // FIXME: This is not at all the correct way to detect this
-                if p.to_string().contains("mirror$"){
-                    None
-                } else {
-                    Some(vir::ExprFolder::fold(&mut purifier, p))
-                }
-            })
-            .conjoin();
-
-
-        let rhs: vir::Expr = if let Some(fbody) = f.body.clone() {
-            let function_body = vir::ExprFolder::fold(&mut purifier, fbody);
-
-            let function_identity = vir::Expr::eq_cmp(function_call_with_succ.clone(), function_body);
-            vir::Expr::and(post_conds, function_identity)
-        }
-        else {
-            post_conds
-        };
-
-
-        let valids_anded: vir::Expr = formal_args_without_nat
-            .iter()
-            .map(|e| {
-                let valid_function = snapshot::valid_func_for_type(&e.typ);
-                let self_arg = vir::Expr::local(e.clone());
-                vir::Expr::domain_func_app(valid_function, vec![self_arg])
-            })
-            .conjoin();
-
-        let pre_conds_and_valid = vir::Expr::and(pre_conds.clone(), valids_anded);
-        let axiom_body = vir::Expr::implies(pre_conds_and_valid, rhs);
-
-        let mut triggers: Vec<vir::Trigger> = formal_args_without_nat
-            .iter()
-            .filter_map(|arg| match &arg.typ {
-                vir::Type::Domain(arg_domain_name) => {
-                    let self_arg = vir::Expr::local(arg.clone());
-                    let unfold_func = snapshot::encode_unfold_witness(arg_domain_name.clone());
-                    let unfold_call =
-                        vir::Expr::domain_func_app(unfold_func, vec![self_arg, nat_arg.clone()]);
-                    Some(unfold_call)
-                }
-                _ => None,
-            })
-            .map(|t| vir::Trigger::new(vec![t, function_call_with_zero.clone()]))
-            .collect();
-
-        triggers.push(vir::Trigger::new(vec![function_call_with_succ.clone()]));
-
-        let da = vir::DomainAxiom {
-            name: format!("{}$axiom", f.get_identifier()),
-            expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
-            domain_name: domain_name.to_string(),
-        };
-
-        let mut args_without_succ: Vec<vir::Expr> = formal_args_without_nat
-            .clone()
-            .into_iter()
-            .map(vir::Expr::local)
-            .collect();
-
-        args_without_succ.push(vir::Expr::local(snapshot::encode_nat_argument()));
-
-        let function_call_without_succ = vir::Expr::domain_func_app(df.clone(), args_without_succ);
-
-        let axiom_body = vir::Expr::eq_cmp(function_call_without_succ, function_call_with_succ.clone());
-
-        let nat_da = vir::DomainAxiom {
-            name: format!("{}$nat_axiom", f.get_identifier()),
-            expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
-            domain_name: domain_name.to_string(),
-        };
-
-        self.encode_mirror_caller(df.clone(), pre_conds);
-        self.mirror_function_domain
-            .borrow_mut()
-            .functions
-            .push(df);
-        self.mirror_function_domain
-            .borrow_mut()
-            .axioms
-            .push(da);
-        self.mirror_function_domain
-            .borrow_mut()
-            .axioms
-            .push(nat_da);
+    pub fn insert_mirror_caller(&self, function: vir::Function) {
+        self.mirror_caller_functions.borrow_mut().push(function);
     }
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
