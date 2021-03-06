@@ -65,6 +65,7 @@ use ::log::{trace, debug};
 use std::borrow::Borrow as StdBorrow;
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
+use crate::encoder::snapshot;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -2649,12 +2650,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
 
-        let mut arg_exprs = vec![];
+        let mut non_snapshot_arg_exprs = vec![];
         for operand in args.iter() {
             let arg_expr = self.mir_encoder.encode_operand_expr(operand)
                 .with_span(call_site_span)?;
-            arg_exprs.push(arg_expr);
+            non_snapshot_arg_exprs.push(arg_expr);
         }
+
+        let arg_exprs = if prusti_common::config::enable_purification_optimization() {
+            let mut arg_exprs = vec![];
+            for arg in non_snapshot_arg_exprs {
+                match arg.get_type() {
+                    Type::TypedRef(predicate_name) => {
+                        let snapshot = self.encoder.encode_snapshot_use(predicate_name.clone()).with_span(call_site_span)?;
+                        let snap_call = snapshot.snap_call(arg);
+                        arg_exprs.push(snap_call);
+                    }
+                    _ => {
+                        arg_exprs.push(arg);
+                    }
+                }
+            }
+
+            arg_exprs
+        }
+        else {
+            non_snapshot_arg_exprs
+        };
 
         self.encode_specified_pure_function_call(
             location,
@@ -2674,7 +2696,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         function_name: String,
-        arg_exprs: Vec<Expr>,
+        mut arg_exprs: Vec<Expr>,
         return_type: Type,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let formal_args: Vec<vir::LocalVar> = args
@@ -2692,13 +2714,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .error_manager()
             .register(call_site_span, ErrorCtxt::PureFunctionCall);
 
-        let func_call = vir::Expr::func_app(
-            function_name,
-            arg_exprs,
-            formal_args,
-            return_type.clone(),
-            pos
-        );
+        let func_call = if prusti_common::config::enable_purification_optimization() {
+            debug!("we are replacing {} with the mirror function because it is pure", function_name);
+            let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.get_snapshots() ).unwrap();
+            arg_exprs.push(snapshot::n_nat(2));
+
+            snapshot::mirror_function_caller_call(mirror_function, arg_exprs)
+        }
+        else {
+            vir::Expr::func_app(
+                function_name.clone(),
+                arg_exprs,
+                formal_args,
+                return_type.clone(),
+                pos
+            )
+        };
 
         let target_value = self.encode_pure_function_call_lhs_value(destination)
             .with_span(call_site_span)?;
@@ -3419,7 +3450,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ).map_or(Ok(None), |r| r.map(Some))
             )?;
 
-        let full_func_spec = func_spec
+        let mut full_func_spec_elements = func_spec
             .into_iter()
             .map( // patch type mismatches for specs involving pure functions returning copy types
                 |spec|
@@ -3427,10 +3458,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .patch_spec(spec)
                         .with_span(postcondition_span.clone())
             )
-            .collect::<SpannedEncodingResult<Vec<_>>>()?
-            .into_iter()
-            .conjoin()
-            .set_default_pos(func_spec_pos);
+            .collect::<SpannedEncodingResult<Vec<_>>>()?;
+
+
+            if config::enable_purification_optimization() {
+                let snapshots = self.encoder.get_snapshots();
+                let mut ep = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
+                let mut purified_elems : Vec<vir::Expr> = full_func_spec_elements.clone().into_iter().map(|e| {
+                    vir::ExprFolder::fold(&mut ep, e.clone())
+                }).collect();
+
+              //  full_func_spec_elements =  purified_elems; //TODO this might or might not be needed
+            }
+
+            let full_func_spec = full_func_spec_elements
+                .into_iter()
+                .conjoin()
+                .set_default_pos(func_spec_pos);
 
         Ok((
             type_spec.into_iter().conjoin(),
@@ -5193,9 +5237,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .encoder
                         .encode_discriminant_func_app(dst.clone(), adt_def);
                     stmts.push(vir::Stmt::Inhale(
-                        vir::Expr::eq_cmp(discriminant, discr_value),
+                        vir::Expr::eq_cmp(discriminant, discr_value.clone()),
                         vir::FoldingBehaviour::Stmt,
                     ));
+
+                    if config::enable_purification_optimization() {
+                        // Temporary fix
+                        stmts.push(vir::Stmt::Assert(vir::Expr::eq_cmp(dst.clone().field(vir::Field {
+                            name: "discriminant".into(),
+                            typ: vir::Type::Int,
+                        }), discr_value.clone()), vir::FoldingBehaviour::Expr,  vir::Position::default()));
+                    }
+
                     let variant_name = &variant_def.ident.as_str();
                     dst_base = dst_base.variant(variant_name);
                 }

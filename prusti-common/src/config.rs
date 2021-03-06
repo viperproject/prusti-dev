@@ -98,7 +98,7 @@ lazy_static! {
         settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
         settings.set_default("PRINT_COLLECTED_VERIFICATION_ITEMS", false).unwrap();
         settings.set_default("HIDE_UUIDS", false).unwrap();
-        
+
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
         settings.set_default("VERIFY_ONLY_PREAMBLE", false).unwrap();
@@ -380,6 +380,10 @@ pub fn optimizations() -> Optimizations {
     return opt;
 }
 
+/// Enable the purification optimization.
+///
+/// **Note:** this optimization is currently very incomplete and may introduce
+/// unsoudnesses.
 pub fn enable_purification_optimization() -> bool {
     read_setting("ENABLE_PURIFICATION_OPTIMIZATION")
 }

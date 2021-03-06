@@ -123,8 +123,8 @@ impl BuiltinEncoder {
     }
 
     fn encode_primitive_builtin_domain(&self) -> vir::Domain {
-        //FIXME this does not check or handel the different sizes of primitve types
-        let domain_name = "PrimitiveValidDomain";
+        //FIXME this does not check or handle the different sizes of primitve types
+        let domain_name = snapshot::PRIMITIVE_VALID_DOMAIN_NAME;
 
         let mut functions = vec![];
         let mut axioms = vec![];
@@ -138,14 +138,16 @@ impl BuiltinEncoder {
             };
             let function_app =
                 vir::Expr::domain_func_app(f.clone(), vec![vir::Expr::local(forall_arg.clone())]);
-            let body = vir::Expr::and(function_app, true.into());
-            let e = vir::Expr::forall(vec![forall_arg], vec![], body); //TODO triggers
-            let ax = vir::DomainAxiom {
+            let body = vir::Expr::forall(
+                vec![forall_arg],
+                vec![vir::Trigger::new(vec![function_app.clone()])],
+                function_app);
+            let axiom = vir::DomainAxiom {
                 name: format!("{}$axiom", f.get_identifier()),
-                expr: e,
+                expr: body,
                 domain_name: domain_name.to_string(),
             };
-            axioms.push(ax); //TODO
+            axioms.push(axiom);
         }
 
         vir::Domain {

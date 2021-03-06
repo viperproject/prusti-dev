@@ -124,18 +124,22 @@ impl vir::Expr {
 /// Walks all Statements and Expressions in the provided methods
 pub fn walk_methods(methods: &[CfgMethod], walker: &mut (impl StmtWalker + ExprWalker)) {
     for method in methods {
-        method.walk_statements(|stmt| {
-            StmtWalker::walk(walker, stmt);
-        });
-        method.walk_successors(|successor| match successor {
-            cfg::Successor::Undefined | cfg::Successor::Return | cfg::Successor::Goto(_) => {}
-            cfg::Successor::GotoSwitch(conditional_targets, _) => {
-                for (expr, _) in conditional_targets {
-                    ExprWalker::walk(walker, expr);
-                }
-            }
-        });
+        walk_method(method, walker);
     }
+}
+
+pub fn walk_method(method: &CfgMethod,  walker: &mut (impl StmtWalker + ExprWalker)) {
+    method.walk_statements(|stmt| {
+        StmtWalker::walk(walker, stmt);
+    });
+    method.walk_successors(|successor| match successor {
+        cfg::Successor::Undefined | cfg::Successor::Return | cfg::Successor::Goto(_) => {}
+        cfg::Successor::GotoSwitch(conditional_targets, _) => {
+            for (expr, _) in conditional_targets {
+                ExprWalker::walk(walker, expr);
+            }
+        }
+    });
 }
 
 /// Walks all Expressions in the provided functions (including pre and post conditions)

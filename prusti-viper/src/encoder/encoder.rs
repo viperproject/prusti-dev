@@ -17,7 +17,7 @@ use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 use crate::encoder::spec_encoder::encode_spec_assertion;
-use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder};
+use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder, self};
 use crate::encoder::type_encoder::{
     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use crate::encoder::SpecFunctionKind;
@@ -56,6 +56,7 @@ use crate::encoder::utils::transpose;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 use crate::encoder::snapshot;
+use crate::encoder::mirror_function_encoder;
 
 const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
 
@@ -97,7 +98,10 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
-    axiomatized_function_domain: RefCell<vir::Domain>,
+    mirror_function_domain: RefCell<vir::Domain>,
+    mirror_caller_functions: RefCell<Vec<vir::Function>>,
+    /// The procedure that is currently being encoded.
+    pub current_proc: RefCell<Option<ProcedureDefId>>
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -164,7 +168,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             snap_mirror_funcs: RefCell::new(HashMap::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
-            axiomatized_function_domain: RefCell::new(axiomatized_functions_domain),
+            mirror_function_domain: RefCell::new(axiomatized_functions_domain),
+            mirror_caller_functions: RefCell::new(vec![]),
+            current_proc:  RefCell::new(None),
         }
     }
 
@@ -254,6 +260,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .filter_map(|s| s.domain())
             .collect();
         if !mirrors.is_empty() {
+            // TODO: Once purification is stable, we should use the purification
+            // mirror functions instead of these ones.
             domains.push(vir::Domain {
                 name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
                 functions: mirrors,
@@ -263,7 +271,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
 
         if config::enable_purification_optimization() {
-            domains.push(self.axiomatized_function_domain.borrow().clone());
+            domains.push(self.mirror_function_domain.borrow().clone());
             let builtin_encoder =  BuiltinEncoder::new();
             domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Nat));
             domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Primitive));
@@ -273,130 +281,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         domains
     }
 
-    pub fn encode_axiomatized_pure_function(&self, f: &vir::Function) {
-        let snapshots: &HashMap<String, Box<Snapshot>> = &self.snapshots.borrow();
-        let domain_name = self.axiomatized_function_domain.borrow().name.clone();
+    pub fn encode_mirror_of_pure_function(&self, function: &vir::Function) {
+        mirror_function_encoder::encode_mirror_of_pure_function(
+            self,
+            &mut *self.mirror_function_domain.borrow_mut(),
+            function);
+    }
 
-        let formal_args_without_nat: Vec<vir::LocalVar> =
-            snapshot::encode_axiomatized_function_args_without_nat(&f.formal_args, &snapshots);
-
-        let df =
-            snapshot::encode_axiomatized_function(&f.name, &f.formal_args, &f.return_type, &snapshots);
-        let nat_arg = vir::Expr::local(snapshot::encode_nat_argument());
-        let nat_succ = vir::Expr::domain_func_app(snapshot::get_succ_func(), vec![nat_arg.clone()]);
-        let args_without_nat: Vec<vir::Expr> = formal_args_without_nat
-            .clone()
-            .into_iter()
-            .map(vir::Expr::local)
-            .collect();
-
-        let mut args_with_succ = args_without_nat.clone();
-        args_with_succ.push(nat_succ);
-
-        let function_call_with_succ = vir::Expr::domain_func_app(df.clone(), args_with_succ.clone());
-
-        let mut args_with_zero = args_without_nat.clone();
-        args_with_zero.push(vir::Expr::domain_func_app(snapshot::get_zero_func(), Vec::new()));
-
-        let function_call_with_zero = vir::Expr::domain_func_app(df.clone(), args_with_zero.clone());
-
-        let mut purifier = snapshot::ExprPurifier {
-            snapshots: &snapshots,
-            self_function: function_call_with_succ.clone(),
-        };
-
-        let pre_conds: vir::Expr = f
-            .pres
-            .iter()
-            .cloned()
-            .map(|p| vir::ExprFolder::fold(&mut purifier, p))
-            .conjoin();
-        let post_conds: vir::Expr = f
-            .posts
-            .iter()
-            .cloned()
-            .enumerate()
-            .filter_map(|(i, p)| {
-                if i == f.posts.len() - 1 {
-                    // Skip the last post condition as it is only there to clarify the relation between the result of this function and snapshots
-                    None
-                } else {
-                    Some(vir::ExprFolder::fold(&mut purifier, p))
-                }
-            })
-            .conjoin();
-
-        let function_body = vir::ExprFolder::fold(&mut purifier, f.body.clone().unwrap());
-
-        let function_identiry = vir::Expr::eq_cmp(function_call_with_succ.clone(), function_body);
-
-        let rhs: vir::Expr = vir::Expr::and(post_conds, function_identiry);
-
-        let valids_anded: vir::Expr = formal_args_without_nat
-            .iter()
-            .map(|e| {
-                let valid_function = snapshot::valid_func_for_type(&e.typ);
-                let self_arg = vir::Expr::local(e.clone());
-                vir::Expr::domain_func_app(valid_function, vec![self_arg])
-            })
-            .conjoin();
-
-        let pre_conds_and_valid = vir::Expr::and(pre_conds, valids_anded);
-        let axiom_body = vir::Expr::implies(pre_conds_and_valid, rhs);
-
-        let mut triggers: Vec<vir::Trigger> = formal_args_without_nat
-            .iter()
-            .filter_map(|arg| match &arg.typ {
-                vir::Type::Domain(arg_domain_name) => {
-                    let self_arg = vir::Expr::local(arg.clone());
-                    let unfold_func = snapshot::encode_unfold_witness(arg_domain_name.clone());
-                    let unfold_call =
-                        vir::Expr::domain_func_app(unfold_func, vec![self_arg, nat_arg.clone()]);
-                    Some(unfold_call)
-                }
-                _ => None,
-            })
-            .map(|t| vir::Trigger::new(vec![t, function_call_with_zero.clone()]))
-            .collect();
-
-        triggers.push(vir::Trigger::new(vec![function_call_with_succ.clone()]));
-
-        let da = vir::DomainAxiom {
-            name: format!("{}$axiom", f.name), //TODO better name
-            expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
-            domain_name: domain_name.to_string(),
-        };
-
-        let mut args_without_succ: Vec<vir::Expr> = formal_args_without_nat
-            .clone()
-            .into_iter()
-            .map(vir::Expr::local)
-            .collect();
-
-        args_without_succ.push(vir::Expr::local(snapshot::encode_nat_argument()));
-
-        let function_call_without_succ = vir::Expr::domain_func_app(df.clone(), args_without_succ);
-
-        let axiom_body = vir::Expr::eq_cmp(function_call_without_succ, function_call_with_succ.clone());
-
-        let nat_da = vir::DomainAxiom {
-            name: format!("{}$nat_axiom", f.name), //TODO better name
-            expr: vir::Expr::forall(df.formal_args.clone(), triggers.clone(), axiom_body),
-            domain_name: domain_name.to_string(),
-        };
-
-        self.axiomatized_function_domain
-            .borrow_mut()
-            .functions
-            .push(df);
-        self.axiomatized_function_domain
-            .borrow_mut()
-            .axioms
-            .push(da);
-        self.axiomatized_function_domain
-            .borrow_mut()
-            .axioms
-            .push(nat_da);
+    pub fn insert_mirror_caller(&self, function: vir::Function) {
+        self.mirror_caller_functions.borrow_mut().push(function);
     }
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
@@ -426,6 +319,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             functions.push(function.clone());
         }
         for function in self.type_cast_functions.borrow().values() {
+            functions.push(function.clone());
+        }
+        for function in self.mirror_caller_functions.borrow().iter() {
             functions.push(function.clone());
         }
         functions.extend(
@@ -689,13 +585,29 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .or_insert_with(|| {
                 let predicate_name = place.get_type().name();
                 let precondition = vir::Expr::predicate_access_predicate(
-                    predicate_name,
+                    predicate_name.clone(),
                     self_local_var.clone().into(),
                     vir::PermAmount::Read,
                 );
                 let result = vir::LocalVar::new("__result", vir::Type::Int);
-                let postcondition = compute_discriminant_bounds(
-                    adt_def, self.env.tcx(), &result.into());
+                let mut postcondition = compute_discriminant_bounds(
+                    adt_def, self.env.tcx(), &result.clone().into());
+                if config::enable_purification_optimization() {
+                    if let Some(snapshot) = self.get_snapshots().get(&predicate_name) {
+                        if let Some(snapshot_domain) = snapshot.domain() {
+                            let snap_call = snapshot.snap_call(self_local_var.clone().into());
+                            let variant_func = snapshot::encode_variant_func( format!(
+                                "{}{}",
+                                snapshot_encoder::SNAPSHOT_DOMAIN_PREFIX,
+                                snapshot.predicate_name,
+                            )); // TODO instead use snapshot_domain.name
+                            let variant_func_call = vir::Expr::domain_func_app(variant_func, vec![snap_call]);
+                            let new_post: vir::Expr = vir::Expr::eq_cmp(vir::Expr::local(result.clone()), variant_func_call);
+                            postcondition = vir::Expr::and(postcondition, new_post);
+                        }
+                    }
+                }
+
                 let discr_field = self.encode_discriminant_field();
                 let self_local_var_expr: vir::Expr = self_local_var.clone().into();
                 let function = vir::Function {
@@ -987,8 +899,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 .insert(predicate_name.to_string(), box snapshot);
             if config::enable_purification_optimization() {
                 if let Some(domain) = &self.snapshots.borrow()[&predicate_name].snap_domain {
-                    self.encode_axiomatized_pure_function(&domain.equals_func);
-                    self.encode_axiomatized_pure_function(&domain.not_equals_func);
+                    self.encode_mirror_of_pure_function(&domain.equals_func);
+                    self.encode_mirror_of_pure_function(&domain.not_equals_func);
                 }
             }
         }
@@ -1026,7 +938,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     {
         if !self.snapshots.borrow().contains_key(&predicate_name) {
             if !self.predicate_types.borrow().contains_key(&predicate_name) {
-                unreachable!(); // some type has not been encoded before.
+                unreachable!("The type {:?} has not been encoded before", predicate_name); // some type has not been encoded before.
             }
             let ty = self.predicate_types.borrow()[&predicate_name];
             return self.encode_snapshot(&ty);
@@ -1283,33 +1195,41 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let procedure = self.env.get_procedure(wrapper_def_id);
             let pure_function_encoder =
                 PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
-            let function = if let Some(predicate_body) = self.get_predicate_body(proc_def_id) {
-                pure_function_encoder.encode_predicate_function(predicate_body)
-                    .run_if_err(cleanup)?
+            let (function, needs_patching) = if let Some(predicate_body) = self.get_predicate_body(proc_def_id) {
+                (pure_function_encoder.encode_predicate_function(predicate_body)
+                    .run_if_err(cleanup)?, false)
             } else if self.is_trusted(proc_def_id) {
-                pure_function_encoder.encode_bodyless_function()
-                    .run_if_err(cleanup)?
+                (pure_function_encoder.encode_bodyless_function()
+                    .run_if_err(cleanup)?, false)
             } else {
-                let pure_function = pure_function_encoder.encode_function()
-                    .run_if_err(cleanup)?;
-                self.patch_pure_post_with_mirror_call(pure_function)
-                    .with_span(procedure.get_span())
-                    .run_if_err(cleanup)?
+                (pure_function_encoder.encode_function()
+                    .run_if_err(cleanup)?, true)
             };
 
             if config::enable_purification_optimization() {
                 // Ensure that snapshots of all types used in the function are
                 // already encoded.
+                // TODO: In theory, this should be done on demand, but it
+                // complicates the snapshot code (requires it to support
+                // reentrance).
                 let body = procedure.get_mir();
                 for local_decl in &body.local_decls {
                     let ty = local_decl.ty;
                     self.encode_snapshot(ty).with_span(procedure.get_span()).run_if_err(cleanup)?;
                 }
-                self.encode_axiomatized_pure_function(&function);
+                self.encode_mirror_of_pure_function(&function);
             }
 
-            self.log_vir_program_before_viper(function.to_string());
-            self.pure_functions.borrow_mut().insert(key, function);
+            let final_function = if needs_patching {
+                self.patch_pure_post_with_mirror_call(function)
+                    .with_span(procedure.get_span())
+                    .run_if_err(cleanup)?
+            } else {
+                function
+            };
+
+            self.log_vir_program_before_viper(final_function.to_string());
+            self.pure_functions.borrow_mut().insert(key, final_function);
         }
 
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
@@ -1322,7 +1242,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     {
         // use function identifier to be more robust in the presence of generics
         let mirror = self.encode_pure_snapshot_mirror(
-            function.get_identifier().to_string(),
+            function.get_identifier(),
             &function.formal_args,
             &function.return_type,
         )?;
@@ -1346,6 +1266,32 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
 
         let mut posts = function.posts.clone();
+        if config::enable_purification_optimization() {
+            // TODO: Once we trust the purified functions enough, we should keep
+            // only this implementation.
+            let mirror_function = snapshot::encode_mirror_function(
+                &function.name, &function.formal_args, &function.return_type, &self.get_snapshots()
+            ).unwrap();
+            let mut mirror_args_with_nat = mirror_args.clone();
+            mirror_args_with_nat.push(snapshot::n_nat(2));
+            posts.push(vir::Expr::InhaleExhale(
+                box vir::Expr::BinOp(
+                    vir::BinOpKind::EqCmp,
+                    box vir::Expr::Local(
+                        vir::LocalVar::new("__result", function.return_type.clone()),
+                        vir::Position::default(),
+                    ),
+                    box vir::Expr::DomainFuncApp(
+                        mirror_function,
+                        mirror_args_with_nat,
+                        vir::Position::default(),
+                    ),
+                    vir::Position::default(),
+                ),
+                box vir::Expr::Const(vir::Const::Bool(true), vir::Position::default()),
+                vir::Position::default()
+            ));
+        }
         posts.push(vir::Expr::InhaleExhale(
             box vir::Expr::BinOp(
                 vir::BinOpKind::EqCmp,
@@ -1535,6 +1481,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.initialize();
         while !self.encoding_queue.borrow().is_empty() {
             let (proc_def_id, substs) = self.encoding_queue.borrow_mut().pop().unwrap();
+            self.current_proc.replace(Some(proc_def_id.clone()));
+
             let proc_name = self.env.get_absolute_item_name(proc_def_id);
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
@@ -1563,6 +1511,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     }
                 }
             }
+
+            self.current_proc.replace(None);
         }
     }
 

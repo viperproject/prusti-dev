@@ -1450,6 +1450,13 @@ impl PartialEq for Expr {
                 (self_name, self_args, self_base, self_perm, self_variant)
                     == (other_name, other_args, other_base, other_perm, other_variant)
             }
+            (
+                Expr::DomainFuncApp(ref self_function_name, ref self_args, _),
+                Expr::DomainFuncApp(ref other_function_name, ref other_args, _)
+            ) => {
+                (self_function_name, self_args)
+                    == (other_function_name, other_args)
+            }
             (a, b) => {
                 debug_assert_ne!(discriminant(a), discriminant(b));
                 false
