@@ -723,7 +723,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         // Add folding/unfolding
         let final_function = foldunfold::add_folding_unfolding_to_function(
             function,
-            self.encoder.get_used_viper_predicates_map(),
+            &self.encoder.get_used_viper_predicates_map(),
         ).unwrap(); // TODO: generate a stub function in case of error
         debug!(
             "[exit] encode_invariant_def({:?}):\n{}",

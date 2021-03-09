@@ -277,7 +277,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // Add folding/unfolding
         foldunfold::add_folding_unfolding_to_function(
             function,
-            self.encoder.get_used_viper_predicates_map(),
+            &self.encoder.get_used_viper_predicates_map(),
         )
         .map_err(|foldunfold_error| {
             SpannedEncodingError::internal(

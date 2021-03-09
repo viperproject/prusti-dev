@@ -469,6 +469,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .encoder
             .error_manager()
             .register(self.mir.span, ErrorCtxt::Unexpected);
+
+        if config::enable_purification_optimization() {
+            prusti_common::vir::optimizations::purification::purify_method(
+                &mut self.cfg_method,
+                &self.encoder.get_used_viper_predicates_map()
+            )
+        };
         let method_with_fold_unfold = foldunfold::add_fold_unfold(
             self.encoder,
             self.cfg_method,

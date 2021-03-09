@@ -90,7 +90,7 @@ pub fn add_folding_unfolding_to_expr(
 
 pub fn add_folding_unfolding_to_function(
     function: vir::Function,
-    predicates: HashMap<String, vir::Predicate>,
+    predicates: &HashMap<String, vir::Predicate>,
 ) -> Result<vir::Function, FoldUnfoldError> {
     if config::dump_debug_info() {
         prusti_common::report::log::report(
@@ -102,7 +102,7 @@ pub fn add_folding_unfolding_to_function(
 
     // Compute inner state
     let formal_vars = function.formal_args.clone();
-    let mut pctxt = PathCtxt::new(formal_vars, &predicates);
+    let mut pctxt = PathCtxt::new(formal_vars, predicates);
     for pre in &function.pres {
         pctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone(), vir::FoldingBehaviour::Expr));
     }

@@ -106,9 +106,6 @@ impl Program {
             );
         }
 
-        if config::enable_purification_optimization() {
-            self.methods=purification::purify_methods(self.methods, &self.viper_predicates);
-        }
 
         self
     }

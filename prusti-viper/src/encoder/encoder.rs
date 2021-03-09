@@ -357,8 +357,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         predicates
     }
 
-    pub fn get_used_viper_predicates_map(&self) -> HashMap<String, vir::Predicate> {
-        self.type_predicates.borrow().clone()
+    pub fn get_used_viper_predicates_map(&self) -> std::cell::Ref<HashMap<String, vir::Predicate>> {
+        self.type_predicates.borrow()
     }
 
     fn get_used_builtin_methods(&self) -> Vec<vir::BodylessMethod> {
@@ -620,7 +620,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 };
                 let final_function = foldunfold::add_folding_unfolding_to_function(
                     function,
-                    self.get_used_viper_predicates_map(),
+                    &self.get_used_viper_predicates_map(),
                 );
                 final_function.unwrap()
             });

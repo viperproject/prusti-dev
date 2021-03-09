@@ -2,17 +2,6 @@ use crate::vir::{ast::*, cfg, cfg::CfgMethod, utils::walk_method, CfgBlock, Type
 use log::debug;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-/// This purifies local variables in a method body
-pub fn purify_methods(
-    mut methods: Vec<CfgMethod>,
-    predicates: &[Predicate]
-) -> Vec<CfgMethod> {
-    for method in &mut methods {
-        purify_method(method, predicates);
-    }
-
-    methods
-}
 
 fn translate_type(typ: &Type) -> Type {
     match typ {
@@ -28,7 +17,7 @@ fn translate_type(typ: &Type) -> Type {
 
 static SUPPORTED_TYPES: &'static [&str] = &["bool", "i32", "usize", "u32"];
 
-fn purify_method(method: &mut CfgMethod, predicates: &[Predicate]) {
+pub fn purify_method(method: &mut CfgMethod, predicates: &HashMap<String, Predicate>) {
     let mut candidates = HashMap::new();
     for var in &method.local_vars {
         match &var.typ {
@@ -112,11 +101,11 @@ struct Purifier<'a> {
     /// names of local variables that can be purified
     targets: BTreeSet<String>,
     /// Viper predicates.
-    predicates: &'a [Predicate],
+    predicates: &'a HashMap<String, Predicate>,
 }
 
 impl<'a> Purifier<'a> {
-    fn new(c: PurifiableVariableCollector, predicates: &'a [Predicate]) -> Self {
+    fn new(c: PurifiableVariableCollector, predicates: &'a HashMap<String, Predicate>) -> Self {
         let mut targets = BTreeSet::new();
         for (k, v) in c.vars {
             targets.insert(k);
@@ -127,8 +116,7 @@ impl<'a> Purifier<'a> {
     /// Get the body of the struct predicate. If the predicate does not exist,
     /// or is a non-struct predicate, returns `None`.
     fn find_predicate(&self, predicate_name: &str) -> Option<&Expr> {
-        // TODO: Replace with a HashMap or some more performant data structure.
-        for predicate in self.predicates {
+        if let Some(predicate) = self.predicates.get(predicate_name) {
             match predicate {
                 Predicate::Struct(predicate)
                         if predicate.name == predicate_name => {
@@ -279,9 +267,17 @@ impl<'a> ExprFolder for Purifier<'a> {
         perm_amount: PermAmount,
         pos: Position,
     ) -> Expr {
-        if let Expr::Local(local, _) = *arg.clone() {
+        if let Expr::Local(local, _) = arg.as_ref() {
             if self.targets.contains(&local.name) {
-                return true.into();
+                if let Type::TypedRef(predicate_name) = &local.typ {
+                    if let Some(predicate) = self.find_predicate(&predicate_name) {
+                        let purified_predicate = predicate.clone().replace_place(
+                            &LocalVar::new("self", Type::TypedRef(predicate_name.clone())).into(),
+                            &local.clone().into()
+                        ).purify();
+                        return self.fold_expr(purified_predicate)
+                    }
+                }
             }
         }
 
