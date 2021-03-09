@@ -3,9 +3,12 @@ use log::debug;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 /// This purifies local variables in a method body
-pub fn purify_methods(mut methods: Vec<CfgMethod>) -> Vec<CfgMethod> {
+pub fn purify_methods(
+    mut methods: Vec<CfgMethod>,
+    predicates: &[Predicate]
+) -> Vec<CfgMethod> {
     for method in &mut methods {
-        purify_method(method);
+        purify_method(method, predicates);
     }
 
     methods
@@ -25,7 +28,7 @@ fn translate_type(typ: &Type) -> Type {
 
 static SUPPORTED_TYPES: &'static [&str] = &["bool", "i32", "usize", "u32"];
 
-fn purify_method(method: &mut CfgMethod) {
+fn purify_method(method: &mut CfgMethod, predicates: &[Predicate]) {
     let mut candidates = HashMap::new();
     for var in &method.local_vars {
         match &var.typ {
@@ -54,7 +57,7 @@ fn purify_method(method: &mut CfgMethod) {
             var.typ = translate_type(&var.typ);
         }
     }
-    let mut p = Purifier::new(collector);
+    let mut p = Purifier::new(collector, predicates);
 
     //for stmt in method
     for block in &mut method.basic_blocks {
@@ -105,23 +108,40 @@ impl StmtWalker for PurifiableVariableCollector {
 
 /// StmtFolder and ExprFolder used to purify local variables
 #[derive(Debug)]
-struct Purifier {
+struct Purifier<'a> {
     /// names of local variables that can be purified
     targets: BTreeSet<String>,
+    /// Viper predicates.
+    predicates: &'a [Predicate],
 }
 
-impl Purifier {
-    fn new(c: PurifiableVariableCollector) -> Self {
+impl<'a> Purifier<'a> {
+    fn new(c: PurifiableVariableCollector, predicates: &'a [Predicate]) -> Self {
         let mut targets = BTreeSet::new();
         for (k, v) in c.vars {
             targets.insert(k);
         }
 
-        Purifier { targets }
+        Purifier { targets, predicates }
+    }
+    /// Get the body of the struct predicate. If the predicate does not exist,
+    /// or is a non-struct predicate, returns `None`.
+    fn find_predicate(&self, predicate_name: &str) -> Option<&Expr> {
+        // TODO: Replace with a HashMap or some more performant data structure.
+        for predicate in self.predicates {
+            match predicate {
+                Predicate::Struct(predicate)
+                        if predicate.name == predicate_name => {
+                    return predicate.body.as_ref();
+                }
+                _ => {}
+            }
+        }
+        None
     }
 }
 
-impl StmtFolder for Purifier {
+impl<'a> StmtFolder for Purifier<'a> {
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         ExprFolder::fold(self, expr)
     }
@@ -177,11 +197,20 @@ impl StmtFolder for Purifier {
         variant: MaybeEnumVariantIndex,
         pos: Position,
     ) -> Stmt {
-        if let [Expr::Local(l, _)] = &*args.clone() {
+        if let [Expr::Local(l, _)] = args.as_slice() {
             if self.targets.contains(&l.name) {
-                return Stmt::Comment(format!("replaced fold"));
+                if let Some(predicate) = self.find_predicate(&predicate_name) {
+                    let purified_predicate = predicate.clone().replace_place(
+                        &LocalVar::new("self", Type::TypedRef(predicate_name)).into(),
+                        &l.clone().into()
+                    ).purify();
+                    return Stmt::Assert(self.fold_expr(purified_predicate), FoldingBehaviour::Expr, pos)
+                } else {
+                    return Stmt::Comment(format!("replaced fold"));
+                }
             }
         }
+
         Stmt::Fold(
             predicate_name,
             args.into_iter().map(|e| self.fold_expr(e)).collect(),
@@ -198,9 +227,17 @@ impl StmtFolder for Purifier {
         perm_amount: PermAmount,
         variant: MaybeEnumVariantIndex,
     ) -> Stmt {
-        if let [Expr::Local(l, _)] = &*args.clone() {
+        if let [Expr::Local(l, _)] = args.as_slice() {
             if self.targets.contains(&l.name) {
-                return Stmt::Comment(format!("replaced unfold"));
+                if let Some(predicate) = self.find_predicate(&predicate_name) {
+                    let purified_predicate = predicate.clone().replace_place(
+                        &LocalVar::new("self", Type::TypedRef(predicate_name)).into(),
+                        &l.clone().into()
+                    ).purify();
+                    return Stmt::Inhale(self.fold_expr(purified_predicate), FoldingBehaviour::Expr)
+                } else {
+                    return Stmt::Comment(format!("replaced unfold"));
+                }
             }
         }
 
@@ -213,7 +250,7 @@ impl StmtFolder for Purifier {
     }
 }
 
-impl ExprFolder for Purifier {
+impl<'a> ExprFolder for Purifier<'a> {
 
     fn fold_local(&mut self, local: LocalVar, pos: Position) -> Expr {
         if self.targets.contains(&local.name) {
