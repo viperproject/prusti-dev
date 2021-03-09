@@ -12,13 +12,14 @@ pub fn purify_methods(mut methods: Vec<CfgMethod>) -> Vec<CfgMethod> {
 }
 
 fn translate_type(typ: &Type) -> Type {
-    match &typ {
+    match typ {
         Type::TypedRef(name) => match name.as_str() {
             "i32" | "usize" | "u32" => Type::Int,
             "bool" => Type::Bool,
             _ => todo!("{:?}", typ),
         },
-        _ => todo!(),
+        // The type is already translated.
+        typ => typ.clone(),
     }
 }
 
@@ -97,7 +98,7 @@ impl ExprWalker for PurifiableVariableCollector {
 }
 
 impl StmtWalker for PurifiableVariableCollector {
-    fn walk_expr(&mut self, expr: &Expr) {
+    fn walk_assign(&mut self, target: &Expr, expr: &Expr, _kind: &AssignKind) {
         ExprWalker::walk(self, expr);
     }
 }
@@ -123,6 +124,34 @@ impl Purifier {
 impl StmtFolder for Purifier {
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         ExprFolder::fold(self, expr)
+    }
+
+    fn fold_assign(&mut self, target: Expr, mut source: Expr, kind: AssignKind) -> Stmt {
+        if let Expr::Local(local, _) = &target {
+            if self.targets.contains(&local.name) {
+                match source.get_type() {
+                    Type::TypedRef(name) => {
+                        match name.as_str() {
+                            "bool" => {
+                                source = source.field(Field {
+                                    name: "val_bool".into(),
+                                    typ: Type::Bool,
+                                });
+                            }
+                            "i32" | "usize" | "u32" => {
+                                source = source.field(Field {
+                                    name: "val_int".into(),
+                                    typ: Type::Int,
+                                });
+                            }
+                            x => unreachable!("{}", x),
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
+        Stmt::Assign(ExprFolder::fold(self, target), ExprFolder::fold(self, source), kind)
     }
 
     fn fold_method_call(&mut self, name: String, args: Vec<Expr>, targets: Vec<LocalVar>) -> Stmt {
@@ -185,6 +214,15 @@ impl StmtFolder for Purifier {
 }
 
 impl ExprFolder for Purifier {
+
+    fn fold_local(&mut self, local: LocalVar, pos: Position) -> Expr {
+        if self.targets.contains(&local.name) {
+            Expr::Local(LocalVar::new(local.name, translate_type(&local.typ)), pos)
+        } else {
+            Expr::Local(local, pos)
+        }
+    }
+
     fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
         let rec = self.fold_boxed(receiver);
 
@@ -239,9 +277,9 @@ impl ExprFolder for Purifier {
         variant: MaybeEnumVariantIndex,
         pos: Position,
     ) -> Expr {
-        if let [Expr::Local(local, _)] = &*args.clone() {
+        if let [Expr::Local(local, _)] = args.as_slice() {
             if self.targets.contains(&local.name) {
-                return true.into();
+                return ExprFolder::fold(self, *expr);
             }
         }
 
@@ -255,5 +293,14 @@ impl ExprFolder for Purifier {
             variant,
             pos,
         )
+    }
+
+    fn fold_labelled_old(&mut self, label: String, body: Box<Expr>, pos: Position) -> Expr {
+        let folded_body = self.fold_boxed(body);
+        if folded_body.is_heap_dependent() {
+            Expr::LabelledOld(label, folded_body, pos)
+        } else {
+            *folded_body
+        }
     }
 }

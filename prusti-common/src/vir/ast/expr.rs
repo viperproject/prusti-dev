@@ -770,6 +770,42 @@ impl Expr {
         !walker.non_pure
     }
 
+    pub fn is_heap_dependent(&self) -> bool {
+        struct HeapAccessFinder {
+            non_pure: bool,
+        }
+        impl ExprWalker for HeapAccessFinder {
+            fn walk_predicate_access_predicate(
+                &mut self,
+                _name: &str,
+                _arg: &Expr,
+                _perm_amount: PermAmount,
+                _pos: &Position
+            ) {
+                self.non_pure = true;
+            }
+            fn walk_field_access_predicate(
+                &mut self,
+                _receiver: &Expr,
+                _perm_amount: PermAmount,
+                _pos: &Position
+            ) {
+                self.non_pure = true;
+            }
+            fn walk_field(
+                &mut self,
+                _receiver: &Expr,
+                _field: &Field,
+                _pos: &Position
+            ) {
+                self.non_pure = true;
+            }
+        }
+        let mut walker = HeapAccessFinder { non_pure: false };
+        walker.walk(self);
+        walker.non_pure
+    }
+
     /// Only defined for places
     pub fn get_base(&self) -> LocalVar {
         debug_assert!(self.is_place());
