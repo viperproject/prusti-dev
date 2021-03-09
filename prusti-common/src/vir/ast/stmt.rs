@@ -18,6 +18,7 @@ pub enum Stmt {
     Assert(Expr, FoldingBehaviour, Position),
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
+    /// Target, source, kind
     Assign(Expr, Expr, AssignKind),
     /// Fold statement: predicate name, predicate args, perm_amount, variant of enum, position.
     Fold(String, Vec<Expr>, PermAmount, MaybeEnumVariantIndex, Position),
