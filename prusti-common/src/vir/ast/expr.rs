@@ -825,6 +825,44 @@ impl Expr {
             ) {
                 self.non_pure = true;
             }
+            fn walk_variant(
+                &mut self,
+                _base: &Expr,
+                _variant: &Field,
+                _pos: &Position
+            ) {
+                self.non_pure = true;
+            }
+            fn walk_magic_wand(
+                &mut self,
+                _lhs: &Expr,
+                _rhs: &Expr,
+                _borrow: &Option<Borrow>,
+                _pos: &Position
+            ) {
+                self.non_pure = true;
+            }
+            fn walk_unfolding(
+                &mut self,
+                _name: &str,
+                _args: &Vec<Expr>,
+                _body: &Expr,
+                _perm: PermAmount,
+                _variant: &MaybeEnumVariantIndex,
+                _pos: &Position
+            ) {
+                self.non_pure = true;
+            }
+            fn walk_func_app(
+                &mut self,
+                _name: &str,
+                _args: &Vec<Expr>,
+                _formal_args: &Vec<LocalVar>,
+                _return_type: &Type,
+                _pos: &Position
+            ) {
+                self.non_pure = true;
+            }
         }
         let mut walker = HeapAccessFinder { non_pure: false };
         walker.walk(self);
