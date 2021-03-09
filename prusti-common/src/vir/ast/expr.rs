@@ -770,6 +770,31 @@ impl Expr {
         !walker.non_pure
     }
 
+    /// Remove access predicates.
+    pub fn purify(self) -> Self {
+        struct Purifier;
+        impl ExprFolder for Purifier {
+            fn fold_predicate_access_predicate(
+                &mut self,
+                _name: String,
+                _arg: Box<Expr>,
+                _perm_amount: PermAmount,
+                _pos: Position
+            ) -> Expr {
+                true.into()
+            }
+            fn fold_field_access_predicate(
+                &mut self,
+                _receiver: Box<Expr>,
+                _perm_amount: PermAmount,
+                _pos: Position
+            ) -> Expr {
+                true.into()
+            }
+        }
+        Purifier.fold(self)
+    }
+
     pub fn is_heap_dependent(&self) -> bool {
         struct HeapAccessFinder {
             non_pure: bool,
