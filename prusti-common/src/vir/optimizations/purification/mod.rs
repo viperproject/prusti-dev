@@ -134,7 +134,7 @@ impl<'a> StmtFolder for Purifier<'a> {
         ExprFolder::fold(self, expr)
     }
 
-    fn fold_assign(&mut self, target: Expr, mut source: Expr, kind: AssignKind) -> Stmt {
+    fn fold_assign(&mut self, target: Expr, mut source: Expr, mut kind: AssignKind) -> Stmt {
         if let Expr::Local(local, _) = &target {
             if self.targets.contains(&local.name) {
                 match source.get_type() {
@@ -159,7 +159,11 @@ impl<'a> StmtFolder for Purifier<'a> {
                 }
             }
         }
-        Stmt::Assign(ExprFolder::fold(self, target), ExprFolder::fold(self, source), kind)
+        let folded_source = ExprFolder::fold(self, source);
+        if !folded_source.get_type().is_ref() {
+            kind = AssignKind::Copy;
+        }
+        Stmt::Assign(ExprFolder::fold(self, target), folded_source, kind)
     }
 
     fn fold_method_call(&mut self, name: String, args: Vec<Expr>, targets: Vec<LocalVar>) -> Stmt {
