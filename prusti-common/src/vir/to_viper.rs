@@ -396,22 +396,22 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 }
             },
             &Expr::ContainerOp(op, ref left, ref right, ref pos) => match op {
-                ContainerOpKind::SetContains|
-                ContainerOpKind::MultiSetContains => {
+                ContainerOpKind::SetContains
+                | ContainerOpKind::MultiSetContains => {
                     ast.any_set_contains(right.to_viper(ast), left.to_viper(ast))
                 }
-                ContainerOpKind::SetPush|
-                ContainerOpKind::SetUnion|
-                ContainerOpKind::MultiSetPush|
-                ContainerOpKind::MultiSetUnion => {
+                ContainerOpKind::SetPush
+                | ContainerOpKind::SetUnion
+                | ContainerOpKind::MultiSetPush
+                | ContainerOpKind::MultiSetUnion => {
                     ast.any_set_union(left.to_viper(ast), right.to_viper(ast))
                 }
-                ContainerOpKind::SetIntersection|
-                ContainerOpKind::MultiSetIntersection => {
+                ContainerOpKind::SetIntersection
+                | ContainerOpKind::MultiSetIntersection => {
                     ast.any_set_intersection(left.to_viper(ast), right.to_viper(ast))
                 }
-                ContainerOpKind::SetRemove|
-                ContainerOpKind::MultiSetRemove=> {
+                ContainerOpKind::SetRemove
+                | ContainerOpKind::MultiSetRemove=> {
                     ast.any_set_minus(left.to_viper(ast), right.to_viper(ast))
                 }
                 ContainerOpKind::SeqAppend => {

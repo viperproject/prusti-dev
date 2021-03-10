@@ -475,6 +475,25 @@ impl Expr {
         Expr::BinOp(BinOpKind::Implies, box left, box right, Position::default())
     }
 
+    pub fn container_op(op: ContainerOpKind, left: Expr, right: Expr) -> Self {
+        match op {
+            ContainerOpKind::SetContains => Expr::set_contains(left, right),
+            ContainerOpKind::SetPush
+            | ContainerOpKind::SetUnion => Expr::set_union(left, right),
+            ContainerOpKind::SetIntersection => Expr::set_intersection(left, right),
+            ContainerOpKind::SetRemove => Expr::set_remove(left, right),
+            ContainerOpKind::MultiSetContains => Expr::multiset_contains(left, right),
+            ContainerOpKind::MultiSetPush
+            | ContainerOpKind::MultiSetUnion => Expr::multiset_union(left, right),
+            ContainerOpKind::MultiSetIntersection => Expr::multiset_intersection(left, right),
+            ContainerOpKind::MultiSetRemove => Expr::multiset_remove(left, right),
+            ContainerOpKind::SeqAppend => Expr::seq_append(left, right),
+            ContainerOpKind::SeqDrop => Expr::seq_drop(left, right),
+            ContainerOpKind::SeqChain => Expr::seq_chain(left, right),
+            ContainerOpKind::SeqContains => Expr::seq_contains(left, right),
+        }
+    }
+
     pub fn set_contains(left: Expr, right: Expr) -> Self {
         Expr::ContainerOp(ContainerOpKind::SetContains, box left, box right, Position::default())
     }
