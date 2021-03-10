@@ -97,7 +97,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="install.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="basic.html"><strong aria-hidden="true">3.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="verify/summary.html"><strong aria-hidden="true">4.</strong> Verification Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="verify/panic.html"><strong aria-hidden="true">4.1.</strong> Absence of panics</a></li><li class="chapter-item expanded "><a href="verify/overflow.html"><strong aria-hidden="true">4.2.</strong> Overflow checks</a></li><li class="chapter-item expanded "><a href="verify/prepost.html"><strong aria-hidden="true">4.3.</strong> Pre- and postconditions</a></li><li class="chapter-item expanded "><a href="verify/trusted.html"><strong aria-hidden="true">4.4.</strong> Trusted functions</a></li><li class="chapter-item expanded "><a href="verify/pure.html"><strong aria-hidden="true">4.5.</strong> Pure functions</a></li><li class="chapter-item expanded "><a href="verify/external.html"><strong aria-hidden="true">4.6.</strong> External specifications</a></li><li class="chapter-item expanded "><a href="verify/loop.html"><strong aria-hidden="true">4.7.</strong> Loop body invariants</a></li><li class="chapter-item expanded "><a href="verify/pledge.html"><strong aria-hidden="true">4.8.</strong> Pledges</a></li><li class="chapter-item expanded "><a href="verify/traits.html"><strong aria-hidden="true">4.9.</strong> Trait contract refinement</a></li><li class="chapter-item expanded "><a href="verify/closure.html"><strong aria-hidden="true">4.10.</strong> Closures</a></li><li class="chapter-item expanded "><a href="verify/spec_ent.html"><strong aria-hidden="true">4.11.</strong> Specification entailments</a></li></ol></li><li class="chapter-item expanded "><a href="syntax.html"><strong aria-hidden="true">5.</strong> Specification Syntax</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="install.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="basic.html"><strong aria-hidden="true">3.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="verify/summary.html"><strong aria-hidden="true">4.</strong> Verification Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="verify/panic.html"><strong aria-hidden="true">4.1.</strong> Absence of panics</a></li><li class="chapter-item expanded "><a href="verify/overflow.html"><strong aria-hidden="true">4.2.</strong> Overflow checks</a></li><li class="chapter-item expanded "><a href="verify/prepost.html"><strong aria-hidden="true">4.3.</strong> Pre- and postconditions</a></li><li class="chapter-item expanded "><a href="verify/trusted.html"><strong aria-hidden="true">4.4.</strong> Trusted functions</a></li><li class="chapter-item expanded "><a href="verify/pure.html"><strong aria-hidden="true">4.5.</strong> Pure functions</a></li><li class="chapter-item expanded "><a href="verify/predicate.html"><strong aria-hidden="true">4.6.</strong> Predicates</a></li><li class="chapter-item expanded "><a href="verify/external.html"><strong aria-hidden="true">4.7.</strong> External specifications</a></li><li class="chapter-item expanded "><a href="verify/loop.html"><strong aria-hidden="true">4.8.</strong> Loop body invariants</a></li><li class="chapter-item expanded "><a href="verify/pledge.html"><strong aria-hidden="true">4.9.</strong> Pledges</a></li><li class="chapter-item expanded "><a href="verify/traits.html"><strong aria-hidden="true">4.10.</strong> Trait contract refinement</a></li><li class="chapter-item expanded "><a href="verify/closure.html"><strong aria-hidden="true">4.11.</strong> Closures</a></li><li class="chapter-item expanded "><a href="verify/spec_ent.html"><strong aria-hidden="true">4.12.</strong> Specification entailments</a></li></ol></li><li class="chapter-item expanded "><a href="syntax.html"><strong aria-hidden="true">5.</strong> Specification Syntax</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -347,6 +347,7 @@ The following features are either currently supported or planned to be supported
 <li><a href="verify/prepost.html">Pre- and postconditions</a></li>
 <li><a href="verify/trusted.html">Trusted functions</a></li>
 <li><a href="verify/pure.html">Pure functions</a></li>
+<li><a href="verify/predicate.html">Predicates</a></li>
 <li><a href="verify/external.html">External specifications</a></li>
 <li><a href="verify/loop.html">Loop body invariants</a></li>
 <li><a href="verify/pledge.html">Pledges</a></li>
@@ -464,6 +465,29 @@ fn impure_example(a: &amp;i32, b: &amp;i32, c: &amp;mut i32) {
 }
 <span class="boring">}
 </span></code></pre></pre>
+<h1 id="predicates"><a class="header" href="#predicates">Predicates</a></h1>
+<p>Predicates are similar to <a href="verify/pure.html">pure functions</a> in that they are deterministic and side-effect free and used in specifications.</p>
+<p>They are more powerful than pure functions: inside predicate bodies the full <a href="verify/../syntax.html">Prusti specification syntax</a> is allowed. However, they are not usable in regular Rust code, as there are no direct Rust equivalents for specification constructs like <a href="verify/../syntax.html#quantifiers">quantifiers</a> or <a href="verify/../syntax.html#implications">implications</a>. Instead, predicates can only be called from within specifications.</p>
+<p>Predicates are declared using the <code>#[predicate]</code> attribute on a function:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[predicate]
+fn all_zeros(a: &amp;MyArray) -&gt; bool {
+    forall(|i: usize|
+        (0 &lt;= i &amp;&amp; i &lt; a.len() ==&gt; a.lookup(i) == 0))
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>Within specifications, predicates can be called just like pure functions:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[ensures(all_zeros(a))]
+fn zero(a: &amp;mut MyArray) { ... }
+<span class="boring">}
+</span></code></pre></pre>
+<p>The <code>#[predicate]</code> attribute is incompatible with other Prusti specifications, i.e. a predicate function cannot have pre- or postconditions. The body of a predicate must be provided, so it cannot be <a href="verify/trusted.html"><code>#[trusted]</code></a>. Predicates are always considered pure.</p>
 <h1 id="external-specifications"><a class="header" href="#external-specifications">External specifications</a></h1>
 <p>Since the Rust standard library and external libraries do not specify contracts for their functions, Prusti allows specifying the contract for functions separately from where they are implemented. Such a specification looks like a regular <code>impl</code>, with the exception that there are no bodies in the implementation functions, and that the <code>impl</code> has an <code>#[extern_spec]</code> attribute.</p>
 <p>The standard library type <code>std::option::Option</code> could be specified as follows:</p>
