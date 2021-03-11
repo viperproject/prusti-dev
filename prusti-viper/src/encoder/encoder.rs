@@ -730,7 +730,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(function_name)
     }
 
-    pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<vir::CfgMethod> {
+    pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<()> {
         debug!("encode_procedure({:?})", def_id);
         assert!(
             !self.is_pure(def_id),
@@ -746,7 +746,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.closures_collector.borrow_mut().collect(self.env, def_id.expect_local());
             let procedure = self.env.get_procedure(def_id);
             let proc_encoder = ProcedureEncoder::new(self, &procedure)?;
-            let method = match proc_encoder.encode() {
+            let mut method = match proc_encoder.encode() {
                 Ok(result) => result,
                 Err(error) => {
                     self.register_encoding_error(error);
@@ -754,6 +754,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 },
             };
             self.log_vir_program_before_viper(method.to_string());
+            if config::enable_purification_optimization() {
+                crate::encoder::purify_shared_borrows(&self, &mut method);
+            }
             self.procedures.borrow_mut().insert(def_id, method);
         }
 
@@ -769,7 +772,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.encode_spec_funcs(def_id)?;
         }
 
-        Ok(self.procedures.borrow()[&def_id].clone())
+        Ok(())
     }
 
     pub fn encode_value_or_ref_type(&self, ty: ty::Ty<'tcx>)

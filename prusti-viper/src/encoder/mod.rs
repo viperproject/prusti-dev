@@ -32,4 +32,6 @@ mod stub_procedure_encoder;
 mod type_encoder;
 mod utils;
 mod snapshot;
+// FIXME: This function should be in prusti-common, but it depends on encoder.
+pub use snapshot::optimizer::purify_shared_borrows;
 mod mirror_function_encoder;
