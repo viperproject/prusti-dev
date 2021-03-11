@@ -21,7 +21,9 @@ pub struct CfgMethod {
     pub(super) method_name: String,
     pub(in super::super) formal_arg_count: usize,
     pub(in super::super) formal_returns: Vec<LocalVar>,
-    pub(in super::super) local_vars: Vec<LocalVar>,
+    // FIXME: This should be pub(in super::super). However, the optimization
+    // that depends on snapshots needs to modify this field.
+    pub local_vars: Vec<LocalVar>,
     pub(super) labels: HashSet<String>,
     #[serde(skip)]
     pub(super) reserved_labels: HashSet<String>,

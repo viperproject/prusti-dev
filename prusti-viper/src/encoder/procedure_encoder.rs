@@ -441,6 +441,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.cfg_method
                 .add_local_var(&var_name, vir::Type::TypedRef(type_name));
         }
+        if config::enable_purification_optimization() {
+            // FIXME: The purification optimization may need snapshots of all
+            // variables.
+            for local_decl in &self.mir.local_decls {
+                let ty = local_decl.ty;
+                let snapshot = self.encoder.encode_snapshot(ty).with_span(mir_span)?;
+            }
+        }
 
         self.check_vir()?;
         let method_name = self.cfg_method.name();

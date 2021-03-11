@@ -1,6 +1,6 @@
 use crate::vir::{ast::*, cfg, cfg::CfgMethod, utils::walk_method, CfgBlock, Type};
 use log::debug;
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 /// This purifies local variables in a method body
 pub fn purify_methods(
@@ -29,11 +29,11 @@ fn translate_type(typ: &Type) -> Type {
 static SUPPORTED_TYPES: &'static [&str] = &["bool", "i32", "usize", "u32"];
 
 fn purify_method(method: &mut CfgMethod, predicates: &[Predicate]) {
-    let mut candidates = HashMap::new();
+    let mut candidates = HashSet::new();
     for var in &method.local_vars {
         match &var.typ {
             &Type::TypedRef(ref t) if SUPPORTED_TYPES.contains(&t.as_str()) => {
-                candidates.insert(var.name.clone(), var.typ.clone());
+                candidates.insert(var.name.clone());
             }
             _ => {}
         };
@@ -53,7 +53,7 @@ fn purify_method(method: &mut CfgMethod, predicates: &[Predicate]) {
     );
 
     for var in &mut method.local_vars {
-        if collector.vars.contains_key(&var.name) {
+        if collector.vars.contains(&var.name) {
             var.typ = translate_type(&var.typ);
         }
     }
@@ -70,24 +70,26 @@ fn purify_method(method: &mut CfgMethod, predicates: &[Predicate]) {
     }
 }
 
-/// This is a ExprWalkerand StmtWalker used to collect information about which local variables can be purified.
+/// This is a ExprWalkerand StmtWalker used to collect information about which
+/// local variables can be purified.
 ///
-/// The current implementation is only for ints/bools. So to check if a reference is borrowed
-/// we simple check if a variable is ever mentioned without a field access.
+/// The current implementation is only for ints/bools. So to check if a
+/// reference is borrowed we simple check if a variable is ever mentioned
+/// without a field access.
 #[derive(Debug)]
 struct PurifiableVariableCollector {
-    vars: HashMap<String, Type>,
+    vars: HashSet<String>,
 }
 
 impl PurifiableVariableCollector {
-    fn new(initial_vars: HashMap<String, Type>) -> Self {
+    fn new(initial_vars: HashSet<String>) -> Self {
         PurifiableVariableCollector { vars: initial_vars }
     }
 }
 
 impl ExprWalker for PurifiableVariableCollector {
     fn walk_local(&mut self, local_var: &LocalVar, _pos: &Position) {
-        if self.vars.remove(&local_var.name).is_some() {
+        if self.vars.remove(&local_var.name) {
             debug!("Will not purify the variable {:?} ", local_var)
         }
     }
@@ -118,8 +120,8 @@ struct Purifier<'a> {
 impl<'a> Purifier<'a> {
     fn new(c: PurifiableVariableCollector, predicates: &'a [Predicate]) -> Self {
         let mut targets = BTreeSet::new();
-        for (k, v) in c.vars {
-            targets.insert(k);
+        for var in c.vars {
+            targets.insert(var);
         }
 
         Purifier { targets, predicates }

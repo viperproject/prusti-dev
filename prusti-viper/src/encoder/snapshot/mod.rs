@@ -9,6 +9,7 @@ use super::{errors::EncodingResult, snapshot_encoder::{SNAPSHOT_VARIANT,Snapshot
 
 mod fixer;
 mod purifier;
+pub mod optimizer;
 
 pub const NAT_DOMAIN_NAME: &str = "$Nat$";
 pub const AXIOMATIZED_FUNCTION_DOMAIN_NAME: &str = "$MirrorFunctions$";
