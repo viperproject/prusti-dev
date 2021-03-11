@@ -446,6 +446,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // variables.
             for local_decl in &self.mir.local_decls {
                 let ty = local_decl.ty;
+                if ty.is_box() {
+                    // FIXME: Snapshots of boxes are not supported.
+                    continue;
+                }
                 let snapshot = self.encoder.encode_snapshot(ty).with_span(mir_span)?;
             }
         }
