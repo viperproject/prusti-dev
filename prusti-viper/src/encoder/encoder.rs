@@ -518,6 +518,19 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         field
     }
 
+    /// FIXME: This is needed for snapshot encoder.
+    pub fn insert_raw_ref_field(&self, viper_field_name: &str) {
+        self.fields
+            .borrow_mut()
+            .entry(viper_field_name.to_string())
+            .or_insert_with(|| {
+                vir::Field::new(
+                    viper_field_name.to_string(),
+                    vir::Type::TypedRef("".to_string()),
+                )
+        });
+    }
+
     pub fn encode_raw_ref_field(
         &self,
         viper_field_name: String,
