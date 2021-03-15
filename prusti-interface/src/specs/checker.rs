@@ -50,7 +50,7 @@ impl<'v, 'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'v, 'tcx> 
         id: hir::HirId,
     ) {
         // collect this fn's DefId if predicate function
-        let attrs = fk.attrs();
+        let attrs = self.tcx.hir().attrs(id);
         if has_prusti_attr(attrs, "pred_spec_id_ref") {
             let def_id = self.tcx.hir().local_def_id(id).to_def_id();
             self.predicates.insert(def_id, s);
@@ -113,7 +113,8 @@ impl<'v, 'tcx> Visitor<'tcx> for CheckPredicatesVisitor<'v, 'tcx> {
         id: hir::HirId,
     ) {
         // Stop checking inside `prusti::spec_only` functions
-        if has_spec_only_attr(fk.attrs()) {
+        let attrs = self.tcx.hir().attrs(id);
+        if has_spec_only_attr(attrs) {
             return;
         }
 

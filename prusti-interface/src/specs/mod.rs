@@ -266,7 +266,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
         let id = ti.hir_id();
         let local_id = self.tcx.hir().local_def_id(id);
         let def_id = local_id.to_def_id();
-        let attrs = ti.attrs;
+        let attrs = self.tcx.get_attrs(ti.def_id.to_def_id());
 
         // Collect procedure specifications
         if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
@@ -286,7 +286,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
 
         let local_id = self.tcx.hir().local_def_id(id);
         let def_id = local_id.to_def_id();
-        let attrs = fn_kind.attrs();
+        let attrs = self.tcx.hir().attrs(id);
 
         // Collect external function specifications
         if has_extern_spec_attr(attrs) {
@@ -321,7 +321,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
                 let fn_name = match fn_kind {
                     intravisit::FnKind::ItemFn(ref ident, ..) |
                     intravisit::FnKind::Method(ref ident, ..) => ident.name.to_ident_string(),
-                    intravisit::FnKind::Closure(..) => unreachable!(
+                    intravisit::FnKind::Closure => unreachable!(
                         "a closure is annotated with prusti::spec_id but not with \
                         prusti::loop_body_invariant_spec"
                     ),
@@ -360,7 +360,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
 
         // Collect closure specifications
         if let rustc_hir::StmtKind::Local(local) = stmt.kind {
-            let attrs = &local.attrs;
+            let attrs = self.tcx.hir().attrs(local.hir_id);
             if has_prusti_attr(attrs, "closure") {
                 let init_expr = local.init
                     .expect("closure on Local without assignment");

@@ -218,7 +218,7 @@ impl<'tcx> Environment<'tcx> {
 
     /// Get the MIR body of an external procedure.
     pub fn external_mir<'a>(&self, def_id: DefId) -> &'a mir::Body<'tcx> {
-        self.tcx().optimized_mir_or_const_arg_mir(WithOptConstParam::unknown(def_id))
+        self.tcx().optimized_mir(def_id)
     }
 
     /// Get all relevant trait declarations for some type.
