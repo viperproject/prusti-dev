@@ -268,8 +268,8 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
                     | mir::Rvalue::Use(ref operand) => {
                         self.apply_operand_effect(operand);
                     }
-                    mir::Rvalue::BinaryOp(_, ref operand1, ref operand2)
-                    | mir::Rvalue::CheckedBinaryOp(_, ref operand1, ref operand2) => {
+                    mir::Rvalue::BinaryOp(_, box (ref operand1, ref operand2))
+                    | mir::Rvalue::CheckedBinaryOp(_, box (ref operand1, ref operand2)) => {
                         self.apply_operand_effect(operand1);
                         self.apply_operand_effect(operand2);
                     }

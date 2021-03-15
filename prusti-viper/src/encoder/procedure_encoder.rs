@@ -1135,7 +1135,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             location
                         )?
                     },
-                    &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
+                    &mir::Rvalue::BinaryOp(op, box (ref left, ref right)) => {
                         self.encode_assign_binary_op(
                             op,
                             left,
@@ -1145,7 +1145,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             location
                         )?
                     }
-                    &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => self
+                    &mir::Rvalue::CheckedBinaryOp(op, box (ref left, ref right)) => self
                         .encode_assign_checked_binary_op(
                             op,
                             left,

@@ -1085,7 +1085,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                     }
 
-                    &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
+                    &mir::Rvalue::BinaryOp(op, box(ref left, ref right)) => {
                         let encoded_left = self.mir_encoder.encode_operand_expr(left)
                             .with_span(span)?;
                         let encoded_right = self.mir_encoder.encode_operand_expr(right)
@@ -1101,7 +1101,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value);
                     }
 
-                    &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
+                    &mir::Rvalue::CheckedBinaryOp(op, box (ref left, ref right)) => {
                         let operand_ty = if let ty::TyKind::Tuple(ref types) = ty.kind() {
                             types[0].clone()
                         } else {
