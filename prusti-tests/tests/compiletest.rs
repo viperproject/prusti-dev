@@ -75,7 +75,9 @@ fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Opti
     config.rustc_path = find_prusti_rustc_path();
 
     // Filter the tests to run
-    config.filter = filter.clone();
+    if let Some(filter) = filter {
+        config.filters.push(filter.clone());
+    }
 
     // Add compilation flags
     config.target_rustcflags = Some(format!(
