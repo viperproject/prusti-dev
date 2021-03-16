@@ -127,7 +127,15 @@ fn binary_search(arr: &VecWrapperI32, elem: i32) -> UsizeOption
         body_invariant!(result.is_some() ==> (
                 0 <= result.peek() && result.peek() < arr.len() &&
                 arr.lookup(result.peek()) == elem));
+
+        assert!(base >= 0);
+        assert!(size >= 0);
+        assert!(arr.len() <= usize::MAX);
+        assert!(base + size <= usize::MAX);
+
         let half = size / 2;
+        assert!(half <= size);
+        assert!(half >= 0);
         let mid = base + half;
 
         let mid_element = arr.borrow(mid);
