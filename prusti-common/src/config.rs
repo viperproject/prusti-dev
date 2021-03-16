@@ -62,49 +62,49 @@ lazy_static! {
         let mut settings = Config::default();
 
         // 1. Default values
-        settings.set_default("BE_RUSTC", false).unwrap();
-        settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
-        settings.set_default("CHECK_FOLDUNFOLD_STATE", false).unwrap();
-        settings.set_default("CHECK_OVERFLOWS", false).unwrap();
-        settings.set_default("CHECK_PANICS", true).unwrap();
-        settings.set_default("ENCODE_UNSIGNED_NUM_CONSTRAINT", false).unwrap();
-        settings.set_default("SIMPLIFY_ENCODING", true).unwrap();
-        settings.set_default("LOG_DIR", "./log/").unwrap();
-        settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
-        settings.set_default("DUMP_DEBUG_INFO_DURING_FOLD", false).unwrap();
-        settings.set_default("MAX_LOG_FILE_NAME_LENGTH", 60).unwrap();
-        settings.set_default("DUMP_PATH_CTXT_IN_DEBUG_INFO", false).unwrap();
-        settings.set_default("DUMP_REBORROWING_DAG_IN_DEBUG_INFO", false).unwrap();
-        settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
-        settings.set_default("DUMP_VIPER_PROGRAM", false).unwrap();
-        settings.set_default("FOLDUNFOLD_STATE_FILTER", "").unwrap();
-        settings.set_default("CONTRACTS_LIB", "").unwrap();
-        settings.set_default::<Vec<String>>("EXTRA_JVM_ARGS", vec![]).unwrap();
-        settings.set_default::<Vec<String>>("EXTRA_VERIFIER_ARGS", vec![]).unwrap();
-        settings.set_default("QUIET", false).unwrap();
-        settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
-        settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
-        settings.set_default("SKIP_UNSUPPORTED_FEATURES", false).unwrap();
-        settings.set_default("ALLOW_UNREACHABLE_UNSUPPORTED_CODE", false).unwrap();
-        settings.set_default("NO_VERIFY", false).unwrap();
-        settings.set_default("FULL_COMPILATION", false).unwrap();
-        settings.set_default("JSON_COMMUNICATION", false).unwrap();
-        settings.set_default("JSON_COMMUNICATION", false).unwrap();
-        settings.set_default("OPTIMIZATIONS","all").unwrap();
-        settings.set_default("INTERN_NAMES", true).unwrap();
-        settings.set_default("ENABLE_PURIFICATION_OPTIMIZATION", false).unwrap();
+        settings.set_default("be_rustc", false).unwrap();
+        settings.set_default("viper_backend", "Silicon").unwrap();
+        settings.set_default("check_foldunfold_state", false).unwrap();
+        settings.set_default("check_overflows", false).unwrap();
+        settings.set_default("check_panics", true).unwrap();
+        settings.set_default("encode_unsigned_num_constraint", false).unwrap();
+        settings.set_default("simplify_encoding", true).unwrap();
+        settings.set_default("log_dir", "./log/").unwrap();
+        settings.set_default("dump_debug_info", false).unwrap();
+        settings.set_default("dump_debug_info_during_fold", false).unwrap();
+        settings.set_default("max_log_file_name_length", 60).unwrap();
+        settings.set_default("dump_path_ctxt_in_debug_info", false).unwrap();
+        settings.set_default("dump_reborrowing_dag_in_debug_info", false).unwrap();
+        settings.set_default("dump_borrowck_info", false).unwrap();
+        settings.set_default("dump_viper_program", false).unwrap();
+        settings.set_default("foldunfold_state_filter", "").unwrap();
+        settings.set_default("contracts_lib", "").unwrap();
+        settings.set_default::<Vec<String>>("extra_jvm_args", vec![]).unwrap();
+        settings.set_default::<Vec<String>>("extra_verifier_args", vec![]).unwrap();
+        settings.set_default("quiet", false).unwrap();
+        settings.set_default("assert_timeout", 10_000).unwrap();
+        settings.set_default("use_more_complete_exhale", true).unwrap();
+        settings.set_default("skip_unsupported_features", false).unwrap();
+        settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
+        settings.set_default("no_verify", false).unwrap();
+        settings.set_default("full_compilation", false).unwrap();
+        settings.set_default("json_communication", false).unwrap();
+        settings.set_default("json_communication", false).unwrap();
+        settings.set_default("optimizations","all").unwrap();
+        settings.set_default("intern_names", true).unwrap();
+        settings.set_default("enable_purification_optimization", false).unwrap();
 
-        settings.set_default("PRINT_DESUGARED_SPECS", false).unwrap();
-        settings.set_default("PRINT_TYPECKD_SPECS", false).unwrap();
-        settings.set_default("PRINT_COLLECTED_VERIFICATION_ITEMS", false).unwrap();
-        settings.set_default("HIDE_UUIDS", false).unwrap();
+        settings.set_default("print_desugared_specs", false).unwrap();
+        settings.set_default("print_typeckd_specs", false).unwrap();
+        settings.set_default("print_collected_verification_items", false).unwrap();
+        settings.set_default("hide_uuids", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
-        settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
-        settings.set_default("VERIFY_ONLY_PREAMBLE", false).unwrap();
-        settings.set_default("ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH", false).unwrap();
-        settings.set_default::<Vec<String>>("VERIFY_ONLY_BASIC_BLOCK_PATH", vec![]).unwrap();
-        settings.set_default::<Vec<String>>("DELETE_BASIC_BLOCKS", vec![]).unwrap();
+        settings.set_default("disable_name_mangling", false).unwrap();
+        settings.set_default("verify_only_preamble", false).unwrap();
+        settings.set_default("enable_verify_only_basic_block_path", false).unwrap();
+        settings.set_default::<Vec<String>>("verify_only_basic_block_path", vec![]).unwrap();
+        settings.set_default::<Vec<String>>("delete_basic_blocks", vec![]).unwrap();
 
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
@@ -159,17 +159,17 @@ where
 
 /// Should Prusti behave exactly like rustc?
 pub fn be_rustc() -> bool {
-    read_setting("BE_RUSTC")
+    read_setting("be_rustc")
 }
 
 /// Generate additional, *slow*, checks for the foldunfold algorithm
 pub fn check_foldunfold_state() -> bool {
-    read_setting("CHECK_FOLDUNFOLD_STATE")
+    read_setting("check_foldunfold_state")
 }
 
 /// The Viper backend that should be used for the verification
 pub fn viper_backend() -> String {
-    read_setting::<String>("VIPER_BACKEND")
+    read_setting::<String>("viper_backend")
         .to_lowercase()
         .trim()
         .to_string()
@@ -177,118 +177,118 @@ pub fn viper_backend() -> String {
 
 /// Should we check absence of panics?
 pub fn check_panics() -> bool {
-    read_setting("CHECK_PANICS")
+    read_setting("check_panics")
 }
 
 /// Should we simplify the encoding before passing it to Viper?
 pub fn simplify_encoding() -> bool {
-    read_setting("SIMPLIFY_ENCODING")
+    read_setting("simplify_encoding")
 }
 
 /// Should we dump debug files?
 pub fn dump_debug_info() -> bool {
-    read_setting("DUMP_DEBUG_INFO")
+    read_setting("dump_debug_info")
 }
 
 /// Should we dump debug files for fold/unfold generation?
 pub fn dump_debug_info_during_fold() -> bool {
-    read_setting("DUMP_DEBUG_INFO_DURING_FOLD")
+    read_setting("dump_debug_info_during_fold")
 }
 
 /// What is the longest allowed length of a log file name? If this is exceeded,
 /// the file name is truncated.
 pub fn max_log_file_name_length() -> usize {
-    read_setting("MAX_LOG_FILE_NAME_LENGTH")
+    read_setting("max_log_file_name_length")
 }
 
 /// Should we dump the branch context state in debug files?
 pub fn dump_path_ctxt_in_debug_info() -> bool {
-    read_setting("DUMP_PATH_CTXT_IN_DEBUG_INFO")
+    read_setting("dump_path_ctxt_in_debug_info")
 }
 
 /// Should we dump the reborrowing DAGs in debug files?
 pub fn dump_reborrowing_dag_in_debug_info() -> bool {
-    read_setting("DUMP_REBORROWING_DAG_IN_DEBUG_INFO")
+    read_setting("dump_reborrowing_dag_in_debug_info")
 }
 
 /// Should we dump borrowck info?
 pub fn dump_borrowck_info() -> bool {
-    read_setting("DUMP_BORROWCK_INFO")
+    read_setting("dump_borrowck_info")
 }
 
 /// Should we dump the Viper program?
 pub fn dump_viper_program() -> bool {
-    read_setting("DUMP_VIPER_PROGRAM")
+    read_setting("dump_viper_program")
 }
 
 /// The Viper backend that should be used for the verification
 pub fn foldunfold_state_filter() -> String {
-    read_setting("FOLDUNFOLD_STATE_FILTER")
+    read_setting("foldunfold_state_filter")
 }
 
 /// In which folder should we sore log/dumps?
 pub fn log_dir() -> String {
-    read_setting("LOG_DIR")
+    read_setting("log_dir")
 }
 
 /// Check binary operations for overflows
 pub fn check_overflows() -> bool {
-    read_setting("CHECK_OVERFLOWS")
+    read_setting("check_overflows")
 }
 
 /// Encode (and check) that unsigned integers are non-negative.
 pub fn encode_unsigned_num_constraint() -> bool {
-    read_setting("ENCODE_UNSIGNED_NUM_CONSTRAINT")
+    read_setting("encode_unsigned_num_constraint")
 }
 
 /// Location of 'libprusti_contracts*.rlib'
 pub fn contracts_lib() -> String {
-    read_setting("CONTRACTS_LIB")
+    read_setting("contracts_lib")
 }
 
 /// Get extra JVM arguments
 pub fn extra_jvm_args() -> Vec<String> {
-    read_setting("EXTRA_JVM_ARGS")
+    read_setting("extra_jvm_args")
 }
 
 /// Get extra arguments for the verifier
 pub fn extra_verifier_args() -> Vec<String> {
-    read_setting("EXTRA_VERIFIER_ARGS")
+    read_setting("extra_verifier_args")
 }
 
 /// Should we hide user messages?
 pub fn quiet() -> bool {
-    read_setting("QUIET")
+    read_setting("quiet")
 }
 
 /// The assert timeout (in milliseconds) passed to Silicon.
 pub fn assert_timeout() -> u64 {
-    read_setting("ASSERT_TIMEOUT")
+    read_setting("assert_timeout")
 }
 
 /// Use the Silicon configuration option `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
-    read_setting("USE_MORE_COMPLETE_EXHALE")
+    read_setting("use_more_complete_exhale")
 }
 
 /// Should Prusti print the items collected for verification.
 pub fn print_collected_verification_items() -> bool {
-    read_setting("PRINT_COLLECTED_VERIFICATION_ITEMS")
+    read_setting("print_collected_verification_items")
 }
 
 /// Should Prusti print the AST with desugared specifications.
 pub fn print_desugared_specs() -> bool {
-    read_setting("PRINT_DESUGARED_SPECS")
+    read_setting("print_desugared_specs")
 }
 
 /// Should Prusti print the type-checked specifications.
 pub fn print_typeckd_specs() -> bool {
-    read_setting("PRINT_TYPECKD_SPECS")
+    read_setting("print_typeckd_specs")
 }
 
 /// Should Prusti hide the UUIDs of expressions and specifications.
 pub fn hide_uuids() -> bool {
-    read_setting("HIDE_UUIDS")
+    read_setting("hide_uuids")
 }
 
 /**
@@ -300,26 +300,26 @@ It also doesn't make much sense to set this to less than that, since then the se
 pub fn server_max_stored_verifiers() -> Option<usize> {
     // TODO: default to below in prusti-server
     // TODO: warn if lower than below
-    read_optional_setting("SERVER_MAX_STORED_VERIFIERS")
+    read_optional_setting("server_max_stored_verifiers")
 }
 
 /// The maximum amount of verification requests the server will work on concurrently.
 ///
 /// If not set, this defaults to the number of (logical) cores on the system
 pub fn server_max_concurrency() -> Option<usize> {
-    read_optional_setting("SERVER_MAX_CONCURRENCY")
+    read_optional_setting("server_max_concurrency")
 }
 
 /// When set, Prusti will connect to this server and use it for its verification backend (i.e. the things using the JVM/Viper).
 /// Set to "MOCK" to run the server off-thread, effectively mocking connecting to a server without having to start it up separately.
 /// e.g. "127.0.0.1:2468"
 pub fn server_address() -> Option<String> {
-    read_optional_setting("SERVER_ADDRESS")
+    read_optional_setting("server_address")
 }
 
 /// If true, communication with the server will be encoded as json and not the default of bincode.
 pub fn json_communication() -> bool {
-    read_setting("JSON_COMMUNICATION")
+    read_setting("json_communication")
 }
 
 /// Disable mangling of generated Viper names.
@@ -327,21 +327,21 @@ pub fn json_communication() -> bool {
 /// **Note:** This is very likely to result in invalid programs being
 /// generated because of name collisions.
 pub fn disable_name_mangling() -> bool {
-    read_setting("DISABLE_NAME_MANGLING")
+    read_setting("disable_name_mangling")
 }
 
 /// Verify only the preamble: domains, functions, and predicates.
 ///
 /// **Note:** With this flag enabled, no methods are verified!
 pub fn verify_only_preamble() -> bool {
-    read_setting("VERIFY_ONLY_PREAMBLE")
+    read_setting("verify_only_preamble")
 }
 
 /// Verify only the path given in ``VERIFY_ONLY_BASIC_BLOCK_PATH``.
 ///
 /// **Note:** This flag is only for debugging Prusti!
 pub fn enable_verify_only_basic_block_path() -> bool {
-    read_setting("ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH")
+    read_setting("enable_verify_only_basic_block_path")
 }
 
 /// Verify only the single execution path goes through the given basic blocks.
@@ -351,12 +351,12 @@ pub fn enable_verify_only_basic_block_path() -> bool {
 ///
 /// **Note:** This flag is only for debugging Prusti!
 pub fn verify_only_basic_block_path() -> Vec<String> {
-    read_setting("VERIFY_ONLY_BASIC_BLOCK_PATH")
+    read_setting("verify_only_basic_block_path")
 }
 
 /// Which optimizations should be enabled
 pub fn optimizations() -> Optimizations {
-    let optimizations_string = read_setting::<String>("OPTIMIZATIONS");
+    let optimizations_string = read_setting::<String>("optimizations");
 
     let mut opt = Optimizations::all_disabled();
 
@@ -385,36 +385,36 @@ pub fn optimizations() -> Optimizations {
 /// **Note:** this optimization is currently very incomplete and may introduce
 /// unsoudnesses.
 pub fn enable_purification_optimization() -> bool {
-    read_setting("ENABLE_PURIFICATION_OPTIMIZATION")
+    read_setting("enable_purification_optimization")
 }
 
 /// Replace the given basic blocks with ``assume false``.
 pub fn delete_basic_blocks() -> Vec<String> {
-    read_setting("DELETE_BASIC_BLOCKS")
+    read_setting("delete_basic_blocks")
 }
 
 /// Skip features that are unsupported or partially supported
 pub fn skip_unsupported_features() -> bool {
-    read_setting("SKIP_UNSUPPORTED_FEATURES")
+    read_setting("skip_unsupported_features")
 }
 
 /// Encode unsupported code as `assert false`, so that we report error messages
 /// only for unsupported code that is actually reachable.
 pub fn allow_unreachable_unsupported_code() -> bool {
-    read_setting("ALLOW_UNREACHABLE_UNSUPPORTED_CODE")
+    read_setting("allow_unreachable_unsupported_code")
 }
 
 /// Skip the verification
 pub fn no_verify() -> bool {
-    read_setting("NO_VERIFY")
+    read_setting("no_verify")
 }
 
 /// Continue the compilation and generate the binary after Prusti terminates
 pub fn full_compilation() -> bool {
-    read_setting("FULL_COMPILATION")
+    read_setting("full_compilation")
 }
 
 /// Intern Viper identifiers to shorten them when possible.
 pub fn intern_names() -> bool {
-    read_setting("INTERN_NAMES")
+    read_setting("intern_names")
 }
