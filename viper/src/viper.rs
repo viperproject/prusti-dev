@@ -4,7 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use error_chain::ChainedError;
 use jni::*;
 use jni_utils::JniUtils;
 use std::env;
@@ -74,11 +73,11 @@ impl Viper {
             .fold(init_args, |curr_args, opt| curr_args.option(&opt))
             .build()
             .unwrap_or_else(|e| {
-                panic!("{}", e.display_chain());
+                panic!("{} source: {:?}", e, std::error::Error::source(&e));
             });
 
         let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
-            panic!("{}", e.display_chain());
+            panic!("{} source: {:?}", e, std::error::Error::source(&e));
         });
 
         // Log JVM and Java version

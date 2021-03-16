@@ -13,12 +13,10 @@ error_chain! {
         Io(std::io::Error);
         Utf8Error(std::str::Utf8Error);
         // FIXME: why is this required?
-        UnknownJniError(jni::Error);
+        UnknownJniError(jni::errors::Error);
+        UnknownJvmError(jni::JvmError);
     }
 
-    links {
-        JniErrors(jni::errors::Error, jni::errors::ErrorKind);
-    }
 
     errors {
         NoClass(class: String) {
