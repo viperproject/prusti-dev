@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use error_chain::ChainedError;
-use jni::errors::{Result as JniResult, ErrorKind};
+use jni::errors::{Result as JniResult, Error};
 use jni::objects::JObject;
 use jni::objects::JString;
 use jni::strings::JNIString;
@@ -35,13 +34,13 @@ impl<'a> JniUtils<'a> {
     /// Unwrap a JniResult<T>, retrieving information on raised Java exceptions.
     pub fn unwrap_or_exception<T>(&self, res: JniResult<T>) -> Result<T, JavaException> {
         res.map_err(|error| {
-            if let ErrorKind::JavaException = *error.kind() {
+            if let Error::JavaException = error {
                 let exception = self.env.exception_occurred().unwrap_or_else(|e| {
-                    error!("{}", e.display_chain().to_string());
+                    error!("{} source: {:?}", e, std::error::Error::source(&e));
                     panic!("Failed to get the raised Java exception.");
                 });
                 self.env.exception_clear().unwrap_or_else(|e| {
-                    error!("{}", e.display_chain().to_string());
+                    error!("{} source: {:?}", e, std::error::Error::source(&e));
                     panic!("Failed to clear an exception in the process of being thrown.");
                 });
                 // Retrieve information on the Java exception.
@@ -53,7 +52,7 @@ impl<'a> JniUtils<'a> {
                 JavaException::new(exception_message, stack_trace)
             } else {
                 // This is not a Java exception
-                error!("{}", error.display_chain().to_string());
+                error!("{} source: {:?}", error, std::error::Error::source(&error));
                 panic!("{}", error);
             }
         })
