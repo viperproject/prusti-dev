@@ -2,7 +2,6 @@ extern crate error_chain;
 extern crate jni;
 extern crate systest;
 
-use error_chain::ChainedError;
 use jni::objects::JObject;
 use jni::InitArgsBuilder;
 use jni::JNIVersion;
@@ -21,11 +20,11 @@ fn test_jvm_builtin_classes() {
         //.option("-XX:+TraceJNICalls")
         .build()
         .unwrap_or_else(|e| {
-            panic!("{}", e.display_chain());
+            panic!("{} source: {:?}", e, std::error::Error::source(&e));
         });
 
     let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
-        panic!("{}", e.display_chain());
+        panic!("{} source: {:?}", e, std::error::Error::source(&e));
     });
 
     let env = jvm
@@ -52,7 +51,7 @@ fn test_jvm_builtin_classes() {
             })
             .unwrap_or_else(|e| {
                 print_exception(&env);
-                panic!("{}", e.display_chain());
+                panic!("{} source: {:?}", e, std::error::Error::source(&e));
             });
         }
     }

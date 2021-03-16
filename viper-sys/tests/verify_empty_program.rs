@@ -5,7 +5,6 @@ extern crate jni;
 extern crate log;
 extern crate viper_sys;
 
-use error_chain::ChainedError;
 use jni::objects::JObject;
 use jni::InitArgsBuilder;
 use jni::JNIVersion;
@@ -45,11 +44,11 @@ fn verify_empty_program() {
         //.option("-XX:+TraceJNICalls")
         .build()
         .unwrap_or_else(|e| {
-            panic!("{}", e.display_chain());
+            panic!("{} source: {:?}", e, std::error::Error::source(&e));
         });
 
     let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
-        panic!("{}", e.display_chain());
+        panic!("{} source: {:?}", e, std::error::Error::source(&e));
     });
 
     let env = jvm
@@ -126,6 +125,6 @@ fn verify_empty_program() {
             env.exception_describe()
                 .unwrap_or_else(|e| panic!("{:?}", e));
         }
-        panic!("{}", e.display_chain());
+        panic!("{} source: {:?}", e, std::error::Error::source(&e));
     });
 }
