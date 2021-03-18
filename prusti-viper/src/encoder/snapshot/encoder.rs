@@ -173,17 +173,56 @@ impl SnapshotEncoder {
                     ty::TyKind::Param(_) => 0.into(),
                     _ => {
                         let snapshot = self.encode_snapshot(encoder, ty)?;
-                        Expr::func_app(
-                            "snap$".to_string(),
-                            vec![expr.clone()],
-                            vec![vir::LocalVar::new("_", expr.get_type().clone())],
-                            snapshot.get_type(),
-                            vir::Position::default(),
-                        )
+                        self.snap_app_complex(expr, snapshot.get_type())
                     }
                 })
             }
             _ => unreachable!("invalid SnapApp"), // TODO: proper error
+        }
+    }
+
+    pub(super) fn snap_app_complex(
+        &self,
+        expr: Expr,
+        ty: vir::Type,
+    ) -> Expr {
+        Expr::func_app(
+            "snap$".to_string(),
+            vec![expr.clone()],
+            vec![vir::LocalVar::new("_", expr.get_type().clone())],
+            ty,
+            vir::Position::default(),
+        )
+    }
+
+    /// Converts variant + field access on a snapshot to a domain function call.
+    pub(super) fn snap_variant_field<'p, 'v: 'p, 'tcx: 'v>(
+        &mut self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        expr: Expr,
+        variant: vir::Field,
+        field: vir::Field,
+    ) -> EncodingResult<Expr> {
+        // TODO: we should not rely on string operations
+        assert!(variant.name.starts_with("enum_"));
+        let variant_name = &variant.name[5..];
+        match expr.get_type() {
+            Type::Snapshot(ref name) => {
+                let ty = encoder.decode_type_predicate(name)?;
+                let snapshot = self.encode_snapshot(encoder, ty)?;
+                match snapshot {
+                    Snapshot::Complex { variants, variant_names, .. } => {
+                        let variant_idx = variant_names.get(variant_name)
+                            .expect("no such variant");
+                        Ok(Expr::domain_func_app(
+                            variants[*variant_idx].get(&field.name).unwrap().clone(),
+                            vec![expr],
+                        ))
+                    },
+                    _ => unreachable!("invalid snapshot field (not Complex)"),
+                }
+            }
+            _ => unreachable!("invalid snapshot field"),
         }
     }
 
@@ -198,8 +237,14 @@ impl SnapshotEncoder {
             Type::Snapshot(ref name) => {
                 let ty = encoder.decode_type_predicate(name)?;
                 let snapshot = self.encode_snapshot(encoder, ty)?;
-                match snapshot {
-                    Snapshot::Complex { variants, .. } => {
+                match (field.name.as_str(), snapshot) {
+                    ("discriminant", Snapshot::Complex { discriminant_func, .. }) => {
+                        Ok(Expr::domain_func_app(
+                            discriminant_func.clone(),
+                            vec![expr],
+                        ))
+                    },
+                    (_, Snapshot::Complex { variants, .. }) => {
                         Ok(Expr::domain_func_app(
                             // TODO: fields of enum variants
                             // -> add SnapshotVariant to vir::Type ?
@@ -221,6 +266,33 @@ impl SnapshotEncoder {
     ) -> EncodingResult<bool> {
         let snapshot = self.encode_snapshot(encoder, ty)?;
         Ok(snapshot.supports_equality())
+    }
+
+    pub fn encode_discriminant_post<'p, 'v: 'p, 'tcx: 'v>(
+        &mut self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        expr_self: Expr,
+        expr_result: Expr,
+    ) -> EncodingResult<Expr> {
+        match expr_self.get_type() {
+            Type::TypedRef(ref name) => {
+                let ty = encoder.decode_type_predicate(name)?;
+                let snapshot = self.encode_snapshot(encoder, ty)?;
+                match snapshot {
+                    Snapshot::Complex { ref discriminant_func, .. } => {
+                        Ok(vir::Expr::eq_cmp(
+                            vir::Expr::domain_func_app(
+                                discriminant_func.clone(),
+                                vec![self.snap_app_complex(expr_self, snapshot.get_type())],
+                            ),
+                            expr_result,
+                        ))
+                    },
+                    _ => unreachable!("discriminant of non-enum snapshot"),
+                }
+            },
+            _ => unreachable!("discriminant of non-enum snapshot"),
+        }
     }
 
     pub fn encode_type<'p, 'v: 'p, 'tcx: 'v>(
@@ -259,9 +331,7 @@ impl SnapshotEncoder {
 
         // is the snapshot currently being encoded? (handle recursive data types)
         if let Some(ty) = self.in_progress.get(&predicate_name) {
-            // TODO: can this actually happen?
-            unimplemented!("Lazy?");
-            // return Ok(ty.clone());
+            return Ok(Snapshot::Lazy(ty.clone()))
         }
 
         // otherwise, encode
@@ -339,6 +409,7 @@ impl SnapshotEncoder {
                 self.encode_complex(encoder, vec![SnapshotVariant {
                     discriminant: -1,
                     fields,
+                    name: None,
                 }], predicate_name)
             }
             ty::TyKind::Adt(adt_def, subst) if adt_def.is_struct() => {
@@ -357,6 +428,7 @@ impl SnapshotEncoder {
                 self.encode_complex(encoder, vec![SnapshotVariant {
                     discriminant: -1,
                     fields,
+                    name: None,
                 }], predicate_name)
             }
             ty::TyKind::Adt(adt_def, subst) if adt_def.is_enum() => {
@@ -365,21 +437,22 @@ impl SnapshotEncoder {
                 for (variant_idx, variant) in adt_def.variants.iter_enumerated() {
                     let mut fields = vec![];
                     let variant_idx: usize = variant_idx.into();
+                    let (field_base, variant_name) = match predicate {
+                        vir::Predicate::Enum(ref enum_predicate) => {
+                            let (_, ref variant_name, _) = enum_predicate.variants[variant_idx];
+                            (arg_expr.clone().variant(variant_name), Some(variant_name.to_string()))
+                        }
+                        vir::Predicate::Struct(..) => {
+                            (arg_expr.clone(), None)
+                        }
+                        _ => unreachable!(),
+                    };
                     for field in &variant.fields {
                         let field_ty = field.ty(tcx, subst);
                         fields.push(SnapshotField {
                             name: format!("f${}", field.ident),
                             access: self.snap_app(encoder, Expr::field(
-                                match predicate {
-                                    vir::Predicate::Enum(ref enum_predicate) => {
-                                        let (_, ref variant_name, _) = enum_predicate.variants[variant_idx];
-                                        arg_expr.clone().variant(variant_name)
-                                    }
-                                    vir::Predicate::Struct(..) => {
-                                        arg_expr.clone()
-                                    }
-                                    _ => unreachable!(),
-                                },
+                                field_base.clone(),
                                 encoder.encode_struct_field(&field.ident.to_string(), field_ty)?,
                             ))?,
                             typ: self.encode_type(encoder, field_ty)?,
@@ -395,6 +468,7 @@ impl SnapshotEncoder {
                     variants.push(SnapshotVariant {
                         discriminant,
                         fields,
+                        name: variant_name,
                     });
                 }
                 self.encode_complex(encoder, variants, predicate_name)
@@ -427,6 +501,7 @@ impl SnapshotEncoder {
         let mut domain_axioms = vec![];
         let mut variant_field_funcs = vec![];
         let mut variant_snap_bodies = vec![];
+        let mut variant_names = HashMap::new();
 
         let arg_ref_local = vir::LocalVar::new(
             "self",
@@ -479,6 +554,11 @@ impl SnapshotEncoder {
                 )).collect::<Vec<vir::LocalVar>>();
             // TODO: filter out Units
 
+            // record name to index mapping
+            if let Some(name) = &variant.name {
+                variant_names.insert(name.to_string(), variant_idx);
+            }
+
             // encode constructor
             let constructor = vir::DomainFunc {
                 name: constructor_name.to_string(),
@@ -524,7 +604,6 @@ impl SnapshotEncoder {
                 );
 
                 vir::DomainAxiom {
-                    // TODO: why domain_name in name?
                     name: format!("{}${}$injectivity", domain_name, variant_idx),
                     expr: Expr::forall(
                         forall_vars,
@@ -543,7 +622,6 @@ impl SnapshotEncoder {
                 let args = encode_prefixed_args("");
                 let call = encode_constructor_call(&args);
                 vir::DomainAxiom {
-                    // TODO: why domain_name in name?
                     name: format!("{}${}$discriminant_axiom", domain_name, variant_idx),
                     expr: Expr::forall(
                         args.iter().cloned().collect(),
@@ -567,7 +645,6 @@ impl SnapshotEncoder {
             for (field_idx, field) in variant.fields.iter().enumerate() {
                 // encode field access function
                 let field_access_func = vir::DomainFunc {
-                    // TODO: why domain_name in name?
                     name: format!("{}${}$field${}", domain_name, variant_idx, field.name),
                     formal_args: vec![vir::LocalVar::new(
                         "self",
@@ -589,7 +666,6 @@ impl SnapshotEncoder {
                         vec![call.clone()],
                     );
                     vir::DomainAxiom {
-                        // TODO: why domain_name in name?
                         name: format!("{}${}$field${}$axiom", domain_name, variant_idx, field.name),
                         expr: Expr::forall(
                             args.clone(),
@@ -633,6 +709,7 @@ impl SnapshotEncoder {
                             arg_ref_expr.clone(),
                             encoder.encode_discriminant_field(),
                         ),
+                        //encoder.encode_discriminant_func_app(arg_ref_expr.clone()),
                         variants[i].discriminant.into(),
                     ),
                     variant_snap_bodies[i].clone(),
@@ -669,8 +746,10 @@ impl SnapshotEncoder {
         Ok(Snapshot::Complex {
             predicate_name: predicate_name.to_string(),
             domain,
+            discriminant_func,
             snap_func,
             variants: variant_field_funcs,
+            variant_names,
         })
     }
 }
@@ -678,6 +757,7 @@ impl SnapshotEncoder {
 struct SnapshotVariant {
     discriminant: i128, // TODO: Option<i128> ?
     fields: Vec<SnapshotField>,
+    name: Option<String>,
 }
 
 struct SnapshotField {

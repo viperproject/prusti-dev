@@ -2755,7 +2755,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let inhaled_expr = if return_type.is_domain() {
             let predicate_name = target_value.get_type().name();
-            let target_place = self.encode_pure_function_call_lhs_place(destination);
+            let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination);
+            stmts.extend(pre_stmts);
             let snap_app = vir::Expr::snap_app(target_place);
             vir::Expr::eq_cmp(snap_app, func_call)
         } else {

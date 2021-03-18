@@ -19,10 +19,14 @@ pub enum Snapshot {
     Complex {
         predicate_name: String,
         domain: vir::Domain,
+        discriminant_func: vir::DomainFunc,
         snap_func: vir::Function,
         /// [variants] has one entry for tuples, structs, and closures.
         /// For enums, it has as many entries as there are variants.
         variants: Vec<HashMap<String, vir::DomainFunc>>,
+        /// Mapping of variant names (as used by Prusti) to variant indices
+        /// in the [variants] vector. Empty for non-enums.
+        variant_names: HashMap<String, usize>,
     }, // TODO: separate variant for enums and one-variant Complexes?
     /// Type could not be encoded.
     Abstract,
@@ -39,7 +43,7 @@ impl Snapshot {
             Self::Unit => Type::Int, // TODO: domain for units?
             Self::Complex { predicate_name, .. } => Type::Snapshot(predicate_name.to_string()),
             Self::Abstract => Type::Int, // TODO: domain for abstracts?
-            _ => unimplemented!("snapshot type of {:?}", self),
+            Self::Lazy(ty) => ty.clone(),
         }
     }
 

@@ -641,27 +641,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     vir::PermAmount::Read,
                 );
                 let result = vir_local!{ __result: Int };
-                let mut postcondition = compute_discriminant_bounds(
+                let postcondition = compute_discriminant_bounds(
                     adt_def, self.env.tcx(), &result.clone().into());
-
-                // TODO: ???
-                /*
-                if config::enable_purification_optimization() {
-                    if let Some(snapshot) = self.get_snapshots().get(&predicate_name) {
-                        if snapshot.domain().is_some() {
-                            let snap_call = snapshot.snap_call(self_local_var.clone().into());
-                            let variant_func = snapshot::encode_variant_func(format!(
-                                "{}{}",
-                                "Snap$", // snapshot_encoder::SNAPSHOT_DOMAIN_PREFIX,
-                                snapshot.predicate_name,
-                            )); // TODO instead use snapshot_domain.name
-                            let variant_func_call = vir::Expr::domain_func_app(variant_func, vec![snap_call]);
-                            let new_post: vir::Expr = vir::Expr::eq_cmp(vir::Expr::local(result.clone()), variant_func_call);
-                            postcondition = vir::Expr::and(postcondition, new_post);
-                        }
-                    }
-                }
-                */
 
                 let discr_field = self.encode_discriminant_field();
                 let self_local_var_expr: vir::Expr = self_local_var.clone().into();
@@ -670,7 +651,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     formal_args: vec![self_local_var.clone()],
                     return_type: vir::Type::Int,
                     pres: vec![precondition],
-                    posts: vec![postcondition],
+                    posts: vec![
+                        postcondition,
+                        self.snapshot_encoder.borrow_mut().encode_discriminant_post(
+                            self,
+                            self_local_var_expr.clone(),
+                            vir::Expr::local(result),
+                        ).unwrap(), // TODO: no unwrap
+                    ],
                     body: Some(self_local_var_expr.field(discr_field)),
                 };
 

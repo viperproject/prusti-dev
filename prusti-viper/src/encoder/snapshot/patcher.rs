@@ -30,7 +30,8 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
     ) -> Result<vir::Expr, Self::Error> {
         args = args.into_iter()
             .zip(formal_args.iter())
-            .map(|(arg, formal_arg)| {
+            .map(|(mut arg, formal_arg)| {
+                arg = FallibleExprFolder::fallible_fold(self, arg)?;
                 if formal_arg.typ.is_snapshot() && !arg.get_type().is_snapshot() {
                     self.snapshot_encoder.snap_app(self.encoder, arg)
                 } else {
@@ -54,17 +55,37 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
         pos: vir::Position,
     ) -> Result<vir::Expr, Self::Error> {
         let receiver = self.fallible_fold_boxed(receiver)?;
-        match receiver.get_type() {
-            vir::Type::Int if field.name == "val_int" => Ok(*receiver),
-            vir::Type::Bool if field.name == "val_bool" => Ok(*receiver),
-            vir::Type::Snapshot(_) => {
-                let res = match field.name.as_str() {
-                    "val_ref" => Ok(*receiver),
-                    _ => self.snapshot_encoder.snap_field(self.encoder, *receiver, field),
-                }?;
-                Ok(res)
+        match receiver {
+            box vir::Expr::Variant(receiver, variant, pos2) => {
+                let receiver = self.fallible_fold_boxed(receiver)?;
+                match receiver.get_type() {
+                    vir::Type::Snapshot(_) => self.snapshot_encoder.snap_variant_field(
+                        self.encoder,
+                        *receiver,
+                        variant,
+                        field,
+                    ),
+                    _ => Ok(vir::Expr::Field(
+                        box vir::Expr::Variant(receiver, variant, pos2),
+                        field,
+                        pos
+                    )),
+                }
+            },
+            receiver => {
+                match receiver.get_type() {
+                    vir::Type::Int if field.name == "val_int" => Ok(*receiver),
+                    vir::Type::Bool if field.name == "val_bool" => Ok(*receiver),
+                    vir::Type::Snapshot(_) => {
+                        let res = match field.name.as_str() {
+                            "val_ref" => Ok(*receiver),
+                            _ => self.snapshot_encoder.snap_field(self.encoder, *receiver, field),
+                        }?;
+                        Ok(res)
+                    }
+                    _ => Ok(vir::Expr::Field(receiver, field, pos)),
+                }
             }
-            _ => Ok(vir::Expr::Field(receiver, field, pos)),
         }
     }
 
