@@ -513,7 +513,7 @@ impl SnapshotEncoder {
         // TODO: only if multiple variants
         let arg = vir::LocalVar::new("self", snapshot_type.clone());
         let discriminant_func = vir::DomainFunc {
-            name: "variant$".to_string(),
+            name: "discriminant$".to_string(),
             formal_args: vec![vir::LocalVar::new(
                 "self",
                 snapshot_type.clone(),
@@ -633,7 +633,7 @@ impl SnapshotEncoder {
                                 discriminant_func.clone(),
                                 vec![call.clone()],
                             ),
-                            variant_idx.into(),
+                            variant.discriminant.into(),
                         ),
                     ),
                     domain_name: domain_name.to_string(),
