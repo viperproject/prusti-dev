@@ -143,15 +143,7 @@ fn range_sum(
         assert!((nodeRIdx - mid) * 2 == (nodeRIdx - nodeLIdx));
 
         if lIdx < mid {
-            result += range_sum(
-                segTree,
-                idx * 2,
-                lIdx,
-                min(mid, rIdx),
-                array,
-                nodeLIdx,
-                mid,
-            );
+            result += range_sum(segTree, idx * 2, lIdx, min(mid, rIdx), array, nodeLIdx, mid);
         } else {
             result += 0;
         }
@@ -176,21 +168,50 @@ fn range_sum(
 
 #[requires(array.len() > 0)]
 #[requires(power_of_two(array.len()))]
-#[ensures(power_of_two(result.len()))]
-fn build(array: &VecWrapperI32) -> VecWrapperI32 {
-    let mut result = VecWrapperI32::new(2 * array.len());
-    let idx = result.len() - 1;
-    while idx >= 1 {
-        body_invariant!(idx < result.len() && idx >= 1);
-        if idx >= array.len() {
-            result.set(idx, array.lookup(idx - array.len()));
-        } else {
-            let v = result.lookup(idx * 2) + result.lookup(idx * 2 + 1);
-            result.set(idx, v);
-        }
+#[ensures(power_of_two(segTree.len()))]
+#[requires(segTree.len() == 2 * array.len())]
+#[requires(idx >= 1 && idx <= segTree.len())]
+#[ensures(segTree.len() == 2 * array.len())]
+#[ensures(forall(|i:isize| (i >= idx && i < segTree.len() && i >= array.len()) ==> segTree.lookup(i) == array.lookup(i - array.len())))]
+#[ensures(forall(|i:isize| (i >= idx && i < segTree.len() && i < array.len()) ==> segTree.lookup(i) == segTree.lookup(i * 2) + segTree.lookup(i * 2 + 1)))]
+fn build(array: &VecWrapperI32, segTree: &mut VecWrapperI32, idx: isize) {
+    if idx == segTree.len() {
+
+    } else if idx >= array.len() {
+        build(array, segTree, idx + 1);
+        segTree.set(idx, array.lookup(idx - array.len()));
+    } else {
+        build(array, segTree, idx + 1);
+        let v = segTree.lookup(idx * 2) + segTree.lookup(idx * 2 + 1);
+        segTree.set(idx, v);
     }
-    result
 }
+
+// #[requires(array.len() > 0)]
+// #[requires(power_of_two(array.len()))]
+// #[ensures(power_of_two(segTree.len()))]
+// #[ensures(power_of_two(rIdx - lIdx))]
+// #[requires(segTree.len() == 2 * array.len())]
+// #[requires(idx >= 1 && idx < segTree.len())]
+// #[requires(lIdx >= 0 && lIdx < rIdx && rIdx <= array.len())]
+// #[requires(rIdx - lIdx == range_length(idx, array.len()))]
+// #[ensures(segTree.len() == 2 * array.len())]
+// #[ensures(sum_property(array, segTree, 1, 0, array.len()))]
+// fn build(array: &VecWrapperI32, segTree: &mut VecWrapperI32, idx: isize, lIdx: isize, rIdx: isize) {
+//     if idx >= array.len() {
+//         segTree.set(idx, array.lookup(lIdx));
+//     } else {
+//         assert!((rIdx + lIdx) % 2 == 0);
+//         let mid = (rIdx + lIdx) / 2;
+//         assert!(mid * 2 == rIdx + lIdx);
+//         assert!((rIdx - mid) * 2 == (rIdx - lIdx));
+//         assert!((idx * 2 + 1) / 2 == idx);
+//         build(array, segTree, idx * 2, lIdx,  mid);
+//         build(array, segTree, idx * 2  + 2, mid,  rIdx);
+//         let v = segTree.lookup(idx * 2) + segTree.lookup(idx * 2 + 1);
+//         segTree.set(idx, v);
+//     }
+// }
 
 #[pure]
 fn power_of_two(v: isize) -> bool {
@@ -213,3 +234,15 @@ fn array_range_sum(array: &VecWrapperI32, lIdx: isize, rIdx: isize) -> isize {
         array.lookup(lIdx) + array_range_sum(array, lIdx + 1, rIdx)
     }
 }
+
+// #[requires(power_of_two(array.len()))]
+// #[requires(lIdx >= 0 && rIdx <= array.len() && lIdx < rIdx)]
+// #[ensures(result == array_range_sum(array, lIdx, rIdx))]
+// fn solve(array: &VecWrapperI32, lIdx: isize, rIdx: isize) -> isize {
+//     let mut segTree = VecWrapperI32::new(2 * array.len());
+//     build(array, &mut segTree, 1);
+//     assert!(sum_property(array, &segTree, 1,  0, array.len()));
+//     range_sum(&segTree, 1, lIdx, rIdx, array, 0, array.len())
+// }
+
+fn main() {}
