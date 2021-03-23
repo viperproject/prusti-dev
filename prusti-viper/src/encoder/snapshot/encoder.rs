@@ -3,7 +3,10 @@ use rustc_middle::ty;
 use rustc_middle::ty::layout::IntegerExt;
 use rustc_target::abi::Integer;
 use std::collections::HashMap;
-use prusti_common::vir::{self, Expr, FallibleExprFolder, FallibleStmtFolder, Type, PermAmount, EnumVariantIndex};
+use prusti_common::vir::{
+    self, Expr, FallibleExprFolder, FallibleStmtFolder, Type, PermAmount,
+    EnumVariantIndex, ExprIterator,
+};
 use crate::encoder::foldunfold;
 use crate::encoder::Encoder;
 use crate::encoder::errors::{EncodingError, EncodingResult, SpannedEncodingResult};
@@ -403,6 +406,7 @@ impl SnapshotEncoder {
                             arg_expr.clone(),
                             encoder.encode_raw_ref_field(field_name.to_string(), field_ty)?,
                         ))?,
+                        mir_type: field_ty,
                         typ: self.encode_type(encoder, field_ty)?,
                     });
                 }
@@ -422,6 +426,7 @@ impl SnapshotEncoder {
                             arg_expr.clone(),
                             encoder.encode_struct_field(&field.ident.to_string(), field_ty)?,
                         ))?,
+                        mir_type: field_ty,
                         typ: self.encode_type(encoder, field_ty)?,
                     });
                 }
@@ -455,6 +460,7 @@ impl SnapshotEncoder {
                                 field_base.clone(),
                                 encoder.encode_struct_field(&field.ident.to_string(), field_ty)?,
                             ))?,
+                            mir_type: field_ty,
                             typ: self.encode_type(encoder, field_ty)?,
                         });
                     }
@@ -487,7 +493,7 @@ impl SnapshotEncoder {
     fn encode_complex<'p, 'v: 'p, 'tcx: 'v>(
         &self,
         encoder: &'p Encoder<'v, 'tcx>,
-        variants: Vec<SnapshotVariant>,
+        variants: Vec<SnapshotVariant<'tcx>>,
         predicate_name: &str,
     ) -> EncodingResult<Snapshot> {
         if variants.is_empty()
@@ -665,12 +671,13 @@ impl SnapshotEncoder {
                         field_access_func.clone(),
                         vec![call.clone()],
                     );
+
                     vir::DomainAxiom {
                         name: format!("{}${}$field${}$axiom", domain_name, variant_idx, field.name),
                         expr: Expr::forall(
                             args.clone(),
                             vec![vir::Trigger::new(vec![
-                                field_of_cons.clone()
+                                field_of_cons.clone(),
                             ])],
                             Expr::eq_cmp(
                                 field_of_cons.clone(),
@@ -680,6 +687,39 @@ impl SnapshotEncoder {
                         domain_name: domain_name.to_string(),
                     }
                 });
+
+                // encode type validity axiom for field
+                // TODO: encode type invariants rather than just integer bounds
+                match field.mir_type.kind() {
+                    ty::TyKind::Int(_)
+                    | ty::TyKind::Uint(_)
+                    | ty::TyKind::Char => domain_axioms.push({
+                        let self_local = vir::LocalVar::new(
+                            "self",
+                            snapshot_type.clone(),
+                        );
+                        let self_expr = Expr::local(self_local.clone());
+                        let field_of_self = Expr::domain_func_app(
+                            field_access_func.clone(),
+                            vec![self_expr.clone()],
+                        );
+
+                        vir::DomainAxiom {
+                            name: format!("{}${}$field${}$valid", domain_name, variant_idx, field.name),
+                            expr: Expr::forall(
+                                vec![self_local.clone()],
+                                vec![vir::Trigger::new(vec![
+                                    field_of_self.clone(),
+                                ])],
+                                encoder.encode_type_bounds(&field_of_self, field.mir_type)
+                                    .into_iter()
+                                    .conjoin(),
+                            ),
+                            domain_name: domain_name.to_string(),
+                        }
+                    }),
+                    _ => {},
+                }
             }
 
             variant_field_funcs.push(field_access_funcs);
@@ -754,14 +794,15 @@ impl SnapshotEncoder {
     }
 }
 
-struct SnapshotVariant {
+struct SnapshotVariant<'tcx> {
     discriminant: i128, // TODO: Option<i128> ?
-    fields: Vec<SnapshotField>,
+    fields: Vec<SnapshotField<'tcx>>,
     name: Option<String>,
 }
 
-struct SnapshotField {
+struct SnapshotField<'tcx> {
     name: String,
     access: Expr, // _ARG(.field)*
+    mir_type: ty::Ty<'tcx>,
     typ: Type,
 }
