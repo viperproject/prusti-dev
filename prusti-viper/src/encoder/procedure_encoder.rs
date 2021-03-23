@@ -3200,7 +3200,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 false,
                 None,
                 ErrorCtxt::GenericExpression,
-                self.proc_def_id
+                self.proc_def_id,
             )?;
             func_spec.push(value);
         }
@@ -3242,7 +3242,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ErrorCtxt::AssertMethodPreconditionWeakening(
                     precondition_spans.clone()
                 ),
-                self.proc_def_id
+                self.proc_def_id,
             )
         }).map_or(Ok(None), |v| v.map(Some))?;
         Ok((
@@ -3380,7 +3380,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         false,
                         None,
                         ErrorCtxt::GenericExpression,
-                        self.proc_def_id
+                        self.proc_def_id,
                     )?
                 } else {
                     true.into()
@@ -3394,7 +3394,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     false,
                     None,
                     ErrorCtxt::GenericExpression,
-                    self.proc_def_id
+                    self.proc_def_id,
                 )?;
                 assertion_lhs = self.wrap_arguments_into_old(
                     assertion_lhs,
@@ -3606,7 +3606,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 false,
                 None,
                 ErrorCtxt::GenericExpression,
-                self.proc_def_id
+                self.proc_def_id,
             )?;
             func_spec_spans.extend(typed::Spanned::get_spans(typed_assertion, &self.mir, self.encoder.env().tcx()));
             assertion = self.wrap_arguments_into_old(
@@ -3643,7 +3643,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ErrorCtxt::AssertMethodPostconditionStrengthening(
                         postcondition_span.clone()
                     ),
-                    self.proc_def_id
+                    self.proc_def_id,
                 )
             )
             .map_or(Ok(None), |r| r.map(Some))
@@ -4462,7 +4462,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     false,
                     Some(loop_inv_block),
                     ErrorCtxt::GenericExpression,
-                    self.proc_def_id
+                    self.proc_def_id,
                 )?;
                 let spec_spans = typed::Spanned::get_spans(assertion, &self.mir, self.encoder.env().tcx());
                 let spec_pos = self
