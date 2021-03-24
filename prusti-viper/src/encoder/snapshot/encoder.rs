@@ -170,14 +170,15 @@ impl SnapshotEncoder {
                         expr.clone(),
                         vir::Field::new("val_bool", Type::Bool),
                     ),
+                    ty::TyKind::Param(_) => 0.into(),
                     ty::TyKind::Tuple(substs) if substs.is_empty() => 0.into(),
                     ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => 0.into(),
                     ty::TyKind::Adt(adt_def, _) if adt_def.variants.len() == 1 && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)].fields.is_empty() => 0.into(),
-                    ty::TyKind::Param(_) => 0.into(),
-                    _ => {
+                    ty::TyKind::Tuple(_) | ty::TyKind::Adt(_, _) => {
                         let snapshot = self.encode_snapshot(encoder, ty)?;
                         self.snap_app_complex(expr, snapshot.get_type())
-                    }
+                    },
+                    _ => 0.into(),
                 })
             }
             // TODO: why is SnapApp applied to already-snapshot types?
@@ -307,18 +308,18 @@ impl SnapshotEncoder {
     ) -> EncodingResult<Type> {
         let ty = encoder.resolve_typaram(strip_refs_and_boxes(ty));
         let predicate_name = encoder.encode_type_predicate_use(ty)?;
-        let ret = match ty.kind() {
+        Ok(match ty.kind() {
             ty::TyKind::Int(_) => Type::Int,
             ty::TyKind::Uint(_) => Type::Int,
             ty::TyKind::Char => Type::Int,
             ty::TyKind::Bool => Type::Bool,
+            ty::TyKind::Param(_) => Type::Int,
             ty::TyKind::Tuple(substs) if substs.is_empty() => Type::Int,
             ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => Type::Int,
             ty::TyKind::Adt(adt_def, _) if adt_def.variants.len() == 1 && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)].fields.is_empty() => Type::Int,
-            ty::TyKind::Param(_) => Type::Int,
-            _ => Type::Snapshot(predicate_name.to_string()),
-        };
-        Ok(ret)
+            ty::TyKind::Tuple(_) | ty::TyKind::Adt(_, _) => Type::Snapshot(predicate_name.to_string()),
+            _ => Type::Int,
+        })
     }
 
     fn encode_snapshot<'p, 'v: 'p, 'tcx: 'v>(
@@ -482,8 +483,7 @@ impl SnapshotEncoder {
                 self.encode_complex(encoder, variants, predicate_name)
             }
 
-            // TODO: Abstract ?
-            x => Err(EncodingError::unsupported(format!("{:?}", x)))
+            _ => Ok(Snapshot::Abstract),
         }
     }
 
