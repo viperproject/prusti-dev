@@ -306,20 +306,8 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<Type> {
-        let ty = encoder.resolve_typaram(strip_refs_and_boxes(ty));
-        let predicate_name = encoder.encode_type_predicate_use(ty)?;
-        Ok(match ty.kind() {
-            ty::TyKind::Int(_) => Type::Int,
-            ty::TyKind::Uint(_) => Type::Int,
-            ty::TyKind::Char => Type::Int,
-            ty::TyKind::Bool => Type::Bool,
-            ty::TyKind::Param(_) => Type::Int,
-            ty::TyKind::Tuple(substs) if substs.is_empty() => Type::Int,
-            ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => Type::Int,
-            ty::TyKind::Adt(adt_def, _) if adt_def.variants.len() == 1 && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)].fields.is_empty() => Type::Int,
-            ty::TyKind::Tuple(_) | ty::TyKind::Adt(_, _) => Type::Snapshot(predicate_name.to_string()),
-            _ => Type::Int,
-        })
+        self.encode_snapshot(encoder, ty)
+            .map(|snapshot| snapshot.get_type())
     }
 
     fn encode_snapshot<'p, 'v: 'p, 'tcx: 'v>(
@@ -343,18 +331,29 @@ impl SnapshotEncoder {
         // otherwise, encode
 
         // figure out resulting type
-        let snapshot_type = self.encode_type(encoder, ty)?;
+        let snapshot_type = match ty.kind() {
+            ty::TyKind::Int(_) => Type::Int,
+            ty::TyKind::Uint(_) => Type::Int,
+            ty::TyKind::Char => Type::Int,
+            ty::TyKind::Bool => Type::Bool,
+            ty::TyKind::Param(_) => Type::Int,
+            ty::TyKind::Tuple(substs) if substs.is_empty() => Type::Int,
+            ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => Type::Int,
+            ty::TyKind::Adt(adt_def, _) if adt_def.variants.len() == 1 && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)].fields.is_empty() => Type::Int,
+            ty::TyKind::Tuple(_) | ty::TyKind::Adt(_, _) => Type::Snapshot(predicate_name.to_string()),
+            _ => Type::Int,
+        };
 
         // record in-progress encoding
         self.in_progress.insert(predicate_name.to_string(), snapshot_type.clone());
 
         // encode snapshot
-        let snapshot = self.encode_snapshot_internal(encoder, ty, &predicate_name)
-            // TODO: clean up?
-            /*.run_if_err(|| {
+        let snapshot = self
+            .encode_snapshot_internal(encoder, ty, &predicate_name)
+            .or_else(|err| {
                 self.in_progress.remove(&predicate_name);
-            })*/
-            ?;
+                Err(err)
+            })?;
 
         // remove in-progress encoding
         self.in_progress.remove(&predicate_name);
@@ -602,14 +601,10 @@ impl SnapshotEncoder {
                 forall_vars.extend(lhs_args.iter().cloned());
                 forall_vars.extend(rhs_args.iter().cloned());
 
-                let conjunction = vir::ExprIterator::conjoin(
-                    &mut lhs_args.into_iter().zip(rhs_args.into_iter()).map( // .iter().cloned() also?
-                        |(l, r)| Expr::eq_cmp(
-                            Expr::local(l.clone()),
-                            Expr::local(r.clone()),
-                        )
-                    ) // .conjoin() ...
-                );
+                let conjunction = lhs_args.iter().cloned()
+                    .zip(rhs_args.iter().cloned())
+                    .map(|(l, r)| Expr::eq_cmp(Expr::local(l), Expr::local(r)))
+                    .conjoin();
 
                 vir::DomainAxiom {
                     name: format!("{}${}$injectivity", domain_name, variant_idx),
@@ -768,7 +763,7 @@ impl SnapshotEncoder {
                     arg_ref_expr.clone(),
                     PermAmount::Read,
                 )],
-                posts: vec![], // TODO: with optimisations there should be a post ...
+                posts: vec![],
                 body: Some(body),
             }
         };
