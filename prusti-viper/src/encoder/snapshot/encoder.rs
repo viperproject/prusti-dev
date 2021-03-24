@@ -303,7 +303,7 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<Type> {
-        let ty = strip_refs_and_boxes(ty);
+        let ty = encoder.resolve_typaram(strip_refs_and_boxes(ty));
         let predicate_name = encoder.encode_type_predicate_use(ty)?;
         let ret = match ty.kind() {
             ty::TyKind::Int(_) => Type::Int,
@@ -324,7 +324,7 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<Snapshot> {
-        let ty = strip_refs_and_boxes(ty);
+        let ty = encoder.resolve_typaram(strip_refs_and_boxes(ty));
         let predicate_name = encoder.encode_type_predicate_use(ty)?;
 
         // was the snapshot for the type already encoded?

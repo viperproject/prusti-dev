@@ -1526,12 +1526,26 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Convert a potential type parameter to a concrete type.
     pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-        // TODO: creating each time a current_tymap might be slow. This can be optimized.
-        if let Some(replaced_ty) = self.current_tymap().get(&ty) {
-            trace!("resolve_typaram({:?}) ==> {:?}", ty, replaced_ty);
-            return replaced_ty
+        // TODO: better generics ...
+        use rustc_middle::ty::fold::{TypeFolder, TypeFoldable};
+        struct Resolver<'tcx> {
+            tcx: ty::TyCtxt<'tcx>,
+            tymap: HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>,
         }
-        ty
+        impl<'tcx> TypeFolder<'tcx> for Resolver<'tcx> {
+            fn tcx(&self) -> ty::TyCtxt<'tcx> {
+                self.tcx
+            }
+            fn fold_ty(&mut self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+                let rep = self.tymap.get(&ty).unwrap_or(&ty);
+                rep.super_fold_with(self)
+            }
+        }
+        ty.fold_with(&mut Resolver {
+            tcx: self.env().tcx(),
+            // TODO: creating each time a current_tymap might be slow. This can be optimized.
+            tymap: self.current_tymap(),
+        })
     }
 
     /// Merges the stack of type maps into a single map.
