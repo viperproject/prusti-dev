@@ -180,6 +180,8 @@ impl SnapshotEncoder {
                     }
                 })
             }
+            // TODO: why is SnapApp applied to already-snapshot types?
+            vir::Type::Snapshot(_) => Ok(expr),
             _ => unreachable!("invalid SnapApp"), // TODO: proper error
         }
     }
