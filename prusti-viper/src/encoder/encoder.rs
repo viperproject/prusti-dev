@@ -273,6 +273,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         let mut domains = self.snapshot_encoder.borrow().get_viper_domains();
 
+        /*
         if !mirrors.is_empty() {
             // TODO: Once purification is stable, we should use the purification
             // mirror functions instead of these ones.
@@ -290,11 +291,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Nat));
             domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Primitive));
         }
+        */
 
         domains.sort_by_key(|d| d.get_identifier());
         domains
     }
 
+    /*
     pub fn encode_mirror_of_pure_function(&self, function: &vir::Function) {
         mirror_function_encoder::encode_mirror_of_pure_function(
             self,
@@ -305,6 +308,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn insert_mirror_caller(&self, function: vir::Function) {
         self.mirror_caller_functions.borrow_mut().push(function);
     }
+    */
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
         let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
@@ -1209,6 +1213,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 .patch_snapshots_function(self, function)
                 .with_span(procedure.get_span())?;
 
+            /*
             if config::enable_purification_optimization() {
                 // Ensure that snapshots of all types used in the function are
                 // already encoded.
@@ -1222,6 +1227,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 }
                 self.encode_mirror_of_pure_function(&function);
             }
+            */
 
             let final_function = if needs_patching {
                 self.patch_pure_post_with_mirror_call(function)
@@ -1238,10 +1244,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(())
     }
 
-    fn patch_pure_post_with_mirror_call(&self, function: vir::Function)
+    /*
+    fn patch_pure_post_with_mirror_call(
+        &self,
+        proc_def_id: ProcedureDefId,
+        mut function: vir::Function
+    )
         -> EncodingResult<vir::Function>
     {
-        return Ok(function)
+        //return Ok(function)
         // TODO: this patching needs to use snap_app and happen before f/u
         // -> move snapshot patching and f/u out of proc/pure encoders
         /*
@@ -1326,6 +1337,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ));
         Ok(vir::Function { posts, ..function })*/
     }
+    */
     /*
     pub fn encode_pure_snapshot_mirror(
         &self,

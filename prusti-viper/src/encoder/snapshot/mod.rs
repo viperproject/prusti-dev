@@ -40,9 +40,9 @@ impl Snapshot {
     pub fn get_type(&self) -> Type {
         match self {
             Self::Primitive(ty) => ty.clone(),
-            Self::Unit => Type::Int, // TODO: domain for units?
+            Self::Unit => Type::Domain(encoder::UNIT_DOMAIN_NAME.to_string()),
             Self::Complex { predicate_name, .. } => Type::Snapshot(predicate_name.to_string()),
-            Self::Abstract => Type::Int, // TODO: domain for abstracts?
+            Self::Abstract => Type::Domain(encoder::UNIT_DOMAIN_NAME.to_string()),
             Self::Lazy(ty) => ty.clone(),
         }
     }

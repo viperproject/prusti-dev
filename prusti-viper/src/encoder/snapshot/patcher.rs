@@ -1,7 +1,7 @@
 use prusti_common::vir::{self, ExprFolder, FallibleExprFolder, FallibleStmtFolder};
 use crate::encoder::Encoder;
 use crate::encoder::errors::{EncodingError, EncodingResult};
-use crate::encoder::snapshot::encoder::SnapshotEncoder;
+use crate::encoder::snapshot::encoder::{UNIT_DOMAIN_NAME, SnapshotEncoder};
 
 pub(super) struct SnapshotPatcher<'v, 'tcx: 'v> {
     pub(super) snapshot_encoder: &'v mut SnapshotEncoder,
@@ -32,7 +32,9 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
             .zip(formal_args.iter())
             .map(|(mut arg, formal_arg)| {
                 arg = FallibleExprFolder::fallible_fold(self, arg)?;
-                if formal_arg.typ.is_snapshot() && !arg.get_type().is_snapshot() {
+                // TODO: this patches more than it should
+                // so it could cover up/muddle some type errors in the VIR
+                if *arg.get_type() != formal_arg.typ {
                     self.snapshot_encoder.snap_app(self.encoder, arg)
                 } else {
                     Ok(arg)
