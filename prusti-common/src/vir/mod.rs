@@ -20,3 +20,5 @@ mod to_viper;
 pub mod utils;
 mod program;
 mod gather_labels;
+
+mod vir_macro;
