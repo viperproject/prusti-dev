@@ -12,6 +12,7 @@ macro_rules! vir_local {
     }
 }
 
+
 macro_rules! vir {
     (# $comment: expr) => {
         crate::vir::Stmt::Comment($comment.to_string())
@@ -83,6 +84,7 @@ macro_rules! vir {
     ($lhs: tt {$borrow: expr} --* $rhs: tt) => {
         crate::vir::Expr::magic_wand(vir!($lhs), vir!($rhs), $borrow)
     };
+
     (forall $($name: ident : $type: ident),+ :: {$trigger: tt} $body: tt) => {
         crate::vir::Expr::ForAll(
             vec![$(vir_local!($name: $type)),+],
@@ -92,4 +94,32 @@ macro_rules! vir {
     };
     ([ $e: expr ]) => { $e.clone() };
     (( $($tokens: tt)+ )) => { vir!($($tokens)+) }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vir::Expr::*;
+    use crate::vir::{Position, Trigger};
+
+    #[test]
+    fn forall() {
+        let expected = ForAll(
+            vec![vir_local!(i: Int), vir_local!(j: Int)],
+            vec![Trigger::new(vec![vir!{ true }])],
+            Box::new(vir!{ true }),
+            Position::default());
+
+        let actual = vir!{ forall i: Int, j: Int :: {true} true };
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn expr_passthrough() {
+        let expr = vir!{ assert true };
+
+        assert_eq!(expr, vir!{ [expr] });
+        assert_eq!(expr, vir!{ ( [expr] ) });
+    }
 }
