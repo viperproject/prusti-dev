@@ -73,10 +73,10 @@ macro_rules! vir {
         crate::vir::Expr::magic_wand(vir!($lhs), vir!($rhs), $borrow)
     };
 
-    (forall $($name: ident : $type: ident),+ :: {$trigger: tt} $body: tt) => {
+    (forall $($name: ident : $type: ident),+ :: {$($triggers: tt),*} $body: tt) => {
         crate::vir::Expr::forall(
             vec![$(vir_local!($name: $type)),+],
-            vec![Trigger::new(vec![vir!($trigger)])],
+            vec![$(Trigger::new(vec![vir!($triggers)])),*],
             vir!($body),
         )
     };
@@ -93,11 +93,11 @@ mod tests {
     fn forall() {
         let expected = Expr::ForAll(
             vec![vir_local!(i: Int), vir_local!(j: Int)],
-            vec![Trigger::new(vec![vir!{ true }])],
+            vec![Trigger::new(vec![vir!{ true }]), Trigger::new(vec![vir!{ false }])],
             Box::new(vir!{ true }),
             Position::default());
 
-        let actual = vir!{ forall i: Int, j: Int :: {true} true };
+        let actual = vir!{ forall i: Int, j: Int :: {true, false} true };
 
         assert_eq!(expected, actual);
     }
