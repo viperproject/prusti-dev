@@ -15,31 +15,31 @@ macro_rules! vir_local {
 
 macro_rules! vir {
     (# $comment: expr) => {
-        crate::vir::Stmt::Comment($comment.to_string())
+        crate::vir::Stmt::comment($comment)
     };
     (label $label: expr) => {
-        crate::vir::Stmt::Label($label.to_string())
+        crate::vir::Stmt::label($label)
     };
     (assert $exp: tt) => {
         crate::vir::Stmt::Assert(
             vir!($exp),
-            crate::vir::FoldingBehaviour::Expr,
-            crate::vir::Position::default())
+            FoldingBehaviour::Expr,
+            Position::default())
     };
     (inhale $exp: tt) => {
         crate::vir::Stmt::Inhale(
             vir!($exp),
-            crate::vir::FoldingBehaviour::Expr)
+            FoldingBehaviour::Expr)
     };
     (apply $exp: tt) => {
         crate::vir::Stmt::ApplyMagicWand(
             vir!($exp),
-            crate::vir::Position::default())
+            Position::default())
     };
     (obtain $exp: tt) => {
         crate::vir::Stmt::Obtain(
             vir!($exp),
-            crate::vir::Position::default())
+            Position::default())
     };
     (if ($exp: tt) { $($then: tt);* } else { $($elze: tt);* }) => {
         crate::vir::Stmt::If(vir!($exp), vec![$(vir!($then)),*], vec![$(vir!($elze)),*])
@@ -49,48 +49,36 @@ macro_rules! vir {
     };
     (true) => {
         crate::vir::Expr::Const(
-            crate::vir::Const::Bool(true),
-            crate::vir::Position::default())
+            Const::Bool(true),
+            Position::default())
     };
     (false) => {
         crate::vir::Expr::Const(
-            crate::vir::Const::Bool(false),
-            crate::vir::Position::default())
+            Const::Bool(false),
+            Position::default())
     };
     ($lhs: tt == $rhs: tt) => {
-        crate::vir::Expr::BinOp(vir::BinOpKind::Equals,
-            Box::new(vir!($lhs)),
-            Box::new(vir!($rhs)),
-            crate::vir::Position::default())
+        crate::vir::Expr::eq_cmp(vir!($lhs), vir!($rhs))
     };
     ($head: tt && $tail: tt) => {
-        crate::vir::Expr::BinOp(vir::BinOpKind::And,
-            Box::new(vir!($head)),
-            Box::new(vir!($tail)),
-            crate::vir::Position::default())
+        crate::vir::Expr::and(vir!($head), vir!($tail))
     };
     ($head: tt || $tail: tt) => {
-        crate::vir::Expr::BinOp(vir::BinOpKind::Or,
-            Box::new(vir!($head)),
-            Box::new(vir!($tail)),
-            crate::vir::Position::default())
+        crate::vir::Expr::or(vir!($head), vir!($tail))
     };
     ($antecedent: tt ==> $consequent: tt) => {
-        crate::vir::Expr::BinOp(vir::BinOpKind::Implies,
-            Box::new(vir!($antecedent)),
-            Box::new(vir!($consequent)),
-            crate::vir::Position::default())
+        crate::vir::Expr::implies(vir!($antecedent), vir!($consequent))
     };
     ($lhs: tt {$borrow: expr} --* $rhs: tt) => {
         crate::vir::Expr::magic_wand(vir!($lhs), vir!($rhs), $borrow)
     };
 
     (forall $($name: ident : $type: ident),+ :: {$trigger: tt} $body: tt) => {
-        crate::vir::Expr::ForAll(
+        crate::vir::Expr::forall(
             vec![$(vir_local!($name: $type)),+],
-            vec![crate::vir::Trigger::new(vec![vir!($trigger)])],
-            Box::new(vir!($body)),
-            crate::vir::Position::default())
+            vec![Trigger::new(vec![vir!($trigger)])],
+            vir!($body),
+        )
     };
     ([ $e: expr ]) => { $e.clone() };
     (( $($tokens: tt)+ )) => { vir!($($tokens)+) }
@@ -99,12 +87,11 @@ macro_rules! vir {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::vir::Expr::*;
-    use crate::vir::{Position, Trigger};
+    use crate::vir::*;
 
     #[test]
     fn forall() {
-        let expected = ForAll(
+        let expected = Expr::ForAll(
             vec![vir_local!(i: Int), vir_local!(j: Int)],
             vec![Trigger::new(vec![vir!{ true }])],
             Box::new(vir!{ true }),
