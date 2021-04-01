@@ -21,17 +21,10 @@ fn main() {
         Some(location) => location,
         None => {
             let target = "https://repo.maven.apache.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar";
-            let response = ureq::get(target).call();
-            if let Some(error) = response.synthetic_error() {
-                panic!("{}", error);
-            }
+            let response = ureq::get(target).call().unwrap();
             let fname = deps_dir.path().join("asm.jar");
-            let mut dest = File::create(fname.clone()).unwrap_or_else(|e| {
-                panic!("{}", e);
-            });
-            copy(&mut response.into_reader(), &mut dest).unwrap_or_else(|e| {
-                panic!("{}", e);
-            });
+            let mut dest = File::create(fname.clone()).unwrap();
+            copy(&mut response.into_reader(), &mut dest).unwrap();
             fname.to_str().unwrap().to_string()
         }
     };

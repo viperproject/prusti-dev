@@ -157,11 +157,12 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             destination: ref _destination,
             func:
                 mir::Operand::Constant(box mir::Constant {
-                    literal:
+                    literal: mir::ConstantKind::Ty(
                         ty::Const {
                             ty,
                             ..
                         },
+                    ),
                     ..
                 }),
             ..

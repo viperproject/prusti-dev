@@ -661,11 +661,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 ref destination,
                 func:
                     mir::Operand::Constant(box mir::Constant {
-                        literal:
+                        literal: mir::ConstantKind::Ty(
                             ty::Const {
                                 ty,
                                 val: _,
                             },
+                        ),
                         ..
                     }),
                 ..
