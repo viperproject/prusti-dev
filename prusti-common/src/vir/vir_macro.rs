@@ -71,6 +71,35 @@ macro_rules! vir {
     ($head: tt || $tail: tt) => {
         $crate::vir::Expr::or(vir!($head), vir!($tail))
     };
+    ($lhs: tt > $rhs: tt) => {
+        $crate::vir::Expr::gt_cmp(vir!($lhs), vir!($rhs))
+    };
+    ($lhs: tt >= $rhs: tt) => {
+        $crate::vir::Expr::ge_cmp(vir!($lhs), vir!($rhs))
+    };
+    ($lhs: tt < $rhs: tt) => {
+        $crate::vir::Expr::lt_cmp(vir!($lhs), vir!($rhs))
+    };
+    ($lhs: tt <= $rhs: tt) => {
+        $crate::vir::Expr::le_cmp(vir!($lhs), vir!($rhs))
+    };
+
+    ($lhs: tt + $rhs: tt) => {
+        $crate::vir::Expr::add(vir!($lhs), vir!($rhs))
+    };
+    ($lhs: tt - $rhs: tt) => {
+        $crate::vir::Expr::sub(vir!($lhs), vir!($rhs))
+    };
+    ($lhs: tt * $rhs: tt) => {
+        $crate::vir::Expr::mul(vir!($lhs), vir!($rhs))
+    };
+    ($lhs: tt / $rhs: tt) => {
+        $crate::vir::Expr::div(vir!($lhs), vir!($rhs))
+    };
+    ($lhs: tt % $rhs: tt) => {
+        $crate::vir::Expr::modulo(vir!($lhs), vir!($rhs))
+    };
+
     ($antecedent: tt ==> $consequent: tt) => {
         $crate::vir::Expr::implies(vir!($antecedent), vir!($consequent))
     };
