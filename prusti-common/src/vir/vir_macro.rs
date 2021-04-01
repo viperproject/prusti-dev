@@ -1,17 +1,18 @@
+#[macro_export]
 macro_rules! vir_type {
     (Int) => {$crate::vir::Type::Int};
     (Bool) => {$crate::vir::Type::Bool};
 }
 
+#[macro_export]
 macro_rules! vir_local {
     ($name: ident : $type: ident) => {
         $crate::vir::LocalVar {
             name: stringify!($name).to_string(),
-            typ: vir_type!($type)
+            typ: $crate::vir_type!($type)
         }
     }
 }
-
 
 #[macro_export]
 macro_rules! vir {
@@ -109,7 +110,7 @@ macro_rules! vir {
 
     (forall $($name: ident : $type: ident),+ :: {$($triggers: tt),*} $body: tt) => {
         $crate::vir::Expr::forall(
-            vec![$(vir_local!($name: $type)),+],
+            vec![$($crate::vir_local!($name: $type)),+],
             vec![$(Trigger::new(vec![vir!($triggers)])),*],
             vir!($body),
         )
