@@ -1887,11 +1887,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ref destination,
                 func:
                     mir::Operand::Constant(box mir::Constant {
-                        literal:
+                        literal: mir::ConstantKind::Ty(
                             ty::Const {
                                 ty,
                                 val: func_const_val
                             },
+                        ),
                         ..
                     }),
                 ..
@@ -4551,9 +4552,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 stmts
             }
 
-            mir::Operand::Constant(box mir::Constant {
-                literal: ty::Const { ty, val }, ..
-            }) => {
+            mir::Operand::Constant(box mir::Constant { literal: ck, .. }) => {
+                let (ty, val) = match ck {
+                    mir::ConstantKind::Ty(ty::Const { ty, val }) => (ty, *val),
+                    mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(*val)),
+                };
                 if let ty::TyKind::Tuple(elements) = ty.kind() {
                     // FIXME: This is most likley completely wrong. We need to
                     // implement proper support for handling constants of
@@ -4575,7 +4578,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     )?;
                     // Initialize the constant
                     let const_val = self.encoder
-                        .encode_const_expr(*ty, val)
+                        .encode_const_expr(*ty, &val)
                         .with_span(span)?;
                     // Initialize value of lhs
                     stmts.push(vir::Stmt::Assign(

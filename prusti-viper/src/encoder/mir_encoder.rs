@@ -377,9 +377,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
             &mir::Operand::Constant(box mir::Constant {
-                literal: ty::Const { ty, val },
+                literal: mir::ConstantKind::Ty(ty::Const { ty, val }),
                 ..
             }) => self.encoder.encode_const_expr(ty, val)?,
+            &mir::Operand::Constant(box mir::Constant {
+                literal: mir::ConstantKind::Val(val, ty),
+                ..
+            }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(val))?,
             &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
                 let val_place = self.eval_place(&place)?;
                 val_place.into()

@@ -1042,10 +1042,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 const_value
                     .try_to_scalar()
             }
-            ty::ConstKind::Unevaluated(def, substs, promoted) => {
+            ty::ConstKind::Unevaluated(ct) => {
                 let tcx = self.env().tcx();
-                let param_env = tcx.param_env(def.did);
-                tcx.const_eval_resolve(param_env, *def, substs, *promoted, None)
+                let param_env = tcx.param_env(ct.def.did);
+                tcx.const_eval_resolve(param_env, *ct, None)
                     .ok()
                     .and_then(|const_value| const_value.try_to_scalar())
             }

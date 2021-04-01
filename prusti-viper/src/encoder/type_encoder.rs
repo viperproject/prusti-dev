@@ -482,10 +482,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             rustc_target::abi::Size::from_bits(64)
                         ).unwrap()
                     },
-                    ty::ConstKind::Unevaluated(def, ref substs, promoted) => {
+                    ty::ConstKind::Unevaluated(ct) => {
                         let tcx = self.encoder.env().tcx();
-                        let param_env = tcx.param_env(def.did);
-                        tcx.const_eval_resolve(param_env, def, substs, promoted, None)
+                        let param_env = tcx.param_env(ct.def.did);
+                        tcx.const_eval_resolve(param_env, ct, None)
                             .ok()
                             .and_then(|const_value| const_value.try_to_bits(
                                 rustc_target::abi::Size::from_bits(64)

@@ -87,7 +87,7 @@ impl FromStr for Region {
 
     fn from_str(region: &str) -> Result<Self, Self::Err> {
         lazy_static! {
-            static ref RE: Regex = Regex::new(r"^\\'_#(?P<id>\d+)r$").unwrap();
+            static ref RE: Regex = Regex::new(r"^'_#(?P<id>\d+)r$").unwrap();
         }
         let caps = RE.captures(region).unwrap();
         let id: usize = caps["id"].parse().unwrap();
