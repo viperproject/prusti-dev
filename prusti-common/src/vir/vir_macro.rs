@@ -1,11 +1,11 @@
 macro_rules! vir_type {
-    (Int) => {crate::vir::Type::Int};
-    (Bool) => {crate::vir::Type::Bool};
+    (Int) => {$crate::vir::Type::Int};
+    (Bool) => {$crate::vir::Type::Bool};
 }
 
 macro_rules! vir_local {
     ($name: ident : $type: ident) => {
-        crate::vir::LocalVar {
+        $crate::vir::LocalVar {
             name: stringify!($name).to_string(),
             typ: vir_type!($type)
         }
@@ -15,66 +15,70 @@ macro_rules! vir_local {
 
 macro_rules! vir {
     (# $comment: expr) => {
-        crate::vir::Stmt::comment($comment)
+        $crate::vir::Stmt::comment($comment)
     };
     (label $label: expr) => {
-        crate::vir::Stmt::label($label)
+        $crate::vir::Stmt::label($label)
     };
     (assert $exp: tt) => {
-        crate::vir::Stmt::Assert(
+        $crate::vir::Stmt::Assert(
             vir!($exp),
-            FoldingBehaviour::Expr,
-            Position::default())
+            $crate::vir::FoldingBehaviour::Expr,
+            $crate::vir::Position::default())
     };
     (inhale $exp: tt) => {
-        crate::vir::Stmt::Inhale(
+        $crate::vir::Stmt::Inhale(
             vir!($exp),
-            FoldingBehaviour::Expr)
+            $crate::vir::FoldingBehaviour::Expr)
     };
     (apply $exp: tt) => {
-        crate::vir::Stmt::ApplyMagicWand(
+        $crate::vir::Stmt::ApplyMagicWand(
             vir!($exp),
-            Position::default())
+            $crate::vir::Position::default())
     };
     (obtain $exp: tt) => {
-        crate::vir::Stmt::Obtain(
+        $crate::vir::Stmt::Obtain(
             vir!($exp),
-            Position::default())
+            $crate::vir::Position::default())
     };
     (if ($exp: tt) { $($then: tt);* } else { $($elze: tt);* }) => {
-        crate::vir::Stmt::If(vir!($exp), vec![$(vir!($then)),*], vec![$(vir!($elze)),*])
+        $crate::vir::Stmt::If(vir!($exp), vec![$(vir!($then)),*], vec![$(vir!($elze)),*])
     };
     (if ($exp: tt) { $($then: tt);* }) => {
-        crate::vir::Stmt::If(vir!($exp), vec![$(vir!($then)),*], vec![])
+        $crate::vir::Stmt::If(vir!($exp), vec![$(vir!($then)),*], vec![])
     };
     (true) => {
-        crate::vir::Expr::Const(
-            Const::Bool(true),
-            Position::default())
+        $crate::vir::Expr::Const(
+            $crate::vir::Const::Bool(true),
+            $crate::vir::Position::default())
     };
     (false) => {
-        crate::vir::Expr::Const(
-            Const::Bool(false),
-            Position::default())
+        $crate::vir::Expr::Const(
+            $crate::vir::Const::Bool(false),
+            $crate::vir::Position::default())
     };
+
     ($lhs: tt == $rhs: tt) => {
-        crate::vir::Expr::eq_cmp(vir!($lhs), vir!($rhs))
+        $crate::vir::Expr::eq_cmp(vir!($lhs), vir!($rhs))
+    };
+    ($lhs: tt != $rhs: tt) => {
+        $crate::vir::Expr::ne_cmp(vir!($lhs), vir!($rhs))
     };
     ($head: tt && $tail: tt) => {
-        crate::vir::Expr::and(vir!($head), vir!($tail))
+        $crate::vir::Expr::and(vir!($head), vir!($tail))
     };
     ($head: tt || $tail: tt) => {
-        crate::vir::Expr::or(vir!($head), vir!($tail))
+        $crate::vir::Expr::or(vir!($head), vir!($tail))
     };
     ($antecedent: tt ==> $consequent: tt) => {
-        crate::vir::Expr::implies(vir!($antecedent), vir!($consequent))
+        $crate::vir::Expr::implies(vir!($antecedent), vir!($consequent))
     };
     ($lhs: tt {$borrow: expr} --* $rhs: tt) => {
-        crate::vir::Expr::magic_wand(vir!($lhs), vir!($rhs), $borrow)
+        $crate::vir::Expr::magic_wand(vir!($lhs), vir!($rhs), $borrow)
     };
 
     (forall $($name: ident : $type: ident),+ :: {$($triggers: tt),*} $body: tt) => {
-        crate::vir::Expr::forall(
+        $crate::vir::Expr::forall(
             vec![$(vir_local!($name: $type)),+],
             vec![$(Trigger::new(vec![vir!($triggers)])),*],
             vir!($body),
