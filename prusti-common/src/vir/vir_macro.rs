@@ -13,6 +13,7 @@ macro_rules! vir_local {
 }
 
 
+#[macro_export]
 macro_rules! vir {
     (# $comment: expr) => {
         $crate::vir::Stmt::comment($comment)
