@@ -86,6 +86,7 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
             Type::Domain(ref name) => name.to_string(),
             Type::Snapshot(ref name) => format!("Snap${}", name),
             Type::Seq(ref elem_ty) => format!("Seq${}", type_name(elem_ty)),
+            Type::Float(_) => "$float$".to_string(),
         }
     }
     for arg in formal_args {

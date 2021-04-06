@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::super::borrows::Borrow;
-use crate::vir::ast::*;
+use crate::vir::{ast::*, FloatSize::*};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::{Hash, Hasher};
@@ -47,6 +47,8 @@ pub enum Expr {
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
     /// Domain function application: function_name, args, formal_args, return_type, domain_name, Viper position (unused)
     DomainFuncApp(DomainFunc, Vec<Expr>, Position),
+    /// BackendFunc application: backend_function_name, args
+    BackendFuncApp(BackendFunc, Vec<Expr>, Position),
     // TODO use version below once providing a return type is supported in silver
     // DomainFuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, String, Position),
     /// Inhale Exhale: inhale expression, exhale expression, Viper position (unused)
@@ -73,6 +75,7 @@ pub enum PlaceComponent {
 pub enum UnaryOpKind {
     Not,
     Minus,
+    IsNaN,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -90,6 +93,11 @@ pub enum BinOpKind {
     Mod,
     And,
     Or,
+    BitAnd,
+    BitOr,
+    BitXor,
+    Shl,
+    Shr,
     Implies,
 }
 
@@ -100,10 +108,17 @@ pub enum ContainerOpKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum FloatConst {
+    FloatConst64(u64),
+    FloatConst32(u32),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
     Int(i64),
     BigInt(String),
+    Float(FloatConst),
     /// All function pointers share the same constant, because their function
     /// is determined by the type system.
     FnPtr,
@@ -228,6 +243,16 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(", "),
             ),
+            // mimicked DomainFuncApp for Display
+            Expr::BackendFuncApp(ref function, ref args, ref _pos) => write!(
+                f,
+                "{}({})",
+                function.get_name(),
+                args.iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
+            ),
 
             Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) =>
                 write!(f, "[({}), ({})]", inhale_expr, exhale_expr),
@@ -249,6 +274,7 @@ impl fmt::Display for UnaryOpKind {
         match self {
             UnaryOpKind::Not => write!(f, "!"),
             UnaryOpKind::Minus => write!(f, "-"),
+            UnaryOpKind::IsNaN => write!(f, "is_nan")
         }
     }
 }
@@ -270,6 +296,11 @@ impl fmt::Display for BinOpKind {
             BinOpKind::And => write!(f, "&&"),
             BinOpKind::Or => write!(f, "||"),
             BinOpKind::Implies => write!(f, "==>"),
+            BinOpKind::BitAnd => write!(f, "&"),
+            BinOpKind::BitOr => write!(f, "|"),
+            BinOpKind::BitXor => write!(f, "^"),
+            BinOpKind::Shl => write!(f, "<<"),
+            BinOpKind::Shr => write!(f, ">>"),
         }
     }
 }
@@ -280,6 +311,8 @@ impl fmt::Display for Const {
             Const::Bool(val) => write!(f, "{}", val),
             Const::Int(val) => write!(f, "{}", val),
             Const::BigInt(ref val) => write!(f, "{}", val),
+            Const::Float(FloatConst::FloatConst32(val)) => write!(f, "{}", val),
+            Const::Float(FloatConst::FloatConst64(val)) => write!(f, "{}", val),
             Const::FnPtr => write!(f, "FnPtr"),
         }
     }
@@ -305,10 +338,11 @@ impl Expr {
             | Expr::LetExpr(_, _, _, p)
             | Expr::FuncApp(_, _, _, _, p)
             | Expr::DomainFuncApp(_, _, p)
-            | Expr::InhaleExhale(_, _, p)
             | Expr::ContainerOp(_, _, _, p)
             | Expr::Seq(_, _, p)
             | Expr::SnapApp(_, p) => *p,
+            | Expr::BackendFuncApp(_, _, p)
+            | Expr::InhaleExhale(_, _, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::Downcast(box ref base, ..) => base.pos(),
         }
@@ -337,6 +371,7 @@ impl Expr {
             Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
             Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
             Expr::DomainFuncApp(x,y,_) => Expr::DomainFuncApp(x,y,pos),
+            Expr::BackendFuncApp(x, y, _) => Expr::BackendFuncApp(x,y,pos),
             // TODO Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
             Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
             Expr::SnapApp(e, _) => Expr::SnapApp(e, pos),
@@ -440,6 +475,26 @@ impl Expr {
         Expr::BinOp(BinOpKind::Mod, box left, box right, Position::default())
     }
 
+    pub fn bit_and(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::BitAnd, box left, box right, Position::default())
+    }
+
+    pub fn bit_or(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::BitOr, box left, box right, Position::default())
+    }
+
+    pub fn bit_xor(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::BitXor, box left, box right, Position::default())
+    }
+
+    pub fn shl(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::Shl, box left, box right, Position::default())
+    }
+
+    pub fn shr(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::Shr, box left, box right, Position::default())
+    }
+
     /// Encode Rust reminder. This is *not* Viper modulo.
     pub fn rem(left: Expr, right: Expr) -> Self {
         let abs_right = Expr::ite(
@@ -516,6 +571,15 @@ impl Expr {
         args: Vec<Expr>,
     ) -> Self {
         Expr::DomainFuncApp(func, args, Position::default())
+    }
+
+    // Mimicked domain_func_app above
+    pub fn backend_func_app(
+        func: BackendFunc,
+        args: Vec<Expr>,
+    ) -> Self {
+        Expr::
+        BackendFuncApp(func, args, Position::default())
     }
 
     pub fn magic_wand(lhs: Expr, rhs: Expr, borrow: Option<Borrow>) -> Self {
@@ -1027,10 +1091,15 @@ impl Expr {
             Expr::DomainFuncApp(ref func, _, _) => {
                 &func.return_type
             },
+            Expr::BackendFuncApp(ref _func, _, _) => {
+                unimplemented!()
+            },
             Expr::Const(constant, ..) => {
                 match constant {
                     Const::Bool(..) => &Type::Bool,
                     Const::Int(..) | Const::BigInt(..) => &Type::Int,
+                    Const::Float(FloatConst::FloatConst32(_)) => &Type::Float(F32),
+                    Const::Float(FloatConst::FloatConst64(_)) => &Type::Float(F64),
                     Const::FnPtr => &FN_PTR_TYPE,
                 }
             }
@@ -1049,12 +1118,18 @@ impl Expr {
                     BinOpKind::Sub |
                     BinOpKind::Mul |
                     BinOpKind::Div |
+                    BinOpKind::BitAnd |
+                    BinOpKind::BitOr |
+                    BinOpKind::BitXor |
+                    BinOpKind::Shl |
+                    BinOpKind::Shr |
                     BinOpKind::Mod => {
                         let typ1 = base1.get_type();
                         let typ2 = base2.get_type();
                         assert_eq!(typ1, typ2, "expr: {:?}", self);
                         typ1
                     }
+
                 }
             }
             Expr::Cond(_, box ref base1, box ref base2, _pos) => {
@@ -1435,6 +1510,7 @@ impl Expr {
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)
+                    | Expr::BackendFuncApp(..)
                     | Expr::InhaleExhale(..)
                     | Expr::Downcast(..)
                     | Expr::ContainerOp(..)
@@ -1672,6 +1748,8 @@ impl Hash for Expr {
             Expr::LetExpr(ref var, box ref def, box ref expr, _) => (var, def, expr).hash(state),
             Expr::FuncApp(ref name, ref args, _, _, _) => (name, args).hash(state),
             Expr::DomainFuncApp(ref function, ref args, _) => (&function.name, args).hash(state),
+            // Mimicked DomainFuncApp above
+            Expr::BackendFuncApp(ref function, ref args, _) => (&function.get_name(), args).hash(state),
             // TODO Expr::DomainFuncApp(ref name, ref args, _, _, ref domain_name ,_) => (name, args, domain_name).hash(state),
             Expr::Unfolding(ref name, ref args, box ref base, perm, ref variant, _) => {
                 (name, args, base, perm, variant).hash(state)
