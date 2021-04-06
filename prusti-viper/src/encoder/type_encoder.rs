@@ -54,6 +54,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Never
             | ty::TyKind::Param(_) => true,
+            | ty::TyKind::Float(_) => true,
             _ => false,
         }
     }
@@ -132,6 +133,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 ));
             }
 
+            ty::TyKind::Float(_) => unimplemented!("Backendtype here?"),
+
+
             ref x => unimplemented!("{:?}", x),
         })
     }
@@ -188,6 +192,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     "TypeEncoder::encode_value_field should not be called for arrays"
                 ));
             }
+            ty::TyKind::Float(_) => unimplemented!("encode value field for floats"),
 
             ref x => unimplemented!("{:?}", x),
         })

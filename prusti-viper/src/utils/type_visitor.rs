@@ -68,9 +68,11 @@ pub trait TypeVisitor<'tcx>: Sized {
             TyKind::Array(ty, len) => {
                 self.visit_array(ty, len)
             }
+            TyKind::Float(_) => unimplemented!("visit function for float unimplemented"),
             ref x => {
                 self.visit_unsupported_sty(x)
             }
+
         }
     }
 

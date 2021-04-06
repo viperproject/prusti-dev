@@ -80,7 +80,11 @@ impl BuiltinEncoder {
             BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => "builtin$undef_doman".to_string(),
             BuiltinFunctionKind::ArrayLookupPure { elem_ty_pred, array_len, .. } => {
                 format!("Array${}${}$lookup_pure", array_len, elem_ty_pred)
+                
             }
+            BuiltinFunctionKind::Unreachable(vir::Type::Float) => unimplemented!("dont know what should be here"),
+            BuiltinFunctionKind::Undefined(vir::Type::Float) => unimplemented!("dont know what should be here"),
+
         }
     }
 
