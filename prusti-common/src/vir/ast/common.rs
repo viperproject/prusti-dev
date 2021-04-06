@@ -137,6 +137,12 @@ impl Ord for PermAmount {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum FloatSize {
+    F32,
+    F64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Type {
     Int,
     Bool,
@@ -146,6 +152,7 @@ pub enum Type {
     TypedRef(String),
     Domain(String),
     Snapshot(String),
+    Float(FloatSize),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -156,6 +163,7 @@ pub enum TypeId {
     Seq,
     Domain,
     Snapshot,
+    Float,
 }
 
 impl fmt::Display for Type {
@@ -168,6 +176,7 @@ impl fmt::Display for Type {
             Type::Domain(ref name) => write!(f, "Domain({})", name),
             Type::Snapshot(ref name) => write!(f, "Snapshot({})", name),
             Type::Seq(ref elem_ty) => write!(f, "Seq[{}]", elem_ty),
+            Type::Float(_) => write!(f, "Float"),
         }
     }
 }
@@ -193,6 +202,7 @@ impl Type {
             Type::Domain(ref pred_name) => pred_name.to_string(),
             Type::Snapshot(ref pred_name) => pred_name.to_string(),
             Type::Seq(_) => "Seq".to_string(),
+            Type::Float(_) => "float".to_string(),
         }
     }
 
@@ -229,6 +239,7 @@ impl Type {
             Type::Domain(_) => TypeId::Domain,
             Type::Snapshot(_) => TypeId::Snapshot,
             Type::Seq(_) => TypeId::Seq,
+            Type::Float(_) => TypeId::Float,
         }
     }
 }
@@ -315,5 +326,26 @@ impl Field {
 impl WithIdentifier for Field {
     fn get_identifier(&self) -> String {
         self.name.clone()
+    }
+}
+
+// maybe missing some other impl
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum BackendFunc {
+    BVfunc(String, String),
+    Floatfunc(String, String)
+}
+
+impl BackendFunc {
+    pub fn get_name(&self) -> String {
+        match self{
+            BackendFunc::BVfunc(name,_) | BackendFunc::Floatfunc(name,_) => name.to_string()
+        }
+    }
+}
+
+impl WithIdentifier for BackendFunc {
+    fn get_identifier(&self) -> String {
+        self.get_name().clone()
     }
 }
