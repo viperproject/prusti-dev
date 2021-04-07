@@ -489,12 +489,12 @@ fn array_range_sum(array: &VecWrapperI32, lIdx: isize, rIdx: isize) -> isize {
     }
 }
 
-// #[requires(power_of_two(array.len()))]
-// #[requires(lIdx >= 0 && rIdx <= array.len() && lIdx < rIdx)]
-// #[ensures(result == array_range_sum(array, lIdx, rIdx))]
-// fn solve(array: &VecWrapperI32, lIdx: isize, rIdx: isize) -> isize {
-//     let segTree = build(array, 0, array.len());
-//     range_sum(&segTree, lIdx, rIdx,  array.len(), lIdx, rIdx, array, 0, array.len())
-// }
+#[requires(power_of_two(array.len()))]
+#[requires(lIdx >= 0 && rIdx <= array.len() && lIdx < rIdx)]
+#[ensures(result == array_range_sum(array, lIdx, rIdx))]
+fn solve(array: &VecWrapperI32, lIdx: isize, rIdx: isize) -> isize {
+    let segTree = build(array, 0, array.len());
+    range_sum(&segTree, lIdx, rIdx, array, 0, array.len())
+}
 
 fn main() {}
