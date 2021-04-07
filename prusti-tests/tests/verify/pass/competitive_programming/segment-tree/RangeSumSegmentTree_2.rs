@@ -283,15 +283,12 @@ fn max(a: isize, b: isize) -> isize {
 
 #[pure]
 #[requires(gLIdx >= 0 && gRIdx <= array.len() && gLIdx < gRIdx)]
-#[requires(gRIdx - gLIdx == rIdx - lIdx)]
 #[requires(nodeLIdx >= 0 && nodeRIdx <= array.len() && nodeLIdx < nodeRIdx)]
 #[requires(power_of_two(nodeRIdx - nodeLIdx))]
 #[requires(gLIdx >= nodeLIdx && gRIdx <= nodeRIdx)]
 #[requires(is_complete(node))]
-#[requires(lIdx >= 0 && lIdx < rIdx && rIdx <= leaves_count(node))]
-#[requires(nodeRIdx - gRIdx == leavesCount - rIdx)]
 #[requires(ensures_semmetry(node))]
-#[requires(leavesCount == leaves_count(node))]
+#[requires(nodeRIdx - nodeLIdx == leaves_count(node))]
 #[requires(sum_property(node))]
 #[requires(leaves_count(node) == nodeRIdx - nodeLIdx)]
 #[requires(array_tree_equivelant(node, array, nodeLIdx, nodeRIdx))]
@@ -299,22 +296,16 @@ fn max(a: isize, b: isize) -> isize {
 #[ensures(result == array_range_sum(array, gLIdx, gRIdx))]
 fn range_sum(
     node: &Tree,
-    lIdx: isize,
-    rIdx: isize,
-    leavesCount: isize,
     gLIdx: isize,
     gRIdx: isize,
     array: &VecWrapperI32,
     nodeLIdx: isize,
     nodeRIdx: isize,
 ) -> isize {
-    if lIdx == 0 && rIdx == leavesCount {
+    if gLIdx == nodeLIdx && gRIdx == nodeRIdx {
         node.v()
     } else {
         let mut result = 0;
-
-        let midIdx = leavesCount / 2;
-        assert!(leaves_count(node) == midIdx * 2);
 
         assert!((nodeRIdx + nodeLIdx) % 2 == 0);
         let mid = (nodeRIdx + nodeLIdx) / 2;
@@ -324,12 +315,9 @@ fn range_sum(
         match tL {
             None => {}
             Some(box l) => {
-                if lIdx < midIdx {
+                if gLIdx < mid {
                     result += range_sum(
                         l,
-                        lIdx,
-                        min(rIdx, midIdx),
-                        midIdx,
                         gLIdx,
                         min(mid, gRIdx),
                         array,
@@ -346,13 +334,9 @@ fn range_sum(
         match tR {
             None => {}
             Some(box r) => {
-                if rIdx > midIdx {
-                    assert!(rIdx - midIdx == gRIdx - mid);
+                if gRIdx > mid {
                     result += range_sum(
                         r,
-                        max(midIdx, lIdx) - midIdx,
-                        rIdx - midIdx,
-                        midIdx,
                         max(mid, gLIdx),
                         gRIdx,
                         array,
@@ -505,12 +489,12 @@ fn array_range_sum(array: &VecWrapperI32, lIdx: isize, rIdx: isize) -> isize {
     }
 }
 
-#[requires(power_of_two(array.len()))]
-#[requires(lIdx >= 0 && rIdx <= array.len() && lIdx < rIdx)]
-#[ensures(result == array_range_sum(array, lIdx, rIdx))]
-fn solve(array: &VecWrapperI32, lIdx: isize, rIdx: isize) -> isize {
-    let segTree = build(array, 0, array.len());
-    range_sum(&segTree, lIdx, rIdx,  array.len(), lIdx, rIdx, array, 0, array.len())
-}
+// #[requires(power_of_two(array.len()))]
+// #[requires(lIdx >= 0 && rIdx <= array.len() && lIdx < rIdx)]
+// #[ensures(result == array_range_sum(array, lIdx, rIdx))]
+// fn solve(array: &VecWrapperI32, lIdx: isize, rIdx: isize) -> isize {
+//     let segTree = build(array, 0, array.len());
+//     range_sum(&segTree, lIdx, rIdx,  array.len(), lIdx, rIdx, array, 0, array.len())
+// }
 
 fn main() {}
