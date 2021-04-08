@@ -219,6 +219,10 @@ impl Stmt {
         Stmt::Comment(comment.to_string())
     }
 
+    pub fn label<S: ToString>(label: S) -> Self {
+        Stmt::Label(label.to_string())
+    }
+
     pub fn package_magic_wand(
         lhs: Expr,
         rhs: Expr,
