@@ -254,8 +254,14 @@ pub enum AssertionKind<EID, ET, AT> {
     Implies(Assertion<EID, ET, AT>, Assertion<EID, ET, AT>),
     /// TODO < Even > ==> x % 2 == 0
     TypeCond(ForAllVars<EID, AT>, Assertion<EID, ET, AT>),
-    /// Quantifier
+    /// Universal quantifier
     ForAll(
+        ForAllVars<EID, AT>,
+        TriggerSet<EID, ET>,
+        Assertion<EID, ET, AT>,
+    ),
+    /// Existential quantifier
+    Exists(
         ForAllVars<EID, AT>,
         TriggerSet<EID, ET>,
         Assertion<EID, ET, AT>,

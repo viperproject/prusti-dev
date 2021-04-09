@@ -101,7 +101,8 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                 spans.extend(rhs.get_spans(mir_body, tcx));
                 spans
             }
-            AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
+            AssertionKind::ForAll(ref vars, ref trigger_set, ref body)
+            | AssertionKind::Exists(ref vars, ref trigger_set, ref body) => {
                 let mut spans = vars.get_spans(mir_body, tcx);
                 spans.extend(trigger_set
                     .triggers()
@@ -258,6 +259,11 @@ impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind 
                 rhs.to_typed(typed_expressions, tcx)
             ),
             ForAll(vars, body, triggers) => AssertionKind::ForAll(
+                vars.to_typed(typed_expressions, tcx),
+                triggers.to_typed(typed_expressions, tcx),
+                body.to_typed(typed_expressions, tcx),
+            ),
+            Exists(vars, body, triggers) => AssertionKind::Exists(
                 vars.to_typed(typed_expressions, tcx),
                 triggers.to_typed(typed_expressions, tcx),
                 body.to_typed(typed_expressions, tcx),
