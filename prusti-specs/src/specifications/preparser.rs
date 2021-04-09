@@ -182,7 +182,9 @@ impl Parser {
         }
     }
     fn parse_entailment(&mut self) -> syn::Result<AssertionWithoutId> {
-        if (self.peek_group(Delimiter::Parenthesis) && !self.is_part_of_rust_expr()) || self.peek_keyword("forall") {
+        if (self.peek_group(Delimiter::Parenthesis) && !self.is_part_of_rust_expr()) ||
+           self.peek_keyword("forall") ||
+           self.peek_keyword("exists") {
             self.parse_primary()
         } else {
             let lhs = self.parse_rust_until(",")?;
@@ -262,15 +264,21 @@ impl Parser {
             self.from_token_stream_last_span(stream).extract_assertion()
         } else if self.consume_keyword("forall") {
             if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-                self.from_token_stream_last_span(stream).extract_forall_rhs()
+                self.from_token_stream_last_span(stream).extract_quantifier_rhs(false)
+            } else {
+                Err(self.error_expected("`(`"))
+            }
+        } else if self.consume_keyword("exists") {
+            if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                self.from_token_stream_last_span(stream).extract_quantifier_rhs(true)
             } else {
                 Err(self.error_expected("`(`"))
             }
         } else {
-            Err(self.error_expected("`(` or `forall`"))
+            Err(self.error_expected("`(`, `forall` or `exists`"))
         }
     }
-    fn extract_forall_rhs(&mut self) -> syn::Result<AssertionWithoutId> {
+    fn extract_quantifier_rhs(&mut self, exists: bool) -> syn::Result<AssertionWithoutId> {
         if !self.consume_operator("|") {
             return Err(self.error_expected("`|`"));
         }
@@ -323,16 +331,17 @@ impl Parser {
             trigger_set = TriggerSet(vec_of_triggers);
         }
 
+        let vars = ForAllVars {
+            spec_id: common::SpecificationId::dummy(),
+            id: (),
+            vars,
+        };
         Ok(AssertionWithoutId {
-            kind: box common::AssertionKind::ForAll(
-                ForAllVars {
-                    spec_id: common::SpecificationId::dummy(),
-                    id: (),
-                    vars,
-                },
-                trigger_set,
-                body,
-            )
+            kind: if exists {
+                box common::AssertionKind::ForAll(vars, trigger_set, body)
+            } else {
+                box common::AssertionKind::Exists(vars, trigger_set, body)
+            }
         })
     }
 

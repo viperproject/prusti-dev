@@ -439,6 +439,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 body.to_viper(ast),
                 pos.to_viper(ast),
             ),
+            Expr::Exists(ref vars, ref triggers, ref body, ref pos) => ast.exists_with_pos(
+                &vars.to_viper_decl(ast)[..],
+                &(triggers, pos).to_viper(ast),
+                body.to_viper(ast),
+                pos.to_viper(ast),
+            ),
             Expr::LetExpr(ref var, ref expr, ref body, ref pos) => ast.let_expr_with_pos(
                 var.to_viper_decl(ast),
                 expr.to_viper(ast),

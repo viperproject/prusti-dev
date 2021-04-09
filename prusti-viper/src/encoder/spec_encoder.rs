@@ -106,18 +106,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode a quantified variable `arg`, given its type `arg_ty` and a unique identifier
-    /// `forall_id` of the quantification.
-    fn encode_forall_arg(
+    /// `quant_id` of the quantification.
+    fn encode_quantifier_arg(
         &self,
         arg: mir::Local,
         arg_ty: ty::Ty<'tcx>,
-        forall_id: &str
+        quant_id: &str
     ) -> vir::LocalVar {
-        trace!("encode_forall_arg: {:?} {:?} {:?}", arg, arg_ty, forall_id);
+        trace!("encode_quantifier_arg: {:?} {:?} {:?}", arg, arg_ty, quant_id);
         let ty = self.encoder.encode_type(arg_ty).unwrap();
         // FIXME: find a reasonable position when using this function below,
         // change return to EncodingResult<...>, then unwrap with ?
-        let var_name = format!("{:?}_forall_{}", arg, forall_id);
+        let var_name = format!("{:?}_quant_{}", arg, quant_id);
         vir::LocalVar::new(var_name, ty)
     }
 
@@ -218,45 +218,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     self.encode_assertion(assertion)?
                 )
             }
-            box typed::AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
-                let mut encoded_args = Vec::new();
-                let mut bounds = Vec::new();
-                for (arg, ty) in &vars.vars {
-                    // TODO: how to get a span for the variable here?
-                    //if !self.encoder.is_quantifiable(ty).unwrap() {
-                    //    return Err(EncodingError::incorrect(
-                    //        "This type cannot be used in quantifiers.",
-                    //    ).with_span(?));
-                    //}
-
-                    let encoded_arg = self.encode_forall_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id));
-                    if config::check_overflows() {
-                        bounds.extend(self.encoder.encode_type_bounds(&encoded_arg.clone().into(), ty));
-                    } else if config::encode_unsigned_num_constraint() {
-                        if let ty::TyKind::Uint(_) = ty.kind() {
-                            let expr = vir::Expr::le_cmp(0.into(), encoded_arg.clone().into());
-                            bounds.push(expr);
-                        }
-                    }
-                    encoded_args.push(encoded_arg);
-                }
-                let mut encoded_triggers = Vec::new();
-                for trigger in trigger_set.triggers() {
-                    let encoded_trigger = self.encode_trigger(trigger, &encoded_args)?;
-                    encoded_triggers.push(encoded_trigger);
-                }
-                let encoded_body = self.encode_assertion(body)?;
-                let final_body = if bounds.is_empty() {
-                    encoded_body
-                } else {
-                    vir::Expr::implies(bounds.into_iter().conjoin(), encoded_body)
-                };
-                vir::Expr::forall(
-                    encoded_args,
-                    encoded_triggers,
-                    final_body,
-                )
-            },
+            box typed::AssertionKind::ForAll(ref vars, ref trigger_set, ref body) =>
+                self.encode_quantifier(vars, trigger_set, body, false)?,
+            box typed::AssertionKind::Exists(ref vars, ref trigger_set, ref body) =>
+                self.encode_quantifier(vars, trigger_set, body, true)?,
             box typed::AssertionKind::SpecEntailment {
                 ref closure,
                 arg_binders: ref vars,
@@ -280,7 +245,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                                 .into_iter()
                                 .conjoin();
 
-                            // encode_forall_arg() above only works for integers.
+                            // encode_quantifier_arg() above only works for integers.
                             // Therefore, for the time being, check that we're working with integers:
                             vars.args.iter().for_each(|(_arg, arg_ty)| {
                                 match arg_ty.kind() {
@@ -296,7 +261,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                             let sf_pre_name = self.encoder.encode_spec_func_name(*def_id, SpecFunctionKind::Pre);
                             let qvars_pre: Vec<_> = vars.args
                                 .iter()
-                                .map(|(arg, arg_ty)| self.encode_forall_arg(*arg, arg_ty, &format!("{}_{}", vars.spec_id, vars.pre_id)))
+                                .map(|(arg, arg_ty)| self.encode_quantifier_arg(*arg, arg_ty, &format!("{}_{}", vars.spec_id, vars.pre_id)))
                                 .collect();
                             let pre_conjunct = vir::Expr::forall(
                                 qvars_pre.clone(),
@@ -327,11 +292,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                             let qvars_post: Vec<_> = vars.args
                                 .iter()
                                 .map(|(arg, arg_ty)|
-                                     self.encode_forall_arg(
+                                     self.encode_quantifier_arg(
                                          *arg, arg_ty,
                                          &format!("{}_{}", vars.spec_id, vars.post_id)))
                                 .chain(std::iter::once(
-                                    self.encode_forall_arg(
+                                    self.encode_quantifier_arg(
                                         result_var, tcx.mk_ty(ty::TyKind::Int(ty::IntTy::I32)),
                                         &format!("{}_{}", vars.spec_id, vars.post_id))))
                                 .collect();
@@ -382,12 +347,74 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         })
     }
 
+    /// Encode a universal or existential quantifer. Encodes type bounds of
+    /// quantified variables as:
+    /// * premises in a universal quantifier, or
+    /// * conjuncts in an existential quantifier.
+    fn encode_quantifier(
+        &self,
+        vars: &typed::ForAllVars<'tcx>,
+        trigger_set: &typed::TriggerSet,
+        body: &typed::Assertion<'tcx>,
+        exists: bool,
+    ) -> SpannedEncodingResult<vir::Expr> {
+        let mut encoded_args = vec![];
+        let mut bounds = vec![];
+        for (arg, ty) in &vars.vars {
+            // TODO: how to get a span for the variable here?
+            //if !self.encoder.is_quantifiable(ty).unwrap() {
+            //    return Err(EncodingError::incorrect(
+            //        "This type cannot be used in quantifiers.",
+            //    ).with_span(?));
+            //}
+
+            let encoded_arg = self.encode_quantifier_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id));
+            if config::check_overflows() {
+                bounds.extend(self.encoder.encode_type_bounds(&encoded_arg.clone().into(), ty));
+            } else if config::encode_unsigned_num_constraint() {
+                if let ty::TyKind::Uint(_) = ty.kind() {
+                    let expr = vir::Expr::le_cmp(0.into(), encoded_arg.clone().into());
+                    bounds.push(expr);
+                }
+            }
+            encoded_args.push(encoded_arg);
+        }
+        let mut encoded_triggers = Vec::new();
+        for trigger in trigger_set.triggers() {
+            let encoded_trigger = self.encode_trigger(trigger, &encoded_args)?;
+            encoded_triggers.push(encoded_trigger);
+        }
+        let encoded_body = self.encode_assertion(body)?;
+        let final_body = if bounds.is_empty() {
+            encoded_body
+        } else {
+            if exists {
+                vir::Expr::and(bounds.into_iter().conjoin(), encoded_body)
+            } else {
+                vir::Expr::implies(bounds.into_iter().conjoin(), encoded_body)
+            }
+        };
+        if exists {
+            Ok(vir::Expr::exists(
+                encoded_args,
+                encoded_triggers,
+                final_body,
+            ))
+        } else {
+            Ok(vir::Expr::forall(
+                encoded_args,
+                encoded_triggers,
+                final_body,
+            ))
+        }
+    }
+
     /// Translate an expression `expr` from a closure identified by `def_id` to its definition site.
     ///
     /// During the translation:
     /// * Usages of the closure's captured state will be translated to the captured place.
     /// * Closure arguments will be treated as quantified variables and will be translated using
-    ///   the `self.encode_forall_arg(..)` method.
+    ///   the `self.encode_quantifier_arg(..)` method.
     ///
     /// The result is a tuple with:
     /// * the translated expression,
@@ -493,7 +520,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             for local_arg_index in inner_mir.args_iter().skip(1) {
                 let local_arg = &inner_mir.local_decls[local_arg_index];
                 assert!(!local_arg.internal);
-                let quantified_var = self.encode_forall_arg(
+                let quantified_var = self.encode_quantifier_arg(
                     local_arg_index,
                     local_arg.ty,
                     &forall_id

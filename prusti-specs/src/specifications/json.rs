@@ -13,6 +13,7 @@ pub enum AssertionKind {
     And(Vec<Assertion>),
     Implies(Assertion, Assertion),
     ForAll(ForAllVars, Assertion, TriggerSet),
+    Exists(ForAllVars, Assertion, TriggerSet),
     SpecEntailment {
         closure: Expression,
         arg_binders: SpecEntailmentVars,
@@ -118,6 +119,11 @@ impl untyped::AssertionKind {
                 rhs.to_structure()
             ),
             ForAll(vars, triggers, body) => AssertionKind::ForAll(
+                vars.to_structure(),
+                body.to_structure(),
+                triggers.to_structure(),
+            ),
+            Exists(vars, triggers, body) => AssertionKind::Exists(
                 vars.to_structure(),
                 body.to_structure(),
                 triggers.to_structure(),
