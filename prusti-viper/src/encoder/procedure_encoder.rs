@@ -1310,6 +1310,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         lhs: vir::Expr,
         rhs: vir::Expr,
         location: mir::Location,
+        is_in_package_stmt: bool,
     ) -> Vec<vir::Stmt> {
         let mut stmts = if let Some(var) = self.old_to_ghost_var.get(&rhs) {
             vec![vir::Stmt::Assign(
@@ -1321,7 +1322,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vec![vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)]
         };
 
-        if self.check_foldunfold_state {
+        if self.check_foldunfold_state && !is_in_package_stmt {
             let pos = self
                 .encoder
                 .error_manager()
@@ -1381,6 +1382,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         zombie_loans: &[facts::Loan],
         location: mir::Location,
         end_location: Option<mir::Location>,
+        is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<vir::borrows::DAG> {
         let mir_dag = self
             .polonius_info()
@@ -1400,13 +1402,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         node,
                         location,
                         end_location,
+                        is_in_package_stmt,
                     )?,
                 ReborrowingKind::Call { loan, .. } => {
                     self.construct_vir_reborrowing_node_for_call(
                         &mir_dag,
                         loan,
                         node,
-                        location
+                        location,
+                        is_in_package_stmt
                     )?
                 }
                 ReborrowingKind::ArgumentMove { loan } => {
@@ -1448,6 +1452,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         node: &ReborrowingDAGNode,
         location: mir::Location,
         end_location: Option<mir::Location>,
+        is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<vir::borrows::Node> {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
         let span = self.mir_encoder.get_span_of_location(location);
@@ -1475,6 +1480,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         expiring.clone().old(&in_label),
                         expiring.clone().old(&lhs_label),
                         loan_location,
+                        is_in_package_stmt,
                     ));
                 }
             }
@@ -1500,6 +1506,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 lhs_place.clone(),
                 rhs_place,
                 loan_location,
+                is_in_package_stmt,
             ));
         }
 
@@ -1533,6 +1540,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loan: facts::Loan,
         node: &ReborrowingDAGNode,
         location: mir::Location,
+        is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<vir::borrows::Node> {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
         let span = self.mir_encoder.get_span_of_location(location);
@@ -1588,6 +1596,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         encoded_place.clone().old(&in_label),
                         encoded_place.clone().old(&post_label),
                         loan_location,
+                        is_in_package_stmt,
                     ));
                 }
             }
@@ -1596,6 +1605,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     encoded_place.clone(),
                     encoded_place.old(&post_label),
                     loan_location,
+                    is_in_package_stmt,
                 ));
             }
         }
@@ -1644,6 +1654,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         zombie_loans: &[facts::Loan],
         location: mir::Location,
         end_location: Option<mir::Location>,
+        is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!(
             "encode_expiration_of_loans '{:?}' '{:?}'",
@@ -1653,7 +1664,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut stmts: Vec<vir::Stmt> = vec![];
         if loans.len() > 0 {
             let vir_reborrowing_dag =
-                self.construct_vir_reborrowing_dag(&loans, &zombie_loans, location, end_location)?;
+                self.construct_vir_reborrowing_dag(&loans, &zombie_loans, location, end_location, is_in_package_stmt)?;
             stmts.push(vir::Stmt::ExpireBorrows(vir_reborrowing_dag));
         }
         Ok(stmts)
@@ -1672,7 +1683,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .polonius_info()
             .get_all_loans_dying_between(begin_loc, end_loc);
         // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc), false)
     }
 
     fn encode_expiring_borrows_at(&mut self, location: mir::Location)
@@ -1680,7 +1691,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     {
         debug!("encode_expiring_borrows_at '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info().get_all_loans_dying_at(location);
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None, false)
     }
 
     /// Note: it's better to call `encode_statement_at` instead of this method.
@@ -2234,7 +2245,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 inhaled_expr
             );
 
-            self.encode_transfer_args_permissions(location, args,  &mut stmts, label)?;
+            self.encode_transfer_args_permissions(location, args,  &mut stmts, label, false)?;
 
             Ok(stmts)
         } else {
@@ -2764,7 +2775,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             inhaled_expr
         );
 
-        self.encode_transfer_args_permissions(location, args,  &mut stmts, label);
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, label, false);
         Ok(stmts)
     }
 
@@ -2838,6 +2849,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         stmts: &mut Vec<vir::Stmt>,
         label: String,
+        is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<()> {
         let span = self.mir_encoder.get_span_of_location(location);
         for operand in args.iter() {
@@ -2860,6 +2872,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ref_place.clone(),
                         ref_place.clone().old(&label),
                         location,
+                        is_in_package_stmt,
                     ));
                 }
                 _ => {} // Nothing
@@ -3599,7 +3612,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let (all_loans, zombie_loans) = self
                         .polonius_info()
                         .get_all_loans_kept_alive_by(start_point, region);
-                    self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)?
+                    self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None, true)?
                 } else {
                     // This happens when encoding the following function
                     // ```
@@ -3645,10 +3658,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty)
                             .with_span(arg_span)?;
                     let old_deref_place = deref_place.clone().old(&pre_label);
+                    stmts.extend(self.encode_transfer_permissions(
+                        deref_place.clone(),
+                        old_deref_place.clone(),
+                        location,
+                        true,
+                    ));
                     package_stmts.extend(self.encode_transfer_permissions(
                         deref_place,
                         old_deref_place.clone(),
                         location,
+                        true,
                     ));
                     let predicate =
                         vir::Expr::pred_permission(old_deref_place, vir::PermAmount::Write)
@@ -3684,7 +3704,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.procedure_contract().def_id, None, path
                 ).with_span(span)?;
                 let old_place = encoded_place.clone().old(post_label.clone());
-                stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
+                stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location, true));
             }
         }
 

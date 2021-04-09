@@ -44,14 +44,12 @@ impl State {
         }
     }
 
-    // Skip consistency checks in release mode
-    #[cfg(not(debug_assertions))]
     pub fn check_consistency(&self) {
-        // Nothing
-    }
+        // Skip consistency checks in release mode
+        if cfg!(not(debug_assertions)) {
+            return;
+        }
 
-    #[cfg(debug_assertions)]
-    pub fn check_consistency(&self) {
         // Check access permissions
         for place in self.pred.keys() {
             if place.is_simple_place() && !self.contains_acc(place) {

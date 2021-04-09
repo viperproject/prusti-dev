@@ -645,7 +645,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 if !perms.is_empty() {
                     stmts.extend(pctxt.obtain_permissions(perms)?.iter().map(|a| a.to_stmt()));
 
-                    if self.check_foldunfold_state && !is_last_before_return {
+                    if self.check_foldunfold_state && !is_last_before_return && label.is_none() {
                         stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
                         stmts.push(vir::Stmt::Assert(
                             pctxt.state().as_vir_expr(),
