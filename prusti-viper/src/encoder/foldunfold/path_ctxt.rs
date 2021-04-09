@@ -7,7 +7,8 @@
 use crate::encoder::foldunfold::action::*;
 use crate::encoder::foldunfold::log::EventLog;
 use crate::encoder::foldunfold::perm::*;
-use crate::encoder::foldunfold::permissions::*;
+use crate::encoder::foldunfold::requirements::*;
+use crate::encoder::foldunfold::footprint::*;
 use crate::encoder::foldunfold::places_utils::*;
 use crate::encoder::foldunfold::semantics::ApplyOnState;
 use crate::encoder::foldunfold::state::*;

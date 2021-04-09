@@ -5,7 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::foldunfold::perm::*;
-use crate::encoder::foldunfold::permissions::*;
+use crate::encoder::foldunfold::requirements::*;
+use crate::encoder::foldunfold::footprint::*;
 use crate::encoder::foldunfold::state::*;
 use prusti_common::vir;
 use std::collections::HashMap;
