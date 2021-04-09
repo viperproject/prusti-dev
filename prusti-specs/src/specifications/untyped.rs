@@ -277,6 +277,11 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
                 triggers.assign_id(spec_id, id_generator),
                 body.assign_id(spec_id, id_generator)
             ),
+            Exists(vars, triggers, body) => Exists(
+                vars.assign_id(spec_id, id_generator),
+                triggers.assign_id(spec_id, id_generator),
+                body.assign_id(spec_id, id_generator)
+            ),
             SpecEntailment {closure, arg_binders, pres, posts} => SpecEntailment {
                 closure: closure.assign_id(spec_id, id_generator),
                 arg_binders: arg_binders.assign_id(spec_id, id_generator),
@@ -378,7 +383,8 @@ impl EncodeTypeCheck for Assertion {
                 lhs.encode_type_check(tokens);
                 rhs.encode_type_check(tokens);
             }
-            AssertionKind::ForAll(vars, triggers, body) => {
+            AssertionKind::ForAll(vars, triggers, body)
+            | AssertionKind::Exists(vars, triggers, body) => {
                 let vec_of_vars = &vars.vars;
                 let span = Span::call_site();
                 let identifier = format!("{}_{}", vars.spec_id, vars.id);
