@@ -278,7 +278,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
                             // encode_forall_arg() above only works for integers.
                             // Therefore, for the time being, check that we're working with integers:
-                            vars.args.iter().map(|(arg, arg_ty)| {
+                            vars.args.iter().for_each(|(arg, arg_ty)| {
                                 match arg_ty.kind() {
                                     ty::TyKind::Int(..) | ty::TyKind::Uint(..) => {}
                                     _ => { unimplemented!("Only integers are currently supported as closure arguments."); }
@@ -729,7 +729,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         if !state.exprs().is_empty() {
             // The state is initialized
             self.interpreter
-                .apply_statement(bb, stmt_index, stmt, state);
+                .apply_statement(bb, stmt_index, stmt, state)?;
         } else {
             // The state is not yet initialized
             trace!("Skip statement {:?}", stmt);

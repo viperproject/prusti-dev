@@ -2775,7 +2775,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             inhaled_expr
         );
 
-        self.encode_transfer_args_permissions(location, args,  &mut stmts, label, false);
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, label, false)?;
         Ok(stmts)
     }
 
@@ -3658,12 +3658,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty)
                             .with_span(arg_span)?;
                     let old_deref_place = deref_place.clone().old(&pre_label);
-                    stmts.extend(self.encode_transfer_permissions(
-                        deref_place.clone(),
-                        old_deref_place.clone(),
-                        location,
-                        true,
-                    ));
                     package_stmts.extend(self.encode_transfer_permissions(
                         deref_place,
                         old_deref_place.clone(),

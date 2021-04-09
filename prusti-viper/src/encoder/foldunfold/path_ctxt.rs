@@ -713,7 +713,7 @@ Predicates: {{
     }
 
     /// Returns some of the dropped permissions
-    pub fn apply_stmt(&mut self, stmt: &vir::Stmt) {
+    pub fn apply_stmt(&mut self, stmt: &vir::Stmt) -> Result<(), FoldUnfoldError> {
         debug!("apply_stmt: {}", stmt);
 
         trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
@@ -721,12 +721,14 @@ Predicates: {{
 
         self.state.check_consistency();
 
-        stmt.apply_on_state(&mut self.state, self.predicates);
+        stmt.apply_on_state(&mut self.state, self.predicates)?;
 
         trace!("Acc state after: {{\n{}\n}}", self.state.display_acc());
         trace!("Pred state after: {{\n{}\n}}", self.state.display_pred());
 
         self.state.check_consistency();
+
+        Ok(())
     }
 
     pub fn obtain_permissions(

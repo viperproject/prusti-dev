@@ -106,7 +106,7 @@ pub fn add_folding_unfolding_to_function(
     let formal_vars = function.formal_args.clone();
     let mut pctxt = PathCtxt::new(formal_vars, &predicates);
     for pre in &function.pres {
-        pctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone(), vir::FoldingBehaviour::Expr));
+        pctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone(), vir::FoldingBehaviour::Expr))?;
     }
     // Add appropriate unfolding around expressions
     let result = vir::Function {
@@ -345,7 +345,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     .map(|a| a.to_stmt()),
             );
             let inhale_stmt = vir::Stmt::Inhale(access, vir::FoldingBehaviour::Stmt);
-            pctxt.apply_stmt(&inhale_stmt);
+            pctxt.apply_stmt(&inhale_stmt)?;
             stmts.push(inhale_stmt);
         }
 
@@ -564,7 +564,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 let labelled_state = labelled_pctxt.mut_state();
                 labelled_state.remove_all();
                 vir::Stmt::Inhale(lhs.clone(), vir::FoldingBehaviour::Expr)
-                    .apply_on_state(labelled_state, pctxt.predicates());
+                    .apply_on_state(labelled_state, pctxt.predicates())?;
                 if let vir::Expr::PredicateAccessPredicate(ref _name, box ref arg, perm_amount, _) =
                     lhs
                 {
@@ -746,7 +746,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 vir::Stmt::If(cond, then_stmts, else_stmts)
             },
             _ => {
-                pctxt.apply_stmt(&stmt);
+                pctxt.apply_stmt(&stmt)?;
                 stmt
             }
         };
@@ -852,7 +852,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                         .log_mut()
                         .log_convertion_to_read(borrow, access.clone());
                     let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
-                    pctxt.apply_stmt(&stmt);
+                    pctxt.apply_stmt(&stmt)?;
                     stmts.push(stmt);
                 }
                 let new_place = place.replace_place(rhs_place, lhs_place);
@@ -868,7 +868,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                     lhs_place.clone(),
                 );
                 let stmt = vir::Stmt::Inhale(lhs_read_access, vir::FoldingBehaviour::Stmt);
-                pctxt.apply_stmt(&stmt);
+                pctxt.apply_stmt(&stmt)?;
                 stmts.push(stmt);
             }
             let pred_perms: Vec<_> = pctxt
@@ -895,7 +895,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                         .log_mut()
                         .log_convertion_to_read(borrow, access.clone());
                     let stmt = vir::Stmt::Exhale(access, self.method_pos);
-                    pctxt.apply_stmt(&stmt);
+                    pctxt.apply_stmt(&stmt)?;
                     stmts.push(stmt);
                 }
                 let new_place = place.replace_place(rhs_place, lhs_place);
@@ -912,7 +912,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                     lhs_place.clone(),
                 );
                 let stmt = vir::Stmt::Inhale(lhs_read_access, vir::FoldingBehaviour::Stmt);
-                pctxt.apply_stmt(&stmt);
+                pctxt.apply_stmt(&stmt)?;
                 stmts.push(stmt);
             }
         }
@@ -1151,7 +1151,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             let mut inner_pctxt = self.curr_pctxt.clone();
             let inner_state = inner_pctxt.mut_state();
             vir::Stmt::Unfold(name.clone(), args.clone(), perm, variant.clone())
-                .apply_on_state(inner_state, self.curr_pctxt.predicates());
+                .apply_on_state(inner_state, self.curr_pctxt.predicates())?;
 
             // Store states
             let mut tmp_curr_pctxt = inner_pctxt;

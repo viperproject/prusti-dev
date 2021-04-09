@@ -714,7 +714,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
         match self.ty.kind() {
             ty::TyKind::Tuple(elems) => {
                 for (field_num, field_ty) in elems.iter().enumerate() {
-                    self.encoder.encode_snapshot(field_ty.expect_ty()); // ensure there is a snapshot
+                    self.encoder.encode_snapshot(field_ty.expect_ty())?; // ensure there is a snapshot
                     let field_type = self.encoder.encode_value_type(field_ty.expect_ty())?;
                     formal_args.push(
                         self.encode_local_var(field_num, &field_type)

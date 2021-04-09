@@ -28,7 +28,7 @@ fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String,
 {
     state.remove_all_perms(
         expr.get_footprint(predicates)
-            .iter()
+            .into_iter()
             .filter(|p| p.is_curr() || p.is_pred())
             .filter(|p| !(p.is_local() && p.is_acc()))
             // Hack for final exhale of method: do not remove "old[pre](..)" permissions from state
@@ -56,11 +56,11 @@ impl ApplyOnState for vir::Stmt {
             | &vir::Stmt::Obtain(_, _) => {}
 
             &vir::Stmt::Inhale(ref expr, _) => {
-                inhale_expr(expr, state, predicates);
+                inhale_expr(expr, state, predicates)?;
             }
 
             &vir::Stmt::Exhale(ref expr, _) => {
-                exhale_expr(expr, state, predicates);
+                exhale_expr(expr, state, predicates)?;
             }
 
             &vir::Stmt::MethodCall(_, _, ref targets) => {
@@ -123,7 +123,7 @@ impl ApplyOnState for vir::Stmt {
                                     (p.clone().replace_place(&rhs, lhs_place), *perm_amount)
                                 })
                                 .filter(|(p, _)| !p.is_local());
-                            state.insert_all_acc(new_acc_places);
+                            state.insert_all_acc(new_acc_places)?;
 
                             let new_pred_places = original_state
                                 .pred()
@@ -132,7 +132,7 @@ impl ApplyOnState for vir::Stmt {
                                 .map(|(p, perm_amount)| {
                                     (p.clone().replace_place(&rhs, lhs_place), *perm_amount)
                                 });
-                            state.insert_all_pred(new_pred_places);
+                            state.insert_all_pred(new_pred_places)?;
 
                             // Finally, mark the rhs as moved
                             if !rhs.has_prefix(lhs_place) {
@@ -288,8 +288,8 @@ impl ApplyOnState for vir::Stmt {
                     original_state.display_pred()
                 );
 
-                state.insert_all_acc(new_acc_places.into_iter());
-                state.insert_all_pred(new_pred_places.into_iter());
+                state.insert_all_acc(new_acc_places.into_iter())?;
+                state.insert_all_pred(new_pred_places.into_iter())?;
 
                 // Move also the acc permission if the rhs is old.
                 if state.contains_acc(lhs_place) && !state.contains_acc(rhs_place) {
@@ -343,13 +343,13 @@ impl ApplyOnState for vir::Stmt {
                 //for stmt in package_stmts {
                 //    stmt.apply_on_state(state, predicates);
                 //}
-                exhale_expr(rhs, state, predicates);
-                inhale_expr(lhs, state, predicates);
+                exhale_expr(rhs, state, predicates)?;
+                inhale_expr(lhs, state, predicates)?;
             }
 
             &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs, _, _), _) => {
-                exhale_expr(lhs, state, predicates);
-                inhale_expr(rhs, state, predicates);
+                exhale_expr(lhs, state, predicates)?;
+                inhale_expr(rhs, state, predicates)?;
             }
 
             &vir::Stmt::ExpireBorrows(ref _dag) => {

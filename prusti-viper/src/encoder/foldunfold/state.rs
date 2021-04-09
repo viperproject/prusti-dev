@@ -10,6 +10,7 @@ use prusti_common::vir::ExprIterator;
 use prusti_common::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::borrow::Borrow;
 use std::fmt;
 use log::{trace, debug};
 use crate::encoder::foldunfold::FoldUnfoldError;
@@ -493,13 +494,14 @@ impl State {
         }
     }
 
-    pub fn remove_all_perms<'a, I>(&mut self, items: I)
+    pub fn remove_all_perms<'a, I, P>(&mut self, items: I)
        -> Result<(), FoldUnfoldError>
     where
-        I: Iterator<Item = &'a Perm>,
+        I: Iterator<Item = P>,
+        P: Borrow<Perm>
     {
         for item in items {
-            self.remove_perm(item)?;
+            self.remove_perm(item.borrow())?;
         }
         Ok(())
     }
@@ -522,7 +524,7 @@ impl State {
     /// ```
     /// In such a case, the function keeps the most generic variant of
     /// permissions.
-    pub fn restore_dropped_perm(&mut self, item: Perm) {
+    pub fn restore_dropped_perm(&mut self, item: Perm) -> Result<(), FoldUnfoldError> {
         trace!("[enter] restore_dropped_perm item={}", item);
         for moved_place in &self.moved {
             trace!("  moved_place={}", moved_place);
@@ -530,14 +532,15 @@ impl State {
         match item {
             Perm::Acc(place, perm) => {
                 self.remove_moved_matching(|p| place.has_prefix(p));
-                self.restore_acc(place, perm);
+                self.restore_acc(place, perm)?;
             }
             Perm::Pred(place, perm) => {
                 self.remove_moved_matching(|p| place.has_prefix(p));
-                self.restore_pred(place, perm);
+                self.restore_pred(place, perm)?;
             }
         };
         trace!("[exit] restore_dropped_perm");
+        Ok(())
     }
 
     fn restore_acc(&mut self, acc_place: vir::Expr, mut perm: PermAmount)
@@ -590,16 +593,17 @@ impl State {
         Ok(())
     }
 
-    pub fn restore_dropped_perms<I>(&mut self, items: I)
+    pub fn restore_dropped_perms<I>(&mut self, items: I) -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = Perm>,
     {
         trace!("[enter] restore_dropped_perms");
         for item in items {
-            self.restore_dropped_perm(item);
+            self.restore_dropped_perm(item)?;
         }
         self.check_consistency();
         trace!("[exit] restore_dropped_perms");
+        Ok(())
     }
 
     pub fn as_vir_expr(&self) -> vir::Expr {
