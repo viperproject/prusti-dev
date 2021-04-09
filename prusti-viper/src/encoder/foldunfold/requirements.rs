@@ -16,7 +16,8 @@ use std::iter::FromIterator;
 use log::{trace, debug};
 
 pub trait RequiredPermissionsGetter {
-    /// Returns the permissions required for the expression to be well-defined
+    /// Returns the permissions required for the expression/statement to be well-defined.
+    /// The result might be an over-approximation, as in the `vir::Expr::FuncApp` case.
     fn get_required_permissions(
         &self,
         predicates: &HashMap<String, vir::Predicate>,
@@ -24,7 +25,6 @@ pub trait RequiredPermissionsGetter {
 }
 
 impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for &'a A {
-    /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
         predicates: &HashMap<String, vir::Predicate>,
@@ -34,7 +34,6 @@ impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for &'a A {
 }
 
 impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<A> {
-    /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
         predicates: &HashMap<String, vir::Predicate>,
@@ -48,7 +47,6 @@ impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<A> {
 }
 
 impl RequiredPermissionsGetter for vir::Stmt {
-    /// Returns the permissions required for the statement to be well-defined
     fn get_required_permissions(
         &self,
         predicates: &HashMap<String, vir::Predicate>,
@@ -60,7 +58,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 // footprint = used - inhaled
                 perm_difference(
                     expr.get_required_permissions(predicates),
-                    expr.get_permissions(predicates),
+                    expr.get_footprint(predicates),
                 )
             }
 
@@ -95,13 +93,13 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 let place = &args[0];
                 debug_assert!(place.is_place());
 
-                // We want to temporarly unfold place
+                // We want to temporarily unfold place
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
-                    .get_permissions_with_variant(variant)
+                    .get_body_footprint(variant)
                     .into_iter()
                     .map(|perm| {
                         perm.map_place(|p| p.replace_place(&pred_self_place, &place))
@@ -168,7 +166,6 @@ impl RequiredPermissionsGetter for vir::Stmt {
 }
 
 impl RequiredPermissionsGetter for vir::Expr {
-    /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(
         &self,
         predicates: &HashMap<String, vir::Predicate>,
@@ -188,7 +185,7 @@ impl RequiredPermissionsGetter for vir::Expr {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
-                    .get_permissions_with_variant(variant)
+                    .get_body_footprint(variant)
                     .into_iter()
                     .map(|aop| {
                         aop.map_place(|p| p.replace_place(&pred_self_place, place))

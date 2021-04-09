@@ -239,7 +239,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 let mut inner_pctxt = pctxt.clone();
                 let inner_state = inner_pctxt.mut_state();
                 inner_state.insert_all_perms(
-                    expr.get_permissions(pctxt.predicates())
+                    expr.get_footprint(pctxt.predicates())
                         .into_iter()
                         .filter(|p| !p.get_place().is_local() && p.is_curr()),
                 )?;
@@ -256,7 +256,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 /*
                 let rhs_state = rhs_pctxt.mut_state();
                 rhs_state.insert_all_perms(
-                    rhs.get_permissions(pctxt.predicates())
+                    rhs.get_footprint(pctxt.predicates())
                         .into_iter()
                         .filter(|p| p.is_pred())
                 )?;
@@ -1183,7 +1183,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         let lhs_state = lhs_pctxt.mut_state();
         lhs_state.remove_all();
         lhs_state.insert_all_perms(
-            lhs.get_permissions(self.curr_pctxt.predicates())
+            lhs.get_footprint(self.curr_pctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
@@ -1209,7 +1209,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         new_lhs_state.remove_all();
         new_lhs_state.insert_all_perms(
             new_lhs
-                .get_permissions(self.curr_pctxt.predicates())
+                .get_footprint(self.curr_pctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
@@ -1225,7 +1225,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         let rhs_state = rhs_pctxt.mut_state();
         rhs_state.remove_all();
         rhs_state.insert_all_perms(
-            rhs.get_permissions(self.curr_pctxt.predicates())
+            rhs.get_footprint(self.curr_pctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),

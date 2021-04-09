@@ -17,7 +17,7 @@ fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String,
     -> Result<(), FoldUnfoldError>
 {
     state.insert_all_perms(
-        expr.get_permissions(predicates)
+        expr.get_footprint(predicates)
             .into_iter()
             .filter(|p| !(p.is_local() && p.is_acc())),
     )
@@ -27,7 +27,7 @@ fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String,
     -> Result<(), FoldUnfoldError>
 {
     state.remove_all_perms(
-        expr.get_permissions(predicates)
+        expr.get_footprint(predicates)
             .iter()
             .filter(|p| p.is_curr() || p.is_pred())
             .filter(|p| !(p.is_local() && p.is_acc()))
@@ -180,7 +180,7 @@ impl ApplyOnState for vir::Stmt {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<Perm> = predicate
-                    .get_permissions_with_variant(variant)
+                    .get_body_footprint(variant)
                     .into_iter()
                     .map(|perm| {
                         perm.map_place(|p| p.replace_place(&pred_self_place, place))
@@ -211,7 +211,7 @@ impl ApplyOnState for vir::Stmt {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<_> = predicate
-                    .get_permissions_with_variant(variant)
+                    .get_body_footprint(variant)
                     .into_iter()
                     .map(|aop| aop.map_place(|p| p.replace_place(&pred_self_place, place)))
                     .collect();

@@ -15,15 +15,15 @@ use std::collections::HashSet;
 use std::iter::FromIterator;
 use log::{trace, debug};
 
-pub trait ExprPermissionsGetter {
-    fn get_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm>;
+pub trait ExprFootprintGetter {
+    /// Returns the precise footprint of an expression, that is the permissions that must be
+    /// added/removed when executing an `inhale/exhale expr` statement.
+    fn get_footprint(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm>;
 }
 
-impl ExprPermissionsGetter for vir::Expr {
-    /// Returns the permissions that must be inhaled/exhaled in a `inhale/exhale expr` statement
-    /// This must be a subset of `get_required_permissions`
-    fn get_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
-        trace!("get_permissions {}", self);
+impl ExprFootprintGetter for vir::Expr {
+    fn get_footprint(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
+        trace!("get_footprint {}", self);
         match self {
             vir::Expr::Local(_, _)
             | vir::Expr::Field(_, _, _)
@@ -46,7 +46,7 @@ impl ExprPermissionsGetter for vir::Expr {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
-                    .get_permissions_with_variant(variant)
+                    .get_body_footprint(variant)
                     .into_iter()
                     .map(|aop| {
                         aop.map_place(|p| p.replace_place(&pred_self_place, place))
@@ -55,23 +55,23 @@ impl ExprPermissionsGetter for vir::Expr {
                     .collect();
 
                 // Simulate temporary unfolding of `place`
-                let expr_access_places = expr.get_permissions(predicates);
+                let expr_access_places = expr.get_footprint(predicates);
 
                 // inhaled = inhaled in body - unfolding
                 perm_difference(expr_access_places, places_in_pred)
             }
 
-            vir::Expr::UnaryOp(_, ref expr, _) => expr.get_permissions(predicates),
+            vir::Expr::UnaryOp(_, ref expr, _) => expr.get_footprint(predicates),
 
             vir::Expr::BinOp(_, box left, box right, _) => union(
-                &left.get_permissions(predicates),
-                &right.get_permissions(predicates),
+                &left.get_footprint(predicates),
+                &right.get_footprint(predicates),
             ),
 
             vir::Expr::Cond(box guard, box left, box right, _) => union3(
-                &guard.get_permissions(predicates),
-                &left.get_permissions(predicates),
-                &right.get_permissions(predicates),
+                &guard.get_footprint(predicates),
+                &left.get_footprint(predicates),
+                &right.get_footprint(predicates),
             ),
 
             vir::Expr::ForAll(vars, _triggers, box body, _) => {
@@ -80,7 +80,7 @@ impl ExprPermissionsGetter for vir::Expr {
                     .iter()
                     .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))
                     .collect();
-                perm_difference(body.get_permissions(predicates), vars_places)
+                perm_difference(body.get_footprint(predicates), vars_places)
             }
 
             vir::Expr::PredicateAccessPredicate(_, box ref arg, perm_amount, _) => {
@@ -118,30 +118,38 @@ impl ExprPermissionsGetter for vir::Expr {
     }
 }
 
-pub trait PredicatePermissionsGetter {
-    fn get_permissions_with_variant(
+pub trait PredicateFootprintGetter {
+    /// Returns the footprint of the body of a predicate, that is the permissions that must be
+    /// added/removed when executing a `fold/unfold pred` statement.
+    /// When the method is called on a predicate encoding an enumeration and `maybe_variant` is
+    /// `None` then the result is an under-approximation. The result is precise in all other cases.
+    fn get_body_footprint(
         &self,
         maybe_variant: &vir::MaybeEnumVariantIndex,
     ) -> HashSet<Perm>;
 }
 
-impl PredicatePermissionsGetter for vir::Predicate {
-    /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
-    fn get_permissions_with_variant(
+impl PredicateFootprintGetter for vir::Predicate {
+    fn get_body_footprint(
         &self,
         maybe_variant: &vir::MaybeEnumVariantIndex,
     ) -> HashSet<Perm> {
         let perms = match self {
             vir::Predicate::Struct(p) => {
                 assert!(maybe_variant.is_none());
-                p.get_permissions()
+                p.get_body_footprint()
             }
             vir::Predicate::Enum(p) => {
                 if let Some(variant) = maybe_variant {
-                    p.get_permissions(variant)
+                    p.get_body_footprint(variant)
                 } else {
-                    // We must be doing fold/unfold for a pure function.
-                    p.get_all_permissions()
+                    // This case happens when Prusti unfolds an enumeration without statically
+                    // knowing the variant. For example, when encoding the lookup of a
+                    // discriminant *before* entering a match expression.
+                    // Under-approximating is better than over-approximating because it preserves
+                    // the invariant that permissions in the fold-unfold state are an
+                    // under-approximation of the permissions actually available in Viper.
+                    p.get_underapproximated_body_footprint()
                 }
             }
             vir::Predicate::Bodyless(_, _) => HashSet::new(),
@@ -150,32 +158,36 @@ impl PredicatePermissionsGetter for vir::Predicate {
     }
 }
 
-pub trait StructPredicatePermissionsGetter {
-    fn get_permissions(&self) -> HashSet<Perm>;
+pub trait StructPredicateFootprintGetter {
+    /// Returns the footprint of the body of a predicate encoding a structure, that is the
+    /// permissions that must be added/removed when executing a `fold/unfold pred` statement.
+    fn get_body_footprint(&self) -> HashSet<Perm>;
 }
 
-impl StructPredicatePermissionsGetter for vir::StructPredicate {
-    /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
-    fn get_permissions(&self) -> HashSet<Perm> {
+impl StructPredicateFootprintGetter for vir::StructPredicate {
+    fn get_body_footprint(&self) -> HashSet<Perm> {
         match self.body {
             Some(ref body) => {
                 // A predicate body should not contain unfolding expression
                 let predicates = HashMap::new();
-                body.get_permissions(&predicates)
+                body.get_footprint(&predicates)
             }
             None => HashSet::new(),
         }
     }
 }
 
-pub trait EnumPredicatePermissionsGetter {
-    fn get_permissions(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm>;
-    fn get_all_permissions(&self) -> HashSet<Perm>;
+pub trait EnumPredicateFootprintGetter {
+    /// Returns the footprint of the body of a predicate encoding an enumeration, that is the
+    /// permissions that must be added/removed when executing a `fold/unfold pred` statement.
+    fn get_body_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm>;
+
+    /// Returns the intersection of `get_body_footprint` called on each possible variant.
+    fn get_underapproximated_body_footprint(&self) -> HashSet<Perm>;
 }
 
-impl EnumPredicatePermissionsGetter for vir::EnumPredicate {
-    /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
-    fn get_permissions(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
+impl EnumPredicateFootprintGetter for vir::EnumPredicate {
+    fn get_body_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
         // A predicate body should not contain unfolding expression
         let predicates = HashMap::new();
         let mut perms = self.discriminant.get_required_permissions(&predicates);
@@ -193,22 +205,9 @@ impl EnumPredicatePermissionsGetter for vir::EnumPredicate {
         perms
     }
 
-    /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
-    fn get_all_permissions(&self) -> HashSet<Perm> {
-        // A predicate body should not contain unfolding expression
+    fn get_underapproximated_body_footprint(&self) -> HashSet<Perm> {
         let predicates = HashMap::new();
         let mut perms = self.discriminant.get_required_permissions(&predicates);
-        let this: vir::Expr = self.this.clone().into();
-        for (_guard, variant_name, _variant_predicate) in &self.variants {
-            perms.insert(Perm::Acc(
-                this.clone().variant(&variant_name),
-                PermAmount::Write,
-            ));
-            perms.insert(Perm::Pred(
-                this.clone().variant(&variant_name),
-                PermAmount::Write,
-            ));
-        }
         perms
     }
 }

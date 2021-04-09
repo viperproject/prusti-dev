@@ -105,7 +105,7 @@ impl<'a> PathCtxt<'a> {
 
         let pred_self_place: vir::Expr = predicate.self_place();
         let places_in_pred: Vec<Perm> = predicate
-            .get_permissions_with_variant(&variant)
+            .get_body_footprint(&variant)
             .into_iter()
             .map(|perm| {
                 perm.map_place(|p| p.replace_place(&pred_self_place, pred_place))
@@ -586,7 +586,7 @@ impl<'a> PathCtxt<'a> {
 
             let pred_self_place: vir::Expr = predicate.self_place();
             let places_in_pred: Vec<Perm> = predicate
-                .get_permissions_with_variant(&variant)
+                .get_body_footprint(&variant)
                 .into_iter()
                 .map(|perm| perm.map_place(|p| p.replace_place(&pred_self_place, req.get_place())))
                 .collect();
