@@ -5,7 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::snapshot;
-use prusti_common::{vir, vir::WithIdentifier};
+use prusti_common::{vir, vir_local, vir::WithIdentifier};
+use rustc_middle::ty;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinMethodKind {
@@ -20,7 +21,14 @@ pub enum BuiltinFunctionKind {
     Unreachable(vir::Type),
     /// type
     Undefined(vir::Type),
+    /// array lookup pure function, e.g. Array$4$u32$lookup_pure
+    ArrayLookupPure {
+        array_ty: vir::Type,
+        array_len: usize,
+        return_ty: vir::Type,
+    },
 }
+
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinDomainKind {
     Nat,
@@ -69,6 +77,11 @@ impl BuiltinEncoder {
             BuiltinFunctionKind::Undefined(vir::Type::Bool) => format!("builtin$undef_bool"),
             BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => format!("builtin$undef_ref"),
             BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => format!("builtin$undef_doman"),
+            BuiltinFunctionKind::ArrayLookupPure { array_ty, array_len, .. } => {
+                // we kind of abuse the TypedRef variant here to store the rust type name as string
+                let array_ty = if let vir::Type::TypedRef(ty) = array_ty { ty } else { unreachable!() };
+                format!("Array${}${}$lookup_pure", array_len, array_ty)
+            }
         }
     }
 
@@ -91,6 +104,35 @@ impl BuiltinEncoder {
                 pres: vec![],
                 posts: vec![],
                 body: None,
+            },
+            BuiltinFunctionKind::ArrayLookupPure { array_ty, array_len, return_ty } => {
+                let array_ty = if let vir::Type::TypedRef(ty) = array_ty { ty } else { unreachable!() };
+                let type_pred = format!("Array${}${}", array_len, array_ty);
+                let self_var = vir::LocalVar::new("self", vir::Type::TypedRef(type_pred.clone()));
+                let idx_var = vir_local!{ idx: Int };
+
+                vir::Function {
+                    name: fn_name,
+                    formal_args: vec![
+                        // self,
+                        self_var.clone(),
+                        // idx,
+                        idx_var.clone(),
+                    ],
+                    return_type: return_ty,
+                    pres: vec![
+                        // idx < {len}
+                        vir!([vir::Expr::Local(idx_var, vir::Position::default())]  < [vir::Expr::from(array_len)]),
+                        // acc(self, read$())
+                        vir::Expr::predicate_access_predicate(
+                            type_pred,
+                            vir::Expr::Local(self_var, vir::Position::default()),
+                            vir::PermAmount::Read,
+                        )
+                    ],
+                    posts: vec![],
+                    body: None,
+                }
             },
         }
     }
