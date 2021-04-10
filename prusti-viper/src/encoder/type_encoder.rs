@@ -25,6 +25,8 @@ use rustc_attr::IntType::SignedInt;
 use rustc_target::abi::Integer;
 use log::{debug, trace};
 use crate::encoder::errors::{EncodingError, EncodingResult};
+use crate::encoder::builtin_encoder::BuiltinFunctionKind;
+use std::convert::TryInto;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -175,6 +177,17 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 return Err(EncodingError::unsupported(
                     "raw pointers are not supported"
                 ));
+            }
+
+            ty::TyKind::Array(ref ty, len) => {
+                let elem_ty = self.encoder.encode_type_predicate_use(ty)?;
+                let array_pred = self.encoder.encode_type_predicate_use(self.ty)?;
+
+                // FIXME: don't return a field here/don't call this for arrays
+                vir::Field::new(
+                    "array_todo",
+                    vir::Type::TypedRef(array_pred),
+                )
             }
 
             ref x => unimplemented!("{:?}", x),
@@ -392,6 +405,28 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 }
             }
 
+            ty::TyKind::Array(elem_ty, len) => {
+                let array_len =
+                    self.encoder
+                        .const_eval_intlike(&len.val).unwrap()
+                        .to_u64().unwrap();
+                // TODO: use snapshot type at some point
+                // let snapshot = self.encoder.encode_snapshot(&self.ty)?;
+                // let return_ty = snapshot.get_type();
+
+                // need the array's corresponding lookup_pure function as well
+                self.encoder.encode_builtin_function_def(
+                    BuiltinFunctionKind::ArrayLookupPure {
+                        array_ty: vir::Type::TypedRef(format!("{}", elem_ty)),
+                        array_len: array_len.try_into().unwrap(),
+                        return_ty: vir::Type::Int,
+                    });
+
+                vec![
+                    vir::Predicate::new_abstract(vir::Type::TypedRef(predicate_name)),
+                ]
+            }
+
             ref ty_variant => {
                 debug!("Encoding of type '{:?}' is incomplete", ty_variant);
                 vec![vir::Predicate::new_abstract(typ)]
@@ -476,28 +511,14 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Str => "str".to_string(),
 
             ty::TyKind::Array(elem_ty, size) => {
-                let scalar_size = match size.val {
-                    ty::ConstKind::Value(ref value) => {
-                        value.try_to_bits(
-                            rustc_target::abi::Size::from_bits(64)
-                        ).unwrap()
-                    },
-                    ty::ConstKind::Unevaluated(ct) => {
-                        let tcx = self.encoder.env().tcx();
-                        let param_env = tcx.param_env(ct.def.did);
-                        tcx.const_eval_resolve(param_env, ct, None)
-                            .ok()
-                            .and_then(|const_value| const_value.try_to_bits(
-                                rustc_target::abi::Size::from_bits(64)
-                            ))
-                            .unwrap()
-                    }
-                    x => unimplemented!("{:?}", x),
-                };
+                let array_len =
+                    self.encoder
+                        .const_eval_intlike(&size.val).unwrap()
+                        .to_u64().unwrap();
                 format!(
-                    "array${}${}",
+                    "Array${}${}",
+                    array_len,
                     self.encoder.encode_type_predicate_use(elem_ty)?,
-                    scalar_size
                 )
             }
 
