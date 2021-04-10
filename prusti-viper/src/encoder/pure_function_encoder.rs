@@ -894,9 +894,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     vir::Expr::not(cond_val)
                 };
 
+                let msg_desc =
+                    // rustc_middle/src/mir/mod.rs says BoundsCheck is expected to be handled by
+                    // the caller (?!)
+                    if let mir::AssertKind::BoundsCheck{ .. } = msg {
+                        "BoundsCheck"
+                    } else {
+                        msg.description()
+                    };
+
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
-                    ErrorCtxt::PureFunctionAssertTerminator(msg.description().to_string()),
+                    ErrorCtxt::PureFunctionAssertTerminator(msg_desc.to_string()),
                 );
 
                 MultiExprBackwardInterpreterState::new(

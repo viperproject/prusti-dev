@@ -2178,10 +2178,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir::Expr::not(cond_var.into())
                 };
 
+                let msg_desc =
+                    // rustc_middle/src/mir/mod.rs says BoundsCheck is expected to be handled by
+                    // the caller (?!)
+                    if let mir::AssertKind::BoundsCheck{ .. } = msg {
+                        "BoundsCheck"
+                    } else {
+                        msg.description()
+                    };
                 // Check or assume the assertion
                 stmts.push(vir::Stmt::comment(format!(
                     "Rust assertion: {}",
-                    msg.description()
+                    msg_desc
                 )));
                 if self.check_panics {
                     stmts.push(vir::Stmt::Assert(
@@ -2189,7 +2197,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         vir::FoldingBehaviour::Stmt,
                         self.encoder.error_manager().register(
                             term.source_info.span,
-                            ErrorCtxt::AssertTerminator(msg.description().to_string()),
+                            ErrorCtxt::AssertTerminator(msg_desc.to_string()),
                         ),
                     ));
                 } else {
