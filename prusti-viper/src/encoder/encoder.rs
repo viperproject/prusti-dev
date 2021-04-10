@@ -1308,7 +1308,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     ),
                     vir::Position::default(),
                 ),
-                box vir::Expr::Const(vir::Const::Bool(true), vir::Position::default()),
+                box true.into(),
                 vir::Position::default()
             ));
         }
@@ -1336,7 +1336,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                      */
                 vir::Position::default(),
             ),
-            box vir::Expr::Const(vir::Const::Bool(true), vir::Position::default()),
+            box true.into(),
             vir::Position::default()
         ));
         Ok(vir::Function { posts, ..function })

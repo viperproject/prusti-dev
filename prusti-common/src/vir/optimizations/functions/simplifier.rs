@@ -75,7 +75,7 @@ impl ExprSimplifier {
                 if b {
                     conjunct
                 } else {
-                    ast::Expr::Const(ast::Const::Bool(false.into()), pos)
+                    false.into()
                 }
             },
             ast::Expr::BinOp(
@@ -91,7 +91,7 @@ impl ExprSimplifier {
                 pos,
             ) => {
                 if b {
-                    ast::Expr::Const(ast::Const::Bool(true.into()), pos)
+                    true.into()
                 } else {
                     disjunct
                 }
@@ -103,7 +103,7 @@ impl ExprSimplifier {
                 pos,
             ) => {
                 if b {
-                    ast::Expr::Const(ast::Const::Bool(true.into()), pos)
+                    true.into()
                 } else {
                     ast::Expr::UnaryOp(
                         ast::UnaryOpKind::Not,
@@ -121,7 +121,7 @@ impl ExprSimplifier {
                 if b {
                     body
                 } else {
-                    ast::Expr::Const(ast::Const::Bool(true.into()), pos)
+                    true.into()
                 }
             },
             ast::Expr::BinOp(ast::BinOpKind::And, box op1, box op2, pos) => {
