@@ -417,6 +417,34 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         compute_procedure_contract(proc_def_id, self.env().tcx(), spec, None)
     }
 
+    /// Extract scalar value, invoking const evaluation if necessary.
+    pub fn const_eval_intlike(
+        &self,
+        value: &ty::ConstKind<'tcx>,
+    ) -> EncodingResult<mir::interpret::Scalar> {
+        let opt_scalar_value = match value {
+            ty::ConstKind::Value(ref const_value) => {
+                const_value.try_to_scalar()
+            }
+            ty::ConstKind::Unevaluated(ct) => {
+                let tcx = self.env().tcx();
+                let param_env = tcx.param_env(ct.def.did);
+                tcx.const_eval_resolve(param_env, *ct, None)
+                    .ok()
+                    .and_then(|const_value| const_value.try_to_scalar())
+            }
+            _ => unimplemented!("{:?}", value),
+        };
+
+        if let Some(v) = opt_scalar_value {
+            Ok(v)
+        } else {
+            Err(EncodingError::unsupported(
+                format!("unsupported constant value: {:?}", value)
+            ))
+        }
+    }
+
     pub fn get_procedure_contract_for_def(
         &self,
         proc_def_id: ProcedureDefId,
@@ -1037,28 +1065,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         value: &ty::ConstKind<'tcx>
     ) -> EncodingResult<vir::Expr> {
         trace!("encode_const_expr {:?}", value);
-        let opt_scalar_value = match value {
-            ty::ConstKind::Value(ref const_value) => {
-                const_value
-                    .try_to_scalar()
-            }
-            ty::ConstKind::Unevaluated(ct) => {
-                let tcx = self.env().tcx();
-                let param_env = tcx.param_env(ct.def.did);
-                tcx.const_eval_resolve(param_env, *ct, None)
-                    .ok()
-                    .and_then(|const_value| const_value.try_to_scalar())
-            }
-            _ => unimplemented!("{:?}", value),
-        };
-
-        let scalar_value = if let Some(v) = opt_scalar_value {
-            v
-        } else {
-            return Err(EncodingError::unsupported(
-                format!("unsupported constant value: {:?}", value)
-            ));
-        };
+        let scalar_value = self.const_eval_intlike(value)?;
 
         let expr = match ty.kind() {
             ty::TyKind::Bool => scalar_value.to_bool().unwrap().into(),
