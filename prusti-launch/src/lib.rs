@@ -119,6 +119,13 @@ pub fn get_rust_toolchain_channel() -> String {
 
 /// Find Prusti's sysroot
 pub fn prusti_sysroot() -> Option<PathBuf> {
+    match env::var("PRUSTI_SYSROOT") {
+        Ok(prusti_sysroot) => Some(PathBuf::from(prusti_sysroot)),
+        Err(_) => get_sysroot_from_rustup()
+    }
+}
+
+fn get_sysroot_from_rustup() -> Option<PathBuf> {
     Command::new("rustup")
         .arg("run")
         .arg(get_rust_toolchain_channel())
