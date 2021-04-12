@@ -242,7 +242,7 @@ impl SnapshotEncoder {
                         let variant_idx = variant_names.get(variant_name)
                             .expect("no such variant");
                         Ok(Expr::domain_func_app(
-                            variants[*variant_idx].get(&field.name).unwrap().clone(),
+                            variants[*variant_idx].1.get(&field.name).unwrap().clone(),
                             vec![expr],
                         ))
                     },
@@ -272,10 +272,13 @@ impl SnapshotEncoder {
                         ))
                     },
                     (_, Snapshot::Complex { variants, .. }) => {
+                        if !variants[0].1.contains_key(&field.name) {
+                            unreachable!("cannot snap_field {} of {}", field.name, expr);
+                        }
                         Ok(Expr::domain_func_app(
                             // TODO: fields of enum variants
                             // -> add SnapshotVariant to vir::Type ?
-                            variants[0].get(&field.name).unwrap().clone(),
+                            variants[0].1.get(&field.name).unwrap().clone(),
                             vec![expr],
                         ))
                     },
@@ -324,6 +327,25 @@ impl SnapshotEncoder {
                 }
             },
             _ => unreachable!("discriminant of non-enum snapshot"),
+        }
+    }
+
+    pub fn encode_constructor<'p, 'v: 'p, 'tcx: 'v>(
+        &mut self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        ty: ty::Ty<'tcx>,
+        args: Vec<vir::Expr>,
+    ) -> EncodingResult<vir::Expr> {
+        let snapshot = self.encode_snapshot(encoder, ty)?;
+        match snapshot {
+            Snapshot::Complex { ref variants, .. } => {
+                assert_eq!(variants.len(), 1);
+                Ok(vir::Expr::domain_func_app(
+                    variants[0].0.clone(),
+                    args,
+                ))
+            },
+            _ => unreachable!("constructor of non-complex snapshot"),
         }
     }
 
@@ -532,7 +554,7 @@ impl SnapshotEncoder {
         let snapshot_type = Type::Snapshot(predicate_name.to_string());
         let mut domain_funcs = vec![];
         let mut domain_axioms = vec![];
-        let mut variant_field_funcs = vec![];
+        let mut variant_domain_funcs = vec![];
         let mut variant_snap_bodies = vec![];
         let mut variant_names = HashMap::new();
 
@@ -745,7 +767,7 @@ impl SnapshotEncoder {
                 }
             }
 
-            variant_field_funcs.push(field_access_funcs);
+            variant_domain_funcs.push((constructor.clone(), field_access_funcs));
 
             // encode constructor call for this variant
             let mut snap_body = Expr::domain_func_app(
@@ -811,7 +833,7 @@ impl SnapshotEncoder {
             domain,
             discriminant_func,
             snap_func,
-            variants: variant_field_funcs,
+            variants: variant_domain_funcs,
             variant_names,
         })
     }

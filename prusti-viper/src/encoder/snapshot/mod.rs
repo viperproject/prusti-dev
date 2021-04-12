@@ -23,7 +23,9 @@ pub enum Snapshot {
         snap_func: vir::Function,
         /// [variants] has one entry for tuples, structs, and closures.
         /// For enums, it has as many entries as there are variants.
-        variants: Vec<HashMap<String, vir::DomainFunc>>,
+        /// The first function is the constructor, the hashmap encodes the
+        /// field access functions, keyed by their name.
+        variants: Vec<(vir::DomainFunc, HashMap<String, vir::DomainFunc>)>,
         /// Mapping of variant names (as used by Prusti) to variant indices
         /// in the [variants] vector. Empty for non-enums.
         variant_names: HashMap<String, usize>,

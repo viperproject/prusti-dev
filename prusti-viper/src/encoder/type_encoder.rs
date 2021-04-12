@@ -146,8 +146,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
                 //let snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
-                Ok(vir::Type::TypedRef(type_name))
+                //let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
+                //Ok(vir::Type::TypedRef(type_name))
+                self.encoder.encode_snapshot_type(&self.ty)
             },
 
             _ => self.encode_value_type(),

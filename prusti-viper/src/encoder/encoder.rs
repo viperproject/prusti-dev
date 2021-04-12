@@ -971,6 +971,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.snapshot_encoder.borrow_mut().encode_type(self, ty)
     }
 
+    pub fn encode_snapshot_constructor(
+        &self,
+        ty: ty::Ty<'tcx>,
+        args: Vec<vir::Expr>,
+    )
+        -> EncodingResult<vir::Expr>
+    {
+        self.snapshot_encoder.borrow_mut().encode_constructor(self, ty, args)
+    }
+
     pub fn has_snapshot_eq(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
         self.snapshot_encoder.borrow_mut().supports_equality(self, ty)
     }
