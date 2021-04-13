@@ -2405,7 +2405,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             match encoded_operand {
                 Some(place) => {
                     debug!("arg: {} {}", arg_place, place);
-                    non_constant_args.push(place.clone());
+                    let predicate_name = place.typed_ref_name().unwrap();
+                    if self.mir_encoder.is_reference(arg_ty) {
+                        let val_ref_field = vir::Field{
+                            name: "val_ref".to_string(),
+                            typ: vir::Type::TypedRef(
+                                predicate_name.strip_prefix("ref$").unwrap().into() // FIXME: This is another ugly hack.
+                            )
+                        };
+                        non_constant_args.push(place.clone().field(val_ref_field));
+                    } else {
+                        non_constant_args.push(place.clone());
+                    }
                     fake_exprs.insert(arg_place, place.into());
                 }
                 None => {
@@ -2530,7 +2541,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .error_manager()
             .register(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
         for arg in non_constant_args {
-            stmts.push(vir::Stmt::Obtain(arg, pos));
+            stmts.push(vir::Stmt::Obtain(
+                vir::Expr::PredicateAccessPredicate(
+                    "TODO".into(),
+                    box arg,
+                    vir::PermAmount::Write,
+                    pos,
+                ), pos));
         }
         stmts.push(vir::Stmt::Assert(
             replace_fake_exprs(pre_func_spec),
