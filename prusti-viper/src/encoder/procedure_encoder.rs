@@ -2387,6 +2387,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let mut const_arg_vars: HashSet<vir::Expr> = HashSet::new();
         let mut type_invs: HashMap<String, vir::Function> = HashMap::new();
+        let mut non_constant_args = vec![];
         let mut constant_args = vec![];
 
         for (mir_arg, arg, arg_ty, encoded_operand) in operands {
@@ -2404,6 +2405,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             match encoded_operand {
                 Some(place) => {
                     debug!("arg: {} {}", arg_place, place);
+                    non_constant_args.push(place.clone());
                     fake_exprs.insert(arg_place, place.into());
                 }
                 None => {
@@ -2527,9 +2529,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .encoder
             .error_manager()
             .register(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
+        for arg in non_constant_args {
+            stmts.push(vir::Stmt::Obtain(arg, pos));
+        }
         stmts.push(vir::Stmt::Assert(
             replace_fake_exprs(pre_func_spec),
-            vir::FoldingBehaviour::Stmt, // TODO: Should be Expr.
+            vir::FoldingBehaviour::Expr,
             pos,
         ));
         stmts.push(vir::Stmt::Assert(
