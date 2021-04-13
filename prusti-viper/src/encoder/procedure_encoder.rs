@@ -4906,12 +4906,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             place,
             location
         );
-        let (encoded_value, _, _) = self.mir_encoder.encode_place(place).unwrap(); // will panic if attempting to encode unsupported type
+        let span = self.mir_encoder.get_span_of_location(location);
+        let (encoded_value, _, _) = self.mir_encoder.encode_place(place).with_span(span)?;
         let loan = self.polonius_info().get_loan_at_location(location);
         let vir_assign_kind = match mir_borrow_kind {
             mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan.into()),
-            mir::BorrowKind::Unique => unimplemented!(),
-            mir::BorrowKind::Shallow => unimplemented!(),
+            mir::BorrowKind::Unique => {
+                return Err(EncodingError::unsupported(
+                    "unsuported creation of unique borrows (implicitly created in closure bindings)"
+                )).with_span(span);
+            }
+            mir::BorrowKind::Shallow => {
+                return Err(EncodingError::unsupported(
+                    "unsupported creation of shallow borrows (implicitly created when lowering matches)"
+                )).with_span(span);
+            }
             mir::BorrowKind::Mut { .. } => vir::AssignKind::MutableBorrow(loan.into()),
         };
         // Initialize ref_var.ref_field
