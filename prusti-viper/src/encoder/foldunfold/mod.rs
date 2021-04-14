@@ -628,55 +628,49 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
 
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         debug!("[step.2] replace_stmt: {}", stmt);
-        match &stmt {
-            vir::Stmt::Inhale(_, vir::FoldingBehaviour::Expr)
-            | vir::Stmt::Assert(_, vir::FoldingBehaviour::Expr, _) => {
-                // Unfolding expressions will be added in step 4.
-            }
-            _ => {
-                let all_perms = stmt.get_required_permissions(pctxt.predicates(), pctxt.old_exprs());
-                let pred_permissions: Vec<_> =
-                    all_perms.iter().cloned().filter(|p| p.is_pred()).collect();
+        {
+            let all_perms = stmt.get_required_permissions(pctxt.predicates(), pctxt.old_exprs());
+            let pred_permissions: Vec<_> =
+                all_perms.iter().cloned().filter(|p| p.is_pred()).collect();
 
-                let acc_permissions: Vec<_> = all_perms
-                    .into_iter()
-                    .filter(|p| {
-                        if !p.is_acc() {
-                            false
+            let acc_permissions: Vec<_> = all_perms
+                .into_iter()
+                .filter(|p| {
+                    if !p.is_acc() {
+                        false
+                    } else {
+                        if p.is_curr() {
+                            true
                         } else {
-                            if p.is_curr() {
-                                true
-                            } else {
-                                pred_permissions
-                                    .iter()
-                                    .any(|pred_p| pred_p.get_place() == p.get_place())
-                            }
+                            pred_permissions
+                                .iter()
+                                .any(|pred_p| pred_p.get_place() == p.get_place())
                         }
-                    })
-                    .collect();
-
-                let mut perms = acc_permissions;
-                perms.extend(pred_permissions.into_iter());
-                debug!(
-                    "required permissions: {{\n{}\n}}",
-                    perms
-                        .iter()
-                        .map(|x| format!("  {:?}", x))
-                        .collect::<Vec<_>>()
-                        .join(",\n")
-                );
-
-                if !perms.is_empty() {
-                    stmts.extend(pctxt.obtain_permissions(perms)?.iter().map(|a| a.to_stmt()));
-
-                    if self.check_foldunfold_state && !is_last_before_return && label.is_none() {
-                        stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
-                        stmts.push(vir::Stmt::Assert(
-                            pctxt.state().as_vir_expr(),
-                            vir::FoldingBehaviour::Expr,
-                            vir::Position::default(),
-                        ));
                     }
+                })
+                .collect();
+
+            let mut perms = acc_permissions;
+            perms.extend(pred_permissions.into_iter());
+            debug!(
+                "required permissions: {{\n{}\n}}",
+                perms
+                    .iter()
+                    .map(|x| format!("  {:?}", x))
+                    .collect::<Vec<_>>()
+                    .join(",\n")
+            );
+
+            if !perms.is_empty() {
+                stmts.extend(pctxt.obtain_permissions(perms)?.iter().map(|a| a.to_stmt()));
+
+                if self.check_foldunfold_state && !is_last_before_return && label.is_none() {
+                    stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
+                    stmts.push(vir::Stmt::Assert(
+                        pctxt.state().as_vir_expr(),
+                        vir::FoldingBehaviour::Expr,
+                        vir::Position::default(),
+                    ));
                 }
             }
         }
@@ -777,7 +771,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
         stmts.push(stmt.clone());
 
         // 6. Recombine permissions into full if read was carved out during fold.
-        if let vir::Stmt::Inhale(expr, vir::FoldingBehaviour::Stmt) = &stmt {
+        if let vir::Stmt::Inhale(expr, _) = &stmt {
             // We may need to recombine predicates for which read permission was taking during
             // an unfold operation.
             let inhaled_places = expr.extract_predicate_places(vir::PermAmount::Read);
