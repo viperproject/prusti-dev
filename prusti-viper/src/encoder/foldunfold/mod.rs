@@ -570,16 +570,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
 
         let mut stmt = stmt.clone();
 
-        // Store state for old expressions
+        // Store state for old[lhs] expressions
         match stmt {
-            vir::Stmt::Label(ref label) => {
-                let mut labelled_pctxt = pctxt.clone();
-                let labelled_state = labelled_pctxt.mut_state();
-                labelled_state.replace_places(|place| place.old(label));
-                self.pctxt_at_label
-                    .insert(label.to_string(), labelled_pctxt);
-            }
-
             vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, _, _, _), ..)
             | vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _, _, _), ..) => {
                 // TODO: This should be done also for magic wand expressions inside inhale/exhale.
@@ -933,6 +925,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 pctxt.apply_stmt(&stmt)?;
                 stmts.push(stmt);
             }
+        }
+
+        // Store state for old expressions
+        match stmt {
+            vir::Stmt::Label(ref label) => {
+                let mut labelled_pctxt = pctxt.clone();
+                let labelled_state = labelled_pctxt.mut_state();
+                labelled_state.replace_places(|place| place.old(label));
+                self.pctxt_at_label
+                    .insert(label.to_string(), labelled_pctxt);
+            }
+
+            _ => {} // Nothing
         }
 
         // Delete lhs state
