@@ -740,6 +740,14 @@ Predicates: {{
             permissions.iter().to_string()
         );
 
+        // Solve conflicting requirements
+        // See issue https://github.com/viperproject/prusti-dev/issues/362
+        let permissions = solve_conficts(permissions);
+        trace!(
+            "After solving conflicts: {}",
+            permissions.iter().to_string()
+        );
+
         trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
         trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
 
@@ -871,6 +879,27 @@ pub fn compute_fold_target(
         .cloned()
         .collect();
     (acc_places, pred_places)
+}
+
+/// Solve conflicting requirements.
+///
+/// Example:
+/// * Conflicting requirements: `P(x.f) && P(x.f.g) && acc(x.f.g)`
+/// * Solution: `P(x.f)`
+/// * Explanation: `P(x.f.g)` and `acc(x.f.g)` can be obtained with an unfolding expression,
+///   which is always allowed.
+///
+/// See also: issue https://github.com/viperproject/prusti-dev/issues/362
+fn solve_conficts(perms: Vec<Perm>) -> Vec<Perm> {
+    // TODO: the complexity is quadratic, but it can be improved (as many other functions used
+    // in fold-unfold) by building the prefix tree of a set of `Perm`.
+    perms.iter()
+        .filter(|p| {
+            let p_place = p.get_place();
+            !perms.iter().any(|q| q.is_pred() && p_place.has_proper_prefix(q.get_place()))
+        })
+        .cloned()
+        .collect()
 }
 
 /// Result of the obtain operation. Either success and a list of actions, or failure and the
