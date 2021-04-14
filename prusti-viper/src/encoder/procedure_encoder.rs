@@ -2518,6 +2518,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ).with_span(call_site_span)?
         };
 
+        let pos = self
+            .encoder
+            .error_manager()
+            .register(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
+        for arg in non_constant_args {
+            stmts.push(vir::Stmt::Obtain(
+                vir::Expr::PredicateAccessPredicate(
+                    "TODO".into(),
+                    box arg,
+                    vir::PermAmount::Write,
+                    pos,
+                ), pos));
+        }
+
         // Store a label for the pre state
         let pre_label = self.cfg_method.get_fresh_label_name();
         stmts.push(vir::Stmt::Label(pre_label.clone()));
@@ -2536,19 +2550,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             _, // We don't care about verifying that the weakening is valid,
                // since it isn't the task of the caller
         ) = self.encode_precondition_expr(&procedure_contract, None)?;
-        let pos = self
-            .encoder
-            .error_manager()
-            .register(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
-        for arg in non_constant_args {
-            stmts.push(vir::Stmt::Obtain(
-                vir::Expr::PredicateAccessPredicate(
-                    "TODO".into(),
-                    box arg,
-                    vir::PermAmount::Write,
-                    pos,
-                ), pos));
-        }
         stmts.push(vir::Stmt::Assert(
             replace_fake_exprs(pre_func_spec),
             vir::FoldingBehaviour::Expr,
