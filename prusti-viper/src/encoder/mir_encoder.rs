@@ -17,10 +17,58 @@ use rustc_middle::{mir, ty};
 use rustc_index::vec::{Idx, IndexVec};
 use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
+
+/// Result of encoding a place
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub enum PlaceEncoding {
+    /// Just an expression, the most common case.
+    Expr(vir::Expr),
+    /// Field access expression
+    FieldAccess { base: Box<PlaceEncoding>, field: vir::Field },
+    /// Array access expression
+    ArrayAccess { base: Box<PlaceEncoding>, index: Box<PlaceEncoding>, typ: vir::Type },
+}
+
+impl PlaceEncoding {
+    pub fn expect_expr(self) -> vir::Expr {
+        match self {
+            PlaceEncoding::Expr(e) => e,
+            _ => unreachable!("expect_expr"),
+        }
+    }
+
+    pub fn field(self, field: vir::Field) -> Self {
+        PlaceEncoding::FieldAccess { base: box self, field }
+    }
+
+    pub fn get_type(&self) -> &vir::Type {
+        match self {
+            PlaceEncoding::Expr(ref e) => e.get_type(),
+            PlaceEncoding::FieldAccess { ref field, .. } => &field.typ,
+            PlaceEncoding::ArrayAccess { ref typ, .. } => typ,
+        }
+    }
+}
+
+impl From<vir::Expr> for PlaceEncoding {
+    fn from(e: vir::Expr) -> Self {
+        PlaceEncoding::Expr(e)
+    }
+}
+
+impl Display for PlaceEncoding {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PlaceEncoding::Expr(e) => write!(f, "{}", e),
+            PlaceEncoding::FieldAccess { base, field } => write!(f, "{}.{}", base, field),
+            PlaceEncoding::ArrayAccess { base, index, .. } => write!(f, "{}[{}]", base, index),
+        }
+    }
+}
 
 pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
@@ -44,26 +92,28 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     }
 
     /// Returns
-    /// - `vir::Expr`: the expression of the projection;
+    /// - `PlaceEncoding`: the encoding of the projection;
     /// - `ty::Ty<'tcx>`: the type of the expression;
     /// - `Option<usize>`: optionally, the variant of the enum.
     fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(PlaceEncoding, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode place {:?}", place);
         let result = if place.projection.is_empty() {
             let local = place.local;
             (
-                self.encode_local(local)?.into(),
+                PlaceEncoding::Expr(self.encode_local(local)?.into()),
                 self.get_local_ty(local),
                 None,
             )
         } else {
             self.encode_projection(place.projection.len(), *place, None)?
         };
+
         Ok(result)
     }
+
 
     /// - `encoded_base_place`: optionally, the already encoded place (otherwise
     ///   encoded by recursively calling self.encode_projection)
@@ -75,8 +125,8 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         &self,
         index: usize,
         place: mir::Place<'tcx>,
-        encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>,
-    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+        encoded_base_place: Option<(PlaceEncoding, ty::Ty<'tcx>, Option<usize>)>,
+    ) -> EncodingResult<(PlaceEncoding, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode projection {}: {:?}", index, place);
 
         assert!(index >= 1, "place: {:?} index: {}", place, index);
@@ -88,7 +138,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 if index == 1 {
                     let local = place.local;
                     (
-                        self.encode_local(local)?.into(),
+                        PlaceEncoding::Expr(self.encode_local(local)?.into()),
                         self.get_local_ty(local),
                         None,
                     )
@@ -140,7 +190,12 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let tcx = self.encoder().env().tcx();
                         let variant_def = &adt_def.variants[variant_index.into()];
                         let encoded_variant = if num_variants != 1 {
-                            encoded_base.variant(&variant_def.ident.as_str())
+                            // FIXME: no nested non-expr allowed for now
+                            PlaceEncoding::Expr(
+                                encoded_base
+                                    .expect_expr()
+                                    .variant(&variant_def.ident.as_str())
+                            )
                         } else {
                             encoded_base
                         };
@@ -200,7 +255,8 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             }
 
             mir::ProjectionElem::Deref => {
-                self.encode_deref(encoded_base, base_ty)?
+                self.encode_deref(encoded_base.expect_expr(), base_ty)
+                    .map(|(e, ty, var)| (e.into(), ty, var))?
             }
 
             mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
@@ -361,14 +417,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn eval_place(
-        &self,
-        place: &mir::Place<'tcx>,
-    ) -> EncodingResult<vir::Expr> {
-        let (encoded_place, place_ty, _) = self.encode_place(place)?;
-        Ok(self.encoder.encode_value_expr(encoded_place, place_ty))
-    }
-
     /// Returns an `vir::Expr` that corresponds to the value of the operand
     pub fn encode_operand_expr(
         &self,
@@ -385,7 +433,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 ..
             }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(val))?,
             &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
-                let val_place = self.eval_place(&place)?;
+                // TODO: what do we do with non-expr places here?
+                let (encoded_place, place_ty, _) = self.encode_place(place)?;
+                let val_place = self.encoder.encode_value_expr(encoded_place.expect_expr(), place_ty);
                 val_place.into()
             }
             // FIXME: Check whether the commented out code is necessary.
@@ -582,6 +632,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_cast_expr(
         &self,
         operand: &mir::Operand<'tcx>,
+        // src_ty: ty::Ty<'tcx>,
+        // encoded_operand: TODO
         dst_ty: ty::Ty<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<vir::Expr> {
@@ -686,7 +738,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_place(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> EncodingResult<Option<vir::Expr>> {
+    ) -> EncodingResult<Option<PlaceEncoding>> {
         debug!("Encode operand place {:?}", operand);
         Ok(match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {

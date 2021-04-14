@@ -479,7 +479,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         replacements.extend(
             inner_captured_places
                 .into_iter()
-                .zip(outer_captured_places.into_iter())
+                .zip(outer_captured_places.into_iter().map(|pe| pe.expect_expr()))
         );
 
         // Replacement 2: rename the variables introduced by a quantification

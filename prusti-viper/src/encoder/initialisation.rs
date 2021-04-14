@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
+use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
 /// Module that allows querying the initialisation information.
 use prusti_common::vir;
 use prusti_interface::environment::mir_analyses::initialization::compute_definitely_initialized;
@@ -17,6 +17,7 @@ use std::hash::Hash;
 use crate::encoder::errors::{SpannedEncodingError, EncodingError};
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
+use log::trace;
 
 pub struct InitInfo {
     //mir_acc_before_block: HashMap<mir::BasicBlock, HashSet<mir::Place<'tcx>>>,
@@ -63,7 +64,7 @@ fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
     for (loc, set) in map.iter() {
         let mut new_set = HashSet::new();
         for place in set.iter() {
-            let encoded_place = mir_encoder.encode_place(place)?.0;
+            let encoded_place = mir_encoder.encode_place(place)?.0.expect_expr();
             new_set.insert(encoded_place);
         }
         result.insert(loc.clone(), new_set);

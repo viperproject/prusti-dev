@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-/// Code for loading an manipulating Polonius facts.
+/// Code for loading and manipulating Polonius facts.
 ///
 /// This code was adapted from the
 /// [Polonius](https://github.com/rust-lang-nursery/polonius/blob/master/src/facts.rs)

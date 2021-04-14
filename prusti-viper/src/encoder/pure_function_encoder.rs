@@ -708,7 +708,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place)
                             .with_span(span)
                             .run_if_err(cleanup)?;
-                        let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty);
+                        let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone().expect_expr(), ty);
                         let encoded_args: Vec<vir::Expr> = args
                             .iter()
                             .map(|arg| self.mir_encoder.encode_operand_expr(arg))
@@ -951,6 +951,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
                 let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs).unwrap();
+                let encoded_lhs = encoded_lhs.expect_expr();
 
                 if !state.use_place(&encoded_lhs) {
                     // If the lhs is not mentioned in our state, do nothing
@@ -983,7 +984,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         match opt_encoded_rhs {
                             Some(encoded_rhs) => {
                                 // Substitute a place
-                                state.substitute_place(&encoded_lhs, encoded_rhs);
+                                state.substitute_place(&encoded_lhs, encoded_rhs.expect_expr());
                             }
                             None => {
                                 // Substitute a place of a value with an expression
@@ -1020,7 +1021,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     match encoded_operand {
                                         Some(encoded_rhs) => {
                                             // Substitute a place
-                                            state.substitute_place(&field_place, encoded_rhs);
+                                            state.substitute_place(&field_place, encoded_rhs.expect_expr());
                                         }
                                         None => {
                                             // Substitute a place of a value with an expression
@@ -1047,7 +1048,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         variant_index.index().into(),
                                     );
                                     encoded_lhs_variant =
-                                        encoded_lhs_variant.variant(&variant_def.ident.as_str());
+                                        encoded_lhs_variant.variant(&variant_def.ident.as_str()).into();
                                 }
                                 for (field_index, field) in variant_def.fields.iter().enumerate() {
                                     let operand = &operands[field_index];
@@ -1066,7 +1067,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     match encoded_operand {
                                         Some(encoded_rhs) => {
                                             // Substitute a place
-                                            state.substitute_place(&field_place, encoded_rhs);
+                                            state.substitute_place(&field_place, encoded_rhs.expect_expr());
                                         }
                                         None => {
                                             // Substitute a place of a value with an expression
@@ -1194,7 +1195,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         0.into()
                                     } else {
                                         let discr_field = self.encoder.encode_discriminant_field();
-                                        encoded_src.field(discr_field).into()
+                                        encoded_src.field(discr_field).expect_expr()
                                     }
                                 };
 
@@ -1212,7 +1213,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                         // will panic if attempting to encode unsupported type
                         let encoded_place = self.mir_encoder.encode_place(place).unwrap().0;
-                        let encoded_ref = match encoded_place {
+                        // FIXME: field/array access in PlaceEncoding instead
+                        let encoded_ref = match encoded_place.expect_expr() {
                             vir::Expr::Field(
                                 box ref base,
                                 vir::Field { ref name, .. },
@@ -1221,7 +1223,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 // Simplify "address of reference"
                                 base.clone()
                             }
-                            other_place => other_place.addr_of(),
+                            other_place => other_place.addr_of().into(),
                         };
 
                         // Substitute the place
