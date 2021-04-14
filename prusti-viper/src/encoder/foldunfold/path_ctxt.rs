@@ -28,6 +28,8 @@ pub struct PathCtxt<'a> {
     state: State,
     /// The definition of the predicates
     predicates: &'a HashMap<String, vir::Predicate>,
+    /// All usages of old expressions to consider
+    old_exprs: &'a HashMap<String, Vec<vir::Expr>>,
     /// A log of some of the relevant actions that lead to this fold-unfold context
     log: EventLog,
 }
@@ -36,6 +38,7 @@ impl<'a> PathCtxt<'a> {
     pub fn new(
         local_vars: Vec<vir::LocalVar>,
         predicates: &'a HashMap<String, vir::Predicate>,
+        old_exprs: &'a HashMap<String, Vec<vir::Expr>>,
     ) -> Self {
         PathCtxt {
             state: State::new(
@@ -48,6 +51,7 @@ impl<'a> PathCtxt<'a> {
                 HashSet::new(),
             ),
             predicates,
+            old_exprs,
             log: EventLog::new(),
         }
     }
@@ -74,6 +78,10 @@ impl<'a> PathCtxt<'a> {
 
     pub fn predicates(&self) -> &HashMap<String, vir::Predicate> {
         self.predicates
+    }
+
+    pub fn old_exprs(&self) -> &HashMap<String, Vec<vir::Expr>> {
+        self.old_exprs
     }
 
     /// Simulate an unfold
@@ -891,8 +899,8 @@ pub fn compute_fold_target(
 ///
 /// See also: issue https://github.com/viperproject/prusti-dev/issues/362
 fn solve_conficts(perms: Vec<Perm>) -> Vec<Perm> {
-    // TODO: the complexity is quadratic, but it can be improved (as many other functions used
-    // in fold-unfold) by building the prefix tree of a set of `Perm`.
+    // TODO: the time complexity is quadratic, but it can be improved (as many other functions
+    //   used in fold-unfold) by building and using the prefix tree of a set of `Perm`.
     perms.iter()
         .filter(|p| {
             let p_place = p.get_place();

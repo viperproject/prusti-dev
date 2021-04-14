@@ -15,7 +15,7 @@ use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
 use prusti_common::vir::borrows::Borrow;
 use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction, PermAmountError};
-use prusti_common::vir::{ExprFolder, FallibleExprFolder, PermAmount};
+use prusti_common::vir::{ExprFolder, FallibleExprFolder, ExprWalker, PermAmount};
 use prusti_common::config;
 use prusti_common::report;
 use rustc_middle::mir;
@@ -104,7 +104,10 @@ pub fn add_folding_unfolding_to_function(
 
     // Compute inner state
     let formal_vars = function.formal_args.clone();
-    let mut pctxt = PathCtxt::new(formal_vars, &predicates);
+    // Viper functions cannot contain label statements, so knowing all usages of old expressions
+    // is not needed.
+    let old_exprs = HashMap::new();
+    let mut pctxt = PathCtxt::new(formal_vars, &predicates, &old_exprs);
     for pre in &function.pres {
         pctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone(), vir::FoldingBehaviour::Expr))?;
     }
@@ -147,7 +150,25 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
 ) -> Result<vir::CfgMethod, FoldUnfoldError> {
     let cfg_vars = cfg.get_all_vars();
     let predicates = encoder.get_used_viper_predicates_map();
-    let initial_pctxt = PathCtxt::new(cfg_vars, &predicates);
+    // Collect all old expressions used in the CFG
+    let old_exprs = {
+        struct OldExprCollector {
+            old_exprs: HashMap<String, Vec<vir::Expr>>,
+        }
+        impl vir::ExprWalker for OldExprCollector {
+            fn walk_labelled_old(&mut self, label: &str, body: &vir::Expr, _pos: &vir::Position) {
+                self.old_exprs.entry(label.to_string()).or_default().push(body.clone());
+                // Recurse, in case old expressions are nested
+                self.walk(body);
+            }
+        }
+        let mut old_expr_collector = OldExprCollector {
+            old_exprs: HashMap::new(),
+        };
+        cfg.walk_expressions(|expr| old_expr_collector.walk(expr));
+        old_expr_collector.old_exprs
+    };
+    let initial_pctxt = PathCtxt::new(cfg_vars, &predicates, &old_exprs);
     FoldUnfold::new(
         encoder,
         initial_pctxt,
@@ -167,7 +188,10 @@ struct FoldUnfold<'p, 'v: 'p, 'tcx: 'v> {
     dump_debug_info: bool,
     /// Used for debugging the dump
     foldunfold_state_filter: String,
+    /// Generate additional assertions to check that the state of the fold-unfold algorithm
+    /// under-approximates the set of permissions actually available in Viper.
     check_foldunfold_state: bool,
+    /// The orignal CFG
     cfg: &'p vir::CfgMethod,
     borrow_locations: &'p HashMap<vir::borrows::Borrow, mir::Location>,
     cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
@@ -610,7 +634,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 // Unfolding expressions will be added in step 4.
             }
             _ => {
-                let all_perms = stmt.get_required_permissions(pctxt.predicates());
+                let all_perms = stmt.get_required_permissions(pctxt.predicates(), pctxt.old_exprs());
                 let pred_permissions: Vec<_> =
                     all_perms.iter().cloned().filter(|p| p.is_pred()).collect();
 
@@ -947,7 +971,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
 
         let grouped_perms: HashMap<_, _> = exprs
             .iter()
-            .flat_map(|e| e.get_required_permissions(pctxt.predicates()))
+            .flat_map(|e| e.get_required_permissions(pctxt.predicates(), pctxt.old_exprs()))
             .group_by_label();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
@@ -1309,7 +1333,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             // Compute the permissions that are still missing in order for the current expression
             // to be well-formed
             let perms: Vec<_> = inner_expr
-                .get_required_permissions(self.curr_pctxt.predicates())
+                .get_required_permissions(self.curr_pctxt.predicates(), self.curr_pctxt.old_exprs())
                 .into_iter()
                 .filter(|p| p.is_curr())
                 .collect();
@@ -1367,7 +1391,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             trace!("[enter] fold_func_app {}", func_app);
 
             let perms: Vec<_> = func_app
-                .get_required_permissions(self.curr_pctxt.predicates())
+                .get_required_permissions(self.curr_pctxt.predicates(), self.curr_pctxt.old_exprs())
                 .into_iter()
                 .collect();
 

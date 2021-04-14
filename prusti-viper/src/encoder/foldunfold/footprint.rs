@@ -189,25 +189,26 @@ pub trait EnumPredicateFootprintGetter {
 impl EnumPredicateFootprintGetter for vir::EnumPredicate {
     fn get_body_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
         // A predicate body should not contain unfolding expression
-        let predicates = HashMap::new();
-        let mut perms = self.discriminant.get_required_permissions(&predicates);
+        let mut perms = self.discriminant.get_footprint(&HashMap::new());
         let this: vir::Expr = self.this.clone().into();
-        //let (_, ref variant_name, _) = &self.variants[variant];
         let variant_name = variant.get_variant_name();
-        perms.insert(Perm::Acc(
-            this.clone().variant(variant_name),
-            PermAmount::Write,
-        ));
-        perms.insert(Perm::Pred(
-            this.clone().variant(variant_name),
-            PermAmount::Write,
-        ));
+        perms.insert(
+            Perm::Acc(
+                this.clone().variant(variant_name),
+                PermAmount::Write,
+            )
+        );
+        perms.insert(
+            Perm::Pred(
+                this.clone().variant(variant_name),
+                PermAmount::Write,
+            )
+        );
         perms
     }
 
     fn get_underapproximated_body_footprint(&self) -> HashSet<Perm> {
-        let predicates = HashMap::new();
-        let mut perms = self.discriminant.get_required_permissions(&predicates);
-        perms
+        // A predicate body should not contain unfolding expression
+        self.discriminant.get_footprint(&HashMap::new())
     }
 }

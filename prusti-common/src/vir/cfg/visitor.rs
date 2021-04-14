@@ -357,6 +357,30 @@ impl CfgMethod {
         }
     }
 
+    /// Visit each expression used in a statement or successor.
+    /// Note: sub-expressions of expressions will not be visited.
+    pub fn walk_expressions<F: FnMut(&Expr)>(&self, mut walker: F) {
+        struct ExprStmtWalker<'a, T: FnMut(&Expr)> {
+            walker: &'a mut T,
+        };
+        impl<'a, T: FnMut(&Expr)> StmtWalker for ExprStmtWalker<'a, T> {
+            fn walk_expr(&mut self, expr: &Expr) {
+                (self.walker)(expr);
+            }
+        }
+        let mut stmt_walker = ExprStmtWalker{
+            walker: &mut walker,
+        };
+        self.walk_statements(|stmt| stmt_walker.walk(stmt));
+        self.walk_successors(|succ| {
+            if let Successor::GotoSwitch(targets, _) = succ {
+                for (guard, _) in targets {
+                    walker(guard);
+                }
+            }
+        });
+    }
+
     /// Remove all statements `s` such that `f(&s)` returns `false`
     pub fn retain_stmts<F: Fn(&Stmt) -> bool>(&mut self, f: F) {
         for block in &mut self.basic_blocks {
