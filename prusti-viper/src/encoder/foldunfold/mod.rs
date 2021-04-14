@@ -97,7 +97,7 @@ pub fn add_folding_unfolding_to_function(
     if config::dump_debug_info() {
         prusti_common::report::log::report(
             "vir_function_before_foldunfold",
-            format!("{}.dot", function.name),
+            format!("{}.vir", function.name),
             &function,
         );
     }

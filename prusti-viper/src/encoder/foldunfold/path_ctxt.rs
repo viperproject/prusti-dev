@@ -523,7 +523,6 @@ impl<'a> PathCtxt<'a> {
 
         // 1. Check if the requirement is satisfied
         if self.state.contains_perm(req) {
-            // `req` is satisfied, so we can remove it from `reqs`
             trace!("[exit] obtain: Requirement {} is satisfied", req);
             return Ok(ObtainResult::Success(actions));
         }

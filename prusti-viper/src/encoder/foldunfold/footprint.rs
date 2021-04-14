@@ -24,7 +24,7 @@ pub trait ExprFootprintGetter {
 impl ExprFootprintGetter for vir::Expr {
     fn get_footprint(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
         trace!("get_footprint {}", self);
-        match self {
+        let res = match self {
             vir::Expr::Local(_, _)
             | vir::Expr::Field(_, _, _)
             | vir::Expr::Variant(_, _, _)
@@ -114,7 +114,9 @@ impl ExprFootprintGetter for vir::Expr {
             vir::Expr::LetExpr(ref _variable, ref _expr, ref _body, _) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
-        }
+        };
+        trace!("get_footprint {} = {:?}", self, res);
+        res
     }
 }
 
@@ -188,10 +190,15 @@ pub trait EnumPredicateFootprintGetter {
 
 impl EnumPredicateFootprintGetter for vir::EnumPredicate {
     fn get_body_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
-        // A predicate body should not contain unfolding expression
-        let mut perms = self.discriminant.get_footprint(&HashMap::new());
+        let mut perms = HashSet::new();
         let this: vir::Expr = self.this.clone().into();
         let variant_name = variant.get_variant_name();
+        perms.insert(
+            Perm::Acc(
+                vir::Expr::from(self.this.clone()).field(self.discriminant_field.clone()),
+                PermAmount::Write,
+            )
+        );
         perms.insert(
             Perm::Acc(
                 this.clone().variant(variant_name),
@@ -208,7 +215,13 @@ impl EnumPredicateFootprintGetter for vir::EnumPredicate {
     }
 
     fn get_underapproximated_body_footprint(&self) -> HashSet<Perm> {
-        // A predicate body should not contain unfolding expression
-        self.discriminant.get_footprint(&HashMap::new())
+        let mut perms = HashSet::new();
+        perms.insert(
+            Perm::Acc(
+                vir::Expr::from(self.this.clone()).field(self.discriminant_field.clone()),
+                PermAmount::Write,
+            )
+        );
+        perms
     }
 }

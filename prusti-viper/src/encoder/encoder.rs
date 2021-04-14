@@ -631,6 +631,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     posts: vec![postcondition],
                     body: Some(self_local_var_expr.field(discr_field)),
                 };
+
+                self.log_vir_program_before_foldunfold(function.to_string());
+
                 let final_function = foldunfold::add_folding_unfolding_to_function(
                     function,
                     self.get_used_viper_predicates_map(),

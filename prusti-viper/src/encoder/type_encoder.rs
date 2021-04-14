@@ -297,7 +297,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     let discriminant_field = self.encoder.encode_discriminant_field();
                     let this = vir::Predicate::construct_this(typ.clone());
                     let discriminant_loc =
-                        vir::Expr::from(this.clone()).field(discriminant_field);
+                        vir::Expr::from(this.clone()).field(discriminant_field.clone());
                     let discriminant_bounds =
                         compute_discriminant_bounds(adt_def, tcx, &discriminant_loc);
 
@@ -340,7 +340,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         .collect();
                     let enum_predicate = vir::Predicate::new_enum(
                         this,
-                        discriminant_loc,
+                        discriminant_field,
                         discriminant_bounds,
                         variants,
                     );
@@ -719,6 +719,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             posts: Vec::new(),
             body: field_invariants.map(|invs| invs.into_iter().conjoin()),
         };
+
+        self.encoder
+            .log_vir_program_before_foldunfold(function.to_string());
 
         // Add folding/unfolding
         let final_function = foldunfold::add_folding_unfolding_to_function(
