@@ -1320,6 +1320,43 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         Ok(res)
     }
 
+    fn fallible_fold_downcast(
+        &mut self,
+        base: Box<vir::Expr>,
+        enum_place: Box<vir::Expr>,
+        variant_field: vir::Field,
+    ) -> Result<vir::Expr, Self::Error> {
+        debug!("[enter] fallible_fold_downcast {} -> {} in {}", enum_place, variant_field, base);
+
+        let res = if self.wait_old_expr {
+            vir::Expr::Downcast(
+                self.fallible_fold_boxed(base)?,
+                enum_place,
+                variant_field,
+            )
+        } else {
+            // Compute inner state
+            let mut inner_pctxt = self.curr_pctxt.clone();
+            let inner_state = inner_pctxt.mut_state();
+            vir::Stmt::Downcast(enum_place.as_ref().clone(), variant_field.clone())
+                .apply_on_state(inner_state, self.curr_pctxt.predicates())?;
+
+            // Store states
+            let mut tmp_curr_pctxt = inner_pctxt;
+            std::mem::swap(&mut self.curr_pctxt, &mut tmp_curr_pctxt);
+
+            let inner_base = self.fallible_fold_boxed(base)?;
+
+            // Restore states
+            std::mem::swap(&mut self.curr_pctxt, &mut tmp_curr_pctxt);
+
+            vir::Expr::Downcast(inner_base, enum_place, variant_field)
+        };
+
+        debug!("[exit] fallible_fold_downcast = {}", res);
+        Ok(res)
+    }
+
     fn fallible_fold(&mut self, expr: vir::Expr) -> Result<vir::Expr, Self::Error> {
         debug!("[enter] fold {}", expr);
 
