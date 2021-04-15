@@ -34,6 +34,7 @@ pub enum PlaceEncoding {
 }
 
 impl PlaceEncoding {
+    #[track_caller]
     pub fn expect_expr(self) -> vir::Expr {
         match self {
             PlaceEncoding::Expr(e) => e,
