@@ -42,7 +42,11 @@ impl PlaceEncoding {
     }
 
     pub fn field(self, field: vir::Field) -> Self {
-        PlaceEncoding::FieldAccess { base: box self, field }
+        if let PlaceEncoding::Expr(e) = self {
+            PlaceEncoding::Expr(e.field(field))
+        } else {
+            PlaceEncoding::FieldAccess { base: box self, field }
+        }
     }
 
     pub fn get_type(&self) -> &vir::Type {
