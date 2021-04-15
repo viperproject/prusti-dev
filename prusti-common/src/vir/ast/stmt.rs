@@ -52,6 +52,12 @@ pub enum Stmt {
     ExpireBorrows(ReborrowingDAG),
     /// An `if` statement: the guard and the 'then' branch.
     If(Expr, Vec<Stmt>, Vec<Stmt>),
+    /// Inform the fold-unfold algorithm that at this program point a enum type can be downcasted
+    /// to one of its variants. This statement is a no-op for Viper.
+    /// Arguments:
+    /// * place to the enumeration instance
+    /// * field that encodes the variant
+    Downcast(Expr, Field),
 }
 
 /// What folding behaviour should be used?
@@ -158,14 +164,18 @@ impl fmt::Display for Stmt {
             ),
 
             Stmt::PackageMagicWand(
-                Expr::MagicWand(ref lhs, ref rhs, None, _),
+                ref magic_wand,
                 ref package_stmts,
                 ref label,
                 _vars,
                 _position,
             ) => {
-                writeln!(f, "package[{}] {}", label, lhs)?;
-                writeln!(f, "    --* {}", rhs)?;
+                if let Expr::MagicWand(ref lhs, ref rhs, None, _) = magic_wand {
+                    writeln!(f, "package[{}] {}", label, lhs)?;
+                    writeln!(f, "    --* {}", rhs)?;
+                } else {
+                    writeln!(f, "package[{}] {}", label, magic_wand)?;
+                }
                 write!(f, "{{")?;
                 if !package_stmts.is_empty() {
                     write!(f, "\n")?;
@@ -178,6 +188,14 @@ impl fmt::Display for Stmt {
 
             Stmt::ApplyMagicWand(Expr::MagicWand(ref lhs, ref rhs, Some(borrow), _), _) => {
                 writeln!(f, "apply[{:?}] {} --* {}", borrow, lhs, rhs)
+            }
+
+            Stmt::ApplyMagicWand(ref magic_wand, _) => {
+                if let Expr::MagicWand(ref lhs, ref rhs, Some(borrow), _) = magic_wand {
+                    writeln!(f, "apply[{:?}] {} --* {}", borrow, lhs, rhs)
+                } else {
+                    writeln!(f, "apply {}", magic_wand)
+                }
             }
 
             Stmt::ExpireBorrows(dag) => writeln!(f, "expire_borrows {:?}", dag),
@@ -202,7 +220,7 @@ impl fmt::Display for Stmt {
                 write_block(f, else_stmts)
             }
 
-            ref x => unimplemented!("{:?}", x),
+            Stmt::Downcast(e, v) => writeln!(f, "downcast {} to {}", e, v),
         }
     }
 }
@@ -295,6 +313,7 @@ pub trait StmtFolder {
             Stmt::ApplyMagicWand(w, p) => self.fold_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.fold_expire_borrows(d),
             Stmt::If(g, t, e) => self.fold_if(g, t, e),
+            Stmt::Downcast(e, f) => self.fold_downcast(e, f),
         }
     }
 
@@ -415,6 +434,10 @@ pub trait StmtFolder {
             e.into_iter().map(|x| self.fold(x)).collect(),
         )
     }
+
+    fn fold_downcast(&mut self, e: Expr, f: Field) -> Stmt {
+        Stmt::Downcast(self.fold_expr(e), f)
+    }
 }
 
 pub trait FallibleStmtFolder {
@@ -443,6 +466,7 @@ pub trait FallibleStmtFolder {
             Stmt::ApplyMagicWand(w, p) => self.fallible_fold_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.fallible_fold_expire_borrows(d),
             Stmt::If(g, t, e) => self.fallible_fold_if(g, t, e),
+            Stmt::Downcast(e, f) => self.fallible_fold_downcast(e, f),
         }
     }
 
@@ -601,6 +625,10 @@ pub trait FallibleStmtFolder {
             e.into_iter().map(|x| self.fallible_fold(x)).collect::<Result<_, _>>()?,
         ))
     }
+
+    fn fallible_fold_downcast(&mut self, e: Expr, f: Field) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Downcast(self.fallible_fold_expr(e)?, f))
+    }
 }
 
 pub trait StmtWalker {
@@ -623,6 +651,7 @@ pub trait StmtWalker {
             Stmt::ApplyMagicWand(w, p) => self.walk_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.walk_expire_borrows(d),
             Stmt::If(g, t, e) => self.walk_if(g, t, e),
+            Stmt::Downcast(e, f) => self.walk_downcast(e, f),
         }
     }
 
@@ -737,6 +766,10 @@ pub trait StmtWalker {
         for s in e {
             self.walk(s);
         }
+    }
+
+    fn walk_downcast(&mut self, e: &Expr, _f: &Field) {
+        self.walk_expr(e);
     }
 }
 

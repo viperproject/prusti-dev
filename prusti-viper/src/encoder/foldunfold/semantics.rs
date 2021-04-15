@@ -12,6 +12,7 @@ use prusti_common::vir;
 use std::collections::HashMap;
 use log::{debug, trace};
 use crate::encoder::foldunfold::FoldUnfoldError;
+use crate::encoder::foldunfold::path_ctxt::find_unfolded_variant;
 
 fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>)
     -> Result<(), FoldUnfoldError>
@@ -354,6 +355,26 @@ impl ApplyOnState for vir::Stmt {
 
             &vir::Stmt::ExpireBorrows(ref _dag) => {
                 // TODO: #133
+            }
+
+            &vir::Stmt::Downcast(ref enum_place, ref variant_field) => {
+                // Due to the required permissions of Downcast, we can assume that the enum
+                // has been unfolded and that the variant has not been completely moved out.
+                if let Some(found_variant) = find_unfolded_variant(state, enum_place) {
+                    // The enum has already been downcasted.
+                    debug_assert!(variant_field.name.ends_with(found_variant.get_variant_name()));
+                } else {
+                    let predicate_name = enum_place.typed_ref_name().unwrap();
+                    let predicate = predicates.get(&predicate_name).unwrap();
+                    if let vir::Predicate::Enum(enum_predicate) = predicate {
+                        // Add the permissions of the variant
+                        state.insert_all_perms(
+                            enum_predicate.get_variant_footprint(&variant_field.into()).into_iter()
+                        )?;
+                    } else {
+                        unreachable!()
+                    }
+                }
             }
 
             ref x => unimplemented!("{}", x),

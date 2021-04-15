@@ -556,7 +556,7 @@ impl<'a> PathCtxt<'a> {
                 perm_amount,
                 req.get_perm_amount(),
             );
-            let variant = self.find_variant(
+            let variant = find_variant(
                 &existing_pred_to_unfold,
                 req.get_place()
             );
@@ -582,7 +582,7 @@ impl<'a> PathCtxt<'a> {
             let predicate_name = req.typed_ref_name().unwrap();
             let predicate = self.predicates.get(&predicate_name).unwrap();
 
-            let variant = self.find_fold_variant(req);
+            let variant = find_unfolded_variant(&self.state, req.get_place());
 
             // Find an access permission for which req is a proper suffix
             let existing_proper_perm_extension_opt: Option<_> = self
@@ -770,49 +770,50 @@ Predicates: {{
         trace!("[exit] obtain_permissions: {}", actions.iter().to_string());
         Ok(actions)
     }
+}
 
-    /// Find the variant of enum that `place` has.
-    fn find_variant(
-        &self,
-        place: &vir::Expr,
-        prefixed_place: &vir::Expr,
-    ) -> vir::MaybeEnumVariantIndex {
-        trace!(
-            "[enter] find_variant(place={}, prefixed_place={})",
-            place,
-            prefixed_place
-        );
-        let parent = prefixed_place.get_parent_ref().unwrap();
-        let result = if place == parent {
-            match prefixed_place {
-                vir::Expr::Variant(_, field, _) => Some(field.into()),
-                _ => None,
-            }
-        } else {
-            self.find_variant(place, parent)
-        };
-        trace!(
-            "[exit] find_variant(place={}, prefixed_place={}) = {:?}",
-            place,
-            prefixed_place,
-            result
-        );
+
+/// Find in `variant_place` the variant index of the enum encoded by `enum_place`.
+fn find_variant(
+    enum_place: &vir::Expr,
+    variant_place: &vir::Expr,
+) -> vir::MaybeEnumVariantIndex {
+    trace!(
+        "[enter] find_variant(enum_place={}, variant_place={})",
+        enum_place,
+        variant_place
+    );
+    let parent = variant_place.get_parent_ref().unwrap();
+    let result = if enum_place == parent {
+        match variant_place {
+            vir::Expr::Variant(_, field, _) => Some(field.into()),
+            _ => None,
+        }
+    } else {
+        find_variant(enum_place, parent)
+    };
+    trace!(
+        "[exit] find_variant(place={}, variant_place={}) = {:?}",
+        enum_place,
+        variant_place,
         result
-    }
+    );
+    result
+}
 
-    /// Find the variant of enum that should be folded.
-    fn find_fold_variant(&self, req: &Perm) -> vir::MaybeEnumVariantIndex {
-        let req_place = req.get_place();
-        // Find an access permission for which req is a proper suffix and extract variant from it.
-        let variants: HashSet<_> = self.state
-            .acc_places()
-            .into_iter()
-            .filter(|place| place.has_proper_prefix(req_place) && place.is_variant())
-            .flat_map(|prefixed_place| self.find_variant(req_place, &prefixed_place))
-            .collect();
-        debug_assert!(variants.len() <= 1);
-        variants.into_iter().next()
-    }
+/// Find the variant of the place encoding an expression.
+/// Note: the place needs to be unfolded and downcasted for this to work.
+pub fn find_unfolded_variant(state: &State, enum_place: &vir::Expr) -> vir::MaybeEnumVariantIndex {
+    debug_assert!(enum_place.is_place());
+    // Find an access permission for which req is a proper suffix and extract variant from it.
+    let variants: HashSet<_> = state
+        .acc_places()
+        .into_iter()
+        .filter(|place| place.has_proper_prefix(enum_place) && place.is_variant())
+        .flat_map(|variant_place| find_variant(enum_place, &variant_place))
+        .collect();
+    debug_assert!(variants.len() <= 1);
+    variants.into_iter().next()
 }
 
 /// Computes a pair of sets of places that should be obtained. The first

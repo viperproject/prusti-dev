@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+mod downcast_detector;
+
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{
     ErrorCtxt, PanicCause, SpannedEncodingError, EncodingError, WithSpan,
@@ -12,12 +14,15 @@ use crate::encoder::errors::{
 use crate::encoder::Encoder;
 use prusti_common::vir;
 use prusti_common::config;
+use rustc_target::abi;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
 use rustc_index::vec::{Idx, IndexVec};
 use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
 use std::collections::HashMap;
+use prusti_interface::environment::mir_utils::MirPlace;
+use downcast_detector::detect_downcasts;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
@@ -52,54 +57,35 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         place: &mir::Place<'tcx>,
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode place {:?}", place);
-        let result = if place.projection.is_empty() {
-            let local = place.local;
-            (
-                self.encode_local(local)?.into(),
-                self.get_local_ty(local),
-                None,
-            )
-        } else {
-            self.encode_projection(place.projection.len(), *place, None)?
-        };
-        Ok(result)
+        self.encode_projection(place.local, place.projection)
     }
 
-    /// - `encoded_base_place`: optionally, the already encoded place (otherwise
-    ///   encoded by recursively calling self.encode_projection)
     /// Returns
     /// - `vir::Expr`: the place of the projection;
     /// - `ty::Ty<'tcx>`: the type of the place;
     /// - `Option<usize>`: optionally, the variant of the enum.
     fn encode_projection(
         &self,
-        index: usize,
-        place: mir::Place<'tcx>,
-        encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>,
+        local: mir::Local,
+        projection: &[mir::PlaceElem<'tcx>],
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
-        trace!("Encode projection {}: {:?}", index, place);
+        trace!("Encode projection {:?}, {:?}", local, projection);
 
-        assert!(index >= 1, "place: {:?} index: {}", place, index);
+        if projection.is_empty() {
+            return Ok((
+                self.encode_local(local)?.into(),
+                self.get_local_ty(local),
+                None,
+            ));
+        }
 
-        let (encoded_base, base_ty, opt_variant_index) =
-            if let Some(content) = encoded_base_place {
-                content
-            } else {
-                if index == 1 {
-                    let local = place.local;
-                    (
-                        self.encode_local(local)?.into(),
-                        self.get_local_ty(local),
-                        None,
-                    )
-                } else {
-                    self.encode_projection(index-1, place, None)?
-                }
-            };
-
+        let (encoded_base, base_ty, opt_variant_index) = self.encode_projection(
+            local,
+            &projection[..projection.len() - 1]
+        )?;
         trace!("base_ty: {:?}", base_ty);
 
-        let elem = place.projection[index-1];
+        let elem = projection.last().unwrap();
         Ok(match elem {
             mir::ProjectionElem::Field(ref field, _) => {
                 match base_ty.kind() {
@@ -205,7 +191,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
             mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
                 debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
-                (encoded_base, base_ty, Some(variant_index.into()))
+                (encoded_base, base_ty, Some((*variant_index).into()))
             }
 
             x => unimplemented!("{:?}", x),
@@ -713,6 +699,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 
     pub fn get_span_of_location(&self, location: mir::Location) -> Span {
         self.mir.source_info(location).span
+    }
+
+    pub fn get_downcasts_at_location(&self, location: mir::Location) -> Vec<(MirPlace<'tcx>, abi::VariantIdx)> {
+        detect_downcasts(self.mir, location)
     }
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {

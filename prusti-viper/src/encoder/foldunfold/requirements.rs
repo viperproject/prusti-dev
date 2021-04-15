@@ -174,6 +174,20 @@ impl RequiredPermissionsGetter for vir::Stmt {
                     .cloned().collect()
             }
 
+            &vir::Stmt::Downcast(ref enum_place, ref _variant_field) => {
+                let predicate_name = enum_place.typed_ref_name().unwrap();
+                let predicate = predicates.get(&predicate_name).unwrap();
+                if let vir::Predicate::Enum(enum_predicate) = predicate {
+
+                    // We want to have the enum unfolded
+                    enum_place.clone()
+                        .field(enum_predicate.discriminant_field.clone())
+                        .get_required_permissions(predicates, old_exprs)
+                } else {
+                    unreachable!()
+                }
+            }
+
             ref x => unimplemented!("{}", x),
         }
     }

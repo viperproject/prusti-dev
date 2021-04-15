@@ -184,21 +184,24 @@ pub trait EnumPredicateFootprintGetter {
     /// permissions that must be added/removed when executing a `fold/unfold pred` statement.
     fn get_body_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm>;
 
+    /// Returns the footprint coontribution of a given variant of an enumeration.
+    fn get_variant_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm>;
+
     /// Returns the intersection of `get_body_footprint` called on each possible variant.
     fn get_underapproximated_body_footprint(&self) -> HashSet<Perm>;
 }
 
 impl EnumPredicateFootprintGetter for vir::EnumPredicate {
     fn get_body_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
+        let mut perms = self.get_underapproximated_body_footprint();
+        perms.extend(self.get_variant_footprint(variant));
+        perms
+    }
+
+    fn get_variant_footprint(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
         let mut perms = HashSet::new();
         let this: vir::Expr = self.this.clone().into();
         let variant_name = variant.get_variant_name();
-        perms.insert(
-            Perm::Acc(
-                vir::Expr::from(self.this.clone()).field(self.discriminant_field.clone()),
-                PermAmount::Write,
-            )
-        );
         perms.insert(
             Perm::Acc(
                 this.clone().variant(variant_name),

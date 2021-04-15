@@ -270,6 +270,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 ast.seqn(&then_stmts.to_viper(ast), &[]),
                 ast.seqn(&else_stmts.to_viper(ast), &[]),
             ),
+            &Stmt::Downcast(..) => {
+                // Skip
+                ast.comment(&self.to_string())
+            }
         }
     }
 }

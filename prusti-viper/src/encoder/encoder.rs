@@ -564,13 +564,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// Creates a field that corresponds to the enum variant ``index``.
-    pub fn encode_enum_variant_field(&self, index: &str) {
+    pub fn encode_enum_variant_field(&self, index: &str) -> vir::Field {
         let name = format!("enum_{}", index);
         let mut fields = self.fields.borrow_mut();
         if !fields.contains_key(&name) {
             let field = vir::Field::new(name.clone(), vir::Type::TypedRef("".to_string()));
-            fields.insert(name, field);
+            fields.insert(name.clone(), field);
         }
+        fields.get(&name).cloned().unwrap()
     }
 
     pub fn encode_discriminant_field(&self) -> vir::Field {

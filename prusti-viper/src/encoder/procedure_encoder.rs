@@ -1047,6 +1047,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, Option<MirSuccessor>)> {
         debug!("Encode location {:?}", location);
+
+        // Encode statements to inform fold-unfold of the downcasts
+        let mut downcast_stmts = vec![];
+        for (place, variant_idx) in self.mir_encoder.get_downcasts_at_location(location).into_iter() {
+            let span = self.mir_encoder.get_span_of_location(location);
+            let (encoded_place, place_ty, opt_variant_index) = self.mir_encoder.encode_projection(
+                place.local,
+                &place.projection[..],
+            ).with_span(span)?;
+            debug_assert_eq!(Some(variant_idx.index()), opt_variant_index);
+            let variant_field = if let ty::TyKind::Adt(adt_def, subst) = place_ty.kind() {
+                let variant_name = &adt_def.variants[variant_idx].ident.as_str();
+                self.encoder.encode_enum_variant_field(variant_name)
+            } else {
+                unreachable!()
+            };
+            downcast_stmts.push(vir::Stmt::Downcast(encoded_place, variant_field));
+        }
+
         let bb_data = &self.mir[location.block];
         let index = location.statement_index;
         let stmts_succ_res = if index < bb_data.statements.len() {
@@ -1082,7 +1101,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 } else {
                     format!("[mir] {:?}", bb_data.terminator())
                 };
-                let stmts = vec![
+                let mut stmts = downcast_stmts;
+                stmts.extend(vec![
                     vir::Stmt::comment(head_stmt),
                     vir::Stmt::comment(
                         format!("Unsupported feature: {}", unsupported_msg)
@@ -1092,7 +1112,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         vir::FoldingBehaviour::None,
                         pos
                     )
-                ];
+                ]);
                 Ok((stmts, Some(MirSuccessor::Kill)))
             }
         }
