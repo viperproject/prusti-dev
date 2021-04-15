@@ -5016,12 +5016,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!(
-            "[enter] encode_assign_len(place={:?}, location={:?}",
+            "[enter] encode_assign_len(place={:?}, location={:?}, ty={:?})",
             place,
-            location
+            location,
+            ty,
         );
 
-        todo!("assign len")
+        assert!(place.projection.is_empty());
+        let rhs_ty = self.mir_encoder.get_local_ty(place.local);
+        // TODO: factor this out into helper, with type_encoder.rs:479ff
+        let const_len = if let ty::TyKind::Array(_elem_ty, len) = rhs_ty.kind() {
+            len
+        } else {
+            unreachable!()
+        };
+
+        let len = match const_len.val {
+            ty::ConstKind::Value(ref value) => {
+                value.try_to_bits(
+                    rustc_target::abi::Size::from_bits(64)
+                    ).unwrap()
+            },
+            ty::ConstKind::Unevaluated(ct) => {
+                let tcx = self.encoder.env().tcx();
+                let param_env = tcx.param_env(ct.def.did);
+                tcx.const_eval_resolve(param_env, ct, None)
+                    .ok()
+                    .and_then(|const_value| const_value.try_to_bits(
+                            rustc_target::abi::Size::from_bits(64)
+                            ))
+                    .unwrap()
+            }
+            x => unimplemented!("{:?}", x),
+        };
+
+        self.encode_copy_value_assign(
+            encoded_lhs.clone(),
+            PlaceEncoding::Expr(len.into()),
+            ty,
+            location
+        )
     }
 
 
