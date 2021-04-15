@@ -174,18 +174,10 @@ impl RequiredPermissionsGetter for vir::Stmt {
                     .cloned().collect()
             }
 
-            &vir::Stmt::Downcast(ref enum_place, ref _variant_field) => {
-                let predicate_name = enum_place.typed_ref_name().unwrap();
-                let predicate = predicates.get(&predicate_name).unwrap();
-                if let vir::Predicate::Enum(enum_predicate) = predicate {
-
-                    // We want to have the enum unfolded
-                    enum_place.clone()
-                        .field(enum_predicate.discriminant_field.clone())
-                        .get_required_permissions(predicates, old_exprs)
-                } else {
-                    unreachable!()
-                }
+            &vir::Stmt::Downcast(ref enum_place, ref variant_field) => {
+                // Delegate
+                vir::Expr::downcast(true.into(), enum_place.clone(), variant_field.clone())
+                    .get_required_permissions(predicates, old_exprs)
             }
 
             ref x => unimplemented!("{}", x),
@@ -345,6 +337,20 @@ impl RequiredPermissionsGetter for vir::Expr {
             vir::Expr::DomainFuncApp(..) => HashSet::new(),
 
             vir::Expr::InhaleExhale(..) => HashSet::new(),
+
+            &vir::Expr::Downcast(ref base, ref enum_place, ref _variant_field) => {
+                let predicate_name = enum_place.typed_ref_name().unwrap();
+                let predicate = predicates.get(&predicate_name).unwrap();
+                if let vir::Predicate::Enum(enum_predicate) = predicate {
+                    // We want to have the enum unfolded
+                    enum_place.clone()
+                        .field(enum_predicate.discriminant_field.clone())
+                        .get_required_permissions(predicates, old_exprs)
+                } else {
+                    unreachable!()
+                }
+            }
+
         };
         trace!(
             "[exit] get_required_permissions(expr={}): {:#?}",

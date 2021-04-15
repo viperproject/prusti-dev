@@ -114,6 +114,10 @@ impl ExprFootprintGetter for vir::Expr {
             vir::Expr::LetExpr(ref _variable, ref _expr, ref _body, _) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
+
+            vir::Expr::Downcast(ref base, ref _enum_place, ref _variant_field) => {
+                base.get_footprint(predicates)
+            }
         };
         trace!("get_footprint {} = {:?}", self, res);
         res
