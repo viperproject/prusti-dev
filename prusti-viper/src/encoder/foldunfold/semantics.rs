@@ -363,14 +363,22 @@ impl ApplyOnState for vir::Stmt {
                 if let Some(found_variant) = find_unfolded_variant(state, enum_place) {
                     // The enum has already been downcasted.
                     debug_assert!(variant_field.name.ends_with(found_variant.get_variant_name()));
+                    debug!("Place {} has already been downcasted to {}", enum_place, variant_field);
                 } else {
+                    debug!("Downcast {} to {}", enum_place, variant_field);
                     let predicate_name = enum_place.typed_ref_name().unwrap();
                     let predicate = predicates.get(&predicate_name).unwrap();
                     if let vir::Predicate::Enum(enum_predicate) = predicate {
                         // Add the permissions of the variant
-                        state.insert_all_perms(
-                            enum_predicate.get_variant_footprint(&variant_field.into()).into_iter()
-                        )?;
+                        let self_place: vir::Expr = enum_predicate.this.clone().into();
+                        let variant_footprint: Vec<_> = enum_predicate.get_variant_footprint(
+                            &variant_field.into()
+                        ).into_iter().map(|perm|
+                            // Replace `self` with `enum_place`
+                            perm.map_place(|place| place.replace_place(&self_place, enum_place))
+                        ).collect();
+                        trace!("Downcast adds variant's footprint {:?}", variant_footprint);
+                        state.insert_all_perms(variant_footprint.into_iter())?;
                     } else {
                         unreachable!()
                     }
