@@ -1052,11 +1052,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut downcast_stmts = vec![];
         for (place, variant_idx) in self.mir_encoder.get_downcasts_at_location(location).into_iter() {
             let span = self.mir_encoder.get_span_of_location(location);
-            let (encoded_place, place_ty, opt_variant_index) = self.mir_encoder.encode_projection(
+            let (encoded_place, place_ty, _) = self.mir_encoder.encode_projection(
                 place.local,
                 &place.projection[..],
             ).with_span(span)?;
-            debug_assert_eq!(Some(variant_idx.index()), opt_variant_index);
             let variant_field = if let ty::TyKind::Adt(adt_def, subst) = place_ty.kind() {
                 let variant_name = &adt_def.variants[variant_idx].ident.as_str();
                 self.encoder.encode_enum_variant_field(variant_name)
