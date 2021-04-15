@@ -264,6 +264,24 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 (encoded_base, base_ty, Some(variant_index.into()))
             }
 
+            mir::ProjectionElem::Index(idx) => {
+                debug!("array access: {:?}[{:?}]", encoded_base, idx);
+                let elem_ty = match base_ty.kind() {
+                    ty::TyKind::Array(elem_ty, _len) => elem_ty,
+                    _ => unreachable!("index but not on array"),
+                };
+
+                (
+                    PlaceEncoding::ArrayAccess {
+                        base: box encoded_base,
+                        index: box PlaceEncoding::Expr(self.encode_local(idx)?.into()),
+                        typ: self.encoder().encode_type(elem_ty)?,
+                    },
+                    elem_ty,
+                    None,
+                )
+            }
+
             x => unimplemented!("{:?}", x),
         })
     }

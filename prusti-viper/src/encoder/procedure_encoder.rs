@@ -5263,7 +5263,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Assignment with an aggregate on the RHS.
-    /// [dst] = Foo { x: [operand_0], y: [operand_1], .. };
+    /// [dst] = Foo { x: [operand_0], y: [operand_1], .. }; // struct
+    /// [dst] = [ op_0, op_1, .. ]; // array
     /// <https://doc.rust-lang.org/stable/nightly-rustc/rustc_middle/mir/enum.AggregateKind.html>
     fn encode_assign_aggregate(
         &mut self,
@@ -5375,11 +5376,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // let f = closure!(...);
             }
 
-            &mir::AggregateKind::Array(..) => {
-                return Err(SpannedEncodingError::unsupported(
-                    "construction of arrays is not supported",
-                    span
-                ));
+            &mir::AggregateKind::Array(elem_ty) => {
+                debug!("{:?}<{:?}> = create_array<{:?}>({:?})", dst, ty, elem_ty, operands);
+                // - havoc dst (already done above)
+                // - inhale Array$<ty>(dst);
+                stmts.push(
+                    vir::Stmt::Inhale(
+                        vir::Expr::predicate_access_predicate(
+                            self.encoder.encode_type_predicate_use(ty)
+                                .with_span(span)?,
+                            dst.clone().expect_expr(),
+                            vir::PermAmount::Write,
+                        ),
+                        FoldingBehaviour::Stmt,
+                    )
+                );
+                // - for x, i in operands.enumerate(): inhale Array$<ty>$lookup(dst, i) == x
+                // TODO
             }
 
             &mir::AggregateKind::Generator(..) => {
