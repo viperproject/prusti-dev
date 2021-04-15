@@ -358,8 +358,6 @@ impl ApplyOnState for vir::Stmt {
             }
 
             &vir::Stmt::Downcast(ref enum_place, ref variant_field) => {
-                // Due to the required permissions of Downcast, we can assume that the enum
-                // has been unfolded and that the variant has not been completely moved out.
                 if let Some(found_variant) = find_unfolded_variant(state, enum_place) {
                     // The enum has already been downcasted.
                     debug_assert!(variant_field.name.ends_with(found_variant.get_variant_name()));
@@ -369,16 +367,23 @@ impl ApplyOnState for vir::Stmt {
                     let predicate_name = enum_place.typed_ref_name().unwrap();
                     let predicate = predicates.get(&predicate_name).unwrap();
                     if let vir::Predicate::Enum(enum_predicate) = predicate {
-                        // Add the permissions of the variant
-                        let self_place: vir::Expr = enum_predicate.this.clone().into();
-                        let variant_footprint: Vec<_> = enum_predicate.get_variant_footprint(
-                            &variant_field.into()
-                        ).into_iter().map(|perm|
-                            // Replace `self` with `enum_place`
-                            perm.map_place(|place| place.replace_place(&self_place, enum_place))
-                        ).collect();
-                        trace!("Downcast adds variant's footprint {:?}", variant_footprint);
-                        state.insert_all_perms(variant_footprint.into_iter())?;
+                        let discriminant_place = enum_place.clone()
+                            .field(enum_predicate.discriminant_field.clone());
+                        if let Some(perm_amount) = state.acc().get(&discriminant_place).copied() {
+                            // Add the permissions of the variant
+                            let self_place: vir::Expr = enum_predicate.this.clone().into();
+                            let variant_footprint: Vec<_> = enum_predicate.get_variant_footprint(
+                                &variant_field.into()
+                            ).into_iter().map(|perm|
+                                // Update the permissiona and replace `self` with `enum_place`
+                                perm.update_perm_amount(perm_amount)
+                                    .map_place(|place| place.replace_place(&self_place, enum_place))
+                            ).collect();
+                            trace!("Downcast adds variant's footprint {:?}", variant_footprint);
+                            state.insert_all_perms(variant_footprint.into_iter())?;
+                        } else {
+                            debug!("Place {} has not been unfolded yet", discriminant_place);
+                        }
                     } else {
                         unreachable!()
                     }
