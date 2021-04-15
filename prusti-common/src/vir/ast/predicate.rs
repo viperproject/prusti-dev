@@ -6,6 +6,7 @@
 
 use vir::ast::*;
 use std::fmt;
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Predicate {
@@ -85,6 +86,7 @@ impl Predicate {
         variants: Vec<(Expr, String, StructPredicate)>,
     ) -> Predicate {
         let predicate_name = this.typ.name();
+        debug_assert!(variants.iter().map(|(_, name, _)| name.to_string()).collect::<HashSet<_>>().len() == variants.len());
         Predicate::Enum(EnumPredicate {
             name: predicate_name,
             this,

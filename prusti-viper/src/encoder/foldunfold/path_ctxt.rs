@@ -661,14 +661,14 @@ impl<'a> PathCtxt<'a> {
                 actions.push(fold_action);
 
                 // Simulate folding of `req`
-                assert!(self.state.contains_all_perms(scaled_places_in_pred.iter()));
-                assert!(
+                debug_assert!(self.state.contains_all_perms(scaled_places_in_pred.iter()));
+                debug_assert!(
                     !req.get_place().is_simple_place() || self.state.contains_acc(req.get_place()),
                     "req={} state={}",
                     req.get_place(),
                     self.state
                 );
-                assert!(!self.state.contains_pred(req.get_place()));
+                debug_assert!(!self.state.contains_pred(req.get_place()));
                 self.state.remove_all_perms(scaled_places_in_pred.iter())?;
                 self.state.insert_pred(req.get_place().clone(), perm_amount)?;
 
@@ -804,11 +804,14 @@ Predicates: {{
     fn find_fold_variant(&self, req: &Perm) -> vir::MaybeEnumVariantIndex {
         let req_place = req.get_place();
         // Find an access permission for which req is a proper suffix and extract variant from it.
-        self.state
+        let variants: HashSet<_> = self.state
             .acc_places()
             .into_iter()
-            .find(|place| place.has_proper_prefix(req_place) && place.is_variant())
-            .and_then(|prefixed_place| self.find_variant(req_place, &prefixed_place))
+            .filter(|place| place.has_proper_prefix(req_place) && place.is_variant())
+            .flat_map(|prefixed_place| self.find_variant(req_place, &prefixed_place))
+            .collect();
+        debug_assert!(variants.len() <= 1);
+        variants.into_iter().next()
     }
 }
 
