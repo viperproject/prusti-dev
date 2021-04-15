@@ -53,10 +53,10 @@ impl ApplyOnState for vir::Stmt {
         match self {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
-            | &vir::Stmt::Assert(_, _, _)
+            | &vir::Stmt::Assert(_, _)
             | &vir::Stmt::Obtain(_, _) => {}
 
-            &vir::Stmt::Inhale(ref expr, _) => {
+            &vir::Stmt::Inhale(ref expr) => {
                 inhale_expr(expr, state, predicates)?;
             }
 

@@ -206,7 +206,7 @@ impl<'a> StmtFolder for Purifier<'a> {
                         &LocalVar::new("self", Type::TypedRef(predicate_name)).into(),
                         &l.clone().into()
                     ).purify();
-                    return Stmt::Assert(self.fold_expr(purified_predicate), FoldingBehaviour::Expr, pos)
+                    return Stmt::Assert(self.fold_expr(purified_predicate), pos)
                 } else {
                     return Stmt::Comment(format!("replaced fold"));
                 }
@@ -236,7 +236,7 @@ impl<'a> StmtFolder for Purifier<'a> {
                         &LocalVar::new("self", Type::TypedRef(predicate_name)).into(),
                         &l.clone().into()
                     ).purify();
-                    return Stmt::Inhale(self.fold_expr(purified_predicate), FoldingBehaviour::Expr)
+                    return Stmt::Inhale(self.fold_expr(purified_predicate))
                 } else {
                     return Stmt::Comment(format!("replaced unfold"));
                 }

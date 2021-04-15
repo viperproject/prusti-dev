@@ -68,7 +68,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 }
             },
 
-            &vir::Stmt::Inhale(ref expr, _) => {
+            &vir::Stmt::Inhale(ref expr) => {
                 // footprint = used - inhaled
                 perm_difference(
                     expr.get_required_permissions(predicates, old_exprs),
@@ -77,7 +77,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
             }
 
             &vir::Stmt::Exhale(ref expr, ref pos)
-            | &vir::Stmt::Assert(ref expr, _, ref pos)
+            | &vir::Stmt::Assert(ref expr, ref pos)
             | &vir::Stmt::Obtain(ref expr, ref pos) => {
                 let perms = expr.get_required_permissions(predicates, old_exprs);
                 perms

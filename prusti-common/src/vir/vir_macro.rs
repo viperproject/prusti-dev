@@ -25,13 +25,11 @@ macro_rules! vir {
     (assert $exp: tt) => {
         $crate::vir::Stmt::Assert(
             vir!($exp),
-            $crate::vir::FoldingBehaviour::Expr,
             $crate::vir::Position::default())
     };
     (inhale $exp: tt) => {
         $crate::vir::Stmt::Inhale(
-            vir!($exp),
-            $crate::vir::FoldingBehaviour::Expr)
+            vir!($exp))
     };
     (apply $exp: tt) => {
         $crate::vir::Stmt::ApplyMagicWand(

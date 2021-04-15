@@ -108,7 +108,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
         match self {
             &Stmt::Comment(ref comment) => ast.comment(&comment),
             &Stmt::Label(ref label) => ast.label(&label, &[]),
-            &Stmt::Inhale(ref expr, _) => {
+            &Stmt::Inhale(ref expr) => {
                 let fake_position = Position::default();
                 ast.inhale(expr.to_viper(ast), fake_position.to_viper(ast))
             }
@@ -116,7 +116,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 assert!(!pos.is_default());
                 ast.exhale(expr.to_viper(ast), pos.to_viper(ast))
             }
-            &Stmt::Assert(ref expr, _, ref pos) => {
+            &Stmt::Assert(ref expr, ref pos) => {
                 ast.assert(expr.to_viper(ast), pos.to_viper(ast))
             }
             &Stmt::MethodCall(ref method_name, ref args, ref targets) => {
@@ -177,7 +177,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             .map(|access| {
                                 let fake_position = Position::default();
                                 let assert =
-                                    Stmt::Assert(access, FoldingBehaviour::None, fake_position);
+                                    Stmt::Assert(access, fake_position);
                                 assert.to_viper(ast)
                             })
                             .collect()

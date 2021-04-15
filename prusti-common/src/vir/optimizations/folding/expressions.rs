@@ -69,13 +69,8 @@ struct StmtOptimizer {
 }
 
 impl ast::StmtFolder for StmtOptimizer {
-    fn fold_inhale(&mut self, expr: ast::Expr, folding: ast::FoldingBehaviour) -> ast::Stmt {
-        let new_expr = if folding == ast::FoldingBehaviour::Expr {
-            expr.optimize()
-        } else {
-            expr
-        };
-        ast::Stmt::Inhale(new_expr, folding)
+    fn fold_inhale(&mut self, expr: ast::Expr) -> ast::Stmt {
+        ast::Stmt::Inhale(expr.optimize())
     }
 }
 

@@ -13,9 +13,9 @@ use std::fmt;
 pub enum Stmt {
     Comment(String),
     Label(String),
-    Inhale(Expr, FoldingBehaviour),
+    Inhale(Expr),
     Exhale(Expr, Position),
-    Assert(Expr, FoldingBehaviour, Position),
+    Assert(Expr, Position),
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     /// Target, source, kind
@@ -60,17 +60,6 @@ pub enum Stmt {
     Downcast(Expr, Field),
 }
 
-/// What folding behaviour should be used?
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum FoldingBehaviour {
-    /// Use `fold` and `unfold` statements.
-    Stmt,
-    /// Use `unfolding` expressions.
-    Expr,
-    /// Should not require changes in folding.
-    None,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AssignKind {
     /// Encodes a Rust copy.
@@ -95,12 +84,12 @@ impl fmt::Display for Stmt {
         match self {
             Stmt::Comment(ref comment) => write!(f, "// {}", comment),
             Stmt::Label(ref label) => write!(f, "label {}", label),
-            Stmt::Inhale(ref expr, ref folding) => {
-                write!(f, "inhale({:?}) {}", folding, expr)
+            Stmt::Inhale(ref expr) => {
+                write!(f, "inhale {}", expr)
             },
             Stmt::Exhale(ref expr, _) => write!(f, "exhale {}", expr),
-            Stmt::Assert(ref expr, ref folding, _) => {
-                write!(f, "assert({:?}) {}", folding, expr)
+            Stmt::Assert(ref expr, _) => {
+                write!(f, "assert {}", expr)
             },
             Stmt::MethodCall(ref name, ref args, ref vars) => write!(
                 f,
@@ -298,9 +287,9 @@ pub trait StmtFolder {
         match e {
             Stmt::Comment(s) => self.fold_comment(s),
             Stmt::Label(s) => self.fold_label(s),
-            Stmt::Inhale(expr, folding) => self.fold_inhale(expr, folding),
+            Stmt::Inhale(expr) => self.fold_inhale(expr),
             Stmt::Exhale(e, p) => self.fold_exhale(e, p),
-            Stmt::Assert(expr, folding, pos) => self.fold_assert(expr, folding, pos),
+            Stmt::Assert(expr, pos) => self.fold_assert(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fold_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, p) => self.fold_fold(s, ve, perm, variant, p),
@@ -329,16 +318,16 @@ pub trait StmtFolder {
         Stmt::Label(s)
     }
 
-    fn fold_inhale(&mut self, expr: Expr, folding: FoldingBehaviour) -> Stmt {
-        Stmt::Inhale(self.fold_expr(expr), folding)
+    fn fold_inhale(&mut self, expr: Expr) -> Stmt {
+        Stmt::Inhale(self.fold_expr(expr))
     }
 
     fn fold_exhale(&mut self, e: Expr, p: Position) -> Stmt {
         Stmt::Exhale(self.fold_expr(e), p)
     }
 
-    fn fold_assert(&mut self, expr: Expr, folding: FoldingBehaviour, pos: Position) -> Stmt {
-        Stmt::Assert(self.fold_expr(expr), folding, pos)
+    fn fold_assert(&mut self, expr: Expr, pos: Position) -> Stmt {
+        Stmt::Assert(self.fold_expr(expr), pos)
     }
 
     fn fold_method_call(
@@ -447,9 +436,9 @@ pub trait FallibleStmtFolder {
         match e {
             Stmt::Comment(s) => self.fallible_fold_comment(s),
             Stmt::Label(s) => self.fallible_fold_label(s),
-            Stmt::Inhale(expr, folding) => self.fallible_fold_inhale(expr, folding),
+            Stmt::Inhale(expr) => self.fallible_fold_inhale(expr),
             Stmt::Exhale(e, p) => self.fallible_fold_exhale(e, p),
-            Stmt::Assert(expr, folding, pos) => self.fallible_fold_assert(expr, folding, pos),
+            Stmt::Assert(expr, pos) => self.fallible_fold_assert(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.fallible_fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fallible_fold_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, p) => {
@@ -485,9 +474,8 @@ pub trait FallibleStmtFolder {
     fn fallible_fold_inhale(
         &mut self,
         expr: Expr,
-        folding: FoldingBehaviour
     ) -> Result<Stmt, Self::Error> {
-        Ok(Stmt::Inhale(self.fallible_fold_expr(expr)?, folding))
+        Ok(Stmt::Inhale(self.fallible_fold_expr(expr)?))
     }
 
     fn fallible_fold_exhale(&mut self, e: Expr, p: Position) -> Result<Stmt, Self::Error> {
@@ -497,10 +485,9 @@ pub trait FallibleStmtFolder {
     fn fallible_fold_assert(
         &mut self,
         expr: Expr,
-        folding: FoldingBehaviour,
         pos: Position
     ) -> Result<Stmt, Self::Error> {
-        Ok(Stmt::Assert(self.fallible_fold_expr(expr)?, folding, pos))
+        Ok(Stmt::Assert(self.fallible_fold_expr(expr)?, pos))
     }
 
     fn fallible_fold_method_call(
@@ -636,9 +623,9 @@ pub trait StmtWalker {
         match e {
             Stmt::Comment(s) => self.walk_comment(s),
             Stmt::Label(s) => self.walk_label(s),
-            Stmt::Inhale(expr, folding) => self.walk_inhale(expr, folding),
+            Stmt::Inhale(expr) => self.walk_inhale(expr),
             Stmt::Exhale(e, p) => self.walk_exhale(e, p),
-            Stmt::Assert(expr, folding, pos) => self.walk_assert(expr, folding, pos),
+            Stmt::Assert(expr, pos) => self.walk_assert(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.walk_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.walk_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, pos) => self.walk_fold(s, ve, perm, variant, pos),
@@ -663,7 +650,7 @@ pub trait StmtWalker {
 
     fn walk_label(&mut self, _label: &str) {}
 
-    fn walk_inhale(&mut self, expr: &Expr, _folding: &FoldingBehaviour) {
+    fn walk_inhale(&mut self, expr: &Expr) {
         self.walk_expr(expr);
     }
 
@@ -671,7 +658,7 @@ pub trait StmtWalker {
         self.walk_expr(expr);
     }
 
-    fn walk_assert(&mut self, expr: &Expr, _folding: &FoldingBehaviour, _pos: &Position) {
+    fn walk_assert(&mut self, expr: &Expr, _pos: &Position) {
         self.walk_expr(expr);
     }
 

@@ -109,7 +109,7 @@ pub fn add_folding_unfolding_to_function(
     let old_exprs = HashMap::new();
     let mut pctxt = PathCtxt::new(formal_vars, &predicates, &old_exprs);
     for pre in &function.pres {
-        pctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone(), vir::FoldingBehaviour::Expr))?;
+        pctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone()))?;
     }
     // Add appropriate unfolding around expressions
     let result = vir::Function {
@@ -258,7 +258,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         pctxt: &PathCtxt<'p>,
     ) -> Result<vir::Stmt, FoldUnfoldError> {
         match stmt {
-            vir::Stmt::Inhale(expr, folding) => {
+            vir::Stmt::Inhale(expr) => {
                 // Compute inner state
                 let mut inner_pctxt = pctxt.clone();
                 let inner_state = inner_pctxt.mut_state();
@@ -271,7 +271,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 // Rewrite statement
                 Ok(vir::Stmt::Inhale(
                     self.replace_expr(&expr, &inner_pctxt)?,
-                    folding,
                 ))
             }
             vir::Stmt::TransferPerm(lhs, rhs, unchecked) => {
@@ -368,7 +367,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     .iter()
                     .map(|a| a.to_stmt()),
             );
-            let inhale_stmt = vir::Stmt::Inhale(access, vir::FoldingBehaviour::Stmt);
+            let inhale_stmt = vir::Stmt::Inhale(access);
             pctxt.apply_stmt(&inhale_stmt)?;
             stmts.push(inhale_stmt);
         }
@@ -426,8 +425,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     | vir::Stmt::ApplyMagicWand(_, _)
                     | vir::Stmt::TransferPerm(_, _, _)
                     | vir::Stmt::Assign(_, _, _) => stmt.clone(),
-                    vir::Stmt::Inhale(expr, folding) => {
-                        vir::Stmt::Inhale(patch_expr(label, expr), *folding)
+                    vir::Stmt::Inhale(expr) => {
+                        vir::Stmt::Inhale(patch_expr(label, expr))
                     }
                     vir::Stmt::Exhale(expr, pos) => {
                         vir::Stmt::Exhale(patch_expr(label, expr), *pos)
@@ -579,7 +578,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 let mut labelled_pctxt = pctxt.clone();
                 let labelled_state = labelled_pctxt.mut_state();
                 labelled_state.remove_all();
-                vir::Stmt::Inhale(lhs.clone(), vir::FoldingBehaviour::Expr)
+                vir::Stmt::Inhale(lhs.clone())
                     .apply_on_state(labelled_state, pctxt.predicates())?;
                 if let vir::Expr::PredicateAccessPredicate(ref _name, box ref arg, perm_amount, _) =
                     lhs
@@ -660,7 +659,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                     stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
                     stmts.push(vir::Stmt::Assert(
                         pctxt.state().as_vir_expr(),
-                        vir::FoldingBehaviour::Expr,
                         vir::Position::default(),
                     ));
                 }
@@ -763,7 +761,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
         stmts.push(stmt.clone());
 
         // 6. Recombine permissions into full if read was carved out during fold.
-        if let vir::Stmt::Inhale(expr, _) = &stmt {
+        if let vir::Stmt::Inhale(expr) = &stmt {
             // We may need to recombine predicates for which read permission was taking during
             // an unfold operation.
             let inhaled_places = expr.extract_predicate_places(vir::PermAmount::Read);
@@ -877,7 +875,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                     lhs_read_access.clone(),
                     lhs_place.clone(),
                 );
-                let stmt = vir::Stmt::Inhale(lhs_read_access, vir::FoldingBehaviour::Stmt);
+                let stmt = vir::Stmt::Inhale(lhs_read_access);
                 pctxt.apply_stmt(&stmt)?;
                 stmts.push(stmt);
             }
@@ -921,7 +919,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                     lhs_read_access.clone(),
                     lhs_place.clone(),
                 );
-                let stmt = vir::Stmt::Inhale(lhs_read_access, vir::FoldingBehaviour::Stmt);
+                let stmt = vir::Stmt::Inhale(lhs_read_access);
                 pctxt.apply_stmt(&stmt)?;
                 stmts.push(stmt);
             }
@@ -1001,7 +999,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
             stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
             stmts.push(vir::Stmt::Assert(
                 pctxt.state().as_vir_expr(),
-                vir::FoldingBehaviour::Expr,
                 vir::Position::default(),
             ));
         }
