@@ -43,10 +43,14 @@ impl PlaceEncoding {
     }
 
     pub fn field(self, field: vir::Field) -> Self {
-        if let PlaceEncoding::Expr(e) = self {
-            PlaceEncoding::Expr(e.field(field))
-        } else {
-            PlaceEncoding::FieldAccess { base: box self, field }
+        match self {
+            PlaceEncoding::Expr(e) => PlaceEncoding::Expr(e.field(field)),
+            f @ PlaceEncoding::FieldAccess { .. } => {
+                PlaceEncoding::FieldAccess { base: box f, field }
+            }
+            a @ PlaceEncoding::ArrayAccess { .. } => {
+                panic!("field on {:?}", a)
+            }
         }
     }
 
