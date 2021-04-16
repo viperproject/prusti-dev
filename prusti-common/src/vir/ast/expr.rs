@@ -126,9 +126,12 @@ impl fmt::Display for Expr {
             Expr::Unfolding(ref pred_name, ref args, ref expr, perm, ref variant, ref _pos) => {
                 write!(
                     f,
-                    "(unfolding acc({}:{:?}({}), {}) in {})",
-                    pred_name,
-                    variant,
+                    "(unfolding acc({}({}), {}) in {})",
+                    if let Some(variant_index) = variant {
+                        format!("{}<variant {}>", pred_name, variant_index)
+                    } else {
+                        format!("{}", pred_name)
+                    },
                     args.iter()
                         .map(|x| x.to_string())
                         .collect::<Vec<String>>()

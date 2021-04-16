@@ -118,9 +118,12 @@ impl fmt::Display for Stmt {
 
             Stmt::Fold(ref pred_name, ref args, perm, ref variant, _) => write!(
                 f,
-                "fold acc({}:{:?}({}), {})",
-                pred_name,
-                variant,
+                "fold acc({}({}), {})",
+                if let Some(variant_index) = variant {
+                    format!("{}<variant {}>", pred_name, variant_index)
+                } else {
+                    format!("{}", pred_name)
+                },
                 args.iter()
                     .map(|f| f.to_string())
                     .collect::<Vec<String>>()
@@ -130,9 +133,12 @@ impl fmt::Display for Stmt {
 
             Stmt::Unfold(ref pred_name, ref args, perm, ref variant) => write!(
                 f,
-                "unfold acc({}:{:?}({}), {})",
-                pred_name,
-                variant,
+                "unfold acc({}({}), {})",
+                if let Some(variant_index) = variant {
+                    format!("{}<variant {}>", pred_name, variant_index)
+                } else {
+                    format!("{}", pred_name)
+                },
                 args.iter()
                     .map(|f| f.to_string())
                     .collect::<Vec<String>>()

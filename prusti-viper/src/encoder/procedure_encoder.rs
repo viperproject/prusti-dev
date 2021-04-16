@@ -5267,16 +5267,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         vir::Expr::eq_cmp(discriminant, discr_value.clone()),
                     ));
 
-                    if config::enable_purification_optimization() {
-                        // Temporary fix
-                        stmts.push(vir::Stmt::Assert(vir::Expr::eq_cmp(dst.clone().field(vir::Field {
-                            name: "discriminant".into(),
-                            typ: vir::Type::Int,
-                        }), discr_value.clone()),  vir::Position::default()));
-                    }
-
                     let variant_name = &variant_def.ident.as_str();
-                    dst_base = dst_base.variant(variant_name);
+                    let new_dst_base = dst_base.variant(variant_name);
+                    let variant_field = if let vir::Expr::Variant(_, ref field, _) = new_dst_base {
+                        field.clone()
+                    } else {
+                        unreachable!()
+                    };
+                    stmts.push(vir::Stmt::Downcast(dst.clone(), variant_field));
+
+                    dst_base = new_dst_base;
                 }
                 for (field_index, field) in variant_def.fields.iter().enumerate() {
                     let operand = &operands[field_index];
