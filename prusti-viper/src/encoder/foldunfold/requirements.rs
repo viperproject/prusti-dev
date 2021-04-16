@@ -168,10 +168,12 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 HashSet::new() // TODO: #133
             }
 
-            &vir::Stmt::If(_, ref then, ref elze) => {
-                then.get_required_permissions(predicates, old_exprs)
-                    .union(&elze.get_required_permissions(predicates, old_exprs))
-                    .cloned().collect()
+            &vir::Stmt::If(ref guard, ref then, ref elze) => {
+                let guard_reqs = guard.get_required_permissions(predicates, old_exprs);
+                let then_reqs = then.get_required_permissions(predicates, old_exprs);
+                let elze_reqs = elze.get_required_permissions(predicates, old_exprs);
+                let then_else_reqs = then_reqs.intersection(&elze_reqs).cloned().collect();
+                guard_reqs.union(&then_else_reqs).cloned().collect()
             }
 
             &vir::Stmt::Downcast(ref enum_place, ref variant_field) => {
@@ -261,12 +263,23 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::UnaryOp(_, expr, _) => expr.get_required_permissions(predicates, old_exprs),
 
-            vir::Expr::BinOp(_, box left, box right, _) => {
-                vec![left, right].get_required_permissions(predicates, old_exprs)
+            vir::Expr::BinOp(bin_op, box left, box right, _) => {
+                match bin_op {
+                    vir::BinOpKind::Or | vir::BinOpKind::Implies => {
+                        // We don't necessarily need to sstisfy the requirements of `right.
+                        // Viper's boolean or is short-circuited.
+                        left.get_required_permissions(predicates, old_exprs)
+                    },
+                    _ => vec![left, right].get_required_permissions(predicates, old_exprs),
+                }
             }
 
-            vir::Expr::Cond(box guard, box left, box right, _) => {
-                vec![guard, left, right].get_required_permissions(predicates, old_exprs)
+            vir::Expr::Cond(box guard, box then, box elze, _) => {
+                let guard_reqs = guard.get_required_permissions(predicates, old_exprs);
+                let then_reqs = then.get_required_permissions(predicates, old_exprs);
+                let elze_reqs = elze.get_required_permissions(predicates, old_exprs);
+                let then_else_reqs = then_reqs.intersection(&elze_reqs).cloned().collect();
+                guard_reqs.union(&then_else_reqs).cloned().collect()
             }
 
             vir::Expr::LetExpr(_variable, _expr, _body, _) => {

@@ -5274,7 +5274,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     } else {
                         unreachable!()
                     };
-                    stmts.push(vir::Stmt::Downcast(dst.clone(), variant_field));
+
+                    if !variant_def.fields.is_empty() {
+                        stmts.push(vir::Stmt::Downcast(dst.clone(), variant_field));
+                    }
 
                     dst_base = new_dst_base;
                 }
