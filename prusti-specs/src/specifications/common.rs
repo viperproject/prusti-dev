@@ -415,6 +415,7 @@ impl<EID, ET, AT> SpecificationSet<EID, ET, AT> {
 }
 
 impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<EID, ET, AT> {
+    #[track_caller]
     pub fn expect_procedure(&self) -> &ProcedureSpecification<EID, ET, AT> {
         if let SpecificationSet::Procedure(spec) = self {
             return spec;
@@ -422,6 +423,7 @@ impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<
         unreachable!("expected Procedure: {:?}", self);
     }
 
+    #[track_caller]
     pub fn expect_mut_procedure(&mut self) -> &mut ProcedureSpecification<EID, ET, AT> {
         if let SpecificationSet::Procedure(spec) = self {
             return spec;
@@ -429,6 +431,7 @@ impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<
         unreachable!("expected Procedure: {:?}", self);
     }
 
+    #[track_caller]
     pub fn expect_loop(&self) -> &LoopSpecification<EID, ET, AT> {
         if let SpecificationSet::Loop(spec) = self {
             return spec;
@@ -436,6 +439,7 @@ impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<
         unreachable!("expected Loop: {:?}", self);
     }
 
+    #[track_caller]
     pub fn expect_struct(&self) -> &Vec<Specification<EID, ET, AT>> {
         if let SpecificationSet::Struct(spec) = self {
             return spec;
