@@ -1139,7 +1139,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
                 // FIXME: the following line will panic if attempting to encode unsupported types.
-                let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs).unwrap();
+                let (encoded_lhs, ty, _) = self.encode_place(lhs).unwrap();
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
                         self.encode_assign_operand(&encoded_lhs, operand, location)?
@@ -1287,9 +1287,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Expr, vir::Expr, bool) {
         debug!("encode_loan_places '{:?}'", loan_places);
         // will panic if attempting to encode unsupported type
-        let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&loan_places.dest).unwrap();
+        let (expiring_base, expiring_ty, _) = self.encode_place(&loan_places.dest).unwrap();
         let encode = |rhs_place| {
-            let (restored, _, _) = self.mir_encoder.encode_place(rhs_place).unwrap();
+            let (restored, _, _) = self.encode_place(rhs_place).unwrap();
             let ref_field = self.encoder.encode_value_field(expiring_ty);
             let expiring = expiring_base.clone().field(ref_field.clone());
             (expiring, restored, ref_field)
@@ -1902,7 +1902,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ..
             } => {
                 // will panic if attempting to encode unsupported type
-                let (encoded_lhs, _, _) = self.mir_encoder.encode_place(lhs).unwrap();
+                let (encoded_lhs, _, _) = self.encode_place(lhs).unwrap();
                 stmts.extend(
                     self.encode_assign_operand(&encoded_lhs, value, location)?
                 );
@@ -2008,7 +2008,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             assert_eq!(args.len(), 1);
 
                             let (ref target_place, _) = destination.as_ref().unwrap();
-                            let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                            let (dst, dest_ty, _) = self.encode_place(target_place).unwrap();
                             let boxed_ty = dest_ty.boxed_ty();
                             let ref_field = self.encoder.encode_dereference_field(boxed_ty)
                                 .with_span(span)
@@ -2468,7 +2468,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             match destination.as_ref() {
                 Some((ref target_place, _)) => {
                     // will panic if attempting to encode unsupported type
-                    let (encoded_target, ty, _) = self.mir_encoder.encode_place(target_place).unwrap();
+                    let (encoded_target, ty, _) = self.encode_place(target_place).unwrap();
                     let target_local = if let Some(target_local) = target_place.as_local() {
                         target_local.into()
                     } else {
@@ -2809,7 +2809,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> vir::Expr {
         match destination.as_ref() {
             // will panic if attempting to encode unsupported type
-            Some((ref dst, _)) => self.mir_encoder.encode_place(dst).unwrap().0,
+            Some((ref dst, _)) => self.encode_place(dst).unwrap().0,
             None => unreachable!(),
         }
     }
@@ -4043,7 +4043,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     continue;
                 }
                 // will panic if attempting to encode unsupported type
-                let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place).unwrap();
+                let (encoded_place, ty, _) = self.encode_place(&mir_place).unwrap();
                 debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
                 match kind {
                     // Gives read permission to this node. It must not be a leaf node.
@@ -4074,7 +4074,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         if let Some(base) = utils::try_pop_deref(self.encoder.env().tcx(), mir_place)
                         {
                             // will panic if attempting to encode unsupported type
-                            let (_, ref_ty, _) = self.mir_encoder.encode_place(&base).unwrap();
+                            let (_, ref_ty, _) = self.encode_place(&base).unwrap();
                             match ref_ty.kind() {
                                 ty::TyKind::RawPtr(ty::TypeAndMut { mutbl, .. })
                                 | ty::TyKind::Ref(_, _, mutbl) => {
@@ -4136,7 +4136,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         // place after the loop and we need to preserve it via local
                                         // variables.
                                         let (encoded_child, _, _) =
-                                            self.mir_encoder.encode_place(&child_place).unwrap(); // will panic if attempting to encode unsupported type
+                                            self.encode_place(&child_place).unwrap(); // will panic if attempting to encode unsupported type
                                         equalities.push(self.construct_value_preserving_equality(
                                             loop_head,
                                             &encoded_child,
@@ -4507,7 +4507,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.mir_encoder.get_span_of_location(location);
         let stmts = match operand {
             mir::Operand::Move(ref place) => {
-                let (src, ty, _) = self.mir_encoder.encode_place(place).with_span(span)?;
+                let (src, ty, _) = self.encode_place(place).with_span(span)?;
                 let mut stmts = match ty.kind() {
                     ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => {
                         // Reborrow.
@@ -4543,7 +4543,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             mir::Operand::Copy(ref place) => {
-                let (src, ty, _) = self.mir_encoder.encode_place(place).with_span(span)?;
+                let (src, ty, _) = self.encode_place(place).with_span(span)?;
                 let mut stmts = if self.mir_encoder.is_reference(ty) {
                     let loan = self.polonius_info().get_loan_at_location(location);
                     let ref_field = self.encoder.encode_value_field(ty);
@@ -4862,7 +4862,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             src,
             location
         );
-        let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src).unwrap(); // will panic if attempting to encode unsupported type
+        let (encoded_src, src_ty, _) = self.encode_place(src).unwrap(); // will panic if attempting to encode unsupported type
         let stmts = match src_ty.kind() {
             ty::TyKind::Adt(ref adt_def, _) if !adt_def.is_box() => {
                 let num_variants = adt_def.variants.len();
@@ -4926,7 +4926,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location
         );
         let span = self.mir_encoder.get_span_of_location(location);
-        let (encoded_value, _, _) = self.mir_encoder.encode_place(place).with_span(span)?;
+        let (encoded_value, _, _) = self.encode_place(place).with_span(span)?;
         let loan = self.polonius_info().get_loan_at_location(location);
         let vir_assign_kind = match mir_borrow_kind {
             mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan.into()),
@@ -5373,6 +5373,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .filter(|&span| span.contains(loop_head_span))
             .min()
             .unwrap()
+    }
+
+    /// A local version of encode_place
+    fn encode_place(
+        &self,
+        place: &mir::Place<'tcx>,
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+        self.mir_encoder.encode_place(place)
     }
 }
 
