@@ -91,7 +91,7 @@ pub fn valid_func_for_type(typ: &vir::Type) -> vir::DomainFunc {
         vir::Type::Domain(name) => name.clone(),
         vir::Type::Bool | vir::Type::Int => PRIMITIVE_VALID_DOMAIN_NAME.to_string(),
         vir::Type::TypedRef(_) => unreachable!(),
-        vir::Type::Float => unimplemented!("Backend domain here, or unreachable is only built-in stuff has such a domain")
+        vir::Type::Float(_) => unimplemented!("Backend domain here, or unreachable is only built-in stuff has such a domain")
     };
 
     let arg_typ: vir::Type = match typ {
@@ -99,7 +99,7 @@ pub fn valid_func_for_type(typ: &vir::Type) -> vir::DomainFunc {
         vir::Type::Bool => vir::Type::Bool,
         vir::Type::Int => vir::Type::Int,
         vir::Type::TypedRef(_) => unreachable!(),
-        vir::Type::Float => unreachable!("backend arg type here!?"),
+        vir::Type::Float(_) => unreachable!("backend arg type here!?"),
     };
 
     let self_arg = vir_local!{ self: {arg_typ} };

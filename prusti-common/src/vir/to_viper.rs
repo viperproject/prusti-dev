@@ -77,7 +77,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             //Type::Ref |
             Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
-            Type::Float => unimplemented!("BackendType here"),
+            Type::Float(_) => unimplemented!("BackendType here"),
         }
     }
 }

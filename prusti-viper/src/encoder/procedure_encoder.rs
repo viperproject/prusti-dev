@@ -28,7 +28,7 @@ use prusti_common::{
         borrows::Borrow,
         collect_assigned_vars,
         fixes::fix_ghost_vars,
-        CfgBlockIndex, Expr, ExprIterator, Successor, Type,
+        CfgBlockIndex, Expr, ExprIterator, Successor, Type, FloatSize,
     },
 };
 use prusti_interface::{
@@ -893,7 +893,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Type::Bool => BuiltinMethodKind::HavocBool,
                 vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Float => unreachable!("BackendType has no built-in methods?"),
+                vir::Type::Float(FloatSize::F32) => BuiltinMethodKind::HavocF32,
+                vir::Type::Float(FloatSize::F64) => BuiltinMethodKind::HavocF64,
             };
             let stmt = vir::Stmt::MethodCall(
                 self.encoder.encode_builtin_method_use(builtin_method),
