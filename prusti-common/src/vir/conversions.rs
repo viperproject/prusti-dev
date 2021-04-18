@@ -203,17 +203,3 @@ impl<'a> From<&'a str> for Const {
         Const::BigInt(val.to_string())
     }
 }
-
-impl From<f64> for Expr {
-    fn from(val: f64) -> Self{
-        Expr::Const(val.into(), Position::default())
-    }
-}
-
-impl From<f64> for Const {
-    fn from(val: f64) -> Self {
-        Const::Float(val as f64)
-    }
-    
-    
-}

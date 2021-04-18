@@ -136,10 +136,9 @@ impl Ord for PermAmount {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum FloatSize {
+pub enum Float {
+    F64,
     F32,
-    F64,    
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -150,7 +149,7 @@ pub enum Type {
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
     Domain(String),
-    Float(FloatSize),
+    Float,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -225,7 +224,7 @@ impl Type {
             Type::Int => TypeId::Int,
             Type::TypedRef(_) => TypeId::Ref,
             Type::Domain(_) => TypeId::Domain,
-            Type::Float(_) => TypeId::Float,
+            Type::Float => TypeId::Float,
         }
     }
 }

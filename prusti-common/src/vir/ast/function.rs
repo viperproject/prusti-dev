@@ -74,7 +74,7 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
             Type::Bool => "$bool$",
             Type::TypedRef(ref name) => name,
             Type::Domain(ref name) => name,
-            Type::Float(_) => "$float$",
+            Type::Float => "$float$",
         }
     }
     for arg in formal_args {

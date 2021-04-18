@@ -893,8 +893,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Type::Bool => BuiltinMethodKind::HavocBool,
                 vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Float(FloatSize::F32) => BuiltinMethodKind::HavocF32,
-                vir::Type::Float(FloatSize::F64) => BuiltinMethodKind::HavocF64,
+                vir::Type::Float => unreachable!("BackendType has no built-in methods?"),
             };
             let stmt = vir::Stmt::MethodCall(
                 self.encoder.encode_builtin_method_use(builtin_method),

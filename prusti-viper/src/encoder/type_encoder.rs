@@ -192,7 +192,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     "TypeEncoder::encode_value_field should not be called for arrays"
                 ));
             }
-            ty::TyKind::Float(_) => unimplemented!("encode value field for floats"),
             ty::TyKind::Float(t) => {
                 match t {
                     rustc_middle::ty::FloatTy::F32 => vir::Field::new("val_float", vir::Type::Float(FloatSize::F32)),

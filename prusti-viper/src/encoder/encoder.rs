@@ -1102,8 +1102,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Uint(ty::UintTy::U64) => scalar_value.to_u64().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U128) => scalar_value.to_u128().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::Usize) => scalar_value.to_machine_usize(&self.env().tcx()).unwrap().into(),
-            ty::TyKind::Float(ty::FloatTy::F32) => unimplemented!("to_f32 not yet implemented"),
-            ty::TyKind::Float(ty::FloatTy::F64) => scalar_value.to_f64().unwrap().into(),
             ty::TyKind::FnDef(def_id, _) => {
                 self.encode_spec_funcs(*def_id)?;
                 vir::Expr::Const(vir::Const::FnPtr, vir::Position::default())
