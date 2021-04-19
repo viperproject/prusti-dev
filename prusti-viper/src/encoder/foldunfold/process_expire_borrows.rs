@@ -80,7 +80,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 surrounding_pctxt,
                 surrounding_block_index,
                 new_cfg,
-                curr_block_index)
+                curr_block_index)?
         } else {
             let pctxt = self.construct_initial_pctxt_with_predecessors(
                 dag, cfg,
@@ -100,7 +100,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         surrounding_block_index: vir::CfgBlockIndex,
         new_cfg: &vir::CfgMethod,
         curr_block_index: usize,
-    ) -> (PathCtxt<'p>, Vec<vir::Stmt>) {
+    ) -> Result<(PathCtxt<'p>, Vec<vir::Stmt>), FoldUnfoldError> {
         let curr_block = &cfg.basic_blocks[curr_block_index];
         let curr_node = &curr_block.node;
         let mut pctxt = surrounding_pctxt.clone();
@@ -127,9 +127,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             }
             pctxt
                 .mut_state()
-                .restore_dropped_perms(dropped_permissions.into_iter());
+                .restore_dropped_perms(dropped_permissions.into_iter())?;
         }
-        (pctxt, curr_block_pre_statements)
+        Ok((pctxt, curr_block_pre_statements))
     }
 
     fn construct_initial_pctxt_with_predecessors(&mut self,
@@ -175,7 +175,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 }
                 pctxt
                     .mut_state()
-                    .restore_dropped_perms(dropped_permissions.into_iter());
+                    .restore_dropped_perms(dropped_permissions.into_iter())?;
             }
             incoming_pctxt.push(pctxt);
         }
@@ -197,7 +197,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                                 perm, missing_perm
                             ));
                             stmts_to_add.push(comment);
-                            pctxt.mut_state().restore_dropped_perm(perm.clone());
+                            pctxt.mut_state().restore_dropped_perm(perm.clone())?;
                         }
                     }
                 }
@@ -336,7 +336,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                             let comment =
                                 format!("restored (in branch merge): {} ({})", perm, missing_perm);
                             stmts_to_add.push(vir::Stmt::comment(comment));
-                            final_pctxt.mut_state().restore_dropped_perm(perm.clone());
+                            final_pctxt.mut_state().restore_dropped_perm(perm.clone())?;
                         }
                     }
                 }

@@ -15,6 +15,7 @@ use crate::encoder::type_encoder::compute_discriminant_values;
 use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
+use crate::encoder::foldunfold::FoldUnfoldError;
 
 /// Encoder of memory equality functions
 pub struct MemoryEqEncoder {
@@ -240,7 +241,7 @@ impl MemoryEqEncoder {
                         variant_def,
                         subst,
                         vir::Position::default()
-                    );
+                    ).unwrap(); // TODO: propagate the error
                     vir::Expr::implies(guard, eq)
                 });
             conjuncts.extend(variants);
@@ -282,7 +283,7 @@ impl MemoryEqEncoder {
         self_variant: &ty::VariantDef,
         subst: ty::subst::SubstsRef<'tcx>,
         position: vir::Position,
-    ) -> vir::Expr {
+    ) -> EncodingResult<vir::Expr> {
         let typ = first.get_type().clone();
         assert!(&typ == second.get_type());
         let mut name = typ.name();
@@ -294,17 +295,17 @@ impl MemoryEqEncoder {
                 typ.clone(),
                 self_variant,
                 subst
-            );
+            )?;
         }
         let first_local_var = vir::LocalVar::new("self", typ.clone());
         let second_local_var = vir::LocalVar::new("other", typ);
-        vir::Expr::FuncApp(
+        Ok(vir::Expr::FuncApp(
             name,
             vec![first, second],
             vec![first_local_var, second_local_var],
             vir::Type::Bool,
             position,
-        )
+        ))
     }
 
     /// Note: We generate functions already with the required unfoldings because some types are

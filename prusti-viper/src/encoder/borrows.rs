@@ -391,7 +391,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
             self.current_path = Some(
                 self.tcx().mk_place_field(old_path.clone(), field, ty)
             );
-            self.visit_ty(ty);
+            self.visit_ty(ty)?;
         }
         self.current_path = Some(old_path);
         Ok(())

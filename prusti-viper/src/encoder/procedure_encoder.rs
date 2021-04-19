@@ -28,7 +28,7 @@ use prusti_common::{
         borrows::Borrow,
         collect_assigned_vars,
         fixes::fix_ghost_vars,
-        CfgBlockIndex, Expr, ExprIterator, FoldingBehaviour, Successor, Type,
+        CfgBlockIndex, Expr, ExprIterator, Successor, Type,
     },
 };
 use prusti_interface::{
@@ -806,7 +806,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         self.cfg_method.add_stmt(
             end_body_block,
-            vir::Stmt::Inhale(false.into(), vir::FoldingBehaviour::Stmt),
+            vir::Stmt::Inhale(false.into()),
         );
         heads.push(Some(end_body_block));
 
@@ -1047,6 +1047,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, Option<MirSuccessor>)> {
         debug!("Encode location {:?}", location);
+
+        // Encode statements to inform fold-unfold of the downcasts
+        let mut downcast_stmts = vec![];
+        for (place, variant_idx) in self.mir_encoder.get_downcasts_at_location(location).into_iter() {
+            let span = self.mir_encoder.get_span_of_location(location);
+            let (encoded_place, place_ty, _) = self.mir_encoder.encode_projection(
+                place.local,
+                &place.projection[..],
+            ).with_span(span)?;
+            let variant_field = if let ty::TyKind::Adt(adt_def, subst) = place_ty.kind() {
+                let variant_name = &adt_def.variants[variant_idx].ident.as_str();
+                self.encoder.encode_enum_variant_field(variant_name)
+            } else {
+                unreachable!()
+            };
+            downcast_stmts.push(vir::Stmt::Downcast(encoded_place, variant_field));
+        }
+
         let bb_data = &self.mir[location.block];
         let index = location.statement_index;
         let stmts_succ_res = if index < bb_data.statements.len() {
@@ -1082,17 +1100,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 } else {
                     format!("[mir] {:?}", bb_data.terminator())
                 };
-                let stmts = vec![
+                let mut stmts = downcast_stmts;
+                stmts.extend(vec![
                     vir::Stmt::comment(head_stmt),
                     vir::Stmt::comment(
                         format!("Unsupported feature: {}", unsupported_msg)
                     ),
                     vir::Stmt::Assert(
                         false.into(),
-                        vir::FoldingBehaviour::None,
                         pos
                     )
-                ];
+                ]);
                 Ok((stmts, Some(MirSuccessor::Kill)))
             }
         }
@@ -1310,6 +1328,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         lhs: vir::Expr,
         rhs: vir::Expr,
         location: mir::Location,
+        is_in_package_stmt: bool,
     ) -> Vec<vir::Stmt> {
         let mut stmts = if let Some(var) = self.old_to_ghost_var.get(&rhs) {
             vec![vir::Stmt::Assign(
@@ -1321,14 +1340,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vec![vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)]
         };
 
-        if self.check_foldunfold_state {
+        if self.check_foldunfold_state && !is_in_package_stmt {
             let pos = self
                 .encoder
                 .error_manager()
                 .register(self.mir.source_info(location).span, ErrorCtxt::Unexpected);
             stmts.push(vir::Stmt::Assert(
                 vir::Expr::eq_cmp(lhs.clone().into(), rhs.into()),
-                vir::FoldingBehaviour::Expr,
                 pos,
             ));
         }
@@ -1347,7 +1365,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.mir.span,
                 ErrorCtxt::Unexpected,
             );
-            stmts.push(vir::Stmt::Assert(expr, vir::FoldingBehaviour::Expr, pos));
+            stmts.push(vir::Stmt::Assert(expr, pos));
         }
 
         stmts
@@ -1381,6 +1399,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         zombie_loans: &[facts::Loan],
         location: mir::Location,
         end_location: Option<mir::Location>,
+        is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<vir::borrows::DAG> {
         let mir_dag = self
             .polonius_info()
@@ -1400,13 +1419,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         node,
                         location,
                         end_location,
+                        is_in_package_stmt,
                     )?,
                 ReborrowingKind::Call { loan, .. } => {
                     self.construct_vir_reborrowing_node_for_call(
                         &mir_dag,
                         loan,
                         node,
-                        location
+                        location,
+                        is_in_package_stmt
                     )?
                 }
                 ReborrowingKind::ArgumentMove { loan } => {
@@ -1448,6 +1469,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         node: &ReborrowingDAGNode,
         location: mir::Location,
         end_location: Option<mir::Location>,
+        is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<vir::borrows::Node> {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
         let span = self.mir_encoder.get_span_of_location(location);
@@ -1475,6 +1497,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         expiring.clone().old(&in_label),
                         expiring.clone().old(&lhs_label),
                         loan_location,
+                        is_in_package_stmt,
                     ));
                 }
             }
@@ -1500,6 +1523,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 lhs_place.clone(),
                 rhs_place,
                 loan_location,
+                is_in_package_stmt,
             ));
         }
 
@@ -1533,6 +1557,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loan: facts::Loan,
         node: &ReborrowingDAGNode,
         location: mir::Location,
+        is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<vir::borrows::Node> {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
         let span = self.mir_encoder.get_span_of_location(location);
@@ -1588,6 +1613,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         encoded_place.clone().old(&in_label),
                         encoded_place.clone().old(&post_label),
                         loan_location,
+                        is_in_package_stmt,
                     ));
                 }
             }
@@ -1596,6 +1622,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     encoded_place.clone(),
                     encoded_place.old(&post_label),
                     loan_location,
+                    is_in_package_stmt,
                 ));
             }
         }
@@ -1613,7 +1640,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             Some(loan.into()),
             pos,
         );
-        stmts.push(vir::Stmt::Inhale(magic_wand, vir::FoldingBehaviour::Stmt));
+        stmts.push(vir::Stmt::Inhale(magic_wand));
         // Emit the apply statement.
         let statement = vir::Stmt::apply_magic_wand(lhs, rhs, loan.into(), pos);
         debug!("{:?} at {:?}", statement, loan_location);
@@ -1644,6 +1671,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         zombie_loans: &[facts::Loan],
         location: mir::Location,
         end_location: Option<mir::Location>,
+        is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!(
             "encode_expiration_of_loans '{:?}' '{:?}'",
@@ -1653,7 +1681,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut stmts: Vec<vir::Stmt> = vec![];
         if loans.len() > 0 {
             let vir_reborrowing_dag =
-                self.construct_vir_reborrowing_dag(&loans, &zombie_loans, location, end_location)?;
+                self.construct_vir_reborrowing_dag(&loans, &zombie_loans, location, end_location, is_in_package_stmt)?;
             stmts.push(vir::Stmt::ExpireBorrows(vir_reborrowing_dag));
         }
         Ok(stmts)
@@ -1672,7 +1700,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .polonius_info()
             .get_all_loans_dying_between(begin_loc, end_loc);
         // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc), false)
     }
 
     fn encode_expiring_borrows_at(&mut self, location: mir::Location)
@@ -1680,7 +1708,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     {
         debug!("encode_expiring_borrows_at '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info().get_all_loans_dying_at(location);
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None, false)
     }
 
     /// Note: it's better to call `encode_statement_at` instead of this method.
@@ -1852,7 +1880,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .register(term.source_info.span, ErrorCtxt::AbortTerminator);
                 stmts.push(vir::Stmt::Assert(
                     false.into(),
-                    vir::FoldingBehaviour::Stmt,
                     pos,
                 ));
                 (stmts, MirSuccessor::Kill)
@@ -1968,7 +1995,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 )));
                                 stmts.push(vir::Stmt::Assert(
                                     false.into(),
-                                    vir::FoldingBehaviour::Stmt,
                                     pos,
                                 ));
                             } else {
@@ -2172,7 +2198,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 if self.check_panics {
                     stmts.push(vir::Stmt::Assert(
                         viper_guard,
-                        vir::FoldingBehaviour::Stmt,
                         self.encoder.error_manager().register(
                             term.source_info.span,
                             ErrorCtxt::AssertTerminator(msg.description().to_string()),
@@ -2180,7 +2205,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ));
                 } else {
                     stmts.push(vir::Stmt::comment("This assertion will not be checked"));
-                    stmts.push(vir::Stmt::Inhale(viper_guard, vir::FoldingBehaviour::Stmt));
+                    stmts.push(vir::Stmt::Inhale(viper_guard));
                 };
 
                 (stmts, MirSuccessor::Goto(target))
@@ -2234,7 +2259,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 inhaled_expr
             );
 
-            self.encode_transfer_args_permissions(location, args,  &mut stmts, label)?;
+            self.encode_transfer_args_permissions(location, args,  &mut stmts, label, false)?;
 
             Ok(stmts)
         } else {
@@ -2453,7 +2478,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // The return type is Never
                     // This means that the function call never returns
                     // So, we `assume false` after the function call
-                    stmts_after.push(vir::Stmt::Inhale(false.into(), vir::FoldingBehaviour::Stmt));
+                    stmts_after.push(vir::Stmt::Inhale(false.into()));
                     // Return a dummy local variable
                     let never_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Never);
                     (self.locals.get_fresh(never_ty), None)
@@ -2529,12 +2554,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .register(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
         stmts.push(vir::Stmt::Assert(
             replace_fake_exprs(pre_func_spec),
-            vir::FoldingBehaviour::Stmt, // TODO: Should be Expr.
             pos,
         ));
         stmts.push(vir::Stmt::Assert(
             replace_fake_exprs(pre_invs_spec),
-            vir::FoldingBehaviour::Stmt,
             pos,
         ));
         let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
@@ -2611,12 +2634,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let post_perm_spec = replace_fake_exprs(post_type_spec);
         stmts.push(vir::Stmt::Inhale(
             post_perm_spec.remove_read_permissions(),
-            vir::FoldingBehaviour::Stmt,
         ));
         if let Some(access) = return_type_spec {
             stmts.push(vir::Stmt::Inhale(
                 replace_fake_exprs(access),
-                vir::FoldingBehaviour::Stmt,
             ));
         }
         for (from_place, to_place) in read_transfer {
@@ -2628,11 +2649,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         stmts.push(vir::Stmt::Inhale(
             replace_fake_exprs(post_invs_spec),
-            vir::FoldingBehaviour::Stmt,
         ));
         stmts.push(vir::Stmt::Inhale(
             replace_fake_exprs(post_func_spec),
-            vir::FoldingBehaviour::Expr,
         ));
 
         // Exhale the permissions that were moved into magic wands.
@@ -2764,7 +2783,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             inhaled_expr
         );
 
-        self.encode_transfer_args_permissions(location, args,  &mut stmts, label);
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, label, false)?;
         Ok(stmts)
     }
 
@@ -2810,14 +2829,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         stmts.push(vir::Stmt::Inhale(
             type_predicate,
-            vir::FoldingBehaviour::Stmt,
         ));
 
         // Initialize the lhs
         stmts.push(
             vir::Stmt::Inhale(
                 call_result,
-                vir::FoldingBehaviour::Stmt,
             )
         );
 
@@ -2838,6 +2855,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         stmts: &mut Vec<vir::Stmt>,
         label: String,
+        is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<()> {
         let span = self.mir_encoder.get_span_of_location(location);
         for operand in args.iter() {
@@ -2860,6 +2878,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ref_place.clone(),
                         ref_place.clone().old(&label),
                         location,
+                        is_in_package_stmt,
                     ));
                 }
                 _ => {} // Nothing
@@ -3084,18 +3103,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?;
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale(type_spec, vir::FoldingBehaviour::Stmt),
+            vir::Stmt::Inhale(type_spec),
         );
         self.cfg_method.add_stmt(
             start_cfg_block,
             vir::Stmt::Inhale(
                 mandatory_type_spec.into_iter().conjoin(),
-                vir::FoldingBehaviour::Stmt,
             ),
         );
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale(invs_spec, vir::FoldingBehaviour::Stmt),
+            vir::Stmt::Inhale(invs_spec),
         );
         // Weakening assertion must be put before inhaling the precondition, otherwise the weakening
         // soundness check becomes trivially satisfied.
@@ -3103,12 +3121,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let pos = weakening_spec.pos();
             self.cfg_method.add_stmt(
                 start_cfg_block,
-                vir::Stmt::Assert(weakening_spec, FoldingBehaviour::Expr, pos),
+                vir::Stmt::Assert(weakening_spec, pos),
             );
         }
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale(func_spec, vir::FoldingBehaviour::Expr),
+            vir::Stmt::Inhale(func_spec),
         );
         self.cfg_method.add_stmt(
             start_cfg_block,
@@ -3599,7 +3617,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let (all_loans, zombie_loans) = self
                         .polonius_info()
                         .get_all_loans_kept_alive_by(start_point, region);
-                    self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)?
+                    self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None, true)?
                 } else {
                     // This happens when encoding the following function
                     // ```
@@ -3649,6 +3667,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         deref_place,
                         old_deref_place.clone(),
                         location,
+                        true,
                     ));
                     let predicate =
                         vir::Expr::pred_permission(old_deref_place, vir::PermAmount::Write)
@@ -3684,7 +3703,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.procedure_contract().def_id, None, path
                 ).with_span(span)?;
                 let old_place = encoded_place.clone().old(post_label.clone());
-                stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
+                stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location, true));
             }
         }
 
@@ -3856,7 +3875,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let pos = patched_strengthening_spec.pos();
             self.cfg_method.add_stmt(
                 return_cfg_block,
-                vir::Stmt::Assert(patched_strengthening_spec, FoldingBehaviour::Expr, pos),
+                vir::Stmt::Assert(patched_strengthening_spec, pos),
             );
         }
 
@@ -3872,7 +3891,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let patched_func_spec = self.replace_old_places_with_ghost_vars(None, func_spec);
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Assert(patched_func_spec, vir::FoldingBehaviour::Expr, func_pos),
+            vir::Stmt::Assert(patched_func_spec, func_pos),
         );
 
         // Assert type invariants
@@ -3883,7 +3902,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let patched_invs_spec = self.replace_old_places_with_ghost_vars(None, invs_spec);
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Assert(patched_invs_spec, vir::FoldingBehaviour::Stmt, type_inv_pos),
+            vir::Stmt::Assert(patched_invs_spec, type_inv_pos),
         );
 
         // Exhale permissions of postcondition
@@ -4289,13 +4308,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         stmts.push(vir::Stmt::Assert(
             func_spec.into_iter().conjoin(),
-            vir::FoldingBehaviour::Expr,
             assert_pos,
         ));
         let equalities_expr = equalities.into_iter().conjoin();
         stmts.push(vir::Stmt::Assert(
             equalities_expr,
-            vir::FoldingBehaviour::Expr,
             exhale_pos,
         ));
         let permission_expr = permissions.into_iter().conjoin();
@@ -4329,15 +4346,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ))];
         stmts.push(vir::Stmt::Inhale(
             permission_expr,
-            vir::FoldingBehaviour::Stmt,
         ));
         stmts.push(vir::Stmt::Inhale(
             equality_expr,
-            vir::FoldingBehaviour::Expr,
         ));
         stmts.push(vir::Stmt::Inhale(
             func_spec.into_iter().conjoin(),
-            vir::FoldingBehaviour::Expr,
         ));
         Ok(stmts)
     }
@@ -4732,7 +4746,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let mut inhale_acc = |place| {
                 alloc_stmts.push(vir::Stmt::Inhale(
                     vir::Expr::acc_permission(place, vir::PermAmount::Write),
-                    vir::FoldingBehaviour::Stmt,
                 ));
             };
             inhale_acc(encoded_lhs.clone().field(value_field.clone()));
@@ -4997,7 +5010,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.mir_encoder
                 .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
                 .unwrap(),
-            vir::FoldingBehaviour::Stmt,
         ));
         stmts
     }
@@ -5022,7 +5034,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let mut alloc_stmts = self.encode_havoc(&dst);
             let dst_field = dst.clone().field(field.clone());
             let acc = vir::Expr::acc_permission(dst_field, vir::PermAmount::Write);
-            alloc_stmts.push(vir::Stmt::Inhale(acc, vir::FoldingBehaviour::Stmt));
+            alloc_stmts.push(vir::Stmt::Inhale(acc));
             match vir_assign_kind {
                 vir::AssignKind::Copy => {
                     if field.typ.is_ref() {
@@ -5095,7 +5107,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> Vec<vir::Stmt> {
         let mut stmts = self.encode_havoc(&dst);
         let pred = vir::Expr::pred_permission(dst.clone(), vir::PermAmount::Write).unwrap();
-        stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
+        stmts.push(vir::Stmt::Inhale(pred));
         let eq = self.encoder.encode_memory_eq_func_app(
             src,
             dst,
@@ -5103,7 +5115,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vir::Position::default(),
             self.mir_encoder.get_span_of_location(location).into(),
         );
-        stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
+        stmts.push(vir::Stmt::Inhale(eq));
         stmts
     }
 
@@ -5127,8 +5139,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
             let pred =
                 vir::Expr::pred_permission(dst_field.clone(), vir::PermAmount::Write).unwrap();
-            stmts.push(vir::Stmt::Inhale(acc, vir::FoldingBehaviour::Stmt));
-            stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
+            stmts.push(vir::Stmt::Inhale(acc));
+            stmts.push(vir::Stmt::Inhale(pred));
             let src_field = src.clone().field(field.clone());
             let eq = self.encoder.encode_memory_eq_func_app(
                 src_field,
@@ -5137,7 +5149,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Position::default(),
                 self.mir_encoder.get_span_of_location(location).into(),
             );
-            stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
+            stmts.push(vir::Stmt::Inhale(eq));
         }
         Ok(stmts)
     }
@@ -5171,7 +5183,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir::Position::default(),
                     self.mir_encoder.get_span_of_location(location).into(),
                 );
-                stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
+                stmts.push(vir::Stmt::Inhale(eq));
                 stmts
             }
             ty::TyKind::Closure(_, _) => {
@@ -5253,19 +5265,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .encode_discriminant_func_app(dst.clone(), adt_def);
                     stmts.push(vir::Stmt::Inhale(
                         vir::Expr::eq_cmp(discriminant, discr_value.clone()),
-                        vir::FoldingBehaviour::Stmt,
                     ));
 
-                    if config::enable_purification_optimization() {
-                        // Temporary fix
-                        stmts.push(vir::Stmt::Assert(vir::Expr::eq_cmp(dst.clone().field(vir::Field {
-                            name: "discriminant".into(),
-                            typ: vir::Type::Int,
-                        }), discr_value.clone()), vir::FoldingBehaviour::Expr,  vir::Position::default()));
+                    let variant_name = &variant_def.ident.as_str();
+                    let new_dst_base = dst_base.variant(variant_name);
+                    let variant_field = if let vir::Expr::Variant(_, ref field, _) = new_dst_base {
+                        field.clone()
+                    } else {
+                        unreachable!()
+                    };
+
+                    if !variant_def.fields.is_empty() {
+                        stmts.push(vir::Stmt::Downcast(dst.clone(), variant_field));
                     }
 
-                    let variant_name = &variant_def.ident.as_str();
-                    dst_base = dst_base.variant(variant_name);
+                    dst_base = new_dst_base;
                 }
                 for (field_index, field) in variant_def.fields.iter().enumerate() {
                     let operand = &operands[field_index];

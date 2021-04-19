@@ -7,7 +7,8 @@
 use crate::encoder::foldunfold::action::*;
 use crate::encoder::foldunfold::log::EventLog;
 use crate::encoder::foldunfold::perm::*;
-use crate::encoder::foldunfold::permissions::*;
+use crate::encoder::foldunfold::requirements::*;
+use crate::encoder::foldunfold::footprint::*;
 use crate::encoder::foldunfold::places_utils::*;
 use crate::encoder::foldunfold::semantics::ApplyOnState;
 use crate::encoder::foldunfold::state::*;
@@ -27,6 +28,8 @@ pub struct PathCtxt<'a> {
     state: State,
     /// The definition of the predicates
     predicates: &'a HashMap<String, vir::Predicate>,
+    /// All usages of old expressions to consider
+    old_exprs: &'a HashMap<String, Vec<vir::Expr>>,
     /// A log of some of the relevant actions that lead to this fold-unfold context
     log: EventLog,
 }
@@ -35,6 +38,7 @@ impl<'a> PathCtxt<'a> {
     pub fn new(
         local_vars: Vec<vir::LocalVar>,
         predicates: &'a HashMap<String, vir::Predicate>,
+        old_exprs: &'a HashMap<String, Vec<vir::Expr>>,
     ) -> Self {
         PathCtxt {
             state: State::new(
@@ -47,6 +51,7 @@ impl<'a> PathCtxt<'a> {
                 HashSet::new(),
             ),
             predicates,
+            old_exprs,
             log: EventLog::new(),
         }
     }
@@ -73,6 +78,10 @@ impl<'a> PathCtxt<'a> {
 
     pub fn predicates(&self) -> &HashMap<String, vir::Predicate> {
         self.predicates
+    }
+
+    pub fn old_exprs(&self) -> &HashMap<String, Vec<vir::Expr>> {
+        self.old_exprs
     }
 
     /// Simulate an unfold
@@ -104,7 +113,7 @@ impl<'a> PathCtxt<'a> {
 
         let pred_self_place: vir::Expr = predicate.self_place();
         let places_in_pred: Vec<Perm> = predicate
-            .get_permissions_with_variant(&variant)
+            .get_body_footprint(&variant)
             .into_iter()
             .map(|perm| {
                 perm.map_place(|p| p.replace_place(&pred_self_place, pred_place))
@@ -514,7 +523,6 @@ impl<'a> PathCtxt<'a> {
 
         // 1. Check if the requirement is satisfied
         if self.state.contains_perm(req) {
-            // `req` is satisfied, so we can remove it from `reqs`
             trace!("[exit] obtain: Requirement {} is satisfied", req);
             return Ok(ObtainResult::Success(actions));
         }
@@ -548,7 +556,7 @@ impl<'a> PathCtxt<'a> {
                 perm_amount,
                 req.get_perm_amount(),
             );
-            let variant = self.find_variant(
+            let variant = find_variant(
                 &existing_pred_to_unfold,
                 req.get_place()
             );
@@ -574,7 +582,7 @@ impl<'a> PathCtxt<'a> {
             let predicate_name = req.typed_ref_name().unwrap();
             let predicate = self.predicates.get(&predicate_name).unwrap();
 
-            let variant = self.find_fold_variant(req);
+            let variant = find_unfolded_variant(&self.state, req.get_place());
 
             // Find an access permission for which req is a proper suffix
             let existing_proper_perm_extension_opt: Option<_> = self
@@ -585,7 +593,7 @@ impl<'a> PathCtxt<'a> {
 
             let pred_self_place: vir::Expr = predicate.self_place();
             let places_in_pred: Vec<Perm> = predicate
-                .get_permissions_with_variant(&variant)
+                .get_body_footprint(&variant)
                 .into_iter()
                 .map(|perm| perm.map_place(|p| p.replace_place(&pred_self_place, req.get_place())))
                 .collect();
@@ -653,14 +661,14 @@ impl<'a> PathCtxt<'a> {
                 actions.push(fold_action);
 
                 // Simulate folding of `req`
-                assert!(self.state.contains_all_perms(scaled_places_in_pred.iter()));
-                assert!(
+                debug_assert!(self.state.contains_all_perms(scaled_places_in_pred.iter()));
+                debug_assert!(
                     !req.get_place().is_simple_place() || self.state.contains_acc(req.get_place()),
                     "req={} state={}",
                     req.get_place(),
                     self.state
                 );
-                assert!(!self.state.contains_pred(req.get_place()));
+                debug_assert!(!self.state.contains_pred(req.get_place()));
                 self.state.remove_all_perms(scaled_places_in_pred.iter())?;
                 self.state.insert_pred(req.get_place().clone(), perm_amount)?;
 
@@ -712,7 +720,7 @@ Predicates: {{
     }
 
     /// Returns some of the dropped permissions
-    pub fn apply_stmt(&mut self, stmt: &vir::Stmt) {
+    pub fn apply_stmt(&mut self, stmt: &vir::Stmt) -> Result<(), FoldUnfoldError> {
         debug!("apply_stmt: {}", stmt);
 
         trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
@@ -720,12 +728,14 @@ Predicates: {{
 
         self.state.check_consistency();
 
-        stmt.apply_on_state(&mut self.state, self.predicates);
+        stmt.apply_on_state(&mut self.state, self.predicates)?;
 
         trace!("Acc state after: {{\n{}\n}}", self.state.display_acc());
         trace!("Pred state after: {{\n{}\n}}", self.state.display_pred());
 
         self.state.check_consistency();
+
+        Ok(())
     }
 
     pub fn obtain_permissions(
@@ -734,6 +744,14 @@ Predicates: {{
     ) -> Result<Vec<Action>, FoldUnfoldError> {
         trace!(
             "[enter] obtain_permissions: {}",
+            permissions.iter().to_string()
+        );
+
+        // Solve conflicting requirements
+        // See issue https://github.com/viperproject/prusti-dev/issues/362
+        let permissions = solve_conficts(permissions);
+        trace!(
+            "After solving conflicts: {}",
             permissions.iter().to_string()
         );
 
@@ -752,46 +770,50 @@ Predicates: {{
         trace!("[exit] obtain_permissions: {}", actions.iter().to_string());
         Ok(actions)
     }
+}
 
-    /// Find the variant of enum that `place` has.
-    fn find_variant(
-        &self,
-        place: &vir::Expr,
-        prefixed_place: &vir::Expr,
-    ) -> vir::MaybeEnumVariantIndex {
-        trace!(
-            "[enter] find_variant(place={}, prefixed_place={})",
-            place,
-            prefixed_place
-        );
-        let parent = prefixed_place.get_parent_ref().unwrap();
-        let result = if place == parent {
-            match prefixed_place {
-                vir::Expr::Variant(_, field, _) => Some(field.into()),
-                _ => None,
-            }
-        } else {
-            self.find_variant(place, parent)
-        };
-        trace!(
-            "[exit] find_variant(place={}, prefixed_place={}) = {:?}",
-            place,
-            prefixed_place,
-            result
-        );
+
+/// Find in `variant_place` the variant index of the enum encoded by `enum_place`.
+fn find_variant(
+    enum_place: &vir::Expr,
+    variant_place: &vir::Expr,
+) -> vir::MaybeEnumVariantIndex {
+    trace!(
+        "[enter] find_variant(enum_place={}, variant_place={})",
+        enum_place,
+        variant_place
+    );
+    let parent = variant_place.get_parent_ref().unwrap();
+    let result = if enum_place == parent {
+        match variant_place {
+            vir::Expr::Variant(_, field, _) => Some(field.into()),
+            _ => None,
+        }
+    } else {
+        find_variant(enum_place, parent)
+    };
+    trace!(
+        "[exit] find_variant(place={}, variant_place={}) = {:?}",
+        enum_place,
+        variant_place,
         result
-    }
+    );
+    result
+}
 
-    /// Find the variant of enum that should be folded.
-    fn find_fold_variant(&self, req: &Perm) -> vir::MaybeEnumVariantIndex {
-        let req_place = req.get_place();
-        // Find an access permission for which req is a proper suffix and extract variant from it.
-        self.state
-            .acc_places()
-            .into_iter()
-            .find(|place| place.has_proper_prefix(req_place) && place.is_variant())
-            .and_then(|prefixed_place| self.find_variant(req_place, &prefixed_place))
-    }
+/// Find the variant of the place encoding an expression.
+/// Note: the place needs to be unfolded and downcasted for this to work.
+pub fn find_unfolded_variant(state: &State, enum_place: &vir::Expr) -> vir::MaybeEnumVariantIndex {
+    debug_assert!(enum_place.is_place());
+    // Find an access permission for which req is a proper suffix and extract variant from it.
+    let variants: HashSet<_> = state
+        .acc_places()
+        .into_iter()
+        .filter(|place| place.has_proper_prefix(enum_place) && place.is_variant())
+        .flat_map(|variant_place| find_variant(enum_place, &variant_place))
+        .collect();
+    debug_assert!(variants.len() <= 1);
+    variants.into_iter().next()
 }
 
 /// Computes a pair of sets of places that should be obtained. The first
@@ -868,6 +890,27 @@ pub fn compute_fold_target(
         .cloned()
         .collect();
     (acc_places, pred_places)
+}
+
+/// Solve conflicting requirements.
+///
+/// Example:
+/// * Conflicting requirements: `P(x.f) && P(x.f.g) && acc(x.f.g)`
+/// * Solution: `P(x.f)`
+/// * Explanation: `P(x.f.g)` and `acc(x.f.g)` can be obtained with an unfolding expression,
+///   which is always allowed.
+///
+/// See also: issue https://github.com/viperproject/prusti-dev/issues/362
+fn solve_conficts(perms: Vec<Perm>) -> Vec<Perm> {
+    // TODO: the time complexity is quadratic, but it can be improved (as many other functions
+    //   used in fold-unfold) by building and using the prefix tree of a set of `Perm`.
+    perms.iter()
+        .filter(|p| {
+            let p_place = p.get_place();
+            !perms.iter().any(|q| q.is_pred() && p_place.has_proper_prefix(q.get_place()))
+        })
+        .cloned()
+        .collect()
 }
 
 /// Result of the obtain operation. Either success and a list of actions, or failure and the

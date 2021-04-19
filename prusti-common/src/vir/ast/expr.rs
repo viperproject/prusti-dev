@@ -47,6 +47,13 @@ pub enum Expr {
     // DomainFuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, String, Position),
     /// Inhale Exhale: inhale expression, exhale expression, Viper position (unused)
     InhaleExhale(Box<Expr>, Box<Expr>, Position),
+    /// Inform the fold-unfold algorithm that at this program point a enum type can be downcasted
+    /// to one of its variants. This statement is a no-op for Viper.
+    /// Arguments:
+    /// * expression in which the downcast is visible
+    /// * place to the enumeration that is downcasted
+    /// * field that encodes the variant
+    Downcast(Box<Expr>, Box<Expr>, Field),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -119,9 +126,12 @@ impl fmt::Display for Expr {
             Expr::Unfolding(ref pred_name, ref args, ref expr, perm, ref variant, ref _pos) => {
                 write!(
                     f,
-                    "(unfolding acc({}:{:?}({}), {}) in {})",
-                    pred_name,
-                    variant,
+                    "(unfolding acc({}({}), {}) in {})",
+                    if let Some(variant_index) = variant {
+                        format!("{}<variant {}>", pred_name, variant_index)
+                    } else {
+                        format!("{}", pred_name)
+                    },
                     args.iter()
                         .map(|x| x.to_string())
                         .collect::<Vec<String>>()
@@ -199,6 +209,14 @@ impl fmt::Display for Expr {
 
             Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) =>
                 write!(f, "[({}), ({})]", inhale_expr, exhale_expr),
+
+            Expr::Downcast(ref base, ref enum_place, ref field) => write!(
+                f,
+                "(downcast {} to {} in {})",
+                enum_place.to_string(),
+                field,
+                base.to_string(),
+            ),
         }
     }
 }
@@ -246,26 +264,27 @@ impl fmt::Display for Const {
 
 impl Expr {
     pub fn pos(&self) -> Position {
-        *match self {
-            Expr::Local(_, p) => p,
-            Expr::Variant(_, _, p) => p,
-            Expr::Field(_, _, p) => p,
-            Expr::AddrOf(_, _, p) => p,
-            Expr::Const(_, p) => p,
-            Expr::LabelledOld(_, _, p) => p,
-            Expr::MagicWand(_, _, _, p) => p,
-            Expr::PredicateAccessPredicate(_, _, _, p) => p,
-            Expr::FieldAccessPredicate(_, _, p) => p,
-            Expr::UnaryOp(_, _, p) => p,
-            Expr::BinOp(_, _, _, p) => p,
-            Expr::Unfolding(_, _, _, _, _, p) => p,
-            Expr::Cond(_, _, _, p) => p,
-            Expr::ForAll(_, _, _, p) => p,
-            Expr::LetExpr(_, _, _, p) => p,
-            Expr::FuncApp(_, _, _, _, p) => p,
-            Expr::DomainFuncApp(_, _, p) => p,
+        match self {
+            Expr::Local(_, p)
+            | Expr::Variant(_, _, p)
+            | Expr::Field(_, _, p)
+            | Expr::AddrOf(_, _, p)
+            | Expr::Const(_, p)
+            | Expr::LabelledOld(_, _, p)
+            | Expr::MagicWand(_, _, _, p)
+            | Expr::PredicateAccessPredicate(_, _, _, p)
+            | Expr::FieldAccessPredicate(_, _, p)
+            | Expr::UnaryOp(_, _, p)
+            | Expr::BinOp(_, _, _, p)
+            | Expr::Unfolding(_, _, _, _, _, p)
+            | Expr::Cond(_, _, _, p)
+            | Expr::ForAll(_, _, _, p)
+            | Expr::LetExpr(_, _, _, p)
+            | Expr::FuncApp(_, _, _, _, p)
+            | Expr::DomainFuncApp(_, _, p)
+            | Expr::InhaleExhale(_, _, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
-            Expr::InhaleExhale(_, _, p) => p,
+            Expr::Downcast(box ref base, ..) => base.pos(),
         }
     }
 
@@ -294,6 +313,7 @@ impl Expr {
             Expr::DomainFuncApp(x,y,_) => Expr::DomainFuncApp(x,y,pos),
             // TODO Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
             Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
+            x => x,
         }
     }
 
@@ -470,6 +490,10 @@ impl Expr {
 
     pub fn magic_wand(lhs: Expr, rhs: Expr, borrow: Option<Borrow>) -> Self {
         Expr::MagicWand(box lhs, box rhs, borrow, Position::default())
+    }
+
+    pub fn downcast(base: Expr, enum_place: Expr, variant_field: Field) -> Self {
+        Expr::Downcast(box base, box enum_place, variant_field)
     }
 
     pub fn find(&self, sub_target: &Expr) -> bool {
@@ -1026,6 +1050,7 @@ impl Expr {
             Expr::InhaleExhale(..) => {
                 unreachable!("Unexpected expression: {:?}", self);
             }
+            Expr::Downcast(box ref base, ..) => base.get_type(),
         }
     }
 
@@ -1371,7 +1396,8 @@ impl Expr {
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)
-                    | Expr::InhaleExhale(..) => true.into(),
+                    | Expr::InhaleExhale(..)
+                    | Expr::Downcast(..) => true.into(),
                 }
             }
         }
@@ -1599,6 +1625,9 @@ impl Hash for Expr {
             }
             Expr::InhaleExhale(box ref inhale_expr, box ref exhale_expr, _) => {
                 (inhale_expr, exhale_expr).hash(state)
+            }
+            Expr::Downcast(box ref base, box ref enum_place, ref field) => {
+                (base, enum_place, field).hash(state)
             }
         }
     }

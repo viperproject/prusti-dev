@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::mem;
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{PanicCause, RunIfErr};
@@ -471,6 +472,39 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
     pub(super) fn mir_encoder(&self) -> &MirEncoder<'p, 'v, 'tcx> {
         &self.mir_encoder
     }
+
+    /// Wrap all expressions contained in the state with downcast information to be used by the
+    /// fold-unfold pass.
+    fn apply_downcasts(&self, state: &mut MultiExprBackwardInterpreterState, location: mir::Location)
+        -> SpannedEncodingResult<()>
+    {
+        // This assertion is just to check the time complexity.
+        // MultiExprBackwardInterpreterState is more generic than needed.
+        debug_assert_eq!(state.exprs().len(), 1);
+
+        let span = self.mir_encoder.get_span_of_location(location);
+        for expr in state.exprs_mut() {
+            let downcasts = self.mir_encoder.get_downcasts_at_location(location);
+            // Reverse `downcasts` because the encoding works backward
+            for (place, variant_idx) in downcasts.into_iter().rev() {
+                let (encoded_place, place_ty, _) = self.mir_encoder.encode_projection(
+                    place.local,
+                    &place.projection[..],
+                ).with_span(span)?;
+                let variant_field = if let ty::TyKind::Adt(adt_def, subst) = place_ty.kind() {
+                    let variant_name = &adt_def.variants[variant_idx].ident.as_str();
+                    self.encoder.encode_enum_variant_field(variant_name)
+                } else {
+                    unreachable!()
+                };
+                // Replace two times to avoid cloning `expr`, which could be big.
+                let base = mem::replace(expr, true.into());
+                let new_expr = vir::Expr::downcast(base, encoded_place, variant_field);
+                let _ = mem::replace(expr, new_expr);
+            }
+        }
+        Ok(())
+    }
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
@@ -481,13 +515,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
     fn apply_terminator(
         &self,
-        _bb: mir::BasicBlock,
+        bb: mir::BasicBlock,
         term: &mir::Terminator<'tcx>,
         states: HashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
         trace!("apply_terminator {:?}, states: {:?}", term, states);
         use rustc_middle::mir::TerminatorKind;
         let span = term.source_info.span;
+        let location = self.mir.terminator_loc(bb);
 
         // Generate a function call that leaves the expression undefined.
         let unreachable_expr = |pos| {
@@ -511,7 +546,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             })
         };
 
-        Ok(match term.kind {
+        let mut state = match term.kind {
             TerminatorKind::Unreachable => {
                 assert!(states.is_empty());
                 let pos = self
@@ -926,18 +961,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             TerminatorKind::InlineAsm { .. } => {
                 unimplemented!("{:?}", term.kind)
             }
-        })
+        };
+
+        self.apply_downcasts(&mut state, location)?;
+
+        Ok(state)
     }
 
     fn apply_statement(
         &self,
-        _bb: mir::BasicBlock,
-        _stmt_index: usize,
+        bb: mir::BasicBlock,
+        stmt_index: usize,
         stmt: &mir::Statement<'tcx>,
         state: &mut Self::State,
     ) -> Result<(), Self::Error> {
         trace!("apply_statement {:?}, state: {}", stmt, state);
         let span = stmt.source_info.span;
+        let location = mir::Location {
+            block: bb,
+            statement_index: stmt_index,
+        };
 
         match stmt.kind {
             mir::StatementKind::StorageLive(..)
@@ -1244,6 +1287,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
             ref stmt => unimplemented!("encoding of '{:?}'", stmt),
         }
+
+        self.apply_downcasts(state, location)?;
 
         Ok(())
     }

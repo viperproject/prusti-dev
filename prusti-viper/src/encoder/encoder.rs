@@ -564,13 +564,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// Creates a field that corresponds to the enum variant ``index``.
-    pub fn encode_enum_variant_field(&self, index: &str) {
+    pub fn encode_enum_variant_field(&self, index: &str) -> vir::Field {
         let name = format!("enum_{}", index);
         let mut fields = self.fields.borrow_mut();
         if !fields.contains_key(&name) {
             let field = vir::Field::new(name.clone(), vir::Type::TypedRef("".to_string()));
-            fields.insert(name, field);
+            fields.insert(name.clone(), field);
         }
+        fields.get(&name).cloned().unwrap()
     }
 
     pub fn encode_discriminant_field(&self) -> vir::Field {
@@ -631,6 +632,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     posts: vec![postcondition],
                     body: Some(self_local_var_expr.field(discr_field)),
                 };
+
+                self.log_vir_program_before_foldunfold(function.to_string());
+
                 let final_function = foldunfold::add_folding_unfolding_to_function(
                     function,
                     self.get_used_viper_predicates_map(),

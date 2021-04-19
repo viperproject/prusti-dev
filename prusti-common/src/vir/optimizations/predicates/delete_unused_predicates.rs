@@ -50,7 +50,8 @@ fn get_used_predicates_in_predicate_map(
             }
             Predicate::Struct(StructPredicate { body: None, .. }) => { /* ignore */ }
             Predicate::Enum(p) => {
-                ExprWalker::walk(&mut collector, &p.discriminant);
+                let discriminant_loc = Expr::from(p.this.clone()).field(p.discriminant_field.clone());
+                ExprWalker::walk(&mut collector, &discriminant_loc);
                 ExprWalker::walk(&mut collector, &p.discriminant_bounds);
 
                 for (e, _, sp) in &p.variants {

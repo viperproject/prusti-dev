@@ -5,18 +5,20 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::foldunfold::perm::*;
-use crate::encoder::foldunfold::permissions::*;
+use crate::encoder::foldunfold::requirements::*;
+use crate::encoder::foldunfold::footprint::*;
 use crate::encoder::foldunfold::state::*;
 use prusti_common::vir;
 use std::collections::HashMap;
 use log::{debug, trace};
 use crate::encoder::foldunfold::FoldUnfoldError;
+use crate::encoder::foldunfold::path_ctxt::find_unfolded_variant;
 
 fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>)
     -> Result<(), FoldUnfoldError>
 {
     state.insert_all_perms(
-        expr.get_permissions(predicates)
+        expr.get_footprint(predicates)
             .into_iter()
             .filter(|p| !(p.is_local() && p.is_acc())),
     )
@@ -26,8 +28,8 @@ fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String,
     -> Result<(), FoldUnfoldError>
 {
     state.remove_all_perms(
-        expr.get_permissions(predicates)
-            .iter()
+        expr.get_footprint(predicates)
+            .into_iter()
             .filter(|p| p.is_curr() || p.is_pred())
             .filter(|p| !(p.is_local() && p.is_acc()))
             // Hack for final exhale of method: do not remove "old[pre](..)" permissions from state
@@ -51,15 +53,15 @@ impl ApplyOnState for vir::Stmt {
         match self {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
-            | &vir::Stmt::Assert(_, _, _)
+            | &vir::Stmt::Assert(_, _)
             | &vir::Stmt::Obtain(_, _) => {}
 
-            &vir::Stmt::Inhale(ref expr, _) => {
-                inhale_expr(expr, state, predicates);
+            &vir::Stmt::Inhale(ref expr) => {
+                inhale_expr(expr, state, predicates)?;
             }
 
             &vir::Stmt::Exhale(ref expr, _) => {
-                exhale_expr(expr, state, predicates);
+                exhale_expr(expr, state, predicates)?;
             }
 
             &vir::Stmt::MethodCall(_, _, ref targets) => {
@@ -122,7 +124,7 @@ impl ApplyOnState for vir::Stmt {
                                     (p.clone().replace_place(&rhs, lhs_place), *perm_amount)
                                 })
                                 .filter(|(p, _)| !p.is_local());
-                            state.insert_all_acc(new_acc_places);
+                            state.insert_all_acc(new_acc_places)?;
 
                             let new_pred_places = original_state
                                 .pred()
@@ -131,7 +133,7 @@ impl ApplyOnState for vir::Stmt {
                                 .map(|(p, perm_amount)| {
                                     (p.clone().replace_place(&rhs, lhs_place), *perm_amount)
                                 });
-                            state.insert_all_pred(new_pred_places);
+                            state.insert_all_pred(new_pred_places)?;
 
                             // Finally, mark the rhs as moved
                             if !rhs.has_prefix(lhs_place) {
@@ -179,7 +181,7 @@ impl ApplyOnState for vir::Stmt {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<Perm> = predicate
-                    .get_permissions_with_variant(variant)
+                    .get_body_footprint(variant)
                     .into_iter()
                     .map(|perm| {
                         perm.map_place(|p| p.replace_place(&pred_self_place, place))
@@ -210,7 +212,7 @@ impl ApplyOnState for vir::Stmt {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<_> = predicate
-                    .get_permissions_with_variant(variant)
+                    .get_body_footprint(variant)
                     .into_iter()
                     .map(|aop| aop.map_place(|p| p.replace_place(&pred_self_place, place)))
                     .collect();
@@ -287,8 +289,8 @@ impl ApplyOnState for vir::Stmt {
                     original_state.display_pred()
                 );
 
-                state.insert_all_acc(new_acc_places.into_iter());
-                state.insert_all_pred(new_pred_places.into_iter());
+                state.insert_all_acc(new_acc_places.into_iter())?;
+                state.insert_all_pred(new_pred_places.into_iter())?;
 
                 // Move also the acc permission if the rhs is old.
                 if state.contains_acc(lhs_place) && !state.contains_acc(rhs_place) {
@@ -342,17 +344,50 @@ impl ApplyOnState for vir::Stmt {
                 //for stmt in package_stmts {
                 //    stmt.apply_on_state(state, predicates);
                 //}
-                exhale_expr(rhs, state, predicates);
-                inhale_expr(lhs, state, predicates);
+                exhale_expr(rhs, state, predicates)?;
+                inhale_expr(lhs, state, predicates)?;
             }
 
             &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs, _, _), _) => {
-                exhale_expr(lhs, state, predicates);
-                inhale_expr(rhs, state, predicates);
+                exhale_expr(lhs, state, predicates)?;
+                inhale_expr(rhs, state, predicates)?;
             }
 
             &vir::Stmt::ExpireBorrows(ref _dag) => {
                 // TODO: #133
+            }
+
+            &vir::Stmt::Downcast(ref enum_place, ref variant_field) => {
+                if let Some(found_variant) = find_unfolded_variant(state, enum_place) {
+                    // The enum has already been downcasted.
+                    debug_assert!(variant_field.name.ends_with(found_variant.get_variant_name()));
+                    debug!("Place {} has already been downcasted to {}", enum_place, variant_field);
+                } else {
+                    debug!("Downcast {} to {}", enum_place, variant_field);
+                    let predicate_name = enum_place.typed_ref_name().unwrap();
+                    let predicate = predicates.get(&predicate_name).unwrap();
+                    if let vir::Predicate::Enum(enum_predicate) = predicate {
+                        let discriminant_place = enum_place.clone()
+                            .field(enum_predicate.discriminant_field.clone());
+                        if let Some(perm_amount) = state.acc().get(&discriminant_place).copied() {
+                            // Add the permissions of the variant
+                            let self_place: vir::Expr = enum_predicate.this.clone().into();
+                            let variant_footprint: Vec<_> = enum_predicate.get_variant_footprint(
+                                &variant_field.into()
+                            ).into_iter().map(|perm|
+                                // Update the permissiona and replace `self` with `enum_place`
+                                perm.update_perm_amount(perm_amount)
+                                    .map_place(|place| place.replace_place(&self_place, enum_place))
+                            ).collect();
+                            trace!("Downcast adds variant's footprint {:?}", variant_footprint);
+                            state.insert_all_perms(variant_footprint.into_iter())?;
+                        } else {
+                            debug!("Place {} has not been unfolded yet", discriminant_place);
+                        }
+                    } else {
+                        unreachable!()
+                    }
+                }
             }
 
             ref x => unimplemented!("{}", x),

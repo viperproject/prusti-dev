@@ -253,6 +253,10 @@ impl MultiExprBackwardInterpreterState {
         &self.exprs
     }
 
+    pub fn exprs_mut(&mut self) -> &mut Vec<vir::Expr> {
+        &mut self.exprs
+    }
+
     pub fn into_expressions(self) -> Vec<vir::Expr> {
         self.exprs
     }

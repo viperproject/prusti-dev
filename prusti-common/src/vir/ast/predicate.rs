@@ -6,6 +6,7 @@
 
 use vir::ast::*;
 use std::fmt;
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Predicate {
@@ -80,17 +81,18 @@ impl Predicate {
     /// variants.
     pub fn new_enum(
         this: LocalVar,
-        discriminant: Expr,
+        discriminant_field: Field,
         discriminant_bounds: Expr,
         variants: Vec<(Expr, String, StructPredicate)>,
     ) -> Predicate {
         let predicate_name = this.typ.name();
+        debug_assert!(variants.iter().map(|(_, name, _)| name.to_string()).collect::<HashSet<_>>().len() == variants.len());
         Predicate::Enum(EnumPredicate {
             name: predicate_name,
-            this: this,
-            discriminant: discriminant,
-            discriminant_bounds: discriminant_bounds,
-            variants: variants,
+            this,
+            discriminant_field,
+            discriminant_bounds,
+            variants,
         })
     }
     /// A `self` place getter.
@@ -199,7 +201,7 @@ pub struct EnumPredicate {
     /// The self reference.
     pub this: LocalVar,
     /// The discriminant field.
-    pub discriminant: Expr,
+    pub discriminant_field: Field,
     /// The restrictions of the discriminant field.
     pub discriminant_bounds: Expr,
     /// `(guard, variant_name, variant_predicate)` of the enum. `guard`
@@ -232,7 +234,7 @@ impl<'a> Into<EnumVariantIndex> for &'a Field {
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "enum_predicate {}({}){{\n", self.name, self.this)?;
-        write!(f, "  discriminant={}\n", self.discriminant)?;
+        write!(f, "  discriminant_field={}\n", self.discriminant_field)?;
         for (guard, name, variant) in self.variants.iter() {
             writeln!(f, "  {}: {} ==> {}\n", name, guard, variant)?;
         }
@@ -249,7 +251,8 @@ impl fmt::Display for EnumVariantIndex {
 impl EnumPredicate {
     /// Construct an expression that represents the body of this predicate.
     pub fn body(&self) -> Expr {
-        let discriminant_perm = Expr::acc_permission(self.discriminant.clone(), PermAmount::Write);
+        let discriminant_loc = Expr::from(self.this.clone()).field(self.discriminant_field.clone());
+        let discriminant_perm = Expr::acc_permission(discriminant_loc, PermAmount::Write);
         let mut parts = vec![discriminant_perm, self.discriminant_bounds.clone()];
         for (guard, name, variant) in self.variants.iter() {
             if variant.has_empty_body() {

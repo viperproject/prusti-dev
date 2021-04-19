@@ -67,17 +67,16 @@ impl vir::StmtFolder for Optimizer {
     fn fold_assert(
         &mut self,
         expr: vir::Expr,
-        folding: vir::FoldingBehaviour,
         pos: vir::Position,
     ) -> vir::Stmt {
         let pulled_unfodling = self.replace_expr_unfolding(expr);
         let replaced_old = self.replace_expr_old(pulled_unfodling);
-        vir::Stmt::Assert(replaced_old, folding, pos)
+        vir::Stmt::Assert(replaced_old, pos)
     }
-    fn fold_inhale(&mut self, expr: vir::Expr, folding: vir::FoldingBehaviour) -> vir::Stmt {
+    fn fold_inhale(&mut self, expr: vir::Expr) -> vir::Stmt {
         let pulled_unfodling = self.replace_expr_unfolding(expr);
         let replaced_old = self.replace_expr_old(pulled_unfodling);
-        vir::Stmt::Inhale(replaced_old, folding)
+        vir::Stmt::Inhale(replaced_old)
     }
 }
 

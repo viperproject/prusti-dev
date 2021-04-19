@@ -154,7 +154,7 @@ fn read_setting<T>(name: &'static str) -> T
 where
     T: Deserialize<'static>,
 {
-    read_optional_setting(name).unwrap()
+    read_optional_setting(name).expect(&format!("Failed to read setting {:?}", name))
 }
 
 /// Should Prusti behave exactly like rustc?
