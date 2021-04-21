@@ -109,7 +109,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     setup_logs();
 
     let workspace_path = Path::new("../workspaces/test-crates-builder");
-    let host_prusti_home = Path::new("target/release");
+    let host_prusti_home = if cfg!(debug_assertions) {
+        Path::new("target/debug")
+    } else {
+        Path::new("target/release")
+    };
     let host_viper_home = Path::new("viper_tools/backends");
     let host_z3_home = Path::new("viper_tools/z3/bin");
     let host_java_home = env::var("JAVA_HOME").ok().map(|s| s.into())
