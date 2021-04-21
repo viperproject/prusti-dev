@@ -154,7 +154,12 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         //     .upvar_tys(def_id, tcx)
                         //     .nth(field.index())
                         //     .unwrap();
-                        let field_ty = closure_subst.upvar_tys().nth(field.index()).unwrap();
+                        let field_ty = closure_subst.upvar_tys().nth(field.index())
+                            .ok_or_else(|| EncodingError::internal(format!(
+                                "failed to obtain the type of the captured path #{} of closure {:?}",
+                                field.index(),
+                                base_ty,
+                            )))?;
 
                         let field_name = format!("closure_{}", field.index());
                         let encoded_field = self.encoder()
