@@ -119,6 +119,11 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
             }
 
             let terminator = mir[bb].terminator();
+            for &next_bb in terminator.successors() {
+                if !new_map.contains_key(&next_bb) {
+                    return Err(SuccessorWithoutState(location, next_bb));
+                }
+            }
             let map_after_block = p_state.lookup_mut_after_block(bb);
             for &next_bb in terminator.successors() {
                 if let Some(s) = new_map.remove(&next_bb) {
@@ -129,9 +134,6 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
                         // input state has changed => add next_bb to worklist
                         work_set.insert(next_bb);
                     }
-                }
-                else {
-                    return Err(SuccessorWithoutState(location, next_bb));
                 }
             }
         }
