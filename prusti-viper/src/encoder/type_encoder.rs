@@ -120,7 +120,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 snapshot.get_type()
             }
 
-            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
+            ty::TyKind::RawPtr(ty::TypeAndMut { .. }) => {
                 return Err(EncodingError::unsupported(
                     "raw pointers are not supported"
                 ));
@@ -138,7 +138,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         match self.ty.kind() {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
-                let snapshot = self.encoder.encode_snapshot(&self.ty)?;
+                let _snapshot = self.encoder.encode_snapshot(&self.ty)?;
                 let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
                 Ok(vir::Type::TypedRef(type_name))
             },
@@ -171,7 +171,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             }
 
-            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
+            ty::TyKind::RawPtr(ty::TypeAndMut { .. }) => {
                 return Err(EncodingError::unsupported(
                     "raw pointers are not supported"
                 ));
@@ -372,7 +372,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Closure(_def_id, internal_substs) => {
                 let closure_substs = internal_substs.as_closure();
                 match closure_substs.tupled_upvars_ty().kind() {
-                    ty::TyKind::Tuple(upvar_substs) => {
+                    ty::TyKind::Tuple(_upvar_substs) => {
                         // TODO: this should encode the state of a closure, i.e.
                         // the "self" parameter passed into the implementation
                         // function generated for every closure. This should
@@ -551,7 +551,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 "unsupported$foreign".to_string()
             }
 
-            ref ty_variant => {
+            _ => {
                 "unsupported".to_string()
             }
         };

@@ -364,7 +364,7 @@ impl<'a> ExprFolder for Purifier<'a> {
     }
     fn fold_field(&mut self, receiver: Box<vir::Expr>, field: vir::Field, pos: vir::Position) -> vir::Expr {
         match receiver {
-            box vir::Expr::Local(local_var, local_pos) if self.vars.contains(&local_var.name) => {
+            box vir::Expr::Local(local_var, _local_pos) if self.vars.contains(&local_var.name) => {
                 return vir::LocalVar {
                     name: local_var.name,
                     typ: translate_type(local_var.typ, self.snapshots),

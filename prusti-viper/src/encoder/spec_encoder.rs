@@ -254,10 +254,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 )
             },
             box typed::AssertionKind::SpecEntailment {
-                closure: ref closure,
+                ref closure,
                 arg_binders: ref vars,
-                pres: ref pres,
-                posts: ref posts,
+                ref pres,
+                ref posts,
             } => {
                 // TODO: refactor, simplify, or extract into a function
                 let tcx = self.encoder.env().tcx();
@@ -278,7 +278,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
                             // encode_forall_arg() above only works for integers.
                             // Therefore, for the time being, check that we're working with integers:
-                            vars.args.iter().for_each(|(arg, arg_ty)| {
+                            vars.args.iter().for_each(|(_arg, arg_ty)| {
                                 match arg_ty.kind() {
                                     ty::TyKind::Int(..) | ty::TyKind::Uint(..) => {}
                                     _ => { unimplemented!("Only integers are currently supported as closure arguments."); }

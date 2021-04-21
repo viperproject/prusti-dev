@@ -93,8 +93,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
-    vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
-    vir_program_before_viper_writer: RefCell<Box<Write>>,
+    vir_program_before_foldunfold_writer: RefCell<Box<dyn Write>>,
+    vir_program_before_viper_writer: RefCell<Box<dyn Write>>,
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
@@ -128,7 +128,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .unwrap(),
         );
 
-        let mut axiomatized_functions_domain = vir::Domain {
+        let axiomatized_functions_domain = vir::Domain {
             name: snapshot::AXIOMATIZED_FUNCTION_DOMAIN_NAME.to_owned(),
             functions: vec![],
             axioms: vec![],
@@ -608,7 +608,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     adt_def, self.env.tcx(), &result.clone().into());
                 if config::enable_purification_optimization() {
                     if let Some(snapshot) = self.get_snapshots().get(&predicate_name) {
-                        if let Some(snapshot_domain) = snapshot.domain() {
+                        if snapshot.domain().is_some() {
                             let snap_call = snapshot.snap_call(self_local_var.clone().into());
                             let variant_func = snapshot::encode_variant_func( format!(
                                 "{}{}",

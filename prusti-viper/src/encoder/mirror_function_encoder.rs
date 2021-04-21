@@ -13,8 +13,6 @@ use crate::encoder::snapshot;
 
 pub fn encode_mirror_of_pure_function(encoder: &Encoder, mirror_function_domain: &mut vir::Domain, function: &vir::Function) {
     let snapshots: &HashMap<String, Box<Snapshot>> = &encoder.get_snapshots();
-    let domain_name = mirror_function_domain.name.clone();
-
     let formal_args_without_nat: Vec<vir::LocalVar> =
         snapshot::encode_mirror_function_args_without_nat(&function.formal_args, &snapshots).unwrap();
 
@@ -51,7 +49,7 @@ pub fn encode_mirror_of_pure_function(encoder: &Encoder, mirror_function_domain:
         .posts
         .iter()
         .cloned()
-        .filter_map(|(p)| {
+        .filter_map(|p| {
                 // Skip the post condition that it is only there to clarify the relation between the result of this function and the (old) mirror fucntion
                 // FIXME: This is not at all the correct way to detect this
             if p.to_string().contains("mirror$"){

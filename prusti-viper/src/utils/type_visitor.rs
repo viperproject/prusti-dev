@@ -280,7 +280,7 @@ pub fn walk_closure<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
 
 pub fn walk_fndef<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
-    def_id: DefId,
+    _def_id: DefId,
     substs: SubstsRef<'tcx>
 ) -> Result<(), E> {
     for ty in substs.types() {

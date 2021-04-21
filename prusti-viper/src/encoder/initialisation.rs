@@ -75,7 +75,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {
     pub fn new(
         mir: &'p mir::Body<'tcx>,
         tcx: ty::TyCtxt<'tcx>,
-        def_id: DefId,
+        _def_id: DefId,
         mir_encoder: &MirEncoder<'p, 'v, 'tcx>,
     ) -> EncodingResult<Self> {
         let initialisation = compute_definitely_initialized(&mir, tcx);
