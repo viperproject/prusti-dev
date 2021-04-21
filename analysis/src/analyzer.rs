@@ -124,6 +124,10 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
                     return Err(SuccessorWithoutState(location, next_bb));
                 }
             }
+            debug_assert_eq!(
+                terminator.successors().collect::<BTreeSet<_>>(),
+                new_map.keys().collect::<BTreeSet<_>>(),
+            );
             let map_after_block = p_state.lookup_mut_after_block(bb);
             for &next_bb in terminator.successors() {
                 if let Some(s) = new_map.remove(&next_bb) {
