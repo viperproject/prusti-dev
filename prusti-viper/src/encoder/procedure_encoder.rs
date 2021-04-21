@@ -47,7 +47,7 @@ use prusti_interface::utils;
 // use prusti_interface::specifications::*;
 use rustc_middle::mir::Mutability;
 use rustc_middle::mir;
-use rustc_middle::mir::TerminatorKind;
+use rustc_middle::mir::{TerminatorKind, AssertKind};
 use rustc_middle::ty;
 use rustc_middle::ty::layout;
 use rustc_target::abi::Integer;
@@ -2191,16 +2191,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
 
                 // Check or assume the assertion
-                stmts.push(vir::Stmt::comment(format!(
-                    "Rust assertion: {}",
-                    msg.description()
-                )));
+                let assert_msg = if let AssertKind::BoundsCheck{ .. } = msg {
+                    // Use the debug impl for BoundsCheck, as it is supposed to be handled before
+                    // calling display() according to the docs
+                    // TODO: use fmt_assert_args once #BUGNR is merged
+                    format!("{:?}", msg)
+                } else {
+                    msg.description().to_string()
+                };
+
+                stmts.push(vir::Stmt::comment(format!("Rust assertion: {}", assert_msg)));
                 if self.check_panics {
                     stmts.push(vir::Stmt::Assert(
                         viper_guard,
                         self.encoder.error_manager().register(
                             term.source_info.span,
-                            ErrorCtxt::AssertTerminator(msg.description().to_string()),
+                            ErrorCtxt::AssertTerminator(assert_msg),
                         ),
                     ));
                 } else {
