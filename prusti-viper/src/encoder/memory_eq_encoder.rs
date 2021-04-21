@@ -172,6 +172,12 @@ impl MemoryEqEncoder {
                 ));
             }
 
+            ty::TyKind::Array(..) => {
+                return Err(EncodingError::unsupported(
+                    "memory equality between arrays is unsupported"
+                ));
+            }
+
             ref x => unimplemented!("{:?}", x),
         };
         Ok(eq.map(|body| {
