@@ -417,7 +417,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 // need the array's corresponding lookup_pure function as well
                 self.encoder.encode_builtin_function_def(
                     BuiltinFunctionKind::ArrayLookupPure {
-                        array_ty: vir::Type::TypedRef(format!("{}", elem_ty)),
+                        array_elem_ty: vir::Type::TypedRef(format!("{}", elem_ty)),
                         array_len: array_len.try_into().unwrap(),
                         return_ty: vir::Type::Int,
                     });

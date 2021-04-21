@@ -23,7 +23,7 @@ pub enum BuiltinFunctionKind {
     Undefined(vir::Type),
     /// array lookup pure function, e.g. Array$4$u32$lookup_pure
     ArrayLookupPure {
-        array_ty: vir::Type,
+        array_elem_ty: vir::Type,
         array_len: usize,
         return_ty: vir::Type,
     },
@@ -77,9 +77,9 @@ impl BuiltinEncoder {
             BuiltinFunctionKind::Undefined(vir::Type::Bool) => format!("builtin$undef_bool"),
             BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => format!("builtin$undef_ref"),
             BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => format!("builtin$undef_doman"),
-            BuiltinFunctionKind::ArrayLookupPure { array_ty, array_len, .. } => {
-                let array_ty = if let vir::Type::TypedRef(ty) = array_ty { ty } else { unreachable!() };
-                format!("Array${}${}$lookup_pure", array_len, array_ty)
+            BuiltinFunctionKind::ArrayLookupPure { array_elem_ty, array_len, .. } => {
+                let array_elem_ty = if let vir::Type::TypedRef(ty) = array_elem_ty { ty } else { unreachable!() };
+                format!("Array${}${}$lookup_pure", array_len, array_elem_ty)
             }
         }
     }
@@ -104,9 +104,9 @@ impl BuiltinEncoder {
                 posts: vec![],
                 body: None,
             },
-            BuiltinFunctionKind::ArrayLookupPure { array_ty, array_len, return_ty } => {
-                let array_ty = if let vir::Type::TypedRef(ty) = array_ty { ty } else { unreachable!() };
-                let type_pred = format!("Array${}${}", array_len, array_ty);
+            BuiltinFunctionKind::ArrayLookupPure { array_elem_ty, array_len, return_ty } => {
+                let array_elem_ty = if let vir::Type::TypedRef(ty) = array_elem_ty { ty } else { unreachable!() };
+                let type_pred = format!("Array${}${}", array_len, array_elem_ty);
                 let self_var = vir::LocalVar::new("self", vir::Type::TypedRef(type_pred.clone()));
                 let idx_var = vir_local!{ idx: Int };
 
