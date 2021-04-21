@@ -929,9 +929,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     vir::Expr::not(cond_val)
                 };
 
+                let assert_msg = if let mir::AssertKind::BoundsCheck{ .. } = msg {
+                    // Use the debug impl for BoundsCheck, as it is supposed to be handled before
+                    // calling display() according to the docs
+                    // TODO: use fmt_assert_args once https://github.com/rust-lang/rust/pull/84392 is merged
+                    format!("{:?}", msg)
+                } else {
+                    msg.description().to_string()
+                };
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
-                    ErrorCtxt::PureFunctionAssertTerminator(msg.description().to_string()),
+                    ErrorCtxt::PureFunctionAssertTerminator(assert_msg),
                 );
 
                 MultiExprBackwardInterpreterState::new(
