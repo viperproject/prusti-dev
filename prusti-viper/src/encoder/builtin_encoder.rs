@@ -78,7 +78,6 @@ impl BuiltinEncoder {
             BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => format!("builtin$undef_ref"),
             BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => format!("builtin$undef_doman"),
             BuiltinFunctionKind::ArrayLookupPure { array_ty, array_len, .. } => {
-                // we kind of abuse the TypedRef variant here to store the rust type name as string
                 let array_ty = if let vir::Type::TypedRef(ty) = array_ty { ty } else { unreachable!() };
                 format!("Array${}${}$lookup_pure", array_len, array_ty)
             }
@@ -122,11 +121,11 @@ impl BuiltinEncoder {
                     return_type: return_ty,
                     pres: vec![
                         // idx < {len}
-                        vir!([vir::Expr::Local(idx_var, vir::Position::default())]  < [vir::Expr::from(array_len)]),
+                        vir!([vir::Expr::local(idx_var)]  < [vir::Expr::from(array_len)]),
                         // acc(self, read$())
                         vir::Expr::predicate_access_predicate(
                             type_pred,
-                            vir::Expr::Local(self_var, vir::Position::default()),
+                            vir::Expr::local(self_var),
                             vir::PermAmount::Read,
                         )
                     ],
