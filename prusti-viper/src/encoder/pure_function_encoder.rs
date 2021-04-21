@@ -932,7 +932,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let assert_msg = if let mir::AssertKind::BoundsCheck{ .. } = msg {
                     // Use the debug impl for BoundsCheck, as it is supposed to be handled before
                     // calling display() according to the docs
-                    // TODO: use fmt_assert_args once #BUGNR is merged
+                    // TODO: use fmt_assert_args once https://github.com/rust-lang/rust/pull/84392 is merged
                     format!("{:?}", msg)
                 } else {
                     msg.description().to_string()
