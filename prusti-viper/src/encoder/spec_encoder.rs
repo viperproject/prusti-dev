@@ -372,7 +372,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     }
                 } else {
                     // TODO
-                    vir::Expr::Const(vir::Const::Bool(true), vir::Position::default())
+                    true.into()
                 }
             }
         })
