@@ -491,7 +491,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                     place.local,
                     &place.projection[..],
                 ).with_span(span)?;
-                let variant_field = if let ty::TyKind::Adt(adt_def, subst) = place_ty.kind() {
+                let variant_field = if let ty::TyKind::Adt(adt_def, _subst) = place_ty.kind() {
                     let variant_name = &adt_def.variants[variant_idx].ident.as_str();
                     self.encoder.encode_enum_variant_field(variant_name)
                 } else {

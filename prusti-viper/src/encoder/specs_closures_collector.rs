@@ -51,7 +51,7 @@ impl<'tcx> SpecsClosuresCollector<'tcx> {
     pub fn collect(&mut self, env: &Environment<'tcx>, def_id: LocalDefId) {
         debug!("Collecting closure instantiations in {:?}", def_id);
         // Avoid visiting the same procedure multiple times
-        if (self.visited.contains(&def_id)) {
+        if self.visited.contains(&def_id) {
             debug!("ClosuresCollector already visited {:?} in the past.", def_id);
             return;
         } else {

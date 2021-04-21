@@ -45,7 +45,7 @@ impl<'a> CFG<'a> {
     }
     fn write_to_graphviz(
         &self,
-        graph: &mut io::Write,
+        graph: &mut dyn io::Write,
         curr_block_index: usize,
     ) -> Result<(), io::Error> {
         fn escape_html<S: ToString>(s: S) -> String {
@@ -130,7 +130,7 @@ impl<'a> CFG<'a> {
 
         writeln!(graph, "}}")
     }
-    pub(super) fn to_graphviz(&self, graph: &mut io::Write, curr_block_index: usize) {
+    pub(super) fn to_graphviz(&self, graph: &mut dyn io::Write, curr_block_index: usize) {
         self.write_to_graphviz(graph, curr_block_index).unwrap();
     }
 }

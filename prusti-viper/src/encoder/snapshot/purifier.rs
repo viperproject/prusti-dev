@@ -40,12 +40,12 @@ impl<'a> FallibleExprFolder for ExprPurifier<'a> {
 
     fn fallible_fold_unfolding(
         &mut self,
-        name: String,
-        args: Vec<Expr>,
+        _name: String,
+        _args: Vec<Expr>,
         expr: Box<Expr>,
-        perm: PermAmount,
-        variant: vir::MaybeEnumVariantIndex,
-        pos: Position,
+        _perm: PermAmount,
+        _variant: vir::MaybeEnumVariantIndex,
+        _pos: Position,
     ) -> Result<Expr, Self::Error> {
         self.fallible_fold(*expr)
     }
@@ -53,8 +53,8 @@ impl<'a> FallibleExprFolder for ExprPurifier<'a> {
     fn fallible_fold_variant(
         &mut self,
         base: Box<Expr>,
-        variant: Field,
-        p: Position,
+        _variant: Field,
+        _p: Position,
     ) -> Result<Expr, Self::Error> {
         self.fallible_fold(*base)
     }
@@ -69,7 +69,7 @@ impl<'a> FallibleExprFolder for ExprPurifier<'a> {
         if let Type::TypedRef(receiver_domain) = receiver_type {
             let mut receiver_domain = format!("Snap${}", receiver_domain); //FIXME this should come from a constant
 
-            let variant_name = if let Expr::Variant(base, var, _) = *receiver.clone() {
+            let variant_name = if let Expr::Variant(_, var, _) = *receiver.clone() {
                 let name: String = var.name.chars().skip(5).collect(); //TODO this is probably not the best way to get the name of the variant
                 receiver_domain = receiver_domain[..receiver_domain.len() - name.len()].to_string();
 
@@ -177,8 +177,6 @@ impl<'a> FallibleExprFolder for ExprPurifier<'a> {
                 self.fallible_fold(args.pop().unwrap())
             }
             _ => {
-                let ident_name = vir::compute_identifier(&name, &formal_args, &return_type);
-
                 let df = snapshot::encode_mirror_function(
                     &name,
                     &formal_args,
@@ -191,7 +189,7 @@ impl<'a> FallibleExprFolder for ExprPurifier<'a> {
                     .map(|e| self.fallible_fold(e.clone()).map(|n| (e, n)))
                     .collect::<Result<Vec<(Expr, Expr)>, _>>()?
                     .into_iter()
-                    .map(|(orig, e)| Ok(e))
+                    .map(|(_orig, e)| Ok(e))
                     .collect::<Result<Vec<Expr>, String>>()?;
                 folded_args.push(self.nat_arg.clone());
                 Ok(Expr::DomainFuncApp(df, folded_args, pos))
@@ -201,19 +199,19 @@ impl<'a> FallibleExprFolder for ExprPurifier<'a> {
 
     fn fallible_fold_predicate_access_predicate(
         &mut self,
-        name: String,
-        arg: Box<Expr>,
-        perm_amount: PermAmount,
-        pos: Position,
+        _name: String,
+        _arg: Box<Expr>,
+        _perm_amount: PermAmount,
+        _pos: Position,
     ) -> Result<Expr, Self::Error> {
         Ok(true.into())
     }
 
     fn fallible_fold_field_access_predicate(
         &mut self,
-        receiver: Box<Expr>,
-        perm_amount: PermAmount,
-        pos: Position,
+        _receiver: Box<Expr>,
+        _perm_amount: PermAmount,
+        _pos: Position,
     ) -> Result<Expr, Self::Error> {
         Ok(true.into())
     }
@@ -234,19 +232,18 @@ impl<'a> ExprFolder for AssertPurifier<'a> {
     fn fold_func_app(
         &mut self,
         name: String,
-        mut args: Vec<Expr>,
+        args: Vec<Expr>,
         formal_args: Vec<LocalVar>,
         return_type: Type,
         pos: Position,
     ) -> Expr {
-        let ident_name = vir::compute_identifier(&name, &formal_args, &return_type);
-        let mut folded_args: Vec<Expr> = args
+        let folded_args: Vec<Expr> = args
             .into_iter()
             .map(|e| self.fold(e.clone()))
             .collect::<Vec<Expr>>();
 
         match snapshot::encode_mirror_function(&name, &formal_args, &return_type, &self.snapshots) {
-            Err(e) => {
+            Err(..) => {
                 Expr::FuncApp(name, folded_args, formal_args, return_type, pos)
             }
             Ok(df) => {

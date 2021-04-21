@@ -450,7 +450,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // FIXME: Snapshots of boxes are not supported.
                     continue;
                 }
-                let snapshot = self.encoder.encode_snapshot(ty).with_span(mir_span)?;
+                self.encoder.encode_snapshot(ty).with_span(mir_span)?;
             }
         }
 
@@ -1056,7 +1056,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 place.local,
                 &place.projection[..],
             ).with_span(span)?;
-            let variant_field = if let ty::TyKind::Adt(adt_def, subst) = place_ty.kind() {
+            let variant_field = if let ty::TyKind::Adt(adt_def, _subst) = place_ty.kind() {
                 let variant_name = &adt_def.variants[variant_idx].ident.as_str();
                 self.encoder.encode_enum_variant_field(variant_name)
             } else {
@@ -3161,7 +3161,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 "We can have at most one magic wand in the postcondition."
             );
             let borrow_info = &borrow_infos[0];
-            let mut pledges = contract.pledges();
+            let pledges = contract.pledges();
             assert!(
                 pledges.len() <= 1,
                 "There can be at most one pledge in the function postcondition."
@@ -3481,7 +3481,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ).map_or(Ok(None), |r| r.map(Some))
             )?;
 
-        let mut full_func_spec_elements = func_spec
+        let full_func_spec_elements = func_spec
             .into_iter()
             .map( // patch type mismatches for specs involving pure functions returning copy types
                 |spec|
@@ -3495,7 +3495,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             if config::enable_purification_optimization() {
                 let snapshots = self.encoder.get_snapshots();
                 let mut ep = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
-                let mut purified_elems : Vec<vir::Expr> = full_func_spec_elements.clone().into_iter().map(|e| {
+                let _purified_elems : Vec<vir::Expr> = full_func_spec_elements.clone().into_iter().map(|e| {
                     vir::ExprFolder::fold(&mut ep, e.clone())
                 }).collect();
 
@@ -4424,7 +4424,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
                 use prusti_common::vir::ExprFolder;
                 impl ExprFolder for RootReplacer {
-                    fn fold_local(&mut self, v: vir::LocalVar, p: vir::Position) -> vir::Expr {
+                    fn fold_local(&mut self, _v: vir::LocalVar, p: vir::Position) -> vir::Expr {
                         Expr::Local(self.new_root.clone(), p)
                     }
                 }

@@ -148,7 +148,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let closure_subst = closure_subst.as_closure();
                         debug!("Closure subst: {:?}", closure_subst);
 
-                        let tcx = self.encoder().env().tcx();
+                        // let tcx = self.encoder().env().tcx();
                         // let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
                         // let field_ty = closure_subst
                         //     .upvar_tys(def_id, tcx)

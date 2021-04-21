@@ -51,9 +51,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode(&self) -> SpannedEncodingResult<Vec<vir::Function>> {
-        let pre_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
+        let _pre_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                           SpecFunctionKind::Pre);
-        let post_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
+        let _post_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                            SpecFunctionKind::Post);
 
         let specs = if let Some(specs) = self.encoder.get_procedure_specs(self.proc_def_id) {
@@ -122,7 +122,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         -> SpannedEncodingResult<vir::Function> {
         let mut func_spec: Vec<vir::Expr> = vec![];
 
-        let mut encoded_args: Vec<vir::LocalVar> = contract
+        let encoded_args: Vec<vir::LocalVar> = contract
             .args
             .iter()
             .map(|local| self.encode_local(local.clone().into()).into())

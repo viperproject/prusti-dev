@@ -103,7 +103,7 @@ pub fn valid_func_for_type(typ: &vir::Type) -> vir::DomainFunc {
     };
 
     let arg_typ: vir::Type = match typ {
-        vir::Type::Domain(name) => vir::Type::Domain(domain_name.clone()),
+        vir::Type::Domain(..) => vir::Type::Domain(domain_name.clone()),
         vir::Type::Bool => vir::Type::Bool,
         vir::Type::Int => vir::Type::Int,
         vir::Type::TypedRef(_) => unreachable!(),
