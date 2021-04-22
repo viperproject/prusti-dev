@@ -180,14 +180,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Array(ref ty, len) => {
-                let elem_ty = self.encoder.encode_type_predicate_use(ty)?;
-                let array_pred = self.encoder.encode_type_predicate_use(self.ty)?;
-
-                // FIXME: don't return a field here/don't call this for arrays
-                vir::Field::new(
-                    "array_todo",
-                    vir::Type::TypedRef(array_pred),
-                )
+                return Err(EncodingError::internal(
+                    "TypeEncoder::encode_value_field should not be called for arrays"
+                ));
             }
 
             ref x => unimplemented!("{:?}", x),
