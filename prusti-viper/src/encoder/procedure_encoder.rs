@@ -4652,6 +4652,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    /// Assignment with a binary operation on the RHS
+    /// [encoded_lhs] = [left] [op] [right]
     fn encode_assign_binary_op(
         &mut self,
         op: mir::BinOp,
@@ -4694,6 +4696,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )
     }
 
+    /// Assignment with a(n overflow-)checked binary operation on the RHS.
+    /// [encoded_lhs] = [left] [op] [right]
     fn encode_assign_checked_binary_op(
         &mut self,
         op: mir::BinOp,
@@ -4789,6 +4793,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    /// Assignment with unary op as RHS.
+    /// Unary ops currently are logical and arithmetic negation
+    /// [encoded_lhs] = [op] [operand]
     fn encode_assign_unary_op(
         &mut self,
         op: mir::UnOp,
@@ -4811,6 +4818,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encode_copy_value_assign(encoded_lhs, encoded_value, ty, location)
     }
 
+    /// Assignment with a nullary op on the RHS.
+    /// Nullary types currently are creating boxes and sizeof, currently.
+    /// [lhs] = [op] [op_ty]
     fn encode_assign_nullary_op(
         &mut self,
         op: mir::NullOp,
@@ -4850,6 +4860,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
     }
 
+    /// Assignment with the RHS being the discriminant value of an enum
+    /// [lhs] = discriminant of [src]
     fn encode_assign_discriminant(
         &mut self,
         src: &mir::Place<'tcx>,
@@ -4911,6 +4923,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    /// Assignment with the RHS being referenced
+    /// [encoded_lhs] = &[mir_borrow_kind] [place]
     fn encode_assign_ref(
         &mut self,
         mir_borrow_kind: mir::BorrowKind,
@@ -4963,6 +4977,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    /// Assignment where the RHS is a cast operation
+    /// [encoded_lhs] = [operand] as [dst_ty]
     fn encode_cast(
         &mut self,
         operand: &mir::Operand<'tcx>,
@@ -5213,6 +5229,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
+    /// Assignment with an aggregate on the RHS. Aggregates are e.g. arrays, structs, enums,
+    /// tuples
+    /// [dst] = Foo { x: [op_0], y: [op_1], .. }
+    /// [dst] = [ op_0, op_1, ..];
     fn encode_assign_aggregate(
         &mut self,
         dst: &vir::Expr,
