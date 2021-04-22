@@ -58,6 +58,12 @@ impl PlaceEncoding {
     pub fn try_into_expr(self) -> EncodingResult<vir::Expr> {
         match self {
             PlaceEncoding::Expr(e) => Ok(e),
+            PlaceEncoding::FieldAccess { base, field } => {
+                Ok(base.try_into_expr()?.field(field))
+            },
+            PlaceEncoding::Variant { base, field } => {
+                Ok(vir::Expr::Variant(box base.try_into_expr()?, field, vir::Position::default()))
+            },
             other => Err(EncodingError::internal(format!("PlaceEncoding::try_into_expr called on non-expr '{:?}'", other))),
         }
     }
