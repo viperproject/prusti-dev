@@ -63,7 +63,7 @@ fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
     for (loc, set) in map.iter() {
         let mut new_set = HashSet::new();
         for place in set.iter() {
-            let encoded_place = mir_encoder.encode_place(place)?.0;
+            let encoded_place = mir_encoder.encode_place(place)?.0.try_into_expr()?;
             new_set.insert(encoded_place);
         }
         result.insert(loc.clone(), new_set);

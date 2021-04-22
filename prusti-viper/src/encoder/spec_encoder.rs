@@ -7,7 +7,7 @@
 use crate::encoder::errors::{
     ErrorCtxt, SpannedEncodingResult, SpannedEncodingError, EncodingError, WithSpan
 };
-use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
+use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_interpreter::{
     run_backward_interpretation_point_to_point, BackwardMirInterpreter,
@@ -423,14 +423,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let should_closure_be_dereferenced = inner_mir_encoder.can_be_dereferenced(closure_ty);
         let (deref_closure_var, _deref_closure_ty) = if should_closure_be_dereferenced {
             let res = inner_mir_encoder
-                .encode_deref(closure_var.clone().into(), closure_ty)
+                .encode_deref(PlaceEncoding::Expr(closure_var.clone().into()), closure_ty)
                 .with_span(outer_span)?;
             (res.0, res.1)
         } else {
-            (closure_var.clone().into(), *closure_ty)
+            (PlaceEncoding::Expr(closure_var.clone().into()), *closure_ty)
         };
         trace!("closure_ty: {:?}", closure_ty);
         trace!("deref_closure_var: {:?}", deref_closure_var);
+        let deref_closure_var = deref_closure_var.try_into_expr().with_span(outer_span)?;
 
         let captured_tys = captured_operand_tys;
         trace!("captured_tys: {:?}", captured_tys);
@@ -440,7 +441,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mut replacements: Vec<(vir::Expr, vir::Expr)> = vec![];
 
         // Replacement 1: translate a local variable from the closure to a place in the outer MIR
-        let inner_captured_places: Vec<_> = captured_tys
+        let inner_captured_places: Vec<vir::Expr> = captured_tys
             .iter()
             .enumerate()
             .map(|(index, &captured_ty)| {

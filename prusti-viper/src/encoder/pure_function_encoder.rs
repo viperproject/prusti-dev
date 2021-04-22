@@ -491,6 +491,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                     place.local,
                     &place.projection[..],
                 ).with_span(span)?;
+                let encoded_place = encoded_place.try_into_expr().with_span(span)?;
                 let variant_field = if let ty::TyKind::Adt(adt_def, _subst) = place_ty.kind() {
                     let variant_name = &adt_def.variants[variant_idx].ident.as_str();
                     self.encoder.encode_enum_variant_field(variant_name)
@@ -743,6 +744,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place)
                             .with_span(span)
                             .run_if_err(cleanup)?;
+                        let encoded_lhs = encoded_lhs.try_into_expr().unwrap();
                         let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty);
                         let encoded_args: Vec<vir::Expr> = args
                             .iter()
@@ -1002,6 +1004,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
                 let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs).unwrap();
+                let encoded_lhs = encoded_lhs.try_into_expr().unwrap();
 
                 if !state.use_place(&encoded_lhs) {
                     // If the lhs is not mentioned in our state, do nothing
@@ -1221,6 +1224,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     &mir::Rvalue::Discriminant(ref src) => {
                         let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src).unwrap();
+                        let encoded_src = encoded_src.try_into_expr().unwrap();
                         match src_ty.kind() {
                             ty::TyKind::Adt(ref adt_def, _) if !adt_def.is_box() => {
                                 let num_variants = adt_def.variants.len();
@@ -1262,7 +1266,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, ref place)
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                         // will panic if attempting to encode unsupported type
-                        let encoded_place = self.mir_encoder.encode_place(place).unwrap().0;
+                        let encoded_place = self.mir_encoder.encode_place(place).unwrap().0.try_into_expr().unwrap();
                         let encoded_ref = match encoded_place {
                             vir::Expr::Field(
                                 box ref base,
