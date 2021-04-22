@@ -4819,7 +4819,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Assignment with a nullary op on the RHS.
-    /// Nullary types currently are creating boxes and sizeof, currently.
+    /// Nullary types currently are creating boxes and sizeof.
     /// [lhs] = [op] [op_ty]
     fn encode_assign_nullary_op(
         &mut self,
