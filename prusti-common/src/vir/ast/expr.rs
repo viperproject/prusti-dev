@@ -6,11 +6,16 @@
 
 use super::super::borrows::Borrow;
 use crate::vir::ast::*;
+use vir::{ast::*, FloatSize::*};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem;
 use std::mem::discriminant;
+use rustc_apfloat::ieee::{IeeeFloat, SingleS, DoubleS};
+
+use serde::*;
+use std::marker::PhantomData;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Expr {
@@ -87,11 +92,40 @@ pub enum BinOpKind {
     Implies,
 }
 
+
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum FloatConst {
+    FloatConst64(rustc_apfloat::ieee::IeeeFloat<DoubleS>),
+    FloatConst32(rustc_apfloat::ieee::IeeeFloat<SingleS>),
+}
+
+impl PartialEq for FloatConst {
+    fn eq(&self, other: &FloatConst) -> bool {        
+        match (self, other) {
+            (FloatConst::FloatConst64(f1), FloatConst::FloatConst64(f2)) => f1.to_string() == f2.to_string(),
+            (FloatConst::FloatConst32(f1), FloatConst::FloatConst32(f2)) => f1.to_string() == f2.to_string(),
+            _ => unreachable!("PartialEq: incompatible float types")
+        }        
+    }
+}
+impl Eq for FloatConst {}
+
+impl Hash for FloatConst {
+    fn hash<H: Hasher>(&self, hasher: &mut H) {
+        match self {
+            FloatConst::FloatConst64(f1) => f1.to_string().hash(hasher),
+            FloatConst::FloatConst32(f1) => f1.to_string().hash(hasher),
+        }  
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
     Int(i64),
     BigInt(String),
+    Float(FloatConst),
     /// All function pointers share the same constant, because their function
     /// is determined by the type system.
     FnPtr,
@@ -257,6 +291,8 @@ impl fmt::Display for Const {
             Const::Bool(val) => write!(f, "{}", val),
             Const::Int(val) => write!(f, "{}", val),
             Const::BigInt(ref val) => write!(f, "{}", val),
+            Const::Float(FloatConst::FloatConst32(val)) => write!(f, "{}", val),
+            Const::Float(FloatConst::FloatConst64(val)) => write!(f, "{}", val),
             Const::FnPtr => write!(f, "FnPtr"),
         }
     }
@@ -997,6 +1033,8 @@ impl Expr {
                 match constant {
                     Const::Bool(..) => &Type::Bool,
                     Const::Int(..) | Const::BigInt(..) => &Type::Int,
+                    Const::Float(FloatConst::FloatConst32(_)) => &Type::Float(F32),
+                    Const::Float(FloatConst::FloatConst64(_)) => &Type::Float(F64),
                     Const::FnPtr => &FN_PTR_TYPE,
                 }
             }

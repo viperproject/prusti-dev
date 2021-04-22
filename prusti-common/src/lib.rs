@@ -23,6 +23,8 @@ extern crate serde;
 extern crate uuid;
 extern crate viper;
 
+extern crate rustc_apfloat;
+
 pub mod config;
 pub mod report;
 mod stopwatch;

@@ -6,6 +6,7 @@
 
 use crate::vir::ast::*;
 
+
 impl From<LocalVar> for Expr {
     fn from(local_var: LocalVar) -> Self {
         Expr::Local(local_var, Position::default())
@@ -203,3 +204,28 @@ impl<'a> From<&'a str> for Const {
         Const::BigInt(val.to_string())
     }
 }
+
+impl From<rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::SingleS>> for Expr {
+    fn from(val: rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::SingleS>) -> Self{
+        Expr::Const(val.into(), Position::default())
+    }
+}
+
+impl From<rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::SingleS>> for Const {
+    fn from(val: rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::SingleS>) -> Self {
+        Const::Float(FloatConst::FloatConst32(val))
+    }
+} 
+
+impl From<rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::DoubleS>> for Expr {
+    fn from(val: rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::DoubleS>) -> Self{
+        Expr::Const(val.into(), Position::default())
+    }
+}
+
+impl From<rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::DoubleS>> for Const {
+    fn from(val: rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::DoubleS>) -> Self {
+        Const::Float(FloatConst::FloatConst64(val))
+    }
+} 
+

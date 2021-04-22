@@ -136,9 +136,10 @@ impl Ord for PermAmount {
     }
 }
 
-pub enum Float {
-    F64,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum FloatSize {
     F32,
+    F64,    
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -149,7 +150,7 @@ pub enum Type {
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
     Domain(String),
-    Float,
+    Float(FloatSize),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -169,7 +170,7 @@ impl fmt::Display for Type {
             //Type::Ref => write!(f, "Ref"),
             Type::TypedRef(ref name) => write!(f, "Ref({})", name),
             Type::Domain(ref name) => write!(f, "Domain({})", name),
-            Type::Float => write!(f, "Float"),
+            Type::Float(_) => write!(f, "Float"),
         }
     }
 }
@@ -189,7 +190,7 @@ impl Type {
             Type::Int => "int".to_string(),
             Type::TypedRef(ref pred_name) => format!("{}", pred_name),
             Type::Domain(ref pred_name) => format!("{}", pred_name),
-            Type::Float => "float".to_string(),
+            Type::Float(_) => "float".to_string(),
         }
     }
 
@@ -224,7 +225,7 @@ impl Type {
             Type::Int => TypeId::Int,
             Type::TypedRef(_) => TypeId::Ref,
             Type::Domain(_) => TypeId::Domain,
-            Type::Float => TypeId::Float,
+            Type::Float(_) => TypeId::Float,
         }
     }
 }
