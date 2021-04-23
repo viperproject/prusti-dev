@@ -264,14 +264,7 @@ impl RequiredPermissionsGetter for vir::Expr {
             vir::Expr::UnaryOp(_, expr, _) => expr.get_required_permissions(predicates, old_exprs),
 
             vir::Expr::BinOp(bin_op, box left, box right, _) => {
-                match bin_op {
-                    vir::BinOpKind::Or | vir::BinOpKind::Implies => {
-                        // We don't necessarily need to sstisfy the requirements of `right.
-                        // Viper's boolean or is short-circuited.
-                        left.get_required_permissions(predicates, old_exprs)
-                    },
-                    _ => vec![left, right].get_required_permissions(predicates, old_exprs),
-                }
+                vec![left, right].get_required_permissions(predicates, old_exprs)
             }
 
             vir::Expr::Cond(box guard, box then, box elze, _) => {
