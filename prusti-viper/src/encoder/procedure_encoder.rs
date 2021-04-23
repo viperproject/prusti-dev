@@ -1294,6 +1294,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let encode = |rhs_place| {
             // TODO: pre_stmts here as well..
             let (restored, pre_stmts, _, _) = self.encode_place(rhs_place).unwrap();
+            assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
             let ref_field = self.encoder.encode_value_field(expiring_ty);
             let expiring = expiring_base.clone().field(ref_field.clone());
             (expiring, restored, ref_field)
@@ -4067,7 +4068,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
                 // will panic if attempting to encode unsupported type
                 let (encoded_place, pre_stmts, ty, _) = self.encode_place(&mir_place).unwrap();
-                // TODO: pre_stmts
+                assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
                 debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
                 match kind {
                     // Gives read permission to this node. It must not be a leaf node.
@@ -4098,8 +4099,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         if let Some(base) = utils::try_pop_deref(self.encoder.env().tcx(), mir_place)
                         {
                             // will panic if attempting to encode unsupported type
-                            let (_, _, ref_ty, _) = self.encode_place(&base).unwrap();
-                            // TODO: pre_stmts
+                            let (_, pre_stmts, ref_ty, _) = self.encode_place(&base).unwrap();
+                            assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
                             match ref_ty.kind() {
                                 ty::TyKind::RawPtr(ty::TypeAndMut { mutbl, .. })
                                 | ty::TyKind::Ref(_, _, mutbl) => {
@@ -4162,7 +4163,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         // variables.
                                         let (encoded_child, pre_stmts, _, _) =
                                             self.encode_place(&child_place).unwrap(); // will panic if attempting to encode unsupported type
-                                        // TODO: pre_stmts
+                                        assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
                                         equalities.push(self.construct_value_preserving_equality(
                                             loop_head,
                                             &encoded_child,
