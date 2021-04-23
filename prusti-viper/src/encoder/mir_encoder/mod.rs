@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 mod downcast_detector;
+mod place_encoding;
 
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{
@@ -20,92 +21,14 @@ use rustc_middle::{mir, ty};
 use rustc_index::vec::{Idx, IndexVec};
 use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
-use std::{
-    collections::HashMap,
-    fmt::Display,
-};
+use std::collections::HashMap;
 use prusti_interface::environment::mir_utils::MirPlace;
+
 use downcast_detector::detect_downcasts;
+pub use place_encoding::PlaceEncoding;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
-
-/// Result of encoding a place
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub enum PlaceEncoding {
-    /// Just an expression, the most common case.
-    Expr(vir::Expr),
-    /// Field access expression
-    FieldAccess {
-        base: Box<PlaceEncoding>,
-        field: vir::Field,
-    },
-    /// Array access expression
-    ArrayAccess {
-        base: Box<PlaceEncoding>,
-        index: vir::Expr,
-        // TODO: prusti-common::src::vir::optimizations::purification has fn translate_type
-        array_elem_ty: vir::Type,
-        array_len: usize,
-    },
-    Variant {
-        base: Box<PlaceEncoding>,
-        field: vir::Field,
-    }
-}
-
-impl PlaceEncoding {
-    pub fn try_into_expr(self) -> EncodingResult<vir::Expr> {
-        match self {
-            PlaceEncoding::Expr(e) => Ok(e),
-            PlaceEncoding::FieldAccess { base, field } => {
-                Ok(base.try_into_expr()?.field(field))
-            },
-            PlaceEncoding::Variant { base, field } => {
-                Ok(vir::Expr::Variant(box base.try_into_expr()?, field, vir::Position::default()))
-            },
-            other => Err(EncodingError::internal(format!("PlaceEncoding::try_into_expr called on non-expr '{:?}'", other))),
-        }
-    }
-
-    pub fn field(self, field: vir::Field) -> Self {
-        PlaceEncoding::FieldAccess { base: box self, field }
-    }
-
-    pub fn get_type(&self) -> &vir::Type {
-        match self {
-            PlaceEncoding::Expr(ref e) => e.get_type(),
-            PlaceEncoding::FieldAccess { ref field, .. } => &field.typ,
-            PlaceEncoding::ArrayAccess { ref array_elem_ty, .. } => array_elem_ty,
-            PlaceEncoding::Variant { ref base, ref field } => &field.typ,
-        }
-    }
-
-    pub fn variant(self, index: &str) -> Self {
-        // TODO: somewhat duplicate from vir::Expr::variant()
-        let field_name = format!("enum_{}", index);
-        let field = vir::Field::new(field_name, self.get_type().clone().variant(index));
-
-        PlaceEncoding::Variant { base: box self, field }
-    }
-}
-
-impl From<vir::Expr> for PlaceEncoding {
-    fn from(e: vir::Expr) -> Self {
-        PlaceEncoding::Expr(e)
-    }
-}
-
-impl Display for PlaceEncoding {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PlaceEncoding::Expr(e) => write!(f, "{}", e),
-            PlaceEncoding::FieldAccess { base, field } => write!(f, "{}.{}", base, field),
-            PlaceEncoding::ArrayAccess { base, index, .. } => write!(f, "{}[{}]", base, index),
-            PlaceEncoding::Variant { base, field } => write!(f, "{}[{}]", base, field),
-        }
-    }
-}
 
 pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
