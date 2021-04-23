@@ -7,7 +7,7 @@
 use crate::encoder::errors::{
     ErrorCtxt, SpannedEncodingResult, SpannedEncodingError, EncodingError, WithSpan
 };
-use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
+use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_interpreter::{
     run_backward_interpretation_point_to_point, BackwardMirInterpreter,
@@ -440,7 +440,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mut replacements: Vec<(vir::Expr, vir::Expr)> = vec![];
 
         // Replacement 1: translate a local variable from the closure to a place in the outer MIR
-        let inner_captured_places: Vec<_> = captured_tys
+        let inner_captured_places: Vec<vir::Expr> = captured_tys
             .iter()
             .enumerate()
             .map(|(index, &captured_ty)| {

@@ -487,7 +487,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             let downcasts = self.mir_encoder.get_downcasts_at_location(location);
             // Reverse `downcasts` because the encoding works backward
             for (place, variant_idx) in downcasts.into_iter().rev() {
-                let (encoded_place, place_ty, _) = self.mir_encoder.encode_projection(
+                let (encoded_place, place_ty, _) = self.encode_projection(
                     place.local,
                     &place.projection[..],
                 ).with_span(span)?;
@@ -504,6 +504,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             }
         }
         Ok(())
+    }
+
+    fn encode_place(
+        &self,
+        place: &mir::Place<'tcx>,
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+        let (encoded_place, ty, variant_idx) = self.mir_encoder().encode_place(place)?;
+        // TODO: actual encoding of array access here
+        Ok((encoded_place.try_into_expr()?, ty, variant_idx))
+    }
+
+    fn encode_projection(
+        &self,
+        local: mir::Local,
+        projection: &[mir::PlaceElem<'tcx>],
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+        let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_projection(local, projection)?;
+        // TODO: actual encoding of e.g. array access here
+        Ok((encoded_place.try_into_expr()?, ty, variant_idx))
     }
 }
 
@@ -740,7 +759,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     let state = if destination.is_some() {
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
-                        let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place)
+                        let (encoded_lhs, ty, _) = self.encode_place(lhs_place)
                             .with_span(span)
                             .run_if_err(cleanup)?;
                         let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty);
@@ -1001,7 +1020,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
-                let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs).unwrap();
+                let (encoded_lhs, ty, _) = self.encode_place(lhs).unwrap();
 
                 if !state.use_place(&encoded_lhs) {
                     // If the lhs is not mentioned in our state, do nothing
@@ -1220,7 +1239,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     &mir::Rvalue::NullaryOp(_op, ref _op_ty) => unimplemented!(),
 
                     &mir::Rvalue::Discriminant(ref src) => {
-                        let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src).unwrap();
+                        let (encoded_src, src_ty, _) = self.encode_place(src).unwrap();
                         match src_ty.kind() {
                             ty::TyKind::Adt(ref adt_def, _) if !adt_def.is_box() => {
                                 let num_variants = adt_def.variants.len();
@@ -1262,7 +1281,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, ref place)
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                         // will panic if attempting to encode unsupported type
-                        let encoded_place = self.mir_encoder.encode_place(place).unwrap().0;
+                        let encoded_place = self.encode_place(place).unwrap().0;
                         let encoded_ref = match encoded_place {
                             vir::Expr::Field(
                                 box ref base,

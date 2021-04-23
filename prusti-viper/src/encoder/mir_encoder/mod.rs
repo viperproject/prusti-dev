@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 mod downcast_detector;
+mod place_encoding;
 
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{
@@ -22,7 +23,9 @@ use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
 use std::collections::HashMap;
 use prusti_interface::environment::mir_utils::MirPlace;
+
 use downcast_detector::detect_downcasts;
+pub use place_encoding::PlaceEncoding;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
@@ -49,31 +52,31 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     }
 
     /// Returns
-    /// - `vir::Expr`: the expression of the projection;
+    /// - `PlaceEncoding`: the result of the projection;
     /// - `ty::Ty<'tcx>`: the type of the expression;
     /// - `Option<usize>`: optionally, the variant of the enum.
     fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(PlaceEncoding, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode place {:?}", place);
         self.encode_projection(place.local, place.projection)
     }
 
     /// Returns
-    /// - `vir::Expr`: the place of the projection;
+    /// - `PlaceEncoding`: the result of the projection;
     /// - `ty::Ty<'tcx>`: the type of the place;
     /// - `Option<usize>`: optionally, the variant of the enum.
     fn encode_projection(
         &self,
         local: mir::Local,
         projection: &[mir::PlaceElem<'tcx>],
-    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(PlaceEncoding, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode projection {:?}, {:?}", local, projection);
 
         if projection.is_empty() {
             return Ok((
-                self.encode_local(local)?.into(),
+                PlaceEncoding::Expr(self.encode_local(local)?.into()),
                 self.get_local_ty(local),
                 None,
             ));
@@ -191,7 +194,16 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             }
 
             mir::ProjectionElem::Deref => {
-                self.encode_deref(encoded_base, base_ty)?
+                match encoded_base.try_into_expr() {
+                    Ok(e) => {
+                        let (e, ty, v) = self.encode_deref(e, base_ty)?;
+                        (PlaceEncoding::Expr(e), ty, v)
+                    }
+                    Err(_) => return Err(EncodingError::unsupported(
+                        "mixed dereferencing and array indexing projections are not supported yet"
+                    )),
+
+                }
             }
 
             mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
@@ -352,14 +364,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn eval_place(
-        &self,
-        place: &mir::Place<'tcx>,
-    ) -> EncodingResult<vir::Expr> {
-        let (encoded_place, place_ty, _) = self.encode_place(place)?;
-        Ok(self.encoder.encode_value_expr(encoded_place, place_ty))
-    }
-
     /// Returns an `vir::Expr` that corresponds to the value of the operand
     pub fn encode_operand_expr(
         &self,
@@ -376,8 +380,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 ..
             }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(val))?,
             &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
-                let val_place = self.eval_place(&place)?;
-                val_place.into()
+                // let val_place = self.eval_place(&place)?;
+                // inlined to do try_into_expr
+                let (encoded_place, place_ty, _) = self.encode_place(place)?;
+                self.encoder.encode_value_expr(encoded_place.try_into_expr()?, place_ty).into()
             }
             // FIXME: Check whether the commented out code is necessary.
             // &mir::Operand::Constant(box mir::Constant {
@@ -682,7 +688,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         Ok(match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
                 let (src, _, _) = self.encode_place(place)?;
-                Some(src)
+                Some(src.try_into_expr()?)
             }
 
             &mir::Operand::Constant(_) => None,
