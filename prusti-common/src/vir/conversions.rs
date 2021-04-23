@@ -205,27 +205,26 @@ impl<'a> From<&'a str> for Const {
     }
 }
 
-impl From<rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::SingleS>> for Expr {
-    fn from(val: rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::SingleS>) -> Self{
+impl From<IeeeFloat<SingleS>> for Expr {
+    fn from(val: IeeeFloat<SingleS>) -> Self{
         Expr::Const(val.into(), Position::default())
     }
 }
 
-impl From<rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::SingleS>> for Const {
-    fn from(val: rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::SingleS>) -> Self {
-        Const::Float(FloatConst::FloatConst32(val))
+impl From<IeeeFloat<SingleS>> for Const {
+    fn from(val: IeeeFloat<SingleS>) -> Self {
+        Const::Float(FloatConst::FloatConst32(rustc_apfloat::ieee::Semantics::to_bits(val) as f32))
     }
 } 
 
-impl From<rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::DoubleS>> for Expr {
-    fn from(val: rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::DoubleS>) -> Self{
+impl From<IeeeFloat<DoubleS>> for Expr {
+    fn from(val: IeeeFloat<DoubleS>) -> Self{
         Expr::Const(val.into(), Position::default())
     }
 }
 
-impl From<rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::DoubleS>> for Const {
-    fn from(val: rustc_apfloat::ieee::IeeeFloat<rustc_apfloat::ieee::DoubleS>) -> Self {
-        Const::Float(FloatConst::FloatConst64(val))
+impl From<IeeeFloat<DoubleS>> for Const {
+    fn from(val: IeeeFloat<DoubleS>) -> Self {
+       Const::Float(FloatConst::FloatConst64(rustc_apfloat::ieee::Semantics::to_bits(val) as f64))
     }
-} 
-
+}

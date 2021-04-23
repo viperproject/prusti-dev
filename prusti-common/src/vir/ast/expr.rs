@@ -12,7 +12,7 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem;
 use std::mem::discriminant;
-use rustc_apfloat::ieee::{IeeeFloat, SingleS, DoubleS};
+use rustc_apfloat::ieee::*;
 
 use serde::*;
 use std::marker::PhantomData;
@@ -96,12 +96,12 @@ pub enum BinOpKind {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FloatConst {
-    FloatConst64(rustc_apfloat::ieee::IeeeFloat<DoubleS>),
-    FloatConst32(rustc_apfloat::ieee::IeeeFloat<SingleS>),
+    FloatConst64(f64),
+    FloatConst32(f32),
 }
 
 impl PartialEq for FloatConst {
-    fn eq(&self, other: &FloatConst) -> bool {        
+    fn eq(&self, other: &FloatConst) -> bool {
         match (self, other) {
             (FloatConst::FloatConst64(f1), FloatConst::FloatConst64(f2)) => f1.to_string() == f2.to_string(),
             (FloatConst::FloatConst32(f1), FloatConst::FloatConst32(f2)) => f1.to_string() == f2.to_string(),
