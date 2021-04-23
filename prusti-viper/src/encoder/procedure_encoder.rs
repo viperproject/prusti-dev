@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::borrows::ProcedureContract;
-use crate::encoder::builtin_encoder::BuiltinMethodKind;
+use crate::encoder::builtin_encoder::{BuiltinMethodKind, BuiltinFunctionKind};
 use crate::encoder::errors::{
     SpannedEncodingError, ErrorCtxt, PanicCause, EncodingError, WithSpan, RunIfErr,
     EncodingResult, SpannedEncodingResult
@@ -23,8 +23,8 @@ use prusti_common::{
     config,
     report::log,
     utils::to_string::ToString,
+    vir,
     vir::{
-        self,
         borrows::Borrow,
         collect_assigned_vars,
         fixes::fix_ghost_vars,
@@ -1253,7 +1253,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// Translate a borrowed place to a place that is currently usable
     fn translate_maybe_borrowed_place(
-        &self,
+        &mut self,
         location: mir::Location,
         place: vir::Expr,
     ) -> SpannedEncodingResult<vir::Expr> {
@@ -1287,13 +1287,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
-    fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Expr, vir::Expr, bool) {
+    fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> (vir::Expr, vir::Expr, bool) {
         debug!("encode_loan_places '{:?}'", loan_places);
         // will panic if attempting to encode unsupported type
         let (expiring_base, pre_stmts, expiring_ty, _) = self.encode_place(&loan_places.dest).unwrap();
         assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
 
-        let encode = |rhs_place| {
+        let mut encode = |rhs_place| {
             // TODO: pre_stmts here as well..
             let (restored, pre_stmts, _, _) = self.encode_place(rhs_place).unwrap();
             assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
@@ -5463,7 +5463,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     /// A local version of encode_place
     fn encode_place(
-        &self,
+        &mut self,
         place: &mir::Place<'tcx>,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>, ty::Ty<'tcx>, Option<usize>)> {
         let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_place(place)?;
@@ -5474,7 +5474,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_projection(
-        &self,
+        &mut self,
         local: mir::Local,
         projection: &[mir::PlaceElem<'tcx>],
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>, ty::Ty<'tcx>, Option<usize>)> {
@@ -5484,9 +5484,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok((encoded_expr, encoding_stmts, ty, variant_idx))
     }
 
-    // TODO: do we need more params/info in here?
     fn postprocess_place_encoding(
-        &self,
+        &mut self,
         place_encoding: PlaceEncoding,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
         trace!("postprocess_place_encoding: {:?}", place_encoding);
@@ -5497,15 +5496,58 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (expr.field(field), stmts)
             }
             PlaceEncoding::ArrayAccess { base, index, array_elem_ty, array_len } => {
-                return Err(EncodingError::unsupported(
-                    "array operations are not supported yet"
-                ));
+                let elem_ty_name = if let vir::Type::TypedRef(ref name) = array_elem_ty { name } else { unreachable!() };
+                let lookup_pure_ret = rust_type_name_to_vir_type(elem_ty_name)?;
+                let lookup_pure = self.encoder.encode_builtin_function_use(
+                    BuiltinFunctionKind::ArrayLookupPure {
+                        array_elem_ty: array_elem_ty.clone(),
+                        array_len,
+                        return_ty: lookup_pure_ret.clone(),
+                    }
+                );
+
+                let array_type = base.get_type().clone();
+                let lookup_res: vir::Expr = self.get_auxiliary_local_var("lookup_ret", array_elem_ty).into();
+                let lookup_res_val_int = lookup_res.clone().field(vir::Field::new("val_int", vir::Type::Int));
+                let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base)?;
+                stmts.extend(self.encode_havoc_and_allocation(&lookup_res));
+                let lookup_pure_call = vir::Expr::func_app(
+                    lookup_pure,
+                    vec![encoded_base_expr, index.field(vir::Field::new("val_int", vir::Type::Int))],
+                    vec![
+                        vir::LocalVar::new(
+                            String::from("self"),
+                            array_type,
+                        ),
+                        vir::LocalVar::new(
+                            String::from("idx"),
+                            vir::Type::Int,
+                        ),
+                    ],
+                    lookup_pure_ret,
+                    vir::Position::default(),
+                );
+                stmts.push(vir::Stmt::Inhale(vir!{ [ lookup_pure_call ] == [ lookup_res_val_int ] }));
+
+                trace!("postprocess: {:?}, {:?}", &lookup_res, &stmts);
+                (lookup_res, stmts)
             }
             PlaceEncoding::Variant { box base, field } => {
                 let (expr, mut stmts) = self.postprocess_place_encoding(base)?;
                 (vir::Expr::Variant(box expr, field, vir::Position::default()), stmts)
             }
         })
+    }
+}
+
+// TODO: is there a better way? or even place to put this? type_encoder?
+fn rust_type_name_to_vir_type(rust_type_name: &str) -> EncodingResult<vir::Type> {
+    match rust_type_name {
+        "u8" | "i8" | "u16" | "i16" | "u32" | "i32" | "u64" | "i64" | "usize" | "isize" | "char" => Ok(vir::Type::Int),
+        "bool" => Ok(vir::Type::Bool),
+        _ => Err(EncodingError::unsupported(
+            format!("unsupported array element type '{}'", rust_type_name)
+        )),
     }
 }
 
