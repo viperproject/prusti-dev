@@ -43,10 +43,8 @@
               pkgs.makeWrapper
             ];
 
-            copyLibs = true;
-            copyLibsFilter = ''
-              select(.reason == "compiler-artifact" and ((.target.kind | contains(["lib"])) and (.package_id | test("prusti-contracts"))) and .profile.test == false)
-            '';
+            copyTarget = true;
+            compressTarget = false;
 
             override = _: {
               preBuild = ''
@@ -55,7 +53,11 @@
                 export Z3_EXE="${packages.viper}/z3/bin/z3"
                 export ASM_JAR="${packages.ow2_asm}/asm.jar"
               '';
+            };
+            overrideMain = _: {
               postInstall = ''
+                rm $out/bin/test-crates
+
                 for f in $(find $out/bin/ $out/libexec/ -type f -executable); do
                   wrapProgram $f \
                     --set RUST_SYSROOT "${rust}" \
@@ -65,8 +67,11 @@
                     --set Z3_EXE "${packages.viper}/z3/bin/z3"
                 done
 
-                cp -r $out/lib/. $out/bin
-                rm -rf $out/lib/
+                mkdir $out/bin/deps
+                cp $out/target/release/libprusti_contracts.rlib $out/bin
+                cp $out/target/release/deps/libprusti_contracts_internal-* $out/bin/deps
+                rm -rf $out/target
+                rm $out/bin/deps/*.{rlib,rmeta}
               '';
             };
           };
@@ -75,7 +80,7 @@
             name = "viper";
             url = "https://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip";
             stripRoot = false;
-            hash = "sha256-oV9VgGmzNrLW6n08vXU2rlV6S9Eca3U0L+gNbVxKhEE=";
+            hash = "sha256-82vnyO7QWaLzehnBzPJxuEmdqK0MnWWwQnmdLq28sQc=";
           };
 
           ow2_asm = pkgs.stdenv.mkDerivation rec {
