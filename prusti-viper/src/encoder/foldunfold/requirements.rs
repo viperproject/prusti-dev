@@ -275,11 +275,7 @@ impl RequiredPermissionsGetter for vir::Expr {
             }
 
             vir::Expr::Cond(box guard, box then, box elze, _) => {
-                let guard_reqs = guard.get_required_permissions(predicates, old_exprs);
-                let then_reqs = then.get_required_permissions(predicates, old_exprs);
-                let elze_reqs = elze.get_required_permissions(predicates, old_exprs);
-                let then_else_reqs = then_reqs.intersection(&elze_reqs).cloned().collect();
-                guard_reqs.union(&then_else_reqs).cloned().collect()
+                vec![guard, then, elze].get_required_permissions(predicates, old_exprs)
             }
 
             vir::Expr::LetExpr(_variable, _expr, _body, _) => {
