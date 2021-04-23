@@ -211,6 +211,12 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 (encoded_base, base_ty, Some((*variant_index).into()))
             }
 
+            mir::ProjectionElem::Index(..) => {
+                return Err(EncodingError::unsupported(
+                    "array indexing is not supported yet"
+                ));
+            }
+
             x => unimplemented!("{:?}", x),
         })
     }
