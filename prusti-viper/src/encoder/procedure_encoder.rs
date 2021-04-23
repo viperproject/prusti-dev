@@ -3270,11 +3270,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let return_span = self.mir_encoder.get_local_span(
                     contract.returned_value.into()
                 );
-                let (encoded_deref, pre_stmts, ..) = self
-                    .encode_deref(PlaceEncoding::Expr(encoded_return.clone()), ty)
+                let (encoded_deref, ..) = self
+                    .mir_encoder
+                    .encode_deref(encoded_return.clone(), ty)
                     .with_span(return_span)?;
-
-                assert!(pre_stmts.is_empty(), "TODO: encode_deref pre_stmts handling");
 
                 let original_expr = encoded_deref;
                 let old_expr = vir::Expr::labelled_old(post_label, original_expr.clone());
@@ -3314,10 +3313,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             if self.mir_encoder.is_reference(ty) {
                 // If the argument is a reference, we wrap _1.val_ref into old.
                 let arg_span = self.mir_encoder.get_local_span(arg.into());
-                let (encoded_deref, pre_stmts, ..) = self
-                    .encode_deref(PlaceEncoding::Expr(encoded_arg.clone()), ty)
+                let (encoded_deref, ..) = self
+                    .mir_encoder
+                    .encode_deref(encoded_arg.clone(), ty)
                     .with_span(arg_span)?;
-                assert!(pre_stmts.is_empty(), "TODO: encode_deref pre_stmts handling");
                 let original_expr = encoded_deref;
                 let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
                 assertion = assertion.replace_place(&original_expr, &old_expr);
@@ -3690,7 +3689,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 if self.mir_encoder.is_reference(arg_ty) {
                     let encoded_arg = self.mir_encoder.encode_local(arg_index)?;
                     let (deref_place, ..) =
-                        self.encode_deref(PlaceEncoding::Expr(encoded_arg.into()), arg_ty)
+                        self.mir_encoder
+                            .encode_deref(encoded_arg.into(), arg_ty)
                             .with_span(arg_span)?;
                     let old_deref_place = deref_place.clone().old(&pre_label);
                     package_stmts.extend(self.encode_transfer_permissions(
@@ -3820,11 +3820,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             if self.mir_encoder.is_reference(ty) {
                 let encoded_arg: vir::Expr = self.encode_prusti_local(arg).into();
                 let arg_span = self.mir_encoder.get_local_span(arg.into());
-                let (encoded_deref, pre_stmts, ..) = self
-                    .encode_deref(PlaceEncoding::Expr(encoded_arg.clone()), ty)
+                let (encoded_deref, ..) = self
+                    .mir_encoder
+                    .encode_deref(encoded_arg.clone(), ty)
                     .with_span(arg_span)?;
-
-                assert!(pre_stmts.is_empty(), "TODO: encode_deref pre_stmts handling");
 
                 // Fold argument.
                 let deref_pred = self
@@ -3879,14 +3878,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
         let return_span = self.mir_encoder.get_local_span(contract.returned_value.into());
         let encoded_return_expr = if self.mir_encoder.is_reference(ty) {
-            let (encoded_deref, pre_stmts, ..) = self.mir_encoder
-                .encode_deref(PlaceEncoding::Expr(encoded_return), ty)
+            let (encoded_deref, ..) = self.mir_encoder
+                .encode_deref(encoded_return, ty)
                 .with_span(return_span)?;
             encoded_deref
         } else {
-            PlaceEncoding::Expr(encoded_return)
+            encoded_return
         };
-        let encoded_return_expr = encoded_return_expr.clone().try_into_expr().with_span(return_span)?;
         let return_pred = self
             .mir_encoder
             .encode_place_predicate_permission(encoded_return_expr, vir::PermAmount::Write)
@@ -5430,17 +5428,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         projection: &[mir::PlaceElem<'tcx>],
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>, ty::Ty<'tcx>, Option<usize>)> {
         let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_projection(local, projection)?;
-        let (encoded_expr, encoding_stmts) = self.postprocess_place_encoding(encoded_place)?;
-
-        Ok((encoded_expr, encoding_stmts, ty, variant_idx))
-    }
-
-    fn encode_deref(
-        &self,
-        encoded_base: PlaceEncoding,
-        base_ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>, ty::Ty<'tcx>, Option<usize>)> {
-        let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_deref(encoded_base, base_ty)?;
         let (encoded_expr, encoding_stmts) = self.postprocess_place_encoding(encoded_place)?;
 
         Ok((encoded_expr, encoding_stmts, ty, variant_idx))

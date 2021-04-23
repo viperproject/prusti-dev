@@ -194,7 +194,16 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             }
 
             mir::ProjectionElem::Deref => {
-                self.encode_deref(encoded_base, base_ty)?
+                match encoded_base.try_into_expr() {
+                    Ok(e) => {
+                        let (e, ty, v) = self.encode_deref(e, base_ty)?;
+                        (PlaceEncoding::Expr(e), ty, v)
+                    }
+                    Err(_) => return Err(EncodingError::unsupported(
+                        "mixed dereferencing and array indexing projections are not supported yet"
+                    )),
+
+                }
             }
 
             mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
@@ -208,16 +217,15 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
     fn encode_deref(
         &self,
-        encoded_base: PlaceEncoding,
+        encoded_base: vir::Expr,
         base_ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<(PlaceEncoding, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("encode_deref {} {}", encoded_base, base_ty);
         assert!(
             self.can_be_dereferenced(base_ty),
             "Type {:?} can not be dereferenced",
             base_ty
         );
-        let encoded_base = encoded_base.try_into_expr()?;
         Ok(match base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(_, ty, _) => {
@@ -234,7 +242,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         }
                     }
                 };
-                (PlaceEncoding::Expr(access), ty, None)
+                (access, ty, None)
             }
             ty::TyKind::Adt(ref adt_def, ref _subst) if adt_def.is_box() => {
                 let access = if encoded_base.is_addr_of() {
@@ -245,7 +253,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         .encode_dereference_field(field_ty)?;
                     encoded_base.field(ref_field)
                 };
-                (PlaceEncoding::Expr(access), base_ty.boxed_ty(), None)
+                (access, base_ty.boxed_ty(), None)
             }
             ref x => unimplemented!("{:?}", x),
         })
