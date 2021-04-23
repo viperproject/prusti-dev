@@ -5497,7 +5497,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (expr.field(field), stmts)
             }
             PlaceEncoding::ArrayAccess { base, index, array_elem_ty, array_len } => {
-                panic!("ArrayAccess {{ {:?}, {:?}, {:?}, {:?} }}", base, index, array_elem_ty, array_len);
+                return Err(EncodingError::unsupported(
+                    "array operations are not supported yet"
+                ));
             }
             PlaceEncoding::Variant { box base, field } => {
                 let (expr, mut stmts) = self.postprocess_place_encoding(base)?;
