@@ -1,5 +1,4 @@
 //! From https://github.com/viperproject/prusti-dev/issues/471
-//! From https://github.com/viperproject/prusti-dev/issues/471
 
 use prusti_contracts::*;
 use std::collections::HashSet;
