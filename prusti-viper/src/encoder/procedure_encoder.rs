@@ -66,6 +66,7 @@ use std::borrow::Borrow as StdBorrow;
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use crate::encoder::snapshot;
+use std::convert::TryInto;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -5420,11 +5421,51 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // let f = closure!(...);
             }
 
-            &mir::AggregateKind::Array(..) => {
-                return Err(SpannedEncodingError::unsupported(
-                    "construction of arrays is not supported",
-                    span
-                ));
+            &mir::AggregateKind::Array(elem_ty) => {
+                let ty_len = if let ty::TyKind::Array(_, ref ty_len) = ty.kind() { ty_len } else { unreachable!() };
+                let array_len: usize = self.encoder.const_eval_intlike(&ty_len.val).unwrap()
+                    .to_u64().unwrap().try_into().unwrap();
+                let array_elem_ty = self.encoder.encode_type(elem_ty)
+                    .with_span(span)?;
+                let lookup_pure_ret = self.encoder.encode_value_type(elem_ty)
+                    .with_span(span)?;
+                let lookup_pure = self.encoder.encode_builtin_function_use(
+                    BuiltinFunctionKind::ArrayLookupPure {
+                        array_elem_ty,
+                        array_len,
+                        return_ty: lookup_pure_ret.clone(),
+                    }
+                );
+                let array_type = self.encoder.encode_type(ty)
+                    .with_span(span)?;
+
+                for idx in 0..array_len {
+                    let lookup_pure_call = vir::Expr::func_app(
+                        lookup_pure.clone(),
+                        vec![
+                            dst.clone(),
+                            idx.into(),
+                        ],
+                        vec![
+                            vir::LocalVar::new(
+                                String::from("self"),
+                                array_type.clone(),
+                            ),
+                            vir::LocalVar::new(
+                                String::from("idx"),
+                                vir::Type::Int,
+                            ),
+                        ],
+                        lookup_pure_ret.clone(),
+                        vir::Position::default(),
+                        );
+                    let encoded_operand = self.mir_encoder.encode_operand_expr(&operands[idx])
+                        .with_span(span)?;
+
+                    stmts.push(
+                        vir::Stmt::Inhale(vir!{ [lookup_pure_call] == [encoded_operand] })
+                    );
+                }
             }
 
             &mir::AggregateKind::Generator(..) => {
