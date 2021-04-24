@@ -213,7 +213,7 @@ impl From<IeeeFloat<SingleS>> for Expr {
 
 impl From<IeeeFloat<SingleS>> for Const {
     fn from(val: IeeeFloat<SingleS>) -> Self {
-        Const::Float(FloatConst::FloatConst32(rustc_apfloat::ieee::Semantics::to_bits(val) as f32))
+        Const::Float(FloatConst::FloatConst32(rustc_apfloat::ieee::Semantics::to_bits(val) as u32))
     }
 } 
 
@@ -225,6 +225,6 @@ impl From<IeeeFloat<DoubleS>> for Expr {
 
 impl From<IeeeFloat<DoubleS>> for Const {
     fn from(val: IeeeFloat<DoubleS>) -> Self {
-       Const::Float(FloatConst::FloatConst64(rustc_apfloat::ieee::Semantics::to_bits(val) as f64))
+       Const::Float(FloatConst::FloatConst64(rustc_apfloat::ieee::Semantics::to_bits(val) as u64))
     }
 }

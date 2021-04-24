@@ -94,30 +94,10 @@ pub enum BinOpKind {
 
 
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum FloatConst {
-    FloatConst64(f64),
-    FloatConst32(f32),
-}
-
-impl PartialEq for FloatConst {
-    fn eq(&self, other: &FloatConst) -> bool {
-        match (self, other) {
-            (FloatConst::FloatConst64(f1), FloatConst::FloatConst64(f2)) => f1.to_string() == f2.to_string(),
-            (FloatConst::FloatConst32(f1), FloatConst::FloatConst32(f2)) => f1.to_string() == f2.to_string(),
-            _ => unreachable!("PartialEq: incompatible float types")
-        }        
-    }
-}
-impl Eq for FloatConst {}
-
-impl Hash for FloatConst {
-    fn hash<H: Hasher>(&self, hasher: &mut H) {
-        match self {
-            FloatConst::FloatConst64(f1) => f1.to_string().hash(hasher),
-            FloatConst::FloatConst32(f1) => f1.to_string().hash(hasher),
-        }  
-    }
+    FloatConst64(u64),
+    FloatConst32(u32),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
