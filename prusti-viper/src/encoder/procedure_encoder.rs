@@ -5495,9 +5495,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let (expr, mut stmts) = self.postprocess_place_encoding(base)?;
                 (expr.field(field), stmts)
             }
-            PlaceEncoding::ArrayAccess { base, index, array_elem_ty, array_len } => {
+            PlaceEncoding::ArrayAccess { base, index, array_elem_ty, array_len, lookup_pure_ret } => {
                 let elem_ty_name = if let vir::Type::TypedRef(ref name) = array_elem_ty { name } else { unreachable!() };
-                let lookup_pure_ret = rust_type_name_to_vir_type(elem_ty_name)?;
                 let lookup_pure = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::ArrayLookupPure {
                         array_elem_ty: array_elem_ty.clone(),
@@ -5537,17 +5536,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (vir::Expr::Variant(box expr, field, vir::Position::default()), stmts)
             }
         })
-    }
-}
-
-// TODO: is there a better way? or even place to put this? type_encoder?
-fn rust_type_name_to_vir_type(rust_type_name: &str) -> EncodingResult<vir::Type> {
-    match rust_type_name {
-        "u8" | "i8" | "u16" | "i16" | "u32" | "i32" | "u64" | "i64" | "usize" | "isize" | "char" => Ok(vir::Type::Int),
-        "bool" => Ok(vir::Type::Bool),
-        _ => Err(EncodingError::unsupported(
-            format!("unsupported array element type '{}'", rust_type_name)
-        )),
     }
 }
 

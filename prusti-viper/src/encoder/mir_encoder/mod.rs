@@ -229,6 +229,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         index: self.encode_local(*idx)?.into(),
                         array_elem_ty: self.encoder().encode_type(elem_ty)?,
                         array_len,
+                        lookup_pure_ret: self.encoder().encode_value_type(elem_ty)?,
                     },
                     elem_ty,
                     None,
