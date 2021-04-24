@@ -113,6 +113,7 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
         .and_then(|p| p.parent())
         .expect(&format!("Failed to obtain parent folders of {}", project_path.display()));
     let prusti_contract_deps = [
+        "prusti-utils",
         "prusti-specs",
         "prusti-contracts",
         "prusti-contracts-impl",
