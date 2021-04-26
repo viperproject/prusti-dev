@@ -1265,7 +1265,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .map_err(EncodingError::from)
                 .with_span(span)?;
             if let Some(loan_places) = opt_places {
-                let (_, encoded_source, _) = self.encode_loan_places(&loan_places);
+                let (_, encoded_source, _) = self.encode_loan_places(&loan_places)
+                    .with_span(span)?;
                 if place.has_prefix(&encoded_source) {
                     relevant_active_loan_places.push(loan_places);
                 }
@@ -1275,7 +1276,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let loan_places = &relevant_active_loan_places[0];
             let (encoded_dest, encoded_source, _) = self.encode_loan_places(
                 loan_places
-            );
+            ).with_span(span)?;
             // Recursive translation
             self.translate_maybe_borrowed_place(
                 loan_places.location,
@@ -1287,23 +1288,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
-    fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> (vir::Expr, vir::Expr, bool) {
+    fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> EncodingResult<(vir::Expr, vir::Expr, bool)> {
         debug!("encode_loan_places '{:?}'", loan_places);
         // will panic if attempting to encode unsupported type
         let (expiring_base, pre_stmts, expiring_ty, _) = self.encode_place(&loan_places.dest).unwrap();
-        assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
+        if !pre_stmts.is_empty() {
+            return Err(EncodingError::unsupported(
+                "storing references in arrays is not supported"
+            ));
+        }
 
         let mut encode = |rhs_place| {
-            // TODO: pre_stmts here as well..
             let (restored, pre_stmts, _, _) = self.encode_place(rhs_place).unwrap();
-            assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
+            if !pre_stmts.is_empty() {
+                return Err(EncodingError::unsupported(
+                    "storing references in arrays is not supported"
+                ));
+            }
             let ref_field = self.encoder.encode_value_field(expiring_ty);
             let expiring = expiring_base.clone().field(ref_field.clone());
-            (expiring, restored, ref_field)
+            Ok((expiring, restored, ref_field))
         };
-        match loan_places.source {
+        Ok(match loan_places.source {
             mir::Rvalue::Ref(_, mir_borrow_kind, ref rhs_place) => {
-                let (expiring, restored, _) = encode(rhs_place);
+                let (expiring, restored, _) = encode(rhs_place)?;
                 assert_eq!(expiring.get_type(), restored.get_type());
                 let is_mut = match mir_borrow_kind {
                     mir::BorrowKind::Shared => false,
@@ -1314,20 +1322,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (expiring, restored, is_mut)
             }
             mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
-                let (expiring, restored_base, ref_field) = encode(rhs_place);
+                let (expiring, restored_base, ref_field) = encode(rhs_place)?;
                 let restored = restored_base.clone().field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
                 (expiring, restored, true)
             }
             mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) => {
-                let (expiring, restored_base, ref_field) = encode(rhs_place);
+                let (expiring, restored_base, ref_field) = encode(rhs_place)?;
                 let restored = restored_base.clone().field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
                 (expiring, restored, false)
             }
 
             ref x => unreachable!("Borrow restores value {:?}", x),
-        }
+        })
     }
 
     fn encode_transfer_permissions(
@@ -1486,7 +1494,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let loan_places = self.polonius_info().get_loan_places(&loan)
             .map_err(EncodingError::from)
             .with_span(span)?.unwrap();
-        let (expiring, restored, is_mut) = self.encode_loan_places(&loan_places);
+        let (expiring, restored, is_mut) = self.encode_loan_places(&loan_places)
+            .with_span(span)?;
         let borrowed_places = vec![restored.clone()];
 
         let mut used_lhs_label = false;
