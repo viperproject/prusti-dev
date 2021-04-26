@@ -5506,7 +5506,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
 
                 let array_type = base.get_type().clone();
-                let lookup_res: vir::Expr = self.get_auxiliary_local_var("lookup_ret", array_elem_ty).into();
+                let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(array_elem_ty).into();
                 let lookup_res_val_int = lookup_res.clone().field(val_field.clone());
                 let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base)?;
                 stmts.extend(self.encode_havoc_and_allocation(&lookup_res));
