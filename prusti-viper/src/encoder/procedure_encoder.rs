@@ -1218,11 +1218,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             stmt.source_info.span,
                         )?
                     }
-                    &mir::Rvalue::Len(..) => {
-                        return Err(SpannedEncodingError::unsupported(
-                            "obtaining the length of an array is unsupported",
-                            stmt.source_info.span,
-                        ))
+                    &mir::Rvalue::Len(ref place) => {
+                        self.encode_assign_array_len(
+                            encoded_lhs,
+                            place,
+                            ty,
+                            location,
+                        )?
                     }
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
@@ -5033,6 +5035,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
     }
 
+    fn encode_assign_array_len(
+        &mut self,
+        encoded_lhs: vir::Expr,
+        place: &mir::Place<'tcx>,
+        dst_ty: ty::Ty<'tcx>,
+        location: mir::Location,
+    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        trace!(
+            "[enter] encode_assign_array_len(place={:?}, ty={:?})",
+            place,
+            dst_ty,
+        );
+        let span = self.mir_encoder.get_span_of_location(location);
+
+        let place_ty = self.encode_place(place).with_span(span)?.2;
+        let ty_len = if let ty::TyKind::Array(_, ref ty_len) = place_ty.kind() { ty_len } else { unreachable!() };
+
+        let len = self.encoder.const_eval_intlike(&ty_len.val).unwrap()
+            .to_u64().unwrap();
+
+        self.encode_copy_value_assign(
+            encoded_lhs,
+            len.into(),
+            dst_ty,
+            location,
+        )
+    }
+
     pub fn get_auxiliary_local_var(&mut self, suffix: &str, vir_type: vir::Type) -> vir::LocalVar {
         let name = format!("_aux_{}_{}", suffix, vir_type.name());
         if self.auxiliary_local_vars.contains_key(&name) {
@@ -5467,7 +5497,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (expr.field(field), stmts)
             }
             PlaceEncoding::ArrayAccess { base, index, array_elem_ty, array_len } => {
-                panic!("ArrayAccess {{ {:?}, {:?}, {:?}, {:?} }}", base, index, array_elem_ty, array_len);
+                return Err(EncodingError::unsupported(
+                    "array operations are not supported yet"
+                ));
             }
             PlaceEncoding::Variant { box base, field } => {
                 let (expr, mut stmts) = self.postprocess_place_encoding(base)?;
