@@ -21,7 +21,7 @@ use super::super::super::{ast, borrows, cfg};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::mem;
-use vir::FallibleExprFolder;
+use crate::vir::FallibleExprFolder;
 
 
 pub trait FoldingOptimizer {
@@ -286,7 +286,7 @@ fn merge_requirements_and_unfoldings2(
 ) -> (RequirementSet, UnfoldingMap, Box<ast::Expr>, Box<ast::Expr>) {
 
     trace!("[enter] merge_requirements_and_unfoldings");
-    use utils::to_string::ToString;
+    use crate::utils::to_string::ToString;
     trace!("reqs: {}", first_requirements.iter().to_sorted_multiline_string());
     trace!("unfoldings: {}", first_unfoldings.keys().to_sorted_multiline_string());
     trace!("reqs: {}", second_requirements.iter().to_sorted_multiline_string());

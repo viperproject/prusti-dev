@@ -8,8 +8,10 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt;
 use std::iter::FromIterator;
 use uuid::Uuid;
-use vir::ast::*;
-use vir::gather_labels::gather_labels;
+use crate::vir::{
+    ast::*,
+    gather_labels::gather_labels,
+};
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
