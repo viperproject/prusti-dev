@@ -2370,7 +2370,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // - if not constant, the VIR expression for the argument
         let mut operands: Vec<(&mir::Operand<'tcx>, Local, ty::Ty<'tcx>, Option<vir::Expr>)> = vec![];
         let mut encoded_operands = mir_args.iter()
-            .map(|arg| self.mir_encoder.encode_operand_place(&arg))
+            .map(|arg| self.encode_operand_place(&arg))
             .collect::<Result<Vec<Option<vir::Expr>>, _>>()
             .with_span(call_site_span)?;
         if self.encoder.env().tcx().is_closure(called_def_id) {
@@ -2898,7 +2898,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.mir_encoder.get_span_of_location(location);
         for operand in args.iter() {
             let operand_ty = self.mir_encoder.get_operand_ty(operand);
-            let operand_place = self.mir_encoder.encode_operand_place(operand)
+            let operand_place = self.encode_operand_place(operand)
                 .with_span(span)?;
             match (operand_place, &operand_ty.kind()) {
                 (
@@ -5491,6 +5491,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (encoded_expr, encoding_stmts) = self.postprocess_place_encoding(encoded_place)?;
 
         Ok((encoded_expr, encoding_stmts, ty, variant_idx))
+    }
+
+    fn encode_operand_place(
+        &self,
+        operand: &mir::Operand<'tcx>,
+    ) -> EncodingResult<Option<vir::Expr>> {
+        let encoded_place = self.mir_encoder.encode_operand_place(operand)?;
+        Ok(match encoded_place {
+            Some(encoded_place) => Some(encoded_place.try_into_expr()?),
+            None => None,
+        })
+        // TODO
+        // self.postprocess_place_encoding(encoded_place)?
     }
 
     fn postprocess_place_encoding(

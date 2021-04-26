@@ -409,7 +409,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
                 let (encoded_place, place_ty, _) = self.encode_place(place)?;
-                self.encoder.encode_value_expr(encoded_place.try_into_expr()?, place_ty).into()
+                // self.encoder.encode_value_expr(encoded_place.try_into_expr()?, place_ty).into()
+                self.encoder.encode_value_expr(encoded_place.try_into_expr().unwrap(), place_ty).into()
             }
             // FIXME: Check whether the commented out code is necessary.
             // &mir::Operand::Constant(box mir::Constant {
@@ -709,12 +710,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_place(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> EncodingResult<Option<vir::Expr>> {
+    ) -> EncodingResult<Option<PlaceEncoding>> {
         debug!("Encode operand place {:?}", operand);
         Ok(match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
-                let (src, _, _) = self.encode_place(place)?;
-                Some(src.try_into_expr()?)
+                Some(self.encode_place(place)?.0)
             }
 
             &mir::Operand::Constant(_) => None,

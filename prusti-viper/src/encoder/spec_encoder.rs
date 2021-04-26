@@ -454,7 +454,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             .collect::<Result<_, _>>()?;
         let outer_captured_places: Vec<_> = captured_operands
             .iter()
-            .map(|operand| outer_mir_encoder.encode_operand_place(operand))
+            .map(|operand| {
+                outer_mir_encoder
+                    .encode_operand_place(operand)
+                    .map(|opt_place_encoding|
+                         opt_place_encoding.map(|p| p.try_into_expr().unwrap())
+                    )
+            })
             .collect::<Result<Vec<_>, _>>()
             .with_span(outer_span)?
             .into_iter()

@@ -10,7 +10,7 @@ use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::{PanicCause, RunIfErr};
 use crate::encoder::errors::{SpannedEncodingError, ErrorCtxt, WithSpan};
 use crate::encoder::foldunfold;
-use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
+use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
 use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
 use crate::encoder::mir_interpreter::{
     run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
@@ -512,7 +512,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         let (encoded_place, ty, variant_idx) = self.mir_encoder().encode_place(place)?;
         // TODO: actual encoding of array access here
-        Ok((encoded_place.try_into_expr()?, ty, variant_idx))
+        Ok((encoded_place.try_into_expr().unwrap(), ty, variant_idx))
     }
 
     fn encode_projection(
@@ -522,7 +522,69 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_projection(local, projection)?;
         // TODO: actual encoding of e.g. array access here
-        Ok((encoded_place.try_into_expr()?, ty, variant_idx))
+        Ok((encoded_place.try_into_expr().unwrap(), ty, variant_idx))
+    }
+
+    fn encode_operand_place(
+        &self,
+        operand: &mir::Operand<'tcx>,
+    ) -> EncodingResult<Option<vir::Expr>> {
+        let encoded_place =
+            if let Some(p) = self.mir_encoder.encode_operand_place(operand)? {
+                p
+            } else {
+                return Ok(None);
+            };
+
+        Ok(Some(self.postprocess_place_encoding(encoded_place)?))
+    }
+
+    fn postprocess_place_encoding(
+        &self,
+        encoded_place: PlaceEncoding,
+    ) -> EncodingResult<vir::Expr> {
+        Ok(match encoded_place {
+            PlaceEncoding::Expr(e) => e,
+            PlaceEncoding::FieldAccess { base, field } => {
+                let encoded_base = self.postprocess_place_encoding(*base)?;
+                encoded_base.field(field)
+            },
+            PlaceEncoding::ArrayAccess { base, index, array_elem_ty, array_len, lookup_pure_ret, .. } => {
+                let array_type = base.get_type().clone();
+                let encoded_base = self.postprocess_place_encoding(*base)?;
+                let lookup_pure = self.encoder.encode_builtin_function_use(
+                    BuiltinFunctionKind::ArrayLookupPure {
+                        array_elem_ty,
+                        array_len,
+                        return_ty: lookup_pure_ret.clone(),
+                    }
+                );
+
+                vir::Expr::func_app(
+                    lookup_pure,
+                    vec![
+                        encoded_base,
+                        index,
+                    ],
+                    vec![
+                        vir::LocalVar::new(
+                            String::from("self"),
+                            array_type,
+                        ),
+                        vir::LocalVar::new(
+                            String::from("idx"),
+                            vir::Type::Int,
+                        ),
+                    ],
+                    lookup_pure_ret,
+                    vir::Position::default(),
+                )
+            },
+            PlaceEncoding::Variant { base, field } => {
+                let encoded_base = self.postprocess_place_encoding(*base)?;
+                vir::Expr::Variant(box encoded_base, field, vir::Position::default())
+            },
+        })
     }
 }
 
@@ -1047,7 +1109,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
-                        let opt_encoded_rhs = self.mir_encoder.encode_operand_place(operand)
+                        let opt_encoded_rhs = self.encode_operand_place(operand)
                             .with_span(span)?;
 
                         match opt_encoded_rhs {
@@ -1085,7 +1147,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         .with_span(span)?;
                                     let field_place = encoded_lhs.clone().field(encoded_field);
 
-                                    let encoded_operand = self.mir_encoder.encode_operand_place(operand)
+                                    let encoded_operand = self.encode_operand_place(operand)
                                         .with_span(span)?;
                                     match encoded_operand {
                                         Some(encoded_rhs) => {
@@ -1131,7 +1193,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     let field_place =
                                         encoded_lhs_variant.clone().field(encoded_field);
 
-                                    let encoded_operand = self.mir_encoder.encode_operand_place(operand)
+                                    let encoded_operand = self.encode_operand_place(operand)
                                         .with_span(span)?;
                                     match encoded_operand {
                                         Some(encoded_rhs) => {
@@ -1304,6 +1366,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                         // Substitute a place of a value with an expression
                         state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_val);
+                    }
+
+                    &mir::Rvalue::Len(ref place) => {
+                        let place_ty = self.encode_place(place).with_span(span)?.1;
+                        let ty_len = if let ty::TyKind::Array(_, ref ty_len) = place_ty.kind() { ty_len } else { unreachable!() };
+
+                        let len = self.encoder.const_eval_intlike(&ty_len.val).unwrap()
+                            .to_u64().unwrap();
+
+                        trace!("FOO: {} -> {}", &encoded_lhs, len);
+                        state.substitute_value(&opt_lhs_value_place.unwrap(), len.into());
                     }
 
                     ref rhs => {
