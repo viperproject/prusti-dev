@@ -5495,7 +5495,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let (expr, mut stmts) = self.postprocess_place_encoding(base)?;
                 (expr.field(field), stmts)
             }
-            PlaceEncoding::ArrayAccess { base, index, array_elem_ty, array_len, lookup_pure_ret } => {
+            PlaceEncoding::ArrayAccess { base, index, array_elem_ty, array_len, lookup_pure_ret, val_field } => {
                 let elem_ty_name = if let vir::Type::TypedRef(ref name) = array_elem_ty { name } else { unreachable!() };
                 let lookup_pure = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::ArrayLookupPure {
@@ -5507,12 +5507,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 let array_type = base.get_type().clone();
                 let lookup_res: vir::Expr = self.get_auxiliary_local_var("lookup_ret", array_elem_ty).into();
-                let lookup_res_val_int = lookup_res.clone().field(vir::Field::new("val_int", vir::Type::Int));
+                let lookup_res_val_int = lookup_res.clone().field(val_field.clone());
                 let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base)?;
                 stmts.extend(self.encode_havoc_and_allocation(&lookup_res));
                 let lookup_pure_call = vir::Expr::func_app(
                     lookup_pure,
-                    vec![encoded_base_expr, index.field(vir::Field::new("val_int", vir::Type::Int))],
+                    vec![encoded_base_expr, index.field(val_field)],
                     vec![
                         vir::LocalVar::new(
                             String::from("self"),

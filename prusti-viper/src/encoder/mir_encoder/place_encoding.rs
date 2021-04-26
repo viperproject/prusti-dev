@@ -32,6 +32,7 @@ pub enum PlaceEncoding {
         array_elem_ty: vir::Type,
         array_len: usize,
         lookup_pure_ret: vir::Type,
+        val_field: vir::Field,
     },
     Variant {
         base: Box<PlaceEncoding>,
