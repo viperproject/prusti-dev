@@ -1044,7 +1044,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for (place, variant_idx) in self.mir_encoder.get_downcasts_at_location(location).into_iter() {
             let span = self.mir_encoder.get_span_of_location(location);
             let (encoded_place, pre_stmts, place_ty, _) = self
-                    .encode_projection(place.local, &place.projection)
+                    // TODO: may need to look at place to decide the arrayaccesskind here
+                    .encode_projection(place.local, &place.projection, ArrayAccessKind::Shared)
                     .with_span(span)?;
             downcast_stmts.extend(pre_stmts);
             let variant_field = if let ty::TyKind::Adt(adt_def, _) = place_ty.kind() {
@@ -1130,7 +1131,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
                 let span = self.mir_encoder.get_span_of_location(location);
-                let (encoded_lhs, pre_stmts, ty, _) = self.encode_place(lhs).with_span(span)?;
+                // array access on the LHS should always be mutable (idx is always calculated
+                // before, and just a separate local variable here)
+                let (encoded_lhs, pre_stmts, ty, _) = self.encode_place(lhs, ArrayAccessKind::Mutable).with_span(span)?;
                 stmts.extend(pre_stmts);
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
@@ -1260,10 +1263,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> EncodingResult<(vir::Expr, vir::Expr, bool, Vec<vir::Stmt>)> {
         debug!("encode_loan_places '{:?}'", loan_places);
         // will panic if attempting to encode unsupported type
-        let (expiring_base, mut stmts, expiring_ty, _) = self.encode_place(&loan_places.dest).unwrap();
+        // TODO: this is sort-of a LHS, so it should be mutable here, right?
+        let (expiring_base, mut stmts, expiring_ty, _) = self.encode_place(&loan_places.dest, ArrayAccessKind::Mutable).unwrap();
 
-        let mut encode = |rhs_place, stmts: &mut Vec<vir::Stmt>| -> EncodingResult<_> {
-            let (restored, pre_stmts, _, _) = self.encode_place(rhs_place).unwrap();
+        let mut encode = |rhs_place, stmts: &mut Vec<vir::Stmt>, array_encode_kind| -> EncodingResult<_> {
+            let (restored, pre_stmts, _, _) = self.encode_place(rhs_place, array_encode_kind).unwrap();
             stmts.extend(pre_stmts);
             let ref_field = self.encoder.encode_value_field(expiring_ty);
             let expiring = expiring_base.clone().field(ref_field.clone());
@@ -1271,24 +1275,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
         Ok(match loan_places.source {
             mir::Rvalue::Ref(_, mir_borrow_kind, ref rhs_place) => {
-                let (expiring, restored, _) = encode(rhs_place, &mut stmts)?;
-                assert_eq!(expiring.get_type(), restored.get_type());
                 let is_mut = match mir_borrow_kind {
                     mir::BorrowKind::Shared => false,
                     mir::BorrowKind::Shallow => unimplemented!(),
                     mir::BorrowKind::Unique => unimplemented!(),
                     mir::BorrowKind::Mut { .. } => true,
                 };
+                let array_encode_kind = if is_mut { ArrayAccessKind::Mutable } else { ArrayAccessKind::Shared };
+                let (expiring, restored, _) = encode(rhs_place, &mut stmts, array_encode_kind)?;
+                assert_eq!(expiring.get_type(), restored.get_type());
                 (expiring, restored, is_mut, stmts)
             }
             mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
-                let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts)?;
+                let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts, ArrayAccessKind::Shared)?;
                 let restored = restored_base.clone().field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
                 (expiring, restored, true, stmts)
             }
             mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) => {
-                let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts)?;
+                let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts, ArrayAccessKind::Shared)?;
                 let restored = restored_base.clone().field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
                 (expiring, restored, false, stmts)
@@ -1865,7 +1870,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ..
             } => {
                 // will panic if attempting to encode unsupported type
-                let (encoded_lhs, pre_stmts, _, _) = self.encode_place(lhs).unwrap();
+                let (encoded_lhs, pre_stmts, _, _) = self.encode_place(lhs, ArrayAccessKind::Mutable).unwrap();
                 stmts.extend(pre_stmts);
                 stmts.extend(
                     self.encode_assign_operand(&encoded_lhs, value, location)?
@@ -1964,7 +1969,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             assert_eq!(args.len(), 1);
 
                             let (ref target_place, _) = destination.as_ref().unwrap();
-                            let (dst, pre_stmts, dest_ty, _) = self.encode_place(target_place).unwrap();
+                            let (dst, pre_stmts, dest_ty, _) = self.encode_place(target_place, ArrayAccessKind::Shared).unwrap();
                             stmts.extend(pre_stmts);
 
                             let boxed_ty = dest_ty.boxed_ty();
@@ -2214,7 +2219,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let rhs = slice_types.encode_slice_len_call(slice_operand);
 
-        let (encoded_lhs, encode_stmts, ty, _) = self.encode_place(&destination.as_ref().unwrap().0)
+        let (encoded_lhs, encode_stmts, ty, _) = self.encode_place(
+            &destination.as_ref().unwrap().0,
+            ArrayAccessKind::Mutable,
+        )
             .with_span(span)?;
         stmts.extend(encode_stmts);
 
@@ -2477,7 +2485,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             match destination.as_ref() {
                 Some((ref target_place, _)) => {
                     // will panic if attempting to encode unsupported type
-                    let (encoded_target, pre_stmts, ty, _) = self.encode_place(target_place).unwrap();
+                    let (encoded_target, pre_stmts, ty, _) = self.encode_place(target_place, ArrayAccessKind::Shared).unwrap();
                     stmts.extend(pre_stmts);
 
                     let target_local = if let Some(target_local) = target_place.as_local() {
@@ -2781,7 +2789,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
         match destination.as_ref() {
             Some((ref dst, _)) => {
-                let (encoded_place, pre_stmts, ty, _) = self.encode_place(dst)?;
+                let (encoded_place, pre_stmts, ty, _) = self.encode_place(dst, ArrayAccessKind::Mutable)?;
                 let encoded_lhs_value = self.encoder.encode_value_expr(encoded_place, ty);
                 Ok((encoded_lhs_value, pre_stmts))
             },
@@ -2796,7 +2804,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         match destination.as_ref() {
             // will panic if attempting to encode unsupported type
             Some((ref dst, _)) => {
-                let (encoded, pre_stmts, _, _) = self.encode_place(dst).unwrap();
+                let (encoded, pre_stmts, _, _) = self.encode_place(dst, ArrayAccessKind::Mutable).unwrap();
                 (encoded, pre_stmts)
             }
             None => unreachable!(),
@@ -4009,7 +4017,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     continue;
                 }
                 // will panic if attempting to encode unsupported type
-                let (encoded_place, pre_stmts, ty, _) = self.encode_place(&mir_place).unwrap();
+                let (encoded_place, pre_stmts, ty, _) = self.encode_place(&mir_place, ArrayAccessKind::Shared).unwrap();
                 assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
                 debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
                 match kind {
@@ -4041,7 +4049,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         if let Some(base) = utils::try_pop_deref(self.encoder.env().tcx(), mir_place)
                         {
                             // will panic if attempting to encode unsupported type
-                            let (_, pre_stmts, ref_ty, _) = self.encode_place(&base).unwrap();
+                            let (_, pre_stmts, ref_ty, _) = self.encode_place(&base, ArrayAccessKind::Shared).unwrap();
                             assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
                             match ref_ty.kind() {
                                 ty::TyKind::RawPtr(ty::TypeAndMut { mutbl, .. })
@@ -4104,7 +4112,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         // place after the loop and we need to preserve it via local
                                         // variables.
                                         let (encoded_child, pre_stmts, _, _) =
-                                            self.encode_place(&child_place).unwrap(); // will panic if attempting to encode unsupported type
+                                            self.encode_place(&child_place, ArrayAccessKind::Shared).unwrap(); // will panic if attempting to encode unsupported type
                                         assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
                                         equalities.push(self.construct_value_preserving_equality(
                                             loop_head,
@@ -4478,7 +4486,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.mir_encoder.get_span_of_location(location);
         let stmts = match operand {
             mir::Operand::Move(ref place) => {
-                let (src, mut stmts, ty, _) = self.encode_place(place).with_span(span)?;
+                let (src, mut stmts, ty, _) = self.encode_place(place, ArrayAccessKind::Shared).with_span(span)?;
                 let encode_stmts = match ty.kind() {
                     ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => {
                         // Reborrow.
@@ -4516,7 +4524,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             mir::Operand::Copy(ref place) => {
-                let (src, mut stmts, ty, _) = self.encode_place(place).with_span(span)?;
+                let (src, mut stmts, ty, _) = self.encode_place(place, ArrayAccessKind::Shared).with_span(span)?;
                 let encode_stmts = if self.mir_encoder.is_reference(ty) {
                     let loan = self.polonius_info().get_loan_at_location(location);
                     let ref_field = self.encoder.encode_value_field(ty);
@@ -4849,7 +4857,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             src,
             location
         );
-        let (encoded_src, mut stmts, src_ty, _) = self.encode_place(src).unwrap(); // will panic if attempting to encode unsupported type
+        let (encoded_src, mut stmts, src_ty, _) = self.encode_place(src, ArrayAccessKind::Shared).unwrap(); // will panic if attempting to encode unsupported type
         let encode_stmts = match src_ty.kind() {
             ty::TyKind::Adt(ref adt_def, _) if !adt_def.is_box() => {
                 let num_variants = adt_def.variants.len();
@@ -4909,10 +4917,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location
         );
         let span = self.mir_encoder.get_span_of_location(location);
-        let (encoded_value, mut stmts, _, _) = self.encode_place(place).with_span(span)?;
         let loan = self.polonius_info().get_loan_at_location(location);
-        let vir_assign_kind = match mir_borrow_kind {
-            mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan.into()),
+        let (vir_assign_kind, array_encode_kind) = match mir_borrow_kind {
+            mir::BorrowKind::Shared =>
+                (vir::AssignKind::SharedBorrow(loan.into()), ArrayAccessKind::Shared),
             mir::BorrowKind::Unique => {
                 return Err(EncodingError::unsupported(
                     "unsuported creation of unique borrows (implicitly created in closure bindings)"
@@ -4923,8 +4931,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     "unsupported creation of shallow borrows (implicitly created when lowering matches)"
                 )).with_span(span);
             }
-            mir::BorrowKind::Mut { .. } => vir::AssignKind::MutableBorrow(loan.into()),
+            mir::BorrowKind::Mut { .. } =>
+                (vir::AssignKind::MutableBorrow(loan.into()), ArrayAccessKind::Mutable),
         };
+        let (encoded_value, mut stmts, _, _) = self.encode_place(place, array_encode_kind).with_span(span)?;
         // Initialize ref_var.ref_field
         let field = self.encoder.encode_value_field(ty);
         stmts.extend(
@@ -4981,7 +4991,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             dst_ty,
         );
         let span = self.mir_encoder.get_span_of_location(location);
-        let (encoded_place, mut stmts, place_ty, ..) = self.encode_place(place).with_span(span)?;
+        let (encoded_place, mut stmts, place_ty, ..) = self.encode_place(
+            place,
+            ArrayAccessKind::Mutable,
+        ).with_span(span)?;
         match place_ty.kind() {
             ty::TyKind::Array(..) => {
                 // extract the length from the array type
@@ -5420,10 +5433,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_place(
         &mut self,
         place: &mir::Place<'tcx>,
+        encode_kind: ArrayAccessKind,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>, ty::Ty<'tcx>, Option<usize>)> {
         let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_place(place)?;
-        // TODO: actual encoding of e.g. array access here
-        let (encoded_expr, encoding_stmts) = self.postprocess_place_encoding(encoded_place)?;
+        let (encoded_expr, encoding_stmts) = self.postprocess_place_encoding(encoded_place, encode_kind)?;
 
         Ok((encoded_expr, encoding_stmts, ty, variant_idx))
     }
@@ -5432,9 +5445,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         local: mir::Local,
         projection: &[mir::PlaceElem<'tcx>],
+        encode_kind: ArrayAccessKind,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>, ty::Ty<'tcx>, Option<usize>)> {
         let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_projection(local, projection)?;
-        let (encoded_expr, encoding_stmts) = self.postprocess_place_encoding(encoded_place)?;
+        let (encoded_expr, encoding_stmts) = self.postprocess_place_encoding(encoded_place, encode_kind)?;
 
         Ok((encoded_expr, encoding_stmts, ty, variant_idx))
     }
@@ -5442,18 +5456,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn postprocess_place_encoding(
         &mut self,
         place_encoding: PlaceEncoding<'tcx>,
+        array_encode_kind: ArrayAccessKind,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
         trace!("postprocess_place_encoding: {:?}", place_encoding);
         Ok(match place_encoding {
             PlaceEncoding::Expr(e) => (e, vec![]),
             PlaceEncoding::FieldAccess { box base, field } => {
-                let (expr, stmts) = self.postprocess_place_encoding(base)?;
+                let (expr, mut stmts) = self.postprocess_place_encoding(base, array_encode_kind)?;
                 (expr.field(field), stmts)
             }
             PlaceEncoding::ArrayAccess { base, index, rust_array_ty, .. } => {
+                if array_encode_kind == ArrayAccessKind::Mutable {
+                    panic!("encode mut: {:?}[{:?}]", base, index);
+                }
+
                 let array_types = self.encoder.encode_array_types(rust_array_ty)?;
 
-                let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(array_types.elem_ty.clone()).into();
+                let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(at.elem_ty.clone()).into();
 
                 // encode val_field for the array element type
                 let val_field = self.encoder.encode_value_field(array_types.elem_ty_rs);
@@ -5463,7 +5482,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
                 let val_int_field = self.encoder.encode_value_field(usize_ty);
 
-                let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base)?;
+                let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base, array_encode_kind)?;
                 stmts.extend(self.encode_havoc_and_allocation(&lookup_res));
                 let lookup_pure_call = array_types.encode_lookup_pure_call(
                     encoded_base_expr,
@@ -5475,7 +5494,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (lookup_res, stmts)
             }
             PlaceEncoding::Variant { box base, field } => {
-                let (expr, stmts) = self.postprocess_place_encoding(base)?;
+                let (expr, stmts) = self.postprocess_place_encoding(base, array_encode_kind)?;
                 (vir::Expr::Variant(box expr, field, vir::Position::default()), stmts)
             }
             PlaceEncoding::SliceAccess { base, index, rust_slice_ty, .. } => {
@@ -5485,7 +5504,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let val_field = self.encoder.encode_value_field(slice_types.elem_ty_rs);
                 let res_val_field = res.clone().field(val_field);
 
-                let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base)?;
+                let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base, array_encode_kind)?;
                 stmts.extend(self.encode_havoc_and_allocation(&res));
 
                 let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
@@ -5502,6 +5521,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         })
     }
+}
+
+/// Whether to encode a shared or mutable array access
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum ArrayAccessKind {
+    Shared,
+    Mutable,
 }
 
 fn convert_loans_to_borrows(loans: &[facts::Loan]) -> Vec<Borrow> {
