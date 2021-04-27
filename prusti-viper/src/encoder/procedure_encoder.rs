@@ -1294,7 +1294,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (expiring_base, pre_stmts, expiring_ty, _) = self.encode_place(&loan_places.dest).unwrap();
         if !pre_stmts.is_empty() {
             return Err(EncodingError::unsupported(
-                "storing references in arrays is not supported"
+                "storing references that point into arrays is not supported yet"
             ));
         }
 
@@ -1302,7 +1302,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let (restored, pre_stmts, _, _) = self.encode_place(rhs_place).unwrap();
             if !pre_stmts.is_empty() {
                 return Err(EncodingError::unsupported(
-                    "storing references in arrays is not supported"
+                    "storing references that point into arrays is not supported yet"
                 ));
             }
             let ref_field = self.encoder.encode_value_field(expiring_ty);
