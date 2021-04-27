@@ -179,7 +179,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 ));
             }
 
-            ty::TyKind::Array(ref ty, len) => {
+            ty::TyKind::Array(..) => {
                 return Err(EncodingError::internal(
                     "TypeEncoder::encode_value_field should not be called for arrays"
                 ));
@@ -620,7 +620,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     let num_variants = adt_def.variants.len();
                     let tcx = self.encoder.env().tcx();
 
-                    let mut specs: Vec<typed::SpecificationSet> = Vec::new();
+                    let specs: Vec<typed::SpecificationSet> = Vec::new();
                     // FIXME: type invariants need to be collected separately
                     // in `SpecCollector`, and encoder should get a
                     // `get_struct_specs` method or similar.
@@ -632,34 +632,34 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     //    specs.push(spec);
                     //}
 
-                    let traits = self.encoder.env().get_traits_decls_for_type(&self.ty);
-                    for trait_id in traits {
-                        //if let Some(spec) = self.encoder.get_procedure_specs(trait_id) {
-                        //    specs.push(spec);
-                        //}
-                    }
+                    // let traits = self.encoder.env().get_traits_decls_for_type(&self.ty);
+                    // for trait_id in traits {
+                    //     //if let Some(spec) = self.encoder.get_procedure_specs(trait_id) {
+                    //     //    specs.push(spec);
+                    //     //}
+                    // }
 
                     for spec in specs.into_iter() {
                         //let encoded_args = vec![vir::Expr::from(self_local_var.clone())];
-                        let mut hacky_folder = HackyExprFolder {
-                            saelf: self_local_var.clone(),
-                        };
+                        // let mut hacky_folder = HackyExprFolder {
+                        //     saelf: self_local_var.clone(),
+                        // };
 
                         match spec {
                             typed::SpecificationSet::Struct(items) => {
-                                for item in items {
+                                for _item in items {
                                     // let enc = encode_simple_spec_assertion(
                                     //     self.encoder,
                                     //     &[],
                                     //     &item.assertion
                                     // );
-                                    let enc = unimplemented!(
+                                    let _enc = unimplemented!(
                                         "TODO: type invariants need to be upgraded \
                                         to the new compiler version"
                                     );
                                     // OPEN TODO: hacky fix here to convert the closure var to "self"...
-                                    let enc = hacky_folder.fold(enc);
-                                    exprs.push(enc);
+                                    // let enc = hacky_folder.fold(enc);
+                                    // exprs.push(enc);
                                 }
                             }
                             _ => unreachable!(),

@@ -25,7 +25,6 @@ pub enum SpecFunctionKind {
 }
 
 pub struct SpecFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
-    env: &'v Environment<'tcx>,
     encoder: &'p Encoder<'v, 'tcx>,
     procedure: &'p Procedure<'p, 'tcx>,
     span: Span,
@@ -39,7 +38,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'tcx>,
                procedure: &'p Procedure<'p, 'tcx>) -> Self {
         Self {
-            env: encoder.env(),
             encoder: encoder,
             procedure: procedure,
             span: procedure.get_span(),

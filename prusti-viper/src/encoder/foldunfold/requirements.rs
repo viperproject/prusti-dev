@@ -263,7 +263,7 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::UnaryOp(_, expr, _) => expr.get_required_permissions(predicates, old_exprs),
 
-            vir::Expr::BinOp(bin_op, box left, box right, _) => {
+            vir::Expr::BinOp(_, box left, box right, _) => {
                 vec![left, right].get_required_permissions(predicates, old_exprs)
             }
 
