@@ -1256,17 +1256,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         location: mir::Location,
         place: vir::Expr,
-    ) -> SpannedEncodingResult<vir::Expr> {
+    ) -> SpannedEncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
         let span = self.mir_encoder.get_span_of_location(location);
         let (all_active_loans, _) = self.polonius_info().get_all_active_loans(location);
         let mut relevant_active_loan_places = vec![];
+        let mut stmts = Vec::new();
         for loan in &all_active_loans {
             let opt_places = self.polonius_info().get_loan_places(loan)
                 .map_err(EncodingError::from)
                 .with_span(span)?;
             if let Some(loan_places) = opt_places {
-                let (_, encoded_source, _) = self.encode_loan_places(&loan_places)
+                let (_, encoded_source, _, pre_stmts) = self.encode_loan_places(&loan_places)
                     .with_span(span)?;
+                stmts.extend(pre_stmts);
                 if place.has_prefix(&encoded_source) {
                     relevant_active_loan_places.push(loan_places);
                 }
@@ -1274,44 +1276,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         if relevant_active_loan_places.len() == 1 {
             let loan_places = &relevant_active_loan_places[0];
-            let (encoded_dest, encoded_source, _) = self.encode_loan_places(
+            let (encoded_dest, encoded_source, _, pre_stmts) = self.encode_loan_places(
                 loan_places
             ).with_span(span)?;
+            stmts.extend(pre_stmts);
             // Recursive translation
-            self.translate_maybe_borrowed_place(
+            let (translated, pre_stmts) = self.translate_maybe_borrowed_place(
                 loan_places.location,
                 place.replace_place(&encoded_source, &encoded_dest),
-            )
+            )?;
+            stmts.extend(pre_stmts);
+            Ok((translated, stmts))
         } else {
-            Ok(place)
+            Ok((place, stmts))
         }
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
-    fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> EncodingResult<(vir::Expr, vir::Expr, bool)> {
+    fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> EncodingResult<(vir::Expr, vir::Expr, bool, Vec<vir::Stmt>)> {
         debug!("encode_loan_places '{:?}'", loan_places);
         // will panic if attempting to encode unsupported type
-        let (expiring_base, pre_stmts, expiring_ty, _) = self.encode_place(&loan_places.dest).unwrap();
-        if !pre_stmts.is_empty() {
-            return Err(EncodingError::unsupported(
-                "storing references that point into arrays is not supported yet"
-            ));
-        }
+        let (expiring_base, mut stmts, expiring_ty, _) = self.encode_place(&loan_places.dest).unwrap();
 
-        let mut encode = |rhs_place| {
+        let mut encode = |rhs_place, stmts: &mut Vec<vir::Stmt>| -> EncodingResult<_> {
             let (restored, pre_stmts, _, _) = self.encode_place(rhs_place).unwrap();
-            if !pre_stmts.is_empty() {
-                return Err(EncodingError::unsupported(
-                    "storing references that point into arrays is not supported yet"
-                ));
-            }
+            stmts.extend(pre_stmts);
             let ref_field = self.encoder.encode_value_field(expiring_ty);
             let expiring = expiring_base.clone().field(ref_field.clone());
             Ok((expiring, restored, ref_field))
         };
         Ok(match loan_places.source {
             mir::Rvalue::Ref(_, mir_borrow_kind, ref rhs_place) => {
-                let (expiring, restored, _) = encode(rhs_place)?;
+                let (expiring, restored, _) = encode(rhs_place, &mut stmts)?;
                 assert_eq!(expiring.get_type(), restored.get_type());
                 let is_mut = match mir_borrow_kind {
                     mir::BorrowKind::Shared => false,
@@ -1319,19 +1315,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     mir::BorrowKind::Unique => unimplemented!(),
                     mir::BorrowKind::Mut { .. } => true,
                 };
-                (expiring, restored, is_mut)
+                (expiring, restored, is_mut, stmts)
             }
             mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
-                let (expiring, restored_base, ref_field) = encode(rhs_place)?;
+                let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts)?;
                 let restored = restored_base.clone().field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored, true)
+                (expiring, restored, true, stmts)
             }
             mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) => {
-                let (expiring, restored_base, ref_field) = encode(rhs_place)?;
+                let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts)?;
                 let restored = restored_base.clone().field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored, false)
+                (expiring, restored, false, stmts)
             }
 
             ref x => unreachable!("Borrow restores value {:?}", x),
@@ -1486,7 +1482,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         end_location: Option<mir::Location>,
         is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<vir::borrows::Node> {
-        let mut stmts: Vec<vir::Stmt> = Vec::new();
         let span = self.mir_encoder.get_span_of_location(location);
         let node_is_leaf = node.reborrowed_loans.is_empty();
 
@@ -1494,7 +1489,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let loan_places = self.polonius_info().get_loan_places(&loan)
             .map_err(EncodingError::from)
             .with_span(span)?.unwrap();
-        let (expiring, restored, is_mut) = self.encode_loan_places(&loan_places)
+        let (expiring, restored, is_mut, mut stmts) = self.encode_loan_places(&loan_places)
             .with_span(span)?;
         let borrowed_places = vec![restored.clone()];
 
@@ -1785,13 +1780,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
                 let encoded_discr = self.mir_encoder.encode_operand_expr(discr)
                     .with_span(span)?;
+                let (encoded_place, tr_stmts) = self.translate_maybe_borrowed_place(
+                    location,
+                    encoded_discr.clone(),
+                )?;
+                stmts.extend(tr_stmts);
                 stmts.push(vir::Stmt::Assign(
                     discr_var.clone().into(),
                     if encoded_discr.is_place() {
-                        self.translate_maybe_borrowed_place(
-                            location,
-                            encoded_discr
-                        )?
+                        encoded_place
                     } else {
                         encoded_discr
                     },
@@ -4926,11 +4923,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // Note: in our encoding an enumeration with just one variant has
                 // no discriminant
                 if num_variants > 1 {
+                    let (encoded_place, tr_stmts) = self.translate_maybe_borrowed_place(
+                        location,
+                        encoded_src
+                    )?;
+                    stmts.extend(tr_stmts);
                     let encoded_rhs = self.encoder.encode_discriminant_func_app(
-                        self.translate_maybe_borrowed_place(
-                            location,
-                            encoded_src
-                        )?,
+                        encoded_place,
                         adt_def,
                     );
                     self.encode_copy_value_assign(
@@ -4946,11 +4945,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) => {
                 let value_field = self.encoder.encode_value_field(src_ty);
-                let discr_value: vir::Expr =
-                    self.translate_maybe_borrowed_place(
-                        location,
-                        encoded_src.field(value_field)
-                    )?;
+                let (discr_value, tr_stmts) = self.translate_maybe_borrowed_place(
+                    location,
+                    encoded_src.field(value_field)
+                )?;
+                stmts.extend(tr_stmts);
                 self.encode_copy_value_assign(
                     encoded_lhs.clone(),
                     discr_value,
