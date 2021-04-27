@@ -29,9 +29,10 @@ pub enum PlaceEncoding {
     ArrayAccess {
         base: Box<PlaceEncoding>,
         index: vir::Expr,
-        // TODO: prusti-common::src::vir::optimizations::purification has fn translate_type
         array_elem_ty: vir::Type,
         array_len: usize,
+        lookup_pure_ret: vir::Type,
+        val_field: vir::Field,
     },
     Variant {
         base: Box<PlaceEncoding>,

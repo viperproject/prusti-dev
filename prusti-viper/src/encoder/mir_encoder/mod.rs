@@ -21,7 +21,10 @@ use rustc_middle::{mir, ty};
 use rustc_index::vec::{Idx, IndexVec};
 use rustc_span::{Span, DUMMY_SP};
 use log::{trace, debug};
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    convert::TryInto,
+};
 use prusti_interface::environment::mir_utils::MirPlace;
 
 use downcast_detector::detect_downcasts;
@@ -211,10 +214,27 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 (encoded_base, base_ty, Some((*variant_index).into()))
             }
 
-            mir::ProjectionElem::Index(..) => {
-                return Err(EncodingError::unsupported(
-                    "array indexing is not supported yet"
-                ));
+            mir::ProjectionElem::Index(idx) => {
+                debug!("Array access: {:?}[{:?}]", encoded_base, idx);
+                let (elem_ty, len) = match base_ty.kind() {
+                    ty::TyKind::Array(elem_ty, len) => (elem_ty, len),
+                    _ => unreachable!("index but not on array"),
+                };
+                let array_len = self.encoder().const_eval_intlike(&len.val)?
+                    .to_u64().unwrap().try_into().unwrap();
+
+                (
+                    PlaceEncoding::ArrayAccess {
+                        base: box encoded_base,
+                        index: self.encode_local(*idx)?.into(),
+                        array_elem_ty: self.encoder().encode_type(elem_ty)?,
+                        array_len,
+                        lookup_pure_ret: self.encoder().encode_value_type(elem_ty)?,
+                        val_field: self.encoder().encode_value_field(elem_ty),
+                    },
+                    elem_ty,
+                    None,
+                )
             }
 
             x => unimplemented!("{:?}", x),
