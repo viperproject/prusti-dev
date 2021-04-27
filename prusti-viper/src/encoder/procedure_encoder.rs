@@ -5521,7 +5521,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 stmts.extend(self.encode_havoc_and_allocation(&lookup_res));
                 let lookup_pure_call = vir::Expr::func_app(
                     lookup_pure,
-                    vec![encoded_base_expr, index.field(val_field)],
+                    vec![encoded_base_expr, index.field(vir::Field::new("val_int", vir::Type::Int))],
                     vec![
                         vir::LocalVar::new(
                             String::from("self"),
