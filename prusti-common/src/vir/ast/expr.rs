@@ -12,7 +12,6 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem;
 use std::mem::discriminant;
-use rustc_apfloat::ieee::*;
 
 use serde::*;
 use std::marker::PhantomData;

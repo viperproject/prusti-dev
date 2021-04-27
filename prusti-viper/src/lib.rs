@@ -23,8 +23,11 @@ extern crate rustc_index;
 extern crate rustc_ast;
 extern crate rustc_target;
 extern crate rustc_attr;
+extern crate rustc_apfloat;
 #[macro_use]
 extern crate lazy_static;
+
+
 
 pub mod encoder;
 mod utils;

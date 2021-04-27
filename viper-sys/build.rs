@@ -200,6 +200,11 @@ fn main() {
             java_class!("viper.silver.ast.Bool$", vec![
                 object_getter!(),
             ]),
+
+            java_class!("viper.silver.ast.BackendType$", vec![
+                object_getter!(),
+            ]),
+
             java_class!("viper.silver.ast.CondExp", vec![
                 constructor!(),
             ]),

@@ -198,6 +198,12 @@ impl<'a> AstFactory<'a> {
         self.int_lit_from_ref_with_pos(i, self.no_position())
     }
 
+    pub fn backend_float(&self) -> Expr<'a> {
+        let bv = self.jni.new_BitVector(64);
+        // missing convert to float
+        build_ast_node_with_pos!(self, Expr, ast::BackendType, bv, self.no_position())
+    }
+
     pub fn minus_with_pos(&self, expr: Expr, pos: Position) -> Expr<'a> {
         build_ast_node_with_pos!(self, Expr, ast::Minus, expr.to_jobject(), pos.to_jobject())
     }

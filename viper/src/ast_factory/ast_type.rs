@@ -69,4 +69,9 @@ impl<'a> AstFactory<'a> {
             .unwrap_result(ast::SeqType::with(self.env).new(element_type.to_jobject()));
         Type::new(obj)
     }
+
+    pub fn backend_type(&self) -> Type<'a> {
+        get_ast_object!(self, Type, ast::Int_object)
+    }
+
 }
