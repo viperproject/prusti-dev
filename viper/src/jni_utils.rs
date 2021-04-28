@@ -97,6 +97,21 @@ impl<'a> JniUtils<'a> {
         self.unwrap_result(scala::math::BigInt::with(self.env).new(java_big_integer))
     }
 
+    /// Converts a Rust u64 to a BackendType Bitvector (comments are missing parts)
+    pub fn new_bitvector(&self, bits: u64) -> JObject {
+        //create bitvector factory
+        //create bitvetor using from_int
+        unimplemented!("convert int to BackendType bitvector not implemented")
+    }
+
+    /// Converts a bitpattern into a Backend Float (comments are missing parts)
+    pub fn new_float(&self, bits: u64) -> JObject {
+        let bv = new_bitvector(bits);
+        // create floatfactory
+        // use from_bv() of the FloatFactory
+        unimplemented!("convert bit pattern to BackendType Float not implemented")
+    }
+
     /// Converts a Rust Vec<JObject> to a Scala Seq
     pub fn new_seq(&self, objects: &[JObject]) -> JObject {
         let array_buffer_wrapper = scala::collection::mutable::ArrayBuffer::with(self.env);

@@ -199,8 +199,8 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn backend_float(&self) -> Expr<'a> {
-        let bv = self.jni.new_BitVector(64);
-        // missing convert to float
+        // newfloat obviously shouldn't be called with just 0, but with the bit pattern
+        let bv = self.jni.new_float(0);
         build_ast_node_with_pos!(self, Expr, ast::BackendType, bv, self.no_position())
     }
 
@@ -530,7 +530,7 @@ impl<'a> AstFactory<'a> {
         Expr::new(obj)
     }
      */
-    pub fn domain_func_app(
+     pub fn domain_func_app(
         &self,
         domain_func: DomainFunc,
         args: &[Expr],
@@ -549,6 +549,26 @@ impl<'a> AstFactory<'a> {
                 self.no_trafos(),
             ),
         );
+        Expr::new(obj)
+    }
+
+    pub fn backend_func_app(
+        &self,
+        backend_function_name: &str,
+        args: &[Expr],
+        return_type: Type,
+        pos: Position,
+    ) -> Expr<'a> {
+        let backendfunc_app_object_wrapper = ast::BackendFuncApp_object::with(self.env);
+        let obj = self.jni.unwrap_result(
+            backendfunc_app_object_wrapper.call_apply(
+                    self.jni.new_string(backend_function_name),
+                    self.jni.new_seq(&map_to_jobjects!(args)),
+                    pos.to_jobject(),
+                    self.no_info(),
+                    return_type.to_jobject(),
+                    self.no_trafos(),
+        ));
         Expr::new(obj)
     }
 

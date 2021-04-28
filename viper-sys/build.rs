@@ -200,11 +200,30 @@ fn main() {
             java_class!("viper.silver.ast.Bool$", vec![
                 object_getter!(),
             ]),
-
+            
+            java_class!("viper.silver.ast.utility.FloatFactory", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.utility.FloatFactory$", vec![
+                object_getter!(),
+                method!("apply", "(Lscala/Int;Lscala/Int;Lviper/silver/ast/utility/RoundingMode;)Lviper/silver/ast/utility/FloatFactory"),
+            ]),
+            java_class!("viper.silver.ast.BackendType", vec![
+                constructor!(),
+            ]),
             java_class!("viper.silver.ast.BackendType$", vec![
                 object_getter!(),
+            ]),            
+            java_class!("viper.silver.ast.BackendFunc", vec![
+                constructor!(),
             ]),
-
+            java_class!("viper.silver.ast.BackendFuncApp", vec![
+                constructor!(),
+            ]),            
+            java_class!("viper.silver.ast.BackendFuncApp$", vec![
+                object_getter!(),
+                method!("apply", "(Lviper/silver/ast/BackendFunc;Lscala/collection/immutable/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/BackendFuncApp;"),
+            ]),
             java_class!("viper.silver.ast.CondExp", vec![
                 constructor!(),
             ]),

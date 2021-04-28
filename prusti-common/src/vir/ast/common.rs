@@ -310,3 +310,10 @@ impl WithIdentifier for Field {
         self.name.clone()
     }
 }
+
+// maybe missing some other impl
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BackendFunc {
+    pub name: String,
+    pub args: Vec<String>
+}

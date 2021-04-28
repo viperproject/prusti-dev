@@ -5,6 +5,7 @@
 use ast_factory::structs::Type;
 use ast_factory::AstFactory;
 use jni::objects::JObject;
+use jni_utils::JniUtils;
 use viper_sys::wrappers::viper::silver::ast;
 
 impl<'a> AstFactory<'a> {
@@ -70,8 +71,15 @@ impl<'a> AstFactory<'a> {
         Type::new(obj)
     }
 
+    // This function is probably in the place and currently has the wrong signature. It is supposed to create an Expr. I was just trying things out.
     pub fn backend_type(&self) -> Type<'a> {
-        get_ast_object!(self, Type, ast::Int_object)
+        let utils = JniUtils::new(self.env);
+        let boogiename = JniUtils::new_string(&utils, "boogiename"); 
+        let smtname = JniUtils::new_string(&utils, "smtname"); 
+        let obj = self
+            .jni
+            .unwrap_result(ast::BackendType::with(self.env).new(boogiename,smtname));
+        Type::new(obj)
     }
 
 }
