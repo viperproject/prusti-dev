@@ -304,7 +304,7 @@ pub fn walk_fndef<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
 pub fn walk_array<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
     ty: Ty<'tcx>,
-    len: &'tcx Const<'tcx>,
+    _len: &'tcx Const<'tcx>,
 ) -> Result<(), E> {
     visitor.visit_ty(ty)?;
 

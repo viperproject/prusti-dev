@@ -753,15 +753,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             .register(span, ErrorCtxt::GenericExpression)
     }
 
-    /// Return the span of the outermost macro
-    pub fn get_root_span(&self, span: Span) -> Span {
-        let mut res = span;
-        while let Some(parent_span) = span.parent() {
-            res = parent_span;
-        }
-        res
-    }
-
     /// Return the cause of a call to `begin_panic`
     pub fn encode_panic_cause(&self, source_info: mir::SourceInfo) -> PanicCause {
         let macro_backtrace: Vec<_> = source_info.span.macro_backtrace().collect();

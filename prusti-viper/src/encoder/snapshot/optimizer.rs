@@ -242,7 +242,6 @@ impl ExprWalker for VariableCollector {
 
 struct Purifier<'a> {
     vars: HashSet<String>,
-    inline_snap_functions: HashMap<String, vir::LocalVar>,
     fresh_variables: Vec<vir::LocalVar>,
     snapshots: &'a HashMap<String, Box<Snapshot>>,
     change_var_types: HashMap<String, vir::Type>,
@@ -250,7 +249,7 @@ struct Purifier<'a> {
 
 impl<'a> Purifier<'a> {
     fn new(vars: HashSet<String>, snapshots: &'a HashMap<String, Box<Snapshot>>) -> Self {
-        Self { vars, inline_snap_functions: HashMap::new(), fresh_variables: Vec::new(), snapshots,
+        Self { vars, fresh_variables: Vec::new(), snapshots,
             change_var_types: HashMap::new() }
     }
     fn fresh_variable(&mut self, typ: &vir::Type) -> vir::LocalVar {

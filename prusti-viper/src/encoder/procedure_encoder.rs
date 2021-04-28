@@ -1056,7 +1056,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .encode_projection(place.local, &place.projection)
                     .with_span(span)?;
             downcast_stmts.extend(pre_stmts);
-            let variant_field = if let ty::TyKind::Adt(adt_def, subst) = place_ty.kind() {
+            let variant_field = if let ty::TyKind::Adt(adt_def, _) = place_ty.kind() {
                 let variant_name = &adt_def.variants[variant_idx].ident.as_str();
                 self.encoder.encode_enum_variant_field(variant_name)
             } else {
@@ -5500,11 +5500,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(match place_encoding {
             PlaceEncoding::Expr(e) => (e, vec![]),
             PlaceEncoding::FieldAccess { box base, field } => {
-                let (expr, mut stmts) = self.postprocess_place_encoding(base)?;
+                let (expr, stmts) = self.postprocess_place_encoding(base)?;
                 (expr.field(field), stmts)
             }
             PlaceEncoding::ArrayAccess { base, index, array_elem_ty, array_len, lookup_pure_ret, val_field } => {
-                let elem_ty_name = if let vir::Type::TypedRef(ref name) = array_elem_ty { name } else { unreachable!() };
                 let lookup_pure = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::ArrayLookupPure {
                         array_elem_ty: array_elem_ty.clone(),
@@ -5540,7 +5539,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (lookup_res, stmts)
             }
             PlaceEncoding::Variant { box base, field } => {
-                let (expr, mut stmts) = self.postprocess_place_encoding(base)?;
+                let (expr, stmts) = self.postprocess_place_encoding(base)?;
                 (vir::Expr::Variant(box expr, field, vir::Position::default()), stmts)
             }
         })
