@@ -9,12 +9,12 @@
 #![feature(box_syntax)]
 
 #![allow(unused_imports)]
-// #![deny(unreachable_patterns)]
+#![deny(unused_must_use)]
+#![deny(unreachable_patterns)]
 // #![deny(unused_mut)]
 // #![deny(unused_variables)]
 // #![deny(unused_imports)]
 // #![deny(unused_doc_comments)]
-#![deny(unused_must_use)]
 
 extern crate rustc_middle;
 extern crate rustc_hir;

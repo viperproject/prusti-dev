@@ -22,6 +22,7 @@ use rustc_index::vec::Idx;
 use rustc_middle::mir;
 use rustc_middle::ty;
 use rustc_span::def_id::LOCAL_CRATE;
+use rustc_span::Span;
 
 use crate::environment::borrowck::facts::PointType;
 use crate::environment::borrowck::regions::{PlaceRegions, PlaceRegionsError};
@@ -266,7 +267,7 @@ pub enum PoloniusInfoError {
     /// We currently support only one reborrowing chain per loop
     MultipleMagicWandsPerLoop(mir::Location),
     MagicWandHasNoRepresentativeLoan(mir::Location),
-    PlaceRegionsError(PlaceRegionsError, mir::Location),
+    PlaceRegionsError(PlaceRegionsError, Span),
     LoanInUnsupportedStatement(String, mir::Location),
 }
 
@@ -274,7 +275,7 @@ pub fn graphviz<'tcx>(
     tcx: rustc_middle::ty::TyCtxt<'tcx>,
     def_path: &rustc_hir::definitions::DefPath,
     mir: &mir::Body<'tcx>,
-) {
+) -> std::io::Result<()> {
     macro_rules! to_html {
         ( $o:expr ) => {{
             format!("{:?}", $o)
@@ -323,47 +324,48 @@ pub fn graphviz<'tcx>(
         }
     }
 
-    write!(graph, "digraph G {{\n");
-    write!(graph, "general [ shape=\"record\" ");
-    write!(graph, "label =<<table>\n");
+    write!(graph, "digraph G {{\n")?;
+    write!(graph, "general [ shape=\"record\" ")?;
+    write!(graph, "label =<<table>\n")?;
     write!(
         graph,
         "<tr><td>universal region:</td><td>{}</td></tr>\n",
         to_sorted_string!(borrowck_in_facts.universal_region)
-    );
+    )?;
     write!(
         graph,
         "<tr><td>placeholder:</td><td>{}</td></tr>\n",
         to_sorted_string!(borrowck_in_facts.placeholder)
-    );
-    write!(graph, "</table>>];\n\n");
+    )?;
+    write!(graph, "</table>>];\n\n")?;
     for (block, point_indices) in blocks {
-        write!(graph, "node_{:?} [ shape=\"record\" ", block);
-        write!(graph, "label =<<table>");
-        write!(graph, "<th><td>{:?}</td></th>\n", block);
-        write!(graph, "<tr>");
-        write!(graph, "<td>point</td>");
-        write!(graph, "<td>borrow_live_at</td>");
-        write!(graph, "</tr>\n");
+        write!(graph, "node_{:?} [ shape=\"record\" ", block)?;
+        write!(graph, "label =<<table>")?;
+        write!(graph, "<th><td>{:?}</td></th>\n", block)?;
+        write!(graph, "<tr>")?;
+        write!(graph, "<td>point</td>")?;
+        write!(graph, "<td>borrow_live_at</td>")?;
+        write!(graph, "</tr>\n")?;
         let mut points: Vec<_> = point_indices.iter().map(|index| interner.get_point(*index)).collect();
         points.sort();
         for point in points {
-            write!(graph, "<tr>\n");
-            write!(graph, "<td>{}</td>\n", point);
-            write!(graph, "<td>");
+            write!(graph, "<tr>\n")?;
+            write!(graph, "<td>{}</td>\n", point)?;
+            write!(graph, "<td>")?;
             let point_index = interner.get_point_index(&point);
             for loan in &borrowck_out_facts.borrow_live_at[&point_index] {
-                write!(graph, "{:?},", loan);
+                write!(graph, "{:?},", loan)?;
             }
-            write!(graph, "</td>");
-            write!(graph, "</tr>\n");
+            write!(graph, "</td>")?;
+            write!(graph, "</tr>\n")?;
         }
-        write!(graph, "</table>>];\n\n");
+        write!(graph, "</table>>];\n\n")?;
     }
     for (from, to) in block_edges {
-        write!(graph, "node_{:?} -> node_{:?};\n", from, to);
+        write!(graph, "node_{:?} -> node_{:?};\n", from, to)?;
     }
-    write!(graph, "}}\n");
+    write!(graph, "}}\n")?;
+    Ok(())
 }
 
 fn load_polonius_facts<'tcx>(
@@ -699,10 +701,11 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             &place_regions,
             &mut call_magic_wands
         ).map_err(|(err, loc)|
-            PoloniusInfoError::PlaceRegionsError(err, loc)
+            PoloniusInfoError::PlaceRegionsError(err, mir.source_info(loc).span)
         )?;
 
-        Self::disconnect_universal_regions(tcx, mir, &place_regions, &mut all_facts);
+        Self::disconnect_universal_regions(tcx, mir, &place_regions, &mut all_facts)
+            .map_err(|(err, loc)| PoloniusInfoError::PlaceRegionsError(err, loc))?;
 
         let output = Output::compute(&all_facts, Algorithm::Naive, true);
         let all_facts_without_back_edges = remove_back_edges(
@@ -782,10 +785,12 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         mir: &mir::Body<'tcx>,
         place_regions: &PlaceRegions,
         all_facts: &mut AllInputFacts
-    ) -> Result<(), PlaceRegionsError> {
+    ) -> Result<(), (PlaceRegionsError, Span)> {
         let mut return_regions = vec![];
+        let return_span = mir.local_decls[mir::RETURN_PLACE].source_info.span;
         for place in mir::RETURN_PLACE.all_places(tcx, mir).into_iter() {
-            if let Some(region) = place_regions.for_place(place)? {
+            if let Some(region) = place_regions.for_place(place)
+                .map_err(|err| (err, return_span))? {
                 return_regions.push(region);
             }
         }

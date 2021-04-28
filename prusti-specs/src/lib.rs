@@ -2,6 +2,8 @@
 #![feature(box_patterns)]
 #![feature(drain_filter)]
 
+#![deny(unused_must_use)]
+
 #[macro_use]
 mod parse_quote_spanned;
 mod span_overrider;

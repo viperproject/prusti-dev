@@ -9,6 +9,7 @@
 #![feature(nll)]
 
 #![allow(warnings)]
+#![deny(unused_must_use)]
 
 #[macro_use]
 extern crate log;
