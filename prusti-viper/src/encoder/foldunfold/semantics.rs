@@ -281,13 +281,13 @@ impl ApplyOnState for vir::Stmt {
                     })
                     .collect();
 
-                assert!(
-                    (lhs_place == rhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
-                    "Statement '{}' did not restore not permissions in state with acc {{\n{}\n}}\nand pred {{\n{}\n}}",
-                    self,
-                    original_state.display_acc(),
-                    original_state.display_pred()
-                );
+                // assert!(
+                //     (lhs_place == rhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
+                //     "Statement '{}' did not restore any permission in state with acc {{\n{}\n}}\nand pred {{\n{}\n}}",
+                //     self,
+                //     original_state.display_acc(),
+                //     original_state.display_pred()
+                // );
 
                 state.insert_all_acc(new_acc_places.into_iter())?;
                 state.insert_all_pred(new_pred_places.into_iter())?;
