@@ -63,7 +63,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
     /// Returns all the types used in the procedure, and any types reachable from them
     pub fn get_declared_types(&self) -> Vec<Ty<'tcx>> {
-        let mut types: HashSet<Ty> = HashSet::new();
+        let _types: HashSet<Ty> = HashSet::new();
         // for var in &self.mir.local_decls {
         //     for ty in var.ty.walk() {
         //         let declared_ty = ty;

@@ -103,7 +103,7 @@ impl ExprWalker for PurifiableVariableCollector {
 }
 
 impl StmtWalker for PurifiableVariableCollector {
-    fn walk_assign(&mut self, target: &Expr, expr: &Expr, _kind: &AssignKind) {
+    fn walk_assign(&mut self, _target: &Expr, expr: &Expr, _kind: &AssignKind) {
         ExprWalker::walk(self, expr);
     }
 }

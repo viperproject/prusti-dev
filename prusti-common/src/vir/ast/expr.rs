@@ -1249,7 +1249,7 @@ impl Expr {
                 if e.is_place() {
                     let substitution = self.replacements.iter()
                         .find(|(src, _)| src == &e);
-                    if let Some((src, dst)) = substitution {
+                    if let Some((_src, dst)) = substitution {
                         return dst.clone();
                     }
                 }

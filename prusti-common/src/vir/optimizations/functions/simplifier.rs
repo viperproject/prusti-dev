@@ -116,7 +116,7 @@ impl ExprSimplifier {
                 ast::BinOpKind::Implies,
                 box ast::Expr::Const(ast::Const::Bool(b), _),
                 box body,
-                pos,
+                _pos,
             ) => {
                 if b {
                     body

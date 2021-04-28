@@ -274,7 +274,7 @@ pub enum PoloniusInfoError {
 pub fn graphviz<'tcx>(
     tcx: rustc_middle::ty::TyCtxt<'tcx>,
     def_path: &rustc_hir::definitions::DefPath,
-    mir: &mir::Body<'tcx>,
+    _mir: &mir::Body<'tcx>,
 ) -> std::io::Result<()> {
     macro_rules! to_html {
         ( $o:expr ) => {{
@@ -369,7 +369,7 @@ pub fn graphviz<'tcx>(
 }
 
 fn load_polonius_facts<'tcx>(
-    tcx: rustc_middle::ty::TyCtxt<'tcx>,
+    _tcx: rustc_middle::ty::TyCtxt<'tcx>,
     def_path: &rustc_hir::definitions::DefPath,
 ) -> facts::FactLoader {
     let dir_path = PathBuf::from(config::log_dir())
@@ -666,7 +666,7 @@ fn compute_loan_conflict_sets(
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     pub fn new(
         procedure: &'a Procedure<'a, 'tcx>,
-        loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
+        _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
     ) -> Result<Self, PoloniusInfoError> {
         let tcx = procedure.get_tcx();
         let def_id = procedure.get_id();
@@ -755,7 +755,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let loan_conflict_sets =
             compute_loan_conflict_sets(procedure, &loan_position, &all_facts, &output)?;
 
-        let mut info = Self {
+        let info = Self {
             tcx: tcx,
             mir: mir,
             borrowck_in_facts: all_facts,
@@ -1306,7 +1306,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Find a variable that has the given region in its type.
-    pub fn find_variable(&self, region: facts::Region) -> Option<mir::Local> {
+    pub fn find_variable(&self, _region: facts::Region) -> Option<mir::Local> {
         // TODO
         None
     }

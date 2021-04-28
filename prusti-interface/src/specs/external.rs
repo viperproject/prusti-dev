@@ -126,7 +126,7 @@ impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
         if self.spec_found.is_some() {
             return;
         }
-        if let rustc_hir::ExprKind::Call(ref callee_expr, ref arguments) = ex.kind {
+        if let rustc_hir::ExprKind::Call(ref callee_expr, ref _arguments) = ex.kind {
             if let rustc_hir::ExprKind::Path(ref qself) = callee_expr.kind {
                 let res = self.tcx.typeck(callee_expr.hir_id.owner).qpath_res(qself, callee_expr.hir_id);
                 if let rustc_hir::def::Res::Def(_, def_id) = res {

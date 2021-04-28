@@ -80,7 +80,7 @@ impl<'tcx> SpecCollector<'tcx> {
     }
 
     fn prepare_typed_procedure_specs(&mut self) {
-        let mut spec_items = std::mem::replace(&mut self.spec_items, vec![]);
+        let spec_items = std::mem::replace(&mut self.spec_items, vec![]);
         self.typed_specs = spec_items
             .into_iter()
             .map(|spec_item| {
@@ -118,7 +118,7 @@ impl<'tcx> SpecCollector<'tcx> {
                     ).emit(env);
                 }
             }
-            if let Some(spec) = def_spec.specs.get(&spec_id.expect_local()) {
+            if let Some(_spec) = def_spec.specs.get(&spec_id.expect_local()) {
                 def_spec.extern_specs.insert(*real_id, spec_id.expect_local());
             }
         }
@@ -176,7 +176,7 @@ impl<'tcx> SpecCollector<'tcx> {
     }
 
     // TODO: struct specs
-    fn determine_struct_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {}
+    fn determine_struct_specs(&self, _def_spec: &mut typed::DefSpecificationMap<'tcx>) {}
 }
 
 fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<ProcedureSpecRef> {

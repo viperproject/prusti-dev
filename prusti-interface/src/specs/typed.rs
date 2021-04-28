@@ -77,7 +77,7 @@ impl<'tcx> Spanned<'tcx> for Expression {
 }
 
 impl<'tcx> Spanned<'tcx> for ForAllVars<'tcx> {
-    fn get_spans(&self, mir_body: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Vec<Span> {
+    fn get_spans(&self, mir_body: &mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Vec<Span> {
         self.vars
             .iter()
             .filter_map(|v| mir_body.local_decls.get(v.0))
@@ -118,9 +118,9 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                 spans
             }
             AssertionKind::SpecEntailment {
-                closure: ref closure,
-                pres: ref pres,
-                posts: ref posts,
+                ref closure,
+                ref pres,
+                ref posts,
                 ..
             } => {
                 let mut spans = closure.get_spans(mir_body, tcx);
@@ -143,7 +143,7 @@ pub trait StructuralToTyped<'tcx, Target> {
 }
 
 impl<'tcx> StructuralToTyped<'tcx, Expression> for json::Expression {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> Expression {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, _tcx: TyCtxt<'tcx>) -> Expression {
         let local_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
         Expression {
             spec_id: self.spec_id,

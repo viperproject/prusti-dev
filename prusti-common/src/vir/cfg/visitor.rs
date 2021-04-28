@@ -110,7 +110,7 @@ pub trait CfgReplacer<
         );
 
         // Initialize the blocks of the new cfg
-        for (index, block) in cfg.basic_blocks.iter().enumerate() {
+        for (index, _block) in cfg.basic_blocks.iter().enumerate() {
             let label = &cfg.basic_blocks_labels[index];
             new_cfg.add_block(label, vec![]);
         }

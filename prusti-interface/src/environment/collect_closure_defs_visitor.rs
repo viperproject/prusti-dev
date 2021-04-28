@@ -38,7 +38,7 @@ impl<'env, 'tcx> Visitor<'tcx> for CollectClosureDefsVisitor<'env, 'tcx> {
         match expr.kind {
             hir::ExprKind::Closure(_, _, _, _, _) => {
                 if !has_spec_only_attr(self.map.attrs(expr.hir_id)) {
-                    let tcx = self.env.tcx();
+                    let _tcx = self.env.tcx();
                     let def_id = self.map.local_def_id(expr.hir_id).to_def_id();
                     let item_def_path = self.env.get_item_def_path(def_id);
                     trace!("Add {} to result", item_def_path);

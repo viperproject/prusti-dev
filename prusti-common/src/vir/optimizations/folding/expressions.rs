@@ -243,10 +243,10 @@ fn find_common_unfoldings2(
 
 /// Find unfoldings that are in all three sets.
 fn find_common_unfoldings3<'a>(
-    mut first: UnfoldingMap,
+    first: UnfoldingMap,
     mut _first_reqs: &'a RequirementSet,
     mut second: UnfoldingMap,
-    mut second_reqs: &'a RequirementSet,
+    second_reqs: &'a RequirementSet,
     mut third: UnfoldingMap,
     third_reqs: &'a RequirementSet,
 ) -> (UnfoldingMap, UnfoldingMap, UnfoldingMap, UnfoldingMap) {
