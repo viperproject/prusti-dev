@@ -2,6 +2,8 @@
 #![feature(box_patterns)]
 #![feature(drain_filter)]
 
+#![deny(unused_must_use)]
+
 #[macro_use]
 mod parse_quote_spanned;
 mod span_overrider;
@@ -420,7 +422,7 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     match item {
         syn::Item::Impl(mut item_impl) => {
             let new_struct = handle_result!(
-                extern_spec_rewriter::generate_new_struct(&mut item_impl)
+                extern_spec_rewriter::generate_new_struct(&item_impl)
             );
 
             let struct_ident = &new_struct.ident;

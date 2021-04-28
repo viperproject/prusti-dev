@@ -53,8 +53,8 @@ pub struct Trigger(pub Vec<Expression>);
 impl untyped::Expression {
     fn to_structure(&self) -> Expression {
         Expression {
-            spec_id: self.spec_id.clone(),
-            expr_id: self.id.clone(),
+            spec_id: self.spec_id,
+            expr_id: self.id,
         }
     }
 }
@@ -62,9 +62,9 @@ impl untyped::Expression {
 impl common::ForAllVars<untyped::ExpressionId, untyped::Arg> {
     fn to_structure(&self) -> ForAllVars {
         ForAllVars {
-            spec_id: self.spec_id.clone(),
+            spec_id: self.spec_id,
             count: self.vars.len(),
-            expr_id: self.id.clone(),
+            expr_id: self.id,
         }
     }
 }
@@ -72,10 +72,10 @@ impl common::ForAllVars<untyped::ExpressionId, untyped::Arg> {
 impl common::SpecEntailmentVars<untyped::ExpressionId, untyped::Arg> {
     fn to_structure(&self) -> SpecEntailmentVars {
         SpecEntailmentVars {
-            spec_id: self.spec_id.clone(),
+            spec_id: self.spec_id,
             arg_count: self.args.len(),
-            pre_expr_id: self.pre_id.clone(),
-            post_expr_id: self.post_id.clone(),
+            pre_expr_id: self.pre_id,
+            post_expr_id: self.post_id,
         }
     }
 }
@@ -108,7 +108,7 @@ impl untyped::AssertionKind {
             Expr(expr) => AssertionKind::Expr(expr.to_structure()),
             And(assertions) => {
                 AssertionKind::And(
-                    assertions.into_iter()
+                    assertions.iter()
                               .map(|assertion| Assertion { kind: box assertion.kind.to_structure() })
                               .collect()
                 )

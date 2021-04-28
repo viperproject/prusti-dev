@@ -140,7 +140,7 @@ pub fn delete_unused_predicates(
         &predicates_in_predicates_map
     );
 
-    let mut reachable_predicates = compute_reachable_predicates(
+    let reachable_predicates = compute_reachable_predicates(
         &predicates_in_predicates_map,
         &used_predicates_in_functions_and_methods,
     );
@@ -206,7 +206,7 @@ impl StmtWalker for UsedPredicateCollector {
     fn walk_fold(
         &mut self,
         predicate_name: &str,
-        args: &Vec<Expr>,
+        _args: &Vec<Expr>,
         _perm: &PermAmount,
         _variant: &MaybeEnumVariantIndex,
         _pos: &Position,
@@ -218,7 +218,7 @@ impl StmtWalker for UsedPredicateCollector {
     fn walk_unfold(
         &mut self,
         predicate_name: &str,
-        args: &Vec<Expr>,
+        _args: &Vec<Expr>,
         _perm: &PermAmount,
         _variant: &MaybeEnumVariantIndex,
     ) {

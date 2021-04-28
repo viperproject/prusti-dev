@@ -143,7 +143,7 @@ pub fn walk_method(method: &CfgMethod,  walker: &mut (impl StmtWalker + ExprWalk
 }
 
 /// Walks all Expressions in the provided functions (including pre and post conditions)
-pub fn walk_functions(functions: &[Function], walker: &mut (impl ExprWalker)) {
+pub fn walk_functions(functions: &[Function], walker: &mut impl ExprWalker) {
     for function in functions {
         for e in &function.pres {
             ExprWalker::walk(walker, e);

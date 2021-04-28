@@ -63,7 +63,7 @@ impl<'tcx> InfoPrinter<'tcx> {
         let procedure = Procedure::new(self.tcx, def_id);
 
         let local_def_id = def_id.expect_local();
-        self.tcx.mir_borrowck(local_def_id);
+        let _ = self.tcx.mir_borrowck(local_def_id);
 
         // Read Polonius facts.
         let def_path = self.tcx.hir().def_path(local_def_id);
@@ -88,7 +88,7 @@ impl<'tcx> InfoPrinter<'tcx> {
         // FIXME: this computes the wrong loop invariant permission
         let loop_invariant_block = HashMap::new();
 
-        super::polonius_info::graphviz(self.tcx, &def_path, &mir);
+        super::polonius_info::graphviz(self.tcx, &def_path, &mir).unwrap();
         let mir_info_printer = MirInfoPrinter {
             def_path: def_path,
             tcx: self.tcx,

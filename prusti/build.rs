@@ -25,7 +25,7 @@ fn main() {
         .ok()
         .and_then(|output| String::from_utf8(output.stdout).ok())
     {
-        if let Some(timestamp) = commit_timestamp.trim().parse().ok() {
+        if let Ok(timestamp) = commit_timestamp.trim().parse() {
             let commit_naive_datetime = NaiveDateTime::from_timestamp(
                 timestamp,
                 0

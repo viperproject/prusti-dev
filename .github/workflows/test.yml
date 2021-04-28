@@ -39,6 +39,8 @@ jobs:
           key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
       - name: Build with cargo
         run: python x.py build --all --verbose
+      - name: Check Clippy errors
+        run: if rustup component add clippy; then python x.py clippy -- --allow warnings; fi
       - name: Run "quick" cargo tests
         run: python x.py test --all --verbose quick
 

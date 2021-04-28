@@ -156,7 +156,7 @@ fn rewrite_self(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                 new_tokens.extend(new_group.to_token_stream());
             }
             proc_macro2::TokenTree::Ident(mut ident) => {
-                if ident.to_string() == "self" {
+                if ident == "self" {
                     ident = proc_macro2::Ident::new("_self", ident.span());
                 }
                 new_tokens.extend(ident.into_token_stream());

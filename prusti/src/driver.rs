@@ -9,6 +9,8 @@
 #![feature(decl_macro)]
 #![feature(box_syntax)]
 
+#![deny(unused_must_use)]
+
 extern crate proc_macro;
 extern crate rustc_ast;
 extern crate rustc_ast_pretty;

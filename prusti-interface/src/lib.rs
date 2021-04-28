@@ -6,10 +6,9 @@
 
 //! Prusti Interface is an interface between Prusti and Prusti-Viper.
 
-#![allow(warnings)]
+#![allow(unused_imports)]
+#![deny(unused_must_use)]
 
-
-// #![deny(unused_must_use)]
 // #![deny(unused_imports)]
 // #![deny(unused_mut)]
 // #![deny(non_upper_case_globals)]

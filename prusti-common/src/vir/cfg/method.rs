@@ -66,10 +66,7 @@ impl fmt::Debug for CfgBlockIndex {
 
 impl Successor {
     pub fn is_return(&self) -> bool {
-        match self {
-            Successor::Return => true,
-            _ => false,
-        }
+        matches!(self, Successor::Return)
     }
 
     pub fn get_following(&self) -> Vec<CfgBlockIndex> {

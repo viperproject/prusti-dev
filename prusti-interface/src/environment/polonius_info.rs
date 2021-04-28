@@ -22,6 +22,7 @@ use rustc_index::vec::Idx;
 use rustc_middle::mir;
 use rustc_middle::ty;
 use rustc_span::def_id::LOCAL_CRATE;
+use rustc_span::Span;
 
 use crate::environment::borrowck::facts::PointType;
 use crate::environment::borrowck::regions::{PlaceRegions, PlaceRegionsError};
@@ -266,15 +267,15 @@ pub enum PoloniusInfoError {
     /// We currently support only one reborrowing chain per loop
     MultipleMagicWandsPerLoop(mir::Location),
     MagicWandHasNoRepresentativeLoan(mir::Location),
-    PlaceRegionsError(PlaceRegionsError, mir::Location),
+    PlaceRegionsError(PlaceRegionsError, Span),
     LoanInUnsupportedStatement(String, mir::Location),
 }
 
 pub fn graphviz<'tcx>(
     tcx: rustc_middle::ty::TyCtxt<'tcx>,
     def_path: &rustc_hir::definitions::DefPath,
-    mir: &mir::Body<'tcx>,
-) {
+    _mir: &mir::Body<'tcx>,
+) -> std::io::Result<()> {
     macro_rules! to_html {
         ( $o:expr ) => {{
             format!("{:?}", $o)
@@ -323,51 +324,52 @@ pub fn graphviz<'tcx>(
         }
     }
 
-    write!(graph, "digraph G {{\n");
-    write!(graph, "general [ shape=\"record\" ");
-    write!(graph, "label =<<table>\n");
+    write!(graph, "digraph G {{\n")?;
+    write!(graph, "general [ shape=\"record\" ")?;
+    write!(graph, "label =<<table>\n")?;
     write!(
         graph,
         "<tr><td>universal region:</td><td>{}</td></tr>\n",
         to_sorted_string!(borrowck_in_facts.universal_region)
-    );
+    )?;
     write!(
         graph,
         "<tr><td>placeholder:</td><td>{}</td></tr>\n",
         to_sorted_string!(borrowck_in_facts.placeholder)
-    );
-    write!(graph, "</table>>];\n\n");
+    )?;
+    write!(graph, "</table>>];\n\n")?;
     for (block, point_indices) in blocks {
-        write!(graph, "node_{:?} [ shape=\"record\" ", block);
-        write!(graph, "label =<<table>");
-        write!(graph, "<th><td>{:?}</td></th>\n", block);
-        write!(graph, "<tr>");
-        write!(graph, "<td>point</td>");
-        write!(graph, "<td>borrow_live_at</td>");
-        write!(graph, "</tr>\n");
+        write!(graph, "node_{:?} [ shape=\"record\" ", block)?;
+        write!(graph, "label =<<table>")?;
+        write!(graph, "<th><td>{:?}</td></th>\n", block)?;
+        write!(graph, "<tr>")?;
+        write!(graph, "<td>point</td>")?;
+        write!(graph, "<td>borrow_live_at</td>")?;
+        write!(graph, "</tr>\n")?;
         let mut points: Vec<_> = point_indices.iter().map(|index| interner.get_point(*index)).collect();
         points.sort();
         for point in points {
-            write!(graph, "<tr>\n");
-            write!(graph, "<td>{}</td>\n", point);
-            write!(graph, "<td>");
+            write!(graph, "<tr>\n")?;
+            write!(graph, "<td>{}</td>\n", point)?;
+            write!(graph, "<td>")?;
             let point_index = interner.get_point_index(&point);
             for loan in &borrowck_out_facts.borrow_live_at[&point_index] {
-                write!(graph, "{:?},", loan);
+                write!(graph, "{:?},", loan)?;
             }
-            write!(graph, "</td>");
-            write!(graph, "</tr>\n");
+            write!(graph, "</td>")?;
+            write!(graph, "</tr>\n")?;
         }
-        write!(graph, "</table>>];\n\n");
+        write!(graph, "</table>>];\n\n")?;
     }
     for (from, to) in block_edges {
-        write!(graph, "node_{:?} -> node_{:?};\n", from, to);
+        write!(graph, "node_{:?} -> node_{:?};\n", from, to)?;
     }
-    write!(graph, "}}\n");
+    write!(graph, "}}\n")?;
+    Ok(())
 }
 
 fn load_polonius_facts<'tcx>(
-    tcx: rustc_middle::ty::TyCtxt<'tcx>,
+    _tcx: rustc_middle::ty::TyCtxt<'tcx>,
     def_path: &rustc_hir::definitions::DefPath,
 ) -> facts::FactLoader {
     let dir_path = PathBuf::from(config::log_dir())
@@ -396,8 +398,6 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) loop_magic_wands: HashMap<mir::BasicBlock, Vec<LoopMagicWand>>,
     /// Loans that are created inside loops. Loan → loop head.
     pub(crate) loops: loops::ProcedureLoops,
-    pub(crate) initialization: DefinitelyInitializedAnalysisResult<'tcx>,
-    pub(crate) liveness: LivenessAnalysisResult,
     /// Fake loans that were created due to variable moves.
     pub(crate) reference_moves: Vec<facts::Loan>,
     /// Fake loans that were created due to arguments moved into calls.
@@ -664,7 +664,7 @@ fn compute_loan_conflict_sets(
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     pub fn new(
         procedure: &'a Procedure<'a, 'tcx>,
-        loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
+        _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
     ) -> Result<Self, PoloniusInfoError> {
         let tcx = procedure.get_tcx();
         let def_id = procedure.get_id();
@@ -699,10 +699,11 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             &place_regions,
             &mut call_magic_wands
         ).map_err(|(err, loc)|
-            PoloniusInfoError::PlaceRegionsError(err, loc)
+            PoloniusInfoError::PlaceRegionsError(err, mir.source_info(loc).span)
         )?;
 
-        Self::disconnect_universal_regions(tcx, mir, &place_regions, &mut all_facts);
+        Self::disconnect_universal_regions(tcx, mir, &place_regions, &mut all_facts)
+            .map_err(|(err, loc)| PoloniusInfoError::PlaceRegionsError(err, loc))?;
 
         let output = Output::compute(&all_facts, Algorithm::Naive, true);
         let all_facts_without_back_edges = remove_back_edges(
@@ -747,12 +748,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 &output_without_back_edges,
                 &incompatible_loans);
         // FIXME: Check whether the new info in Polonius could be used for computing initialization.
-        let initialization = compute_definitely_initialized(&mir, tcx);
-        let liveness = compute_liveness(&mir);
         let loan_conflict_sets =
             compute_loan_conflict_sets(procedure, &loan_position, &all_facts, &output)?;
 
-        let mut info = Self {
+        let info = Self {
             tcx: tcx,
             mir: mir,
             borrowck_in_facts: all_facts,
@@ -769,8 +768,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             loops: loop_info,
             reference_moves: reference_moves,
             argument_moves: argument_moves,
-            initialization: initialization,
-            liveness: liveness,
             loan_conflict_sets: loan_conflict_sets,
         };
         // info.compute_loop_magic_wands(loop_invariant_block)?; FIXME
@@ -782,10 +779,12 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         mir: &mir::Body<'tcx>,
         place_regions: &PlaceRegions,
         all_facts: &mut AllInputFacts
-    ) -> Result<(), PlaceRegionsError> {
+    ) -> Result<(), (PlaceRegionsError, Span)> {
         let mut return_regions = vec![];
+        let return_span = mir.local_decls[mir::RETURN_PLACE].source_info.span;
         for place in mir::RETURN_PLACE.all_places(tcx, mir).into_iter() {
-            if let Some(region) = place_regions.for_place(place)? {
+            if let Some(region) = place_regions.for_place(place)
+                .map_err(|err| (err, return_span))? {
                 return_regions.push(region);
             }
         }
@@ -810,52 +809,51 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         Ok(())
     }
 
-    fn compute_loop_magic_wands(
-        &mut self,
-        _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
-    ) -> Result<(), PoloniusInfoError> {
-        // trace!("[enter] compute_loop_magic_wands");
-        // let loop_heads = self.loops.loop_heads.clone();
-        // for &loop_head in loop_heads.iter() {
-        //     debug!("loop_head = {:?}", loop_head);
-        //     // TODO: Check whether we should use mut_borrow_leaves instead of write_leaves.
-        //     let definitely_initalised_paths = self.initialization.get_before_block(loop_head);
-        //     let (write_leaves, _mut_borrow_leaves, _read_leaves) =
-        //         self.loops.compute_read_and_write_leaves(
-        //             loop_head,
-        //             self.mir,
-        //             Some(&definitely_initalised_paths),
-        //         );
-        //     debug!("write_leaves = {:?}", write_leaves);
-        //     let reborrows: Vec<(mir::Local, facts::Region)> = write_leaves
-        //         .iter()
-        //         .flat_map(|place| {
-        //             // Only locals – we do not support references in fields.
-        //             match place {
-        //                 mir::Place::Local(local) => Some(local),
-        //                 _ => None,
-        //             }
-        //         })
-        //         .flat_map(|local| {
-        //             // Only references (variables that have regions).
-        //             self.place_regions
-        //                 .for_local(*local)
-        //                 .map(|region| (*local, region))
-        //         })
-        //         // Note: With our restrictions these two checks are sufficient to ensure
-        //         // that we have reborrowing. For example, we do not need to check that
-        //         // at least one of the loans is coming from inside of the loop body.
-        //         .collect();
-        //     debug!("reborrows = {:?}", reborrows);
-        //     for &(local, _) in reborrows.iter() {
-        //         debug!("loop_head = {:?} reborrow={:?}", loop_head, local);
-        //         self.add_loop_magic_wand(loop_head, local)?;
-        //     }
-        // }
-        // trace!("[exit] compute_loop_magic_wands");
-        // Ok(())
-        unimplemented!();
-    }
+    // fn compute_loop_magic_wands(
+    //     &mut self,
+    //     _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
+    // ) -> Result<(), PoloniusInfoError> {
+    //     trace!("[enter] compute_loop_magic_wands");
+    //     let loop_heads = self.loops.loop_heads.clone();
+    //     for &loop_head in loop_heads.iter() {
+    //         debug!("loop_head = {:?}", loop_head);
+    //         // TODO: Check whether we should use mut_borrow_leaves instead of write_leaves.
+    //         let definitely_initalised_paths = self.initialization.get_before_block(loop_head);
+    //         let (write_leaves, _mut_borrow_leaves, _read_leaves) =
+    //             self.loops.compute_read_and_write_leaves(
+    //                 loop_head,
+    //                 self.mir,
+    //                 Some(&definitely_initalised_paths),
+    //             );
+    //         debug!("write_leaves = {:?}", write_leaves);
+    //         let reborrows: Vec<(mir::Local, facts::Region)> = write_leaves
+    //             .iter()
+    //             .flat_map(|place| {
+    //                 // Only locals – we do not support references in fields.
+    //                 match place {
+    //                     mir::Place::Local(local) => Some(local),
+    //                     _ => None,
+    //                 }
+    //             })
+    //             .flat_map(|local| {
+    //                 // Only references (variables that have regions).
+    //                 self.place_regions
+    //                     .for_local(*local)
+    //                     .map(|region| (*local, region))
+    //             })
+    //             // Note: With our restrictions these two checks are sufficient to ensure
+    //             // that we have reborrowing. For example, we do not need to check that
+    //             // at least one of the loans is coming from inside of the loop body.
+    //             .collect();
+    //         debug!("reborrows = {:?}", reborrows);
+    //         for &(local, _) in reborrows.iter() {
+    //             debug!("loop_head = {:?} reborrow={:?}", loop_head, local);
+    //             self.add_loop_magic_wand(loop_head, local)?;
+    //         }
+    //     }
+    //     trace!("[exit] compute_loop_magic_wands");
+    //     Ok(())
+    // }
 
     pub fn get_point(
         &self,
@@ -1301,7 +1299,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Find a variable that has the given region in its type.
-    pub fn find_variable(&self, region: facts::Region) -> Option<mir::Local> {
+    pub fn find_variable(&self, _region: facts::Region) -> Option<mir::Local> {
         // TODO
         None
     }

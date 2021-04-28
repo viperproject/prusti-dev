@@ -18,7 +18,7 @@ impl Expr {
                 F: Fn(Expr) -> Expr,
         {
             f: F,
-        };
+        }
         impl<F> ExprFolder for PlaceFolder<F>
             where
                 F: Fn(Expr) -> Expr,
@@ -45,7 +45,7 @@ impl Expr {
                 F: Fn(Expr) -> Expr,
         {
             f: F,
-        };
+        }
         impl<F> ExprFolder for ExprFolderImpl<F>
             where
                 F: Fn(Expr) -> Expr,

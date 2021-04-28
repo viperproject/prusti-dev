@@ -224,8 +224,8 @@ impl fmt::Display for Expr {
 impl fmt::Display for UnaryOpKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &UnaryOpKind::Not => write!(f, "!"),
-            &UnaryOpKind::Minus => write!(f, "-"),
+            UnaryOpKind::Not => write!(f, "!"),
+            UnaryOpKind::Minus => write!(f, "-"),
         }
     }
 }
@@ -233,20 +233,20 @@ impl fmt::Display for UnaryOpKind {
 impl fmt::Display for BinOpKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &BinOpKind::EqCmp => write!(f, "=="),
-            &BinOpKind::NeCmp => write!(f, "!="),
-            &BinOpKind::GtCmp => write!(f, ">"),
-            &BinOpKind::GeCmp => write!(f, ">="),
-            &BinOpKind::LtCmp => write!(f, "<"),
-            &BinOpKind::LeCmp => write!(f, "<="),
-            &BinOpKind::Add => write!(f, "+"),
-            &BinOpKind::Sub => write!(f, "-"),
-            &BinOpKind::Mul => write!(f, "*"),
-            &BinOpKind::Div => write!(f, "\\"),
-            &BinOpKind::Mod => write!(f, "%"),
-            &BinOpKind::And => write!(f, "&&"),
-            &BinOpKind::Or => write!(f, "||"),
-            &BinOpKind::Implies => write!(f, "==>"),
+            BinOpKind::EqCmp => write!(f, "=="),
+            BinOpKind::NeCmp => write!(f, "!="),
+            BinOpKind::GtCmp => write!(f, ">"),
+            BinOpKind::GeCmp => write!(f, ">="),
+            BinOpKind::LtCmp => write!(f, "<"),
+            BinOpKind::LeCmp => write!(f, "<="),
+            BinOpKind::Add => write!(f, "+"),
+            BinOpKind::Sub => write!(f, "-"),
+            BinOpKind::Mul => write!(f, "*"),
+            BinOpKind::Div => write!(f, "\\"),
+            BinOpKind::Mod => write!(f, "%"),
+            BinOpKind::And => write!(f, "&&"),
+            BinOpKind::Or => write!(f, "||"),
+            BinOpKind::Implies => write!(f, "==>"),
         }
     }
 }
@@ -254,10 +254,10 @@ impl fmt::Display for BinOpKind {
 impl fmt::Display for Const {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Const::Bool(val) => write!(f, "{}", val),
-            &Const::Int(val) => write!(f, "{}", val),
-            &Const::BigInt(ref val) => write!(f, "{}", val),
-            &Const::FnPtr => write!(f, "FnPtr"),
+            Const::Bool(val) => write!(f, "{}", val),
+            Const::Int(val) => write!(f, "{}", val),
+            Const::BigInt(ref val) => write!(f, "{}", val),
+            Const::FnPtr => write!(f, "FnPtr"),
         }
     }
 }
@@ -321,7 +321,7 @@ impl Expr {
     pub fn set_default_pos(self, pos: Position) -> Self {
         struct DefaultPosReplacer {
             new_pos: Position,
-        };
+        }
         impl ExprFolder for DefaultPosReplacer {
             fn fold(&mut self, e: Expr) -> Expr {
                 let expr = default_fold_expr(self, e);
@@ -503,7 +503,7 @@ impl Expr {
         }
         impl<'a> ExprWalker for ExprFinder<'a> {
             fn walk(&mut self, expr: &Expr) {
-                if expr == self.sub_target || (expr.is_place() && expr == self.sub_target) {
+                if expr == self.sub_target {
                     self.found = true;
                 } else {
                     default_walk_expr(self, expr)
@@ -622,17 +622,11 @@ impl Expr {
     }
 
     pub fn is_variant(&self) -> bool {
-        match self {
-            Expr::Variant(..) => true,
-            _ => false,
-        }
+        matches!(self, Expr::Variant(..))
     }
 
     pub fn is_call(&self) -> bool {
-        match self {
-            Expr::FuncApp(..) | Expr::DomainFuncApp(..) => true,
-            _ => false,
-        }
+        matches!(self, Expr::FuncApp(..) | Expr::DomainFuncApp(..))
     }
 
     /// How many parts this place has? Used for ordering places.
@@ -694,7 +688,7 @@ impl Expr {
             if predicate_name.starts_with("ref$") {
                 let field_predicate_name = predicate_name[4..predicate_name.len()].to_string();
                 let field = Field::new("val_ref", Type::TypedRef(field_predicate_name));
-                let field_place = Expr::from(self.clone()).field(field);
+                let field_place = self.clone().field(field);
                 return Some(field_place);
             }
         }
@@ -702,17 +696,11 @@ impl Expr {
     }
 
     pub fn is_local(&self) -> bool {
-        match self {
-            &Expr::Local(..) => true,
-            _ => false,
-        }
+        matches!(self, &Expr::Local(..))
     }
 
     pub fn is_addr_of(&self) -> bool {
-        match self {
-            &Expr::AddrOf(..) => true,
-            _ => false,
-        }
+        matches!(self, &Expr::AddrOf(..))
     }
 
     /// Puts an `old[label](..)` around the expression
@@ -897,9 +885,9 @@ impl Expr {
     pub fn get_base(&self) -> LocalVar {
         debug_assert!(self.is_place());
         match self {
-            &Expr::Local(ref var, _) => var.clone(),
-            &Expr::LabelledOld(_, ref base, _) |
-            &Expr::Unfolding(_, _, ref base, _, _, _) => {
+            Expr::Local(ref var, _) => var.clone(),
+            Expr::LabelledOld(_, ref base, _) |
+            Expr::Unfolding(_, _, ref base, _, _, _) => {
                 base.get_base()
             }
             _ => self.get_parent().unwrap().get_base(),
@@ -908,7 +896,7 @@ impl Expr {
 
     pub fn get_label(&self) -> Option<&String> {
         match self {
-            &Expr::LabelledOld(ref label, _, _) => Some(label),
+            Expr::LabelledOld(ref label, _, _) => Some(label),
             _ => None,
         }
     }
@@ -1101,7 +1089,7 @@ impl Expr {
     {
         struct OldLabelReplacer<T: Fn(String) -> Option<String>> {
             f: T,
-        };
+        }
         impl<T: Fn(String) -> Option<String>> ExprFolder for OldLabelReplacer<T> {
             fn fold_labelled_old(&mut self, label: String, base: Box<Expr>, pos: Position) -> Expr {
                 match (self.f)(label) {
@@ -1139,7 +1127,7 @@ impl Expr {
             //  typarams with local (more) concrete types.
             typaram_substs: Option<typaram::Substs>,
             subst: bool,
-        };
+        }
         impl<'a> ExprFolder for PlaceReplacer<'a> {
             fn fold(&mut self, e: Expr) -> Expr {
                 if e.is_place() && &e == self.target {
@@ -1242,14 +1230,14 @@ impl Expr {
             //  to "fix" the (Viper) predicates of the fields, i.e. replace those
             //  typarams with local (more) concrete types.
             typaram_substs: Vec<Option<typaram::Substs>>,
-        };
+        }
         impl<'a> ExprFolder for PlaceReplacer<'a> {
             fn fold(&mut self, e: Expr) -> Expr {
                 // Check if this matches a substitution.
                 if e.is_place() {
                     let substitution = self.replacements.iter()
                         .find(|(src, _)| src == &e);
-                    if let Some((src, dst)) = substitution {
+                    if let Some((_src, dst)) = substitution {
                         return dst.clone();
                     }
                 }
@@ -1316,7 +1304,7 @@ impl Expr {
                 )
             }
         }
-        let typaram_substs = replacements.into_iter().map(
+        let typaram_substs = replacements.iter().map(
             |(target, replacement)| {
                 match (target, replacement) {
                     (Expr::Local(tv, _), Expr::Local(rv, _)) => {
@@ -1349,7 +1337,7 @@ impl Expr {
     pub fn remove_redundant_old(self) -> Self {
         struct RedundantOldRemover {
             current_label: Option<String>,
-        };
+        }
         impl ExprFolder for RedundantOldRemover {
             fn fold_labelled_old(&mut self, label: String, base: Box<Expr>, pos: Position) -> Expr {
                 let old_current_label = mem::replace(&mut self.current_label, Some(label.clone()));
@@ -1427,13 +1415,13 @@ impl Expr {
         impl ExprWalker for Collector {
             fn walk_variant(&mut self, e: &Expr, v: &Field, p: &Position) {
                 self.walk(e);
-                let expr = Expr::Variant(box e.clone(), v.clone(), p.clone());
+                let expr = Expr::Variant(box e.clone(), v.clone(), *p);
                 let perm = Expr::acc_permission(expr, self.perm_amount);
                 self.perms.push(perm);
             }
             fn walk_field(&mut self, e: &Expr, f: &Field, p: &Position) {
                 self.walk(e);
-                let expr = Expr::Field(box e.clone(), f.clone(), p.clone());
+                let expr = Expr::Field(box e.clone(), f.clone(), *p);
                 let perm = Expr::acc_permission(expr, self.perm_amount);
                 self.perms.push(perm);
             }
@@ -1638,7 +1626,7 @@ impl Expr {
     /// `acc(x.f, read) && acc(P(x.f), write)`, then after the
     /// transformation it will be: `acc(P(x.f), write)`.
     pub fn remove_read_permissions(self) -> Self {
-        struct ReadPermRemover {};
+        struct ReadPermRemover {}
         impl ExprFolder for ReadPermRemover {
             fn fold_predicate_access_predicate(
                 &mut self,

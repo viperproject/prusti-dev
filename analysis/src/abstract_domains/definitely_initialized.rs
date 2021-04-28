@@ -10,7 +10,7 @@ use rustc_middle::mir;
 use std::collections::{HashSet, BTreeSet};
 use rustc_middle::ty::TyCtxt;
 use rustc_middle::ich::StableHashingContextProvider;
-use rustc_data_structures::stable_hasher::{HashStable, StableHasher};
+use rustc_data_structures::{fingerprint::Fingerprint, stable_hasher::{HashStable, StableHasher}};
 use std::mem;
 use std::fmt;
 use serde::{Serialize, Serializer};
@@ -41,14 +41,22 @@ impl<'a, 'tcx: 'a> fmt::Debug for DefinitelyInitializedState<'a, 'tcx> {
 impl<'a, 'tcx: 'a> PartialEq for DefinitelyInitializedState<'a, 'tcx> {
     fn eq(&self, other: &Self) -> bool {
         debug_assert_eq!(
-            self.mir.hash_stable(
-                &mut self.tcx.get_stable_hashing_context(),
-                &mut StableHasher::new()
-            ),
-            other.mir.hash_stable(
-                &mut other.tcx.get_stable_hashing_context(),
-                &mut StableHasher::new()
-            )
+            {
+                let mut stable_hasher = StableHasher::new();
+                self.mir.hash_stable(
+                    &mut self.tcx.get_stable_hashing_context(),
+                    &mut stable_hasher,
+                );
+                stable_hasher.finish::<Fingerprint>()
+            },
+            {
+                let mut stable_hasher = StableHasher::new();
+                other.mir.hash_stable(
+                    &mut other.tcx.get_stable_hashing_context(),
+                    &mut stable_hasher,
+                );
+                stable_hasher.finish::<Fingerprint>()
+            },
         );
         self.def_init_places == other.def_init_places
     }
@@ -120,7 +128,7 @@ impl<'a, 'tcx: 'a>  DefinitelyInitializedState<'a, 'tcx>  {
             // prefix in the set, we remove all places for which the given
             // one is a prefix.
             self.def_init_places.retain(|current| !is_prefix(current, place));
-            self.def_init_places.insert(place.clone());
+            self.def_init_places.insert(*place);
             // If all fields of a struct are definitely initialized,
             // just keep info that the struct is definitely initialized.
             collapse(self.mir, self.tcx, &mut self.def_init_places, place);
@@ -137,7 +145,7 @@ impl<'a, 'tcx: 'a>  DefinitelyInitializedState<'a, 'tcx>  {
             self.check_invariant();
         }
 
-        let old_places = mem::replace(&mut self.def_init_places, HashSet::new());
+        let old_places = mem::take(&mut self.def_init_places);
         for old_place in old_places {
             if is_prefix(place, &old_place) {
                 // We are uninitializing a field of the place `old_place`.
@@ -182,7 +190,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
     fn new_bottom(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         let mut places = HashSet::new();
         for local in mir.local_decls.indices(){
-            places.insert(local.clone().into());
+            places.insert(local.into());
         }
         Self {def_init_places: places, mir, tcx}
     }
@@ -203,7 +211,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
         // they are guaranteed to be disjoint and not prefixes of each other,
         // therefore insert them directly
         for local in mir.args_iter() {
-            places.insert(local.clone().into());
+            places.insert(local.into());
         }
         Self {
             def_init_places: places,
@@ -235,7 +243,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
                 // locations, place can be added to the resulting intersection
                 for potential_prefix in place_set2.iter() {
                     if is_prefix(place, potential_prefix) {
-                        intersection.insert(place.clone());
+                        intersection.insert(*place);
                         break;
                     }
                 }

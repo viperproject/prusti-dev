@@ -64,13 +64,13 @@ impl ExprSimplifier {
                 ast::BinOpKind::And,
                 box ast::Expr::Const(ast::Const::Bool(b), _),
                 box conjunct,
-                pos,
+                _pos,
             ) |
             ast::Expr::BinOp(
                 ast::BinOpKind::And,
                 box conjunct,
                 box ast::Expr::Const(ast::Const::Bool(b), _),
-                pos,
+                _pos,
             ) => {
                 if b {
                     conjunct
@@ -82,13 +82,13 @@ impl ExprSimplifier {
                 ast::BinOpKind::Or,
                 box ast::Expr::Const(ast::Const::Bool(b), _),
                 box disjunct,
-                pos,
+                _pos,
             ) |
             ast::Expr::BinOp(
                 ast::BinOpKind::Or,
                 box disjunct,
                 box ast::Expr::Const(ast::Const::Bool(b), _),
-                pos,
+                _pos,
             ) => {
                 if b {
                     true.into()
@@ -116,7 +116,7 @@ impl ExprSimplifier {
                 ast::BinOpKind::Implies,
                 box ast::Expr::Const(ast::Const::Bool(b), _),
                 box body,
-                pos,
+                _pos,
             ) => {
                 if b {
                     body

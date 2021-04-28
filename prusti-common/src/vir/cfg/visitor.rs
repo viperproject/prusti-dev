@@ -110,7 +110,7 @@ pub trait CfgReplacer<
         );
 
         // Initialize the blocks of the new cfg
-        for (index, block) in cfg.basic_blocks.iter().enumerate() {
+        for (index, _block) in cfg.basic_blocks.iter().enumerate() {
             let label = &cfg.basic_blocks_labels[index];
             new_cfg.add_block(label, vec![]);
         }
@@ -364,7 +364,7 @@ impl CfgMethod {
     pub fn walk_expressions<F: FnMut(&Expr)>(&self, mut walker: F) {
         struct ExprStmtWalker<'a, T: FnMut(&Expr)> {
             walker: &'a mut T,
-        };
+        }
         impl<'a, T: FnMut(&Expr)> StmtWalker for ExprStmtWalker<'a, T> {
             fn walk_expr(&mut self, expr: &Expr) {
                 (self.walker)(expr);

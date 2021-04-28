@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![deny(unused_must_use)]
-#![recursion_limit = "1024"]
 
 #[macro_use]
 extern crate error_chain;

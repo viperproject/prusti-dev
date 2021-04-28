@@ -4,8 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#![feature(box_syntax, box_patterns)]
-
 use super::loops;
 use crate::data::ProcedureDefId;
 use rustc_middle::mir::{self, Body as Mir, Rvalue, AggregateKind};
@@ -63,7 +61,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
     /// Returns all the types used in the procedure, and any types reachable from them
     pub fn get_declared_types(&self) -> Vec<Ty<'tcx>> {
-        let mut types: HashSet<Ty> = HashSet::new();
+        let _types: HashSet<Ty> = HashSet::new();
         // for var in &self.mir.local_decls {
         //     for ty in var.ty.walk() {
         //         let declared_ty = ty;

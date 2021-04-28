@@ -106,7 +106,7 @@ impl ParserStream {
     /// and set the span to it.
     fn check_and_consume_keyword(&mut self, keyword: &str) -> bool {
         if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
-            if ident.to_string() == keyword {
+            if ident == keyword {
                 self.pop();
                 return true;
             }
@@ -732,7 +732,7 @@ impl Parser {
         let mut token_stream = TokenStream::new();
         token_stream.extend(expr.into_iter());
         self.expr.clear();
-        let parsed_expr = self.parse_rust_expression(token_stream.clone())?;
+        let parsed_expr = self.parse_rust_expression(token_stream)?;
 
         Ok(ExpressionWithoutId {
             spec_id: common::SpecificationId::dummy(),
@@ -778,7 +778,7 @@ impl Parser {
     }
     /// Convert all conjuncts into And assertion.
     fn conjuncts_to_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
-        let mut conjuncts = mem::replace(&mut self.conjuncts, Vec::new());
+        let mut conjuncts = mem::take(&mut self.conjuncts);
 
         // if there is just one conjunction, don't construct a conjunction and just return it
         // as a single assertion

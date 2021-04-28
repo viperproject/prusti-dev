@@ -10,7 +10,7 @@ use crate::{AbstractState, AnalysisError};
 use rustc_middle::mir;
 use rustc_middle::ty::TyCtxt;
 use rustc_middle::ich::StableHashingContextProvider;
-use rustc_data_structures::stable_hasher::{HashStable, StableHasher};
+use rustc_data_structures::{fingerprint::Fingerprint, stable_hasher::{HashStable, StableHasher}};
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeMap;
 use crate::serialization_utils::location_to_stmt_str;
@@ -48,14 +48,22 @@ impl<'a, 'tcx: 'a> fmt::Debug for ReachingDefsState<'a, 'tcx> {
 impl<'a, 'tcx: 'a> PartialEq for ReachingDefsState<'a, 'tcx> {
     fn eq(&self, other: &Self) -> bool {
         debug_assert_eq!(
-            self.mir.hash_stable(
-                &mut self.tcx.get_stable_hashing_context(),
-                &mut StableHasher::new()
-            ),
-            other.mir.hash_stable(
-                &mut other.tcx.get_stable_hashing_context(),
-                &mut StableHasher::new()
-            )
+            {
+                let mut stable_hasher = StableHasher::new();
+                self.mir.hash_stable(
+                    &mut self.tcx.get_stable_hashing_context(),
+                    &mut stable_hasher,
+                );
+                stable_hasher.finish::<Fingerprint>()
+            },
+            {
+                let mut stable_hasher = StableHasher::new();
+                    other.mir.hash_stable(
+                    &mut other.tcx.get_stable_hashing_context(),
+                    &mut stable_hasher,
+                );
+                stable_hasher.finish::<Fingerprint>()
+            },
         );
         // Ignore the `mir` field.
         self.reaching_defs == other.reaching_defs

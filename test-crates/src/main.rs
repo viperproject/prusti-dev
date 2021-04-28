@@ -27,9 +27,9 @@ struct CrateRecord {
     version: String,
 }
 
-impl Into<Crate> for CrateRecord {
-    fn into(self) -> Crate {
-        Crate::crates_io(&self.name, &self.version)
+impl From<CrateRecord> for Crate {
+    fn from(record: CrateRecord) -> Self {
+        Crate::crates_io(&record.name, &record.version)
     }
 }
 
@@ -117,7 +117,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let host_viper_home = Path::new("viper_tools/backends");
     let host_z3_home = Path::new("viper_tools/z3/bin");
     let host_java_home = env::var("JAVA_HOME").ok().map(|s| s.into())
-        .or_else(|| find_java_home())
+        .or_else(find_java_home)
         .expect("Please set JAVA_HOME");
     let guest_prusti_home = Path::new("/opt/rustwide/prusti-home");
     let guest_viper_home = Path::new("/opt/rustwide/viper-home");
