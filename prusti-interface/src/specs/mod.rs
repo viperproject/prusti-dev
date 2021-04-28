@@ -27,6 +27,7 @@ use prusti_specs::specifications::common::SpecificationId;
 
 struct SpecItem {
     spec_id: typed::SpecificationId,
+    #[allow(dead_code)]
     spec_type: SpecType,
     specification: JsonAssertion,
 }

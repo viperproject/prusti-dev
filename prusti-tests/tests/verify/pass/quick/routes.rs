@@ -1,6 +1,5 @@
 #![feature(box_syntax, box_patterns)]
 
-
 use prusti_contracts::*;
 
 /// From points.rs

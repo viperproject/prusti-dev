@@ -228,7 +228,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                         }
                         _ => stmt.to_viper(ast),
                     }
-                };
+                }
                 let stmts: Vec<_> = package_stmts
                     .iter()
                     .map(|stmt| stmt_to_viper_in_packge(stmt, ast))

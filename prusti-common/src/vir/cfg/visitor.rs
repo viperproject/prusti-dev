@@ -364,7 +364,7 @@ impl CfgMethod {
     pub fn walk_expressions<F: FnMut(&Expr)>(&self, mut walker: F) {
         struct ExprStmtWalker<'a, T: FnMut(&Expr)> {
             walker: &'a mut T,
-        };
+        }
         impl<'a, T: FnMut(&Expr)> StmtWalker for ExprStmtWalker<'a, T> {
             fn walk_expr(&mut self, expr: &Expr) {
                 (self.walker)(expr);

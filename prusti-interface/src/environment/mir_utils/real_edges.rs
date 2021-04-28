@@ -4,8 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#![feature(box_syntax, box_patterns)]
-
 use rustc_middle::mir::{self, TerminatorKind};
 use rustc_middle::ty;
 use rustc_index::vec::IndexVec;

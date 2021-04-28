@@ -321,7 +321,7 @@ impl Expr {
     pub fn set_default_pos(self, pos: Position) -> Self {
         struct DefaultPosReplacer {
             new_pos: Position,
-        };
+        }
         impl ExprFolder for DefaultPosReplacer {
             fn fold(&mut self, e: Expr) -> Expr {
                 let expr = default_fold_expr(self, e);
@@ -1101,7 +1101,7 @@ impl Expr {
     {
         struct OldLabelReplacer<T: Fn(String) -> Option<String>> {
             f: T,
-        };
+        }
         impl<T: Fn(String) -> Option<String>> ExprFolder for OldLabelReplacer<T> {
             fn fold_labelled_old(&mut self, label: String, base: Box<Expr>, pos: Position) -> Expr {
                 match (self.f)(label) {
@@ -1139,7 +1139,7 @@ impl Expr {
             //  typarams with local (more) concrete types.
             typaram_substs: Option<typaram::Substs>,
             subst: bool,
-        };
+        }
         impl<'a> ExprFolder for PlaceReplacer<'a> {
             fn fold(&mut self, e: Expr) -> Expr {
                 if e.is_place() && &e == self.target {
@@ -1242,7 +1242,7 @@ impl Expr {
             //  to "fix" the (Viper) predicates of the fields, i.e. replace those
             //  typarams with local (more) concrete types.
             typaram_substs: Vec<Option<typaram::Substs>>,
-        };
+        }
         impl<'a> ExprFolder for PlaceReplacer<'a> {
             fn fold(&mut self, e: Expr) -> Expr {
                 // Check if this matches a substitution.
@@ -1349,7 +1349,7 @@ impl Expr {
     pub fn remove_redundant_old(self) -> Self {
         struct RedundantOldRemover {
             current_label: Option<String>,
-        };
+        }
         impl ExprFolder for RedundantOldRemover {
             fn fold_labelled_old(&mut self, label: String, base: Box<Expr>, pos: Position) -> Expr {
                 let old_current_label = mem::replace(&mut self.current_label, Some(label.clone()));
@@ -1638,7 +1638,7 @@ impl Expr {
     /// `acc(x.f, read) && acc(P(x.f), write)`, then after the
     /// transformation it will be: `acc(P(x.f), write)`.
     pub fn remove_read_permissions(self) -> Self {
-        struct ReadPermRemover {};
+        struct ReadPermRemover {}
         impl ExprFolder for ReadPermRemover {
             fn fold_predicate_access_predicate(
                 &mut self,

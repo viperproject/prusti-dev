@@ -33,50 +33,6 @@ use analysis::abstract_domains::DefinitelyInitializedState;
 /// The result of the definitely initialized analysis.
 pub type DefinitelyInitializedAnalysisResult<'tcx> = common::AnalysisResult<PlaceSet<'tcx>>;
 
-#[derive(Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
-/// A record for serializing definitely initialized info into a file for testing.
-struct InitializationRecord {
-    block: usize,
-    /// -1 indicates before the block.
-    statement_index: isize,
-    /// A String representation of a place set.
-    places: String,
-}
-
-impl<'tcx> DefinitelyInitializedAnalysisResult<'tcx> {
-    /// Converts to a sorted vector of `InitializationRecord`.
-    fn to_initialization_records(&self) -> Vec<InitializationRecord> {
-        let mut records = Vec::new();
-        for (bb, place_set) in self.before_block.iter() {
-            records.push(InitializationRecord::new(*bb, -1, place_set));
-        }
-        for (location, place_set) in self.after_statement.iter() {
-            records.push(InitializationRecord::new(
-                location.block,
-                location.statement_index as isize,
-                place_set,
-            ));
-        }
-        records.sort();
-        records
-    }
-}
-
-impl InitializationRecord {
-    fn new(block: mir::BasicBlock, statement_index: isize, place_set: &PlaceSet) -> Self {
-        let mut places: Vec<_> = place_set
-            .iter()
-            .map(|place| format!("{:?}", place))
-            .collect();
-        places.sort();
-        Self {
-            block: block.index(),
-            statement_index: statement_index,
-            places: places.join(", "),
-        }
-    }
-}
-
 pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     body: &'a mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,

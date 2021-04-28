@@ -398,8 +398,6 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) loop_magic_wands: HashMap<mir::BasicBlock, Vec<LoopMagicWand>>,
     /// Loans that are created inside loops. Loan → loop head.
     pub(crate) loops: loops::ProcedureLoops,
-    pub(crate) initialization: DefinitelyInitializedAnalysisResult<'tcx>,
-    pub(crate) liveness: LivenessAnalysisResult,
     /// Fake loans that were created due to variable moves.
     pub(crate) reference_moves: Vec<facts::Loan>,
     /// Fake loans that were created due to arguments moved into calls.
@@ -750,8 +748,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 &output_without_back_edges,
                 &incompatible_loans);
         // FIXME: Check whether the new info in Polonius could be used for computing initialization.
-        let initialization = compute_definitely_initialized(&mir, tcx);
-        let liveness = compute_liveness(&mir);
         let loan_conflict_sets =
             compute_loan_conflict_sets(procedure, &loan_position, &all_facts, &output)?;
 
@@ -772,8 +768,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             loops: loop_info,
             reference_moves: reference_moves,
             argument_moves: argument_moves,
-            initialization: initialization,
-            liveness: liveness,
             loan_conflict_sets: loan_conflict_sets,
         };
         // info.compute_loop_magic_wands(loop_invariant_block)?; FIXME
@@ -815,52 +809,51 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         Ok(())
     }
 
-    fn compute_loop_magic_wands(
-        &mut self,
-        _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
-    ) -> Result<(), PoloniusInfoError> {
-        // trace!("[enter] compute_loop_magic_wands");
-        // let loop_heads = self.loops.loop_heads.clone();
-        // for &loop_head in loop_heads.iter() {
-        //     debug!("loop_head = {:?}", loop_head);
-        //     // TODO: Check whether we should use mut_borrow_leaves instead of write_leaves.
-        //     let definitely_initalised_paths = self.initialization.get_before_block(loop_head);
-        //     let (write_leaves, _mut_borrow_leaves, _read_leaves) =
-        //         self.loops.compute_read_and_write_leaves(
-        //             loop_head,
-        //             self.mir,
-        //             Some(&definitely_initalised_paths),
-        //         );
-        //     debug!("write_leaves = {:?}", write_leaves);
-        //     let reborrows: Vec<(mir::Local, facts::Region)> = write_leaves
-        //         .iter()
-        //         .flat_map(|place| {
-        //             // Only locals – we do not support references in fields.
-        //             match place {
-        //                 mir::Place::Local(local) => Some(local),
-        //                 _ => None,
-        //             }
-        //         })
-        //         .flat_map(|local| {
-        //             // Only references (variables that have regions).
-        //             self.place_regions
-        //                 .for_local(*local)
-        //                 .map(|region| (*local, region))
-        //         })
-        //         // Note: With our restrictions these two checks are sufficient to ensure
-        //         // that we have reborrowing. For example, we do not need to check that
-        //         // at least one of the loans is coming from inside of the loop body.
-        //         .collect();
-        //     debug!("reborrows = {:?}", reborrows);
-        //     for &(local, _) in reborrows.iter() {
-        //         debug!("loop_head = {:?} reborrow={:?}", loop_head, local);
-        //         self.add_loop_magic_wand(loop_head, local)?;
-        //     }
-        // }
-        // trace!("[exit] compute_loop_magic_wands");
-        // Ok(())
-        unimplemented!();
-    }
+    // fn compute_loop_magic_wands(
+    //     &mut self,
+    //     _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
+    // ) -> Result<(), PoloniusInfoError> {
+    //     trace!("[enter] compute_loop_magic_wands");
+    //     let loop_heads = self.loops.loop_heads.clone();
+    //     for &loop_head in loop_heads.iter() {
+    //         debug!("loop_head = {:?}", loop_head);
+    //         // TODO: Check whether we should use mut_borrow_leaves instead of write_leaves.
+    //         let definitely_initalised_paths = self.initialization.get_before_block(loop_head);
+    //         let (write_leaves, _mut_borrow_leaves, _read_leaves) =
+    //             self.loops.compute_read_and_write_leaves(
+    //                 loop_head,
+    //                 self.mir,
+    //                 Some(&definitely_initalised_paths),
+    //             );
+    //         debug!("write_leaves = {:?}", write_leaves);
+    //         let reborrows: Vec<(mir::Local, facts::Region)> = write_leaves
+    //             .iter()
+    //             .flat_map(|place| {
+    //                 // Only locals – we do not support references in fields.
+    //                 match place {
+    //                     mir::Place::Local(local) => Some(local),
+    //                     _ => None,
+    //                 }
+    //             })
+    //             .flat_map(|local| {
+    //                 // Only references (variables that have regions).
+    //                 self.place_regions
+    //                     .for_local(*local)
+    //                     .map(|region| (*local, region))
+    //             })
+    //             // Note: With our restrictions these two checks are sufficient to ensure
+    //             // that we have reborrowing. For example, we do not need to check that
+    //             // at least one of the loans is coming from inside of the loop body.
+    //             .collect();
+    //         debug!("reborrows = {:?}", reborrows);
+    //         for &(local, _) in reborrows.iter() {
+    //             debug!("loop_head = {:?} reborrow={:?}", loop_head, local);
+    //             self.add_loop_magic_wand(loop_head, local)?;
+    //         }
+    //     }
+    //     trace!("[exit] compute_loop_magic_wands");
+    //     Ok(())
+    // }
 
     pub fn get_point(
         &self,
