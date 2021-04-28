@@ -41,9 +41,9 @@ impl<'a> ClassGenerator<'a> {
             "#![allow(dead_code)]\n".to_string(),
             "#![allow(non_snake_case)]\n".to_string(),
             "#![allow(unused_imports)]\n".to_string(),
-            "#![cfg_attr(feature = \"cargo-clippy\", allow(new_ret_no_self))]\n".to_string(),
-            "#![cfg_attr(feature = \"cargo-clippy\", allow(wrong_self_convention))]\n".to_string(),
-            "#![cfg_attr(feature = \"cargo-clippy\", allow(too_many_arguments))]\n".to_string(),
+            "#![allow(clippy::new_ret_no_self)]\n".to_string(),
+            "#![allow(clippy::wrong_self_convention)]\n".to_string(),
+            "#![allow(clippy::too_many_arguments)]\n".to_string(),
             self.generate_imports(),
             self.generate_struct(),
             self.generate_begin_impl(),
@@ -84,7 +84,7 @@ impl<'a> ClassGenerator<'a> {
             format!("impl<'a> {}<'a> {{", self.class.rust_name()),
             "".to_string(),
             "pub fn with(env: &'a JNIEnv<'a>) -> Self {".to_string(),
-            format!("    {}{{ env: env }}", self.class.rust_name()),
+            format!("    {}{{ env }}", self.class.rust_name()),
             "}".to_string(),
         ]
         .join("\n")

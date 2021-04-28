@@ -72,11 +72,11 @@ impl<'v> ToViper<'v, viper::Position<'v>> for Position {
 impl<'v> ToViper<'v, viper::Type<'v>> for Type {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Type<'v> {
         match self {
-            &Type::Int => ast.int_type(),
-            &Type::Bool => ast.bool_type(),
-            //&Type::Ref |
-            &Type::TypedRef(_) => ast.ref_type(),
-            &Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
+            Type::Int => ast.int_type(),
+            Type::Bool => ast.bool_type(),
+            //Type::Ref |
+            Type::TypedRef(_) => ast.ref_type(),
+            Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
         }
     }
 }
@@ -106,20 +106,20 @@ impl<'v> ToViper<'v, viper::Field<'v>> for Field {
 impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         match self {
-            &Stmt::Comment(ref comment) => ast.comment(&comment),
-            &Stmt::Label(ref label) => ast.label(&label, &[]),
-            &Stmt::Inhale(ref expr) => {
+            Stmt::Comment(ref comment) => ast.comment(&comment),
+            Stmt::Label(ref label) => ast.label(&label, &[]),
+            Stmt::Inhale(ref expr) => {
                 let fake_position = Position::default();
                 ast.inhale(expr.to_viper(ast), fake_position.to_viper(ast))
             }
-            &Stmt::Exhale(ref expr, ref pos) => {
+            Stmt::Exhale(ref expr, ref pos) => {
                 assert!(!pos.is_default());
                 ast.exhale(expr.to_viper(ast), pos.to_viper(ast))
             }
-            &Stmt::Assert(ref expr, ref pos) => {
+            Stmt::Assert(ref expr, ref pos) => {
                 ast.assert(expr.to_viper(ast), pos.to_viper(ast))
             }
-            &Stmt::MethodCall(ref method_name, ref args, ref targets) => {
+            Stmt::MethodCall(ref method_name, ref args, ref targets) => {
                 let fake_position = Position::default();
                 ast.method_call(
                     &method_name,
@@ -127,10 +127,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     &(targets, &fake_position).to_viper(ast),
                 )
             }
-            &Stmt::Assign(ref lhs, ref rhs, _) => {
+            Stmt::Assign(ref lhs, ref rhs, _) => {
                 ast.abstract_assign(lhs.to_viper(ast), rhs.to_viper(ast))
             }
-            &Stmt::Fold(ref pred_name, ref args, perm, ref _variant, ref pos) => ast.fold_with_pos(
+            Stmt::Fold(ref pred_name, ref args, perm, ref _variant, ref pos) => ast.fold_with_pos(
                 ast.predicate_access_predicate_with_pos(
                     ast.predicate_access_with_pos(
                         &args.to_viper(ast),
@@ -142,29 +142,29 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 ),
                 pos.to_viper(ast),
             ),
-            &Stmt::Unfold(ref pred_name, ref args, perm, ref _variant) => {
+            Stmt::Unfold(ref pred_name, ref args, perm, ref _variant) => {
                 ast.unfold(ast.predicate_access_predicate(
                     ast.predicate_access(&args.to_viper(ast), &pred_name),
                     perm.to_viper(ast),
                 ))
             }
-            &Stmt::Obtain(ref _expr, _) => {
+            Stmt::Obtain(ref _expr, _) => {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::BeginFrame => {
+            Stmt::BeginFrame => {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::EndFrame => {
+            Stmt::EndFrame => {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::TransferPerm(ref _expiring, ref _restored, _unchecked) => {
+            Stmt::TransferPerm(ref _expiring, ref _restored, _unchecked) => {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::PackageMagicWand(ref wand, ref package_stmts, ref _label, ref vars, ref pos) => {
+            Stmt::PackageMagicWand(ref wand, ref package_stmts, ref _label, ref vars, ref pos) => {
                 // FIXME: When packaging a magic wand, Silicon needs help in showing that it has
                 // access to the needed paths.
                 fn stmt_to_viper_in_packge<'v>(
@@ -194,7 +194,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             stmts.push(ast.exhale(expr.to_viper(ast), pos.to_viper(ast)));
                             ast.seqn(stmts.as_slice(), &[])
                         }
-                        &Stmt::Fold(ref pred_name, ref args, perm, ref _variant, ref pos) => {
+                        Stmt::Fold(ref pred_name, ref args, perm, ref _variant, ref pos) => {
                             assert_eq!(args.len(), 1);
                             let place = &args[0];
                             assert!(place.is_place());
@@ -213,7 +213,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             ));
                             ast.seqn(stmts.as_slice(), &[])
                         }
-                        &Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
+                        Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
                             let then_stmts: Vec<_> = then_stmts.iter()
                                 .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
                                 .collect();
@@ -243,7 +243,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     pos.to_viper(ast),
                 )
             }
-            &Stmt::ApplyMagicWand(ref wand, ref pos) => {
+            Stmt::ApplyMagicWand(ref wand, ref pos) => {
                 let inhale = if let Expr::MagicWand(_, _, Some(borrow), _) = wand {
                     let borrow: usize = borrow_id(*borrow);
                     let borrow: Expr = borrow.into();
@@ -261,16 +261,16 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 let apply = ast.apply(wand.to_viper(ast), position);
                 ast.seqn(&[inhale, apply], &[])
             }
-            &Stmt::ExpireBorrows(_) => {
+            Stmt::ExpireBorrows(_) => {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::If(ref guard, ref then_stmts, ref else_stmts) => ast.if_stmt(
+            Stmt::If(ref guard, ref then_stmts, ref else_stmts) => ast.if_stmt(
                 guard.to_viper(ast),
                 ast.seqn(&then_stmts.to_viper(ast), &[]),
                 ast.seqn(&else_stmts.to_viper(ast), &[]),
             ),
-            &Stmt::Downcast(..) => {
+            Stmt::Downcast(..) => {
                 // Skip
                 ast.comment(&self.to_string())
             }
@@ -294,25 +294,25 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
 impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         let expr = match self {
-            &Expr::Local(ref local_var, ref pos) => (local_var, pos).to_viper(ast),
-            &Expr::Variant(ref base, ref field, ref pos) => ast.field_access_with_pos(
+            Expr::Local(ref local_var, ref pos) => (local_var, pos).to_viper(ast),
+            Expr::Variant(ref base, ref field, ref pos) => ast.field_access_with_pos(
                 base.to_viper(ast),
                 field.to_viper(ast),
                 pos.to_viper(ast),
             ),
-            &Expr::Field(ref base, ref field, ref pos) => ast.field_access_with_pos(
+            Expr::Field(ref base, ref field, ref pos) => ast.field_access_with_pos(
                 base.to_viper(ast),
                 field.to_viper(ast),
                 pos.to_viper(ast),
             ),
-            &Expr::AddrOf(..) => unreachable!(),
-            &Expr::Const(ref val, ref pos) => (val, pos).to_viper(ast),
-            &Expr::LabelledOld(ref old_label, ref expr, ref pos) => {
+            Expr::AddrOf(..) => unreachable!(),
+            Expr::Const(ref val, ref pos) => (val, pos).to_viper(ast),
+            Expr::LabelledOld(ref old_label, ref expr, ref pos) => {
                 ast.labelled_old_with_pos(expr.to_viper(ast), old_label, pos.to_viper(ast))
             }
-            &Expr::MagicWand(ref lhs, ref rhs, maybe_borrow, ref pos) => {
+            Expr::MagicWand(ref lhs, ref rhs, maybe_borrow, ref pos) => {
                 let borrow_id = if let Some(borrow) = maybe_borrow {
-                    borrow_id(borrow) as isize
+                    borrow_id(*borrow) as isize
                 } else {
                     -1
                 };
@@ -327,23 +327,23 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(ast),
                 )
             }
-            &Expr::PredicateAccessPredicate(ref predicate_name, ref arg, perm, ref pos) => ast
+            Expr::PredicateAccessPredicate(ref predicate_name, ref arg, perm, ref pos) => ast
                 .predicate_access_predicate_with_pos(
                     ast.predicate_access(&[arg.to_viper(ast)], &predicate_name),
                     perm.to_viper(ast),
                     pos.to_viper(ast),
                 ),
-            &Expr::FieldAccessPredicate(ref loc, perm, ref pos) => ast
+            Expr::FieldAccessPredicate(ref loc, perm, ref pos) => ast
                 .field_access_predicate_with_pos(
                     loc.to_viper(ast),
                     perm.to_viper(ast),
                     pos.to_viper(ast),
                 ),
-            &Expr::UnaryOp(op, ref expr, ref pos) => match op {
+            Expr::UnaryOp(op, ref expr, ref pos) => match op {
                 UnaryOpKind::Not => ast.not_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
                 UnaryOpKind::Minus => ast.minus_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
             },
-            &Expr::BinOp(op, ref left, ref right, ref pos) => match op {
+            Expr::BinOp(op, ref left, ref right, ref pos) => match op {
                 BinOpKind::EqCmp => {
                     ast.eq_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
@@ -387,7 +387,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
             },
-            &Expr::Unfolding(
+            Expr::Unfolding(
                 ref predicate_name,
                 ref args,
                 ref expr,
@@ -402,25 +402,25 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 expr.to_viper(ast),
                 pos.to_viper(ast),
             ),
-            &Expr::Cond(ref guard, ref left, ref right, ref pos) => ast.cond_exp_with_pos(
+            Expr::Cond(ref guard, ref left, ref right, ref pos) => ast.cond_exp_with_pos(
                 guard.to_viper(ast),
                 left.to_viper(ast),
                 right.to_viper(ast),
                 pos.to_viper(ast),
             ),
-            &Expr::ForAll(ref vars, ref triggers, ref body, ref pos) => ast.forall_with_pos(
+            Expr::ForAll(ref vars, ref triggers, ref body, ref pos) => ast.forall_with_pos(
                 &vars.to_viper_decl(ast)[..],
                 &(triggers, pos).to_viper(ast),
                 body.to_viper(ast),
                 pos.to_viper(ast),
             ),
-            &Expr::LetExpr(ref var, ref expr, ref body, ref pos) => ast.let_expr_with_pos(
+            Expr::LetExpr(ref var, ref expr, ref body, ref pos) => ast.let_expr_with_pos(
                 var.to_viper_decl(ast),
                 expr.to_viper(ast),
                 body.to_viper(ast),
                 pos.to_viper(ast),
             ),
-            &Expr::FuncApp(
+            Expr::FuncApp(
                 ref function_name,
                 ref args,
                 ref formal_args,
@@ -435,7 +435,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(ast),
                 )
             }
-            &Expr::DomainFuncApp(ref function, ref args, ref _pos) => {
+            Expr::DomainFuncApp(ref function, ref args, ref _pos) => {
                 ast.domain_func_app(
                     function.to_viper(ast),
                     &args.to_viper(ast),
@@ -443,7 +443,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 )
             }
             /* TODO use once DomainFuncApp has been updated
-            &Expr::DomainFuncApp(
+            Expr::DomainFuncApp(
                 ref function_name,
                 ref args,
                 ref formal_args,
@@ -462,10 +462,10 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 )
             },
             */
-            &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
+            Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
                 ast.inhale_exhale_pred(inhale_expr.to_viper(ast), exhale_expr.to_viper(ast))
             }
-            &Expr::Downcast(ref base, ..) => {
+            Expr::Downcast(ref base, ..) => {
                 base.to_viper(ast)
             }
         };
@@ -486,11 +486,11 @@ impl<'v, 'a, 'b> ToViper<'v, viper::Trigger<'v>> for (&'a Trigger, &'b Position)
 impl<'v, 'a, 'b> ToViper<'v, viper::Expr<'v>> for (&'a Const, &'b Position) {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         match self.0 {
-            &Const::Bool(true) => ast.true_lit_with_pos(self.1.to_viper(ast)),
-            &Const::Bool(false) => ast.false_lit_with_pos(self.1.to_viper(ast)),
-            &Const::Int(x) => ast.int_lit_with_pos(x, self.1.to_viper(ast)),
-            &Const::BigInt(ref x) => ast.int_lit_from_ref_with_pos(x, self.1.to_viper(ast)),
-            &Const::FnPtr => ast.null_lit_with_pos(self.1.to_viper(ast)),
+            Const::Bool(true) => ast.true_lit_with_pos(self.1.to_viper(ast)),
+            Const::Bool(false) => ast.false_lit_with_pos(self.1.to_viper(ast)),
+            Const::Int(x) => ast.int_lit_with_pos(*x, self.1.to_viper(ast)),
+            Const::BigInt(ref x) => ast.int_lit_from_ref_with_pos(x, self.1.to_viper(ast)),
+            Const::FnPtr => ast.null_lit_with_pos(self.1.to_viper(ast)),
         }
     }
 }

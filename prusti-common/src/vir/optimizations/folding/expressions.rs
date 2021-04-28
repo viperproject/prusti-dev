@@ -93,10 +93,10 @@ struct ExprOptimizer {
 
 impl ExprOptimizer {
     fn get_unfoldings(&mut self) -> UnfoldingMap {
-        mem::replace(&mut self.unfoldings, HashMap::new())
+        mem::take(&mut self.unfoldings)
     }
     fn get_requirements(&mut self) -> RequirementSet {
-        mem::replace(&mut self.requirements, HashSet::new())
+        mem::take(&mut self.requirements)
     }
 }
 

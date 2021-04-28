@@ -18,9 +18,9 @@ impl Parse for ClosureWithSpec {
                 let expr: syn::Expr = input.parse()?;
                 input.parse::<syn::Token![,]>()?;
 
-                if id.to_string() == "requires" {
+                if id == "requires" {
                     requires.push(expr);
-                } else if id.to_string() == "ensures" {
+                } else if id == "ensures" {
                     ensures.push(expr);
                 } else {
                     return Err(syn::Error::new(id.span(), "invalid closure specification"));

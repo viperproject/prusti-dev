@@ -282,8 +282,8 @@ impl ApplyOnState for vir::Stmt {
                     .collect();
 
                 assert!(
-                    (lhs_place == lhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
-                    "Statement '{}' restored not permissions in state with acc {{\n{}\n}}\nand pred {{\n{}\n}}",
+                    (lhs_place == rhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
+                    "Statement '{}' did not restore not permissions in state with acc {{\n{}\n}}\nand pred {{\n{}\n}}",
                     self,
                     original_state.display_acc(),
                     original_state.display_pred()

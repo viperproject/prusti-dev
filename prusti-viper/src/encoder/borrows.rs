@@ -435,7 +435,7 @@ where
         args_ty = (0usize .. fn_sig.inputs().len())
             .map(|i| (mir::Local::from_usize(i + 1), fn_sig.inputs()[i]))
             .collect();
-        return_ty = fn_sig.output().clone(); // FIXME: Shouldn't this also go through maybe_tymap?
+        return_ty = fn_sig.output(); // FIXME: Shouldn't this also go through maybe_tymap?
     } else {
         let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
         let mir = mir.borrow();
@@ -456,9 +456,9 @@ where
     for (local, arg_ty) in args_ty {
         fake_mir_args.push(local);
         fake_mir_args_ty.push(if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
-            replaced_arg_ty.clone()
+            replaced_arg_ty
         } else {
-            arg_ty.clone()
+            arg_ty
         });
     }
 

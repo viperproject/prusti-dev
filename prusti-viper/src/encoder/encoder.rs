@@ -1586,14 +1586,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn current_tymap(&self) -> HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>> {
         let mut map = HashMap::new();
         for map_frame in self.typaram_repl.borrow().iter().rev() {
-            for (typ, subst) in map_frame {
-                map.insert(typ.clone(), subst.clone());
+            for (&typ, &subst) in map_frame {
+                map.insert(typ, subst);
                 let additional_substs: Vec<_> = map
                     .iter()
-                    .filter(|(_typ1, typ2)| typ2 == &typ)
-                    .map(|(typ1, typ2)| (typ1.clone(), typ2.clone()))
+                    .filter(|(_typ1, typ2)| **typ2 == typ)
+                    .map(|(typ1, typ2)| (*typ1, *typ2))
                     .collect();
-                for (typ, subst) in additional_substs {
+                for (typ, subst) in additional_substs.into_iter() {
                     map.insert(typ, subst);
                 }
             }

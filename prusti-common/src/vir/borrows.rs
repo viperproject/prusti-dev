@@ -18,9 +18,9 @@ impl From<usize> for Borrow {
     }
 }
 
-impl Into<usize> for Borrow {
-    fn into(self) -> usize {
-        self.0 as usize
+impl From<Borrow> for usize {
+    fn from(borrow: Borrow) -> Self {
+        borrow.0 as usize
     }
 }
 

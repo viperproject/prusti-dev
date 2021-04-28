@@ -157,37 +157,30 @@ pub enum TypeId {
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Type::Int => write!(f, "Int"),
-            &Type::Bool => write!(f, "Bool"),
-            //&Type::Ref => write!(f, "Ref"),
-            &Type::TypedRef(ref name) => write!(f, "Ref({})", name),
-            &Type::Domain(ref name) => write!(f, "Domain({})", name),
+            Type::Int => write!(f, "Int"),
+            Type::Bool => write!(f, "Bool"),
+            //Type::Ref => write!(f, "Ref"),
+            Type::TypedRef(ref name) => write!(f, "Ref({})", name),
+            Type::Domain(ref name) => write!(f, "Domain({})", name),
         }
     }
 }
 
 impl Type {
     pub fn is_ref(&self) -> bool {
-        match self {
-            //&Type::Ref |
-            &Type::TypedRef(_) => true,
-            _ => false,
-        }
+        matches!(self, &Type::TypedRef(_))
     }
 
     pub fn is_domain(&self) -> bool {
-        match self {
-            &Type::Domain(_) => true,
-            _ => false,
-        }
+        matches!(self, &Type::Domain(_))
     }
 
     pub fn name(&self) -> String {
         match self {
-            &Type::Bool => "bool".to_string(),
-            &Type::Int => "int".to_string(),
-            &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
-            &Type::Domain(ref pred_name) => format!("{}", pred_name),
+            Type::Bool => "bool".to_string(),
+            Type::Int => "int".to_string(),
+            Type::TypedRef(ref pred_name) => format!("{}", pred_name),
+            Type::Domain(ref pred_name) => format!("{}", pred_name),
         }
     }
 

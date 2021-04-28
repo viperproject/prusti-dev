@@ -190,8 +190,7 @@ impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
             .map(|arg| (arg, body.local_decls
                            .get(arg)
                            .unwrap()
-                           .ty
-                           .clone()))
+                           .ty))
             .collect();
 
         assert!(body.arg_count-1 == self.count);
@@ -219,8 +218,7 @@ impl<'tcx> StructuralToTyped<'tcx, SpecEntailmentVars<'tcx>> for json::SpecEntai
             .map(|arg| (arg, pre_body.local_decls
                                      .get(arg)
                                      .unwrap()
-                                     .ty
-                                     .clone()))
+                                     .ty))
             .collect();
         let post_args: Vec<(mir::Local, ty::Ty)> = post_body
             .args_iter()
@@ -228,8 +226,7 @@ impl<'tcx> StructuralToTyped<'tcx, SpecEntailmentVars<'tcx>> for json::SpecEntai
             .map(|arg| (arg, post_body.local_decls
                                       .get(arg)
                                       .unwrap()
-                                      .ty
-                                      .clone()))
+                                      .ty))
             .collect();
 
         assert!(pre_body.arg_count - 1 == self.arg_count);

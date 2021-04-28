@@ -75,7 +75,7 @@ impl Display for SpecificationId {
 impl std::convert::TryFrom<String> for SpecificationId {
     type Error = uuid::Error;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Uuid::parse_str(&value).map(|id| Self(id))
+        Uuid::parse_str(&value).map(Self)
     }
 }
 
@@ -120,9 +120,9 @@ impl ExpressionIdGenerator {
     }
 }
 
-impl Into<u64> for ExpressionId {
-    fn into(self) -> u64 {
-        self.0
+impl From<ExpressionId> for u64 {
+    fn from(id: ExpressionId) -> Self {
+        id.0
     }
 }
 
