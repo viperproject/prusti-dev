@@ -8,9 +8,7 @@ env:
   RUST_BACKTRACE: 1
   PRUSTI_ASSERT_TIMEOUT: 60000
   # The following are necessary for profiling (see https://github.com/mozilla/grcov)
-  CARGO_INCREMENTAL: 0
-  RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests #-Cpanic=abort
-  RUSTDOCFLAGS: -Cpanic=abort
+  LLVM_PROFILE_FILE: "prusti-%p-%m.profraw"
 
 jobs:
   test:
@@ -29,12 +27,16 @@ jobs:
         run: python x.py setup
       - name: Build with cargo
         run: python x.py build --all --verbose
+        env:
+          RUSTFLAGS: -Zinstrument-coverage
       - name: Run cargo tests, enabling debug dumps
         run: python x.py test --all --verbose
         env:
+          RUSTFLAGS: -Zinstrument-coverage
           PRUSTI_DUMP_DEBUG_INFO: true
           PRUSTI_DUMP_DEBUG_INFO_DURING_FOLD: true
           PRUSTI_DUMP_VIPER_PROGRAM: true
+          PRUSTI_LOG: trace
       - name: Check prusti-contracts
         run: |
           cd prusti-contracts-test/
@@ -42,8 +44,7 @@ jobs:
       - name: Collect coverage
         run: |
           curl -sL https://github.com/mozilla/grcov/releases/latest/download/grcov-linux-x86_64.tar.bz2 | tar jxf -
-          zip -q0 ccov.zip $(find . \( -name "prusti*.gc*" -or -name "viper*.gc*" -or -name "jni_gen*.gc*" \) -print)
-          ./grcov ccov.zip --llvm --branch --ignore-not-existing --ignore "/*" -o lcov.info
+          ./grcov . --llvm --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
