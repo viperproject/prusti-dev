@@ -122,8 +122,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             if num_variants != 1 {
                                 return Err(EncodingError::internal(
                                     format!(
-                                        "unexpected number of type variants: \
-                                        {} (should be 1)", num_variants
+                                        "tried to encode a projection that accesses the field {}\
+                                        of a variant without first downcasting its enumeration \
+                                        {:?}",
+                                        field.index(),
+                                        base_ty,
                                     )
                                 ));
                             }
