@@ -218,22 +218,34 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             }
 
             mir::ProjectionElem::Index(idx) => {
-                debug!("Array access: {:?}[{:?}]", encoded_base, idx);
-                let elem_ty = match base_ty.kind() {
-                    ty::TyKind::Array(elem_ty, _) => elem_ty,
-                    _ => unreachable!("index but not on array"),
-                };
-
-                (
-                    PlaceEncoding::ArrayAccess {
-                        base: box encoded_base,
-                        index: self.encode_local(*idx)?.into(),
-                        encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
-                        rust_array_ty: base_ty,
+                debug!("index: {:?}[{:?}]", encoded_base, idx);
+                match base_ty.kind() {
+                    ty::TyKind::Array(elem_ty, _) => {
+                        (
+                            PlaceEncoding::ArrayAccess {
+                                base: box encoded_base,
+                                index: self.encode_local(*idx)?.into(),
+                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                                rust_array_ty: base_ty,
+                            },
+                            elem_ty,
+                            None,
+                        )
                     },
-                    elem_ty,
-                    None,
-                )
+                    ty::TyKind::Slice(elem_ty) => {
+                        (
+                            PlaceEncoding::SliceAccess {
+                                base: box encoded_base,
+                                index: self.encode_local(*idx)?.into(),
+                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                                rust_slice_ty: base_ty,
+                            },
+                            elem_ty,
+                            None,
+                        )
+                    },
+                    _ => unreachable!("index on unsupported type '{:?}'", base_ty),
+                }
             }
 
             x => unimplemented!("{:?}", x),

@@ -506,10 +506,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )
             }
 
-            ty::TyKind::Slice(array_ty) => {
+            ty::TyKind::Slice(elem_ty) => {
                 format!(
-                    "slice${}",
-                    self.encoder.encode_type_predicate_use(array_ty)?
+                    "Slice${}",
+                    self.encoder.encode_type_predicate_use(elem_ty)?
                 )
             }
 
