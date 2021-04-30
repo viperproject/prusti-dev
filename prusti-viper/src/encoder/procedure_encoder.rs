@@ -1252,47 +1252,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .collect())
     }
 
-    /// Translate a borrowed place to a place that is currently usable
-    fn translate_maybe_borrowed_place(
-        &mut self,
-        location: mir::Location,
-        place: vir::Expr,
-    ) -> SpannedEncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
-        let span = self.mir_encoder.get_span_of_location(location);
-        let (all_active_loans, _) = self.polonius_info().get_all_active_loans(location);
-        let mut relevant_active_loan_places = vec![];
-        let mut stmts = Vec::new();
-        for loan in &all_active_loans {
-            let opt_places = self.polonius_info().get_loan_places(loan)
-                .map_err(EncodingError::from)
-                .with_span(span)?;
-            if let Some(loan_places) = opt_places {
-                let (_, encoded_source, _, pre_stmts) = self.encode_loan_places(&loan_places)
-                    .with_span(span)?;
-                stmts.extend(pre_stmts);
-                if place.has_prefix(&encoded_source) {
-                    relevant_active_loan_places.push(loan_places);
-                }
-            }
-        }
-        if relevant_active_loan_places.len() == 1 {
-            let loan_places = &relevant_active_loan_places[0];
-            let (encoded_dest, encoded_source, _, pre_stmts) = self.encode_loan_places(
-                loan_places
-            ).with_span(span)?;
-            stmts.extend(pre_stmts);
-            // Recursive translation
-            let (translated, pre_stmts) = self.translate_maybe_borrowed_place(
-                loan_places.location,
-                place.replace_place(&encoded_source, &encoded_dest),
-            )?;
-            stmts.extend(pre_stmts);
-            Ok((translated, stmts))
-        } else {
-            Ok((place, stmts))
-        }
-    }
-
     /// Encode the lhs and the rhs of the assignment that create the loan
     fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> EncodingResult<(vir::Expr, vir::Expr, bool, Vec<vir::Stmt>)> {
         debug!("encode_loan_places '{:?}'", loan_places);
@@ -1781,18 +1740,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
                 let encoded_discr = self.mir_encoder.encode_operand_expr(discr)
                     .with_span(span)?;
-                let (encoded_place, tr_stmts) = self.translate_maybe_borrowed_place(
-                    location,
-                    encoded_discr.clone(),
-                )?;
-                stmts.extend(tr_stmts);
                 stmts.push(vir::Stmt::Assign(
                     discr_var.clone().into(),
-                    if encoded_discr.is_place() {
-                        encoded_place
-                    } else {
-                        encoded_discr
-                    },
+                    encoded_discr,
                     vir::AssignKind::Copy,
                 ));
 
@@ -4924,13 +4874,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // Note: in our encoding an enumeration with just one variant has
                 // no discriminant
                 if num_variants > 1 {
-                    let (encoded_place, tr_stmts) = self.translate_maybe_borrowed_place(
-                        location,
-                        encoded_src
-                    )?;
-                    stmts.extend(tr_stmts);
                     let encoded_rhs = self.encoder.encode_discriminant_func_app(
-                        encoded_place,
+                        encoded_src,
                         adt_def,
                     );
                     self.encode_copy_value_assign(
@@ -4946,11 +4891,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) => {
                 let value_field = self.encoder.encode_value_field(src_ty);
-                let (discr_value, tr_stmts) = self.translate_maybe_borrowed_place(
-                    location,
-                    encoded_src.field(value_field)
-                )?;
-                stmts.extend(tr_stmts);
+                let discr_value = encoded_src.field(value_field);
                 self.encode_copy_value_assign(
                     encoded_lhs.clone(),
                     discr_value,
