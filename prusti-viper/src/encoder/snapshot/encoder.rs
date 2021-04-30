@@ -203,8 +203,11 @@ impl SnapshotEncoder {
                 })
             }
             // TODO: why is SnapApp applied to already-snapshot types?
-            vir::Type::Snapshot(_) => Ok(expr),
-            _ => unreachable!("invalid SnapApp"), // TODO: proper error
+            vir::Type::Snapshot(_)
+            | vir::Type::Domain(_) // TODO: restrict to Unit
+            | vir::Type::Bool // TODO: restrict to snapshot-produced Bools and Ints...
+            | vir::Type::Int => Ok(expr),
+            _ => unreachable!("invalid SnapApp {:?}", expr), // TODO: proper error
         }
     }
 
@@ -443,6 +446,11 @@ impl SnapshotEncoder {
 
             ty::TyKind::Param(_) => Ok(Snapshot::Abstract),
 
+            // handle types with no data
+            ty::TyKind::Tuple(substs) if substs.is_empty() => Ok(Snapshot::Unit),
+            ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => Ok(Snapshot::Unit),
+            ty::TyKind::Adt(adt_def, _) if adt_def.variants.len() == 1 && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)].fields.is_empty() => Ok(Snapshot::Unit),
+
             // TODO: closures, never type
 
             ty::TyKind::Tuple(substs) => {
@@ -535,21 +543,15 @@ impl SnapshotEncoder {
     }
 
     /// Encodes the snapshot for a complex data structure (tuple, struct,
-    /// enum, or closure). There may be zero or more variants, each with zero
-    /// or more fields to encode. The returned snapshot will be of the
-    /// [Snapshot::Complex] variant, except for empty enums and structs that
-    /// can be represented with [Snapshot::Unit].
+    /// enum, or closure). There must be one or more variants, at least one
+    /// with one or more fields to encode. The returned snapshot will be of the
+    /// [Snapshot::Complex] variant.
     fn encode_complex<'p, 'v: 'p, 'tcx: 'v>(
         &self,
         encoder: &'p Encoder<'v, 'tcx>,
         variants: Vec<SnapshotVariant<'tcx>>,
         predicate_name: &str,
     ) -> EncodingResult<Snapshot> {
-        if variants.is_empty()
-            || (variants.len() == 1 && variants[0].fields.len() == 0) {
-            return Ok(Snapshot::Unit);
-        }
-
         let domain_name = format!("Snap${}", predicate_name);
         let snapshot_type = Type::Snapshot(predicate_name.to_string());
         let mut domain_funcs = vec![];
