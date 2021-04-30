@@ -207,7 +207,6 @@ impl SnapshotEncoder {
             | vir::Type::Domain(_) // TODO: restrict to Unit
             | vir::Type::Bool // TODO: restrict to snapshot-produced Bools and Ints...
             | vir::Type::Int => Ok(expr),
-            _ => unreachable!("invalid SnapApp {:?}", expr), // TODO: proper error
         }
     }
 

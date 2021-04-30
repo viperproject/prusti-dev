@@ -5209,59 +5209,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )
     }
 
-    fn encode_deep_copy_adt(
+    /// Copy a value by inhaling snapshot equality.
+    fn encode_copy_snapshot_value(
         &mut self,
         src: vir::Expr,
         dst: vir::Expr,
-        self_ty: ty::Ty<'tcx>,
-        location: mir::Location,
-    ) -> Vec<vir::Stmt> {
-        let mut stmts = self.encode_havoc(&dst);
-        let pred = vir::Expr::pred_permission(dst.clone(), vir::PermAmount::Write).unwrap();
-        stmts.push(vir::Stmt::Inhale(pred));
-        let eq = self.encoder.encode_memory_eq_func_app(
-            src,
-            dst,
-            self_ty,
-            vir::Position::default(),
-            self.mir_encoder.get_span_of_location(location).into(),
-        );
-        stmts.push(vir::Stmt::Inhale(eq));
-        stmts
-    }
-
-    fn encode_deep_copy_tuple(
-        &mut self,
-        src: vir::Expr,
-        dst: vir::Expr,
-        elems: ty::subst::SubstsRef<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        let mut stmts = self.encode_havoc(&dst);
-        for (field_num, arg) in elems.iter().enumerate() {
-            let ty = arg.expect_ty();
-            let field_name = format!("tuple_{}", field_num);
-            let field = self.encoder
-                .encode_raw_ref_field(field_name, ty)
-                .with_span(
-                    self.mir_encoder.get_span_of_location(location)
-                )?;
-            let dst_field = dst.clone().field(field.clone());
-            let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
-            let pred =
-                vir::Expr::pred_permission(dst_field.clone(), vir::PermAmount::Write).unwrap();
-            stmts.push(vir::Stmt::Inhale(acc));
-            stmts.push(vir::Stmt::Inhale(pred));
-            let src_field = src.clone().field(field.clone());
-            let eq = self.encoder.encode_memory_eq_func_app(
-                src_field,
-                dst_field,
-                ty,
-                vir::Position::default(),
-                self.mir_encoder.get_span_of_location(location).into(),
-            );
-            stmts.push(vir::Stmt::Inhale(eq));
-        }
+        let mut stmts = self.encode_havoc_and_allocation(&dst);
+        stmts.push(vir::Stmt::Inhale(vir::Expr::eq_cmp(
+            vir::Expr::snap_app(src),
+            vir::Expr::snap_app(dst),
+        )));
         Ok(stmts)
     }
 
@@ -5279,24 +5238,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Char => {
                 self.encode_copy_primitive_value(src, dst, self_ty, location)?
             }
-            ty::TyKind::Adt(adt_def, _subst) if !adt_def.is_box() => {
-                self.encode_deep_copy_adt(src, dst, self_ty, location)
+
+            ty::TyKind::Adt(_, _)
+            | ty::TyKind::Tuple(_)
+            | ty::TyKind::Param(_) => {
+                self.encode_copy_snapshot_value(src, dst, location)?
             }
-            ty::TyKind::Tuple(elems) => {
-                self.encode_deep_copy_tuple(src, dst, elems, location)?
-            }
-            ty::TyKind::Param(_) => {
-                let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
-                let eq = self.encoder.encode_memory_eq_func_app(
-                    src,
-                    dst,
-                    self_ty,
-                    vir::Position::default(),
-                    self.mir_encoder.get_span_of_location(location).into(),
-                );
-                stmts.push(vir::Stmt::Inhale(eq));
-                stmts
-            }
+
             ty::TyKind::Closure(_, _) => {
                 // TODO: (can a closure be copy-assigned?)
                 // encode a closure deep copy or at least a stub

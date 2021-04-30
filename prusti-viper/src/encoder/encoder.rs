@@ -49,7 +49,6 @@ use std::ops::AddAssign;
 use std::convert::TryInto;
 use std::borrow::Borrow;
 use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
-use crate::encoder::memory_eq_encoder::MemoryEqEncoder;
 use rustc_span::MultiSpan;
 use crate::encoder::name_interner::NameInterner;
 use crate::encoder::utils::transpose;
@@ -96,7 +95,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_tags: RefCell<HashMap<String, vir::Function>>,
     type_discriminant_funcs: RefCell<HashMap<String, vir::Function>>,
     type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::Function>>,
-    memory_eq_encoder: RefCell<MemoryEqEncoder>,
     fields: RefCell<HashMap<String, vir::Field>>,
     snapshot_encoder: RefCell<SnapshotEncoder>,
     mirror_encoder: RefCell<MirrorEncoder>,
@@ -166,7 +164,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_tags: RefCell::new(HashMap::new()),
             type_discriminant_funcs: RefCell::new(HashMap::new()),
             type_cast_functions: RefCell::new(HashMap::new()),
-            memory_eq_encoder: RefCell::new(MemoryEqEncoder::new()),
             fields: RefCell::new(HashMap::new()),
             closures_collector: RefCell::new(SpecsClosuresCollector::new()),
             encoding_queue: RefCell::new(vec![]),
@@ -325,12 +322,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         for function in self.mirror_caller_functions.borrow().iter() {
             functions.push(function.clone());
         }
-        functions.extend(
-            self.memory_eq_encoder.borrow().get_encoded_functions()
-        );
-        for function in self.snapshot_encoder.borrow().get_viper_functions() {
-            functions.push(function);
-        }
+        functions.extend(self.snapshot_encoder.borrow().get_viper_functions());
         for sfs in self.spec_functions.borrow().values() {
             for sf in sfs {
                 functions.push(sf.clone());
@@ -664,33 +656,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             vir::Type::Int,
             vir::Position::default(),
         )
-    }
-
-    pub fn encode_memory_eq_func_app(
-        &self,
-        first: vir::Expr,
-        second: vir::Expr,
-        self_ty: ty::Ty<'tcx>,
-        position: vir::Position,
-        span: MultiSpan,
-    ) -> vir::Expr {
-        let encoding_result = self.memory_eq_encoder
-            .borrow_mut()
-            .encode_memory_eq_func_app(
-                self,
-                first,
-                second,
-                self_ty,
-                position,
-            ).with_span(span);
-        match encoding_result {
-            Ok(expr) => expr,
-            Err(err) => {
-                self.register_encoding_error(err);
-                // Stub encoding of the memory eq function application
-                true.into()
-            }
-        }
     }
 
     pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
