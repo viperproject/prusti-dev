@@ -1,12 +1,20 @@
-#![feature(rustc_private)]
-
-extern crate rand;
-
 use prusti_contracts::*;
-use rand::{thread_rng, rngs::ThreadRng, Rng};
+
+struct ThreadRng;
+
+fn thread_rng() -> ThreadRng {
+    ThreadRng
+}
 
 struct RandWrapper {
     rng: ThreadRng
+}
+
+impl ThreadRng {
+    #[trusted]
+    fn gen_range(&self, min: u32, max: u32) -> u32 {
+        unimplemented!();
+    }
 }
 
 impl RandWrapper {
