@@ -198,10 +198,13 @@ impl<'a> AstFactory<'a> {
         self.int_lit_from_ref_with_pos(i, self.no_position())
     }
 
-    pub fn backend_float(&self) -> Expr<'a> {
-        // newfloat obviously shouldn't be called with just 0, but with the bit pattern
-        let bv = self.jni.new_float(0);
-        build_ast_node_with_pos!(self, Expr, ast::BackendType, bv, self.no_position())
+    pub fn backend_bv_lit(&self, bits: u64) -> Expr<'a> {       
+        self.backend_func_app("from_nat", &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn backend_float_lit(&self, bits: u64) -> Expr<'a> {       
+        let bv = self.backend_bv_lit(bits);
+        self.backend_func_app("from_bv", &[bv], self.no_position())
     }
 
     pub fn minus_with_pos(&self, expr: Expr, pos: Position) -> Expr<'a> {
@@ -556,17 +559,16 @@ impl<'a> AstFactory<'a> {
         &self,
         backend_function_name: &str,
         args: &[Expr],
-        return_type: Type,
         pos: Position,
     ) -> Expr<'a> {
         let backendfunc_app_object_wrapper = ast::BackendFuncApp_object::with(self.env);
         let obj = self.jni.unwrap_result(
             backendfunc_app_object_wrapper.call_apply(
+                    self.jni.unwrap_result(backendfunc_app_object_wrapper.singleton()),
                     self.jni.new_string(backend_function_name),
                     self.jni.new_seq(&map_to_jobjects!(args)),
                     pos.to_jobject(),
                     self.no_info(),
-                    return_type.to_jobject(),
                     self.no_trafos(),
         ));
         Expr::new(obj)

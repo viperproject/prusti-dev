@@ -5292,6 +5292,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 debug!("warning: ty::TyKind::Closure not implemented yet");
                 Vec::new()
             }
+            ty::TyKind::Float(_) => unimplemented!("Unsure what to do here"),
 
             ref x => unimplemented!("{:?}", x),
         };

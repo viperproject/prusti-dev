@@ -200,13 +200,20 @@ fn main() {
             java_class!("viper.silver.ast.Bool$", vec![
                 object_getter!(),
             ]),
-            
+
+            java_class!("viper.silver.ast.utility.BVFactory", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.utility.BVFactory$", vec![
+                object_getter!(),
+                method!("apply", "(I)Lviper/silver/ast/utility/BVFactory;"),
+            ]),            
             java_class!("viper.silver.ast.utility.FloatFactory", vec![
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.utility.FloatFactory$", vec![
                 object_getter!(),
-                method!("apply", "(Lscala/Int;Lscala/Int;Lviper/silver/ast/utility/RoundingMode;)Lviper/silver/ast/utility/FloatFactory"),
+                method!("apply", "(IILscala/Enumeration$Value;)Lviper/silver/ast/utility/FloatFactory;"),
             ]),
             java_class!("viper.silver.ast.BackendType", vec![
                 constructor!(),

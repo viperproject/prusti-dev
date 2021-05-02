@@ -339,7 +339,7 @@ impl Expr {
             Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
             Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
             Expr::DomainFuncApp(x,y,_) => Expr::DomainFuncApp(x,y,pos),
-            Expr::BackendFuncApp(x, y, _) => Expr::DomainFuncApp(x,y,pos),
+            Expr::BackendFuncApp(x, y, _) => Expr::BackendFuncApp(x,y,pos),
             // TODO Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
             Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
             x => x,
@@ -1427,6 +1427,7 @@ impl Expr {
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)
+                    | Expr::BackendFuncApp(..)                    
                     | Expr::InhaleExhale(..)
                     | Expr::Downcast(..) => true.into(),
                 }
