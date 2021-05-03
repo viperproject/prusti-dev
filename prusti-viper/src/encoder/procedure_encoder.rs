@@ -2158,8 +2158,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
 
                 // Check or assume the assertion
-                let mut assert_msg = String::new();
-                msg.fmt_assert_args(&mut assert_msg).unwrap();
+                let assert_msg = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                    let mut s = String::new();
+                    msg.fmt_assert_args(&mut s).unwrap();
+                    s
+                } else {
+                    msg.description().to_string()
+                };
 
                 stmts.push(vir::Stmt::comment(format!("Rust assertion: {}", assert_msg)));
                 if self.check_panics {

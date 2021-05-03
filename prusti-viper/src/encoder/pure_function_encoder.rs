@@ -948,8 +948,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     vir::Expr::not(cond_val)
                 };
 
-                let mut assert_msg = String::new();
-                msg.fmt_assert_args(&mut assert_msg).unwrap();
+                let assert_msg = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                    let mut s = String::new();
+                    msg.fmt_assert_args(&mut s).unwrap();
+                    s
+                } else {
+                    msg.description().to_string()
+                };
 
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
