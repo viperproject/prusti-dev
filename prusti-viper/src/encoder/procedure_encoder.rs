@@ -2158,14 +2158,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
 
                 // Check or assume the assertion
-                let assert_msg = if let AssertKind::BoundsCheck{ .. } = msg {
-                    // Use the debug impl for BoundsCheck, as it is supposed to be handled before
-                    // calling display() according to the docs
-                    // TODO: use fmt_assert_args once https://github.com/rust-lang/rust/pull/84392 is merged
-                    format!("{:?}", msg)
-                } else {
-                    msg.description().to_string()
-                };
+                let mut assert_msg = String::new();
+                msg.fmt_assert_args(&mut assert_msg).unwrap();
 
                 stmts.push(vir::Stmt::comment(format!("Rust assertion: {}", assert_msg)));
                 if self.check_panics {
