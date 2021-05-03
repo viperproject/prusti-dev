@@ -420,6 +420,9 @@ def main(argv):
         elif arg == 'verify-test':
             verify_test(argv[i+1:])
             break
+        elif arg == 'exec':
+            run_command(argv[i+1:])
+            break
         else:
             cargo(argv[i:])
             break

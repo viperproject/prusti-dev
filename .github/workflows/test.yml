@@ -39,8 +39,14 @@ jobs:
           key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
       - name: Build with cargo
         run: python x.py build --all --verbose
-      - name: Check Clippy errors
-        run: if rustup component add clippy; then python x.py clippy -- --allow warnings; fi
+      - name: Check and report Clippy errors
+        run: |
+          cargo install cargo-diff-tools
+          if rustup component add clippy
+          then
+            git fetch origin $GITHUB_BASE_REF --depth=1
+            python x.py exec cargo-clippy-diff --output=github origin/$GITHUB_BASE_REF..
+          fi
       - name: Run "quick" cargo tests
         run: python x.py test --all --verbose quick
 
