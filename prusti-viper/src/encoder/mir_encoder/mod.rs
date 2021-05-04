@@ -382,11 +382,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 
     pub fn is_reference(&self, base_ty: ty::Ty<'tcx>) -> bool {
         trace!("is_reference {}", base_ty);
-        match base_ty.kind() {
-            ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
-
-            _ => false,
-        }
+        matches!(base_ty.kind(), ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..))
     }
 
     /// Returns an `vir::Expr` that corresponds to the value of the operand
@@ -408,7 +404,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
                 let (encoded_place, place_ty, _) = self.encode_place(place)?;
-                self.encoder.encode_value_expr(encoded_place.try_into_expr()?, place_ty).into()
+                self.encoder.encode_value_expr(encoded_place.try_into_expr()?, place_ty)
             }
             // FIXME: Check whether the commented out code is necessary.
             // &mir::Operand::Constant(box mir::Constant {
@@ -524,9 +520,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<vir::Expr> {
         if !op.is_checkable() || !config::check_overflows() {
-            return Ok(false.into())
+            Ok(false.into())
         } else {
-            let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty)?;
+            let result = self.encode_bin_op_expr(op, left, right, ty)?;
 
             Ok(match op {
                 mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.kind() {

@@ -66,18 +66,18 @@ impl BuiltinEncoder {
 
     pub fn encode_builtin_function_name(&self, function: &BuiltinFunctionKind) -> String {
         match function {
-            BuiltinFunctionKind::Unreachable(vir::Type::Int) => format!("builtin$unreach_int"),
-            BuiltinFunctionKind::Unreachable(vir::Type::Bool) => format!("builtin$unreach_bool"),
+            BuiltinFunctionKind::Unreachable(vir::Type::Int) => "builtin$unreach_int".to_string(),
+            BuiltinFunctionKind::Unreachable(vir::Type::Bool) => "builtin$unreach_bool".to_string(),
             BuiltinFunctionKind::Unreachable(vir::Type::TypedRef(_)) => {
-                format!("builtin$unreach_ref")
+                "builtin$unreach_ref".to_string()
             }
             BuiltinFunctionKind::Unreachable(vir::Type::Domain(_)) => {
-                format!("builtin$unreach_domain")
+                "builtin$unreach_domain".to_string()
             }
-            BuiltinFunctionKind::Undefined(vir::Type::Int) => format!("builtin$undef_int"),
-            BuiltinFunctionKind::Undefined(vir::Type::Bool) => format!("builtin$undef_bool"),
-            BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => format!("builtin$undef_ref"),
-            BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => format!("builtin$undef_doman"),
+            BuiltinFunctionKind::Undefined(vir::Type::Int) => "builtin$undef_int".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::Bool) => "builtin$undef_bool".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => "builtin$undef_ref".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => "builtin$undef_doman".to_string(),
             BuiltinFunctionKind::ArrayLookupPure { elem_ty_pred, array_len, .. } => {
                 format!("Array${}${}$lookup_pure", array_len, elem_ty_pred)
             }

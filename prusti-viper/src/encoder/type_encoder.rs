@@ -415,8 +415,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     /// The string to be appended to the encoding of certain types to make generics "less fragile".
     fn encode_substs(&self, substs: ty::subst::SubstsRef<'tcx>) -> EncodingResult<String> {
-        let mut composed_name = vec![];
-        composed_name.push("_beg_".to_string()); // makes generics "less fragile"
+        let mut composed_name = vec![
+            "_beg_".to_string(),  // makes generics "less fragile"
+        ];
         let mut first = true;
         for kind in substs.iter() {
             if first {
@@ -813,11 +814,11 @@ pub fn compute_discriminant_bounds<'tcx>(
             .into_iter()
             .map(|(from, to)| {
                 if from == to {
-                    vir::Expr::eq_cmp(discriminant_loc.clone().into(), from.into())
+                    vir::Expr::eq_cmp(discriminant_loc.clone(), from.into())
                 } else {
                     vir::Expr::and(
-                        vir::Expr::le_cmp(from.into(), discriminant_loc.clone().into()),
-                        vir::Expr::le_cmp(discriminant_loc.clone().into(), to.into()),
+                        vir::Expr::le_cmp(from.into(), discriminant_loc.clone()),
+                        vir::Expr::le_cmp(discriminant_loc.clone(), to.into()),
                     )
                 }
             })

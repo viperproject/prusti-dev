@@ -5275,7 +5275,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         dst: &vir::Expr,
         ty: ty::Ty<'tcx>,
         aggregate: &mir::AggregateKind<'tcx>,
-        operands: &Vec<mir::Operand<'tcx>>,
+        operands: &[mir::Operand<'tcx>],
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         debug!(
@@ -5285,8 +5285,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.mir_encoder.get_span_of_location(location);
         let mut stmts = self.encode_havoc_and_allocation(dst);
         // Initialize values
-        match aggregate {
-            &mir::AggregateKind::Tuple => {
+        match *aggregate {
+            mir::AggregateKind::Tuple => {
                 let field_types = if let ty::TyKind::Tuple(ref x) = ty.kind() {
                     x
                 } else {
@@ -5306,7 +5306,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            &mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) => {
+            mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) => {
                 let num_variants = adt_def.variants.len();
                 let variant_def = &adt_def.variants[variant_index];
                 let mut dst_base = dst.clone();
@@ -5336,7 +5336,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         .encoder
                         .encode_discriminant_func_app(dst.clone(), adt_def);
                     stmts.push(vir::Stmt::Inhale(
-                        vir::Expr::eq_cmp(discriminant, discr_value.clone()),
+                        vir::Expr::eq_cmp(discriminant, discr_value),
                     ));
 
                     let variant_name = &variant_def.ident.as_str();
@@ -5369,7 +5369,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            &mir::AggregateKind::Closure(def_id, _substs) => {
+            mir::AggregateKind::Closure(def_id, _substs) => {
                 debug_assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {:?}", def_id);
                 // TODO: assign to closure; this case should only handle assign
                 // of the same closure type (== instances of the same syntactic
@@ -5382,7 +5382,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // let f = closure!(...);
             }
 
-            &mir::AggregateKind::Array(..) => {
+            mir::AggregateKind::Array(..) => {
                 let (array_pred, array_ty, elem_pred, _elem_ty, elem_value_ty, _elem_ty_rs, array_len) =
                     self.encode_array_types(ty)
                         .with_span(span)?;
@@ -5397,7 +5397,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     }
                 );
 
-                for idx in 0..array_len {
+                for (idx, operand) in operands.iter().enumerate() {
                     let lookup_pure_call = vir::Expr::func_app(
                         lookup_pure.clone(),
                         vec![
@@ -5418,7 +5418,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         vir::Position::default(),
                         );
 
-                    let encoded_operand = self.mir_encoder.encode_operand_expr(&operands[idx])
+                    let encoded_operand = self.mir_encoder.encode_operand_expr(operand)
                         .with_span(span)?;
 
                     stmts.push(
@@ -5427,7 +5427,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            &mir::AggregateKind::Generator(..) => {
+            mir::AggregateKind::Generator(..) => {
                 return Err(SpannedEncodingError::unsupported(
                     "construction of generators is not supported",
                     span
@@ -5561,6 +5561,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 }
 
-fn convert_loans_to_borrows(loans: &Vec<facts::Loan>) -> Vec<Borrow> {
+fn convert_loans_to_borrows(loans: &[facts::Loan]) -> Vec<Borrow> {
     loans.iter().map(|l| l.into()).collect()
 }
