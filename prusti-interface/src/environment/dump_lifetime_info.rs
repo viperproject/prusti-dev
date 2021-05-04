@@ -2,9 +2,9 @@ use log::{debug, trace};
 use prusti_common::config;
 use rustc_hir as hir;
 use rustc_hir::{def_id::DefId, itemlikevisit::ItemLikeVisitor};
-use rustc_middle::{mir, ty::TyCtxt};
+use rustc_middle::{mir, ty, ty::TyCtxt};
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     fs::File,
     io::{self, BufWriter, Write},
     path::PathBuf,
@@ -23,9 +23,27 @@ pub(super) fn dump_lifetime_info<'tcx>(tcx: TyCtxt<'tcx>) {
     // Print info about each procedure.
     for def_id in visitor.procedures {
         print_info(tcx, def_id);
+        let outlives = gather_outlives(tcx.param_env(def_id));
+        eprintln!("def_id: {:?}", def_id);
+        eprintln!("outlives: {:?}", outlives);
+        eprintln!("inferred_outlives_of: {:?}", tcx.inferred_outlives_of(def_id));
+        eprintln!("implied_outlives_bounds: {:?}", tcx.implied_outlives_bounds(def_id));
     }
 
     trace!("[dump_lifetime_info] exit");
+}
+
+fn gather_outlives(param_env: ty::ParamEnv) -> HashMap<ty::Region, HashSet<ty::Region>> {
+    let mut result = HashMap::<ty::Region, HashSet<ty::Region>>::new();
+    let outlives = param_env.caller_bounds().iter()
+        .filter_map(|b| match b.kind().skip_binder() {
+            ty::PredicateKind::RegionOutlives(ty::OutlivesPredicate(a, b)) => Some((a, b)),
+            _ => None
+        });
+    for (a, b) in outlives {
+        result.entry(a).or_default().insert(b);
+    }
+    result
 }
 
 struct ProcedureCollector<'tcx> {
