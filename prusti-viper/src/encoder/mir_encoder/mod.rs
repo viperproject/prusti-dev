@@ -61,7 +61,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     fn encode_place(
         &self,
         place: &mir::Place<'tcx>,
-    ) -> EncodingResult<(PlaceEncoding, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(PlaceEncoding<'tcx>, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode place {:?}", place);
         self.encode_projection(place.local, place.projection)
     }
@@ -74,7 +74,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         &self,
         local: mir::Local,
         projection: &[mir::PlaceElem<'tcx>],
-    ) -> EncodingResult<(PlaceEncoding, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(PlaceEncoding<'tcx>, ty::Ty<'tcx>, Option<usize>)> {
         trace!("Encode projection {:?}, {:?}", local, projection);
 
         if projection.is_empty() {
@@ -219,21 +219,17 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
             mir::ProjectionElem::Index(idx) => {
                 debug!("Array access: {:?}[{:?}]", encoded_base, idx);
-                let (elem_ty, len) = match base_ty.kind() {
-                    ty::TyKind::Array(elem_ty, len) => (elem_ty, len),
+                let elem_ty = match base_ty.kind() {
+                    ty::TyKind::Array(elem_ty, _) => elem_ty,
                     _ => unreachable!("index but not on array"),
                 };
-                let array_len = self.encoder().const_eval_intlike(&len.val)?
-                    .to_u64().unwrap().try_into().unwrap();
 
                 (
                     PlaceEncoding::ArrayAccess {
                         base: box encoded_base,
                         index: self.encode_local(*idx)?.into(),
-                        array_elem_ty: self.encoder().encode_type(elem_ty)?,
-                        array_len,
-                        lookup_pure_ret: self.encoder().encode_value_type(elem_ty)?,
-                        val_field: self.encoder().encode_value_field(elem_ty),
+                        encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                        rust_array_ty: base_ty,
                     },
                     elem_ty,
                     None,

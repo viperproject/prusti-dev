@@ -7,6 +7,7 @@
 
 use std::fmt::Display;
 
+use rustc_middle::ty;
 use prusti_common::vir;
 
 use crate::encoder::{
@@ -17,30 +18,28 @@ use crate::encoder::{
 
 /// Result of encoding a place
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub enum PlaceEncoding {
+pub enum PlaceEncoding<'tcx> {
     /// Just an expression, the most common case.
     Expr(vir::Expr),
     /// Field access expression
     FieldAccess {
-        base: Box<PlaceEncoding>,
+        base: Box<PlaceEncoding<'tcx>>,
         field: vir::Field,
     },
     /// Array access expression
     ArrayAccess {
-        base: Box<PlaceEncoding>,
+        base: Box<PlaceEncoding<'tcx>>,
         index: vir::Expr,
-        array_elem_ty: vir::Type,
-        array_len: usize,
-        lookup_pure_ret: vir::Type,
-        val_field: vir::Field,
+        encoded_elem_ty: vir::Type,
+        rust_array_ty: ty::Ty<'tcx>,
     },
     Variant {
-        base: Box<PlaceEncoding>,
+        base: Box<PlaceEncoding<'tcx>>,
         field: vir::Field,
     }
 }
 
-impl PlaceEncoding {
+impl<'tcx> PlaceEncoding<'tcx> {
     pub fn try_into_expr(self) -> EncodingResult<vir::Expr> {
         match self {
             PlaceEncoding::Expr(e) => Ok(e),
@@ -62,7 +61,7 @@ impl PlaceEncoding {
         match self {
             PlaceEncoding::Expr(ref e) => e.get_type(),
             PlaceEncoding::FieldAccess { ref field, .. } => &field.typ,
-            PlaceEncoding::ArrayAccess { ref array_elem_ty, .. } => array_elem_ty,
+            PlaceEncoding::ArrayAccess { ref encoded_elem_ty, .. } => encoded_elem_ty,
             PlaceEncoding::Variant { ref field, .. } => &field.typ,
         }
     }
@@ -76,13 +75,13 @@ impl PlaceEncoding {
     }
 }
 
-impl From<vir::Expr> for PlaceEncoding {
+impl<'tcx> From<vir::Expr> for PlaceEncoding<'tcx> {
     fn from(e: vir::Expr) -> Self {
         PlaceEncoding::Expr(e)
     }
 }
 
-impl Display for PlaceEncoding {
+impl<'tcx> Display for PlaceEncoding<'tcx> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             PlaceEncoding::Expr(e) => write!(f, "{}", e),
