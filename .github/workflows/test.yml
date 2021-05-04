@@ -44,8 +44,9 @@ jobs:
           cargo install cargo-diff-tools
           if rustup component add clippy
           then
-            git fetch origin $GITHUB_BASE_REF --depth=1
-            python x.py exec cargo-clippy-diff --output=github $(git merge-base origin/$GITHUB_BASE_REF $GITHUB_SHA) $GITHUB_SHA
+            git fetch origin $GITHUB_BASE_REF
+            git fetch origin $GITHUB_HEAD_REF
+            python x.py exec cargo-clippy-diff --output=github $(git merge-base origin/$GITHUB_BASE_REF origin/$GITHUB_HEAD_REF) origin/$GITHUB_HEAD_REF
           fi
       - name: Run "quick" cargo tests
         run: python x.py test --all --verbose quick
