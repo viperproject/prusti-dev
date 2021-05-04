@@ -9,6 +9,9 @@ on:
 env:
   RUST_BACKTRACE: 1
   PRUSTI_ASSERT_TIMEOUT: 60000
+  # Override auto-detection of RAM for Rustc install.
+  # https://github.com/rust-lang/rustup/issues/2229#issuecomment-585855925
+  RUSTUP_UNPACK_RAM: 220000000
 
 jobs:
   # Run a subset of the tests that used to fail often.
@@ -44,8 +47,9 @@ jobs:
           cargo install cargo-diff-tools
           if rustup component add clippy
           then
-            git fetch origin $GITHUB_BASE_REF --depth=1
-            python x.py exec cargo-clippy-diff --output=github $(git merge-base origin/$GITHUB_BASE_REF $GITHUB_SHA) $GITHUB_SHA
+            git fetch origin $GITHUB_BASE_REF
+            git fetch origin $GITHUB_HEAD_REF
+            python x.py exec cargo-clippy-diff --output=github $(git merge-base origin/$GITHUB_BASE_REF origin/$GITHUB_HEAD_REF) origin/$GITHUB_HEAD_REF
           fi
       - name: Run "quick" cargo tests
         run: python x.py test --all --verbose quick
