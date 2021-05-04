@@ -261,25 +261,43 @@ impl ApplyOnState for vir::Stmt {
                 // The rhs is no longer moved
                 state.remove_moved_matching(|p| p.has_prefix(rhs_place));
 
-                // And we create permissions for the rhs
-                let new_acc_places: Vec<_> = original_state
-                    .acc()
-                    .iter()
-                    .filter(|(p, _)| p.has_proper_prefix(lhs_place))
-                    .map(|(p, perm_amount)| {
-                        (p.clone().replace_place(&lhs_place, rhs_place), *perm_amount)
-                    })
-                    .filter(|(p, _)| !p.is_local())
-                    .collect();
+                let rhs_is_array = rhs_place.get_type().name().starts_with("Array$");
 
-                let new_pred_places: Vec<_> = original_state
-                    .pred()
-                    .iter()
-                    .filter(|(p, _)| p.has_prefix(lhs_place))
-                    .map(|(p, perm_amount)| {
-                        (p.clone().replace_place(&lhs_place, rhs_place), *perm_amount)
-                    })
-                    .collect();
+                // And we create permissions for the rhs
+                let new_acc_places: Vec<_> = if rhs_is_array {
+                    // all permissions are on the pred
+                    vec![]
+                } else {
+                    original_state
+                        .acc()
+                        .iter()
+                        .filter(|(p, _)| p.has_proper_prefix(lhs_place))
+                        .map(|(p, perm_amount)| {
+                            (p.clone().replace_place(&lhs_place, rhs_place), *perm_amount)
+                        })
+                        .filter(|(p, _)| !p.is_local())
+                        .collect()
+                };
+
+                let new_pred_places: Vec<_> = if rhs_is_array {
+                    vec![
+                        // arrays regained here are always write, read-only does not generate
+                        // wands/permissions that need to be restored
+                        (
+                            rhs_place.clone(),
+                            vir::PermAmount::Write,
+                        )
+                    ]
+                } else {
+                    original_state
+                        .pred()
+                        .iter()
+                        .filter(|(p, _)| p.has_prefix(lhs_place))
+                        .map(|(p, perm_amount)| {
+                            (p.clone().replace_place(&lhs_place, rhs_place), *perm_amount)
+                        })
+                        .collect()
+                };
 
                 // assert!(
                 //     (lhs_place == rhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
@@ -288,6 +306,9 @@ impl ApplyOnState for vir::Stmt {
                 //     original_state.display_acc(),
                 //     original_state.display_pred()
                 // );
+
+                trace!("new_acc_places: {:?}", new_acc_places);
+                trace!("new_pred_places: {:?}", new_pred_places);
 
                 state.insert_all_acc(new_acc_places.into_iter())?;
                 state.insert_all_pred(new_pred_places.into_iter())?;

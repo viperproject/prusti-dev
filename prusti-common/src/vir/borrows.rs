@@ -35,7 +35,7 @@ pub fn borrow_id(borrow: Borrow) -> usize {
 }
 
 /// Node of the reborrowing DAG.
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Node {
     /// The basic block at which the borrow occured was executed only
     /// iff the `guard` is true.
@@ -80,11 +80,11 @@ impl Node {
     }
 }
 
-impl fmt::Debug for Node {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.borrow)
-    }
-}
+// impl fmt::Debug for Node {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         write!(f, "{:?}", self.borrow)
+//     }
+// }
 
 /// Reborrowing directed acyclic graph (DAG). It should not be mutated
 /// after it is constructed. For construction use `DAGBuilder`.

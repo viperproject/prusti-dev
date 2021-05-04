@@ -1198,7 +1198,7 @@ impl Expr {
         }
         let typaram_substs = match (&target, &replacement) {
             (Expr::Local(tv, _), Expr::Local(rv, _)) => {
-                if tv.typ.is_ref() && rv.typ.is_ref() {
+                if tv.typ.is_ref() && rv.typ.is_ref() && !replacement.local_type().starts_with("Array$") {
                     debug!(
                         "learning:\n{}\n{}\n=======",
                         &target.local_type(),
