@@ -25,9 +25,9 @@ pub(super) fn dump_lifetime_info<'tcx>(tcx: TyCtxt<'tcx>) {
 
     // Print info about each procedure.
     for def_id in visitor.procedures {
+        eprintln!("def_id: {:?}", def_id);
         print_info(tcx, def_id);
         let outlives = gather_outlives(tcx.param_env(def_id));
-        eprintln!("def_id: {:?}", def_id);
         eprintln!("outlives: {:?}", outlives);
         eprintln!("inferred_outlives_of: {:?}", tcx.inferred_outlives_of(def_id));
         // eprintln!("implied_outlives_bounds: {:?}", tcx.implied_outlives_bounds(def_id));
@@ -123,9 +123,60 @@ fn do_print_info<'tcx>(infcx: &InferCtxt<'_, 'tcx>, input_body: &mir::Body<'tcx>
 
     let def = input_body.source.with_opt_param().as_local().unwrap();
     let param_env = tcx.param_env(def.did);
+    eprintln!("param_env: {:?}", param_env);
     let mut body = input_body.clone();
+    let universal_regions = std::rc::Rc::new(rustc_mir::borrow_check::universal_regions::UniversalRegions::new(infcx, def, param_env));
+    eprintln!("universal_regions: {:?}", universal_regions);
     rustc_mir::borrow_check::renumber::renumber_mir(infcx, &mut body, &mut rustc_index::vec::IndexVec::new());
     let body = &body;
+
+    {
+        use rustc_mir::borrow_check::type_check::free_region_relations::CreateResult;
+        use rustc_mir::borrow_check::member_constraints::MemberConstraintSet;
+        use rustc_mir::borrow_check::type_check::MirTypeckRegionConstraints;
+        use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
+        use rustc_mir::borrow_check::region_infer::values::LivenessValues;
+        use rustc_index::vec::IndexVec;
+        use rustc_mir::borrow_check::region_infer::values::PlaceholderIndices;
+        use rustc_mir::borrow_check::type_check::free_region_relations;
+        use rustc_mir::borrow_check::region_infer::values::RegionValueElements;
+
+        let elements = &std::rc::Rc::new(RegionValueElements::new(&body));
+
+        let mut constraints = MirTypeckRegionConstraints {
+            placeholder_indices: PlaceholderIndices::default(),
+            placeholder_index_to_region: IndexVec::default(),
+            liveness_constraints: LivenessValues::new(elements.clone()),
+            outlives_constraints: OutlivesConstraintSet::default(),
+            member_constraints: MemberConstraintSet::default(),
+            closure_bounds_mapping: Default::default(),
+            type_tests: Vec::default(),
+        };
+
+        let implicit_region_bound = infcx.tcx.mk_region(ty::ReVar(universal_regions.fr_fn_body));
+
+        let CreateResult {
+            universal_region_relations,
+            region_bound_pairs,
+            normalized_inputs_and_output,
+        } = free_region_relations::create(
+            infcx,
+            param_env,
+            Some(implicit_region_bound),
+            &universal_regions,
+            &mut constraints,
+        );
+
+        // eprintln!("universal_region_relations: {:?}", universal_region_relations);
+        eprintln!("universal_regions.universal_regions: {:?}",
+            universal_regions.universal_regions().collect::<Vec<_>>());
+        eprintln!("universal_region_relations.known_outlives: {:?}",
+            universal_region_relations.known_outlives().collect::<Vec<_>>());
+        eprintln!("region_bound_pairs: {:?}", region_bound_pairs);
+        eprintln!("normalized_inputs_and_output: {:?}", normalized_inputs_and_output);
+    }
+
+
     let info_printer = InfoPrinter { tcx, output, body };
     info_printer.print_info().unwrap();
 }
