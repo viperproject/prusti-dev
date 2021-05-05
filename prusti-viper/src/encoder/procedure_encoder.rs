@@ -68,6 +68,16 @@ use crate::encoder::errors::EncodingErrorKind;
 use crate::encoder::snapshot;
 use std::convert::TryInto;
 
+struct EncodedArrayTypes<'tcx> {
+    array_pred: String,
+    array_ty: vir::Type,
+    elem_pred: String,
+    elem_ty: vir::Type,
+    elem_value_ty: vir::Type,
+    elem_ty_rs: ty::Ty<'tcx>,
+    array_len: usize,
+}
+
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: ProcedureDefId,
@@ -5245,7 +5255,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
-    fn encode_array_types(&self, array_ty: ty::Ty<'tcx>) -> EncodingResult<(String, vir::Type, String, vir::Type, vir::Type, ty::Ty<'tcx>, usize)> {
+    fn encode_array_types(&self, array_ty: ty::Ty<'tcx>) -> EncodingResult<EncodedArrayTypes<'tcx>> {
         // type predicates
         let array_pred = self.encoder.encode_type_predicate_use(array_ty)?;
         let (elem_ty_rs, len) = if let ty::TyKind::Array(elem_ty, len) = array_ty.kind() {
@@ -5263,7 +5273,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let array_len = self.encoder.const_eval_intlike(&len.val)?
             .to_u64().unwrap().try_into().unwrap();
 
-        Ok((array_pred, array_ty, elem_pred, elem_ty, elem_value_ty, elem_ty_rs, array_len))
+        Ok(EncodedArrayTypes{
+            array_pred,
+            array_ty,
+            elem_pred,
+            elem_ty,
+            elem_value_ty,
+            elem_ty_rs,
+            array_len,
+        })
     }
 
     /// Assignment with an aggregate on the RHS. Aggregates are e.g. arrays, structs, enums,
@@ -5383,17 +5401,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             mir::AggregateKind::Array(..) => {
-                let (array_pred, array_ty, elem_pred, _elem_ty, elem_value_ty, _elem_ty_rs, array_len) =
-                    self.encode_array_types(ty)
-                        .with_span(span)?;
+                let at = self.encode_array_types(ty).with_span(span)?;
 
                 // TODO: move lookup_pure into encode_array_types as well?
                 let lookup_pure = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::ArrayLookupPure {
-                        array_ty_pred: array_pred,
-                        elem_ty_pred: elem_pred,
-                        array_len,
-                        return_ty: elem_value_ty.clone(),
+                        array_ty_pred: at.array_pred,
+                        elem_ty_pred: at.elem_pred,
+                        array_len: at.array_len,
+                        return_ty: at.elem_value_ty.clone(),
                     }
                 );
 
@@ -5407,14 +5423,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         vec![
                             vir::LocalVar::new(
                                 String::from("self"),
-                                array_ty.clone(),
+                                at.array_ty.clone(),
                             ),
                             vir::LocalVar::new(
                                 String::from("idx"),
                                 vir::Type::Int,
                             ),
                         ],
-                        elem_value_ty.clone(),
+                        at.elem_value_ty.clone(),
                         vir::Position::default(),
                         );
 
@@ -5505,22 +5521,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (expr.field(field), stmts)
             }
             PlaceEncoding::ArrayAccess { base, index, rust_array_ty, .. } => {
-                let (array_pred, array_ty, elem_pred, elem_ty, elem_value_ty, elem_ty_rs, array_len) =
-                    self.encode_array_types(rust_array_ty)?;
+                let at = self.encode_array_types(rust_array_ty)?;
 
                 let lookup_pure = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::ArrayLookupPure {
-                        array_ty_pred: array_pred,
-                        elem_ty_pred: elem_pred,
-                        array_len,
-                        return_ty: elem_value_ty.clone(),
+                        array_ty_pred: at.array_pred,
+                        elem_ty_pred: at.elem_pred,
+                        array_len: at.array_len,
+                        return_ty: at.elem_value_ty.clone(),
                     }
                 );
 
-                let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(elem_ty).into();
+                let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(at.elem_ty).into();
 
                 // encode val_field for the array element type
-                let val_field = self.encoder.encode_value_field(elem_ty_rs);
+                let val_field = self.encoder.encode_value_field(at.elem_ty_rs);
                 let lookup_res_val_field = lookup_res.clone().field(val_field);
 
                 // index is always of rust type `usize`
@@ -5538,14 +5553,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vec![
                         vir::LocalVar::new(
                             String::from("self"),
-                            array_ty,
+                            at.array_ty,
                         ),
                         vir::LocalVar::new(
                             String::from("idx"),
                             vir::Type::Int,
                         ),
                     ],
-                    elem_value_ty,
+                    at.elem_value_ty,
                     vir::Position::default(),
                 );
                 stmts.push(vir::Stmt::Inhale(vir!{ [ lookup_pure_call ] == [ lookup_res_val_field ] }));
