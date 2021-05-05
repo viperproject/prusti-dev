@@ -5049,7 +5049,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     )
                 );
             },
-            other => unimplemented!("Length operation on unsupported type '{:?}'", other),
+            other => return Err(
+                EncodingError::unsupported(format!("length operation on unsupported type '{:?}'", other))
+                    .with_span(span)
+            ),
         }
 
         Ok(stmts)

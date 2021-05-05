@@ -244,7 +244,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             None,
                         )
                     },
-                    _ => unreachable!("index on unsupported type '{:?}'", base_ty),
+                    _ => return Err(EncodingError::unsupported(format!("index on unsupported type '{:?}'", base_ty))),
                 }
             }
 
