@@ -29,6 +29,8 @@ extern crate rustc_middle;
 extern crate rustc_span;
 extern crate rustc_ast;
 extern crate rustc_attr;
+extern crate rustc_infer;
+extern crate rustc_mir;
 
 // extern crate csv;
 // extern crate datafrog;

@@ -2,13 +2,16 @@ use log::{debug, trace};
 use prusti_common::config;
 use rustc_hir as hir;
 use rustc_hir::{def_id::DefId, itemlikevisit::ItemLikeVisitor};
-use rustc_middle::{mir, ty, ty::TyCtxt};
+use rustc_middle::{mir, ty, ty::TyCtxt,
+
+};
 use std::{
     collections::{HashMap, HashSet},
     fs::File,
     io::{self, BufWriter, Write},
     path::PathBuf,
 };
+use rustc_infer::infer::{InferCtxt, TyCtxtInferExt};
 
 pub(super) fn dump_lifetime_info<'tcx>(tcx: TyCtxt<'tcx>) {
     trace!("[dump_lifetime_info] enter");
@@ -27,7 +30,7 @@ pub(super) fn dump_lifetime_info<'tcx>(tcx: TyCtxt<'tcx>) {
         eprintln!("def_id: {:?}", def_id);
         eprintln!("outlives: {:?}", outlives);
         eprintln!("inferred_outlives_of: {:?}", tcx.inferred_outlives_of(def_id));
-        eprintln!("implied_outlives_bounds: {:?}", tcx.implied_outlives_bounds(def_id));
+        // eprintln!("implied_outlives_bounds: {:?}", tcx.implied_outlives_bounds(def_id));
     }
 
     trace!("[dump_lifetime_info] exit");
@@ -94,6 +97,20 @@ impl<'tcx> ItemLikeVisitor<'tcx> for ProcedureCollector<'tcx> {
 fn print_info<'tcx>(tcx: TyCtxt<'tcx>, def_id: DefId) {
     trace!("[print_info] enter {:?}", def_id);
 
+    let input_body = tcx.optimized_mir(def_id);
+
+    tcx.infer_ctxt().enter(|infcx| {
+        // let input_body: &mir::Body<'_> = &input_body.borrow();
+        // let promoted: &IndexVec<_, _> = &promoted.borrow();
+        do_print_info(&infcx, input_body, def_id);
+    });
+
+    trace!("[print_info] exit {:?}", def_id);
+}
+
+fn do_print_info<'tcx>(infcx: &InferCtxt<'_, 'tcx>, input_body: &mir::Body<'tcx>, def_id: DefId) {
+    let tcx = infcx.tcx;
+
     let local_def_id = def_id.expect_local();
     let def_path = tcx.hir().def_path(local_def_id);
     let output_path = PathBuf::from(config::log_dir())
@@ -104,18 +121,123 @@ fn print_info<'tcx>(tcx: TyCtxt<'tcx>, def_id: DefId) {
     let output_file = File::create(output_path).expect("Unable to create file");
     let output = std::cell::RefCell::new(BufWriter::new(output_file));
 
-    let mir = tcx.optimized_mir(def_id);
-
-    let info_printer = InfoPrinter { tcx, output, mir };
+    let def = input_body.source.with_opt_param().as_local().unwrap();
+    let param_env = tcx.param_env(def.did);
+    let mut body = input_body.clone();
+    rustc_mir::borrow_check::renumber::renumber_mir(infcx, &mut body, &mut rustc_index::vec::IndexVec::new());
+    let body = &body;
+    let info_printer = InfoPrinter { tcx, output, body };
     info_printer.print_info().unwrap();
-
-    trace!("[print_info] exit {:?}", def_id);
 }
+
+// mod renumber {
+//     // Copied from
+//     // https://github.com/rust-lang/rust/blob/master/compiler/rustc_mir/src/borrow_check/renumber.rs
+//     // TODO: create a PR that makes this module public so that I do not need to
+//     // copy-paste code.
+//     use log::{debug, trace};
+//     use rustc_index::vec::IndexVec;
+//     use rustc_infer::infer::{InferCtxt, NllRegionVariableOrigin};
+//     use rustc_middle::mir::visit::{MutVisitor, TyContext};
+//     use rustc_middle::mir::{Body, Location, PlaceElem, Promoted};
+//     use rustc_middle::ty::subst::SubstsRef;
+//     use rustc_middle::ty::{self, Ty, TyCtxt, TypeFoldable};
+
+//     pub fn renumber_mir<'tcx>(
+//         infcx: &InferCtxt<'_, 'tcx>,
+//         body: &mut Body<'tcx>,
+//     ) {
+//         debug!("renumber_mir()");
+//         debug!("renumber_mir: body.arg_count={:?}", body.arg_count);
+
+//         let mut visitor = NllVisitor { infcx };
+
+//         visitor.visit_body(body);
+//     }
+
+//     /// Replaces all regions appearing in `value` with fresh inference
+//     /// variables.
+//     pub fn renumber_regions<'tcx, T>(infcx: &InferCtxt<'_, 'tcx>, value: T) -> T
+//     where
+//         T: TypeFoldable<'tcx>,
+//     {
+//         debug!("renumber_regions(value={:?})", value);
+
+//         infcx.tcx.fold_regions(value, &mut false, |_region, _depth| {
+//             let origin = NllRegionVariableOrigin::Existential { from_forall: false };
+//             infcx.next_nll_region_var(origin)
+//         })
+//     }
+
+//     struct NllVisitor<'a, 'tcx> {
+//         infcx: &'a InferCtxt<'a, 'tcx>,
+//     }
+
+//     impl<'a, 'tcx> NllVisitor<'a, 'tcx> {
+//         fn renumber_regions<T>(&mut self, value: T) -> T
+//         where
+//             T: TypeFoldable<'tcx>,
+//         {
+//             renumber_regions(self.infcx, value)
+//         }
+//     }
+
+//     impl<'a, 'tcx> MutVisitor<'tcx> for NllVisitor<'a, 'tcx> {
+//         fn tcx(&self) -> TyCtxt<'tcx> {
+//             self.infcx.tcx
+//         }
+
+//         fn visit_ty(&mut self, ty: &mut Ty<'tcx>, ty_context: TyContext) {
+//             debug!("visit_ty(ty={:?}, ty_context={:?})", ty, ty_context);
+
+//             *ty = self.renumber_regions(ty);
+
+//             debug!("visit_ty: ty={:?}", ty);
+//         }
+
+//         fn process_projection_elem(
+//             &mut self,
+//             elem: PlaceElem<'tcx>,
+//             _: Location,
+//         ) -> Option<PlaceElem<'tcx>> {
+//             if let PlaceElem::Field(field, ty) = elem {
+//                 let new_ty = self.renumber_regions(ty);
+
+//                 if new_ty != ty {
+//                     return Some(PlaceElem::Field(field, new_ty));
+//                 }
+//             }
+
+//             None
+//         }
+
+//         fn visit_substs(&mut self, substs: &mut SubstsRef<'tcx>, location: Location) {
+//             debug!("visit_substs(substs={:?}, location={:?})", substs, location);
+
+//             *substs = self.renumber_regions(*substs);
+
+//             debug!("visit_substs: substs={:?}", substs);
+//         }
+
+//         fn visit_region(&mut self, region: &mut ty::Region<'tcx>, location: Location) {
+//             debug!("visit_region(region={:?}, location={:?})", region, location);
+
+//             let old_region = *region;
+//             *region = self.renumber_regions(&old_region);
+
+//             debug!("visit_region: region={:?}", region);
+//         }
+
+//         fn visit_const(&mut self, constant: &mut &'tcx ty::Const<'tcx>, _location: Location) {
+//             *constant = self.renumber_regions(&*constant);
+//         }
+//     }
+// }
 
 struct InfoPrinter<'a, 'tcx: 'a> {
     tcx: TyCtxt<'tcx>,
     output: std::cell::RefCell<BufWriter<File>>,
-    mir: &'a mir::Body<'tcx>,
+    body: &'a mir::Body<'tcx>,
 }
 
 macro_rules! write_graph {
@@ -165,7 +287,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
     pub fn print_info(mut self) -> Result<(), io::Error> {
         write_graph!(self, "digraph G {{\n");
 
-        for bb in self.mir.basic_blocks().indices() {
+        for bb in self.body.basic_blocks().indices() {
             self.visit_basic_block(bb)?;
         }
         self.print_temp_variables()?;
@@ -187,7 +309,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
             "<tr><td>Name</td><td>Temporary</td><td>Type</td><td>Region</td></tr>"
         );
         let mut var_names = HashMap::new();
-        for info in &self.mir.var_debug_info {
+        for info in &self.body.var_debug_info {
             if let mir::VarDebugInfoContents::Place(place) = info.value {
                 if let Some(local) = place.as_local() {
                     var_names.insert(local, info.name);
@@ -198,7 +320,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
                 unimplemented!();
             }
         }
-        for (temp, var) in self.mir.local_decls.iter_enumerated() {
+        for (temp, var) in self.body.local_decls.iter_enumerated() {
             let name = var_names
                 .get(&temp)
                 .map(|s| s.to_string())
@@ -241,7 +363,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
             ref statements,
             ref terminator,
             ..
-        } = self.mir[bb];
+        } = self.body[bb];
         let mut location = mir::Location {
             block: bb,
             statement_index: 0,
