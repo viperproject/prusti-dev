@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # deep clone, to allow us to use git merge-base
       - name: Set up Python 3
         uses: actions/setup-python@v2
         with:
@@ -43,13 +45,17 @@ jobs:
       - name: Build with cargo
         run: python x.py build --all --verbose
       - name: Check and report Clippy errors
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           cargo install cargo-diff-tools
           if rustup component add clippy
           then
-            git fetch origin $GITHUB_BASE_REF
-            git fetch origin $GITHUB_HEAD_REF
-            python x.py exec cargo-clippy-diff --output=github $(git merge-base origin/$GITHUB_BASE_REF origin/$GITHUB_HEAD_REF) origin/$GITHUB_HEAD_REF
+            # See https://github.com/pytorch/pytorch/blob/49adac65c4228b9fe7ede4e6f99fe9e1ccdc3e16/.github/workflows/clang_format.yml
+            git remote add upstream https://github.com/viperproject/prusti-dev
+            git fetch upstream "$GITHUB_BASE_REF"
+            python x.py exec cargo-clippy-diff --output=github $(git merge-base $BASE_SHA $HEAD_SHA) $HEAD_SHA
           fi
       - name: Run "quick" cargo tests
         run: python x.py test --all --verbose quick
