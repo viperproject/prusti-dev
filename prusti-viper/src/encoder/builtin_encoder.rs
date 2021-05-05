@@ -23,7 +23,8 @@ pub enum BuiltinFunctionKind {
     Undefined(vir::Type),
     /// array lookup pure function, e.g. Array$4$u32$lookup_pure
     ArrayLookupPure {
-        array_elem_ty: vir::Type,
+        array_ty_pred: String,
+        elem_ty_pred: String,
         array_len: usize,
         return_ty: vir::Type,
     },
@@ -65,21 +66,20 @@ impl BuiltinEncoder {
 
     pub fn encode_builtin_function_name(&self, function: &BuiltinFunctionKind) -> String {
         match function {
-            BuiltinFunctionKind::Unreachable(vir::Type::Int) => format!("builtin$unreach_int"),
-            BuiltinFunctionKind::Unreachable(vir::Type::Bool) => format!("builtin$unreach_bool"),
+            BuiltinFunctionKind::Unreachable(vir::Type::Int) => "builtin$unreach_int".to_string(),
+            BuiltinFunctionKind::Unreachable(vir::Type::Bool) => "builtin$unreach_bool".to_string(),
             BuiltinFunctionKind::Unreachable(vir::Type::TypedRef(_)) => {
-                format!("builtin$unreach_ref")
+                "builtin$unreach_ref".to_string()
             }
             BuiltinFunctionKind::Unreachable(vir::Type::Domain(_)) => {
-                format!("builtin$unreach_domain")
+                "builtin$unreach_domain".to_string()
             }
-            BuiltinFunctionKind::Undefined(vir::Type::Int) => format!("builtin$undef_int"),
-            BuiltinFunctionKind::Undefined(vir::Type::Bool) => format!("builtin$undef_bool"),
-            BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => format!("builtin$undef_ref"),
-            BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => format!("builtin$undef_doman"),
-            BuiltinFunctionKind::ArrayLookupPure { array_elem_ty, array_len, .. } => {
-                let array_elem_ty = if let vir::Type::TypedRef(ty) = array_elem_ty { ty } else { unreachable!() };
-                format!("Array${}${}$lookup_pure", array_len, array_elem_ty)
+            BuiltinFunctionKind::Undefined(vir::Type::Int) => "builtin$undef_int".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::Bool) => "builtin$undef_bool".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => "builtin$undef_ref".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => "builtin$undef_doman".to_string(),
+            BuiltinFunctionKind::ArrayLookupPure { elem_ty_pred, array_len, .. } => {
+                format!("Array${}${}$lookup_pure", array_len, elem_ty_pred)
             }
         }
     }
@@ -104,10 +104,8 @@ impl BuiltinEncoder {
                 posts: vec![],
                 body: None,
             },
-            BuiltinFunctionKind::ArrayLookupPure { array_elem_ty, array_len, return_ty } => {
-                let array_elem_ty = if let vir::Type::TypedRef(ty) = array_elem_ty { ty } else { unreachable!() };
-                let type_pred = format!("Array${}${}", array_len, array_elem_ty);
-                let self_var = vir::LocalVar::new("self", vir::Type::TypedRef(type_pred.clone()));
+            BuiltinFunctionKind::ArrayLookupPure { array_ty_pred, array_len, return_ty, .. } => {
+                let self_var = vir::LocalVar::new("self", vir::Type::TypedRef(array_ty_pred.clone()));
                 let idx_var = vir_local!{ idx: Int };
 
                 vir::Function {
@@ -124,7 +122,7 @@ impl BuiltinEncoder {
                         vir!([vir::Expr::local(idx_var)]  < [vir::Expr::from(array_len)]),
                         // acc(self, read$())
                         vir::Expr::predicate_access_predicate(
-                            type_pred,
+                            array_ty_pred,
                             vir::Expr::local(self_var),
                             vir::PermAmount::Read,
                         )
