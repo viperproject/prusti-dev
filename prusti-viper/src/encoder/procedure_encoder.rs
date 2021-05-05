@@ -2072,6 +2072,74 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             }
                         }
 
+                        "core::slice::<impl [T]>::len" => {
+                            trace!("full_func_proc_name: {}", full_func_proc_name);
+                            trace!("self_ty: {:?}", self_ty);
+                            trace!("def_id: {:?}", def_id);
+                            trace!("substs: {:?}", substs);
+                            trace!("args: {:?}", args);
+                            trace!("destination: {:?}", destination);
+                            trace!("ty: {:?}", ty);
+
+                            assert!(args.len() == 1, "unexpected args to slice::len(): {:?}", args);
+                            let slice_operand = self.mir_encoder.encode_operand_expr(&args[0])
+                                .with_span(span)?;
+
+                            trace!("{:?} := Slice${:?}$len({:?})", destination, ty, slice_operand);
+
+                            // we need to put a label before, it seems..
+                            let label = self.cfg_method.get_fresh_label_name();
+                            stmts.push(vir::Stmt::Label(label.clone()));
+
+
+                            let slice_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            let st = self.encode_slice_types(slice_ty).with_span(span)?;
+                            let slice_len_name = self.encoder.encode_builtin_function_use(
+                                BuiltinFunctionKind::SliceLen {
+                                    slice_ty_pred: st.0,
+                                    elem_ty_pred: st.2,
+                                }
+                            );
+
+                            let rhs = vir::Expr::func_app(
+                                slice_len_name,
+                                vec![
+                                    slice_operand.clone(),  // TODO: .val_ref encoding
+                                ],
+                                vec![
+                                    vir::LocalVar::new(
+                                        String::from("self"),
+                                        st.1,
+                                    ),
+                                ],
+                                vir::Type::Int,
+                                vir::Position::default(),
+                            );
+
+                            let (encoded_lhs, encode_stmts, ty, _) = self.encode_place(&destination.as_ref().unwrap().0)
+                            // let (encoded_lhs, encode_stmts) = self.encode_pure_function_call_lhs_value(destination)
+                                .with_span(span)?;
+                            stmts.extend(encode_stmts);
+
+                            stmts.extend(
+                                self.encode_copy_value_assign(
+                                    encoded_lhs,
+                                    rhs,
+                                    ty,
+                                    location,
+                                )?
+                            );
+
+                            self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
+
+                            // Store a label for permissions got back from the call
+                            debug!(
+                                "Pure function call location {:?} has label {}",
+                                location, label
+                            );
+                            self.label_after_location.insert(location, label);
+                        }
+
                         _ => {
                             let is_pure_function = self.encoder.is_pure(def_id);
                             if is_pure_function {
@@ -5354,6 +5422,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         vir::Type,
         ty::Ty<'tcx>,
     )> {
+        // get rid of ref
+        let slice_ty = match slice_ty.kind() {
+            ty::TyKind::Ref(_, ty, _) => ty,
+            ty::TyKind::Slice(..) => slice_ty,
+            _ => unreachable!("encode_slice_types got unexected type {:?}", slice_ty),
+        };
+
         let slice_pred = self.encoder.encode_type_predicate_use(slice_ty)?;
         let elem_ty_rs = if let ty::TyKind::Slice(elem_ty) = slice_ty.kind() {
             elem_ty
