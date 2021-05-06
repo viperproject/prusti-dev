@@ -174,6 +174,36 @@ fn do_print_info<'tcx>(infcx: &InferCtxt<'_, 'tcx>, input_body: &mir::Body<'tcx>
             universal_region_relations.known_outlives().collect::<Vec<_>>());
         eprintln!("region_bound_pairs: {:?}", region_bound_pairs);
         eprintln!("normalized_inputs_and_output: {:?}", normalized_inputs_and_output);
+
+        let mut all_facts = Some(Default::default());
+        use rustc_mir::borrow_check::location::LocationTable;
+        let location_table = &LocationTable::new(&body);
+
+        use rustc_mir::borrow_check::borrow_set::BorrowSet;
+        use rustc_mir::dataflow::MoveDataParamEnv;
+        use rustc_mir::dataflow::move_paths::MoveData;
+        use rustc_middle::mir::Place;
+        use rustc_mir::dataflow::move_paths::MoveError;
+        let (move_data, _move_errors): (MoveData<'tcx>, Vec<(Place<'tcx>, MoveError<'tcx>)>) =
+        match MoveData::gather_moves(&body, tcx, param_env) {
+            Ok(move_data) => (move_data, Vec::new()),
+            Err((move_data, move_errors)) => (move_data, move_errors),
+        };
+        let mdpe = MoveDataParamEnv { move_data, param_env };
+        let id = tcx.hir().local_def_id_to_hir_id(def.did);
+        let locals_are_invalidated_at_exit = tcx.hir().body_owner_kind(id).is_fn_or_closure();
+        let borrow_set =
+        BorrowSet::build(tcx, body, locals_are_invalidated_at_exit, &mdpe.move_data);
+
+        use rustc_mir::borrow_check::constraint_generation;
+        constraint_generation::generate_constraints(
+            infcx,
+            &mut constraints.liveness_constraints,
+            &mut all_facts,
+            location_table,
+            &body,
+            &borrow_set,
+        );
     }
 
 
