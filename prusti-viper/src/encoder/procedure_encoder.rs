@@ -2225,10 +2225,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let st = self.encode_slice_types(slice_ty).with_span(span)?;
         let slice_len_name = self.encoder.encode_builtin_function_use(
             BuiltinFunctionKind::SliceLen {
-                slice_ty_pred: st.0,
+                slice_ty_pred: st.0.clone(),
                 elem_ty_pred: st.2,
             }
-            );
+        );
 
         let rhs = vir::Expr::func_app(
             slice_len_name,
@@ -2236,11 +2236,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 slice_operand.clone(),
             ],
             vec![
-                vir::LocalVar::new_typed_ref("self", st.1),
+                vir::LocalVar::new("self", st.1),
             ],
             vir::Type::Int,
             vir::Position::default(),
-            );
+        );
 
         let (encoded_lhs, encode_stmts, ty, _) = self.encode_place(&destination.as_ref().unwrap().0)
             .with_span(span)?;
@@ -2252,8 +2252,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 rhs,
                 ty,
                 location,
-                )?
-            );
+            )?
+        );
 
         self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
 
@@ -5103,6 +5103,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         elem_ty_pred,
                     }
                 );
+
+                stmts.push(vir::Stmt::Assert(
+                    vir::Expr::predicate_access_predicate(
+                        slice_ty_pred.clone(),
+                        encoded_place.clone(),
+                        vir::PermAmount::Read,
+                    ),
+                    vir::Position::default(),
+                ));
 
                 let rhs = vir::Expr::func_app(
                     slice_len,

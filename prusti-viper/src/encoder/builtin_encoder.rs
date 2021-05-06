@@ -152,7 +152,7 @@ impl BuiltinEncoder {
                 let slice_len = self.encode_builtin_function_name(
                     &BuiltinFunctionKind::SliceLen { slice_ty_pred: slice_ty_pred.clone(), elem_ty_pred }
                 );
-                let self_var = vir::LocalVar::new_typed_ref("self", slice_ty_pred));
+                let self_var = vir::LocalVar::new_typed_ref("self", slice_ty_pred.clone());
                 let idx_var = vir_local!{ idx: Int };
 
                 let slice_len_call = vir::Expr::func_app(

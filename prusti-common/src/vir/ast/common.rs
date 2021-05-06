@@ -260,7 +260,7 @@ impl LocalVar {
     }
 
     pub fn new_typed_ref<S: Into<String>>(name: S, ty_ref_name: String) -> Self {
-        LocalVar::new(name, vir::Type::TypedRef(ty_ref_name))
+        LocalVar::new(name, crate::vir::Type::TypedRef(ty_ref_name))
     }
 }
 
