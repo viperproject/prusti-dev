@@ -1020,8 +1020,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         //     .clone()
                         //     .field(self.encoder.encode_value_field(ty)),
                     ),
-                    ty::TyKind::Float(F32) => unimplemented!("not yet encodeable"),
-                    ty::TyKind::Float(F64) => unimplemented!("not yet encodeable"),
+                    ty::TyKind::Float(..) => unimplemented!("not yet encodeable"),
                     _ => None,
                 };
 

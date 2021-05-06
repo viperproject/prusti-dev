@@ -77,7 +77,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             //Type::Ref |
             Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
-            Type::Float(_) => unimplemented!("BackendType here"),
+            Type::Float(_) => ast.backend_type(),
         }
     }
 }
@@ -499,7 +499,7 @@ impl<'v, 'a, 'b> ToViper<'v, viper::Expr<'v>> for (&'a Const, &'b Position) {
             Const::Int(x) => ast.int_lit_with_pos(*x, self.1.to_viper(ast)),
             Const::BigInt(ref x) => ast.int_lit_from_ref_with_pos(x, self.1.to_viper(ast)),
             Const::Float(FloatConst::FloatConst32(val)) => unimplemented!("f32 to viper expr not implemented"),
-            Const::Float(FloatConst::FloatConst64(val)) => ast.backend_float_lit(val),
+            Const::Float(FloatConst::FloatConst64(val)) => ast.backend_float_lit(*val),
             Const::FnPtr => ast.null_lit_with_pos(self.1.to_viper(ast)),
         }
     }

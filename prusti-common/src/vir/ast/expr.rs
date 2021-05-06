@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::super::borrows::Borrow;
-use crate::vir::ast::*;
-use vir::{ast::*, FloatSize::*};
+use crate::vir::{ast::*, FloatSize::*};
+//use vir::{ast::*, FloatSize::*};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::{Hash, Hasher};
@@ -92,8 +92,6 @@ pub enum BinOpKind {
     Or,
     Implies,
 }
-
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum FloatConst {
@@ -309,7 +307,7 @@ impl Expr {
             | Expr::LetExpr(_, _, _, p)
             | Expr::FuncApp(_, _, _, _, p)
             | Expr::DomainFuncApp(_, _, p)
-            | Expr::BackendFuncApp(_, _, p) => p,
+            | Expr::BackendFuncApp(_, _, p)
             | Expr::InhaleExhale(_, _, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::Downcast(box ref base, ..) => base.pos(),
