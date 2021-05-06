@@ -5099,30 +5099,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // encode Slice$<elem_ty>$len
                 let slice_len = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::SliceLen {
-                        slice_ty_pred,
+                        slice_ty_pred: slice_ty_pred.clone(),
                         elem_ty_pred,
                     }
                 );
 
-                stmts.push(
-                    vir::Stmt::Assign(
-                        self.encoder.encode_value_expr(encoded_lhs, dst_ty),
-                        vir::Expr::func_app(
-                            slice_len,
-                            vec![
-                                encoded_place,
-                            ],
-                            vec![
-                                vir::LocalVar::new(
-                                    String::from("self"),
-                                    vir::Type::TypedRef(ty_name),
-                                ),
-                            ],
-                            vir::Type::Int,
-                            vir::Position::default(),
-                        ),
-                        vir::AssignKind::Copy,
-                    )
+                let rhs = vir::Expr::func_app(
+                    slice_len,
+                    vec![
+                        encoded_place.clone(),
+                    ],
+                    vec![
+                        vir::LocalVar::new_typed_ref("self", ty_name)
+                    ],
+                    vir::Type::Int,
+                    vir::Position::default(),
+                );
+
+                stmts.extend(
+                    self.encode_copy_value_assign(
+                        encoded_lhs,
+                        rhs,
+                        dst_ty,
+                        location,
+                    )?
                 );
             },
             other => return Err(
