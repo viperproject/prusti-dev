@@ -19,6 +19,7 @@ use std::collections::HashSet;
 use log::debug;
 
 pub mod borrowck;
+pub mod borrowck2;
 mod collect_prusti_spec_visitor;
 mod collect_closure_defs_visitor;
 mod dump_borrowck_info;

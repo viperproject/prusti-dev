@@ -2,9 +2,7 @@ use log::{debug, trace};
 use prusti_common::config;
 use rustc_hir as hir;
 use rustc_hir::{def_id::DefId, itemlikevisit::ItemLikeVisitor};
-use rustc_middle::{mir, ty, ty::TyCtxt,
-
-};
+use rustc_middle::{mir, ty, ty::TyCtxt};
 use std::{
     collections::{HashMap, HashSet},
     fs::File,
@@ -12,6 +10,8 @@ use std::{
     path::PathBuf,
 };
 use rustc_infer::infer::{InferCtxt, TyCtxtInferExt};
+
+use crate::environment::borrowck2::obtain_mir_body;
 
 pub(super) fn dump_lifetime_info<'tcx>(tcx: TyCtxt<'tcx>) {
     trace!("[dump_lifetime_info] enter");
@@ -25,29 +25,29 @@ pub(super) fn dump_lifetime_info<'tcx>(tcx: TyCtxt<'tcx>) {
 
     // Print info about each procedure.
     for def_id in visitor.procedures {
-        eprintln!("def_id: {:?}", def_id);
+        // eprintln!("def_id: {:?}", def_id);
         print_info(tcx, def_id);
-        let outlives = gather_outlives(tcx.param_env(def_id));
-        eprintln!("outlives: {:?}", outlives);
-        eprintln!("inferred_outlives_of: {:?}", tcx.inferred_outlives_of(def_id));
+        // let outlives = gather_outlives(tcx.param_env(def_id));
+        // eprintln!("outlives: {:?}", outlives);
+        // eprintln!("inferred_outlives_of: {:?}", tcx.inferred_outlives_of(def_id));
         // eprintln!("implied_outlives_bounds: {:?}", tcx.implied_outlives_bounds(def_id));
     }
 
     trace!("[dump_lifetime_info] exit");
 }
 
-fn gather_outlives(param_env: ty::ParamEnv) -> HashMap<ty::Region, HashSet<ty::Region>> {
-    let mut result = HashMap::<ty::Region, HashSet<ty::Region>>::new();
-    let outlives = param_env.caller_bounds().iter()
-        .filter_map(|b| match b.kind().skip_binder() {
-            ty::PredicateKind::RegionOutlives(ty::OutlivesPredicate(a, b)) => Some((a, b)),
-            _ => None
-        });
-    for (a, b) in outlives {
-        result.entry(a).or_default().insert(b);
-    }
-    result
-}
+// fn gather_outlives(param_env: ty::ParamEnv) -> HashMap<ty::Region, HashSet<ty::Region>> {
+//     let mut result = HashMap::<ty::Region, HashSet<ty::Region>>::new();
+//     let outlives = param_env.caller_bounds().iter()
+//         .filter_map(|b| match b.kind().skip_binder() {
+//             ty::PredicateKind::RegionOutlives(ty::OutlivesPredicate(a, b)) => Some((a, b)),
+//             _ => None
+//         });
+//     for (a, b) in outlives {
+//         result.entry(a).or_default().insert(b);
+//     }
+//     result
+// }
 
 struct ProcedureCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
@@ -97,19 +97,7 @@ impl<'tcx> ItemLikeVisitor<'tcx> for ProcedureCollector<'tcx> {
 fn print_info<'tcx>(tcx: TyCtxt<'tcx>, def_id: DefId) {
     trace!("[print_info] enter {:?}", def_id);
 
-    let input_body = tcx.optimized_mir(def_id);
-
-    tcx.infer_ctxt().enter(|infcx| {
-        // let input_body: &mir::Body<'_> = &input_body.borrow();
-        // let promoted: &IndexVec<_, _> = &promoted.borrow();
-        do_print_info(&infcx, input_body, def_id);
-    });
-
-    trace!("[print_info] exit {:?}", def_id);
-}
-
-fn do_print_info<'tcx>(infcx: &InferCtxt<'_, 'tcx>, input_body: &mir::Body<'tcx>, def_id: DefId) {
-    let tcx = infcx.tcx;
+    let body = obtain_mir_body(tcx, def_id);
 
     let local_def_id = def_id.expect_local();
     let def_path = tcx.hir().def_path(local_def_id);
@@ -118,98 +106,113 @@ fn do_print_info<'tcx>(infcx: &InferCtxt<'_, 'tcx>, input_body: &mir::Body<'tcx>
         .join(def_path.to_filename_friendly_no_crate())
         .join("output_lifetime.dot");
     debug!("Writing output to {:?}", output_path);
-    let output_file = File::create(output_path).expect("Unable to create file");
-    let output = std::cell::RefCell::new(BufWriter::new(output_file));
+    body.to_graphviz(&output_path).unwrap();
 
-    let def = input_body.source.with_opt_param().as_local().unwrap();
-    let param_env = tcx.param_env(def.did);
-    eprintln!("param_env: {:?}", param_env);
-    let mut body = input_body.clone();
-    let universal_regions = std::rc::Rc::new(rustc_mir::borrow_check::universal_regions::UniversalRegions::new(infcx, def, param_env));
-    eprintln!("universal_regions: {:?}", universal_regions);
-    rustc_mir::borrow_check::renumber::renumber_mir(infcx, &mut body, &mut rustc_index::vec::IndexVec::new());
-    let body = &body;
-
-    {
-        use rustc_mir::borrow_check::type_check::free_region_relations::CreateResult;
-        use rustc_mir::borrow_check::member_constraints::MemberConstraintSet;
-        use rustc_mir::borrow_check::type_check::MirTypeckRegionConstraints;
-        use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
-        use rustc_mir::borrow_check::region_infer::values::LivenessValues;
-        use rustc_index::vec::IndexVec;
-        use rustc_mir::borrow_check::region_infer::values::PlaceholderIndices;
-        use rustc_mir::borrow_check::type_check::free_region_relations;
-        use rustc_mir::borrow_check::region_infer::values::RegionValueElements;
-
-        let elements = &std::rc::Rc::new(RegionValueElements::new(&body));
-
-        let mut constraints = MirTypeckRegionConstraints {
-            placeholder_indices: PlaceholderIndices::default(),
-            placeholder_index_to_region: IndexVec::default(),
-            liveness_constraints: LivenessValues::new(elements.clone()),
-            outlives_constraints: OutlivesConstraintSet::default(),
-            member_constraints: MemberConstraintSet::default(),
-            closure_bounds_mapping: Default::default(),
-            type_tests: Vec::default(),
-        };
-
-        let implicit_region_bound = infcx.tcx.mk_region(ty::ReVar(universal_regions.fr_fn_body));
-
-        let CreateResult {
-            universal_region_relations,
-            region_bound_pairs,
-            normalized_inputs_and_output,
-        } = free_region_relations::create(
-            infcx,
-            param_env,
-            Some(implicit_region_bound),
-            &universal_regions,
-            &mut constraints,
-        );
-
-        // eprintln!("universal_region_relations: {:?}", universal_region_relations);
-        eprintln!("universal_regions.universal_regions: {:?}",
-            universal_regions.universal_regions().collect::<Vec<_>>());
-        eprintln!("universal_region_relations.known_outlives: {:?}",
-            universal_region_relations.known_outlives().collect::<Vec<_>>());
-        eprintln!("region_bound_pairs: {:?}", region_bound_pairs);
-        eprintln!("normalized_inputs_and_output: {:?}", normalized_inputs_and_output);
-
-        let mut all_facts = Some(Default::default());
-        use rustc_mir::borrow_check::location::LocationTable;
-        let location_table = &LocationTable::new(&body);
-
-        use rustc_mir::borrow_check::borrow_set::BorrowSet;
-        use rustc_mir::dataflow::MoveDataParamEnv;
-        use rustc_mir::dataflow::move_paths::MoveData;
-        use rustc_middle::mir::Place;
-        use rustc_mir::dataflow::move_paths::MoveError;
-        let (move_data, _move_errors): (MoveData<'tcx>, Vec<(Place<'tcx>, MoveError<'tcx>)>) =
-        match MoveData::gather_moves(&body, tcx, param_env) {
-            Ok(move_data) => (move_data, Vec::new()),
-            Err((move_data, move_errors)) => (move_data, move_errors),
-        };
-        let mdpe = MoveDataParamEnv { move_data, param_env };
-        let id = tcx.hir().local_def_id_to_hir_id(def.did);
-        let locals_are_invalidated_at_exit = tcx.hir().body_owner_kind(id).is_fn_or_closure();
-        let borrow_set =
-        BorrowSet::build(tcx, body, locals_are_invalidated_at_exit, &mdpe.move_data);
-
-        use rustc_mir::borrow_check::constraint_generation;
-        constraint_generation::generate_constraints(
-            infcx,
-            &mut constraints.liveness_constraints,
-            &mut all_facts,
-            location_table,
-            &body,
-            &borrow_set,
-        );
-    }
-
-
-    let info_printer = InfoPrinter { tcx, output, body };
-    info_printer.print_info().unwrap();
+    trace!("[print_info] exit {:?}", def_id);
 }
+
+// fn do_print_info<'tcx>(infcx: &InferCtxt<'_, 'tcx>, input_body: &mir::Body<'tcx>, def_id: DefId) {
+//     let tcx = infcx.tcx;
+
+//     let local_def_id = def_id.expect_local();
+//     let def_path = tcx.hir().def_path(local_def_id);
+//     let output_path = PathBuf::from(config::log_dir())
+//         .join("nll-facts")
+//         .join(def_path.to_filename_friendly_no_crate())
+//         .join("output_lifetime.dot");
+//     debug!("Writing output to {:?}", output_path);
+//     let output_file = File::create(output_path).expect("Unable to create file");
+//     let output = std::cell::RefCell::new(BufWriter::new(output_file));
+
+//     let def = input_body.source.with_opt_param().as_local().unwrap();
+//     let param_env = tcx.param_env(def.did);
+//     eprintln!("param_env: {:?}", param_env);
+//     let mut body = input_body.clone();
+//     let universal_regions = std::rc::Rc::new(rustc_mir::borrow_check::universal_regions::UniversalRegions::new(infcx, def, param_env));
+//     eprintln!("universal_regions: {:?}", universal_regions);
+//     rustc_mir::borrow_check::renumber::renumber_mir(infcx, &mut body, &mut rustc_index::vec::IndexVec::new());
+//     let body = &body;
+
+//     {
+//         use rustc_mir::borrow_check::type_check::free_region_relations::CreateResult;
+//         use rustc_mir::borrow_check::member_constraints::MemberConstraintSet;
+//         use rustc_mir::borrow_check::type_check::MirTypeckRegionConstraints;
+//         use rustc_mir::borrow_check::constraints::OutlivesConstraintSet;
+//         use rustc_mir::borrow_check::region_infer::values::LivenessValues;
+//         use rustc_index::vec::IndexVec;
+//         use rustc_mir::borrow_check::region_infer::values::PlaceholderIndices;
+//         use rustc_mir::borrow_check::type_check::free_region_relations;
+//         use rustc_mir::borrow_check::region_infer::values::RegionValueElements;
+
+//         let elements = &std::rc::Rc::new(RegionValueElements::new(&body));
+
+//         let mut constraints = MirTypeckRegionConstraints {
+//             placeholder_indices: PlaceholderIndices::default(),
+//             placeholder_index_to_region: IndexVec::default(),
+//             liveness_constraints: LivenessValues::new(elements.clone()),
+//             outlives_constraints: OutlivesConstraintSet::default(),
+//             member_constraints: MemberConstraintSet::default(),
+//             closure_bounds_mapping: Default::default(),
+//             type_tests: Vec::default(),
+//         };
+
+//         let implicit_region_bound = infcx.tcx.mk_region(ty::ReVar(universal_regions.fr_fn_body));
+
+//         let CreateResult {
+//             universal_region_relations,
+//             region_bound_pairs,
+//             normalized_inputs_and_output,
+//         } = free_region_relations::create(
+//             infcx,
+//             param_env,
+//             Some(implicit_region_bound),
+//             &universal_regions,
+//             &mut constraints,
+//         );
+
+//         // eprintln!("universal_region_relations: {:?}", universal_region_relations);
+//         eprintln!("universal_regions.universal_regions: {:?}",
+//             universal_regions.universal_regions().collect::<Vec<_>>());
+//         eprintln!("universal_region_relations.known_outlives: {:?}",
+//             universal_region_relations.known_outlives().collect::<Vec<_>>());
+//         eprintln!("region_bound_pairs: {:?}", region_bound_pairs);
+//         eprintln!("normalized_inputs_and_output: {:?}", normalized_inputs_and_output);
+
+//         let mut all_facts = Some(Default::default());
+//         use rustc_mir::borrow_check::location::LocationTable;
+//         let location_table = &LocationTable::new(&body);
+
+//         use rustc_mir::borrow_check::borrow_set::BorrowSet;
+//         use rustc_mir::dataflow::MoveDataParamEnv;
+//         use rustc_mir::dataflow::move_paths::MoveData;
+//         use rustc_middle::mir::Place;
+//         use rustc_mir::dataflow::move_paths::MoveError;
+//         let (move_data, _move_errors): (MoveData<'tcx>, Vec<(Place<'tcx>, MoveError<'tcx>)>) =
+//         match MoveData::gather_moves(&body, tcx, param_env) {
+//             Ok(move_data) => (move_data, Vec::new()),
+//             Err((move_data, move_errors)) => (move_data, move_errors),
+//         };
+//         let mdpe = MoveDataParamEnv { move_data, param_env };
+//         let id = tcx.hir().local_def_id_to_hir_id(def.did);
+//         let locals_are_invalidated_at_exit = tcx.hir().body_owner_kind(id).is_fn_or_closure();
+//         let borrow_set =
+//         BorrowSet::build(tcx, body, locals_are_invalidated_at_exit, &mdpe.move_data);
+
+//         use rustc_mir::borrow_check::constraint_generation;
+//         constraint_generation::generate_constraints(
+//             infcx,
+//             &mut constraints.liveness_constraints,
+//             &mut all_facts,
+//             location_table,
+//             &body,
+//             &borrow_set,
+//         );
+//     }
+
+
+//     let info_printer = InfoPrinter { tcx, output, body };
+//     info_printer.print_info().unwrap();
+// }
 
 // mod renumber {
 //     // Copied from

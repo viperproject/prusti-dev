@@ -68,7 +68,10 @@ def get_linux_env():
             # variables.append(('LD_LIBRARY_PATH', ld_library_path))
 
     variables.append((
-        'RUST_SYSROOT', '/home/data/eth/rust/rustc/build/x86_64-unknown-linux-gnu/stage1/'
+        'RUST_SYSROOT',
+        # '/home/data/eth/rust/rustc/build/x86_64-unknown-linux-gnu/stage1-rustc/x86_64-unknown-linux-gnu/release/deps/'
+        # '/home/data/eth/rust/rustc/build/x86_64-unknown-linux-gnu/stage0-rustc/x86_64-unknown-linux-gnu/release/'
+        '/home/data/eth/rust/rustc/build/x86_64-unknown-linux-gnu/stage1'
     ))
     variables.append((
         'RUSTC', '/home/data/eth/rust/rustc/build/x86_64-unknown-linux-gnu/stage1/bin/rustc'
