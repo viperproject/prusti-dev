@@ -2073,71 +2073,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         "core::slice::<impl [T]>::len" => {
-                            trace!("full_func_proc_name: {}", full_func_proc_name);
-                            trace!("self_ty: {:?}", self_ty);
-                            trace!("def_id: {:?}", def_id);
-                            trace!("substs: {:?}", substs);
-                            trace!("args: {:?}", args);
-                            trace!("destination: {:?}", destination);
-                            trace!("ty: {:?}", ty);
-
-                            assert!(args.len() == 1, "unexpected args to slice::len(): {:?}", args);
-                            let slice_operand = self.mir_encoder.encode_operand_expr(&args[0])
-                                .with_span(span)?;
-
-                            trace!("{:?} := Slice${:?}$len({:?})", destination, ty, slice_operand);
-
-                            // we need to put a label before, it seems..
-                            let label = self.cfg_method.get_fresh_label_name();
-                            stmts.push(vir::Stmt::Label(label.clone()));
-
-
-                            let slice_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            let st = self.encode_slice_types(slice_ty).with_span(span)?;
-                            let slice_len_name = self.encoder.encode_builtin_function_use(
-                                BuiltinFunctionKind::SliceLen {
-                                    slice_ty_pred: st.0,
-                                    elem_ty_pred: st.2,
-                                }
-                            );
-
-                            let rhs = vir::Expr::func_app(
-                                slice_len_name,
-                                vec![
-                                    slice_operand.clone(),  // TODO: .val_ref encoding
-                                ],
-                                vec![
-                                    vir::LocalVar::new(
-                                        String::from("self"),
-                                        st.1,
-                                    ),
-                                ],
-                                vir::Type::Int,
-                                vir::Position::default(),
-                            );
-
-                            let (encoded_lhs, encode_stmts, ty, _) = self.encode_place(&destination.as_ref().unwrap().0)
-                            // let (encoded_lhs, encode_stmts) = self.encode_pure_function_call_lhs_value(destination)
-                                .with_span(span)?;
-                            stmts.extend(encode_stmts);
-
+                            debug!("Encoding call of slice::len");
                             stmts.extend(
-                                self.encode_copy_value_assign(
-                                    encoded_lhs,
-                                    rhs,
-                                    ty,
+                                self.encode_slice_len_call(
+                                    destination,
+                                    args,
                                     location,
-                                )?
+                                    span,
+                                ).run_if_err(|| cleanup(&self))?
                             );
-
-                            self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
-
-                            // Store a label for permissions got back from the call
-                            debug!(
-                                "Pure function call location {:?} has label {}",
-                                location, label
-                            );
-                            self.label_after_location.insert(location, label);
                         }
 
                         _ => {
@@ -2257,6 +2201,70 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | TerminatorKind::InlineAsm { .. } => unimplemented!("{:?}", term.kind),
         };
         Ok(result)
+    }
+
+    fn encode_slice_len_call(
+        &mut self,
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+        args: &[mir::Operand<'tcx>],
+        location: mir::Location,
+        span: Span,
+    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        assert!(args.len() == 1, "unexpected args to slice::len(): {:?}", args);
+        let slice_operand = self.mir_encoder.encode_operand_expr(&args[0])
+            .with_span(span)?;
+
+        let mut stmts = vec![];
+
+        // we need to put a label before, it seems..
+        let label = self.cfg_method.get_fresh_label_name();
+        stmts.push(vir::Stmt::Label(label.clone()));
+
+        let slice_ty_ref = self.mir_encoder.get_operand_ty(&args[0]);
+        let slice_ty = if let ty::TyKind::Ref(_, slice_ty, _) = slice_ty_ref.kind() { slice_ty } else { unreachable!() };
+        let st = self.encode_slice_types(slice_ty).with_span(span)?;
+        let slice_len_name = self.encoder.encode_builtin_function_use(
+            BuiltinFunctionKind::SliceLen {
+                slice_ty_pred: st.0,
+                elem_ty_pred: st.2,
+            }
+            );
+
+        let rhs = vir::Expr::func_app(
+            slice_len_name,
+            vec![
+                slice_operand.clone(),
+            ],
+            vec![
+                vir::LocalVar::new_typed_ref("self", st.1),
+            ],
+            vir::Type::Int,
+            vir::Position::default(),
+            );
+
+        let (encoded_lhs, encode_stmts, ty, _) = self.encode_place(&destination.as_ref().unwrap().0)
+            .with_span(span)?;
+        stmts.extend(encode_stmts);
+
+        stmts.extend(
+            self.encode_copy_value_assign(
+                encoded_lhs,
+                rhs,
+                ty,
+                location,
+                )?
+            );
+
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
+
+        // Store a label for permissions got back from the call
+        debug!(
+            "Pure function call location {:?} has label {}",
+            location, label
+            );
+        self.label_after_location.insert(location, label);
+
+        Ok(stmts)
     }
 
     fn encode_cmp_function_call(
