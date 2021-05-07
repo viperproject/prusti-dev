@@ -56,7 +56,7 @@ pub(in crate::environment::borrowck2) fn enrich_mir_body<'tcx>(
 fn collect_borrowck_info<'tcx>(
     infcx: &InferCtxt<'_, 'tcx>,
     input_body: &mir::Body<'tcx>,
-) -> (Vec<RegionVid>, Vec<(RegionVid, RegionVid)>, Vec<ty::Ty<'tcx>>, mir::Body<'tcx>, Option<AllFacts>, LocationTable) {
+) -> (Rc<UniversalRegions<'tcx>>, Vec<(RegionVid, RegionVid)>, Vec<ty::Ty<'tcx>>, mir::Body<'tcx>, Option<AllFacts>, LocationTable) {
     let tcx = infcx.tcx;
 
     let mut body = input_body.clone();
@@ -117,8 +117,7 @@ fn collect_borrowck_info<'tcx>(
         &borrow_set,
     );
 
-    let fn_universal_regions = universal_regions.universal_regions().collect::<Vec<_>>();
     let universal_region_outlives = universal_region_relations.known_outlives().map(|(r1, r2)| (*r1, *r2)).collect::<Vec<_>>();
 
-    (fn_universal_regions, universal_region_outlives, normalized_inputs_and_output, body, all_facts, location_table)
+    (universal_regions, universal_region_outlives, normalized_inputs_and_output, body, all_facts, location_table)
 }
