@@ -40,7 +40,7 @@ use rustc_middle::mir;
 // use rustc::mir::interpret::GlobalId;
 use rustc_middle::ty;
 use std::cell::{RefCell, RefMut};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::Write;
 use std::mem;
 // use viper;
@@ -82,6 +82,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
     pure_function_bodies: RefCell<HashMap<(ProcedureDefId, String), vir::Expr>>,
     pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
+    failed_pure_functions: RefCell<HashSet<(ProcedureDefId, String)>>,
     /// Stub pure functions. Generated when an impure Rust function is invoked
     /// where a pure function is required.
     stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
@@ -153,6 +154,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             procedures: RefCell::new(HashMap::new()),
             pure_function_bodies: RefCell::new(HashMap::new()),
             pure_functions: RefCell::new(HashMap::new()),
+            failed_pure_functions: RefCell::new(HashSet::new()),
             stub_pure_functions: RefCell::new(HashMap::new()),
             spec_functions: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
@@ -1152,8 +1154,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let substs_key = self.type_substitution_key().with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
 
-        if !self.pure_functions.borrow().contains_key(&key) {
+        if !self.pure_functions.borrow().contains_key(&key)
+            && !self.failed_pure_functions.borrow().contains(&key) {
             trace!("not encoded: {:?}", key);
+
+            // In case the function causes an encoding error, put it into the
+            // failed set. If the encoding is successful, we remove it again.
+            self.failed_pure_functions.borrow_mut().insert(key.clone());
+
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
             let procedure = self.env.get_procedure(wrapper_def_id);
             let pure_function_encoder =
@@ -1178,6 +1186,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 .with_span(procedure.get_span())?;
 
             self.log_vir_program_before_viper(function.to_string());
+            self.failed_pure_functions.borrow_mut().remove(&key);
             self.pure_functions.borrow_mut().insert(key, function);
         }
 
