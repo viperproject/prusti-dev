@@ -39,6 +39,7 @@ pub(in crate::environment::borrowck2) fn enrich_mir_body<'tcx>(
     });
     let (universal_regions, universal_regions_outlives, body, all_facts_opt, location_table) = result.unwrap();
     let polonius_facts = all_facts_opt.unwrap();
+    let local_names = super::derive::extract_local_names(&body);
     super::MirBody {
         def_id,
         body,
@@ -47,6 +48,7 @@ pub(in crate::environment::borrowck2) fn enrich_mir_body<'tcx>(
         universal_regions_outlives,
         polonius_facts,
         location_table,
+        local_names
     }
 }
 

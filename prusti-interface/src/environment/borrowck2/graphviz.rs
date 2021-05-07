@@ -31,6 +31,18 @@ macro_rules! write_graph {
     }
 }
 
+macro_rules! to_html {
+    ( $o:expr ) => {{
+        format!("{:?}", $o)
+            .replace("{", "\\{")
+            .replace("}", "\\}")
+            .replace("&", "&amp;")
+            .replace(">", "&gt;")
+            .replace("<", "&lt;")
+            .replace("\n", "<br/>")
+    }};
+}
+
 impl<'tcx, 'a> GraphvizWriter<'tcx, 'a> {
     fn new(path: &Path, body: &'a MirBody<'tcx>) -> IoResult<Self> {
         let output = GraphvizFile::new(path)?;
@@ -40,7 +52,29 @@ impl<'tcx, 'a> GraphvizWriter<'tcx, 'a> {
     }
     fn write_all(&self) -> IoResult {
         write_graph!(self, "digraph G {{\n");
+        self.print_temp_variables()?;
         write_graph!(self, "}}\n");
+        Ok(())
+    }
+    fn print_temp_variables(&self) -> Result<(), io::Error> {
+        write_graph!(self, "Variables [ style=filled shape = \"record\"");
+        write_graph!(self, "label =<<table>");
+        write_graph!(self, "<tr><td>VARIABLES</td></tr>");
+        write_graph!(
+            self,
+            "<tr><td>Name</td><td>Temporary</td><td>Type</td><td>Region</td></tr>"
+        );
+        for local in self.body.iter_locals() {
+            write_graph!(
+                self,
+                "<tr><td>{}</td><td>{:?}</td><td>{}</td><td>{}</td></tr>",
+                local.name().unwrap_or(""),
+                local.id(),
+                to_html!(local.ty()),
+                "todo: region"
+            );
+        }
+        write_graph!(self, "</table>>];");
         Ok(())
     }
 }
