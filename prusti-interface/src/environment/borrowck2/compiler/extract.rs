@@ -20,11 +20,15 @@ use rustc_mir::borrow_check::type_check::free_region_relations;
 use rustc_mir::borrow_check::region_infer::values::RegionValueElements;
 use rustc_mir::borrow_check::location::LocationTable;
 use rustc_mir::borrow_check::borrow_set::BorrowSet;
+use rustc_mir::borrow_check::type_check::type_check;
+use rustc_mir::dataflow::impls::MaybeInitializedPlaces;
 use rustc_mir::dataflow::MoveDataParamEnv;
 use rustc_mir::dataflow::move_paths::MoveData;
 use rustc_middle::mir::Place;
 use rustc_mir::dataflow::move_paths::MoveError;
 use rustc_mir::borrow_check::facts::AllFacts;
+use rustc_mir::dataflow::Analysis;
+use rustc_mir::borrow_check::Upvar;
 
 /// Enrich the given `mir::Body` with the lifetime information.
 pub(in crate::environment::borrowck2) fn enrich_mir_body<'tcx>(
@@ -106,6 +110,42 @@ fn collect_borrowck_info<'tcx>(
     let id = tcx.hir().local_def_id_to_hir_id(def.did);
     let locals_are_invalidated_at_exit = tcx.hir().body_owner_kind(id).is_fn_or_closure();
     let borrow_set = BorrowSet::build(tcx, &body, locals_are_invalidated_at_exit, &mdpe.move_data);
+
+    let mut flow_inits = MaybeInitializedPlaces::new(tcx, &body, &mdpe)
+        .into_engine(tcx, &body)
+        .pass_name("borrowck")
+        .iterate_to_fixpoint()
+        .into_results_cursor(&body);
+    let tables = tcx.typeck_opt_const_arg(def);
+    if let Some(ErrorReported) = tables.tainted_by_errors {
+        infcx.set_tainted_by_errors();
+    }
+    let upvars: Vec<_> = tables
+        .closure_min_captures_flattened(def.did.to_def_id())
+        .map(|captured_place| {
+            let capture = captured_place.info.capture_kind;
+            let by_ref = match capture {
+                ty::UpvarCapture::ByValue(_) => false,
+                ty::UpvarCapture::ByRef(..) => true,
+            };
+            Upvar { place: captured_place.clone(), by_ref }
+        })
+        .collect();
+
+    type_check(
+        infcx,
+        param_env,
+        &body,
+        &promoted,
+        &universal_regions,
+        &location_table,
+        &borrow_set,
+        &mut all_facts,
+        &mut flow_inits,
+        &mdpe.move_data,
+        elements,
+        &upvars,
+    );
 
     use rustc_mir::borrow_check::constraint_generation;
     constraint_generation::generate_constraints(
