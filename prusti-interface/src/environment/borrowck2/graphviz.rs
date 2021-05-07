@@ -178,6 +178,8 @@ impl<'tcx, 'a> GraphvizWriter<'tcx, 'a> {
         write_graph!(self, "<th>");
         write_graph!(self, "<td>Nr</td>");
         write_graph!(self, "<td>statement</td>");
+        write_graph!(self, "<td>outlives start</td>");
+        write_graph!(self, "<td>outlives mid</td>");
         write_graph!(self, "</th>");
 
         let block = self.body.get_block(bb);
@@ -210,6 +212,8 @@ impl<'tcx, 'a> GraphvizWriter<'tcx, 'a> {
         write_graph!(self, "<tr>");
         write_graph!(self, "<td>{}</td>", statement.index());
         write_graph!(self, "<td>{}</td>", to_html!(statement.kind()));
+        write_graph!(self, "<td>{}</td>", to_sorted_string!(self.body.get_outlives_at_start(statement.location())));
+        write_graph!(self, "<td>{}</td>", to_sorted_string!(self.body.get_outlives_at_mid(statement.location())));
         write_graph!(self, "</tr>");
         Ok(())
     }

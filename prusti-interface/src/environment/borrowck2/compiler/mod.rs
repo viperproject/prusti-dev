@@ -4,6 +4,7 @@ use rustc_hir::{def_id::DefId};
 use rustc_mir::borrow_check::facts::AllFacts;
 use rustc_mir::borrow_check::location::LocationTable;
 use rustc_mir::borrow_check::universal_regions::UniversalRegions;
+use rustc_mir::borrow_check::location::LocationIndex;
 
 mod extract;
 mod derive;
@@ -24,6 +25,8 @@ pub struct MirBody<'tcx> {
     // Derived information.
     /// The names of local variables.
     local_names: HashMap<mir::Local, String>,
+    /// Outlives relations at the given statement.
+    outlives: HashMap<LocationIndex, Vec<(ty::RegionVid, ty::RegionVid)>>,
 }
 
 pub struct Variable<'body, 'tcx> {
@@ -90,6 +93,14 @@ impl<'tcx> MirBody<'tcx> {
     pub fn get_universal_region_outlives(&self) -> &[(ty::RegionVid, ty::RegionVid)] {
         &self.universal_regions_outlives
     }
+    pub fn get_outlives_at_start(&self, location: mir::Location) -> Option<&Vec<(ty::RegionVid, ty::RegionVid)>> {
+        let index = self.location_table.start_index(location);
+        self.outlives.get(&index)
+    }
+    pub fn get_outlives_at_mid(&self, location: mir::Location) -> Option<&Vec<(ty::RegionVid, ty::RegionVid)>> {
+        let index = self.location_table.mid_index(location);
+        self.outlives.get(&index)
+    }
 }
 
 impl<'body, 'tcx> Variable<'body, 'tcx> {
@@ -142,6 +153,9 @@ impl<'body, 'tcx> Statement<'body, 'tcx> {
     }
     pub fn kind(&self) -> &mir::StatementKind<'tcx> {
         &self.statement.kind
+    }
+    pub fn location(&self) -> mir::Location {
+        self.location
     }
 }
 
