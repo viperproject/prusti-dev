@@ -5,15 +5,9 @@ extern crate jni;
 extern crate log;
 extern crate viper_sys;
 
-use jni::objects::JObject;
-use jni::InitArgsBuilder;
-use jni::JNIVersion;
-use jni::JavaVM;
-use std::convert::From;
-use std::env;
-use std::fs;
-use viper_sys::get_system_out;
-use viper_sys::wrappers::*;
+use jni::{objects::JObject, InitArgsBuilder, JNIVersion, JavaVM};
+use std::{convert::From, env, fs};
+use viper_sys::{get_system_out, wrappers::*};
 
 #[test]
 fn verify_empty_program() {
@@ -34,7 +28,10 @@ fn verify_empty_program() {
     let classpath_separator = if cfg!(windows) { ";" } else { ":" };
     let jvm_args = InitArgsBuilder::new()
         .version(JNIVersion::V8)
-        .option(&format!("-Djava.class.path={}", jar_paths.join(classpath_separator)))
+        .option(&format!(
+            "-Djava.class.path={}",
+            jar_paths.join(classpath_separator)
+        ))
         .option("-Xdebug")
         //.option("-verbose:gc")
         //.option("-Xcheck:jni")
@@ -57,7 +54,8 @@ fn verify_empty_program() {
 
     env.with_local_frame(32, || {
         let reporter = viper::silver::reporter::NoopReporter_object::with(&env).singleton()?;
-        let plugin_aware_reporter = viper::silver::plugin::PluginAwareReporter::with(&env).new(reporter)?;
+        let plugin_aware_reporter =
+            viper::silver::plugin::PluginAwareReporter::with(&env).new(reporter)?;
         let debug_info = scala::collection::immutable::Nil_object::with(&env).singleton()?;
         let silicon = viper::silicon::Silicon::with(&env).new(plugin_aware_reporter, debug_info)?;
         let verifier = viper::silver::verifier::Verifier::with(&env);
@@ -65,25 +63,13 @@ fn verify_empty_program() {
         let array_buffer_wrapper = scala::collection::mutable::ArrayBuffer::with(&env);
         let silicon_args_array = array_buffer_wrapper.new(4)?;
 
-        array_buffer_wrapper.call_append(
-            silicon_args_array,
-            *env.new_string("--z3Exe")?,
-        )?;
+        array_buffer_wrapper.call_append(silicon_args_array, *env.new_string("--z3Exe")?)?;
 
-        array_buffer_wrapper.call_append(
-            silicon_args_array,
-            *env.new_string(&z3_path)?,
-        )?;
+        array_buffer_wrapper.call_append(silicon_args_array, *env.new_string(&z3_path)?)?;
 
-        array_buffer_wrapper.call_append(
-            silicon_args_array,
-            *env.new_string("--ignoreFile")?,
-        )?;
+        array_buffer_wrapper.call_append(silicon_args_array, *env.new_string("--ignoreFile")?)?;
 
-        array_buffer_wrapper.call_append(
-            silicon_args_array,
-            *env.new_string("dummy.vpr")?,
-        )?;
+        array_buffer_wrapper.call_append(silicon_args_array, *env.new_string("dummy.vpr")?)?;
 
         let silicon_args_seq = array_buffer_wrapper.call_toSeq(silicon_args_array)?;
 
@@ -114,9 +100,7 @@ fn verify_empty_program() {
         Ok(JObject::null())
     })
     .unwrap_or_else(|e| {
-        let exception_occurred = env
-            .exception_check()
-            .unwrap_or_else(|e| panic!("{:?}", e));
+        let exception_occurred = env.exception_check().unwrap_or_else(|e| panic!("{:?}", e));
         if exception_occurred {
             env.exception_describe()
                 .unwrap_or_else(|e| panic!("{:?}", e));
