@@ -62,34 +62,30 @@ fn verify_empty_program() {
         let silicon = viper::silicon::Silicon::with(&env).new(plugin_aware_reporter, debug_info)?;
         let verifier = viper::silver::verifier::Verifier::with(&env);
 
-        let silicon_args_array =
-            JObject::from(env.new_object_array(4, "java/lang/String", JObject::null())?);
+        let array_buffer_wrapper = scala::collection::mutable::ArrayBuffer::with(&env);
+        let silicon_args_array = array_buffer_wrapper.new(4)?;
 
-        env.set_object_array_element(
-            *silicon_args_array,
-            0,
-            env.new_string("--z3Exe")?,
+        array_buffer_wrapper.call_append(
+            silicon_args_array,
+            *env.new_string("--z3Exe")?,
         )?;
 
-        env.set_object_array_element(
-            *silicon_args_array,
-            1,
-            env.new_string(&z3_path)?,
+        array_buffer_wrapper.call_append(
+            silicon_args_array,
+            *env.new_string(&z3_path)?,
         )?;
 
-        env.set_object_array_element(
-            *silicon_args_array,
-            2,
-            env.new_string("--ignoreFile")?,
+        array_buffer_wrapper.call_append(
+            silicon_args_array,
+            *env.new_string("--ignoreFile")?,
         )?;
 
-        env.set_object_array_element(
-            *silicon_args_array,
-            3,
-            env.new_string("dummy.vpr")?,
+        array_buffer_wrapper.call_append(
+            silicon_args_array,
+            *env.new_string("dummy.vpr")?,
         )?;
 
-        let silicon_args_seq = scala::Predef::with(&env).call_wrapRefArray(silicon_args_array)?;
+        let silicon_args_seq = array_buffer_wrapper.call_toSeq(silicon_args_array)?;
 
         verifier.call_parseCommandLine(silicon, silicon_args_seq)?;
 
