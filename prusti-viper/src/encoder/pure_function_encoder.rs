@@ -18,7 +18,7 @@ use crate::encoder::mir_interpreter::{
 use crate::encoder::snapshot;
 use crate::encoder::Encoder;
 use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
-use prusti_common::vir;
+use prusti_common::{vir, vir_local};
 use prusti_common::vir::ExprIterator;
 use prusti_common::config;
 use prusti_interface::specs::typed;
@@ -210,7 +210,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             self.mir.span,
             ErrorCtxt::PureFunctionPostconditionValueRangeOfResult,
         );
-        let pure_fn_return_variable = vir::LocalVar::new("__result", return_type.clone());
+        let pure_fn_return_variable = vir_local!{ __result: {return_type.clone()} };
         // Add value range of the arguments and return value to the pre/postconditions
         if config::check_overflows() {
             let return_bounds: Vec<_> = self
@@ -390,8 +390,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .register(self.mir.span, ErrorCtxt::GenericExpression);
 
         // Fix return variable
-        let pure_fn_return_variable =
-            vir::LocalVar::new("__result", self.encode_function_return_type()?);
+        let pure_fn_return_variable = vir_local!{ __result: {self.encode_function_return_type()?} };
 
         let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos);
@@ -616,7 +615,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 assert!(states.is_empty());
                 trace!("Return type: {:?}", self.mir.return_ty());
                 let return_type = self.encoder.encode_type(self.mir.return_ty()).with_span(span)?;
-                let return_var = vir::LocalVar::new("_0", return_type);
+                let return_var = vir_local!{ _0: {return_type} };
                 MultiExprBackwardInterpreterState::new_single(
                     self.encoder.encode_value_expr(
                         vir::Expr::local(return_var.into()),

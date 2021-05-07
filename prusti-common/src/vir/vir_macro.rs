@@ -2,11 +2,12 @@
 macro_rules! vir_type {
     (Int) => {$crate::vir::Type::Int};
     (Bool) => {$crate::vir::Type::Bool};
+    ({$ty:expr}) => { $ty }
 }
 
 #[macro_export]
 macro_rules! vir_local {
-    ($name: ident : $type: ident) => {
+    ($name:ident : $type:tt) => {
         $crate::vir::LocalVar {
             name: stringify!($name).to_string(),
             typ: $crate::vir_type!($type)
@@ -106,7 +107,7 @@ macro_rules! vir {
         $crate::vir::Expr::magic_wand(vir!($lhs), vir!($rhs), $borrow)
     };
 
-    (forall $($name: ident : $type: ident),+ :: {$($triggers: tt),*} $body: tt) => {
+    (forall $($name: ident : $type: tt),+ :: {$($triggers: tt),*} $body: tt) => {
         $crate::vir::Expr::forall(
             vec![$($crate::vir_local!($name: $type)),+],
             vec![$(Trigger::new(vec![vir!($triggers)])),*],

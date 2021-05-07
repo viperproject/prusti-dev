@@ -3,9 +3,13 @@ use crate::encoder::{
     snapshot_encoder::{Snapshot, SnapshotEncoder},
 };
 use log::{debug, info, trace};
-use prusti_common::vir::{
-    self, Expr, ExprFolder, FallibleExprFolder, Field, LocalVar, PermAmount, Position, Type,
-    WithIdentifier,
+use prusti_common::{
+    vir,
+    vir_local,
+    vir::{
+        Expr, ExprFolder, FallibleExprFolder, Field, LocalVar,
+        PermAmount, Position, Type, WithIdentifier,
+    },
 };
 use std::collections::HashMap;
 
@@ -84,7 +88,7 @@ impl<'a> FallibleExprFolder for ExprPurifier<'a> {
                 "discriminant" => {
                     let domain_name = receiver_domain;
                     let snap_type = vir::Type::Domain(domain_name.to_string());
-                    let arg = vir::LocalVar::new("self", snap_type);
+                    let arg = vir_local!{ self: {snap_type} };
                     let domain_func = vir::DomainFunc {
                         name: "variant$".to_string(), //TODO use constant
                         formal_args: vec![arg],

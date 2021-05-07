@@ -19,10 +19,11 @@ use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 use crate::encoder::spec_encoder::encode_spec_assertion;
 use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder, self};
 use crate::encoder::type_encoder::{
-    compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
+    compute_discriminant_values, compute_discriminant_bounds, TypeEncoder,
+};
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
-use prusti_common::vir;
+use prusti_common::{vir, vir_local};
 use prusti_common::vir::{WithIdentifier, ExprIterator};
 use prusti_common::config;
 use prusti_common::report::log;
@@ -347,10 +348,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         // Add a predicate that represents the dead loan token.
         predicates.push(vir::Predicate::Bodyless(
             "DeadBorrowToken$".to_string(),
-            vir::LocalVar {
-                name: "borrow".to_string(),
-                typ: vir::Type::Int,
-            },
+            vir_local!{ borrow: Int },
         ));
 
         predicates.sort_by_key(|f| f.get_identifier());
@@ -620,7 +618,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let typ = place.get_type().clone();
         let mut name = typ.name();
         name.push_str("$$discriminant$$");
-        let self_local_var = vir::LocalVar::new("self", typ);
+        let self_local_var = vir_local!{ self: {typ} };
         self.type_discriminant_funcs
             .borrow_mut()
             .entry(name.clone())
@@ -631,7 +629,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     self_local_var.clone().into(),
                     vir::PermAmount::Read,
                 );
-                let result = vir::LocalVar::new("__result", vir::Type::Int);
+                let result = vir_local!{ __result: Int };
                 let mut postcondition = compute_discriminant_bounds(
                     adt_def, self.env.tcx(), &result.clone().into());
                 if config::enable_purification_optimization() {
@@ -754,11 +752,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
-            let arg = vir::LocalVar::new(
-                String::from("number"),
-                self.encode_value_type(src_ty)?,
-            );
-            let result = vir::LocalVar::new("__result", self.encode_value_type(dst_ty)?);
+            let arg = vir_local!{ number: {self.encode_value_type(src_ty)?} };
+            let result = vir_local!{ __result: {self.encode_value_type(dst_ty)?} };
             let mut precondition = self.encode_type_bounds(&arg.clone().into(), src_ty);
             precondition.extend(self.encode_type_bounds(&arg.clone().into(), dst_ty));
             let postcondition = self.encode_type_bounds(&result.into(), dst_ty);
@@ -1141,7 +1136,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.encode_type_invariant_use(ty)?,
             vec![encoded_arg],
             // TODO ?
-            vec![vir::LocalVar::new("self", vir::Type::TypedRef(type_pred))],
+            vec![vir_local!{ self: {vir::Type::TypedRef(type_pred)} }],
             vir::Type::Bool,
             // TODO
             vir::Position::default(),
@@ -1305,7 +1300,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 box vir::Expr::BinOp(
                     vir::BinOpKind::EqCmp,
                     box vir::Expr::Local(
-                        vir::LocalVar::new("__result", function.return_type.clone()),
+                        vir_local!{ __result: {function.return_type.clone()} },
                         vir::Position::default(),
                     ),
                     box vir::Expr::DomainFuncApp(
@@ -1323,7 +1318,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             box vir::Expr::BinOp(
                 vir::BinOpKind::EqCmp,
                 box vir::Expr::Local(
-                    vir::LocalVar::new("__result", function.return_type.clone()),
+                    vir_local!{ __result: {function.return_type.clone()} },
                     vir::Position::default(),
                 ),
                 box vir::Expr::DomainFuncApp(
