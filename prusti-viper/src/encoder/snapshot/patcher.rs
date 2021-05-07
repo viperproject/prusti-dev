@@ -56,7 +56,6 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
         field: vir::Field,
         pos: vir::Position,
     ) -> Result<vir::Expr, Self::Error> {
-        let receiver = self.fallible_fold_boxed(receiver)?;
         match receiver {
             box vir::Expr::Variant(receiver, variant, pos2) => {
                 let receiver = self.fallible_fold_boxed(receiver)?;
@@ -75,6 +74,7 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
                 }
             },
             receiver => {
+                let receiver = self.fallible_fold_boxed(receiver)?;
                 match receiver.get_type() {
                     vir::Type::Int if field.name == "val_int" => Ok(*receiver),
                     vir::Type::Bool if field.name == "val_bool" => Ok(*receiver),
@@ -134,12 +134,14 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
         enum_expr: Box<vir::Expr>,
         field: vir::Field,
     ) -> Result<vir::Expr, Self::Error> {
-        if enum_expr.get_type().is_snapshot() {
-            FallibleExprFolder::fallible_fold(self, *base)
+        let base = FallibleExprFolder::fallible_fold(self, *base)?;
+        let enum_expr = FallibleExprFolder::fallible_fold(self, *enum_expr)?;
+        if base.get_type().is_snapshot() || enum_expr.get_type().is_snapshot() {
+            Ok(base)
         } else {
             Ok(vir::Expr::Downcast(
-                box FallibleExprFolder::fallible_fold(self, *base)?,
-                enum_expr,
+                box base,
+                box enum_expr,
                 field,
             ))
         }
