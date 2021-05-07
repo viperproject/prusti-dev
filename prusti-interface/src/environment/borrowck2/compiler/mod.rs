@@ -14,6 +14,7 @@ pub(super) use self::extract::enrich_mir_body;
 pub struct MirBody<'tcx> {
     def_id: DefId,
     // Information obtained from the borrow checker.
+    inputs_and_output: Vec<ty::Ty<'tcx>>,
     body: mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     universal_regions: Vec<ty::RegionVid>,
@@ -31,6 +32,24 @@ pub struct Variable<'body, 'tcx> {
     body: &'body MirBody<'tcx>,
 }
 
+pub struct BasicBlock<'body, 'tcx> {
+    index: mir::BasicBlock,
+    data: &'body mir::BasicBlockData<'tcx>,
+    body: &'body MirBody<'tcx>,
+}
+
+pub struct Statement<'body, 'tcx> {
+    location: mir::Location,
+    statement: &'body mir::Statement<'tcx>,
+    body: &'body MirBody<'tcx>,
+}
+
+pub struct Terminator<'body, 'tcx> {
+    location: mir::Location,
+    terminator: &'body mir::Terminator<'tcx>,
+    body: &'body MirBody<'tcx>,
+}
+
 impl<'tcx> MirBody<'tcx> {
     pub fn iter_locals<'a>(&'a self) -> impl Iterator<Item=Variable<'a, 'tcx>> {
         self.body.local_decls.iter_enumerated().map(move |(id, decl)| {
@@ -40,6 +59,16 @@ impl<'tcx> MirBody<'tcx> {
                 body: self,
             }
         })
+    }
+    pub fn basic_block_indices(&self) -> impl Iterator<Item=mir::BasicBlock> {
+        self.body.basic_blocks().indices()
+    }
+    pub fn get_block<'a>(&'a self, index: mir::BasicBlock) -> BasicBlock<'a, 'tcx> {
+        BasicBlock {
+            index,
+            data: &self.body[index],
+            body: self,
+        }
     }
 }
 
@@ -55,5 +84,52 @@ impl<'body, 'tcx> Variable<'body, 'tcx> {
     /// Return the type of the variable.
     pub fn ty(&self) -> ty::Ty<'tcx> {
         self.decl.ty
+    }
+}
+
+impl<'body, 'tcx> BasicBlock<'body, 'tcx> {
+    pub fn iter_statements<'a>(&'a self) -> impl Iterator<Item=Statement<'a, 'tcx>> {
+        self.data.statements.iter().enumerate().map(
+            move |(index, statement)| {
+                Statement {
+                    location: mir::Location {
+                        block: self.index,
+                        statement_index: index,
+                    },
+                    statement,
+                    body: self.body
+                }
+            }
+        )
+    }
+    pub fn terminator<'a>(&'a self) -> Option<Terminator<'a, 'tcx>> {
+        self.data.terminator.as_ref().map(|terminator| {
+            Terminator {
+                location: mir::Location {
+                    block: self.index,
+                    statement_index: self.data.statements.len(),
+                },
+                terminator,
+                body: self.body,
+            }
+        })
+    }
+}
+
+impl<'body, 'tcx> Statement<'body, 'tcx> {
+    pub fn index(&self) -> usize {
+        self.location.statement_index
+    }
+    pub fn kind(&self) -> &mir::StatementKind<'tcx> {
+        &self.statement.kind
+    }
+}
+
+impl<'body, 'tcx> Terminator<'body, 'tcx> {
+    pub fn basic_block(&self) -> mir::BasicBlock {
+        self.location.block
+    }
+    pub fn kind(&self) -> &mir::TerminatorKind<'tcx> {
+        &self.terminator.kind
     }
 }

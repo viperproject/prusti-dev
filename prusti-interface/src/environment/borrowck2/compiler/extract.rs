@@ -37,11 +37,12 @@ pub(in crate::environment::borrowck2) fn enrich_mir_body<'tcx>(
     tcx.infer_ctxt().enter(|infcx| {
         *result_borrow = Some(collect_borrowck_info(&infcx, input_body));
     });
-    let (universal_regions, universal_regions_outlives, body, all_facts_opt, location_table) = result.unwrap();
+    let (universal_regions, universal_regions_outlives, inputs_and_output, body, all_facts_opt, location_table) = result.unwrap();
     let polonius_facts = all_facts_opt.unwrap();
     let local_names = super::derive::extract_local_names(&body);
     super::MirBody {
         def_id,
+        inputs_and_output,
         body,
         tcx,
         universal_regions,
@@ -55,7 +56,7 @@ pub(in crate::environment::borrowck2) fn enrich_mir_body<'tcx>(
 fn collect_borrowck_info<'tcx>(
     infcx: &InferCtxt<'_, 'tcx>,
     input_body: &mir::Body<'tcx>,
-) -> (Vec<RegionVid>, Vec<(RegionVid, RegionVid)>, mir::Body<'tcx>, Option<AllFacts>, LocationTable) {
+) -> (Vec<RegionVid>, Vec<(RegionVid, RegionVid)>, Vec<ty::Ty<'tcx>>, mir::Body<'tcx>, Option<AllFacts>, LocationTable) {
     let tcx = infcx.tcx;
 
     let mut body = input_body.clone();
@@ -84,7 +85,7 @@ fn collect_borrowck_info<'tcx>(
 
     let CreateResult {
         universal_region_relations,
-        region_bound_pairs,
+        region_bound_pairs: _,
         normalized_inputs_and_output,
     } = free_region_relations::create(
         infcx,
@@ -119,5 +120,5 @@ fn collect_borrowck_info<'tcx>(
     let fn_universal_regions = universal_regions.universal_regions().collect::<Vec<_>>();
     let universal_region_outlives = universal_region_relations.known_outlives().map(|(r1, r2)| (*r1, *r2)).collect::<Vec<_>>();
 
-    (fn_universal_regions, universal_region_outlives, body, all_facts, location_table)
+    (fn_universal_regions, universal_region_outlives, normalized_inputs_and_output, body, all_facts, location_table)
 }
