@@ -127,6 +127,23 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
             pos,
         ))
     }
+
+    fn fallible_fold_downcast(
+        &mut self,
+        base: Box<vir::Expr>,
+        enum_expr: Box<vir::Expr>,
+        field: vir::Field,
+    ) -> Result<vir::Expr, Self::Error> {
+        if enum_expr.get_type().is_snapshot() {
+            FallibleExprFolder::fallible_fold(self, *base)
+        } else {
+            Ok(vir::Expr::Downcast(
+                box FallibleExprFolder::fallible_fold(self, *base)?,
+                enum_expr,
+                field,
+            ))
+        }
+    }
 }
 
 impl<'v, 'tcx: 'v> FallibleStmtFolder for SnapshotPatcher<'v, 'tcx> {
@@ -137,6 +154,18 @@ impl<'v, 'tcx: 'v> FallibleStmtFolder for SnapshotPatcher<'v, 'tcx> {
         expr: vir::Expr
     ) -> Result<vir::Expr, Self::Error> {
         FallibleExprFolder::fallible_fold(self, expr)
+    }
+
+    fn fallible_fold_downcast(
+        &mut self,
+        e: vir::Expr,
+        f: vir::Field
+    ) -> Result<vir::Stmt, Self::Error> {
+        if e.get_type().is_snapshot() {
+            Ok(vir::Stmt::comment("patched out Downcast stmt"))
+        } else {
+            Ok(vir::Stmt::Downcast(self.fallible_fold_expr(e)?, f))
+        }
     }
 }
 
