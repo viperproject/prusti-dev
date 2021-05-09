@@ -135,14 +135,14 @@ impl BuiltinEncoder {
                     ],
                     return_type: return_ty,
                     pres: vec![
-                        // idx < {len}
-                        vir!([vir::Expr::local(idx_var)]  < [vir::Expr::from(array_len)]),
                         // acc(self, read$())
                         vir::Expr::predicate_access_predicate(
                             array_ty_pred,
                             vir::Expr::local(self_var),
                             vir::PermAmount::Read,
-                        )
+                        ),
+                        // idx < {len}
+                        vir!([vir::Expr::local(idx_var)]  < [vir::Expr::from(array_len)]),
                     ],
                     posts: vec![],
                     body: None,
@@ -175,14 +175,14 @@ impl BuiltinEncoder {
                     ],
                     return_type: return_ty,
                     pres: vec![
-                        // idx < Slice${ty}$len(self)
-                        vir!{ [vir::Expr::local(idx_var)] < [slice_len_call] },
                         // acc(self, read$())
                         vir::Expr::predicate_access_predicate(
                             slice_ty_pred,
                             vir::Expr::local(self_var),
                             vir::PermAmount::Read,
-                        )
+                        ),
+                        // idx < Slice${ty}$len(self)
+                        vir!{ [vir::Expr::local(idx_var)] < [slice_len_call] },
                     ],
                     posts: vec![],
                     body: None,
