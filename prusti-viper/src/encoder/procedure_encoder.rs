@@ -79,6 +79,15 @@ struct EncodedArrayTypes<'tcx> {
     array_len: usize,
 }
 
+struct EncodedSliceTypes<'tcx> {
+    slice_pred: String,
+    slice_ty: vir::Type,
+    elem_pred: String,
+    elem_ty: vir::Type,
+    elem_value_ty: vir::Type,
+    elem_ty_rs: ty::Ty<'tcx>,
+}
+
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: ProcedureDefId,
@@ -2225,8 +2234,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let st = self.encode_slice_types(slice_ty).with_span(span)?;
         let slice_len_name = self.encoder.encode_builtin_function_use(
             BuiltinFunctionKind::SliceLen {
-                slice_ty_pred: st.0.clone(),
-                elem_ty_pred: st.2,
+                slice_ty_pred: st.slice_pred.clone(),
+                elem_ty_pred: st.elem_pred,
             }
         );
 
@@ -2236,7 +2245,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 slice_operand.clone(),
             ],
             vec![
-                vir::LocalVar::new("self", st.1),
+                vir::LocalVar::new("self", st.slice_ty),
             ],
             vir::Type::Int,
             vir::Position::default(),
@@ -5092,21 +5101,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
             },
             ty::TyKind::Slice(..) => {
-                let (slice_ty_pred, _slice_ty, elem_ty_pred, _elem_ty, _elem_value_ty, _elem_ty_rs) =
-                    self.encode_slice_types(place_ty)
+                let st = self.encode_slice_types(place_ty)
                         .with_span(span)?;
 
                 // encode Slice$<elem_ty>$len
                 let slice_len = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::SliceLen {
-                        slice_ty_pred: slice_ty_pred.clone(),
-                        elem_ty_pred,
+                        slice_ty_pred: st.slice_pred.clone(),
+                        elem_ty_pred: st.elem_pred,
                     }
                 );
 
                 stmts.push(vir::Stmt::Assert(
                     vir::Expr::predicate_access_predicate(
-                        slice_ty_pred.clone(),
+                        st.slice_pred.clone(),
                         encoded_place.clone(),
                         vir::PermAmount::Read,
                     ),
@@ -5431,21 +5439,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_slice_types(
         &self,
         slice_ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<(
-        String,
-        vir::Type,
-        String,
-        vir::Type,
-        vir::Type,
-        ty::Ty<'tcx>,
-    )> {
-        // get rid of ref
-        let slice_ty = match slice_ty.kind() {
-            ty::TyKind::Ref(_, ty, _) => ty,
-            ty::TyKind::Slice(..) => slice_ty,
-            _ => unreachable!("encode_slice_types got unexected type {:?}", slice_ty),
-        };
-
+    ) -> EncodingResult<EncodedSliceTypes<'tcx>> {
         let slice_pred = self.encoder.encode_type_predicate_use(slice_ty)?;
         let elem_ty_rs = if let ty::TyKind::Slice(elem_ty) = slice_ty.kind() {
             elem_ty
@@ -5459,7 +5453,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let elem_ty = self.encoder.encode_type(elem_ty_rs)?;
         let elem_value_ty = self.encoder.encode_value_type(elem_ty_rs)?;
 
-        Ok((slice_pred, slice_ty, elem_pred, elem_ty, elem_value_ty, elem_ty_rs))
+        Ok(EncodedSliceTypes{
+            slice_pred,
+            slice_ty,
+            elem_pred,
+            elem_ty,
+            elem_value_ty,
+            elem_ty_rs,
+        })
     }
 
     fn encode_array_types(&self, array_ty: ty::Ty<'tcx>) -> EncodingResult<EncodedArrayTypes<'tcx>> {
@@ -5780,19 +5781,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (vir::Expr::Variant(box expr, field, vir::Position::default()), stmts)
             }
             PlaceEncoding::SliceAccess { base, index, rust_slice_ty, .. } => {
-                let (slice_pred, slice_ty, elem_pred, elem_ty, elem_value_ty, elem_ty_rs) =
-                    self.encode_slice_types(rust_slice_ty)?;
+                let st = self.encode_slice_types(rust_slice_ty)?;
 
                 let lookup_pure = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::SliceLookupPure {
-                        slice_ty_pred: slice_pred,
-                        elem_ty_pred: elem_pred,
-                        return_ty: elem_value_ty.clone(),
+                        slice_ty_pred: st.slice_pred,
+                        elem_ty_pred: st.elem_pred,
+                        return_ty: st.elem_value_ty.clone(),
                     }
                 );
 
-                let res = vir::Expr::local(self.cfg_method.add_fresh_local_var(elem_ty));
-                let val_field = self.encoder.encode_value_field(elem_ty_rs);
+                let res = vir::Expr::local(self.cfg_method.add_fresh_local_var(st.elem_ty));
+                let val_field = self.encoder.encode_value_field(st.elem_ty_rs);
                 let res_val_field = res.clone().field(val_field);
 
                 let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base)?;
@@ -5810,11 +5810,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vec![
                         vir::LocalVar::new(
                             String::from("self"),
-                            slice_ty,
+                            st.slice_ty,
                         ),
                         vir_local!{ idx: Int },
                     ],
-                    elem_value_ty,
+                    st.elem_value_ty,
                     vir::Position::default(),
                 );
 
