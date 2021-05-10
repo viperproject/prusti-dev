@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use rustc_middle::ty;
 use rustc_middle::mir;
 use rustc_span::MultiSpan;
-use prusti_common::vir;
+use prusti_common::{vir, vir_local};
 use prusti_common::vir::ExprIterator;
 use crate::encoder::Encoder;
 use crate::encoder::type_encoder::compute_discriminant_values;
@@ -51,8 +51,8 @@ impl MemoryEqEncoder {
         if !self.memory_eq_funcs.contains_key(&name) {
             self.encode_memory_eq_func(encoder, name.clone(), self_ty)?
         }
-        let first_local_var = vir::LocalVar::new("self", typ.clone());
-        let second_local_var = vir::LocalVar::new("other", typ);
+        let first_local_var = vir_local!{ self: {typ.clone()} };
+        let second_local_var = vir_local!{ other: {typ} };
         Ok(vir::Expr::FuncApp(
             name,
             vec![first, second],
@@ -77,8 +77,8 @@ impl MemoryEqEncoder {
         // will panic if attempting to encode unsupported type
         let type_name = encoder.encode_type_predicate_use(self_ty).unwrap();
         let typ = vir::Type::TypedRef(type_name.clone());
-        let first_local_var = vir::LocalVar::new("self", typ.clone());
-        let second_local_var = vir::LocalVar::new("other", typ);
+        let first_local_var = vir_local!{ self: {typ.clone()} };
+        let second_local_var = vir_local!{ other: {typ} };
         let precondition = vec![
             vir::Expr::predicate_access_predicate(
                 type_name.clone(),
@@ -303,8 +303,8 @@ impl MemoryEqEncoder {
                 subst
             )?;
         }
-        let first_local_var = vir::LocalVar::new("self", typ.clone());
-        let second_local_var = vir::LocalVar::new("other", typ);
+        let first_local_var = vir_local!{ self: {typ.clone()} };
+        let second_local_var = vir_local!{ other: {typ} };
         Ok(vir::Expr::FuncApp(
             name,
             vec![first, second],
@@ -329,8 +329,8 @@ impl MemoryEqEncoder {
         self.memory_eq_funcs.insert(name.clone(), None);
         let tcx = encoder.env().tcx();
         let type_name = typ.name();
-        let first_local_var = vir::LocalVar::new("self", typ.clone());
-        let second_local_var = vir::LocalVar::new("other", typ);
+        let first_local_var = vir_local!{ self: {typ.clone()} };
+        let second_local_var = vir_local!{ other: {typ} };
         let precondition = vec![
             vir::Expr::predicate_access_predicate(
                 type_name.clone(),

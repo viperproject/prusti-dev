@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir;
+use prusti_common::{vir, vir_local};
 use crate::encoder::Encoder;
 use rustc_middle::ty;
 use prusti_common::vir::{PermAmount, EnumVariantIndex};
@@ -547,7 +547,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
     fn encode_valid_axiom(&self, _cons_func: vir::DomainFunc) -> EncodingResult<vir::DomainAxiom> {
         let domain_name = self.encode_domain_name();
 
-        let self_var = vir::LocalVar::new("self", vir::Type::Domain(domain_name.to_string()));
+        let self_var = vir_local!{ self: {vir::Type::Domain(domain_name.to_string())} };
 
         let valid_func_apps = true.into(); //TODO actually check the validity of the fields.
 
@@ -1002,10 +1002,7 @@ impl<'s, 'v: 's, 'tcx: 'v> SnapshotAdtEncoder<'s, 'v, 'tcx> {
     fn encode_valid_axiom(&self) -> EncodingResult<vir::DomainAxiom> {
         let domain_name = self.snapshot_encoder.encode_domain_name();
 
-        let self_var = vir::LocalVar::new(
-            "self",
-            vir::Type::Domain(domain_name.to_string()),
-        );
+        let self_var = vir_local!{ self: {vir::Type::Domain(domain_name.to_string())} };
 
         let valid_func_apps: vir::Expr = if self.adt_def.is_struct() {
             let all_fields : Vec<_> = self.adt_def.all_fields().collect();

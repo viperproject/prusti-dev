@@ -60,7 +60,7 @@ impl BuiltinEncoder {
         vir::BodylessMethod {
             name: self.encode_builtin_method_name(method),
             formal_args: vec![],
-            formal_returns: vec![vir::LocalVar::new("ret", return_type)],
+            formal_returns: vec![vir_local!{ ret: {return_type} }],
         }
     }
 
@@ -105,7 +105,7 @@ impl BuiltinEncoder {
                 body: None,
             },
             BuiltinFunctionKind::ArrayLookupPure { array_ty_pred, array_len, return_ty, .. } => {
-                let self_var = vir::LocalVar::new("self", vir::Type::TypedRef(array_ty_pred.clone()));
+                let self_var = vir_local!{ self: {vir::Type::TypedRef(array_ty_pred.clone())} };
                 let idx_var = vir_local!{ idx: Int };
 
                 vir::Function {
@@ -171,10 +171,7 @@ impl BuiltinEncoder {
             let f = snapshot::valid_func_for_type(t);
             functions.push(f.clone());
 
-            let forall_arg = vir::LocalVar {
-                name: "self".to_owned(),
-                typ: t.clone(),
-            };
+            let forall_arg = vir_local!{ self: {t.clone()} };
             let function_app =
                 vir::Expr::domain_func_app(f.clone(), vec![vir::Expr::local(forall_arg.clone())]);
             let body = vir::Expr::forall(

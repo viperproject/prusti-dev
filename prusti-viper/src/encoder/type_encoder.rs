@@ -8,8 +8,12 @@ use crate::encoder::foldunfold;
 use crate::encoder::utils::range_extract;
 use crate::encoder::utils::PlusOne;
 use crate::encoder::Encoder;
-use prusti_common::vir::{self, ExprIterator, ExprFolder};
-use prusti_common::config;
+use prusti_common::{
+    config,
+    vir,
+    vir_local,
+    vir::{ExprIterator, ExprFolder},
+};
 // use prusti_interface::specifications::*;
 // use rustc::middle::const_val::ConstVal;
 use rustc_middle::ty;
@@ -563,8 +567,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         debug!("[enter] encode_invariant_def({:?})", self.ty);
 
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
-        let self_local_var =
-            vir::LocalVar::new("self", vir::Type::TypedRef(predicate_name.clone()));
+        let self_local_var = vir_local!{ self: {vir::Type::TypedRef(predicate_name.clone())} };
 
         let invariant_name = self.encoder.encode_type_invariant_use(self.ty)?;
 

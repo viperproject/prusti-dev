@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use log::{info, warn};
-use prusti_common::vir;
+use prusti_common::{vir, vir_local};
 
 pub use self::purifier::{AssertPurifier, ExprPurifier};
 
@@ -31,7 +31,7 @@ pub fn mirror_function_caller_call(mirror_fn: vir::DomainFunc, args: Vec<vir::Ex
 pub fn encode_variant_func(domain_name: String) -> vir::DomainFunc
 {
     let snap_type = vir::Type::Domain(domain_name.to_string());
-    let arg = vir::LocalVar::new("self", snap_type);
+    let arg = vir_local!{ self: {snap_type} };
     vir::DomainFunc {
         name: SNAPSHOT_VARIANT.to_string(),
         formal_args: vec![arg],
@@ -62,10 +62,7 @@ pub fn encode_field_domain_func(
 
     vir::DomainFunc {
         name: format!("{}$field${}", field_domain_name, field_name), //TODO get the right name
-        formal_args: vec![vir::LocalVar {
-            name: "self".to_string(),
-            typ: vir::Type::Domain(domain_name.to_string()),
-        }],
+        formal_args: vec![vir_local!{ self: {vir::Type::Domain(domain_name.to_string())} }],
         return_type,
         unique: false,
         domain_name: domain_name.to_string(),
@@ -74,16 +71,10 @@ pub fn encode_field_domain_func(
 
 pub fn encode_unfold_witness(domain_name: String) -> vir::DomainFunc {
     let self_type = vir::Type::Domain(domain_name.clone());
-    let self_arg = vir::LocalVar {
-        name: "self".to_string(),
-        typ: self_type,
-    };
+    let self_arg = vir_local!{ self: {self_type} };
 
     let nat_type = vir::Type::Domain(NAT_DOMAIN_NAME.to_owned());
-    let nat_arg = vir::LocalVar {
-        name: "count".to_string(),
-        typ: nat_type,
-    };
+    let nat_arg = vir_local!{ count: {nat_type} };
 
     vir::DomainFunc {
         name: format!("{}$UnfoldWitness", domain_name),
@@ -109,10 +100,7 @@ pub fn valid_func_for_type(typ: &vir::Type) -> vir::DomainFunc {
         vir::Type::TypedRef(_) => unreachable!(),
     };
 
-    let self_arg = vir::LocalVar {
-        name: "self".to_string(),
-        typ: arg_typ,
-    };
+    let self_arg = vir_local!{ self: {arg_typ} };
     let df = vir::DomainFunc {
         name: format!("{}$valid", domain_name),
         formal_args: vec![self_arg],
@@ -126,10 +114,7 @@ pub fn valid_func_for_type(typ: &vir::Type) -> vir::DomainFunc {
 
 /// Returns the LocalVar that is the Nat argument used in axiomatized functions
 pub fn encode_nat_argument() -> vir::LocalVar {
-    vir::LocalVar {
-        name: "count".to_string(),
-        typ: vir::Type::Domain(NAT_DOMAIN_NAME.to_owned()),
-    }
+    vir_local!{ count: {vir::Type::Domain(NAT_DOMAIN_NAME.to_owned())} }
 }
 
 /// Returns the arguments for the axiomatized version of a function but does not yet include the Nat argument
