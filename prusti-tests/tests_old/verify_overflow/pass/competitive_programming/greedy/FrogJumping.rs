@@ -1,3 +1,5 @@
+// Original PR: https://github.com/viperproject/prusti-dev/pull/315
+
 use prusti_contracts::*;
 
 pub struct VecWrapperI32 {
