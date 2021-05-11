@@ -1,5 +1,7 @@
 // compile-flags: -Passert_timeout=120000
 // https://codeforces.com/blog/entry/20935
+//
+// Original PR: https://github.com/viperproject/prusti-dev/pull/342
 
 #![feature(box_patterns)]
 #![feature(box_syntax)]
