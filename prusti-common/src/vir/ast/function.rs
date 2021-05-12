@@ -62,6 +62,16 @@ impl Function {
             }
         })
     }
+
+    pub fn apply(&self, args: Vec<Expr>) -> Expr {
+        Expr::FuncApp(
+            self.name.to_string(),
+            args,
+            self.formal_args.clone(),
+            self.return_type.clone(),
+            Position::default(),
+        )
+    }
 }
 
 pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Type) -> String {
