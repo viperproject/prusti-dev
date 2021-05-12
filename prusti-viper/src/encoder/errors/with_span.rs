@@ -16,14 +16,18 @@ pub trait WithSpan<T> {
 
 impl<T> WithSpan<T> for Result<T, EncodingError> {
     fn with_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, SpannedEncodingError> {
-        trace!("Converting a EncodingError to SpannedEncodingError in a Result");
-        self.map_err(|err| err.with_span(span))
+        self.map_err(|err| {
+            trace!("Converting a EncodingError to SpannedEncodingError in a Result");
+            err.with_span(span)
+        })
     }
 }
 
 impl<T> WithSpan<T> for Result<T, SpannedEncodingError> {
     fn with_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, SpannedEncodingError> {
-        trace!("Replacing the span of an SpannedEncodingError in a Result");
-        self.map_err(|err| err.with_span(span))
+        self.map_err(|err| {
+            trace!("Replacing the span of an SpannedEncodingError in a Result");
+            err.with_span(span)
+        })
     }
 }
