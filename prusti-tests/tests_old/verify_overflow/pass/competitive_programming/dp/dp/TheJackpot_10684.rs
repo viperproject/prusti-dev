@@ -1,4 +1,6 @@
 //https://onlinejudge.org/index.php?option=com_onlinejudge&Itemid=8&category=24&page=show_problem&problem=1625
+//
+// Original PR: https://github.com/viperproject/prusti-dev/pull/290
 use prusti_contracts::*;
 
 pub struct VecWrapperI32 {
