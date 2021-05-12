@@ -7,7 +7,7 @@
 use crate::encoder::borrows::ProcedureContract;
 use crate::encoder::builtin_encoder::{BuiltinMethodKind, BuiltinFunctionKind};
 use crate::encoder::errors::{
-    SpannedEncodingError, ErrorCtxt, PanicCause, EncodingError, WithSpan, RunIfErr,
+    SpannedEncodingError, ErrorCtxt, PanicCause, EncodingError, WithSpan,
     EncodingResult, SpannedEncodingResult
 };
 use crate::encoder::foldunfold;
@@ -1920,27 +1920,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let own_substs =
                         ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
 
-                    {
-                        // FIXME: this is a hack to support generics. See issue #187.
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        let mut tymap = HashMap::new();
+                    // FIXME: this is a hack to support generics. See issue #187.
+                    let mut tymap = HashMap::new();
 
-                        for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
-                            if let (
-                                ty::subst::GenericArgKind::Type(ty1),
-                                ty::subst::GenericArgKind::Type(ty2),
-                            ) = (kind1.unpack(), kind2.unpack())
-                            {
-                                tymap.insert(ty1, ty2);
-                            }
+                    for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
+                        if let (
+                            ty::subst::GenericArgKind::Type(ty1),
+                            ty::subst::GenericArgKind::Type(ty2),
+                        ) = (kind1.unpack(), kind2.unpack())
+                        {
+                            tymap.insert(ty1, ty2);
                         }
-                        tymap_stack.push(tymap);
                     }
-                    let cleanup = |this: &ProcedureEncoder| {
-                        // FIXME: this is a hack to support generics. See issue #187.
-                        let mut tymap_stack = this.encoder.typaram_repl.borrow_mut();
-                        tymap_stack.pop();
-                    };
+                    let _cleanup_token = self.encoder.push_temp_tymap(tymap);
 
                     match full_func_proc_name {
                         "std::rt::begin_panic"
@@ -1989,8 +1981,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                             let boxed_ty = dest_ty.boxed_ty();
                             let ref_field = self.encoder.encode_dereference_field(boxed_ty)
-                                .with_span(span)
-                                .run_if_err(|| cleanup(&self))?;
+                                .with_span(span)?;
 
                             let box_content = dst.clone().field(ref_field.clone());
 
@@ -2000,7 +1991,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     ref_field,
                                     location,
                                     vir::AssignKind::Move,
-                                ).run_if_err(|| cleanup(&self))?
+                                )?
                             );
 
                             // Allocate `box_content`
@@ -2012,7 +2003,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     &box_content,
                                     &args[0],
                                     location
-                                ).run_if_err(|| cleanup(&self))?
+                                )?
                             );
                         }
 
@@ -2032,7 +2023,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     args,
                                     destination,
                                     vir::BinOpKind::EqCmp,
-                                ).run_if_err(|| cleanup(&self))?
+                                )?
                             );
                         }
 
@@ -2052,7 +2043,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     args,
                                     destination,
                                     vir::BinOpKind::NeCmp,
-                                ).run_if_err(|| cleanup(&self))?
+                                )?
                             );
                         }
 
@@ -2072,7 +2063,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 }
 
                                 _ => {
-                                    cleanup(&self);
                                     return Err(SpannedEncodingError::unsupported(
                                         format!("only calls to closures are supported. The term is a {:?}, not a closure.", cl_type.kind()),
                                         term.source_info.span,
@@ -2103,7 +2093,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         args,
                                         destination,
                                         def_id,
-                                    ).run_if_err(|| cleanup(&self))?
+                                    )?
                                 );
                             } else {
                                 stmts.extend(
@@ -2114,13 +2104,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         destination,
                                         def_id,
                                         self_ty,
-                                    ).run_if_err(|| cleanup(&self))?
+                                    )?
                                 );
                             }
                         }
                     }
-
-                    cleanup(&self);
 
                     if let &Some((_, target)) = destination {
                         (stmts, MirSuccessor::Goto(target))
