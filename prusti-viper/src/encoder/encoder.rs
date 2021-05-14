@@ -56,7 +56,7 @@ use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 use crate::encoder::mirror_function_encoder;
 use crate::encoder::mirror_function_encoder::MirrorEncoder;
-use crate::encoder::snapshot::{Snapshot, encoder::SnapshotEncoder};
+use crate::encoder::snapshot::encoder::SnapshotEncoder;
 
 #[must_use]
 pub struct CleanupTyMapStack<'a, 'tcx> {
@@ -948,8 +948,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.snapshot_encoder.borrow_mut().encode_constructor(self, ty, args)
     }
 
-    pub fn has_snapshot_eq(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
+    pub fn supports_snapshot_equality(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
         self.snapshot_encoder.borrow_mut().supports_equality(self, ty)
+    }
+
+    pub fn is_quantifiable(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
+        self.snapshot_encoder.borrow_mut().is_quantifiable(self, ty)
     }
 
     pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>)

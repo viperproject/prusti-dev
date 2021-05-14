@@ -1,3 +1,9 @@
+// © 2021, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use ::log::debug;
 use rustc_middle::ty;
 use rustc_middle::ty::layout::IntegerExt;
@@ -33,6 +39,7 @@ pub struct SnapshotEncoder {
     /// Maps predicate names to encoded snapshots.
     encoded: HashMap<PredicateName, Snapshot>,
 
+    /// Whether the unit domain was used in encoding or not.
     unit_used: bool,
     unit_domain: vir::Domain,
 }
@@ -47,6 +54,8 @@ fn strip_refs_and_boxes<'tcx>(ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
     }
 }
 
+/// Same as [strip_refs_and_boxes], but also performs the needed field accesses
+/// on the given expression to deref/unbox it.
 fn strip_refs_and_boxes_expr<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     ty: ty::Ty<'tcx>,
@@ -73,7 +82,6 @@ fn strip_refs_and_boxes_expr<'p, 'v: 'p, 'tcx: 'v>(
     }
 }
 
-// TODO: separate struct for Complex encoding?
 impl SnapshotEncoder {
     pub fn new() -> Self {
         Self {
@@ -101,6 +109,7 @@ impl SnapshotEncoder {
         for snapshot in self.encoded.values() {
             match snapshot {
                 Snapshot::Complex { snap_func, .. } => funcs.push(snap_func.clone()),
+                Snapshot::Abstract { snap_func, .. } => funcs.push(snap_func.clone()),
                 _ => {},
             }
         }
@@ -113,6 +122,7 @@ impl SnapshotEncoder {
         for snapshot in self.encoded.values() {
             match snapshot {
                 Snapshot::Complex { domain, .. } => domains.push(domain.clone()),
+                Snapshot::Abstract { domain, .. } => domains.push(domain.clone()),
                 _ => {},
             }
         }
@@ -122,6 +132,7 @@ impl SnapshotEncoder {
         domains
     }
 
+    /// Patches snapshots in a method.
     pub fn patch_snapshots_method<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
@@ -135,6 +146,7 @@ impl SnapshotEncoder {
         method.patch_statements(|stmt| vir::FallibleStmtFolder::fallible_fold(&mut patcher, stmt))
     }
 
+    /// Patches snapshots in a function.
     pub fn patch_snapshots_function<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
@@ -157,6 +169,7 @@ impl SnapshotEncoder {
         Ok(function)
     }
 
+    /// Patches snapshots in an expression.
     pub fn patch_snapshots_expr<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
@@ -181,7 +194,6 @@ impl SnapshotEncoder {
             vir::Type::TypedRef(ref name) => {
                 let ty = encoder.decode_type_predicate(name)?;
                 let (ty, expr) = strip_refs_and_boxes_expr(encoder, ty, expr)?;
-                // TODO: move to snapshot mod?
                 Ok(match ty.kind() {
                     ty::TyKind::Int(_)
                     | ty::TyKind::Uint(_)
@@ -193,26 +205,34 @@ impl SnapshotEncoder {
                         expr.clone(),
                         vir::Field::new("val_bool", Type::Bool),
                     ),
-                    ty::TyKind::Param(_) => self.snap_unit(),
                     ty::TyKind::Tuple(substs) if substs.is_empty() => self.snap_unit(),
                     ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => self.snap_unit(),
                     ty::TyKind::Adt(adt_def, _) if adt_def.variants.len() == 1 && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)].fields.is_empty() => self.snap_unit(),
-                    ty::TyKind::Tuple(_) | ty::TyKind::Adt(_, _) => {
+
+                    // Param(_) | Adt(_) | Tuple(_) and unsupported types
+                    _ => {
                         let snapshot = self.encode_snapshot(encoder, ty)?;
-                        self.snap_app_complex(expr, snapshot.get_type())
-                    },
-                    _ => self.snap_unit(),
+                        self.snap_app_expr(expr, snapshot.get_type())
+                    }
                 })
             }
-            // TODO: why is SnapApp applied to already-snapshot types?
+
+            // handle SnapApp on already patched expressions
+            vir::Type::Domain(dom) if dom == UNIT_DOMAIN_NAME => Ok(expr),
             vir::Type::Snapshot(_)
-            | vir::Type::Domain(_) // TODO: restrict to Unit
-            | vir::Type::Bool // TODO: restrict to snapshot-produced Bools and Ints...
+            | vir::Type::Bool // TODO: restrict to snapshot-produced Bools and Ints
             | vir::Type::Int => Ok(expr),
+
+            _ => Err(EncodingError::internal(
+                format!("SnapApp applied to expr of invalid type {:?}", expr),
+            )),
         }
     }
 
-    pub(super) fn snap_app_complex(
+    /// Calls the [snap] function on the given expression. This should only
+    /// ever be used when [expr] has been snapshot-encoded and the snapshot has
+    /// a snap function (i.e. it is Complex or Abstract).
+    fn snap_app_expr(
         &self,
         expr: Expr,
         ty: vir::Type,
@@ -228,7 +248,8 @@ impl SnapshotEncoder {
         )
     }
 
-    /// Converts variant + field access on a snapshot to a domain function call.
+    /// Converts variant + field access on a snapshot to a domain function call.+
+    /// This is used when accessing data of an enum variant.
     pub(super) fn snap_variant_field<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
@@ -239,20 +260,25 @@ impl SnapshotEncoder {
         // TODO: we should not rely on string operations
         assert!(variant.name.starts_with("enum_"));
         let variant_name = &variant.name[5..];
-        match expr.get_type() {
-            Type::Snapshot(ref name) => {
-                let ty = encoder.decode_type_predicate(name)?;
-                let snapshot = self.encode_snapshot(encoder, ty)?;
-                match snapshot {
-                    Snapshot::Complex { variants, variant_names, .. } => {
-                        let variant_idx = variant_names.get(variant_name)
-                            .expect("no such variant");
-                        Ok(variants[*variant_idx].1.get(&field.name).unwrap().apply(vec![expr]))
-                    },
-                    _ => unreachable!("invalid snapshot field (not Complex)"),
-                }
-            }
-            _ => unreachable!("invalid snapshot field"),
+        let snapshot = self.decode_snapshot(encoder, expr.get_type())?;
+        match snapshot {
+            Snapshot::Complex { variants, variant_names, .. } => {
+                let variant_idx = variant_names.get(variant_name)
+                    .ok_or_else(|| EncodingError::internal(
+                        format!("no such variant: {}", variant_name),
+                    ))?;
+                variants[*variant_idx].1.get(&field.name)
+                    .map(|func| func.apply(vec![expr.clone()]))
+                    .ok_or_else(|| EncodingError::internal(format!(
+                        "cannot snap_variant_field {}/{} of {:?}",
+                        variant_name,
+                        field.name,
+                        expr,
+                    )))
+            },
+            _ => Err(EncodingError::internal(
+                format!("invalid snapshot field (not Complex): {:?}", expr),
+            )),
         }
     }
 
@@ -263,67 +289,93 @@ impl SnapshotEncoder {
         expr: Expr,
         field: vir::Field,
     ) -> EncodingResult<Expr> {
-        match expr.get_type() {
-            Type::Snapshot(ref name) => {
-                let ty = encoder.decode_type_predicate(name)?;
-                let snapshot = self.encode_snapshot(encoder, ty)?;
-                match (field.name.as_str(), snapshot) {
-                    ("discriminant", Snapshot::Complex { discriminant_func, .. }) => {
-                        Ok(discriminant_func.apply(vec![expr]))
-                    },
-                    (_, Snapshot::Complex { variants, .. }) => {
-                        if !variants[0].1.contains_key(&field.name) {
-                            unreachable!("cannot snap_field {} of {}", field.name, expr);
-                        }
-                        Ok(variants[0].1.get(&field.name).unwrap().apply(vec![expr]))
-                    },
-                    _ => unreachable!("invalid snapshot field (not Complex)"),
-                }
-            }
-            _ => unreachable!("invalid snapshot field"),
+        let snapshot = self.decode_snapshot(encoder, expr.get_type())?;
+        match (field.name.as_str(), snapshot) {
+            ("discriminant", Snapshot::Complex { discriminant_func, .. }) => Ok(
+                discriminant_func.apply(vec![expr]),
+            ),
+            (_, Snapshot::Complex { variants, .. }) => variants[0].1
+                .get(&field.name)
+                .map(|func| func.apply(vec![expr.clone()]))
+                .ok_or_else(|| EncodingError::internal(
+                    format!("cannot snap_field {} of {:?}", field.name, expr),
+                )),
+            _ => Err(EncodingError::internal(
+                format!("invalid snapshot field (not Complex): {:?}", expr),
+            )),
         }
     }
 
+    /// Decodes a VIR type back into a full Snapshot.
+    fn decode_snapshot<'p, 'v: 'p, 'tcx: 'v>(
+        &mut self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        ty: &vir::Type,
+    ) -> EncodingResult<Snapshot> {
+        match ty {
+            Type::Snapshot(ref name)
+            | Type::TypedRef(ref name) => {
+                let ty = encoder.decode_type_predicate(name)?;
+                self.encode_snapshot(encoder, ty)
+            }
+            _ => Err(EncodingError::internal(
+                format!("expected Snapshot type: {:?}", ty),
+            )),
+        }
+    }
+
+    /// Returns a unit domain expression.
     fn snap_unit(&mut self) -> Expr {
         self.unit_used = true;
         self.unit_domain.functions[0].apply(vec![])
     }
 
+    /// Returns [true] iff we can encode equality between two instances of the
+    /// given type as a direct equality between snapshots of the instances.
     pub fn supports_equality<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<bool> {
-        let snapshot = self.encode_snapshot(encoder, ty)?;
-        Ok(snapshot.supports_equality())
+        self.encode_snapshot(encoder, ty)
+            .map(|snapshot| snapshot.supports_equality())
     }
 
+    /// Returns [true] iff the given type can be used as a quantified variable
+    /// in a user-facing [forall].
+    pub fn is_quantifiable<'p, 'v: 'p, 'tcx: 'v>(
+        &mut self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        ty: ty::Ty<'tcx>,
+    ) -> EncodingResult<bool> {
+        self.encode_snapshot(encoder, ty)
+            .map(|snapshot| snapshot.is_quantifiable())
+    }
+
+    /// Encodes the postcondition asserting that the discriminant of the
+    /// snapshot matches the result of the (Ref-based) discriminant function.
     pub fn encode_discriminant_post<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         expr_self: Expr,
         expr_result: Expr,
     ) -> EncodingResult<Expr> {
-        match expr_self.get_type() {
-            Type::TypedRef(ref name) => {
-                let ty = encoder.decode_type_predicate(name)?;
-                let snapshot = self.encode_snapshot(encoder, ty)?;
-                match snapshot {
-                    Snapshot::Complex { ref discriminant_func, .. } => {
-                        Ok(vir::Expr::eq_cmp(
-                            discriminant_func.apply(vec![
-                                self.snap_app_complex(expr_self, snapshot.get_type()),
-                            ]),
-                            expr_result,
-                        ))
-                    },
-                    _ => unreachable!("discriminant of non-enum snapshot"),
-                }
-            },
-            _ => unreachable!("discriminant of non-enum snapshot"),
+        let snapshot = self.decode_snapshot(encoder, expr_self.get_type())?;
+        match snapshot {
+            Snapshot::Complex { ref discriminant_func, .. } => Ok(vir::Expr::eq_cmp(
+                discriminant_func.apply(vec![
+                    self.snap_app_expr(expr_self, snapshot.get_type()),
+                ]),
+                expr_result,
+            )),
+            _ => Err(EncodingError::internal(
+                format!("invalid discriminant post (not Complex): {:?}", expr_self),
+            )),
         }
     }
 
+    /// Encodes a snapshot constructor directly. Can only be used on ADTs with
+    /// a single variant.
     pub fn encode_constructor<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
@@ -336,10 +388,14 @@ impl SnapshotEncoder {
                 assert_eq!(variants.len(), 1);
                 Ok(variants[0].0.apply(args))
             },
-            _ => unreachable!("constructor of non-complex snapshot"),
+            _ => Err(EncodingError::internal(
+                format!("invalid constructor (not Complex): {}", ty),
+            )),
         }
     }
 
+    /// Encodes the snapshot of the given type and returns a VIR type
+    /// representing that snapshot.
     pub fn encode_type<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
@@ -349,6 +405,13 @@ impl SnapshotEncoder {
             .map(|snapshot| snapshot.get_type())
     }
 
+    /// Starts the snapshot encoding for the given type. This function is
+    /// a wrapper that takes care of:
+    /// * Resolving the given type and stripping it down to the type we will
+    ///   actually encode.
+    /// * Caching to avoid duplicate encodings.
+    /// * Preventing infinite loops when encoding recursive types.
+    /// * Triggering the real encoding [encode_snapshot_internal].
     fn encode_snapshot<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
@@ -375,12 +438,12 @@ impl SnapshotEncoder {
             ty::TyKind::Uint(_) => Type::Int,
             ty::TyKind::Char => Type::Int,
             ty::TyKind::Bool => Type::Bool,
-            ty::TyKind::Param(_) => self.snap_unit().get_type().clone(),
             ty::TyKind::Tuple(substs) if substs.is_empty() => self.snap_unit().get_type().clone(),
             ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => self.snap_unit().get_type().clone(),
             ty::TyKind::Adt(adt_def, _) if adt_def.variants.len() == 1 && adt_def.variants[rustc_target::abi::VariantIdx::from_u32(0)].fields.is_empty() => self.snap_unit().get_type().clone(),
-            ty::TyKind::Tuple(_) | ty::TyKind::Adt(_, _) => Type::Snapshot(predicate_name.to_string()),
-            _ => self.snap_unit().get_type().clone(),
+
+            // Param(_) | Adt(_) | Tuple(_) and unsupported types
+            _ => Type::Snapshot(predicate_name.to_string()),
         };
 
         // record in-progress encoding
@@ -401,7 +464,6 @@ impl SnapshotEncoder {
         assert_eq!(snapshot_type, snapshot.get_type());
         self.encoded.insert(predicate_name.to_string(), snapshot.clone());
 
-        // TODO: resolve Lazy(..) ?
         Ok(snapshot)
     }
 
@@ -420,19 +482,15 @@ impl SnapshotEncoder {
         let arg_expr = Expr::local(arg_self);
 
         match ty.kind() {
-            // strip refs and boxes
-            // the result is a Lazy snapshot (resolved later) to ensure that
-            // recursive types do not cause infinite encoding loops
-            // TODO: since all calls go through encode_type, this may not be needed at all
-            _ if ty.is_box() => Ok(Snapshot::Lazy(self.encode_type(encoder, ty)?)),
-            ty::TyKind::Ref(_, _, _) => Ok(Snapshot::Lazy(self.encode_type(encoder, ty)?)),
+            // since all encoding goes through [encode_type] first, we should
+            // never get a box or reference here
+            _ if ty.is_box() => unreachable!(),
+            ty::TyKind::Ref(_, _, _) => unreachable!(),
 
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
             | ty::TyKind::Char => Ok(Snapshot::Primitive(Type::Int)),
             ty::TyKind::Bool => Ok(Snapshot::Primitive(Type::Bool)),
-
-            ty::TyKind::Param(_) => Ok(Snapshot::Abstract),
 
             // handle types with no data
             ty::TyKind::Tuple(substs) if substs.is_empty() => Ok(Snapshot::Unit),
@@ -496,7 +554,9 @@ impl SnapshotEncoder {
                         vir::Predicate::Struct(..) => {
                             (arg_expr.clone(), None)
                         }
-                        _ => unreachable!(),
+                        _ => return Err(EncodingError::internal(
+                            format!("invalid Predicate for ADT: {}", predicate),
+                        )),
                     };
                     for field in &variant.fields {
                         let field_ty = field.ty(tcx, subst);
@@ -526,8 +586,49 @@ impl SnapshotEncoder {
                 self.encode_complex(encoder, variants, predicate_name)
             }
 
-            _ => Ok(Snapshot::Abstract),
+            // Param(_) and unsupported types
+            _ => self.encode_abstract(encoder, predicate_name),
         }
+    }
+
+    fn encode_abstract<'p, 'v: 'p, 'tcx: 'v>(
+        &self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        predicate_name: &str,
+    ) -> EncodingResult<Snapshot> {
+        let domain_name = format!("Snap${}", predicate_name);
+        let snapshot_type = Type::Snapshot(predicate_name.to_string());
+
+        let arg_ref_local = vir::LocalVar::new(
+            "self",
+            Type::TypedRef(predicate_name.to_string()),
+        );
+        let arg_ref_expr = Expr::local(arg_ref_local.clone());
+
+        // encode snap function
+        let snap_func = vir::Function {
+            name: SNAP_FUNC_NAME.to_string(),
+            formal_args: vec![arg_ref_local.clone()],
+            return_type: snapshot_type.clone(),
+            pres: vec![Expr::predicate_access_predicate(
+                predicate_name.clone(),
+                arg_ref_expr.clone(),
+                PermAmount::Read,
+            )],
+            posts: vec![],
+            body: None,
+        };
+
+        Ok(Snapshot::Abstract {
+            predicate_name: predicate_name.to_string(),
+            domain: vir::Domain {
+                name: domain_name,
+                functions: vec![],
+                axioms: vec![],
+                type_vars: vec![],
+            },
+            snap_func,
+        })
     }
 
     /// Encodes the snapshot for a complex data structure (tuple, struct,
@@ -542,6 +643,7 @@ impl SnapshotEncoder {
     ) -> EncodingResult<Snapshot> {
         let domain_name = format!("Snap${}", predicate_name);
         let snapshot_type = Type::Snapshot(predicate_name.to_string());
+        let has_multiple_variants = variants.len() > 1;
         let mut domain_funcs = vec![];
         let mut domain_axioms = vec![];
         let mut variant_domain_funcs = vec![];
@@ -561,7 +663,6 @@ impl SnapshotEncoder {
         let arg_dom_expr = Expr::local(arg_dom_local.clone());
 
         // encode discriminant function
-        // TODO: only if multiple variants
         let discriminant_func = vir::DomainFunc {
             name: "discriminant$".to_string(),
             formal_args: vec![arg_dom_local.clone()],
@@ -569,38 +670,41 @@ impl SnapshotEncoder {
             unique: false,
             domain_name: domain_name.to_string(),
         };
-        domain_funcs.push(discriminant_func.clone());
 
-        // encode discriminant range axiom
-        domain_axioms.push({
-            let disc_call = discriminant_func.apply(vec![arg_dom_expr.clone()]);
-            vir::DomainAxiom {
-                name: format!("{}$discriminant_range", domain_name),
-                expr: Expr::forall(
-                    vec![arg_dom_local.clone()],
-                    vec![vir::Trigger::new(vec![disc_call.clone()])],
-                    range_extract(
-                        variants
-                            .iter()
-                            .map(|v| v.discriminant)
-                            .collect()
-                    )
-                        .into_iter()
-                        .map(|(from, to)| {
-                            if from == to {
-                                Expr::eq_cmp(disc_call.clone(), from.into())
-                            } else {
-                                Expr::and(
-                                    Expr::le_cmp(from.into(), disc_call.clone()),
-                                    Expr::le_cmp(disc_call.clone(), to.into()),
-                                )
-                            }
-                        })
-                        .disjoin(),
-                ),
-                domain_name: domain_name.to_string(),
-            }
-        });
+        if has_multiple_variants {
+            domain_funcs.push(discriminant_func.clone());
+
+            // encode discriminant range axiom
+            domain_axioms.push({
+                let disc_call = discriminant_func.apply(vec![arg_dom_expr.clone()]);
+                vir::DomainAxiom {
+                    name: format!("{}$discriminant_range", domain_name),
+                    expr: Expr::forall(
+                        vec![arg_dom_local.clone()],
+                        vec![vir::Trigger::new(vec![disc_call.clone()])],
+                        range_extract(
+                            variants
+                                .iter()
+                                .map(|v| v.discriminant)
+                                .collect()
+                        )
+                            .into_iter()
+                            .map(|(from, to)| {
+                                if from == to {
+                                    Expr::eq_cmp(disc_call.clone(), from.into())
+                                } else {
+                                    Expr::and(
+                                        Expr::le_cmp(from.into(), disc_call.clone()),
+                                        Expr::le_cmp(disc_call.clone(), to.into()),
+                                    )
+                                }
+                            })
+                            .disjoin(),
+                    ),
+                    domain_name: domain_name.to_string(),
+                }
+            });
+        }
 
         // for each variant, we need to encode.
         // * the constructor, which takes the flattened value-only
@@ -630,7 +734,7 @@ impl SnapshotEncoder {
                     format!("_{}", idx),
                     field.typ.clone(),
                 )).collect::<Vec<vir::LocalVar>>();
-            // TODO: filter out Units
+            // TODO: filter out Units to reduce constructor size
 
             // record name to index mapping
             if let Some(name) = &variant.name {
@@ -681,32 +785,34 @@ impl SnapshotEncoder {
                         vec![vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
                         Expr::implies(
                             Expr::eq_cmp(lhs_call, rhs_call),
-                            conjunction
-                        )
-                    ),
-                    domain_name: domain_name.to_string(),
-                }
-            });
-
-            // encode discriminant axiom
-            domain_axioms.push({
-                let args = encode_prefixed_args("");
-                let call = encode_constructor_call(&args);
-                vir::DomainAxiom {
-                    name: format!("{}${}$discriminant_axiom", domain_name, variant_idx),
-                    expr: Expr::forall(
-                        args.iter().cloned().collect(),
-                        vec![vir::Trigger::new(vec![
-                            call.clone()
-                        ])],
-                        Expr::eq_cmp(
-                            discriminant_func.apply(vec![call.clone()]),
-                            variant.discriminant.into(),
+                            conjunction,
                         ),
                     ),
                     domain_name: domain_name.to_string(),
                 }
             });
+
+            if has_multiple_variants {
+                // encode discriminant axiom
+                domain_axioms.push({
+                    let args = encode_prefixed_args("");
+                    let call = encode_constructor_call(&args);
+                    vir::DomainAxiom {
+                        name: format!("{}${}$discriminant_axiom", domain_name, variant_idx),
+                        expr: Expr::forall(
+                            args.iter().cloned().collect(),
+                            vec![vir::Trigger::new(vec![
+                                call.clone(),
+                            ])],
+                            Expr::eq_cmp(
+                                discriminant_func.apply(vec![call.clone()]),
+                                variant.discriminant.into(),
+                            ),
+                        ),
+                        domain_name: domain_name.to_string(),
+                    }
+                });
+            }
 
             let mut field_access_funcs = HashMap::new();
 
@@ -848,7 +954,7 @@ impl SnapshotEncoder {
 }
 
 struct SnapshotVariant<'tcx> {
-    discriminant: i128, // TODO: Option<i128> ?
+    discriminant: i128, // FIXME: Option<i128>, for now -1 when not applicable
     fields: Vec<SnapshotField<'tcx>>,
     name: Option<String>,
 }

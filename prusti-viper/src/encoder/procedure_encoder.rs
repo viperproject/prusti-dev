@@ -2209,7 +2209,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
-        if self.encoder.has_snapshot_eq(&arg_ty).with_span(call_site_span)? {
+        if self.encoder.supports_snapshot_equality(&arg_ty).with_span(call_site_span)? {
             let pos = self
                 .encoder
                 .error_manager()

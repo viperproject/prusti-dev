@@ -1,3 +1,9 @@
+// © 2021, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use prusti_common::vir::{self, ExprFolder, FallibleExprFolder, FallibleStmtFolder};
 use crate::encoder::Encoder;
 use crate::encoder::errors::{EncodingError, EncodingResult};
@@ -98,7 +104,6 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
         expr: Box<vir::Expr>,
         pos: vir::Position,
     ) -> Result<vir::Expr, Self::Error> {
-        // TODO: check is_quantifiable
         let mut expr = *expr;
         let mut patched_vars = vec![];
 

@@ -227,6 +227,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 let mut encoded_args = Vec::new();
                 let mut bounds = Vec::new();
                 for (arg, ty) in &vars.vars {
+                    // TODO: how to get a span for the variable here?
+                    //if !self.encoder.is_quantifiable(ty).unwrap() {
+                    //    return Err(EncodingError::incorrect(
+                    //        "This type cannot be used in quantifiers.",
+                    //    ).with_span(?));
+                    //}
+
                     let encoded_arg = self.encode_forall_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id));
                     if config::check_overflows() {
                         bounds.extend(self.encoder.encode_type_bounds(&encoded_arg.clone().into(), ty));

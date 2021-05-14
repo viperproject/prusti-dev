@@ -1,4 +1,8 @@
-// TODO: headers in this folder
+// © 2021, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_middle::ty;
 use prusti_common::vir;
@@ -8,8 +12,10 @@ use std::collections::HashMap;
 pub mod encoder;
 mod patcher;
 
+/// Snapshot of a VIR type. This enum is internal to the snapshot encoding and
+/// should not need to be exposed to the encoder in general.
 #[derive(Debug, Clone)]
-pub enum Snapshot {
+enum Snapshot {
     /// Corresponds directly to an existing Viper type.
     Primitive(Type),
     /// Encodes types with no content; these need not be provided as arguments
@@ -30,8 +36,12 @@ pub enum Snapshot {
         /// in the [variants] vector. Empty for non-enums.
         variant_names: HashMap<String, usize>,
     }, // TODO: separate variant for enums and one-variant Complexes?
-    /// Type could not be encoded.
-    Abstract,
+    /// Type cannot be encoded: type parameters, unsupported types.
+    Abstract {
+        predicate_name: String,
+        domain: vir::Domain,
+        snap_func: vir::Function,
+    },
 
     /// A type which will be resolved to a different snapshot kind.
     /// (Should only appear while encoding is in progress!)
@@ -44,13 +54,13 @@ impl Snapshot {
             Self::Primitive(ty) => ty.clone(),
             Self::Unit => Type::Domain(encoder::UNIT_DOMAIN_NAME.to_string()),
             Self::Complex { predicate_name, .. } => Type::Snapshot(predicate_name.to_string()),
-            Self::Abstract => Type::Domain(encoder::UNIT_DOMAIN_NAME.to_string()),
+            Self::Abstract { predicate_name, .. } => Type::Snapshot(predicate_name.to_string()),
             Self::Lazy(ty) => ty.clone(),
         }
     }
 
     pub fn is_quantifiable(&self) -> bool {
-        // TODO: more types?
+        // TODO: allow more types?
         match self {
             Self::Primitive(_) => true,
             _ => false,
