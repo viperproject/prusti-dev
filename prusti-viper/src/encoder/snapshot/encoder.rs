@@ -587,13 +587,12 @@ impl SnapshotEncoder {
             }
 
             // Param(_) and unsupported types
-            _ => self.encode_abstract(encoder, predicate_name),
+            _ => self.encode_abstract(predicate_name),
         }
     }
 
     fn encode_abstract<'p, 'v: 'p, 'tcx: 'v>(
         &self,
-        encoder: &'p Encoder<'v, 'tcx>,
         predicate_name: &str,
     ) -> EncodingResult<Snapshot> {
         let domain_name = format!("Snap${}", predicate_name);
@@ -611,7 +610,7 @@ impl SnapshotEncoder {
             formal_args: vec![arg_ref_local.clone()],
             return_type: snapshot_type.clone(),
             pres: vec![Expr::predicate_access_predicate(
-                predicate_name.clone(),
+                predicate_name,
                 arg_ref_expr.clone(),
                 PermAmount::Read,
             )],
@@ -921,7 +920,7 @@ impl SnapshotEncoder {
                 formal_args: vec![arg_ref_local.clone()],
                 return_type: snapshot_type.clone(),
                 pres: vec![Expr::predicate_access_predicate(
-                    predicate_name.clone(),
+                    predicate_name,
                     arg_ref_expr.clone(),
                     PermAmount::Read,
                 )],

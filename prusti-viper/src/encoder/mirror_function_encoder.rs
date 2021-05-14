@@ -59,7 +59,7 @@ impl MirrorEncoder {
 
     fn encode_mirror_simple(
         &mut self,
-        def_id: DefId,
+        _def_id: DefId,
         function: &mut vir::Function,
     ) {
         // create mirror function
@@ -97,8 +97,8 @@ impl MirrorEncoder {
     // TODO: ...
     fn encode_mirror_axiomatized(
         &mut self,
-        def_id: DefId,
-        function: &mut vir::Function,
+        _def_id: DefId,
+        _function: &mut vir::Function,
     ) {}
 }
 
@@ -106,6 +106,7 @@ impl MirrorEncoder {
 // --- OLD ----------------------
 // ------------------------------
 
+/*
 pub fn encode_mirror_of_pure_function(
     encoder: &Encoder,
     mirror_function_domain: &mut vir::Domain,
@@ -290,3 +291,4 @@ fn encode_mirror_caller(encoder: &Encoder, df: vir::DomainFunc, pres: vir::Expr)
     encoder.insert_mirror_caller(function);
     */
 }
+*/

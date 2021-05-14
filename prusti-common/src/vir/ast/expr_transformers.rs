@@ -240,6 +240,7 @@ pub trait ExprFolder: Sized {
             pos
         )
     }
+
     fn fold_downcast(
         &mut self,
         base: Box<Expr>,
@@ -424,6 +425,7 @@ pub trait ExprWalker: Sized {
         self.walk(inhale_expr);
         self.walk(exhale_expr);
     }
+
     fn walk_downcast(&mut self, base: &Expr, enum_place: &Expr, _field: &Field) {
         self.walk(base);
         self.walk(enum_place);
@@ -673,6 +675,7 @@ pub trait FallibleExprFolder: Sized {
             pos
         ))
     }
+
     fn fallible_fold_downcast(
         &mut self,
         base: Box<Expr>,

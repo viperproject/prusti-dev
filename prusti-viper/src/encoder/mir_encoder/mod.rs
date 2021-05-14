@@ -462,7 +462,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         //     }
         // }
         let ty = operand.ty(self.mir, self.encoder.env().tcx());
-        self.encoder.encode_value_type(ty)
+        self.encoder.encode_snapshot_type(ty)
     }
 
     pub fn encode_bin_op_expr(
@@ -672,7 +672,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         .encoder
                         .error_manager()
                         .register(span, ErrorCtxt::TypeCast);
-                    let return_type = self.encoder.encode_value_type(dst_ty).with_span(span)?;
+                    let return_type = self.encoder.encode_snapshot_type(dst_ty).with_span(span)?;
                     return Ok(vir::Expr::func_app(
                         function_name,
                         encoded_args,

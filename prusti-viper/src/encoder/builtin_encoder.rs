@@ -136,7 +136,7 @@ impl BuiltinEncoder {
             },
         }
     }
-
+    /*
     pub fn encode_builtin_domain(&self, kind: BuiltinDomainKind) -> vir::Domain {
         match kind {
             BuiltinDomainKind::Nat => self.encode_nat_builtin_domain(),
@@ -230,4 +230,5 @@ impl BuiltinEncoder {
             type_vars: vec![],
         }
     }
+    */
 }

@@ -158,7 +158,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         let var_name = self.mir_encoder.encode_local_var_name(local);
         let var_type = self
             .encoder
-            .encode_value_or_ref_type(self.mir_encoder.get_local_ty(local))
+            .encode_snapshot_type(self.mir_encoder.get_local_ty(local))
             .with_span(self.span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
     }

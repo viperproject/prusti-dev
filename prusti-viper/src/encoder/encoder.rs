@@ -709,15 +709,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         trace!("encode_cast_function_use(src_ty={:?}, dst_ty={:?})", src_ty, dst_ty);
         let function_name = format!("builtin$cast${}${}", src_ty, dst_ty);
         if !self.type_cast_functions.borrow().contains_key(&(src_ty, dst_ty)) {
-            let arg = vir_local!{ number: {self.encode_value_type(src_ty)?} };
-            let result = vir_local!{ __result: {self.encode_value_type(dst_ty)?} };
+            let arg = vir_local!{ number: {self.encode_snapshot_type(src_ty)?} };
+            let result = vir_local!{ __result: {self.encode_snapshot_type(dst_ty)?} };
             let mut precondition = self.encode_type_bounds(&arg.clone().into(), src_ty);
             precondition.extend(self.encode_type_bounds(&arg.clone().into(), dst_ty));
             let postcondition = self.encode_type_bounds(&result.into(), dst_ty);
             let function = vir::Function {
                 name: function_name.clone(),
                 formal_args: vec![arg.clone()],
-                return_type: self.encode_value_type(dst_ty)?,
+                return_type: self.encode_snapshot_type(dst_ty)?,
                 pres: precondition,
                 posts: postcondition,
                 body: Some(arg.into()),
@@ -797,13 +797,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(())
     }
 
-    pub fn encode_value_or_ref_type(&self, ty: ty::Ty<'tcx>)
-        -> EncodingResult<vir::Type>
-    {
-        let type_encoder = TypeEncoder::new(self, ty);
-        type_encoder.encode_value_or_ref_type()
-    }
-
     /// Encodes the specification functions for the function/closure def_id.
     pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
         -> SpannedEncodingResult<Vec<vir::Function>>
@@ -815,13 +808,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.spec_functions.borrow_mut().insert(def_id, result);
         }
         Ok(self.spec_functions.borrow()[&def_id].clone())
-    }
-
-    pub fn encode_value_type(&self, ty: ty::Ty<'tcx>)
-        -> EncodingResult<vir::Type>
-    {
-        let type_encoder = TypeEncoder::new(self, ty);
-        type_encoder.encode_value_type()
     }
 
     pub fn encode_type(&self, ty: ty::Ty<'tcx>)

@@ -179,19 +179,16 @@ impl Type {
     }
 
     pub fn is_snapshot(&self) -> bool {
-        match self {
-            &Type::Snapshot(_) => true,
-            _ => false,
-        }
+        matches!(self, &Type::Snapshot(_))
     }
 
     pub fn name(&self) -> String {
         match self {
             Type::Bool => "bool".to_string(),
             Type::Int => "int".to_string(),
-            Type::TypedRef(ref pred_name) => format!("{}", pred_name),
-            Type::Domain(ref pred_name) => format!("{}", pred_name),
-            Type::Snapshot(ref pred_name) => format!("{}", pred_name),
+            Type::TypedRef(ref pred_name) => pred_name.to_string(),
+            Type::Domain(ref pred_name) => pred_name.to_string(),
+            Type::Snapshot(ref pred_name) => pred_name.to_string(),
         }
     }
 

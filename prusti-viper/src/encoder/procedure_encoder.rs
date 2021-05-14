@@ -2221,7 +2221,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .with_span(call_site_span)?;
 
             let expr = match bin_op {
-                // TODO: put this in the snapshot module?
                 vir::BinOpKind::EqCmp => vir::Expr::eq_cmp(
                     vir::Expr::snap_app(lhs),
                     vir::Expr::snap_app(rhs),
@@ -2250,11 +2249,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         } else {
             // the equality check involves some unsupported feature;
             // treat it as any other function
-            /*debug!(
-                "The equality check of {:?} involves an unsupported feature ({:?})",
-                arg_ty,
-                snapshot_res.err().unwrap()
-            );*/
             self.encode_impure_function_call(
                 location,
                 call_site_span,
@@ -2754,11 +2748,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .with_span(call_site_span)?;
 
         let inhaled_expr = if return_type.is_domain() {
-            let predicate_name = target_value.get_type().name();
             let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination);
             stmts.extend(pre_stmts);
-            let snap_app = vir::Expr::snap_app(target_place);
-            vir::Expr::eq_cmp(snap_app, func_call)
+            vir::Expr::eq_cmp(
+                vir::Expr::snap_app(target_place),
+                func_call,
+            )
         } else {
             vir::Expr::eq_cmp(target_value.into(), func_call)
         };
@@ -3473,35 +3468,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     )
                 ).map_or(Ok(None), |r| r.map(Some))
             )?;
-
-        // TODO: at least the assert purification (which replaces pure function
-        // calls with their mirrors afaict) should happen
-        /*
-        let full_func_spec_elements = func_spec
-            .into_iter()
-            .map( // patch type mismatches for specs involving pure functions returning copy types
-                |spec|
-                    SnapshotSpecPatcher::new(self.encoder)
-                        .patch_spec(spec)
-                        .with_span(postcondition_span.clone())
-            )
-            .collect::<SpannedEncodingResult<Vec<_>>>()?;
-
-
-            if config::enable_purification_optimization() {
-                let snapshots = self.encoder.get_snapshots();
-                let mut ep = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
-                let _purified_elems : Vec<vir::Expr> = full_func_spec_elements.clone().into_iter().map(|e| {
-                    vir::ExprFolder::fold(&mut ep, e.clone())
-                }).collect();
-
-              //  full_func_spec_elements =  purified_elems; //TODO this might or might not be needed
-            }
-
-            let full_func_spec = full_func_spec_elements
-                .into_iter()
-                .conjoin()
-                .set_default_pos(func_spec_pos);*/
 
         let full_func_spec = func_spec.into_iter()
             .conjoin()
@@ -5270,7 +5236,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // types
         let array_ty = self.encoder.encode_type(array_ty)?;
         let elem_ty = self.encoder.encode_type(elem_ty_rs)?;
-        let elem_value_ty = self.encoder.encode_value_type(elem_ty_rs)?;
+        let elem_value_ty = self.encoder.encode_snapshot_type(elem_ty_rs)?;
 
         let array_len = self.encoder.const_eval_intlike(&len.val)?
             .to_u64().unwrap().try_into().unwrap();

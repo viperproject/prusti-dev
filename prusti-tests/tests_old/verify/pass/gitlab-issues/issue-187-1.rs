@@ -20,7 +20,7 @@ fn contains(list: &List, i: i32, j: i32) -> bool {
         }
     }
 }
-/*
+
 #[requires(!contains(list, elem.0, elem.1))]
 #[ensures(contains(list, elem.0, elem.1))]
 #[ensures(forall(|i: i32, j: i32| old(contains(list, i, j)) ==> contains(list, i, j)))]
@@ -38,14 +38,5 @@ fn append(list: &mut List, elem: Triple) {
         }
     }
 }
-*/
-fn main() {
-    let x = List {
-        next: Some(box List {
-            next: None,
-            elem: (1, 2, 3),
-        }),
-        elem: (3, 2, 1),
-    };
-    assert!(contains(&x, 1, 2));
-}
+
+fn main() {}

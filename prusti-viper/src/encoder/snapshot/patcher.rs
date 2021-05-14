@@ -20,7 +20,7 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
     fn fallible_fold_snap_app(
         &mut self,
         e: Box<vir::Expr>,
-        p: vir::Position
+        _p: vir::Position
     ) -> Result<vir::Expr, Self::Error> {
         let e = self.fallible_fold_boxed(e)?;
         self.snapshot_encoder.snap_app(self.encoder, *e)

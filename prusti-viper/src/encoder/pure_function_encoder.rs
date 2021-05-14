@@ -193,7 +193,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let mir_type = mir_encoder.get_local_ty(local);
             let var_type = self
                 .encoder
-                .encode_value_or_ref_type(self.encoder.resolve_typaram(mir_type))
+                .encode_snapshot_type(mir_type)
                 .with_span(var_span)?;
             let var_type = var_type.patch(&subst_strings);
             formal_args.push(vir::LocalVar::new(var_name, var_type))
@@ -382,7 +382,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let var_name = mir_encoder.encode_local_var_name(local);
         let var_span = mir_encoder.get_local_span(local);
         let var_type = self.encoder
-            .encode_value_or_ref_type(self.interpreter.mir_encoder().get_local_ty(local))
+            .encode_snapshot_type(self.interpreter.mir_encoder().get_local_ty(local))
             .with_span(var_span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
     }
@@ -410,7 +410,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.interpreter.mir_encoder().get_local_span(return_local);
-        self.encoder.encode_value_type(ty).with_span(span)
+        self.encoder.encode_snapshot_type(ty).with_span(span)
     }
 }
 
@@ -519,7 +519,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
         // Generate a function call that leaves the expression undefined.
         let unreachable_expr = |pos| {
-            self.encoder.encode_value_or_ref_type(self.mir.return_ty()).map(|encoded_type| {
+            self.encoder.encode_snapshot_type(self.mir.return_ty()).map(|encoded_type| {
                 let function_name =
                     self.encoder
                         .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
@@ -531,7 +531,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
         // Generate a function call that leaves the expression undefined.
         let undef_expr = |pos| {
-            self.encoder.encode_value_or_ref_type(self.mir.return_ty()).map(|encoded_type| {
+            self.encoder.encode_snapshot_type(self.mir.return_ty()).map(|encoded_type| {
                 let function_name = self
                     .encoder
                     .encode_builtin_function_use(BuiltinFunctionKind::Undefined(encoded_type.clone()));
@@ -801,12 +801,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     self.encoder.encode_pure_function_use(def_id)
                                         .with_span(term.source_info.span)?
                                 } else {
-                                    // TODO: interestingly, this crashes for
-                                    // custom implementations of eq as the def_id
-                                    // is not local; for details, see
-                                    // https://github.com/viperproject/prusti-dev/issues/188.
-                                    //self.encoder.encode_stub_pure_function_use(def_id)
-                                    //    .run_if_err(cleanup)?
                                     return Err(SpannedEncodingError::incorrect(
                                         format!(
                                             "use of impure function {:?} in pure code is not allowed",

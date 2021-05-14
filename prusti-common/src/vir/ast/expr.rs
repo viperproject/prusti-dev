@@ -208,8 +208,10 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(", "),
             ),
+
             Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) =>
                 write!(f, "[({}), ({})]", inhale_expr, exhale_expr),
+
             Expr::Downcast(ref base, ref enum_place, ref field) => write!(
                 f,
                 "(downcast {} to {} in {})",
@@ -699,7 +701,6 @@ impl Expr {
                 return Some(field_place);
             }
         }
-        // TODO: also allow for Snapshots?
         None
     }
 
@@ -1116,9 +1117,9 @@ impl Expr {
     }
 
     pub fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
-        debug_assert!(target.is_place());
-        // TODO: disabled temporarily for _n.val_int -> _n snapshot patches
+        // TODO: disabled for snapshot patching
         /*
+        debug_assert!(target.is_place());
         assert_eq!(target.get_type(), replacement.get_type());
         if replacement.is_place() {
             assert!(
@@ -1133,6 +1134,7 @@ impl Expr {
             );
         }
         */
+
         struct PlaceReplacer<'a> {
             target: &'a Expr,
             replacement: &'a Expr,
@@ -1222,7 +1224,7 @@ impl Expr {
     }
 
     pub fn replace_multiple_places(self, replacements: &[(Expr, Expr)]) -> Self {
-        // TODO: disabled temporarily for _n.val_int -> _n snapshot patches
+        // TODO: disabled for snapshot patching
         /*
         for (src, dst) in replacements {
             debug_assert!(src.is_place() && dst.is_place());
@@ -1238,7 +1240,8 @@ impl Expr {
                     dst.get_type()
                 );
             }
-        }*/
+        }
+        */
 
         struct PlaceReplacer<'a> {
             replacements: &'a [(Expr, Expr)],
@@ -1585,7 +1588,7 @@ impl PartialEq for Expr {
             }
             (
                 Expr::DomainFuncApp(ref self_function_name, ref self_args, _),
-                Expr::DomainFuncApp(ref other_function_name, ref other_args, _),
+                Expr::DomainFuncApp(ref other_function_name, ref other_args, _)
             ) => {
                 (self_function_name, self_args)
                     == (other_function_name, other_args)

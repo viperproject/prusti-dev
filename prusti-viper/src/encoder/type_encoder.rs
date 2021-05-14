@@ -107,54 +107,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(vir::Type::TypedRef(self.encode_predicate_use()?))
     }
 
-    pub fn encode_value_type(self) -> EncodingResult<vir::Type> {
-        /*
-        debug!("Encode value type '{:?}'", self.ty);
-        Ok(match self.ty.kind() {
-            ty::TyKind::Bool => vir::Type::Bool,
-
-            ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
-                vir::Type::Int
-            }
-
-            ty::TyKind::Ref(_, ref ty, _) => {
-                let type_name = self.encoder.encode_type_predicate_use(ty)?;
-                vir::Type::TypedRef(type_name)
-            }
-
-            ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => {
-                self.encoder.encode_snapshot_type(&self.ty)?;
-            }
-
-            ty::TyKind::RawPtr(ty::TypeAndMut { .. }) => {
-                return Err(EncodingError::unsupported(
-                    "raw pointers are not supported"
-                ));
-            }
-
-            ref x => unimplemented!("{:?}", x),
-        })*/
-        self.encoder.encode_snapshot_type(&self.ty)
-    }
-
-
-    /// provides the type of the underlying value or a reference in case of composed
-    /// data structures
-    pub fn encode_value_or_ref_type(self) -> EncodingResult<vir::Type> {
-        debug!("Encode ref value type '{:?}'", self.ty);
-        match self.ty.kind() {
-            ty::TyKind::Adt(_, _)
-            | ty::TyKind::Tuple(_) => {
-                //let snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                //let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
-                //Ok(vir::Type::TypedRef(type_name))
-                self.encoder.encode_snapshot_type(&self.ty)
-            },
-
-            _ => self.encode_value_type(),
-        }
-    }
-
     pub fn encode_value_field(self) -> EncodingResult<vir::Field> {
         trace!("Encode value field for type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
