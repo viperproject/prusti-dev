@@ -1234,6 +1234,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             location,
                         )?
                     }
+                    &mir::Rvalue::Repeat(ref operand, ref times) => {
+                        self.encode_assign_array_repeat_initializer(
+                            encoded_lhs,
+                            operand,
+                            times,
+                            ty,
+                            location,
+                        )?
+                    }
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
                     }
@@ -5014,6 +5023,59 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )
     }
 
+    fn encode_assign_array_repeat_initializer(
+        &mut self,
+        encoded_lhs: vir::Expr,
+        operand: &mir::Operand<'tcx>,
+        times: &ty::Const<'tcx>,
+        ty: ty::Ty<'tcx>,
+        location: mir::Location,
+    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        let span = self.mir_encoder.get_span_of_location(location);
+        let at = self.encode_array_types(ty).with_span(span)?;
+        let lookup_pure = self.encoder.encode_builtin_function_use(
+            BuiltinFunctionKind::ArrayLookupPure {
+                array_ty_pred: at.array_pred,
+                elem_ty_pred: at.elem_pred,
+                array_len: at.array_len,
+                return_ty: at.elem_value_ty.clone(),
+            }
+        );
+
+        let encoded_operand = self.mir_encoder.encode_operand_expr(operand)
+            .with_span(span)?;
+        let len: usize = self.encoder.const_eval_intlike(&times.val).with_span(span)?
+            .to_u64().unwrap().try_into().unwrap();
+
+        let mut stmts = self.encode_havoc_and_allocation(&encoded_lhs);
+        for i in 0..len {
+            let idx = vir::Expr::from(i);
+            let lookup_pure_call = vir::Expr::func_app(
+                lookup_pure.clone(),
+                vec![
+                    encoded_lhs.clone(),
+                    idx,
+                ],
+                vec![
+                    vir::LocalVar::new(
+                        String::from("self"),
+                        at.array_ty.clone(),
+                    ),
+                    vir::LocalVar::new(
+                        String::from("idx"),
+                        vir::Type::Int,
+                    ),
+                ],
+                at.elem_value_ty.clone(),
+                vir::Position::default(),
+            );
+
+            stmts.push(vir::Stmt::Inhale(vir!{ [lookup_pure_call] == [encoded_operand] }));
+        }
+
+        Ok(stmts)
+    }
+
     pub fn get_auxiliary_local_var(&mut self, suffix: &str, vir_type: vir::Type) -> vir::LocalVar {
         let name = format!("_aux_{}_{}", suffix, vir_type.name());
         if self.auxiliary_local_vars.contains_key(&name) {
@@ -5423,7 +5485,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ],
                         at.elem_value_ty.clone(),
                         vir::Position::default(),
-                        );
+                    );
 
                     let encoded_operand = self.mir_encoder.encode_operand_expr(operand)
                         .with_span(span)?;
