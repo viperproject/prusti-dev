@@ -1,3 +1,5 @@
+include!(concat!(env!("OUT_DIR"), "/vir.rs"));
+
 #[cfg(test)]
 mod tests {
     #[test]
