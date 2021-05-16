@@ -11,12 +11,14 @@ use crate::vir::{cfg, Const, Expr, Stmt};
 /// Remove trivial assertions:
 /// * `assert true`
 /// * `exhale true`
+/// * `inhale true`
 pub fn remove_trivial_assertions(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     method.retain_stmts(|stmt| {
         // Remove those statements marked with `false`
         match stmt {
             Stmt::Assert(Expr::Const(Const::Bool(true), _), _) => false,
             Stmt::Exhale(Expr::Const(Const::Bool(true), _), _) => false,
+            Stmt::Inhale(Expr::Const(Const::Bool(true), _)) => false,
             _ => true, // Keep the rest
         }
     });
