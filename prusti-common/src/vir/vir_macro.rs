@@ -29,8 +29,10 @@ macro_rules! vir {
             $crate::vir::Position::default())
     };
     (inhale $exp: tt) => {
-        $crate::vir::Stmt::Inhale(
-            vir!($exp))
+        $crate::vir::Stmt::Inhale(vir!($exp))
+    };
+    (exhale $exp: tt) => {
+        $crate::vir::Stmt::Exhale(vir!($exp), $cratevir::Position::default())
     };
     (apply $exp: tt) => {
         $crate::vir::Stmt::ApplyMagicWand(
@@ -110,7 +112,7 @@ macro_rules! vir {
     (forall $($name: ident : $type: tt),+ :: {$($triggers: tt),*} $body: tt) => {
         $crate::vir::Expr::forall(
             vec![$($crate::vir_local!($name: $type)),+],
-            vec![$(Trigger::new(vec![vir!($triggers)])),*],
+            vec![$($crate::vir::Trigger::new(vec![vir!($triggers)])),*],
             vir!($body),
         )
     };
