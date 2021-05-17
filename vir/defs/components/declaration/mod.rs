@@ -13,7 +13,6 @@ trait Interface {
 
 mod parse;
 mod parse_ast;
-mod rsmt;
 mod display;
 
 pub struct UninterpretedSortDeclaration {

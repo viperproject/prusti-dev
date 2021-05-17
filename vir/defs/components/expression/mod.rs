@@ -11,7 +11,6 @@ mod evaluation;
 mod helpers;
 mod parse;
 mod parse_ast;
-mod rsmt;
 mod sort;
 
 pub struct Variable {
