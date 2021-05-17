@@ -6,7 +6,6 @@ trait Interface {
 mod display;
 mod parse;
 mod parse_ast;
-mod rsmt;
 
 pub enum Sort {
     Bool,
