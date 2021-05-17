@@ -2242,7 +2242,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let rhs = vir::Expr::func_app(
             slice_len_name,
             vec![
-                slice_operand.clone(),
+                slice_operand,
             ],
             vec![
                 vir::LocalVar::new("self", st.slice_ty),
@@ -5114,7 +5114,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 stmts.push(vir::Stmt::Assert(
                     vir::Expr::predicate_access_predicate(
-                        st.slice_pred.clone(),
+                        st.slice_pred,
                         encoded_place.clone(),
                         vir::PermAmount::Read,
                     ),
@@ -5124,7 +5124,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let rhs = vir::Expr::func_app(
                     slice_len,
                     vec![
-                        encoded_place.clone(),
+                        encoded_place,
                     ],
                     vec![
                         vir::LocalVar::new_typed_ref("self", ty_name)
