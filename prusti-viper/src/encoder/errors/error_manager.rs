@@ -52,7 +52,7 @@ pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
     /// Arguments: the message of the Rust assertion
     AssertTerminator(String),
-    /// A Viper `assert false` in the context of a bounds check (if we were able to detect it)
+    /// A Viper `assert false` in the context of a bounds check
     BoundsCheckAssert,
     /// A Viper `assert false` that encodes an `abort` Rust terminator
     AbortTerminator,
