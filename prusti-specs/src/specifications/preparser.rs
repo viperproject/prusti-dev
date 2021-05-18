@@ -90,8 +90,7 @@ impl Parser {
 
     fn parse_prusti(&mut self) -> syn::Result<AssertionWithoutId> {
         let lhs = self.parse_conjunction()?;
-        if self.peek_operator("==>") {
-            self.pop();
+        if self.consume_operator("==>") {
             let rhs = self.parse_prusti()?;
             Ok(AssertionWithoutId {
                 kind: box common::AssertionKind::Implies(lhs, rhs)
@@ -103,8 +102,7 @@ impl Parser {
 
     fn parse_conjunction(&mut self) -> syn::Result<AssertionWithoutId> {
         let mut conjuncts = vec![self.parse_entailment()?];
-        while self.peek_operator("&&") {
-            self.pop();
+        while self.consume_operator("&&") {
             conjuncts.push(self.parse_entailment()?);
         }
         if conjuncts.len() == 1 {
@@ -121,17 +119,14 @@ impl Parser {
             self.parse_primary()
         } else {
             let lhs = self.parse_rust()?;
-            if self.peek_operator("|=") {
-                self.pop();
+            if self.consume_operator("|=") {
 
-                let vars = if self.peek_operator("|") {
-                    self.pop();
+                let vars = if self.consume_operator("|") {
                     let arg_tokens = self.create_stream_until("|");
                     let all_args: SpecEntArgs = syn::parse2(arg_tokens)?;
-                    if !self.peek_operator("|") {
+                    if !self.consume_operator("|") {
                         return Err(self.error_expected("`|`"));
                     }
-                    self.pop();
                     all_args.args.into_iter()
                                  .map(|var| Arg { typ: var.typ, name: var.name })
                                  .collect()
@@ -139,45 +134,37 @@ impl Parser {
                     vec![]
                 };
     
-                if !self.peek_operator("[") {
+                if !self.consume_operator("[") {
                     return Err(self.error_expected("`[`"));
                 }
-                self.pop();
     
                 let mut pres = vec![];
                 let mut posts = vec![];
                 while !self.peek_operator("]") && !self.tokens.is_empty() {
-                    if self.peek_keyword("requires") {
-                        self.pop();
-                        if !self.peek_operator("(") {
+                    if self.consume_keyword("requires") {
+                        if !self.consume_operator("(") {
                             return Err(self.error_expected("`(`"));
                         }
-                        self.pop();
                         pres.push(self.parse_prusti()?);
-                        if !self.peek_operator(")") {
+                        if !self.consume_operator(")") {
                             return Err(self.error_expected("`)`"));
                         }
-                        self.pop();
-                    } else if self.peek_keyword("ensures") {
-                        self.pop();
-                        if !self.peek_operator("(") {
+                    } else if self.consume_keyword("ensures") {
+                        if !self.consume_operator("(") {
                             return Err(self.error_expected("`(`"));
                         }
-                        self.pop();
                         posts.push(self.parse_prusti()?);
-                        if !self.peek_operator(")") {
+                        if !self.consume_operator(")") {
                             return Err(self.error_expected("`)`"));
                         }
-                        self.pop();
                     } else {
                         return Err(self.error_expected("`requires` or `ensures`"));
                     }
                 }
     
-                if !self.peek_operator("]") {
+                if !self.consume_operator("]") {
                     return Err(self.error_expected("`]`"));
                 }
-                self.pop();
     
                 Ok(AssertionWithoutId {
                     kind: Box::new(common::AssertionKind::SpecEntailment {
@@ -203,34 +190,28 @@ impl Parser {
     }
 
     fn parse_primary(&mut self) -> syn::Result<AssertionWithoutId> {
-        if self.peek_operator("(") {
-            self.pop();
+        if self.consume_operator("(") {
             let retval = self.parse_prusti()?;
-            if !self.peek_operator(")") {
+            if !self.consume_operator(")") {
                 return Err(self.error_expected("`)`"));
             }
-            self.pop();
             Ok(retval)
-        } else if self.peek_keyword("forall") {
-            self.pop();
-            if !self.peek_operator("(") {
+        } else if self.consume_keyword("forall") {
+            if !self.consume_operator("(") {
                 return Err(self.error_expected("`(`"));
             }
-            self.pop();
 
-            if !self.peek_operator("|") {
+            if !self.consume_operator("|") {
                 return Err(self.error_expected("`|`"));
             }
-            self.pop();
             let arg_tokens = self.create_stream_until("|");
             if arg_tokens.is_empty() {
                 return Err(self.error_no_quantifier_arguments());
             }
             let all_args: ForAllArgs = syn::parse2(arg_tokens)?;
-            if !self.peek_operator("|") {
+            if !self.consume_operator("|") {
                 return Err(self.error_expected("`|`"));
             }
-            self.pop();
             let vars: Vec<Arg> =
                 all_args.args.into_iter()
                              .map(|var| Arg { typ: var.typ, name: var.name })
@@ -240,16 +221,13 @@ impl Parser {
 
             let mut trigger_set = TriggerSet(vec![]);
 
-            if self.peek_operator(",") {
-                self.pop();
-                if !self.peek_keyword("triggers") {
+            if self.consume_operator(",") {
+                if !self.consume_keyword("triggers") {
                     return Err(self.error_expected("`triggers`"));
                 }
-                self.pop();
-                if !self.peek_operator("=") {
+                if !self.consume_operator("=") {
                     return Err(self.error_expected("`=`"));
                 }
-                self.pop();
 
                 let arr_tokens = self.create_stream_until(")");
                 let arr: Result<syn::ExprArray, Error> = syn::parse2(arr_tokens);
@@ -279,10 +257,9 @@ impl Parser {
                 }
             }
 
-            if !self.peek_operator(")") {
+            if !self.consume_operator(")") {
                 return Err(self.error_expected("`)`"));
             }
-            self.pop();
 
             Ok(AssertionWithoutId {
                 kind: box common::AssertionKind::ForAll(
@@ -348,7 +325,41 @@ impl Parser {
         }
         false
     }
-    /// pop a token
+    /// consume the operator if it is next in the stream
+    fn consume_operator(&mut self, operator: &str) -> bool {
+        if !self.peek_operator(operator) {
+            return false;
+        }
+        let mut span: Option<Span> = None;
+        for _ in operator.chars() {
+            let character = self.tokens.pop_front().unwrap();
+            if let Some(maybe_span) = span {
+                span = maybe_span.join(character.span());
+            } else {
+                span = Some(character.span());
+            }
+        }
+        self.last_span = span.unwrap();
+        true
+    }
+    /// consume the keyword if it is next in the stream
+    fn consume_keyword(&mut self, keyword: &str) -> bool {
+        if !self.peek_keyword(keyword) {
+            return false;
+        }
+        let mut span: Option<Span> = None;
+        for _ in keyword.chars() {
+            let character = self.tokens.pop_front().unwrap();
+            if let Some(maybe_span) = span {
+                span = maybe_span.join(character.span());
+            } else {
+                span = Some(character.span());
+            }
+        }
+        self.last_span = span.unwrap();
+        true
+    }
+    /// pop a character - not a token!
     fn pop(&mut self) -> Option<TokenTree> {
         if let Some(token) = self.tokens.pop_front() {
             self.last_span = token.span();
