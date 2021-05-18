@@ -52,6 +52,8 @@ pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
     /// Arguments: the message of the Rust assertion
     AssertTerminator(String),
+    /// A Viper `assert false` in the context of a bounds check (if we were able to detect it)
+    BoundsCheckAssert,
     /// A Viper `assert false` that encodes an `abort` Rust terminator
     AbortTerminator,
     /// A Viper `assert false` that encodes an `unreachable` Rust terminator
@@ -471,6 +473,13 @@ impl<'tcx> ErrorManager<'tcx>
                     //.push_primary_span(opt_cause_span)
                     .push_primary_span(Some(&impl_span))
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::BoundsCheckAssert) => {
+                PrustiError::verification(
+                    format!("the array or slice index may be out of bounds"),
+                    error_span,
+                ).set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason)) => {

@@ -2179,12 +2179,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
 
                 // Check or assume the assertion
-                let assert_msg = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                let (assert_msg, error_ctxt) = if let mir::AssertKind::BoundsCheck { .. } = msg {
                     let mut s = String::new();
                     msg.fmt_assert_args(&mut s).unwrap();
-                    s
+                    (s, ErrorCtxt::BoundsCheckAssert)
                 } else {
-                    msg.description().to_string()
+                    let assert_msg = msg.description().to_string();
+                    (assert_msg.clone(), ErrorCtxt::AssertTerminator(assert_msg))
                 };
 
                 stmts.push(vir::Stmt::comment(format!("Rust assertion: {}", assert_msg)));
@@ -2193,7 +2194,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         viper_guard,
                         self.encoder.error_manager().register(
                             term.source_info.span,
-                            ErrorCtxt::AssertTerminator(assert_msg),
+                            error_ctxt,
                         ),
                     ));
                 } else {
