@@ -10,7 +10,7 @@ use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::builtin_encoder::BuiltinDomainKind;
-use crate::encoder::errors::{ErrorCtxt, ErrorManager, SpannedEncodingError, EncodingError, WithSpan, RunIfErr};
+use crate::encoder::errors::{ErrorCtxt, ErrorManager, SpannedEncodingError, EncodingError, WithSpan};
 use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
@@ -60,6 +60,18 @@ use crate::encoder::snapshot;
 use crate::encoder::mirror_function_encoder;
 
 const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
+
+
+#[must_use]
+pub struct CleanupTyMapStack<'a, 'tcx> {
+    tymap_stack: &'a std::cell::RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
+}
+
+impl<'a, 'tcx> Drop for CleanupTyMapStack<'a, 'tcx> {
+    fn drop(&mut self) {
+        self.tymap_stack.borrow_mut().pop();
+    }
+}
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -173,6 +185,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             mirror_caller_functions: RefCell::new(vec![]),
             current_proc:  RefCell::new(None),
         }
+    }
+
+    pub fn push_temp_tymap<'a>(
+        &'a self,
+        tymap: HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>,
+    ) -> CleanupTyMapStack<'a, 'tcx> {
+        self.typaram_repl.borrow_mut().push(tymap);
+
+        CleanupTyMapStack { tymap_stack: &self.typaram_repl }
     }
 
     pub fn log_vir_program_before_foldunfold<S: ToString>(&self, program: S) {
@@ -1190,25 +1211,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             proc_def_id
         );
 
-        {
-            // FIXME: this is a hack to support generics. See issue #187.
-            let mut tymap_stack = self.typaram_repl.borrow_mut();
-            assert!(tymap_stack.is_empty());
-            let mut tymap = HashMap::new();
-            for (typ, subst) in substs {
-                tymap.insert(typ, subst);
-            }
-            tymap_stack.push(tymap);
+        // FIXME: this is a hack to support generics. See issue #187.
+        assert!(self.typaram_repl.borrow().is_empty());
+        let mut tymap = HashMap::new();
+        for (typ, subst) in substs {
+            tymap.insert(typ, subst);
         }
-        let cleanup = || {
-            // FIXME: this is a hack to support generics. See issue #187.
-            let mut tymap_stack = self.typaram_repl.borrow_mut();
-            tymap_stack.pop();
-        };
+        let _cleanup_token = self.push_temp_tymap(tymap);
 
         // FIXME: Using substitutions as a key is most likely wrong.
         let mir_span = self.env.tcx().def_span(proc_def_id);
-        let substs_key = self.type_substitution_key().with_span(mir_span).run_if_err(cleanup)?;
+        let substs_key = self.type_substitution_key().with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
 
         if !self.pure_functions.borrow().contains_key(&key) {
@@ -1218,14 +1231,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let pure_function_encoder =
                 PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
             let (function, needs_patching) = if let Some(predicate_body) = self.get_predicate_body(proc_def_id) {
-                (pure_function_encoder.encode_predicate_function(predicate_body)
-                    .run_if_err(cleanup)?, false)
+                (pure_function_encoder.encode_predicate_function(predicate_body)?, false)
             } else if self.is_trusted(proc_def_id) {
-                (pure_function_encoder.encode_bodyless_function()
-                    .run_if_err(cleanup)?, false)
+                (pure_function_encoder.encode_bodyless_function()?, false)
             } else {
-                (pure_function_encoder.encode_function()
-                    .run_if_err(cleanup)?, true)
+                (pure_function_encoder.encode_function()?, true)
             };
 
             if config::enable_purification_optimization() {
@@ -1237,15 +1247,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 let body = procedure.get_mir();
                 for local_decl in &body.local_decls {
                     let ty = local_decl.ty;
-                    self.encode_snapshot(ty).with_span(procedure.get_span()).run_if_err(cleanup)?;
+                    self.encode_snapshot(ty).with_span(procedure.get_span())?;
                 }
                 self.encode_mirror_of_pure_function(&function);
             }
 
             let final_function = if needs_patching {
                 self.patch_pure_post_with_mirror_call(function)
-                    .with_span(procedure.get_span())
-                    .run_if_err(cleanup)?
+                    .with_span(procedure.get_span())?
             } else {
                 function
             };
@@ -1255,7 +1264,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
 
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
-        cleanup();
         Ok(())
     }
 

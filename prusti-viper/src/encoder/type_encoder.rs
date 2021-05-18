@@ -585,22 +585,19 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     let own_substs =
                         ty::List::identity_for_item(self.encoder.env().tcx(), adt_def.did);
 
-                    {
-                        // FIXME: this is a hack to support generics. See issue #187.
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        let mut tymap = HashMap::new();
+                    // FIXME: this is a hack to support generics. See issue #187.
+                    let mut tymap = HashMap::new();
 
-                        for (kind1, kind2) in own_substs.iter().zip(*subst) {
-                            if let (
-                                ty::subst::GenericArgKind::Type(ty1),
-                                ty::subst::GenericArgKind::Type(ty2),
-                            ) = (kind1.unpack(), kind2.unpack())
-                            {
-                                tymap.insert(ty1, ty2);
-                            }
+                    for (kind1, kind2) in own_substs.iter().zip(*subst) {
+                        if let (
+                            ty::subst::GenericArgKind::Type(ty1),
+                            ty::subst::GenericArgKind::Type(ty2),
+                        ) = (kind1.unpack(), kind2.unpack())
+                        {
+                            tymap.insert(ty1, ty2);
                         }
-                        tymap_stack.push(tymap);
                     }
+                    let _cleanup_token = self.encoder.push_temp_tymap(tymap);
 
                     let mut exprs: Vec<vir::Expr> = vec![];
                     let num_variants = adt_def.variants.len();
@@ -650,12 +647,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             }
                             _ => unreachable!(),
                         }
-                    }
-
-                    // FIXME: this is a hack to support generics. See issue #187.
-                    {
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        tymap_stack.pop();
                     }
 
                     if num_variants == 0 {

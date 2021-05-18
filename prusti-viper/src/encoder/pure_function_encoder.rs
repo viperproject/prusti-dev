@@ -7,8 +7,7 @@
 use std::mem;
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::errors::{PanicCause, RunIfErr};
-use crate::encoder::errors::{SpannedEncodingError, ErrorCtxt, WithSpan};
+use crate::encoder::errors::{SpannedEncodingError, ErrorCtxt, WithSpan, PanicCause};
 use crate::encoder::foldunfold;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
@@ -734,33 +733,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     let own_substs =
                         ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
 
-                    {
-                        // FIXME: this is a hack to support generics. See issue #187.
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        let mut tymap = HashMap::new();
-
-                        for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
-                            if let (
-                                ty::subst::GenericArgKind::Type(ty1),
-                                ty::subst::GenericArgKind::Type(ty2),
-                            ) = (kind1.unpack(), kind2.unpack())
-                            {
-                                tymap.insert(ty1, ty2);
-                            }
+                    // FIXME: this is a hack to support generics. See issue #187.
+                    let mut tymap = HashMap::new();
+                    for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
+                        if let (
+                            ty::subst::GenericArgKind::Type(ty1),
+                            ty::subst::GenericArgKind::Type(ty2),
+                        ) = (kind1.unpack(), kind2.unpack())
+                        {
+                            tymap.insert(ty1, ty2);
                         }
-                        tymap_stack.push(tymap);
                     }
-                    let cleanup = || {
-                        // FIXME: this is a hack to support generics. See issue #187.
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        tymap_stack.pop();
-                    };
+                    let _cleanup_token = self.encoder.push_temp_tymap(tymap);
 
                     let state = if destination.is_some() {
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                         let (encoded_lhs, ty, _) = self.encode_place(lhs_place)
-                            .with_span(span)
-                            .run_if_err(cleanup)?;
+                            .with_span(span)?;
                         let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty);
                         let encoded_args: Vec<vir::Expr> = args
                             .iter()
@@ -776,7 +765,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 // Return an error for unsupported old(..) types
                                 let tcx = self.encoder.env().tcx();
                                 if !is_supported_type_of_pure_expression(tcx, ty) {
-                                    cleanup();
                                     return Err(SpannedEncodingError::incorrect(
                                         "the type of the old expression is invalid",
                                         term.source_info.span,
@@ -807,8 +795,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let is_pure_function = self.encoder.is_pure(def_id);
                                 let (function_name, return_type) = if is_pure_function {
                                     self.encoder.encode_pure_function_use(def_id)
-                                        .with_span(term.source_info.span)
-                                        .run_if_err(cleanup)?
+                                        .with_span(term.source_info.span)?
                                 } else {
                                     // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
                                     // function
@@ -818,31 +805,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                             "std::cmp::PartialEq::eq"
                                             if self.encoder.has_structural_eq_impl(arg_ty) => {
                                                 is_cmp_call = true;
-                                                self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, true)
-                                                    .run_if_err(cleanup)?
+                                                self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, true)?
                                             }
                                             "std::cmp::PartialEq::ne"
                                             if self.encoder.has_structural_eq_impl(arg_ty) => {
                                                 is_cmp_call = true;
-                                                self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, false)
-                                                    .run_if_err(cleanup)?
+                                                self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, false)?
                                             }
                                             _ => {
                                                 // TODO: interestingly, this crashes for
                                                 // custom implementations of eq as the def_id
                                                 // is not local; for details, see
                                                 // https://github.com/viperproject/prusti-dev/issues/188.
-                                                self.encoder.encode_stub_pure_function_use(def_id)
-                                                    .run_if_err(cleanup)?
+                                                self.encoder.encode_stub_pure_function_use(def_id)?
                                             }
                                         }
                                     } else {
-                                        self.encoder.encode_stub_pure_function_use(def_id)
-                                            .run_if_err(cleanup)?
+                                        self.encoder.encode_stub_pure_function_use(def_id)?
                                     }
                                 };
                                 if !is_pure_function && !is_cmp_call {
-                                    cleanup();
                                     return Err(SpannedEncodingError::incorrect(
                                         format!(
                                             "use of impure function {:?} in pure code is not allowed",
@@ -861,8 +843,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                             .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
                                     })
                                     .collect::<Result<_, _>>()
-                                    .with_span(term.source_info.span)
-                                    .run_if_err(cleanup)?;
+                                    .with_span(term.source_info.span)?;
 
                                 let pos = self
                                     .encoder
@@ -914,12 +895,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             .error_manager()
                             .register(term.source_info.span, error_ctxt);
                         MultiExprBackwardInterpreterState::new_single(
-                            unreachable_expr(pos).with_span(term.source_info.span)
-                                .run_if_err(cleanup)?
+                            unreachable_expr(pos).with_span(term.source_info.span)?
                         )
                     };
 
-                    cleanup();
                     state
                 } else {
                     // Other kind of calls?
