@@ -4619,13 +4619,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let i_lt_len = vir!{ [ i_var ] < [ vir::Expr::from(at.array_len) ] };
         let i_ne_idx = vir!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
         let idx_conditions = vir!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
-        let lookup_same_as_old = vir!{
-            [at.encode_lookup_pure_call(encoded_array.clone(), i_var.clone())]
-                ==
-            [old(at.encode_lookup_pure_call(encoded_array.clone(), i_var))]
-        };
+        let lookup_array_i = at.encode_lookup_pure_call(encoded_array.clone(), i_var.clone());
+        let lookup_same_as_old = vir!{ [lookup_array_i.clone()] == [old(lookup_array_i.clone())] };
         let forall_body = vir!{ [idx_conditions] ==> [lookup_same_as_old] };
-        let all_others_unchanged = vir!{ forall i: Int :: { /* TODO */ } [ forall_body ] };
+        let all_others_unchanged = vir!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
 
         stmts.push(vir!{ inhale [ all_others_unchanged ]});
 
@@ -5735,13 +5732,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let i_lt_len = vir!{ [ i_var ] < [ vir::Expr::from(at.array_len) ] };
         let i_ne_idx = vir!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
         let idx_conditions = vir!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
-        let lookup_same_as_old = vir!{
-            [at.encode_lookup_pure_call(encoded_base_expr.clone(), i_var.clone())]
-                ==
-            [old(at.encode_lookup_pure_call(encoded_base_expr.clone(), i_var))]
-        };
+        let lookup_array_i = at.encode_lookup_pure_call(encoded_base_expr.clone(), i_var.clone());
+        let lookup_same_as_old = vir!{ [lookup_array_i.clone()] == [old(lookup_array_i.clone())] };
         let forall_body = vir!{ [idx_conditions] ==> [lookup_same_as_old] };
-        let all_others_unchanged = vir!{ forall i: Int :: { /* TODO */ } [ forall_body ] };
+        let all_others_unchanged = vir!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
         let indexed_updated = vir!{ [ at.encode_lookup_pure_call(encoded_base_expr.clone(), old(idx_val_int)) ] == [ old_lhs(res_val_field.clone()) ] };
 
         let magic_wand_rhs = vir!{ [all_others_unchanged] && [indexed_updated] };
