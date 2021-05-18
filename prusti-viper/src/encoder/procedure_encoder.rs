@@ -1123,6 +1123,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
 
         let mut stmts = vec![vir::Stmt::comment(format!("[mir] {:?}", stmt))];
+        let span = self.mir_encoder.get_span_of_location(location);
 
         let encoding_stmts = match stmt.kind {
             mir::StatementKind::StorageLive(..)
@@ -1133,116 +1134,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | mir::StatementKind::Nop => vec![],
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
-                let span = self.mir_encoder.get_span_of_location(location);
-                // array access on the LHS should always be mutable (idx is always calculated
+                // Array access on the LHS should always be mutable (idx is always calculated
                 // before, and just a separate local variable here)
-                let (encoded_lhs, pre_stmts, ty, _) = self.encode_place(lhs, ArrayAccessKind::Mutable(None, location)).with_span(span)?;
-                stmts.extend(pre_stmts);
-                match rhs {
-                    &mir::Rvalue::Use(ref operand) => {
-                        self.encode_assign_operand(&encoded_lhs, operand, location)?
-                    }
-                    &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
-                        self.encode_assign_aggregate(
-                            &encoded_lhs,
-                            ty,
-                            aggregate,
-                            operands,
-                            location
-                        )?
-                    },
-                    &mir::Rvalue::BinaryOp(op, box (ref left, ref right)) => {
-                        self.encode_assign_binary_op(
-                            op,
-                            left,
-                            right,
-                            encoded_lhs,
-                            ty,
-                            location
-                        )?
-                    }
-                    &mir::Rvalue::CheckedBinaryOp(op, box (ref left, ref right)) => self
-                        .encode_assign_checked_binary_op(
-                            op,
-                            left,
-                            right,
-                            encoded_lhs,
-                            ty,
-                            location,
-                        )?,
-                    &mir::Rvalue::UnaryOp(op, ref operand) => {
-                        self.encode_assign_unary_op(
-                            op,
-                            operand,
-                            encoded_lhs,
-                            ty,
-                            location
-                        )?
-                    }
-                    &mir::Rvalue::NullaryOp(op, ref op_ty) => {
-                        self.encode_assign_nullary_op(
-                            op,
-                            op_ty,
-                            encoded_lhs,
-                            ty,
-                            location
-                        )?
-                    }
-                    &mir::Rvalue::Discriminant(ref src) => {
-                        self.encode_assign_discriminant(
-                            src,
-                            location,
-                            encoded_lhs,
-                            ty
-                        )?
-                    }
-                    &mir::Rvalue::Ref(ref _region, mir_borrow_kind, ref place) => {
-                        self.encode_assign_ref(
-                            mir_borrow_kind,
-                            place,
-                            location,
-                            encoded_lhs,
-                            ty
-                        )?
-                    }
-                    &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
-                        self.encode_cast(
-                            operand,
-                            dst_ty,
-                            encoded_lhs,
-                            ty,
-                            location,
-                            stmt.source_info.span,
-                        )?
-                    }
-                    &mir::Rvalue::Len(ref place) => {
-                        self.encode_assign_sequence_len(
-                            encoded_lhs,
-                            place,
-                            ty,
-                            location,
-                        )?
-                    }
-                    &mir::Rvalue::Repeat(ref operand, ref times) => {
-                        self.encode_assign_array_repeat_initializer(
-                            encoded_lhs,
-                            operand,
-                            times,
-                            ty,
-                            location,
-                        )?
-                    }
-                    &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), _, _) => {
-                        return Err(EncodingError::unsupported(
-                            "unsizing a pointer or reference value is not supported"
-                        )).with_span(span);
-                    }
-                    ref rhs => {
-                        unimplemented!("encoding of '{:?}'", rhs);
-                    }
+                let (lhs_place_encoding, ty, _) = self.mir_encoder.encode_place(lhs).with_span(span)?;
+                if let PlaceEncoding::ArrayAccess { box base, index, rust_array_ty, .. } = lhs_place_encoding {
+                    // Current stmt is of the form `arr[idx] = val`. This does not have an expiring
+                    // temporary variable, so we encode it differently from indexing into an array.
+                    self.encode_array_direct_assign(
+                        base,
+                        index,
+                        rust_array_ty,
+                        rhs,
+                        location,
+                    )?
+                } else {
+                    let (encoded_lhs, pre_stmts) = self.postprocess_place_encoding(lhs_place_encoding, ArrayAccessKind::Mutable(None, location))
+                        .with_span(span)?;
+                    stmts.extend(pre_stmts);
+                    self.encode_assign(
+                        encoded_lhs,
+                        rhs,
+                        ty,
+                        location,
+                    )?
                 }
             }
-
             ref x => unimplemented!("{:?}", x),
         };
         stmts.extend(encoding_stmts);
@@ -1260,6 +1176,121 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 s.set_default_expr_pos(expr_pos).set_default_pos(stmt_pos)
             })
             .collect())
+    }
+
+    /// Encode assignment of RHS to LHS, depending on what kind of thing the RHS is
+    fn encode_assign(
+        &mut self,
+        encoded_lhs: vir::Expr,
+        rhs: &mir::Rvalue<'tcx>,
+        ty: ty::Ty<'tcx>,
+        location: mir::Location,
+    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        let span = self.mir_encoder.get_span_of_location(location);
+
+        Ok(match rhs {
+            &mir::Rvalue::Use(ref operand) => {
+                self.encode_assign_operand(&encoded_lhs, operand, location)?
+            }
+            &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
+                self.encode_assign_aggregate(
+                    &encoded_lhs,
+                    ty,
+                    aggregate,
+                    operands,
+                    location
+                )?
+            },
+            &mir::Rvalue::BinaryOp(op, box (ref left, ref right)) => {
+                self.encode_assign_binary_op(
+                    op,
+                    left,
+                    right,
+                    encoded_lhs,
+                    ty,
+                    location
+                )?
+            }
+            &mir::Rvalue::CheckedBinaryOp(op, box (ref left, ref right)) => self
+                .encode_assign_checked_binary_op(
+                    op,
+                    left,
+                    right,
+                    encoded_lhs,
+                    ty,
+                    location,
+                )?,
+            &mir::Rvalue::UnaryOp(op, ref operand) => {
+                self.encode_assign_unary_op(
+                    op,
+                    operand,
+                    encoded_lhs,
+                    ty,
+                    location
+                )?
+            }
+            &mir::Rvalue::NullaryOp(op, ref op_ty) => {
+                self.encode_assign_nullary_op(
+                    op,
+                    op_ty,
+                    encoded_lhs,
+                    ty,
+                    location
+                )?
+            }
+            &mir::Rvalue::Discriminant(ref src) => {
+                self.encode_assign_discriminant(
+                    src,
+                    location,
+                    encoded_lhs,
+                    ty
+                )?
+            }
+            &mir::Rvalue::Ref(ref _region, mir_borrow_kind, ref place) => {
+                self.encode_assign_ref(
+                    mir_borrow_kind,
+                    place,
+                    location,
+                    encoded_lhs,
+                    ty
+                )?
+            }
+            &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
+                self.encode_cast(
+                    operand,
+                    dst_ty,
+                    encoded_lhs,
+                    ty,
+                    location,
+                    span,
+                )?
+            }
+            &mir::Rvalue::Len(ref place) => {
+                self.encode_assign_sequence_len(
+                    encoded_lhs,
+                    place,
+                    ty,
+                    location,
+                )?
+            }
+            &mir::Rvalue::Repeat(ref operand, ref times) => {
+                self.encode_assign_array_repeat_initializer(
+                    encoded_lhs,
+                    operand,
+                    times,
+                    ty,
+                    location,
+                )?
+            }
+            &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), _, _) => {
+                return Err(EncodingError::unsupported(
+                    "unsizing a pointer or reference value is not supported"
+                )).with_span(span);
+            }
+            ref rhs => {
+                unimplemented!("encoding of '{:?}'", rhs);
+            }
+        })
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
@@ -4534,6 +4565,89 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     //     // }
     // }
 
+    /// Encode an assignment into an array without an intermediate temporary reference into the
+    /// array.
+    fn encode_array_direct_assign(
+        &mut self,
+        base: PlaceEncoding<'tcx>,
+        index: vir::Expr,
+        array_ty: ty::Ty<'tcx>,
+        rhs: &mir::Rvalue<'tcx>,
+        location: mir::Location,
+    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        let span = self.mir_encoder.get_span_of_location(location);
+
+        // We can't just inhale lookup_pure(base, index) == new_val, because that would
+        // add conflicting info with the previous state of the array at that index.
+        // So the idea is
+        //   label lbl;
+        //   exhale array;
+        //   inhale array;
+        //   // now all info about the array is `havoc`ed
+        //   inhale forall i:: i != index ==> lookup_pure(array, i) == old[lbl](lookup_pure(array, i))
+        //   inhale lookup_pure(array, index) == encoded_rhs
+        //   // now we have all the contents as before, just one item updated
+
+        let (encoded_array, mut stmts) = self.postprocess_place_encoding(
+            base,
+            ArrayAccessKind::Shared,  // shouldn't be nested, so doesn't matter[tm]
+        ).with_span(span)?;
+
+        let label = self.cfg_method.get_fresh_label_name();
+        stmts.push(vir::Stmt::label(&label));
+
+        let at = self.encoder.encode_array_types(array_ty).with_span(span)?;
+
+        let array_acc_expr = vir::Expr::predicate_access_predicate(
+            at.array_pred.clone(),
+            encoded_array.clone(),
+            vir::PermAmount::Write,
+        );
+
+        // exhale and re-inhale to havoc
+        stmts.push(vir!{ exhale [array_acc_expr.clone()] });
+        stmts.push(vir!{ inhale [array_acc_expr] });
+
+        let old = |e| { vir::Expr::labelled_old(&label, e) };
+
+        let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
+        let idx_val_int = index.clone().field(self.encoder.encode_value_field(usize_ty));
+
+        // inhale infos about array contents back
+        let i_var: vir::Expr = vir_local!{ i: Int }.into();
+        let zero_le_i = vir!{ [vir::Expr::from(0)] <= [ i_var ] };
+        let i_lt_len = vir!{ [ i_var ] < [ vir::Expr::from(at.array_len) ] };
+        let i_ne_idx = vir!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
+        let idx_conditions = vir!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
+        let lookup_same_as_old = vir!{
+            [at.encode_lookup_pure_call(encoded_array.clone(), i_var.clone())]
+                ==
+            [old(at.encode_lookup_pure_call(encoded_array.clone(), i_var))]
+        };
+        let forall_body = vir!{ [idx_conditions] ==> [lookup_same_as_old] };
+        let all_others_unchanged = vir!{ forall i: Int :: { /* TODO */ } [ forall_body ] };
+
+        stmts.push(vir!{ inhale [ all_others_unchanged ]});
+
+        let tmp = vir::Expr::from(self.cfg_method.add_fresh_local_var(at.elem_ty.clone()));
+        stmts.extend(
+            self.encode_assign(
+                tmp.clone(),
+                rhs,
+                at.elem_ty_rs,
+                location,
+            ).with_span(span)?
+        );
+
+        let tmp_val_field = self.encoder.encode_value_expr(tmp, at.elem_ty_rs);
+
+        let indexed_updated = vir!{ [ at.encode_lookup_pure_call(encoded_array, old(idx_val_int)) ] == [ tmp_val_field ] };
+
+        stmts.push(vir!{ inhale [ indexed_updated ] });
+
+        Ok(stmts)
+    }
+
     /// Return type:
     /// - `Vec<vir::Stmt>`: the statements that encode the assignment of `operand` to `lhs`
     fn encode_assign_operand(
@@ -5614,6 +5728,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         //     self, unfolding ... in index.val_int) == snap$i32(old[lhs](result))
 
         // NEEDSWORK: the vir! macro can't do everything we want here..
+        // TODO: de-duplicate with encode_array_direct_assign
         let i_var: vir::Expr = vir_local!{ i: Int }.into();
 
         let zero_le_i = vir!{ [ vir::Expr::from(0) ] <= [ i_var ] };
