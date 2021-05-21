@@ -1105,9 +1105,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             // Convert floats from rustc_apfloat::ieee:IEEE to Expr::Const manually
             ty::TyKind::Float(ty::FloatTy::F32) => unimplemented!("to_f32 not yet implemented"),
             ty::TyKind::Float(ty::FloatTy::F64) => {
-                
                 let bits = scalar_value.to_u64().unwrap();
-            
                 vir::Expr::Const(vir::Const::Float(vir::FloatConst::FloatConst64(bits)), vir::Position::default())
             }
             

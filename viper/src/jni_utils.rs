@@ -125,10 +125,8 @@ impl<'a> JniUtils<'a> {
 
     /// Converts a Java String to a Rust String
     pub fn get_string(&self, string_object: JObject) -> String {
-        println!("get_string start");
-        let r = self.unwrap_result(self.env.get_string(JString::from(string_object)))
-            .into();
-        println!("get_string end"); r
+        self.unwrap_result(self.env.get_string(JString::from(string_object)))
+            .into()
     }
 
     /// Calls the "toString" method on a Java object and returns the result as a Rust String

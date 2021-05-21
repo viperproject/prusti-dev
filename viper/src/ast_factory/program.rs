@@ -5,6 +5,7 @@
 use ast_factory::structs::Domain;
 use ast_factory::structs::NamedDomainAxiom;
 use ast_factory::structs::DomainFunc;
+use ast_factory::structs::BackendFunc;
 use ast_factory::structs::Expr;
 use ast_factory::structs::Field;
 use ast_factory::structs::Function;

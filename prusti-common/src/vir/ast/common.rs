@@ -313,7 +313,21 @@ impl WithIdentifier for Field {
 
 // maybe missing some other impl
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct BackendFunc {
-    pub name: String,
-    pub args: Vec<String>
+pub enum BackendFunc {
+    BVfunc(String, String),
+    Floatfunc(String, String)
+}
+
+impl BackendFunc {
+    pub fn get_name(&self) -> String {
+        match self{
+            BackendFunc::BVfunc(name,_) | BackendFunc::Floatfunc(name,_) => *name  
+        }
+    }
+}
+
+impl WithIdentifier for BackendFunc {
+    fn get_identifier(&self) -> String {
+        self.get_name().clone()
+    }
 }

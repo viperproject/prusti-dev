@@ -12,7 +12,7 @@ use ast_factory::structs::Trigger;
 use ast_factory::structs::Type;
 use ast_factory::AstFactory;
 use jni::objects::JObject;
-use viper_sys::wrappers::viper::silver::ast;
+use viper_sys::wrappers::viper::silver::ast::{self, BackendFunc};
 
 
 impl<'a> AstFactory<'a> {
@@ -198,13 +198,32 @@ impl<'a> AstFactory<'a> {
         self.int_lit_from_ref_with_pos(i, self.no_position())
     }
 
-    pub fn backend_bv_lit(&self, bits: u64) -> Expr<'a> {       
-        self.backend_func_app("from_nat", &[self.int_lit(bits as i64)], self.no_position())
+    pub fn backend_bv_lit(&self, bits: u64) -> Expr<'a> {    
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV64")).unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
 
-    pub fn backend_float_lit(&self, bits: u64) -> Expr<'a> {       
+    // pub fn bv_backend_func(&self, name: String, smt_name: String) -> Expr<'a> {        
+    //     let bv_factory_ = ast::utility::BVFactory::with(self.env);
+    //     let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
+    //     let func = match &*name {
+    //         "from_int" => ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string(arg)).unwrap(),
+    //         _ => unimplemented!("missing bv backendfunc name")
+    //     };
+
+    //     BackendFunc::new(func, self.jni.new_string(name), self.jni.new_string(arg), func::typ, arg_formalArgs)
+    // }
+
+    pub fn backend_float_lit(&self, bits: u64) -> Expr<'a> {
         let bv = self.backend_bv_lit(bits);
-        self.backend_func_app("from_bv", &[bv], self.no_position())
+        let rm = ast::utility::RoundingMode::with(self.env);
+        let float_factory_ = ast::utility::FloatFactory::with(self.env);
+        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 52,11, rm).unwrap();
+        let from_bv = ast::utility::FloatFactory::call_from__bv(&float_factory_, float_factory, self.jni.new_string("tofp")).unwrap();
+        self.backend_func_app(from_bv, &[bv], self.no_position())
+
     }
 
     pub fn minus_with_pos(&self, expr: Expr, pos: Position) -> Expr<'a> {
@@ -557,7 +576,7 @@ impl<'a> AstFactory<'a> {
 
     pub fn backend_func_app(
         &self,
-        backend_function_name: &str,
+        backend_function: JObject,
         args: &[Expr],
         pos: Position,
     ) -> Expr<'a> {
@@ -565,7 +584,7 @@ impl<'a> AstFactory<'a> {
         let obj = self.jni.unwrap_result(
             backendfunc_app_object_wrapper.call_apply(
                     self.jni.unwrap_result(backendfunc_app_object_wrapper.singleton()),
-                    self.jni.new_string(backend_function_name),
+                    backend_function,
                     self.jni.new_seq(&map_to_jobjects!(args)),
                     pos.to_jobject(),
                     self.no_info(),

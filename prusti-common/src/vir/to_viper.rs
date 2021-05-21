@@ -443,13 +443,15 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     &[], // TODO not necessary so far
                 )
             }
+
             &Expr::BackendFuncApp(ref function, ref args, ref _pos) => {
                 ast.backend_func_app(
-                    &function.name,
+                    function.to_viper(ast),
                     &args.to_viper(ast),
                     _pos.to_viper(ast),
                 )
             }
+
             /* TODO use once DomainFuncApp has been updated
             Expr::DomainFuncApp(
                 ref function_name,
@@ -599,17 +601,14 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
     }
 }
 
-// impl<'a, 'v> ToViper<'v, viper::BackendFunc<'v>> for &'a BackendFunc {
-//     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::DomainFunc<'v> {
-//         ast.backend_func(
-//             &self.get_identifier(),
-//             &self.formal_args.to_viper_decl(ast),
-//             self.return_type.to_viper(ast),
-//             self.unique,
-//             &self.domain_name,
-//         )
-//     }
-// }
+impl<'a, 'v> ToViper<'v, viper::BackendFunc<'v>> for &'a BackendFunc {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::BackendFunc<'v> {
+        match self {
+            BackendFunc::BVfunc(name, arg) => ast.bv_backend_func(name, arg),
+            BackendFunc::Floatfunc(name, arg) => unimplemented!("float backend func unimplemented")
+        }
+    }
+}
 
 impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for &'a DomainAxiom {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::NamedDomainAxiom<'v> {

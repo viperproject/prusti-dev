@@ -223,7 +223,7 @@ impl fmt::Display for Expr {
             Expr::BackendFuncApp(ref function, ref args, ref _pos) => write!(
                 f,
                 "{}({})",
-                function.name,
+                function.get_name(),
                 args.iter()
                     .map(|f| f.to_string())
                     .collect::<Vec<String>>()
@@ -1650,7 +1650,7 @@ impl Hash for Expr {
             Expr::FuncApp(ref name, ref args, _, _, _) => (name, args).hash(state),
             Expr::DomainFuncApp(ref function, ref args, _) => (&function.name, args).hash(state),
             // Mimicked DomainFuncApp above
-            Expr::BackendFuncApp(ref function, ref args, _) => (&function.name, args).hash(state),
+            Expr::BackendFuncApp(ref function, ref args, _) => (&function.get_name(), args).hash(state),
             // TODO Expr::DomainFuncApp(ref name, ref args, _, _, ref domain_name ,_) => (name, args, domain_name).hash(state),
             Expr::Unfolding(ref name, ref args, box ref base, perm, ref variant, _) => {
                 (name, args, base, perm, variant).hash(state)

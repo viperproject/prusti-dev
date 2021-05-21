@@ -88,8 +88,8 @@ impl BuiltinEncoder {
                 format!("Array${}${}$lookup_pure", array_len, elem_ty_pred)
                 
             }
-            BuiltinFunctionKind::Unreachable(vir::Type::Float) => unimplemented!("dont know what should be here"),
-            BuiltinFunctionKind::Undefined(vir::Type::Float) => unimplemented!("dont know what should be here"),
+            BuiltinFunctionKind::Unreachable(vir::Type::Float(_)) => "builtin$unreach_float".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::Float(_)) => "builtin$undef_float".to_string(),
 
         }
     }

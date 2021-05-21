@@ -71,7 +71,7 @@ impl<'a> AstFactory<'a> {
         Type::new(obj)
     }
 
-    // This function is probably in the place and currently has the wrong signature. It is supposed to create an Expr. I was just trying things out.
+    // This function is probably wrong. I was just trying things out.
     pub fn backend_type(&self) -> Type<'a> {
         let utils = JniUtils::new(self.env);
         let boogiename = JniUtils::new_string(&utils, "boogiename"); 
