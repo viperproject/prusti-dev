@@ -30,5 +30,6 @@ pub mod utils;
 pub mod verification_context;
 pub mod verification_service;
 pub mod vir;
+pub mod persistence;
 
 pub use stopwatch::Stopwatch;

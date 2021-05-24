@@ -4,7 +4,8 @@ use rustc_hir::intravisit;
 use rustc_interface::interface::Compiler;
 use rustc_interface::Queries;
 use regex::Regex;
-use prusti_common::config;
+use prusti_common::{config, persistence::extern_spec::{persist_spec_hash, persist_spec_tmp}};
+use std::{fs::canonicalize};
 use crate::verifier::verify;
 
 #[derive(Default)]
@@ -17,6 +18,13 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
         compiler.session().abort_if_errors();
+        println!("{:?}", compiler.session().local_crate_source_file);
+        if let Some(ref source_path) = compiler.session().local_crate_source_file {
+            let abs_path = canonicalize(source_path).and_then(|p| {
+                persist_spec_hash(&p, &"tmp".to_string());
+                Ok(())
+            });
+        }
         let (krate, _resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
         if config::print_desugared_specs() {
             rustc_driver::pretty::print_after_parsing(

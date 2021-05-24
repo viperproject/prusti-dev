@@ -15,12 +15,16 @@ pub mod specifications;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
-use syn::spanned::Spanned;
-use std::convert::{TryFrom, TryInto};
+use serde::{Serialize, Serializer, ser::SerializeStruct};
+use syn::{LitStr, parse_macro_input, spanned::Spanned};
+use core::fmt;
+use std::{convert::{TryFrom, TryInto}, hash::Hash, path::Path, fs::canonicalize};
 
-use specifications::untyped;
+use specifications::{untyped};
 use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
+
+use prusti_common::persistence::extern_spec::{calculate_hash, persist_spec, persist_spec_tmp, read_spec}; 
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
@@ -417,9 +421,10 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 }
 
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
+    // println!("{:?}", tokens);
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
-    match item {
+    let tokens = match item {
         syn::Item::Impl(mut item_impl) => {
             let new_struct = handle_result!(
                 extern_spec_rewriter::generate_new_struct(&item_impl)
@@ -450,7 +455,48 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
             quote!(#item_mod)
         }
         _ => { unimplemented!() }
+    };
+
+    // let syntax = syn::parse_str::<TokenStream>(&tokens.to_string().as_str()).unwrap();
+
+    // println!("syntax: {:?}", syntax);
+
+    let file_hash = read_spec(&"tmp".to_string()).unwrap();
+    persist_spec(&tokens.to_string(), &file_hash);
+    println!("extern tokens:{:?} \n\n", tokens);
+    tokens
+}
+
+pub fn prusti_use(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    if attr.is_empty() {
+        return syn::Error::new(attr.span(), "the `#[prusti_use]` attribute has to take one parameters").to_compile_error();
     }
+
+    // println!("tokens: {}", tokens);
+    // println!("attribute: {:?}", attr);
+    let attr_string: String = attr.to_string().split('"').collect();
+    // println!("attr path: {:?}", attr_string);
+    // println!("file path: {:?}", Path::new(&attr_string));
+    let use_path = canonicalize(Path::new(&attr_string)).unwrap();
+    let use_path_hash = calculate_hash(&use_path);
+
+    let persisted_token_string: String = read_spec(&use_path_hash.to_string()).unwrap();
+    let persisted_tokens: TokenStream = syn::parse_str(persisted_token_string.as_str()).unwrap();
+    // println!("persisted: {:?}", persisted_tokens);
+
+    
+    // println!("original tokens: {:?}\n\n", persisted_tokens);    
+    // let tokens: TokenStream = read_spec(&use_path_hash.to_string()).unwrap().parse::<TokenStream>().unwrap();
+    // println!("hash: {:?}", use_path_hash);
+
+    // tokens
+    let res = quote! {
+        #persisted_tokens
+        #tokens
+    };
+
+    // println!("tokens after read: {:?}", res.to_string());
+    res
 }
 
 pub fn predicate(attr: TokenStream, tokens: TokenStream) -> TokenStream {

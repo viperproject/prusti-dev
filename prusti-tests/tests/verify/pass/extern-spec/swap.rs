@@ -6,6 +6,8 @@
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
+// #[prusti_use("./prusti-tests/tests/verify/pass/extern-spec/swap.rs")]
+
 #[extern_spec]
 mod std {
     mod mem {
