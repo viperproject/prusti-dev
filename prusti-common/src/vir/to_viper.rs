@@ -77,7 +77,8 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             //Type::Ref |
             Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
-            Type::Float(_) => ast.backend_type(),
+            Type::Float(FloatSize::F32) => unimplemented!("backendtype for f32 not implemented"),
+            Type::Float(FloatSize::F64) => ast.backend_f64_type(),
         }
     }
 }
@@ -445,11 +446,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             }
 
             &Expr::BackendFuncApp(ref function, ref args, ref _pos) => {
-                ast.backend_func_app(
-                    function.to_viper(ast),
-                    &args.to_viper(ast),
-                    _pos.to_viper(ast),
-                )
+                unimplemented!("ToViper for Backendfuncion is unimplemented")
+                // ast.backend_func_app(
+                //     function.to_viper(ast),
+                //     &args.to_viper(ast),
+                //     _pos.to_viper(ast),
+                // )
             }
 
             /* TODO use once DomainFuncApp has been updated
@@ -604,7 +606,7 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
 impl<'a, 'v> ToViper<'v, viper::BackendFunc<'v>> for &'a BackendFunc {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::BackendFunc<'v> {
         match self {
-            BackendFunc::BVfunc(name, arg) => ast.bv_backend_func(name, arg),
+            BackendFunc::BVfunc(name, arg) => unimplemented!("BV backend func unimplemented"),
             BackendFunc::Floatfunc(name, arg) => unimplemented!("float backend func unimplemented")
         }
     }

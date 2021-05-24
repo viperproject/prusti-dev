@@ -202,6 +202,7 @@ fn main() {
             ]),
             java_class!("viper.silver.ast.utility.BVFactory", vec![
                 constructor!(),
+                method!("typ"),
                 method!("xor"),
                 method!("and"),
                 method!("or"),
@@ -220,9 +221,16 @@ fn main() {
                 object_getter!(),
                 method!("apply", "(I)Lviper/silver/ast/utility/BVFactory;"),
             ]),
-            java_class!("viper.silver.ast.utility.RoundingMode"),          
+            java_class!("viper.silver.ast.utility.RoundingMode", vec![
+                method!("RNE"),
+                method!("RNA"),
+                method!("RTP"),
+                method!("RTN"),
+                method!("RTZ"),
+            ]),          
             java_class!("viper.silver.ast.utility.FloatFactory", vec![
                 constructor!(),
+                method!("typ"),
                 method!("neg"),
                 method!("abs"),
                 method!("add"),

@@ -321,7 +321,7 @@ pub enum BackendFunc {
 impl BackendFunc {
     pub fn get_name(&self) -> String {
         match self{
-            BackendFunc::BVfunc(name,_) | BackendFunc::Floatfunc(name,_) => *name  
+            BackendFunc::BVfunc(name,_) | BackendFunc::Floatfunc(name,_) => name.to_string()  
         }
     }
 }

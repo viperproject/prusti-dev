@@ -71,8 +71,6 @@ impl<'v> VerifierRunner<'v> {
         let namespace = "viper_program";
         let filename = format!("{}.vpr", program_name);
         info!("Dumping Viper program to '{}/{}'", namespace, filename);
-        println!("pre log::report");
         log::report(namespace, filename, self.ast_utils.pretty_print(program));
-        println!("post log::report");
     }
 }

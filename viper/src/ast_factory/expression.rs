@@ -205,7 +205,7 @@ impl<'a> AstFactory<'a> {
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
 
-    // pub fn bv_backend_func(&self, name: String, smt_name: String) -> Expr<'a> {        
+    // pub fn backend_func(&self, name: String, smt_name: String) -> Expr<'a> {        
     //     let bv_factory_ = ast::utility::BVFactory::with(self.env);
     //     let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
     //     let func = match &*name {
@@ -218,9 +218,9 @@ impl<'a> AstFactory<'a> {
 
     pub fn backend_float_lit(&self, bits: u64) -> Expr<'a> {
         let bv = self.backend_bv_lit(bits);
-        let rm = ast::utility::RoundingMode::with(self.env);
+        let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap();
         let float_factory_ = ast::utility::FloatFactory::with(self.env);
-        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 52,11, rm).unwrap();
+        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 52,12, rm).unwrap();
         let from_bv = ast::utility::FloatFactory::call_from__bv(&float_factory_, float_factory, self.jni.new_string("tofp")).unwrap();
         self.backend_func_app(from_bv, &[bv], self.no_position())
 
