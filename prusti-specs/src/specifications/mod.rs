@@ -1,4 +1,8 @@
 /// The following grammar defines Prusti expressions:
+/// assertion ::= prusti_expr ;
+/// pledge ::= pledge_lhs, ",", prusti_expr ;
+/// pledge_lhs ::= [ ? actual rust expression ?, "=>" ], prusti_expr ;
+/// 
 /// prusti_expr ::= conjunction, [ "==>", prusti_expr ] ;
 /// conjunction ::= entailment, { "&&", entailment } ;
 /// entailment ::= primary | ? actual rust expression ?, [ "|=", [ "|", ? args as parsed by syn2 ?, "|" ], "[", { requires | ensures }, "]" ] ;
