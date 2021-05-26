@@ -82,7 +82,7 @@ impl Parser {
         } else {
             let expr = self.parse_prusti()?;
             if let Some(_) = self.pop() {
-                Err(syn::Error::new(self.last_span, "unexpected token"))
+                Err(self.error_unexpected())
             } else {
                 Ok(expr)
             }
@@ -123,7 +123,7 @@ impl Parser {
         }
     }
     fn parse_entailment(&mut self) -> syn::Result<AssertionWithoutId> {
-        if self.peek_operator("(") || self.peek_keyword("forall") {
+        if self.peek_group(Delimiter::Parenthesis) || self.peek_keyword("forall") {
             self.parse_primary()
         } else {
             let lhs = self.parse_rust()?;
@@ -141,54 +141,12 @@ impl Parser {
                 } else {
                     vec![]
                 };
-    
-                if !self.consume_operator("[") {
-                    return Err(self.error_expected("`[`"));
+
+                if let Some(stream) = self.consume_group(Delimiter::Bracket) {
+                    Parser::from_token_stream(stream).extract_entailment_rhs(lhs, vars)
+                } else {
+                    Err(self.error_expected("`[`"))
                 }
-    
-                let mut pres = vec![];
-                let mut posts = vec![];
-                while !self.peek_operator("]") && !self.tokens.is_empty() {
-                    if self.consume_keyword("requires") {
-                        if !self.consume_operator("(") { // TODO: expect group to recursively parse after this
-                            return Err(self.error_expected("`(`"));
-                        }
-                        pres.push(self.parse_prusti()?);
-                        if !self.consume_operator(")") {
-                            return Err(self.error_expected("`)`"));
-                        }
-                    } else if self.consume_keyword("ensures") {
-                        if !self.consume_operator("(") {
-                            return Err(self.error_expected("`(`"));
-                        }
-                        posts.push(self.parse_prusti()?);
-                        if !self.consume_operator(")") {
-                            return Err(self.error_expected("`)`"));
-                        }
-                    } else {
-                        return Err(self.error_expected("`requires` or `ensures`"));
-                    }
-                }
-    
-                if !self.consume_operator("]") {
-                    return Err(self.error_expected("`]`"));
-                }
-    
-                Ok(AssertionWithoutId {
-                    kind: Box::new(common::AssertionKind::SpecEntailment {
-                        closure: lhs,
-                        arg_binders: SpecEntailmentVars {
-                            spec_id: common::SpecificationId::dummy(),
-                            pre_id: (),
-                            post_id: (),
-                            args: vars,
-                            result: Arg { name: syn::Ident::new("result", Span::call_site()),
-                                          typ: syn::parse2(quote! { i32 }).unwrap() },
-                        },
-                        pres,
-                        posts,
-                    })
-                })
             } else {
                 Ok(AssertionWithoutId {
                     kind: box common::AssertionKind::Expr(lhs)
@@ -196,94 +154,126 @@ impl Parser {
             }
         }
     }
-
-    fn parse_primary(&mut self) -> syn::Result<AssertionWithoutId> {
-        if self.consume_operator("(") {
-            let retval = self.parse_prusti()?;
-            if !self.consume_operator(")") {
-                return Err(self.error_expected("`)`"));
-            }
-            Ok(retval)
-        } else if self.consume_keyword("forall") {
-            if !self.consume_operator("(") {
-                return Err(self.error_expected("`(`"));
-            }
-
-            if !self.consume_operator("|") {
-                return Err(self.error_expected("`|`"));
-            }
-            let arg_tokens = self.create_stream_until("|");
-            if arg_tokens.is_empty() {
-                return Err(self.error_no_quantifier_arguments());
-            }
-            let all_args: ForAllArgs = syn::parse2(arg_tokens)?;
-            if !self.consume_operator("|") {
-                return Err(self.error_expected("`|`"));
-            }
-            let vars: Vec<Arg> =
-                all_args.args.into_iter()
-                             .map(|var| Arg { typ: var.typ, name: var.name })
-                             .collect();
-
-            let body = self.parse_prusti()?;
-
-            let mut trigger_set = TriggerSet(vec![]);
-
-            if self.consume_operator(",") {
-                if !self.consume_keyword("triggers") {
-                    return Err(self.error_expected("`triggers`"));
+    fn extract_entailment_rhs(&mut self, lhs: ExpressionWithoutId, vars: Vec<Arg>) -> syn::Result<AssertionWithoutId> {
+        let mut pres = vec![];
+        let mut posts = vec![];
+        while !self.tokens.is_empty() {
+            if self.consume_keyword("requires") {
+                if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                    pres.push(Parser::from_token_stream(stream).extract_assertion()?);
+                } else {
+                    return Err(self.error_expected("`(`"));
                 }
-                if !self.consume_operator("=") {
-                    return Err(self.error_expected("`=`"));
+            } else if self.consume_keyword("ensures") {
+                if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                    posts.push(Parser::from_token_stream(stream).extract_assertion()?);
+                } else {
+                    return Err(self.error_expected("`(`"));
                 }
-
-                let arr_tokens = self.create_stream_until(")"); // TODO: recursively parse group
-                let arr: Result<syn::ExprArray, Error> = syn::parse2(arr_tokens);
-                match arr {
-                    Ok(arr) => {
-                        let mut vec_of_triggers = vec![];
-                        for item in arr.elems {
-                            if let syn::Expr::Tuple(tuple) = item {
-                                vec_of_triggers.push(
-                                    Trigger(tuple.elems
-                                        .into_iter()
-                                        .map(|x| ExpressionWithoutId {
-                                            id: (),
-                                            spec_id: common::SpecificationId::dummy(),
-                                            expr: x })
-                                        .collect()
-                                    )
-                                );
-                            } else {
-                                return Err(self.error_expected_tuple(item.span()));
-                            }
-                        }
-
-                        trigger_set = TriggerSet(vec_of_triggers);
-                    }
-                    Err(err) => return Err(self.error_expected_tuple(err.span()))
-                }
+            } else {
+                return Err(self.error_expected("`requires` or `ensures`"));
             }
+        }
 
-            if !self.consume_operator(")") {
-                return Err(self.error_expected("`)`"));
-            }
-
-            Ok(AssertionWithoutId {
-                kind: box common::AssertionKind::ForAll(
-                    ForAllVars {
-                        spec_id: common::SpecificationId::dummy(),
-                        id: (),
-                        vars
-                    },
-                    trigger_set,
-                    body,
-                )
+        Ok(AssertionWithoutId {
+            kind: Box::new(common::AssertionKind::SpecEntailment {
+                closure: lhs,
+                arg_binders: SpecEntailmentVars {
+                    spec_id: common::SpecificationId::dummy(),
+                    pre_id: (),
+                    post_id: (),
+                    args: vars,
+                    result: Arg { name: syn::Ident::new("result", Span::call_site()),
+                                  typ: syn::parse2(quote! { i32 }).unwrap() },
+                },
+                pres,
+                posts,
             })
+        })
+    }
+    /// parse a paren-delimited expression
+    fn parse_primary(&mut self) -> syn::Result<AssertionWithoutId> {
+        if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+            Parser::from_token_stream(stream).extract_assertion()
+        } else if self.consume_keyword("forall") {
+            if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                Parser::from_token_stream(stream).extract_forall_rhs()
+            } else {
+                Err(self.error_expected("`(`"))
+            }
         } else {
             Err(self.error_expected("`(` or `forall`"))
         }
     }
+    fn extract_forall_rhs(&mut self) -> syn::Result<AssertionWithoutId> {
+        if !self.consume_operator("|") {
+            return Err(self.error_expected("`|`"));
+        }
+        let arg_tokens = self.create_stream_until("|");
+        if arg_tokens.is_empty() {
+            return Err(self.error_no_quantifier_arguments());
+        }
+        let all_args: ForAllArgs = syn::parse2(arg_tokens)?;
+        if !self.consume_operator("|") {
+            return Err(self.error_expected("`|`"));
+        }
+        let vars: Vec<Arg> =
+            all_args.args.into_iter()
+                         .map(|var| Arg { typ: var.typ, name: var.name })
+                         .collect();
+
+        let body = self.parse_prusti()?;
+
+        let mut trigger_set = TriggerSet(vec![]);
+
+        if self.consume_operator(",") {
+            if !self.consume_keyword("triggers") {
+                return Err(self.error_expected("`triggers`"));
+            }
+            if !self.consume_operator("=") {
+                return Err(self.error_expected("`=`"));
+            }
+
+            let arr: Result<syn::ExprArray, Error> = syn::parse2(self.create_stream_remaining());
+            match arr {
+                Ok(arr) => {
+                    let mut vec_of_triggers = vec![];
+                    for item in arr.elems {
+                        if let syn::Expr::Tuple(tuple) = item {
+                            vec_of_triggers.push(
+                                Trigger(tuple.elems
+                                    .into_iter()
+                                    .map(|x| ExpressionWithoutId {
+                                        id: (),
+                                        spec_id: common::SpecificationId::dummy(),
+                                        expr: x })
+                                    .collect()
+                                )
+                            );
+                        } else {
+                            return Err(self.error_expected_tuple(item.span()));
+                        }
+                    }
+
+                    trigger_set = TriggerSet(vec_of_triggers);
+                }
+                Err(err) => return Err(self.error_expected_tuple(err.span()))
+            }
+        }
+
+        Ok(AssertionWithoutId {
+            kind: box common::AssertionKind::ForAll(
+                ForAllVars {
+                    spec_id: common::SpecificationId::dummy(),
+                    id: (),
+                    vars
+                },
+                trigger_set,
+                body,
+            )
+        })
+    }
+    
     fn parse_rust(&mut self) -> syn::Result<ExpressionWithoutId> {
         let mut t = vec![];
 
@@ -324,6 +314,15 @@ impl Parser {
         }
         false
     }
+    /// does the input start with a group with the given grouping?
+    fn peek_group(&self, delimiter: Delimiter) -> bool {
+        if let Some(TokenTree::Group(group)) = self.tokens.front() {
+            if delimiter == group.delimiter() {
+                return true;
+            }
+        }
+        false
+    }
     /// consume the operator if it is next in the stream
     fn consume_operator(&mut self, operator: &str) -> bool {
         if !self.peek_operator(operator) {
@@ -346,19 +345,25 @@ impl Parser {
         if !self.peek_keyword(keyword) {
             return false;
         }
-        let mut span: Option<Span> = None;
-        for _ in keyword.chars() {
-            let character = self.tokens.pop_front().unwrap();
-            if let Some(maybe_span) = span {
-                span = maybe_span.join(character.span());
-            } else {
-                span = Some(character.span());
-            }
-        }
-        self.last_span = span.unwrap();
+        self.last_span = self.tokens.pop_front().unwrap().span();
         true
     }
-    /// pop a character - not a token!
+    /// consume the group if it is next in the stream
+    /// produced its TokenStream, if it has one
+    fn consume_group(&mut self, delimiter: Delimiter) -> Option<TokenStream> {
+        if !self.peek_group(delimiter) {
+            return None;
+        }
+        let token = self.tokens.pop_front().unwrap();
+        let span = token.span();
+        if let TokenTree::Group(group) = token {
+            self.last_span = span;
+            Some(group.stream())
+        } else {
+            None
+        }
+    }
+    /// pop a token - note that punctuation is one token per character
     fn pop(&mut self) -> Option<TokenTree> {
         if let Some(token) = self.tokens.pop_front() {
             self.last_span = token.span();
@@ -377,6 +382,16 @@ impl Parser {
         stream.extend(t.into_iter());
         stream
     }
+    /// pop tokens into a new stream for syn2 until the given operator character
+    fn create_stream_remaining(&mut self) -> TokenStream {
+        let mut t = vec![];
+        while !self.tokens.is_empty() {
+            t.push(self.pop().unwrap());
+        }
+        let mut stream = TokenStream::new();
+        stream.extend(t.into_iter());
+        stream
+    }
     /// complain about expecting a token
     fn error_expected(&self, what: &str) -> syn::Error {
         syn::Error::new(self.last_span, format!("expected {}", what))
@@ -386,5 +401,8 @@ impl Parser {
     }
     fn error_expected_tuple(&self, span: Span) -> syn::Error {
         syn::Error::new(span, "`triggers` must be an array of tuples containing Rust expressions")
+    }
+    fn error_unexpected(&self) -> syn::Error {
+        syn::Error::new(self.last_span, "unexpected token")
     }
 }
