@@ -66,6 +66,7 @@ pub struct Parser {
 }
 
 impl Parser {
+    /// initializes the parser with a TokenStream
     pub fn from_token_stream(tokens: TokenStream) -> Self {
         Self {
             tokens: tokens.into_iter().collect(),
@@ -81,13 +82,16 @@ impl Parser {
             Ok(expr)
         }
     }
+    /// Create a pledge from the input
     pub fn extract_pledge(&mut self) -> syn::Result<PledgeWithoutId> {
-        unimplemented!();
+        unimplemented!("parsing of whole pledges isn't implemented yet");
     }
+    /// Create the rhs of a pledge from the input
     pub fn extract_pledge_rhs_only(&mut self) -> syn::Result<PledgeWithoutId> {
-        unimplemented!();
+        unimplemented!("parsing of pledge rhses isn't implemented yet");
     }
 
+    /// Parse a prusti expression
     fn parse_prusti(&mut self) -> syn::Result<AssertionWithoutId> {
         let lhs = self.parse_conjunction()?;
         if self.consume_operator("==>") {
@@ -99,7 +103,6 @@ impl Parser {
             Ok(lhs)
         }
     }
-
     fn parse_conjunction(&mut self) -> syn::Result<AssertionWithoutId> {
         let mut conjuncts = vec![self.parse_entailment()?];
         while self.consume_operator("&&") {
@@ -113,7 +116,6 @@ impl Parser {
             })
         }
     }
-
     fn parse_entailment(&mut self) -> syn::Result<AssertionWithoutId> {
         if self.peek_operator("(") || self.peek_keyword("forall") {
             self.parse_primary()
@@ -142,7 +144,7 @@ impl Parser {
                 let mut posts = vec![];
                 while !self.peek_operator("]") && !self.tokens.is_empty() {
                     if self.consume_keyword("requires") {
-                        if !self.consume_operator("(") {
+                        if !self.consume_operator("(") { // TODO: expect group to recursively parse after this
                             return Err(self.error_expected("`(`"));
                         }
                         pres.push(self.parse_prusti()?);
@@ -229,7 +231,7 @@ impl Parser {
                     return Err(self.error_expected("`=`"));
                 }
 
-                let arr_tokens = self.create_stream_until(")");
+                let arr_tokens = self.create_stream_until(")"); // TODO: recursively parse group
                 let arr: Result<syn::ExprArray, Error> = syn::parse2(arr_tokens);
                 match arr {
                     Ok(arr) => {
@@ -368,7 +370,7 @@ impl Parser {
             None
         }
     }
-    /// pop tokens into a new stream for syn2 until the given token
+    /// pop tokens into a new stream for syn2 until the given operator character
     fn create_stream_until(&mut self, delimiter: &str) -> TokenStream {
         let mut t = vec![];
         while !self.peek_operator(delimiter) && !self.tokens.is_empty() {
