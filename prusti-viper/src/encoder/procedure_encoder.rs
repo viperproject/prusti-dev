@@ -449,22 +449,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .add_local_var(&var_name, vir::Type::TypedRef(type_name));
         }
 
-        // TODO: ??? this probably only ensures snapshots are made...
-        /*
-        if config::enable_purification_optimization() {
-            // FIXME: The purification optimization may need snapshots of all
-            // variables.
-            for local_decl in &self.mir.local_decls {
-                let ty = local_decl.ty;
-                if ty.is_box() {
-                    // FIXME: Snapshots of boxes are not supported.
-                    continue;
-                }
-                self.encoder.encode_snapshot(ty).with_span(mir_span)?;
-            }
-        }
-        */
-
         self.check_vir()?;
         let method_name = self.cfg_method.name();
         let source_filename = self.encoder.env().source_file_name();
@@ -2663,33 +2647,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
 
-        let mut non_snapshot_arg_exprs = vec![];
+        let mut arg_exprs = vec![];
         for operand in args.iter() {
             let arg_expr = self.mir_encoder.encode_operand_expr(operand)
                 .with_span(call_site_span)?;
-            non_snapshot_arg_exprs.push(arg_expr);
+            arg_exprs.push(arg_expr);
         }
-
-        // TODO: ???
-        let arg_exprs = /* if prusti_common::config::enable_purification_optimization() {
-            let mut arg_exprs = vec![];
-            for arg in non_snapshot_arg_exprs {
-                match arg.get_type() {
-                    Type::TypedRef(predicate_name) => {
-                        let snapshot = self.encoder.encode_snapshot_use(predicate_name.clone()).with_span(call_site_span)?;
-                        let snap_call = snapshot.snap_call(arg);
-                        arg_exprs.push(snap_call);
-                    }
-                    _ => {
-                        arg_exprs.push(arg);
-                    }
-                }
-            }
-
-            arg_exprs
-        } else {*/
-            non_snapshot_arg_exprs
-        /*}*/;
 
         self.encode_specified_pure_function_call(
             location,
@@ -2709,7 +2672,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         function_name: String,
-        mut arg_exprs: Vec<Expr>,
+        arg_exprs: Vec<Expr>,
         return_type: Type,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let formal_args: Vec<vir::LocalVar> = args
@@ -2727,22 +2690,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .error_manager()
             .register(call_site_span, ErrorCtxt::PureFunctionCall);
 
-        // TODO: ???
-        let func_call = /*if prusti_common::config::enable_purification_optimization() {
-            debug!("we are replacing {} with the mirror function because it is pure", function_name);
-            let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.get_snapshots() ).unwrap();
-            arg_exprs.push(snapshot::n_nat(2));
-
-            snapshot::mirror_function_caller_call(mirror_function, arg_exprs)
-        } else {*/
-            vir::Expr::func_app(
-                function_name.clone(),
-                arg_exprs,
-                formal_args,
-                return_type.clone(),
-                pos
-            )
-        /*}*/;
+        let func_call = vir::Expr::func_app(
+            function_name.clone(),
+            arg_exprs,
+            formal_args,
+            return_type.clone(),
+            pos
+        );
 
         let (target_value, mut stmts) = self.encode_pure_function_call_lhs_value(destination)
             .with_span(call_site_span)?;

@@ -57,6 +57,7 @@ use crate::encoder::errors::SpannedEncodingResult;
 use crate::encoder::mirror_function_encoder;
 use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::encoder::SnapshotEncoder;
+use crate::encoder::purifier;
 
 #[must_use]
 pub struct CleanupTyMapStack<'a, 'tcx> {
@@ -99,7 +100,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
     fields: RefCell<HashMap<String, vir::Field>>,
     snapshot_encoder: RefCell<SnapshotEncoder>,
     mirror_encoder: RefCell<MirrorEncoder>,
-    snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
     vir_program_before_foldunfold_writer: RefCell<Box<dyn Write>>,
@@ -107,8 +107,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
-    mirror_function_domain: RefCell<vir::Domain>,
-    mirror_caller_functions: RefCell<Vec<vir::Function>>,
     /// The procedure that is currently being encoded.
     pub current_proc: RefCell<Option<ProcedureDefId>>
 }
@@ -136,13 +134,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .ok()
             .unwrap(),
         );
-
-        let axiomatized_functions_domain = vir::Domain {
-            name: "$MirrorFunctions$".to_string(), // snapshot::AXIOMATIZED_FUNCTION_DOMAIN_NAME.to_owned(),
-            functions: vec![],
-            axioms: vec![],
-            type_vars: vec![],
-        };
 
         Encoder {
             env,
@@ -174,11 +165,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             typaram_repl: RefCell::new(Vec::new()),
             snapshot_encoder: RefCell::new(SnapshotEncoder::new()),
             mirror_encoder: RefCell::new(MirrorEncoder::new()),
-            snap_mirror_funcs: RefCell::new(HashMap::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
-            mirror_function_domain: RefCell::new(axiomatized_functions_domain),
-            mirror_caller_functions: RefCell::new(vec![]),
             current_proc: RefCell::new(None),
         }
     }
@@ -263,34 +251,19 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn get_used_viper_domains(&self) -> Vec<vir::Domain> {
-        let mirrors: Vec<_> = self
-            .snap_mirror_funcs
-            .borrow()
-            .values()
-            .filter_map(|f| f.clone())
-            .collect();
-
         let mut domains = vec![];
         domains.extend(self.snapshot_encoder.borrow().get_viper_domains());
         domains.extend(self.mirror_encoder.borrow().get_viper_domains());
 
-        /*
-        if config::enable_purification_optimization() {
+        if config::enable_manual_axiomatization() {
             let builtin_encoder =  BuiltinEncoder::new();
             domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Nat));
             domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Primitive));
         }
-        */
 
         domains.sort_by_key(|d| d.get_identifier());
         domains
     }
-
-    /*
-    pub fn insert_mirror_caller(&self, function: vir::Function) {
-        self.mirror_caller_functions.borrow_mut().push(function);
-    }
-    */
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
         let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
@@ -321,10 +294,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         for function in self.type_cast_functions.borrow().values() {
             functions.push(function.clone());
         }
-        for function in self.mirror_caller_functions.borrow().iter() {
-            functions.push(function.clone());
-        }
         functions.extend(self.snapshot_encoder.borrow().get_viper_functions());
+        functions.extend(self.mirror_encoder.borrow().get_viper_functions());
         for sfs in self.spec_functions.borrow().values() {
             for sf in sfs {
                 functions.push(sf.clone());
@@ -534,19 +505,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .entry(field.name.clone())
             .or_insert_with(|| field.clone());
         field
-    }
-
-    /// FIXME: This is needed for snapshot encoder.
-    pub fn insert_raw_ref_field(&self, viper_field_name: &str) {
-        self.fields
-            .borrow_mut()
-            .entry(viper_field_name.to_string())
-            .or_insert_with(|| {
-                vir::Field::new(
-                    viper_field_name.to_string(),
-                    vir::Type::TypedRef("".to_string()),
-                )
-        });
     }
 
     pub fn encode_raw_ref_field(
@@ -773,12 +731,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 },
             };
             self.log_vir_program_before_viper(method.to_string());
-            // TODO: ???
-            /*
+
             if config::enable_purification_optimization() {
-                crate::encoder::purify_shared_borrows(&self, &mut method);
+                purifier::purify_method(&self, &mut method);
             }
-            */
+
             self.procedures.borrow_mut().insert(def_id, method);
         }
 

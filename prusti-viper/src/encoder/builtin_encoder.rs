@@ -6,6 +6,8 @@
 
 use prusti_common::{vir, vir_local, vir::WithIdentifier};
 
+const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
+
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinMethodKind {
     HavocBool,
@@ -136,7 +138,7 @@ impl BuiltinEncoder {
             },
         }
     }
-    /*
+
     pub fn encode_builtin_domain(&self, kind: BuiltinDomainKind) -> vir::Domain {
         match kind {
             BuiltinDomainKind::Nat => self.encode_nat_builtin_domain(),
@@ -167,7 +169,7 @@ impl BuiltinEncoder {
 
     fn encode_primitive_builtin_domain(&self) -> vir::Domain {
         //FIXME this does not check or handle the different sizes of primitve types
-        let domain_name = "PrimitiveValidDomain"; // snapshot::PRIMITIVE_VALID_DOMAIN_NAME;
+        let domain_name = PRIMITIVE_VALID_DOMAIN_NAME;
 
         let mut functions = vec![];
         let mut axioms = vec![];
@@ -230,5 +232,4 @@ impl BuiltinEncoder {
             type_vars: vec![],
         }
     }
-    */
 }

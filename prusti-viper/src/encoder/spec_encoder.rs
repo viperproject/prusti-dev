@@ -67,12 +67,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
         targets_are_values,
         assertion_location,
     );
-    let mut encoded_assertion = spec_encoder.encode_assertion(assertion)?;
-    /* if config::enable_purification_optimization() {
-        encoded_assertion = super::snapshot::fix_assertion(
-            encoded_assertion, &spec_encoder.encoder.get_snapshots());
-    } */
-    Ok(encoded_assertion)
+    spec_encoder.encode_assertion(assertion)
 }
 
 struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {

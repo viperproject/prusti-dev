@@ -19,6 +19,8 @@ pub struct MirrorEncoder {
     encoded: HashSet<DefId>,
 }
 
+// mirror_caller_functions: RefCell<Vec<vir::Function>>
+
 impl MirrorEncoder {
     pub fn new() -> Self {
         Self {
@@ -39,6 +41,10 @@ impl MirrorEncoder {
         } else {
             vec![self.domain.clone()]
         }
+    }
+
+    pub fn get_viper_functions(&self) -> Vec<vir::Function> {
+        vec![]
     }
 
     pub fn encode_mirrors(
