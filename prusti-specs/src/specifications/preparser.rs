@@ -1,6 +1,6 @@
 /// The preparser parses Prusti into an AST
 
-use proc_macro2::{Span, TokenStream, TokenTree};
+use proc_macro2::{Span, TokenStream, TokenTree, Delimiter};
 use std::collections::VecDeque;
 use syn::parse::{ParseStream, Parse};
 use syn::{Token, Error};
@@ -278,22 +278,13 @@ impl Parser {
             Err(self.error_expected("`(` or `forall`"))
         }
     }
-
     fn parse_rust(&mut self) -> syn::Result<ExpressionWithoutId> {
         let mut t = vec![];
-        let mut paren_nesting = 0;
 
-        while (paren_nesting > 0 ||
-               (!self.peek_operator("|=") &&
-                !self.peek_operator("&&") &&
-                !self.peek_operator("==>") &&
-                !self.peek_operator(")"))) &&
+        while !self.peek_operator("|=") &&
+              !self.peek_operator("&&") &&
+              !self.peek_operator("==>") &&
               !self.tokens.is_empty() {
-            if self.peek_operator("(") {
-                paren_nesting += 1;
-            } else if self.peek_operator(")") {
-                paren_nesting -= 1;
-            }
             t.push(self.pop().unwrap());
         }
         let mut stream = TokenStream::new();
