@@ -75,11 +75,17 @@ impl Parser {
     }
     /// Creates a single Prusti assertion from the input and returns it.
     pub fn extract_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
-        let expr = self.parse_prusti()?;
-        if let Some(_) = self.pop() {
-            Err(syn::Error::new(self.last_span, "unexpected token"))
+        if self.tokens.is_empty() {
+            Ok(AssertionWithoutId{
+                kind: box common::AssertionKind::And(vec![])
+            })
         } else {
-            Ok(expr)
+            let expr = self.parse_prusti()?;
+            if let Some(_) = self.pop() {
+                Err(syn::Error::new(self.last_span, "unexpected token"))
+            } else {
+                Ok(expr)
+            }
         }
     }
     /// Create a pledge from the input
