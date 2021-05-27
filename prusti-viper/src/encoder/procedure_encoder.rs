@@ -5291,8 +5291,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // encode a closure deep copy or at least a stub
                 debug!("warning: ty::TyKind::Closure not implemented yet");
                 Vec::new()
-            }
-            ty::TyKind::Float(_) => unimplemented!("Unsure what to do here"),
+            }, 
+
+            ty::TyKind::Float(_) => unimplemented!("unsure what comes here"),
 
             ref x => unimplemented!("{:?}", x),
         };
