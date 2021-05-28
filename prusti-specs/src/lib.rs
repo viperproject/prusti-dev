@@ -445,10 +445,10 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     }
 }
 
-pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
+pub fn extern_spec(attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
-    match item {
+    let tokens = match item {
         syn::Item::Impl(mut item_impl) => {
             let new_struct = handle_result!(
                 extern_spec_rewriter::generate_new_struct(&item_impl)
@@ -479,6 +479,27 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
             quote!(#item_mod)
         }
         _ => { unimplemented!() }
+    };
+
+    let attr_str = attr.to_string();
+    println!("attr: {:?}\n\n", attr_str);
+
+    let macro_iden = syn::Ident::new(attr_str.as_str(), item_span);
+
+    println!("ident: {:?}\n\n", macro_iden);
+
+    let new_macro = quote! {
+        #[macro_export]
+        macro_rules! #macro_iden {
+            () => {
+                #tokens
+            };
+        }
+    };
+
+    quote! {
+        #new_macro
+        #tokens
     }
 }
 

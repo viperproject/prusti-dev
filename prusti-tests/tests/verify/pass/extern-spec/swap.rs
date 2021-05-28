@@ -6,7 +6,7 @@
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
-#[extern_spec]
+#[extern_spec(swap)]
 mod std {
     mod mem {
         use prusti_contracts::*;
