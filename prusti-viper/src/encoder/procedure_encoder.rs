@@ -13,7 +13,7 @@ use crate::encoder::errors::{
 use crate::encoder::foldunfold;
 use crate::encoder::initialisation::InitInfo;
 use crate::encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
-use crate::encoder::mir_encoder::{MirEncoder, FakeMirEncoder, PlaceEncoder, PlaceEncoding};
+use crate::encoder::mir_encoder::{MirEncoder, FakeMirEncoder, PlaceEncoder, PlaceEncoding, ExprOrArrayBase};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
@@ -4126,9 +4126,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 // NOTE: this catches array accesses to single indexes. we take the "max" of
                 // none < read < write for the whole array, because we can't tell indices apart
-                let (encoded_place, is_array_access) = match encoded_place.into_expr_or_array_base() {
-                    Ok(expr) => (expr, false),
-                    Err(base) => (base, true),
+                let (encoded_place, is_array_access) = match encoded_place.into_array_base() {
+                    ExprOrArrayBase::Expr(e) => (e, false),
+                    ExprOrArrayBase::ArrayBase(b) => (b, true),
                 };
 
                 debug!("kind={:?} mir_place={:?} encoded_place={:?} ty={:?}", kind, mir_place, encoded_place, ty);

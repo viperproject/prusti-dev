@@ -47,36 +47,48 @@ pub enum PlaceEncoding<'tcx> {
     },
 }
 
+/// Return type of PlaceEncoding::into_array_base
+pub enum ExprOrArrayBase {
+    Expr(vir::Expr),
+    ArrayBase(vir::Expr),
+}
+
 impl<'tcx> PlaceEncoding<'tcx> {
     pub fn try_into_expr(self) -> EncodingResult<vir::Expr> {
-        match self {
-            PlaceEncoding::Expr(e) => Ok(e),
-            PlaceEncoding::FieldAccess { base, field } => {
-                Ok(base.try_into_expr()?.field(field))
-            },
-            PlaceEncoding::Variant { base, field } => {
-                Ok(vir::Expr::Variant(box base.try_into_expr()?, field, vir::Position::default()))
-            },
-            other => Err(EncodingError::internal(format!("PlaceEncoding::try_into_expr called on non-expr '{:?}'", other))),
+        match self.into_array_base() {
+           ExprOrArrayBase::Expr(e) => Ok(e),
+           ExprOrArrayBase::ArrayBase(b) => Err(EncodingError::internal(
+               format!("PlaceEncoding::try_into_expr called on array expr '{:?}'", b)
+           )),
         }
     }
 
-    /// Ok(e) => the same result try_into_expr would give
-    /// Err(e) => the array base expression
-    pub fn into_expr_or_array_base(self) -> Result<vir::Expr, vir::Expr> {
+    /// Returns the base variable of an array access, if any of the nested places are an array
+    /// access, else just the same expr that `try_into_expr` would
+    pub fn into_array_base(self) -> ExprOrArrayBase {
         match self {
-            PlaceEncoding::Expr(e) => Ok(e),
+            PlaceEncoding::Expr(e) => ExprOrArrayBase::Expr(e),
             PlaceEncoding::FieldAccess { base, field } => {
-                Ok(base.into_expr_or_array_base()?.field(field))
+                match base.into_array_base() {
+                    ExprOrArrayBase::Expr(e) => ExprOrArrayBase::Expr(e.field(field)),
+                    base@ExprOrArrayBase::ArrayBase(_) => base,
+                }
             }
             PlaceEncoding::Variant { base, field } => {
-                let base = base.into_expr_or_array_base()?;
-                Ok(vir::Expr::Variant(box base, field, vir::Position::default()))
+                match base.into_array_base() {
+                    ExprOrArrayBase::Expr(e) => ExprOrArrayBase::Expr(
+                        vir::Expr::Variant(box e, field, vir::Position::default())
+                    ),
+                    base@ExprOrArrayBase::ArrayBase(_) => base,
+                }
             }
             PlaceEncoding::ArrayAccess { base, .. } => {
                 // need to check base's into_expr_or_array_base, maybe we're not the outermost
                 // array
-                Err(base.into_expr_or_array_base()?)
+                match base.into_array_base() {
+                    ExprOrArrayBase::Expr(e) => ExprOrArrayBase::ArrayBase(e),
+                    base@ExprOrArrayBase::ArrayBase(_) => base,
+                }
             }
         }
     }

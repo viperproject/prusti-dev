@@ -28,7 +28,7 @@ use std::{
 use prusti_interface::environment::mir_utils::MirPlace;
 
 use downcast_detector::detect_downcasts;
-pub use place_encoding::PlaceEncoding;
+pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
