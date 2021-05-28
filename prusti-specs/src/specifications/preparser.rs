@@ -123,7 +123,7 @@ impl Parser {
         }
     }
     fn parse_entailment(&mut self) -> syn::Result<AssertionWithoutId> {
-        if self.peek_group(Delimiter::Parenthesis) || self.peek_keyword("forall") {
+        if (self.peek_group(Delimiter::Parenthesis) && !self.is_part_of_rust_expr()) || self.peek_keyword("forall") {
             self.parse_primary()
         } else {
             let lhs = self.parse_rust()?;
@@ -274,12 +274,14 @@ impl Parser {
         })
     }
     
+    // FIXME: this should be a "parse_rust_until (taking an operator to terminate on)"
     fn parse_rust(&mut self) -> syn::Result<ExpressionWithoutId> {
         let mut t = vec![];
 
         while !self.peek_operator("|=") &&
               !self.peek_operator("&&") &&
               !self.peek_operator("==>") &&
+              !self.peek_operator(",") &&
               !self.tokens.is_empty() {
             t.push(self.pop().unwrap());
         }
@@ -292,6 +294,23 @@ impl Parser {
         })
     }
 
+    /// is there any non-prusti operator following the first thing?
+    fn is_part_of_rust_expr(&mut self) -> bool {
+        if let Some(token) = self.tokens.pop_front() {
+            if self.peek_operator("|=") ||
+               self.peek_operator("&&") ||
+               self.peek_operator("==>") ||
+               self.tokens.front().is_none() {
+                self.tokens.push_front(token);
+                false
+            } else {
+                self.tokens.push_front(token);
+                true
+            }
+        } else {
+            false
+        }
+    }
     /// does the input start with this operator?
     fn peek_operator(&self, operator: &str) -> bool {
         for (i, c) in operator.char_indices() {
