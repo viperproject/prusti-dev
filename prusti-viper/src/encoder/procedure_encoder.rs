@@ -1162,20 +1162,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ref x => unimplemented!("{:?}", x),
         };
         stmts.extend(encoding_stmts);
-        Ok(stmts
+        Ok(self.set_stmts_default_pos(stmts, stmt.source_info.span))
+
+    }
+
+    fn set_stmts_default_pos(&self, stmts: Vec<vir::Stmt>, default_pos_span: Span) -> Vec<vir::Stmt> {
+        let expr_pos = self
+            .encoder
+            .error_manager()
+            .register(default_pos_span, ErrorCtxt::GenericExpression);
+        let stmt_pos = self
+            .encoder
+            .error_manager()
+            .register(default_pos_span, ErrorCtxt::GenericStatement);
+
+        stmts
             .into_iter()
             .map(|s| {
-                let expr_pos = self
-                    .encoder
-                    .error_manager()
-                    .register(stmt.source_info.span, ErrorCtxt::GenericExpression);
-                let stmt_pos = self
-                    .encoder
-                    .error_manager()
-                    .register(stmt.source_info.span, ErrorCtxt::GenericStatement);
                 s.set_default_expr_pos(expr_pos).set_default_pos(stmt_pos)
             })
-            .collect())
+            .collect()
     }
 
     /// Encode assignment of RHS to LHS, depending on what kind of thing the RHS is
@@ -1612,12 +1618,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .get_alive_conflicting_loans(node.loan, deaf_location);
 
         let guard = self.construct_location_guard(loan_location);
+
         Ok(vir::borrows::Node::new(
             guard,
             node.loan.into(),
             convert_loans_to_borrows(&node.reborrowing_loans),
             convert_loans_to_borrows(&node.reborrowed_loans),
-            stmts,
+            self.set_stmts_default_pos(stmts, span),
             borrowed_places,
             convert_loans_to_borrows(&conflicting_loans),
             convert_loans_to_borrows(&alive_conflicting_loans),
