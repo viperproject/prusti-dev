@@ -1,11 +1,11 @@
 /// The following grammar defines Prusti expressions:
 /// assertion ::= prusti_expr ;
 /// pledge ::= pledge_lhs, ",", prusti_expr ;
-/// pledge_lhs ::= [ ? actual rust expression ?, "=>" ], prusti_expr ;
+/// pledge_lhs ::= [ ? actual rust expression ?, "=>" ], prusti_expr ; /// FIXME: ambiguity here - can't tell if there's an actual rust expression
 /// 
 /// prusti_expr ::= conjunction, [ "==>", prusti_expr ] ;
 /// conjunction ::= entailment, { "&&", entailment } ;
-/// entailment ::= primary | ? actual rust expression ?, [ "|=", [ "|", ? args as parsed by syn2 ?, "|" ], "[", { requires | ensures }, "]" ] ;
+/// entailment ::= primary | ? actual rust expression ?, [ "|=", [ "|", ? args as parsed by syn2 ?, "|" ], "[", [ ( requires | ensures ), { ",", ( requires | ensures ) } ], "]" ] ;
 /// primary ::= "(", prusti_expr, ")"
 ///           | "forall", "(", "|", ? one or more args as parsed by syn2 ?, "|", prusti_expr, [ ",", "triggers", "=", ? array as parsed by syn2 ? ] ")"
 ///           ;
