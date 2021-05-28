@@ -4106,26 +4106,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let mut permissions = Vec::new();
         let mut equalities = Vec::new();
+
+        let mut array_pred_perms = HashMap::new();
+
         for tree in permissions_forest.get_trees().iter() {
             for (kind, mir_place) in tree.get_permissions().into_iter() {
                 if kind.is_none() {
                     continue;
                 }
                 // will panic if attempting to encode unsupported type
-                let (encoded_place, pre_stmts, ty, _) = self.encode_place(&mir_place, ArrayAccessKind::Shared).unwrap();
-                assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
-                debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
+                let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place).unwrap();
+
+                // NOTE: this catches array accesses to single indexes. we take the "max" of
+                // none < read < write for the whole array, because we can't tell indices apart
+                let (encoded_place, is_array_access) = match encoded_place.into_expr_or_array_base() {
+                    Ok(expr) => (expr, false),
+                    Err(base) => (base, true),
+                };
+
+                debug!("kind={:?} mir_place={:?} encoded_place={:?} ty={:?}", kind, mir_place, encoded_place, ty);
                 match kind {
                     // Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
-                        let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Read);
-                        permissions.push(perm);
+                        if is_array_access {
+                            // if it's already there, it's at least read -> nothing to do here
+                            array_pred_perms.entry(encoded_place)
+                                .or_insert(vir::PermAmount::Read);
+                        } else {
+                            let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Read);
+                            permissions.push(perm);
+                        }
                     }
 
                     // Gives write permission to this node. It must not be a leaf node.
                     PermissionKind::WriteNode => {
-                        let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write);
-                        permissions.push(perm);
+                        if is_array_access {
+                            let entry = array_pred_perms.entry(encoded_place).or_insert(vir::PermAmount::Write);
+                            *entry= vir::PermAmount::Write;
+                        } else {
+                            let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write);
+                            permissions.push(perm);
+                        }
                     }
 
                     // Gives read or write permission to the entire
@@ -4196,9 +4217,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 }
                             }
                             _ => {
-                                permissions.push(
-                                    vir::Expr::pred_permission(encoded_place, perm_amount).unwrap(),
-                                );
+                                if is_array_access {
+                                    array_pred_perms.entry(encoded_place)
+                                        .and_modify(|e| if perm_amount == vir::PermAmount::Write { *e = vir::PermAmount::Write; })
+                                        .or_insert(perm_amount);
+                                } else {
+                                    permissions.push(
+                                        vir::Expr::pred_permission(encoded_place, perm_amount).unwrap(),
+                                    );
+                                }
+
                                 if let Some(forest) = &enclosing_permission_forest {
                                     for child_place in forest.get_children(&mir_place) {
                                         // If the forest contains the place, but that place is a
@@ -4228,9 +4256,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
 
+        // put the collected maxima of array permissions into the final permissions array
+        // Note that array access permissions are always predicate permissions, never the raw
+        // LocalVar
+        trace!("array_pred_perms: {:?}", array_pred_perms);
+        for (place, perm) in array_pred_perms.into_iter() {
+            permissions.push(
+                vir::Expr::pred_permission(place, perm)
+                    .expect("invalid place in array_pred_perms")
+            );
+        }
+
         trace!(
             "[exit] encode_loop_invariant_permissions permissions={}",
             permissions
+                .iter()
+                .map(|p| format!("{}, ", p))
+                .collect::<String>()
+        );
+        trace!(
+            "[exit] encode_loop_invariant_permissions equalities={}",
+            equalities
                 .iter()
                 .map(|p| format!("{}, ", p))
                 .collect::<String>()

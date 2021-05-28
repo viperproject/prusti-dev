@@ -61,6 +61,26 @@ impl<'tcx> PlaceEncoding<'tcx> {
         }
     }
 
+    /// Ok(e) => the same result try_into_expr would give
+    /// Err(e) => the array base expression
+    pub fn into_expr_or_array_base(self) -> Result<vir::Expr, vir::Expr> {
+        match self {
+            PlaceEncoding::Expr(e) => Ok(e),
+            PlaceEncoding::FieldAccess { base, field } => {
+                Ok(base.into_expr_or_array_base()?.field(field))
+            }
+            PlaceEncoding::Variant { base, field } => {
+                let base = base.into_expr_or_array_base()?;
+                Ok(vir::Expr::Variant(box base, field, vir::Position::default()))
+            }
+            PlaceEncoding::ArrayAccess { base, .. } => {
+                // need to check base's into_expr_or_array_base, maybe we're not the outermost
+                // array
+                Err(base.into_expr_or_array_base()?)
+            }
+        }
+    }
+
     pub fn field(self, field: vir::Field) -> Self {
         PlaceEncoding::FieldAccess { base: box self, field }
     }
