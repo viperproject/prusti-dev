@@ -5,15 +5,13 @@ fn main() {}
 fn looping() {
     let mut a = [0; 3];
     let mut i = 0;
-    let mut cont = i < 3;
 
-    while cont {
+    while i < 3 {
         body_invariant!(0 <= i && i < 3);
 
         a[i] = a[i];
 
         i += 1;
-        cont = i < 3;
     }
 
     // NOTE: this seems true, but we can't prove it without a proper invariant
