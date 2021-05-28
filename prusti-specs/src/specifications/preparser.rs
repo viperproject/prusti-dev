@@ -157,21 +157,28 @@ impl Parser {
     fn extract_entailment_rhs(&mut self, lhs: ExpressionWithoutId, vars: Vec<Arg>) -> syn::Result<AssertionWithoutId> {
         let mut pres = vec![];
         let mut posts = vec![];
+        let mut first = true;
         while !self.tokens.is_empty() {
-            if self.consume_keyword("requires") {
-                if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-                    pres.push(Parser::from_token_stream(stream).extract_assertion()?);
-                } else {
-                    return Err(self.error_expected("`(`"));
-                }
-            } else if self.consume_keyword("ensures") {
-                if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-                    posts.push(Parser::from_token_stream(stream).extract_assertion()?);
-                } else {
-                    return Err(self.error_expected("`(`"));
-                }
+            if first || self.consume_operator(",") {
+                first = false;
+                    if self.consume_keyword("requires") {
+                        if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                            pres.push(Parser::from_token_stream(stream).extract_assertion()?);
+                        } else {
+                            return Err(self.error_expected("`(`"));
+                        }
+                    } else if self.consume_keyword("ensures") {
+                        if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                            posts.push(Parser::from_token_stream(stream).extract_assertion()?);
+                        } else {
+                            return Err(self.error_expected("`(`"));
+                        }
+                    } else {
+                        eprintln!("DEBUG: {:?}\n", self.tokens);
+                        return Err(self.error_expected("`requires` or `ensures`"));
+                    }
             } else {
-                return Err(self.error_expected("`requires` or `ensures`"));
+                return Err(self.error_expected("`,`"));
             }
         }
 
