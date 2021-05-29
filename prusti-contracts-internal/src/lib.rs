@@ -39,6 +39,11 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
+pub fn prusti_use(tokens: TokenStream) -> TokenStream {
+    prusti_specs::prusti_use(tokens.into()).into()
+}
+
+#[proc_macro]
 pub fn closure(tokens: TokenStream) -> TokenStream {
     prusti_specs::closure(tokens.into(), false).into()
 }
@@ -50,6 +55,7 @@ pub fn refine_trait_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream 
 
 #[proc_macro_attribute]
 pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    println!("extern_spec calling\n\n");
     prusti_specs::extern_spec(attr.into(), tokens.into()).into()
 }
 

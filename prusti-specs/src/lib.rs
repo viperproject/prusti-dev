@@ -304,6 +304,22 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     }
 }
 
+pub fn prusti_use(tokens: TokenStream) -> TokenStream {
+    let path: syn::Path = handle_result!(syn::parse2(tokens.into()));
+    let path_span = path.span();
+
+    if let Some(last_seg) = path.segments.last() {
+        let ident = last_seg.ident.clone();
+        let new_tokens = quote_spanned! {path_span =>
+            #ident!();
+        };
+
+        new_tokens
+    } else {
+        return syn::Error::new(path_span, "prusti_use must be given a path with non-empty segements").to_compile_error();
+    }
+}
+
 /// Unlike the functions above, which are only called from
 /// prusti-contracts-internal, this function also needs to be called
 /// from prusti-contracts-impl, because we still need to parse the
@@ -481,26 +497,26 @@ pub fn extern_spec(attr: TokenStream, tokens:TokenStream) -> TokenStream {
         _ => { unimplemented!() }
     };
 
-    let attr_str = attr.to_string();
-    println!("attr: {:?}\n\n", attr_str);
-
-    let macro_iden = syn::Ident::new(attr_str.as_str(), item_span);
-
-    println!("ident: {:?}\n\n", macro_iden);
-
-    let new_macro = quote! {
-        #[macro_export]
-        macro_rules! #macro_iden {
-            () => {
-                #tokens
+    let new_tokens = match attr.is_empty() {
+        true => tokens,
+        false => {
+            let attr_str = attr.to_string();
+            let macro_iden = syn::Ident::new(attr_str.as_str(), item_span);
+            let new_macro = quote! {
+                #[macro_export]
+                macro_rules! #macro_iden {
+                    () => {
+                        #tokens
+                    };
+                }
             };
-        }
+            quote! {
+                #new_macro
+                #tokens
+            }
+        },
     };
-
-    quote! {
-        #new_macro
-        #tokens
-    }
+    new_tokens
 }
 
 #[derive(Debug)]
