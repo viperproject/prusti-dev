@@ -73,11 +73,14 @@ impl<'a> AstFactory<'a> {
 
     // This function is probably wrong. I was just trying things out.
     pub fn backend_f64_type(&self) -> Type<'a> {
-        let bv = self.backend_bv_lit(0);
         let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap();
         let float_factory_ = ast::utility::FloatFactory::with(self.env);
-        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 52,12, rm).unwrap();
-        Type::new(ast::utility::FloatFactory::call_typ(&float_factory_, float_factory).unwrap())
+        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 52, 12, rm).unwrap();
+        
+        let obj = self
+            .jni
+            .unwrap_result(ast::utility::FloatFactory::call_typ(&float_factory_, float_factory));
+        Type::new(obj)
     }
 
 }

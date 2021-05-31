@@ -163,6 +163,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
             | ty::TyKind::Char
+            | ty::TyKind::Float(_)
             | ty::TyKind::Bool => {
                 self.encode_primitive(
                     self.encoder.encode_value_field(self.ty)
@@ -222,6 +223,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
             | ty::TyKind::Char
+            | ty::TyKind::Float(_)
             | ty::TyKind::Bool
             | ty::TyKind::Param(_) => {
                 true

@@ -278,6 +278,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )]
             }
 
+            ty::TyKind::Float(_) => {
+                vec![vir::Predicate::new_primitive_value(
+                    typ,
+                    self.encoder.encode_value_field(self.ty),
+                    None,
+                    false,
+                )]
+            }
+
             ty::TyKind::Ref(_, ref ty, _) => {
                 vec![vir::Predicate::new_struct(
                     typ,
@@ -469,6 +478,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Uint(ty::UintTy::U64) => "u64".to_string(),
             ty::TyKind::Uint(ty::UintTy::U128) => "u128".to_string(),
             ty::TyKind::Uint(ty::UintTy::Usize) => "usize".to_string(),
+
+            ty::TyKind::Float(ty::FloatTy::F32) => "f32".to_string(),
+            ty::TyKind::Float(ty::FloatTy::F64) => "f64".to_string(),
 
             ty::TyKind::Char => "char".to_string(),
 
