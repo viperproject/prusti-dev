@@ -416,7 +416,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
                 let (encoded_place, place_ty, _) = self.encode_place(place)?;
-                self.encoder.encode_value_expr(encoded_place.try_into_expr()?, place_ty)
+                self.encoder.encode_value_expr(
+                    encoded_place
+                        .try_into_expr()
+                        .map_err(|_| EncodingError::unsupported(
+                            "array indexing is not supported in arbitrary operand positions yet. Try refactoring your code to have only an array access on the right-hand side of assignments using temporary variables".to_string(),
+                        ))?,
+                    place_ty,
+                )
             }
             // FIXME: Check whether the commented out code is necessary.
             // &mir::Operand::Constant(box mir::Constant {
