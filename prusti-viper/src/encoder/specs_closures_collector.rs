@@ -39,8 +39,7 @@ impl<'tcx> SpecsClosuresCollector<'tcx> {
     pub fn collect_from_all_spec_items(&mut self, env: &Environment<'tcx>) {
         debug!("Collecting closure instantiations...");
         let tcx = env.tcx();
-        let crate_num = hir::def_id::LOCAL_CRATE;
-        for &def_id in tcx.mir_keys(crate_num).iter() {
+        for &def_id in tcx.mir_keys(()).iter() {
             if env.has_prusti_attribute(def_id.to_def_id(), "spec_only") {
                 self.collect(env, def_id);
             }

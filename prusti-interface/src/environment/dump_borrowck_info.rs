@@ -106,6 +106,7 @@ impl<'tcx> InfoPrinter<'tcx> {
 }
 
 struct MirInfoPrinter<'a, 'tcx: 'a> {
+    #[allow(dead_code)]
     pub def_path: hir::definitions::DefPath,
     pub tcx: TyCtxt<'tcx>,
     pub mir: &'a mir::Body<'tcx>,
