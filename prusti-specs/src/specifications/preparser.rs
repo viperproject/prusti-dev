@@ -62,7 +62,7 @@ pub struct Parser {
     /// Tokens yet to be consumed
     tokens: VecDeque<TokenTree>,
     /// Span of the last seen token
-    last_span: Span
+    last_span: Option<Span>
 }
 
 impl Parser {
@@ -70,7 +70,7 @@ impl Parser {
     pub fn from_token_stream(tokens: TokenStream) -> Self {
         Self {
             tokens: tokens.into_iter().collect(),
-            last_span: Span::call_site(),
+            last_span: None,
         }
     }
     /// Creates a single Prusti assertion from the input and returns it.
@@ -363,7 +363,7 @@ impl Parser {
                 span = Some(character.span());
             }
         }
-        self.last_span = span.unwrap();
+        self.last_span = span;
         true
     }
     /// consume the keyword if it is next in the stream
@@ -371,7 +371,7 @@ impl Parser {
         if !self.peek_keyword(keyword) {
             return false;
         }
-        self.last_span = self.tokens.pop_front().unwrap().span();
+        self.last_span = Some(self.tokens.pop_front().unwrap().span());
         true
     }
     /// consume the group if it is next in the stream
@@ -383,7 +383,7 @@ impl Parser {
         let token = self.tokens.pop_front().unwrap();
         let span = token.span();
         if let TokenTree::Group(group) = token {
-            self.last_span = span;
+            self.last_span = Some(span);
             Some(group.stream())
         } else {
             None
@@ -392,7 +392,7 @@ impl Parser {
     /// pop a token - note that punctuation is one token per character
     fn pop(&mut self) -> Option<TokenTree> {
         if let Some(token) = self.tokens.pop_front() {
-            self.last_span = token.span();
+            self.last_span = Some(token.span());
             Some(token)
         } else {
             None
@@ -418,17 +418,27 @@ impl Parser {
         stream.extend(t.into_iter());
         stream
     }
+    /// get the span of the blamed token
+    fn get_error_span(&self) -> Span {
+        if let Some(span) = self.last_span {
+            span
+        } else if let Some(token) = self.tokens.front() {
+            token.span()
+        } else {
+            Span::call_site()
+        }
+    }
     /// complain about expecting a token
     fn error_expected(&self, what: &str) -> syn::Error {
-        syn::Error::new(self.last_span, format!("expected {}", what))
+        syn::Error::new(self.get_error_span(), format!("expected {}", what))
     }
     fn error_no_quantifier_arguments(&self) -> syn::Error {
-        syn::Error::new(self.last_span, "a quantifier must have at least one argument")
+        syn::Error::new(self.get_error_span(), "a quantifier must have at least one argument")
     }
     fn error_expected_tuple(&self, span: Span) -> syn::Error {
         syn::Error::new(span, "`triggers` must be an array of tuples containing Rust expressions")
     }
     fn error_unexpected(&self) -> syn::Error {
-        syn::Error::new(self.last_span, "unexpected token")
+        syn::Error::new(self.get_error_span(), "unexpected token")
     }
 }
