@@ -12,8 +12,7 @@ use ast_factory::structs::Trigger;
 use ast_factory::structs::Type;
 use ast_factory::AstFactory;
 use jni::objects::JObject;
-use viper_sys::wrappers::viper::silver::ast::{self, BackendFunc};
-
+use viper_sys::wrappers::viper::silver::ast::{self,};
 
 impl<'a> AstFactory<'a> {
     pub fn add_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
@@ -198,29 +197,85 @@ impl<'a> AstFactory<'a> {
         self.int_lit_from_ref_with_pos(i, self.no_position())
     }
 
-    pub fn backend_bv_lit(&self, bits: u64) -> Expr<'a> {    
+    // Backend Bitvectors
+    pub fn backend_bv32_lit(&self, bits: u32) -> Expr<'a> {    
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 32).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV32")).unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn backend_bv64_lit(&self, bits: u64) -> Expr<'a> {    
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV64")).unwrap();
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
+    
+    // Backend Floating-Points
+    pub fn float_binop(&self, op_code: u8, f_size: u8, left: Expr, right: Expr) -> Expr<'a> {
+        let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap(); // Rounding mode
+        let factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
+        let factory = match f_size { // FloatFactory JObject
+            32 => ast::utility::FloatFactory::new(&factory_, 24,8, rm).unwrap(),
+            64 => ast::utility::FloatFactory::new(&factory_, 52,12, rm).unwrap(),
+            _ => unimplemented!("Invalid float size: f{}", f_size),
+        };
+        let op = match op_code {
+            0 => ast::utility::FloatFactory::call_add(&factory_, factory, self.jni.new_string("fp_add")).unwrap(),
+            1 => ast::utility::FloatFactory::call_sub(&factory_, factory, self.jni.new_string("fp_sub")).unwrap(),
+            2 => ast::utility::FloatFactory::call_mul(&factory_, factory, self.jni.new_string("fp_mul")).unwrap(),
+            3 => ast::utility::FloatFactory::call_div(&factory_, factory, self.jni.new_string("fp_div")).unwrap(),
+            4 => ast::utility::FloatFactory::call_min(&factory_, factory, self.jni.new_string("fp_min")).unwrap(),
+            5 => ast::utility::FloatFactory::call_max(&factory_, factory, self.jni.new_string("fp_max")).unwrap(),
+            6 => ast::utility::FloatFactory::call_eq(&factory_, factory, self.jni.new_string("fp_eq")).unwrap(),
+            7 => ast::utility::FloatFactory::call_leq(&factory_, factory, self.jni.new_string("fp_leq")).unwrap(),
+            8 => ast::utility::FloatFactory::call_geq(&factory_, factory, self.jni.new_string("fp_geq")).unwrap(),
+            9 => ast::utility::FloatFactory::call_lt(&factory_, factory, self.jni.new_string("fp_lt")).unwrap(),
+            10 => ast::utility::FloatFactory::call_gt(&factory_, factory, self.jni.new_string("fp_gt")).unwrap(),
+            _ => unimplemented!("invalid binop code: {}", op_code)
+        };
+        self.backend_func_app(op, &[left, right], self.no_position())
+    }
 
-    // pub fn backend_func(&self, name: String, smt_name: String) -> Expr<'a> {        
-    //     let bv_factory_ = ast::utility::BVFactory::with(self.env);
-    //     let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
-    //     let func = match &*name {
-    //         "from_int" => ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string(arg)).unwrap(),
-    //         _ => unimplemented!("missing bv backendfunc name")
-    //     };
+    pub fn float_unop(&self, op_code: u8, f_size: u8, arg: Expr) -> Expr<'a> {
+        let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap(); // Rounding mode
+        let factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
+        let factory = match f_size { // FloatFactory JObject
+            32 => ast::utility::FloatFactory::new(&factory_, 24,8, rm).unwrap(),
+            64 => ast::utility::FloatFactory::new(&factory_, 52,12, rm).unwrap(),
+            _ => unimplemented!("Invalid float size: f{}", f_size),
+        };
 
-    //     BackendFunc::new(func, self.jni.new_string(name), self.jni.new_string(arg), func::typ, arg_formalArgs)
-    // }
+        let op = match op_code {
+            0 => ast::utility::FloatFactory::call_neg(&factory_, factory, self.jni.new_string("fp_neg")).unwrap(),
+            1 => ast::utility::FloatFactory::call_abs(&factory_, factory, self.jni.new_string("fp_abs")).unwrap(),
+            2 => ast::utility::FloatFactory::call_isZero(&factory_, factory, self.jni.new_string("fp_isZero")).unwrap(),
+            3 => ast::utility::FloatFactory::call_isInfinite(&factory_, factory, self.jni.new_string("fp_isInfinite")).unwrap(),
+            4 => ast::utility::FloatFactory::call_isNaN(&factory_, factory, self.jni.new_string("fp_isNaN")).unwrap(),
+            5 => ast::utility::FloatFactory::call_isNegative(&factory_, factory, self.jni.new_string("fp_isNegative")).unwrap(),
+            6 => ast::utility::FloatFactory::call_isPositive(&factory_, factory, self.jni.new_string("fp_isPositive")).unwrap(),
+            _ => unimplemented!("invalid unop code: {}", op_code)
+        };
 
-    pub fn backend_float_lit(&self, bits: u64) -> Expr<'a> {
-        let bv = self.backend_bv_lit(bits);
-        let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap();
-        let float_factory_ = ast::utility::FloatFactory::with(self.env);
-        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 52,12, rm).unwrap();
+        self.backend_func_app(op, &[arg], self.no_position())
+    }
+
+    pub fn backend_f32_lit(&self, bits: u32) -> Expr<'a> {
+        let bv = self.backend_bv32_lit(bits);
+        let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap(); // Rounding mode
+        let float_factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
+        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 24,8, rm).unwrap(); // FloatFactory JObject
+        let from_bv = ast::utility::FloatFactory::call_from__bv(&float_factory_, float_factory, self.jni.new_string("tofp")).unwrap();
+        self.backend_func_app(from_bv, &[bv], self.no_position())
+
+    }    
+    
+    pub fn backend_f64_lit(&self, bits: u64) -> Expr<'a> {
+        let bv = self.backend_bv64_lit(bits);
+        let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap(); // Rounding mode
+        let float_factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
+        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 52,12, rm).unwrap(); // FloatFactory JObject
         let from_bv = ast::utility::FloatFactory::call_from__bv(&float_factory_, float_factory, self.jni.new_string("tofp")).unwrap();
         self.backend_func_app(from_bv, &[bv], self.no_position())
 

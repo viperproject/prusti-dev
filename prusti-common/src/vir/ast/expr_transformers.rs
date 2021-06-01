@@ -431,7 +431,7 @@ pub trait ExprWalker: Sized {
         }
     }
     */
-    fn walk_backend_func_app(&mut self, func: &BackendFunc, args: &Vec<Expr>, _pos: &Position) {
+    fn walk_backend_func_app(&mut self, _func: &BackendFunc, args: &Vec<Expr>, _pos: &Position) {
         for arg in args {
             self.walk(arg)
         }

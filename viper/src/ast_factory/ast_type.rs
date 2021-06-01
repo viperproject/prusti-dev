@@ -5,7 +5,6 @@
 use ast_factory::structs::Type;
 use ast_factory::AstFactory;
 use jni::objects::JObject;
-use jni_utils::JniUtils;
 use viper_sys::wrappers::viper::silver::ast;
 
 impl<'a> AstFactory<'a> {
@@ -71,7 +70,17 @@ impl<'a> AstFactory<'a> {
         Type::new(obj)
     }
 
-    // This function is probably wrong. I was just trying things out.
+    pub fn backend_f32_type(&self) -> Type<'a> {
+        let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap();
+        let float_factory_ = ast::utility::FloatFactory::with(self.env);
+        let float_factory = ast::utility::FloatFactory::new(&float_factory_, 24, 8, rm).unwrap();
+        
+        let obj = self
+            .jni
+            .unwrap_result(ast::utility::FloatFactory::call_typ(&float_factory_, float_factory));
+        Type::new(obj)
+    }
+
     pub fn backend_f64_type(&self) -> Type<'a> {
         let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap();
         let float_factory_ = ast::utility::FloatFactory::with(self.env);

@@ -77,7 +77,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             //Type::Ref |
             Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
-            Type::Float(FloatSize::F32) => unimplemented!("backendtype for f32 not implemented"),
+            Type::Float(FloatSize::F32) => ast.backend_f32_type(),
             Type::Float(FloatSize::F64) => ast.backend_f64_type(),
         }
     }
@@ -341,54 +341,68 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     perm.to_viper(ast),
                     pos.to_viper(ast),
                 ),
-            Expr::UnaryOp(op, ref expr, ref pos) => match op {
-                UnaryOpKind::Not => ast.not_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
-                UnaryOpKind::Minus => ast.minus_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
-            },
-            Expr::BinOp(op, ref left, ref right, ref pos) => match op {
-                BinOpKind::EqCmp => {
-                    ast.eq_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::NeCmp => {
-                    ast.ne_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::GtCmp => {
-                    ast.gt_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::GeCmp => {
-                    ast.ge_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::LtCmp => {
-                    ast.lt_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::LeCmp => {
-                    ast.le_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::Add => {
-                    ast.add_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::Sub => {
-                    ast.sub_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::Mul => {
-                    ast.mul_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::Div => {
-                    ast.div_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::Mod => {
-                    ast.module_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::And => {
-                    ast.and_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::Or => {
-                    ast.or_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-                BinOpKind::Implies => {
-                    ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
-                }
-            },
+            Expr::UnaryOp(op, ref expr, ref pos) =>            
+                match expr.get_type() {
+                    Type::Float(float_ty) => {
+                        let f_size: u8 = match float_ty {
+                            FloatSize::F32 => 32,
+                            FloatSize::F64 => 64,
+                        };
+                        let op_code = match op {
+                            UnaryOpKind::Minus => 0,
+                            _ => unimplemented!("unimplemented unop for floats")
+                        };
+                        ast.float_unop(op_code, f_size, expr.to_viper(ast))
+                    }
+
+                    _ =>  match op {
+                        UnaryOpKind::Not => ast.not_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
+                        UnaryOpKind::Minus => ast.minus_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
+                    }
+                },
+            Expr::BinOp(op, ref left, ref right, ref pos) =>
+                match left.get_type() {
+                    Type::Float(float_ty) => {
+                        let f_size: u8 = match float_ty {
+                            FloatSize::F32 => 32,
+                            FloatSize::F64 => 64,
+                        };
+                        let op_code = match op {
+                            BinOpKind::Add => 0,
+                            BinOpKind::Sub => 1,
+                            BinOpKind::Mul => 2,
+                            BinOpKind::Div => 3,
+                            BinOpKind::EqCmp => 6,
+                            BinOpKind::GtCmp => 10,
+                            BinOpKind::GeCmp => 8,
+                            BinOpKind::LtCmp => 9,
+                            BinOpKind::LeCmp => 7,
+                            BinOpKind::NeCmp |
+                            BinOpKind::Mod |
+                            BinOpKind::And |
+                            BinOpKind::Or |
+                            BinOpKind::Implies => unimplemented!("unimplemented binop for floats")
+                        };
+                        ast.float_binop(op_code, f_size, left.to_viper(ast), right.to_viper(ast))
+                    }
+
+                    _ => match op {                
+                        BinOpKind::EqCmp => ast.eq_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                        BinOpKind::NeCmp => ast.ne_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                        BinOpKind::GtCmp => ast.gt_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                        BinOpKind::GeCmp => ast.ge_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                        BinOpKind::LtCmp => ast.lt_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                        BinOpKind::LeCmp => ast.le_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                        BinOpKind::Add => ast.add_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                        BinOpKind::Sub => ast.sub_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                        BinOpKind::Mul => ast.mul_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                        BinOpKind::Div => ast.div_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),            
+                        BinOpKind::Mod => ast.module_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),                        
+                        BinOpKind::And => ast.and_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),                        
+                        BinOpKind::Or => ast.or_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),                        
+                        BinOpKind::Implies => ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))                        
+                    }
+                },
             Expr::Unfolding(
                 ref predicate_name,
                 ref args,
@@ -445,7 +459,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 )
             }
 
-            &Expr::BackendFuncApp(ref function, ref args, ref _pos) => {
+            &Expr::BackendFuncApp(ref _function, ref _args, ref _pos) => {
                 unimplemented!("ToViper for Backendfunction is unimplemented")
                 // ast.backend_func_app(
                 //     function.to_viper(ast),
@@ -502,8 +516,8 @@ impl<'v, 'a, 'b> ToViper<'v, viper::Expr<'v>> for (&'a Const, &'b Position) {
             Const::Bool(false) => ast.false_lit_with_pos(self.1.to_viper(ast)),
             Const::Int(x) => ast.int_lit_with_pos(*x, self.1.to_viper(ast)),
             Const::BigInt(ref x) => ast.int_lit_from_ref_with_pos(x, self.1.to_viper(ast)),
-            Const::Float(FloatConst::FloatConst32(val)) => unimplemented!("f32 to viper expr not implemented"),
-            Const::Float(FloatConst::FloatConst64(val)) => ast.backend_float_lit(*val),
+            Const::Float(FloatConst::FloatConst32(val)) => ast.backend_f32_lit(*val),
+            Const::Float(FloatConst::FloatConst64(val)) => ast.backend_f64_lit(*val),
             Const::FnPtr => ast.null_lit_with_pos(self.1.to_viper(ast)),
         }
     }

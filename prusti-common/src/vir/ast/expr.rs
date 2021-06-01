@@ -1029,7 +1029,7 @@ impl Expr {
             Expr::DomainFuncApp(ref func, _, _) => {
                 &func.return_type
             },
-            Expr::BackendFuncApp(ref func, _, _) => { 
+            Expr::BackendFuncApp(ref _func, _, _) => { 
                 unimplemented!("Unsure what comes here")
             },
             Expr::Const(constant, ..) => {
