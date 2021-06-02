@@ -477,7 +477,7 @@ impl<'tcx> ErrorManager<'tcx>
 
             ("assert.failed:assertion.false", ErrorCtxt::BoundsCheckAssert) => {
                 PrustiError::verification(
-                    format!("the array or slice index may be out of bounds"),
+                    "the array or slice index may be out of bounds".to_string(),
                     error_span,
                 ).set_failing_assertion(opt_cause_span)
             }
