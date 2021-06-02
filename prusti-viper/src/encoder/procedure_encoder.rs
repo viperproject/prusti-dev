@@ -2089,7 +2089,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     args,
                                     location,
                                     span,
-                                ).run_if_err(|| cleanup(&self))?
+                                )?
                             );
                         }
 
