@@ -33,10 +33,18 @@ pub enum PlaceEncoding<'tcx> {
         encoded_elem_ty: vir::Type,
         rust_array_ty: ty::Ty<'tcx>,
     },
+    /// Variant (i.e. enum access)
     Variant {
         base: Box<PlaceEncoding<'tcx>>,
         field: vir::Field,
-    }
+    },
+    /// Slice indexing projection
+    SliceAccess {
+        base: Box<PlaceEncoding<'tcx>>,
+        index: vir::Expr,
+        encoded_elem_ty: vir::Type,
+        rust_slice_ty: ty::Ty<'tcx>,
+    },
 }
 
 impl<'tcx> PlaceEncoding<'tcx> {
@@ -63,6 +71,7 @@ impl<'tcx> PlaceEncoding<'tcx> {
             PlaceEncoding::FieldAccess { ref field, .. } => &field.typ,
             PlaceEncoding::ArrayAccess { ref encoded_elem_ty, .. } => encoded_elem_ty,
             PlaceEncoding::Variant { ref field, .. } => &field.typ,
+            PlaceEncoding::SliceAccess { ref encoded_elem_ty, .. } => encoded_elem_ty,
         }
     }
 
@@ -88,6 +97,7 @@ impl<'tcx> Display for PlaceEncoding<'tcx> {
             PlaceEncoding::FieldAccess { base, field } => write!(f, "{}.{}", base, field),
             PlaceEncoding::ArrayAccess { base, index, .. } => write!(f, "{}[{}]", base, index),
             PlaceEncoding::Variant { base, field } => write!(f, "{}[{}]", base, field),
+            PlaceEncoding::SliceAccess { base, index, .. } => write!(f, "{}[{}]", base, index),
         }
     }
 }

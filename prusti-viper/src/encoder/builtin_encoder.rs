@@ -28,6 +28,17 @@ pub enum BuiltinFunctionKind {
         array_len: usize,
         return_ty: vir::Type,
     },
+    /// lookup_pure function for slices, e.g. Slice$i32$lookup_pure
+    SliceLookupPure {
+        slice_ty_pred: String,
+        elem_ty_pred: String,
+        return_ty: vir::Type,
+    },
+    /// abstract length function for slices, e.g. Slice$u32$len
+    SliceLen {
+        slice_ty_pred: String,
+        elem_ty_pred: String,
+    },
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -86,6 +97,12 @@ impl BuiltinEncoder {
             BuiltinFunctionKind::ArrayLookupPure { elem_ty_pred, array_len, .. } => {
                 format!("Array${}${}$lookup_pure", array_len, elem_ty_pred)
             }
+            BuiltinFunctionKind::SliceLookupPure { elem_ty_pred, .. } => {
+                format!("Slice${}$lookup_pure", elem_ty_pred)
+            }
+            BuiltinFunctionKind::SliceLen { elem_ty_pred, .. } => {
+                format!("Slice${}$len", elem_ty_pred)
+            }
         }
     }
 
@@ -110,7 +127,7 @@ impl BuiltinEncoder {
                 body: None,
             },
             BuiltinFunctionKind::ArrayLookupPure { array_ty_pred, array_len, return_ty, .. } => {
-                let self_var = vir_local!{ self: {vir::Type::TypedRef(array_ty_pred.clone())} };
+                let self_var = vir::LocalVar::new_typed_ref("self", array_ty_pred.clone());
                 let idx_var = vir_local!{ idx: Int };
 
                 vir::Function {
@@ -123,16 +140,78 @@ impl BuiltinEncoder {
                     ],
                     return_type: return_ty,
                     pres: vec![
-                        // idx < {len}
-                        vir!([vir::Expr::local(idx_var)]  < [vir::Expr::from(array_len)]),
                         // acc(self, read$())
                         vir::Expr::predicate_access_predicate(
                             array_ty_pred,
                             vir::Expr::local(self_var),
                             vir::PermAmount::Read,
-                        )
+                        ),
+                        // idx < {len}
+                        vir!([vir::Expr::local(idx_var)]  < [vir::Expr::from(array_len)]),
                     ],
                     posts: vec![],
+                    body: None,
+                }
+            },
+            BuiltinFunctionKind::SliceLookupPure { slice_ty_pred, elem_ty_pred, return_ty} => {
+                let slice_len = self.encode_builtin_function_name(
+                    &BuiltinFunctionKind::SliceLen { slice_ty_pred: slice_ty_pred.clone(), elem_ty_pred }
+                );
+                let self_var = vir::LocalVar::new_typed_ref("self", slice_ty_pred.clone());
+                let idx_var = vir_local!{ idx: Int };
+
+                let slice_len_call = vir::Expr::func_app(
+                    slice_len,
+                    vec![
+                        vir::Expr::local(self_var.clone()),
+                    ],
+                    vec![
+                        self_var.clone(),
+                    ],
+                    vir::Type::Int,
+                    vir::Position::default(),
+                );
+
+                vir::Function {
+                    name: fn_name,
+                    formal_args: vec![
+                        self_var.clone(),
+                        idx_var.clone(),
+                    ],
+                    return_type: return_ty,
+                    pres: vec![
+                        // acc(self, read$())
+                        vir::Expr::predicate_access_predicate(
+                            slice_ty_pred,
+                            vir::Expr::local(self_var),
+                            vir::PermAmount::Read,
+                        ),
+                        // idx < Slice${ty}$len(self)
+                        vir!{ [vir::Expr::local(idx_var)] < [slice_len_call] },
+                    ],
+                    posts: vec![],
+                    body: None,
+                }
+            },
+            BuiltinFunctionKind::SliceLen { slice_ty_pred, .. } => {
+                let self_var = vir::LocalVar::new_typed_ref("self", slice_ty_pred.clone());
+
+                vir::Function {
+                    name: fn_name,
+                    formal_args: vec![
+                        self_var.clone(),
+                    ],
+                    return_type: vir::Type::Int,
+                    pres: vec![
+                        vir::Expr::predicate_access_predicate(
+                            slice_ty_pred,
+                            vir::Expr::local(self_var),
+                            vir::PermAmount::Read,
+                        ),
+                    ],
+                    posts: vec![
+                        vir!{ [vir::Expr::from(vir_local!{ __result: Int })] >= [vir::Expr::from(0)] }
+                    ],
                     body: None,
                 }
             },

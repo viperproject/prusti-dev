@@ -267,6 +267,10 @@ impl LocalVar {
             typ,
         }
     }
+
+    pub fn new_typed_ref<S: Into<String>>(name: S, ty_ref_name: String) -> Self {
+        LocalVar::new(name, crate::vir::Type::TypedRef(ty_ref_name))
+    }
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
