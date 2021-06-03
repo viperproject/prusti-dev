@@ -4,6 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// This module is full of functions matching `Expr`s and reassembling them with one field changed
+// (e.g. new position), so we feel it's ok to use single-digit identifiers there
+#![allow(clippy::many_single_char_names)]
+
 use super::super::borrows::Borrow;
 use crate::vir::ast::*;
 
@@ -256,6 +260,26 @@ pub trait ExprFolder: Sized {
     fn fold_snap_app(&mut self, e: Box<Expr>, p: Position) -> Expr {
         Expr::SnapApp(self.fold_boxed(e), p)
     }
+
+    fn fold_container_op(
+        &mut self,
+        kind: ContainerOpKind,
+        l: Box<Expr>,
+        r: Box<Expr>,
+        p: Position,
+    ) -> Expr {
+        Expr::ContainerOp(
+            kind,
+            self.fold_boxed(l),
+            self.fold_boxed(r),
+            p,
+        )
+    }
+
+    fn fold_seq(&mut self, t: Type, elems: Vec<Expr>, p: Position) -> Expr {
+        Expr::Seq(t, elems.into_iter().map(|e| self.fold(e)).collect(), p)
+    }
+
 }
 
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
@@ -285,6 +309,8 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::InhaleExhale(x, y, p) => this.fold_inhale_exhale(x, y, p),
         Expr::Downcast(b, p, f) => this.fold_downcast(b, p, f),
         Expr::SnapApp(e, p) => this.fold_snap_app(e, p),
+        Expr::ContainerOp(x, y, z, p) => this.fold_container_op(x, y, z, p),
+        Expr::Seq(x, y, p) => this.fold_seq(x, y, p),
     }
 }
 
@@ -433,6 +459,23 @@ pub trait ExprWalker: Sized {
     fn walk_snap_app(&mut self, expr: &Expr, _pos: &Position) {
         self.walk(expr);
     }
+
+    fn walk_container_op(
+        &mut self,
+        _kind: &ContainerOpKind,
+        l: &Expr,
+        r: &Expr,
+        _p: &Position,
+    ) {
+        self.walk(l);
+        self.walk(r);
+    }
+
+    fn walk_seq(&mut self, _ty: &Type, elems: &[Expr], _pos: &Position) {
+        for elem in elems {
+            self.walk(elem);
+        }
+    }
 }
 
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
@@ -462,6 +505,8 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::InhaleExhale(ref x, ref y, ref p) => this.walk_inhale_exhale(x, y, p),
         Expr::Downcast(ref b, ref p, ref f) => this.walk_downcast(b, p, f),
         Expr::SnapApp(ref e, ref p) => this.walk_snap_app(e, p),
+        Expr::ContainerOp(ref kind, ref l, ref r, ref p) => this.walk_container_op(kind, l, r, p),
+        Expr::Seq(ref ty, ref elems, ref p) => this.walk_seq(ty, elems, p),
     }
 }
 
@@ -695,6 +740,35 @@ pub trait FallibleExprFolder: Sized {
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::SnapApp(self.fallible_fold_boxed(e)?, p))
     }
+
+    fn fallible_fold_container_op(
+        &mut self,
+        kind: ContainerOpKind,
+        l: Box<Expr>,
+        r: Box<Expr>,
+        p: Position,
+    ) -> Result<Expr, Self::Error> {
+        Ok(Expr::ContainerOp(
+            kind,
+            self.fallible_fold_boxed(l)?,
+            self.fallible_fold_boxed(r)?,
+            p,
+        ))
+    }
+
+    fn fallible_fold_seq(
+        &mut self,
+        ty: Type,
+        elems: Vec<Expr>,
+        p: Position,
+    ) -> Result<Expr, Self::Error> {
+        let mut folded = Vec::with_capacity(elems.len());
+        for e in elems {
+            folded.push(self.fallible_fold(e)?);
+        }
+
+        Ok(Expr::Seq(ty, folded, p))
+    }
 }
 
 pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error=U>>(
@@ -726,5 +800,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error=U>>(
         Expr::InhaleExhale(x, y, p) => this.fallible_fold_inhale_exhale(x,y,p),
         Expr::Downcast(b, p, f) => this.fallible_fold_downcast(b, p, f),
         Expr::SnapApp(e, p) => this.fallible_fold_snap_app(e, p),
+        Expr::ContainerOp(x, y, z, p) => this.fallible_fold_container_op(x, y, z, p),
+        Expr::Seq(x, y, p) => this.fallible_fold_seq(x, y, p),
     }
 }

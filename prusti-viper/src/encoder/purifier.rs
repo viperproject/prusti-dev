@@ -213,6 +213,7 @@ fn translate_type(encoder: &Encoder, typ: vir::Type) -> vir::Type {
             let mir_typ = encoder.decode_type_predicate(name).unwrap(); // FIXME: unwrap
             encoder.encode_snapshot_type(mir_typ).unwrap() // FIXME: unwrap
         }
+        vir::Type::Seq(_) => unreachable!(),
     }
 }
 
