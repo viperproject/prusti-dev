@@ -4132,7 +4132,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // none < read < write for the whole array, because we can't tell indices apart
                 let (encoded_place, is_array_access) = match encoded_place.into_array_base() {
                     ExprOrArrayBase::Expr(e) => (e, false),
-                    ExprOrArrayBase::ArrayBase(b) => (b, true),
+                    ExprOrArrayBase::ArrayBase(b) | ExprOrArrayBase::SliceBase(b) => (b, true),
                 };
 
                 debug!("kind={:?} mir_place={:?} encoded_place={:?} ty={:?}", kind, mir_place, encoded_place, ty);

@@ -51,14 +51,17 @@ pub enum PlaceEncoding<'tcx> {
 pub enum ExprOrArrayBase {
     Expr(vir::Expr),
     ArrayBase(vir::Expr),
+    #[allow(dead_code)]
+    SliceBase(vir::Expr),
 }
 
 impl<'tcx> PlaceEncoding<'tcx> {
     pub fn try_into_expr(self) -> EncodingResult<vir::Expr> {
         match self.into_array_base() {
            ExprOrArrayBase::Expr(e) => Ok(e),
-           ExprOrArrayBase::ArrayBase(b) => Err(EncodingError::internal(
-               format!("PlaceEncoding::try_into_expr called on array expr '{:?}'", b)
+           ExprOrArrayBase::ArrayBase(b)
+           | ExprOrArrayBase::SliceBase(b) => Err(EncodingError::internal(
+               format!("PlaceEncoding::try_into_expr called on sequence expr '{:?}'", b)
            )),
         }
     }
@@ -72,6 +75,7 @@ impl<'tcx> PlaceEncoding<'tcx> {
                 match base.into_array_base() {
                     ExprOrArrayBase::Expr(e) => ExprOrArrayBase::Expr(e.field(field)),
                     base@ExprOrArrayBase::ArrayBase(_) => base,
+                    base@ExprOrArrayBase::SliceBase(_) => base,
                 }
             }
             PlaceEncoding::Variant { base, field } => {
@@ -80,6 +84,7 @@ impl<'tcx> PlaceEncoding<'tcx> {
                         vir::Expr::Variant(box e, field, vir::Position::default())
                     ),
                     base@ExprOrArrayBase::ArrayBase(_) => base,
+                    base@ExprOrArrayBase::SliceBase(_) => base,
                 }
             }
             PlaceEncoding::ArrayAccess { base, .. } => {
@@ -88,6 +93,14 @@ impl<'tcx> PlaceEncoding<'tcx> {
                 match base.into_array_base() {
                     ExprOrArrayBase::Expr(e) => ExprOrArrayBase::ArrayBase(e),
                     base@ExprOrArrayBase::ArrayBase(_) => base,
+                    base@ExprOrArrayBase::SliceBase(_) => base,
+                }
+            }
+            PlaceEncoding::SliceAccess { base, .. } => {
+                match base.into_array_base() {
+                    ExprOrArrayBase::Expr(e) => ExprOrArrayBase::ArrayBase(e),
+                    base@ExprOrArrayBase::ArrayBase(_) => base,
+                    base@ExprOrArrayBase::SliceBase(_) => base,
                 }
             }
         }
