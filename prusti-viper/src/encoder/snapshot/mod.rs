@@ -36,6 +36,14 @@ enum Snapshot {
         /// in the [variants] vector. Empty for non-enums.
         variant_names: HashMap<String, usize>,
     }, // TODO: separate variant for enums and one-variant Complexes?
+    /// Arrays
+    Array {
+        predicate_name: String,
+        domain: vir::Domain,
+        snap_func: vir::Function,
+        cons: vir::DomainFunc,
+        read: vir::DomainFunc,
+    },
     /// Type cannot be encoded: type parameters, unsupported types.
     Abstract {
         predicate_name: String,
@@ -53,8 +61,9 @@ impl Snapshot {
         match self {
             Self::Primitive(ty) => ty.clone(),
             Self::Unit => Type::Domain(encoder::UNIT_DOMAIN_NAME.to_string()),
-            Self::Complex { predicate_name, .. } => Type::Snapshot(predicate_name.to_string()),
-            Self::Abstract { predicate_name, .. } => Type::Snapshot(predicate_name.to_string()),
+            Self::Complex { predicate_name, .. }
+            | Self::Abstract { predicate_name, .. }
+            | Self::Array { predicate_name, .. } => Type::Snapshot(predicate_name.to_string()),
             Self::Lazy(ty) => ty.clone(),
         }
     }
