@@ -107,52 +107,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(vir::Type::TypedRef(self.encode_predicate_use()?))
     }
 
-    pub fn encode_value_type(self) -> EncodingResult<vir::Type> {
-        debug!("Encode value type '{:?}'", self.ty);
-        Ok(match self.ty.kind() {
-            ty::TyKind::Bool => vir::Type::Bool,
-
-            ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
-                vir::Type::Int
-            }
-
-            ty::TyKind::Ref(_, ref ty, _) => {
-                let type_name = self.encoder.encode_type_predicate_use(ty)?;
-                vir::Type::TypedRef(type_name)
-            }
-
-            ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => {
-                let snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                snapshot.get_type()
-            }
-
-            ty::TyKind::RawPtr(ty::TypeAndMut { .. }) => {
-                return Err(EncodingError::unsupported(
-                    "raw pointers are not supported"
-                ));
-            }
-
-            ref x => unimplemented!("{:?}", x),
-        })
-    }
-
-
-    /// provides the type of the underlying value or a reference in case of composed
-    /// data structures
-    pub fn encode_value_or_ref_type(self) -> EncodingResult<vir::Type> {
-        debug!("Encode ref value type '{:?}'", self.ty);
-        match self.ty.kind() {
-            ty::TyKind::Adt(_, _)
-            | ty::TyKind::Tuple(_) => {
-                let _snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
-                Ok(vir::Type::TypedRef(type_name))
-            },
-
-            _ => self.encode_value_type(),
-        }
-    }
-
     pub fn encode_value_field(self) -> EncodingResult<vir::Field> {
         trace!("Encode value field for type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
@@ -714,6 +668,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             posts: Vec::new(),
             body: field_invariants.map(|invs| invs.into_iter().conjoin()),
         };
+
+        // Patch snapshots
+        let function = self.encoder.patch_snapshots_function(function)?;
 
         self.encoder
             .log_vir_program_before_foldunfold(function.to_string());

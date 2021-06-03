@@ -18,7 +18,6 @@ use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
-use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 use prusti_common::{
     config,
     report::log,
@@ -449,18 +448,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.cfg_method
                 .add_local_var(&var_name, vir::Type::TypedRef(type_name));
         }
-        if config::enable_purification_optimization() {
-            // FIXME: The purification optimization may need snapshots of all
-            // variables.
-            for local_decl in &self.mir.local_decls {
-                let ty = local_decl.ty;
-                if ty.is_box() {
-                    // FIXME: Snapshots of boxes are not supported.
-                    continue;
-                }
-                self.encoder.encode_snapshot(ty).with_span(mir_span)?;
-            }
-        }
 
         self.check_vir()?;
         let method_name = self.cfg_method.name();
@@ -477,6 +464,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 |writer| self.cfg_method.to_graphviz(writer),
             );
         }
+
+        // Patch snapshots
+        self.cfg_method = self.encoder.patch_snapshots_method(self.cfg_method)
+            .with_span(mir_span)?;
 
         // Add fold/unfold
         let loan_locations = self
@@ -893,6 +884,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Type::Bool => BuiltinMethodKind::HavocBool,
                 vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
+                vir::Type::Snapshot(_) => BuiltinMethodKind::HavocRef,
             };
             let stmt = vir::Stmt::MethodCall(
                 self.encoder.encode_builtin_method_use(builtin_method),
@@ -2201,9 +2193,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
-        let snapshot_res = self.encoder.encode_snapshot(&arg_ty);
-        if snapshot_res.is_ok() && snapshot_res.as_ref().unwrap().supports_equality() {
-            let snapshot = snapshot_res.unwrap();
+        if self.encoder.supports_snapshot_equality(&arg_ty).with_span(call_site_span)? {
             let pos = self
                 .encoder
                 .error_manager()
@@ -2215,8 +2205,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .with_span(call_site_span)?;
 
             let expr = match bin_op {
-                vir::BinOpKind::EqCmp => snapshot.encode_equals(lhs, rhs, pos),
-                vir::BinOpKind::NeCmp => snapshot.encode_not_equals(lhs, rhs, pos),
+                vir::BinOpKind::EqCmp => vir::Expr::eq_cmp(
+                    vir::Expr::snap_app(lhs),
+                    vir::Expr::snap_app(rhs),
+                ),
+                vir::BinOpKind::NeCmp => vir::Expr::ne_cmp(
+                    vir::Expr::snap_app(lhs),
+                    vir::Expr::snap_app(rhs),
+                ),
                 _ => unreachable!()
             };
 
@@ -2237,11 +2233,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         } else {
             // the equality check involves some unsupported feature;
             // treat it as any other function
-            debug!(
-                "The equality check of {:?} involves an unsupported feature ({:?})",
-                arg_ty,
-                snapshot_res.err().unwrap()
-            );
             self.encode_impure_function_call(
                 location,
                 call_site_span,
@@ -2656,33 +2647,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
 
-        let mut non_snapshot_arg_exprs = vec![];
+        let mut arg_exprs = vec![];
         for operand in args.iter() {
             let arg_expr = self.mir_encoder.encode_operand_expr(operand)
                 .with_span(call_site_span)?;
-            non_snapshot_arg_exprs.push(arg_expr);
+            arg_exprs.push(arg_expr);
         }
-
-        let arg_exprs = if prusti_common::config::enable_purification_optimization() {
-            let mut arg_exprs = vec![];
-            for arg in non_snapshot_arg_exprs {
-                match arg.get_type() {
-                    Type::TypedRef(predicate_name) => {
-                        let snapshot = self.encoder.encode_snapshot_use(predicate_name.clone()).with_span(call_site_span)?;
-                        let snap_call = snapshot.snap_call(arg);
-                        arg_exprs.push(snap_call);
-                    }
-                    _ => {
-                        arg_exprs.push(arg);
-                    }
-                }
-            }
-
-            arg_exprs
-        }
-        else {
-            non_snapshot_arg_exprs
-        };
 
         self.encode_specified_pure_function_call(
             location,
@@ -2702,7 +2672,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         function_name: String,
-        mut arg_exprs: Vec<Expr>,
+        arg_exprs: Vec<Expr>,
         return_type: Type,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let formal_args: Vec<vir::LocalVar> = args
@@ -2720,34 +2690,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .error_manager()
             .register(call_site_span, ErrorCtxt::PureFunctionCall);
 
-        let func_call = if prusti_common::config::enable_purification_optimization() {
-            debug!("we are replacing {} with the mirror function because it is pure", function_name);
-            let mirror_function = snapshot::encode_mirror_function(&function_name, &formal_args, &return_type, &self.encoder.get_snapshots() ).unwrap();
-            arg_exprs.push(snapshot::n_nat(2));
-
-            snapshot::mirror_function_caller_call(mirror_function, arg_exprs)
-        }
-        else {
-            vir::Expr::func_app(
-                function_name.clone(),
-                arg_exprs,
-                formal_args,
-                return_type.clone(),
-                pos
-            )
-        };
+        let func_call = vir::Expr::func_app(
+            function_name.clone(),
+            arg_exprs,
+            formal_args,
+            return_type.clone(),
+            pos
+        );
 
         let (target_value, mut stmts) = self.encode_pure_function_call_lhs_value(destination)
             .with_span(call_site_span)?;
 
         let inhaled_expr = if return_type.is_domain() {
-            let predicate_name = target_value.get_type().name();
-            let snapshot = self.encoder.encode_snapshot_use(predicate_name)
-                .with_span(call_site_span)?;
             let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination);
             stmts.extend(pre_stmts);
-            let snap_call = snapshot.snap_call(target_place);
-            vir::Expr::eq_cmp(snap_call.clone(), func_call)
+            vir::Expr::eq_cmp(
+                vir::Expr::snap_app(target_place),
+                func_call,
+            )
         } else {
             vir::Expr::eq_cmp(target_value.into(), func_call)
         };
@@ -3058,16 +3018,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             type_spec.into_iter().conjoin(),
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
-            func_spec
-                .into_iter()
-                .map(|spec|
-                    SnapshotSpecPatcher::new(self.encoder)
-                        .patch_spec(spec)
-                        .with_span(precondition_spans.clone())
-                )
-                .collect::<SpannedEncodingResult<Vec<_>>>()?
-                .into_iter()
-                .conjoin(),
+            func_spec.into_iter().conjoin(),
             precondition_weakening,
         ))
     }
@@ -3391,6 +3342,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 };
                 lhs = replace_fake_exprs(lhs);
                 rhs = replace_fake_exprs(rhs);
+                lhs = self.encoder.patch_snapshots(lhs)
+                    .with_span(self.mir.span)?;
+                rhs = self.encoder.patch_snapshots(rhs)
+                    .with_span(self.mir.span)?;
                 debug!("Insert ({:?} {:?}) at {:?}", lhs, rhs, location);
                 self.magic_wand_at_location
                     .insert(location, (post_label.to_string(), lhs.clone(), rhs.clone()));
@@ -3468,31 +3423,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ).map_or(Ok(None), |r| r.map(Some))
             )?;
 
-        let full_func_spec_elements = func_spec
-            .into_iter()
-            .map( // patch type mismatches for specs involving pure functions returning copy types
-                |spec|
-                    SnapshotSpecPatcher::new(self.encoder)
-                        .patch_spec(spec)
-                        .with_span(postcondition_span.clone())
-            )
-            .collect::<SpannedEncodingResult<Vec<_>>>()?;
-
-
-            if config::enable_purification_optimization() {
-                let snapshots = self.encoder.get_snapshots();
-                let mut ep = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
-                let _purified_elems : Vec<vir::Expr> = full_func_spec_elements.clone().into_iter().map(|e| {
-                    vir::ExprFolder::fold(&mut ep, e.clone())
-                }).collect();
-
-              //  full_func_spec_elements =  purified_elems; //TODO this might or might not be needed
-            }
-
-            let full_func_spec = full_func_spec_elements
-                .into_iter()
-                .conjoin()
-                .set_default_pos(func_spec_pos);
+        let full_func_spec = func_spec.into_iter()
+            .conjoin()
+            .set_default_pos(func_spec_pos);
 
         Ok((
             type_spec.into_iter().conjoin(),
@@ -5196,59 +5129,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )
     }
 
-    fn encode_deep_copy_adt(
+    /// Copy a value by inhaling snapshot equality.
+    fn encode_copy_snapshot_value(
         &mut self,
         src: vir::Expr,
         dst: vir::Expr,
-        self_ty: ty::Ty<'tcx>,
-        location: mir::Location,
-    ) -> Vec<vir::Stmt> {
-        let mut stmts = self.encode_havoc(&dst);
-        let pred = vir::Expr::pred_permission(dst.clone(), vir::PermAmount::Write).unwrap();
-        stmts.push(vir::Stmt::Inhale(pred));
-        let eq = self.encoder.encode_memory_eq_func_app(
-            src,
-            dst,
-            self_ty,
-            vir::Position::default(),
-            self.mir_encoder.get_span_of_location(location).into(),
-        );
-        stmts.push(vir::Stmt::Inhale(eq));
-        stmts
-    }
-
-    fn encode_deep_copy_tuple(
-        &mut self,
-        src: vir::Expr,
-        dst: vir::Expr,
-        elems: ty::subst::SubstsRef<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        let mut stmts = self.encode_havoc(&dst);
-        for (field_num, arg) in elems.iter().enumerate() {
-            let ty = arg.expect_ty();
-            let field_name = format!("tuple_{}", field_num);
-            let field = self.encoder
-                .encode_raw_ref_field(field_name, ty)
-                .with_span(
-                    self.mir_encoder.get_span_of_location(location)
-                )?;
-            let dst_field = dst.clone().field(field.clone());
-            let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
-            let pred =
-                vir::Expr::pred_permission(dst_field.clone(), vir::PermAmount::Write).unwrap();
-            stmts.push(vir::Stmt::Inhale(acc));
-            stmts.push(vir::Stmt::Inhale(pred));
-            let src_field = src.clone().field(field.clone());
-            let eq = self.encoder.encode_memory_eq_func_app(
-                src_field,
-                dst_field,
-                ty,
-                vir::Position::default(),
-                self.mir_encoder.get_span_of_location(location).into(),
-            );
-            stmts.push(vir::Stmt::Inhale(eq));
-        }
+        let mut stmts = self.encode_havoc_and_allocation(&dst);
+        stmts.push(vir::Stmt::Inhale(vir::Expr::eq_cmp(
+            vir::Expr::snap_app(src),
+            vir::Expr::snap_app(dst),
+        )));
         Ok(stmts)
     }
 
@@ -5266,24 +5158,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Char => {
                 self.encode_copy_primitive_value(src, dst, self_ty, location)?
             }
-            ty::TyKind::Adt(adt_def, _subst) if !adt_def.is_box() => {
-                self.encode_deep_copy_adt(src, dst, self_ty, location)
+
+            ty::TyKind::Adt(_, _)
+            | ty::TyKind::Tuple(_)
+            | ty::TyKind::Param(_) => {
+                self.encode_copy_snapshot_value(src, dst, location)?
             }
-            ty::TyKind::Tuple(elems) => {
-                self.encode_deep_copy_tuple(src, dst, elems, location)?
-            }
-            ty::TyKind::Param(_) => {
-                let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
-                let eq = self.encoder.encode_memory_eq_func_app(
-                    src,
-                    dst,
-                    self_ty,
-                    vir::Position::default(),
-                    self.mir_encoder.get_span_of_location(location).into(),
-                );
-                stmts.push(vir::Stmt::Inhale(eq));
-                stmts
-            }
+
             ty::TyKind::Closure(_, _) => {
                 // TODO: (can a closure be copy-assigned?)
                 // encode a closure deep copy or at least a stub
@@ -5309,7 +5190,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // types
         let array_ty = self.encoder.encode_type(array_ty)?;
         let elem_ty = self.encoder.encode_type(elem_ty_rs)?;
-        let elem_value_ty = self.encoder.encode_value_type(elem_ty_rs)?;
+        let elem_value_ty = self.encoder.encode_snapshot_type(elem_ty_rs)?;
 
         let array_len = self.encoder.const_eval_intlike(&len.val)?
             .to_u64().unwrap().try_into().unwrap();

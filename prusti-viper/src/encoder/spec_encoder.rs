@@ -67,12 +67,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
         targets_are_values,
         assertion_location,
     );
-    let mut encoded_assertion = spec_encoder.encode_assertion(assertion)?;
-    if config::enable_purification_optimization() {
-        encoded_assertion = super::snapshot::fix_assertion(
-            encoded_assertion, &spec_encoder.encoder.get_snapshots());
-    }
-    Ok(encoded_assertion)
+    spec_encoder.encode_assertion(assertion)
 }
 
 struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -119,9 +114,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         forall_id: &str
     ) -> vir::LocalVar {
         trace!("encode_forall_arg: {:?} {:?} {:?}", arg, arg_ty, forall_id);
-        let snapshot = self.encoder.encode_snapshot(arg_ty).unwrap();
+        let ty = self.encoder.encode_type(arg_ty).unwrap();
+        // FIXME: find a reasonable position when using this function below,
+        // change return to EncodingResult<...>, then unwrap with ?
         let var_name = format!("{:?}_forall_{}", arg, forall_id);
-        vir::LocalVar::new(var_name, snapshot.get_type())
+        vir::LocalVar::new(var_name, ty)
     }
 
     fn encode_trigger(
@@ -225,6 +222,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 let mut encoded_args = Vec::new();
                 let mut bounds = Vec::new();
                 for (arg, ty) in &vars.vars {
+                    // TODO: how to get a span for the variable here?
+                    //if !self.encoder.is_quantifiable(ty).unwrap() {
+                    //    return Err(EncodingError::incorrect(
+                    //        "This type cannot be used in quantifiers.",
+                    //    ).with_span(?));
+                    //}
+
                     let encoded_arg = self.encode_forall_arg(*arg, ty, &format!("{}_{}", vars.spec_id, vars.id));
                     if config::check_overflows() {
                         bounds.extend(self.encoder.encode_type_bounds(&encoded_arg.clone().into(), ty));

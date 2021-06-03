@@ -58,6 +58,16 @@ pub struct DomainFunc {
     pub domain_name: String,
 }
 
+impl DomainFunc {
+    pub fn apply(&self, args: Vec<Expr>) -> Expr {
+        Expr::DomainFuncApp(
+            self.clone(),
+            args,
+            Position::default(),
+        )
+    }
+}
+
 impl fmt::Display for DomainFunc {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.unique {

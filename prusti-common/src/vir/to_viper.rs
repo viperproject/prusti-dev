@@ -77,6 +77,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             //Type::Ref |
             Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
+            Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${}", name), &[], &[]),
         }
     }
 }
@@ -468,6 +469,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             Expr::Downcast(ref base, ..) => {
                 base.to_viper(ast)
             }
+            Expr::SnapApp(..) => unreachable!("unpatched snapshot operation"),
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)

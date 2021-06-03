@@ -93,6 +93,7 @@ lazy_static! {
         settings.set_default("optimizations","all").unwrap();
         settings.set_default("intern_names", true).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();
+        settings.set_default("enable_manual_axiomatization", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -380,12 +381,16 @@ pub fn optimizations() -> Optimizations {
     return opt;
 }
 
-/// Enable the purification optimization.
-///
-/// **Note:** this optimization is currently very incomplete and may introduce
-/// unsoudnesses.
+/// Enable purification optimization for impure functions.
 pub fn enable_purification_optimization() -> bool {
     read_setting("enable_purification_optimization")
+}
+
+/// Enable manual axiomatization of pure functions.
+///
+/// **Note:** this is currently very incomplete and may introduce unsoudnesses.
+pub fn enable_manual_axiomatization() -> bool {
+    read_setting("enable_manual_axiomatization")
 }
 
 /// Replace the given basic blocks with ``assume false``.

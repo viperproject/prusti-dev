@@ -118,6 +118,8 @@ impl ExprFootprintGetter for vir::Expr {
             vir::Expr::Downcast(ref base, ref _enum_place, ref _variant_field) => {
                 base.get_footprint(predicates)
             }
+
+            vir::Expr::SnapApp(ref expr, _) => expr.get_footprint(predicates),
         };
         trace!("get_footprint {} = {:?}", self, res);
         res

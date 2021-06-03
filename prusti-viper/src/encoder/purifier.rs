@@ -1,21 +1,18 @@
 // This file should be in `prusti-common/src/vir/optimizations/purification/`,
 // but it depends on encoder…
+// TODO: add a vir::Type::SnapOf(t: Box<vir::Type>) variant to vir::Type to
+// represent types like "snapshot of X". Resolve SnapOf in snapshot patcher.
 
 use prusti_common::vir::{self, ExprWalker, ExprFolder, StmtWalker, StmtFolder};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use log::{debug, trace};
 use crate::encoder::Encoder;
-use crate::encoder::snapshot_encoder::Snapshot;
 
 /// Replaces shared references to pure Viper variables.
-pub fn purify_shared_borrows(
+pub fn purify_method(
     encoder: &Encoder,
     method: &mut vir::CfgMethod
 ) {
-    purify_method(encoder, method);
-}
-
-fn purify_method(encoder: &Encoder, method: &mut vir::CfgMethod) {
     // A set of candidate references to be purified.
     let mut candidates = HashSet::new();
     debug!("method: {}", method.name());
@@ -31,6 +28,7 @@ fn purify_method(encoder: &Encoder, method: &mut vir::CfgMethod) {
     if candidates.is_empty() {
         return;
     }
+
     // Collect variables that are dereferenced.
     let mut collector = VarDependencyCollector::default();
     vir::utils::walk_method(method, &mut collector);
@@ -60,8 +58,7 @@ fn purify_method(encoder: &Encoder, method: &mut vir::CfgMethod) {
         candidates
     );
 
-    let snapshots = encoder.get_snapshots();
-    let mut purifier = Purifier::new(candidates, &*snapshots);
+    let mut purifier = Purifier::new(encoder, candidates);
 
     for block in &mut method.basic_blocks {
         block.stmts = block
@@ -75,47 +72,13 @@ fn purify_method(encoder: &Encoder, method: &mut vir::CfgMethod) {
     for var in &mut method.local_vars {
         if purifier.vars.contains(&var.name) {
             let typ = std::mem::replace(&mut var.typ, vir::Type::Bool);
-            var.typ = translate_type(typ, &*encoder.get_snapshots());
+            var.typ = translate_type(encoder, typ);
         } else if let Some(typ) = purifier.change_var_types.remove(&var.name) {
-            var.typ = translate_type(typ, &*encoder.get_snapshots());
+            var.typ = translate_type(encoder, typ);
         }
     }
 
     method.local_vars.extend(purifier.fresh_variables);
-}
-
-pub fn translate_type(typ: vir::Type, snapshots: &HashMap<String, Box<Snapshot>>) -> vir::Type {
-    match typ {
-        vir::Type::TypedRef(name) => {
-            let mut striped_name = name.as_str();
-            while let Some(shorter) = striped_name.strip_prefix("ref$") {
-                striped_name = shorter;
-            }
-            match striped_name {
-                "i32" | "usize" | "u32" => vir::Type::Int,
-                "bool" => vir::Type::Bool,
-                _ => {
-                    let domain_name = snapshots
-                        .get(striped_name)
-                        .and_then(|snap| snap.domain())
-                        .map(|domain| domain.name)
-                        .unwrap_or_else(|| {
-                            panic!(
-                                "No matching domain for '{}' in '{:?}'",
-                                striped_name,
-                                snapshots.keys(),
-                            );
-                        });
-                    vir::Type::Domain(domain_name)
-                }
-            }
-        }
-        vir::Type::Domain(_) => {
-            // Already translated.
-            typ
-        }
-        x => unreachable!("we expect only references: {:?}", x),
-    }
 }
 
 /// This is a ExprWalkerand StmtWalker used to collect information about which
@@ -240,30 +203,47 @@ impl ExprWalker for VariableCollector {
     }
 }
 
-struct Purifier<'a> {
+fn translate_type(encoder: &Encoder, typ: vir::Type) -> vir::Type {
+    match typ {
+        vir::Type::Int
+        | vir::Type::Bool
+        | vir::Type::Snapshot(_)
+        | vir::Type::Domain(_) => typ,
+        vir::Type::TypedRef(ref name) => {
+            let mir_typ = encoder.decode_type_predicate(name).unwrap(); // FIXME: unwrap
+            encoder.encode_snapshot_type(mir_typ).unwrap() // FIXME: unwrap
+        }
+    }
+}
+
+struct Purifier<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p Encoder<'v, 'tcx>,
     vars: HashSet<String>,
     fresh_variables: Vec<vir::LocalVar>,
-    snapshots: &'a HashMap<String, Box<Snapshot>>,
     change_var_types: HashMap<String, vir::Type>,
 }
 
-impl<'a> Purifier<'a> {
-    fn new(vars: HashSet<String>, snapshots: &'a HashMap<String, Box<Snapshot>>) -> Self {
-        Self { vars, fresh_variables: Vec::new(), snapshots,
-            change_var_types: HashMap::new() }
+impl<'p, 'v: 'p, 'tcx: 'v> Purifier<'p, 'v, 'tcx> {
+    fn new(encoder: &'p Encoder<'v, 'tcx>, vars: HashSet<String>) -> Self {
+        Self {
+            encoder,
+            vars,
+            fresh_variables: Vec::new(),
+            change_var_types: HashMap::new(),
+        }
     }
     fn fresh_variable(&mut self, typ: &vir::Type) -> vir::LocalVar {
         let name = format!("havoc${}", self.fresh_variables.len());
         let var = vir::LocalVar {
             name,
-            typ: translate_type(typ.clone(), self.snapshots),
+            typ: translate_type(self.encoder, typ.clone()),
         };
         self.fresh_variables.push(var.clone());
         var
     }
 }
 
-impl<'a> StmtFolder for Purifier<'a> {
+impl StmtFolder for Purifier<'_, '_, '_> {
     fn fold_expr(&mut self, expr: vir::Expr) -> vir::Expr {
         ExprFolder::fold(self, expr)
     }
@@ -278,7 +258,7 @@ impl<'a> StmtFolder for Purifier<'a> {
                 return vir::Stmt::Assign(
                     vir::LocalVar {
                         name: local_var.name.clone(),
-                        typ: translate_type(local_var.typ.clone(), self.snapshots)
+                        typ: translate_type(self.encoder, local_var.typ.clone()),
                     }.into(),
                     self.fresh_variable(&local_var.typ).into(),
                     vir::AssignKind::Ghost
@@ -292,7 +272,12 @@ impl<'a> StmtFolder for Purifier<'a> {
             targets
         )
     }
-    fn fold_assign(&mut self, target: vir::Expr, source: vir::Expr, kind: vir::AssignKind) -> vir::Stmt {
+    fn fold_assign(
+        &mut self,
+        target: vir::Expr,
+        source: vir::Expr,
+        kind: vir::AssignKind,
+    ) -> vir::Stmt {
         let mut target = self.fold_expr(target);
         let mut source = self.fold_expr(source);
         match (&mut target, &mut source) {
@@ -300,7 +285,7 @@ impl<'a> StmtFolder for Purifier<'a> {
                     if (target_var.name.starts_with("_preserve") ||
                         target_var.name.starts_with("_old$")
                         ) && self.vars.contains(&source_var.name) => {
-                target_var.typ = translate_type(source_var.typ.clone(), self.snapshots);
+                target_var.typ = translate_type(self.encoder, source_var.typ.clone());
                 self.change_var_types.insert(target_var.name.clone(), source_var.typ.clone());
             }
             _ => {}
@@ -309,7 +294,7 @@ impl<'a> StmtFolder for Purifier<'a> {
     }
 }
 
-impl<'a> ExprFolder for Purifier<'a> {
+impl ExprFolder for Purifier<'_, '_, '_> {
     fn fold_field_access_predicate(
         &mut self,
         receiver: Box<vir::Expr>,
@@ -355,18 +340,27 @@ impl<'a> ExprFolder for Purifier<'a> {
         }
         vir::Expr::LabelledOld(label, body, pos)
     }
-    fn fold_local(&mut self, mut var: vir::LocalVar, pos: vir::Position) -> vir::Expr {
+    fn fold_local(
+        &mut self,
+        mut var: vir::LocalVar,
+        pos: vir::Position,
+    ) -> vir::Expr {
         if let Some(new_type) = self.change_var_types.get(&var.name) {
-            var.typ = translate_type(new_type.clone(), self.snapshots);
+            var.typ = translate_type(self.encoder, new_type.clone());
         }
         vir::Expr::Local(var, pos)
     }
-    fn fold_field(&mut self, receiver: Box<vir::Expr>, field: vir::Field, pos: vir::Position) -> vir::Expr {
+    fn fold_field(
+        &mut self,
+        receiver: Box<vir::Expr>,
+        field: vir::Field,
+        pos: vir::Position,
+    ) -> vir::Expr {
         match receiver {
-            box vir::Expr::Local(local_var, _local_pos) if self.vars.contains(&local_var.name) => {
+            box vir::Expr::Local(local_var, _) if self.vars.contains(&local_var.name) => {
                 return vir::LocalVar {
                     name: local_var.name,
-                    typ: translate_type(local_var.typ, self.snapshots),
+                    typ: translate_type(self.encoder, local_var.typ),
                 }.into();
             }
             _ => {}

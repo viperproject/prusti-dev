@@ -4,14 +4,121 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use rustc_hir::def_id::DefId;
+use std::collections::HashSet;
+
 use prusti_common::vir::{self, ExprIterator, WithIdentifier};
 use prusti_interface::environment::borrowck::facts::Loan;
 use crate::encoder::encoder::Encoder;
 use std::collections::HashMap;
-use crate::encoder::snapshot_encoder::{Snapshot, SnapshotEncoder, self};
-use crate::encoder::snapshot;
 
-pub fn encode_mirror_of_pure_function(encoder: &Encoder, mirror_function_domain: &mut vir::Domain, function: &vir::Function) {
+const MIRROR_DOMAIN_NAME: &str = "MirrorDomain";
+
+pub struct MirrorEncoder {
+    domain: vir::Domain,
+    encoded: HashSet<DefId>,
+}
+
+// mirror_caller_functions: RefCell<Vec<vir::Function>>
+
+impl MirrorEncoder {
+    pub fn new() -> Self {
+        Self {
+            domain: vir::Domain {
+                name: MIRROR_DOMAIN_NAME.to_string(),
+                functions: vec![],
+                axioms: vec![],
+                type_vars: vec![],
+            },
+            encoded: HashSet::new(),
+        }
+    }
+
+    /// Returns a list of Viper domains needed by the encoded mirrors.
+    pub fn get_viper_domains(&self) -> Vec<vir::Domain> {
+        if self.encoded.is_empty() {
+            vec![]
+        } else {
+            vec![self.domain.clone()]
+        }
+    }
+
+    pub fn get_viper_functions(&self) -> Vec<vir::Function> {
+        vec![]
+    }
+
+    pub fn encode_mirrors(
+        &mut self,
+        // encoder: &Encoder,
+        def_id: DefId,
+        function: &mut vir::Function,
+    ) {
+        // don't encode a mirror for the same DefId multiple times
+        if self.encoded.contains(&def_id) {
+            return;
+        }
+        self.encoded.insert(def_id);
+
+        self.encode_mirror_simple(def_id, function);
+        self.encode_mirror_axiomatized(def_id, function);
+    }
+
+    fn encode_mirror_simple(
+        &mut self,
+        _def_id: DefId,
+        function: &mut vir::Function,
+    ) {
+        // create mirror function
+        let mirror_func = vir::DomainFunc {
+            name: format!("mirror_simple${}", function.name),
+            formal_args: function.formal_args.clone(),
+            return_type: function.return_type.clone(),
+            unique: false,
+            domain_name: MIRROR_DOMAIN_NAME.to_string(),
+        };
+
+        // add postcondition to the original function
+        // [result == mirror(args), true]
+        function.posts.push(vir::Expr::InhaleExhale(
+            box vir::Expr::eq_cmp(
+                vir::Expr::local(
+                    vir::LocalVar::new("__result", function.return_type.clone()),
+                ),
+                vir::Expr::domain_func_app(
+                    mirror_func.clone(),
+                    function.formal_args.iter()
+                        .cloned()
+                        .map(vir::Expr::local)
+                        .collect(),
+                ),
+            ),
+            box true.into(),
+            vir::Position::default(),
+        ));
+
+        // add mirror function to mirror domain
+        self.domain.functions.push(mirror_func);
+    }
+
+    // TODO: ...
+    fn encode_mirror_axiomatized(
+        &mut self,
+        _def_id: DefId,
+        _function: &mut vir::Function,
+    ) {}
+}
+
+// ------------------------------
+// --- OLD ----------------------
+// ------------------------------
+
+/*
+pub fn encode_mirror_of_pure_function(
+    encoder: &Encoder,
+    mirror_function_domain: &mut vir::Domain,
+    function: &vir::Function,
+) {
+    /*
     let snapshots: &HashMap<String, Box<Snapshot>> = &encoder.get_snapshots();
     let formal_args_without_nat: Vec<vir::LocalVar> =
         snapshot::encode_mirror_function_args_without_nat(&function.formal_args, &snapshots).unwrap();
@@ -99,13 +206,13 @@ pub fn encode_mirror_of_pure_function(encoder: &Encoder, mirror_function_domain:
     mirror_function_domain
         .functions
         .push(domain_function);
-
+    */
 
 }
 
 /// Encode the axiom that defines what the function does.
 fn encode_definitional_axiom(
-    purifier: &mut snapshot::ExprPurifier,
+    //purifier: &mut snapshot::ExprPurifier,
     mirror_function_domain: &mut vir::Domain,
     function: &vir::Function,
     domain_function: vir::DomainFunc,
@@ -115,6 +222,7 @@ fn encode_definitional_axiom(
     post_conds: vir::Expr,
     triggers: Vec<vir::Trigger>,
 ) {
+    /*
     let rhs: vir::Expr = if let Some(fbody) = function.body.clone() {
         let function_body = vir::ExprFolder::fold(purifier, fbody);
 
@@ -142,6 +250,7 @@ fn encode_definitional_axiom(
     mirror_function_domain
     .axioms
     .push(definitional_axiom);
+    */
 }
 
 /// Encode the axiom that the last argument `count` of the function does not
@@ -154,6 +263,7 @@ fn encode_nat_axiom(
     function_call_with_succ: vir::Expr,
     triggers: Vec<vir::Trigger>,
 ) {
+    /*
     let mut args_without_succ: Vec<vir::Expr> = formal_args_without_nat
         .into_iter()
         .map(vir::Expr::local)
@@ -170,9 +280,11 @@ fn encode_nat_axiom(
     mirror_function_domain
     .axioms
     .push(axiom);
+    */
 }
 
 fn encode_mirror_caller(encoder: &Encoder, df: vir::DomainFunc, pres: vir::Expr) {
+    /*
     let arg_call : Vec<vir::Expr> = df.formal_args.iter().map(|e| { vir::Expr::local(e.clone()) }).collect();
     let function = vir::Function {
         name: snapshot::caller_function_name(&df.name),
@@ -183,4 +295,6 @@ fn encode_mirror_caller(encoder: &Encoder, df: vir::DomainFunc, pres: vir::Expr)
         body: Some(vir::Expr::domain_func_app(df.clone(), arg_call))
     };
     encoder.insert_mirror_caller(function);
+    */
 }
+*/
