@@ -5333,7 +5333,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let slice_ty = self.encoder.encode_type(slice_ty)?;
         let elem_ty = self.encoder.encode_type(elem_ty_rs)?;
-        let elem_value_ty = self.encoder.encode_value_type(elem_ty_rs)?;
+        let elem_value_ty = self.encoder.encode_snapshot_type(elem_ty_rs)?;
 
         Ok(EncodedSliceTypes{
             slice_pred,
