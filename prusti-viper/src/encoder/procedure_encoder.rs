@@ -2281,11 +2281,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
         if self.encoder.supports_snapshot_equality(&arg_ty).with_span(call_site_span)? {
-            let pos = self
-                .encoder
-                .error_manager()
-                .register(call_site_span, ErrorCtxt::PureFunctionCall);
-
             let lhs = self.mir_encoder.encode_operand_expr(&args[0])
                 .with_span(call_site_span)?;
             let rhs = self.mir_encoder.encode_operand_expr(&args[1])
@@ -5275,7 +5270,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         src: vir::Expr,
         dst: vir::Expr,
-        location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let mut stmts = self.encode_havoc_and_allocation(&dst);
         stmts.push(vir::Stmt::Inhale(vir::Expr::eq_cmp(
@@ -5303,7 +5297,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Param(_) => {
-                self.encode_copy_snapshot_value(src, dst, location)?
+                self.encode_copy_snapshot_value(src, dst)?
             }
 
             ty::TyKind::Closure(_, _) => {
