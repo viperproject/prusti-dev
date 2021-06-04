@@ -100,10 +100,18 @@ impl ArrayTypesEncoder {
         ArrayTypesEncoder {}
     }
 
+    /// Encode types, type predicates and builtin lookup functions required for handling slices of
+    /// type `slice_ty`.
+    ///
+    /// Optionally pass a pre-encoded `vir::Type` for the element snapshot type. This is useful
+    /// when calling `encode_slice_types` from e.g. inside the `SnapshotEncoder` where `Encoder`'s
+    /// `snapshot_encoder` field is already borrowed, so `encoder.encode_snapshot_type` would
+    /// result in a double borrow (i.e. panic).
     pub fn encode_slice_types<'p, 'v: 'p, 'tcx: 'v>(
         &self,
         encoder: &'p Encoder<'v, 'tcx>,
         slice_ty: ty::Ty<'tcx>,
+        pre_encoded_elem_snap_ty: Option<vir::Type>,
     ) -> EncodingResult<EncodedSliceTypes<'tcx>> {
         let slice_pred = encoder.encode_type_predicate_use(slice_ty)?;
         let elem_ty_rs = if let ty::TyKind::Slice(elem_ty) = slice_ty.kind() {
@@ -116,7 +124,12 @@ impl ArrayTypesEncoder {
 
         let slice_ty = encoder.encode_type(slice_ty)?;
         let elem_ty = encoder.encode_type(elem_ty_rs)?;
-        let elem_value_ty = encoder.encode_snapshot_type(elem_ty_rs)?;
+
+        let elem_value_ty = if let Some(pre_encoded) = pre_encoded_elem_snap_ty {
+            pre_encoded
+        } else {
+            encoder.encode_snapshot_type(elem_ty_rs)?
+        };
 
         // lookup_pure
         let lookup_pure_name = encoder.encode_builtin_function_use(
@@ -146,10 +159,18 @@ impl ArrayTypesEncoder {
         })
     }
 
+    /// Encode types, type predicates and builtin lookup functions required for handling arrays of
+    /// type `array_ty`.
+    ///
+    /// Optionally pass a pre-encoded `vir::Type` for the element snapshot type. This is useful
+    /// when calling `encode_array_types` from e.g. inside the `SnapshotEncoder` where `Encoder`'s
+    /// `snapshot_encoder` field is already borrowed, so `encoder.encode_snapshot_type` would
+    /// result in a double borrow (i.e. panic).
     pub fn encode_array_types<'p, 'v: 'p, 'tcx: 'v>(
         &self,
         encoder: &'p Encoder<'v, 'tcx>,
         array_ty: ty::Ty<'tcx>,
+        pre_encoded_elem_snap_ty: Option<vir::Type>,
     ) -> EncodingResult<EncodedArrayTypes<'tcx>> {
         // type predicates
         let array_pred = encoder.encode_type_predicate_use(array_ty)?;
@@ -163,7 +184,12 @@ impl ArrayTypesEncoder {
         // types
         let array_ty = encoder.encode_type(array_ty)?;
         let elem_ty = encoder.encode_type(elem_ty_rs)?;
-        let elem_value_ty = encoder.encode_snapshot_type(elem_ty_rs)?;
+
+        let elem_value_ty = if let Some(pre_encoded) = pre_encoded_elem_snap_ty {
+            pre_encoded
+        } else {
+            encoder.encode_snapshot_type(elem_ty_rs)?
+        };
 
         let array_len = encoder.const_eval_intlike(&len.val)?
             .to_u64().unwrap().try_into().unwrap();

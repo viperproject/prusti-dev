@@ -1402,15 +1402,21 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_array_types(
         &self,
         array_ty: ty::Ty<'tcx>,
+        pre_encoded_elem_snap_ty: Option<vir::Type>,
     ) -> EncodingResult<EncodedArrayTypes<'tcx>> {
-        self.array_types_encoder.borrow_mut().encode_array_types(self, array_ty)
+        self.array_types_encoder
+            .borrow_mut()
+            .encode_array_types(self, array_ty, pre_encoded_elem_snap_ty)
     }
 
     pub fn encode_slice_types(
         &self,
         slice_ty: ty::Ty<'tcx>,
+        pre_encoded_elem_snap_ty: Option<vir::Type>,
     ) -> EncodingResult<EncodedSliceTypes<'tcx>> {
-        self.array_types_encoder.borrow_mut().encode_slice_types(self, slice_ty)
+        self.array_types_encoder
+            .borrow_mut()
+            .encode_slice_types(self, slice_ty, pre_encoded_elem_snap_ty)
     }
 }
 
