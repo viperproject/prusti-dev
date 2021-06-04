@@ -68,25 +68,6 @@ use crate::encoder::errors::EncodingErrorKind;
 use crate::encoder::snapshot;
 use std::convert::TryInto;
 
-struct EncodedArrayTypes<'tcx> {
-    array_pred: String,
-    array_ty: vir::Type,
-    elem_pred: String,
-    elem_ty: vir::Type,
-    elem_value_ty: vir::Type,
-    elem_ty_rs: ty::Ty<'tcx>,
-    array_len: usize,
-}
-
-struct EncodedSliceTypes<'tcx> {
-    slice_pred: String,
-    slice_ty: vir::Type,
-    elem_pred: String,
-    elem_ty: vir::Type,
-    elem_value_ty: vir::Type,
-    elem_ty_rs: ty::Ty<'tcx>,
-}
-
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: ProcedureDefId,
@@ -2229,7 +2210,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let slice_ty_ref = self.mir_encoder.get_operand_ty(&args[0]);
         let slice_ty = if let ty::TyKind::Ref(_, slice_ty, _) = slice_ty_ref.kind() { slice_ty } else { unreachable!() };
-        let st = self.encode_slice_types(slice_ty).with_span(span)?;
+        let st = self.encoder.encode_slice_types(slice_ty).with_span(span)?;
         let slice_len_name = self.encoder.encode_builtin_function_use(
             BuiltinFunctionKind::SliceLen {
                 slice_ty_pred: st.slice_pred.clone(),
@@ -5035,7 +5016,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
             },
             ty::TyKind::Slice(..) => {
-                let st = self.encode_slice_types(place_ty)
+                let st = self.encoder.encode_slice_types(place_ty)
                         .with_span(span)?;
 
                 // encode Slice$<elem_ty>$len
@@ -5094,7 +5075,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let span = self.mir_encoder.get_span_of_location(location);
-        let at = self.encode_array_types(ty).with_span(span)?;
+        let at = self.encoder.encode_array_types(ty).with_span(span)?;
         let lookup_pure = self.encoder.encode_builtin_function_use(
             BuiltinFunctionKind::ArrayLookupPure {
                 array_ty_pred: at.array_pred,
@@ -5324,62 +5305,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
-    fn encode_slice_types(
-        &self,
-        slice_ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<EncodedSliceTypes<'tcx>> {
-        let slice_pred = self.encoder.encode_type_predicate_use(slice_ty)?;
-        let elem_ty_rs = if let ty::TyKind::Slice(elem_ty) = slice_ty.kind() {
-            elem_ty
-        } else {
-            unreachable!()
-        };
-
-        let elem_pred = self.encoder.encode_type_predicate_use(elem_ty_rs)?;
-
-        let slice_ty = self.encoder.encode_type(slice_ty)?;
-        let elem_ty = self.encoder.encode_type(elem_ty_rs)?;
-        let elem_value_ty = self.encoder.encode_snapshot_type(elem_ty_rs)?;
-
-        Ok(EncodedSliceTypes{
-            slice_pred,
-            slice_ty,
-            elem_pred,
-            elem_ty,
-            elem_value_ty,
-            elem_ty_rs,
-        })
-    }
-
-    fn encode_array_types(&self, array_ty: ty::Ty<'tcx>) -> EncodingResult<EncodedArrayTypes<'tcx>> {
-        // type predicates
-        let array_pred = self.encoder.encode_type_predicate_use(array_ty)?;
-        let (elem_ty_rs, len) = if let ty::TyKind::Array(elem_ty, len) = array_ty.kind() {
-            (elem_ty, len)
-        } else {
-            unreachable!()
-        };
-        let elem_pred = self.encoder.encode_type_predicate_use(elem_ty_rs)?;
-
-        // types
-        let array_ty = self.encoder.encode_type(array_ty)?;
-        let elem_ty = self.encoder.encode_type(elem_ty_rs)?;
-        let elem_value_ty = self.encoder.encode_snapshot_type(elem_ty_rs)?;
-
-        let array_len = self.encoder.const_eval_intlike(&len.val)?
-            .to_u64().unwrap().try_into().unwrap();
-
-        Ok(EncodedArrayTypes{
-            array_pred,
-            array_ty,
-            elem_pred,
-            elem_ty,
-            elem_value_ty,
-            elem_ty_rs,
-            array_len,
-        })
-    }
-
     /// Assignment with an aggregate on the RHS. Aggregates are e.g. arrays, structs, enums,
     /// tuples
     /// [dst] = Foo { x: [op_0], y: [op_1], .. }
@@ -5497,7 +5422,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             mir::AggregateKind::Array(..) => {
-                let at = self.encode_array_types(ty).with_span(span)?;
+                let at = self.encoder.encode_array_types(ty).with_span(span)?;
 
                 // TODO: move lookup_pure into encode_array_types as well?
                 let lookup_pure = self.encoder.encode_builtin_function_use(
@@ -5617,7 +5542,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (expr.field(field), stmts)
             }
             PlaceEncoding::ArrayAccess { base, index, rust_array_ty, .. } => {
-                let at = self.encode_array_types(rust_array_ty)?;
+                let at = self.encoder.encode_array_types(rust_array_ty)?;
 
                 let lookup_pure = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::ArrayLookupPure {
@@ -5669,7 +5594,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (vir::Expr::Variant(box expr, field, vir::Position::default()), stmts)
             }
             PlaceEncoding::SliceAccess { base, index, rust_slice_ty, .. } => {
-                let st = self.encode_slice_types(rust_slice_ty)?;
+                let st = self.encoder.encode_slice_types(rust_slice_ty)?;
 
                 let lookup_pure = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::SliceLookupPure {
