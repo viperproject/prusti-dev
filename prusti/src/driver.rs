@@ -120,10 +120,10 @@ fn init_loggers() {
 }
 
 const PRUSTI_PACKAGES: &'static [&'static str] = &[
-    "prusti_contracts_internal",
-    "prusti_contracts_impl",
-    "prusti_contracts",
-    "prusti_specs",
+    "prusti-contracts-internal",
+    "prusti-contracts-impl",
+    "prusti-contracts",
+    "prusti-specs",
 ];
 
 fn main() {
