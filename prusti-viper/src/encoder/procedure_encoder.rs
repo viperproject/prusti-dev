@@ -1149,7 +1149,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
                 // FIXME: the following line will panic if attempting to encode unsupported types.
-                let (encoded_lhs, pre_stmts, ty, _) = self.encode_place(lhs).unwrap();
+                let span = self.mir_encoder.get_span_of_location(location);
+                let (encoded_lhs, pre_stmts, ty, _) = self.encode_place(lhs).with_span(span)?;
                 stmts.extend(pre_stmts);
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
@@ -1244,6 +1245,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             ty,
                             location,
                         )?
+                    }
+                    &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), _, _) => {
+                        return Err(EncodingError::unsupported(
+                            "unsizing a pointer or reference value is not supported"
+                        )).with_span(span);
                     }
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
