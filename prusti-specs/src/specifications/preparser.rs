@@ -90,11 +90,49 @@ impl Parser {
     }
     /// Create a pledge from the input
     pub fn extract_pledge(&mut self) -> syn::Result<PledgeWithoutId> {
-        unimplemented!("parsing of whole pledges isn't implemented yet");
+        let pledge = self.parse_pledge()?;
+        if let Some(_) = self.pop() {
+            Err(self.error_unexpected())
+        } else {
+            Ok(pledge)
+        }
     }
     /// Create the rhs of a pledge from the input
     pub fn extract_pledge_rhs_only(&mut self) -> syn::Result<PledgeWithoutId> {
-        unimplemented!("parsing of pledge rhses isn't implemented yet");
+        let pledge = self.parse_pledge_rhs_only()?;
+        if let Some(_) = self.pop() {
+            Err(self.error_unexpected())
+        } else {
+            Ok(pledge)
+        }
+    }
+
+    fn parse_pledge(&mut self) -> syn::Result<PledgeWithoutId> {
+        let mut pledge = self.parse_pledge_rhs_only()?;
+        if self.consume_operator(",") {
+            let rhs = self.parse_prusti()?;
+            pledge.lhs = Some(pledge.rhs.clone());
+            pledge.rhs = rhs;
+            Ok(pledge)
+        } else {
+            Err(self.error_expected("`,`"))
+        }
+    }
+
+    fn parse_pledge_rhs_only(&mut self) -> syn::Result<PledgeWithoutId> {
+        let mut reference = None;
+        if self.contains_operator(&self.tokens, "=>") {
+            reference = Some(self.parse_rust_until("=>")?);
+            self.consume_operator("=>");
+        }
+
+        let assertion = self.parse_prusti()?;
+
+        Ok(PledgeWithoutId {
+            reference,
+            lhs: None,
+            rhs: assertion
+        })
     }
 
     /// Parse a prusti expression
@@ -126,7 +164,7 @@ impl Parser {
         if (self.peek_group(Delimiter::Parenthesis) && !self.is_part_of_rust_expr()) || self.peek_keyword("forall") {
             self.parse_primary()
         } else {
-            let lhs = self.parse_rust()?;
+            let lhs = self.parse_rust_until(",")?;
             if self.consume_operator("|=") {
 
                 let vars = if self.consume_operator("|") {
@@ -174,7 +212,6 @@ impl Parser {
                             return Err(self.error_expected("`(`"));
                         }
                     } else {
-                        eprintln!("DEBUG: {:?}\n", self.tokens);
                         return Err(self.error_expected("`requires` or `ensures`"));
                     }
             } else {
@@ -280,15 +317,14 @@ impl Parser {
             )
         })
     }
-    
-    // FIXME: this should be a "parse_rust_until (taking an operator to terminate on)"
-    fn parse_rust(&mut self) -> syn::Result<ExpressionWithoutId> {
+
+    fn parse_rust_until(&mut self, terminator: &str) -> syn::Result<ExpressionWithoutId> {
         let mut t = vec![];
 
         while !self.peek_operator("|=") &&
               !self.peek_operator("&&") &&
               !self.peek_operator("==>") &&
-              !self.peek_operator(",") &&
+              !self.peek_operator(terminator) &&
               !self.tokens.is_empty() {
             t.push(self.pop().unwrap());
         }
@@ -318,10 +354,31 @@ impl Parser {
             false
         }
     }
+    /// does the given operator appear in the stream at top level
+    fn contains_operator(&self, stream: &VecDeque<TokenTree>, operator: &str) -> bool {
+        let mut stream = stream.clone();
+        while !stream.is_empty() {
+            if self.peek_operator_stream(&stream, operator) {
+                return true;
+            }
+            // if let Some(TokenTree::Group(group)) = stream.front() {
+            //     let nested_stream: VecDeque<TokenTree> = group.stream().into_iter().collect();
+            //     if self.contains_operator(&nested_stream, operator) {
+            //         return true;
+            //     }
+            // }
+            stream.pop_front();
+        }
+        false
+    }
     /// does the input start with this operator?
     fn peek_operator(&self, operator: &str) -> bool {
+        self.peek_operator_stream(&self.tokens, operator)
+    }
+    /// does the given stream contain this operator?
+    fn peek_operator_stream(&self, stream: &VecDeque<TokenTree>, operator: &str) -> bool {
         for (i, c) in operator.char_indices() {
-            if let Some(TokenTree::Punct(punct)) = self.tokens.get(i) {
+            if let Some(TokenTree::Punct(punct)) = stream.get(i) {
                 if punct.as_char() != c {
                     return false;
                 }
