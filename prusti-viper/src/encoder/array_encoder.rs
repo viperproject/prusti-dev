@@ -20,6 +20,7 @@ use prusti_common::{
 };
 
 
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct EncodedArrayTypes<'tcx> {
     pub array_pred: String,
     pub array_ty: vir::Type,
@@ -48,7 +49,7 @@ impl<'tcx> EncodedArrayTypes<'tcx> {
     }
 }
 
-
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct EncodedSliceTypes<'tcx> {
     pub slice_pred: String,
     pub slice_ty: vir::Type,
@@ -93,11 +94,17 @@ impl<'tcx> EncodedSliceTypes<'tcx> {
 
 
 
-pub struct ArrayTypesEncoder {}
+pub struct ArrayTypesEncoder<'tcx> {
+    array_types_cache: HashMap<ty::Ty<'tcx>, EncodedArrayTypes<'tcx>>,
+    slice_types_cache: HashMap<ty::Ty<'tcx>, EncodedSliceTypes<'tcx>>,
+}
 
-impl ArrayTypesEncoder {
+impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
     pub fn new() -> Self {
-        ArrayTypesEncoder {}
+        ArrayTypesEncoder {
+            array_types_cache: HashMap::new(),
+            slice_types_cache: HashMap::new(),
+        }
     }
 
     /// Encode types, type predicates and builtin lookup functions required for handling slices of
@@ -107,14 +114,18 @@ impl ArrayTypesEncoder {
     /// when calling `encode_slice_types` from e.g. inside the `SnapshotEncoder` where `Encoder`'s
     /// `snapshot_encoder` field is already borrowed, so `encoder.encode_snapshot_type` would
     /// result in a double borrow (i.e. panic).
-    pub fn encode_slice_types<'p, 'v: 'p, 'tcx: 'v>(
-        &self,
+    pub fn encode_slice_types(
+        &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
-        slice_ty: ty::Ty<'tcx>,
+        slice_ty_rs: ty::Ty<'tcx>,
         pre_encoded_elem_snap_ty: Option<vir::Type>,
     ) -> EncodingResult<EncodedSliceTypes<'tcx>> {
-        let slice_pred = encoder.encode_type_predicate_use(slice_ty)?;
-        let elem_ty_rs = if let ty::TyKind::Slice(elem_ty) = slice_ty.kind() {
+        if let Some(cached) = self.slice_types_cache.get(&slice_ty_rs) {
+            return Ok(cached.clone());
+        }
+
+        let slice_pred = encoder.encode_type_predicate_use(slice_ty_rs)?;
+        let elem_ty_rs = if let ty::TyKind::Slice(elem_ty) = slice_ty_rs.kind() {
             elem_ty
         } else {
             unreachable!()
@@ -122,7 +133,7 @@ impl ArrayTypesEncoder {
 
         let elem_pred = encoder.encode_type_predicate_use(elem_ty_rs)?;
 
-        let slice_ty = encoder.encode_type(slice_ty)?;
+        let slice_ty = encoder.encode_type(slice_ty_rs)?;
         let elem_ty = encoder.encode_type(elem_ty_rs)?;
 
         let elem_value_ty = if let Some(pre_encoded) = pre_encoded_elem_snap_ty {
@@ -147,8 +158,7 @@ impl ArrayTypesEncoder {
             }
         );
 
-
-        Ok(EncodedSliceTypes{
+        let encoded = EncodedSliceTypes{
             slice_pred,
             slice_ty,
             elem_ty,
@@ -156,7 +166,10 @@ impl ArrayTypesEncoder {
             elem_ty_rs,
             lookup_pure_name,
             slice_len_name,
-        })
+        };
+        self.slice_types_cache.insert(&slice_ty_rs, encoded.clone());
+
+        Ok(encoded)
     }
 
     /// Encode types, type predicates and builtin lookup functions required for handling arrays of
@@ -166,15 +179,19 @@ impl ArrayTypesEncoder {
     /// when calling `encode_array_types` from e.g. inside the `SnapshotEncoder` where `Encoder`'s
     /// `snapshot_encoder` field is already borrowed, so `encoder.encode_snapshot_type` would
     /// result in a double borrow (i.e. panic).
-    pub fn encode_array_types<'p, 'v: 'p, 'tcx: 'v>(
-        &self,
+    pub fn encode_array_types(
+        &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
-        array_ty: ty::Ty<'tcx>,
+        array_ty_rs: ty::Ty<'tcx>,
         pre_encoded_elem_snap_ty: Option<vir::Type>,
     ) -> EncodingResult<EncodedArrayTypes<'tcx>> {
+        if let Some(cached) = self.array_types_cache.get(&array_ty_rs) {
+            return Ok(cached.clone());
+        }
+
         // type predicates
-        let array_pred = encoder.encode_type_predicate_use(array_ty)?;
-        let (elem_ty_rs, len) = if let ty::TyKind::Array(elem_ty, len) = array_ty.kind() {
+        let array_pred = encoder.encode_type_predicate_use(array_ty_rs)?;
+        let (elem_ty_rs, len) = if let ty::TyKind::Array(elem_ty, len) = array_ty_rs.kind() {
             (elem_ty, len)
         } else {
             unreachable!()
@@ -182,7 +199,7 @@ impl ArrayTypesEncoder {
         let elem_pred = encoder.encode_type_predicate_use(elem_ty_rs)?;
 
         // types
-        let array_ty = encoder.encode_type(array_ty)?;
+        let array_ty = encoder.encode_type(array_ty_rs)?;
         let elem_ty = encoder.encode_type(elem_ty_rs)?;
 
         let elem_value_ty = if let Some(pre_encoded) = pre_encoded_elem_snap_ty {
@@ -204,7 +221,7 @@ impl ArrayTypesEncoder {
             }
         );
 
-        Ok(EncodedArrayTypes{
+        let encoded = EncodedArrayTypes{
             array_pred,
             array_ty,
             elem_ty,
@@ -212,6 +229,9 @@ impl ArrayTypesEncoder {
             elem_ty_rs,
             array_len,
             lookup_pure_name,
-        })
+        };
+        self.array_types_cache.insert(&array_ty_rs, encoded.clone());
+
+        Ok(encoded)
     }
 }
