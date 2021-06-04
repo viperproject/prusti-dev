@@ -2211,24 +2211,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let slice_ty_ref = self.mir_encoder.get_operand_ty(&args[0]);
         let slice_ty = if let ty::TyKind::Ref(_, slice_ty, _) = slice_ty_ref.kind() { slice_ty } else { unreachable!() };
         let st = self.encoder.encode_slice_types(slice_ty).with_span(span)?;
-        let slice_len_name = self.encoder.encode_builtin_function_use(
-            BuiltinFunctionKind::SliceLen {
-                slice_ty_pred: st.slice_pred.clone(),
-                elem_ty_pred: st.elem_pred,
-            }
-        );
 
-        let rhs = vir::Expr::func_app(
-            slice_len_name,
-            vec![
-                slice_operand,
-            ],
-            vec![
-                vir::LocalVar::new("self", st.slice_ty),
-            ],
-            vir::Type::Int,
-            vir::Position::default(),
-        );
+        let rhs = st.encode_slice_len_call(slice_operand);
 
         let (encoded_lhs, encode_stmts, ty, _) = self.encode_place(&destination.as_ref().unwrap().0)
             .with_span(span)?;
@@ -4998,18 +4982,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let span = self.mir_encoder.get_span_of_location(location);
         let (encoded_place, mut stmts, place_ty, ..) = self.encode_place(place).with_span(span)?;
-        let ty_name = self.encoder.encode_type_predicate_use(place_ty)
-            .with_span(span)?;
         match place_ty.kind() {
-            ty::TyKind::Array(_, ref ty_len) => {
+            ty::TyKind::Array(..) => {
                 // extract the length from the array type
-                let len = self.encoder.const_eval_intlike(&ty_len.val).unwrap()
-                    .to_u64().unwrap();
+                let at = self.encoder.encode_array_types(place_ty).with_span(span)?;
 
                 stmts.extend(
                     self.encode_copy_value_assign(
                         encoded_lhs,
-                        len.into(),
+                        at.array_len.into(),
                         dst_ty,
                         location,
                     )?
@@ -5019,34 +5000,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let st = self.encoder.encode_slice_types(place_ty)
                         .with_span(span)?;
 
-                // encode Slice$<elem_ty>$len
-                let slice_len = self.encoder.encode_builtin_function_use(
-                    BuiltinFunctionKind::SliceLen {
-                        slice_ty_pred: st.slice_pred.clone(),
-                        elem_ty_pred: st.elem_pred,
-                    }
-                );
-
                 stmts.push(vir::Stmt::Assert(
                     vir::Expr::predicate_access_predicate(
-                        st.slice_pred,
+                        st.slice_pred.clone(),
                         encoded_place.clone(),
                         vir::PermAmount::Read,
                     ),
                     vir::Position::default(),
                 ));
 
-                let rhs = vir::Expr::func_app(
-                    slice_len,
-                    vec![
-                        encoded_place,
-                    ],
-                    vec![
-                        vir::LocalVar::new_typed_ref("self", ty_name)
-                    ],
-                    vir::Type::Int,
-                    vir::Position::default(),
-                );
+                let rhs = st.encode_slice_len_call(encoded_place);
 
                 stmts.extend(
                     self.encode_copy_value_assign(
@@ -5076,14 +5039,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let span = self.mir_encoder.get_span_of_location(location);
         let at = self.encoder.encode_array_types(ty).with_span(span)?;
-        let lookup_pure = self.encoder.encode_builtin_function_use(
-            BuiltinFunctionKind::ArrayLookupPure {
-                array_ty_pred: at.array_pred,
-                elem_ty_pred: at.elem_pred,
-                array_len: at.array_len,
-                return_ty: at.elem_value_ty.clone(),
-            }
-        );
 
         let encoded_operand = self.mir_encoder.encode_operand_expr(operand)
             .with_span(span)?;
@@ -5093,25 +5048,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut stmts = self.encode_havoc_and_allocation(&encoded_lhs);
         for i in 0..len {
             let idx = vir::Expr::from(i);
-            let lookup_pure_call = vir::Expr::func_app(
-                lookup_pure.clone(),
-                vec![
-                    encoded_lhs.clone(),
-                    idx,
-                ],
-                vec![
-                    vir::LocalVar::new(
-                        String::from("self"),
-                        at.array_ty.clone(),
-                    ),
-                    vir::LocalVar::new(
-                        String::from("idx"),
-                        vir::Type::Int,
-                    ),
-                ],
-                at.elem_value_ty.clone(),
-                vir::Position::default(),
-            );
+            let lookup_pure_call = at.encode_lookup_pure_call(encoded_lhs.clone(), idx);
 
             stmts.push(vir::Stmt::Inhale(vir!{ [lookup_pure_call] == [encoded_operand] }));
         }
@@ -5424,36 +5361,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::AggregateKind::Array(..) => {
                 let at = self.encoder.encode_array_types(ty).with_span(span)?;
 
-                // TODO: move lookup_pure into encode_array_types as well?
-                let lookup_pure = self.encoder.encode_builtin_function_use(
-                    BuiltinFunctionKind::ArrayLookupPure {
-                        array_ty_pred: at.array_pred,
-                        elem_ty_pred: at.elem_pred,
-                        array_len: at.array_len,
-                        return_ty: at.elem_value_ty.clone(),
-                    }
-                );
-
                 for (idx, operand) in operands.iter().enumerate() {
-                    let lookup_pure_call = vir::Expr::func_app(
-                        lookup_pure.clone(),
-                        vec![
-                            dst.clone(),
-                            idx.into(),
-                        ],
-                        vec![
-                            vir::LocalVar::new(
-                                String::from("self"),
-                                at.array_ty.clone(),
-                            ),
-                            vir::LocalVar::new(
-                                String::from("idx"),
-                                vir::Type::Int,
-                            ),
-                        ],
-                        at.elem_value_ty.clone(),
-                        vir::Position::default(),
-                    );
+                    let lookup_pure_call = at.encode_lookup_pure_call(dst.clone(), idx.into());
 
                     let encoded_operand = self.mir_encoder.encode_operand_expr(operand)
                         .with_span(span)?;
@@ -5544,16 +5453,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             PlaceEncoding::ArrayAccess { base, index, rust_array_ty, .. } => {
                 let at = self.encoder.encode_array_types(rust_array_ty)?;
 
-                let lookup_pure = self.encoder.encode_builtin_function_use(
-                    BuiltinFunctionKind::ArrayLookupPure {
-                        array_ty_pred: at.array_pred,
-                        elem_ty_pred: at.elem_pred,
-                        array_len: at.array_len,
-                        return_ty: at.elem_value_ty.clone(),
-                    }
-                );
-
-                let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(at.elem_ty).into();
+                let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(at.elem_ty.clone()).into();
 
                 // encode val_field for the array element type
                 let val_field = self.encoder.encode_value_field(at.elem_ty_rs);
@@ -5565,24 +5465,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base)?;
                 stmts.extend(self.encode_havoc_and_allocation(&lookup_res));
-                let lookup_pure_call = vir::Expr::func_app(
-                    lookup_pure,
-                    vec![
-                        encoded_base_expr,
-                        index.field(val_int_field),
-                    ],
-                    vec![
-                        vir::LocalVar::new(
-                            String::from("self"),
-                            at.array_ty,
-                        ),
-                        vir::LocalVar::new(
-                            String::from("idx"),
-                            vir::Type::Int,
-                        ),
-                    ],
-                    at.elem_value_ty,
-                    vir::Position::default(),
+                let lookup_pure_call = at.encode_lookup_pure_call(
+                    encoded_base_expr,
+                    index.field(val_int_field),
                 );
                 stmts.push(vir::Stmt::Inhale(vir!{ [ lookup_pure_call ] == [ lookup_res_val_field ] }));
 
@@ -5596,15 +5481,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             PlaceEncoding::SliceAccess { base, index, rust_slice_ty, .. } => {
                 let st = self.encoder.encode_slice_types(rust_slice_ty)?;
 
-                let lookup_pure = self.encoder.encode_builtin_function_use(
-                    BuiltinFunctionKind::SliceLookupPure {
-                        slice_ty_pred: st.slice_pred,
-                        elem_ty_pred: st.elem_pred,
-                        return_ty: st.elem_value_ty.clone(),
-                    }
-                );
-
-                let res = vir::Expr::local(self.cfg_method.add_fresh_local_var(st.elem_ty));
+                let res = vir::Expr::local(self.cfg_method.add_fresh_local_var(st.elem_ty.clone()));
                 let val_field = self.encoder.encode_value_field(st.elem_ty_rs);
                 let res_val_field = res.clone().field(val_field);
 
@@ -5614,21 +5491,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
                 let idx_val_field = self.encoder.encode_value_field(usize_ty);
 
-                let lookup_pure_call = vir::Expr::func_app(
-                    lookup_pure,
-                    vec![
-                        encoded_base_expr,
-                        index.field(idx_val_field),
-                    ],
-                    vec![
-                        vir::LocalVar::new(
-                            String::from("self"),
-                            st.slice_ty,
-                        ),
-                        vir_local!{ idx: Int },
-                    ],
-                    st.elem_value_ty,
-                    vir::Position::default(),
+                let lookup_pure_call = st.encode_lookup_pure_call(
+                    encoded_base_expr,
+                    index.field(idx_val_field),
                 );
 
                 stmts.push(vir::Stmt::Inhale(vir!{ [lookup_pure_call] == [res_val_field] }));
