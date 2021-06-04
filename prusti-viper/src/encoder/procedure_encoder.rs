@@ -1148,7 +1148,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | mir::StatementKind::Nop => vec![],
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
-                // FIXME: the following line will panic if attempting to encode unsupported types.
                 let span = self.mir_encoder.get_span_of_location(location);
                 let (encoded_lhs, pre_stmts, ty, _) = self.encode_place(lhs).with_span(span)?;
                 stmts.extend(pre_stmts);
