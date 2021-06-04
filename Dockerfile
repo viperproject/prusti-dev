@@ -69,12 +69,12 @@ WORKDIR /root
 RUN cargo new good-example && \
     cd good-example && \
     sed -i '1s/^/use prusti_contracts::*;\n/;s/println.*$/assert!(true);/' src/main.rs && \
-    echo 'prusti-contracts = { path = "/opt/prusti-dev/prusti-contracts"}' >> Cargo.toml && \
+    echo 'prusti-contracts = { path = "/opt/prusti-dev/prusti-contracts" }' >> Cargo.toml && \
     cargo build && cargo clean && \
     cargo prusti && cargo clean
 RUN cargo new bad-example && \
     cd bad-example && \
     sed -i '1s/^/use prusti_contracts::*;\n/;s/println.*$/assert!(false);/' src/main.rs && \
-    echo 'prusti-contracts = { path = "/opt/prusti-dev/prusti-contracts"}' >> Cargo.toml && \
+    echo 'prusti-contracts = { path = "/opt/prusti-dev/prusti-contracts" }' >> Cargo.toml && \
     cargo build && cargo clean && \
     ! cargo prusti && cargo clean
