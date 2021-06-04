@@ -119,7 +119,7 @@ fn init_loggers() {
     rustc_driver::init_rustc_env_logger();
 }
 
-const PRUSTI_PACKAGES: &'static [&'static str] = &[
+const PRUSTI_PACKAGES: [&str; 4] = [
     "prusti-contracts-internal",
     "prusti-contracts-impl",
     "prusti-contracts",
