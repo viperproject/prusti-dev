@@ -5640,7 +5640,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 debug!("warning: ty::TyKind::Closure not implemented yet");
                 Vec::new()
             }
-            
+
             _ => {
                 return Err(SpannedEncodingError::unsupported(
                     format!("copy operation for an unsupported type {:?}", self_ty.kind()),
