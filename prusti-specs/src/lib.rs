@@ -305,19 +305,31 @@ pub fn body_invariant(tokens: TokenStream) -> TokenStream {
 }
 
 pub fn prusti_use(tokens: TokenStream) -> TokenStream {
-    let path: syn::Path = handle_result!(syn::parse2(tokens.into()));
+    let path: syn::Path = handle_result!(syn::parse2(tokens.clone().into()));
     let path_span = path.span();
 
-    if let Some(last_seg) = path.segments.last() {
-        let ident = last_seg.ident.clone();
-        let new_tokens = quote_spanned! {path_span =>
-            #ident!();
+    let path_str = tokens.to_string().replace(" ", "");
+    if let Some((first_seg, rest)) = path_str.split_once("::") {
+        let macro_call = quote_spanned! {path_span => 
+            #first_seg!(#rest);
         };
-
-        new_tokens
+        println!("macro_call: {:?} \n\n", macro_call);
+        TokenStream::new()
     } else {
-        return syn::Error::new(path_span, "prusti_use must be given a path with non-empty segements").to_compile_error();
+        return syn::Error::new(path_span, "prusti_use incorrect path").to_compile_error();
     }
+
+
+    // if let Some(last_seg) = path.segments.first() {
+    //     let ident = last_seg.ident.clone();
+    //     let new_tokens = quote_spanned! {path_span =>
+    //         #ident!(path.seg);
+    //     };
+
+    //     new_tokens
+    // } else {
+    //     return syn::Error::new(path_span, "prusti_use must be given a path with non-empty segements").to_compile_error();
+    // }
 }
 
 /// Unlike the functions above, which are only called from
@@ -461,9 +473,10 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     }
 }
 
-pub fn extern_spec(attr: TokenStream, tokens:TokenStream) -> TokenStream {
+pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
+    // let mut macro_defs = vec![];
     let tokens = match item {
         syn::Item::Impl(mut item_impl) => {
             let new_struct = handle_result!(
@@ -493,32 +506,52 @@ pub fn extern_spec(attr: TokenStream, tokens:TokenStream) -> TokenStream {
             };
             handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
             quote!(#item_mod)
+            // let macro_def = handle_result!(extern_spec_rewriter::rewrite_mod1(&mut item_mod, &mut path, &mut macro_defs));
+            // match macro_def {
+            //     Some(item_macro) => {
+            //         let mut macro_defs_tokens = TokenStream::new();
+            //         for macro_def_item in macro_defs {
+            //             macro_defs_tokens.extend(quote!(
+            //                 #macro_def_item
+            //             ));
+            //         }
+            //         quote! {
+            //             // #macro_defs_tokens
+            //             // #[macro_export]
+            //             // #item_macro
+            //             #item_mod
+            //         }},
+            //     None => quote!(item_mod)
+            // }
+            // quote!(#item_mod)
         }
         _ => { unimplemented!() }
     };
 
-    let new_tokens = match attr.is_empty() {
-        true => tokens,
-        false => {
-            let attr_str = attr.to_string();
-            let macro_iden = syn::Ident::new(attr_str.as_str(), item_span);
-            let new_macro = quote! {
-                #[macro_export]
-                macro_rules! #macro_iden {
-                    () => {
-                        #tokens
-                    };
-                }
-            };
-            quote! {
-                #new_macro
-                #tokens
-            }
-        },
-    };
-    new_tokens
-}
+    println!("tokens: {:?}\n\n", tokens.to_string());
 
+    tokens
+    // let new_tokens = match attr.is_empty() {
+    //     true => tokens,
+    //     false => {
+    //         let attr_str = attr.to_string();
+    //         let macro_iden = syn::Ident::new(attr_str.as_str(), item_span);
+    //         let new_macro = quote! {
+    //             #[macro_export]
+    //             macro_rules! #macro_iden {
+    //                 () => {
+    //                     #tokens
+    //                 };
+    //             }
+    //         };
+    //         quote! {
+    //             #new_macro
+    //             #tokens
+    //         }
+    //     },
+    // };
+    // new_tokens
+}
 #[derive(Debug)]
 struct PredicateFn {
     fn_sig: syn::Signature,
