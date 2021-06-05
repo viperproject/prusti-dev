@@ -4114,6 +4114,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )
     }
 
+    fn construct_value_preserving_array_equality(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        array_base: vir::Expr,
+    ) -> vir::Expr {
+        // this label is generated and inserted in encode_loop_invariant_exhale_stmts at the point
+        // where the other "preserve equality" assignments are made
+        let old_label = format!("loop_preserve_values_label_{:?}", loop_head);
+        let snap_array = vir::Expr::snap_app(array_base);
+        let old_snap_array = vir::Expr::old(snap_array.clone(), old_label);
+        vir!{ [snap_array] == [old_snap_array] }
+    }
+
     /// Arguments:
     /// * `loop_head`: the loop head block, which identifies a loop.
     /// * `loop_inv`: the block at whose end the loop invariant should hold.
@@ -4214,8 +4227,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         if let Some(base) = utils::try_pop_deref(self.encoder.env().tcx(), mir_place)
                         {
                             // will panic if attempting to encode unsupported type
-                            let (_, pre_stmts, ref_ty, _) = self.encode_place(&base, ArrayAccessKind::Shared).unwrap();
-                            assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
+                            let ref_ty = self.mir_encoder.encode_place(&base).unwrap().1;
                             match ref_ty.kind() {
                                 ty::TyKind::RawPtr(ty::TypeAndMut { mutbl, .. })
                                 | ty::TyKind::Ref(_, _, mutbl) => {
@@ -4283,13 +4295,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         // that we will lose information about the children of that
                                         // place after the loop and we need to preserve it via local
                                         // variables.
-                                        let (encoded_child, pre_stmts, _, _) =
-                                            self.encode_place(&child_place, ArrayAccessKind::Shared).unwrap(); // will panic if attempting to encode unsupported type
-                                        assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
-                                        equalities.push(self.construct_value_preserving_equality(
-                                            loop_head,
-                                            &encoded_child,
-                                        ));
+                                        let encoded_child = self.mir_encoder.encode_place(child_place)?.0;
+                                        match encoded_child.into_array_base() {
+                                            ExprOrArrayBase::Expr(e) => {
+                                                equalities.push(self.construct_value_preserving_equality(
+                                                    loop_head,
+                                                    &e,
+                                                ));
+                                            }
+                                            ExprOrArrayBase::ArrayBase(b) => {
+                                                let eq = self.construct_value_preserving_array_equality(loop_head, b);
+                                                // arrays can be mentioned multiple times, so we
+                                                // need to check here
+                                                if !equalities.contains(&eq) {
+                                                    equalities.push(eq);
+                                                }
+                                            }
+                                            ExprOrArrayBase::SliceBase(_) => unimplemented!("slices in loops not yet implemented"),
+                                        }
                                     }
                                 }
                             }
@@ -4323,6 +4346,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|p| format!("{}, ", p))
                 .collect::<String>()
         );
+
         trace!(
             "[exit] encode_loop_invariant_permissions equalities={}",
             equalities
@@ -4330,6 +4354,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|p| format!("{}, ", p))
                 .collect::<String>()
         );
+
         Ok((permissions, equalities))
     }
 
@@ -4465,6 +4490,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_head
         ))];
         if !after_loop_iteration {
+            stmts.push(vir::Stmt::Label(format!("loop_preserve_values_label_{:?}", loop_head)));
             for (place, field) in &self.pure_var_for_preserving_value_map[&loop_head] {
                 stmts.push(vir::Stmt::Assign(
                     field.into(),
