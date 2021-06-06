@@ -54,7 +54,9 @@ impl<'tcx> SplitAggregateAssignment<'tcx> for mir::Statement<'tcx> {
                     .collect()
             }
             mir::Rvalue::Use(_) |
-            mir::Rvalue::Ref(_, _, _) =>
+            mir::Rvalue::Ref(_, _, _) |
+            // slice creation is ok™
+            mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), _, _) =>
                 vec![(lhs, rhs)],
             _ => unreachable!("Rvalue {:?} is not supported", rhs)
         };
