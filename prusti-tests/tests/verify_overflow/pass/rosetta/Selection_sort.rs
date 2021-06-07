@@ -73,10 +73,10 @@ impl VecWrapperI32 {
 #[ensures(array.len() == old(array.len()))]
 #[ensures(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < array.len()) ==>
              array.lookup(k1) <= array.lookup(k2)))]
-fn selection_sort(mut array: &mut VecWrapperI32) {
- 
+fn selection_sort(array: &mut VecWrapperI32) {
+
     let mut min;
- 
+
     let mut i = 0;
     let mut continue_loop_1 = i < array.len();
     while continue_loop_1 {
@@ -131,17 +131,17 @@ fn selection_sort(mut array: &mut VecWrapperI32) {
 }
 
 #[trusted]
-fn print_initial_array(array: &mut VecWrapperI32) {
+fn print_initial_array(array: &VecWrapperI32) {
     println!("The initial array is {:?}", array.v);
 }
 
 #[trusted]
 #[requires(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < array.len()) ==>
              array.lookup(k1) <= array.lookup(k2)))]
-fn print_sorted_array(array: &mut VecWrapperI32) {
+fn print_sorted_array(array: &VecWrapperI32) {
     println!(" The sorted array is {:?}", array.v);
 }
- 
+
 pub fn test() {
     let mut array = VecWrapperI32::new();
     array.push(9);
@@ -152,12 +152,12 @@ pub fn test() {
     array.push(2);
     array.push(1);
     array.push(6);
- 
-    print_initial_array(&mut array);
+
+    print_initial_array(&array);
 
     selection_sort(&mut array);
 
-    print_sorted_array(&mut array);
+    print_sorted_array(&array);
 }
 
 fn main() { }
