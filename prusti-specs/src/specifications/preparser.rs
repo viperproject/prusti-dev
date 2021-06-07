@@ -62,7 +62,9 @@ pub struct Parser {
     /// Tokens yet to be consumed
     tokens: VecDeque<TokenTree>,
     /// Span of the last seen token
-    last_span: Option<Span>
+    last_span: Option<Span>,
+    /// Span of the surrounding token
+    source_span: Option<Span>,
 }
 
 impl Parser {
@@ -71,6 +73,15 @@ impl Parser {
         Self {
             tokens: tokens.into_iter().collect(),
             last_span: None,
+            source_span: None,
+        }
+    }
+    /// initializes the parser with a TokenStream and the last span
+    fn from_token_stream_and_span(tokens: TokenStream, span: Option<Span>) -> Self {
+        Self {
+            tokens: tokens.into_iter().collect(),
+            last_span: None,
+            source_span: span,
         }
     }
     /// Creates a single Prusti assertion from the input and returns it.
@@ -181,7 +192,7 @@ impl Parser {
                 };
 
                 if let Some(stream) = self.consume_group(Delimiter::Bracket) {
-                    Parser::from_token_stream(stream).extract_entailment_rhs(lhs, vars)
+                    Parser::from_token_stream_and_span(stream, self.last_span).extract_entailment_rhs(lhs, vars)
                 } else {
                     Err(self.error_expected("`[`"))
                 }
@@ -201,13 +212,13 @@ impl Parser {
                 first = false;
                     if self.consume_keyword("requires") {
                         if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-                            pres.push(Parser::from_token_stream(stream).extract_assertion()?);
+                            pres.push(Parser::from_token_stream_and_span(stream, self.last_span).extract_assertion()?);
                         } else {
                             return Err(self.error_expected("`(`"));
                         }
                     } else if self.consume_keyword("ensures") {
                         if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-                            posts.push(Parser::from_token_stream(stream).extract_assertion()?);
+                            posts.push(Parser::from_token_stream_and_span(stream, self.last_span).extract_assertion()?);
                         } else {
                             return Err(self.error_expected("`(`"));
                         }
@@ -238,10 +249,10 @@ impl Parser {
     /// parse a paren-delimited expression
     fn parse_primary(&mut self) -> syn::Result<AssertionWithoutId> {
         if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-            Parser::from_token_stream(stream).extract_assertion()
+            Parser::from_token_stream_and_span(stream, self.last_span).extract_assertion()
         } else if self.consume_keyword("forall") {
             if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-                Parser::from_token_stream(stream).extract_forall_rhs()
+                Parser::from_token_stream_and_span(stream, self.last_span).extract_forall_rhs()
             } else {
                 Err(self.error_expected("`(`"))
             }
@@ -330,11 +341,17 @@ impl Parser {
         }
         let mut stream = TokenStream::new();
         stream.extend(t.into_iter());
-        Ok(ExpressionWithoutId {
-            spec_id: common::SpecificationId::dummy(),
-            id: (),
-            expr: syn::parse2(stream)?,
-        })
+
+        let cloned: VecDeque<TokenTree> = stream.clone().into_iter().collect();
+        if let Some(span) = self.contains_operator_recursive(&cloned, "==>") {
+            Err(self.error_no_implies(span))
+        } else {
+            Ok(ExpressionWithoutId {
+                spec_id: common::SpecificationId::dummy(),
+                id: (),
+                expr: syn::parse2(stream)?,
+            })
+        }
     }
 
     /// is there any non-prusti operator following the first thing?
@@ -370,6 +387,36 @@ impl Parser {
             stream.pop_front();
         }
         false
+    }
+    /// does the given operator appear in the stream anywhere
+    fn contains_operator_recursive(&self, stream: &VecDeque<TokenTree>, operator: &str) -> Option<Span> {
+        let mut stream = stream.clone();
+        while !stream.is_empty() {
+            if self.peek_operator_stream(&stream, operator) {
+                return Some(self.operator_span(&stream, operator));
+            }
+            if let Some(TokenTree::Group(group)) = stream.front() {
+                let nested_stream: VecDeque<TokenTree> = group.stream().into_iter().collect();
+                if let Some(span) = self.contains_operator_recursive(&nested_stream, operator) {
+                    return Some(span);
+                }
+            }
+            stream.pop_front();
+        }
+        None
+    }
+    /// get the span of the peeked operator
+    fn operator_span(&self, stream: &VecDeque<TokenTree>, operator: &str) -> Span {
+        let mut span: Option<Span> = None;
+        for (i, _) in operator.char_indices() {
+            let character = stream.get(i).unwrap();
+            if let Some(maybe_span) = span {
+                span = maybe_span.join(character.span());
+            } else {
+                span = Some(character.span());
+            }
+        }
+        span.unwrap()
     }
     /// does the input start with this operator?
     fn peek_operator(&self, operator: &str) -> bool {
@@ -481,6 +528,8 @@ impl Parser {
             span
         } else if let Some(token) = self.tokens.front() {
             token.span()
+        } else if let Some(span) = self.source_span {
+            span
         } else {
             Span::call_site()
         }
@@ -497,5 +546,8 @@ impl Parser {
     }
     fn error_unexpected(&self) -> syn::Error {
         syn::Error::new(self.get_error_span(), "unexpected token")
+    }
+    fn error_no_implies(&self, span: Span) -> syn::Error {
+        syn::Error::new(span, "`==>` cannot be part of Rust expression")
     }
 }
