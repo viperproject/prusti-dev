@@ -91,6 +91,10 @@ impl Parser {
                 kind: box common::AssertionKind::And(vec![])
             })
         } else {
+            if let Some(span) = self.contains_both_and_or(&self.tokens) {
+                return Err(self.error_ambiguous_expression(span));
+            }
+
             let expr = self.parse_prusti()?;
             if let Some(_) = self.pop() {
                 Err(self.error_unexpected())
@@ -345,6 +349,8 @@ impl Parser {
         let cloned: VecDeque<TokenTree> = stream.clone().into_iter().collect();
         if let Some(span) = self.contains_operator_recursive(&cloned, "==>") {
             Err(self.error_no_implies(span))
+        } else if cloned.is_empty() {
+            Err(self.error_expected("expression"))
         } else {
             Ok(ExpressionWithoutId {
                 spec_id: common::SpecificationId::dummy(),
@@ -378,12 +384,6 @@ impl Parser {
             if self.peek_operator_stream(&stream, operator) {
                 return true;
             }
-            // if let Some(TokenTree::Group(group)) = stream.front() {
-            //     let nested_stream: VecDeque<TokenTree> = group.stream().into_iter().collect();
-            //     if self.contains_operator(&nested_stream, operator) {
-            //         return true;
-            //     }
-            // }
             stream.pop_front();
         }
         false
@@ -417,6 +417,49 @@ impl Parser {
             }
         }
         span.unwrap()
+    }
+    /// Check if there is a subexpression (parenthesized or separated by `==>`)
+    /// that contains both `&&` and `||`. If yes, set the span to include both
+    /// of those operators and everything in between them. This detects
+    /// potentially ambiguous subexpressions.
+    fn contains_both_and_or(&self, stream: &VecDeque<TokenTree>) -> Option<Span> {
+        let mut contains_and = false;
+        let mut contains_or = false;
+        let mut and_span: Option<Span> = None;
+        let mut or_span: Option<Span> = None;
+        let mut stream = stream.clone();
+
+        while !stream.is_empty() {
+            if self.peek_operator_stream(&stream, "&&") {
+                contains_and = true;
+                and_span = Some(self.operator_span(&stream, "&&"));
+            } else if self.peek_operator_stream(&stream, "||") {
+                contains_or = true;
+                or_span = Some(self.operator_span(&stream, "||"));
+            } else if self.peek_operator_stream(&stream, "==>") {
+                contains_and = false;
+                contains_or = false;
+            } else if let Some(TokenTree::Group(group)) = stream.front() {
+                if group.delimiter() == Delimiter::Parenthesis {
+                    let inner = group.stream().into_iter().collect();
+                    let span = self.contains_both_and_or(&inner);
+                    if span.is_some() {
+                        return span;
+                    }
+                }
+            }
+
+            if contains_and && contains_or {
+                if let Some(a_s) = and_span {
+                    if let Some(o_s) = or_span {
+                        return Some(a_s.join(o_s).unwrap());
+                    }
+                }
+                return Some(Span::call_site());
+            }
+            stream.pop_front();
+        }
+        return None;
     }
     /// does the input start with this operator?
     fn peek_operator(&self, operator: &str) -> bool {
@@ -549,5 +592,11 @@ impl Parser {
     }
     fn error_no_implies(&self, span: Span) -> syn::Error {
         syn::Error::new(span, "`==>` cannot be part of Rust expression")
+    }
+    fn error_ambiguous_expression(&self, span: Span) -> syn::Error {
+        syn::Error::new(
+            span,
+            "found `||` and `&&` in the same subexpression. \
+            Hint: add parentheses to clarify the evaluation order.")
     }
 }
