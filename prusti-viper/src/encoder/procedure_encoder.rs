@@ -5291,6 +5291,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self_ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        let span = self.mir_encoder.get_span_of_location(location);
         let stmts = match self_ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
@@ -5313,7 +5314,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 Vec::new()
             }
             
-            ref x => unimplemented!("{:?}", x),
+            _ => {
+                return Err(SpannedEncodingError::unsupported(
+                    format!("copy operation for an unsupported type {:?}", self_ty.kind()),
+                    span
+                ));
+            }
         };
         Ok(stmts)
     }
