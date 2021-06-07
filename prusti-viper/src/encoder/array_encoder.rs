@@ -142,7 +142,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
             encoder.encode_snapshot_type(elem_ty_rs)?
         };
 
-        // lookup_pure
         let lookup_pure_name = encoder.encode_builtin_function_use(
             BuiltinFunctionKind::SliceLookupPure {
                 slice_ty_pred: slice_pred.clone(),
@@ -158,7 +157,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
             }
         );
 
-        let encoded = EncodedSliceTypes{
+        let encoded = EncodedSliceTypes {
             slice_pred,
             slice_ty,
             elem_ty,
@@ -211,7 +210,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
         let array_len = encoder.const_eval_intlike(&len.val)?
             .to_u64().unwrap().try_into().unwrap();
 
-        // lookup_pure
         let lookup_pure_name = encoder.encode_builtin_function_use(
             BuiltinFunctionKind::ArrayLookupPure {
                 array_ty_pred: array_pred.clone(),
@@ -221,7 +219,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
             }
         );
 
-        let encoded = EncodedArrayTypes{
+        let encoded = EncodedArrayTypes {
             array_pred,
             array_ty,
             elem_ty,
