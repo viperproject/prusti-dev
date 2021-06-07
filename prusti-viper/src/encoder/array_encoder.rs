@@ -19,15 +19,22 @@ use prusti_common::{
     vir_local,
 };
 
-
+/// The result of `ArrayEncoder::encode_array_types`. Contains types, type predicates and length of the given array type.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct EncodedArrayTypes<'tcx> {
+    /// String to use as type predicate, e.g. Array$3$i32
     pub array_pred: String,
+    /// Array type, e.g. TypedRef(Array$3$i32)
     pub array_ty: vir::Type,
+    /// Element type, e.g. TypedRef(i32)
     pub elem_ty: vir::Type,
+    /// Type of an element if stored as a (pure) snapshot value, e.g. Int
     pub elem_value_ty: vir::Type,
+    /// The non-encoded element type as passed by rustc
     pub elem_ty_rs: ty::Ty<'tcx>,
+    /// The length of the array, e.g. 3
     pub array_len: usize,
+    /// The name of the lookup_pure function for this instance, e.g. "Array$3$i32$lookup_pure"
     pub lookup_pure_name: String,
 }
 
@@ -49,14 +56,22 @@ impl<'tcx> EncodedArrayTypes<'tcx> {
     }
 }
 
+/// The result of `ArrayEncoder::encode_slice_types`. Contains types and type predicates of the given array type.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct EncodedSliceTypes<'tcx> {
+    /// String to use as type predicate, e.g. Slice$i32
     pub slice_pred: String,
+    /// Slice type, e.g. TypedRef(Slice$i32)
     pub slice_ty: vir::Type,
+    /// Element type, e.g. TypedRef(i32)
     pub elem_ty: vir::Type,
+    /// Type of an element if stored as a (pure) snapshot value, e.g. Int
     pub elem_value_ty: vir::Type,
+    /// The non-encoded element type as passed by rustc
     pub elem_ty_rs: ty::Ty<'tcx>,
+    /// The name of the `lookup_pure` function for this instance, e.g. "Array$3$i32$lookup_pure"
     pub lookup_pure_name: String,
+    /// The name of the slice length function for this instance, e.g. "Slice$i32$len"
     pub slice_len_name: String,
 }
 
