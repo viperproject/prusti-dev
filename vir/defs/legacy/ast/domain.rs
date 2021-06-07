@@ -15,12 +15,6 @@ pub struct Domain {
     pub type_vars: Vec<Type>,
 }
 
-impl Domain {
-    pub fn get_identifier(&self) -> String {
-        self.name.clone()
-    }
-}
-
 impl fmt::Display for Domain {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "domain {}", self.name)?;
@@ -73,12 +67,6 @@ impl fmt::Display for DomainFunc {
             first = false
         }
         writeln!(f, "): {}", self.return_type)
-    }
-}
-
-impl WithIdentifier for DomainFunc {
-    fn get_identifier(&self) -> String {
-        compute_identifier(&self.name, &self.formal_args, &self.return_type)
     }
 }
 

@@ -13,55 +13,12 @@ use std::{
     ops,
 };
 
-pub trait WithIdentifier {
-    fn get_identifier(&self) -> String;
-}
-
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Position {
     line: i32,
     column: i32,
     id: u64,
-}
-
-impl Position {
-    pub fn new(line: i32, column: i32, id: u64) -> Self {
-        Position { line, column, id }
-    }
-
-    pub fn line(&self) -> i32 {
-        self.line
-    }
-
-    pub fn column(&self) -> i32 {
-        self.column
-    }
-
-    pub fn id(&self) -> u64 {
-        self.id
-    }
-
-    pub fn is_default(&self) -> bool {
-        self.line == 0 && self.column == 0 && self.id == 0
-    }
-}
-
-impl Default for Position {
-    fn default() -> Self {
-        Position::new(0, 0, 0)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_default_position() {
-        assert!(!Position::new(123, 234, 345).is_default());
-        assert!(Position::default().is_default());
-    }
 }
 
 pub enum PermAmountError {
@@ -76,32 +33,6 @@ pub enum PermAmount {
     Write,
     /// The permission remaining after ``Read`` was subtracted from ``Write``.
     Remaining,
-}
-
-impl PermAmount {
-    /// Can this permission amount be used in specifications?
-    pub fn is_valid_for_specs(&self) -> bool {
-        match self {
-            PermAmount::Read | PermAmount::Write => true,
-            PermAmount::Remaining => false,
-        }
-    }
-
-    pub fn add(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
-        match (self, other) {
-            (PermAmount::Read, PermAmount::Remaining)
-            | (PermAmount::Remaining, PermAmount::Read) => Ok(PermAmount::Write),
-            _ => Err(PermAmountError::InvalidAdd(self, other)),
-        }
-    }
-
-    pub fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
-        match (self, other) {
-            (PermAmount::Write, PermAmount::Read) => Ok(PermAmount::Remaining),
-            (PermAmount::Write, PermAmount::Remaining) => Ok(PermAmount::Read),
-            _ => Err(PermAmountError::InvalidSub(self, other)),
-        }
-    }
 }
 
 impl fmt::Display for PermAmount {
@@ -166,59 +97,6 @@ impl fmt::Display for Type {
     }
 }
 
-impl Type {
-    pub fn is_ref(&self) -> bool {
-        matches!(self, &Type::TypedRef(_))
-    }
-
-    pub fn is_domain(&self) -> bool {
-        matches!(self, &Type::Domain(_))
-    }
-
-    pub fn name(&self) -> String {
-        match self {
-            Type::Bool => "bool".to_string(),
-            Type::Int => "int".to_string(),
-            Type::TypedRef(ref pred_name) => format!("{}", pred_name),
-            Type::Domain(ref pred_name) => format!("{}", pred_name),
-        }
-    }
-
-    /// Construct a new VIR type that corresponds to an enum variant.
-    pub fn variant(self, variant: &str) -> Self {
-        match self {
-            Type::TypedRef(mut name) => {
-                name.push_str(variant);
-                Type::TypedRef(name)
-            }
-            _ => unreachable!(),
-        }
-    }
-
-    /// Replace all generic types with their instantiations by using string substitution.
-    /// FIXME: this is a hack to support generics. See issue #187.
-    pub fn patch(self, substs: &HashMap<String, String>) -> Self {
-        match self {
-            Type::TypedRef(mut predicate_name) => {
-                for (typ, subst) in substs {
-                    predicate_name = predicate_name.replace(typ, subst);
-                }
-                Type::TypedRef(predicate_name)
-            }
-            typ => typ,
-        }
-    }
-
-    pub fn get_id(&self) -> TypeId {
-        match self {
-            Type::Bool => TypeId::Bool,
-            Type::Int => TypeId::Int,
-            Type::TypedRef(_) => TypeId::Ref,
-            Type::Domain(_) => TypeId::Domain,
-        }
-    }
-}
-
 impl PartialEq for Type {
     fn eq(&self, other: &Self) -> bool {
         discriminant(self) == discriminant(other)
@@ -251,15 +129,6 @@ impl fmt::Debug for LocalVar {
     }
 }
 
-impl LocalVar {
-    pub fn new<S: Into<String>>(name: S, typ: Type) -> Self {
-        LocalVar {
-            name: name.into(),
-            typ,
-        }
-    }
-}
-
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
@@ -275,27 +144,5 @@ impl fmt::Display for Field {
 impl fmt::Debug for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}: {}", self.name, self.typ)
-    }
-}
-
-impl Field {
-    pub fn new<S: Into<String>>(name: S, typ: Type) -> Self {
-        Field {
-            name: name.into(),
-            typ,
-        }
-    }
-
-    pub fn typed_ref_name(&self) -> Option<String> {
-        match self.typ {
-            Type::TypedRef(ref name) => Some(name.clone()),
-            _ => None,
-        }
-    }
-}
-
-impl WithIdentifier for Field {
-    fn get_identifier(&self) -> String {
-        self.name.clone()
     }
 }

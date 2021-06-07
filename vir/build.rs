@@ -15,8 +15,6 @@ fn main() {
         pub mod polymorphic;
         pub mod legacy;
         pub mod converter;
-        pub mod config;
-        pub mod utils;
     };
     let tokens = define_vir(root, Path::new("defs/root.rs"));
     let out_dir = env::var("OUT_DIR").unwrap();
