@@ -309,14 +309,16 @@ pub fn prusti_use(tokens: TokenStream) -> TokenStream {
     let path_span = path.span();
 
     let path_str = tokens.to_string().replace(" ", "");
-    if let Some((first_seg, rest)) = path_str.split_once("::") {
-        let macro_call = quote_spanned! {path_span => 
-            #first_seg!(#rest);
-        };
-        println!("macro_call: {:?} \n\n", macro_call);
-        TokenStream::new()
+    if let Some((crate_path, rest)) = path_str.split_once("::") {
+        if let Some((mod_path, rest)) = rest.split_once("::") {
+            quote_spanned! {path_span =>
+                #mod_path!(#rest)
+            }
+        } else {
+            // read all normal specs
+        }
     } else {
-        return syn::Error::new(path_span, "prusti_use incorrect path").to_compile_error();
+        return syn::Error::new(path_span, "prusti_use must be given a path with non-empty segements").to_compile_error();
     }
 
 
@@ -476,7 +478,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
-    // let mut macro_defs = vec![];
+    let mut macro_defs = vec![];
     let tokens = match item {
         syn::Item::Impl(mut item_impl) => {
             let new_struct = handle_result!(
@@ -504,25 +506,26 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
                 leading_colon: None,
                 segments: syn::punctuated::Punctuated::new(),
             };
-            handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
-            quote!(#item_mod)
-            // let macro_def = handle_result!(extern_spec_rewriter::rewrite_mod1(&mut item_mod, &mut path, &mut macro_defs));
-            // match macro_def {
-            //     Some(item_macro) => {
-            //         let mut macro_defs_tokens = TokenStream::new();
-            //         for macro_def_item in macro_defs {
-            //             macro_defs_tokens.extend(quote!(
-            //                 #macro_def_item
-            //             ));
-            //         }
-            //         quote! {
-            //             // #macro_defs_tokens
-            //             // #[macro_export]
-            //             // #item_macro
-            //             #item_mod
-            //         }},
-            //     None => quote!(item_mod)
-            // }
+            // handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
+            // quote!(#item_mod)
+            let macro_def = handle_result!(extern_spec_rewriter::rewrite_mod1(&mut item_mod, &mut path, &mut macro_defs));
+            match macro_def {
+                Some(item_macro) => {
+                    let mut macro_defs_tokens = TokenStream::new();
+                    for macro_def_item in macro_defs {
+                        macro_defs_tokens.extend(quote!(
+                            #macro_def_item
+                        ));
+                    }
+                    quote! {
+                        #macro_defs_tokens
+                        #[macro_export]
+                        #item_macro
+                        #item_mod
+                    }
+                },
+                None => quote!(#item_mod)
+            }
             // quote!(#item_mod)
         }
         _ => { unimplemented!() }
