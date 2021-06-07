@@ -5301,7 +5301,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_)
-            | ty::TyKind::Param(_) => {
+            | ty::TyKind::Param(_)
+            | ty::TyKind::Array(_, _) => {
                 self.encode_copy_snapshot_value(src, dst)?
             }
 
@@ -5311,7 +5312,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 debug!("warning: ty::TyKind::Closure not implemented yet");
                 Vec::new()
             }
-
+            
             ref x => unimplemented!("{:?}", x),
         };
         Ok(stmts)
