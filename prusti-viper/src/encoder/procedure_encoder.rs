@@ -5291,6 +5291,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self_ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        let span = self.mir_encoder.get_span_of_location(location);
         let stmts = match self_ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
@@ -5301,7 +5302,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_)
-            | ty::TyKind::Param(_) => {
+            | ty::TyKind::Param(_)
+            | ty::TyKind::Array(_, _) => {
                 self.encode_copy_snapshot_value(src, dst)?
             }
 
@@ -5311,8 +5313,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 debug!("warning: ty::TyKind::Closure not implemented yet");
                 Vec::new()
             }
-
-            ref x => unimplemented!("{:?}", x),
+            
+            _ => {
+                return Err(SpannedEncodingError::unsupported(
+                    format!("copy operation for an unsupported type {:?}", self_ty.kind()),
+                    span
+                ));
+            }
         };
         Ok(stmts)
     }
