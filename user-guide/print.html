@@ -138,13 +138,15 @@
                         </a>
                         
                         
+                        
+
                     </div>
                 </div>
 
                 
                 <div id="search-wrapper" class="hidden">
                     <form id="searchbar-outer" class="searchbar-outer">
-                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
                     </form>
                     <div id="searchresults-outer" class="searchresults-outer hidden">
                         <div id="searchresults-header" class="searchresults-header"></div>
@@ -168,7 +170,7 @@
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
 <p>This is the user guide for <a href="https://github.com/viperproject/prusti-dev/">Prusti</a> - a Rust verifier built upon the the <a href="https://www.pm.inf.ethz.ch/research/viper.html">Viper verification infrastructure</a>.
 This guide replaces the <a href="https://github.com/viperproject/prusti-dev/wiki/Tutorial">wiki-based tutorial</a> from the GitHub repository.</p>
-<h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <h2 id="prusti-assistant"><a class="header" href="#prusti-assistant">Prusti Assistant</a></h2>
 <p>The easiest way to try out Prusti is by using the <a href="https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant">&quot;Prusti Assistant&quot;</a> extension for <a href="https://code.visualstudio.com/">Visual Studio Code</a>. Please confer the extension's webpage for detailed installation instructions.</p>
 <p>To update the currently installed version of Prusti within Prusti Assistant, it suffices to open the <a href="https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette">Command Palette</a> and run the command <code>Prusti: update dependencies</code>.</p>
@@ -180,7 +182,7 @@ The settings for switching to this version in Prusti Assistant are found in
 <h2 id="command-line-setup"><a class="header" href="#command-line-setup">Command-line setup</a></h2>
 <p>Alternatively, Prusti can be set up by downloading the <a href="https://github.com/viperproject/prusti-dev/releases">precompiled binaries</a> available from the project page. We currently provide binaries for Windows, macOS, and Ubuntu. Releases marked as &quot;Pre-release&quot; may contain unstable or experimental features.</p>
 <p>For a command-line setup with Prusti built from source, please confer the <a href="https://viperproject.github.io/prusti-dev/dev-guide/development/setup.html">developer guide</a>.</p>
-<h1 id="basic-usage"><a class="header" href="#basic-usage">Basic Usage</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="basic-usage"><a class="header" href="#basic-usage">Basic Usage</a></h1>
 <h2 id="prusti-assistant-1"><a class="header" href="#prusti-assistant-1">Prusti Assistant</a></h2>
 <p>When the Prusti Assistant extension is active, Rust files can be verified in one of the following ways:</p>
 <ul>
@@ -334,7 +336,7 @@ fn max3(a: i32, b: i32, c: i32) -&gt; i32 {
 <span class="boring">}
 </span></code></pre></pre>
 <p>When running Prusti on this example, it highlights the failing assertion and thus enables us to quickly locate and fix the issue. </p>
-<h1 id="verification-features"><a class="header" href="#verification-features">Verification Features</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="verification-features"><a class="header" href="#verification-features">Verification Features</a></h1>
 <p>Even if no specifications are provided, Prusti is capable of verifying a few basic properties about the supplied Rust code.
 These properties include:</p>
 <ul>
@@ -357,7 +359,7 @@ The following features are either currently supported or planned to be supported
 </ul>
 <p>By default, Prusti only checks absence of panics.
 Moreover, Prusti verifies <em>partial</em> correctness. That is, it only verifies that <em>terminating</em> program executions meet the supplied specification.</p>
-<h1 id="absence-of-panics"><a class="header" href="#absence-of-panics">Absence of panics</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="absence-of-panics"><a class="header" href="#absence-of-panics">Absence of panics</a></h1>
 <p>With the default settings, Prusti checks absence of panics. For example, consider the following program which always panics when executed:</p>
 <pre><pre class="playground"><code class="language-rust">pub fn main() {
     unreachable!();
@@ -384,14 +386,14 @@ Hence, Prusti successfully the example below as it can rule out that the conditi
 <p>Since Prusti is conservative, if it reports no verification errors then the program is provably correct <em>with regard to the checked properties.</em>
 The last part is important because <a href="verify/overflow.html">overflow checks</a> are <em>not</em> enabled by default. 
 Furthermore, Prusti may verify a program although some (or even all) of its executions do not terminate because it verifies partial correctness properties.</p>
-<h1 id="overflow-checks"><a class="header" href="#overflow-checks">Overflow checks</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="overflow-checks"><a class="header" href="#overflow-checks">Overflow checks</a></h1>
 <p>There are two ways to enable overflow checks in Prusti, depending on how you use the tool:</p>
 <ul>
 <li>If you use Prusti from the IDE, create a file named <code>Prusti.toml</code> containing <code>CHECK_OVERFLOWS=true</code> in the same folder of the program that you want to verify.</li>
 <li>If you run Prusti from the command line, place the <code>Prusti.toml</code> in the folder from which you run Prusti, or set the <code>PRUSTI_CHECK_OVERFLOWS=true</code> environment variable.</li>
 </ul>
 <p>By default, overflow checks are disabled and Prusti models each integer type as an unbounded integer. When overflow checks are enabled, instead, Prusti models integers as bounded values with a range that depends on the type of the integer. Values of <code>u32</code> types, for example, would be modeled to be between <code>0</code> and <code>2^32 - 1</code>.</p>
-<h1 id="pre--and-postconditions"><a class="header" href="#pre--and-postconditions">Pre- and postconditions</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="pre--and-postconditions"><a class="header" href="#pre--and-postconditions">Pre- and postconditions</a></h1>
 <p>In Prusti, the externally observable behaviour of a function can be specified with preconditions and postconditions. They can be provided using <a href="https://doc.rust-lang.org/reference/attributes.html">Rust attributes</a>:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
@@ -406,7 +408,7 @@ fn example() { ... }
 </span></code></pre></pre>
 <p><code>#[requires(...)]</code> is a precondition, <code>#[ensures(...)]</code> is a postcondition. There can be any number (including none) of preconditions and postconditions attached to a function. When no precondition is specified, <code>#[requires(true)]</code> is assumed, and likewise for postconditions. The expression inside the parentheses of <code>requires</code> or <code>ensures</code> should be a <a href="verify/../syntax.html">Prusti specification</a>.</p>
 <p>Preconditions are checked whenever the given function is called. Postconditions are checked at any exit point of the function, i.e. explicit <code>return</code> statements, as well as the end of the function body.</p>
-<h1 id="trusted-functions"><a class="header" href="#trusted-functions">Trusted functions</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="trusted-functions"><a class="header" href="#trusted-functions">Trusted functions</a></h1>
 <p>Sometimes specifications express a fact which is true about a function, but the verifier cannot prove it automatically, or it uses features not yet supported by Prusti. In such cases, it is possible to mark a function as <code>#[trusted]</code>:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
@@ -445,7 +447,7 @@ fn test() {
 }
 <span class="boring">}
 </span></code></pre></pre>
-<h1 id="pure-functions"><a class="header" href="#pure-functions">Pure functions</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="pure-functions"><a class="header" href="#pure-functions">Pure functions</a></h1>
 <p>Pure functions are functions which are deterministic and side-effect free. In Prusti, such functions can be marked with the <code>#[pure]</code> attribute. They can take shared references as arguments, but they cannot take mutable references, because modifying the heap is considered a side effect.</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
@@ -465,7 +467,7 @@ fn impure_example(a: &amp;i32, b: &amp;i32, c: &amp;mut i32) {
 }
 <span class="boring">}
 </span></code></pre></pre>
-<h1 id="predicates"><a class="header" href="#predicates">Predicates</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="predicates"><a class="header" href="#predicates">Predicates</a></h1>
 <p>Predicates are similar to <a href="verify/pure.html">pure functions</a> in that they are deterministic and side-effect free and used in specifications.</p>
 <p>They are more powerful than pure functions: inside predicate bodies the full <a href="verify/../syntax.html">Prusti specification syntax</a> is allowed. However, they are not usable in regular Rust code, as there are no direct Rust equivalents for specification constructs like <a href="verify/../syntax.html#quantifiers">quantifiers</a> or <a href="verify/../syntax.html#implications">implications</a>. Instead, predicates can only be called from within specifications.</p>
 <p>Predicates are declared using the <code>#[predicate]</code> attribute on a function:</p>
@@ -488,7 +490,7 @@ fn zero(a: &amp;mut MyArray) { ... }
 <span class="boring">}
 </span></code></pre></pre>
 <p>The <code>#[predicate]</code> attribute is incompatible with other Prusti specifications, i.e. a predicate function cannot have pre- or postconditions. The body of a predicate must be provided, so it cannot be <a href="verify/trusted.html"><code>#[trusted]</code></a>. Predicates are always considered pure.</p>
-<h1 id="external-specifications"><a class="header" href="#external-specifications">External specifications</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="external-specifications"><a class="header" href="#external-specifications">External specifications</a></h1>
 <p>Since the Rust standard library and external libraries do not specify contracts for their functions, Prusti allows specifying the contract for functions separately from where they are implemented. Such a specification looks like a regular <code>impl</code>, with the exception that there are no bodies in the implementation functions, and that the <code>impl</code> has an <code>#[extern_spec]</code> attribute.</p>
 <p>The standard library type <code>std::option::Option</code> could be specified as follows:</p>
 <pre><pre class="playground"><code class="language-rust">
@@ -535,7 +537,7 @@ mod std {
 <span class="boring">}
 </span></code></pre></pre>
 <p>There are currently issues with external specifications combined with generics, so the function <code>swap</code> above is specified for <code>i32</code> arguments only.</p>
-<h1 id="loop-body-invariants"><a class="header" href="#loop-body-invariants">Loop body invariants</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="loop-body-invariants"><a class="header" href="#loop-body-invariants">Loop body invariants</a></h1>
 <p>To verify loops, including loops in which the loop condition has side effects, Prusti allows specifying the <em>invariant of the loop body</em> using the <code>body_invariant!(...);</code> statement. The expression inside the parentheses should be a <a href="verify/../syntax.html">Prusti specification</a>. There may be any number of body invariants in any given loop, but they must all be written at the beginning of the loop body.</p>
 <table><thead><tr><th>Feature</th><th>Status</th></tr></thead><tbody>
 <tr><td>Loop conditions without side-effects</td><td>Supported</td></tr>
@@ -597,7 +599,7 @@ fn main() {
 </code></pre></pre>
 <p>We can assert <code>i &lt;= 0</code> after the loop, because in the last evaluation of the loop condition <code>i &gt;= 0</code> was <code>false</code>, and <code>i</code> was then incremented by one.</p>
 <p>Note that it would be wrong to assert <code>i &lt; 0</code> after the loop, because it is possible to have <code>i == 0</code>. Note also that the loop body invariant <code>i &gt;= 0</code> is not strong enough to verify the program, since <code>work</code> requires <code>i &gt; 0</code>. In fact, after <code>test_and_increment</code> returns <code>true</code>, <code>i</code> cannot be <code>0</code> because of the <code>+= 1</code>.</p>
-<h1 id="pledges"><a class="header" href="#pledges">Pledges</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="pledges"><a class="header" href="#pledges">Pledges</a></h1>
 <p>Pledges are a construct that can be used to specify the behaviour of functions that reborrow. For example, pledges should be used for modelling an assignment to a vector element because, in Rust, <code>v[i] = 4</code> is not a method call <code>v.store(i, 4)</code> but rather <code>let tmp = v.get_mut(i); *tmp = 4</code>, where <code>get_mut</code> is a method that reborrows the <code>v</code> receiver to return a reference to a particular element.</p>
 <p>As a full example, a wrapper around Rust <code>Vec&lt;i32&gt;</code> could be implemented as follows:</p>
 <pre><pre class="playground"><code class="language-rust">
@@ -650,7 +652,7 @@ reference fields) and <code>condition</code> is a <a href="verify/../syntax.html
 structure will look once the borrow expires. To refer to the state that
 a memory location pointed at by the reference has just before expiring,
 use <code>before_expiry(*reference)</code>.</p>
-<h1 id="trait-contract-refinement"><a class="header" href="#trait-contract-refinement">Trait contract refinement</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="trait-contract-refinement"><a class="header" href="#trait-contract-refinement">Trait contract refinement</a></h1>
 <blockquote>
 <p><strong>NOT YET SUPPORTED:</strong> This feature is not yet supported in the new version of Prusti.</p>
 </blockquote>
@@ -671,7 +673,7 @@ pub trait Eq: PartialEq&lt;Self&gt; {}
 <blockquote>
 <p>Such trait refinement is not scoped. Therefore, considering the previous example, implementing <code>Eq</code> on a type implies that the total equivalence contract is always considered on the type, irrespective of whether <code>Eq</code> is in scope or not.</p>
 </blockquote>
-<h1 id="closures"><a class="header" href="#closures">Closures</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="closures"><a class="header" href="#closures">Closures</a></h1>
 <blockquote>
 <p><strong>NOT YET SUPPORTED:</strong> This feature is not yet supported in Prusti. See <a href="https://github.com/viperproject/prusti-dev/pull/138">PR #138</a> for the status of this feature as well as a prototype. The syntax described here is subject to change.</p>
 </blockquote>
@@ -688,7 +690,7 @@ fn main() {
 }
 </code></pre></pre>
 <p><code>closure!</code> can have any number of pre- and postconditions. The arguments and return type for the closure must be given explicitly. See <a href="verify/spec_ent.html">specification entailments</a> for specifying the contract of a higher-order function (e.g. when taking a closure as an argument).</p>
-<h1 id="specification-entailments"><a class="header" href="#specification-entailments">Specification entailments</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="specification-entailments"><a class="header" href="#specification-entailments">Specification entailments</a></h1>
 <blockquote>
 <p><strong>NOT YET SUPPORTED:</strong> This feature is not yet supported in Prusti. See <a href="https://github.com/viperproject/prusti-dev/pull/138">PR #138</a> for the status of this feature as well as a prototype. The syntax described here is subject to change.</p>
 </blockquote>
@@ -719,7 +721,7 @@ fn example&lt;F: Fn (i32, i32) -&gt; i32&gt; (f: F) { ... }
 <li>multiple-call specification entailment</li>
 </ul>
 </blockquote>
-<h1 id="specification-syntax"><a class="header" href="#specification-syntax">Specification syntax</a></h1>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="specification-syntax"><a class="header" href="#specification-syntax">Specification syntax</a></h1>
 <p>Prusti specifications are a superset of Rust boolean expressions. They must be deterministic and side-effect free. Therefore, they can only call only <a href="verify/pure.html">pure functions</a>. The extensions to Rust expressions are summarised below:</p>
 <table><thead><tr><th>Syntax</th><th>Meaning</th></tr></thead><tbody>
 <tr><td><a href="syntax.html#old-expressions"><code>old(...)</code></a></td><td>Value of expression in a previous state</td></tr>
