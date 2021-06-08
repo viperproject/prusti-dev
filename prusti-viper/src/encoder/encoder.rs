@@ -985,7 +985,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
             _ => {
                 return Err(EncodingError::unsupported(
-                    format!("unsupported type {:?}", ty.kind())
+                    format!("unsupported constant type {:?}", ty.kind())
                 ));
             }
         };
@@ -1418,4 +1418,3 @@ fn encode_identifier(ident: String) -> String {
         .replace(";", "$semic$")
         .replace(" ", "$space$")
 }
-
