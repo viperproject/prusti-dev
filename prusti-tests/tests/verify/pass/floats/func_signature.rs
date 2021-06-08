@@ -1,5 +1,5 @@
-fn id(x: f64) -> f64 {
-    x
+fn id() -> f64 {
+    1.
 }
 
 fn main() {}
