@@ -22,9 +22,9 @@ predicate bool(self: Ref) {
 All Rust integers (`i8`, `i16`, `i32`, `i64`, `i128`, `isize`, `u8`, `u16`, `u32`, `u64`, `u128`, `usize`) and `char` are encoded to Viper `Int`.
 
 ```viper
-field val_i32: Int
+field val_int: Int
 predicate i32(self: Ref) {
-  acc(self.val_i32, write)
+  acc(self.val_int, write)
 }
 ```
 
@@ -33,7 +33,7 @@ When the [`CHECK_OVERFLOWS`](../config/flags.md#check_overflows) flag is enabled
 ```viper
 // with CHECK_OVERFLOWS
 predicate i32(self: Ref) {
-  acc(self.val_i32, write) && -2147483648 <= self.val_i32 && self.val_i32 <= 2147483647
+  acc(self.val_int, write) && -2147483648 <= self.val_int && self.val_int <= 2147483647
 }
 ```
 
@@ -42,7 +42,7 @@ When the [`ENCODE_UNSIGNED_NUM_CONSTRAINT`](../config/flags.md#encode_unsigned_n
 ```viper
 // with ENCODE_UNSIGNED_NUM_CONSTRAINT
 predicate u32(self: Ref) {
-  acc(self.val_u32, write) && 0 <= self.val_u32
+  acc(self.val_int, write) && 0 <= self.val_int
 }
 ```
 
