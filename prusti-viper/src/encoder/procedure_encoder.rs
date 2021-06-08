@@ -4660,8 +4660,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let old = |e| { vir::Expr::labelled_old(&label, e) };
 
-        let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
-        let idx_val_int = index.field(self.encoder.encode_value_field(usize_ty));
+        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index)).with_span(span)?;
 
         // inhale infos about array contents back
         let i_var: vir::Expr = vir_local!{ i: Int }.into();
@@ -5696,8 +5695,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Shared)?;
         stmts.extend(self.encode_havoc_and_allocation(&lookup_res));
 
-        let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
-        let idx_val_int = index.field(self.encoder.encode_value_field(usize_ty));
+        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
         let lookup_pure_call = at.encode_lookup_pure_call(
             encoded_base_expr.clone(),
@@ -5729,8 +5727,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Mutable(None, location))?;
 
-        let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
-        let idx_val_int = index.field(self.encoder.encode_value_field(usize_ty));
+        let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
         // var res: Ref := havoc_ref()
         stmts.extend(self.encode_havoc_and_allocation(&res));
@@ -5829,12 +5826,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base, array_encode_kind)?;
                 stmts.extend(self.encode_havoc_and_allocation(&res));
 
-                let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
-                let idx_val_field = self.encoder.encode_value_field(usize_ty);
+                let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
                 let lookup_pure_call = slice_types.encode_lookup_pure_call(
                     encoded_base_expr,
-                    index.field(idx_val_field),
+                    idx_val_int,
                 );
 
                 stmts.push(vir::Stmt::Inhale(vir!{ [lookup_pure_call] == [res_val_field] }));
