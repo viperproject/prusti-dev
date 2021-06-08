@@ -4125,8 +4125,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 if kind.is_none() {
                     continue;
                 }
-                // will panic if attempting to encode unsupported type
-                let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place).unwrap();
+                // we want to check if array or other place expr, so we call the mir_encoder
+                // version of encode_place to avoid the postprocessing into statements
+                let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place)?;
 
                 // NOTE: this catches array accesses to single indexes. we take the "max" of
                 // none < read < write for the whole array, because we can't tell indices apart
