@@ -1338,17 +1338,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir::Stmt::Label(new_lhs_label.clone())
                 );
 
-                let wand_rhs_patched_lhs = wand_rhs.fold_expr(
-                    |ex| {
-                        if let vir::Expr::LabelledOld(label, inner_ex, pos) = ex {
-                            vir::Expr::LabelledOld(
-                                if label == "lhs" { trace!("{} -> {}", label, new_lhs_label); new_lhs_label.clone() } else { label },
-                                inner_ex,
-                                pos,
-                            )
-                        } else {
-                            ex
-                        }
+                let wand_rhs_patched_lhs = wand_rhs
+                    .map_old_expr_label(|label| if label == "lhs" {
+                        trace!("{} -> {}", label, new_lhs_label);
+                        new_lhs_label.clone()
+                    } else {
+                        label
                     }
                 );
 
