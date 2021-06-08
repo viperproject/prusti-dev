@@ -157,6 +157,7 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
         }
         impl vir::ExprWalker for OldExprCollector {
             fn walk_labelled_old(&mut self, label: &str, body: &vir::Expr, _pos: &vir::Position) {
+                trace!("old expr: {:?}: {:?}", label, body);
                 self.old_exprs.entry(label.to_string()).or_default().push(body.clone());
                 // Recurse, in case old expressions are nested
                 self.walk(body);
@@ -235,6 +236,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         expr: &vir::Expr,
         curr_pctxt: &PathCtxt<'p>,
     ) -> Result<vir::Expr, FoldUnfoldError> {
+        trace!("replace_old_expr(expr={:?}, pctxt={:?})", expr, curr_pctxt);
         ExprReplacer::new(curr_pctxt.clone(), &self.pctxt_at_label, true)
             .fallible_fold(expr.clone())
     }
@@ -571,8 +573,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
 
         // Store state for old[lhs] expressions
         match stmt {
-            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, _, _, _), ..)
-            | vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _, _, _), ..) => {
+            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, ..), ..)
+            | vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, ..), ..)
+            | vir::Stmt::Inhale(vir::Expr::MagicWand(box ref lhs, ..), ..) => {
                 // TODO: This should be done also for magic wand expressions inside inhale/exhale.
                 let label = "lhs".to_string();
                 let mut labelled_pctxt = pctxt.clone();
@@ -588,7 +591,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 labelled_state.replace_places(|place| place.old(&label));
                 self.pctxt_at_label
                     .insert(label.to_string(), labelled_pctxt);
-            }
+            },
 
             _ => {} // Nothing
         }

@@ -114,7 +114,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 ast.inhale(expr.to_viper(ast), fake_position.to_viper(ast))
             }
             Stmt::Exhale(ref expr, ref pos) => {
-                assert!(!pos.is_default());
+                assert!(!pos.is_default(), "stmt with default pos: {}", self);
                 ast.exhale(expr.to_viper(ast), pos.to_viper(ast))
             }
             Stmt::Assert(ref expr, ref pos) => {

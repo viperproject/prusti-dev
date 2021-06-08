@@ -32,7 +32,9 @@ macro_rules! vir {
         $crate::vir::Stmt::Inhale(vir!($exp))
     };
     (exhale $exp: tt) => {
-        $crate::vir::Stmt::Exhale(vir!($exp), $cratevir::Position::default())
+        $crate::vir::Stmt::Exhale(
+            vir!($exp),
+            $crate::vir::Position::default())
     };
     (apply $exp: tt) => {
         $crate::vir::Stmt::ApplyMagicWand(

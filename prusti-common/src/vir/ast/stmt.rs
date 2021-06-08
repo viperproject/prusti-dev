@@ -260,6 +260,7 @@ impl Stmt {
     pub fn pos(&self) -> Option<&Position> {
         match self {
             Stmt::PackageMagicWand(_, _, _, _, ref p) => Some(p),
+            Stmt::Exhale(_, ref p) => Some(p),
             _ => None,
         }
     }
@@ -269,6 +270,7 @@ impl Stmt {
             Stmt::PackageMagicWand(wand, package_body, label, vars, _) => {
                 Stmt::PackageMagicWand(wand, package_body, label, vars, pos)
             },
+            Stmt::Exhale(expr, _) => Stmt::Exhale(expr, pos),
             x => x,
         }
     }
