@@ -1974,9 +1974,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ref value,
                 ..
             } => {
-                // will panic if attempting to encode unsupported type
-                // TODO: ignore stmts here as well?
-                let (encoded_lhs, pre_stmts, _, _) = self.encode_place(lhs, ArrayAccessKind::Mutable(None, location)).unwrap();
+                let (encoded_lhs, pre_stmts, _, _) = self.encode_place(lhs, ArrayAccessKind::Mutable(None, location))
+                    .with_span(span)?;
                 stmts.extend(pre_stmts);
                 stmts.extend(
                     self.encode_assign_operand(&encoded_lhs, value, location)?
