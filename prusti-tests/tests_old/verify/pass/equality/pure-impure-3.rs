@@ -1,5 +1,3 @@
-
-
 use prusti_contracts::*;
 
 #[derive(Clone,Copy,PartialEq,Eq)]
@@ -18,6 +16,4 @@ fn f(_x: A, _y: A) {
     assert!(_z == id(_y));
 }
 
-fn main() {
-}
-
+fn main() {}

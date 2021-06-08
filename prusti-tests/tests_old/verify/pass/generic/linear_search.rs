@@ -15,7 +15,7 @@ impl<T: Eq> VecWrapper<T> {
 
     #[trusted]
     #[pure]
-    #[requires("0 <= index && index < self.len()")]
+    #[requires(0 <= index && index < self.len())]
     pub fn present(&self, index: usize, value: &T) -> bool {
         self.v[index] == *value
     }

@@ -1,5 +1,3 @@
-
-
 use prusti_contracts::*;
 
 #[derive(Clone,Copy,PartialEq,Eq)]
@@ -19,7 +17,4 @@ fn foo(x: A) -> A {
     x
 }
 
-
-fn main() {
-}
-
+fn main() {}
