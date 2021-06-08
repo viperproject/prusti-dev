@@ -58,6 +58,7 @@ use crate::encoder::mirror_function_encoder;
 use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::encoder::SnapshotEncoder;
 use crate::encoder::purifier;
+use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
 
 #[must_use]
 pub struct CleanupTyMapStack<'a, 'tcx> {
@@ -100,6 +101,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     fields: RefCell<HashMap<String, vir::Field>>,
     snapshot_encoder: RefCell<SnapshotEncoder>,
     mirror_encoder: RefCell<MirrorEncoder>,
+    array_types_encoder: RefCell<ArrayTypesEncoder<'tcx>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
     vir_program_before_foldunfold_writer: RefCell<Box<dyn Write>>,
@@ -165,6 +167,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             typaram_repl: RefCell::new(Vec::new()),
             snapshot_encoder: RefCell::new(SnapshotEncoder::new()),
             mirror_encoder: RefCell::new(MirrorEncoder::new()),
+            array_types_encoder: RefCell::new(ArrayTypesEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
             current_proc: RefCell::new(None),
@@ -1394,6 +1397,24 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
         };
         result
+    }
+
+    pub fn encode_array_types(
+        &self,
+        array_ty: ty::Ty<'tcx>,
+    ) -> EncodingResult<EncodedArrayTypes<'tcx>> {
+        self.array_types_encoder
+            .borrow_mut()
+            .encode_array_types(self, array_ty)
+    }
+
+    pub fn encode_slice_types(
+        &self,
+        slice_ty: ty::Ty<'tcx>,
+    ) -> EncodingResult<EncodedSliceTypes<'tcx>> {
+        self.array_types_encoder
+            .borrow_mut()
+            .encode_slice_types(self, slice_ty)
     }
 }
 

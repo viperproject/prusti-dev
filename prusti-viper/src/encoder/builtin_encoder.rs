@@ -21,20 +21,20 @@ pub enum BuiltinFunctionKind {
     Unreachable(vir::Type),
     /// type
     Undefined(vir::Type),
-    /// array lookup pure function, e.g. Array$4$u32$lookup_pure
+    /// array lookup pure function
     ArrayLookupPure {
         array_ty_pred: String,
         elem_ty_pred: String,
         array_len: usize,
         return_ty: vir::Type,
     },
-    /// lookup_pure function for slices, e.g. Slice$i32$lookup_pure
+    /// lookup_pure function for slices
     SliceLookupPure {
         slice_ty_pred: String,
         elem_ty_pred: String,
         return_ty: vir::Type,
     },
-    /// abstract length function for slices, e.g. Slice$u32$len
+    /// abstract length function for slices
     SliceLen {
         slice_ty_pred: String,
         elem_ty_pred: String,
@@ -94,15 +94,9 @@ impl BuiltinEncoder {
             // TODO: do Domain and Snapshot make sense here?
             BuiltinFunctionKind::Undefined(vir::Type::Domain(_)) => "builtin$undef_doman".to_string(),
             BuiltinFunctionKind::Undefined(vir::Type::Snapshot(_)) => "builtin$undef_snap".to_string(),
-            BuiltinFunctionKind::ArrayLookupPure { elem_ty_pred, array_len, .. } => {
-                format!("Array${}${}$lookup_pure", array_len, elem_ty_pred)
-            }
-            BuiltinFunctionKind::SliceLookupPure { elem_ty_pred, .. } => {
-                format!("Slice${}$lookup_pure", elem_ty_pred)
-            }
-            BuiltinFunctionKind::SliceLen { elem_ty_pred, .. } => {
-                format!("Slice${}$len", elem_ty_pred)
-            }
+            BuiltinFunctionKind::ArrayLookupPure { .. }
+            | BuiltinFunctionKind::SliceLookupPure { .. } => "lookup_pure".to_string(),
+            BuiltinFunctionKind::SliceLen { .. } => "Slice$len".to_string(),
         }
     }
 
