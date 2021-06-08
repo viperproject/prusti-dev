@@ -1166,7 +1166,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
         stmts.extend(encoding_stmts);
         Ok(self.set_stmts_default_pos(stmts, stmt.source_info.span))
-
     }
 
     fn set_stmts_default_pos(&self, stmts: Vec<vir::Stmt>, default_pos_span: Span) -> Vec<vir::Stmt> {
@@ -1322,7 +1321,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 // expiring base is something like ref$i32, so we need .val_ref.val_int
                 let deref = self.encoder.encode_value_expr(expiring_base.clone(), expiring_ty);
-                let target_ty = if let ty::TyKind::Ref(_, target_ty, _) = expiring_ty.kind() { target_ty } else { unreachable!() };
+                let target_ty = expiring_ty.peel_refs();
                 let expiring_base_value = self.encoder.encode_value_expr(deref, target_ty);
 
                 // the original magic wand refered to the temporary variable that we created for array
