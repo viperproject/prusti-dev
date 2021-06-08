@@ -4152,8 +4152,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // Gives write permission to this node. It must not be a leaf node.
                     PermissionKind::WriteNode => {
                         if is_array_access {
-                            let entry = array_pred_perms.entry(encoded_place).or_insert(vir::PermAmount::Write);
-                            *entry= vir::PermAmount::Write;
+                            array_pred_perms.insert(encoded_place, vir::PermAmount::Write);
                         } else {
                             let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write);
                             permissions.push(perm);
