@@ -986,7 +986,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 self.encode_spec_funcs(*def_id)?;
                 vir::Expr::Const(vir::Const::FnPtr, vir::Position::default())
             }
-            ref x => unimplemented!("{:?}", x),
+            _ => {
+                return Err(EncodingError::unsupported(
+                    format!("unsupported constant type {:?}", ty.kind())
+                ));
+            }
         };
         debug!("encode_const_expr {:?} --> {:?}", value, expr);
         Ok(expr)
@@ -1435,4 +1439,3 @@ fn encode_identifier(ident: String) -> String {
         .replace(";", "$semic$")
         .replace(" ", "$space$")
 }
-
