@@ -1011,7 +1011,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     | ty::TyKind::Int(..)
                     | ty::TyKind::Uint(..)
                     | ty::TyKind::RawPtr(..)
-                    | ty::TyKind::Ref(..) => Some(
+                    | ty::TyKind::Ref(..) 
+                    | ty::TyKind::Float(..) => Some(
                         self.encoder.encode_value_expr(
                             encoded_lhs.clone(),
                             ty
@@ -1020,7 +1021,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         //     .clone()
                         //     .field(self.encoder.encode_value_field(ty)),
                     ),
-                    ty::TyKind::Float(..) => unimplemented!("not yet encodeable"),
                     _ => None,
                 };
 

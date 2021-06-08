@@ -488,13 +488,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
             mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
             mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
-            mir::BinOp::BitAnd |
-            mir::BinOp::BitOr |
-            mir::BinOp::BitXor => {
-                return Err(EncodingError::unsupported(
-                    "bitwise operations on non-boolean types are not supported"
-                ))
-            }
+            mir::BinOp::BitAnd => vir::Expr::bit_and(left, right),
+            mir::BinOp::BitOr => vir::Expr::bit_or(left, right),
+            mir::BinOp::BitXor => vir::Expr::bit_xor(left, right),
+            mir::BinOp::Shl => unimplemented!(),
             unsupported_op => {
                 return Err(EncodingError::unsupported(format!(
                     "operation '{:?}' is not supported",

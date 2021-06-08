@@ -90,6 +90,11 @@ pub enum BinOpKind {
     Mod,
     And,
     Or,
+    BitAnd,
+    BitOr,
+    BitXor,
+    Shl,
+    Shr,
     Implies,
 }
 
@@ -270,6 +275,11 @@ impl fmt::Display for BinOpKind {
             BinOpKind::And => write!(f, "&&"),
             BinOpKind::Or => write!(f, "||"),
             BinOpKind::Implies => write!(f, "==>"),
+            BinOpKind::BitAnd => write!(f, "&"),
+            BinOpKind::BitOr => write!(f, "|"),
+            BinOpKind::BitXor => write!(f, "^"),
+            BinOpKind::Shl => write!(f, "<<"),
+            BinOpKind::Shr => write!(f, ">>"),
         }
     }
 }
@@ -436,6 +446,26 @@ impl Expr {
 
     pub fn modulo(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Mod, box left, box right, Position::default())
+    }
+
+    pub fn bit_and(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::BitAnd, box left, box right, Position::default())
+    }
+
+    pub fn bit_or(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::BitOr, box left, box right, Position::default())
+    }
+
+    pub fn bit_xor(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::BitXor, box left, box right, Position::default())
+    }
+
+    pub fn shl(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::Shl, box left, box right, Position::default())
+    }
+    
+    pub fn shr(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::Shr, box left, box right, Position::default())
     }
 
     /// Encode Rust reminder. This is *not* Viper modulo.
@@ -1056,12 +1086,18 @@ impl Expr {
                     BinOpKind::Sub |
                     BinOpKind::Mul |
                     BinOpKind::Div |
+                    BinOpKind::BitAnd |
+                    BinOpKind::BitOr |
+                    BinOpKind::BitXor |
+                    BinOpKind::Shl |
+                    BinOpKind::Shr |
                     BinOpKind::Mod => {
                         let typ1 = base1.get_type();
                         let typ2 = base2.get_type();
                         assert_eq!(typ1, typ2, "expr: {:?}", self);
                         typ1
                     }
+                    
                 }
             }
             Expr::Cond(_, box ref base1, box ref base2, _pos) => {
