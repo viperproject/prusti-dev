@@ -531,12 +531,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             }
             PlaceEncoding::ArrayAccess { box base, index, rust_array_ty, .. } => {
                 let postprocessed_base = self.postprocess_place_encoding(base)?;
+                let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
-                // index is always of rust type `usize`
-                let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
-                let val_int_field = self.encoder.encode_value_field(usize_ty)?;
+                if self.is_encoding_assertion {
+                    let at = self.encoder.encode_array_types(rust_array_ty)?;
+                    let lookup_ret_ty = self.encoder.encode_snapshot_type(at.elem_ty_rs)?;
 
-                self.encoder.encode_snapshot_array_idx(rust_array_ty, postprocessed_base, index.field(val_int_field))?
+                    at.encode_lookup_pure_call(
+                        self.encoder,
+                        postprocessed_base,
+                        idx_val_int,
+                        lookup_ret_ty,
+                    )
+                } else {
+                    self.encoder.encode_snapshot_array_idx(
+                        rust_array_ty,
+                        postprocessed_base,
+                        idx_val_int,
+                    )?
+                }
             }
             PlaceEncoding::SliceAccess { .. } => todo!("slice access"),
         })
