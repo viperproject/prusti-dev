@@ -3,7 +3,7 @@ fn foo(x: f64) {
     if x < 0. {}
     else if  x >= 0. {}
     else {
-        unreachable!()    
+        unreachable!() //~ ERROR: statement might be reachable
     }
 }
 

@@ -133,7 +133,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 ));
             }
 
-            ty::TyKind::Float(_) => unimplemented!("Backendtype here?"),
+            ty::TyKind::Float(float_ty) => 
+                match float_ty {
+                    ty::FloatTy::F32 => vir::Type::Float(FloatSize::F32),
+                    ty::FloatTy::F64 => vir::Type::Float(FloatSize::F64),
+                },
 
 
             ref x => unimplemented!("{:?}", x),
@@ -193,7 +197,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 ));
             }
             ty::TyKind::Float(t) => {
-                match t {
+                match t {                    
                     rustc_middle::ty::FloatTy::F32 => vir::Field::new("val_float", vir::Type::Float(FloatSize::F32)),
                     rustc_middle::ty::FloatTy::F64 => vir::Field::new("val_float", vir::Type::Float(FloatSize::F64)),
                 }

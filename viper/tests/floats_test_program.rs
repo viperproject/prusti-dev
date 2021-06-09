@@ -34,7 +34,7 @@ fn test_program() {
     )));
     
     let id= ast.method(
-        "foo",
+        "id",
         &[],
         &[ast.local_var_decl("_0", ast.ref_type())],
         &[],

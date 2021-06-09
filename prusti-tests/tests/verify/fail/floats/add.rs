@@ -1,6 +1,5 @@
 fn main() {
-    let a = 5.0;
-    let b = -1.0;
+    let a = 0.4 + 0.2;
 
-    assert!(a + b < 4.0); //~ ERROR: the asserted expression might not hold
+    assert!(a == 0.6); //~ ERROR: the asserted expression might not hold
 }
