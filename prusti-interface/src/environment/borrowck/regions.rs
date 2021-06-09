@@ -84,7 +84,11 @@ impl PlaceRegions {
                         not supported".to_string()
                     ));
                 }
-                x => unreachable!("{:?}", x),
+                x => {
+                    return Err(PlaceRegionsError::Unsupported(
+                        format!("determining the region of projection {:?} is not supported", x)
+                    ));
+                }
             })
             .collect::<Result<_, _>>()?;
         Ok((place.local, indices))
