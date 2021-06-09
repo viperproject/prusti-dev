@@ -3182,12 +3182,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let mut invs_spec: Vec<vir::Expr> = vec![];
         for arg in contract.args.iter() {
-            invs_spec.push(
-                self.encoder.encode_invariant_func_app(
-                    self.locals.get_type(*arg),
-                    self.encode_prusti_local(*arg).into(),
-                ).with_span(precondition_spans.clone())?
-            );
+            // FIXME: this is somewhat hacky to avoid consistency errors with raw_ref args. this
+            // assumes that invariants for raw_ref types are always empty.
+            let ty = self.locals.get_type(*arg);
+            if !ty.is_unsafe_ptr() {
+                invs_spec.push(
+                    self.encoder.encode_invariant_func_app(
+                        ty,
+                        self.encode_prusti_local(*arg).into(),
+                    ).with_span(precondition_spans.clone())?
+                );
+            }
         }
 
         let precondition_weakening = precondition_weakening.map(|pw| {
