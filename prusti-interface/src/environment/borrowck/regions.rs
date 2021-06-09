@@ -84,9 +84,28 @@ impl PlaceRegions {
                         not supported".to_string()
                     ));
                 }
-                x => {
+                mir::ProjectionElem::Index(_) => {
                     return Err(PlaceRegionsError::Unsupported(
-                        format!("determining the region of projection {:?} is not supported", x)
+                        "determining the region of array indexing is \
+                        not supported".to_string()
+                    ));
+                }
+                mir::ProjectionElem::ConstantIndex{..} => {
+                    return Err(PlaceRegionsError::Unsupported(
+                        "determining the region of constant indexing is \
+                        not supported".to_string()
+                    ));
+                }
+                mir::ProjectionElem::Subslice{..} => {
+                    return Err(PlaceRegionsError::Unsupported(
+                        "determining the region of a subslice is \
+                        not supported".to_string()
+                    ));
+                }
+                mir::ProjectionElem::Downcast(_, _) => {
+                    return Err(PlaceRegionsError::Unsupported(
+                        "determining the region of a downcast is \
+                        not supported".to_string()
                     ));
                 }
             })
