@@ -19,9 +19,6 @@ use prusti_common::{
     vir_local,
 };
 
-const LOOKUP_PURE_NAME: &str = "lookup_pure";
-const SLICE_LEN_NAME: &str = "Slice$len";
-
 
 /// The result of `ArrayEncoder::encode_array_types`. Contains types, type predicates and length of the given array type.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
@@ -74,18 +71,26 @@ pub struct EncodedSliceTypes<'tcx> {
     pub slice_pred: String,
     /// Slice type, e.g. TypedRef(Slice$i32)
     pub slice_ty: vir::Type,
+    /// String to use as type predicate of the element, e.g. i32
+    pub elem_pred: String,
     /// Element type, e.g. TypedRef(i32)
     pub elem_ty: vir::Type,
-    /// Type of an element if stored as a (pure) snapshot value, e.g. Int
-    pub elem_value_ty: vir::Type,
     /// The non-encoded element type as passed by rustc
     pub elem_ty_rs: ty::Ty<'tcx>,
 }
 
-impl<'tcx> EncodedSliceTypes<'tcx> {
-    pub fn encode_lookup_pure_call(&self, slice: vir::Expr, idx: vir::Expr) -> vir::Expr {
+impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
+    pub fn encode_lookup_pure_call(&self, encoder: &'p Encoder<'v, 'tcx>, slice: vir::Expr, idx: vir::Expr, ret_ty: vir::Type) -> vir::Expr {
+        let lookup_pure = encoder.encode_builtin_function_use(
+            BuiltinFunctionKind::SliceLookupPure {
+                slice_ty_pred: self.slice_pred.clone(),
+                elem_ty_pred: self.elem_pred.clone(),
+                return_ty: ret_ty.clone(),
+            }
+        );
+
         vir::Expr::func_app(
-            LOOKUP_PURE_NAME.to_owned(),
+            lookup_pure,
             vec![
                 slice,
                 idx,
@@ -94,14 +99,21 @@ impl<'tcx> EncodedSliceTypes<'tcx> {
                 vir_local!{ self: {self.slice_ty.clone()} },
                 vir_local!{ idx: Int },
             ],
-            self.elem_value_ty.clone(),
+            ret_ty,
             vir::Position::default(),
         )
     }
 
-    pub fn encode_slice_len_call(&self, slice: vir::Expr) -> vir::Expr {
+    pub fn encode_slice_len_call(&self, encoder: &'p Encoder<'v, 'tcx>, slice: vir::Expr) -> vir::Expr {
+        let slice_len = encoder.encode_builtin_function_use(
+            BuiltinFunctionKind::SliceLen {
+                slice_ty_pred: self.slice_pred.clone(),
+                elem_ty_pred: self.elem_pred.clone(),
+            }
+        );
+
         vir::Expr::func_app(
-            SLICE_LEN_NAME.to_owned(),
+            slice_len,
             vec![
                 slice,
             ],
@@ -148,31 +160,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
         };
 
         let elem_pred = encoder.encode_type_predicate_use(elem_ty_rs)?;
-        let elem_value_ty = encoder.encode_snapshot_type(elem_ty_rs)?;
 
         let slice_ty = encoder.encode_type(slice_ty_rs)?;
         let elem_ty = encoder.encode_type(elem_ty_rs)?;
 
-        // we don't need them here, but want to trigger encoding the definitions
-        let _ = encoder.encode_builtin_function_use(
-            BuiltinFunctionKind::SliceLookupPure {
-                slice_ty_pred: slice_pred.clone(),
-                elem_ty_pred: elem_pred.clone(),
-                return_ty: elem_value_ty.clone(),
-            }
-        );
-        let _ = encoder.encode_builtin_function_use(
-            BuiltinFunctionKind::SliceLen {
-                slice_ty_pred: slice_pred.clone(),
-                elem_ty_pred: elem_pred,
-            }
-        );
-
         let encoded = EncodedSliceTypes {
             slice_pred,
             slice_ty,
+            elem_pred,
             elem_ty,
-            elem_value_ty,
             elem_ty_rs,
         };
         self.slice_types_cache.insert(&slice_ty_rs, encoded.clone());
