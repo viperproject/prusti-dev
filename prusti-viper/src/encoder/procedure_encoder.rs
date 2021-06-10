@@ -4125,7 +4125,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // this label is inserted in encode_loop_invariant_exhale_stmts at the point
         // where the other "preserve equality" assignments are made
         use std::collections::hash_map::Entry::*;
-        let old_label = match self .array_loop_old_label.entry(loop_head) {
+        let old_label = match self.array_loop_old_label.entry(loop_head) {
             Occupied(lbl) => lbl.into_mut(),
             Vacant(v) => v.insert(self.cfg_method.get_fresh_label_name()),
         };
