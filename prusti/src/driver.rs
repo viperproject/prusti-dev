@@ -173,7 +173,6 @@ fn main() {
         rustc_args.push("-Zalways-encode-mir".to_owned());
         rustc_args.push("-Zcrate-attr=feature(register_tool)".to_owned());
         rustc_args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
-        rustc_args.push("--cfg=prusti".to_owned());
 
         if config::check_overflows() {
             // Some crates might have a `overflow-checks = false` in their `Cargo.toml` to
