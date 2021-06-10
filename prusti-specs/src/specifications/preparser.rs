@@ -10,7 +10,7 @@ use syn::{self, Token, Error};
 use quote::quote;
 
 use super::common;
-use crate::specifications::common::{ForAllVars, SpecEntailmentVars, TriggerSet, Trigger};
+use crate::specifications::common::{ForAllVars, SpecEntailmentVars, TriggerSet, Trigger, CreditVarPower, CreditPolynomialTerm};
 use syn::spanned::Spanned;
 
 pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
@@ -113,6 +113,28 @@ impl ParserStream {
         }
         false
     }
+
+    /// Check if the input starts with a keyword ending in 'credits'
+    //TODO: or check all possible keywords explicitly
+    fn peek_credit_keyword(&mut self) -> bool {
+        if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
+            if ident.to_string().ends_with("credits") {
+                return true;
+            }
+        }
+        false
+    }
+
+    /// Consume a keyword and return its string representation
+    fn consume_and_return_keyword(&mut self) -> syn::Result<String> {
+        if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
+            let keyword_string = ident.to_string();
+            self.pop();
+            return Ok(keyword_string);
+        }
+        Err(syn::Error::new(self.span, "Expected a credit function"))     //TODO: separate error method?
+    }
+
     /// Check if the input starts with the operator. Does not set the span.
     fn peek_operator_with_offset(&self, operator: &str, offset: usize) -> bool {
         for (i, c) in operator.char_indices() {
@@ -301,6 +323,45 @@ impl Parse for SpecEntArgs {
     }
 }
 
+impl Parse for CreditVarPower<syn::ExprPath> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let var = input.parse()?;       //TODO: ExprPath allows more than just variables, but may be desired
+        input.parse::<Token![^]>()?;
+        let exponent_lit: syn::LitInt = input.parse()?;
+        let exponent = exponent_lit.base10_parse()?;
+        Ok(Self::new(var, exponent))
+    }
+}
+
+impl Parse for CreditPolynomialTerm<(), syn::Expr, syn::ExprPath> {     //TODO: maybe generic type parameters?
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let coeff_expr = input.parse()?;             //TODO: check that expression has valid form
+        input.parse::<Token![*]>()?;
+        let parsed_powers: syn::punctuated::Punctuated<CreditVarPower<syn::ExprPath>, Token![*]>
+            = input.parse_terminated(CreditVarPower::parse)?;
+        Ok(Self{
+            coeff_expr,
+            powers: parsed_powers.into_iter().collect(),
+        })
+    }
+}
+
+// just needed to be able to use parse_terminated
+struct CreditPolynomialTermVec {
+    term_vector: Vec<CreditPolynomialTerm<(), syn::Expr, syn::ExprPath>>,
+}
+
+impl Parse for CreditPolynomialTermVec {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let parsed: syn::punctuated::Punctuated<CreditPolynomialTerm<(), syn::Expr, syn::ExprPath>, Token![+]>
+            = input.parse_terminated(CreditPolynomialTerm::parse)?;
+        Ok(Self{
+            term_vector: parsed.into_iter().collect()
+        })
+    }
+}
+
+
 /// The structure to parse Prusti assertions.
 ///
 /// Check common::AssertionKind to see all types of Prusti assertions.
@@ -479,7 +540,7 @@ impl Parser {
                 let maybe_arr: Result<syn::ExprArray, Error> = syn::parse2(token_stream);
                 if let Err(err) = maybe_arr {
                     self.input.span = err.span();
-                    return Err(self.error_expected_tuple());
+                    return Err(self.error_expected_trigger_tuple());
                 }
                 let arr = maybe_arr.unwrap();
                 self.input.span = arr.span();
@@ -500,7 +561,7 @@ impl Parser {
                     }
                     else {
                         self.input.span = item.span();
-                        return Err(self.error_expected_tuple());
+                        return Err(self.error_expected_trigger_tuple());
                     }
                 }
 
@@ -627,6 +688,33 @@ impl Parser {
             return Err(self.error_expected_bracket());
         }
     }
+    fn resolve_credit_function(&mut self) -> syn::Result<()> {
+        if self.expected_operator {
+            return Err(self.error_expected_operator());
+        }
+
+        let credit_type = self.input.consume_and_return_keyword()?;
+
+        if let Some(group) = self.input.check_and_consume_parenthesized_block() {
+            let parsed_term_vec: CreditPolynomialTermVec = syn::parse2(group.stream())?;
+
+            let conjunct = AssertionWithoutId {
+                kind: Box::new(common::AssertionKind::CreditPolynomial {
+                    credit_type,
+                    terms: parsed_term_vec.term_vector,
+                }),
+            };
+
+            self.conjuncts.push(conjunct);
+            self.previous_expression_resolved = true;
+            self.expected_only_operator = true;
+            self.expected_operator = true;
+            return Ok(());
+        }
+        else {
+            return Err(self.error_expected_parenthesis());
+        }
+    }
     fn resolve_parenthesized_block(&mut self, group: Group) -> syn::Result<()>{
         // handling a parenthesized block
         if self.expected_only_operator {
@@ -698,6 +786,11 @@ impl Parser {
             }
             else if self.input.check_and_consume_operator("|=") {
                 if let Err(err) = self.resolve_spec_ent() {
+                    return Err(err);
+                }
+            }
+            else if self.input.peek_credit_keyword() {
+                if let Err(err) = self.resolve_credit_function() {
                     return Err(err);
                 }
             }
@@ -842,7 +935,7 @@ impl Parser {
     fn error_expected_equals(&self) -> syn::Error {
         syn::Error::new(self.input.span, "expected `=`")
     }
-    fn error_expected_tuple(&self) -> syn::Error {
+    fn error_expected_trigger_tuple(&self) -> syn::Error {
         syn::Error::new(self.input.span, "`triggers` must be an array of tuples containing Rust expressions")
     }
     fn error_ambiguous_expression(&self) -> syn::Error {

@@ -87,4 +87,23 @@ pub fn old<T>(arg: T) -> T {
     arg
 }
 
+/// This function is used to specify a given amount
+/// of resource credits as a concrete polynomial.
+///
+/// The credits will be consumed according to the
+/// "control flow cost model", which uses 1 credit to pay
+/// for each function entry and loop iteration
+/// and hence, yields a valid approximation of the asymptotic runtime
+pub fn cf_time_credits<T>(_arg: T) -> bool {
+    true
+}
+
+
+/*/// This function is used to specify asymptotic cost functions
+/// inside credits expressions
+#[allow(non_snake_case)]
+pub fn O<T>(arg: T) -> T {
+    arg
+}*/
+
 pub use private::*;

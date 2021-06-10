@@ -244,6 +244,36 @@ pub struct SpecEntailmentVars<EID, AT> {
 }
 
 #[derive(Debug, Clone)]
+/// A variable raised to a nonnegative power used in credit polynomials
+pub struct CreditVarPower<PT>(PT, u32);
+
+impl<PT> CreditVarPower<PT> {
+    /// Construct a new variable with exponent.
+    pub fn new(var: PT, exponent: u32) -> CreditVarPower<PT> {
+        CreditVarPower(var, exponent)
+    }
+    /// Getter for variable
+    pub fn var(&self) -> &PT {
+        &self.0
+    }
+
+    /// Getter for exponent
+    pub fn exp(&self) -> u32 {
+        self.1
+    }
+}
+
+#[derive(Debug, Clone)]
+/// One term of a credit polynomial, e.g. 3*n^2m^1
+pub struct CreditPolynomialTerm<EID, ET, PT> {
+    /// constant coefficient expression, possibly containing identifiers
+    /// for cost function coefficients of called functions
+    pub coeff_expr: Expression<EID, ET>,
+    /// Product/vector of variables raised to nonnegative powers
+    pub powers: Vec<CreditVarPower<PT>>,
+}
+
+#[derive(Debug, Clone)]
 /// An assertion kind used in the specification.
 pub enum AssertionKind<EID, ET, AT> {
     /// A single Rust expression.
@@ -266,6 +296,10 @@ pub enum AssertionKind<EID, ET, AT> {
         arg_binders: SpecEntailmentVars<EID, AT>,
         pres: Vec<Assertion<EID, ET, AT>>,
         posts: Vec<Assertion<EID, ET, AT>>,
+    },
+    CreditPolynomial {
+        credit_type: String,
+        terms: Vec<CreditPolynomialTerm<EID, ET, syn::ExprPath>>,       //TODO: type var PT
     },
 }
 
