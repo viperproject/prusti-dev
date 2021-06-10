@@ -94,6 +94,8 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     ///  - regained array variable
     ///  - info about updated and restored array elements
     array_magic_wand_at: HashMap<mir::Location, (vir::Expr, vir::Expr, vir::Expr)>,
+    /// Labels for array equalities in loops
+    array_loop_old_label: HashMap<BasicBlockIndex, String>,
     // /// Contracts of functions called at given locations with map for replacing fake expressions.
     procedure_contracts:
         HashMap<mir::Location, (ProcedureContract<'tcx>, HashMap<vir::Expr, vir::Expr>)>,
@@ -156,6 +158,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             cfg_blocks_map: HashMap::new(),
             magic_wand_at_location: HashMap::new(),
             array_magic_wand_at: HashMap::new(),
+            array_loop_old_label: HashMap::new(),
             procedure_contracts: HashMap::new(),
             pure_var_for_preserving_value_map: HashMap::new(),
             init_info,
@@ -4119,9 +4122,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         loop_head: BasicBlockIndex,
         array_base: vir::Expr,
     ) -> vir::Expr {
-        // this label is generated and inserted in encode_loop_invariant_exhale_stmts at the point
+        // this label is inserted in encode_loop_invariant_exhale_stmts at the point
         // where the other "preserve equality" assignments are made
-        let old_label = format!("loop_preserve_values_label_{:?}", loop_head);
+        use std::collections::hash_map::Entry::*;
+        let old_label = match self .array_loop_old_label.entry(loop_head) {
+            Occupied(lbl) => lbl.into_mut(),
+            Vacant(v) => v.insert(self.cfg_method.get_fresh_label_name()),
+        };
+
         let snap_array = vir::Expr::snap_app(array_base);
         let old_snap_array = vir::Expr::old(snap_array.clone(), old_label);
         vir!{ [snap_array] == [old_snap_array] }
@@ -4490,7 +4498,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_head
         ))];
         if !after_loop_iteration {
-            stmts.push(vir::Stmt::Label(format!("loop_preserve_values_label_{:?}", loop_head)));
+            if let Some(label) = self.array_loop_old_label.get(&loop_head) {
+                stmts.push(vir::Stmt::label(label));
+            }
             for (place, field) in &self.pure_var_for_preserving_value_map[&loop_head] {
                 stmts.push(vir::Stmt::Assign(
                     field.into(),
