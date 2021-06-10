@@ -660,12 +660,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let after_guard_block = loop_body[after_guard_block_pos];
         let after_inv_block = loop_body[after_inv_block_pos];
 
-        trace!("loop_head: {:?}", loop_head);
-        trace!("loop_body: {:?}", loop_body);
-        trace!("opt_loop_guard_switch: {:?}", opt_loop_guard_switch);
-        trace!("before_invariant_block: {:?}", before_invariant_block);
-        trace!("after_guard_block: {:?}", after_guard_block);
-        trace!("after_inv_block: {:?}", after_inv_block);
+        debug!("loop_head: {:?}", loop_head);
+        debug!("loop_body: {:?}", loop_body);
+        debug!("opt_loop_guard_switch: {:?}", opt_loop_guard_switch);
+        debug!("before_invariant_block: {:?}", before_invariant_block);
+        debug!("after_guard_block: {:?}", after_guard_block);
+        debug!("after_inv_block: {:?}", after_inv_block);
         if loop_info.is_conditional_branch(loop_head, before_invariant_block) {
             debug!(
                 "{:?} is conditional branch in loop {:?}",
