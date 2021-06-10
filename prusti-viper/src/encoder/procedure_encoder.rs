@@ -2206,6 +2206,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             );
                         }
 
+                        "std::iter::Iterator::next" |
+                        "core::iter::Iterator::next" => {
+                            return Err(SpannedEncodingError::unsupported(
+                                "iterators are not fully supported yet".to_string(),
+                                term.source_info.span,
+                            ));
+                        }
+
                         _ => {
                             let is_pure_function = self.encoder.is_pure(def_id);
                             if is_pure_function {
