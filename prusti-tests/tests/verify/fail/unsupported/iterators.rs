@@ -8,7 +8,7 @@ pub struct cpu_set_t {
 }
 
 pub fn CPU_ZERO(cpuset: &mut cpu_set_t) -> () {
-    for slot in cpuset.bits.iter_mut() { //~ ERROR cast statements that create loans are not supported
+    for slot in cpuset.bits.iter_mut() { //~ ERROR iterators are not fully supported yet
         *slot = 0;
     }
 }
