@@ -114,27 +114,33 @@ impl Parser {
     }
     /// Create the rhs of a pledge from the input
     pub fn extract_pledge_rhs_only(&mut self) -> syn::Result<PledgeWithoutId> {
-        let pledge = self.parse_pledge_rhs_only()?;
+        let (reference, assertion) = self.parse_pledge_assertion_only()?;
         if let Some(_) = self.pop() {
             Err(self.error_unexpected())
         } else {
-            Ok(pledge)
+            Ok(PledgeWithoutId {
+                reference,
+                lhs: None,
+                rhs: assertion,
+            })
         }
     }
 
     fn parse_pledge(&mut self) -> syn::Result<PledgeWithoutId> {
-        let mut pledge = self.parse_pledge_rhs_only()?;
+        let (reference, assertion) = self.parse_pledge_assertion_only()?;
         if self.consume_operator(",") {
             let rhs = self.parse_prusti()?;
-            pledge.lhs = Some(pledge.rhs.clone());
-            pledge.rhs = rhs;
-            Ok(pledge)
+            Ok(PledgeWithoutId {
+                reference,
+                lhs: Some(assertion),
+                rhs: rhs,
+            })
         } else {
             Err(self.error_expected("`,`"))
         }
     }
 
-    fn parse_pledge_rhs_only(&mut self) -> syn::Result<PledgeWithoutId> {
+    fn parse_pledge_assertion_only(&mut self) -> syn::Result<(Option<ExpressionWithoutId>, AssertionWithoutId)> {
         let mut reference = None;
         if self.contains_operator(&self.tokens, "=>") {
             reference = Some(self.parse_rust_until("=>")?);
@@ -143,11 +149,7 @@ impl Parser {
 
         let assertion = self.parse_prusti()?;
 
-        Ok(PledgeWithoutId {
-            reference,
-            lhs: None,
-            rhs: assertion
-        })
+        Ok((reference, assertion))
     }
 
     /// Parse a prusti expression
