@@ -299,27 +299,20 @@ impl ProcedureLoops {
         // In Rust, the evaluation of a loop guard may happen over several blocks.
         // Here, we identify the CFG blocks that decide whether to exit from the loop or not.
         // They are those blocks in the loop that:
-        // 1. have a SwitchInt terminator
-        // 2. have an out-edge that exists from the loop
+        // 1. have a SwitchInt terminator (TODO: can we remove this condition?)
+        // 2. have an out-edge that exits from the loop
         let mut loop_exit_blocks = HashMap::new();
-        let mut nonconditional_loop_blocks = HashMap::new();
         for &loop_head in loop_heads.iter() {
             let loop_head_depth = loop_head_depths[&loop_head];
             let loop_body = &loop_bodies[&loop_head];
             let ordered_loop_body = &ordered_loop_bodies[&loop_head];
 
             let mut exit_blocks = vec![];
-            let mut nonconditional_blocks = vec![];
-            let mut reached_back_edge = false;
             let mut border = HashSet::new();
             border.insert(loop_head);
 
             for &curr_bb in ordered_loop_body {
                 debug_assert!(border.contains(&curr_bb));
-
-                if !reached_back_edge {
-                    nonconditional_blocks.push(curr_bb);
-                }
 
                 // Decide if this block has an exit edge
                 let term = mir[curr_bb].terminator();
@@ -337,12 +330,7 @@ impl ProcedureLoops {
                 border.remove(&curr_bb);
 
                 for &succ_bb in real_edges.successors(curr_bb) {
-                    if back_edges.contains(&(curr_bb, succ_bb)) {
-                        if succ_bb == loop_head || !loop_body.contains(&succ_bb) {
-                            // From this point, we consider all blocks to be conditional
-                            reached_back_edge = true;
-                        }
-                    } else {
+                    if !back_edges.contains(&(curr_bb, succ_bb)) {
                         // Consider only forward in-loop edges
                         if loop_body.contains(&succ_bb) {
                             border.insert(succ_bb);
@@ -352,9 +340,21 @@ impl ProcedureLoops {
             }
 
             loop_exit_blocks.insert(loop_head, exit_blocks);
-            nonconditional_loop_blocks.insert(loop_head, nonconditional_blocks.into_iter().collect());
         }
         debug!("loop_exit_blocks: {:?}", loop_exit_blocks);
+
+        // The nonconditional blocks of a loop are those blocks of the loop body that dominate all
+        // the blocks from which a back-edge starts.
+        let mut nonconditional_loop_blocks = HashMap::new();
+        for (&loop_head, loop_body) in loop_bodies.iter() {
+            nonconditional_loop_blocks.insert(loop_head, loop_body.clone());
+        }
+        for &(back_edge_source, loop_head) in back_edges.iter() {
+            let blocks = nonconditional_loop_blocks.get_mut(&loop_head).unwrap();
+            *blocks = blocks.intersection(
+                &dominators.dominators(back_edge_source).collect()
+            ).copied().collect();
+        }
         debug!("nonconditional_loop_blocks: {:?}", nonconditional_loop_blocks);
 
         ProcedureLoops {
