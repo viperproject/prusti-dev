@@ -21,4 +21,3 @@ unsafe impl Foo for Dummy {
 }
 
 fn main() {}
-

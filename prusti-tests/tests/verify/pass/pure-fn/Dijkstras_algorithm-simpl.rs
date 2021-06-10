@@ -7,8 +7,7 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::usize;
 
-
-struct VecWrapperNode{}
+struct VecWrapperNode {}
 
 impl VecWrapperNode {
     #[pure]
@@ -23,7 +22,7 @@ struct Grid {
 }
 
 impl Grid {
-    fn find_path(&mut self){
+    fn find_path(&mut self) {
         while true {
             body_invariant!(self.nodes.len() >= 0);
         }
