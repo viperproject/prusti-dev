@@ -106,7 +106,6 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
         let file_name = path.as_path().file_name()
             .expect(&format!("Failed to obtain the name of {:?}", path));
 
-        eprintln!("Creating {:?} -> {:?}", file_name, path);
         if path.is_dir() {
             project_builder = project_builder.symlink_dir(path.as_path(), &Path::new(file_name));
         } else {
