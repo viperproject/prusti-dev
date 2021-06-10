@@ -39,16 +39,31 @@ fn extract_prusti_attributes<'a>(item: &'a mut untyped::AnyFnItem) -> impl Itera
     ).map(
         |attr| attr.path.segments[0].ident.to_string().try_into().ok().map(
             |attr_kind| {
-                // We need to drop the surrounding parenthesis to make the
-                // tokens identical to the ones passed by the native procedural
-                // macro call.
-                let mut iter = attr.tokens.into_iter();
-                let tokens = if let Some(TokenTree::Group(group)) = iter.next() {
-                    group.stream()
-                } else {
-                    unreachable!()
+                let tokens = match attr_kind {
+                    SpecAttributeKind::Requires
+                    | SpecAttributeKind::Ensures
+                    | SpecAttributeKind::AfterExpiry
+                    | SpecAttributeKind::AfterExpiryIf => {
+                        // We need to drop the surrounding parenthesis to make the
+                        // tokens identical to the ones passed by the native procedural
+                        // macro call.
+                        let mut iter = attr.tokens.into_iter();
+                        let tokens = if let Some(TokenTree::Group(group)) = iter.next() {
+                            group.stream()
+                        } else {
+                            unreachable!()
+                        };
+                        assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
+                        tokens
+                    }
+                    // Nothing to do for attributes without arguments.
+                    SpecAttributeKind::Pure
+                    | SpecAttributeKind::Trusted
+                    | SpecAttributeKind::Predicate => {
+                        assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
+                        attr.tokens
+                    }
                 };
-                assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
                 (attr_kind, tokens)
             }
         )
