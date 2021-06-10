@@ -30,20 +30,29 @@ pub struct EncodedArrayTypes<'tcx> {
     pub array_pred: String,
     /// Array type, e.g. TypedRef(Array$3$i32)
     pub array_ty: vir::Type,
+    /// String to use as type predicate for the element type, e.g. i32
+    pub elem_pred: String,
     /// Element type, e.g. TypedRef(i32)
     pub elem_ty: vir::Type,
-    /// Type of an element if stored as a (pure) snapshot value, e.g. Int
-    pub elem_value_ty: vir::Type,
     /// The non-encoded element type as passed by rustc
     pub elem_ty_rs: ty::Ty<'tcx>,
     /// The length of the array, e.g. 3
     pub array_len: usize,
 }
 
-impl<'tcx> EncodedArrayTypes<'tcx> {
-    pub fn encode_lookup_pure_call(&self, array: vir::Expr, idx: vir::Expr) -> vir::Expr {
+impl<'p, 'v: 'p, 'tcx: 'v> EncodedArrayTypes<'tcx> {
+    pub fn encode_lookup_pure_call(&self, encoder: &'p Encoder<'v, 'tcx>, array: vir::Expr, idx: vir::Expr, ret_ty: vir::Type) -> vir::Expr {
+        let lookup_pure = encoder.encode_builtin_function_use(
+            BuiltinFunctionKind::ArrayLookupPure {
+                array_ty_pred: self.array_pred.clone(),
+                elem_ty_pred: self.elem_pred.clone(),
+                array_len: self.array_len,
+                return_ty: ret_ty.clone(),
+            }
+        );
+
         vir::Expr::func_app(
-            LOOKUP_PURE_NAME.to_owned(),
+            lookup_pure,
             vec![
                 array,
                 idx,
@@ -52,7 +61,7 @@ impl<'tcx> EncodedArrayTypes<'tcx> {
                 vir_local!{ self: {self.array_ty.clone()} },
                 vir_local!{ idx: Int },
             ],
-            self.elem_value_ty.clone(),
+            ret_ty,
             vir::Position::default(),
         )
     }
@@ -194,26 +203,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
         // types
         let array_ty = encoder.encode_type(array_ty_rs)?;
         let elem_ty = encoder.encode_type(elem_ty_rs)?;
-        let elem_value_ty = encoder.encode_snapshot_type(elem_ty_rs)?;
 
         let array_len = encoder.const_eval_intlike(&len.val)?
             .to_u64().unwrap().try_into().unwrap();
 
-        // we don't need them here, but want to trigger encoding the definitions
-        let _ = encoder.encode_builtin_function_use(
-            BuiltinFunctionKind::ArrayLookupPure {
-                array_ty_pred: array_pred.clone(),
-                elem_ty_pred: elem_pred,
-                array_len,
-                return_ty: elem_value_ty.clone(),
-            }
-        );
-
         let encoded = EncodedArrayTypes {
             array_pred,
             array_ty,
+            elem_pred,
             elem_ty,
-            elem_value_ty,
             elem_ty_rs,
             array_len,
         };
