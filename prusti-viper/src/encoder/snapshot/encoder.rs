@@ -701,14 +701,8 @@ impl SnapshotEncoder {
                     let lhs_arg = vir_local!{ _l_data: {seq_type.clone()} };
                     let rhs_arg = vir_local!{ _r_data: {seq_type.clone()} };
 
-                    let lhs_call = Expr::domain_func_app(
-                        cons.clone(),
-                        vec![lhs_arg.clone().into()],
-                    );
-                    let rhs_call = Expr::domain_func_app(
-                        cons.clone(),
-                        vec![rhs_arg.clone().into()],
-                    );
+                    let lhs_call = cons.apply(vec![lhs_arg.clone().into()]);
+                    let rhs_call = cons.apply(vec![rhs_arg.clone().into()]);
 
                     vir::DomainAxiom {
                         name: format!("{}$injectivity", domain_name),
@@ -739,20 +733,8 @@ impl SnapshotEncoder {
                     let data = vir_local!{ data: {seq_type} };
                     let idx = vir_local!{ idx: Int };
 
-                    let cons_call = Expr::domain_func_app(
-                        cons.clone(),
-                        vec![
-                            data.clone().into(),
-                        ],
-                    );
-
-                    let read_call = Expr::domain_func_app(
-                        read.clone(),
-                        vec![
-                            cons_call,
-                            idx.clone().into(),
-                        ],
-                    );
+                    let cons_call = cons.apply(vec![data.clone().into()]);
+                    let read_call = read.apply(vec![cons_call, idx.clone().into()]);
 
                     let seq_lookup = Expr::ContainerOp(
                         ContainerOpKind::SeqIndex,
