@@ -128,8 +128,12 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
         );
     }
 
+    // Fetch dependencies
+    let project = project_builder.build();
+    project.process("cargo").arg("build").run();
+
     // Set the expected exit status, stdout and stderr
-    let mut test_builder = project_builder.build().process(cargo_prusti_path());
+    let mut test_builder = project.process(cargo_prusti_path());
     let opt_expected_stdout = fs::read_to_string(project_path.join("output.stdout")).ok();
     let opt_expected_stderr = fs::read_to_string(project_path.join("output.stderr")).ok();
     if let Some(ref expected_stdout) = opt_expected_stdout {
