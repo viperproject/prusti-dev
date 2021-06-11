@@ -645,14 +645,12 @@ impl SnapshotEncoder {
             }
 
             ty::TyKind::Array(elem_ty, ..) => {
-                let elem_value_ty = self.encode_type(encoder, elem_ty)?;
+                let elem_snap_ty = self.encode_type(encoder, elem_ty)?;
                 let at = encoder.encode_array_types(ty)?;
 
                 let domain_name = format!("Snap${}", &at.array_pred);
                 let snap_type = Type::Snapshot(at.array_pred.clone());
-                let elem_pred = encoder.encode_type_predicate_use(at.elem_ty_rs)?;
-                let elem_snap_type = Type::Snapshot(elem_pred);
-                let seq_type = Type::Seq(box elem_value_ty.clone());
+                let seq_type = Type::Seq(box elem_snap_ty.clone());
 
                 let cons = vir::DomainFunc {
                     name: format!("cons${}$", domain_name),
@@ -667,7 +665,7 @@ impl SnapshotEncoder {
                 let snap_body = cons.apply(
                     vec![
                         Expr::Seq(
-                            Type::Seq(box elem_snap_type.clone()),
+                            Type::Seq(box elem_snap_ty.clone()),
                             (0..at.array_len)
                                 .into_iter()
                                 .map(|idx| {
@@ -675,7 +673,7 @@ impl SnapshotEncoder {
                                         encoder,
                                         arg_expr.clone(),
                                         idx.into(),
-                                        elem_value_ty.clone(),
+                                        elem_snap_ty.clone(),
                                     )
                                 })
                                 .collect(),
@@ -732,7 +730,7 @@ impl SnapshotEncoder {
                         vir_local!{ arr: {snap_type} },
                         vir_local!{ idx: Int },
                     ],
-                    return_type: elem_value_ty,
+                    return_type: elem_snap_ty,
                     unique: false,
                     domain_name: domain_name.clone(),
                 };
