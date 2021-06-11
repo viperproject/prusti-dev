@@ -504,7 +504,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     ty::TyKind::Int(_) |
                     ty::TyKind::Bool |
                     ty::TyKind::Char => {
-                        let value_field = self.encoder.encode_value_field(local_arg.ty);
+                        let span = inner_mir_encoder.get_local_span(local_arg_index);
+                        let value_field = self.encoder.encode_value_field(local_arg.ty).with_span(span)?;
                         vir::Expr::local(encoded_arg).field(value_field)
                     }
                     _ => {
@@ -630,12 +631,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                         self.encoder.encode_value_expr(
                             vir::Expr::local(spec_local),
                             local_ty
-                        )
+                        ).with_span(mir_encoder.get_local_span(local))?
                     } else {
                         spec_local.into()
                     };
-                    (spec_local_place, target_arg.clone())
+                    Ok((spec_local_place, target_arg.clone()))
                 })
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter()
         );
 
         // Replacement 2: replace the fake return variable (last argument) of SPEC items with
@@ -649,7 +652,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 self.encoder.encode_value_expr(
                     vir::Expr::local(spec_fake_return),
                     fake_return_ty
-                )
+                ).with_span(mir_encoder.get_local_span(fake_return_local))?
             } else {
                 spec_fake_return.clone().into()
             };

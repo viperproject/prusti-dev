@@ -486,28 +486,27 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Encodes a value in a field if the base expression is a reference or
     /// a primitive types.
     /// For composed data structures, the base expression is returned.
-    pub fn encode_value_expr(&self, base: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
+    pub fn encode_value_expr(&self, base: vir::Expr, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Expr> {
         match ty.kind() {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_) => {
-                base // don't use a field for tuples and ADTs
+                Ok(base) // don't use a field for tuples and ADTs
             }
             _ => {
-                let value_field = self.encode_value_field(ty);
-                base.field(value_field)
+                let value_field = self.encode_value_field(ty)?;
+                Ok(base.field(value_field))
             }
         }
     }
 
-    pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
+    pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Field> {
         let type_encoder = TypeEncoder::new(self, ty);
-        let field = type_encoder.encode_value_field()
-            .expect("failed to encode unsupported type");
+        let field = type_encoder.encode_value_field()?;
         self.fields
             .borrow_mut()
             .entry(field.name.clone())
             .or_insert_with(|| field.clone());
-        field
+        Ok(field)
     }
 
     pub fn encode_raw_ref_field(
