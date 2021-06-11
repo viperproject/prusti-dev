@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use cargo_test_support::{cargo_test, project};
+use cargo_test_support::{cargo_test, project, symlink_supported};
 use std::path::{Path, PathBuf};
 use std::fs;
 
@@ -88,33 +88,41 @@ To learn more, run the command again with --verbose.
 /// * `prusti-contracts` and related Prusti crates: during the test they will link to the
 ///   corresponding Prusti crate.
 ///
+/// This function requires symlinks to be supported.
+///
 /// For more details on the special syntax allowed in the `output.*` files, check the documentation
 /// of `cargo_test_support`: <https://doc.crates.io/contrib/tests/writing.html>.
 fn test_local_project<T: Into<PathBuf>>(project_name: T) {
     let mut project_builder = project().no_manifest();
     let relative_project_path = Path::new("tests/cargo_verify").join(project_name.into());
     let project_path = fs::canonicalize(&relative_project_path).expect(
-        &format!("Failed to canonicalize the path {:?}", relative_project_path)
+        &format!("Failed to canonicalize the path {}", relative_project_path.display())
     );
 
     // Populate the test project with symlinks to the local project
     let project_path_content = fs::read_dir(&project_path)
-        .expect(&format!("Failed to read directory {:?}", project_path));
+        .expect(&format!("Failed to read directory {}", project_path.display()));
     for entry in project_path_content {
-        let entry = entry.expect(&format!("Failed to read content of {:?}", project_path));
+        let entry = entry.expect(&format!("Failed to read content of {}", project_path.display()));
         let path = entry.path();
         let file_name = path.as_path().file_name()
-            .expect(&format!("Failed to obtain the name of {:?}", path));
-
+            .expect(&format!("Failed to obtain the name of {}", path.display()));
         if path.is_dir() {
+            eprintln!("Symlink dir {:?} -> {}", file_name, path.display());
             project_builder = project_builder.symlink_dir(path.as_path(), &Path::new(file_name));
         } else {
+            eprintln!("Symlink file {:?} -> {}", file_name, path.display());
             project_builder = project_builder.symlink(path.as_path(), &Path::new(file_name));
         }
     }
 
     // Create a special symlink for prusti_contract and related Prusti crates
-    let prusti_dev_path = project_path.join("../../../..");
+    let prusti_dev_path = project_path
+        .parent()
+        .and_then(|p| p.parent())
+        .and_then(|p| p.parent())
+        .and_then(|p| p.parent())
+        .expect(&format!("Failed to obtain parent folders of {}", project_path.display()));
     let prusti_contract_deps = [
         "prusti-specs",
         "prusti-contracts",
@@ -122,6 +130,7 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
         "prusti-contracts-internal",
     ];
     for crate_name in &prusti_contract_deps {
+        eprintln!("Symlink dir {:?} -> {}", crate_name, prusti_dev_path.join(crate_name).display());
         project_builder = project_builder.symlink_dir(
             prusti_dev_path.join(crate_name).as_path(),
             &Path::new(crate_name)
@@ -145,6 +154,12 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
 
     // Run the test
     test_builder.run();
+}
+
+#[cargo_test]
+fn test_symlinks() {
+    // Required by `test_local_project`
+    assert!(symlink_supported());
 }
 
 #[cargo_test]
