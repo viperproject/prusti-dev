@@ -335,13 +335,42 @@ impl Parse for CreditVarPower<syn::ExprPath> {
 
 impl Parse for CreditPolynomialTerm<(), syn::Expr, syn::ExprPath> {     //TODO: maybe generic type parameters?
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let coeff_expr = input.parse()?;             //TODO: check that expression has valid form
-        input.parse::<Token![*]>()?;
-        let parsed_powers: syn::punctuated::Punctuated<CreditVarPower<syn::ExprPath>, Token![*]>
-            = input.parse_terminated(CreditVarPower::parse)?;
+        // parse parenthesized expression or single literal as coefficient expression
+        // need to distinguish to avoid parsing beyond the `*` separating the coefficient from the powers
+        let parsed_coeff_expr =
+            if input.peek(syn::token::Paren) {
+                //TODO: check that expression has valid form
+                let parsed = input.parse::<syn::ExprParen>()?;
+                syn::Expr::Paren(parsed)
+            }
+            else {
+                let parsed = input.parse::<syn::ExprLit>()?;
+                syn::Expr::Lit(parsed)
+            };  //TODO: need to add single Identifier for called function cost?
+        let coeff_expr = ExpressionWithoutId {
+            spec_id: common::SpecificationId::dummy(),
+            id: (),
+            expr: parsed_coeff_expr,
+        };
+
+        let mut powers = vec![];        // stays empty for constant term
+
+        /* TODO: Nesting parse_terminated not working because whole stream is given to this function? expects * instead of +
+            let parsed_powers: syn::punctuated::Punctuated<CreditVarPower<syn::ExprPath>, Token![*]>
+                = input.parse_terminated(CreditVarPower::parse)?;
+            Ok(Self{
+                coeff_expr,
+                powers: parsed_powers.into_iter().collect(),
+        })*/
+        while input.peek(Token![*]) {
+            input.parse::<Token![*]>()?;
+
+            powers.push(input.parse::<CreditVarPower<syn::ExprPath>>()?);
+        }
+
         Ok(Self{
             coeff_expr,
-            powers: parsed_powers.into_iter().collect(),
+            powers,
         })
     }
 }
