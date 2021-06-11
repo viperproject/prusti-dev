@@ -446,7 +446,7 @@ impl SnapshotEncoder {
 
         Ok(read_func.apply(
             vec![
-                vir::Expr::snap_app(array),
+                array,
                 idx,
             ],
         ))
