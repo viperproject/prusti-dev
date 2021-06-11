@@ -279,7 +279,6 @@ pub trait ExprFolder: Sized {
     fn fold_seq(&mut self, t: Type, elems: Vec<Expr>, p: Position) -> Expr {
         Expr::Seq(t, elems.into_iter().map(|e| self.fold(e)).collect(), p)
     }
-
 }
 
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {

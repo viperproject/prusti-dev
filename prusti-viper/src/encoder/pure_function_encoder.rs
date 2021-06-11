@@ -1182,12 +1182,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     vir::Type::Seq(box encoded_elem_ty),
                                     encoded_operands,
                                     vir::Position::default(),
-                                    );
+                                );
 
                                 let snapshot = self.encoder.encode_snapshot_constructor(
                                     ty,
                                     vec![elems],
-                                    ).with_span(span)?;
+                                ).with_span(span)?;
 
                                 state.substitute_place(&encoded_lhs, snapshot);
                             }

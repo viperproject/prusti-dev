@@ -88,7 +88,6 @@ impl ExprFootprintGetter for vir::Expr {
                 res
             }
 
-
             vir::Expr::Cond(box guard, box left, box right, _) => union3(
                 &guard.get_footprint(predicates),
                 &left.get_footprint(predicates),
