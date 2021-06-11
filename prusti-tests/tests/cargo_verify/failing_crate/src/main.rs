@@ -8,4 +8,5 @@ fn bad_client() {
 
 fn main() {
     assert!(true);
+    bad_client();
 }
