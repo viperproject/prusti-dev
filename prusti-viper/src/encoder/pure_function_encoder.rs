@@ -534,10 +534,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                 let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
                 if self.is_encoding_assertion {
-                    let at = self.encoder.encode_array_types(rust_array_ty)?;
-                    let lookup_ret_ty = self.encoder.encode_snapshot_type(at.elem_ty_rs)?;
+                    let array_types = self.encoder.encode_array_types(rust_array_ty)?;
+                    let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs)?;
 
-                    at.encode_lookup_pure_call(
+                    array_types.encode_lookup_pure_call(
                         self.encoder,
                         postprocessed_base,
                         idx_val_int,
@@ -1350,8 +1350,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let place_ty = self.encode_place(place).with_span(span)?.1;
                         match place_ty.kind() {
                             ty::TyKind::Array(..) => {
-                                let at = self.encoder.encode_array_types(place_ty).with_span(span)?;
-                                state.substitute_value(&opt_lhs_value_place.unwrap(), at.array_len.into());
+                                let array_types = self.encoder.encode_array_types(place_ty).with_span(span)?;
+                                state.substitute_value(&opt_lhs_value_place.unwrap(), array_types.array_len.into());
                             }
                             _ => unimplemented!("len of '{:?}'", place_ty),
                         }

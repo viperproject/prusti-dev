@@ -646,10 +646,10 @@ impl SnapshotEncoder {
 
             ty::TyKind::Array(elem_ty, ..) => {
                 let elem_snap_ty = self.encode_type(encoder, elem_ty)?;
-                let at = encoder.encode_array_types(ty)?;
+                let array_types = encoder.encode_array_types(ty)?;
 
-                let domain_name = format!("Snap${}", &at.array_pred);
-                let snap_type = Type::Snapshot(at.array_pred.clone());
+                let domain_name = format!("Snap${}", &array_types.array_pred);
+                let snap_type = Type::Snapshot(array_types.array_pred.clone());
                 let seq_type = Type::Seq(box elem_snap_ty.clone());
 
                 let cons = vir::DomainFunc {
@@ -666,10 +666,10 @@ impl SnapshotEncoder {
                     vec![
                         Expr::Seq(
                             Type::Seq(box elem_snap_ty.clone()),
-                            (0..at.array_len)
+                            (0..array_types.array_len)
                                 .into_iter()
                                 .map(|idx| {
-                                    at.encode_lookup_pure_call(
+                                    array_types.encode_lookup_pure_call(
                                         encoder,
                                         arg_expr.clone(),
                                         idx.into(),
@@ -688,7 +688,7 @@ impl SnapshotEncoder {
                     return_type: snap_type.clone(),
                     pres: vec![
                         Expr::predicate_access_predicate(
-                            at.array_pred,
+                            array_types.array_pred,
                             arg_expr,
                             PermAmount::Read,
                         ),
