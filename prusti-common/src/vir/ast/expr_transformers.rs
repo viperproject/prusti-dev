@@ -761,12 +761,13 @@ pub trait FallibleExprFolder: Sized {
         elems: Vec<Expr>,
         p: Position,
     ) -> Result<Expr, Self::Error> {
-        let mut folded = Vec::with_capacity(elems.len());
-        for e in elems {
-            folded.push(self.fallible_fold(e)?);
-        }
-
-        Ok(Expr::Seq(ty, folded, p))
+        Ok(Expr::Seq(
+            ty,
+            elems.into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<_, _>>()?,
+            p,
+        ))
     }
 }
 
