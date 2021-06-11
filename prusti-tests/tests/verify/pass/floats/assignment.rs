@@ -1,4 +1,4 @@
 fn main(){
-    let _x = 0.5;
-    assert!(_x == 0. + 0.5);
+    let x = 0.5;
+    assert!(x > 0.);
 }

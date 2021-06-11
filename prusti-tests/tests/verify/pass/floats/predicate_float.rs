@@ -11,5 +11,4 @@ fn is_finite(x:f64) -> bool {f64::NEG_INFINITY < x && x < f64::INFINITY}
 #[ensures(is_zero(result))]
 fn foo(x:f64) -> f64 { x - x }
 
-
 fn main() {}

@@ -625,11 +625,8 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
 }
 
 impl<'a, 'v> ToViper<'v, viper::BackendFunc<'v>> for &'a BackendFunc {
-    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::BackendFunc<'v> {
-        match self {
-            BackendFunc::BVfunc(name, arg) => unimplemented!("BV backend func unimplemented"),
-            BackendFunc::Floatfunc(name, arg) => unimplemented!("float backend func unimplemented")
-        }
+    fn to_viper(&self, _ast: &AstFactory<'v>) -> viper::BackendFunc<'v> {
+        unimplemented!("BackendFunc ToViper currently unused")
     }
 }
 

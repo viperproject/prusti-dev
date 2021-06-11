@@ -455,7 +455,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             _ => unimplemented!("{:?}", value),
         };
 
-        if let Some(v) = opt_scalar_value {
+        if let Some(v) = opt_scalar_value {            
+            println!("{}", v);
             Ok(v)
         } else {
             Err(EncodingError::unsupported(
@@ -1102,13 +1103,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Uint(ty::UintTy::U64) => scalar_value.to_u64().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U128) => scalar_value.to_u128().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::Usize) => scalar_value.to_machine_usize(&self.env().tcx()).unwrap().into(),
-            // Convert floats from rustc_apfloat::ieee:IEEE to Expr::Const manually
             ty::TyKind::Float(ty::FloatTy::F32) => {
                 let bits = scalar_value.to_u32().unwrap();
                 vir::Expr::Const(vir::Const::Float(vir::FloatConst::FloatConst32(bits)), vir::Position::default())
             },
             ty::TyKind::Float(ty::FloatTy::F64) => {
                 let bits = scalar_value.to_u64().unwrap();
+                println!("u64 {}", bits);
                 vir::Expr::Const(vir::Const::Float(vir::FloatConst::FloatConst64(bits)), vir::Position::default())
             }
             

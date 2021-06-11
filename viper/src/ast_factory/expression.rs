@@ -207,10 +207,11 @@ impl<'a> AstFactory<'a> {
 
     pub fn backend_bv64_lit(&self, bits: u64) -> Expr<'a> {    
         let bits_as_int: i64 = unsafe { std::mem::transmute(bits) };
+        println!("backend i64: {}", bits_as_int);
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV64")).unwrap();
-        self.backend_func_app(from_int, &[self.int_lit(bits_as_int)], self.no_position())
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
 
     pub fn bv_binop(&self, op_kind: BinOpBv, bv_size:BvSize, left: Expr, right: Expr) -> Expr<'a> {
@@ -244,16 +245,15 @@ impl<'a> AstFactory<'a> {
 
     }
     
-    // Backend Floating-Points
-    
+    // Backend Floating-Points    
     pub fn float_binop(&self, op_kind: BinOpFloat, f_size: FloatSizeViper, left: Expr, right: Expr) -> Expr<'a> {
         let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap(); // Rounding mode
         let factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
-        let factory = match f_size { // FloatFactory JObject
+        let factory = match f_size { //
             FloatSizeViper::F32 => ast::utility::FloatFactory::new(&factory_, 24,8, rm).unwrap(),
             FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52,12, rm).unwrap(),
         };
-        let op = match op_kind {
+        let op = match op_kind { // create FloatFactory function to call
             BinOpFloat::Add => 
                 ast::utility::FloatFactory::call_add(&factory_, factory, self.jni.new_string("fp_add")).unwrap(),
             BinOpFloat::Sub => 
