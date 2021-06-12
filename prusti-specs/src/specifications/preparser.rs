@@ -382,35 +382,26 @@ impl Parser {
     }
     /// does the given operator appear in the stream at top level
     fn contains_operator(&self, stream: &VecDeque<TokenTree>, operator: &str) -> bool {
-        let mut stream = stream.clone();
-        while !stream.is_empty() { // TODO: make this loop by index so we don't need to clone the stream
-            if self.peek_operator_stream(&stream, operator) {
-                return true;
-            }
-            stream.pop_front();
-        }
-        false
+        (0..stream.len()).any(|offset: usize| self.peek_operator_stream_offset(&stream, operator, offset))
     }
     /// does the given operator appear in the stream anywhere
     fn contains_operator_recursive(&self, stream: &VecDeque<TokenTree>, operator: &str) -> Option<Span> {
-        let mut stream = stream.clone();
-        while !stream.is_empty() {
-            if self.peek_operator_stream(&stream, operator) {
-                return Some(self.operator_span(&stream, operator));
+        for (offset, token) in stream.iter().enumerate() {
+            if self.peek_operator_stream_offset(&stream, operator, offset) {
+                return Some(self.operator_span_offset(&stream, operator, offset));
             }
-            if let Some(TokenTree::Group(group)) = stream.front() {
+            if let TokenTree::Group(group) = token {
                 let nested_stream: VecDeque<TokenTree> = group.stream().into_iter().collect();
                 if let Some(span) = self.contains_operator_recursive(&nested_stream, operator) {
                     return Some(span);
                 }
             }
-            stream.pop_front();
         }
         None
     }
     /// get the span of the peeked operator
-    fn operator_span(&self, stream: &VecDeque<TokenTree>, operator: &str) -> Span {
-        stream.get(0).unwrap().span().join(stream.get(operator.len() - 1).unwrap().span()).unwrap()
+    fn operator_span_offset(&self, stream: &VecDeque<TokenTree>, operator: &str, offset: usize) -> Span {
+        stream.get(offset).unwrap().span().join(stream.get(offset + operator.len() - 1).unwrap().span()).unwrap()
     }
     /// Check if there is a subexpression (parenthesized or separated by `==>`)
     /// that contains both `&&` and `||`. If yes, set the span to include both
@@ -419,17 +410,16 @@ impl Parser {
     fn contains_both_and_or(&self, stream: &VecDeque<TokenTree>) -> Option<Span> {
         let mut and_span: Option<Span> = None;
         let mut or_span: Option<Span> = None;
-        let mut stream = stream.clone();
 
-        while !stream.is_empty() {
-            if self.peek_operator_stream(&stream, "&&") {
-                and_span = Some(self.operator_span(&stream, "&&"));
-            } else if self.peek_operator_stream(&stream, "||") {
-                or_span = Some(self.operator_span(&stream, "||"));
-            } else if self.peek_operator_stream(&stream, "==>") {
+        for (offset, token) in stream.iter().enumerate() {
+            if self.peek_operator_stream_offset(&stream, "&&", offset) {
+                and_span = Some(self.operator_span_offset(&stream, "&&", offset));
+            } else if self.peek_operator_stream_offset(&stream, "||", offset) {
+                or_span = Some(self.operator_span_offset(&stream, "||", offset));
+            } else if self.peek_operator_stream_offset(&stream, "==>", offset) {
                 and_span = None;
                 or_span = None;
-            } else if let Some(TokenTree::Group(group)) = stream.front() {
+            } else if let TokenTree::Group(group) = token {
                 if group.delimiter() == Delimiter::Parenthesis {
                     let inner = group.stream().into_iter().collect();
                     let span = self.contains_both_and_or(&inner);
@@ -443,18 +433,17 @@ impl Parser {
                 (Some(a_s), Some(o_s)) => return Some(a_s.join(o_s).unwrap()),
                 _ => (),
             }
-            stream.pop_front();
         }
         None
     }
     /// does the input start with this operator?
     fn peek_operator(&self, operator: &str) -> bool {
-        self.peek_operator_stream(&self.tokens, operator)
+        self.peek_operator_stream_offset(&self.tokens, operator, 0)
     }
     /// does the given stream contain this operator?
-    fn peek_operator_stream(&self, stream: &VecDeque<TokenTree>, operator: &str) -> bool {
+    fn peek_operator_stream_offset(&self, stream: &VecDeque<TokenTree>, operator: &str, offset: usize) -> bool {
         for (i, c) in operator.char_indices() {
-            if let Some(TokenTree::Punct(punct)) = stream.get(i) {
+            if let Some(TokenTree::Punct(punct)) = stream.get(i + offset) {
                 if punct.as_char() != c {
                     return false;
                 }
