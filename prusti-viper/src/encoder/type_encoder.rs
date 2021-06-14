@@ -107,52 +107,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(vir::Type::TypedRef(self.encode_predicate_use()?))
     }
 
-    pub fn encode_value_type(self) -> EncodingResult<vir::Type> {
-        debug!("Encode value type '{:?}'", self.ty);
-        Ok(match self.ty.kind() {
-            ty::TyKind::Bool => vir::Type::Bool,
-
-            ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
-                vir::Type::Int
-            }
-
-            ty::TyKind::Ref(_, ref ty, _) => {
-                let type_name = self.encoder.encode_type_predicate_use(ty)?;
-                vir::Type::TypedRef(type_name)
-            }
-
-            ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => {
-                let snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                snapshot.get_type()
-            }
-
-            ty::TyKind::RawPtr(ty::TypeAndMut { .. }) => {
-                return Err(EncodingError::unsupported(
-                    "raw pointers are not supported"
-                ));
-            }
-
-            ref x => unimplemented!("{:?}", x),
-        })
-    }
-
-
-    /// provides the type of the underlying value or a reference in case of composed
-    /// data structures
-    pub fn encode_value_or_ref_type(self) -> EncodingResult<vir::Type> {
-        debug!("Encode ref value type '{:?}'", self.ty);
-        match self.ty.kind() {
-            ty::TyKind::Adt(_, _)
-            | ty::TyKind::Tuple(_) => {
-                let _snapshot = self.encoder.encode_snapshot(&self.ty)?;
-                let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
-                Ok(vir::Type::TypedRef(type_name))
-            },
-
-            _ => self.encode_value_type(),
-        }
-    }
-
     pub fn encode_value_field(self) -> EncodingResult<vir::Field> {
         trace!("Encode value field for type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
@@ -506,10 +460,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )
             }
 
-            ty::TyKind::Slice(array_ty) => {
+            ty::TyKind::Slice(elem_ty) => {
                 format!(
-                    "slice${}",
-                    self.encoder.encode_type_predicate_use(array_ty)?
+                    "Slice${}",
+                    self.encoder.encode_type_predicate_use(elem_ty)?
                 )
             }
 
@@ -585,22 +539,19 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     let own_substs =
                         ty::List::identity_for_item(self.encoder.env().tcx(), adt_def.did);
 
-                    {
-                        // FIXME: this is a hack to support generics. See issue #187.
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        let mut tymap = HashMap::new();
+                    // FIXME: this is a hack to support generics. See issue #187.
+                    let mut tymap = HashMap::new();
 
-                        for (kind1, kind2) in own_substs.iter().zip(*subst) {
-                            if let (
-                                ty::subst::GenericArgKind::Type(ty1),
-                                ty::subst::GenericArgKind::Type(ty2),
-                            ) = (kind1.unpack(), kind2.unpack())
-                            {
-                                tymap.insert(ty1, ty2);
-                            }
+                    for (kind1, kind2) in own_substs.iter().zip(*subst) {
+                        if let (
+                            ty::subst::GenericArgKind::Type(ty1),
+                            ty::subst::GenericArgKind::Type(ty2),
+                        ) = (kind1.unpack(), kind2.unpack())
+                        {
+                            tymap.insert(ty1, ty2);
                         }
-                        tymap_stack.push(tymap);
                     }
+                    let _cleanup_token = self.encoder.push_temp_tymap(tymap);
 
                     let mut exprs: Vec<vir::Expr> = vec![];
                     let num_variants = adt_def.variants.len();
@@ -650,12 +601,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             }
                             _ => unreachable!(),
                         }
-                    }
-
-                    // FIXME: this is a hack to support generics. See issue #187.
-                    {
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        tymap_stack.pop();
                     }
 
                     if num_variants == 0 {
@@ -723,6 +668,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             posts: Vec::new(),
             body: field_invariants.map(|invs| invs.into_iter().conjoin()),
         };
+
+        // Patch snapshots
+        let function = self.encoder.patch_snapshots_function(function)?;
 
         self.encoder
             .log_vir_program_before_foldunfold(function.to_string());

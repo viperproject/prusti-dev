@@ -119,17 +119,25 @@ fn init_loggers() {
     rustc_driver::init_rustc_env_logger();
 }
 
+const PRUSTI_PACKAGES: [&str; 4] = [
+    "prusti-contracts-internal",
+    "prusti-contracts-impl",
+    "prusti-contracts",
+    "prusti-specs",
+];
+
 fn main() {
     // We assume that prusti-rustc already removed the first "rustc" argument
     // added by RUSTC_WRAPPER and all command line arguments -P<arg>=<val>
     // have been filtered out.
     let mut rustc_args = config::get_filtered_args();
 
-    // If the environment asks us to actually be rustc, or if lints have been disabled, then
-    // run `rustc` instead of Prusti.
+    // If the environment asks us to actually be rustc, or if lints have been disabled (which
+    // indicates that an upstream dependency is being compiled), then run `rustc` instead of Prusti.
     let prusti_be_rustc = config::be_rustc();
     let are_lints_disabled = arg_value(&rustc_args, "--cap-lints", |val| val == "allow").is_some();
-    if prusti_be_rustc || are_lints_disabled {
+    let is_prusti_package = env::var("CARGO_PKG_NAME").map(|name| PRUSTI_PACKAGES.contains(&name.as_str())).unwrap_or(false);
+    if prusti_be_rustc || are_lints_disabled || is_prusti_package {
         rustc_driver::main();
     }
 
@@ -165,7 +173,6 @@ fn main() {
         rustc_args.push("-Zalways-encode-mir".to_owned());
         rustc_args.push("-Zcrate-attr=feature(register_tool)".to_owned());
         rustc_args.push("-Zcrate-attr=register_tool(prusti)".to_owned());
-        rustc_args.push("--cfg=prusti".to_owned());
 
         if config::check_overflows() {
             // Some crates might have a `overflow-checks = false` in their `Cargo.toml` to

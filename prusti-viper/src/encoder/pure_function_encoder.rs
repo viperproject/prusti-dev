@@ -7,8 +7,7 @@
 use std::mem;
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::errors::{PanicCause, RunIfErr};
-use crate::encoder::errors::{SpannedEncodingError, ErrorCtxt, WithSpan};
+use crate::encoder::errors::{SpannedEncodingError, ErrorCtxt, WithSpan, PanicCause};
 use crate::encoder::foldunfold;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
@@ -17,7 +16,6 @@ use crate::encoder::mir_interpreter::{
 };
 use crate::encoder::snapshot;
 use crate::encoder::Encoder;
-use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
 use prusti_common::{vir, vir_local};
 use prusti_common::vir::ExprIterator;
 use prusti_common::config;
@@ -100,14 +98,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             state.substitute_place(&target_place, new_place);
         }
 
-        let body_expr = state.into_expressions().remove(0);
+        let mut body_expr = state.into_expressions().remove(0);
         debug!(
             "Pure function {} has been encoded with expr: {}",
             function_name, body_expr
         );
 
         // if the function returns a snapshot, we take a snapshot of the body
-        if self.encode_function_return_type()?.is_domain() {
+        if self.encode_function_return_type()?.is_snapshot() {
             let ty = self.encoder.resolve_typaram(self.mir.return_ty());
             let return_span = self.get_local_span(mir::RETURN_PLACE);
 
@@ -118,13 +116,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 ));
             }
 
-            let snapshot = self.encoder.encode_snapshot(&ty)
-                .with_span(return_span)?;
-            let body_expr = snapshot.snap_call(body_expr);
-            self.encode_function_given_body(Some(body_expr))
-        } else {
-            self.encode_function_given_body(Some(body_expr))
+            body_expr = vir::Expr::snap_app(body_expr);
         }
+        self.encode_function_given_body(Some(body_expr))
     }
 
     pub fn encode_bodyless_function(&self)
@@ -199,7 +193,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let mir_type = mir_encoder.get_local_ty(local);
             let var_type = self
                 .encoder
-                .encode_value_or_ref_type(self.encoder.resolve_typaram(mir_type))
+                .encode_snapshot_type(mir_type)
                 .with_span(var_span)?;
             let var_type = var_type.patch(&subst_strings);
             formal_args.push(vir::LocalVar::new(var_name, var_type))
@@ -250,15 +244,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             postcondition
         );
 
-        let postcondition = postcondition
-            .into_iter()
-            .map(|post|
-                SnapshotSpecPatcher::new(self.encoder)
-                    .patch_spec(post)
-                    // TODO: use a better span
-                    .with_span(self.mir.span)
-            ).collect::<Result<_, _>>()?;
-
         let mut function = vir::Function {
             name: function_name.clone(),
             formal_args,
@@ -274,6 +259,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         if config::simplify_encoding() {
             function = vir::optimizations::functions::Simplifier::simplify(function);
         }
+
+        // Patch snapshots
+        function = self.encoder.patch_snapshots_function(function)
+            .with_span(self.mir.span)?;
 
         // Add folding/unfolding
         foldunfold::add_folding_unfolding_to_function(
@@ -336,17 +325,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         Ok((
             type_spec.into_iter().conjoin(),
-            func_spec
-                .into_iter()
-                .map(|post|
-                    SnapshotSpecPatcher::new(self.encoder)
-                        .patch_spec(post)
-                        // TODO: use a better span
-                        .with_span(self.mir.span)
-                )
-                .collect::<Result<Vec<_>, _>>()?
-                .into_iter()
-                .conjoin(),
+            func_spec.into_iter().conjoin(),
         ))
     }
 
@@ -395,11 +374,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos);
 
-        // TODO: use a better span
-        Ok(SnapshotSpecPatcher::new(self.encoder)
-            .patch_spec(post)
-            .with_span(self.mir.span)?
-        )
+        Ok(post)
     }
 
     fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
@@ -407,7 +382,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let var_name = mir_encoder.encode_local_var_name(local);
         let var_span = mir_encoder.get_local_span(local);
         let var_type = self.encoder
-            .encode_value_or_ref_type(self.interpreter.mir_encoder().get_local_ty(local))
+            .encode_snapshot_type(self.interpreter.mir_encoder().get_local_ty(local))
             .with_span(var_span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
     }
@@ -435,7 +410,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.interpreter.mir_encoder().get_local_span(return_local);
-        self.encoder.encode_value_type(ty).with_span(span)
+        self.encoder.encode_snapshot_type(ty).with_span(span)
     }
 }
 
@@ -544,7 +519,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
         // Generate a function call that leaves the expression undefined.
         let unreachable_expr = |pos| {
-            self.encoder.encode_value_or_ref_type(self.mir.return_ty()).map(|encoded_type| {
+            self.encoder.encode_snapshot_type(self.mir.return_ty()).map(|encoded_type| {
                 let function_name =
                     self.encoder
                         .encode_builtin_function_use(BuiltinFunctionKind::Unreachable(
@@ -556,7 +531,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
         // Generate a function call that leaves the expression undefined.
         let undef_expr = |pos| {
-            self.encoder.encode_value_or_ref_type(self.mir.return_ty()).map(|encoded_type| {
+            self.encoder.encode_snapshot_type(self.mir.return_ty()).map(|encoded_type| {
                 let function_name = self
                     .encoder
                     .encode_builtin_function_use(BuiltinFunctionKind::Undefined(encoded_type.clone()));
@@ -734,33 +709,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     let own_substs =
                         ty::List::identity_for_item(self.encoder.env().tcx(), def_id);
 
-                    {
-                        // FIXME: this is a hack to support generics. See issue #187.
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        let mut tymap = HashMap::new();
-
-                        for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
-                            if let (
-                                ty::subst::GenericArgKind::Type(ty1),
-                                ty::subst::GenericArgKind::Type(ty2),
-                            ) = (kind1.unpack(), kind2.unpack())
-                            {
-                                tymap.insert(ty1, ty2);
-                            }
+                    // FIXME: this is a hack to support generics. See issue #187.
+                    let mut tymap = HashMap::new();
+                    for (kind1, kind2) in own_substs.iter().zip(substs.iter()) {
+                        if let (
+                            ty::subst::GenericArgKind::Type(ty1),
+                            ty::subst::GenericArgKind::Type(ty2),
+                        ) = (kind1.unpack(), kind2.unpack())
+                        {
+                            tymap.insert(ty1, ty2);
                         }
-                        tymap_stack.push(tymap);
                     }
-                    let cleanup = || {
-                        // FIXME: this is a hack to support generics. See issue #187.
-                        let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
-                        tymap_stack.pop();
-                    };
+                    let _cleanup_token = self.encoder.push_temp_tymap(tymap);
 
                     let state = if destination.is_some() {
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                         let (encoded_lhs, ty, _) = self.encode_place(lhs_place)
-                            .with_span(span)
-                            .run_if_err(cleanup)?;
+                            .with_span(span)?;
                         let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty);
                         let encoded_args: Vec<vir::Expr> = args
                             .iter()
@@ -776,7 +741,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 // Return an error for unsupported old(..) types
                                 let tcx = self.encoder.env().tcx();
                                 if !is_supported_type_of_pure_expression(tcx, ty) {
-                                    cleanup();
                                     return Err(SpannedEncodingError::incorrect(
                                         "the type of the old expression is invalid",
                                         term.source_info.span,
@@ -801,48 +765,42 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state
                             }
+
+                            "std::cmp::PartialEq::eq"
+                            if self.encoder.has_structural_eq_impl(
+                                self.mir_encoder.get_operand_ty(&args[0])
+                            ) => {
+                                assert_eq!(args.len(), 2);
+                                let encoded_rhs = vir::Expr::eq_cmp(
+                                    vir::Expr::snap_app(encoded_args[0].clone()),
+                                    vir::Expr::snap_app(encoded_args[1].clone()),
+                                );
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state
+                            }
+
+                            "std::cmp::PartialEq::ne"
+                            if self.encoder.has_structural_eq_impl(
+                                self.mir_encoder.get_operand_ty(&args[0])
+                            ) => {
+                                assert_eq!(args.len(), 2);
+                                let encoded_rhs = vir::Expr::ne_cmp(
+                                    vir::Expr::snap_app(encoded_args[0].clone()),
+                                    vir::Expr::snap_app(encoded_args[1].clone()),
+                                );
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state
+                            }
+
                             // simple function call
                             _ => {
-                                let mut is_cmp_call = false;
                                 let is_pure_function = self.encoder.is_pure(def_id);
                                 let (function_name, return_type) = if is_pure_function {
                                     self.encoder.encode_pure_function_use(def_id)
-                                        .with_span(term.source_info.span)
-                                        .run_if_err(cleanup)?
+                                        .with_span(term.source_info.span)?
                                 } else {
-                                    // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
-                                    // function
-                                    if args.len() == 2 {
-                                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                        match self.encoder.get_item_name(def_id).as_str() {
-                                            "std::cmp::PartialEq::eq"
-                                            if self.encoder.has_structural_eq_impl(arg_ty) => {
-                                                is_cmp_call = true;
-                                                self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, true)
-                                                    .run_if_err(cleanup)?
-                                            }
-                                            "std::cmp::PartialEq::ne"
-                                            if self.encoder.has_structural_eq_impl(arg_ty) => {
-                                                is_cmp_call = true;
-                                                self.encoder.encode_cmp_pure_function_use(def_id, arg_ty, false)
-                                                    .run_if_err(cleanup)?
-                                            }
-                                            _ => {
-                                                // TODO: interestingly, this crashes for
-                                                // custom implementations of eq as the def_id
-                                                // is not local; for details, see
-                                                // https://github.com/viperproject/prusti-dev/issues/188.
-                                                self.encoder.encode_stub_pure_function_use(def_id)
-                                                    .run_if_err(cleanup)?
-                                            }
-                                        }
-                                    } else {
-                                        self.encoder.encode_stub_pure_function_use(def_id)
-                                            .run_if_err(cleanup)?
-                                    }
-                                };
-                                if !is_pure_function && !is_cmp_call {
-                                    cleanup();
                                     return Err(SpannedEncodingError::incorrect(
                                         format!(
                                             "use of impure function {:?} in pure code is not allowed",
@@ -850,7 +808,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         ),
                                         term.source_info.span,
                                     ));
-                                }
+                                };
                                 trace!("Encoding pure function call '{}'", function_name);
 
                                 let formal_args: Vec<vir::LocalVar> = args
@@ -861,29 +819,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                             .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
                                     })
                                     .collect::<Result<_, _>>()
-                                    .with_span(term.source_info.span)
-                                    .run_if_err(cleanup)?;
+                                    .with_span(term.source_info.span)?;
 
                                 let pos = self
                                     .encoder
                                     .error_manager()
                                     .register(term.source_info.span, ErrorCtxt::PureFunctionCall);
-                                let mut encoded_rhs = vir::Expr::func_app(
+                                let encoded_rhs = vir::Expr::func_app(
                                     function_name,
                                     encoded_args,
                                     formal_args,
                                     return_type,
                                     pos,
                                 );
-                                if config::enable_purification_optimization() {
-                                    if let Some(proc_id) = self.encoder.current_proc.borrow().clone() {
-                                        if !self.encoder.is_pure(proc_id) {
-                                            let snapshots = self.encoder.get_snapshots();
-                                            let mut ap = snapshot::AssertPurifier::new(&snapshots, snapshot::two_nat());
-                                            encoded_rhs = vir::ExprFolder::fold(&mut ap, encoded_rhs.clone());
-                                        }
-                                    }
-                                }
                                 let mut state = states[&target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state
@@ -914,12 +862,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             .error_manager()
                             .register(term.source_info.span, error_ctxt);
                         MultiExprBackwardInterpreterState::new_single(
-                            unreachable_expr(pos).with_span(term.source_info.span)
-                                .run_if_err(cleanup)?
+                            unreachable_expr(pos).with_span(term.source_info.span)?
                         )
                     };
 
-                    cleanup();
                     state
                 } else {
                     // Other kind of calls?
@@ -1076,6 +1022,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 } else {
                                     unreachable!()
                                 };
+                                let mut field_exprs = vec![];
                                 for (field_num, operand) in operands.iter().enumerate() {
                                     let field_name = format!("tuple_{}", field_num);
                                     let field_ty = field_types[field_num];
@@ -1089,6 +1036,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     match encoded_operand {
                                         Some(encoded_rhs) => {
                                             // Substitute a place
+                                            field_exprs.push(encoded_rhs.clone());
                                             state.substitute_place(&field_place, encoded_rhs);
                                         }
                                         None => {
@@ -1096,6 +1044,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                             let rhs_expr =
                                                 self.mir_encoder.encode_operand_expr(operand)
                                                     .with_span(span)?;
+                                            field_exprs.push(rhs_expr.clone());
                                             state.substitute_value(
                                                 &self.encoder.encode_value_expr(field_place, field_ty.expect_ty()),
                                                 rhs_expr,
@@ -1103,6 +1052,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         }
                                     }
                                 }
+                                let snapshot = self.encoder.encode_snapshot_constructor(
+                                    ty,
+                                    field_exprs,
+                                ).with_span(span)?;
+                                state.substitute_place(&encoded_lhs, snapshot);
                             }
 
                             &mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) => {

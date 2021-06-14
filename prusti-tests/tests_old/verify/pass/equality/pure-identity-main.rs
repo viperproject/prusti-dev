@@ -1,5 +1,3 @@
-
-
 use prusti_contracts::*;
 
 #[derive(Clone,Copy,PartialEq,Eq)]
@@ -18,4 +16,3 @@ fn main() {
     let _z = get_value(_x);
     assert!(_y == _z);
 }
-
