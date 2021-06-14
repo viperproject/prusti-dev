@@ -323,17 +323,26 @@ impl Parse for SpecEntArgs {
     }
 }
 
-impl Parse for CreditVarPower<syn::ExprPath> {
+impl Parse for CreditVarPower<(), Arg> {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let var = input.parse()?;       //TODO: ExprPath allows more than just variables, but may be desired
+        let var_name = input.parse::<syn::Ident>()?;       //TODO: allow .len() & similar
+        let var = Arg {
+            name: var_name,
+            typ: syn::Type::Infer(syn::TypeInfer { underscore_token: Token![_](input.span())}),         // placeholder      //TODO: avoid?
+        };
         input.parse::<Token![^]>()?;
         let exponent_lit: syn::LitInt = input.parse()?;
         let exponent = exponent_lit.base10_parse()?;
-        Ok(Self::new(var, exponent))
+        Ok(Self {
+            spec_id: common::SpecificationId::dummy(),
+            id: (),
+            var,
+            exponent,
+        })
     }
 }
 
-impl Parse for CreditPolynomialTerm<(), syn::Expr, syn::ExprPath> {     //TODO: maybe generic type parameters?
+impl Parse for CreditPolynomialTerm<(), syn::Expr, Arg> {     //TODO: maybe generic type parameters?
     fn parse(input: ParseStream) -> syn::Result<Self> {
         // parse parenthesized expression or single literal as coefficient expression
         // need to distinguish to avoid parsing beyond the `*` separating the coefficient from the powers
@@ -356,7 +365,7 @@ impl Parse for CreditPolynomialTerm<(), syn::Expr, syn::ExprPath> {     //TODO: 
         let mut powers = vec![];        // stays empty for constant term
 
         /* TODO: Nesting parse_terminated not working because whole stream is given to this function? expects * instead of +
-            let parsed_powers: syn::punctuated::Punctuated<CreditVarPower<syn::ExprPath>, Token![*]>
+            let parsed_powers: syn::punctuated::Punctuated<CreditVarPower<Arg>, Token![*]>
                 = input.parse_terminated(CreditVarPower::parse)?;
             Ok(Self{
                 coeff_expr,
@@ -365,7 +374,7 @@ impl Parse for CreditPolynomialTerm<(), syn::Expr, syn::ExprPath> {     //TODO: 
         while input.peek(Token![*]) {
             input.parse::<Token![*]>()?;
 
-            powers.push(input.parse::<CreditVarPower<syn::ExprPath>>()?);
+            powers.push(input.parse::<CreditVarPower<(), Arg>>()?);
         }
 
         Ok(Self{
@@ -377,12 +386,12 @@ impl Parse for CreditPolynomialTerm<(), syn::Expr, syn::ExprPath> {     //TODO: 
 
 // just needed to be able to use parse_terminated
 struct CreditPolynomialTermVec {
-    term_vector: Vec<CreditPolynomialTerm<(), syn::Expr, syn::ExprPath>>,
+    term_vector: Vec<CreditPolynomialTerm<(), syn::Expr, Arg>>,
 }
 
 impl Parse for CreditPolynomialTermVec {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let parsed: syn::punctuated::Punctuated<CreditPolynomialTerm<(), syn::Expr, syn::ExprPath>, Token![+]>
+        let parsed: syn::punctuated::Punctuated<CreditPolynomialTerm<(), syn::Expr, Arg>, Token![+]>      //TODO: test with + in coeff
             = input.parse_terminated(CreditPolynomialTerm::parse)?;
         Ok(Self{
             term_vector: parsed.into_iter().collect()
@@ -729,6 +738,8 @@ impl Parser {
 
             let conjunct = AssertionWithoutId {
                 kind: Box::new(common::AssertionKind::CreditPolynomial {
+                    spec_id: common::SpecificationId::dummy(),
+                    id: (),
                     credit_type,
                     terms: parsed_term_vec.term_vector,
                 }),
