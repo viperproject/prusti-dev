@@ -202,7 +202,8 @@ def setup_ubuntu():
         'curl https://github.com/viperproject/viper-ide/releases/'
         'download/{}/ViperToolsLinux.zip -Lo ViperToolsLinux.zip'.format(viper_version())
     )
-    os.remove('viper_tools')
+    if os.path.exists('viper_tools'):
+        os.remove('viper_tools')
     shell('unzip ViperToolsLinux.zip -d viper_tools')
     os.remove('ViperToolsLinux.zip')
 
@@ -213,7 +214,8 @@ def setup_linux():
         'curl https://github.com/viperproject/viper-ide/releases/'
         'download/{}/ViperToolsLinux.zip -Lo ViperToolsLinux.zip'.format(viper_version())
     )
-    os.remove('viper_tools')
+    if os.path.exists('viper_tools'):
+        os.remove('viper_tools')
     shell('unzip ViperToolsLinux.zip -d viper_tools')
     os.remove('ViperToolsLinux.zip')
 
@@ -226,7 +228,8 @@ def setup_mac():
         'curl https://github.com/viperproject/viper-ide/releases/'
         'download/{}/ViperToolsMac.zip -Lo ViperToolsMac.zip'.format(viper_version())
     )
-    os.remove('viper_tools')
+    if os.path.exists('viper_tools'):
+        os.remove('viper_tools')
     shell('unzip ViperToolsMac.zip -d viper_tools')
     os.remove('ViperToolsMac.zip')
 
@@ -240,7 +243,8 @@ def setup_win():
         'curl https://github.com/viperproject/viper-ide/releases/'
         'download/{}/ViperToolsWin.zip -Lo ViperToolsWin.zip'.format(viper_version())
     )
-    os.remove('viper_tools')
+    if os.path.exists('viper_tools'):
+        os.remove('viper_tools')
     shell('tar -xf ViperToolsWin.zip -C viper_tools')
     os.remove('ViperToolsWin.zip')
 
