@@ -108,10 +108,8 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
         let file_name = path.as_path().file_name()
             .expect(&format!("Failed to obtain the name of {}", path.display()));
         if path.is_dir() {
-            eprintln!("Symlink dir {:?} -> {}", file_name, path.display());
             project_builder = project_builder.symlink_dir(path.as_path(), &Path::new(file_name));
         } else {
-            eprintln!("Symlink file {:?} -> {}", file_name, path.display());
             project_builder = project_builder.symlink(path.as_path(), &Path::new(file_name));
         }
     }
@@ -130,7 +128,6 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
         "prusti-contracts-internal",
     ];
     for crate_name in &prusti_contract_deps {
-        eprintln!("Symlink dir {:?} -> {}", crate_name, prusti_dev_path.join(crate_name).display());
         project_builder = project_builder.symlink_dir(
             prusti_dev_path.join(crate_name).as_path(),
             &Path::new(crate_name)
