@@ -350,6 +350,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                         };
                         let op_kind = match op {
                             UnaryOpKind::Minus => UnOpFloat::Neg,
+                            UnaryOpKind::IsNaN => UnOpFloat::IsNan,
                             _ => unimplemented!("unimplemented unop for floats")
                         };
                         ast.float_unop(op_kind, f_size, expr.to_viper(ast))
@@ -358,6 +359,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     _ =>  match op {
                         UnaryOpKind::Not => ast.not_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
                         UnaryOpKind::Minus => ast.minus_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
+                        _ => unimplemented!("is_nan not a valid unary operation for this type")
                     }
                 },
             Expr::BinOp(op, ref left, ref right, ref pos) =>

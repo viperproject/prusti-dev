@@ -198,8 +198,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
             ty::TyKind::Float(t) => {
                 match t {                    
-                    rustc_middle::ty::FloatTy::F32 => vir::Field::new("val_float", vir::Type::Float(FloatSize::F32)),
-                    rustc_middle::ty::FloatTy::F64 => vir::Field::new("val_float", vir::Type::Float(FloatSize::F64)),
+                    rustc_middle::ty::FloatTy::F32 => vir::Field::new("val_float32", vir::Type::Float(FloatSize::F32)),
+                    rustc_middle::ty::FloatTy::F64 => vir::Field::new("val_float64", vir::Type::Float(FloatSize::F64)),
                 }
             }
 

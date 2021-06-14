@@ -73,6 +73,7 @@ pub enum PlaceComponent {
 pub enum UnaryOpKind {
     Not,
     Minus,
+    IsNaN,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -254,6 +255,7 @@ impl fmt::Display for UnaryOpKind {
         match self {
             UnaryOpKind::Not => write!(f, "!"),
             UnaryOpKind::Minus => write!(f, "-"),
+            UnaryOpKind::IsNaN => write!(f, "is_nan")
         }
     }
 }

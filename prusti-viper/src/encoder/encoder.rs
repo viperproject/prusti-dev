@@ -455,8 +455,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             _ => unimplemented!("{:?}", value),
         };
 
-        if let Some(v) = opt_scalar_value {            
-            println!("{}", v);
+        if let Some(v) = opt_scalar_value {
             Ok(v)
         } else {
             Err(EncodingError::unsupported(
@@ -979,6 +978,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+
+    pub fn has_is_nan_impl(&self, ty:ty::Ty<'tcx>) -> bool{
+        match ty.kind() {
+            ty::TyKind::Float(_) => true,
+            _ => false,
+        }
+    }
+
     /// Checks whether the given type implements structural equality
     /// by either being a primitive type or by deriving the Eq trait.
     pub fn has_structural_eq_impl(&self, ty: ty::Ty<'tcx>) -> bool {
@@ -1109,7 +1116,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             },
             ty::TyKind::Float(ty::FloatTy::F64) => {
                 let bits = scalar_value.to_u64().unwrap();
-                println!("u64 {}", bits);
                 vir::Expr::Const(vir::Const::Float(vir::FloatConst::FloatConst64(bits)), vir::Position::default())
             }
             

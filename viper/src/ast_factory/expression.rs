@@ -207,7 +207,6 @@ impl<'a> AstFactory<'a> {
 
     pub fn backend_bv64_lit(&self, bits: u64) -> Expr<'a> {    
         let bits_as_int: i64 = unsafe { std::mem::transmute(bits) };
-        println!("backend i64: {}", bits_as_int);
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV64")).unwrap();
@@ -254,28 +253,17 @@ impl<'a> AstFactory<'a> {
             FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52,12, rm).unwrap(),
         };
         let op = match op_kind { // create FloatFactory function to call
-            BinOpFloat::Add => 
-                ast::utility::FloatFactory::call_add(&factory_, factory, self.jni.new_string("fp_add")).unwrap(),
-            BinOpFloat::Sub => 
-                ast::utility::FloatFactory::call_sub(&factory_, factory, self.jni.new_string("fp_sub")).unwrap(),
-            BinOpFloat::Mul => 
-                ast::utility::FloatFactory::call_mul(&factory_, factory, self.jni.new_string("fp_mul")).unwrap(),
-            BinOpFloat::Div => 
-                ast::utility::FloatFactory::call_div(&factory_, factory, self.jni.new_string("fp_div")).unwrap(),
-            BinOpFloat::Min => 
-                ast::utility::FloatFactory::call_min(&factory_, factory, self.jni.new_string("fp_min")).unwrap(),
-            BinOpFloat::Max => 
-                ast::utility::FloatFactory::call_max(&factory_, factory, self.jni.new_string("fp_max")).unwrap(),
-            BinOpFloat::Eq => 
-                ast::utility::FloatFactory::call_eq(&factory_, factory, self.jni.new_string("fp_eq")).unwrap(),
-            BinOpFloat::Leq => 
-                ast::utility::FloatFactory::call_leq(&factory_, factory, self.jni.new_string("fp_leq")).unwrap(),
-            BinOpFloat::Geq => 
-                ast::utility::FloatFactory::call_geq(&factory_, factory, self.jni.new_string("fp_geq")).unwrap(),
-            BinOpFloat::Lt => 
-                ast::utility::FloatFactory::call_lt(&factory_, factory, self.jni.new_string("fp_lt")).unwrap(),
-            BinOpFloat::Gt => 
-                ast::utility::FloatFactory::call_gt(&factory_, factory, self.jni.new_string("fp_gt")).unwrap(),
+            BinOpFloat::Add => ast::utility::FloatFactory::call_add(&factory_, factory, self.jni.new_string("fp_add")).unwrap(),
+            BinOpFloat::Sub => ast::utility::FloatFactory::call_sub(&factory_, factory, self.jni.new_string("fp_sub")).unwrap(),
+            BinOpFloat::Mul => ast::utility::FloatFactory::call_mul(&factory_, factory, self.jni.new_string("fp_mul")).unwrap(),
+            BinOpFloat::Div => ast::utility::FloatFactory::call_div(&factory_, factory, self.jni.new_string("fp_div")).unwrap(),
+            BinOpFloat::Min => ast::utility::FloatFactory::call_min(&factory_, factory, self.jni.new_string("fp_min")).unwrap(),
+            BinOpFloat::Max => ast::utility::FloatFactory::call_max(&factory_, factory, self.jni.new_string("fp_max")).unwrap(),
+            BinOpFloat::Eq => ast::utility::FloatFactory::call_eq(&factory_, factory, self.jni.new_string("fp_eq")).unwrap(),
+            BinOpFloat::Leq => ast::utility::FloatFactory::call_leq(&factory_, factory, self.jni.new_string("fp_leq")).unwrap(),
+            BinOpFloat::Geq => ast::utility::FloatFactory::call_geq(&factory_, factory, self.jni.new_string("fp_geq")).unwrap(),
+            BinOpFloat::Lt => ast::utility::FloatFactory::call_lt(&factory_, factory, self.jni.new_string("fp_lt")).unwrap(),
+            BinOpFloat::Gt => ast::utility::FloatFactory::call_gt(&factory_, factory, self.jni.new_string("fp_gt")).unwrap(),
         };
         self.backend_func_app(op, &[left, right], self.no_position())
     }
@@ -289,22 +277,14 @@ impl<'a> AstFactory<'a> {
         };
 
         let op = match op_kind {
-            UnOpFloat::Neg => 
-                ast::utility::FloatFactory::call_neg(&factory_, factory, self.jni.new_string("fp_neg")).unwrap(),
-            UnOpFloat::Abs => 
-                ast::utility::FloatFactory::call_abs(&factory_, factory, self.jni.new_string("fp_abs")).unwrap(),
-            UnOpFloat::IsZero => 
-                ast::utility::FloatFactory::call_isZero(&factory_, factory, self.jni.new_string("fp_isZero")).unwrap(),
-            UnOpFloat::IsInfinite => 
-                ast::utility::FloatFactory::call_isInfinite(&factory_, factory, self.jni.new_string("fp_isInfinite")).unwrap(),
-            UnOpFloat::IsNan => 
-                ast::utility::FloatFactory::call_isNaN(&factory_, factory, self.jni.new_string("fp_isNaN")).unwrap(),
-            UnOpFloat::IsNegative => 
-                ast::utility::FloatFactory::call_isNegative(&factory_, factory, self.jni.new_string("fp_isNegative")).unwrap(),
-            UnOpFloat::IsPositive => 
-                ast::utility::FloatFactory::call_isPositive(&factory_, factory, self.jni.new_string("fp_isPositive")).unwrap(),
-            UnOpFloat::GetType => 
-                ast::utility::FloatFactory::call_typ(&&factory_, factory).unwrap(),
+            UnOpFloat::Neg => ast::utility::FloatFactory::call_neg(&factory_, factory, self.jni.new_string("fp_neg")).unwrap(),
+            UnOpFloat::Abs => ast::utility::FloatFactory::call_abs(&factory_, factory, self.jni.new_string("fp_abs")).unwrap(),
+            UnOpFloat::IsZero => ast::utility::FloatFactory::call_isZero(&factory_, factory, self.jni.new_string("fp_isZero")).unwrap(),
+            UnOpFloat::IsInfinite => ast::utility::FloatFactory::call_isInfinite(&factory_, factory, self.jni.new_string("fp_isInfinite")).unwrap(),
+            UnOpFloat::IsNan => ast::utility::FloatFactory::call_isNaN(&factory_, factory, self.jni.new_string("fp_isNaN")).unwrap(),
+            UnOpFloat::IsNegative => ast::utility::FloatFactory::call_isNegative(&factory_, factory, self.jni.new_string("fp_isNegative")).unwrap(),
+            UnOpFloat::IsPositive => ast::utility::FloatFactory::call_isPositive(&factory_, factory, self.jni.new_string("fp_isPositive")).unwrap(),
+            UnOpFloat::GetType => ast::utility::FloatFactory::call_typ(&&factory_, factory).unwrap(),
             UnOpFloat::FromBV => todo!(),
             UnOpFloat::ToBV => todo!(),
         };
@@ -1092,6 +1072,7 @@ impl<'a> AstFactory<'a> {
 
 
 // Floating-Point Operations
+#[derive(Debug)]
 pub enum UnOpFloat {
     Neg, Abs, 
     IsZero, IsInfinite, IsNan, IsNegative, IsPositive,

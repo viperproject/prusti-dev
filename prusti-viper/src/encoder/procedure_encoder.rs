@@ -28,7 +28,7 @@ use prusti_common::{
         borrows::Borrow,
         collect_assigned_vars,
         fixes::fix_ghost_vars,
-        CfgBlockIndex, Expr, ExprIterator, Successor, Type, FloatSize,
+        CfgBlockIndex, Expr, ExprIterator, Successor, Type, FloatSize, BackendFunc, UnaryOpKind,
     },
 };
 use prusti_interface::{
@@ -57,6 +57,7 @@ use rustc_index::vec::Idx;
 // use std;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::str::FromStr;
 use rustc_attr::IntType::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
 use rustc_span::{MultiSpan, Span};
@@ -67,6 +68,7 @@ use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use crate::encoder::snapshot;
 use std::convert::TryInto;
+use viper::{BinOpFloat, UnOpFloat};
 
 struct EncodedArrayTypes<'tcx> {
     array_pred: String,
@@ -2008,6 +2010,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 )?
                             );
                         }
+                        "core::f32::<impl f32>::is_nan" |
+                        "core::f64::<impl f64>::is_nan" => {
+                            
+                            // I'd like to replace the function call with this VIR Expr
+                            // let expr = vir::Expr::UnaryOp(UnaryOpKind::IsNaN, args, location);
+
+                            unimplemented!("is_nan unimplemented");
+                        }
+
 
                         "std::cmp::PartialEq::eq" |
                         "core::cmp::PartialEq::eq"
