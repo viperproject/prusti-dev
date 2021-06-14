@@ -39,24 +39,24 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
         report_path: Option<PathBuf>,
     ) -> Verifier<'a, state::Uninitialized> {
         let jni = JniUtils::new(env);
+        let reporter = if let Some(real_report_path) = report_path {
+            jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
+                jni.new_string("csv_reporter"),
+                jni.new_string(real_report_path.to_str().unwrap()),
+            ))
+        } else {
+            jni.unwrap_result(silver::reporter::NoopReporter_object::with(env).singleton())
+        };
+        let utils = JniUtils::new(env);
+        let debug_info = utils.new_seq(&[]);
         let verifier_wrapper = silver::verifier::Verifier::with(env);
         let verifier_instance = jni.unwrap_result(match backend {
             VerificationBackend::Silicon => {
-                let reporter = if let Some(real_report_path) = report_path {
-                    jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
-                        jni.new_string("csv_reporter"),
-                        jni.new_string(real_report_path.to_str().unwrap()),
-                    ))
-                } else {
-                    jni.unwrap_result(silver::reporter::NoopReporter_object::with(env).singleton())
-                };
-                let plugin_aware_reporter = jni
-                    .unwrap_result(silver::plugin::PluginAwareReporter::with(&env).new(reporter));
-                let utils = JniUtils::new(env);
-                let debug_info = utils.new_seq(&[]);
-                silicon::Silicon::with(env).new(plugin_aware_reporter, debug_info)
+                silicon::Silicon::with(env).new(reporter, debug_info)
             }
-            VerificationBackend::Carbon => carbon::CarbonVerifier::with(env).new(),
+            VerificationBackend::Carbon => {
+                carbon::CarbonVerifier::with(env).new(reporter, debug_info)
+            },
         });
 
         let name = jni.to_string(jni.unwrap_result(verifier_wrapper.call_name(verifier_instance)));
