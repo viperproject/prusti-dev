@@ -11,7 +11,7 @@ extern crate rustc_session;
 
 use rustc_ast::ast;
 use rustc_middle::ty;
-use rustc_hir::def_id::{DefId, LOCAL_CRATE};
+use rustc_hir::def_id::DefId;
 use rustc_driver::Compilation;
 use rustc_interface::{interface, Queries};
 use rustc_session::Attribute;
@@ -53,12 +53,12 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
             .next()
             .unwrap();
 
-        println!("Analyzing file {} using {}...", compiler.input().source_name(), abstract_domain);
+        println!("Analyzing file {} using {}...", compiler.input().source_name().prefer_local(), abstract_domain);
 
         queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
 
             // collect all functions with attribute #[analyzer::run]
-            let mut local_def_ids: Vec<_> = tcx.mir_keys(LOCAL_CRATE).iter()
+            let mut local_def_ids: Vec<_> = tcx.mir_keys(()).iter()
                 .filter(|id| get_attribute(tcx, id.to_def_id(), "analyzer", "run").is_some())
                 .collect();
 

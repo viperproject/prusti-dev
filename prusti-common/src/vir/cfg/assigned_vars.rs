@@ -11,11 +11,11 @@ pub fn collect_assigned_vars(
     method: &CfgMethod,
     start_block: CfgBlockIndex,
     end_block: CfgBlockIndex,
-) -> HashSet<vir::LocalVar> {
+) -> Vec<vir::LocalVar> {
     let predecessors = method.predecessors();
     let start = start_block.block_index;
     let end = end_block.block_index;
-    let mut result = HashSet::new();
+    let mut variables = HashSet::new();
     let mut marked = HashSet::new();
     marked.insert(end);
     marked.insert(start);
@@ -29,8 +29,10 @@ pub fn collect_assigned_vars(
                 }
             }
         }
-        check_block(&mut result, &method.basic_blocks[current]);
+        check_block(&mut variables, &method.basic_blocks[current]);
     }
+    let mut result: Vec<_> = variables.into_iter().collect();
+    result.sort_by(|a, b| a.name.cmp(&b.name));
     result
 }
 

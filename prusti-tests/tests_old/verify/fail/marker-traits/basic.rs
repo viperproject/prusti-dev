@@ -1,7 +1,7 @@
 use prusti_contracts::*;
 
 #[invariant(self.d1 > 5)] //~ ERROR mismatched types
-trait Foo { }
+trait Foo {}
 
 struct Dummy {
     d1: bool
@@ -9,4 +9,4 @@ struct Dummy {
 
 impl Foo for Dummy {}
 
-fn main() { }
+fn main() {}

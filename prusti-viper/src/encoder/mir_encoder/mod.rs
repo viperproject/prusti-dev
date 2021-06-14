@@ -28,7 +28,7 @@ use std::{
 use prusti_interface::environment::mir_utils::MirPlace;
 
 use downcast_detector::detect_downcasts;
-pub use place_encoding::PlaceEncoding;
+pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
@@ -218,22 +218,34 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             }
 
             mir::ProjectionElem::Index(idx) => {
-                debug!("Array access: {:?}[{:?}]", encoded_base, idx);
-                let elem_ty = match base_ty.kind() {
-                    ty::TyKind::Array(elem_ty, _) => elem_ty,
-                    _ => unreachable!("index but not on array"),
-                };
-
-                (
-                    PlaceEncoding::ArrayAccess {
-                        base: box encoded_base,
-                        index: self.encode_local(*idx)?.into(),
-                        encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
-                        rust_array_ty: base_ty,
+                debug!("index: {:?}[{:?}]", encoded_base, idx);
+                match base_ty.kind() {
+                    ty::TyKind::Array(elem_ty, _) => {
+                        (
+                            PlaceEncoding::ArrayAccess {
+                                base: box encoded_base,
+                                index: self.encode_local(*idx)?.into(),
+                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                                rust_array_ty: base_ty,
+                            },
+                            elem_ty,
+                            None,
+                        )
                     },
-                    elem_ty,
-                    None,
-                )
+                    ty::TyKind::Slice(elem_ty) => {
+                        (
+                            PlaceEncoding::SliceAccess {
+                                base: box encoded_base,
+                                index: self.encode_local(*idx)?.into(),
+                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                                rust_slice_ty: base_ty,
+                            },
+                            elem_ty,
+                            None,
+                        )
+                    },
+                    _ => return Err(EncodingError::unsupported(format!("index on unsupported type '{:?}'", base_ty))),
+                }
             }
 
             x => unimplemented!("{:?}", x),
@@ -404,7 +416,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
                 let (encoded_place, place_ty, _) = self.encode_place(place)?;
-                self.encoder.encode_value_expr(encoded_place.try_into_expr()?, place_ty)
+                self.encoder.encode_value_expr(
+                    encoded_place
+                        .try_into_expr()
+                        .map_err(|_| EncodingError::unsupported(
+                            "array indexing is not supported in arbitrary operand positions yet. Try refactoring your code to have only an array access on the right-hand side of assignments using temporary variables".to_string(),
+                        ))?,
+                    place_ty,
+                )
             }
             // FIXME: Check whether the commented out code is necessary.
             // &mir::Operand::Constant(box mir::Constant {
@@ -462,7 +481,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         //     }
         // }
         let ty = operand.ty(self.mir, self.encoder.env().tcx());
-        self.encoder.encode_value_type(ty)
+        self.encoder.encode_snapshot_type(ty)
     }
 
     pub fn encode_bin_op_expr(
@@ -672,7 +691,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         .encoder
                         .error_manager()
                         .register(span, ErrorCtxt::TypeCast);
-                    let return_type = self.encoder.encode_value_type(dst_ty).with_span(span)?;
+                    let return_type = self.encoder.encode_snapshot_type(dst_ty).with_span(span)?;
                     return Ok(vir::Expr::func_app(
                         function_name,
                         encoded_args,

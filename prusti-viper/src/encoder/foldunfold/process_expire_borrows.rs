@@ -36,7 +36,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             self.dump_debug_info(dag, &cfg, surrounding_block_index, curr_block_index);
 
             let (mut pctxt, curr_block_pre_statements) = self.construct_initial_pctxt(
-                dag, &mut cfg,
+                dag,
+                &mut cfg,
                 surrounding_pctxt,
                 surrounding_block_index,
                 new_cfg,
@@ -219,6 +220,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         pctxt: &mut PathCtxt<'p>
     ) -> Result<(), FoldUnfoldError> {
         let curr_node = &curr_block.node;
+        trace!("process_node: {:?}", curr_node);
+        for s in &curr_node.stmts {
+            trace!("stmt: {}", s);
+        }
 
         for (stmt_index, stmt) in curr_node.stmts.iter().enumerate() {
             debug!(

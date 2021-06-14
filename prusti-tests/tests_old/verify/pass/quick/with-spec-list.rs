@@ -36,8 +36,7 @@ impl List {
     /// Returns the last node of the linked list. Recursive implementation.
     #[ensures(result.len() == 1)]
     #[ensures(result.value == old(self.lookup(self.len() - 1)))]
-    #[ensures(
-        after_expiry<result>(
+    #[after_expiry(result => (
             self.len() == old(self.len()) - 1 + before_expiry(result.len()) &&
             (forall(|i: usize|
                 (0 <= i && i < old(self.len()) - 1) ==>
