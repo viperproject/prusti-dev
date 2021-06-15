@@ -198,7 +198,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vec![vir::Predicate::new_primitive_value(
                 typ,
-                self.encoder.encode_value_field(self.ty),
+                self.encoder.encode_value_field(self.ty)?,
                 None,
                 false,
             )],
@@ -216,7 +216,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 };
                 vec![vir::Predicate::new_primitive_value(
                     typ,
-                    self.encoder.encode_value_field(self.ty),
+                    self.encoder.encode_value_field(self.ty)?,
                     bounds,
                     unsigned,
                 )]

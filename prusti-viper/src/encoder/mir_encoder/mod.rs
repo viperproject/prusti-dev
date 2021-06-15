@@ -423,7 +423,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                             "array indexing is not supported in arbitrary operand positions yet. Try refactoring your code to have only an array access on the right-hand side of assignments using temporary variables".to_string(),
                         ))?,
                     place_ty,
-                )
+                )?
             }
             // FIXME: Check whether the commented out code is necessary.
             // &mir::Operand::Constant(box mir::Constant {

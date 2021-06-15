@@ -1337,9 +1337,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let (expired_expr, regained_array, wand_rhs) = self.array_magic_wand_at[&loan_places.location].clone();
 
                 // expiring base is something like ref$i32, so we need .val_ref.val_int
-                let deref = self.encoder.encode_value_expr(expiring_base.clone(), expiring_ty);
+                let deref = self.encoder.encode_value_expr(expiring_base.clone(), expiring_ty)?;
                 let target_ty = expiring_ty.peel_refs();
-                let expiring_base_value = self.encoder.encode_value_expr(deref, target_ty);
+                let expiring_base_value = self.encoder.encode_value_expr(deref, target_ty)?;
 
                 // the original magic wand refered to the temporary variable that we created for array
                 // encoding. the expiry here refers to the non-temporary rust variable, so we need
@@ -1383,7 +1383,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut encode = |rhs_place, stmts: &mut Vec<vir::Stmt>, array_encode_kind| -> EncodingResult<_> {
             let (restored, pre_stmts, _, _) = self.encode_place(rhs_place, array_encode_kind).unwrap();
             stmts.extend(pre_stmts);
-            let ref_field = self.encoder.encode_value_field(expiring_ty);
+            let ref_field = self.encoder.encode_value_field(expiring_ty)?;
             let expiring = expiring_base.clone().field(ref_field.clone());
             Ok((expiring, restored, ref_field))
         };
@@ -2598,7 +2598,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let arg_val_expr = self.mir_encoder.encode_operand_expr(mir_arg)
                         .with_span(call_site_span)?;
                     debug!("arg_val_expr: {} {}", arg_place, arg_val_expr);
-                    let val_field = self.encoder.encode_value_field(arg_ty);
+                    let val_field = self.encoder.encode_value_field(arg_ty).with_span(call_site_span)?;
                     fake_exprs.insert(arg_place.clone().field(val_field), arg_val_expr);
                     let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
                     if in_loop {
@@ -2928,7 +2928,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         match destination.as_ref() {
             Some((ref dst, _)) => {
                 let (encoded_place, pre_stmts, ty, _) = self.encode_place(dst, ArrayAccessKind::Shared)?;
-                let encoded_lhs_value = self.encoder.encode_value_expr(encoded_place, ty);
+                let encoded_lhs_value = self.encoder.encode_value_expr(encoded_place, ty)?;
                 Ok((encoded_lhs_value, pre_stmts))
             },
             None => unreachable!(),
@@ -4729,7 +4729,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ).with_span(span)?
         );
 
-        let tmp_val_field = self.encoder.encode_value_expr(tmp, at.elem_ty_rs);
+        let tmp_val_field = self.encoder.encode_value_expr(tmp, at.elem_ty_rs).with_span(span)?;
 
         let indexed_updated = vir!{ [ at.encode_lookup_pure_call(encoded_array, old(idx_val_int)) ] == [ tmp_val_field ] };
 
@@ -4757,7 +4757,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let encode_stmts = match ty.kind() {
                     ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => {
                         // Reborrow.
-                        let field = self.encoder.encode_value_field(ty);
+                        let field = self.encoder.encode_value_field(ty).with_span(span)?;
                         let mut alloc_stmts = self.prepare_assign_target(
                             lhs.clone(),
                             field.clone(),
@@ -4794,7 +4794,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let (src, mut stmts, ty, _) = self.encode_place(place, ArrayAccessKind::Shared).with_span(span)?;
                 let encode_stmts = if self.mir_encoder.is_reference(ty) {
                     let loan = self.polonius_info().get_loan_at_location(location);
-                    let ref_field = self.encoder.encode_value_field(ty);
+                    let ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
                     let mut stmts = self.prepare_assign_target(
                         lhs.clone(),
                         ref_field.clone(),
@@ -4839,7 +4839,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     Vec::new()
                 } else {
                     // We expect to have a constant of a primitive type here.
-                    let field = self.encoder.encode_value_field(ty);
+                    let field = self.encoder.encode_value_field(ty).with_span(span)?;
                     let mut stmts = self.prepare_assign_target(
                         lhs.clone(),
                         field.clone(),
@@ -4937,7 +4937,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        let field = self.encoder.encode_value_field(ty);
+        let span = self.mir_encoder.get_span_of_location(location);
+        let field = self.encoder.encode_value_field(ty).with_span(span)?;
         self.encode_copy_value_assign2(
             encoded_lhs,
             encoded_rhs,
@@ -4992,12 +4993,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .encoder
             .encode_raw_ref_field("tuple_0".to_string(), field_types[0].expect_ty())
             .with_span(span)?;
-        let value_field_value = self.encoder.encode_value_field(field_types[0].expect_ty());
+        let value_field_value = self.encoder.encode_value_field(field_types[0].expect_ty()).with_span(span)?;
         let check_field = self
             .encoder
             .encode_raw_ref_field("tuple_1".to_string(), field_types[1].expect_ty())
             .with_span(span)?;
-        let check_field_value = self.encoder.encode_value_field(field_types[1].expect_ty());
+        let check_field_value = self.encoder.encode_value_field(field_types[1].expect_ty()).with_span(span)?;
         let mut stmts = if !self
             .init_info
             .is_vir_place_accessible(&encoded_lhs, location)
@@ -5124,6 +5125,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             src,
             location
         );
+        let span = self.mir_encoder.get_span_of_location(location);
         let (encoded_src, mut stmts, src_ty, _) = self.encode_place(src, ArrayAccessKind::Shared).unwrap(); // will panic if attempting to encode unsupported type
         let encode_stmts = match src_ty.kind() {
             ty::TyKind::Adt(ref adt_def, _) if !adt_def.is_box() => {
@@ -5148,7 +5150,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) => {
-                let value_field = self.encoder.encode_value_field(src_ty);
+                let value_field = self.encoder.encode_value_field(src_ty).with_span(span)?;
                 let discr_value = encoded_src.field(value_field);
                 self.encode_copy_value_assign(
                     encoded_lhs.clone(),
@@ -5203,7 +5205,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
         let (encoded_value, mut stmts, _, _) = self.encode_place(place, array_encode_kind).with_span(span)?;
         // Initialize ref_var.ref_field
-        let field = self.encoder.encode_value_field(ty);
+        let field = self.encoder.encode_value_field(ty).with_span(span)?;
         stmts.extend(
             self.prepare_assign_target(
                 encoded_lhs.clone(),
@@ -5545,7 +5547,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        let field = self.encoder.encode_value_field(ty);
+        let span = self.mir_encoder.get_span_of_location(location);
+        let field = self.encoder.encode_value_field(ty).with_span(span)?;
         self.encode_copy_value_assign2(
             dst,
             src.field(field.clone()),
@@ -5816,7 +5819,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let at = self.encoder.encode_array_types(array_ty)?;
 
         let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(at.elem_ty.clone()).into();
-        let val_field = self.encoder.encode_value_field(at.elem_ty_rs);
+        let val_field = self.encoder.encode_value_field(at.elem_ty_rs)?;
         let lookup_res_val_field = lookup_res.clone().field(val_field);
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Shared)?;
@@ -5849,7 +5852,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let at = self.encoder.encode_array_types(array_ty)?;
 
         let res: vir::Expr = self.cfg_method.add_fresh_local_var(at.elem_ty.clone()).into();
-        let val_field = self.encoder.encode_value_field(at.elem_ty_rs);
+        let val_field = self.encoder.encode_value_field(at.elem_ty_rs)?;
         let res_val_field = res.clone().field(val_field);
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Mutable(None, location))?;
@@ -5947,7 +5950,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let slice_types = self.encoder.encode_slice_types(rust_slice_ty)?;
 
                 let res = vir::Expr::local(self.cfg_method.add_fresh_local_var(slice_types.elem_ty.clone()));
-                let val_field = self.encoder.encode_value_field(slice_types.elem_ty_rs);
+                let val_field = self.encoder.encode_value_field(slice_types.elem_ty_rs)?;
                 let res_val_field = res.clone().field(val_field);
 
                 let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base, array_encode_kind)?;

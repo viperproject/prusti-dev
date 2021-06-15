@@ -86,6 +86,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // Fix arguments
         for arg in self.mir.args_iter() {
             let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
+            let span = self.get_local_span(arg);
             let target_place = self.encoder.encode_value_expr(
                 vir::Expr::local(
                     self.interpreter
@@ -93,7 +94,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                         .encode_local(arg)?
                 ),
                 arg_ty
-            );
+            ).with_span(span)?;
             let new_place: vir::Expr = self.encode_local(arg)?.into();
             state.substitute_place(&target_place, new_place);
         }
@@ -595,7 +596,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     self.encoder.encode_value_expr(
                         vir::Expr::local(return_var.into()),
                         self.mir.return_ty()
-                    )
+                    ).with_span(span)?
                 )
             }
 
@@ -726,7 +727,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                         let (encoded_lhs, ty, _) = self.encode_place(lhs_place)
                             .with_span(span)?;
-                        let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty);
+                        let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty).with_span(span)?;
                         let encoded_args: Vec<vir::Expr> = args
                             .iter()
                             .map(|arg| self.mir_encoder.encode_operand_expr(arg))
@@ -982,7 +983,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         self.encoder.encode_value_expr(
                             encoded_lhs.clone(),
                             ty
-                        )
+                        ).with_span(span)?
                         // encoded_lhs
                         //     .clone()
                         //     .field(self.encoder.encode_value_field(ty)),
@@ -1046,7 +1047,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                                     .with_span(span)?;
                                             field_exprs.push(rhs_expr.clone());
                                             state.substitute_value(
-                                                &self.encoder.encode_value_expr(field_place, field_ty.expect_ty()),
+                                                &self.encoder.encode_value_expr(field_place, field_ty.expect_ty()).with_span(span)?,
                                                 rhs_expr,
                                             );
                                         }
@@ -1097,7 +1098,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                                 self.mir_encoder.encode_operand_expr(operand)
                                                     .with_span(span)?;
                                             state.substitute_value(
-                                                &self.encoder.encode_value_expr(field_place, field_ty),
+                                                &self.encoder.encode_value_expr(field_place, field_ty).with_span(span)?,
                                                 rhs_expr,
                                             );
                                         }
@@ -1159,12 +1160,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             .encode_raw_ref_field("tuple_0".to_string(), field_types[0].expect_ty())
                             .with_span(span)?;
                         let value_field_value = self.encoder
-                            .encode_value_field(field_types[0].expect_ty());
+                            .encode_value_field(field_types[0].expect_ty()).with_span(span)?;
                         let check_field = self.encoder
                             .encode_raw_ref_field("tuple_1".to_string(), field_types[1].expect_ty())
                             .with_span(span)?;
                         let check_field_value = self.encoder
-                            .encode_value_field(field_types[1].expect_ty());
+                            .encode_value_field(field_types[1].expect_ty()).with_span(span)?;
 
                         let lhs_value = encoded_lhs
                             .clone()
