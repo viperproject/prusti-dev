@@ -7,7 +7,7 @@
 use std::mem;
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::errors::{SpannedEncodingError, ErrorCtxt, WithSpan, PanicCause};
+use crate::encoder::errors::{SpannedEncodingError, EncodingError, ErrorCtxt, WithSpan, PanicCause};
 use crate::encoder::foldunfold;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
 use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
@@ -551,7 +551,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                     )?
                 }
             }
-            PlaceEncoding::SliceAccess { .. } => todo!("slice access"),
+            PlaceEncoding::SliceAccess { .. } => {
+                return Err(EncodingError::unsupported(
+                    "slice lookup is not implemented yet".to_string(),
+                ));
+            }
         })
     }
 }
@@ -1353,7 +1357,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let array_types = self.encoder.encode_array_types(place_ty).with_span(span)?;
                                 state.substitute_value(&opt_lhs_value_place.unwrap(), array_types.array_len.into());
                             }
-                            _ => unimplemented!("len of '{:?}'", place_ty),
+                            _ => {
+                                return Err(SpannedEncodingError::unsupported(
+                                    "checking the length of anything but arrays in pure code is not implemented yet",
+                                    span,
+                                ));
+                            }
                         }
                     }
 
