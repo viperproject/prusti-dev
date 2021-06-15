@@ -480,7 +480,6 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     }
 }
 
-// for syn::parse the predicate thingy
 #[derive(Debug)]
 struct PredicateFn {
     fn_sig: syn::Signature,
