@@ -593,7 +593,18 @@ fn get_borrowed_places<'a, 'tcx: 'a>(
                         })
                         .collect())
                 }
+                // slice creation involves an unsize pointer cast like [i32; 3] -> &[i32]
+                &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ref ty) if ty.is_slice() && !ty.is_unsafe_ptr() => {
+                    trace!("slice: operand={:?}, ty={:?}", operand, ty);
+                    Ok(match operand {
+                        mir::Operand::Copy(ref place) |
+                            mir::Operand::Move(ref place) => vec![place],
+                            mir::Operand::Constant(_) => vec![],
+                    })
+                }
+
                 &mir::Rvalue::Cast(..) => {
+                    // all other loan-casts are unsupported
                     Err(PoloniusInfoError::LoanInUnsupportedStatement(
                         "cast statements that create loans are not supported".to_string(),
                         *location,

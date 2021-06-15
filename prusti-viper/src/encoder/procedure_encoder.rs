@@ -1290,10 +1290,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     location,
                 )?
             }
-            &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), _, _) => {
-                return Err(EncodingError::unsupported(
-                    "unsizing a pointer or reference value is not supported"
-                )).with_span(span);
+            &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
+                let mut slice_op_ty = None;
+                if let ty::TyKind::Ref(_, ref ref_ty, _) = ty.kind() {
+                    if let ty::TyKind::Slice(..) = ref_ty.kind() {
+                        slice_op_ty = Some((operand, ty));
+                    }
+                }
+
+                if let Some((operand, ty)) = slice_op_ty {
+                    trace!("slice: operand={:?}, ty={:?}", operand, ty);
+                    self.encode_assign_slice(
+                        encoded_lhs,
+                        operand,
+                        ty,
+                        location,
+                    )?
+                } else {
+                    return Err(EncodingError::unsupported(
+                        "unsizing a pointer or reference value is not supported"
+                    )).with_span(span);
+                }
             }
             ref rhs => {
                 unimplemented!("encoding of '{:?}'", rhs);
@@ -1396,6 +1413,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (expiring, restored, false, stmts)
             }
 
+            mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
+                trace!("cast: operand={:?}, ty={:?}", operand, ty);
+                let place = match operand {
+                    mir::Operand::Move(ref place) => place,
+                    mir::Operand::Copy(ref place) => place,
+                    _ => unreachable!("operand: {:?}", operand),
+                };
+                let (restored, r_stmts, ..) = self.encode_place(place, ArrayAccessKind::Shared)?;
+                stmts.extend(r_stmts);
+
+                (expiring_base, restored, false, stmts)
+            }
+
             ref x => unreachable!("Borrow restores value {:?}", x),
         })
     }
@@ -1460,6 +1490,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &mir::Rvalue::Use(mir::Operand::Copy(_)) => false,
                     &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, _) |
                     &mir::Rvalue::Use(mir::Operand::Move(_)) => true,
+                    &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), _, _ty) => false,
                     x => unreachable!("{:?}", x),
                 },
                 ref x => unreachable!("{:?}", x),
@@ -2173,6 +2204,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     span,
                                 )?
                             );
+                        }
+
+                        "std::iter::Iterator::next" |
+                        "core::iter::Iterator::next" => {
+                            return Err(SpannedEncodingError::unsupported(
+                                "iterators are not fully supported yet".to_string(),
+                                term.source_info.span,
+                            ));
                         }
 
                         _ => {
@@ -3151,12 +3190,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let mut invs_spec: Vec<vir::Expr> = vec![];
         for arg in contract.args.iter() {
-            invs_spec.push(
-                self.encoder.encode_invariant_func_app(
-                    self.locals.get_type(*arg),
-                    self.encode_prusti_local(*arg).into(),
-                ).with_span(precondition_spans.clone())?
-            );
+            // FIXME: this is somewhat hacky to avoid consistency errors with raw_ref args. this
+            // assumes that invariants for raw_ref types are always empty.
+            let ty = self.locals.get_type(*arg);
+            if !ty.is_unsafe_ptr() {
+                invs_spec.push(
+                    self.encoder.encode_invariant_func_app(
+                        ty,
+                        self.encode_prusti_local(*arg).into(),
+                    ).with_span(precondition_spans.clone())?
+                );
+            }
         }
 
         let precondition_weakening = precondition_weakening.map(|pw| {
@@ -5199,6 +5243,89 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty, span)?;
         self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
+    }
+
+    /// Take a slice into the RHS array
+    /// (also happens for calls that you do on an array that are slice methods, like .len())
+    fn encode_assign_slice(
+        &mut self,
+        encoded_lhs: vir::Expr,
+        operand: &mir::Operand<'tcx>,
+        ty: ty::Ty<'tcx>,
+        location: mir::Location,
+    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        trace!("encode_assign_slice(lhs={:?}, operand={:?}, ty={:?})", encoded_lhs, operand, ty);
+        let span = self.mir_encoder.get_span_of_location(location);
+        let mut stmts = Vec::new();
+
+        let label = self.cfg_method.get_fresh_label_name();
+        stmts.push(vir::Stmt::Label(label.clone()));
+
+        let (slice_ty, is_mut) = if let ty::TyKind::Ref(_, slice_ty, m) = ty.kind() {
+            (slice_ty, m == &mir::Mutability::Mut)
+        } else {
+            unreachable!("encode_assign_slice on a non-ref?!")
+        };
+        let slice_types = self.encoder.encode_slice_types(slice_ty).with_span(span)?;
+
+        stmts.extend(self.encode_havoc(&encoded_lhs));
+        let val_ref_field = self.encoder.encode_value_field(ty);
+        let slice_expr = encoded_lhs.field(val_ref_field);
+        stmts.push(vir!{ inhale [vir::Expr::FieldAccessPredicate(box slice_expr.clone(), vir::PermAmount::Write, vir::Position::default())] });
+
+        let slice_perm = vir::Expr::PredicateAccessPredicate(
+            slice_types.slice_pred.clone(),
+            box slice_expr.clone(),
+            if is_mut { vir::PermAmount::Write } else { vir::PermAmount::Read },
+            vir::Position::default(),
+        );
+        stmts.push(vir!{ inhale [slice_perm] });
+
+        let (rhs_place, rhs_ty) = if let mir::Operand::Move(ref place) = operand {
+            let (rhs_place, rhs_ty, ..) = self.mir_encoder.encode_place(place).with_span(span)?;
+            (rhs_place.try_into_expr().with_span(span)?, rhs_ty)
+        } else {
+            unreachable!()
+        };
+
+        let rhs_array_ty = if let ty::TyKind::Ref(_, array_ty, _) = rhs_ty.kind() {
+            array_ty
+        } else {
+            unreachable!("rhs array not a ref?")
+        };
+
+        let val_ref_field = self.encoder.encode_value_field(rhs_ty);
+        let rhs_expr = rhs_place.field(val_ref_field);
+        let array_types = self.encoder.encode_array_types(rhs_array_ty).with_span(span)?;
+
+        let slice_len_call = slice_types.encode_slice_len_call(slice_expr.clone());
+
+        stmts.push(vir::Stmt::Inhale(vir!{ [slice_len_call] == [vir::Expr::from(array_types.array_len)] }));
+
+        for idx in 0..array_types.array_len {
+            let array_lookup_call = array_types.encode_lookup_pure_call(
+                rhs_expr.clone(),
+                vir::Expr::from(idx),
+            );
+
+            let slice_lookup_call = slice_types.encode_lookup_pure_call(
+                slice_expr.clone(),
+                vir::Expr::from(idx),
+            );
+
+            stmts.push(vir::Stmt::Inhale(
+                vir!{ [array_lookup_call] == [slice_lookup_call] }
+            ));
+        }
+
+        // Store a label for permissions got back from the call
+        debug!(
+            "Pure function call location {:?} has label {}",
+            location, label
+        );
+        self.label_after_location.insert(location, label);
+
+        Ok(stmts)
     }
 
     fn encode_assign_sequence_len(
