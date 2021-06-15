@@ -5271,7 +5271,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let slice_types = self.encoder.encode_slice_types(slice_ty).with_span(span)?;
 
         stmts.extend(self.encode_havoc(&encoded_lhs));
-        let val_ref_field = self.encoder.encode_value_field(ty);
+        let val_ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
         let slice_expr = encoded_lhs.field(val_ref_field);
         stmts.push(vir!{ inhale [vir::Expr::FieldAccessPredicate(box slice_expr.clone(), vir::PermAmount::Write, vir::Position::default())] });
 
@@ -5296,7 +5296,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             unreachable!("rhs array not a ref?")
         };
 
-        let val_ref_field = self.encoder.encode_value_field(rhs_ty);
+        let val_ref_field = self.encoder.encode_value_field(rhs_ty).with_span(span)?;
         let rhs_expr = rhs_place.field(val_ref_field);
         let array_types = self.encoder.encode_array_types(rhs_array_ty).with_span(span)?;
 
