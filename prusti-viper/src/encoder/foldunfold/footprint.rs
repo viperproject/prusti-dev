@@ -74,18 +74,14 @@ impl ExprFootprintGetter for vir::Expr {
             ),
 
             vir::Expr::Seq(_, elems, _) => {
-                let elem_perms = elems
+                elems
                     .iter()
                     .map(|e| {
                         e.get_footprint(predicates)
                     })
-                    .collect::<Vec<_>>();
-
-                let mut res = HashSet::new();
-                for ep in elem_perms {
-                    res.extend(ep);
-                }
-                res
+                    .fold(HashSet::new(), |mut hs, fp| {
+                        hs.extend(fp); hs
+                    })
             }
 
             vir::Expr::Cond(box guard, box left, box right, _) => union3(
