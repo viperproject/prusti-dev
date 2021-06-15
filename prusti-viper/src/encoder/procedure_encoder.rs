@@ -2010,15 +2010,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 )?
                             );
                         }
-                        "core::f32::<impl f32>::is_nan" |
-                        "core::f64::<impl f64>::is_nan" => {
-                            
-                            // I'd like to replace the function call with this VIR Expr
-                            // let expr = vir::Expr::UnaryOp(UnaryOpKind::IsNaN, args, location);
-
-                            unimplemented!("is_nan unimplemented");
-                        }
-
 
                         "std::cmp::PartialEq::eq" |
                         "core::cmp::PartialEq::eq"
@@ -2027,6 +2018,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     self.mir_encoder.get_operand_ty(&args[0])
                                 )
                         => {
+
+                            let op_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            match op_ty.kind() {
+                                
+                                ty::TyKind::Float(_) => unimplemented!("never reached"),
+                                _ => {
                             debug!("Encoding call of PartialEq::eq");
                             stmts.extend(
                                 self.encode_cmp_function_call(
@@ -2035,10 +2032,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     term.source_info.span,
                                     args,
                                     destination,
-                                    vir::BinOpKind::EqCmp,
-                                )?
-                            );
+                                        vir::BinOpKind::EqCmp,)?
+                                    );
+                                }
+                            }
                         }
+                            
 
                         "std::cmp::PartialEq::ne" |
                         "core::cmp::PartialEq::ne"
@@ -2058,6 +2057,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     vir::BinOpKind::NeCmp,
                                 )?
                             );
+                        }
+
+                        "core::f32::<impl f32>::is_nan" |
+                        "core::f64::<impl f64>::is_nan" => {
+                            
+                            let span = self.mir_encoder.get_span_of_location(location);
+                            let operand = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
+                            let operand_box = std::boxed::Box::from(operand);
+                            let expr = vir::Expr::UnaryOp(UnaryOpKind::IsNaN, operand_box, vir::Position::default());
+
+                            let (call_stmts, label) = self.encode_pure_function_call_site(
+                                location,
+                                destination, 
+                                expr
+                            );
+
+                            stmts.extend(call_stmts);
+                            self.encode_transfer_args_permissions(location, args, &mut stmts, label, false)?;                            
+                        
                         }
 
                         "std::ops::Fn::call" => {
@@ -2098,7 +2116,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     let arg_expr = self.mir_encoder.encode_operand_expr(operand);
                                     arg_exprs.push(arg_expr);
                                 }
-
                                 stmts.extend(
                                     self.encode_pure_function_call(
                                         location,
