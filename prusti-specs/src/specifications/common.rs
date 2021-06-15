@@ -291,7 +291,7 @@ pub enum AssertionKind<EID, ET, AT> {
     },
     CreditPolynomial {
         /// Identifier of the specification to which this credit polynomial belongs
-        spec_id: SpecificationId,           //TODO: needed?
+        spec_id: SpecificationId,
         /// Id for this polynomial.
         id: EID,
         credit_type: String,    //TODO: enum later
