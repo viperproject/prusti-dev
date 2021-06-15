@@ -518,7 +518,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
     fn postprocess_place_encoding(
         &self,
         place_encoding: PlaceEncoding<'tcx>,
-        ) -> EncodingResult<vir::Expr> {
+    ) -> EncodingResult<vir::Expr> {
         Ok(match place_encoding {
             PlaceEncoding::Expr(e) => e,
             PlaceEncoding::FieldAccess { box base, field } => {
