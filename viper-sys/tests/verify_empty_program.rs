@@ -54,10 +54,8 @@ fn verify_empty_program() {
 
     env.with_local_frame(32, || {
         let reporter = viper::silver::reporter::NoopReporter_object::with(&env).singleton()?;
-        let plugin_aware_reporter =
-            viper::silver::plugin::PluginAwareReporter::with(&env).new(reporter)?;
         let debug_info = scala::collection::immutable::Nil_object::with(&env).singleton()?;
-        let silicon = viper::silicon::Silicon::with(&env).new(plugin_aware_reporter, debug_info)?;
+        let silicon = viper::silicon::Silicon::with(&env).new(reporter, debug_info)?;
         let verifier = viper::silver::verifier::Verifier::with(&env);
 
         let array_buffer_wrapper = scala::collection::mutable::ArrayBuffer::with(&env);

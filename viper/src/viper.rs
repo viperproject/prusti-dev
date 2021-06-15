@@ -10,7 +10,6 @@ use std::env;
 use std::fs;
 use verification_context::*;
 use viper_sys::wrappers::*;
-use VerificationBackend;
 use std::path::Path;
 
 pub struct Viper {
@@ -25,10 +24,10 @@ impl Default for Viper {
 
 impl Viper {
     pub fn new() -> Self {
-        Self::new_with_args(vec![], VerificationBackend::Silicon)
+        Self::new_with_args(vec![])
     }
 
-    pub fn new_with_args(java_args: Vec<String>, viper_backend: VerificationBackend) -> Self {
+    pub fn new_with_args(java_args: Vec<String>) -> Self {
         let viper_home = env::var("VIPER_HOME")
             .expect("the VIPER_HOME environment variable should not be empty");
         let heap_size = env::var("JAVA_HEAP_SIZE").unwrap_or_else(|_| "4096".to_string());
@@ -43,12 +42,6 @@ impl Viper {
         let jar_paths: Vec<String> = fs::read_dir(&viper_home)
             .expect(&format!("failed to open {:?}", viper_home))
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
-            .filter(|path|
-                match viper_backend {
-                    VerificationBackend::Silicon => !path.contains("carbon"),
-                    VerificationBackend::Carbon => !path.contains("silicon"),
-                }
-            )
             .collect();
 
         debug!("Java classpath: {}", jar_paths.clone().join(":"));

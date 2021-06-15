@@ -114,7 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else {
         Path::new("target/release")
     };
-    let host_viper_home = Path::new("viper_tools/backends");
+    let host_viper_home = Path::new("viper_tools/server");
     let host_z3_home = Path::new("viper_tools/z3/bin");
     let host_java_home = env::var("JAVA_HOME").ok().map(|s| s.into())
         .or_else(find_java_home)
