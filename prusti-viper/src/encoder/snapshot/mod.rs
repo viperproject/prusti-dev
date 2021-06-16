@@ -77,11 +77,7 @@ impl Snapshot {
     }
 
     pub fn supports_equality(&self) -> bool {
-        match self {
-            Self::Primitive(_) => true,
-            Self::Unit => true,
-            Self::Complex { .. } => true,
-            _ => false,
-        }
+        use Snapshot::*;
+        matches!(self, Primitive(_) | Unit | Complex { .. } | Array { .. })
     }
 }
