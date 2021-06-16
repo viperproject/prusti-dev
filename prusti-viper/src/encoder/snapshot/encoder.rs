@@ -721,7 +721,10 @@ impl SnapshotEncoder {
                         ),
                     ],
                     posts: vec![
-                        read_eq_lookup,
+                        // FIXME: this shouldn't be necessary, would want to just use
+                        // read_eq_lookup here, but doesn't verify always (for big arrays
+                        // especially)
+                        vir::Expr::InhaleExhale(box read_eq_lookup, box true.into(), vir::Position::default()),
                     ],
                     body: Some(snap_body),
                 };
