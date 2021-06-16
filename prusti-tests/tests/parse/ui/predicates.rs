@@ -6,12 +6,19 @@
 
 use prusti_contracts::*;
 
-#[predicate]
-fn pred(a: bool) -> bool {
-    forall(|b: bool| a == b)
+predicate! {
+    fn pred(a: bool) -> bool {
+        forall(|b: bool| a == b)
+    }
 }
 
 #[requires(pred(true))]
 fn use_pred() {}
+
+predicate! {
+    fn forall_implication() -> bool {
+        forall(|x: usize| (x != 0) ==> x*2 != 0)
+    }
+}
 
 fn main() {}

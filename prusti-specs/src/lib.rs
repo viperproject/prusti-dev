@@ -89,14 +89,14 @@ pub fn rewrite_prusti_attributes(
     // Collect the remaining Prusti attributes, removing them from `item`.
     prusti_attributes.extend(extract_prusti_attributes(&mut item));
 
-    // make sure to also update the check in the #[predicate] handling method
+    // make sure to also update the check in the predicate! handling method
     if prusti_attributes
         .iter()
         .any(|(ak, _)| ak == &SpecAttributeKind::Predicate)
     {
         return syn::Error::new(
             item.span(),
-            "`#[predicate]` is incompatible with other Prusti attributes",
+            "`predicate!` is incompatible with other Prusti attributes",
         ).to_compile_error();
     }
 
@@ -480,64 +480,54 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     }
 }
 
-pub fn predicate(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    if !attr.is_empty() {
-        return syn::Error::new(
-            attr.span(),
-            "the `#[predicate]` attribute does not take parameters"
-        ).to_compile_error();
-    }
+#[derive(Debug)]
+struct PredicateFn {
+    fn_sig: syn::Signature,
+    body: TokenStream,
+}
 
+impl syn::parse::Parse for PredicateFn {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let fn_sig = input.parse()?;
+        let brace_content;
+        let _brace_token = syn::braced!(brace_content in input);
+        let body = brace_content.parse()?;
+
+        Ok(PredicateFn { fn_sig, body })
+    }
+}
+
+pub fn predicate(tokens: TokenStream) -> TokenStream {
+    let tokens_span = tokens.span();
     // emit a custom error to the user instead of a parse error
-    let mut item: untyped::AnyFnItem = handle_result!(
+    let pred_fn: PredicateFn = handle_result!(
         syn::parse2(tokens)
             .map_err(|e| syn::Error::new(
                 e.span(),
-                "`#[predicate]` can only be used on function definitions"
+                "`predicate!` can only be used on function definitions. it supports no attributes."
             ))
     );
-    let item_span = item.span();
-
-    // check for other attributes -- #[predicate] is incompatible with all others currently
-    // make sure to also update the check in `rewrite_prusti_attributes`
-    let other_prusti_attrs = extract_prusti_attributes(&mut item);
-    if other_prusti_attrs.count() != 0 {
-        return syn::Error::new(
-            item.span(),
-            "`#[predicate]` is incompatible with other Prusti attributes",
-        ).to_compile_error();
-    }
-
-    // need to check here, as methods defined in trait definitions may not have a body, but for
-    // predicates we need them
-    let block_tokens = if let Some(block) = item.block() {
-        block.to_token_stream()
-    } else {
-        return syn::Error::new(
-            item.span(),
-            "Cannot use `#[predicate]` on bodyless functions",
-        ).to_compile_error();
-    };
-
-    let pred_tokens = if let Some(TokenTree::Group(group)) = block_tokens.into_iter().next() {
-        group.stream()
-    } else {
-        unreachable!("a function's block must be a brace-delimited `TokenTree::Group`")
-    };
 
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
-    let assertion = handle_result!(rewriter.parse_assertion(spec_id, pred_tokens));
+    let assertion = handle_result!(rewriter.parse_assertion(spec_id, pred_fn.body));
+
+    let sig = pred_fn.fn_sig.to_token_stream();
+    let cleaned_fn: untyped::AnyFnItem = parse_quote_spanned! {tokens_span =>
+        #sig {
+            unimplemented!("predicate")
+        }
+    };
 
     let spec_fn = handle_result!(rewriter.generate_spec_item_fn(
         rewriter::SpecItemType::Predicate,
         spec_id,
         assertion,
-        &item,
+        &cleaned_fn,
     ));
-    let sig = item.sig().to_token_stream();
+
     let spec_id_str = spec_id.to_string();
-    parse_quote_spanned! {item_span =>
+    parse_quote_spanned! {cleaned_fn.span() =>
         // this is to typecheck the assertion
         #spec_fn
 
@@ -546,8 +536,6 @@ pub fn predicate(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         #[prusti::pure]
         #[prusti::trusted]
         #[prusti::pred_spec_id_ref = #spec_id_str]
-        #sig {
-            unimplemented!("predicate")
-        }
+        #cleaned_fn
     }
 }

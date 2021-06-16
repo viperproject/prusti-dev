@@ -6,9 +6,10 @@
 
 use prusti_contracts::*;
 
-#[predicate]
-fn result_is_one() -> bool {
-    result == 1
+predicate! {
+    fn result_is_one() -> bool {
+        result == 1
+    }
 }
 
 fn main() {}
