@@ -484,7 +484,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Param(param_ty) => {
-                format!("__TYPARAM__${}$__", param_ty.name.as_str())
+                // make sure to avoid "$T$" used internally in Silicon
+                format!("__TYPARAM__$_{}$__", param_ty.name.as_str())
             }
 
             ty::TyKind::Projection(ty::ProjectionTy { item_def_id, substs }) => {
