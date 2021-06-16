@@ -200,7 +200,11 @@ impl<'a> Verifier<'a, state::Started> {
                             self.jni.to_string(viper_error)
                         );
                     }
-                    panic!();
+                    unreachable!(
+                        "The verifier returned an unknown error of type {}: {}",
+                        self.jni.class_name(viper_error),
+                        self.jni.to_string(viper_error)
+                    );
                 };
 
                 let reason = self
