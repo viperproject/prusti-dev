@@ -17,6 +17,8 @@ pub trait TypeVisitor<'tcx>: Sized {
 
     fn tcx(&self) -> TyCtxt<'tcx>;
 
+    fn unsupported<S: ToString>(&self, _msg: S) -> Self::Error;
+
     fn visit_ty(&mut self, ty: Ty<'tcx>) -> Result<(), Self::Error> {
         trace!("visit_ty({:?})", ty);
         self.visit_sty(ty.kind())?;
