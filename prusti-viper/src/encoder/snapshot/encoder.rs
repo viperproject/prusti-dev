@@ -682,10 +682,37 @@ impl SnapshotEncoder {
                     ]
                 );
 
+                let read = vir::DomainFunc {
+                    name: format!("read${}$", domain_name),
+                    formal_args: vec![
+                        vir_local!{ arr: {snap_type.clone()} },
+                        vir_local!{ idx: Int },
+                    ],
+                    return_type: elem_snap_ty.clone(),
+                    unique: false,
+                    domain_name: domain_name.clone(),
+                };
+
+                let i: vir::Expr = vir_local!{ i: Int }.into();
+                let lookup_call = array_types.encode_lookup_pure_call(
+                    encoder,
+                    arg_expr.clone(),
+                    i.clone(),
+                    elem_snap_ty,
+                );
+                let read_call = read.apply(vec![
+                        vir_local!{ __result: {snap_type.clone()} }.into(),
+                        i.clone()
+                ]);
+
+                let indices = vir!{ ([vir::Expr::from(0)] <= [i]) && ([i] < [vir::Expr::from(array_types.array_len)]) };
+
+                let read_eq_lookup = vir!{ forall i: Int :: { [read_call] } ([indices] ==> ([read_call] == [lookup_call])) };
+
                 let snap_func = vir::Function {
                     name: SNAP_FUNC_NAME.to_string(),
                     formal_args: vec![arg_self],
-                    return_type: snap_type.clone(),
+                    return_type: snap_type,
                     pres: vec![
                         Expr::predicate_access_predicate(
                             array_types.array_pred,
@@ -693,7 +720,9 @@ impl SnapshotEncoder {
                             PermAmount::Read,
                         ),
                     ],
-                    posts: vec![],
+                    posts: vec![
+                        read_eq_lookup,
+                    ],
                     body: Some(snap_body),
                 };
 
@@ -716,17 +745,6 @@ impl SnapshotEncoder {
                         ),
                         domain_name: domain_name.clone(),
                     }
-                };
-
-                let read = vir::DomainFunc {
-                    name: format!("read${}$", domain_name),
-                    formal_args: vec![
-                        vir_local!{ arr: {snap_type} },
-                        vir_local!{ idx: Int },
-                    ],
-                    return_type: elem_snap_ty,
-                    unique: false,
-                    domain_name: domain_name.clone(),
                 };
 
                 let read_axiom = {
