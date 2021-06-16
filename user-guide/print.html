@@ -2096,14 +2096,15 @@ fn impure_example(a: &amp;i32, b: &amp;i32, c: &amp;mut i32) {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="predicates"><a class="header" href="#predicates">Predicates</a></h1>
 <p>Predicates are similar to <a href="verify/pure.html">pure functions</a> in that they are deterministic and side-effect free and used in specifications.</p>
 <p>They are more powerful than pure functions: inside predicate bodies the full <a href="verify/../syntax.html">Prusti specification syntax</a> is allowed. However, they are not usable in regular Rust code, as there are no direct Rust equivalents for specification constructs like <a href="verify/../syntax.html#quantifiers">quantifiers</a> or <a href="verify/../syntax.html#implications">implications</a>. Instead, predicates can only be called from within specifications.</p>
-<p>Predicates are declared using the <code>#[predicate]</code> attribute on a function:</p>
+<p>Predicates are declared using the <code>predicate!</code> macro on a function:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>#[predicate]
-fn all_zeros(a: &amp;MyArray) -&gt; bool {
-    forall(|i: usize|
-        (0 &lt;= i &amp;&amp; i &lt; a.len() ==&gt; a.lookup(i) == 0))
+</span>predicate! {
+    fn all_zeroes(a: &amp;MyArray) -&gt; bool {
+        forall(|i: usize|
+            (0 &lt;= i &amp;&amp; i &lt; a.len() ==&gt; a.lookup(i) == 0))
+    }
 }
 <span class="boring">}
 </span></code></pre></pre>
@@ -2115,7 +2116,7 @@ fn all_zeros(a: &amp;MyArray) -&gt; bool {
 fn zero(a: &amp;mut MyArray) { ... }
 <span class="boring">}
 </span></code></pre></pre>
-<p>The <code>#[predicate]</code> attribute is incompatible with other Prusti specifications, i.e. a predicate function cannot have pre- or postconditions. The body of a predicate must be provided, so it cannot be <a href="verify/trusted.html"><code>#[trusted]</code></a>. Predicates are always considered pure.</p>
+<p>The <code>predicate!</code> macro is incompatible with other Prusti specifications, i.e. a predicate function cannot have pre- or postconditions. The body of a predicate must be provided, so it cannot be <a href="verify/trusted.html"><code>#[trusted]</code></a>. Predicates are always considered pure.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="external-specifications"><a class="header" href="#external-specifications">External specifications</a></h1>
 <p>Since the Rust standard library and external libraries do not specify contracts for their functions, Prusti allows specifying the contract for functions separately from where they are implemented. Such a specification looks like a regular <code>impl</code>, with the exception that there are no bodies in the implementation functions, and that the <code>impl</code> has an <code>#[extern_spec]</code> attribute.</p>
 <p>The standard library type <code>std::option::Option</code> could be specified as follows:</p>
