@@ -40,7 +40,7 @@ export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts -Zidentify-regions -Zdum
 export POLONIUS_ALGORITHM="Naive"
 export RUST_BACKTRACE=1
 
-export RUSTUP_TOOLCHAIN="$(cat "$DIR/../rust-toolchain")"
+export RUSTUP_TOOLCHAIN="$(sed -n 's/channel.*"\(.*\)".*$/\1/p' "$DIR/../rust-toolchain")"
 info "Using RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN"
 
 ls -d "$CRATE_DOWNLOAD_DIR"/*/ | while read crate_path; do
