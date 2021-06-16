@@ -82,6 +82,20 @@ fn strip_refs_and_boxes_expr<'p, 'v: 'p, 'tcx: 'v>(
     }
 }
 
+/// Returns a `forall` quantifier if `vars` is not empty, otherwise returns
+/// the `body` directly.
+fn forall_or_body(
+    vars: Vec<vir::LocalVar>,
+    triggers: Vec<vir::Trigger>,
+    body: Expr,
+) -> Expr {
+    if vars.is_empty() {
+        body
+    } else {
+        Expr::forall(vars, triggers, body)
+    }
+}
+
 impl SnapshotEncoder {
     pub fn new() -> Self {
         Self {
@@ -734,6 +748,7 @@ impl SnapshotEncoder {
                     field.typ.clone(),
                 )).collect::<Vec<vir::LocalVar>>();
             // TODO: filter out Units to reduce constructor size
+            let has_args = !args.is_empty();
 
             // record name to index mapping
             if let Some(name) = &variant.name {
@@ -760,8 +775,8 @@ impl SnapshotEncoder {
                 constructor.apply(args.iter().cloned().map(Expr::local).collect())
             };
 
-            // encode injectivity axiom of constructor
-            domain_axioms.push({
+            if has_args {
+                // encode injectivity axiom of constructor
                 let lhs_args = encode_prefixed_args("_l");
                 let rhs_args = encode_prefixed_args("_r");
 
@@ -777,9 +792,9 @@ impl SnapshotEncoder {
                     .map(|(l, r)| Expr::eq_cmp(Expr::local(l), Expr::local(r)))
                     .conjoin();
 
-                vir::DomainAxiom {
+                domain_axioms.push(vir::DomainAxiom {
                     name: format!("{}${}$injectivity", domain_name, variant_idx),
-                    expr: Expr::forall(
+                    expr: forall_or_body(
                         forall_vars,
                         vec![vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
                         Expr::implies(
@@ -788,8 +803,8 @@ impl SnapshotEncoder {
                         ),
                     ),
                     domain_name: domain_name.to_string(),
-                }
-            });
+                });
+            }
 
             if has_multiple_variants {
                 // encode discriminant axiom
@@ -798,7 +813,7 @@ impl SnapshotEncoder {
                     let call = encode_constructor_call(&args);
                     vir::DomainAxiom {
                         name: format!("{}${}$discriminant_axiom", domain_name, variant_idx),
-                        expr: Expr::forall(
+                        expr: forall_or_body(
                             args.iter().cloned().collect(),
                             vec![vir::Trigger::new(vec![
                                 call.clone(),
@@ -838,7 +853,7 @@ impl SnapshotEncoder {
 
                     vir::DomainAxiom {
                         name: format!("{}${}$field${}$axiom", domain_name, variant_idx, field.name),
-                        expr: Expr::forall(
+                        expr: forall_or_body(
                             args.clone(),
                             vec![vir::Trigger::new(vec![
                                 field_of_cons.clone(),
