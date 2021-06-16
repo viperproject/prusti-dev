@@ -15,6 +15,7 @@ import csv
 import time
 import json 
 import signal
+import shutil
 
 verbose = False
 dry_run = False
@@ -203,7 +204,7 @@ def setup_ubuntu():
         'download/{}/ViperToolsLinux.zip -Lo ViperToolsLinux.zip'.format(viper_version())
     )
     if os.path.exists('viper_tools'):
-        os.remove('viper_tools')
+        shutil.rmtree('viper_tools')
     shell('unzip ViperToolsLinux.zip -d viper_tools')
     os.remove('ViperToolsLinux.zip')
 
@@ -215,7 +216,7 @@ def setup_linux():
         'download/{}/ViperToolsLinux.zip -Lo ViperToolsLinux.zip'.format(viper_version())
     )
     if os.path.exists('viper_tools'):
-        os.remove('viper_tools')
+        shutil.rmtree('viper_tools')
     shell('unzip ViperToolsLinux.zip -d viper_tools')
     os.remove('ViperToolsLinux.zip')
 
@@ -229,7 +230,7 @@ def setup_mac():
         'download/{}/ViperToolsMac.zip -Lo ViperToolsMac.zip'.format(viper_version())
     )
     if os.path.exists('viper_tools'):
-        os.remove('viper_tools')
+        shutil.rmtree('viper_tools')
     shell('unzip ViperToolsMac.zip -d viper_tools')
     os.remove('ViperToolsMac.zip')
 
@@ -243,7 +244,7 @@ def setup_win():
         'download/{}/ViperToolsWin.zip -Lo ViperToolsWin.zip'.format(viper_version())
     )
     if os.path.exists('viper_tools'):
-        os.remove('viper_tools')
+        shutil.rmtree('viper_tools')
     os.mkdir('viper_tools')
     shell('tar -xf ViperToolsWin.zip -C viper_tools')
     os.remove('ViperToolsWin.zip')
