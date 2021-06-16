@@ -277,15 +277,22 @@ pub fn walk_raw_ptr<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
 
 pub fn walk_closure<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     visitor: &mut V,
-    def_id: DefId,
+    _def_id: DefId,
     substs: SubstsRef<'tcx>
 ) -> Result<(), E> {
     let cl_substs = substs.as_closure();
     // TODO: when are there bound typevars? can type visitor deal with generics?
     let fn_sig =
-        cl_substs.sig()
-                 .no_bound_vars()
-                 .expect(&format!("bound variables are not supported at {:?}", def_id));
+        match cl_substs.sig().no_bound_vars() {
+            None => {
+                return Err(visitor.unsupported(
+                    "higher-ranked lifetimes and types are not supported"
+                ))
+            }
+
+            Some(x) => x
+        };
+
     for ty in fn_sig.inputs() {
         visitor.visit_ty(ty)?;
     }
