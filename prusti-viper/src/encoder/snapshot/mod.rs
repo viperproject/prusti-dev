@@ -14,6 +14,7 @@ mod patcher;
 
 /// Snapshot of a VIR type. This enum is internal to the snapshot encoding and
 /// should not need to be exposed to the encoder in general.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 enum Snapshot {
     /// Corresponds directly to an existing Viper type.
@@ -44,6 +45,16 @@ enum Snapshot {
         cons: vir::DomainFunc,
         read: vir::DomainFunc,
     },
+    /// Slices
+    Slice {
+        predicate_name: String,
+        domain: vir::Domain,
+        snap_func: vir::Function,
+        slice_collect_func: vir::Function,
+        cons: vir::DomainFunc,
+        read: vir::DomainFunc,
+        len: vir::DomainFunc,
+    },
     /// Type cannot be encoded: type parameters, unsupported types.
     Abstract {
         predicate_name: String,
@@ -63,7 +74,8 @@ impl Snapshot {
             Self::Unit => Type::Domain(encoder::UNIT_DOMAIN_NAME.to_string()),
             Self::Complex { predicate_name, .. }
             | Self::Abstract { predicate_name, .. }
-            | Self::Array { predicate_name, .. } => Type::Snapshot(predicate_name.to_string()),
+            | Self::Array { predicate_name, .. }
+            | Self::Slice { predicate_name, .. } => Type::Snapshot(predicate_name.to_string()),
             Self::Lazy(ty) => ty.clone(),
         }
     }
@@ -78,6 +90,6 @@ impl Snapshot {
 
     pub fn supports_equality(&self) -> bool {
         use Snapshot::*;
-        matches!(self, Primitive(_) | Unit | Complex { .. } | Array { .. })
+        matches!(self, Primitive(_) | Unit | Complex { .. } | Array { .. } | Slice { .. })
     }
 }

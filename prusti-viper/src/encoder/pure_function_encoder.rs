@@ -539,10 +539,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                     idx_val_int,
                 )?
             }
-            PlaceEncoding::SliceAccess { .. } => {
-                return Err(EncodingError::unsupported(
-                    "slice lookup is not implemented yet".to_string(),
-                ));
+            PlaceEncoding::SliceAccess { box base, index, rust_slice_ty, .. } => {
+                let postprocessed_base = self.postprocess_place_encoding(base)?;
+                let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
+
+                self.encoder.encode_snapshot_slice_idx(
+                    rust_slice_ty,
+                    postprocessed_base,
+                    idx_val_int,
+                )?
             }
         })
     }
@@ -839,6 +844,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 );
                                 let mut state = states[&target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
+                                state
+                            }
+
+                            "core::slice::<impl [T]>::len" => {
+                                assert_eq!(args.len(), 1);
+                                let slice_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                let len = self.encoder.encode_snapshot_slice_len(slice_ty, encoded_args[0].clone())
+                                    .with_span(span)?;
+
+                                let mut state = states[target_block].clone();
+                                state.substitute_value(&lhs_value, len);
                                 state
                             }
 
@@ -1345,9 +1361,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let array_types = self.encoder.encode_array_types(place_ty).with_span(span)?;
                                 state.substitute_value(&opt_lhs_value_place.unwrap(), array_types.array_len.into());
                             }
+                            ty::TyKind::Slice(..) => {
+                                let snap_len = self.encoder.encode_snapshot_slice_len(
+                                    place_ty,
+                                    self.encode_place(place).with_span(span)?.0,
+                                ).with_span(span)?;
+
+                                state.substitute_value(&opt_lhs_value_place.unwrap(), snap_len);
+                            }
                             _ => {
                                 return Err(SpannedEncodingError::unsupported(
-                                    "checking the length of anything but arrays in pure code is not implemented yet",
+                                    "checking the length of anything but arrays and slices in pure code is not implemented yet",
                                     span,
                                 ));
                             }
