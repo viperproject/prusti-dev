@@ -56,6 +56,32 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
         ))
     }
 
+    fn fallible_fold_domain_func_app(
+        &mut self,
+        func: vir::DomainFunc,
+        args: Vec<vir::Expr>,
+        pos: vir::Position,
+    ) -> Result<vir::Expr, Self::Error> {
+        let folded_args = args.into_iter()
+            .zip(func.formal_args.iter())
+            .map(|(arg, formal_arg)| {
+                let folded_arg = FallibleExprFolder::fallible_fold(self, arg)?;
+                // TODO: same note as for fallible_fold_func_app applies
+                if *folded_arg.get_type() != formal_arg.typ {
+                    self.snapshot_encoder.snap_app(self.encoder, folded_arg)
+                } else {
+                    Ok(folded_arg)
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(vir::Expr::DomainFuncApp(
+            func,
+            folded_args,
+            pos,
+        ))
+    }
+
     fn fallible_fold_field(
         &mut self,
         receiver: Box<vir::Expr>,

@@ -94,6 +94,8 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     ///  - regained array variable
     ///  - info about updated and restored array elements
     array_magic_wand_at: HashMap<mir::Location, (vir::Expr, vir::Expr, vir::Expr)>,
+    /// Labels for array equalities in loops
+    array_loop_old_label: HashMap<BasicBlockIndex, String>,
     // /// Contracts of functions called at given locations with map for replacing fake expressions.
     procedure_contracts:
         HashMap<mir::Location, (ProcedureContract<'tcx>, HashMap<vir::Expr, vir::Expr>)>,
@@ -156,6 +158,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             cfg_blocks_map: HashMap::new(),
             magic_wand_at_location: HashMap::new(),
             array_magic_wand_at: HashMap::new(),
+            array_loop_old_label: HashMap::new(),
             procedure_contracts: HashMap::new(),
             pure_var_for_preserving_value_map: HashMap::new(),
             init_info,
@@ -882,6 +885,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Snapshot(_) => BuiltinMethodKind::HavocRef,
+                vir::Type::Seq(_) => BuiltinMethodKind::HavocRef,
             };
             let stmt = vir::Stmt::MethodCall(
                 self.encoder.encode_builtin_method_use(builtin_method),
@@ -2355,7 +2359,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let slice_ty = if let ty::TyKind::Ref(_, slice_ty, _) = slice_ty_ref.kind() { slice_ty } else { unreachable!() };
         let slice_types = self.encoder.encode_slice_types(slice_ty).with_span(span)?;
 
-        let rhs = slice_types.encode_slice_len_call(slice_operand);
+        let rhs = slice_types.encode_slice_len_call(self.encoder, slice_operand);
 
         let (encoded_lhs, encode_stmts, ty, _) = self.encode_place(
             &destination.as_ref().unwrap().0,
@@ -4113,6 +4117,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )
     }
 
+    fn construct_value_preserving_array_equality(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        array_base: vir::Expr,
+    ) -> vir::Expr {
+        // this label is inserted in encode_loop_invariant_exhale_stmts at the point
+        // where the other "preserve equality" assignments are made
+        use std::collections::hash_map::Entry::*;
+        let old_label = match self.array_loop_old_label.entry(loop_head) {
+            Occupied(lbl) => lbl.into_mut(),
+            Vacant(v) => v.insert(self.cfg_method.get_fresh_label_name()),
+        };
+
+        let snap_array = vir::Expr::snap_app(array_base);
+        let old_snap_array = vir::Expr::old(snap_array.clone(), old_label);
+        vir!{ [snap_array] == [old_snap_array] }
+    }
+
     /// Arguments:
     /// * `loop_head`: the loop head block, which identifies a loop.
     /// * `loop_inv`: the block at whose end the loop invariant should hold.
@@ -4213,8 +4235,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         if let Some(base) = utils::try_pop_deref(self.encoder.env().tcx(), mir_place)
                         {
                             // will panic if attempting to encode unsupported type
-                            let (_, pre_stmts, ref_ty, _) = self.encode_place(&base, ArrayAccessKind::Shared).unwrap();
-                            assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
+                            let ref_ty = self.mir_encoder.encode_place(&base).unwrap().1;
                             match ref_ty.kind() {
                                 ty::TyKind::RawPtr(ty::TypeAndMut { mutbl, .. })
                                 | ty::TyKind::Ref(_, _, mutbl) => {
@@ -4282,13 +4303,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                         // that we will lose information about the children of that
                                         // place after the loop and we need to preserve it via local
                                         // variables.
-                                        let (encoded_child, pre_stmts, _, _) =
-                                            self.encode_place(&child_place, ArrayAccessKind::Shared).unwrap(); // will panic if attempting to encode unsupported type
-                                        assert!(pre_stmts.is_empty(), "Unexpected encoding pre-statements: {:?}", pre_stmts);
-                                        equalities.push(self.construct_value_preserving_equality(
-                                            loop_head,
-                                            &encoded_child,
-                                        ));
+                                        let encoded_child = self.mir_encoder.encode_place(child_place)?.0;
+                                        match encoded_child.into_array_base() {
+                                            ExprOrArrayBase::Expr(e) => {
+                                                equalities.push(self.construct_value_preserving_equality(
+                                                    loop_head,
+                                                    &e,
+                                                ));
+                                            }
+                                            ExprOrArrayBase::ArrayBase(b) => {
+                                                let eq = self.construct_value_preserving_array_equality(loop_head, b);
+                                                // arrays can be mentioned multiple times, so we
+                                                // need to check here
+                                                if !equalities.contains(&eq) {
+                                                    equalities.push(eq);
+                                                }
+                                            }
+                                            ExprOrArrayBase::SliceBase(_) => unimplemented!("slices in loops not yet implemented"),
+                                        }
                                     }
                                 }
                             }
@@ -4322,6 +4354,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|p| format!("{}, ", p))
                 .collect::<String>()
         );
+
         trace!(
             "[exit] encode_loop_invariant_permissions equalities={}",
             equalities
@@ -4329,6 +4362,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|p| format!("{}, ", p))
                 .collect::<String>()
         );
+
         Ok((permissions, equalities))
     }
 
@@ -4464,6 +4498,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_head
         ))];
         if !after_loop_iteration {
+            if let Some(label) = self.array_loop_old_label.get(&loop_head) {
+                stmts.push(vir::Stmt::label(label));
+            }
             for (place, field) in &self.pure_var_for_preserving_value_map[&loop_head] {
                 stmts.push(vir::Stmt::Assign(
                     field.into(),
@@ -4690,10 +4727,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let label = self.cfg_method.get_fresh_label_name();
         stmts.push(vir::Stmt::label(&label));
 
-        let at = self.encoder.encode_array_types(array_ty).with_span(span)?;
+        let array_types = self.encoder.encode_array_types(array_ty).with_span(span)?;
 
         let array_acc_expr = vir::Expr::predicate_access_predicate(
-            at.array_pred.clone(),
+            array_types.array_pred.clone(),
             encoded_array.clone(),
             vir::PermAmount::Write,
         );
@@ -4709,29 +4746,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // inhale infos about array contents back
         let i_var: vir::Expr = vir_local!{ i: Int }.into();
         let zero_le_i = vir!{ [vir::Expr::from(0)] <= [ i_var ] };
-        let i_lt_len = vir!{ [ i_var ] < [ vir::Expr::from(at.array_len) ] };
+        let i_lt_len = vir!{ [ i_var ] < [ vir::Expr::from(array_types.array_len) ] };
         let i_ne_idx = vir!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
         let idx_conditions = vir!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
-        let lookup_array_i = at.encode_lookup_pure_call(encoded_array.clone(), i_var);
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs).with_span(span)?;
+        let lookup_array_i = array_types.encode_lookup_pure_call(self.encoder, encoded_array.clone(), i_var, lookup_ret_ty.clone());
         let lookup_same_as_old = vir!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
         let forall_body = vir!{ [idx_conditions] ==> [lookup_same_as_old] };
         let all_others_unchanged = vir!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
 
         stmts.push(vir!{ inhale [ all_others_unchanged ]});
 
-        let tmp = vir::Expr::from(self.cfg_method.add_fresh_local_var(at.elem_ty.clone()));
+        let tmp = vir::Expr::from(self.cfg_method.add_fresh_local_var(array_types.elem_ty.clone()));
         stmts.extend(
             self.encode_assign(
                 tmp.clone(),
                 rhs,
-                at.elem_ty_rs,
+                array_types.elem_ty_rs,
                 location,
             ).with_span(span)?
         );
 
-        let tmp_val_field = self.encoder.encode_value_expr(tmp, at.elem_ty_rs).with_span(span)?;
+        let tmp_val_field = self.encoder.encode_value_expr(tmp, array_types.elem_ty_rs).with_span(span)?;
 
-        let indexed_updated = vir!{ [ at.encode_lookup_pure_call(encoded_array, old(idx_val_int)) ] == [ tmp_val_field ] };
+        let indexed_lookup_pure_call = array_types
+            .encode_lookup_pure_call(self.encoder, encoded_array, old(idx_val_int), lookup_ret_ty);
+        let indexed_updated = vir!{ [ indexed_lookup_pure_call ] == [ tmp_val_field ] };
 
         stmts.push(vir!{ inhale [ indexed_updated ] });
 
@@ -5300,19 +5340,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let rhs_expr = rhs_place.field(val_ref_field);
         let array_types = self.encoder.encode_array_types(rhs_array_ty).with_span(span)?;
 
-        let slice_len_call = slice_types.encode_slice_len_call(slice_expr.clone());
+        let slice_len_call = slice_types.encode_slice_len_call(self.encoder, slice_expr.clone());
 
         stmts.push(vir::Stmt::Inhale(vir!{ [slice_len_call] == [vir::Expr::from(array_types.array_len)] }));
 
+        let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs).with_span(span)?;
+
         for idx in 0..array_types.array_len {
             let array_lookup_call = array_types.encode_lookup_pure_call(
+                self.encoder,
                 rhs_expr.clone(),
                 vir::Expr::from(idx),
+                elem_snap_ty.clone(),
             );
 
             let slice_lookup_call = slice_types.encode_lookup_pure_call(
+                self.encoder,
                 slice_expr.clone(),
                 vir::Expr::from(idx),
+                elem_snap_ty.clone(),
             );
 
             stmts.push(vir::Stmt::Inhale(
@@ -5374,7 +5420,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     vir::Position::default(),
                 ));
 
-                let rhs = slice_types.encode_slice_len_call(encoded_place);
+                let rhs = slice_types.encode_slice_len_call(self.encoder, encoded_place);
 
                 stmts.extend(
                     self.encode_copy_value_assign(
@@ -5409,13 +5455,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .with_span(span)?;
         let len: usize = self.encoder.const_eval_intlike(&times.val).with_span(span)?
             .to_u64().unwrap().try_into().unwrap();
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs)
+            .with_span(span)?;
 
         let mut stmts = self.encode_havoc_and_allocation(&encoded_lhs);
         for i in 0..len {
             let idx = vir::Expr::from(i);
             let lookup_pure_call = array_types.encode_lookup_pure_call(
+                self.encoder,
                 encoded_lhs.clone(),
                 idx,
+                lookup_ret_ty.clone(),
             );
 
             stmts.push(vir::Stmt::Inhale(vir!{ [lookup_pure_call] == [encoded_operand] }));
@@ -5600,7 +5650,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 debug!("warning: ty::TyKind::Closure not implemented yet");
                 Vec::new()
             }
-            
+
             _ => {
                 return Err(SpannedEncodingError::unsupported(
                     format!("copy operation for an unsupported type {:?}", self_ty.kind()),
@@ -5729,9 +5779,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::AggregateKind::Array(..) => {
                 let array_types = self.encoder.encode_array_types(ty).with_span(span)?;
+                let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs)
+                    .with_span(span)?;
 
                 for (idx, operand) in operands.iter().enumerate() {
-                    let lookup_pure_call = array_types.encode_lookup_pure_call(dst.clone(), idx.into());
+                    let lookup_pure_call = array_types
+                        .encode_lookup_pure_call(self.encoder, dst.clone(), idx.into(), lookup_ret_ty.clone());
 
                     let encoded_operand = self.mir_encoder.encode_operand_expr(operand)
                         .with_span(span)?;
@@ -5816,24 +5869,27 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         index: vir::Expr,
         array_ty: ty::Ty<'tcx>,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
-        let at = self.encoder.encode_array_types(array_ty)?;
+        let array_types = self.encoder.encode_array_types(array_ty)?;
 
-        let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(at.elem_ty.clone()).into();
-        let val_field = self.encoder.encode_value_field(at.elem_ty_rs)?;
+        let lookup_res: vir::Expr = self.cfg_method.add_fresh_local_var(array_types.elem_ty.clone()).into();
+        let val_field = self.encoder.encode_value_field(array_types.elem_ty_rs)?;
         let lookup_res_val_field = lookup_res.clone().field(val_field);
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs)?;
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Shared)?;
         stmts.extend(self.encode_havoc_and_allocation(&lookup_res));
 
         let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
-        let lookup_pure_call = at.encode_lookup_pure_call(
+        let lookup_pure_call = array_types.encode_lookup_pure_call(
+            self.encoder,
             encoded_base_expr.clone(),
             idx_val_int,
+            lookup_ret_ty,
         );
 
         stmts.push(vir::Stmt::Assert(
-            vir::Expr::predicate_access_predicate(at.array_pred, encoded_base_expr, vir::PermAmount::Read),
+            vir::Expr::predicate_access_predicate(array_types.array_pred, encoded_base_expr, vir::PermAmount::Read),
             vir::Position::default(),
         ));
 
@@ -5849,10 +5905,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         _loan: Option<Borrow>,
         location: mir::Location,
     ) -> EncodingResult<(vir::Expr, Vec<vir::Stmt>)> {
-        let at = self.encoder.encode_array_types(array_ty)?;
+        let array_types = self.encoder.encode_array_types(array_ty)?;
 
-        let res: vir::Expr = self.cfg_method.add_fresh_local_var(at.elem_ty.clone()).into();
-        let val_field = self.encoder.encode_value_field(at.elem_ty_rs)?;
+        let res: vir::Expr = self.cfg_method.add_fresh_local_var(array_types.elem_ty.clone()).into();
+        let val_field = self.encoder.encode_value_field(array_types.elem_ty_rs)?;
         let res_val_field = res.clone().field(val_field);
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Mutable(None, location))?;
@@ -5868,7 +5924,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // exhale preconditions
         stmts.push(vir::Stmt::Assert(
-            vir!{ [idx_val_int] < [ vir::Expr::from(at.array_len) ] },
+            vir!{ [idx_val_int] < [ vir::Expr::from(array_types.array_len) ] },
             vir::Position::default(),
         ));
 
@@ -5884,8 +5940,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let old_lhs = |e| { vir::Expr::labelled_old("lhs", e) };
 
         // value of res
+        let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs)?;
+        let lookup_pure_call = array_types.encode_lookup_pure_call(
+            self.encoder,
+            encoded_base_expr.clone(),
+            idx_val_int.clone(),
+            lookup_ret_ty.clone(),
+        );
         stmts.push(vir::Stmt::Inhale(
-            vir!{ [ old(at.encode_lookup_pure_call(encoded_base_expr.clone(), idx_val_int.clone())) ] == [ res_val_field ] }
+            vir!{ [ old(lookup_pure_call) ] == [ res_val_field ] }
         ));
 
         // inhale magic wand
@@ -5905,14 +5968,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let i_var: vir::Expr = vir_local!{ i: Int }.into();
 
         let zero_le_i = vir!{ [ vir::Expr::from(0) ] <= [ i_var ] };
-        let i_lt_len = vir!{ [ i_var ] < [ vir::Expr::from(at.array_len) ] };
+        let i_lt_len = vir!{ [ i_var ] < [ vir::Expr::from(array_types.array_len) ] };
         let i_ne_idx = vir!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
         let idx_conditions = vir!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
-        let lookup_array_i = at.encode_lookup_pure_call(encoded_base_expr.clone(), i_var);
+        let lookup_array_i = array_types.encode_lookup_pure_call(
+            self.encoder,
+            encoded_base_expr.clone(),
+            i_var,
+            lookup_ret_ty.clone(),
+        );
         let lookup_same_as_old = vir!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
         let forall_body = vir!{ [idx_conditions] ==> [lookup_same_as_old] };
         let all_others_unchanged = vir!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
-        let indexed_updated = vir!{ [ at.encode_lookup_pure_call(encoded_base_expr.clone(), old(idx_val_int)) ] == [ old_lhs(res_val_field.clone()) ] };
+        let indexed_lookup_pure = array_types.encode_lookup_pure_call(
+            self.encoder,
+            encoded_base_expr.clone(),
+            old(idx_val_int),
+            lookup_ret_ty,
+        );
+        let indexed_updated = vir!{ [ indexed_lookup_pure ] == [ old_lhs(res_val_field.clone()) ] };
 
         let magic_wand_rhs = vir!{ [all_others_unchanged] && [indexed_updated] };
         self.array_magic_wand_at.insert(
@@ -5952,6 +6026,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let res = vir::Expr::local(self.cfg_method.add_fresh_local_var(slice_types.elem_ty.clone()));
                 let val_field = self.encoder.encode_value_field(slice_types.elem_ty_rs)?;
                 let res_val_field = res.clone().field(val_field);
+                let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types.elem_ty_rs)?;
 
                 let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(*base, array_encode_kind)?;
                 stmts.extend(self.encode_havoc_and_allocation(&res));
@@ -5959,8 +6034,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
                 let lookup_pure_call = slice_types.encode_lookup_pure_call(
+                    self.encoder,
                     encoded_base_expr,
                     idx_val_int,
+                    elem_snap_ty,
                 );
 
                 stmts.push(vir::Stmt::Inhale(vir!{ [lookup_pure_call] == [res_val_field] }));
