@@ -3,13 +3,11 @@ use prusti_contracts::*;
 fn main() {}
 
 
-// TODO: replace 10 with a.len()
-
 fn selection_sort(mut a: [i32; 10]) {
     let mut min;
     let mut i = 0;
 
-    while i < 10 {
+    while i < a.len() {
         body_invariant!(0 <= i && i < 10);
 
         // sorted below i
@@ -21,7 +19,7 @@ fn selection_sort(mut a: [i32; 10]) {
 
         min = i;
         let mut j = i+1;
-        while j < 10 {
+        while j < a.len() {
             // these three are the same as the outer loop
             body_invariant!(0 <= i && i < 10);
             body_invariant!(forall(|k1: usize, k2: usize| (0 <= k1 && k1 < k2 && k2 < i)
