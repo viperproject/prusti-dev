@@ -957,17 +957,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     vir::Expr::not(cond_val)
                 };
 
-                let assert_msg = if let mir::AssertKind::BoundsCheck { .. } = msg {
-                    let mut s = String::new();
-                    msg.fmt_assert_args(&mut s).unwrap();
-                    s
+                let error_ctxt = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                    ErrorCtxt::BoundsCheckAssert
                 } else {
-                    msg.description().to_string()
+                    let assert_msg = msg.description().to_string();
+                    ErrorCtxt::AssertTerminator(assert_msg)
                 };
 
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
-                    ErrorCtxt::PureFunctionAssertTerminator(assert_msg),
+                    error_ctxt,
                 );
 
                 MultiExprBackwardInterpreterState::new(
