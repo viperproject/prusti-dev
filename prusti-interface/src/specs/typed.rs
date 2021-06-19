@@ -90,6 +90,28 @@ impl<'tcx> Spanned<'tcx> for ForAllVars<'tcx> {
     }
 }
 
+impl<'tcx> Spanned<'tcx> for CreditVarPower<'tcx> {
+    fn get_spans(&self, mir_body: &mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Vec<Span> {
+        if let Some(var) = mir_body.local_decls.get(self.var.0) {
+            vec![var.source_info.span]
+        }
+        else {
+            vec![]
+        }
+    }
+}
+
+impl<'tcx> Spanned<'tcx> for CreditPolynomialTerm<'tcx> {
+    fn get_spans(&self, mir_body: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Vec<Span> {
+        let mut spans = self.coeff_expr.get_spans(mir_body, tcx);
+        spans.extend(self.powers
+            .iter()
+            .flat_map(|p| p.get_spans(mir_body, tcx))
+            .collect::<Vec<Span>>());
+        spans
+    }
+}
+
 impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
     fn get_spans(&self, mir_body: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Vec<Span> {
         match *self.kind {
@@ -137,6 +159,11 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                     .flat_map(|post| post.get_spans(mir_body, tcx))
                     .collect::<Vec<Span>>());
                 spans
+            }
+            AssertionKind::CreditPolynomial { ref terms, ..} => {
+                terms.iter()
+                    .flat_map(|term| term.get_spans(mir_body, tcx))
+                    .collect::<Vec<Span>>()
             }
         }
     }

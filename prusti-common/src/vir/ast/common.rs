@@ -13,6 +13,8 @@ use std::{
     ops,
 };
 
+use crate::vir::Expr;
+
 pub trait WithIdentifier {
     fn get_identifier(&self) -> String;
 }
@@ -83,7 +85,7 @@ impl PermAmount {
     pub fn is_valid_for_specs(&self) -> bool {
         match self {
             PermAmount::Read | PermAmount::Write => true,
-            PermAmount::Remaining => false,
+            _ => false,
         }
     }
 
@@ -110,6 +112,7 @@ impl fmt::Display for PermAmount {
             PermAmount::Read => write!(f, "read"),
             PermAmount::Write => write!(f, "write"),
             PermAmount::Remaining => write!(f, "write-read"),
+            //PermAmount::Fraction(ref left, ref right) => write!(f, "{}/{}", left, right),
         }
     }
 }
@@ -122,7 +125,7 @@ impl PartialOrd for PermAmount {
                 Some(Ordering::Equal)
             }
             (PermAmount::Write, PermAmount::Read) => Some(Ordering::Greater),
-            _ => None,
+            _ => None,          //TODO: may need to extend for Fraction?
         }
     }
 }
@@ -135,6 +138,29 @@ impl Ord for PermAmount {
         ))
     }
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct FracPermAmount(pub Box<Expr>, pub Box<Expr>);
+
+impl FracPermAmount {
+    /// Construct a new fractional permission amount `left/right`
+    pub fn new(left: Box<Expr>, right: Box<Expr>) -> FracPermAmount {
+        FracPermAmount(left, right)
+    }       //TODO: may need to add brackets
+    pub fn left(&self) -> &Box<Expr> {
+        &self.0
+    }
+    pub fn right(&self) -> &Box<Expr> {
+        &self.1
+    }
+}
+//TODO: implementations
+impl fmt::Display for FracPermAmount {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}/{}", self.left(), self.right())
+    }
+}
+//TODO: partialEq & hash
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Type {

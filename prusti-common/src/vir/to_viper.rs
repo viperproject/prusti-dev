@@ -292,6 +292,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
     }
 }
 
+impl<'v> ToViper<'v, viper::Expr<'v>> for FracPermAmount {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        ast.fractional_perm(self.left().to_viper(ast), self.right().to_viper(ast))
+    }
+}
+
 impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         let expr = match self {
@@ -332,6 +338,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 .predicate_access_predicate_with_pos(
                     ast.predicate_access(&[arg.to_viper(ast)], &predicate_name),
                     perm.to_viper(ast),
+                    pos.to_viper(ast),
+                ),
+            Expr::CreditAccessPredicate(ref predicate_name, ref args, ref frac_perm, ref pos) => ast
+                .predicate_access_predicate_with_pos(
+                    ast.predicate_access(&args.iter().map(|arg| arg.to_viper(ast)).collect::<Vec<_>>(), &predicate_name),
+                    frac_perm.to_viper(ast),
                     pos.to_viper(ast),
                 ),
             Expr::FieldAccessPredicate(ref loc, perm, ref pos) => ast
@@ -505,6 +517,7 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
             Predicate::Bodyless(name, this) => {
                 ast.predicate(name, &[this.to_viper_decl(ast)], None)
             }
+            Predicate::CreditUnit(p) => p.to_viper(ast),
         }
     }
 }
@@ -525,6 +538,16 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for EnumPredicate {
             &self.name,
             &[self.this.to_viper_decl(ast)],
             Some(self.body().to_viper(ast)),
+        )
+    }
+}
+
+impl<'v> ToViper<'v, viper::Predicate<'v>> for CreditUnitPredicate {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Predicate<'v> {
+        ast.predicate(
+            &self.name,
+            &self.args.iter().map(|arg| arg.to_viper_decl(ast)).collect::<Vec<_>>(),
+            self.body.as_ref().map(|b| b.to_viper(ast)),
         )
     }
 }
