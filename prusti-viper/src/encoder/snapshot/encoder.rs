@@ -1023,7 +1023,7 @@ impl SnapshotEncoder {
                     );
                     let indices = vir!{ ([vir::Expr::from(0)] <= [i]) && ([i] < [slice_len]) };
 
-                    vir!{ forall i: Int :: { [read_call] } ([indices] ==> ([read_call] == [lookup_call])) }
+                    vir!{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
                 };
 
                 let snap_func = vir::Function {
