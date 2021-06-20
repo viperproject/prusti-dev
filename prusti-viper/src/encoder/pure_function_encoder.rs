@@ -1371,6 +1371,50 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                     }
 
+                    &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
+                        if !ty.is_slice() {
+                            return Err(EncodingError::unsupported(
+                                "unsizing a pointer or reference value is not supported"
+                            )).with_span(span);
+                        }
+
+                        let rhs_array_ref_ty = self.mir_encoder.get_operand_ty(operand);
+                        let encoded_rhs = if let Some(encoded_place) = self.encode_operand_place(operand).with_span(span)? {
+                            encoded_place
+                        } else {
+                            self.mir_encoder.encode_operand_expr(operand)
+                                .with_span(span)?
+                        };
+                        // encoded_rhs is something like ref$Array$.. or ref$Slice$.. but we want .val_ref: Array$..
+                        let encoded_rhs = self.encoder.encode_value_expr(encoded_rhs, rhs_array_ref_ty).with_span(span)?;
+                        let rhs_array_ty = if let ty::TyKind::Ref(_, array_ty, _) = rhs_array_ref_ty.kind() {
+                            array_ty
+                        } else {
+                            unreachable!("rhs array not a ref?")
+                        };
+                        trace!("rhs_array_ty: {:?}", rhs_array_ty);
+                        let array_types = self.encoder.encode_array_types(rhs_array_ty).with_span(span)?;
+
+                        let encoded_array_elems = (0..array_types.array_len)
+                            .map(|idx| {
+                                self.encoder.encode_snapshot_array_idx(rhs_array_ty, encoded_rhs.clone(), idx.into())
+                            })
+                            .collect::<Result<Vec<_>, _>>()
+                            .with_span(span)?;
+
+                        let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs).with_span(span)?;
+                        let elems_seq = vir::Expr::Seq(
+                            vir::Type::Seq(box elem_snap_ty),
+                            encoded_array_elems,
+                            vir::Position::default(),
+                        );
+
+                        let slice_snap = self.encoder.encode_snapshot_constructor(ty, vec![elems_seq]).with_span(span)?;
+
+                        state.substitute_value(&opt_lhs_value_place.unwrap(), slice_snap);
+
+                    }
+
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
                     }

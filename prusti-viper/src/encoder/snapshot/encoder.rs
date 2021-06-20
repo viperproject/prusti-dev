@@ -428,9 +428,9 @@ impl SnapshotEncoder {
             }
             Snapshot::Slice { cons, .. } => {
                 // the caller must have created a vir::Expr::Seq already
-                assert_eq!(args.len(), 2);
-                // args[0] is the length, args[1] the `Seq` of elements
-                assert!(matches!(args[1], vir::Expr::Seq(..)), "Seq expected for array snapshot");
+                assert_eq!(args.len(), 1);
+                // args[0] is the `Seq` of elements
+                assert!(matches!(args[0], vir::Expr::Seq(..)), "Seq expected for slice snapshot");
 
                 Ok(cons.apply(args))
             }
@@ -1070,12 +1070,13 @@ impl SnapshotEncoder {
                     }
                 };
 
+                let data = vir_local!{ data: {seq_type.clone()} };
+                let cons_call = cons.apply(vec![data.clone().into()]);
+
                 let read_axiom = {
-                    let data = vir_local!{ data: {seq_type} };
                     let idx = vir_local!{ idx: Int };
 
-                    let cons_call = cons.apply(vec![data.clone().into()]);
-                    let read_call = read.apply(vec![cons_call, idx.clone().into()]);
+                    let read_call = read.apply(vec![cons_call.clone(), idx.clone().into()]);
 
                     let seq_lookup = Expr::ContainerOp(
                         ContainerOpKind::SeqIndex,
@@ -1088,7 +1089,7 @@ impl SnapshotEncoder {
                         name: format!("{}$read_indices", predicate_name),
                         expr: Expr::forall(
                             vec![
-                                data,
+                                data.clone(),
                                 idx,
                             ],
                             vec![
@@ -1101,12 +1102,28 @@ impl SnapshotEncoder {
                     }
                 };
 
+                let len_of_seq = {
+                    let len_call = len.apply(vec![cons_call]);
+                    let seq_len = Expr::ContainerOp(
+                        ContainerOpKind::SeqLen,
+                        box data.into(),
+                        box true.into(), // unused
+                        vir::Position::default(),
+                    );
+
+                    vir::DomainAxiom {
+                        name: format!("{}$len_of_seq", predicate_name),
+                        expr: vir!{ forall data: {seq_type} :: { [len_call], [seq_len] } ([len_call] == [seq_len]) },
+                        domain_name: domain_name.clone(),
+                    }
+                };
+
                 let len_positive = {
-                    let len_call = len.apply(vec![vir_local!{ s: {slice_snap_ty.clone()} }.into()]);
+                    let len_call = len.apply(vec![vir_local!{ slice: {slice_snap_ty.clone()} }.into()]);
 
                     vir::DomainAxiom {
                         name: format!("{}$len_positive", predicate_name),
-                        expr: vir!{ forall s: {slice_snap_ty} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
+                        expr: vir!{ forall slice: {slice_snap_ty} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
                         domain_name: domain_name.clone(),
                     }
                 };
@@ -1121,6 +1138,7 @@ impl SnapshotEncoder {
                     axioms: vec![
                         cons_inj,
                         read_axiom,
+                        len_of_seq,
                         len_positive,
                     ],
                     type_vars: vec![],
