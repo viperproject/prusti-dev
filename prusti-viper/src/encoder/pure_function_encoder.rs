@@ -22,8 +22,7 @@ use prusti_common::config;
 use prusti_interface::specs::typed;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
-use rustc_middle::ty;
+use rustc_middle::{mir, ty, span_bug};
 use std::collections::HashMap;
 use log::{debug, trace};
 use prusti_interface::PrustiError;
@@ -1368,12 +1367,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                                 state.substitute_value(&opt_lhs_value_place.unwrap(), snap_len);
                             }
-                            _ => {
-                                return Err(SpannedEncodingError::unsupported(
-                                    "checking the length of anything but arrays and slices in pure code is not implemented yet",
-                                    span,
-                                ));
-                            }
+                            _ => span_bug!(span, "length should only be requested on arrays or slices"),
                         }
                     }
 
