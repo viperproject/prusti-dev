@@ -69,6 +69,18 @@ macro_rules! to_html {
     }};
 }
 
+macro_rules! to_html_display {
+    ( $o:expr ) => {{
+        format!("{}", $o)
+            .replace("{", "\\{")
+            .replace("}", "\\}")
+            .replace("&", "&amp;")
+            .replace(">", "&gt;")
+            .replace("<", "&lt;")
+            .replace("\n", "<br/>")
+    }};
+}
+
 macro_rules! to_sorted_string {
     ( $o:expr ) => {{
         let mut vector = $o.iter().map(|x| to_html!(x)).collect::<Vec<String>>();
@@ -87,6 +99,7 @@ impl<'tcx, 'a> GraphvizWriter<'tcx, 'a> {
     fn write_all(&self) -> IoResult {
         write_graph!(self, "digraph G {{\n");
         self.print_input_output()?;
+        self.universal_lifetimes()?;
         self.print_temp_variables()?;
         for bb in self.body.basic_block_indices() {
             self.visit_basic_block(bb)?;
@@ -146,6 +159,26 @@ impl<'tcx, 'a> GraphvizWriter<'tcx, 'a> {
         write_graph!(self, "</table>>];");
         Ok(())
     }
+    fn universal_lifetimes(&self) -> IoResult {
+        write_graph!(self, "universal_lifetimes [ style=filled shape = \"record\"");
+        write_graph!(self, "label =<<table>");
+        write_graph!(self, "<tr><td>Universal lifetimes</td></tr>");
+        write_graph!(
+            self,
+            "<tr><td>{}</td></tr>",
+            to_sorted_string!(self.body.get_universal_lifetimes())
+        );
+        write_graph!(self, "<tr><td>Constraints</td></tr>");
+        for constraint in self.body.get_universal_lifetime_constraints() {
+            write_graph!(
+                self,
+                "<tr><td>{}</td></tr>",
+                to_html_display!(constraint)
+            );
+        }
+        write_graph!(self, "</table>>];");
+        Ok(())
+    }
     fn print_temp_variables(&self) -> IoResult {
         write_graph!(self, "Variables [ style=filled shape = \"record\"");
         write_graph!(self, "label =<<table>");
@@ -178,6 +211,9 @@ impl<'tcx, 'a> GraphvizWriter<'tcx, 'a> {
         write_graph!(self, "<th>");
         write_graph!(self, "<td>Nr</td>");
         write_graph!(self, "<td>statement</td>");
+        write_graph!(self, "<td>starting lifetimes</td>");
+        write_graph!(self, "<td>new lifetime constraints</td>");
+        write_graph!(self, "<td>ending lifetimes</td>");
         write_graph!(self, "<td>outlives start</td>");
         write_graph!(self, "<td>outlives mid</td>");
         write_graph!(self, "</th>");
@@ -212,6 +248,9 @@ impl<'tcx, 'a> GraphvizWriter<'tcx, 'a> {
         write_graph!(self, "<tr>");
         write_graph!(self, "<td>{}</td>", statement.index());
         write_graph!(self, "<td>{}</td>", to_html!(statement.kind()));
+        write_graph!(self, "<td>TODO</td>");
+        write_graph!(self, "<td>TODO</td>");
+        write_graph!(self, "<td>TODO</td>");
         write_graph!(self, "<td>{}</td>", to_sorted_string!(self.body.get_outlives_at_start(statement.location())));
         write_graph!(self, "<td>{}</td>", to_sorted_string!(self.body.get_outlives_at_mid(statement.location())));
         write_graph!(self, "</tr>");

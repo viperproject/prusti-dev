@@ -8,6 +8,7 @@ use rustc_mir::borrow_check::location::LocationIndex;
 
 mod extract;
 mod derive;
+mod compute_lifetimes;
 
 pub(super) use self::extract::enrich_mir_body;
 
@@ -27,6 +28,7 @@ pub struct MirBody<'tcx> {
     local_names: HashMap<mir::Local, String>,
     /// Outlives relations at the given statement.
     outlives: HashMap<LocationIndex, Vec<(ty::RegionVid, ty::RegionVid)>>,
+    lifetimes: compute_lifetimes::BodyLifetimes,
 }
 
 pub struct Variable<'body, 'tcx> {
@@ -100,6 +102,12 @@ impl<'tcx> MirBody<'tcx> {
     pub fn get_outlives_at_mid(&self, location: mir::Location) -> Option<&Vec<(ty::RegionVid, ty::RegionVid)>> {
         let index = self.location_table.mid_index(location);
         self.outlives.get(&index)
+    }
+    pub fn get_universal_lifetimes(&self) -> &[compute_lifetimes::Lifetime] {
+        &self.lifetimes.universal_lifetimes
+    }
+    pub fn get_universal_lifetime_constraints(&self) -> &[compute_lifetimes::LifetimeConstraint] {
+        &self.lifetimes.universal_lifetime_constraints
     }
 }
 
