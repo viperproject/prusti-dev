@@ -1,7 +1,7 @@
 use crate::specifications::common::SpecificationIdGenerator;
 use crate::specifications::untyped;
-use proc_macro2::TokenStream;
-use syn::{Type, punctuated::Punctuated, Pat, Token};
+use proc_macro2::{TokenStream, Span};
+use syn::{Type, punctuated::Punctuated, Pat, Token, Lit, LitBool};
 
 pub(crate) struct AstRewriter {
     spec_id_generator: SpecificationIdGenerator,
@@ -88,7 +88,13 @@ impl AstRewriter {
 }
 
 pub fn translate_empty_assertion() -> syn::Expr {
-    unimplemented!("translate_empty_assertion");
+    syn::Expr::Lit(syn::ExprLit {
+        attrs: vec![],
+        lit: Lit::Bool(LitBool {
+            value: true,
+            span: Span::call_site(),
+        }),
+    })
 }
 
 pub fn translate_pledge_rhs_only(reference: Option<syn::Expr>, rhs: syn::Expr) -> syn::Expr {
