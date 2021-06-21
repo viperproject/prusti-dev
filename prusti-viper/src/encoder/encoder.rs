@@ -995,6 +995,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             | ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
             | ty::TyKind::Char
+            | ty::TyKind::Float(_)
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Never
             | ty::TyKind::Param(_) => true,

@@ -19,6 +19,7 @@ use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
 use crate::encoder::snapshot_spec_patcher::SnapshotSpecPatcher;
+use prusti_common::vir::BinOpKind;
 use prusti_common::{
     config,
     report::log,
@@ -2018,20 +2019,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     self.mir_encoder.get_operand_ty(&args[0])
                                 )
                         => {
-
                             let op_ty = self.mir_encoder.get_operand_ty(&args[0]);
                             match op_ty.kind() {
                                 
-                                ty::TyKind::Float(_) => unimplemented!("never reached"),
+                                ty::TyKind::Float(_) => {
+                                    unimplemented!("PartialEq::eq float interception")
+                                },
                                 _ => {
-                            debug!("Encoding call of PartialEq::eq");
-                            stmts.extend(
-                                self.encode_cmp_function_call(
-                                    def_id,
-                                    location,
-                                    term.source_info.span,
-                                    args,
-                                    destination,
+                                    debug!("Encoding call of PartialEq::eq");
+                                    stmts.extend(
+                                        self.encode_cmp_function_call(
+                                        def_id,
+                                        location,
+                                        term.source_info.span,
+                                        args,
+                                        destination,
                                         vir::BinOpKind::EqCmp,)?
                                     );
                                 }
@@ -2046,17 +2048,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     self.mir_encoder.get_operand_ty(&args[0])
                                 )
                         => {
-                            debug!("Encoding call of PartialEq::ne");
-                            stmts.extend(
-                                self.encode_cmp_function_call(
-                                    def_id,
-                                    location,
-                                    term.source_info.span,
-                                    args,
-                                    destination,
-                                    vir::BinOpKind::NeCmp,
-                                )?
-                            );
+                            let op_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            match op_ty.kind() {
+                                
+                                ty::TyKind::Float(_) => {
+                                    unimplemented!("PartialEq::ne float interception")
+                                },
+                                _ => {
+                                    debug!("Encoding call of PartialEq::ne");
+                                    stmts.extend(
+                                        self.encode_cmp_function_call(
+                                        def_id,
+                                        location,
+                                        term.source_info.span,
+                                        args,
+                                        destination,
+                                        vir::BinOpKind::NeCmp,)?
+                                    );
+                                }
+                            }
                         }
 
                         "core::f32::<impl f32>::is_nan" |
@@ -2074,6 +2084,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             );
 
                             stmts.extend(call_stmts);
+                            
                             self.encode_transfer_args_permissions(location, args, &mut stmts, label, false)?;                            
                         
                         }

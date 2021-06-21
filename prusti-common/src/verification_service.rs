@@ -42,8 +42,10 @@ impl Default for ViperBackendConfig {
             VerificationBackend::Carbon => {
                 verifier_args.extend(vec![
                     "--disableAllocEncoding".to_string(),
+                    "--print".to_string(),
+                    "/tmp/test.bpl".to_string(),
                 ]);
-            }
+                }
         }
         Self {
             backend,
