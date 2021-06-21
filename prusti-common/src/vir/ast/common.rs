@@ -146,10 +146,10 @@ impl FracPermAmount {
     pub fn new(left: Box<Expr>, right: Box<Expr>) -> FracPermAmount {
         FracPermAmount(left, right)
     }       //TODO: may need to add brackets
-    pub fn left(&self) -> &Box<Expr> {
+    pub fn left(&self) -> &Expr {
         &self.0
     }
-    pub fn right(&self) -> &Box<Expr> {
+    pub fn right(&self) -> &Expr {
         &self.1
     }
 }

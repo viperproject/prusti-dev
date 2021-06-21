@@ -749,10 +749,10 @@ impl Parser {
             self.previous_expression_resolved = true;
             self.expected_only_operator = true;
             self.expected_operator = true;
-            return Ok(());
+            Ok(())
         }
         else {
-            return Err(self.error_expected_parenthesis());
+            Err(self.error_expected_parenthesis())
         }
     }
     fn resolve_parenthesized_block(&mut self, group: Group) -> syn::Result<()>{

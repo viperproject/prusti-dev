@@ -171,8 +171,8 @@ impl untyped::AssertionKind {
                 posts: posts.iter().map(|post| post.to_structure()).collect(),
             },
             CreditPolynomial {spec_id, id, credit_type, terms} => AssertionKind::CreditPolynomial {
-                spec_id: spec_id.clone(),
-                expr_id: id.clone(),
+                spec_id: *spec_id,
+                expr_id: *id,
                 credit_type: credit_type.clone(),
                 terms: terms.iter().map(|term| term.to_structure()).collect(),
             },
