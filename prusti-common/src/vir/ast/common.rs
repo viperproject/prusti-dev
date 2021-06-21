@@ -85,7 +85,7 @@ impl PermAmount {
     pub fn is_valid_for_specs(&self) -> bool {
         match self {
             PermAmount::Read | PermAmount::Write => true,
-            _ => false,
+            PermAmount::Remaining => false,
         }
     }
 
@@ -112,7 +112,6 @@ impl fmt::Display for PermAmount {
             PermAmount::Read => write!(f, "read"),
             PermAmount::Write => write!(f, "write"),
             PermAmount::Remaining => write!(f, "write-read"),
-            //PermAmount::Fraction(ref left, ref right) => write!(f, "{}/{}", left, right),
         }
     }
 }
@@ -125,7 +124,7 @@ impl PartialOrd for PermAmount {
                 Some(Ordering::Equal)
             }
             (PermAmount::Write, PermAmount::Read) => Some(Ordering::Greater),
-            _ => None,          //TODO: may need to extend for Fraction?
+            _ => None,
         }
     }
 }
