@@ -98,65 +98,12 @@ impl<'tcx, 'a> GraphvizWriter<'tcx, 'a> {
     }
     fn write_all(&self) -> IoResult {
         write_graph!(self, "digraph G {{\n");
-        self.print_input_output()?;
         self.universal_lifetimes()?;
         self.print_temp_variables()?;
         for bb in self.body.basic_block_indices() {
             self.visit_basic_block(bb)?;
         }
         write_graph!(self, "}}\n");
-        Ok(())
-    }
-    fn print_input_output(&self) -> IoResult {
-        write_graph!(self, "input_output_types [ style=filled shape = \"record\"");
-        write_graph!(self, "label =<<table>");
-        write_graph!(self, "<tr><td colspan=\"2\">Input Output Types</td></tr>");
-        write_graph!(
-            self,
-            "<tr><td>Id</td><td>Type</td></tr>"
-        );
-        for (id, ty) in self.body.iter_inputs_and_output_types().enumerate() {
-            write_graph!(
-                self,
-                "<tr><td>{}</td><td>{:?}</td></tr>",
-                id,
-                to_html!(ty)
-            );
-        }
-        write_graph!(self, "<tr><td colspan=\"2\">Universal regions</td></tr>");
-        write_graph!(
-            self,
-            "<tr><td colspan=\"2\">{}</td></tr>",
-            to_sorted_string!(self.body.get_universal_regions().collect::<Vec<_>>())
-        );
-        write_graph!(
-            self,
-            "<tr><td>'static</td><td>{:?}</td></tr>",
-            self.body.get_static_region()
-        );
-        write_graph!(
-            self,
-            "<tr><td>'fn</td><td>{:?}</td></tr>",
-            self.body.get_function_region()
-        );
-        for (name, region) in self.body.get_universal_region_names() {
-            write_graph!(
-                self,
-                "<tr><td>{:?}</td><td>{:?}</td></tr>",
-                name,
-                region
-            );
-        }
-        write_graph!(self, "<tr><td colspan=\"2\">Universal outlives</td></tr>");
-        for (region1, region2) in self.body.get_universal_region_outlives() {
-            write_graph!(
-                self,
-                "<tr><td>{:?}</td><td>{:?}</td></tr>",
-                region1,
-                region2
-            );
-        }
-        write_graph!(self, "</table>>];");
         Ok(())
     }
     fn universal_lifetimes(&self) -> IoResult {

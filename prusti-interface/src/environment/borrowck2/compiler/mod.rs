@@ -2,6 +2,7 @@ use std::{collections::HashMap, rc::Rc};
 use rustc_middle::{mir, ty, ty::TyCtxt};
 use rustc_hir::{def_id::DefId};
 use rustc_mir::borrow_check::facts::AllFacts;
+use rustc_mir::borrow_check::nll::PoloniusOutput;
 use rustc_mir::borrow_check::location::LocationTable;
 use rustc_mir::borrow_check::universal_regions::UniversalRegions;
 use rustc_mir::borrow_check::location::LocationIndex;
@@ -16,12 +17,10 @@ pub(super) use self::extract::enrich_mir_body;
 pub struct MirBody<'tcx> {
     def_id: DefId,
     // Information obtained from the borrow checker.
-    inputs_and_output: Vec<ty::Ty<'tcx>>,
     body: mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    universal_regions: Rc<UniversalRegions<'tcx>>,
-    universal_regions_outlives: Vec<(ty::RegionVid, ty::RegionVid)>,
-    polonius_facts: AllFacts,
+    polonius_input_facts: AllFacts,
+    polonius_output_facts: PoloniusOutput,
     location_table: LocationTable,
     // Derived information.
     /// The names of local variables.
@@ -74,26 +73,6 @@ impl<'tcx> MirBody<'tcx> {
             data: &self.body[index],
             body: self,
         }
-    }
-    pub fn iter_inputs_and_output_types<'a>(&'a self) -> impl Iterator<Item=&'a ty::Ty<'tcx>> {
-        self.inputs_and_output.iter()
-    }
-    pub fn get_universal_regions(&self) -> impl Iterator<Item=ty::RegionVid> {
-        self.universal_regions.universal_regions()
-    }
-    pub fn get_universal_region_names<'a>(&'a self) -> impl Iterator<Item=(ty::Region<'tcx>, ty::RegionVid)> + 'a {
-        self.universal_regions.named_universal_regions()
-    }
-    /// The region that corresponds to `'static`.
-    pub fn get_static_region(&self) -> ty::RegionVid {
-        self.universal_regions.fr_static
-    }
-    /// The region that corresponds to the lifetime of the function itself.
-    pub fn get_function_region(&self) -> ty::RegionVid {
-        self.universal_regions.fr_fn_body
-    }
-    pub fn get_universal_region_outlives(&self) -> &[(ty::RegionVid, ty::RegionVid)] {
-        &self.universal_regions_outlives
     }
     pub fn get_outlives_at_start(&self, location: mir::Location) -> Option<&Vec<(ty::RegionVid, ty::RegionVid)>> {
         let index = self.location_table.start_index(location);

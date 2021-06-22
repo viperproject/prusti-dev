@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use rustc_middle::{mir, ty, ty::TyCtxt};
 use rustc_mir::borrow_check::universal_regions::UniversalRegions;
 use rustc_mir::borrow_check::facts::AllFacts;
+use rustc_mir::borrow_check::nll::PoloniusOutput;
 
 #[derive(PartialOrd, Ord, PartialEq, Eq)]
 pub struct Lifetime {
@@ -71,18 +72,19 @@ pub(super) struct BodyLifetimes {
 }
 
 pub(super) fn compute_lifetimes<'tcx>(
-    universal_regions: &UniversalRegions<'tcx>,
-    universal_regions_outlives: &[(ty::RegionVid, ty::RegionVid)],
+    polonius_input_facts: &AllFacts,
+    polonius_output_facts: &PoloniusOutput,
 ) -> BodyLifetimes {
-    let universal_lifetimes = universal_regions.universal_regions().map(
-        |region| region.into()
+    let universal_lifetimes = polonius_input_facts.universal_region.iter().map(
+        |&region| region.into()
     ).collect();
-    let mut universal_lifetime_constraints: Vec<_> = universal_regions_outlives.iter().map(
+    let mut universal_lifetime_constraints: Vec<_> = polonius_input_facts.known_subset.iter().map(
         |&(longer, shorter)| {
             LifetimeConstraint { longer: longer.into(), shorter: shorter.into() }
         }
     ).collect();
     universal_lifetime_constraints.sort();
+
     let lifetimes_starting_at = HashMap::new();
     let lifetimes_ending_at = HashMap::new();
     let new_lifetime_constraints_at = HashMap::new();
