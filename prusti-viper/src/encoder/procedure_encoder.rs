@@ -2018,7 +2018,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 self.encoder.has_structural_eq_impl(
                                     self.mir_encoder.get_operand_ty(&args[0])
                                 )
-                        => {                            
+                        => {
                             debug!("Encoding call of PartialEq::eq");
                             stmts.extend(
                                 self.encode_cmp_function_call(
@@ -2027,11 +2027,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 term.source_info.span,
                                 args,
                                 destination,
-                                vir::BinOpKind::EqCmp,)?
+                                vir::BinOpKind::EqCmp,
+                                )?
                             );        
                         }
-                        
-                            
 
                         "std::cmp::PartialEq::ne" |
                         "core::cmp::PartialEq::ne"
@@ -2048,11 +2047,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 term.source_info.span,
                                 args,
                                 destination,
-                                vir::BinOpKind::NeCmp,)?
+                                vir::BinOpKind::NeCmp,
+                                )?
                             );
                         }
-                            
-                         
 
                         "core::f32::<impl f32>::is_nan" |
                         "core::f64::<impl f64>::is_nan" => {

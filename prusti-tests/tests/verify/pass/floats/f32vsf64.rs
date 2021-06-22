@@ -22,7 +22,7 @@ fn main() {
 
 
 
-    // both works
+    // both work
 
     // let x = 5.3;
     // assert!(x == x); 

@@ -6,7 +6,6 @@
 
 use crate::vir::ast::*;
 
-
 impl From<LocalVar> for Expr {
     fn from(local_var: LocalVar) -> Self {
         Expr::Local(local_var, Position::default())

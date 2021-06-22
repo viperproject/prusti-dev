@@ -743,7 +743,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error=U>>(
         Expr::DomainFuncApp(x, y, p) => this.fallible_fold_domain_func_app(x,y,p),
         Expr::BackendFuncApp(x, y, p) => this.fallible_fold_backend_func_app(x, y, p),
         // TODO Expr::DomainFuncApp(u, v, w, x, y, p) => this.fallible_fold_domain_func_app(u,v,w,x,y,p),
-        Expr::InhaleExhale(x, y, p) => this.fallible_inhale_exhale(x,y,p), // change here to make it compile but not my code
+        Expr::InhaleExhale(x, y, p) => this.fallible_inhale_exhale(x,y,p), // change here to make it compile after rebase but not my code
         Expr::Downcast(b, p, f) => this.fallible_fold_downcast(b, p, f),
     }
 }

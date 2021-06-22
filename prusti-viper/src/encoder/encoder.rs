@@ -978,14 +978,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-
-    pub fn has_is_nan_impl(&self, ty:ty::Ty<'tcx>) -> bool{
-        match ty.kind() {
-            ty::TyKind::Float(_) => true,
-            _ => false,
-        }
-    }
-
     /// Checks whether the given type implements structural equality
     /// by either being a primitive type or by deriving the Eq trait.
     pub fn has_structural_eq_impl(&self, ty: ty::Ty<'tcx>) -> bool {
@@ -995,7 +987,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             | ty::TyKind::Int(_)
             | ty::TyKind::Uint(_)
             | ty::TyKind::Char
-            | ty::TyKind::Float(_)
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Never
             | ty::TyKind::Param(_) => true,

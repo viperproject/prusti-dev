@@ -469,7 +469,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             }
 
             Expr::BackendFuncApp(ref _function, ref _args, ref _pos) => {
-                unimplemented!("ToViper for Backendfunction is unimplemented")
+                unimplemented!("ToViper for BackendFuncApp is unimplemented")
                 // ast.backend_func_app(
                 //     function.to_viper(ast),
                 //     &args.to_viper(ast),
@@ -628,7 +628,7 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
 
 impl<'a, 'v> ToViper<'v, viper::BackendFunc<'v>> for &'a BackendFunc {
     fn to_viper(&self, _ast: &AstFactory<'v>) -> viper::BackendFunc<'v> {
-        unimplemented!("BackendFunc ToViper currently unused")
+        unimplemented!("BackendFunc ToViper not implemented")
     }
 }
 

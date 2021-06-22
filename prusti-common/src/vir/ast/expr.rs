@@ -6,15 +6,11 @@
 
 use super::super::borrows::Borrow;
 use crate::vir::{ast::*, FloatSize::*};
-//use vir::{ast::*, FloatSize::*};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem;
 use std::mem::discriminant;
-
-use serde::*;
-use std::marker::PhantomData;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Expr {
@@ -1062,7 +1058,7 @@ impl Expr {
                 &func.return_type
             },
             Expr::BackendFuncApp(ref _func, _, _) => { 
-                unimplemented!("Unsure what comes here")
+                unimplemented!()
             },
             Expr::Const(constant, ..) => {
                 match constant {
