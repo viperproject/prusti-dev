@@ -2018,27 +2018,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 self.encoder.has_structural_eq_impl(
                                     self.mir_encoder.get_operand_ty(&args[0])
                                 )
-                        => {
-                            let op_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            match op_ty.kind() {
-                                
-                                ty::TyKind::Float(_) => {
-                                    unimplemented!("PartialEq::eq float interception")
-                                },
-                                _ => {
-                                    debug!("Encoding call of PartialEq::eq");
-                                    stmts.extend(
-                                        self.encode_cmp_function_call(
-                                        def_id,
-                                        location,
-                                        term.source_info.span,
-                                        args,
-                                        destination,
-                                        vir::BinOpKind::EqCmp,)?
-                                    );
-                                }
-                            }
+                        => {                            
+                            debug!("Encoding call of PartialEq::eq");
+                            stmts.extend(
+                                self.encode_cmp_function_call(
+                                def_id,
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                vir::BinOpKind::EqCmp,)?
+                            );        
                         }
+                        
                             
 
                         "std::cmp::PartialEq::ne" |
@@ -2048,42 +2040,48 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     self.mir_encoder.get_operand_ty(&args[0])
                                 )
                         => {
-                            let op_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                            match op_ty.kind() {
-                                
-                                ty::TyKind::Float(_) => {
-                                    unimplemented!("PartialEq::ne float interception")
-                                },
-                                _ => {
-                                    debug!("Encoding call of PartialEq::ne");
-                                    stmts.extend(
-                                        self.encode_cmp_function_call(
-                                        def_id,
-                                        location,
-                                        term.source_info.span,
-                                        args,
-                                        destination,
-                                        vir::BinOpKind::NeCmp,)?
-                                    );
-                                }
-                            }
+                            debug!("Encoding call of PartialEq::ne");
+                            stmts.extend(
+                                self.encode_cmp_function_call(
+                                def_id,
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                vir::BinOpKind::NeCmp,)?
+                            );
                         }
+                            
+                         
 
                         "core::f32::<impl f32>::is_nan" |
                         "core::f64::<impl f64>::is_nan" => {
-                            
                             let span = self.mir_encoder.get_span_of_location(location);
                             let operand = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
                             let operand_box = std::boxed::Box::from(operand);
                             let expr = vir::Expr::UnaryOp(UnaryOpKind::IsNaN, operand_box, vir::Position::default());
 
-                            let (call_stmts, label) = self.encode_pure_function_call_site(
-                                location,
-                                destination, 
-                                expr
-                            );
+                            let label = self.cfg_method.get_fresh_label_name();
+                            stmts.push(vir::Stmt::Label(label.clone()));
 
-                            stmts.extend(call_stmts);
+                            // Havoc the content of the lhs
+                            let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination);
+                            stmts.extend(pre_stmts);
+                            stmts.extend(self.encode_havoc(&target_place));
+                            let type_predicate = self
+                                .mir_encoder
+                                .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
+                                .unwrap();
+
+                            stmts.push(vir::Stmt::Inhale(
+                                type_predicate,
+                            ));
+                    
+                            // Store a label for permissions got back from the call
+                            self.label_after_location.insert(location, label.clone());
+
+                            let lhs = vir::Expr::Field(std::boxed::Box::from(target_place.clone()), vir::Field::new("val_bool", vir::Type::Bool), vir::Position::default());
+                            stmts.push(vir::Stmt::Assign(lhs, expr, vir::AssignKind::Ghost));
                             
                             self.encode_transfer_args_permissions(location, args, &mut stmts, label, false)?;                            
                         
@@ -2205,7 +2203,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 } else {
                     msg.description().to_string()
                 };
-
                 stmts.push(vir::Stmt::comment(format!("Rust assertion: {}", assert_msg)));
                 if self.check_panics {
                     stmts.push(vir::Stmt::Assert(

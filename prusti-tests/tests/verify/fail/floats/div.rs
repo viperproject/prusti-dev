@@ -1,6 +1,6 @@
 fn main() {
-    let a = 1.;
-    let b = 0.;
+    let a:f32 = 1.;
+    let b:f32 = 0.;
 
-    assert!(a / b != f64::NAN); //~ ERROR: the asserted expression might not hold
+    assert!(a / b != f32::INFINITY); //~ ERROR: the asserted expression might not hold
 }

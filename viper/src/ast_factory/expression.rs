@@ -205,8 +205,7 @@ impl<'a> AstFactory<'a> {
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
 
-    pub fn backend_bv64_lit(&self, bits: u64) -> Expr<'a> {    
-        let bits_as_int: i64 = unsafe { std::mem::transmute(bits) };
+    pub fn backend_bv64_lit(&self, bits: u64) -> Expr<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV64")).unwrap();
