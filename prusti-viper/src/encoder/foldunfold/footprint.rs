@@ -144,7 +144,7 @@ impl PredicateFootprintGetter for vir::Predicate {
         &self,
         maybe_variant: &vir::MaybeEnumVariantIndex,
     ) -> HashSet<Perm> {
-        let perms = match self {
+        match self {
             vir::Predicate::Struct(p) => {
                 assert!(maybe_variant.is_none());
                 p.get_body_footprint()
@@ -164,8 +164,7 @@ impl PredicateFootprintGetter for vir::Predicate {
             }
             vir::Predicate::Bodyless(_, _) => HashSet::new(),
             vir::Predicate::CreditUnit(_p) => HashSet::new(),       //TODO: ?
-        };
-        perms
+        }
     }
 }
 

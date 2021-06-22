@@ -302,7 +302,7 @@ impl<'tcx> StructuralToTyped<'tcx, CreditVarPower<'tcx>> for json::CreditVarPowe
 
 impl<'tcx> StructuralToTyped<'tcx, CreditPolynomialTerm<'tcx>> for json::CreditPolynomialTerm {
     fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> CreditPolynomialTerm<'tcx> {
-        return CreditPolynomialTerm {
+        CreditPolynomialTerm {
             coeff_expr: self.coeff_expr.to_typed(typed_expressions, tcx),
             powers: self.powers
                 .into_iter()

@@ -336,13 +336,13 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             }
             Expr::PredicateAccessPredicate(ref predicate_name, ref arg, perm, ref pos) => ast
                 .predicate_access_predicate_with_pos(
-                    ast.predicate_access(&[arg.to_viper(ast)], &predicate_name),
+                    ast.predicate_access(&[arg.to_viper(ast)], predicate_name),
                     perm.to_viper(ast),
                     pos.to_viper(ast),
                 ),
             Expr::CreditAccessPredicate(ref predicate_name, ref args, ref frac_perm, ref pos) => ast
                 .predicate_access_predicate_with_pos(
-                    ast.predicate_access(&args.iter().map(|arg| arg.to_viper(ast)).collect::<Vec<_>>(), &predicate_name),
+                    ast.predicate_access(&args.iter().map(|arg| arg.to_viper(ast)).collect::<Vec<_>>(), predicate_name),
                     frac_perm.to_viper(ast),
                     pos.to_viper(ast),
                 ),

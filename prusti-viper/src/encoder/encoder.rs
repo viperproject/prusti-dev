@@ -826,10 +826,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub fn encode_credit_predicate_use(&self, credit_type: &String, mut exponents: Vec<u32>)
+    pub fn encode_credit_predicate_use(&self, credit_type: &str, mut exponents: Vec<u32>)
         -> String           //TODO: use Result type?, removed, because don't ever return an error
     {
-        let mut this_pred_name = credit_type.clone();
+        let mut this_pred_name = credit_type.to_string();
         for exp in exponents.iter() {
             this_pred_name.push_str(&exp.to_string());
         }
@@ -848,7 +848,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     exponents.remove(max_idx);
                 }
                 // sub-predicate name
-                let mut sub_pred_name = credit_type.clone();
+                let mut sub_pred_name = credit_type.to_string();
                 for exp in exponents.iter() {
                     sub_pred_name.push_str(&exp.to_string());
                 }
@@ -880,7 +880,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     vec![],
                     None);
                 self.log_vir_program_before_viper(predicate.to_string());
-                self.credit_predicates.borrow_mut().insert(pred_name.clone(), predicate);
+                self.credit_predicates.borrow_mut().insert(pred_name, predicate);
                 break;
             }
         }
