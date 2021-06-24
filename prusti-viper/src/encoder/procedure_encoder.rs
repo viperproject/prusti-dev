@@ -2202,7 +2202,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             self.label_after_location.insert(location, label.clone());
 
                             let lhs = vir::Expr::field(target_place.clone(),vir::Field::new("val_bool", vir::Type::Bool));
-                            // let lhs = vir::Expr::Field(std::boxed::Box::from(target_place.clone()), vir::Field::new("val_bool", vir::Type::Bool), vir::Position::default());
 
                             let operand = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
                             let expr = Expr::is_nan(operand);
