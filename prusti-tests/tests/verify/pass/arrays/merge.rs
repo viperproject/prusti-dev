@@ -1,6 +1,11 @@
 use prusti_contracts::*;
 
-fn main() {}
+fn main() {
+    let x = [1, 3, 5];
+    let y = [2, 4, 6];
+    let m = merge(x, y);
+    assert!(m[1] <= m[4]);
+}
 
 
 predicate! {
