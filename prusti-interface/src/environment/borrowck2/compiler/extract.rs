@@ -52,6 +52,7 @@ pub(in crate::environment::borrowck2) fn enrich_mir_body<'tcx>(
     let lifetimes = super::compute_lifetimes::compute_lifetimes(
         &polonius_input_facts,
         &polonius_output_facts,
+        &location_table,
     );
     super::MirBody {
         def_id,
