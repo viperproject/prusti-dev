@@ -82,31 +82,31 @@ impl PlaceRegions {
                     Err(PlaceRegionsError::Unsupported(
                         "determining the region of a dereferentiation is \
                         not supported".to_string()
-                    ));
+                    ))
                 }
                 mir::ProjectionElem::Index(_) => {
                     Err(PlaceRegionsError::Unsupported(
                         "determining the region of array indexing is \
                         not supported".to_string()
-                    ));
+                    ))
                 }
                 mir::ProjectionElem::ConstantIndex{..} => {
                     Err(PlaceRegionsError::Unsupported(
                         "determining the region of constant indexing is \
                         not supported".to_string()
-                    ));
+                    ))
                 }
                 mir::ProjectionElem::Subslice{..} => {
                     Err(PlaceRegionsError::Unsupported(
                         "determining the region of a subslice is \
                         not supported".to_string()
-                    ));
+                    ))
                 }
                 mir::ProjectionElem::Downcast(_, _) => {
                     Err(PlaceRegionsError::Unsupported(
                         "determining the region of a downcast is \
                         not supported".to_string()
-                    ));
+                    ))
                 }
             })
             .collect::<Result<_, _>>()?;
