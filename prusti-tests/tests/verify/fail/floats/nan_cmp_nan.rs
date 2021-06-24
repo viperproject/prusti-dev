@@ -1,4 +1,4 @@
-// ignore-test: link to the issue
+// ignore-test: https://github.com/viperproject/prusti-dev/issues/575
 fn eq32() { 
     assert!(f32::NAN == f32::NAN); //~ ERROR: the asserted expression might not hold
 } 
