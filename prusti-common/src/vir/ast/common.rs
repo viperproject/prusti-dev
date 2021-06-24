@@ -202,7 +202,10 @@ impl Type {
             Type::Domain(ref pred_name) => pred_name.to_string(),
             Type::Snapshot(ref pred_name) => pred_name.to_string(),
             Type::Seq(_) => "Seq".to_string(),
-            Type::Float(_) => "float".to_string(),
+            Type::Float(t) => match t {
+                &FloatSize::F32 => "float32".to_string(),
+                &FloatSize::F64 => "float64".to_string(),
+            }            
         }
     }
 
@@ -326,26 +329,5 @@ impl Field {
 impl WithIdentifier for Field {
     fn get_identifier(&self) -> String {
         self.name.clone()
-    }
-}
-
-// maybe missing some other impl
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum BackendFunc {
-    BVfunc(String, String),
-    Floatfunc(String, String)
-}
-
-impl BackendFunc {
-    pub fn get_name(&self) -> String {
-        match self{
-            BackendFunc::BVfunc(name,_) | BackendFunc::Floatfunc(name,_) => name.to_string()
-        }
-    }
-}
-
-impl WithIdentifier for BackendFunc {
-    fn get_identifier(&self) -> String {
-        self.get_name().clone()
     }
 }

@@ -1,6 +1,3 @@
-use std::fs::File;
-use std::io::Write;
-
 extern crate env_logger;
 extern crate error_chain;
 #[macro_use]
@@ -16,13 +13,8 @@ lazy_static! {
 #[test]
 fn test_program() {
     env_logger::init();
-
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast = verification_context.new_ast_factory();
-    let ast_utils = verification_context.new_ast_utils();
-
-
-
     let val_float = ast.field("val_float", ast.backend_f64_type());
 
     let pred = ast.predicate(
@@ -32,7 +24,7 @@ fn test_program() {
              ast.field_access(ast.local_var("self", ast.ref_type()), ast.field("val_float", ast.backend_f64_type())),
              ast.full_perm()
     )));
-    
+
     let id= ast.method(
         "id",
         &[],
@@ -71,10 +63,8 @@ fn test_program() {
             ),
             ], 
         &[]
-        ))
-        
+        ))        
     );
-
 
     let program = ast.program(
         &[],
@@ -86,13 +76,5 @@ fn test_program() {
 
     let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
     let verification_result = verifier.verify(program);
-    
-    let pretty_printed = ast_utils.pretty_print(program);
-
-    let mut w = File::create("./tmp/pretty-print.txt").unwrap();
-    writeln!(&mut w, "{}", pretty_printed).unwrap();
-
-    eprintln!("Pretty printed:\n{}", pretty_printed);
-
     assert_eq!(verification_result, VerificationResult::Success());
 }

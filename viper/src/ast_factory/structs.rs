@@ -18,7 +18,6 @@ jobject_wrapper!(Field);
 jobject_wrapper!(Predicate);
 jobject_wrapper!(LocalVarDecl);
 jobject_wrapper!(Stmt);
-jobject_wrapper!(BackendFunc);
 
 jobject_wrapper!(Location);
 generate_conversion_from_to!(Predicate, Location);
