@@ -6,6 +6,9 @@ fn main() {
 
     assert!(s0.len() == 7);
     assert!(s1.len() == 6);
+
+    assert!(s0[2] == 0);
+    assert!(s1[2] == 0);
 }
 
 #[trusted]
