@@ -33,7 +33,6 @@ impl ExprFootprintGetter for vir::Expr {
             | vir::Expr::Const(_, _)
             | vir::Expr::FuncApp(..)
             | vir::Expr::DomainFuncApp(..)
-            | vir::Expr::BackendFuncApp(..)
             | vir::Expr::InhaleExhale(..) => HashSet::new(),
 
             vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {

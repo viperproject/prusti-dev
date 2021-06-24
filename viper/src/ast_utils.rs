@@ -35,18 +35,15 @@ impl<'a> AstUtils<'a> {
     pub fn pretty_print(&self, program: Program<'a>) -> String {
         let fast_pretty_printer_wrapper =
             silver::ast::pretty::FastPrettyPrinter_object::with(self.env);
-        self.jni.get_string(self.jni.unwrap_result(fast_pretty_printer_wrapper.call_pretty(self.jni
-            .unwrap_result(fast_pretty_printer_wrapper.singleton()), program.to_jobject())))
-        
-        // let s = self.jni.get_string(
-        //     self.jni.unwrap_result(
-        //         fast_pretty_printer_wrapper.call_pretty(
-        //             self.jni
-        //                 .unwrap_result(fast_pretty_printer_wrapper.singleton()),
-        //             program.to_jobject(),
-        //         ),
-        //     ),
-        // );
+        self.jni.get_string(
+            self.jni.unwrap_result(
+                fast_pretty_printer_wrapper.call_pretty(
+                    self.jni.unwrap_result(
+                            fast_pretty_printer_wrapper.singleton()),
+                            program.to_jobject()
+                    )
+            )
+        )
     }
 
     pub fn to_string(&self, program: Program<'a>) -> String {

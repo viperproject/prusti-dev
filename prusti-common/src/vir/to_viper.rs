@@ -357,7 +357,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.float_unop(op_kind, f_size, expr.to_viper(ast))
                 }
 
-                _ =>  match op {
+                _ => match op {
                     UnaryOpKind::Not => ast.not_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
                     UnaryOpKind::Minus => ast.minus_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
                     _ => unimplemented!("is_nan not a valid unary operation for this type")
@@ -397,18 +397,18 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                             BinOpKind::Sub => ast.sub_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
                             BinOpKind::Mul => ast.mul_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
                             BinOpKind::Div => ast.div_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
-                            _ => unimplemented!("Case should be unreachable")
+                            _ => unreachable!()
                         }
                     }
                 },
 
-            _ =>  match op {
-                BinOpKind::Mod => ast.module_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
-                BinOpKind::And => ast.and_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
-                BinOpKind::Or => ast.or_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
-                BinOpKind::Implies => ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
-                BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor | BinOpKind::Shl | BinOpKind::Shr => unimplemented!("Bitwise Binops unimplemented"),
-                _ => unimplemented!("Case should be unreachable")
+                _ =>  match op {
+                    BinOpKind::Mod => ast.module_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                    BinOpKind::And => ast.and_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                    BinOpKind::Or => ast.or_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                    BinOpKind::Implies => ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
+                    BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor | BinOpKind::Shl | BinOpKind::Shr => unimplemented!("Bitwise Binops unimplemented"),
+                    _ => unreachable!()
                 }
             },
             Expr::ContainerOp(op_kind, box ref left, box ref right, _pos) => {
@@ -483,16 +483,6 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     &[], // TODO not necessary so far
                 )
             }
-
-            Expr::BackendFuncApp(ref _function, ref _args, ref _pos) => {
-                unimplemented!("ToViper for BackendFuncApp is unimplemented")
-                // ast.backend_func_app(
-                //     function.to_viper(ast),
-                //     &args.to_viper(ast),
-                //     _pos.to_viper(ast),
-                // )
-            }
-
             /* TODO use once DomainFuncApp has been updated
             Expr::DomainFuncApp(
                 ref function_name,
@@ -640,12 +630,6 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
             self.unique,
             &self.domain_name,
         )
-    }
-}
-
-impl<'a, 'v> ToViper<'v, viper::BackendFunc<'v>> for &'a BackendFunc {
-    fn to_viper(&self, _ast: &AstFactory<'v>) -> viper::BackendFunc<'v> {
-        unimplemented!("BackendFunc ToViper not implemented")
     }
 }
 

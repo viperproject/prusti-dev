@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use viper::AstFactory;
+
 use super::super::borrows::Borrow;
 use crate::vir::{ast::*, FloatSize::*};
 use std::collections::{HashMap, HashSet};
@@ -47,8 +49,6 @@ pub enum Expr {
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
     /// Domain function application: function_name, args, formal_args, return_type, domain_name, Viper position (unused)
     DomainFuncApp(DomainFunc, Vec<Expr>, Position),
-    /// BackendFunc application: backend_function_name, args
-    BackendFuncApp(BackendFunc, Vec<Expr>, Position),
     // TODO use version below once providing a return type is supported in silver
     // DomainFuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, String, Position),
     /// Inhale Exhale: inhale expression, exhale expression, Viper position (unused)
@@ -243,16 +243,6 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(", "),
             ),
-            // mimicked DomainFuncApp for Display
-            Expr::BackendFuncApp(ref function, ref args, ref _pos) => write!(
-                f,
-                "{}({})",
-                function.get_name(),
-                args.iter()
-                    .map(|f| f.to_string())
-                    .collect::<Vec<String>>()
-                    .join(", "),
-            ),
 
             Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) =>
                 write!(f, "[({}), ({})]", inhale_expr, exhale_expr),
@@ -340,8 +330,7 @@ impl Expr {
             | Expr::DomainFuncApp(_, _, p)
             | Expr::ContainerOp(_, _, _, p)
             | Expr::Seq(_, _, p)
-            | Expr::SnapApp(_, p) => *p,
-            | Expr::BackendFuncApp(_, _, p)
+            | Expr::SnapApp(_, p)
             | Expr::InhaleExhale(_, _, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::Downcast(box ref base, ..) => base.pos(),
@@ -371,7 +360,6 @@ impl Expr {
             Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
             Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
             Expr::DomainFuncApp(x,y,_) => Expr::DomainFuncApp(x,y,pos),
-            Expr::BackendFuncApp(x, y, _) => Expr::BackendFuncApp(x,y,pos),
             // TODO Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
             Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
             Expr::SnapApp(e, _) => Expr::SnapApp(e, pos),
@@ -429,6 +417,10 @@ impl Expr {
 
     pub fn minus(expr: Expr) -> Self {
         Expr::UnaryOp(UnaryOpKind::Minus, box expr, Position::default())
+    }
+
+    pub fn is_nan(e: Expr) -> Self{
+        Expr::UnaryOp(UnaryOpKind::IsNaN, box e, Position::default())
     }
 
     pub fn gt_cmp(left: Expr, right: Expr) -> Self {
@@ -571,15 +563,6 @@ impl Expr {
         args: Vec<Expr>,
     ) -> Self {
         Expr::DomainFuncApp(func, args, Position::default())
-    }
-
-    // Mimicked domain_func_app above
-    pub fn backend_func_app(
-        func: BackendFunc,
-        args: Vec<Expr>,
-    ) -> Self {
-        Expr::
-        BackendFuncApp(func, args, Position::default())
     }
 
     pub fn magic_wand(lhs: Expr, rhs: Expr, borrow: Option<Borrow>) -> Self {
@@ -1091,9 +1074,6 @@ impl Expr {
             Expr::DomainFuncApp(ref func, _, _) => {
                 &func.return_type
             },
-            Expr::BackendFuncApp(ref _func, _, _) => {
-                unimplemented!()
-            },
             Expr::Const(constant, ..) => {
                 match constant {
                     Const::Bool(..) => &Type::Bool,
@@ -1510,7 +1490,6 @@ impl Expr {
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)
-                    | Expr::BackendFuncApp(..)
                     | Expr::InhaleExhale(..)
                     | Expr::Downcast(..)
                     | Expr::ContainerOp(..)
@@ -1748,8 +1727,6 @@ impl Hash for Expr {
             Expr::LetExpr(ref var, box ref def, box ref expr, _) => (var, def, expr).hash(state),
             Expr::FuncApp(ref name, ref args, _, _, _) => (name, args).hash(state),
             Expr::DomainFuncApp(ref function, ref args, _) => (&function.name, args).hash(state),
-            // Mimicked DomainFuncApp above
-            Expr::BackendFuncApp(ref function, ref args, _) => (&function.get_name(), args).hash(state),
             // TODO Expr::DomainFuncApp(ref name, ref args, _, _, ref domain_name ,_) => (name, args, domain_name).hash(state),
             Expr::Unfolding(ref name, ref args, box ref base, perm, ref variant, _) => {
                 (name, args, base, perm, variant).hash(state)

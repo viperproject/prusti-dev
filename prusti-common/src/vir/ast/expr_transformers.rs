@@ -232,19 +232,6 @@ pub trait ExprFolder: Sized {
         )
     }
     */
-    fn fold_backend_func_app(
-        &mut self,
-        func: BackendFunc,
-        args: Vec<Expr>,
-        pos: Position,
-    ) -> Expr
-    {
-        Expr::BackendFuncApp(
-            func,
-            args.into_iter().map(|e| self.fold(e)).collect(),
-            pos
-        )
-    }
     fn fold_inhale_exhale(
         &mut self,
         inhale_expr: Box<Expr>,
@@ -317,7 +304,6 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::LetExpr(x, y, z, p) => this.fold_let_expr(x, y, z, p),
         Expr::FuncApp(x, y, z, k, p) => this.fold_func_app(x, y, z, k, p),
         Expr::DomainFuncApp(x, y, p) => this.fold_domain_func_app(x,y,p),
-        Expr::BackendFuncApp(x, y, p) => this.fold_backend_func_app(x, y, p),
         // TODO Expr::DomainFuncApp(u, v, w, x, y, p) => this.fold_domain_func_app(u,v,w,x,y,p),
         Expr::InhaleExhale(x, y, p) => this.fold_inhale_exhale(x, y, p),
         Expr::Downcast(b, p, f) => this.fold_downcast(b, p, f),
@@ -460,11 +446,6 @@ pub trait ExprWalker: Sized {
         }
     }
     */
-    fn walk_backend_func_app(&mut self, _func: &BackendFunc, args: &Vec<Expr>, _pos: &Position) {
-        for arg in args {
-            self.walk(arg)
-        }
-    }
     fn walk_inhale_exhale(&mut self, inhale_expr: &Expr, exhale_expr: &Expr, _pos: &Position) {
         self.walk(inhale_expr);
         self.walk(exhale_expr);
@@ -519,7 +500,6 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::LetExpr(ref x, ref y, ref z, ref p) => this.walk_let_expr(x, y, z, p),
         Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => this.walk_func_app(x, y, z, k, p),
         Expr::DomainFuncApp(ref x, ref y,ref p) => this.walk_domain_func_app(x,y,p),
-        Expr::BackendFuncApp(ref x, ref y, ref p) => this.walk_backend_func_app(x, y, p),
         // TODO Expr::DomainFuncApp(ref u, ref v, ref w, ref x, ref y,ref p) => this.walk_domain_func_app(u, v, w, x,y,p),
         Expr::InhaleExhale(ref x, ref y, ref p) => this.walk_inhale_exhale(x, y, p),
         Expr::Downcast(ref b, ref p, ref f) => this.walk_downcast(b, p, f),
@@ -727,21 +707,7 @@ pub trait FallibleExprFolder: Sized {
         ))
     }
     */
-    fn fallible_fold_backend_func_app(
-        &mut self,
-        func: BackendFunc,
-        args: Vec<Expr>,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
-        Ok(Expr::BackendFuncApp(
-            func,
-            args.into_iter()
-                .map(|e| self.fallible_fold(e))
-                .collect::<Result<Vec<_>, Self::Error>>()?,
-            pos
-        ))
-    }
-    fn fallible_inhale_exhale(
+    fn fallible_fold_inhale_exhale(
         &mut self,
         inhale: Box<Expr>,
         exhale: Box<Expr>,
@@ -830,9 +796,8 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error=U>>(
         Expr::LetExpr(x, y, z, p) => this.fallible_fold_let_expr(x, y, z, p),
         Expr::FuncApp(x, y, z, k, p) => this.fallible_fold_func_app(x, y, z, k, p),
         Expr::DomainFuncApp(x, y, p) => this.fallible_fold_domain_func_app(x,y,p),
-        Expr::BackendFuncApp(x, y, p) => this.fallible_fold_backend_func_app(x, y, p),
         // TODO Expr::DomainFuncApp(u, v, w, x, y, p) => this.fallible_fold_domain_func_app(u,v,w,x,y,p),
-        Expr::InhaleExhale(x, y, p) => this.fallible_inhale_exhale(x,y,p), // change here to make it compile after rebase but not my code
+        Expr::InhaleExhale(x, y, p) => this.fallible_fold_inhale_exhale(x,y,p),
         Expr::Downcast(b, p, f) => this.fallible_fold_downcast(b, p, f),
         Expr::SnapApp(e, p) => this.fallible_fold_snap_app(e, p),
         Expr::ContainerOp(x, y, z, p) => this.fallible_fold_container_op(x, y, z, p),

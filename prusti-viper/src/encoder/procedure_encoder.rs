@@ -29,7 +29,7 @@ use prusti_common::{
         borrows::Borrow,
         collect_assigned_vars,
         fixes::fix_ghost_vars,
-        CfgBlockIndex, Expr, ExprIterator, Successor, Type, FloatSize, BackendFunc, UnaryOpKind,
+        CfgBlockIndex, Expr, ExprIterator, Successor, Type, FloatSize, UnaryOpKind,
     },
 };
 use prusti_interface::{
@@ -58,7 +58,6 @@ use rustc_index::vec::Idx;
 // use std;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::str::FromStr;
 use rustc_attr::IntType::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
 use rustc_span::{MultiSpan, Span};
@@ -2149,12 +2148,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             debug!("Encoding call of PartialEq::eq");
                             stmts.extend(
                                 self.encode_cmp_function_call(
-                                def_id,
-                                location,
-                                term.source_info.span,
-                                args,
-                                destination,
-                                vir::BinOpKind::EqCmp,
+                                    def_id,
+                                    location,
+                                    term.source_info.span,
+                                    args,
+                                    destination,
+                                    vir::BinOpKind::EqCmp,
                                 )?
                             );
                         }
@@ -2169,12 +2168,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             debug!("Encoding call of PartialEq::ne");
                             stmts.extend(
                                 self.encode_cmp_function_call(
-                                def_id,
-                                location,
-                                term.source_info.span,
-                                args,
-                                destination,
-                                vir::BinOpKind::NeCmp,
+                                    def_id,
+                                    location,
+                                    term.source_info.span,
+                                    args,
+                                    destination,
+                                    vir::BinOpKind::NeCmp,
                                 )?
                             );
                         }
@@ -2182,9 +2181,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         "core::f32::<impl f32>::is_nan" |
                         "core::f64::<impl f64>::is_nan" => {
                             let span = self.mir_encoder.get_span_of_location(location);
-                            let operand = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
-                            let operand_box = std::boxed::Box::from(operand);
-                            let expr = vir::Expr::UnaryOp(UnaryOpKind::IsNaN, operand_box, vir::Position::default());
 
                             let label = self.cfg_method.get_fresh_label_name();
                             stmts.push(vir::Stmt::Label(label.clone()));
@@ -2205,7 +2201,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             // Store a label for permissions got back from the call
                             self.label_after_location.insert(location, label.clone());
 
-                            let lhs = vir::Expr::Field(std::boxed::Box::from(target_place.clone()), vir::Field::new("val_bool", vir::Type::Bool), vir::Position::default());
+                            let lhs = vir::Expr::field(target_place.clone(),vir::Field::new("val_bool", vir::Type::Bool));
+                            // let lhs = vir::Expr::Field(std::boxed::Box::from(target_place.clone()), vir::Field::new("val_bool", vir::Type::Bool), vir::Position::default());
+
+                            let operand = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
+                            let expr = Expr::is_nan(operand);
+
                             stmts.push(vir::Stmt::Assign(lhs, expr, vir::AssignKind::Ghost));
 
                             self.encode_transfer_args_permissions(location, args, &mut stmts, label, false)?;

@@ -13,7 +13,6 @@ use crate::encoder::errors::{
     SpannedEncodingResult, EncodingResult
 };
 use crate::encoder::Encoder;
-use num_traits::Float;
 use prusti_common::vir;
 use prusti_common::config;
 use rustc_target::abi;
@@ -485,93 +484,39 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         self.encoder.encode_snapshot_type(ty)
     }
 
-
-    pub fn is_nan_const(e: &vir::Expr) -> bool {
-        match e {
-            vir::Expr::Const(vir::Const::Float(vir::FloatConst::FloatConst64(val)), _) => *val == 9221120237041090560,
-            vir::Expr::Const(vir::Const::Float(vir::FloatConst::FloatConst32(val)), _) => *val == 2143289344,
-            _ => false
-        }
-    }
-
-    pub fn encode_const_float_eq_cmp(&self, left: vir::Expr, right: vir::Expr) -> vir::Expr {
-        if MirEncoder::<'p, 'v, 'tcx>::is_nan_const(&left) || MirEncoder::<'p, 'v, 'tcx>::is_nan_const(&right) {
-            vir::Expr::Const(vir::Const::Bool(false), vir::Position::default())
-        } else {
-            vir::Expr::eq_cmp(left, right)
-        }      
-    }
-
-    pub fn encode_const_float_ne_cmp(&self, left: vir::Expr, right: vir::Expr) -> vir::Expr {
-        if MirEncoder::<'p, 'v, 'tcx>::is_nan_const(&left) || MirEncoder::<'p, 'v, 'tcx>::is_nan_const(&right) {
-            vir::Expr::Const(vir::Const::Bool(true), vir::Position::default())
-        } else {
-            vir::Expr::ne_cmp(left, right)
-        }   
-    }
-
     pub fn encode_bin_op_expr(
         &self,
         op: mir::BinOp,
         left: vir::Expr,
         right: vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<vir::Expr> {
-        match (&left, &right) {
-            (vir::Expr::Const(vir::Const::Float(_), _), _) 
-            | (_, vir::Expr::Const(vir::Const::Float(_), _))            
-                => Ok(match op {
-                    mir::BinOp::Eq => self.encode_const_float_eq_cmp(left, right),
-                    mir::BinOp::Ne => self.encode_const_float_ne_cmp(left, right),
-                    mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
-                    mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
-                    mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
-                    mir::BinOp::Le => vir::Expr::le_cmp(left, right),
-                    mir::BinOp::Add => vir::Expr::add(left, right),
-                    mir::BinOp::Sub => vir::Expr::sub(left, right),
-                    mir::BinOp::Div => vir::Expr::div(left, right),
-                    mir::BinOp::Mul => vir::Expr::mul(left, right),
-                    unsupported_op => {
-                        return Err(EncodingError::unsupported(format!(
-                            "operation '{:?}' is not supported for floats",
-                            unsupported_op
-                        )))
-                    }
-                }),
-            
-            _ => {
-                let is_bool = ty.kind() == &ty::TyKind::Bool;
-                Ok(match op {
-                    mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
-                    mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
-                    mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
-                    mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
-                    mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
-                    mir::BinOp::Le => vir::Expr::le_cmp(left, right),
-                    mir::BinOp::Add => vir::Expr::add(left, right),
-                    mir::BinOp::Sub => vir::Expr::sub(left, right),
-                    mir::BinOp::Rem => vir::Expr::rem(left, right),
-                    mir::BinOp::Div => vir::Expr::div(left, right),
-                    mir::BinOp::Mul => vir::Expr::mul(left, right),
-                    mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
-                    mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
-                    mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
-                    mir::BinOp::BitAnd => vir::Expr::bit_and(left, right),
-                    mir::BinOp::BitOr => vir::Expr::bit_or(left, right),
-                    mir::BinOp::BitXor => vir::Expr::bit_xor(left, right),
-                    mir::BinOp::Shl => unimplemented!(),
-                    unsupported_op => {
-                        return Err(EncodingError::unsupported(format!(
-                            "operation '{:?}' is not supported",
-                            unsupported_op
-                        )))
-                    }
-                })
+    ) -> EncodingResult<vir::Expr> {         
+        let is_bool = ty.kind() == &ty::TyKind::Bool;
+        Ok(match op {
+            mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
+            mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
+            mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
+            mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
+            mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
+            mir::BinOp::Le => vir::Expr::le_cmp(left, right),
+            mir::BinOp::Add => vir::Expr::add(left, right),
+            mir::BinOp::Sub => vir::Expr::sub(left, right),
+            mir::BinOp::Rem => vir::Expr::rem(left, right),
+            mir::BinOp::Div => vir::Expr::div(left, right),
+            mir::BinOp::Mul => vir::Expr::mul(left, right),
+            mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
+            mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
+            mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
+            mir::BinOp::BitAnd => vir::Expr::bit_and(left, right),
+            mir::BinOp::BitOr => vir::Expr::bit_or(left, right),
+            mir::BinOp::BitXor => vir::Expr::bit_xor(left, right),
+            unsupported_op => {
+                return Err(EncodingError::unsupported(format!(
+                    "operation '{:?}' is not supported",
+                    unsupported_op
+                )))
             }
-        }
-
-
-        
+        }) 
     }
 
     pub fn encode_unary_op_expr(&self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {

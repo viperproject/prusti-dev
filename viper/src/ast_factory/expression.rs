@@ -12,7 +12,7 @@ use ast_factory::structs::Trigger;
 use ast_factory::structs::Type;
 use ast_factory::AstFactory;
 use jni::objects::JObject;
-use viper_sys::wrappers::viper::silver::ast::{self,};
+use viper_sys::wrappers::viper::silver::ast;
 
 impl<'a> AstFactory<'a> {
     pub fn add_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
@@ -283,7 +283,7 @@ impl<'a> AstFactory<'a> {
             UnOpFloat::IsNan => ast::utility::FloatFactory::call_isNaN(&factory_, factory, self.jni.new_string("fp_isNaN")).unwrap(),
             UnOpFloat::IsNegative => ast::utility::FloatFactory::call_isNegative(&factory_, factory, self.jni.new_string("fp_isNegative")).unwrap(),
             UnOpFloat::IsPositive => ast::utility::FloatFactory::call_isPositive(&factory_, factory, self.jni.new_string("fp_isPositive")).unwrap(),
-            UnOpFloat::GetType => ast::utility::FloatFactory::call_typ(&&factory_, factory).unwrap(),
+            UnOpFloat::GetType => ast::utility::FloatFactory::call_typ(&factory_, factory).unwrap(),
             UnOpFloat::FromBV => todo!(),
             UnOpFloat::ToBV => todo!(),
         };
