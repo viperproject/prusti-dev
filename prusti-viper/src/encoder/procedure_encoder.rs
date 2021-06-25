@@ -1316,8 +1316,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     )).with_span(span);
                 }
             }
-            ref rhs => {
-                unimplemented!("encoding of '{:?}'", rhs);
+            &mir::Rvalue::Cast(mir::CastKind::Pointer(_), _, _) => {
+                return Err(EncodingError::unsupported(
+                    "raw pointers are not supported"
+                )).with_span(span);
+            }
+            &mir::Rvalue::AddressOf(_, _) => {
+                return Err(EncodingError::unsupported(
+                    "raw addresses of expressions or casting a reference to a raw pointer are not supported"
+                )).with_span(span);
+            }
+            &mir::Rvalue::ThreadLocalRef(_) => {
+                return Err(EncodingError::unsupported(
+                    "references to thread-local storage are not supported"
+                )).with_span(span);
             }
         })
     }
