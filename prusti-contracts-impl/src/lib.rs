@@ -60,6 +60,11 @@ pub fn extern_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }
 
+#[proc_macro]
+pub fn export_all(tokens: TokenStream) -> TokenStream {
+    prusti_specs::export_all(tokens.into()).into()
+}
+
 #[proc_macro_attribute]
 pub fn predicate(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens

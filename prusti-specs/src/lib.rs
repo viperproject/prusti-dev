@@ -11,8 +11,8 @@ pub mod specifications;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
-use syn::spanned::Spanned;
-use std::convert::TryInto;
+use syn::{spanned::Spanned};
+use std::{collections::hash_map::DefaultHasher, convert::{TryFrom, TryInto}, hash::{Hasher, Hash}, vec};
 
 use specifications::untyped;
 use parse_closure_macro::ClosureWithSpec;
@@ -309,29 +309,28 @@ pub fn prusti_use(tokens: TokenStream) -> TokenStream {
     let path_span = path.span();
 
     let path_str = tokens.to_string().replace(" ", "");
-    if let Some((crate_path, rest)) = path_str.split_once("::") {
-        if let Some((mod_path, rest)) = rest.split_once("::") {
-            quote_spanned! {path_span =>
-                #mod_path!(#rest)
-            }
+    if let Some((crate_ident, rest)) = path_str.split_once("::") {
+        if let Some((mod_ident, rest)) = rest.split_once("::") {
+            let mod_ident_hash = {
+                let mut hasher = DefaultHasher::new();
+                mod_ident.hash(&mut hasher);
+                hasher.finish()
+            };
+            let prusti_use_macro: syn::Path = handle_result!(syn::parse_str(&format!("{}::{}", crate_ident, mod_ident)));
+            let macro_call = quote! {
+                #prusti_use_macro!(#rest);
+            };
+            println!("macro_call: {:?}\n\n", macro_call.to_string());
+            macro_call
         } else {
-            // read all normal specs
+            let prusti_use_macro: syn::Path = handle_result!(syn::parse_str(&format!("{}::{}", crate_ident, "crate_spec")));
+            quote!{
+                #prusti_use_macro!();
+            }
         }
     } else {
         return syn::Error::new(path_span, "prusti_use must be given a path with non-empty segements").to_compile_error();
     }
-
-
-    // if let Some(last_seg) = path.segments.first() {
-    //     let ident = last_seg.ident.clone();
-    //     let new_tokens = quote_spanned! {path_span =>
-    //         #ident!(path.seg);
-    //     };
-
-    //     new_tokens
-    // } else {
-    //     return syn::Error::new(path_span, "prusti_use must be given a path with non-empty segements").to_compile_error();
-    // }
 }
 
 /// Unlike the functions above, which are only called from
@@ -475,10 +474,39 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     }
 }
 
+pub fn export_all(tokens: TokenStream) -> TokenStream {
+    quote!(
+        #[prusti::export_all]
+        #[macro_export]
+        macro_rules! crate_spec {
+            () => {
+                
+            };
+        })
+    // TODO: Transform the export_all to be an inner attribute 
+    // println!("tokens: {:?} \n\n", tokens.to_string());
+    // let body = tokens.clone().into_iter().skip(2).next().unwrap();
+    // match body {
+    //     proc_macro2::TokenTree::Group(group) => {
+    //         let stream = group.stream();
+    //         println!("stream: {:?} \n\n", &stream.to_string());
+    //         let item: untyped::CrateItem = handle_result!(syn::parse2(stream));
+    //         // println!("item after parsing: {:?} \n\n", item);
+    //         // let tokens = quote!(#item);
+    //         // println!("tokens: {:?} \n\n", &tokens.to_string());
+    //         return tokens;
+    //     },
+    //     _ => println!("what's this: {:?} \n\n", &body)
+    // }
+    // println!("export all tokens: {:?} \n\n", &body);
+    // println!("token_str: {:?} \n\n", tokens.to_string());
+    // tokens
+    // TokenStream::new()
+}
+
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
-    let mut macro_defs = vec![];
     let tokens = match item {
         syn::Item::Impl(mut item_impl) => {
             let new_struct = handle_result!(
@@ -506,54 +534,44 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
                 leading_colon: None,
                 segments: syn::punctuated::Punctuated::new(),
             };
-            // handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
-            // quote!(#item_mod)
-            let macro_def = handle_result!(extern_spec_rewriter::rewrite_mod1(&mut item_mod, &mut path, &mut macro_defs));
-            match macro_def {
-                Some(item_macro) => {
+
+            // Wrap the generated macro in a pub mod with the top level ident_hash(ident) as name
+            let mod_ident_str = item_mod.ident.clone().to_string();
+            let mod_ident_hash = {
+                let mut hasher = DefaultHasher::new();
+                mod_ident_str.hash(&mut hasher);
+                hasher.finish()
+            };
+
+            let mod_ident_str = format!("{}_{}", mod_ident_str, mod_ident_hash);
+            let mod_ident = syn::Ident::new(&mod_ident_str, item_span);
+            let mut macros = vec![];
+            let rewrite_mod = handle_result!(extern_spec_rewriter::rewrite_mod1(&mut item_mod, &mut path, &mut macros));
+            let item_mod_str = quote!(#item_mod).to_string();
+            match rewrite_mod {
+                Some(top_mod_macro) => {
                     let mut macro_defs_tokens = TokenStream::new();
-                    for macro_def_item in macro_defs {
-                        macro_defs_tokens.extend(quote!(
-                            #macro_def_item
-                        ));
+                    for item_macro in macros {
+                        macro_defs_tokens.extend(quote!(#item_macro));
                     }
-                    quote! {
-                        #macro_defs_tokens
-                        #[macro_export]
-                        #item_macro
+                    parse_quote_spanned!{item_span =>
+                        pub mod #mod_ident {
+                            #macro_defs_tokens
+                            #[macro_export]
+                            #top_mod_macro
+                        }
+
+                        #[prusti::persist=#item_mod_str]
                         #item_mod
+                        
                     }
                 },
                 None => quote!(#item_mod)
             }
-            // quote!(#item_mod)
         }
         _ => { unimplemented!() }
     };
-
-    println!("tokens: {:?}\n\n", tokens.to_string());
-
     tokens
-    // let new_tokens = match attr.is_empty() {
-    //     true => tokens,
-    //     false => {
-    //         let attr_str = attr.to_string();
-    //         let macro_iden = syn::Ident::new(attr_str.as_str(), item_span);
-    //         let new_macro = quote! {
-    //             #[macro_export]
-    //             macro_rules! #macro_iden {
-    //                 () => {
-    //                     #tokens
-    //                 };
-    //             }
-    //         };
-    //         quote! {
-    //             #new_macro
-    //             #tokens
-    //         }
-    //     },
-    // };
-    // new_tokens
 }
 #[derive(Debug)]
 struct PredicateFn {
