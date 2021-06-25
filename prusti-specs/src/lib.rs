@@ -546,7 +546,7 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
             let mod_ident_str = format!("{}_{}", mod_ident_str, mod_ident_hash);
             let mod_ident = syn::Ident::new(&mod_ident_str, item_span);
             let mut macros = vec![];
-            let rewrite_mod = handle_result!(extern_spec_rewriter::rewrite_mod1(&mut item_mod, &mut path, &mut macros));
+            let rewrite_mod = handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path, &mut macros));
             let item_mod_str = quote!(#item_mod).to_string();
             match rewrite_mod {
                 Some(top_mod_macro) => {
