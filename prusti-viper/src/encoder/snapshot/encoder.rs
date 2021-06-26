@@ -964,7 +964,7 @@ impl SnapshotEncoder {
                                 vir::Position::default(),
                             ),
                             box Expr::func_app(
-                                slice_collect_funcname.clone(),
+                                slice_collect_funcname,
                                 vec![
                                     arg_expr.clone(),
                                     vir!{ [start_expr] + [Expr::from(1)] },
@@ -981,18 +981,11 @@ impl SnapshotEncoder {
                     )),
                 };
 
-                let slice_collect_func_app = Expr::func_app(
-                    slice_collect_funcname,
+                let slice_collect_func_app = slice_collect_func.apply(
                     vec![
                         arg_expr.clone(),
                         0.into(),
                     ],
-                    vec![
-                        vir_local!{ slice: {slice_types.slice_ty.clone()} },
-                        vir_local!{ start: Int },
-                    ],
-                    seq_type.clone(),
-                    vir::Position::default(),
                 );
 
                 let snap_body = cons.apply(vec![slice_collect_func_app]);
