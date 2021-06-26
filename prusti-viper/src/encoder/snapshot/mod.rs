@@ -42,6 +42,7 @@ enum Snapshot {
         predicate_name: String,
         domain: vir::Domain,
         snap_func: vir::Function,
+        slice_helper: vir::Function,
         cons: vir::DomainFunc,
         read: vir::DomainFunc,
     },

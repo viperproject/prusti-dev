@@ -134,8 +134,10 @@ impl SnapshotEncoder {
         for snapshot in self.encoded.values() {
             match snapshot {
                 Snapshot::Complex { snap_func, .. }
-                | Snapshot::Abstract { snap_func, .. }
-                | Snapshot::Array { snap_func, .. } => funcs.push(snap_func.clone()),
+                | Snapshot::Abstract { snap_func, .. } => funcs.push(snap_func.clone()),
+                Snapshot::Array { snap_func, slice_helper, .. } => {
+                    funcs.extend([snap_func.clone(), slice_helper.clone()]);
+                }
                 Snapshot::Slice { snap_func, slice_collect_func, .. } => {
                     funcs.extend([snap_func.clone(), slice_collect_func.clone()]);
                 }
@@ -505,6 +507,33 @@ impl SnapshotEncoder {
         Ok(len_func.apply(vec![slice]))
     }
 
+    pub fn encode_slicing<'p, 'v: 'p, 'tcx: 'v>(
+        &mut self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        base_ty: ty::Ty<'tcx>,
+        base: vir::Expr,
+        slice_ty: ty::Ty<'tcx>,
+        lo: vir::Expr,
+        hi: vir::Expr,
+    ) -> EncodingResult<vir::Expr> {
+        match self.encode_snapshot(encoder, base_ty)? {
+            Snapshot::Array { slice_helper, .. } => {
+                let slice_cons = if let Snapshot::Slice { cons, .. } = self.encode_snapshot(encoder, slice_ty)? {
+                    cons
+                } else {
+                    return Err(EncodingError::internal(
+                        format!("called encode_slicing on non-slice-type {:?}", slice_ty)
+                    ));
+                };
+
+                Ok(slice_cons.apply(vec![slice_helper.apply(vec![base, lo, hi])]))
+            }
+            _ => Err(EncodingError::internal(
+                format!("cannot slice type {:?}", base_ty)
+            )),
+        }
+    }
+
     /// Encodes the snapshot of the given type and returns a VIR type
     /// representing that snapshot.
     pub fn encode_type<'p, 'v: 'p, 'tcx: 'v>(
@@ -752,7 +781,7 @@ impl SnapshotEncoder {
                         encoder,
                         arg_expr.clone(),
                         i.clone(),
-                        elem_snap_ty,
+                        elem_snap_ty.clone(),
                     );
                     let read_call = read.apply(vec![
                             vir_local!{ __result: {snap_type.clone()} }.into(),
@@ -767,7 +796,7 @@ impl SnapshotEncoder {
                 let snap_func = vir::Function {
                     name: SNAP_FUNC_NAME.to_string(),
                     formal_args: vec![arg_self],
-                    return_type: snap_type,
+                    return_type: snap_type.clone(),
                     pres: vec![
                         Expr::predicate_access_predicate(
                             array_types.array_pred,
@@ -783,6 +812,13 @@ impl SnapshotEncoder {
                     ],
                     body: Some(snap_body),
                 };
+
+                let slice_helper = self.encode_slice_helper(
+                    snap_type,
+                    elem_snap_ty,
+                    read.clone(),
+                    array_types.array_len.into(),
+                );
 
                 let constructor_inj = {
                     let lhs_arg = vir_local!{ _l_data: {seq_type.clone()} };
@@ -853,6 +889,7 @@ impl SnapshotEncoder {
                     predicate_name: predicate_name.to_string(),
                     domain,
                     snap_func,
+                    slice_helper,
                     cons,
                     read,
                 })
@@ -1150,6 +1187,101 @@ impl SnapshotEncoder {
 
             // Param(_) and unsupported types
             _ => self.encode_abstract(predicate_name),
+        }
+    }
+
+    fn encode_slice_helper(
+        &self,
+        self_snap_ty: vir::Type,
+        elem_snap_ty: vir::Type,
+        read: vir::DomainFunc,
+        base_len: vir::Expr,
+    ) -> vir::Function {
+        let slice_helper_name = "slice_helper".to_string();
+
+        let self_expr: vir::Expr = vir_local!{ self: {self_snap_ty.clone()} }.into();
+        let seq_type = vir::Type::Seq(box elem_snap_ty.clone());
+
+        let lo = vir_local!{ lo: Int };
+        let lo_expr: vir::Expr = lo.clone().into();
+        let hi = vir_local!{ hi: Int };
+        let hi_expr: vir::Expr = hi.clone().into();
+
+        let result_expr: vir::Expr = vir_local!{ __result: {seq_type.clone()} }.into();
+        let i = vir_local!{ i: Int };
+        let i_expr: vir::Expr = i.clone().into();
+        let j = vir_local!{ j: Int };
+        let j_expr: vir::Expr = j.clone().into();
+
+        let result_len = Expr::ContainerOp(ContainerOpKind::SeqLen, box result_expr.clone(), box Expr::from(0), vir::Position::default());
+        let result_0 = Expr::ContainerOp(ContainerOpKind::SeqIndex, box result_expr.clone(), box Expr::from(0), vir::Position::default());
+        let result_j = Expr::ContainerOp(ContainerOpKind::SeqIndex, box result_expr.clone(), box j_expr.clone(), vir::Position::default());
+
+        let read_i = read.apply(vec![self_expr.clone(), i_expr.clone()]);
+        let read_lo = read.apply(vec![self_expr.clone(), lo_expr.clone()]);
+
+        let read_eq_seq_lookup = {
+            let indices = vir!{ (([lo_expr] <= [i_expr]) && ([i_expr] < [hi_expr]))
+                && ((([Expr::from(0)] <= [j_expr]) && ([j_expr] < [hi_expr]))
+                && ([i_expr] == ([j_expr] + [lo_expr]))) };
+
+            vir::Expr::forall(
+                vec![i, j],
+                vec![
+                    vir::Trigger::new(vec![read_i.clone(), result_j.clone()])
+                ],
+                vir!{ [indices] ==> ([read_i] == [result_j]) },
+            )
+        };
+
+        vir::Function {
+            name: slice_helper_name.clone(),
+            formal_args: vec![
+                vir_local!{ self: {self_snap_ty.clone()} },
+                lo.clone(),
+                hi.clone(),
+            ],
+            return_type: seq_type.clone(),
+            pres: vec![
+                vir!{ [vir::Expr::from(0)] <= [lo_expr] },
+                vir!{ [lo_expr] <= [hi_expr] },
+                vir!{ [hi_expr] <= [base_len] },
+            ],
+            posts: vec![
+                vir!{ [result_len] == ([hi_expr] - [lo_expr]) },
+                vir!{ ([lo_expr] < [hi_expr]) ==> ([result_0] == [read_lo]) },
+                read_eq_seq_lookup,
+            ],
+            body: Some(Expr::ite(
+                vir!{ [lo_expr] >= [hi_expr] },
+                Expr::Seq(seq_type.clone(), vec![], vir::Position::default()),
+                Expr::ContainerOp(
+                    ContainerOpKind::SeqConcat,
+                    box Expr::Seq(
+                        seq_type.clone(),
+                        vec![
+                            read_lo.clone(),
+                        ],
+                        vir::Position::default(),
+                    ),
+                    box Expr::func_app(
+                        slice_helper_name.clone(),
+                        vec![
+                            self_expr.clone(),
+                            vir!{ [lo_expr] + [Expr::from(1)] },
+                            hi_expr,
+                        ],
+                        vec![
+                            vir_local!{ slice: {self_snap_ty} },
+                            lo,
+                            hi,
+                        ],
+                        seq_type.clone(),
+                        vir::Position::default(),
+                    ),
+                    vir::Position::default(),
+                )
+            )),
         }
     }
 

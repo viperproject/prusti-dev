@@ -857,6 +857,53 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state
                             }
 
+                            "std::ops::Index::index" => {
+                                assert_eq!(args.len(), 2);
+                                trace!("slice::index(args={:?}, encoded_args={:?}, ty={:?}, lhs_value={:?})", args, encoded_args, ty, lhs_value);
+
+                                let base_ty = self.mir_encoder.get_operand_ty(&args[0]);
+
+                                let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);
+                                let idx_ident = self.encoder.env().tcx().def_path_str(idx_ty.ty_adt_def().unwrap().did);
+                                let encoded_idx = &encoded_args[1];
+
+                                let (start, end) = match &*idx_ident {
+                                    "std::ops::Range" => {
+                                        // there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
+                                        // manually re-do them here when we probably just encoded the type and the
+                                        // construction of the fields..
+                                        let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
+                                        let start = encoded_idx.clone()
+                                            .field(self.encoder.encode_struct_field("start", usize_ty).with_span(span)?);
+                                        let start_expr = self.encoder.encode_value_expr(start, usize_ty).with_span(span)?;
+
+                                        let end = encoded_idx.clone()
+                                            .field(self.encoder.encode_struct_field("end", usize_ty).with_span(span)?);
+                                        let end_expr = self.encoder.encode_value_expr(end, usize_ty).with_span(span)?;
+
+                                        (start_expr, end_expr)
+                                    },
+                                    // other things like RangeFull, RangeFrom, RangeTo, RangeInclusive could be added here
+                                    // relatively easily
+                                    _ => return Err(SpannedEncodingError::unsupported(
+                                        format!("slicing with {} as index/range type is not supported yet", idx_ident),
+                                        span,
+                                    )),
+                                };
+
+                                let slice_expr = self.encoder.encode_snapshot_slicing(
+                                    base_ty,
+                                    encoded_args[0].clone(),
+                                    ty,
+                                    start,
+                                    end,
+                                ).with_span(span)?;
+
+                                let mut state = states[target_block].clone();
+                                state.substitute_value(&lhs_value, slice_expr);
+                                state
+                            }
+
                             // simple function call
                             _ => {
                                 let is_pure_function = self.encoder.is_pure(def_id);
