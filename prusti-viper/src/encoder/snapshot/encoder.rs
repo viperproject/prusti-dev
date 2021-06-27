@@ -138,8 +138,8 @@ impl SnapshotEncoder {
                 Snapshot::Array { snap_func, slice_helper, .. } => {
                     funcs.extend([snap_func.clone(), slice_helper.clone()]);
                 }
-                Snapshot::Slice { snap_func, slice_collect_func, .. } => {
-                    funcs.extend([snap_func.clone(), slice_collect_func.clone()]);
+                Snapshot::Slice { snap_func, slice_collect_func, slice_helper, .. } => {
+                    funcs.extend([snap_func.clone(), slice_collect_func.clone(), slice_helper.clone()]);
                 }
                 _ => {},
             }
@@ -517,7 +517,8 @@ impl SnapshotEncoder {
         hi: vir::Expr,
     ) -> EncodingResult<vir::Expr> {
         match self.encode_snapshot(encoder, base_ty)? {
-            Snapshot::Array { slice_helper, .. } => {
+            Snapshot::Array { slice_helper, .. }
+            | Snapshot::Slice { slice_helper, .. } => {
                 let slice_cons = if let Snapshot::Slice { cons, .. } = self.encode_snapshot(encoder, slice_ty)? {
                     cons
                 } else {
@@ -1041,7 +1042,7 @@ impl SnapshotEncoder {
                         encoder,
                         arg_expr.clone(),
                         i.clone(),
-                        elem_snap_ty,
+                        elem_snap_ty.clone(),
                     );
                     let read_call = read.apply(vec![
                         result_expr.clone(),
@@ -1073,6 +1074,13 @@ impl SnapshotEncoder {
                     ],
                     body: Some(snap_body),
                 };
+
+                let slice_helper = self.encode_slice_helper(
+                    slice_snap_ty.clone(),
+                    elem_snap_ty,
+                    read.clone(),
+                    len.apply(vec![vir_local!{ self: {slice_snap_ty.clone()} }.into()]),
+                );
 
                 let cons_inj = {
                     let data_l = vir_local!{ _l_data: {seq_type.clone()} };
@@ -1179,6 +1187,7 @@ impl SnapshotEncoder {
                     domain,
                     snap_func,
                     slice_collect_func,
+                    slice_helper,
                     cons,
                     read,
                     len,
@@ -1260,14 +1269,14 @@ impl SnapshotEncoder {
                     box Expr::Seq(
                         seq_type.clone(),
                         vec![
-                            read_lo.clone(),
+                            read_lo,
                         ],
                         vir::Position::default(),
                     ),
                     box Expr::func_app(
-                        slice_helper_name.clone(),
+                        slice_helper_name,
                         vec![
-                            self_expr.clone(),
+                            self_expr,
                             vir!{ [lo_expr] + [Expr::from(1)] },
                             hi_expr,
                         ],
@@ -1276,7 +1285,7 @@ impl SnapshotEncoder {
                             lo,
                             hi,
                         ],
-                        seq_type.clone(),
+                        seq_type,
                         vir::Position::default(),
                     ),
                     vir::Position::default(),

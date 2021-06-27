@@ -51,7 +51,12 @@ enum Snapshot {
         predicate_name: String,
         domain: vir::Domain,
         snap_func: vir::Function,
+        /// Collect a slice snapshot from an impure context using lookup_pure calls until we have
+        /// Slice$len(self) elements in the result Seq[elem_ty]
         slice_collect_func: vir::Function,
+        /// This slice snapshot is being sliced, so we collect elements using read from self in the
+        /// result Seq[elem_ty]
+        slice_helper: vir::Function,
         cons: vir::DomainFunc,
         read: vir::DomainFunc,
         len: vir::DomainFunc,
