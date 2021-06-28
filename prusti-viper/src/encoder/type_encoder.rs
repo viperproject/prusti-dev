@@ -150,12 +150,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            ty::TyKind::Float(_) => {
-                return Err(EncodingError::unsupported(
-                    "float type is not supported"
-                ));
-            }
-
             ty::TyKind::Foreign(_) => {
                 return Err(EncodingError::unsupported(
                     "foreign function interface is not supported"
