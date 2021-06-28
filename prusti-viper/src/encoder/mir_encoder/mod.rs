@@ -507,9 +507,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
             mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
             mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
-            mir::BinOp::BitAnd => vir::Expr::bit_and(left, right),
-            mir::BinOp::BitOr => vir::Expr::bit_or(left, right),
-            mir::BinOp::BitXor => vir::Expr::bit_xor(left, right),
             unsupported_op => {
                 return Err(EncodingError::unsupported(format!(
                     "operation '{:?}' is not supported",

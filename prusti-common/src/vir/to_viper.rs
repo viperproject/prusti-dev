@@ -407,7 +407,6 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     BinOpKind::And => ast.and_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
                     BinOpKind::Or => ast.or_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
                     BinOpKind::Implies => ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
-                    BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor | BinOpKind::Shl | BinOpKind::Shr => unimplemented!("Bitwise Binops unimplemented"),
                     _ => unreachable!()
                 }
             },
