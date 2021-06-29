@@ -23,8 +23,7 @@ Ideally, our implementation satisfies at least the following properties:
 
 1. Executing `push` increases the length of the underlying list by one.
 2. After `push(elem)` the first element of the list stores value `elem`
-3. After executing `push(elem)`, the first element points to the original list, which
-   remains unchanged.
+3. After executing `push(elem)`, the elements of the original list remain unchanged.
 
 ## First property
 
@@ -32,7 +31,7 @@ The first property can easily expressed as a postcondition that uses the
 pure method `len` introduced in the [previous chapter](new.md):
 
 ```rust,noplaypen
-#//add: #![feature(box_patterns)] 
+# #![feature(box_patterns)] 
 #
 #use prusti_contracts::*; 
 #
@@ -100,7 +99,7 @@ We may thus be tempted to write the following:
 
 
 ```rust,noplaypen
-#//add: #![feature(box_patterns)] 
+# #![feature(box_patterns)] 
 #
 #use prusti_contracts::*; 
 #
@@ -181,7 +180,7 @@ Using this function, the Rust compiler accepts the following implementation:
 
 
 ```rust,noplaypen
-#//add: #![feature(box_patterns)] 
+# #![feature(box_patterns)] 
 #
 #use prusti_contracts::*; 
 #
@@ -277,7 +276,7 @@ After introducing a trusted wrapper that ensures that `replace` does not change 
 length of the original list, the following implementation verifies:
 
 ```rust,noplaypen
-#//add: #![feature(box_patterns)] 
+# #![feature(box_patterns)] 
 #
 #use prusti_contracts::*; 
 #
@@ -354,7 +353,7 @@ list as its second argument.
 We formalize this precondition by introducing another pure function `is_empty`:
 
 ```rust,noplaypen
-#//add: #![feature(box_patterns)] 
+# #![feature(box_patterns)] 
 #
 #use prusti_contracts::*; 
 #
@@ -427,6 +426,9 @@ impl Link {
 // Prusti: VERIFIES
 ```
 
+
+
+
 This completes our implementation of `push` but we still need to verify
 the remaining properties of its specification.
 
@@ -436,18 +438,311 @@ Recall that the second property of our specification informally reads as follows
 
 > 2. After push(elem) the first element of the list stores value elem.
 
-To formally specify the above property, we introduce another pure function, called 
-`lookup` that recursively traverses the list and returns the i-th element of a list.
-With such a function at hand, we can express that the first element of the list is 
-the pushed one as `self.lookup(0) == elem`.
-
-**TODO**
+To formally specify the above property, we first introduce another pure function, called 
+`lookup`, that recursively traverses the list and returns its i-th element.
+Our second desired property then corresponds to the postcondition 
+`self.lookup(0) == elem`.
 
 ```rust,noplaypen
-{{#include tour-src/08-chapter-2-4.rs:1:}}
+# #![feature(box_patterns)] 
+#use prusti_contracts::*; 
+#
+#use std::mem;
+#
+#pub struct List {
+#    head: Link,
+#}
+#
+#enum Link {
+#    Empty,
+#    More(Box<Node>)
+#}
+#
+#struct Node {
+#    elem: i32,
+#    next: Link,
+#}
+#
+# #[trusted]
+# #[ensures(old(dest.len()) == result.len())] 
+#fn replace(dest: &mut Link, src: Link) -> Link {
+#    mem::replace(dest, src)
+#}
+#
+impl List {
+    #[pure]
+    pub fn lookup(&self, index: usize) -> i32 {
+        self.head.lookup(index)
+    }
+#
+#    #[pure]
+#    pub fn len(&self) -> usize {
+#        self.head.len()
+#    }
+#
+#    #[ensures(result.len() == 0)] 
+#    pub fn new() -> Self {
+#        List {
+#            head: Link::Empty
+#        }
+#    }
+    
+    #[ensures(self.len() == old(self.len()) + 1)]
+    #[ensures(self.lookup(0) == elem)]
+    pub fn push(&mut self, elem: i32) {
+        // ...
+#        let new_node = Box::new(Node {
+#            elem: elem,
+#            next: replace(&mut self.head, Link::Empty),
+#        });
+#        self.head = Link::More(new_node);
+    }
+}
+
+impl Link {
+    #[pure]
+    pub fn lookup(&self, index: usize) -> i32 {
+        match self {
+            Link::More(box node) => {
+                if index == 0 {
+                    node.elem
+                } else {
+                    node.next.lookup(index - 1)
+                }
+            },
+            Link::Empty => unreachable!(),  
+        }
+    }
+#
+#    #[pure]
+#    fn len(&self) -> usize {
+#        match self {
+#            Link::Empty => 0,
+#            Link::More(box node) => 1 + node.next.len(),
+#        }
+#    }
+}
 ```
 
+Consider the `match` statement in the last function.
+The Rust compiler will complain if we attempt to omit the case `Link::Empty`.
+Since there is no sensible implementation of `lookup` if the underlying list is empty,
+we used the macro `unreachable!()`, which will crash the program with a panic.
+Since nothing prevents us from calling `lookup` on an empty list, Prusti complains:
+
+```
+unreachable!(..) statement in pure function might be reachable
+```
+We can specify that `lookup` should only be called on non-empty lists by adding the 
+precondition `0 <= index && index < self.len()` to *both* `lookup` functions; this is 
+sufficient to verify our second property for `push`:
+
+
 ```rust,noplaypen
-{{#include tour-src/09-chapter-2-4.rs:1:}}
+# #![feature(box_patterns)] 
+#use prusti_contracts::*; 
+#
+#use std::mem;
+#
+#pub struct List {
+#    head: Link,
+#}
+#
+#enum Link {
+#    Empty,
+#    More(Box<Node>)
+#}
+#
+#struct Node {
+#    elem: i32,
+#    next: Link,
+#}
+#
+# #[trusted]
+# #[ensures(old(dest.len()) == result.len())] 
+#fn replace(dest: &mut Link, src: Link) -> Link {
+#    mem::replace(dest, src)
+#}
+#
+impl List {
+    #[pure]
+    #[requires(0 <= index && index < self.len())]
+    pub fn lookup(&self, index: usize) -> i32 {
+        self.head.lookup(index)
+    }
+#
+#    #[pure]
+#    pub fn len(&self) -> usize {
+#        self.head.len()
+#    }
+#
+#    #[ensures(result.len() == 0)] 
+#    pub fn new() -> Self {
+#        List {
+#            head: Link::Empty
+#        }
+#    }
+#    
+#    #[ensures(self.len() == old(self.len()) + 1)]
+#    pub fn push(&mut self, elem: i32) {
+#        let new_node = Box::new(Node {
+#            elem: elem,
+#            next: replace(&mut self.head, Link::Empty),
+#        });
+#        self.head = Link::More(new_node);
+#    }
+}
+
+impl Link {
+    #[pure]
+    #[requires(0 <= index && index < self.len())]
+    pub fn lookup(&self, index: usize) -> i32 {
+        // ...
+#        match self {
+#            Link::More(box node) => {
+#                if index == 0 {
+#                    node.elem
+#                } else {
+#                    node.next.lookup(index - 1)
+#                }
+#            },
+#            Link::Empty => unreachable!(), 
+#        }
+    }
+#
+#    #[pure]
+#    fn len(&self) -> usize {
+#        match self {
+#            Link::Empty => 0,
+#            Link::More(box node) => 1 + node.next.len(),
+#        }
+#    }
+}
+// Prusti: VERIFIES
+```
+
+## Third property
+
+The third and final property we will verify for `push` is that the original list
+content is not modified:
+
+> 3. After executing `push(elem)`, the elements of the original list remain unchanged.
+
+To formalize the above property, we can reuse our pure function `lookup`, 
+[quantifiers](../syntax.md), and [old expressions](../syntax.md), that is, we add
+the postcondition:
+
+```rust,noplaypen
+#[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
+             old(self.lookup(i-1)) == self.lookup(i)))] 
+pub fn push(&mut self, elem: i32) {
+    // ...
+}
+```
+
+After adding the above postcondition, Prusti will complain that the postcondition
+might not hold; the reason is similar to an issue we encountered when verifiying
+the first property: the specification of `replace` is too weak.
+Verification succeeds after adding the same postcondition to `replace`.
+We conclude this section with the full code for verifying `push`:
+
+```rust,noplaypen
+# #![feature(box_patterns)] 
+#use prusti_contracts::*; 
+#
+#use std::mem;
+#
+#pub struct List {
+#    head: Link,
+#}
+#
+#enum Link {
+#    Empty,
+#    More(Box<Node>)
+#}
+#
+#struct Node {
+#    elem: i32,
+#    next: Link,
+#}
+
+#[trusted]
+#[requires(src.is_empty())]
+#[ensures(dest.is_empty())]
+#[ensures(old(dest.len()) == result.len())]
+#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==> 
+                old(dest.lookup(i)) == result.lookup(i)))] 
+fn replace(dest: &mut Link, src: Link) -> Link {
+    mem::replace(dest, src)
+}
+
+impl List {
+#    #[pure]
+#    #[requires(0 <= index && index < self.len())]
+#    pub fn lookup(&self, index: usize) -> i32 {
+#        self.head.lookup(index)
+#    }
+#
+#    #[pure]
+#    pub fn len(&self) -> usize {
+#        self.head.len()
+#    }
+#
+#    #[ensures(result.len() == 0)]    
+#    pub fn new() -> Self {
+#        List {
+#            head: Link::Empty
+#        }
+#    }
+#
+    #[ensures(self.len() == old(self.len()) + 1)] 
+    #[ensures(self.lookup(0) == elem)]
+    #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
+                old(self.lookup(i-1)) == self.lookup(i)))] 
+    pub fn push(&mut self, elem: i32) {
+        let new_node = Box::new(Node {
+            elem: elem,
+            next: replace(&mut self.head, Link::Empty), 
+        });
+    
+        self.head = Link::More(new_node);
+    }
+}
+#
+#impl Link {
+#    #[pure]
+#    #[requires(0 <= index && index < self.len())] 
+#    pub fn lookup(&self, index: usize) -> i32 {
+#        match self {
+#            Link::Empty => unreachable!(),
+#            Link::More(box node) => {
+#                if index == 0 {
+#                    node.elem
+#                } else {
+#                    node.next.lookup(index - 1)
+#                }
+#            },
+#        }
+#    }
+#    
+#    #[pure]
+#    #[ensures(!self.is_empty() ==> result > 0)]
+#    #[ensures(result >= 0)]
+#    fn len(&self) -> usize {
+#        match self {
+#            Link::Empty => 0,
+#            Link::More(box node) => 1 + node.next.len(),
+#        }
+#    }
+#
+#    #[pure]
+#    fn is_empty(&self) -> bool {
+#        match self {
+#            Link::Empty => true,
+#            Link::More(box node) => false,
+#        }
+#    }
+#}
+// Prusti: VERIFIES
 ```
 
