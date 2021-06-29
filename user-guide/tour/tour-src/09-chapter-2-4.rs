@@ -22,8 +22,8 @@ struct Node {
 #[ensures(dest.is_empty())]
 #[ensures(old(dest.len()) == result.len())]
 // (5) make sure that replace leaves elements in the result untouched
-#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==> 
-                old(dest.lookup(i)) == result.lookup(i)))] 
+//#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==> 
+//                old(dest.lookup(i)) == result.lookup(i)))] 
 fn replace(dest: &mut Link, src: Link) -> Link {
     mem::replace(dest, src)
 }
