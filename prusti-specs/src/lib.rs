@@ -311,19 +311,15 @@ pub fn prusti_use(tokens: TokenStream) -> TokenStream {
     let path_str = tokens.to_string().replace(" ", "");
     if let Some((crate_ident, rest)) = path_str.split_once("::") {
         if let Some((mod_ident, rest)) = rest.split_once("::") {
-            let mod_ident_hash = {
-                let mut hasher = DefaultHasher::new();
-                mod_ident.hash(&mut hasher);
-                hasher.finish()
-            };
             let prusti_use_macro: syn::Path = handle_result!(syn::parse_str(&format!("{}::{}", crate_ident, mod_ident)));
+            let arg_path: syn::Path = handle_result!(syn::parse_str(rest));
             let macro_call = quote! {
-                #prusti_use_macro!(#rest);
+                #prusti_use_macro!(#arg_path);
             };
             println!("macro_call: {:?}\n\n", macro_call.to_string());
             macro_call
         } else {
-            let prusti_use_macro: syn::Path = handle_result!(syn::parse_str(&format!("{}::{}", crate_ident, "crate_spec")));
+            let prusti_use_macro: syn::Path = handle_result!(syn::parse_str(&format!("{}::{}", crate_ident, rest)));
             quote!{
                 #prusti_use_macro!();
             }
@@ -474,7 +470,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     }
 }
 
-pub fn export_all(tokens: TokenStream) -> TokenStream {
+pub fn export_all(_tokens: TokenStream) -> TokenStream {
     quote!(
         #[prusti::export_all]
         #[macro_export]
@@ -536,7 +532,7 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
             };
 
             // Wrap the generated macro in a pub mod with the top level ident_hash(ident) as name
-            let mod_ident_str = item_mod.ident.clone().to_string();
+            let mod_ident_str = item_mod.ident.to_string();
             let mod_ident_hash = {
                 let mut hasher = DefaultHasher::new();
                 mod_ident_str.hash(&mut hasher);
@@ -555,9 +551,10 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
                         macro_defs_tokens.extend(quote!(#item_macro));
                     }
                     parse_quote_spanned!{item_span =>
+                        #[macro_use]
                         pub mod #mod_ident {
                             #macro_defs_tokens
-                            #[macro_export]
+                            // #[macro_export]
                             #top_mod_macro
                         }
 
