@@ -18,7 +18,7 @@ impl PersistSpecCollector {
         }
     }
 
-    pub fn collect_specs(mut self, krate: &mut ast::Crate){
+    pub fn collect_specs(self, krate: &mut ast::Crate){
         let append_tokens: TokenStream = self.tokens_cursor.collect();
 
         if let Some(item) = krate.items.iter_mut().find(|item| {
@@ -30,7 +30,7 @@ impl PersistSpecCollector {
                         MacArgs::Delimited(_, _, tokens) => {
                             let mut tree: Vec<TokenTree> = tokens.to_owned().into_trees().collect();
                             let count = tree.len()-2;
-                            let mut expand_location_token = &mut tree[count];
+                            let expand_location_token = &mut tree[count];
                             match expand_location_token {
                                 TokenTree::Delimited(_, _, tokens) => {
                                     *tokens = append_tokens;
@@ -64,7 +64,7 @@ impl<'ast> Visitor<'ast> for PersistSpecCollector {
 
         if has_prusti_attr(attrs, "persist") {
             match &item.kind {
-                ast::ItemKind::Mod(_, mod_kind) => {
+                ast::ItemKind::Mod(_, _) => {
                     if let Some(lazy_mod_tokens) = &item.tokens {
                         let mod_tokens = lazy_mod_tokens.create_token_stream().to_tokenstream();
                         self.tokens_cursor.append(mod_tokens);

@@ -45,8 +45,8 @@ pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path, macros: &m
             syn::Item::Fn(item_fn) => {
                 if let Some(fn_macro) = rewrite_fn(item_fn, &mut path)? {
                     if let Some(ref fn_ident) = fn_macro.ident {
+                        macro_idents.push(fn_ident.to_owned());
                         macros.push(fn_macro);
-                        macro_idents.push(ident.to_owned());
                     }
                 }
 
@@ -109,6 +109,7 @@ pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path, macros: &m
     }
 
     let new_tokens: TokenStream = parse_quote_spanned!(span => 
+            #[macro_export]
             macro_rules! #mod_ident {
                 // #macro_defs_tokens
                 ($i:ident $(:: $rest:tt)?) => {
@@ -218,7 +219,8 @@ fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) -> syn::Result<Op
         .push(parse_quote_spanned!(item_fn_span=> #[trusted]));
 
     let fn_clone = item_fn.clone();
-    let macro_tokens = parse_quote_spanned!(item_fn_span => 
+    let macro_tokens = parse_quote_spanned!(item_fn_span =>
+        #[macro_export] 
         macro_rules! #ident {
             () => {
                 #fn_clone
