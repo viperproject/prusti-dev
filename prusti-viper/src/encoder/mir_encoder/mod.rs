@@ -258,11 +258,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         base_ty: ty::Ty<'tcx>,
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("encode_deref {} {}", encoded_base, base_ty);
-        assert!(
-            self.can_be_dereferenced(base_ty),
-            "Type {:?} can not be dereferenced",
-            base_ty
-        );
+
         Ok(match base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(_, ty, _) => {
@@ -292,7 +288,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 };
                 (access, base_ty.boxed_ty(), None)
             }
-            ref x => unimplemented!("{:?}", x),
+            ref x => {
+                return Err(EncodingError::internal(
+                    format!("Type {:?} can not be dereferenced", x)
+                ));
+            }
         })
     }
 
