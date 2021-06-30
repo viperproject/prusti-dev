@@ -8,8 +8,8 @@
     (Option is actually in the standard library but we write our own to assign specs to functions)
 */
 
-#![feature(box_patterns)] 
-use prusti_contracts::*; 
+#![feature(box_patterns)]
+use prusti_contracts::*;
 
 use std::mem;
 
@@ -25,7 +25,7 @@ pub struct List {
 
 enum Link {
     Empty,
-    More(Box<Node>)
+    More(Box<Node>),
 }
 
 struct Node {
@@ -57,10 +57,10 @@ impl List {
         self.head.lookup(index)
     }
 
-    #[ensures(result.len() == 0)]    
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         List {
-            head: Link::Empty
+            head: Link::Empty,
         }
     }
 
@@ -71,9 +71,9 @@ impl List {
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem: elem,
-            next: replace(&mut self.head, Link::Empty), 
+            next: replace(&mut self.head, Link::Empty),
         });
-    
+
         self.head = Link::More(new_node);
     }
 
@@ -96,7 +96,7 @@ impl List {
 }
 
 impl Link {
-    
+
     #[pure]
     #[ensures(!self.is_empty() ==> result > 0)]
     #[ensures(result >= 0)]
@@ -116,7 +116,7 @@ impl Link {
     }
 
     #[pure]
-    #[requires(0 <= index && index < self.len())] 
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
         match self {
             Link::Empty => unreachable!(),
@@ -126,7 +126,7 @@ impl Link {
                 } else {
                     node.next.lookup(index - 1)
                 }
-            },
+            }
         }
     }
 

@@ -6,8 +6,8 @@
     All we have to do is write a function, and annotate it with #[test].
 */
 
-#![feature(box_patterns)] 
-use prusti_contracts::*; 
+#![feature(box_patterns)]
+use prusti_contracts::*;
 
 use std::mem;
 
@@ -48,7 +48,7 @@ pub struct List {
 
 enum Link {
     Empty,
-    More(Box<Node>)
+    More(Box<Node>),
 }
 
 struct Node {
@@ -80,7 +80,7 @@ impl List {
         self.head.lookup(index)
     }
 
-    #[ensures(result.len() == 0)]    
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         List {
             head: Link::Empty
@@ -94,9 +94,9 @@ impl List {
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem: elem,
-            next: replace(&mut self.head, Link::Empty), 
+            next: replace(&mut self.head, Link::Empty),
         });
-    
+
         self.head = Link::More(new_node);
     }
 
@@ -105,7 +105,7 @@ impl List {
     #[ensures(old(self.len()) == 0 ==> self.len() == 0)]
     #[ensures(old(self.len()) > 0 ==> self.len() == old(self.len()-1))]
     #[ensures(old(self.len()) > 0 ==> result.peek() == old(self.lookup(0)))]
-    #[ensures(old(self.len()) > 0 ==> 
+    #[ensures(old(self.len()) > 0 ==>
     forall(|i: usize| (0 <= i && i < self.len()) ==>
         old(self.lookup(i+1)) == self.lookup(i)))]
     pub fn pop(&mut self) -> TrustedOption {
@@ -122,7 +122,7 @@ impl List {
 }
 
 impl Link {
-    
+
     #[pure]
     #[ensures(!self.is_empty() ==> result > 0)]
     #[ensures(result >= 0)]
@@ -142,7 +142,7 @@ impl Link {
     }
 
     #[pure]
-    #[requires(0 <= index && index < self.len())] 
+    #[requires(0 <= index && index < self.len())]
     pub fn lookup(&self, index: usize) -> i32 {
         match self {
             Link::Empty => unreachable!(),
@@ -152,7 +152,7 @@ impl Link {
                 } else {
                     node.next.lookup(index - 1)
                 }
-            },
+            }
         }
     }
 

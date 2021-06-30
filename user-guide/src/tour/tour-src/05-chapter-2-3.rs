@@ -1,4 +1,4 @@
-#![feature(box_patterns)] // experimental convenience feature
+#![feature(box_patterns)] // convenience box syntax
 
 /*
     We could verify that the list returned by new() is empty, i.e., is of length 0.
@@ -15,7 +15,7 @@ pub struct List {
 
 enum Link {
     Empty,
-    More(Box<Node>)
+    More(Box<Node>),
 }
 
 struct Node {
@@ -37,17 +37,17 @@ impl List {
     }
 
     // (2) add postcondition
-    #[ensures(result.len() == 0)]    
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         List {
-            head: Link::Empty
+            head: Link::Empty,
         }
     }
 
 }
 
 impl Link {
-    
+
     // (5) add length method for Links
     #[pure]
     fn len(&self) -> usize {

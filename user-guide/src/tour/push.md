@@ -6,15 +6,15 @@
 
 ## Informal specifications
 
-Our next goal is to implement and verify a method pushes an integer onto a list.
+Our next goal is to implement and verify a method that pushes an integer onto a list.
 In contrast to methods like `len`, `push` modifies the list; it thus takes
-`&mut self` as a first argument:
+`&mut self` as its first argument:
 
 ```rust,noplaypen
 impl List {
-   pub fn push(&mut self, elem: i32) {
-     // TODO
-   }
+    pub fn push(&mut self, elem: i32) {
+        // TODO
+    }
 }
 ```
 
@@ -22,18 +22,17 @@ Before we implement `push`, let us briefly think of possible specifications.
 Ideally, our implementation satisfies at least the following properties:
 
 1. Executing `push` increases the length of the underlying list by one.
-2. After `push(elem)` the first element of the list stores value `elem`
+2. After `push(elem)` the first element of the list stores the value `elem`.
 3. After executing `push(elem)`, the elements of the original list remain unchanged.
 
 ## First property
 
-The first property can easily expressed as a postcondition that uses the
+The first property can easily be expressed as a postcondition that uses the
 pure method `len` introduced in the [previous chapter](new.md):
 
 ```rust,noplaypen
-# #![feature(box_patterns)] 
-#
-#use prusti_contracts::*; 
+# #![feature(box_patterns)]
+#use prusti_contracts::*;
 #
 #pub struct List {
 #    head: Link,
@@ -41,7 +40,7 @@ pure method `len` introduced in the [previous chapter](new.md):
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -55,10 +54,10 @@ impl List {
 #        self.head.len()
 #    }
 #
-#    #[ensures(result.len() == 0)]    
+#    #[ensures(result.len() == 0)]
 #    pub fn new() -> Self {
 #        List {
-#            head: Link::Empty
+#            head: Link::Empty,
 #        }
 #
 #    }
@@ -80,9 +79,9 @@ impl List {
 #}
 ```
 
-The above postcondition depends on *two* states, namely the state before and after 
+The above postcondition depends on *two* states, namely the state before and after
 execution of `self.push(elem)`, respectively.
-We use an [old expression](../syntax.md)
+We use an [old expression](../syntax.md#old-expressions)
 to refer to the state before execution of `self.push(elem)`.
 Since we have not implemented `push` yet, Prusti will, unsurprisingly, complain:
 
@@ -92,16 +91,15 @@ Since we have not implemented `push` yet, Prusti will, unsurprisingly, complain:
 
 ## Implementing Push
 
-Conceptually, implementing `list.push(i)` should be straightforward: 
-We create a new instance of our struct for list nodes that stores 
+Conceptually, implementing `list.push(i)` should be straightforward:
+we create a new instance of our struct for list nodes that stores
 `i` in its `elem` field and the original list in its `next` field.
 We may thus be tempted to write the following:
 
 
 ```rust,noplaypen
-# #![feature(box_patterns)] 
-#
-#use prusti_contracts::*; 
+# #![feature(box_patterns)]
+#use prusti_contracts::*;
 #
 #pub struct List {
 #    head: Link,
@@ -109,7 +107,7 @@ We may thus be tempted to write the following:
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -123,12 +121,11 @@ impl List {
 #        self.head.len()
 #    }
 #
-#    #[ensures(result.len() == 0)]    
+#    #[ensures(result.len() == 0)]
 #    pub fn new() -> Self {
 #        List {
-#            head: Link::Empty
+#            head: Link::Empty,
 #        }
-#
 #    }
 #
     #[ensures(self.len() == old(self.len()) + 1)]
@@ -180,9 +177,8 @@ Using this function, the Rust compiler accepts the following implementation:
 
 
 ```rust,noplaypen
-# #![feature(box_patterns)] 
-#
-#use prusti_contracts::*; 
+# #![feature(box_patterns)]
+#use prusti_contracts::*;
 #
 use std::mem;
 
@@ -192,7 +188,7 @@ use std::mem;
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -206,12 +202,11 @@ impl List {
 #        self.head.len()
 #    }
 #
-#    #[ensures(result.len() == 0)]    
+#    #[ensures(result.len() == 0)]
 #    pub fn new() -> Self {
 #        List {
-#            head: Link::Empty
+#            head: Link::Empty,
 #        }
-#
 #    }
 #
     #[ensures(self.len() == old(self.len()) + 1)]
@@ -257,7 +252,7 @@ function body into account.
 In our case, the function `std::mem::replace` is neither marked as `pure` nor does it
 come with a specification. Hence, Prusti assumes that it is memory safe and nothing else.
 That is, Prusti uses `true` as both pre- and postcondition of `std::mem::replace`,
-which is too weak to prove the specification of `push`: According to its specification,
+which is too weak to prove the specification of `push`: according to its specification,
 `std::mem::replace` could arbitrarily change the original list and thus also its length.
 Hence, we cannot conclude that the length the list returned by
 `mem::replace(&mut self.head, Link::Empty)` coincides with the length of the original 
@@ -276,9 +271,8 @@ After introducing a trusted wrapper that ensures that `replace` does not change 
 length of the original list, the following implementation verifies:
 
 ```rust,noplaypen
-# #![feature(box_patterns)] 
-#
-#use prusti_contracts::*; 
+# #![feature(box_patterns)]
+#use prusti_contracts::*;
 #
 #use std::mem;
 #
@@ -288,7 +282,7 @@ length of the original list, the following implementation verifies:
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -297,7 +291,7 @@ length of the original list, the following implementation verifies:
 #}
 #
 #[trusted]
-#[ensures(old(dest.len()) == result.len())] 
+#[ensures(old(dest.len()) == result.len())]
 fn replace(dest: &mut Link, src: Link) -> Link {
     mem::replace(dest, src)
 }
@@ -308,12 +302,11 @@ impl List {
 #        self.head.len()
 #    }
 #
-#    #[ensures(result.len() == 0)]    
+#    #[ensures(result.len() == 0)]
 #    pub fn new() -> Self {
 #        List {
-#            head: Link::Empty
+#            head: Link::Empty,
 #        }
-#
 #    }
 #
     #[ensures(self.len() == old(self.len()) + 1)]
@@ -353,9 +346,8 @@ list as its second argument.
 We formalize this precondition by introducing another pure function `is_empty`:
 
 ```rust,noplaypen
-# #![feature(box_patterns)] 
-#
-#use prusti_contracts::*; 
+# #![feature(box_patterns)]
+#use prusti_contracts::*;
 #
 #use std::mem;
 #
@@ -365,7 +357,7 @@ We formalize this precondition by introducing another pure function `is_empty`:
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -376,7 +368,7 @@ We formalize this precondition by introducing another pure function `is_empty`:
 #[trusted]
 #[requires(src.is_empty())]
 #[ensures(dest.is_empty())]
-#[ensures(old(dest.len()) == result.len())] 
+#[ensures(old(dest.len()) == result.len())]
 fn replace(dest: &mut Link, src: Link) -> Link {
     mem::replace(dest, src)
 }
@@ -387,12 +379,11 @@ fn replace(dest: &mut Link, src: Link) -> Link {
 #        self.head.len()
 #    }
 #
-#    #[ensures(result.len() == 0)]    
+#    #[ensures(result.len() == 0)]
 #    pub fn new() -> Self {
 #        List {
-#            head: Link::Empty
+#            head: Link::Empty,
 #        }
-#
 #    }
 #
 #    #[ensures(self.len() == old(self.len()) + 1)]
@@ -422,12 +413,9 @@ impl Link {
             Link::More(box node) => false,
         }
     }
-#}
+}
 // Prusti: VERIFIES
 ```
-
-
-
 
 This completes our implementation of `push` but we still need to verify
 the remaining properties of its specification.
@@ -436,7 +424,7 @@ the remaining properties of its specification.
 
 Recall that the second property of our specification informally reads as follows:
 
-> 2. After push(elem) the first element of the list stores value elem.
+> 2. After `push(elem)` the first element of the list stores the value `elem`.
 
 To formally specify the above property, we first introduce another pure function, called 
 `lookup`, that recursively traverses the list and returns its i-th element.
@@ -444,8 +432,8 @@ Our second desired property then corresponds to the postcondition
 `self.lookup(0) == elem`.
 
 ```rust,noplaypen
-# #![feature(box_patterns)] 
-#use prusti_contracts::*; 
+# #![feature(box_patterns)]
+#use prusti_contracts::*;
 #
 #use std::mem;
 #
@@ -455,7 +443,7 @@ Our second desired property then corresponds to the postcondition
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -464,7 +452,7 @@ Our second desired property then corresponds to the postcondition
 #}
 #
 # #[trusted]
-# #[ensures(old(dest.len()) == result.len())] 
+# #[ensures(old(dest.len()) == result.len())]
 #fn replace(dest: &mut Link, src: Link) -> Link {
 #    mem::replace(dest, src)
 #}
@@ -480,10 +468,10 @@ impl List {
 #        self.head.len()
 #    }
 #
-#    #[ensures(result.len() == 0)] 
+#    #[ensures(result.len() == 0)]
 #    pub fn new() -> Self {
 #        List {
-#            head: Link::Empty
+#            head: Link::Empty,
 #        }
 #    }
     
@@ -539,8 +527,8 @@ sufficient to verify our second property for `push`:
 
 
 ```rust,noplaypen
-# #![feature(box_patterns)] 
-#use prusti_contracts::*; 
+# #![feature(box_patterns)]
+#use prusti_contracts::*;
 #
 #use std::mem;
 #
@@ -550,7 +538,7 @@ sufficient to verify our second property for `push`:
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -559,7 +547,7 @@ sufficient to verify our second property for `push`:
 #}
 #
 # #[trusted]
-# #[ensures(old(dest.len()) == result.len())] 
+# #[ensures(old(dest.len()) == result.len())]
 #fn replace(dest: &mut Link, src: Link) -> Link {
 #    mem::replace(dest, src)
 #}
@@ -576,13 +564,13 @@ impl List {
 #        self.head.len()
 #    }
 #
-#    #[ensures(result.len() == 0)] 
+#    #[ensures(result.len() == 0)]
 #    pub fn new() -> Self {
 #        List {
 #            head: Link::Empty
 #        }
 #    }
-#    
+#
 #    #[ensures(self.len() == old(self.len()) + 1)]
 #    pub fn push(&mut self, elem: i32) {
 #        let new_node = Box::new(Node {
@@ -606,7 +594,7 @@ impl Link {
 #                    node.next.lookup(index - 1)
 #                }
 #            },
-#            Link::Empty => unreachable!(), 
+#            Link::Empty => unreachable!(),
 #        }
     }
 #
@@ -629,26 +617,26 @@ content is not modified:
 > 3. After executing `push(elem)`, the elements of the original list remain unchanged.
 
 To formalize the above property, we can reuse our pure function `lookup`, 
-[quantifiers](../syntax.md), and [old expressions](../syntax.md), that is, we add
+[quantifiers](../syntax.md#quantifiers), and [old expressions](../syntax.md#old-expressions), that is, we add
 the postcondition:
 
 ```rust,noplaypen
 #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
-             old(self.lookup(i-1)) == self.lookup(i)))] 
+             old(self.lookup(i - 1)) == self.lookup(i)))] 
 pub fn push(&mut self, elem: i32) {
     // ...
 }
 ```
 
 After adding the above postcondition, Prusti will complain that the postcondition
-might not hold; the reason is similar to an issue we encountered when verifiying
+might not hold; the reason is similar to an issue we encountered when verifying
 the first property: the specification of `replace` is too weak.
 Verification succeeds after adding the same postcondition to `replace`.
 We conclude this section with the full code for verifying `push`:
 
 ```rust,noplaypen
-# #![feature(box_patterns)] 
-#use prusti_contracts::*; 
+# #![feature(box_patterns)]
+#use prusti_contracts::*;
 #
 #use std::mem;
 #
@@ -665,13 +653,13 @@ We conclude this section with the full code for verifying `push`:
 #    elem: i32,
 #    next: Link,
 #}
-
+#
 #[trusted]
 #[requires(src.is_empty())]
 #[ensures(dest.is_empty())]
 #[ensures(old(dest.len()) == result.len())]
-#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==> 
-                old(dest.lookup(i)) == result.lookup(i)))] 
+#[ensures(forall(|i: usize| (0 <= i && i < result.len()) ==>
+                old(dest.lookup(i)) == result.lookup(i)))]
 fn replace(dest: &mut Link, src: Link) -> Link {
     mem::replace(dest, src)
 }
@@ -688,30 +676,30 @@ impl List {
 #        self.head.len()
 #    }
 #
-#    #[ensures(result.len() == 0)]    
+#    #[ensures(result.len() == 0)]
 #    pub fn new() -> Self {
 #        List {
-#            head: Link::Empty
+#            head: Link::Empty,
 #        }
 #    }
 #
-    #[ensures(self.len() == old(self.len()) + 1)] 
+    #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
     #[ensures(forall(|i: usize| (1 <= i && i < self.len()) ==>
-                old(self.lookup(i-1)) == self.lookup(i)))] 
+                old(self.lookup(i-1)) == self.lookup(i)))]
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem: elem,
-            next: replace(&mut self.head, Link::Empty), 
+            next: replace(&mut self.head, Link::Empty),
         });
-    
+
         self.head = Link::More(new_node);
     }
 }
 #
 #impl Link {
 #    #[pure]
-#    #[requires(0 <= index && index < self.len())] 
+#    #[requires(0 <= index && index < self.len())]
 #    pub fn lookup(&self, index: usize) -> i32 {
 #        match self {
 #            Link::Empty => unreachable!(),
@@ -724,7 +712,7 @@ impl List {
 #            },
 #        }
 #    }
-#    
+#
 #    #[pure]
 #    #[ensures(!self.is_empty() ==> result > 0)]
 #    #[ensures(result >= 0)]
@@ -745,4 +733,3 @@ impl List {
 #}
 // Prusti: VERIFIES
 ```
-

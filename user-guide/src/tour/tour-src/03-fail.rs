@@ -4,7 +4,7 @@ pub struct List {
 
 enum Link {
     Empty,
-    More(Box<Node>)
+    More(Box<Node>),
 }
 
 struct Node {

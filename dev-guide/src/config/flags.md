@@ -53,7 +53,7 @@ When enabled, Prusti will behave like `rustc`.
 
 ## `CHECK_OVERFLOWS`
 
-When enabled, binary operations and numeric casts will be checked for overflows. See [integer type encoding](../encoding/types.md#i-u-char).
+When enabled, binary operations and numeric casts will be checked for overflows. See [integer type encoding](../encoding/types-heap.md#i-u-char).
 
 ## `CHECK_FOLDUNFOLD_STATE`
 

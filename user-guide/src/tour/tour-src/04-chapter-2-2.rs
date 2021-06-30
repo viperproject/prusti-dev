@@ -4,7 +4,7 @@ pub struct List {
 
 enum Link {
     Empty,
-    More(Box<Node>)
+    More(Box<Node>),
 }
 
 struct Node {
@@ -13,10 +13,10 @@ struct Node {
 }
 
 impl List {
-    // Self is an alias for the type that we currently implement
+    // Self is an alias for the type that we are currently implementing
     pub fn new() -> Self {
         List {
-            head: Link::Empty
+            head: Link::Empty,
         }
     }
 }

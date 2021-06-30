@@ -12,7 +12,6 @@
 
 We first provide a static function to create empty lists:
 
-
 ```rust,noplaypen
 #pub struct List {
 #    head: Link,
@@ -20,7 +19,7 @@ We first provide a static function to create empty lists:
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -36,21 +35,21 @@ We first provide a static function to create empty lists:
 
 What would be a sensible first specification for `new()`?
 We could attempt to verify the list returned by `new()` is always empty.
-In other words, the length of the returned list is always zero. 
+In other words, the length of the returned list is always zero.
 To express this property, we first implement a length method for lists which
 itself calls an auxiliary length method implemented for `Link`.
 For simplicity, we will not actually compute the length of a `Link` yet.
 Rather, we will just always return 0.
 
 ```rust,noplaypen
-#![feature(box_patterns)] // experimental convenience notation for boxes
+#![feature(box_patterns)] // convenience notation for boxes
 #pub struct List {
 #    head: Link,
 #}
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -65,7 +64,7 @@ impl List {
 #
 #    pub fn new() -> Self {
 #        List {
-#            head: Link::Empty
+#            head: Link::Empty,
 #        }
 #    }
 }
@@ -78,10 +77,10 @@ impl Link {
 // Prusti: VERIFIES
 ```
 
-Now that we have implemented a method for computing the length of a list, we can 
+Now that we have implemented a method for computing the length of a list, we can
 write our first specification for `new()`: the returned list should always have length
 zero.
-That is, we add attach the [postcondition](../verify/prepost.md) 
+That is, we attach the [postcondition](../verify/prepost.md)
 `result.len() == 0` to the function `new()`:
 
 ```rust,noplaypen
@@ -92,7 +91,7 @@ That is, we add attach the [postcondition](../verify/prepost.md)
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -120,7 +119,7 @@ That is, we add attach the [postcondition](../verify/prepost.md)
 #}
 ```
 
-Unfortunately, Prusti - or rather: the Rust compiler - will complain about
+Unfortunately, Prusti—or rather: the Rust compiler—will complain about
 the postcondition:
 
 ```
@@ -131,17 +130,14 @@ error: cannot find attribute `ensures` in this scope
    |       ^^^^^^^
 ```
 
-Prusti's specifications consist of Rust 
-[macros]() 
-and 
-[attributes]()
+Prusti's specifications consist of Rust
+[macros and attributes](https://doc.rust-lang.org/reference/procedural-macros.html)
 that are defined in a separate crate called `prusti_contracts`.
-Before we can use these specifications, we need to make the path to these 
+Before we can use these specifications, we need to make the path to these
 macros and attributes visible:
 
 ```rust,noplaypen
 #//uncomment: #![feature(box_patterns)]
-extern crate prusti_contracts;
 use prusti_contracts::*; 
 
 #pub struct List {
@@ -150,7 +146,7 @@ use prusti_contracts::*;
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -178,8 +174,8 @@ impl List {
 #}
 ```
 
-Declaring that we use the `prusti_contracts` crate removes the compiler error but 
-leads to a new error - this time an error raised by Prusti:
+Declaring that we use the `prusti_contracts` crate removes the compiler error but
+leads to a new error. This time it is an error raised by Prusti:
 
 ```
 error: [Prusti: invalid specification] use of impure function "List::len" in pure code is not allowed
@@ -189,16 +185,16 @@ error: [Prusti: invalid specification] use of impure function "List::len" in pur
    | 
 ```
 
-Prusti complains about our use of the method `len()` in a postcondition because its
+Prusti complains about our use of the method `len()` in a postcondition because the
 [specification syntax](../syntax.md) only admits calling so-called
 [pure functions](../verify/pure.md), that is, functions that are deterministic,
 have no side effects, and always terminate.
 
 While our implementation of `len()` clearly satisfies all of the above properties,
 Prusti requires us to explicitly mark a function with the `#[pure]` attribute
-before it considers a function as pure. 
+before it considers a function pure.
 After adding the `#[pure]` attribute to our `List::len()` method, it is allowed to
-appear in Prusti specifications: 
+appear in Prusti specifications:
 
 ```rust,noplaypen
 #//uncomment: #![feature(box_patterns)]
@@ -211,7 +207,7 @@ appear in Prusti specifications:
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -228,7 +224,7 @@ impl List {
 #    #[ensures(result.len() == 0)]
 #    pub fn new() -> Self {
 #        List {
-#            head: Link::Empty
+#            head: Link::Empty,
 #        }
 #    }
 }
@@ -241,7 +237,7 @@ impl List {
 ```
 
 However, Prusti still won't verify! It produces the same error but now it refers
- to the *body* of `len()`:
+to the *body* of `len()`:
 
 ```
 error: [Prusti: invalid specification] use of impure function "Link::len" in pure code is not allowed
@@ -252,13 +248,12 @@ error: [Prusti: invalid specification] use of impure function "Link::len" in pur
 ```
 
 Whenever we add the attribute `#[pure]` to a function, Prusti will check whether that
-function is indeed deterministic and side-effect free 
+function is indeed deterministic and side-effect free
 (notice that termination is *not* checked); otherwise, it complains.
 In this case, Prusti complains because we call an impure function,
-namely `Link::len()`, within the body of the pure function `List::len()`. 
+namely `Link::len()`, within the body of the pure function `List::len()`.
 
-To fix this issue, it suffices to mark `Link::len()` as pure, too. 
-
+To fix this issue, it suffices to mark `Link::len()` as pure as well.
 
 ```rust,noplaypen
 #//uncomment: #![feature(box_patterns)]
@@ -271,7 +266,7 @@ To fix this issue, it suffices to mark `Link::len()` as pure, too.
 #
 #enum Link {
 #    Empty,
-#    More(Box<Node>)
+#    More(Box<Node>),
 #}
 #
 #struct Node {
@@ -288,7 +283,7 @@ To fix this issue, it suffices to mark `Link::len()` as pure, too.
 #    #[ensures(result.len() == 0)]
 #    pub fn new() -> Self {
 #        List {
-#            head: Link::Empty
+#            head: Link::Empty,
 #        }
 #    }
 #}
@@ -311,10 +306,10 @@ $ prusti-rustc list.rs
 Successful verification of 4 items
 ```
 
-Prusti now manages to verify that `new()` always returns 
-a list for which the method `len()` returns 0. (notice 
-This is hardly surprising since `len()` ultimately always returns 0 but we will change
-this soon.
+Prusti now manages to verify that `new()` always returns
+a list for which the method `len()` returns 0. (notice
+this is hardly surprising since `len()` ultimately always returns 0 but we will change
+this soon.)
 
 ## Full code listing
 
@@ -324,8 +319,7 @@ the next four chapters.
 
 ```rust,noplaypen
 #![feature(box_patterns)]
-extern crate prusti_contracts;
-use prusti_contracts::*; 
+use prusti_contracts::*;
 
 pub struct List {
     head: Link,
@@ -333,7 +327,7 @@ pub struct List {
 
 enum Link {
     Empty,
-    More(Box<Node>)
+    More(Box<Node>),
 }
 
 struct Node {
@@ -350,7 +344,7 @@ impl List {
     #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         List {
-            head: Link::Empty
+            head: Link::Empty,
         }
     }
 }

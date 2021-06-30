@@ -1,5 +1,5 @@
-#![feature(box_patterns)] 
-use prusti_contracts::*; 
+#![feature(box_patterns)]
+use prusti_contracts::*;
 
 use std::mem; // (4)
 
@@ -9,7 +9,7 @@ pub struct List {
 
 enum Link {
     Empty,
-    More(Box<Node>)
+    More(Box<Node>),
 }
 
 struct Node {
@@ -31,10 +31,10 @@ impl List {
         self.head.len()
     }
 
-    #[ensures(result.len() == 0)]    
+    #[ensures(result.len() == 0)]
     pub fn new() -> Self {
         List {
-            head: Link::Empty
+            head: Link::Empty,
         }
     }
 
@@ -83,7 +83,7 @@ impl List {
 }
 
 impl Link {
-    
+
     #[pure]
     fn len(&self) -> usize {
         match self {

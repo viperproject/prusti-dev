@@ -7,12 +7,12 @@ error[E0072]: recursive type `List` has infinite size
 12 | pub enum List {
    | ^^^^^^^^^^^^^ recursive type has infinite size
 13 |     Empty,
-14 |     Elem(i32, List)
+14 |     Elem(i32, List),
    |               ---- recursive without indirection
    |
 help: insert some indirection (e.g., a `Box`, `Rc`, or `&`) to make `List` representable
    |
-14 |     Elem(i32, Box<List>)
+14 |     Elem(i32, Box<List>),
    |  
 
     [Module std::boxed](https://doc.rust-lang.org/std/boxed/index.html):
@@ -23,7 +23,7 @@ help: insert some indirection (e.g., a `Box`, `Rc`, or `&`) to make `List` repre
 
 pub enum List {
     Empty,
-    Elem(i32, Box<List>)
+    Elem(i32, Box<List>),
 }
 
 /*
@@ -52,12 +52,12 @@ pub enum List {
         > [ptr] -> (Elem A, ptr) -> (Elem B, *null*)
         > [ptr] -> (Elem C, *null*)
 
-    Rust optimizes the layout of enums such that the junk node (Empty) causes no overhead if the enum has the form
+    Rust optimises the layout of enums such that the junk node (Empty) causes no overhead if the enum has the form
 
     > enum Foo {
     >    A,
     >    B(ContainsANonNullPtr),
     > }
 
-    To profit from this null pointer optimization, we thus move all data of a list node into a single C-style struct.
+    To profit from this null pointer optimisation, we thus move all data of a list node into a single C-style struct.
 */
