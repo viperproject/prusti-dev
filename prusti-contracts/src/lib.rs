@@ -87,28 +87,27 @@ pub fn old<T>(arg: T) -> T {
     arg
 }
 
+#[allow(unused_variables)]
 pub fn implication(lhs: bool, rhs: bool) -> bool {
     true
 }
 
-// TODO: probably not the right syntax
-pub fn entailment<F1, F2, Args, O>(mut f: F1, req: F2) -> bool
-where
-    F1: FnMut(Args) -> O,
-    F2: Fn(Args) -> bool {
+#[allow(unused_variables, unused_mut)]
+pub fn entailment<F1, F2>(mut f: F1, req: F2) -> bool {
     true
 }
 
-pub fn forall<T, F, Args, O>(trigger_set: T, mut closure: F) -> bool
-where
-    F: FnMut(Args) -> O {
+#[allow(unused_variables, unused_mut)]
+pub fn forall<T, F>(trigger_set: T, mut closure: F) -> bool {
     true
 }
 
+#[allow(unused_variables)]
 pub fn pledge_rhs<T>(reference: T, rhs: bool) -> bool {
     true
 }
 
+#[allow(unused_variables)]
 pub fn pledge<T>(reference: T, lhs: bool, rhs: bool) -> bool {
     true
 }

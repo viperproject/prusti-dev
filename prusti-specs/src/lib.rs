@@ -183,18 +183,17 @@ fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.
 fn generate_for_after_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
-    let spec_id_rhs = rewriter.generate_spec_id();
-    let spec_id_rhs_str = format!(":{}", spec_id_rhs);
-    let spec_item_rhs = rewriter.process_pledge(
-        None,
-        spec_id_rhs,
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = format!("{}", spec_id);
+    let spec_item_rhs = rewriter.process_pledge_rhs_only(
+        spec_id,
         attr,
         &item,
     )?;
     Ok((
         vec![spec_item_rhs],
         vec![parse_quote_spanned! {item.span()=>
-            #[prusti::pledge_spec_id_ref = #spec_id_rhs_str]
+            #[prusti::pledge_spec_id_ref = #spec_id_str]
         }],
     ))
 }
@@ -203,12 +202,10 @@ fn generate_for_after_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> Ge
 /// annotations.
 fn generate_for_after_expiry_if(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
-    let spec_id_lhs = rewriter.generate_spec_id();
-    let spec_id_rhs = rewriter.generate_spec_id();
-    let spec_id_str = format!("{}:{}", spec_id_lhs, spec_id_rhs);
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = format!("{}", spec_id);
     let spec_item = rewriter.process_pledge(
-        Some(spec_id_lhs),
-        spec_id_rhs,
+        spec_id,
         attr,
         &item
     )?;
@@ -257,7 +254,7 @@ fn generate_for_trusted(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
-    let check = rewriter.process_loop(spec_id, tokens);
+    let check = handle_result!(rewriter.process_loop(spec_id, tokens));
     let callsite_span = Span::call_site();
     quote_spanned! {callsite_span=>
         #[allow(unused_must_use, unused_variables)]
@@ -291,7 +288,6 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         for r in cl_spec.pres {
             let spec_id = rewriter.generate_spec_id();
             let precond = handle_result!(rewriter.process_closure_assertion(
-                rewriter::SpecItemType::Precondition,
                 spec_id,
                 r.to_token_stream(),
             ));
@@ -305,7 +301,6 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         for e in cl_spec.posts {
             let spec_id = rewriter.generate_spec_id();
             let postcond = handle_result!(rewriter.process_closure_assertion(
-                rewriter::SpecItemType::Postcondition,
                 spec_id,
                 e.to_token_stream(),
             ));
@@ -329,8 +324,8 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
             syn::ReturnType::Type(_, ref ty) => (**ty).clone()
         };
 
-        let (spec_toks_pre, spec_toks_post) = rewriter.process_closure(
-            inputs.clone(), output_type, preconds, postconds);
+        let (spec_toks_pre, spec_toks_post) = handle_result!(rewriter.process_closure(
+            inputs.clone(), output_type, preconds, postconds));
 
         let mut attrs_ts = TokenStream::new();
         for a in attrs {
