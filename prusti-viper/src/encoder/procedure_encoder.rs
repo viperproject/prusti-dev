@@ -2209,7 +2209,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let operand = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
                             let expr = Expr::is_nan(operand);
 
-                            stmts.push(vir::Stmt::Assign(lhs, expr, vir::AssignKind::Ghost));
+                            stmts.push(vir::Stmt::Assign(lhs, expr, vir::AssignKind::Copy));
 
                             self.encode_transfer_args_permissions(location, args, &mut stmts, label, false)?;
                         }
@@ -2245,7 +2245,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             
                             let expr = Expr::min(arg0, arg1);
 
-                            stmts.push(vir::Stmt::Assign(lhs, expr, vir::AssignKind::Ghost));
+                            stmts.push(vir::Stmt::Assign(lhs, expr, vir::AssignKind::Copy));
 
                             self.encode_transfer_args_permissions(location, args, &mut stmts, label, false)?;
                         }
