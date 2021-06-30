@@ -2201,7 +2201,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             // Store a label for permissions got back from the call
                             self.label_after_location.insert(location, label.clone());
 
-                            let lhs = vir::Expr::field(target_place.clone(),vir::Field::new("val_bool", vir::Type::Bool));
+                            let lhs = vir::Expr::field(
+                                target_place.clone(),
+                                vir::Field::new("val_bool", vir::Type::Bool)
+                            );
 
                             let operand = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
                             let expr = Expr::is_nan(operand);
@@ -2209,7 +2212,42 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             stmts.push(vir::Stmt::Assign(lhs, expr, vir::AssignKind::Ghost));
 
                             self.encode_transfer_args_permissions(location, args, &mut stmts, label, false)?;
+                        }
 
+                        "core::f32::<impl f32>::min"  => {
+                            let span = self.mir_encoder.get_span_of_location(location);
+
+                            let label = self.cfg_method.get_fresh_label_name();
+                            stmts.push(vir::Stmt::Label(label.clone()));
+
+                            // Havoc the content of the lhs
+                            let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination);
+                            stmts.extend(pre_stmts);
+                            stmts.extend(self.encode_havoc(&target_place));
+                            let type_predicate = self
+                                .mir_encoder
+                                .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
+                                .unwrap();
+
+                            stmts.push(vir::Stmt::Inhale(
+                                type_predicate,
+                            ));
+
+                            // Store a label for permissions got back from the call
+                            self.label_after_location.insert(location, label.clone());
+
+                            let lhs = vir::Expr::field(
+                                target_place.clone(),
+                                vir::Field::new("val_floatf32", vir::Type::Float(FloatSize::F32))
+                            );
+                            let arg0 = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
+                            let arg1 = self.mir_encoder.encode_operand_expr(&args[1]).with_span(span)?;
+                            
+                            let expr = Expr::min(arg0, arg1);
+
+                            stmts.push(vir::Stmt::Assign(lhs, expr, vir::AssignKind::Ghost));
+
+                            self.encode_transfer_args_permissions(location, args, &mut stmts, label, false)?;
                         }
 
                         "std::ops::Fn::call" => {

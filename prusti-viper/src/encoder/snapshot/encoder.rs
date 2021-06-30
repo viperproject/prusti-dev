@@ -236,11 +236,11 @@ impl SnapshotEncoder {
                     ),
                     ty::TyKind::Float(ty::FloatTy::F32) => Expr::field(
                         expr.clone(),
-                        vir::Field::new("val_float32", Type::Bool),
+                        vir::Field::new("val_float32", Type::Float(FloatSize::F32)),
                     ),
                     ty::TyKind::Float(ty::FloatTy::F64) => Expr::field(
                         expr.clone(),
-                        vir::Field::new("val_float64", Type::Bool),
+                        vir::Field::new("val_float64", Type::Float(FloatSize::F64)),
                     ),
                     ty::TyKind::Tuple(substs) if substs.is_empty() => self.snap_unit(),
                     ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => self.snap_unit(),

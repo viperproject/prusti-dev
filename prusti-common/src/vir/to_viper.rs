@@ -365,7 +365,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             },
             Expr::BinOp(op, ref left, ref right, ref pos) => match op {
                 BinOpKind::EqCmp | BinOpKind::NeCmp | BinOpKind::GtCmp | BinOpKind::GeCmp | BinOpKind::LtCmp | BinOpKind::LeCmp
-                | BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div => {
+                | BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Min => {
                     match left.get_type() {
                         Type::Float(float_ty) => {
                             let f_size = match float_ty {
@@ -382,6 +382,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                                 BinOpKind::GeCmp => viper::BinOpFloat::Geq,
                                 BinOpKind::LtCmp => viper::BinOpFloat::Lt,
                                 BinOpKind::LeCmp => viper::BinOpFloat::Leq,
+                                BinOpKind::Min => viper::BinOpFloat::Min,
                                 _ => unimplemented!("unimplemented binop for floats")
                             };
                             ast.float_binop(op_kind, f_size, left.to_viper(ast), right.to_viper(ast))

@@ -91,6 +91,8 @@ pub enum BinOpKind {
     Mod,
     And,
     Or,
+    Min,
+    Max,
     Implies,
 }
 
@@ -278,7 +280,10 @@ impl fmt::Display for BinOpKind {
             BinOpKind::Mod => write!(f, "%"),
             BinOpKind::And => write!(f, "&&"),
             BinOpKind::Or => write!(f, "||"),
+            BinOpKind::Min => write!(f, "min"),
+            BinOpKind::Max => write!(f, "max"),
             BinOpKind::Implies => write!(f, "==>"),
+            
         }
     }
 }
@@ -484,6 +489,10 @@ impl Expr {
 
     pub fn xor(left: Expr, right: Expr) -> Self {
         Expr::not(Expr::eq_cmp(left, right))
+    }
+
+    pub fn min(e1: Expr, e2: Expr) -> Self{
+        Expr::BinOp(BinOpKind::Min, box e1, box e2, Position::default())
     }
 
     pub fn implies(left: Expr, right: Expr) -> Self {
@@ -1066,7 +1075,9 @@ impl Expr {
                     BinOpKind::Sub |
                     BinOpKind::Mul |
                     BinOpKind::Div |
-                    BinOpKind::Mod => {
+                    BinOpKind::Mod |
+                    BinOpKind::Min |
+                    BinOpKind::Max => {
                         let typ1 = base1.get_type();
                         let typ2 = base2.get_type();
                         assert_eq!(typ1, typ2, "expr: {:?}", self);
