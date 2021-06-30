@@ -13,6 +13,5 @@
 // pub allows using List outside this module (not necessary here)
 pub enum List {
     Empty,
-    Elem(i32, List)
+    Elem(i32, List),
 }
-

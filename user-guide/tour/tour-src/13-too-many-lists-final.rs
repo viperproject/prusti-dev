@@ -1,4 +1,4 @@
-#![feature(box_patterns)] // experimental convenience feature
+#![feature(box_patterns)] // convenience box syntax
 
 //! An adaptation of the example from
 //! https://rust-unofficial.github.io/too-many-lists/first-final.html
@@ -47,7 +47,7 @@ impl Link {
                 } else {
                     node.next.lookup(index - 1)
                 }
-            },
+            }
         }
     }
 }
@@ -142,7 +142,7 @@ impl List {
         match replace(&mut self.head, Link::Empty) {
             Link::Empty => {
                 TrustedOption::None
-            },
+            }
             Link::More(node) => {
                 self.head = node.next;
                 TrustedOption::Some(node.elem)

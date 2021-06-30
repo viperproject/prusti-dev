@@ -160,7 +160,7 @@ Rust's ownership system.</p>
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -169,10 +169,10 @@ Rust's ownership system.</p>
 </span><span class="boring">}
 </span><span class="boring">
 </span>impl List {
-    // Self is an alias for the type that we currently implement
+    // Self is an alias for the type that we are currently implementing
     pub fn new() -&gt; Self {
         List {
-            head: Link::Empty
+            head: Link::Empty,
         }
     }
 }
@@ -181,19 +181,19 @@ Rust's ownership system.</p>
 <h2 id="a-first-specification"><a class="header" href="#a-first-specification">A First Specification</a></h2>
 <p>What would be a sensible first specification for <code>new()</code>?
 We could attempt to verify the list returned by <code>new()</code> is always empty.
-In other words, the length of the returned list is always zero. 
+In other words, the length of the returned list is always zero.
 To express this property, we first implement a length method for lists which
 itself calls an auxiliary length method implemented for <code>Link</code>.
 For simplicity, we will not actually compute the length of a <code>Link</code> yet.
 Rather, we will just always return 0.</p>
-<pre><code class="language-rust noplaypen">#![feature(box_patterns)] // experimental convenience notation for boxes
+<pre><code class="language-rust noplaypen">#![feature(box_patterns)] // convenience notation for boxes
 <span class="boring">pub struct List {
 </span><span class="boring">   head: Link,
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -208,7 +208,7 @@ Rather, we will just always return 0.</p>
 <span class="boring">
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
-</span><span class="boring">           head: Link::Empty
+</span><span class="boring">           head: Link::Empty,
 </span><span class="boring">       }
 </span><span class="boring">   }
 </span>}
@@ -220,10 +220,10 @@ impl Link {
 }
 // Prusti: VERIFIES
 </code></pre>
-<p>Now that we have implemented a method for computing the length of a list, we can 
+<p>Now that we have implemented a method for computing the length of a list, we can
 write our first specification for <code>new()</code>: the returned list should always have length
 zero.
-That is, we add attach the <a href="../verify/prepost.html">postcondition</a> 
+That is, we attach the <a href="../verify/prepost.html">postcondition</a>
 <code>result.len() == 0</code> to the function <code>new()</code>:</p>
 <pre><code class="language-rust noplaypen"><span class="boring">//uncomment: #![feature(box_patterns)]
 </span><span class="boring">pub struct List {
@@ -232,7 +232,7 @@ That is, we add attach the <a href="../verify/prepost.html">postcondition</a>
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -259,7 +259,7 @@ That is, we add attach the <a href="../verify/prepost.html">postcondition</a>
 </span><span class="boring">   }
 </span><span class="boring">}
 </span></code></pre>
-<p>Unfortunately, Prusti - or rather: the Rust compiler - will complain about
+<p>Unfortunately, Prusti—or rather: the Rust compiler—will complain about
 the postcondition:</p>
 <pre><code>error: cannot find attribute `ensures` in this scope
   --&gt; list.rs:39:7
@@ -267,16 +267,13 @@ the postcondition:</p>
 39 |     #[ensures(result.len() == 0)]    
    |       ^^^^^^^
 </code></pre>
-<p>Prusti's specifications consist of Rust 
-<a href="">macros</a> 
-and 
-<a href="">attributes</a>
+<p>Prusti's specifications consist of Rust
+<a href="https://doc.rust-lang.org/reference/procedural-macros.html">macros and attributes</a>
 that are defined in a separate crate called <code>prusti_contracts</code>.
-Before we can use these specifications, we need to make the path to these 
+Before we can use these specifications, we need to make the path to these
 macros and attributes visible:</p>
 <pre><code class="language-rust noplaypen"><span class="boring">//uncomment: #![feature(box_patterns)]
-</span>extern crate prusti_contracts;
-use prusti_contracts::*; 
+</span>use prusti_contracts::*; 
 
 <span class="boring">pub struct List {
 </span><span class="boring">   head: Link,
@@ -284,7 +281,7 @@ use prusti_contracts::*;
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -311,23 +308,23 @@ use prusti_contracts::*;
 </span><span class="boring">   }
 </span><span class="boring">}
 </span></code></pre>
-<p>Declaring that we use the <code>prusti_contracts</code> crate removes the compiler error but 
-leads to a new error - this time an error raised by Prusti:</p>
+<p>Declaring that we use the <code>prusti_contracts</code> crate removes the compiler error but
+leads to a new error. This time it is an error raised by Prusti:</p>
 <pre><code>error: [Prusti: invalid specification] use of impure function &quot;List::len&quot; in pure code is not allowed
   --&gt; list.rs:34:15
    |
 34 |     #[ensures(result.len() == 0)]    
    | 
 </code></pre>
-<p>Prusti complains about our use of the method <code>len()</code> in a postcondition because its
+<p>Prusti complains about our use of the method <code>len()</code> in a postcondition because the
 <a href="../syntax.html">specification syntax</a> only admits calling so-called
 <a href="../verify/pure.html">pure functions</a>, that is, functions that are deterministic,
 have no side effects, and always terminate.</p>
 <p>While our implementation of <code>len()</code> clearly satisfies all of the above properties,
 Prusti requires us to explicitly mark a function with the <code>#[pure]</code> attribute
-before it considers a function as pure. 
+before it considers a function pure.
 After adding the <code>#[pure]</code> attribute to our <code>List::len()</code> method, it is allowed to
-appear in Prusti specifications: </p>
+appear in Prusti specifications:</p>
 <pre><code class="language-rust noplaypen"><span class="boring">//uncomment: #![feature(box_patterns)]
 </span><span class="boring">extern crate prusti_contracts;
 </span><span class="boring">use prusti_contracts::*; 
@@ -338,7 +335,7 @@ appear in Prusti specifications: </p>
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -355,7 +352,7 @@ appear in Prusti specifications: </p>
 </span><span class="boring">   #[ensures(result.len() == 0)]
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
-</span><span class="boring">           head: Link::Empty
+</span><span class="boring">           head: Link::Empty,
 </span><span class="boring">       }
 </span><span class="boring">   }
 </span>}
@@ -375,11 +372,11 @@ to the <em>body</em> of <code>len()</code>:</p>
    |         ^^^^
 </code></pre>
 <p>Whenever we add the attribute <code>#[pure]</code> to a function, Prusti will check whether that
-function is indeed deterministic and side-effect free 
+function is indeed deterministic and side-effect free
 (notice that termination is <em>not</em> checked); otherwise, it complains.
 In this case, Prusti complains because we call an impure function,
-namely <code>Link::len()</code>, within the body of the pure function <code>List::len()</code>. </p>
-<p>To fix this issue, it suffices to mark <code>Link::len()</code> as pure, too. </p>
+namely <code>Link::len()</code>, within the body of the pure function <code>List::len()</code>.</p>
+<p>To fix this issue, it suffices to mark <code>Link::len()</code> as pure as well.</p>
 <pre><code class="language-rust noplaypen"><span class="boring">//uncomment: #![feature(box_patterns)]
 </span><span class="boring">extern crate prusti_contracts;
 </span><span class="boring">use prusti_contracts::*; 
@@ -390,7 +387,7 @@ namely <code>Link::len()</code>, within the body of the pure function <code>List
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -407,7 +404,7 @@ namely <code>Link::len()</code>, within the body of the pure function <code>List
 </span><span class="boring">   #[ensures(result.len() == 0)]
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
-</span><span class="boring">           head: Link::Empty
+</span><span class="boring">           head: Link::Empty,
 </span><span class="boring">       }
 </span><span class="boring">   }
 </span><span class="boring">}
@@ -427,17 +424,16 @@ namely <code>Link::len()</code>, within the body of the pure function <code>List
 // ...
 Successful verification of 4 items
 </code></pre>
-<p>Prusti now manages to verify that <code>new()</code> always returns 
-a list for which the method <code>len()</code> returns 0. (notice 
-This is hardly surprising since <code>len()</code> ultimately always returns 0 but we will change
-this soon.</p>
+<p>Prusti now manages to verify that <code>new()</code> always returns
+a list for which the method <code>len()</code> returns 0. (notice
+this is hardly surprising since <code>len()</code> ultimately always returns 0 but we will change
+this soon.)</p>
 <h2 id="full-code-listing"><a class="header" href="#full-code-listing">Full code listing</a></h2>
 <p>Before we continue, we provide the full code implented in this chapter.
 It should successfully verify with Prusti and we will further extend it throughout
 the next four chapters.</p>
 <pre><code class="language-rust noplaypen">#![feature(box_patterns)]
-extern crate prusti_contracts;
-use prusti_contracts::*; 
+use prusti_contracts::*;
 
 pub struct List {
     head: Link,
@@ -445,7 +441,7 @@ pub struct List {
 
 enum Link {
     Empty,
-    More(Box&lt;Node&gt;)
+    More(Box&lt;Node&gt;),
 }
 
 struct Node {
@@ -462,7 +458,7 @@ impl List {
     #[ensures(result.len() == 0)]
     pub fn new() -&gt; Self {
         List {
-            head: Link::Empty
+            head: Link::Empty,
         }
     }
 }

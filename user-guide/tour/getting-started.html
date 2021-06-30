@@ -161,16 +161,16 @@ For example, reading up on possible data layouts for lists might be useful for b
 <p>Discusses potential pitfalls and errors when setting up a singly-linked data structure in Rust.</p>
 </blockquote>
 <h2 id="stack-layout"><a class="header" href="#stack-layout">Stack Layout</a></h2>
-<p>Our naive singly-linked stack is composed of a public structure <code>List</code> storing 
+<p>Our naïve singly-linked stack is composed of a public structure <code>List</code> storing 
 the head of the list, an enum <code>Link</code> representing either an empty list or a heap-allocated
-Node storing the paylod - an integer - and the link to the next node:</p>
+Node storing the payload—an integer—and the link to the next node:</p>
 <pre><code class="language-rust noplaypen">pub struct List {
     head: Link,
 }
 
 enum Link {
     Empty,
-    More(Box&lt;Node&gt;)
+    More(Box&lt;Node&gt;),
 }
 
 struct Node {
@@ -179,17 +179,17 @@ struct Node {
 }
 // Prusti: VERIFIES
 </code></pre>
-<p>This design avoid making both Link and Node public.
-Moreover, it benefits from the Rust compiler's null-pointer optimization
+<p>This design avoid making both <code>Link</code> and <code>Node</code> public.
+Moreover, it benefits from the Rust compiler's <a href="https://rust-lang.github.io/unsafe-code-guidelines/layout/enums.html#discriminant-elision-on-option-like-enums">null-pointer optimization</a>
 and makes sure that all list elements are uniformly allocated on the heap.</p>
 <h2 id="absence-of-runtime-errors"><a class="header" href="#absence-of-runtime-errors">Absence of Runtime Errors</a></h2>
 <p>Prusti automatically checks that no statement or macro that causes
 an explicit runtime error, such as
-<a href="https://doc.rust-lang.org/std/macro.panic.html">panic</a>,
-<a href="https://doc.rust-lang.org/std/macro.unreachable.html">unreachable</a>
-<a href="https://doc.rust-lang.org/std/macro.unimplemented.html">unimplemented</a>, or
-possibly failing <a href="https://doc.rust-lang.org/std/macro.assert.html">assertions</a>,
-are reachable.</p>
+<a href="https://doc.rust-lang.org/std/macro.panic.html"><code>panic</code></a>,
+<a href="https://doc.rust-lang.org/std/macro.unreachable.html"><code>unreachable</code></a>,
+<a href="https://doc.rust-lang.org/std/macro.unimplemented.html"><code>unimplemented</code></a>, or
+possibly a failing <a href="https://doc.rust-lang.org/std/macro.assert.html">assertion</a>,
+is reachable.</p>
 <p>For example, the following test function creates a node with no successor and panics
 if the node's payload is greater than 23:</p>
 <pre><code class="language-rust noplaypen"><span class="boring">pub struct List {
@@ -198,13 +198,14 @@ if the node's payload is greater than 23:</p>
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
 </span><span class="boring">   elem: i32,
 </span><span class="boring">   next: Link,
 </span><span class="boring">}
+</span><span class="boring">
 </span>fn main() {
     let test = Node {
         elem: 17,
@@ -228,23 +229,16 @@ with an arbitrary integer:</p>
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
 </span><span class="boring">   elem: i32,
 </span><span class="boring">   next: Link,
 </span><span class="boring">}
-</span><span class="boring">fn main() {
-</span><span class="boring">   let test = Node {
-</span><span class="boring">       elem: 17,
-</span><span class="boring">       next: Link::Empty,
-</span><span class="boring">   };
 </span><span class="boring">
-</span><span class="boring">   if test.elem &gt; 23 {
-</span><span class="boring">       panic!() // unreachable
-</span><span class="boring">   }
-</span><span class="boring">}
+</span><span class="boring">fn main() {}
+</span><span class="boring">
 </span>fn test(x: i32) {
     let test = Node {
         elem: x, // unknown value

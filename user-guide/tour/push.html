@@ -149,28 +149,27 @@
 <a href="https://rust-unofficial.github.io/too-many-lists/first-push.html">2.4: Push</a></p>
 </blockquote>
 <h2 id="informal-specifications"><a class="header" href="#informal-specifications">Informal specifications</a></h2>
-<p>Our next goal is to implement and verify a method pushes an integer onto a list.
+<p>Our next goal is to implement and verify a method that pushes an integer onto a list.
 In contrast to methods like <code>len</code>, <code>push</code> modifies the list; it thus takes
-<code>&amp;mut self</code> as a first argument:</p>
+<code>&amp;mut self</code> as its first argument:</p>
 <pre><code class="language-rust noplaypen">impl List {
-   pub fn push(&amp;mut self, elem: i32) {
-     // TODO
-   }
+    pub fn push(&amp;mut self, elem: i32) {
+        // TODO
+    }
 }
 </code></pre>
 <p>Before we implement <code>push</code>, let us briefly think of possible specifications.
 Ideally, our implementation satisfies at least the following properties:</p>
 <ol>
 <li>Executing <code>push</code> increases the length of the underlying list by one.</li>
-<li>After <code>push(elem)</code> the first element of the list stores value <code>elem</code></li>
+<li>After <code>push(elem)</code> the first element of the list stores the value <code>elem</code>.</li>
 <li>After executing <code>push(elem)</code>, the elements of the original list remain unchanged.</li>
 </ol>
 <h2 id="first-property"><a class="header" href="#first-property">First property</a></h2>
-<p>The first property can easily expressed as a postcondition that uses the
+<p>The first property can easily be expressed as a postcondition that uses the
 pure method <code>len</code> introduced in the <a href="new.html">previous chapter</a>:</p>
-<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)] 
-</span><span class="boring">
-</span><span class="boring">use prusti_contracts::*; 
+<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)]
+</span><span class="boring">use prusti_contracts::*;
 </span><span class="boring">
 </span><span class="boring">pub struct List {
 </span><span class="boring">   head: Link,
@@ -178,7 +177,7 @@ pure method <code>len</code> introduced in the <a href="new.html">previous chapt
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -192,10 +191,10 @@ pure method <code>len</code> introduced in the <a href="new.html">previous chapt
 </span><span class="boring">       self.head.len()
 </span><span class="boring">   }
 </span><span class="boring">
-</span><span class="boring">   #[ensures(result.len() == 0)]    
+</span><span class="boring">   #[ensures(result.len() == 0)]
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
-</span><span class="boring">           head: Link::Empty
+</span><span class="boring">           head: Link::Empty,
 </span><span class="boring">       }
 </span><span class="boring">
 </span><span class="boring">   }
@@ -216,21 +215,20 @@ pure method <code>len</code> introduced in the <a href="new.html">previous chapt
 </span><span class="boring">   }
 </span><span class="boring">}
 </span></code></pre>
-<p>The above postcondition depends on <em>two</em> states, namely the state before and after 
+<p>The above postcondition depends on <em>two</em> states, namely the state before and after
 execution of <code>self.push(elem)</code>, respectively.
-We use an <a href="../syntax.html">old expression</a>
+We use an <a href="../syntax.html#old-expressions">old expression</a>
 to refer to the state before execution of <code>self.push(elem)</code>.
 Since we have not implemented <code>push</code> yet, Prusti will, unsurprisingly, complain:</p>
 <pre><code>[Prusti: verification error] postcondition might not hold.
 </code></pre>
 <h2 id="implementing-push"><a class="header" href="#implementing-push">Implementing Push</a></h2>
-<p>Conceptually, implementing <code>list.push(i)</code> should be straightforward: 
-We create a new instance of our struct for list nodes that stores 
+<p>Conceptually, implementing <code>list.push(i)</code> should be straightforward:
+we create a new instance of our struct for list nodes that stores
 <code>i</code> in its <code>elem</code> field and the original list in its <code>next</code> field.
 We may thus be tempted to write the following:</p>
-<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)] 
-</span><span class="boring">
-</span><span class="boring">use prusti_contracts::*; 
+<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)]
+</span><span class="boring">use prusti_contracts::*;
 </span><span class="boring">
 </span><span class="boring">pub struct List {
 </span><span class="boring">   head: Link,
@@ -238,7 +236,7 @@ We may thus be tempted to write the following:</p>
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -252,12 +250,11 @@ We may thus be tempted to write the following:</p>
 </span><span class="boring">       self.head.len()
 </span><span class="boring">   }
 </span><span class="boring">
-</span><span class="boring">   #[ensures(result.len() == 0)]    
+</span><span class="boring">   #[ensures(result.len() == 0)]
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
-</span><span class="boring">           head: Link::Empty
+</span><span class="boring">           head: Link::Empty,
 </span><span class="boring">       }
-</span><span class="boring">
 </span><span class="boring">   }
 </span><span class="boring">
 </span>    #[ensures(self.len() == old(self.len()) + 1)]
@@ -301,9 +298,8 @@ The <a href="https://doc.rust-lang.org/std/mem/fn.replace.html">Rust standard li
 provides the function <code>std::mem::replace</code> for that purpose - it moves its second
 argument into the referenced first argument and returns the originally referenced value.
 Using this function, the Rust compiler accepts the following implementation:</p>
-<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)] 
-</span><span class="boring">
-</span><span class="boring">use prusti_contracts::*; 
+<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)]
+</span><span class="boring">use prusti_contracts::*;
 </span><span class="boring">
 </span>use std::mem;
 
@@ -313,7 +309,7 @@ Using this function, the Rust compiler accepts the following implementation:</p>
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -327,12 +323,11 @@ Using this function, the Rust compiler accepts the following implementation:</p>
 </span><span class="boring">       self.head.len()
 </span><span class="boring">   }
 </span><span class="boring">
-</span><span class="boring">   #[ensures(result.len() == 0)]    
+</span><span class="boring">   #[ensures(result.len() == 0)]
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
-</span><span class="boring">           head: Link::Empty
+</span><span class="boring">           head: Link::Empty,
 </span><span class="boring">       }
-</span><span class="boring">
 </span><span class="boring">   }
 </span><span class="boring">
 </span>    #[ensures(self.len() == old(self.len()) + 1)]
@@ -372,7 +367,7 @@ function body into account.</p>
 <p>In our case, the function <code>std::mem::replace</code> is neither marked as <code>pure</code> nor does it
 come with a specification. Hence, Prusti assumes that it is memory safe and nothing else.
 That is, Prusti uses <code>true</code> as both pre- and postcondition of <code>std::mem::replace</code>,
-which is too weak to prove the specification of <code>push</code>: According to its specification,
+which is too weak to prove the specification of <code>push</code>: according to its specification,
 <code>std::mem::replace</code> could arbitrarily change the original list and thus also its length.
 Hence, we cannot conclude that the length the list returned by
 <code>mem::replace(&amp;mut self.head, Link::Empty)</code> coincides with the length of the original 
@@ -387,9 +382,8 @@ The attribute <code>#[trusted]</code> tells Prusti to assume the provided specif
 without attempting to verify it against a function's body.</p>
 <p>After introducing a trusted wrapper that ensures that <code>replace</code> does not change the 
 length of the original list, the following implementation verifies:</p>
-<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)] 
-</span><span class="boring">
-</span><span class="boring">use prusti_contracts::*; 
+<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)]
+</span><span class="boring">use prusti_contracts::*;
 </span><span class="boring">
 </span><span class="boring">use std::mem;
 </span><span class="boring">
@@ -399,7 +393,7 @@ length of the original list, the following implementation verifies:</p>
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -408,7 +402,7 @@ length of the original list, the following implementation verifies:</p>
 </span><span class="boring">}
 </span><span class="boring">
 </span>#[trusted]
-#[ensures(old(dest.len()) == result.len())] 
+#[ensures(old(dest.len()) == result.len())]
 fn replace(dest: &amp;mut Link, src: Link) -&gt; Link {
     mem::replace(dest, src)
 }
@@ -419,12 +413,11 @@ impl List {
 </span><span class="boring">       self.head.len()
 </span><span class="boring">   }
 </span><span class="boring">
-</span><span class="boring">   #[ensures(result.len() == 0)]    
+</span><span class="boring">   #[ensures(result.len() == 0)]
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
-</span><span class="boring">           head: Link::Empty
+</span><span class="boring">           head: Link::Empty,
 </span><span class="boring">       }
-</span><span class="boring">
 </span><span class="boring">   }
 </span><span class="boring">
 </span>    #[ensures(self.len() == old(self.len()) + 1)]
@@ -460,9 +453,8 @@ to reduce the chance that they are accidentially called with unintended argument
 In our case, we could additionally require that <code>replace</code> always takes an empty
 list as its second argument.
 We formalize this precondition by introducing another pure function <code>is_empty</code>:</p>
-<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)] 
-</span><span class="boring">
-</span><span class="boring">use prusti_contracts::*; 
+<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)]
+</span><span class="boring">use prusti_contracts::*;
 </span><span class="boring">
 </span><span class="boring">use std::mem;
 </span><span class="boring">
@@ -472,7 +464,7 @@ We formalize this precondition by introducing another pure function <code>is_emp
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -483,7 +475,7 @@ We formalize this precondition by introducing another pure function <code>is_emp
 </span>#[trusted]
 #[requires(src.is_empty())]
 #[ensures(dest.is_empty())]
-#[ensures(old(dest.len()) == result.len())] 
+#[ensures(old(dest.len()) == result.len())]
 fn replace(dest: &amp;mut Link, src: Link) -&gt; Link {
     mem::replace(dest, src)
 }
@@ -494,12 +486,11 @@ fn replace(dest: &amp;mut Link, src: Link) -&gt; Link {
 </span><span class="boring">       self.head.len()
 </span><span class="boring">   }
 </span><span class="boring">
-</span><span class="boring">   #[ensures(result.len() == 0)]    
+</span><span class="boring">   #[ensures(result.len() == 0)]
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
-</span><span class="boring">           head: Link::Empty
+</span><span class="boring">           head: Link::Empty,
 </span><span class="boring">       }
-</span><span class="boring">
 </span><span class="boring">   }
 </span><span class="boring">
 </span><span class="boring">   #[ensures(self.len() == old(self.len()) + 1)]
@@ -529,8 +520,8 @@ fn replace(dest: &amp;mut Link, src: Link) -&gt; Link {
             Link::More(box node) =&gt; false,
         }
     }
-<span class="boring">}
-</span>// Prusti: VERIFIES
+}
+// Prusti: VERIFIES
 </code></pre>
 <p>This completes our implementation of <code>push</code> but we still need to verify
 the remaining properties of its specification.</p>
@@ -538,15 +529,15 @@ the remaining properties of its specification.</p>
 <p>Recall that the second property of our specification informally reads as follows:</p>
 <blockquote>
 <ol start="2">
-<li>After push(elem) the first element of the list stores value elem.</li>
+<li>After <code>push(elem)</code> the first element of the list stores the value <code>elem</code>.</li>
 </ol>
 </blockquote>
 <p>To formally specify the above property, we first introduce another pure function, called 
 <code>lookup</code>, that recursively traverses the list and returns its i-th element.
 Our second desired property then corresponds to the postcondition 
 <code>self.lookup(0) == elem</code>.</p>
-<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)] 
-</span><span class="boring">use prusti_contracts::*; 
+<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)]
+</span><span class="boring">use prusti_contracts::*;
 </span><span class="boring">
 </span><span class="boring">use std::mem;
 </span><span class="boring">
@@ -556,7 +547,7 @@ Our second desired property then corresponds to the postcondition
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -565,7 +556,7 @@ Our second desired property then corresponds to the postcondition
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">#[trusted]
-</span><span class="boring">#[ensures(old(dest.len()) == result.len())] 
+</span><span class="boring">#[ensures(old(dest.len()) == result.len())]
 </span><span class="boring">fn replace(dest: &amp;mut Link, src: Link) -&gt; Link {
 </span><span class="boring">   mem::replace(dest, src)
 </span><span class="boring">}
@@ -581,10 +572,10 @@ Our second desired property then corresponds to the postcondition
 </span><span class="boring">       self.head.len()
 </span><span class="boring">   }
 </span><span class="boring">
-</span><span class="boring">   #[ensures(result.len() == 0)] 
+</span><span class="boring">   #[ensures(result.len() == 0)]
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
-</span><span class="boring">           head: Link::Empty
+</span><span class="boring">           head: Link::Empty,
 </span><span class="boring">       }
 </span><span class="boring">   }
 </span>    
@@ -634,8 +625,8 @@ Since nothing prevents us from calling <code>lookup</code> on an empty list, Pru
 <p>We can specify that <code>lookup</code> should only be called on non-empty lists by adding the 
 precondition <code>0 &lt;= index &amp;&amp; index &lt; self.len()</code> to <em>both</em> <code>lookup</code> functions; this is 
 sufficient to verify our second property for <code>push</code>:</p>
-<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)] 
-</span><span class="boring">use prusti_contracts::*; 
+<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)]
+</span><span class="boring">use prusti_contracts::*;
 </span><span class="boring">
 </span><span class="boring">use std::mem;
 </span><span class="boring">
@@ -645,7 +636,7 @@ sufficient to verify our second property for <code>push</code>:</p>
 </span><span class="boring">
 </span><span class="boring">enum Link {
 </span><span class="boring">   Empty,
-</span><span class="boring">   More(Box&lt;Node&gt;)
+</span><span class="boring">   More(Box&lt;Node&gt;),
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">struct Node {
@@ -654,7 +645,7 @@ sufficient to verify our second property for <code>push</code>:</p>
 </span><span class="boring">}
 </span><span class="boring">
 </span><span class="boring">#[trusted]
-</span><span class="boring">#[ensures(old(dest.len()) == result.len())] 
+</span><span class="boring">#[ensures(old(dest.len()) == result.len())]
 </span><span class="boring">fn replace(dest: &amp;mut Link, src: Link) -&gt; Link {
 </span><span class="boring">   mem::replace(dest, src)
 </span><span class="boring">}
@@ -671,13 +662,13 @@ sufficient to verify our second property for <code>push</code>:</p>
 </span><span class="boring">       self.head.len()
 </span><span class="boring">   }
 </span><span class="boring">
-</span><span class="boring">   #[ensures(result.len() == 0)] 
+</span><span class="boring">   #[ensures(result.len() == 0)]
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
 </span><span class="boring">           head: Link::Empty
 </span><span class="boring">       }
 </span><span class="boring">   }
-</span><span class="boring">   
+</span><span class="boring">
 </span><span class="boring">   #[ensures(self.len() == old(self.len()) + 1)]
 </span><span class="boring">   pub fn push(&amp;mut self, elem: i32) {
 </span><span class="boring">       let new_node = Box::new(Node {
@@ -701,7 +692,7 @@ impl Link {
 </span><span class="boring">                   node.next.lookup(index - 1)
 </span><span class="boring">               }
 </span><span class="boring">           },
-</span><span class="boring">           Link::Empty =&gt; unreachable!(), 
+</span><span class="boring">           Link::Empty =&gt; unreachable!(),
 </span><span class="boring">       }
 </span>    }
 <span class="boring">
@@ -724,21 +715,21 @@ content is not modified:</p>
 </ol>
 </blockquote>
 <p>To formalize the above property, we can reuse our pure function <code>lookup</code>, 
-<a href="../syntax.html">quantifiers</a>, and <a href="../syntax.html">old expressions</a>, that is, we add
+<a href="../syntax.html#quantifiers">quantifiers</a>, and <a href="../syntax.html#old-expressions">old expressions</a>, that is, we add
 the postcondition:</p>
 <pre><code class="language-rust noplaypen">#[ensures(forall(|i: usize| (1 &lt;= i &amp;&amp; i &lt; self.len()) ==&gt;
-             old(self.lookup(i-1)) == self.lookup(i)))] 
+             old(self.lookup(i - 1)) == self.lookup(i)))] 
 pub fn push(&amp;mut self, elem: i32) {
     // ...
 }
 </code></pre>
 <p>After adding the above postcondition, Prusti will complain that the postcondition
-might not hold; the reason is similar to an issue we encountered when verifiying
+might not hold; the reason is similar to an issue we encountered when verifying
 the first property: the specification of <code>replace</code> is too weak.
 Verification succeeds after adding the same postcondition to <code>replace</code>.
 We conclude this section with the full code for verifying <code>push</code>:</p>
-<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)] 
-</span><span class="boring">use prusti_contracts::*; 
+<pre><code class="language-rust noplaypen"><span class="boring">#![feature(box_patterns)]
+</span><span class="boring">use prusti_contracts::*;
 </span><span class="boring">
 </span><span class="boring">use std::mem;
 </span><span class="boring">
@@ -755,13 +746,13 @@ We conclude this section with the full code for verifying <code>push</code>:</p>
 </span><span class="boring">   elem: i32,
 </span><span class="boring">   next: Link,
 </span><span class="boring">}
-</span>
-#[trusted]
+</span><span class="boring">
+</span>#[trusted]
 #[requires(src.is_empty())]
 #[ensures(dest.is_empty())]
 #[ensures(old(dest.len()) == result.len())]
-#[ensures(forall(|i: usize| (0 &lt;= i &amp;&amp; i &lt; result.len()) ==&gt; 
-                old(dest.lookup(i)) == result.lookup(i)))] 
+#[ensures(forall(|i: usize| (0 &lt;= i &amp;&amp; i &lt; result.len()) ==&gt;
+                old(dest.lookup(i)) == result.lookup(i)))]
 fn replace(dest: &amp;mut Link, src: Link) -&gt; Link {
     mem::replace(dest, src)
 }
@@ -778,30 +769,30 @@ impl List {
 </span><span class="boring">       self.head.len()
 </span><span class="boring">   }
 </span><span class="boring">
-</span><span class="boring">   #[ensures(result.len() == 0)]    
+</span><span class="boring">   #[ensures(result.len() == 0)]
 </span><span class="boring">   pub fn new() -&gt; Self {
 </span><span class="boring">       List {
-</span><span class="boring">           head: Link::Empty
+</span><span class="boring">           head: Link::Empty,
 </span><span class="boring">       }
 </span><span class="boring">   }
 </span><span class="boring">
-</span>    #[ensures(self.len() == old(self.len()) + 1)] 
+</span>    #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self.lookup(0) == elem)]
     #[ensures(forall(|i: usize| (1 &lt;= i &amp;&amp; i &lt; self.len()) ==&gt;
-                old(self.lookup(i-1)) == self.lookup(i)))] 
+                old(self.lookup(i-1)) == self.lookup(i)))]
     pub fn push(&amp;mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem: elem,
-            next: replace(&amp;mut self.head, Link::Empty), 
+            next: replace(&amp;mut self.head, Link::Empty),
         });
-    
+
         self.head = Link::More(new_node);
     }
 }
 <span class="boring">
 </span><span class="boring">impl Link {
 </span><span class="boring">   #[pure]
-</span><span class="boring">   #[requires(0 &lt;= index &amp;&amp; index &lt; self.len())] 
+</span><span class="boring">   #[requires(0 &lt;= index &amp;&amp; index &lt; self.len())]
 </span><span class="boring">   pub fn lookup(&amp;self, index: usize) -&gt; i32 {
 </span><span class="boring">       match self {
 </span><span class="boring">           Link::Empty =&gt; unreachable!(),
@@ -814,7 +805,7 @@ impl List {
 </span><span class="boring">           },
 </span><span class="boring">       }
 </span><span class="boring">   }
-</span><span class="boring">   
+</span><span class="boring">
 </span><span class="boring">   #[pure]
 </span><span class="boring">   #[ensures(!self.is_empty() ==&gt; result &gt; 0)]
 </span><span class="boring">   #[ensures(result &gt;= 0)]
