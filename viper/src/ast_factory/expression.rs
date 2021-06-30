@@ -220,6 +220,7 @@ impl<'a> AstFactory<'a> {
             FloatSizeViper::F32 => ast::utility::FloatFactory::new(&factory_, 24,8, rm).unwrap(),
             FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52,12, rm).unwrap(),
         };
+        println!("{:?}", op_kind);
         let op = match op_kind { // create FloatFactory function to call
             BinOpFloat::Add => ast::utility::FloatFactory::call_add(&factory_, factory, self.jni.new_string("fp_add")).unwrap(),
             BinOpFloat::Sub => ast::utility::FloatFactory::call_sub(&factory_, factory, self.jni.new_string("fp_sub")).unwrap(),
@@ -1046,17 +1047,20 @@ pub enum UnOpFloat {
     IsZero, IsInfinite, IsNan, IsNegative, IsPositive,
     GetType, FromBV, ToBV,
 }
+#[derive(Debug)]
 pub enum BinOpFloat {
     Add, Sub, Mul, Div,
     Eq, Leq, Geq, Lt, Gt,
     Min, Max, 
 }
+#[derive(Debug)]
 pub enum FloatOpKind {
     UnOpFloat, 
     BinOpFloat,
 }
 
 // Floating-Point Size
+#[derive(Debug)]
 pub enum FloatSizeViper {
     F32,
     F64,

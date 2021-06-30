@@ -2224,22 +2224,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination);
                             stmts.extend(pre_stmts);
                             stmts.extend(self.encode_havoc(&target_place));
-                            let type_predicate = self
-                                .mir_encoder
-                                .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
-                                .unwrap();
+                            
+                            
+                            let lhs = vir::Expr::field(
+                                target_place.clone(),
+                                vir::Field::new("val_float32", vir::Type::Float(FloatSize::F32))
+                            );
 
+                            let acc = Expr::acc_permission(lhs.clone(), vir::PermAmount::Write);
                             stmts.push(vir::Stmt::Inhale(
-                                type_predicate,
+                                acc
                             ));
 
                             // Store a label for permissions got back from the call
                             self.label_after_location.insert(location, label.clone());
 
-                            let lhs = vir::Expr::field(
-                                target_place.clone(),
-                                vir::Field::new("val_floatf32", vir::Type::Float(FloatSize::F32))
-                            );
                             let arg0 = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
                             let arg1 = self.mir_encoder.encode_operand_expr(&args[1]).with_span(span)?;
                             
