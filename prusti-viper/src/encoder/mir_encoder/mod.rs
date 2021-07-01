@@ -188,7 +188,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (encoded_projection, field_ty, None)
                     }
 
-                    ref x => {
+                    x => {
                         return Err(EncodingError::internal(
                             format!("{} has no fields", utils::ty_to_string(x))
                         ));
