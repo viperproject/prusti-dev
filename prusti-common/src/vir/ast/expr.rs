@@ -495,6 +495,10 @@ impl Expr {
         Expr::BinOp(BinOpKind::Min, box e1, box e2, Position::default())
     }
 
+    pub fn max(e1: Expr, e2: Expr) -> Self{
+        Expr::BinOp(BinOpKind::Max, box e1, box e2, Position::default())
+    }
+
     pub fn implies(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Implies, box left, box right, Position::default())
     }

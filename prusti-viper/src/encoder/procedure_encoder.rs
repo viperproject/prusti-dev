@@ -2214,40 +2214,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             self.encode_transfer_args_permissions(location, args, &mut stmts, label, false)?;
                         }
 
-                        "core::f32::<impl f32>::min"  => {
-                            let span = self.mir_encoder.get_span_of_location(location);
-
-                            let label = self.cfg_method.get_fresh_label_name();
-                            stmts.push(vir::Stmt::Label(label.clone()));
-
-                            // Havoc the content of the lhs
-                            let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination);
-                            stmts.extend(pre_stmts);
-                            stmts.extend(self.encode_havoc(&target_place));
-                            
-                            
-                            let lhs = vir::Expr::field(
-                                target_place.clone(),
-                                vir::Field::new("val_float32", vir::Type::Float(FloatSize::F32))
-                            );
-
-                            let acc = Expr::acc_permission(lhs.clone(), vir::PermAmount::Write);
-                            stmts.push(vir::Stmt::Inhale(
-                                acc
-                            ));
-
-                            // Store a label for permissions got back from the call
-                            self.label_after_location.insert(location, label.clone());
-
-                            let arg0 = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span)?;
-                            let arg1 = self.mir_encoder.encode_operand_expr(&args[1]).with_span(span)?;
-                            
-                            let expr = Expr::min(arg0, arg1);
-
-                            stmts.push(vir::Stmt::Assign(lhs, expr, vir::AssignKind::Copy));
-
-                            self.encode_transfer_args_permissions(location, args, &mut stmts, label, false)?;
-                        }
+                        "core::f32::<impl f32>::min"  => { self.encode_float_min_max_call(FloatSize::F32, BinOpFloat::Min, args, &mut stmts, destination, location); }
+                        "core::f32::<impl f64>::min"  => { self.encode_float_min_max_call(FloatSize::F64, BinOpFloat::Min, args, &mut stmts, destination, location); }
+                        "core::f32::<impl f32>::max"  => { self.encode_float_min_max_call(FloatSize::F32, BinOpFloat::Max, args, &mut stmts, destination, location); }
+                        "core::f64::<impl f64>::max"  => { self.encode_float_min_max_call(FloatSize::F64, BinOpFloat::Max, args, &mut stmts, destination, location); }
 
                         "std::ops::Fn::call" => {
                             let cl_type: ty::Ty = substs[0].expect_ty();
@@ -6119,6 +6089,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (res, stmts)
             }
         })
+    }
+
+    fn encode_float_min_max_call(&mut self, float_size:FloatSize, op:BinOpFloat, args: &[mir::Operand<'tcx>],stmts: &mut Vec<vir::Stmt>, destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,location: mir::Location) -> () {
+        let span = self.mir_encoder.get_span_of_location(location);
+
+        let label = self.cfg_method.get_fresh_label_name();
+        stmts.push(vir::Stmt::Label(label.clone()));
+
+        // Havoc the content of the lhs
+        let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination);
+        stmts.extend(pre_stmts);
+        stmts.extend(self.encode_havoc(&target_place));
+
+        let field = match float_size {
+            FloatSize::F32 => vir::Field::new("val_float32", vir::Type::Float(FloatSize::F32)),
+            FloatSize::F64 => vir::Field::new("val_float64", vir::Type::Float(FloatSize::F64))
+        };        
+        let lhs = vir::Expr::field(
+            target_place.clone(),
+            field
+        );
+
+        let acc = Expr::acc_permission(lhs.clone(), vir::PermAmount::Write);
+        stmts.push(vir::Stmt::Inhale(
+            acc
+        ));
+
+        // Store a label for permissions got back from the call
+        self.label_after_location.insert(location, label.clone());
+
+        let arg0 = self.mir_encoder.encode_operand_expr(&args[0]).with_span(span).unwrap();
+        let arg1 = self.mir_encoder.encode_operand_expr(&args[1]).with_span(span).unwrap();        
+        let expr = match op {
+            BinOpFloat::Min => Expr::min(arg0, arg1),
+            BinOpFloat::Max => Expr::max(arg0, arg1),
+            _ => unreachable!()
+        };
+        stmts.push(vir::Stmt::Assign(lhs, expr, vir::AssignKind::Copy));
+
+        self.encode_transfer_args_permissions(location, args, stmts, label, false).unwrap();
     }
 }
 
