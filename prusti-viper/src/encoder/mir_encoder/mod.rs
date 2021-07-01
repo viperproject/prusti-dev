@@ -13,6 +13,7 @@ use crate::encoder::errors::{
     SpannedEncodingResult, EncodingResult
 };
 use crate::encoder::Encoder;
+use crate::utils;
 use prusti_common::vir;
 use prusti_common::config;
 use rustc_target::abi;
@@ -95,14 +96,6 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         Ok(match elem {
             mir::ProjectionElem::Field(ref field, _) => {
                 match base_ty.kind() {
-                    ty::TyKind::Bool
-                    | ty::TyKind::Int(_)
-                    | ty::TyKind::Uint(_)
-                    | ty::TyKind::RawPtr(_)
-                    | ty::TyKind::Ref(_, _, _) => {
-                        panic!("Type {:?} has no fields", base_ty)
-                    }
-
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()].expect_ty();
@@ -195,7 +188,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (encoded_projection, field_ty, None)
                     }
 
-                    ref x => unimplemented!("{:?}", x),
+                    ref x => {
+                        return Err(EncodingError::internal(
+                            format!("{} has no fields", utils::ty_to_string(x))
+                        ));
+                    }
                 }
             }
 
