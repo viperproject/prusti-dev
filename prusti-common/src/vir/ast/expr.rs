@@ -282,8 +282,7 @@ impl fmt::Display for BinOpKind {
             BinOpKind::Or => write!(f, "||"),
             BinOpKind::Min => write!(f, "min"),
             BinOpKind::Max => write!(f, "max"),
-            BinOpKind::Implies => write!(f, "==>"),
-            
+            BinOpKind::Implies => write!(f, "==>"),            
         }
     }
 }
@@ -1087,7 +1086,6 @@ impl Expr {
                         assert_eq!(typ1, typ2, "expr: {:?}", self);
                         typ1
                     }
-
                 }
             }
             Expr::Cond(_, box ref base1, box ref base2, _pos) => {
