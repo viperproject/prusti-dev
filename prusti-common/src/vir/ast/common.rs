@@ -153,13 +153,12 @@ impl FracPermAmount {
         &self.1
     }
 }
-//TODO: implementations
+
 impl fmt::Display for FracPermAmount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}/{}", self.left(), self.right())
     }
 }
-//TODO: partialEq & hash
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Type {

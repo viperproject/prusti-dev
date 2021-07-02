@@ -2715,7 +2715,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .encoder
             .error_manager()
             .register(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
-        stmts.push(vir::Stmt::Assert(
+        stmts.push(vir::Stmt::Exhale(
             replace_fake_exprs(pre_func_spec),
             pos,
         ));
