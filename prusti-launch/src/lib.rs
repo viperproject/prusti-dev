@@ -146,8 +146,8 @@ fn get_sysroot_from_rustup() -> Option<PathBuf> {
 /// Find Viper home
 pub fn find_viper_home(base_dir: &PathBuf) -> Option<PathBuf> {
     let candidates = vec![
-        base_dir.join("viper_tools").join("backends"),
-        base_dir.join("..").join("..").join("viper_tools").join("backends"),
+        base_dir.join("viper_tools").join("server"),
+        base_dir.join("..").join("..").join("viper_tools").join("server"),
     ];
 
     for candidate in candidates.into_iter() {

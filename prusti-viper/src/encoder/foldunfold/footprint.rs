@@ -68,6 +68,22 @@ impl ExprFootprintGetter for vir::Expr {
                 &right.get_footprint(predicates),
             ),
 
+            vir::Expr::ContainerOp(_, box left, box right, _) => union(
+                &left.get_footprint(predicates),
+                &right.get_footprint(predicates),
+            ),
+
+            vir::Expr::Seq(_, elems, _) => {
+                elems
+                    .iter()
+                    .map(|e| {
+                        e.get_footprint(predicates)
+                    })
+                    .fold(HashSet::new(), |mut hs, fp| {
+                        hs.extend(fp); hs
+                    })
+            }
+
             vir::Expr::Cond(box guard, box left, box right, _) => union3(
                 &guard.get_footprint(predicates),
                 &left.get_footprint(predicates),

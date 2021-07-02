@@ -13,7 +13,4 @@ fn pure_err() -> bool {
 #[trusted(dont write things here)]
 fn trusted_err() {}
 
-#[predicate(dont put anything here)]
-fn pred_err() {}
-
 fn main() {}

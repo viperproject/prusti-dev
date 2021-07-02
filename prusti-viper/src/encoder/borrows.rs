@@ -328,6 +328,10 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         self.tcx
     }
 
+    fn unsupported<S: ToString>(&self, msg: S) -> Self::Error {
+        EncodingError::unsupported(msg.to_string())
+    }
+
     fn visit_field(
         &mut self,
         index: usize,

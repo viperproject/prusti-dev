@@ -92,7 +92,11 @@ impl Substs {
         let mut last = 0;
         for matsh in self.regex.find_iter(inner1) {
             newstr.push_str(&inner1[last..matsh.start()]);
-            newstr.push_str(&self.repls.get(matsh.as_str()).unwrap_or_else(|| panic!("key error: {}", matsh.as_str())));
+            if let Some(rep) = self.repls.get(matsh.as_str()) {
+                newstr.push_str(rep);
+            } else {
+                newstr.push_str(matsh.as_str());
+            }
             last = matsh.end();
         }
         newstr.push_str(&inner1[last..]);

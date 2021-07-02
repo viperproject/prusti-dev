@@ -57,11 +57,6 @@ fn simple_assert_false() {
         .with_stderr(
             "\
 [CHECKING] foo v0.0.1 ([..])
-SLF4J: Class path contains multiple SLF4J bindings.
-SLF4J: Found binding in [jar:file:[..]]
-SLF4J: Found binding in [jar:file:[..]]
-SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
-SLF4J: Actual binding is of type [ch.qos.logback.classic.util.ContextSelectorStaticBinder]
 [ERROR] [Prusti: verification error] the asserted expression might not hold
  --> src/main.rs:1:13
   |

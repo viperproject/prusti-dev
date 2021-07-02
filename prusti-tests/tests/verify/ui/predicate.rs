@@ -8,23 +8,26 @@ use prusti_contracts::*;
 #[pure]
 fn identity(x: i32) -> i32 { x }
 
-#[predicate]
-fn true_p() -> bool {
-    forall(|x: i32| true)
+predicate! {
+    fn true_p() -> bool {
+        forall(|x: i32| true)
+    }
 }
 
-#[predicate]
-fn forall_identity() -> bool {
-    forall(|x: i32| identity(x) == x)
+predicate! {
+    fn forall_identity() -> bool {
+        forall(|x: i32| identity(x) == x)
+    }
 }
 
 #[requires(true_p())]
 #[requires(forall_identity())]
 fn test_identity() {}
 
-#[predicate]
-fn false_p() -> bool {
-    false
+predicate! {
+    fn false_p() -> bool {
+        false
+    }
 }
 
 // this must pass, i.e. the evaluation must not short-circuit if a predicate

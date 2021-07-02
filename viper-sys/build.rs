@@ -126,16 +126,13 @@ fn main() {
             ]),
             // Silicon
             java_class!("viper.silicon.Silicon", vec![
-                constructor!("(Lviper/silver/plugin/PluginAwareReporter;Lscala/collection/immutable/Seq;)V"),
+                constructor!("(Lviper/silver/reporter/Reporter;Lscala/collection/immutable/Seq;)V"),
             ]),
             // Carbon
             java_class!("viper.carbon.CarbonVerifier", vec![
-                constructor!("()V"),
+                constructor!("(Lviper/silver/reporter/Reporter;Lscala/collection/immutable/Seq;)V"),
             ]),
             // Silver
-            java_class!("viper.silver.plugin.PluginAwareReporter", vec![
-                constructor!(),
-            ]),
             java_class!("viper.silver.reporter.CSVReporter", vec![
                 constructor!("(Ljava/lang/String;Ljava/lang/String;)V"),
             ]),

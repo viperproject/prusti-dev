@@ -143,7 +143,96 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 ));
             }
 
-            ref x => unimplemented!("{:?}", x),
+            ty::TyKind::Float(_) => {
+                return Err(EncodingError::unsupported(
+                    "float type is not supported"
+                ));
+            }
+
+            ty::TyKind::Foreign(_) => {
+                return Err(EncodingError::unsupported(
+                    "foreign function interface is not supported"
+                ));
+            }
+
+            ty::TyKind::Str => {
+                return Err(EncodingError::unsupported(
+                    "strings are not supported"
+                ));
+            }
+
+            ty::TyKind::Slice(_) => {
+                return Err(EncodingError::unsupported(
+                    "array slices are not supported"
+                ));
+            }
+
+            ty::TyKind::FnPtr(_) => {
+                return Err(EncodingError::unsupported(
+                    "function pointers are not supported"
+                ));
+            }
+
+            ty::TyKind::Dynamic(..) => {
+                return Err(EncodingError::unsupported(
+                    "trait objects are not supported"
+                ));
+            }
+
+            ty::TyKind::Generator(..)
+            | ty::TyKind::GeneratorWitness(..) => {
+                return Err(EncodingError::unsupported(
+                    "generators are not supported"
+                ));
+            }
+
+            ty::TyKind::Never => {
+                return Err(EncodingError::unsupported(
+                    "never type is not supported"
+                ));
+            }
+
+            ty::TyKind::Projection(_) => {
+                return Err(EncodingError::unsupported(
+                    "projections are not supported"
+                ));
+            }
+
+            ty::TyKind::Opaque(_, _) => {
+                return Err(EncodingError::unsupported(
+                    "opaque types not supported"
+                ));
+            }
+
+            ty::TyKind::Param(_) => {
+                return Err(EncodingError::unsupported(
+                    "type parameters in arrays are not supported"
+                ));
+            }
+
+            ty::TyKind::Bound(_, _) => {
+                return Err(EncodingError::unsupported(
+                    "bound type variables are not supported"
+                ));
+            }
+
+            ty::TyKind::Placeholder(_) => {
+                return Err(EncodingError::unsupported(
+                    "placeholder types are not supported"
+                ));
+            }
+
+            ty::TyKind::Infer(_) => {
+                return Err(EncodingError::unsupported(
+                    "inference types are not supported"
+                ));
+            }
+
+            ty::TyKind::Error(_) => {
+                return Err(EncodingError::unsupported(
+                    "error type is not supported"
+                ));
+            }
         })
     }
 
@@ -198,7 +287,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vec![vir::Predicate::new_primitive_value(
                 typ,
-                self.encoder.encode_value_field(self.ty),
+                self.encoder.encode_value_field(self.ty)?,
                 None,
                 false,
             )],
@@ -216,7 +305,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 };
                 vec![vir::Predicate::new_primitive_value(
                     typ,
-                    self.encoder.encode_value_field(self.ty),
+                    self.encoder.encode_value_field(self.ty)?,
                     bounds,
                     unsigned,
                 )]
@@ -484,7 +573,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Param(param_ty) => {
-                format!("__TYPARAM__${}$__", param_ty.name.as_str())
+                // make sure to avoid "$T$" used internally in Silicon
+                format!("__TYPARAM__$_{}$__", param_ty.name.as_str())
             }
 
             ty::TyKind::Projection(ty::ProjectionTy { item_def_id, substs }) => {

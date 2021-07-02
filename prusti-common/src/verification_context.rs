@@ -21,12 +21,8 @@ pub struct VerifierBuilder {
 
 impl VerifierBuilder {
     pub fn new() -> Self {
-        Self::new_with_backend(VerificationBackend::from_str(&config::viper_backend()))
-    }
-
-    pub fn new_with_backend(backend: VerificationBackend) -> Self {
         Self {
-            viper: Viper::new_with_args(config::extra_jvm_args(), backend),
+            viper: Viper::new_with_args(config::extra_jvm_args()),
         }
     }
 

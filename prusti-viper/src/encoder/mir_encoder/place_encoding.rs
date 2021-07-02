@@ -98,7 +98,7 @@ impl<'tcx> PlaceEncoding<'tcx> {
             }
             PlaceEncoding::SliceAccess { base, .. } => {
                 match base.into_array_base() {
-                    ExprOrArrayBase::Expr(e) => ExprOrArrayBase::ArrayBase(e),
+                    ExprOrArrayBase::Expr(e) => ExprOrArrayBase::SliceBase(e),
                     base@ExprOrArrayBase::ArrayBase(_) => base,
                     base@ExprOrArrayBase::SliceBase(_) => base,
                 }
