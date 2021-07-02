@@ -316,7 +316,7 @@ pub struct ProcedureSpecification<EID, ET, AT> {
     /// Pledges in the postcondition.
     pub pledges: Vec<Pledge<EID, ET, AT>>,
 
-    /// Body of a `#[predicate]` function if this assertion originates from one.
+    /// Body of a `predicate!` function if this assertion originates from one.
     /// This will be encoded to viper instead of the translation from Rust
     /// otherwise.
     pub predicate_body: Option<Assertion<EID, ET, AT>>,

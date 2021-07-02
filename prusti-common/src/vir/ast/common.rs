@@ -140,6 +140,7 @@ impl Ord for PermAmount {
 pub enum Type {
     Int,
     Bool,
+    Seq(Box<Type>),
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
@@ -152,6 +153,7 @@ pub enum TypeId {
     Int,
     Bool,
     Ref,
+    Seq,
     Domain,
     Snapshot,
 }
@@ -165,6 +167,7 @@ impl fmt::Display for Type {
             Type::TypedRef(ref name) => write!(f, "Ref({})", name),
             Type::Domain(ref name) => write!(f, "Domain({})", name),
             Type::Snapshot(ref name) => write!(f, "Snapshot({})", name),
+            Type::Seq(ref elem_ty) => write!(f, "Seq[{}]", elem_ty),
         }
     }
 }
@@ -189,6 +192,7 @@ impl Type {
             Type::TypedRef(ref pred_name) => pred_name.to_string(),
             Type::Domain(ref pred_name) => pred_name.to_string(),
             Type::Snapshot(ref pred_name) => pred_name.to_string(),
+            Type::Seq(_) => "Seq".to_string(),
         }
     }
 
@@ -224,6 +228,7 @@ impl Type {
             Type::TypedRef(_) => TypeId::Ref,
             Type::Domain(_) => TypeId::Domain,
             Type::Snapshot(_) => TypeId::Snapshot,
+            Type::Seq(_) => TypeId::Seq,
         }
     }
 }

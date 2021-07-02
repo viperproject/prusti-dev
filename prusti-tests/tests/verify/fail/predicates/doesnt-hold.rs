@@ -1,8 +1,9 @@
 use prusti_contracts::*;
 
-#[predicate]
-fn false_p() -> bool {
-    false
+predicate! {
+    fn false_p() -> bool {
+        false
+    }
 }
 
 #[requires(false_p())]

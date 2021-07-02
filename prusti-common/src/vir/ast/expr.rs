@@ -31,6 +31,10 @@ pub enum Expr {
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>, Position),
+    /// Container Operation on a Viper container (e.g. Seq index)
+    ContainerOp(ContainerOpKind, Box<Expr>, Box<Expr>, Position),
+    /// Viper Seq
+    Seq(Type, Vec<Expr>, Position),
     /// Unfolding: predicate name, predicate_args, in_expr, permission amount, enum variant
     Unfolding(String, Vec<Expr>, Box<Expr>, PermAmount, MaybeEnumVariantIndex, Position),
     /// Cond: guard, then_expr, else_expr
@@ -90,6 +94,12 @@ pub enum BinOpKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ContainerOpKind {
+    SeqIndex,
+    // more to follow if required
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
     Int(i64),
@@ -111,6 +121,16 @@ impl fmt::Display for Expr {
             Expr::Const(ref value, ref _pos) => write!(f, "{}", value),
             Expr::BinOp(op, ref left, ref right, ref _pos) => {
                 write!(f, "({}) {} ({})", left, op, right)
+            }
+            Expr::ContainerOp(op, box ref left, box ref right, _) => {
+                match op {
+                    ContainerOpKind::SeqIndex => write!(f, "{}[{}]", left, right),
+                }
+            }
+            Expr::Seq(ty, elems, _) => {
+                let elems_printed = elems.iter().map(|e| format!("{}", e)).collect::<Vec<_>>().join(", ");
+                let elem_ty = if let Type::Seq(box elem_ty) = ty { elem_ty } else { unreachable!() };
+                write!(f, "Seq[{}]({})", elem_ty, elems_printed)
             }
             Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{}({})", op, expr),
             Expr::PredicateAccessPredicate(ref pred_name, ref arg, perm, ref _pos) => {
@@ -286,6 +306,8 @@ impl Expr {
             | Expr::FuncApp(_, _, _, _, p)
             | Expr::DomainFuncApp(_, _, p)
             | Expr::InhaleExhale(_, _, p)
+            | Expr::ContainerOp(_, _, _, p)
+            | Expr::Seq(_, _, p)
             | Expr::SnapApp(_, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::Downcast(box ref base, ..) => base.pos(),
@@ -318,6 +340,8 @@ impl Expr {
             // TODO Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
             Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
             Expr::SnapApp(e, _) => Expr::SnapApp(e, pos),
+            Expr::ContainerOp(x, y, z, _) => Expr::ContainerOp(x, y, z, pos),
+            Expr::Seq(x, y, _) => Expr::Seq(x, y, pos),
             x => x,
         }
     }
@@ -452,6 +476,7 @@ impl Expr {
     }
 
     pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
+        assert!(!vars.is_empty(), "A quantifier must have at least one variable.");
         Expr::ForAll(vars, triggers, box body, Position::default())
     }
 
@@ -1054,6 +1079,10 @@ impl Expr {
             Expr::SnapApp(box ref expr, _) => {
                 expr.get_type()
             }
+            Expr::ContainerOp(op_kind, box ref left, box ref right, _) => {
+                todo!("get_type container_op({:?}, {}, {})", op_kind, left, right)
+            }
+            Expr::Seq(ref ty, ..) => ty,
         }
     }
 
@@ -1408,6 +1437,8 @@ impl Expr {
                     | Expr::DomainFuncApp(..)
                     | Expr::InhaleExhale(..)
                     | Expr::Downcast(..)
+                    | Expr::ContainerOp(..)
+                    | Expr::Seq(..)
                     | Expr::SnapApp(..) => true.into(),
                 }
             }
@@ -1564,6 +1595,13 @@ impl PartialEq for Expr {
                 Expr::BinOp(other_op, box ref other_left, box ref other_right, _),
             ) => (self_op, self_left, self_right) == (other_op, other_left, other_right),
             (
+                Expr::ContainerOp(self_op, box ref self_left, box ref self_right, _),
+                Expr::ContainerOp(other_op, box ref other_left, box ref other_right, _),
+            ) => (self_op, self_left, self_right) == (other_op, other_left, other_right),
+            (
+                Expr::Seq(self_ty, self_elems, _), Expr::Seq(other_ty, other_elems, _)
+            ) => (self_ty, self_elems) == (other_ty, other_elems),
+            (
                 Expr::Cond(box ref self_cond, box ref self_then, box ref self_else, _),
                 Expr::Cond(box ref other_cond, box ref other_then, box ref other_else, _),
             ) => (self_cond, self_then, self_else) == (other_cond, other_then, other_else),
@@ -1645,6 +1683,12 @@ impl Hash for Expr {
                 (base, enum_place, field).hash(state)
             }
             Expr::SnapApp(ref expr, _) => expr.hash(state),
+            Expr::ContainerOp(op_kind, box ref left, box ref right, _) => {
+                (op_kind, left, right).hash(state)
+            }
+            Expr::Seq(ty, elems, _) => {
+                (ty, elems).hash(state)
+            }
         }
     }
 }
