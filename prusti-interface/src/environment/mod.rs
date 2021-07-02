@@ -209,11 +209,18 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self.tcx(), proc_def_id)
     }
 
-    /// Get the MIR body of a local procedure.
-    pub fn local_mir<'a>(&self, def_id: LocalDefId) -> Ref<'a, mir::Body<'tcx>> {
+    /// Get the MIR body of a local procedure that is not yet fully desugared.
+    ///
+    /// This is used by the specification collector.
+    pub fn local_base_mir<'a>(&self, def_id: LocalDefId) -> Ref<'a, mir::Body<'tcx>> {
         self.tcx().mir_promoted(
             ty::WithOptConstParam::unknown(def_id)
         ).0.borrow()
+    }
+
+    /// Get the MIR body of a local procedure.
+    pub fn local_mir<'a>(&self, def_id: LocalDefId) -> &'a mir::Body<'tcx> {
+        self.tcx().optimized_mir(def_id)
     }
 
     /// Get the MIR body of an external procedure.

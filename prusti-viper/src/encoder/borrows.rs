@@ -441,8 +441,7 @@ where
             .collect();
         return_ty = fn_sig.output(); // FIXME: Shouldn't this also go through maybe_tymap?
     } else {
-        let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
-        let mir = mir.borrow();
+        let mir = tcx.optimized_mir(proc_def_id);
         // local_decls:
         // _0    - return, with closure's return type
         // _1    - closure's self

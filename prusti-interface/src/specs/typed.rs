@@ -178,8 +178,7 @@ impl<'tcx> StructuralToTyped<'tcx, Trigger> for json::Trigger {
 impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
     fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> ForAllVars<'tcx> {
         let local_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
-        let (body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_id));
-        let body = body.borrow();
+        let body = tcx.optimized_mir(local_id);
 
         // the first argument to the node is the closure itself and the
         // following ones are the variables; therefore, we need to skip
@@ -207,10 +206,8 @@ impl<'tcx> StructuralToTyped<'tcx, SpecEntailmentVars<'tcx>> for json::SpecEntai
     fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> SpecEntailmentVars<'tcx> {
         let local_pre_id = typed_expressions[&format!("{}_{}", self.spec_id, self.pre_expr_id)];
         let local_post_id = typed_expressions[&format!("{}_{}", self.spec_id, self.post_expr_id)];
-        let (pre_body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_pre_id));
-        let (post_body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_post_id));
-        let pre_body = pre_body.borrow();
-        let post_body = post_body.borrow();
+        let pre_body = tcx.optimized_mir(local_pre_id);
+        let post_body = tcx.optimized_mir(local_post_id);
 
         let pre_args: Vec<(mir::Local, ty::Ty)> = pre_body
             .args_iter()

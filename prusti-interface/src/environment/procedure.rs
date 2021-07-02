@@ -25,7 +25,7 @@ pub type BasicBlockIndex = mir::BasicBlock;
 pub struct Procedure<'a, 'tcx: 'a> {
     tcx: TyCtxt<'tcx>,
     proc_def_id: ProcedureDefId,
-    mir: Ref<'a, Mir<'tcx>>,
+    mir: &'a Mir<'tcx>,
     real_edges: RealEdges,
     loop_info: loops::ProcedureLoops,
     reachable_basic_blocks: HashSet<BasicBlock>,
@@ -37,8 +37,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     /// identifier of a procedure
     pub fn new(tcx: TyCtxt<'tcx>, proc_def_id: ProcedureDefId) -> Self {
         trace!("Encoding procedure {:?}", proc_def_id);
-        let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
-        let mir = mir.borrow();
+        let mir = tcx.optimized_mir(proc_def_id);
         let real_edges = RealEdges::new(&mir);
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir, &real_edges);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir, &real_edges, &tcx);
