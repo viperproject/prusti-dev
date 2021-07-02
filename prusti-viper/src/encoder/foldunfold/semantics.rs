@@ -84,7 +84,7 @@ impl ApplyOnState for vir::Stmt {
 
                     // Check that the rhs contains no moved paths
                     if state.is_prefix_of_some_moved(&rhs) {
-                        return Err(FoldUnfoldError::Unsupported("two stage borrow is not supported".to_string()));
+                        return Err(FoldUnfoldError::Unsupported("two phase borrow is not supported".to_string()));
                     }
                     for prefix in rhs.all_proper_prefixes() {
                         assert!(!state.contains_pred(&prefix));
