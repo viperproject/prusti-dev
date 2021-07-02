@@ -4,7 +4,7 @@
 
 use prusti_contracts::*;
 
-#[ensures(result == (forall(|i: usize| i < self.len() ==> f(x[i]))))]
+#[ensures(result == (forall(|i: usize| i < x.len() ==> f(x[i]))))]
 fn all_of(x: &Vec<u32>, f: fn (u32) -> bool) -> bool {
     for i in x {
         if !f(*i) {
