@@ -35,9 +35,10 @@ pub struct Procedure<'a, 'tcx: 'a> {
 impl<'a, 'tcx> Procedure<'a, 'tcx> {
     /// Builds an implementation of the Procedure interface, given a typing context and the
     /// identifier of a procedure
-    pub fn new(tcx: TyCtxt<'tcx>, proc_def_id: ProcedureDefId) -> Self {
+    pub fn new(env: &super::Environment<'tcx>, proc_def_id: ProcedureDefId) -> Self {
         trace!("Encoding procedure {:?}", proc_def_id);
-        let mir = tcx.optimized_mir(proc_def_id);
+        let tcx = env.tcx();
+        let mir = env.local_mir(proc_def_id.expect_local());
         let real_edges = RealEdges::new(&mir);
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir, &real_edges);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir, &real_edges, &tcx);

@@ -13,9 +13,9 @@ use rustc_hir::hir_id::HirId;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt, ParamEnv, WithOptConstParam};
 use std::path::PathBuf;
-use std::cell::Ref;
+use std::cell::{Ref, RefCell, RefMut};
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use log::debug;
 
 pub mod borrowck;
@@ -46,13 +46,17 @@ use rustc_span::source_map::SourceMap;
 /// Facade to the Rust compiler.
 // #[derive(Copy, Clone)]
 pub struct Environment<'tcx> {
+    local_base_mir_bodies: RefCell<HashMap<LocalDefId, mir::Body<'tcx>>>,
     tcx: TyCtxt<'tcx>,
 }
 
 impl<'tcx> Environment<'tcx> {
     /// Builds an environment given a compiler state.
     pub fn new(tcx: TyCtxt<'tcx>) -> Self {
-        Environment { tcx }
+        Environment {
+            local_base_mir_bodies: RefCell::new(HashMap::new()),
+            tcx
+        }
     }
 
     /// Returns the path of the source that is being compiled
@@ -206,20 +210,28 @@ impl<'tcx> Environment<'tcx> {
 
     /// Get a Procedure.
     pub fn get_procedure<'a>(&'a self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
-        Procedure::new(self.tcx(), proc_def_id)
+        Procedure::new(self, proc_def_id)
     }
 
     /// Get the MIR body of a local procedure that is not yet fully desugared.
     ///
     /// This is used by the specification collector.
-    pub fn local_base_mir<'a>(&self, def_id: LocalDefId) -> Ref<'a, mir::Body<'tcx>> {
-        self.tcx().mir_promoted(
-            ty::WithOptConstParam::unknown(def_id)
-        ).0.borrow()
+    pub fn local_base_mir<'a>(&'a self, def_id: LocalDefId) -> RefMut<'a, mir::Body<'tcx>> {
+        RefMut::map(self.local_base_mir_bodies.borrow_mut(), |bodies| {
+            let entry = bodies.entry(def_id);
+            entry.or_insert_with(|| {
+                let body: &mir::Body = &*self.tcx().mir_promoted(
+                    ty::WithOptConstParam::unknown(def_id)
+                ).0.borrow();
+                body.clone()
+            })
+        })
     }
 
     /// Get the MIR body of a local procedure.
     pub fn local_mir<'a>(&self, def_id: LocalDefId) -> &'a mir::Body<'tcx> {
+        // Save the base MIR before it gets stolen.
+        let _ = self.local_base_mir(def_id);
         self.tcx().optimized_mir(def_id)
     }
 
