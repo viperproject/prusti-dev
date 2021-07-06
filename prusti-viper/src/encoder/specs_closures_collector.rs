@@ -73,9 +73,6 @@ impl<'tcx> SpecsClosuresCollector<'tcx> {
             let decl = &mir.local_decls[local];
             match decl.ty.kind() {
                 ty::TyKind::Closure(cl_def_id, substs) => {
-                    eprintln!("local={:?} decl={:?}", local, decl);
-                    eprintln!("  ty: {:?}", decl.ty);
-                    eprintln!("  cl_def_id: {:?}", cl_def_id);
                     if env.has_prusti_attribute(*cl_def_id, "spec_only") {
                         let closure = substs.as_closure();
                         let operand_tys: Vec<_> = closure.upvar_tys().collect();
