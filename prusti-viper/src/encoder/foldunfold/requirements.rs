@@ -269,6 +269,14 @@ impl RequiredPermissionsGetter for vir::Expr {
                 vec![left, right].get_required_permissions(predicates, old_exprs)
             }
 
+            vir::Expr::ContainerOp(_, box left, box right, _) => {
+                vec![left, right].get_required_permissions(predicates, old_exprs)
+            }
+
+            vir::Expr::Seq(_, elems, _) => {
+                elems.get_required_permissions(predicates, old_exprs)
+            }
+
             vir::Expr::Cond(box guard, box then, box elze, _) => {
                 vec![guard, then, elze].get_required_permissions(predicates, old_exprs)
             }

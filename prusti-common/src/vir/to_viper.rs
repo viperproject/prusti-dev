@@ -78,6 +78,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
             Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${}", name), &[], &[]),
+            Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(ast))
         }
     }
 }
@@ -400,6 +401,23 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
             },
+            Expr::ContainerOp(op_kind, box ref left, box ref right, _pos) => {
+                match op_kind {
+                    ContainerOpKind::SeqIndex => {
+                        ast.seq_index(left.to_viper(ast), right.to_viper(ast))
+                    }
+                }
+            }
+            Expr::Seq(ty, elems, _pos) => {
+                let elem_ty = if let Type::Seq(box elem_ty) = ty { elem_ty } else { unreachable!() };
+                let viper_elem_ty = elem_ty.to_viper(ast);
+                if elems.is_empty() {
+                    ast.empty_seq(viper_elem_ty)
+                } else {
+                    let viper_elems = elems.iter().map(|e| e.to_viper(ast)).collect::<Vec<_>>();
+                    ast.explicit_seq(&viper_elems)
+                }
+            }
             Expr::Unfolding(
                 ref predicate_name,
                 ref args,

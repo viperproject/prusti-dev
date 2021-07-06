@@ -208,7 +208,6 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     Err(_) => return Err(EncodingError::unsupported(
                         "mixed dereferencing and array indexing projections are not supported yet"
                     )),
-
                 }
             }
 
@@ -217,14 +216,48 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 (encoded_base, base_ty, Some((*variant_index).into()))
             }
 
-            mir::ProjectionElem::Index(idx) => {
-                debug!("index: {:?}[{:?}]", encoded_base, idx);
+            mir::ProjectionElem::Index(_)
+            | mir::ProjectionElem::ConstantIndex { .. } => {
+                // FIXME: this avoids some code duplication but the nested
+                // matches could probably be cleaner
+                let index: vir::Expr = match elem {
+                    mir::ProjectionElem::Index(idx) => {
+                        debug!("index: {:?}[{:?}]", encoded_base, idx);
+                        self.encode_local(*idx)?.into()
+                    }
+                    mir::ProjectionElem::ConstantIndex { offset, from_end: false, .. } => {
+                        debug!("constantindex: {:?}[{}]", encoded_base, offset);
+                        (*offset).into()
+                    }
+                    mir::ProjectionElem::ConstantIndex { offset, from_end: true, .. } => {
+                        debug!("constantindex: {:?}[len - {}]", encoded_base, offset);
+                        let offset = *offset as usize;
+                        match base_ty.kind() {
+                            ty::TyKind::Array(..) => {
+                                let array_type = self.encoder().encode_array_types(base_ty)?;
+                                (array_type.array_len - offset).into()
+                            }
+                            ty::TyKind::Slice(_) => {
+                                let slice_type = self.encoder().encode_slice_types(base_ty)?;
+                                let slice_len = slice_type.encode_slice_len_call(
+                                    self.encoder(),
+                                    encoded_base.clone().try_into_expr()?,
+                                );
+                                vir! { [ slice_len ] - [ vir::Expr::from(offset) ] }
+                            }
+                            _ => return Err(EncodingError::unsupported(
+                                format!("pattern matching on the end of '{:?} is not supported", base_ty),
+                            ))
+                        }
+                    }
+                    _ => unreachable!(),
+                };
                 match base_ty.kind() {
                     ty::TyKind::Array(elem_ty, _) => {
                         (
                             PlaceEncoding::ArrayAccess {
                                 base: box encoded_base,
-                                index: self.encode_local(*idx)?.into(),
+                                index,
                                 encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
                                 rust_array_ty: base_ty,
                             },
@@ -236,7 +269,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (
                             PlaceEncoding::SliceAccess {
                                 base: box encoded_base,
-                                index: self.encode_local(*idx)?.into(),
+                                index,
                                 encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
                                 rust_slice_ty: base_ty,
                             },
@@ -244,11 +277,15 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             None,
                         )
                     },
-                    _ => return Err(EncodingError::unsupported(format!("index on unsupported type '{:?}'", base_ty))),
+                    _ => return Err(EncodingError::unsupported(
+                        format!("index on unsupported type '{:?}'", base_ty)
+                    )),
                 }
             }
 
-            x => unimplemented!("{:?}", x),
+            mir::ProjectionElem::Subslice { .. } => return Err(EncodingError::unsupported(
+                "slice patterns are not supported",
+            )),
         })
     }
 
@@ -258,11 +295,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         base_ty: ty::Ty<'tcx>,
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("encode_deref {} {}", encoded_base, base_ty);
-        assert!(
-            self.can_be_dereferenced(base_ty),
-            "Type {:?} can not be dereferenced",
-            base_ty
-        );
+
         Ok(match base_ty.kind() {
             ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
             | ty::TyKind::Ref(_, ty, _) => {
@@ -292,7 +325,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 };
                 (access, base_ty.boxed_ty(), None)
             }
-            ref x => unimplemented!("{:?}", x),
+            ref x => {
+                return Err(EncodingError::internal(
+                    format!("Type {:?} can not be dereferenced", x)
+                ));
+            }
         })
     }
 

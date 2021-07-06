@@ -15,6 +15,7 @@ import csv
 import time
 import json 
 import signal
+import shutil
 
 verbose = False
 dry_run = False
@@ -65,7 +66,7 @@ def get_linux_env():
             report("could not find libjvm.so in {}", java_home)
         else:
             variables.append(('LD_LIBRARY_PATH', ld_library_path))
-    viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/backends'))
+    viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/server'))
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
@@ -94,7 +95,7 @@ def get_mac_env():
         else:
             variables.append(('LD_LIBRARY_PATH', ld_library_path))
             variables.append(('DYLD_LIBRARY_PATH', ld_library_path))
-    viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/backends'))
+    viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/server'))
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
@@ -120,7 +121,7 @@ def get_win_env():
             report("could not find jvm.dll in {}", java_home)
         else:
             variables.append(('PATH', library_path))
-    viper_home = get_var_or('VIPER_HOME', os.path.abspath(os.path.join('viper_tools', 'backends')))
+    viper_home = get_var_or('VIPER_HOME', os.path.abspath(os.path.join('viper_tools', 'server')))
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
     else:
@@ -185,43 +186,68 @@ def cargo(args):
     run_command(['cargo'] + args)
 
 
+def viper_version():
+    with open("viper-toolchain", "r") as file:
+        return file.read().strip()
+
+
 def setup_ubuntu():
     """Install the dependencies on Ubuntu."""
     # Install dependencies.
     shell('sudo apt-get update')
     shell('sudo apt-get install -y '
           'build-essential pkg-config '
-          'wget gcc libssl-dev')
+          'curl gcc libssl-dev')
     # Download Viper.
-    shell('wget -q https://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip')
-    shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
-    os.remove('ViperToolsNightlyLinux.zip')
+    shell(
+        'curl https://github.com/viperproject/viper-ide/releases/'
+        'download/{}/ViperToolsLinux.zip -Lo ViperToolsLinux.zip'.format(viper_version())
+    )
+    if os.path.exists('viper_tools'):
+        shutil.rmtree('viper_tools')
+    shell('unzip ViperToolsLinux.zip -d viper_tools')
+    os.remove('ViperToolsLinux.zip')
 
 
 def setup_linux():
     """Install the dependencies on generic Linux."""
-    shell('curl https://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip -o ViperToolsNightlyLinux.zip')
-    shell('unzip ViperToolsNightlyLinux.zip -d viper_tools')
-    os.remove('ViperToolsNightlyLinux.zip')
+    shell(
+        'curl https://github.com/viperproject/viper-ide/releases/'
+        'download/{}/ViperToolsLinux.zip -Lo ViperToolsLinux.zip'.format(viper_version())
+    )
+    if os.path.exists('viper_tools'):
+        shutil.rmtree('viper_tools')
+    shell('unzip ViperToolsLinux.zip -d viper_tools')
+    os.remove('ViperToolsLinux.zip')
 
 
 def setup_mac():
     """Install the dependencies on Mac."""
     # Non-Viper dependencies must be installed manually.
     # Download Viper.
-    shell('curl https://viper.ethz.ch/downloads/ViperToolsNightlyMac.zip -o ViperToolsNightlyMac.zip')
-    shell('unzip ViperToolsNightlyMac.zip -d viper_tools')
-    os.remove('ViperToolsNightlyMac.zip')
+    shell(
+        'curl https://github.com/viperproject/viper-ide/releases/'
+        'download/{}/ViperToolsMac.zip -Lo ViperToolsMac.zip'.format(viper_version())
+    )
+    if os.path.exists('viper_tools'):
+        shutil.rmtree('viper_tools')
+    shell('unzip ViperToolsMac.zip -d viper_tools')
+    os.remove('ViperToolsMac.zip')
 
 
 def setup_win():
     """Install the dependencies on Windows."""
     # Non-Viper dependencies must be installed manually.
-    os.mkdir('viper_tools')
     # Download Viper.
-    shell('curl https://viper.ethz.ch/downloads/ViperToolsNightlyWin.zip -o ViperToolsNightlyWin.zip')
-    shell('tar -xf ViperToolsNightlyWin.zip -C viper_tools')
-    os.remove('ViperToolsNightlyWin.zip')
+    shell(
+        'curl https://github.com/viperproject/viper-ide/releases/'
+        'download/{}/ViperToolsWin.zip -Lo ViperToolsWin.zip'.format(viper_version())
+    )
+    if os.path.exists('viper_tools'):
+        shutil.rmtree('viper_tools')
+    os.mkdir('viper_tools')
+    shell('tar -xf ViperToolsWin.zip -C viper_tools')
+    os.remove('ViperToolsWin.zip')
 
 
 def setup_rustup():

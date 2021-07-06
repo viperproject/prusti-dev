@@ -16,10 +16,10 @@ use crate::{
     PrustiError,
 };
 
-/// Checker visitor for the specifications. Currently checks that `#[predicate]`
+/// Checker visitor for the specifications. Currently checks that `predicate!`
 /// functions are never used from non-specification code, but more checks may follow.
 pub struct SpecChecker {
-    /// Map of the `DefID`s to the `Span`s of `#[predicate]` functions found in the first pass.
+    /// Map of the `DefID`s to the `Span`s of `predicate!` functions found in the first pass.
     predicates: HashMap<DefId, Span>,
 
     /// Span of use and definition of predicates used outside of specifications, collected in the second pass.

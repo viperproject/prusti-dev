@@ -7,9 +7,9 @@
 use std::mem;
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::errors::{SpannedEncodingError, ErrorCtxt, WithSpan, PanicCause};
+use crate::encoder::errors::{SpannedEncodingError, EncodingError, ErrorCtxt, WithSpan, PanicCause};
 use crate::encoder::foldunfold;
-use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
+use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
 use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
 use crate::encoder::mir_interpreter::{
     run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
@@ -486,8 +486,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         place: &mir::Place<'tcx>,
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         let (encoded_place, ty, variant_idx) = self.mir_encoder().encode_place(place)?;
-        // TODO: actual encoding of array access here
-        Ok((encoded_place.try_into_expr()?, ty, variant_idx))
+        let encoded_expr = self.postprocess_place_encoding(encoded_place)?;
+        Ok((encoded_expr, ty, variant_idx))
     }
 
     fn encode_projection(
@@ -496,8 +496,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         projection: &[mir::PlaceElem<'tcx>],
     ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         let (encoded_place, ty, variant_idx) = self.mir_encoder.encode_projection(local, projection)?;
-        // TODO: actual encoding of e.g. array access here
-        Ok((encoded_place.try_into_expr()?, ty, variant_idx))
+        let encoded_expr = self.postprocess_place_encoding(encoded_place)?;
+        Ok((encoded_expr, ty, variant_idx))
+    }
+
+    fn encode_operand_place(
+        &self,
+        operand: &mir::Operand<'tcx>,
+    ) -> EncodingResult<Option<vir::Expr>> {
+        // TODO: de-duplicate with mir_encoder.encode_operand_place
+        // TODO: maybe return `None` from mir_encoder.encode_operand_place for arrays in general?
+        Ok(match operand {
+            &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
+                Some(self.encode_place(place)?.0)
+            }
+
+            &mir::Operand::Constant(_) => None,
+        })
+    }
+
+    fn postprocess_place_encoding(
+        &self,
+        place_encoding: PlaceEncoding<'tcx>,
+    ) -> EncodingResult<vir::Expr> {
+        Ok(match place_encoding {
+            PlaceEncoding::Expr(e) => e,
+            PlaceEncoding::FieldAccess { box base, field } => {
+                let postprocessed_base = self.postprocess_place_encoding(base)?;
+                postprocessed_base.field(field)
+            },
+            PlaceEncoding::Variant { box base, field } => {
+                let postprocessed_base = self.postprocess_place_encoding(base)?;
+                vir::Expr::Variant(box postprocessed_base, field, vir::Position::default())
+            }
+            PlaceEncoding::ArrayAccess { box base, index, rust_array_ty, .. } => {
+                let postprocessed_base = self.postprocess_place_encoding(base)?;
+                let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
+
+                self.encoder.encode_snapshot_array_idx(
+                    rust_array_ty,
+                    postprocessed_base,
+                    idx_val_int,
+                )?
+            }
+            PlaceEncoding::SliceAccess { .. } => {
+                return Err(EncodingError::unsupported(
+                    "slice lookup is not implemented yet".to_string(),
+                ));
+            }
+        })
     }
 }
 
@@ -993,7 +1040,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
-                        let opt_encoded_rhs = self.mir_encoder.encode_operand_place(operand)
+                        let opt_encoded_rhs = self.encode_operand_place(operand)
                             .with_span(span)?;
 
                         match opt_encoded_rhs {
@@ -1032,7 +1079,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         .with_span(span)?;
                                     let field_place = encoded_lhs.clone().field(encoded_field);
 
-                                    let encoded_operand = self.mir_encoder.encode_operand_place(operand)
+                                    let encoded_operand = self.encode_operand_place(operand)
                                         .with_span(span)?;
                                     match encoded_operand {
                                         Some(encoded_rhs) => {
@@ -1085,7 +1132,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     let field_place =
                                         encoded_lhs_variant.clone().field(encoded_field);
 
-                                    let encoded_operand = self.mir_encoder.encode_operand_place(operand)
+                                    let encoded_operand = self.encode_operand_place(operand)
                                         .with_span(span)?;
                                     match encoded_operand {
                                         Some(encoded_rhs) => {
@@ -1104,6 +1151,37 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         }
                                     }
                                 }
+                            }
+
+                            &mir::AggregateKind::Array(elem_ty) => {
+                                let mut encoded_operands = Vec::with_capacity(operands.len());
+                                for oper in operands {
+                                    let encoded_oper = self.encode_operand_place(oper)
+                                        .with_span(span)?;
+                                    let encoded_oper = match encoded_oper {
+                                        Some(encoded_rhs) => encoded_rhs,
+                                        None => {
+                                            self.mir_encoder.encode_operand_expr(oper)
+                                                .with_span(span)?
+                                        }
+                                    };
+                                    encoded_operands.push(encoded_oper);
+                                }
+
+                                let encoded_elem_ty = self.encoder.encode_snapshot_type(elem_ty)
+                                    .with_span(span)?;
+                                let elems = vir::Expr::Seq(
+                                    vir::Type::Seq(box encoded_elem_ty),
+                                    encoded_operands,
+                                    vir::Position::default(),
+                                );
+
+                                let snapshot = self.encoder.encode_snapshot_constructor(
+                                    ty,
+                                    vec![elems],
+                                ).with_span(span)?;
+
+                                state.substitute_place(&encoded_lhs, snapshot);
                             }
 
                             ref x => unimplemented!("{:?}", x),
@@ -1258,6 +1336,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                         // Substitute a place of a value with an expression
                         state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_val);
+                    }
+
+                    &mir::Rvalue::Len(ref place) => {
+                        let place_ty = self.encode_place(place).with_span(span)?.1;
+                        match place_ty.kind() {
+                            ty::TyKind::Array(..) => {
+                                let array_types = self.encoder.encode_array_types(place_ty).with_span(span)?;
+                                state.substitute_value(&opt_lhs_value_place.unwrap(), array_types.array_len.into());
+                            }
+                            _ => {
+                                return Err(SpannedEncodingError::unsupported(
+                                    "checking the length of anything but arrays in pure code is not implemented yet",
+                                    span,
+                                ));
+                            }
+                        }
                     }
 
                     ref rhs => {

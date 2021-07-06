@@ -494,6 +494,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_value_expr(&self, base: vir::Expr, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Expr> {
         match ty.kind() {
             ty::TyKind::Adt(_, _)
+            | ty::TyKind::Array(..)
             | ty::TyKind::Tuple(_) => {
                 Ok(base) // don't use a field for tuples and ADTs
             }
@@ -936,6 +937,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             | ty::TyKind::Char
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Never
+            | ty::TyKind::Array(..)
             | ty::TyKind::Param(_) => true,
             ty::TyKind::Adt(_, _) => {
                 self.env().tcx().has_structural_eq_impls(ty)
@@ -958,6 +960,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         -> EncodingResult<vir::Expr>
     {
         self.snapshot_encoder.borrow_mut().encode_constructor(self, ty, args)
+    }
+
+    pub fn encode_snapshot_array_idx(
+        &self,
+        ty: ty::Ty<'tcx>,
+        array: vir::Expr,
+        idx: vir::Expr,
+    ) -> EncodingResult<vir::Expr> {
+        self.snapshot_encoder.borrow_mut().encode_array_idx(self, ty, array, idx)
     }
 
     pub fn supports_snapshot_equality(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
