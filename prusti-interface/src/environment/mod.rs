@@ -36,7 +36,7 @@ use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
 use rustc_hir::intravisit::Visitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
-pub use self::procedure::{BasicBlockIndex, Procedure};
+pub use self::procedure::{BasicBlockIndex, Procedure, try_extract_spec_closure};
 // use config;
 use crate::data::ProcedureDefId;
 // use syntax::codemap::CodeMap;
@@ -214,25 +214,10 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self, proc_def_id)
     }
 
-    /// Get the MIR body of a local procedure that is not yet fully desugared.
-    ///
-    /// This is used by the specification collector.
-    pub fn local_base_mir<'a>(&'a self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
-        let mut map = self.local_base_mir_bodies.borrow_mut();
-        let entry = map.entry(def_id);
-        let body = entry.or_insert_with(|| {
-            let body: &mir::Body = &*self.tcx().mir_promoted(
-                ty::WithOptConstParam::unknown(def_id)
-            ).0.borrow();
-            Rc::new(body.clone())
-        });
-        body.clone()
-    }
 
     /// Get the MIR body of a local procedure.
     pub fn local_mir<'a>(&self, def_id: LocalDefId) -> &'a mir::Body<'tcx> {
         // Save the base MIR before it gets stolen.
-        let _ = self.local_base_mir(def_id);
         self.tcx().optimized_mir(def_id)
     }
 

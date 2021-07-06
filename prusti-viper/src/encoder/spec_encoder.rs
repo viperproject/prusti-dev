@@ -265,7 +265,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             } => {
                 // TODO: refactor, simplify, or extract into a function
                 let tcx = self.encoder.env().tcx();
-                let mir = self.encoder.env().local_base_mir(closure.expr);
+                let mir = self.encoder.env().local_mir(closure.expr);
                 let result = &mir.local_decls[(0 as u32).into()];
                 let ty = result.ty;
                 if let Some(ty_repl) = self.encoder.current_tymap().get(ty) {
@@ -399,7 +399,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         inner_def_id: DefId,
     ) -> SpannedEncodingResult<(vir::Expr, DefId, mir::Location)> {
         debug!("translate_expr_to_closure_def_site {} {:?}", expr, inner_def_id);
-        let inner_mir = self.encoder.env().local_base_mir(inner_def_id.expect_local());
+        let inner_mir = self.encoder.env().local_mir(inner_def_id.expect_local());
         let inner_mir_encoder = MirEncoder::new(self.encoder, &inner_mir, inner_def_id);
         let inner_attrs = self.encoder.env().tcx().get_attrs(inner_def_id);
 
@@ -414,7 +414,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         ) = opt_instantiation.expect(
             &format!("cannot find definition site for closure {:?}", inner_def_id)
         );
-        let outer_mir = self.encoder.env().local_base_mir(outer_def_id.expect_local());
+        let outer_mir = self.encoder.env().local_mir(outer_def_id.expect_local());
         let outer_mir_encoder = MirEncoder::new(self.encoder, &outer_mir, outer_def_id);
         let outer_span = outer_mir_encoder.get_span_of_location(outer_location);
         trace!("Replacing variables of {:?} captured from {:?}", inner_def_id, outer_def_id);
@@ -543,7 +543,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         target_location: mir::BasicBlock,
     ) -> SpannedEncodingResult<vir::Expr> {
         debug!("translate_expr_to_state {} {:?} {:?}", expr, def_id, expr_location);
-        let mir = self.encoder.env().local_base_mir(def_id.expect_local());
+        let mir = self.encoder.env().local_mir(def_id.expect_local());
 
         // Translate an intermediate state to the state at the beginning of the method
         let state = MultiExprBackwardInterpreterState::new_single(
@@ -610,7 +610,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
         // At this point `curr_def_id` should be either a SPEC item (when encoding a contract) or
         // the method being verified (when encoding a loop invariant).
-        let mir = self.encoder.env().local_base_mir(curr_def_id.expect_local());
+        let mir = self.encoder.env().local_mir(curr_def_id.expect_local());
         let mir_encoder = MirEncoder::new(self.encoder, &mir, curr_def_id);
 
         // Replacements to use the provided `target_args` and `target_return`

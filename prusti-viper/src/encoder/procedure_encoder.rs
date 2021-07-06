@@ -31,6 +31,7 @@ use prusti_common::{
         CfgBlockIndex, Expr, ExprIterator, Successor, Type,
     },
 };
+use prusti_interface::environment::try_extract_spec_closure;
 use prusti_interface::{
     data::ProcedureDefId,
     environment::{
@@ -4403,13 +4404,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // which we can detect and use to retrieve the specification.
         let mut specs = vec![];
         for bbi in spec_blocks {
-            for stmt in &self.mir.basic_blocks()[bbi].statements {
-                if let mir::StatementKind::Assign(box (
-                    _,
-                    mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
-                )) = stmt.kind {
-                    specs.extend(self.encoder.get_loop_specs(cl_def_id).unwrap().invariant);
-                }
+            if let Some(cl_def_id) = try_extract_spec_closure(&self.mir[bbi], &self.mir, self.encoder.env().tcx()) {
+                specs.extend(self.encoder.get_loop_specs(cl_def_id).unwrap().invariant);
             }
         }
         trace!("specs: {:?}", specs);
