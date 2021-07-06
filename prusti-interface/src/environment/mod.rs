@@ -14,6 +14,7 @@ use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::ty::{self, TyCtxt, ParamEnv, WithOptConstParam};
 use std::path::PathBuf;
 use std::cell::{Ref, RefCell, RefMut};
+use std::rc::Rc;
 use rustc_span::{Span, MultiSpan, symbol::Symbol};
 use std::collections::{HashMap, HashSet};
 use log::debug;
@@ -46,7 +47,7 @@ use rustc_span::source_map::SourceMap;
 /// Facade to the Rust compiler.
 // #[derive(Copy, Clone)]
 pub struct Environment<'tcx> {
-    local_base_mir_bodies: RefCell<HashMap<LocalDefId, mir::Body<'tcx>>>,
+    local_base_mir_bodies: RefCell<HashMap<LocalDefId, Rc<mir::Body<'tcx>>>>,
     tcx: TyCtxt<'tcx>,
 }
 
@@ -216,16 +217,16 @@ impl<'tcx> Environment<'tcx> {
     /// Get the MIR body of a local procedure that is not yet fully desugared.
     ///
     /// This is used by the specification collector.
-    pub fn local_base_mir<'a>(&'a self, def_id: LocalDefId) -> RefMut<'a, mir::Body<'tcx>> {
-        RefMut::map(self.local_base_mir_bodies.borrow_mut(), |bodies| {
-            let entry = bodies.entry(def_id);
-            entry.or_insert_with(|| {
-                let body: &mir::Body = &*self.tcx().mir_promoted(
-                    ty::WithOptConstParam::unknown(def_id)
-                ).0.borrow();
-                body.clone()
-            })
-        })
+    pub fn local_base_mir<'a>(&'a self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
+        let mut map = self.local_base_mir_bodies.borrow_mut();
+        let entry = map.entry(def_id);
+        let body = entry.or_insert_with(|| {
+            let body: &mir::Body = &*self.tcx().mir_promoted(
+                ty::WithOptConstParam::unknown(def_id)
+            ).0.borrow();
+            Rc::new(body.clone())
+        });
+        body.clone()
     }
 
     /// Get the MIR body of a local procedure.
