@@ -130,7 +130,7 @@ struct CreditPolynomialTermVec {
 
 impl Parse for CreditPolynomialTermVec {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let parsed: syn::punctuated::Punctuated<CreditPolynomialTerm<(), syn::Expr, Arg>, Token![+]>      //TODO: test with + in coeff
+        let parsed: syn::punctuated::Punctuated<CreditPolynomialTerm<(), syn::Expr, Arg>, Token![+]>
             = input.parse_terminated(CreditPolynomialTerm::parse)?;
         Ok(Self{
             term_vector: parsed.into_iter().collect()
@@ -236,7 +236,15 @@ impl Parser {
 
     /// Parse a prusti expression
     fn parse_prusti(&mut self) -> syn::Result<AssertionWithoutId> {
-        //TODO: if starts with credit -> parse_credit & stop
+        if self.peek_credit_keyword() {         //TODO: avoid occurence in forall & pledges?
+            // Like normal access predicates, credit specifications cannot occur on the lhs of implications.
+            // Also we restrict them to occur in isolation from functional specification.
+            // Therefore, they may only occur as a single assertion or as the single rhs of an implication.
+            let credit_f = self.parse_credit_function()?;
+            return Ok(credit_f);
+            //TODO: error if credits occur somewhere else
+        }
+
         let lhs = self.parse_conjunction()?;
         if self.consume_operator("==>") {
             let rhs = self.parse_prusti()?;
@@ -379,7 +387,7 @@ impl Parser {
             }
 
             let arr: syn::ExprArray = syn::parse2(self.create_stream_remaining())
-                .map_err(|err| self.error_expected_tuple(err.span()))?;
+                .map_err(|err| self.error_expected_trigger_tuple(err.span()))?;
 
             let mut vec_of_triggers = vec![];
             for item in arr.elems {
@@ -396,7 +404,7 @@ impl Parser {
                         )
                     );
                 } else {
-                    return Err(self.error_expected_tuple(item.span()));
+                    return Err(self.error_expected_trigger_tuple(item.span()));
                 }
             }
             trigger_set = TriggerSet(vec_of_triggers);
@@ -415,33 +423,23 @@ impl Parser {
         })
     }
 
-    fn resolve_credit_function(&mut self) -> syn::Result<()> {      //TODO
-        if self.expected_operator {
-            return Err(self.error_expected_operator());
-        }
+    fn parse_credit_function(&mut self) -> syn::Result<AssertionWithoutId> {
+        let credit_type = self.consume_and_return_keyword().unwrap();       // this function is only called when there is a keyword
 
-        let credit_type = self.input.consume_and_return_keyword()?;
+        if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+            let parsed_term_vec: CreditPolynomialTermVec = syn::parse2(stream)?;
 
-        if let Some(group) = self.input.check_and_consume_parenthesized_block() {
-            let parsed_term_vec: CreditPolynomialTermVec = syn::parse2(group.stream())?;
-
-            let conjunct = AssertionWithoutId {
+            Ok(AssertionWithoutId {
                 kind: Box::new(common::AssertionKind::CreditPolynomial {
                     spec_id: common::SpecificationId::dummy(),
                     id: (),
                     credit_type,
                     terms: parsed_term_vec.term_vector,
                 }),
-            };
-
-            self.conjuncts.push(conjunct);
-            self.previous_expression_resolved = true;
-            self.expected_only_operator = true;
-            self.expected_operator = true;
-            Ok(())
+            })
         }
         else {
-            Err(self.error_expected_parenthesis())
+            Err(self.error_expected("`(`"))
         }
     }
 
@@ -609,14 +607,14 @@ impl Parser {
         self.last_span = Some(self.tokens.pop_front().unwrap().span());
         true
     }
-    /// Consume a keyword and return its string representation
-    fn consume_and_return_keyword(&mut self) -> syn::Result<String> {       //TODO: fix
+    /// Consume any keyword and return its string representation
+    fn consume_and_return_keyword(&mut self) -> Option<String> {
         if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
             let keyword_string = ident.to_string();
-            self.pop();
-            return Ok(keyword_string);
+            self.last_span = Some(self.tokens.pop_front().unwrap().span());
+            return Some(keyword_string);
         }
-        Err(syn::Error::new(self.span, "Expected a credit function"))     //TODO: separate error method?
+        None
     }
     /// consume the group if it is next in the stream
     /// produced its TokenStream, if it has one
@@ -681,7 +679,7 @@ impl Parser {
     fn error_no_quantifier_arguments(&self) -> syn::Error {
         syn::Error::new(self.get_error_span(), "a quantifier must have at least one argument")
     }
-    fn error_expected_tuple(&self, span: Span) -> syn::Error {      //TODO: trigger_tuple
+    fn error_expected_trigger_tuple(&self, span: Span) -> syn::Error {
         syn::Error::new(span, "`triggers` must be an array of tuples containing Rust expressions")
     }
     fn error_unexpected(&self) -> syn::Error {
