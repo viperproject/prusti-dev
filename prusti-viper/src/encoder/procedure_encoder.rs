@@ -1134,12 +1134,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let span = self.mir_encoder.get_span_of_location(location);
 
         let encoding_stmts = match stmt.kind {
-            mir::StatementKind::StorageLive(..)
             | mir::StatementKind::StorageDead(..)
             | mir::StatementKind::FakeRead(..)
             | mir::StatementKind::AscribeUserType(..)
             | mir::StatementKind::Coverage(..)
             | mir::StatementKind::Nop => vec![],
+
+            mir::StatementKind::StorageLive(local) => {
+                let encoded_local = self.mir_encoder.encode_local(local).with_span(span)?;
+                self.encode_havoc_and_allocation(&encoded_local.into())
+            }
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
                 // Array access on the LHS should always be mutable (idx is always calculated
