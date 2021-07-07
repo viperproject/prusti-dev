@@ -47,7 +47,7 @@ use rustc_span::source_map::SourceMap;
 /// Facade to the Rust compiler.
 // #[derive(Copy, Clone)]
 pub struct Environment<'tcx> {
-    local_base_mir_bodies: RefCell<HashMap<LocalDefId, Rc<mir::Body<'tcx>>>>,
+    local_base_mir_bodies: RefCell<HashMap<LocalDefId, mir::Body<'tcx>>>,
     tcx: TyCtxt<'tcx>,
 }
 
@@ -214,10 +214,23 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self, proc_def_id)
     }
 
+    /// Retrieved the saved base MIR that is suitable for running the borrow checker.
+    pub fn local_base_mir<'a>(&'a self, def_id: LocalDefId) -> Ref<'a, mir::Body<'tcx>> {
+        let map = self.local_base_mir_bodies.borrow();
+        Ref::map(map, |map| {
+            map.get(&def_id).unwrap()
+        })
+    }
 
     /// Get the MIR body of a local procedure.
     pub fn local_mir<'a>(&self, def_id: LocalDefId) -> &'a mir::Body<'tcx> {
         // Save the base MIR before it gets stolen.
+        let mut map = self.local_base_mir_bodies.borrow_mut();
+        map.entry(def_id).or_insert_with(||
+            self.tcx().mir_promoted(
+                ty::WithOptConstParam::unknown(def_id)
+            ).0.borrow().clone()
+        );
         self.tcx().optimized_mir(def_id)
     }
 

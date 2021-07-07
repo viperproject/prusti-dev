@@ -81,7 +81,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     check_panics: bool,
     check_foldunfold_state: bool,
-    polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
+    polonius_info: Option<PoloniusInfo<'tcx>>,
     procedure_contract: Option<ProcedureContract<'tcx>>,
     label_after_location: HashMap<mir::Location, String>,
     // /// Store the CFG blocks that encode a MIR block each.
@@ -225,7 +225,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    fn polonius_info(&self) -> &PoloniusInfo<'p, 'tcx> {
+    fn polonius_info(&self) -> &PoloniusInfo<'tcx> {
         self.polonius_info.as_ref().unwrap()
     }
 
@@ -365,7 +365,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Load Polonius info
         self.polonius_info = Some(
-            PoloniusInfo::new(&self.procedure, &self.cached_loop_invariant_block)
+            PoloniusInfo::new(self.encoder.env(), &self.procedure, &self.cached_loop_invariant_block)
                 .map_err(|err| self.translate_polonius_error(err))?,
         );
 

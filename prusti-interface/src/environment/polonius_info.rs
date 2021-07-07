@@ -36,6 +36,7 @@ use crate::environment::mir_utils::StatementAt;
 use crate::environment::polonius_info::facts::AllInputFacts;
 use crate::utils;
 
+use super::Environment;
 use super::borrowck::facts;
 use super::borrowck::regions;
 use super::loops;
@@ -389,9 +390,9 @@ fn load_polonius_facts<'tcx>(
     compute_polonius_facts(tcx, body, promoted)
 }
 
-pub struct PoloniusInfo<'a, 'tcx: 'a> {
+pub struct PoloniusInfo<'tcx> {
     pub(crate) tcx: ty::TyCtxt<'tcx>,
-    pub(crate) mir: &'a mir::Body<'tcx>,
+    pub(crate) mir: mir::Body<'tcx>,
     pub(crate) borrowck_in_facts: facts::AllInputFacts,
     pub(crate) borrowck_out_facts: facts::AllOutputFacts,
     pub(crate) interner: facts::Interner,
@@ -680,18 +681,20 @@ fn compute_loan_conflict_sets(
     Ok(loan_conflict_sets)
 }
 
-impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
+impl<'tcx> PoloniusInfo<'tcx> {
     pub fn new(
-        procedure: &'a Procedure<'a, 'tcx>,
+        env: &Environment<'tcx>,
+        procedure: &Procedure<'_, 'tcx>,
         _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
     ) -> Result<Self, PoloniusInfoError> {
         let tcx = procedure.get_tcx();
         let def_id = procedure.get_id();
-        let mir = procedure.get_mir();
-        let def_path = tcx.hir().def_path(def_id.expect_local());
+        let mir = env.local_base_mir(def_id.expect_local()).clone();
+        // let mir = procedure.get_mir();
+        // let def_path = tcx.hir().def_path(def_id.expect_local());
 
         // Read Polonius facts.
-        let facts = load_polonius_facts(tcx, mir);
+        let facts = load_polonius_facts(tcx, &mir);
 
         // // Read relations between region IDs and local variables.
         // let renumber_path = PathBuf::from(config::log_dir())
@@ -722,7 +725,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             PoloniusInfoError::PlaceRegionsError(err, mir.source_info(loc).span)
         )?;
 
-        Self::disconnect_universal_regions(tcx, mir, &place_regions, &mut all_facts)
+        Self::disconnect_universal_regions(tcx, &mir, &place_regions, &mut all_facts)
             .map_err(|(err, loc)| PoloniusInfoError::PlaceRegionsError(err, loc))?;
 
         let output = Output::compute(&all_facts, Algorithm::Naive, true);
@@ -1021,7 +1024,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     pub fn get_loans_dying_at(&self, location: mir::Location, zombie: bool) -> Vec<facts::Loan> {
         let borrow_live_at = self.get_borrow_live_at(zombie);
         let successors = self.get_successors(location);
-        let is_return = is_return(self.mir, location);
+        let is_return = is_return(&self.mir, location);
         let mid_point = self.get_point(location, facts::PointType::Mid);
         let becoming_zombie_loans = self
             .additional_facts
@@ -1689,7 +1692,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         // alive by a reference that was moved into the call and,
         // therefore, its blocking reference is now a zombie.
         let root_die_at_call =
-            { is_call(self.mir, location) && self.find_loan_roots(loans).contains(&loan) };
+            { is_call(&self.mir, location) && self.find_loan_roots(loans).contains(&loan) };
 
         if root_die_at_call || has_incoming_call {
             true
