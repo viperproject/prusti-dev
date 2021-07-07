@@ -300,7 +300,7 @@ impl Parser {
         }
     }
     fn extract_entailment_rhs(&mut self, lhs: ExpressionWithoutId, vars: Vec<Arg>) ->
-    syn::Result<AssertionWithoutId> {
+            syn::Result<AssertionWithoutId> {
         let mut pres = vec![];
         let mut posts = vec![];
         let mut first = true;
