@@ -278,7 +278,7 @@ impl<'tcx> Environment<'tcx> {
                     ty,
                     subst,
                     ParamEnv::empty()
-                ))
+                )).must_apply_considering_regions()
             }
             ty::TyKind::Bool => {
                 self.primitive_type_implements_trait(
@@ -361,6 +361,6 @@ impl<'tcx> Environment<'tcx> {
                 ty::List::empty(),
                 ParamEnv::empty()
             )
-        )
+        ).must_apply_considering_regions()
     }
 }
