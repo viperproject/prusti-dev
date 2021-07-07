@@ -185,6 +185,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         Ok(vir::Trigger::new(encoded_expressions))
     }
 
+    fn encode_credit_perm_amount(&self, coeff: &typed::Expression) -> SpannedEncodingResult<vir::FracPermAmount> {      //TODO: move to encoder? & use there
+        //TODO: allow fractions in annotation
+        //TODO: allow called function coefficients in annotation
+        let enc_coeff = self.encode_expression(coeff)?;
+        Ok(vir::FracPermAmount::new(box enc_coeff, box 1.into()))
+    }
+
     /// Encode a specification item as a single expression.
     fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>)
         -> SpannedEncodingResult<vir::Expr>
@@ -378,6 +385,36 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     // TODO
                     true.into()
                 }
+            }
+            box typed::AssertionKind::CreditPolynomial {
+                ref credit_type,
+                ref terms,
+                ..
+            } => {
+                let mut acc_predicates = vec![];
+
+                for term in terms {
+                    let mut exponents = vec![];
+                    let mut args= vec![];
+                    for pow in term.powers.iter() {
+                        exponents.push(pow.exponent);           //TODO: fix order?
+
+                        let var_name = format!("{:?}", pow.var.0);
+                        let ty = self.encoder.encode_type(pow.var.1).unwrap();      // should succeed
+                        args.push(vir::Expr::local(vir::LocalVar::new(var_name, ty)));        //TODO: allow other expressions
+                    }
+
+                    let pred_name = self.encoder.encode_credit_predicate_use(credit_type, exponents);
+                    let frac_perm = self.encode_credit_perm_amount(&term.coeff_expr)?;
+
+                    acc_predicates.push(vir::Expr::credit_access_predicate(
+                        pred_name,
+                        args,
+                        frac_perm,
+                    ));
+                }
+
+                acc_predicates.into_iter().conjoin()
             }
         })
     }

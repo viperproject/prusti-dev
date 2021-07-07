@@ -244,6 +244,28 @@ pub struct SpecEntailmentVars<EID, AT> {
 }
 
 #[derive(Debug, Clone)]
+/// A variable raised to a nonnegative power used in credit polynomials
+pub struct CreditVarPower<EID, VT> {
+    /// Identifier of the specification to which this power belongs.
+    pub spec_id: SpecificationId,
+    /// Unique id for this power.
+    pub id: EID,
+    /// variable at the base of the exponentiation
+    pub var: VT,
+    pub exponent: u32,
+}
+
+#[derive(Debug, Clone)]
+/// One term of a credit polynomial, e.g. 3*n^2m^1
+pub struct CreditPolynomialTerm<EID, ET, VT> {
+    /// constant coefficient expression, possibly containing identifiers
+    /// for cost function coefficients of called functions
+    pub coeff_expr: Expression<EID, ET>,
+    /// Product/vector of variables raised to nonnegative powers
+    pub powers: Vec<CreditVarPower<EID, VT>>,
+}
+
+#[derive(Debug, Clone)]
 /// An assertion kind used in the specification.
 pub enum AssertionKind<EID, ET, AT> {
     /// A single Rust expression.
@@ -266,6 +288,14 @@ pub enum AssertionKind<EID, ET, AT> {
         arg_binders: SpecEntailmentVars<EID, AT>,
         pres: Vec<Assertion<EID, ET, AT>>,
         posts: Vec<Assertion<EID, ET, AT>>,
+    },
+    CreditPolynomial {
+        /// Identifier of the specification to which this credit polynomial belongs
+        spec_id: SpecificationId,
+        /// Id for this polynomial.
+        id: EID,
+        credit_type: String,    //TODO: enum later
+        terms: Vec<CreditPolynomialTerm<EID, ET, AT>>,          // TODO: replace AT? is not really an argument declaration
     },
 }
 

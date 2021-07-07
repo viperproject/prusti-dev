@@ -2731,7 +2731,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .encoder
             .error_manager()
             .register(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
-        stmts.push(vir::Stmt::Assert(
+        stmts.push(vir::Stmt::Exhale(
             replace_fake_exprs(pre_func_spec),
             pos,
         ));
@@ -2739,6 +2739,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             replace_fake_exprs(pre_invs_spec),
             pos,
         ));
+        let pos = self
+            .encoder
+            .error_manager()
+            .register(call_site_span, ErrorCtxt::Unexpected);
         let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
         assert!(!pos.is_default());
         stmts.push(vir::Stmt::Exhale(
