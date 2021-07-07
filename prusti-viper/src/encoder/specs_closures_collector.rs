@@ -109,12 +109,10 @@ impl<'tcx> SpecsClosuresCollector<'tcx> {
                     }
                     mir::StatementKind::Assign(box (place, mir::Rvalue::Use(operand))) => {
                         if let Some(instantiation) = spec_closures.get_mut(&place.local) {
-                            eprintln!("place={:?} operand={:?}", place, operand);
                             let mut indices = Vec::new();
                             for elem in place.projection.iter() {
                                 match elem {
                                     mir::ProjectionElem::Field(field, _) => {
-                                        eprintln!("  field={:?}", field);
                                         indices.push(field.index());
                                     }
                                     _ => unreachable!(),
