@@ -60,6 +60,8 @@ pub enum FoldUnfoldError {
     FailedToRemovePred(vir::Expr),
     /// The algorithm tried to lookup a never-seen-before label
     MissingLabel(String),
+    /// Unsupported feature
+    Unsupported(String),
 }
 
 impl From<PermAmountError> for FoldUnfoldError {
