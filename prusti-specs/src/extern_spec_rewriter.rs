@@ -1,10 +1,13 @@
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+
 use super::parse_quote_spanned;
 use crate::span_overrider::SpanOverrider;
 use crate::specifications::common::NameGenerator;
 use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use syn::ImplItemMethod;
+use syn::{ImplItemMethod, ItemUse};
 
 /// Process external specifications in Rust modules marked with the
 /// #[extern_spec] attribute. Nested modules are processed recursively.
@@ -13,10 +16,10 @@ use syn::ImplItemMethod;
 /// Modules are rewritten so that their name does not clash with the module
 /// they are specifying.
 
-/// To export the spec and code in one file, macros for preserving the tokens are generated
-pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path, macros: &mut Vec<syn::ItemMacro>) -> syn::Result<Option<syn::ItemMacro>> {
+/// To export the spec and code in one crate, macros for preserving the tokens are generated
+pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path, rewrite_path: &mut syn::Path, macros: &mut Vec<syn::ItemMacro>) -> syn::Result<()>{
     if item_mod.content.is_none() {
-        return Ok(None);
+        return Ok(());
     }
 
     path.segments.push(syn::PathSegment {
@@ -32,32 +35,29 @@ pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path, macros: &m
 
     item_mod.ident = ident.clone();
 
-    // item_mod.ident = ident.clone();
+    rewrite_path.segments.push(syn::PathSegment {
+        ident: ident.clone(),
+        arguments: syn::PathArguments::None,
+    });
 
+    // Record all the uses in this module, this is for preserving uses in function macro
+    let mut uses = vec![];
+
+    // Record every items' tokens for generating macro
+    let mut macro_content_tokens = TokenStream::new();
     let span = item_mod.span();
-
-    let mut macro_idents: Vec<syn::Ident> = Vec::new();
-    let mut uses: Vec<syn::ItemUse> = Vec::new();
 
     for item in item_mod.content.as_mut().unwrap().1.iter_mut() {
         let mut path = path.to_owned();
+        let mut rewrite_path = rewrite_path.to_owned();
         match item {
             syn::Item::Fn(item_fn) => {
-                if let Some(fn_macro) = rewrite_fn(item_fn, &mut path)? {
-                    if let Some(ref fn_ident) = fn_macro.ident {
-                        macro_idents.push(fn_ident.to_owned());
-                        macros.push(fn_macro);
-                    }
-                }
-
-                // rewrite_tokens.extend(quote!(#rewrite_item).into_iter());
+                rewrite_fn(item_fn, &mut path, &mut rewrite_path, macros, &uses)?;
+                macro_content_tokens.extend(quote!(#item_fn));
             }
             syn::Item::Mod(inner_mod) => {
-                let ident = inner_mod.ident.clone();
-                if let Some(mod_macro) = rewrite_mod(inner_mod, &mut path, macros)? {
-                    macro_idents.push(ident);
-                    macros.push(mod_macro);
-                }
+                rewrite_mod(inner_mod, &mut path, &mut rewrite_path, macros)?;
+                macro_content_tokens.extend(quote!(#inner_mod));
             }
             syn::Item::Verbatim(tokens) => {
                 // Transforms function stubs (functions with a `;` after the
@@ -83,130 +83,64 @@ pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path, macros: &m
 
                 let mut item = res.unwrap();
                 if let syn::Item::Fn(item_fn) = &mut item {
-                    if let Some(fn_macro) = rewrite_fn(item_fn, &mut path)? {
-                        if let Some(ref fn_ident) = fn_macro.ident {
-                            macro_idents.push(fn_ident.to_owned());
-                            macros.push(fn_macro);
-                        }
-                    }
-                    // rewrite_tokens.extend(quote!(#rewrite_fn));
+                    rewrite_fn(item_fn, &mut path, &mut rewrite_path, macros, &uses)?;
+                    macro_content_tokens.extend(quote!(#item_fn));
                 }
                 *tokens = quote!(#item)
             }
-            syn::Item::Use(item_use) => {uses.push(item_use.clone());}
+            syn::Item::Use(item_use) => {
+                uses.push(item_use.to_owned());
+                macro_content_tokens.extend(quote!(#item_use));
+            }
             _ => return Err(syn::Error::new(item.span(), "unexpected item")),
         }
     }
 
-    let mut call_all_macro_tokens = TokenStream::new();
-    for ident in macro_idents {
-        call_all_macro_tokens.extend(quote!(#ident!();));
-    }
+    let macro_content_tokens = expand_segements_as_mod(rewrite_path, macro_content_tokens);
 
-    let mut all_uses = TokenStream::new();
-    for use_stmt in uses {
-        all_uses.extend(quote!(#use_stmt));
-    }
+    let macro_ident = hash_path_ident(mod_ident, path.to_owned());
 
-    let new_tokens: TokenStream = parse_quote_spanned!(span => 
+    let final_item: syn::ItemMacro = syn::parse2(parse_quote_spanned!(span => 
             #[macro_export]
-            macro_rules! #mod_ident {
-                // #macro_defs_tokens
-                ($i:ident $(:: $rest:tt)?) => {
-                    mod #ident {
-                        #all_uses
-                        $i!($($rest)?);
-                    }
-                };
+            macro_rules! #macro_ident {
                 () => {
-                    mod #ident {
-                        #all_uses
-                        #call_all_macro_tokens
-                    }
+                    #macro_content_tokens
                 };
             }
-        // }
-    );
+    ))?;
 
-    let final_item: syn::ItemMacro = syn::parse2(new_tokens)?;
-    // println!("final new macro_defs tokens: {:?} \n\n", final_item_macro.to_token_stream().to_string());
-
-    Ok(Some(final_item))
+    macros.push(final_item);
+    Ok(())
 }
-/// Process external specifications in Rust modules marked with the
-/// #[extern_spec] attribute. Nested modules are processed recursively.
-/// Specifications are collected from functions and function stubs.
-///
-/// Modules are rewritten so that their name does not clash with the module
-/// they are specifying.
-// pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Result<()> {
-//     if item_mod.content.is_none() {
-//         return Ok(());
-//     }
 
-//     path.segments.push(syn::PathSegment {
-//         ident: item_mod.ident.clone(),
-//         arguments: syn::PathArguments::None,
-//     });
-//     let name_generator = NameGenerator::new();
-//     item_mod.ident = syn::Ident::new(
-//         &name_generator.generate_mod_name(&item_mod.ident),
-//         item_mod.span(),
-//     );
-
-//     for item in item_mod.content.as_mut().unwrap().1.iter_mut() {
-//         match item {
-//             syn::Item::Fn(item_fn) => {
-//                 rewrite_fn(item_fn, path);
-//             }
-//             syn::Item::Mod(inner_mod) => {
-//                 rewrite_mod(inner_mod, path)?;
-//             }
-//             syn::Item::Verbatim(tokens) => {
-//                 // Transforms function stubs (functions with a `;` after the
-//                 // signature instead of the body) into functions, then
-//                 // processes them.
-//                 let mut new_tokens = TokenStream::new();
-//                 for mut token in tokens.clone().into_iter() {
-//                     if let TokenTree::Punct(punct) = &mut token {
-//                         if punct.as_char() == ';' {
-//                             new_tokens.extend(
-//                                 Group::new(proc_macro2::Delimiter::Brace, TokenStream::new())
-//                                     .to_token_stream(),
-//                             );
-//                             continue;
-//                         }
-//                     }
-//                     new_tokens.extend(token.to_token_stream());
-//                 }
-//                 let res: Result<syn::Item, _> = syn::parse2(new_tokens);
-//                 if res.is_err() {
-//                     return Err(syn::Error::new(item.span(), "invalid function signature"));
-//                 }
-
-//                 let mut item = res.unwrap();
-//                 if let syn::Item::Fn(item_fn) = &mut item {
-//                     rewrite_fn(item_fn, path);
-//                 }
-//                 *tokens = quote!(#item)
-//             }
-//             syn::Item::Use(_) => {}
-//             _ => return Err(syn::Error::new(item.span(), "unexpected item")),
-//         }
-//     }
-//     Ok(())
-// }
+/// expand each segement of path as a mod declaration
+fn expand_segements_as_mod(path: &syn::Path, content: TokenStream) -> TokenStream {
+    let mut tokens = content;
+    let segs = path.segments.iter().rev();
+    for seg in segs {
+        tokens = quote!(
+            mod #seg {
+                #tokens
+            }
+        )
+    }
+    tokens
+}
 
 /// Rewrite a specification function to a call to the specified function.
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
 /// macro that expands to the specification and function tokens are generated
-fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) -> syn::Result<Option<syn::ItemMacro>> {
+fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path, rewrite_path: &mut syn::Path, macros: &mut Vec<syn::ItemMacro>, uses: &Vec<ItemUse>) -> syn::Result<()> {
     let ident = &item_fn.sig.ident;
     let args = &item_fn.sig.inputs;
     let item_fn_span = item_fn.span();
+    path.segments.push(syn::PathSegment {
+        ident: ident.to_owned(),
+        arguments: syn::PathArguments::None,
+    });
     item_fn.block = parse_quote_spanned! {item_fn_span=>
         {
-            #path :: #ident (#args);
+            #path (#args);
             unimplemented!()
         }
     };
@@ -217,41 +151,36 @@ fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) -> syn::Result<Op
     item_fn
         .attrs
         .push(parse_quote_spanned!(item_fn_span=> #[trusted]));
-
-    let fn_clone = item_fn.clone();
-    let macro_tokens = parse_quote_spanned!(item_fn_span =>
+    let mut uses_tokens = TokenStream::new();
+    uses_tokens.extend(uses.into_iter().map(|item_use| quote!(#item_use)));
+    let macro_content_tokens = expand_segements_as_mod(rewrite_path, quote!(
+        #uses_tokens
+        #item_fn
+    ));
+    let macro_ident = hash_path_ident(ident.to_owned(), path.to_owned());
+    macros.push(parse_quote_spanned!(item_fn_span =>
         #[macro_export] 
-        macro_rules! #ident {
+        macro_rules! #macro_ident {
             () => {
-                #fn_clone
+                #macro_content_tokens
             };
         }
-    );
+    ));
 
-    Ok(Some(syn::parse2(macro_tokens)?))
+    Ok(())
 
 }
 
-/// Rewrite a specification function to a call to the specified function.
-/// The result of this rewriting is then parsed in `ExternSpecResolver`.
-// fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) {
-//     let ident = &item_fn.sig.ident;
-//     let args = &item_fn.sig.inputs;
-//     let item_fn_span = item_fn.span();
-//     item_fn.block = parse_quote_spanned! {item_fn_span=>
-//         {
-//             #path :: #ident (#args);
-//             unimplemented!()
-//         }
-//     };
+fn hash_path_ident<T: Hash>(ident: syn::Ident, path: T) -> syn::Ident {
+    let path_hash = {
+        let mut hasher = DefaultHasher::new();
+        path.hash(&mut hasher);
+        hasher.finish()
+    };
 
-//     item_fn
-//         .attrs
-//         .push(parse_quote_spanned!(item_fn_span=> #[prusti::extern_spec]));
-//     item_fn
-//         .attrs
-//         .push(parse_quote_spanned!(item_fn_span=> #[trusted]));
-// }
+    let span = ident.span();
+    syn::Ident::new(format!("{}_{}", ident , path_hash).as_str(), span)
+}
 
 /// Rewrite all methods in an impl block to calls to the specified methods.
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.

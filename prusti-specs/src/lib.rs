@@ -308,24 +308,47 @@ pub fn prusti_use(tokens: TokenStream) -> TokenStream {
     let path: syn::Path = handle_result!(syn::parse2(tokens.clone().into()));
     let path_span = path.span();
 
-    let path_str = tokens.to_string().replace(" ", "");
-    if let Some((crate_ident, rest)) = path_str.split_once("::") {
-        if let Some((mod_ident, rest)) = rest.split_once("::") {
-            let prusti_use_macro: syn::Path = handle_result!(syn::parse_str(&format!("{}::{}", crate_ident, mod_ident)));
-            let arg_path: syn::Path = handle_result!(syn::parse_str(rest));
-            let macro_call = quote! {
-                #prusti_use_macro!(#arg_path);
+    match prusti_use_macro(path) {
+        Ok(macro_path) => parse_quote_spanned!(path_span => #macro_path!();),
+        Err(e) => e.to_compile_error()
+    }
+}
+
+fn prusti_use_macro(path: syn::Path) -> syn::Result<syn::Path> {
+    let span = path.span();
+    let segs = path.segments;
+    let mut macro_path = syn::Path {
+        leading_colon: None,
+        segments: syn::punctuated::Punctuated::new(),
+    };
+    let mut seg_iter = segs.into_iter();
+    if let Some(crate_seg) = seg_iter.next() {
+        macro_path.segments.push(crate_seg.to_owned());
+        if let Some(last_seg) = seg_iter.clone().last() {
+            let mut mod_path = syn::Path {
+                leading_colon: None,
+                segments: syn::punctuated::Punctuated::new(),
             };
-            println!("macro_call: {:?}\n\n", macro_call.to_string());
-            macro_call
+            mod_path.segments.extend(seg_iter);
+            let path_hash = {
+                let mut hasher = DefaultHasher::new();
+                mod_path.hash(&mut hasher);
+                hasher.finish()
+            };
+            macro_path.segments.push(syn::PathSegment {
+                ident: syn::Ident::new(format!("{}_{}", last_seg.ident, path_hash).as_str(), span),
+                arguments: syn::PathArguments::None,
+            });
         } else {
-            let prusti_use_macro: syn::Path = handle_result!(syn::parse_str(&format!("{}::{}", crate_ident, rest)));
-            quote!{
-                #prusti_use_macro!();
-            }
+            macro_path.segments.push(syn::PathSegment {
+                ident: syn::Ident::new("crate_spec", span),
+                arguments: syn::PathArguments::None,
+            });
         }
+
+        Ok(macro_path)
     } else {
-        return syn::Error::new(path_span, "prusti_use must be given a path with non-empty segements").to_compile_error();
+        Err(syn::Error::new(span, "prusti_use must be given a path with non-empty segements"))
     }
 }
 
@@ -478,7 +501,8 @@ pub fn export_all(_tokens: TokenStream) -> TokenStream {
             () => {
                 
             };
-        })
+        }
+    )
     // TODO: Transform the export_all to be an inner attribute 
     // println!("tokens: {:?} \n\n", tokens.to_string());
     // let body = tokens.clone().into_iter().skip(2).next().unwrap();
@@ -501,6 +525,7 @@ pub fn export_all(_tokens: TokenStream) -> TokenStream {
 }
 
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
+    println!("extern spec calling!!!\n\n\n");
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
     let tokens = match item {
@@ -531,39 +556,24 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
                 segments: syn::punctuated::Punctuated::new(),
             };
 
-            // Wrap the generated macro in a pub mod with the top level ident_hash(ident) as name
-            let mod_ident_str = item_mod.ident.to_string();
-            let mod_ident_hash = {
-                let mut hasher = DefaultHasher::new();
-                mod_ident_str.hash(&mut hasher);
-                hasher.finish()
+            let mut rewrite_path = syn::Path {
+                leading_colon: None,
+                segments: syn::punctuated::Punctuated::new(),
             };
 
-            let mod_ident_str = format!("{}_{}", mod_ident_str, mod_ident_hash);
-            let mod_ident = syn::Ident::new(&mod_ident_str, item_span);
             let mut macros = vec![];
-            let rewrite_mod = handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path, &mut macros));
+            handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path, &mut rewrite_path, &mut macros));
             let item_mod_str = quote!(#item_mod).to_string();
-            match rewrite_mod {
-                Some(top_mod_macro) => {
-                    let mut macro_defs_tokens = TokenStream::new();
-                    for item_macro in macros {
-                        macro_defs_tokens.extend(quote!(#item_macro));
-                    }
-                    parse_quote_spanned!{item_span =>
-                        #[macro_use]
-                        pub mod #mod_ident {
-                            #macro_defs_tokens
-                            // #[macro_export]
-                            #top_mod_macro
-                        }
 
-                        #[prusti::persist=#item_mod_str]
-                        #item_mod
-                        
-                    }
-                },
-                None => quote!(#item_mod)
+            let mut macro_tokens = TokenStream::new();
+            macro_tokens.extend(macros.into_iter().map(|item_mac| quote!(#item_mac)));
+
+            parse_quote_spanned!{item_span =>
+                #macro_tokens
+
+                #[prusti::persist=#item_mod_str]
+                #item_mod
+                
             }
         }
         _ => { unimplemented!() }
