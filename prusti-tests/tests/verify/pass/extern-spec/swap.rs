@@ -6,7 +6,6 @@
 extern crate prusti_contracts;
 use prusti_contracts::*;
 
-export_all!();
 #[extern_spec]
 mod std {
     mod mem {
