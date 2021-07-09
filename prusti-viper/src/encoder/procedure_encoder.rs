@@ -4902,38 +4902,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         stmts
                     }
                 }
-
-                // FIXME: Delete the code below.
-                // match literal {
-                //     mir::Literal::Value { value } => {
-                //         let const_val = self.encoder.encode_const_expr(value);
-                //         // Initialize value of lhs
-                //         stmts.push(vir::Stmt::Assign(
-                //             lhs.clone().field(field),
-                //             const_val,
-                //             vir::AssignKind::Copy,
-                //         ));
-                //     }
-                //     mir::Literal::Promoted { index } => {
-                //         trace!("promoted constant literal {:?}: {:?}", index, ty);
-                //         trace!("{:?}", self.mir.promoted[*index].basic_blocks());
-                //         trace!(
-                //             "{:?}",
-                //             self.mir.promoted[*index]
-                //                 .basic_blocks()
-                //                 .into_iter()
-                //                 .next()
-                //                 .unwrap()
-                //                 .statements[0]
-                //         );
-                //         // TODO: call eval_const
-                //         debug!(
-                //             "Encoding of promoted constant literal '{:?}: {:?}' is incomplete",
-                //             index, ty
-                //         );
-                //         // Workaround: do not initialize values
-                //     }
-                // }
             }
         };
         debug!(
