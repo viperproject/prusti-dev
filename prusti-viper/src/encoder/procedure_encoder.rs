@@ -4879,36 +4879,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     mir::ConstantKind::Ty(ty::Const { ty, val }) => (ty, *val),
                     mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(*val)),
                 };
-                if let ty::TyKind::Tuple(elements) = ty.kind() {
-                    // FIXME: This is most likley completely wrong. We need to
-                    // implement proper support for handling constants of
-                    // non-primitive types.
-                    if !elements.is_empty() {
-                        unimplemented!("Only ZSTs are currently supported, got: {:?}", elements);
+                match ty.kind() {
+                    ty::TyKind::Tuple(elements) if elements.is_empty() => Vec::new(),
+                    _ => {
+                        let field = self.encoder.encode_value_field(ty).with_span(span)?;
+                        let mut stmts = self.prepare_assign_target(
+                            lhs.clone(),
+                            field.clone(),
+                            location,
+                            vir::AssignKind::Copy,
+                        )?;
+                        // Initialize the constant
+                        let const_val = self.encoder
+                            .encode_const_expr(*ty, &val)
+                            .with_span(span)?;
+                        // Initialize value of lhs
+                        stmts.push(vir::Stmt::Assign(
+                            lhs.clone().field(field),
+                            const_val,
+                            vir::AssignKind::Copy,
+                        ));
+                        stmts
                     }
-                    // Since we have a ZST, we do not need to do anything to
-                    // encode it.
-                    Vec::new()
-                } else {
-                    // We expect to have a constant of a primitive type here.
-                    let field = self.encoder.encode_value_field(ty).with_span(span)?;
-                    let mut stmts = self.prepare_assign_target(
-                        lhs.clone(),
-                        field.clone(),
-                        location,
-                        vir::AssignKind::Copy,
-                    )?;
-                    // Initialize the constant
-                    let const_val = self.encoder
-                        .encode_const_expr(*ty, &val)
-                        .with_span(span)?;
-                    // Initialize value of lhs
-                    stmts.push(vir::Stmt::Assign(
-                        lhs.clone().field(field),
-                        const_val,
-                        vir::AssignKind::Copy,
-                    ));
-                    stmts
                 }
 
                 // FIXME: Delete the code below.
