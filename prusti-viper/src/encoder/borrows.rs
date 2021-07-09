@@ -436,6 +436,11 @@ where
         // FIXME: "skip_binder" is most likely wrong
         // FIXME: Replace with FakeMirEncoder.
         let fn_sig: FnSig = tcx.fn_sig(proc_def_id).skip_binder();
+        if fn_sig.c_variadic {
+            return Err(EncodingError::unsupported(
+                "variadic functions are not supported"
+            ));
+        }
         args_ty = (0usize .. fn_sig.inputs().len())
             .map(|i| (mir::Local::from_usize(i + 1), fn_sig.inputs()[i]))
             .collect();
