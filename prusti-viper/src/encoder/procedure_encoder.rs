@@ -2215,7 +2215,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         "core::f32::<impl f32>::min"  => { self.encode_float_min_max_call(FloatSize::F32, BinOpFloat::Min, args, &mut stmts, destination, location); }
-                        "core::f32::<impl f64>::min"  => { self.encode_float_min_max_call(FloatSize::F64, BinOpFloat::Min, args, &mut stmts, destination, location); }
+                        "core::f64::<impl f64>::min"  => { self.encode_float_min_max_call(FloatSize::F64, BinOpFloat::Min, args, &mut stmts, destination, location); }
                         "core::f32::<impl f32>::max"  => { self.encode_float_min_max_call(FloatSize::F32, BinOpFloat::Max, args, &mut stmts, destination, location); }
                         "core::f64::<impl f64>::max"  => { self.encode_float_min_max_call(FloatSize::F64, BinOpFloat::Max, args, &mut stmts, destination, location); }
 
