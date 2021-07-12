@@ -107,7 +107,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
     vir_program_before_foldunfold_writer: RefCell<Box<dyn Write>>,
     vir_program_before_viper_writer: RefCell<Box<dyn Write>>,
-    pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
+    typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
     /// Maps locals to the local of their discriminant.
@@ -1146,6 +1146,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         );
 
         // FIXME: this is a hack to support generics. See issue #187.
+        let old_typaram_repl = std::mem::replace(&mut *self.typaram_repl.borrow_mut(), Vec::new());
         assert!(self.typaram_repl.borrow().is_empty());
         let mut tymap = HashMap::new();
         for (typ, subst) in substs {
@@ -1194,6 +1195,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.pure_functions.borrow_mut().insert(key, function);
         }
 
+        *self.typaram_repl.borrow_mut() = old_typaram_repl;
+
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
         Ok(())
     }
@@ -1224,7 +1227,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let pure_function_encoder =
             PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false, parent_def_id);
 
-        self.queue_pure_function_encoding(proc_def_id);
+        let substs = self.current_tymap().into_iter().collect();
+        if let Err(error) = self.encode_pure_function_def(proc_def_id, substs) {
+            self.register_encoding_error(error);
+            debug!("Error encoding pure function: {:?}", proc_def_id);
+        }
 
         Ok((
             pure_function_encoder.encode_function_name(),
@@ -1268,10 +1275,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .push((proc_def_id, Vec::new()));
     }
 
-    pub fn queue_pure_function_encoding(&self, proc_def_id: ProcedureDefId) {
-        let substs = self.current_tymap().into_iter().collect();
-        self.encoding_queue.borrow_mut().push((proc_def_id, substs));
-    }
 
     pub fn process_encoding_queue(&mut self) {
         self.initialize();
