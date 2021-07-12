@@ -1,7 +1,7 @@
 extern crate proc_macro;
 
-use proc_macro2::Span;
 use proc_macro::TokenStream;
+use proc_macro2::Span;
 use quote::quote_spanned;
 
 #[proc_macro_attribute]
@@ -56,8 +56,9 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 }
 
 #[proc_macro_attribute]
-pub fn extern_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    tokens
+pub fn extern_spec(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
+    let callsite_span = Span::call_site();
+    (quote_spanned!(callsite_span => )).into()
 }
 
 #[proc_macro]

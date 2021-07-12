@@ -159,4 +159,8 @@ fn test_failing_crate() {
     test_local_project("failing_crate");
 }
 
+#[cargo_test]
+fn test_mod_extern_swap() {
+    test_local_project("passing_extern_mod_swap");
+}
 // TODO: automatically create a test for each folder in `test/cargo_verify`.
