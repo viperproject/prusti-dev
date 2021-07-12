@@ -525,7 +525,6 @@ pub fn export_all(_tokens: TokenStream) -> TokenStream {
 }
 
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
-    println!("extern spec calling!!!\n\n\n");
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
     let tokens = match item {
