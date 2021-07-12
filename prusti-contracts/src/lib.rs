@@ -23,6 +23,9 @@ mod private {
     /// A macro for writing a loop body invariant.
     pub use prusti_contracts_impl::body_invariant;
 
+    /// A macro for importing external specification
+    pub use prusti_contracts_impl::prusti_use;
+
     /// A macro for defining a closure with a specification.
     pub use prusti_contracts_impl::closure;
 
@@ -31,6 +34,9 @@ mod private {
 
     /// A macro for specifying external functions.
     pub use prusti_contracts_impl::extern_spec;
+
+    /// A macro for specifying for exporting all specs in the crate
+    pub use prusti_contracts_impl::export_all;
 
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
@@ -60,6 +66,9 @@ mod private {
     /// A macro for writing a loop body invariant.
     pub use prusti_contracts_internal::body_invariant;
 
+    /// A macro for importing external specification with a path
+    pub use prusti_contracts_internal::prusti_use;
+
     /// A macro for defining a closure with a specification.
     pub use prusti_contracts_internal::closure;
 
@@ -68,6 +77,9 @@ mod private {
 
     /// A macro for specifying external functions.
     pub use prusti_contracts_internal::extern_spec;
+
+    /// A macro for exporting all specs in the crate
+    pub use prusti_contracts_internal::export_all; 
 
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
