@@ -144,7 +144,8 @@ impl BuiltinEncoder {
                             vir::Expr::local(self_var),
                             vir::PermAmount::Read,
                         ),
-                        // idx < {len}
+                        // 0 <= idx < {len}
+                        vir!{ [vir::Expr::from(0)] <= [vir::Expr::local(idx_var.clone())] },
                         vir!([vir::Expr::local(idx_var)]  < [vir::Expr::from(array_len)]),
                     ],
                     posts: vec![],
@@ -184,7 +185,8 @@ impl BuiltinEncoder {
                             vir::Expr::local(self_var),
                             vir::PermAmount::Read,
                         ),
-                        // idx < Slice${ty}$len(self)
+                        // 0 <= idx < Slice${ty}$len(self)
+                        vir!{ [vir::Expr::from(0)] <= [vir::Expr::local(idx_var.clone())] },
                         vir!{ [vir::Expr::local(idx_var)] < [slice_len_call] },
                     ],
                     posts: vec![],

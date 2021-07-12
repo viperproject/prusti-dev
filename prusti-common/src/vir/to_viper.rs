@@ -394,6 +394,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ContainerOpKind::SeqIndex => {
                         ast.seq_index(left.to_viper(ast), right.to_viper(ast))
                     }
+                    ContainerOpKind::SeqConcat => {
+                        ast.seq_append(left.to_viper(ast), right.to_viper(ast))
+                    }
+                    ContainerOpKind::SeqLen => {
+                        ast.seq_length(left.to_viper(ast))
+                    }
                 }
             }
             Expr::Seq(ty, elems, _pos) => {
