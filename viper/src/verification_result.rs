@@ -8,7 +8,18 @@ use JavaException;
 use silicon_counterexample::SiliconCounterexample;
 
 /// The result of a verification request on a Viper program.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct ProgramVerificationResult {
+    /// The errors reported by the verification.
+    pub verification_errors: Vec<VerificationError>,
+    /// The consistency errors reported by the verifier.
+    pub consistency_errors: Vec<ConsistencyError>,
+    /// Java exceptions raised by the verifier.
+    pub java_exceptions: Vec<JavaExceptionWithOrigin>,
+}
+
+/// The result of a verification request on a Viper method.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum VerificationResult {
     /// The program verified.
     Success,
@@ -51,4 +62,22 @@ impl VerificationError {
             counterexample,
         }
     }
+}
+
+/// The consistency error reported by the verifier.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ConsistencyError {
+    /// To which method corresponds the program that triggered the error.
+    pub method: String,
+    /// The actual error.
+    pub error: String,
+}
+
+/// The Java exception reported by the verifier.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct JavaExceptionWithOrigin {
+    /// To which method corresponds the program that triggered the exception.
+    pub method: String,
+    /// The actual exception.
+    pub exception: JavaException,
 }
