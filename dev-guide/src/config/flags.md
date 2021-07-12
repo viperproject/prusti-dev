@@ -18,6 +18,7 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`DISABLE_NAME_MANGLING`](#disable_name_mangling) | `bool` | `false` |
 | [`DUMP_BORROWCK_INFO`](#dump_borrowck_info) | `bool` | `false` |
 | [`DUMP_DEBUG_INFO`](#dump_debug_info) | `bool` | `false` |
+| [`DUMP_DEBUG_INFO_DURING_FOLD`](#dump_debug_info_during_fold) | `bool` | `false` |
 | [`DUMP_PATH_CTXT_IN_DEBUG_INFO`](#dump_path_ctxt_in_debug_info) | `bool` | `false` |
 | [`DUMP_REBORROWING_DAG_IN_DEBUG_INFO`](#dump_reborrowing_dag_in_debug_info) | `bool` | `false` |
 | [`DUMP_VIPER_PROGRAM`](#dump_viper_program) | `bool` | `false` |
@@ -84,6 +85,10 @@ When enabled, borrow checking info will be output.
 ## `DUMP_DEBUG_INFO`
 
 When enabled, debug files will be created.
+
+## `DUMP_DEBUG_INFO_DURING_FOLD`
+
+When enabled, the state of the fold-unfold algorithm after each step will be dumped to a file.
 
 ## `DUMP_PATH_CTXT_IN_DEBUG_INFO`
 
