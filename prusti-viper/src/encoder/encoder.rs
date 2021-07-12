@@ -71,6 +71,18 @@ impl<'a, 'tcx> Drop for CleanupTyMapStack<'a, 'tcx> {
     }
 }
 
+#[must_use]
+pub struct RestoreTyMapStack<'a, 'tcx> {
+    stack: Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
+    tymap_stack: &'a std::cell::RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
+}
+
+impl<'a, 'tcx> Drop for RestoreTyMapStack<'a, 'tcx> {
+    fn drop(&mut self) {
+        std::mem::swap(&mut *self.tymap_stack.borrow_mut(), &mut self.stack);
+    }
+}
+
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
     def_spec: &'v typed::DefSpecificationMap<'tcx>,
@@ -82,6 +94,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::Function>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
+    programs: Vec<vir::Program>,
     pure_function_bodies: RefCell<HashMap<(ProcedureDefId, String), vir::Expr>>,
     pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
     failed_pure_functions: RefCell<HashSet<(ProcedureDefId, String)>>,
@@ -106,11 +119,9 @@ pub struct Encoder<'v, 'tcx: 'v> {
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
     vir_program_before_foldunfold_writer: RefCell<Box<dyn Write>>,
     vir_program_before_viper_writer: RefCell<Box<dyn Write>>,
-    pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
+    typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
-    /// The procedure that is currently being encoded.
-    pub current_proc: RefCell<Option<ProcedureDefId>>
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -144,6 +155,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             procedure_contracts: RefCell::new(HashMap::new()),
             builtin_methods: RefCell::new(HashMap::new()),
             builtin_functions: RefCell::new(HashMap::new()),
+            programs: Vec::new(),
             procedures: RefCell::new(HashMap::new()),
             pure_function_bodies: RefCell::new(HashMap::new()),
             pure_functions: RefCell::new(HashMap::new()),
@@ -170,7 +182,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             array_types_encoder: RefCell::new(ArrayTypesEncoder::new()),
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
-            current_proc: RefCell::new(None),
+        }
+    }
+
+    pub fn save_tymap<'a>(&'a self) -> RestoreTyMapStack<'a, 'tcx> {
+        let stack = std::mem::replace(&mut *self.typaram_repl.borrow_mut(), Vec::new());
+        RestoreTyMapStack {
+            tymap_stack: &self.typaram_repl,
+            stack
         }
     }
 
@@ -229,8 +248,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.error_manager.borrow_mut()
     }
 
-    pub fn get_viper_program(&self) -> vir::Program {
+    pub fn finalize_viper_program(&self, name: String) -> vir::Program {
         vir::Program {
+            name,
             domains: self.get_used_viper_domains(),
             fields: self.get_used_viper_fields(),
             builtin_methods: self.get_used_builtin_methods(),
@@ -238,6 +258,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             functions: self.get_used_viper_functions(),
             viper_predicates: self.get_used_viper_predicates(),
         }
+    }
+
+    pub fn get_viper_programs(&mut self) -> Vec<vir::Program> {
+        std::mem::replace(&mut self.programs, Vec::new())
     }
 
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
@@ -330,7 +354,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
-        self.procedures.borrow().values().cloned().collect()
+        self.procedures.borrow_mut().drain().map(|(_, value)| value).collect()
     }
 
     pub fn get_single_closure_instantiation(
@@ -710,13 +734,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .patch_snapshots_expr(self, expr)
     }
 
+    /// This encodes the Rust function as a Viper method for verification. It
+    /// does this also for pure functions.
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<()> {
         debug!("encode_procedure({:?})", def_id);
-        assert!(
-            !self.is_pure(def_id),
-            "procedure is marked as pure: {:?}",
-            def_id
-        );
         assert!(
             !self.is_trusted(def_id),
             "procedure is marked as trusted: {:?}",
@@ -1134,11 +1155,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         );
 
         // FIXME: this is a hack to support generics. See issue #187.
+        let _old_typaram_repl = self.save_tymap();
         assert!(self.typaram_repl.borrow().is_empty());
         let mut tymap = HashMap::new();
         for (typ, subst) in substs {
             tymap.insert(typ, subst);
         }
+
         let _cleanup_token = self.push_temp_tymap(tymap);
 
         // FIXME: Using substitutions as a key is most likely wrong.
@@ -1211,7 +1234,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let pure_function_encoder =
             PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
 
-        self.queue_pure_function_encoding(proc_def_id);
+        let substs = self.current_tymap().into_iter().collect();
+        if let Err(error) = self.encode_pure_function_def(proc_def_id, substs) {
+            self.register_encoding_error(error);
+            debug!("Error encoding pure function: {:?}", proc_def_id);
+        }
 
         Ok((
             pure_function_encoder.encode_function_name(),
@@ -1255,16 +1282,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             .push((proc_def_id, Vec::new()));
     }
 
-    pub fn queue_pure_function_encoding(&self, proc_def_id: ProcedureDefId) {
-        let substs = self.current_tymap().into_iter().collect();
-        self.encoding_queue.borrow_mut().push((proc_def_id, substs));
-    }
 
     pub fn process_encoding_queue(&mut self) {
         self.initialize();
         while !self.encoding_queue.borrow().is_empty() {
             let (proc_def_id, substs) = self.encoding_queue.borrow_mut().pop().unwrap();
-            self.current_proc.replace(Some(proc_def_id.clone()));
 
             let proc_name = self.env.get_absolute_item_name(proc_def_id);
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
@@ -1274,28 +1296,22 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 "Encoding: {} from {:?} ({})",
                 proc_name, proc_span, proc_def_path
             );
-            let is_pure_function = self.is_pure(proc_def_id);
-            if is_pure_function {
-                if let Err(error) = self.encode_pure_function_def(proc_def_id, substs) {
-                    self.register_encoding_error(error);
-                    debug!("Error encoding pure function: {:?}", proc_def_id);
-                }
+            assert!(substs.is_empty());
+            if self.is_trusted(proc_def_id) {
+                debug!(
+                    "Trusted procedure will not be encoded or verified: {:?}",
+                    proc_def_id
+                );
             } else {
-                assert!(substs.is_empty());
-                if self.is_trusted(proc_def_id) {
-                    debug!(
-                        "Trusted procedure will not be encoded or verified: {:?}",
-                        proc_def_id
-                    );
+                if let Err(error) = self.encode_procedure(proc_def_id) {
+                    self.register_encoding_error(error);
+                    debug!("Error encoding function: {:?}", proc_def_id);
                 } else {
-                    if let Err(error) = self.encode_procedure(proc_def_id) {
-                        self.register_encoding_error(error);
-                        debug!("Error encoding function: {:?}", proc_def_id);
-                    }
+                    let program = self.finalize_viper_program(proc_name);
+                    self.programs.push(program);
                 }
             }
 
-            self.current_proc.replace(None);
         }
     }
 
