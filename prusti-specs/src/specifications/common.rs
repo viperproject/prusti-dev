@@ -55,10 +55,7 @@ pub struct SpecificationId(Uuid);
 pub enum SpecIdRef {
     Precondition(SpecificationId),
     Postcondition(SpecificationId),
-    Pledge {
-        lhs: Option<SpecificationId>,
-        rhs: SpecificationId,
-    },
+    Pledge(SpecificationId),
     Predicate(SpecificationId),
 }
 
