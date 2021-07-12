@@ -493,36 +493,6 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     }
 }
 
-pub fn export_all(_tokens: TokenStream) -> TokenStream {
-    quote!(
-        #[prusti::export_all]
-        #[macro_export]
-        macro_rules! crate_spec {
-            () => {
-                
-            };
-        }
-    )
-    // TODO: Transform the export_all to be an inner attribute 
-    // println!("tokens: {:?} \n\n", tokens.to_string());
-    // let body = tokens.clone().into_iter().skip(2).next().unwrap();
-    // match body {
-    //     proc_macro2::TokenTree::Group(group) => {
-    //         let stream = group.stream();
-    //         println!("stream: {:?} \n\n", &stream.to_string());
-    //         let item: untyped::CrateItem = handle_result!(syn::parse2(stream));
-    //         // println!("item after parsing: {:?} \n\n", item);
-    //         // let tokens = quote!(#item);
-    //         // println!("tokens: {:?} \n\n", &tokens.to_string());
-    //         return tokens;
-    //     },
-    //     _ => println!("what's this: {:?} \n\n", &body)
-    // }
-    // println!("export all tokens: {:?} \n\n", &body);
-    // println!("token_str: {:?} \n\n", tokens.to_string());
-    // tokens
-    // TokenStream::new()
-}
 
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
@@ -562,15 +532,12 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
 
             let mut macros = vec![];
             handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path, &mut rewrite_path, &mut macros));
-            let item_mod_str = quote!(#item_mod).to_string();
 
             let mut macro_tokens = TokenStream::new();
             macro_tokens.extend(macros.into_iter().map(|item_mac| quote!(#item_mac)));
 
             parse_quote_spanned!{item_span =>
                 #macro_tokens
-
-                #[prusti::persist=#item_mod_str]
                 #item_mod
                 
             }

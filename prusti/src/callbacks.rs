@@ -18,9 +18,6 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
         let (krate, _resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
-        let mut spec_collector = prusti_interface::environment::PersistSpecCollector::new();
-        rustc_ast::visit::walk_crate(&mut spec_collector, krate);
-        spec_collector.collect_specs(krate);
         if config::print_desugared_specs() {
             rustc_driver::pretty::print_after_parsing(
                 compiler.session(),
