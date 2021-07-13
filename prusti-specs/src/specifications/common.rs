@@ -299,6 +299,81 @@ pub enum AssertionKind<EID, ET, AT> {
     },
 }
 
+/// Folder to transform an assertion
+pub trait AssertionFolder<EID, ET, AT> {
+    fn fold_assertion(&mut self, a: Assertion<EID, ET, AT>) -> Assertion<EID, ET, AT> {
+        Assertion { kind: box self.fold_kind(*a.kind) }
+    }
+    fn fold_kind(&mut self, kind: AssertionKind<EID, ET, AT>) -> AssertionKind<EID, ET, AT> {
+        match kind {
+            AssertionKind::Expr(e) => self.fold_expr(e),
+            AssertionKind::And(vec) => self.fold_and(vec),
+            AssertionKind::Implies(left, right) => self.fold_implies(left, right),
+            AssertionKind::TypeCond(vars, a) => self.fold_type_cond(vars, a),
+            AssertionKind::ForAll(vars, t, a) => self.fold_for_all(vars, t, a),
+            AssertionKind::SpecEntailment {closure, arg_binders, pres, posts} => {
+                self.fold_spec_entailment(closure, arg_binders, pres, posts)
+            },
+            AssertionKind::CreditPolynomial {spec_id, id, credit_type, concrete_terms, abstract_terms} => {
+                self.fold_credit_polynomial(spec_id, id, credit_type, concrete_terms, abstract_terms)
+            },
+        }
+    }
+    fn fold_expr(&mut self, expression: Expression<EID, ET>) -> AssertionKind<EID, ET, AT> {
+        AssertionKind::Expr(self.fold_expression(expression))
+    }
+    fn fold_and(&mut self, assertions: Vec<Assertion<EID, ET, AT>>) -> AssertionKind<EID, ET, AT> {
+        AssertionKind::And(assertions.into_iter().map(|a| self.fold_assertion(a)).collect())
+    }
+    fn fold_implies(&mut self, left: Assertion<EID, ET, AT>, right: Assertion<EID, ET, AT>) -> AssertionKind<EID, ET, AT> {
+        AssertionKind::Implies(self.fold_assertion(left), self.fold_assertion(right))
+    }
+    fn fold_type_cond(&mut self, vars: ForAllVars<EID, AT>, assertion: Assertion<EID, ET, AT>) -> AssertionKind<EID, ET, AT> {
+        AssertionKind::TypeCond(vars, self.fold_assertion(assertion))
+    }
+    fn fold_for_all(
+        &mut self,
+        vars: ForAllVars<EID, AT>,
+        triggers: TriggerSet<EID, ET>,
+        assertion: Assertion<EID, ET, AT>
+    ) -> AssertionKind<EID, ET, AT> {
+        AssertionKind::ForAll(vars, triggers, self.fold_assertion(assertion))
+    }
+    fn fold_spec_entailment(
+        &mut self,
+        closure: Expression<EID, ET>,
+        arg_binders: SpecEntailmentVars<EID, AT>,
+        pres: Vec<Assertion<EID, ET, AT>>,
+        posts: Vec<Assertion<EID, ET, AT>>
+    ) -> AssertionKind<EID, ET, AT> {
+        AssertionKind::SpecEntailment {
+            closure: self.fold_expression(closure),
+            arg_binders,
+            pres: pres.into_iter().map(|a| self.fold_assertion(a)).collect(),
+            posts: posts.into_iter().map(|a| self.fold_assertion(a)).collect()
+        }
+    }
+    fn fold_credit_polynomial(
+        &mut self,
+        spec_id: SpecificationId,
+        id: EID,
+        credit_type: String,
+        concrete_terms: Vec<CreditPolynomialTerm<EID, ET, AT>>,
+        abstract_terms: Vec<CreditPolynomialTerm<EID, ET, AT>>,
+    ) -> AssertionKind<EID, ET, AT> {
+        AssertionKind::CreditPolynomial {
+            spec_id,
+            id,
+            credit_type,
+            concrete_terms,
+            abstract_terms,
+        }
+    }
+    fn fold_expression(&mut self, e: Expression<EID, ET>) -> Expression<EID, ET> {
+        e
+    }
+}
+
 #[derive(Debug, Clone)]
 /// Pledge `after_expiry(ref => rhs)`
 ///     or `after_expiry_if(ref => lhs, rhs)`
