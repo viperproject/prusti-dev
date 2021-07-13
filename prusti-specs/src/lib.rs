@@ -121,9 +121,9 @@ fn generate_spec_and_assertions(
     let mut generated_items = vec![];
     let mut generated_attributes = vec![];
 
-    for (i, (attr_kind, attr_tokens)) in prusti_attributes.drain(..).enumerate() {
+    for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
         let rewriting_result = match attr_kind {
-            SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item, i), //, &called_functions),
+            SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item), //, &called_functions),
             SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item),
             SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
             SpecAttributeKind::AfterExpiryIf => generate_for_after_expiry_if(attr_tokens, item),
@@ -143,12 +143,12 @@ fn generate_spec_and_assertions(
 }
 
 /// Generate spec items and attributes to typecheck the and later retrieve "requires" annotations.
-fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem, assertion_idx: usize) -> GeneratedResult {         // look here
+fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {         // look here
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
     let mut assertion = rewriter.parse_assertion(spec_id, attr)?;
-    let mut generated_items = rewriter.generate_abstract_coefficients(&mut assertion, item, assertion_idx);
+    let mut generated_items = rewriter.generate_abstract_coefficients(&mut assertion, item);
     let spec_item = rewriter.generate_spec_item_fn(
         rewriter::SpecItemType::Precondition,
         spec_id,

@@ -428,22 +428,31 @@ impl Parser {
     fn parse_credit_function(&mut self) -> syn::Result<AssertionWithoutId> {
         let credit_type = self.consume_and_return_keyword().unwrap();       // this function is only called when there is a keyword
 
-        if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-            let parsed_term_vec: CreditPolynomialTermVec = syn::parse2(stream)?;
+        if let Some(stream) = self.consume_group(Delimiter::Bracket) {
+            let user_id: syn::ExprLit = syn::parse2(stream)?;
 
-            Ok(AssertionWithoutId {
-                kind: Box::new(common::AssertionKind::CreditPolynomial {
-                    spec_id: common::SpecificationId::dummy(),
-                    id: (),
-                    credit_type,
-                    // just copy concrete terms (coefficients will be replaced in rewriter later)
-                    abstract_terms: parsed_term_vec.term_vector.clone(),
-                    concrete_terms: parsed_term_vec.term_vector,
-                }),
-            })
-        }
-        else {
-            Err(self.error_expected("`(`"))
+            if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                let parsed_term_vec: CreditPolynomialTermVec = syn::parse2(stream)?;
+
+                // just copy concrete terms (coefficients will be replaced in rewriter later)
+                let mut abstract_terms = parsed_term_vec.term_vector.clone();
+                // exploit first coefficient to store user_id
+                abstract_terms.first_mut().unwrap().coeff_expr.expr = syn::Expr::Lit(user_id);
+
+                Ok(AssertionWithoutId {
+                    kind: Box::new(common::AssertionKind::CreditPolynomial {
+                        spec_id: common::SpecificationId::dummy(),
+                        id: (),
+                        credit_type,
+                        concrete_terms: parsed_term_vec.term_vector,
+                        abstract_terms,
+                    }),
+                })
+            } else {
+                Err(self.error_expected("`(`"))
+            }
+        } else {
+            Err(self.error_expected("`[`"))
         }
     }
 

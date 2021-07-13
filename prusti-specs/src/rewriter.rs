@@ -96,12 +96,10 @@ impl AstRewriter {
         fn_arg
     }
 
-    pub fn generate_abstract_coefficients(&self, assertion: &mut untyped::Assertion, fn_item: &untyped::AnyFnItem, assertion_idx: usize)
+    pub fn generate_abstract_coefficients(&self, assertion: &mut untyped::Assertion, fn_item: &untyped::AnyFnItem)
         -> Vec<syn::Item>
     {
         struct CreditFolder {
-            assertion_idx: usize,
-            poly_counter: usize,
             name_prefix: String,            // needs to be different for different fn_items
             added_coeffs: HashSet<String>,
         }
@@ -109,7 +107,9 @@ impl AstRewriter {
             fn add_abstract_term_and_smaller(
                 &mut self,
                 term_to_add: &mut untyped::CreditPolynomialTerm,
-                abstract_terms: &mut Vec<untyped::CreditPolynomialTerm>
+                abstract_terms: &mut Vec<untyped::CreditPolynomialTerm>,
+                credit_name: &str,
+                user_id: &str,
             ) {
                 // construct name of coefficient
                 let mut powers_str = term_to_add.powers.iter()  // powers are ordered by var name
@@ -118,7 +118,7 @@ impl AstRewriter {
                 if powers_str.is_empty() {
                     powers_str = "0".to_string();
                 }
-                let coeff_name = format!("{}_{}_{}_{}", self.name_prefix, self.assertion_idx, self.poly_counter, powers_str);           //TODO: better naming?
+                let coeff_name = format!("{}_{}_{}_{}", self.name_prefix, credit_name, user_id, powers_str);
 
                 if !self.added_coeffs.contains(&coeff_name) {
                     let call_str = format!("{}()", coeff_name);
@@ -146,7 +146,7 @@ impl AstRewriter {
                             term_to_add.powers.last_mut().unwrap().exponent -= 1;
                         }
 
-                        self.add_abstract_term_and_smaller(term_to_add, abstract_terms);
+                        self.add_abstract_term_and_smaller(term_to_add, abstract_terms, credit_name, user_id);
                     }
                 }
             }
@@ -161,26 +161,42 @@ impl AstRewriter {
                 abstract_terms: Vec<untyped::CreditPolynomialTerm>,
             ) -> untyped::AssertionKind {
 
-                let mut new_abstract_terms = vec![];
-                for mut term in abstract_terms {
-                    self.add_abstract_term_and_smaller(&mut term, &mut new_abstract_terms);
-                }
-                let credit_polynomial = untyped::AssertionKind::CreditPolynomial {
-                    spec_id,
-                    id,
-                    credit_type,
-                    concrete_terms,
-                    abstract_terms: new_abstract_terms
-                };
+                if let syn::Expr::Lit(lit) = &abstract_terms.first().unwrap().coeff_expr.expr {
+                    let user_id = if let syn::Lit::Int(lit_int) = &lit.lit {
+                        lit_int.to_string()
+                    }
+                    else if let syn::Lit::Str(lit_str) = &lit.lit {
+                        lit_str.value()
+                    }
+                    else {
+                        unimplemented!()
+                    };
 
-                self.poly_counter += 1;
-                credit_polynomial
+                    let credit_vec = credit_type.split("_").collect::<Vec<&str>>();
+                    let credit_name = *credit_vec.first().unwrap();
+
+                    let mut new_abstract_terms = vec![];
+                    for mut term in abstract_terms {
+                        self.add_abstract_term_and_smaller(&mut term, &mut new_abstract_terms, credit_name, &user_id);
+                    }
+                    let credit_polynomial = untyped::AssertionKind::CreditPolynomial {
+                        spec_id,
+                        id,
+                        credit_type,
+                        concrete_terms,
+                        abstract_terms: new_abstract_terms
+                    };
+
+                    credit_polynomial
+                }
+                else {
+                    unimplemented!()
+                }
             }
         }
 
+
         let mut folder = CreditFolder {
-            assertion_idx,
-            poly_counter: 0,
             name_prefix: fn_item.sig().ident.to_string(),
             added_coeffs: HashSet::new()
         };
@@ -203,9 +219,7 @@ impl AstRewriter {
                 }
             };
             let mut coeff_any_fn = untyped::AnyFnItem::Fn(coeff_fn);
-            println!("coeff_fn: {:?} {{ {:?} }}", coeff_any_fn.sig(), coeff_any_fn.block());
             let attributes_vec = extract_prusti_attributes(&mut coeff_any_fn).collect();
-            println!("attributes: {:?}", attributes_vec);
             let (generated_spec_items, generated_attributes) =
                 generate_spec_and_assertions(attributes_vec, &coeff_any_fn)
                     .expect("Internal error while creating abstract coefficient function");     //TODO: better error?
@@ -218,7 +232,6 @@ impl AstRewriter {
             generated_fns.extend(generated_spec_items);
         }
 
-        println!("Generated fns: {:?}", generated_fns);
         generated_fns
     }
 
