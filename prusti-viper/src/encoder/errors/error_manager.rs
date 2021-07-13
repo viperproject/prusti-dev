@@ -371,7 +371,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Generic),
             ) => {
-                PrustiError::verification("statement in pure function might panic", error_span)
+                PrustiError::disabled_verification("statement in pure function might panic", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
@@ -379,7 +379,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Panic),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "panic!(..) statement in pure function might panic",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -389,7 +389,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Assert),
             ) => {
-                PrustiError::verification("asserted expression might not hold", error_span)
+                PrustiError::disabled_verification("asserted expression might not hold", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
@@ -397,7 +397,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Unreachable),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "unreachable!(..) statement in pure function might be reachable",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -407,7 +407,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Unimplemented),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "unimplemented!(..) statement in pure function might be reachable",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -416,7 +416,7 @@ impl<'tcx> ErrorManager<'tcx>
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) |
             ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "postcondition of pure function definition might not hold",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -426,7 +426,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PureFunctionAssertTerminator(ref message),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     format!("assertion might fail with \"{}\"", message),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
