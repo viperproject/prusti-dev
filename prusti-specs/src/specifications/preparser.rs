@@ -116,6 +116,8 @@ impl Parse for CreditPolynomialTerm<(), syn::Expr, Arg> {     //TODO: maybe gene
             powers.push(input.parse::<CreditVarPower<(), Arg>>()?);
         }
 
+        // sort powers by var name
+        powers.sort_unstable_by_key(|pow| pow.var.name.to_string());           //TODO: here we assume no duplicate variables, still needs to be ensured before!
         Ok(Self{
             coeff_expr,
             powers,
@@ -434,7 +436,9 @@ impl Parser {
                     spec_id: common::SpecificationId::dummy(),
                     id: (),
                     credit_type,
-                    terms: parsed_term_vec.term_vector,
+                    // just copy concrete terms (coefficients will be replaced in rewriter later)
+                    abstract_terms: parsed_term_vec.term_vector.clone(),
+                    concrete_terms: parsed_term_vec.term_vector,
                 }),
             })
         }

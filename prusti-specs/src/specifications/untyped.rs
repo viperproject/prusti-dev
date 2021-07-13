@@ -323,11 +323,14 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
                          Assertion { kind: assertion.kind.assign_id(spec_id, id_generator) })
                      .collect(),
             },
-            CreditPolynomial {credit_type, terms, ..} => CreditPolynomial {
+            CreditPolynomial {credit_type, concrete_terms, abstract_terms, ..} => CreditPolynomial {
                 spec_id,
                 id: id_generator.generate(),
                 credit_type,
-                terms: terms.into_iter()
+                concrete_terms: concrete_terms.into_iter()
+                    .map(|term| term.assign_id(spec_id, id_generator))
+                    .collect(),
+                abstract_terms: abstract_terms.into_iter()
                     .map(|term| term.assign_id(spec_id, id_generator))
                     .collect(),
             },
@@ -417,13 +420,13 @@ impl EncodeTypeCheck for CreditVarPower {
 impl EncodeTypeCheck for CreditPolynomialTerm {
     fn encode_type_check(&self, tokens: &mut TokenStream) {
         let span = self.coeff_expr.expr.span();
-        let expr = &self.coeff_expr.expr;
+        let coeff_expr = &self.coeff_expr.expr;
         let identifier = format!("{}_{}", self.coeff_expr.spec_id, self.coeff_expr.id);
         let coeff_typeck_call = quote_spanned! { span =>
             #[prusti::spec_only]
             #[prusti::expr_id = #identifier]
             || -> u32 {
-                #expr
+                #coeff_expr
             };
         };
         tokens.extend(coeff_typeck_call);
@@ -524,19 +527,22 @@ impl EncodeTypeCheck for Assertion {
                 };
                 tokens.extend(typeck_call);
             }
-            AssertionKind::CreditPolynomial {spec_id, id, terms, ..} =>{
+            AssertionKind::CreditPolynomial {spec_id, id, concrete_terms, abstract_terms, ..} =>{
                 let span = Span::call_site();
-                let vec_of_coeff: Vec<Arg> = vec![];      //TODO: coefficients of called functions?
                 let mut terms_typeck = TokenStream::new();
-                for term in terms.iter() {
+                for term in concrete_terms.iter() {
                     term.encode_type_check(&mut terms_typeck);
                 }
+                for term in abstract_terms.iter() {
+                    term.encode_type_check(&mut terms_typeck);
+                }
+
 
                 let identifier = format!("{}_{}", spec_id, id);
                 let typeck_call = quote_spanned! {span=>
                     #[prusti::spec_only]
                     #[prusti::expr_id = #identifier]
-                    |#(#vec_of_coeff),*| {          // all other variables must come from outside
+                    || {
                         #terms_typeck
                     };
                 };

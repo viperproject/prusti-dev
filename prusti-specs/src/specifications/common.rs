@@ -295,7 +295,8 @@ pub enum AssertionKind<EID, ET, AT> {
         /// Id for this polynomial.
         id: EID,
         credit_type: String,    //TODO: enum later
-        terms: Vec<CreditPolynomialTerm<EID, ET, AT>>,          // TODO: replace AT? is not really an argument declaration
+        concrete_terms: Vec<CreditPolynomialTerm<EID, ET, AT>>,          // TODO: replace AT? is not really an argument declaration
+        abstract_terms: Vec<CreditPolynomialTerm<EID, ET, AT>>,
     },
 }
 

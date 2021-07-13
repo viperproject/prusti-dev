@@ -23,7 +23,8 @@ pub enum AssertionKind {
         spec_id: untyped::SpecificationId,
         expr_id: untyped::ExpressionId,
         credit_type: String,
-        terms: Vec<CreditPolynomialTerm>,
+        concrete_terms: Vec<CreditPolynomialTerm>,
+        abstract_terms: Vec<CreditPolynomialTerm>
     },
 }
 
@@ -170,11 +171,12 @@ impl untyped::AssertionKind {
                 pres: pres.iter().map(|pre| pre.to_structure()).collect(),
                 posts: posts.iter().map(|post| post.to_structure()).collect(),
             },
-            CreditPolynomial {spec_id, id, credit_type, terms} => AssertionKind::CreditPolynomial {
+            CreditPolynomial {spec_id, id, credit_type, concrete_terms, abstract_terms } => AssertionKind::CreditPolynomial {
                 spec_id: *spec_id,
                 expr_id: *id,
                 credit_type: credit_type.clone(),
-                terms: terms.iter().map(|term| term.to_structure()).collect(),
+                concrete_terms: concrete_terms.iter().map(|term| term.to_structure()).collect(),
+                abstract_terms: abstract_terms.iter().map(|term| term.to_structure()).collect()
             },
             x => {
                 unimplemented!("{:?}", x);

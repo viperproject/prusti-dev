@@ -2726,7 +2726,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_func_spec,
             _, // We don't care about verifying that the weakening is valid,
                // since it isn't the task of the caller
-        ) = self.encode_precondition_expr(&procedure_contract, None)?;
+        ) = self.encode_precondition_expr(&procedure_contract, None, true)?;
         let pos = self
             .encoder
             .error_manager()
@@ -3116,10 +3116,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// - one for the type encoding
     /// - one for the type invariants
     /// - one for the functional specification.
+    ///
+    /// `function_start` – are we encoding the inhale of the precondition
+    /// at the start of the method?
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
         precondition_weakening: Option<typed::Assertion<'tcx>>,
+        function_start: bool,
     ) -> SpannedEncodingResult<(
         vir::Expr,
         Vec<vir::Expr>,
@@ -3192,6 +3196,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &encoded_args,
                 None,
                 false,
+                !function_start,
                 None,
                 ErrorCtxt::GenericExpression,
             )?;
@@ -3231,6 +3236,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &encoded_args,
                 None,
                 false,
+                function_start,
                 None,
                 ErrorCtxt::AssertMethodPreconditionWeakening(
                     precondition_spans.clone()
@@ -3257,7 +3263,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
             self.encode_precondition_expr(
                 self.procedure_contract(),
-                precondition_weakening
+                precondition_weakening,
+                false
             )?;
         self.cfg_method.add_stmt(
             start_cfg_block,
@@ -3279,7 +3286,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let pos = weakening_spec.pos();
             self.cfg_method.add_stmt(
                 start_cfg_block,
-                vir::Stmt::Assert(weakening_spec, pos),
+                vir::Stmt::Assert(weakening_spec, pos),         //TODO: can there be credit spec in here -> need replace assert by exhale?
             );
         }
         self.cfg_method.add_stmt(
@@ -3301,6 +3308,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
+        is_exhaled: bool,
     ) -> EncodingResult<Option<(vir::Expr, vir::Expr)>> {
         // Encode args and return.
         let encoded_args: Vec<vir::Expr> = contract
@@ -3370,6 +3378,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         &encoded_args,
                         Some(&encoded_return),
                         false,
+                        is_exhaled,
                         None,
                         ErrorCtxt::GenericExpression,
                     )?
@@ -3383,6 +3392,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &encoded_args,
                     Some(&encoded_return),
                     false,
+                    is_exhaled,
                     None,
                     ErrorCtxt::GenericExpression,
                 )?;
@@ -3554,7 +3564,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location,
             contract,
             pre_label,
-            post_label
+            post_label,
+            function_end,
         ).with_span(self.mir.span)? {
             if let Some((location, fake_exprs)) = magic_wand_store_info {
                 let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
@@ -3594,6 +3605,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &encoded_args,
                 Some(&encoded_return),
                 false,
+                function_end,
                 None,
                 ErrorCtxt::GenericExpression,
             )?;
@@ -3628,6 +3640,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &encoded_args,
                     Some(&encoded_return),
                     false,
+                    function_end,
                     None,
                     ErrorCtxt::AssertMethodPostconditionStrengthening(
                         postcondition_span.clone()
@@ -3740,7 +3753,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             None,
             self.procedure_contract(),
             pre_label,
-            post_label
+            post_label,
+            false       //TODO: correct?
         ).with_span(span)? {
             let pos = self
                 .encoder
@@ -4407,6 +4421,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
+        is_exhaled: bool,
     ) -> SpannedEncodingResult<(Vec<vir::Expr>, MultiSpan)> {
         let spec_blocks = self.get_loop_spec_blocks(loop_head);
         trace!(
@@ -4447,6 +4462,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &encoded_args,
                     None,
                     false,
+                    is_exhaled,
                     Some(loop_inv_block),
                     ErrorCtxt::GenericExpression,
                 )?;
@@ -4481,7 +4497,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .insert(loop_head, HashMap::new());
         }
         let (func_spec, func_spec_span) =
-            self.encode_loop_invariant_specs(loop_head, loop_inv_block)?;
+            self.encode_loop_invariant_specs(loop_head, loop_inv_block, true)?;
         let (permissions, equalities) =
             self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true)
                 .with_span(func_spec_span.clone())?;
@@ -4557,7 +4573,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             after_loop
         );
         let (func_spec, func_spec_span) =
-            self.encode_loop_invariant_specs(loop_head, loop_inv_block)?;
+            self.encode_loop_invariant_specs(loop_head, loop_inv_block, false)?;
         let (permissions, equalities) =
             self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true)
                 .with_span(func_spec_span)?;

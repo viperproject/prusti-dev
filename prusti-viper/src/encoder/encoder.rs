@@ -796,6 +796,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         target_args: &[vir::Expr],
         target_return: Option<&vir::Expr>,
         targets_are_values: bool,
+        only_exhaled: bool,
         assertion_location: Option<mir::BasicBlock>,
         error: ErrorCtxt,
     ) -> SpannedEncodingResult<vir::Expr> {
@@ -807,6 +808,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             target_args,
             target_return,
             targets_are_values,
+            only_exhaled,
             assertion_location,
         )?;
         Ok(encoded_assertion.set_default_pos(

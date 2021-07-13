@@ -48,6 +48,8 @@ use prusti_interface::utils::read_prusti_attr;
 ///   `None` iff the assertion cannot mention `return` (e.g. a loop invariant).
 /// * `targets_are_values`: if `true`, the elements of `target_args` and `target_return` encode
 ///   _values_ and not _memory locations_. This is typically used to encode pure functions.
+/// * `only_exhaled`: Flag to signal that the assertion only occurs in contexts where it is
+///     exhaled/asserted. This is e.g. relevant for the encoding of resource credit assertions.
 /// * `assertion_location`: the basic block at which the assertion should be encoded. This should
 ///   be `Some(..)` iff the assertion is a loop invariant.
 pub fn encode_spec_assertion<'v, 'tcx: 'v>(
@@ -57,6 +59,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
     target_args: &[vir::Expr],
     target_return: Option<&vir::Expr>,
     targets_are_values: bool,
+    only_exhaled: bool,
     assertion_location: Option<mir::BasicBlock>,
 ) -> SpannedEncodingResult<vir::Expr> {
     let spec_encoder = SpecEncoder::new(
@@ -65,6 +68,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
         target_args,
         target_return,
         targets_are_values,
+        only_exhaled,
         assertion_location,
     );
     spec_encoder.encode_assertion(assertion)
@@ -80,6 +84,8 @@ struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
     target_return: Option<&'p vir::Expr>,
     /// Used to encode pure functions.
     targets_are_values: bool,
+    /// only occurs in contexts where it is exhaled/asserted
+    only_exhaled: bool,
     /// Location at which to encode loop invariants.
     assertion_location: Option<mir::BasicBlock>,
 }
@@ -91,6 +97,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         target_args: &'p [vir::Expr],
         target_return: Option<&'p vir::Expr>,
         targets_are_values: bool,
+        only_exhaled: bool,
         assertion_location: Option<mir::BasicBlock>,
     ) -> Self {
         trace!("SpecEncoder constructor");
@@ -101,6 +108,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             target_args,
             target_return,
             targets_are_values,
+            only_exhaled,
             assertion_location,
         }
     }
@@ -388,16 +396,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             }
             box typed::AssertionKind::CreditPolynomial {
                 ref credit_type,
-                ref terms,
+                ref concrete_terms,
+                ref abstract_terms,
                 ..
             } => {
                 let mut acc_predicates = vec![];
 
+                let terms = if self.only_exhaled {
+                    abstract_terms
+                }
+                else {
+                    concrete_terms
+                };
                 for term in terms {
                     let mut exponents = vec![];
                     let mut args= vec![];
                     for pow in term.powers.iter() {
-                        exponents.push(pow.exponent);           //TODO: fix order?
+                        exponents.push(pow.exponent);
 
                         let var_name = format!("{:?}", pow.var.0);
                         let ty = self.encoder.encode_type(pow.var.1).unwrap();      // should succeed

@@ -160,10 +160,16 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                     .collect::<Vec<Span>>());
                 spans
             }
-            AssertionKind::CreditPolynomial { ref terms, ..} => {
-                terms.iter()
+            AssertionKind::CreditPolynomial { ref concrete_terms, ref abstract_terms, ..} => {
+                let mut spans = concrete_terms
+                    .iter()
                     .flat_map(|term| term.get_spans(mir_body, tcx))
-                    .collect::<Vec<Span>>()
+                    .collect::<Vec<Span>>();
+                spans.extend(abstract_terms                 //TODO: check
+                     .iter()
+                     .flat_map(|term| term.get_spans(mir_body, tcx))
+                     .collect::<Vec<Span>>());
+                spans
             }
         }
     }
@@ -341,11 +347,14 @@ impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind 
                     .map(|post| post.to_typed(typed_expressions, tcx))
                     .collect(),
             },
-            CreditPolynomial { spec_id, expr_id, credit_type, terms} => AssertionKind::CreditPolynomial {
+            CreditPolynomial { spec_id, expr_id, credit_type, concrete_terms, abstract_terms } => AssertionKind::CreditPolynomial {
                 spec_id,
                 id: expr_id,
                 credit_type,
-                terms: terms.into_iter()
+                concrete_terms: concrete_terms.into_iter()
+                    .map(|term| term.to_typed(typed_expressions, tcx))
+                    .collect(),
+                abstract_terms: abstract_terms.into_iter()
                     .map(|term| term.to_typed(typed_expressions, tcx))
                     .collect(),
             }
