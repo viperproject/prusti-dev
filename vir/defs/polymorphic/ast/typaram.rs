@@ -11,3 +11,11 @@ pub struct Substs {
     regex: Regex,
     repls: HashMap<String, String>,
 }
+
+impl std::fmt::Debug for Substs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Substs")
+         .field("repls", &self.repls)
+         .finish()
+    }
+}
