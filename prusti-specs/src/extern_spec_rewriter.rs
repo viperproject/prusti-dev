@@ -186,7 +186,7 @@ fn hash_path_ident<T: Hash>(ident: syn::Ident, path: T) -> syn::Ident {
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
 pub fn rewrite_impl(
     impl_item: &mut syn::ItemImpl,
-    new_ty: Box<syn::Type>,
+    new_struct: &syn::ItemStruct,
 ) -> syn::Result<TokenStream> {
     let item_ty = &mut impl_item.self_ty;
     if let syn::Type::Path(type_path) = item_ty.as_mut() {
@@ -240,10 +240,81 @@ pub fn rewrite_impl(
             }
         }
     }
-    impl_item.self_ty = new_ty;
-
+    let macro_tokens = generate_macro_from_impl(impl_item, new_struct)?;
     Ok(quote! {
+        #macro_tokens
         #impl_item
+    })
+}
+
+fn generate_macro_from_impl(impl_item: &mut syn::ItemImpl,  new_struct: &syn::ItemStruct) -> syn::Result<TokenStream> {
+    let item_ty = &impl_item.self_ty;
+    let item_span = impl_item.span();
+    let struct_ident = &new_struct.ident;
+    let generics = &new_struct.generics;
+
+    let new_struct_ty: syn::Type = parse_quote_spanned! {item_span=>
+        #struct_ident #generics
+    };
+    if let syn::Type::Path(type_path) = item_ty.as_ref() {
+        if let Some(impl_ident_seg) = type_path.path.segments.last() {
+            
+            let mut method_tokens = TokenStream::new();
+            for item in impl_item.items.iter() {
+                match &item {
+                    &syn::ImplItem::Method(method) => {
+                        method_tokens.extend(generate_macro_from_method(&method, new_struct, item_ty));
+                    },
+                    _ => {
+                        return Err(syn::Error::new(
+                            item.span(),
+                            "expected a method".to_string(),
+                        ));
+                    }
+                }
+            }
+
+            let impl_ident = hash_path_ident(impl_ident_seg.to_owned().ident, type_path.path.to_owned());
+            impl_item.self_ty = Box::from(new_struct_ty);
+            return Ok(quote_spanned! {item_span => 
+                #method_tokens
+                #[macro_export]
+                macro_rules! #impl_ident {
+                    () => {
+                        #new_struct
+                        #impl_item
+                    };
+                }
+            });
+        }
+    }
+    
+    return Err(syn::Error::new(item_span, "invalid struct".to_string()));
+}
+
+fn generate_macro_from_method(method: &ImplItemMethod, new_struct: &syn::ItemStruct, impl_type: &Box<syn::Type>) -> syn::Result<TokenStream> {
+    let ident = &method.sig.ident;
+    let item_span = method.span();
+    let method_path: syn::Path = parse_quote_spanned! {ident.span()=>
+        #impl_type :: #ident
+    };
+    let struct_ident = &new_struct.ident;
+    let generics = &new_struct.generics;
+    let new_struct_ty: syn::Type = parse_quote_spanned! {item_span=>
+        #struct_ident #generics
+    };
+    let macro_ident = hash_path_ident(ident.to_owned(), method_path);
+
+    Ok(quote_spanned! {item_span => 
+        #[macro_export]
+        macro_rules! #macro_ident {
+            () => {
+                #new_struct
+                impl #new_struct_ty {
+                    #method
+                }
+            };
+        }
     })
 }
 

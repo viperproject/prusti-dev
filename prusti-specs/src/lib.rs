@@ -330,6 +330,11 @@ fn prusti_use_macro(path: syn::Path) -> syn::Result<syn::Path> {
                 segments: syn::punctuated::Punctuated::new(),
             };
             mod_path.segments.extend(seg_iter);
+            if let Some(seg) = mod_path.segments.last_mut() {
+                if let syn::PathArguments::AngleBracketed(genargs) =  &mut seg.arguments {
+                    genargs.colon2_token = Some(syn::token::Colon2::default());
+                }
+            }
             let path_hash = {
                 let mut hasher = DefaultHasher::new();
                 mod_path.hash(&mut hasher);
@@ -503,15 +508,8 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
                 extern_spec_rewriter::generate_new_struct(&item_impl)
             );
 
-            let struct_ident = &new_struct.ident;
-            let generics = &new_struct.generics;
-
-            let struct_ty: syn::Type = parse_quote_spanned! {item_span=>
-                #struct_ident #generics
-            };
-
             let rewritten_item = handle_result!(
-                extern_spec_rewriter::rewrite_impl(&mut item_impl, Box::from(struct_ty))
+                extern_spec_rewriter::rewrite_impl(&mut item_impl, &new_struct)
             );
 
             quote_spanned! {item_span=>
