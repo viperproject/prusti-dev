@@ -480,7 +480,8 @@ impl<'tcx> ErrorManager<'tcx>
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::BoundsCheckAssert) => {
+            ("assert.failed:assertion.false", ErrorCtxt::BoundsCheckAssert) |
+            ("application.precondition:assertion.false", ErrorCtxt::BoundsCheckAssert) => {
                 PrustiError::verification(
                     "the array or slice index may be out of bounds".to_string(),
                     error_span,

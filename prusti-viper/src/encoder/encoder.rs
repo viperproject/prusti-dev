@@ -973,6 +973,34 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.snapshot_encoder.borrow_mut().encode_array_idx(self, ty, array, idx)
     }
 
+    pub fn encode_snapshot_slice_idx(
+        &self,
+        ty: ty::Ty<'tcx>,
+        slice: vir::Expr,
+        idx: vir::Expr,
+    ) -> EncodingResult<vir::Expr> {
+        self.snapshot_encoder.borrow_mut().encode_slice_idx(self, ty, slice, idx)
+    }
+
+    pub fn encode_snapshot_slice_len(
+        &self,
+        ty: ty::Ty<'tcx>,
+        slice: vir::Expr,
+    ) -> EncodingResult<vir::Expr> {
+        self.snapshot_encoder.borrow_mut().encode_slice_len(self, ty, slice)
+    }
+
+    pub fn encode_snapshot_slicing(
+        &self,
+        base_ty: ty::Ty<'tcx>,
+        base: vir::Expr,
+        slice_ty: ty::Ty<'tcx>,
+        lo: vir::Expr,
+        hi: vir::Expr,
+    ) -> EncodingResult<vir::Expr> {
+        self.snapshot_encoder.borrow_mut().encode_slicing(self, base_ty, base, slice_ty, lo, hi)
+    }
+
     pub fn supports_snapshot_equality(&self, ty: ty::Ty<'tcx>) -> EncodingResult<bool> {
         self.snapshot_encoder.borrow_mut().supports_equality(self, ty)
     }

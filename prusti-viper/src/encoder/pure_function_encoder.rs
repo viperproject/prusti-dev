@@ -22,8 +22,7 @@ use prusti_common::config;
 use prusti_interface::specs::typed;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
-use rustc_middle::ty;
+use rustc_middle::{mir, ty, span_bug};
 use std::collections::HashMap;
 use log::{debug, trace};
 use prusti_interface::PrustiError;
@@ -542,10 +541,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
                     idx_val_int,
                 )?
             }
-            PlaceEncoding::SliceAccess { .. } => {
-                return Err(EncodingError::unsupported(
-                    "slice lookup is not implemented yet".to_string(),
-                ));
+            PlaceEncoding::SliceAccess { box base, index, rust_slice_ty, .. } => {
+                let postprocessed_base = self.postprocess_place_encoding(base)?;
+                let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
+
+                self.encoder.encode_snapshot_slice_idx(
+                    rust_slice_ty,
+                    postprocessed_base,
+                    idx_val_int,
+                )?
             }
         })
     }
@@ -800,7 +804,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                                 let encoded_rhs = self
                                     .mir_encoder
-                                    .encode_old_expr(encoded_args[0].clone(), PRECONDITION_LABEL);
+                                    .encode_old_expr(
+                                        vir::Expr::snap_app(encoded_args[0].clone()),
+                                        PRECONDITION_LABEL,
+                                    );
                                 let mut state = states[&target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state
@@ -842,6 +849,64 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 );
                                 let mut state = states[&target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
+                                state
+                            }
+
+                            "core::slice::<impl [T]>::len" => {
+                                assert_eq!(args.len(), 1);
+                                let slice_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                let len = self.encoder.encode_snapshot_slice_len(slice_ty, encoded_args[0].clone())
+                                    .with_span(span)?;
+
+                                let mut state = states[target_block].clone();
+                                state.substitute_value(&lhs_value, len);
+                                state
+                            }
+
+                            "std::ops::Index::index" => {
+                                assert_eq!(args.len(), 2);
+                                trace!("slice::index(args={:?}, encoded_args={:?}, ty={:?}, lhs_value={:?})", args, encoded_args, ty, lhs_value);
+
+                                let base_ty = self.mir_encoder.get_operand_ty(&args[0]);
+
+                                let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);
+                                let idx_ident = self.encoder.env().tcx().def_path_str(idx_ty.ty_adt_def().unwrap().did);
+                                let encoded_idx = &encoded_args[1];
+
+                                let (start, end) = match &*idx_ident {
+                                    "std::ops::Range" => {
+                                        // there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
+                                        // manually re-do them here when we probably just encoded the type and the
+                                        // construction of the fields..
+                                        let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
+                                        let start = encoded_idx.clone()
+                                            .field(self.encoder.encode_struct_field("start", usize_ty).with_span(span)?);
+                                        let start_expr = self.encoder.encode_value_expr(start, usize_ty).with_span(span)?;
+
+                                        let end = encoded_idx.clone()
+                                            .field(self.encoder.encode_struct_field("end", usize_ty).with_span(span)?);
+                                        let end_expr = self.encoder.encode_value_expr(end, usize_ty).with_span(span)?;
+
+                                        (start_expr, end_expr)
+                                    },
+                                    // other things like RangeFull, RangeFrom, RangeTo, RangeInclusive could be added here
+                                    // relatively easily
+                                    _ => return Err(SpannedEncodingError::unsupported(
+                                        format!("slicing with {} as index/range type is not supported yet", idx_ident),
+                                        span,
+                                    )),
+                                };
+
+                                let slice_expr = self.encoder.encode_snapshot_slicing(
+                                    base_ty,
+                                    encoded_args[0].clone(),
+                                    ty,
+                                    start,
+                                    end,
+                                ).with_span(span)?;
+
+                                let mut state = states[target_block].clone();
+                                state.substitute_value(&lhs_value, slice_expr);
                                 state
                             }
 
@@ -944,17 +1009,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     vir::Expr::not(cond_val)
                 };
 
-                let assert_msg = if let mir::AssertKind::BoundsCheck { .. } = msg {
-                    let mut s = String::new();
-                    msg.fmt_assert_args(&mut s).unwrap();
-                    s
+                let error_ctxt = if let mir::AssertKind::BoundsCheck { .. } = msg {
+                    ErrorCtxt::BoundsCheckAssert
                 } else {
-                    msg.description().to_string()
+                    let assert_msg = msg.description().to_string();
+                    ErrorCtxt::AssertTerminator(assert_msg)
                 };
 
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
-                    ErrorCtxt::PureFunctionAssertTerminator(assert_msg),
+                    error_ctxt,
                 );
 
                 MultiExprBackwardInterpreterState::new(
@@ -1198,8 +1262,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             .with_span(span)?;
                         let encoded_value = self.mir_encoder.encode_bin_op_expr(
                             op,
-                            encoded_left,
-                            encoded_right,
+                            vir::Expr::snap_app(encoded_left),
+                            vir::Expr::snap_app(encoded_right),
                             ty,
                         ).with_span(span)?;
 
@@ -1221,14 +1285,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                         let encoded_value = self.mir_encoder.encode_bin_op_expr(
                             op,
-                            encoded_left.clone(),
-                            encoded_right.clone(),
+                            vir::Expr::snap_app(encoded_left.clone()),
+                            vir::Expr::snap_app(encoded_right.clone()),
                             operand_ty.expect_ty(),
                         ).with_span(span)?;
                         let encoded_check = self.mir_encoder.encode_bin_op_check(
                             op,
-                            encoded_left,
-                            encoded_right,
+                            vir::Expr::snap_app(encoded_left),
+                            vir::Expr::snap_app(encoded_right),
                             operand_ty.expect_ty(),
                         ).with_span(span)?;
 
@@ -1348,13 +1412,60 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let array_types = self.encoder.encode_array_types(place_ty).with_span(span)?;
                                 state.substitute_value(&opt_lhs_value_place.unwrap(), array_types.array_len.into());
                             }
-                            _ => {
-                                return Err(SpannedEncodingError::unsupported(
-                                    "checking the length of anything but arrays in pure code is not implemented yet",
-                                    span,
-                                ));
+                            ty::TyKind::Slice(..) => {
+                                let snap_len = self.encoder.encode_snapshot_slice_len(
+                                    place_ty,
+                                    self.encode_place(place).with_span(span)?.0,
+                                ).with_span(span)?;
+
+                                state.substitute_value(&opt_lhs_value_place.unwrap(), snap_len);
                             }
+                            _ => span_bug!(span, "length should only be requested on arrays or slices"),
                         }
+                    }
+
+                    &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
+                        if !ty.is_slice() {
+                            return Err(EncodingError::unsupported(
+                                "unsizing a pointer or reference value is not supported"
+                            )).with_span(span);
+                        }
+
+                        let rhs_array_ref_ty = self.mir_encoder.get_operand_ty(operand);
+                        let encoded_rhs = if let Some(encoded_place) = self.encode_operand_place(operand).with_span(span)? {
+                            encoded_place
+                        } else {
+                            self.mir_encoder.encode_operand_expr(operand)
+                                .with_span(span)?
+                        };
+                        // encoded_rhs is something like ref$Array$.. or ref$Slice$.. but we want .val_ref: Array$..
+                        let encoded_rhs = self.encoder.encode_value_expr(encoded_rhs, rhs_array_ref_ty).with_span(span)?;
+                        let rhs_array_ty = if let ty::TyKind::Ref(_, array_ty, _) = rhs_array_ref_ty.kind() {
+                            array_ty
+                        } else {
+                            unreachable!("rhs array not a ref?")
+                        };
+                        trace!("rhs_array_ty: {:?}", rhs_array_ty);
+                        let array_types = self.encoder.encode_array_types(rhs_array_ty).with_span(span)?;
+
+                        let encoded_array_elems = (0..array_types.array_len)
+                            .map(|idx| {
+                                self.encoder.encode_snapshot_array_idx(rhs_array_ty, encoded_rhs.clone(), idx.into())
+                            })
+                            .collect::<Result<Vec<_>, _>>()
+                            .with_span(span)?;
+
+                        let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs).with_span(span)?;
+                        let elems_seq = vir::Expr::Seq(
+                            vir::Type::Seq(box elem_snap_ty),
+                            encoded_array_elems,
+                            vir::Position::default(),
+                        );
+
+                        let slice_snap = self.encoder.encode_snapshot_constructor(ty, vec![elems_seq]).with_span(span)?;
+
+                        state.substitute_value(&opt_lhs_value_place.unwrap(), slice_snap);
+
                     }
 
                     ref rhs => {

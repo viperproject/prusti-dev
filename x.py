@@ -418,10 +418,11 @@ def verify_test(args):
                 compile_flags.extend(line[len('// compile-flags:'):].strip().split())
         report("Additional compile flags: {}", compile_flags)
     env = get_env()
-    if test_path.startswith('prusti-tests/tests/verify_overflow/'):
+    if 'prusti-tests/tests/verify_overflow/' in test_path:
         env['PRUSTI_CHECK_OVERFLOWS'] = 'true'
     else:
         env['PRUSTI_CHECK_OVERFLOWS'] = 'false'
+    report("env: PRUSTI_CHECK_OVERFLOWS={}", env['PRUSTI_CHECK_OVERFLOWS'])
     run_command([prusti_path, '--edition=2018', test_path] + compile_flags, env)
 
 

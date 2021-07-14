@@ -99,6 +99,8 @@ pub enum BinOpKind {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ContainerOpKind {
     SeqIndex,
+    SeqConcat,
+    SeqLen,
     // more to follow if required
 }
 
@@ -128,6 +130,8 @@ impl fmt::Display for Expr {
             Expr::ContainerOp(op, box ref left, box ref right, _) => {
                 match op {
                     ContainerOpKind::SeqIndex => write!(f, "{}[{}]", left, right),
+                    ContainerOpKind::SeqConcat => write!(f, "{} ++ {}", left, right),
+                    ContainerOpKind::SeqLen => write!(f, "|{}|", left),
                 }
             }
             Expr::Seq(ty, elems, _) => {

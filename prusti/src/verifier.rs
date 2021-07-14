@@ -53,10 +53,14 @@ pub fn verify<'tcx>(
 
         match verification_result {
             VerificationResult::Success => {
-                user::message(format!(
-                    "Successful verification of {} items",
-                    verification_task.procedures.len()
-                ));
+                if env.has_errors() {
+                    user::message("Verification result is inconclusive.");
+                } else {
+                    user::message(format!(
+                        "Successful verification of {} items",
+                        verification_task.procedures.len()
+                    ));
+                }
             }
             VerificationResult::Failure => {
                 user::message("Verification failed");
