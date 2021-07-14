@@ -2726,7 +2726,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_func_spec,
             _, // We don't care about verifying that the weakening is valid,
                // since it isn't the task of the caller
-        ) = self.encode_precondition_expr(&procedure_contract, None, true)?;
+        ) = self.encode_precondition_expr(&procedure_contract, None, false)?;
         let pos = self
             .encoder
             .error_manager()
@@ -3264,7 +3264,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.encode_precondition_expr(
                 self.procedure_contract(),
                 precondition_weakening,
-                false
+                true
             )?;
         self.cfg_method.add_stmt(
             start_cfg_block,
