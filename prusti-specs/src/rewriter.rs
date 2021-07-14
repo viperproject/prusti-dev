@@ -5,7 +5,6 @@ use quote::{quote_spanned, format_ident};
 use syn::spanned::Spanned;
 use syn::{Type, punctuated::Punctuated, Pat, Token};
 use crate::specifications::preparser::Arg;
-use std::collections::HashSet;
 use crate::{generate_spec_and_assertions, extract_prusti_attributes};
 
 pub(crate) struct AstRewriter {
@@ -101,55 +100,7 @@ impl AstRewriter {
     {
         struct CreditFolder {
             name_prefix: String,            // needs to be different for different fn_items
-            added_coeffs: HashSet<String>,
-        }
-        impl CreditFolder {
-            fn add_abstract_term_and_smaller(
-                &mut self,
-                term_to_add: &mut untyped::CreditPolynomialTerm,
-                abstract_terms: &mut Vec<untyped::CreditPolynomialTerm>,
-                credit_name: &str,
-                user_id: &str,
-            ) {
-                // construct name of coefficient
-                let mut powers_str = term_to_add.powers.iter()  // powers are ordered by var name
-                    .map(|pow| format!("{}{}", pow.var.name, pow.exponent))
-                    .collect::<Vec<String>>().concat();
-                if powers_str.is_empty() {
-                    powers_str = "0".to_string();
-                }
-                let coeff_name = format!("{}_{}_{}_{}", self.name_prefix, credit_name, user_id, powers_str);
-
-                if !self.added_coeffs.contains(&coeff_name) {
-                    let call_str = format!("{}()", coeff_name);
-                    let coeff_expr: syn::Expr = syn::parse_str(&call_str)               //TODO: seems to be the simplest way to construct a syn::Expr
-                        .expect("Unexpected error while parsing abstract coefficient function call");             //TODO: proper error? -> handle_result?
-
-                    abstract_terms.push(untyped::CreditPolynomialTerm {
-                        coeff_expr: untyped::Expression {
-                            spec_id: term_to_add.coeff_expr.spec_id,
-                            id: term_to_add.coeff_expr.id,
-                            expr: coeff_expr
-                        },
-                        powers: term_to_add.powers.clone(),
-                    });
-                    self.added_coeffs.insert(coeff_name);
-
-                    // add sub-terms with smaller exponents
-                    if !term_to_add.powers.is_empty() {
-                        // reduce last exponent
-                        if term_to_add.powers.last().unwrap().exponent == 1 {
-                            // need to remove last power
-                            term_to_add.powers.remove(term_to_add.powers.len()-1);
-                        }
-                        else {
-                            term_to_add.powers.last_mut().unwrap().exponent -= 1;
-                        }
-
-                        self.add_abstract_term_and_smaller(term_to_add, abstract_terms, credit_name, user_id);
-                    }
-                }
-            }
+            added_coeffs: Vec<String>,
         }
         impl AssertionFolder<ExpressionId, syn::Expr, Arg> for CreditFolder {
             fn fold_credit_polynomial(
@@ -158,7 +109,7 @@ impl AstRewriter {
                 id: ExpressionId,
                 credit_type: String,
                 concrete_terms: Vec<untyped::CreditPolynomialTerm>,
-                abstract_terms: Vec<untyped::CreditPolynomialTerm>,
+                mut abstract_terms: Vec<untyped::CreditPolynomialTerm>,
             ) -> untyped::AssertionKind {
 
                 if let syn::Expr::Lit(lit) = &abstract_terms.first().unwrap().coeff_expr.expr {
@@ -172,22 +123,37 @@ impl AstRewriter {
                         unimplemented!()
                     };
 
-                    let credit_vec = credit_type.split("_").collect::<Vec<&str>>();
-                    let credit_name = *credit_vec.first().unwrap();
+                    let mut credit_vec = credit_type.split("_").collect::<Vec<&str>>();
+                    credit_vec.remove(credit_vec.len()-1);      // remove "_credits"
+                    let credit_name = credit_vec.join("_");
 
-                    let mut new_abstract_terms = vec![];
-                    for mut term in abstract_terms {
-                        self.add_abstract_term_and_smaller(&mut term, &mut new_abstract_terms, credit_name, &user_id);
+                    // add function call as abstract coefficient expression
+                    for term in abstract_terms.iter_mut() {
+                        // construct name of coefficient
+                        let mut powers_str = term.powers.iter()  // powers are ordered by var name
+                            .map(|pow| format!("{}{}", pow.var.name, pow.exponent))
+                            .collect::<Vec<String>>().concat();
+                        if powers_str.is_empty() {
+                            powers_str = "0".to_string();
+                        }
+                        let coeff_name = format!("{}_{}_{}_{}", self.name_prefix, credit_name, user_id, powers_str);
+
+                        let call_str = format!("{}()", coeff_name);
+                        let coeff_expr: syn::Expr = syn::parse_str(&call_str)
+                            .expect("Unexpected error while parsing abstract coefficient function call");             //TODO: proper error? -> handle_result?
+                        term.coeff_expr.expr = coeff_expr;
+
+                        self.added_coeffs.push(coeff_name);
                     }
-                    let credit_polynomial = untyped::AssertionKind::CreditPolynomial {
+
+
+                    untyped::AssertionKind::CreditPolynomial {
                         spec_id,
                         id,
                         credit_type,
                         concrete_terms,
-                        abstract_terms: new_abstract_terms
-                    };
-
-                    credit_polynomial
+                        abstract_terms
+                    }
                 }
                 else {
                     unimplemented!()
@@ -198,7 +164,7 @@ impl AstRewriter {
 
         let mut folder = CreditFolder {
             name_prefix: fn_item.sig().ident.to_string(),
-            added_coeffs: HashSet::new()
+            added_coeffs: vec![]
         };
         *assertion = folder.fold_assertion(assertion.clone());
 

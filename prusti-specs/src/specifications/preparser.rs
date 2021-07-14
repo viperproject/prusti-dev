@@ -1,7 +1,7 @@
 /// The preparser parses Prusti into an AST
 
 use proc_macro2::{Span, TokenStream, TokenTree, Delimiter};
-use std::collections::VecDeque;
+use std::collections::{VecDeque, HashSet};
 use syn::parse::{ParseStream, Parse};
 use syn::Token;
 use syn::spanned::Spanned;
@@ -87,14 +87,26 @@ impl Parse for CreditPolynomialTerm<(), syn::Expr, Arg> {     //TODO: maybe gene
         // need to distinguish to avoid parsing beyond the `*` separating the coefficient from the powers
         let parsed_coeff_expr =
             if input.peek(syn::token::Paren) {
-                //TODO: check that expression has valid form
+                //TODO: check that expression has valid form (only relevant for concrete bounds)
                 let parsed = input.parse::<syn::ExprParen>()?;
                 syn::Expr::Paren(parsed)
             }
             else {
-                let parsed = input.parse::<syn::ExprLit>()?;
-                syn::Expr::Lit(parsed)
-            };  //TODO: need to add single Identifier for called function cost?
+                let parse_result = input.parse::<syn::ExprLit>();
+                if let Ok(lit) = parse_result {
+                    syn::Expr::Lit(lit)
+                }
+                else {
+                    // parsing as a call directly does not work (probably because the function is not defined?)
+                    let coefficient = input.parse::<syn::ExprPath>()?;
+                    syn::Expr::Call(syn::ExprCall {
+                        attrs: vec![],
+                        func: box syn::Expr::Path(coefficient),
+                        paren_token: syn::token::Paren::default(),
+                        args: syn::punctuated::Punctuated::new(),
+                    })
+                }
+            };
         let coeff_expr = ExpressionWithoutId {
             spec_id: common::SpecificationId::dummy(),
             id: (),
@@ -434,10 +446,60 @@ impl Parser {
             if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
                 let parsed_term_vec: CreditPolynomialTermVec = syn::parse2(stream)?;
 
-                // just copy concrete terms (coefficients will be replaced in rewriter later)
-                let mut abstract_terms = parsed_term_vec.term_vector.clone();
-                // exploit first coefficient to store user_id
-                abstract_terms.first_mut().unwrap().coeff_expr.expr = syn::Expr::Lit(user_id);
+                fn add_term_and_smaller(
+                    already_added_powers: &mut HashSet<String>,
+                    mut term_to_add: Vec<CreditVarPower<(), Arg>>,
+                    user_id: &syn::ExprLit,
+                    result_vec: &mut Vec<CreditPolynomialTerm<(), syn::Expr, Arg>>,
+                ) {
+                    // construct string of powers
+                    let mut powers_str = term_to_add.iter()  // powers are ordered by var name
+                        .map(|pow| format!("{}{}", pow.var.name, pow.exponent))
+                        .collect::<Vec<String>>().concat();
+                    if powers_str.is_empty() {
+                        powers_str = "0".to_string();
+                    }
+
+                    if !already_added_powers.contains(&powers_str) {
+                        result_vec.push(CreditPolynomialTerm {
+                            coeff_expr: ExpressionWithoutId {
+                                spec_id: common::SpecificationId::dummy(),
+                                id: (),
+                                // exploit coefficient to store user_id
+                                expr: syn::Expr::Lit(user_id.clone()),
+                            },
+                            powers: term_to_add.clone(),
+                        });
+                        already_added_powers.insert(powers_str);
+
+                        // add sub-terms with smaller exponents
+                        if !term_to_add.is_empty() {
+                            // reduce last exponent
+                            if term_to_add.last().unwrap().exponent == 1 {
+                                // need to remove last power
+                                term_to_add.remove(term_to_add.len()-1);
+                            }
+                            else {
+                                term_to_add.last_mut().unwrap().exponent -= 1;
+                            }
+
+                            add_term_and_smaller(already_added_powers, term_to_add, user_id, result_vec);
+                        }
+                    }
+                }
+
+                // construct abstract terms with placeholder coefficients
+                // add missing powers in between
+                let mut already_added_powers = HashSet::new();
+                let mut abstract_terms = vec![];
+                for term in &parsed_term_vec.term_vector {
+                    add_term_and_smaller(
+                        &mut already_added_powers,
+                        term.powers.clone(),
+                        &user_id,
+                        &mut abstract_terms
+                    );
+                }
 
                 Ok(AssertionWithoutId {
                     kind: Box::new(common::AssertionKind::CreditPolynomial {
