@@ -106,7 +106,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             return_type: vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),
-            body: Some(func_spec.into_iter().conjoin()),
+            body: Some(self.encoder.patch_snapshots(func_spec.into_iter().conjoin()).with_span(self.span)?),
         })
     }
 
@@ -150,7 +150,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             return_type: vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),
-            body: Some(func_spec.into_iter().conjoin()),
+            body: Some(self.encoder.patch_snapshots(func_spec.into_iter().conjoin()).with_span(self.span)?),
         })
     }
 
