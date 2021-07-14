@@ -494,6 +494,17 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 base.to_viper(ast)
             }
             Expr::SnapApp(..) => unreachable!("unpatched snapshot operation"),
+            // DEBUG: enable this version to see snap$(...) in the Viper output
+            // for unpatched snapshot operations; this pushes the error to the
+            // verifier, but at least allows inspecting the Viper program
+            /*Expr::SnapApp(ref arg, ref pos) => {
+                ast.func_app(
+                    "snap$",
+                    &[arg.to_viper(ast)],
+                    self.get_type().to_viper(ast),
+                    pos.to_viper(ast),
+                )
+            }*/
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)
