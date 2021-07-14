@@ -235,24 +235,12 @@ struct ForallFixer {
 }
 
 impl ExprFolder for ForallFixer {
-    fn fold_snap_app(
-        &mut self,
-        expr: Box<vir::Expr>,
-        pos: vir::Position
-    ) -> vir::Expr {
-        match *expr {
-            vir::Expr::Local(v, pos) if v == self.var
-                => vir::Expr::Local(self.patched_var.clone(), pos),
-            _ => vir::Expr::SnapApp(expr, pos),
-        }
-    }
-
     fn fold_local(
         &mut self,
         v: vir::LocalVar,
         pos: vir::Position
     ) -> vir::Expr {
-        if v == self.var {
+        if v.name == self.var.name {
             vir::Expr::Local(self.patched_var.clone(), pos)
         } else {
             vir::Expr::Local(v, pos)

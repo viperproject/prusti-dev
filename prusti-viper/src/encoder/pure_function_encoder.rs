@@ -1259,8 +1259,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             .with_span(span)?;
                         let encoded_value = self.mir_encoder.encode_bin_op_expr(
                             op,
-                            encoded_left,
-                            encoded_right,
+                            vir::Expr::snap_app(encoded_left),
+                            vir::Expr::snap_app(encoded_right),
                             ty,
                         ).with_span(span)?;
 
@@ -1282,14 +1282,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                         let encoded_value = self.mir_encoder.encode_bin_op_expr(
                             op,
-                            encoded_left.clone(),
-                            encoded_right.clone(),
+                            vir::Expr::snap_app(encoded_left.clone()),
+                            vir::Expr::snap_app(encoded_right.clone()),
                             operand_ty.expect_ty(),
                         ).with_span(span)?;
                         let encoded_check = self.mir_encoder.encode_bin_op_check(
                             op,
-                            encoded_left,
-                            encoded_right,
+                            vir::Expr::snap_app(encoded_left),
+                            vir::Expr::snap_app(encoded_right),
                             operand_ty.expect_ty(),
                         ).with_span(span)?;
 
