@@ -5679,7 +5679,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) => {
+            mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) if !adt_def.is_union() => {
                 let num_variants = adt_def.variants.len();
                 let variant_def = &adt_def.variants[variant_index];
                 let mut dst_base = dst.clone();
@@ -5740,6 +5740,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         location,
                     )?);
                 }
+            }
+
+            mir::AggregateKind::Adt(..) => {
+                // It is a union
+                return Err(SpannedEncodingError::unsupported(
+                    "unions are not supported",
+                    span
+                ));
             }
 
             mir::AggregateKind::Closure(def_id, _substs) => {
