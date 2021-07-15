@@ -29,26 +29,9 @@ extern crate rustc_middle;
 extern crate rustc_span;
 extern crate rustc_ast;
 extern crate rustc_attr;
-
-// extern crate csv;
-// extern crate datafrog;
-// #[macro_use]
-// extern crate log;
-// extern crate polonius;
-// extern crate polonius_engine;
-// extern crate regex;
-// extern crate rustc;
 extern crate rustc_data_structures;
 extern crate rustc_index;
-// extern crate rustc_driver;
-// extern crate rustc_hash;
-// extern crate rustc_mir;
-// extern crate rustc_target;
-// #[macro_use]
-// extern crate serde;
-// extern crate serde;
-// extern crate syntax;
-// extern crate syntax_pos;
+extern crate rustc_trait_selection;
 #[macro_use]
 extern crate lazy_static;
 
