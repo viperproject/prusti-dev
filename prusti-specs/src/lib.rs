@@ -12,7 +12,7 @@ pub mod specifications;
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned};
-use std::{collections::hash_map::DefaultHasher, convert::{TryFrom, TryInto}, hash::{Hasher, Hash}, vec};
+use std::{collections::hash_map::DefaultHasher, convert::{TryInto}, hash::{Hasher, Hash}, vec};
 
 use specifications::untyped;
 use parse_closure_macro::ClosureWithSpec;

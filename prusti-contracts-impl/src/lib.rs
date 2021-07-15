@@ -41,8 +41,9 @@ pub fn body_invariant(_tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-pub fn prusti_use(tokens: TokenStream) -> TokenStream {
-    prusti_specs::prusti_use(tokens.into()).into()
+pub fn prusti_use(_tokens: TokenStream) -> TokenStream {
+    let callsite_span = Span::call_site();
+    (quote_spanned!(callsite_span => )).into()
 }
 
 #[proc_macro]
