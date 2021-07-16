@@ -12,8 +12,8 @@ pub enum AssertionKind {
     Expr(Expression),
     And(Vec<Assertion>),
     Implies(Assertion, Assertion),
-    ForAll(ForAllVars, Assertion, TriggerSet),
-    Exists(ForAllVars, Assertion, TriggerSet),
+    ForAll(QuantifierVars, Assertion, TriggerSet),
+    Exists(QuantifierVars, Assertion, TriggerSet),
     SpecEntailment {
         closure: Expression,
         arg_binders: SpecEntailmentVars,
@@ -31,7 +31,7 @@ pub struct Expression {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct ForAllVars {
+pub struct QuantifierVars {
     pub spec_id: untyped::SpecificationId,
     pub expr_id: untyped::ExpressionId,
     pub count: usize,
@@ -60,9 +60,9 @@ impl untyped::Expression {
     }
 }
 
-impl common::ForAllVars<untyped::ExpressionId, untyped::Arg> {
-    fn to_structure(&self) -> ForAllVars {
-        ForAllVars {
+impl common::QuantifierVars<untyped::ExpressionId, untyped::Arg> {
+    fn to_structure(&self) -> QuantifierVars {
+        QuantifierVars {
             spec_id: self.spec_id,
             count: self.vars.len(),
             expr_id: self.id,

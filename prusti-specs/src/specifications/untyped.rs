@@ -7,7 +7,7 @@ use syn::spanned::Spanned;
 
 pub use common::{ExpressionId, SpecType, SpecificationId};
 pub use super::preparser::{Parser, Arg};
-use crate::specifications::common::{ForAllVars, SpecEntailmentVars};
+use crate::specifications::common::{QuantifierVars, SpecEntailmentVars};
 
 /// A specification that has no types associated with it.
 pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
@@ -203,13 +203,13 @@ impl AssignExpressionId<Option<Expression>> for Option<common::Expression<(), sy
     }
 }
 
-impl AssignExpressionId<ForAllVars<ExpressionId, Arg>> for common::ForAllVars<(), Arg> {
+impl AssignExpressionId<QuantifierVars<ExpressionId, Arg>> for common::QuantifierVars<(), Arg> {
     fn assign_id(
         self,
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
-    ) -> ForAllVars<ExpressionId, Arg> {
-        ForAllVars {
+    ) -> QuantifierVars<ExpressionId, Arg> {
+        QuantifierVars {
             spec_id,
             id: id_generator.generate(),
             vars: self.vars

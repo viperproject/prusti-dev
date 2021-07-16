@@ -353,7 +353,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     /// * conjuncts in an existential quantifier.
     fn encode_quantifier(
         &self,
-        vars: &typed::ForAllVars<'tcx>,
+        vars: &typed::QuantifierVars<'tcx>,
         trigger_set: &typed::TriggerSet,
         body: &typed::Assertion<'tcx>,
         exists: bool,
