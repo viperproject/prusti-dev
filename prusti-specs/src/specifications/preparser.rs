@@ -338,9 +338,9 @@ impl Parser {
         };
         Ok(AssertionWithoutId {
             kind: if exists {
-                box common::AssertionKind::ForAll(vars, trigger_set, body)
-            } else {
                 box common::AssertionKind::Exists(vars, trigger_set, body)
+            } else {
+                box common::AssertionKind::ForAll(vars, trigger_set, body)
             }
         })
     }
