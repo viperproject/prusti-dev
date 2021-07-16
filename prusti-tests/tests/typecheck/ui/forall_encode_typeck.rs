@@ -8,4 +8,7 @@ use prusti_contracts::*;
 #[requires(forall(|a: i32, b: u32| a == a, triggers=[(a==a, a==a), (true,)]))]
 fn test1() {}
 
+#[requires(exists(|a: i32, b: u32| a == a, triggers=[(a==a, a==a), (true,)]))]
+fn test2() {}
+
 fn main() {}

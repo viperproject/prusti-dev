@@ -11,4 +11,7 @@ fn test1() {}
 #[requires(forall(|a: i32| a == 5) || forall(|a: i32| a == 5))]
 fn test2() {}
 
+#[requires(exists(|a: i32| a == 5) || exists(|a: i32| a == 5))]
+fn test3() {}
+
 fn main() {}
