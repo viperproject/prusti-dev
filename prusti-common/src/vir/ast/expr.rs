@@ -91,6 +91,11 @@ pub enum BinOpKind {
     Mod,
     And,
     Or,
+    BitAnd,
+    BitOr,
+    BitXor,
+    Shl,
+    Shr,
     Min,
     Max,
     Implies,
@@ -282,7 +287,12 @@ impl fmt::Display for BinOpKind {
             BinOpKind::Or => write!(f, "||"),
             BinOpKind::Min => write!(f, "min"),
             BinOpKind::Max => write!(f, "max"),
-            BinOpKind::Implies => write!(f, "==>"),            
+            BinOpKind::Implies => write!(f, "==>"),
+            BinOpKind::BitAnd => write!(f, "&"),
+            BinOpKind::BitOr => write!(f, "|"),
+            BinOpKind::BitXor => write!(f, "^"),
+            BinOpKind::Shl => write!(f, "<<"),
+            BinOpKind::Shr => write!(f, ">>"),           
         }
     }
 }
@@ -487,6 +497,18 @@ impl Expr {
     }
 
     pub fn xor(left: Expr, right: Expr) -> Self {
+        Expr::not(Expr::eq_cmp(left, right))
+    }
+
+    pub fn bit_and(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::BitAnd, box left, box right, Position::default())
+    }
+
+    pub fn bit_or(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::BitOr, box left, box right, Position::default())
+    }
+
+    pub fn bit_xor(left: Expr, right: Expr) -> Self {
         Expr::not(Expr::eq_cmp(left, right))
     }
 
@@ -1080,7 +1102,12 @@ impl Expr {
                     BinOpKind::Div |
                     BinOpKind::Mod |
                     BinOpKind::Min |
-                    BinOpKind::Max => {
+                    BinOpKind::Max |
+                    BinOpKind::BitAnd |
+                    BinOpKind::BitOr |
+                    BinOpKind::BitXor |
+                    BinOpKind::Shl |
+                    BinOpKind::Shr => {
                         let typ1 = base1.get_type();
                         let typ2 = base2.get_type();
                         assert_eq!(typ1, typ2, "expr: {:?}", self);

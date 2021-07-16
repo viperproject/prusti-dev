@@ -81,6 +81,13 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(ast)),
             Type::Float(FloatSize::F32) => ast.backend_f32_type(),
             Type::Float(FloatSize::F64) => ast.backend_f64_type(),
+            Type::Bitvector(bv_size) => match bv_size {
+                BVSize::BV8 => ast.backend_bv8_type(),
+                BVSize::BV16 => ast.backend_bv16_type(),
+                BVSize::BV32 => ast.backend_bv32_type(),
+                BVSize::BV64 => ast.backend_bv64_type(),
+                BVSize::BV128 => ast.backend_bv128_type(),
+            }
         }
     }
 }
@@ -365,7 +372,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             },
             Expr::BinOp(op, ref left, ref right, ref pos) => match op {
                 BinOpKind::EqCmp | BinOpKind::NeCmp | BinOpKind::GtCmp | BinOpKind::GeCmp | BinOpKind::LtCmp | BinOpKind::LeCmp
-                | BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Min | BinOpKind::Max => {
+                | BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Min | BinOpKind::Max | BinOpKind::BitAnd => {
                     match left.get_type() {
                         Type::Float(float_ty) => {
                             let f_size = match float_ty {
@@ -387,6 +394,27 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                                 _ => unimplemented!("unimplemented binop for floats")
                             };
                             ast.float_binop(op_kind, f_size, left.to_viper(ast), right.to_viper(ast))
+                        }
+
+                        Type::Bitvector(bv_ty) => {
+                            let bv_size = match bv_ty {
+                                BVSize::BV8 => viper::BvSize::BV8,
+                                BVSize::BV16 => viper::BvSize::BV16,
+                                BVSize::BV32 => viper::BvSize::BV32,
+                                BVSize::BV64 => viper::BvSize::BV64,
+                                BVSize::BV128 => viper::BvSize::BV128,
+                            };
+                            let op_kind = match op {
+                                BinOpKind::Add => viper::BinOpBv::BvAdd,
+                                BinOpKind::Mul => viper::BinOpBv::BvMul,
+                                BinOpKind::BitAnd => viper::BinOpBv::BitAnd,
+                                BinOpKind::BitOr => viper::BinOpBv::BitOr,
+                                BinOpKind::BitXor => viper::BinOpBv::BitXor,
+                                BinOpKind::Shl => viper::BinOpBv::BvShl,
+                                BinOpKind::Shr => viper::BinOpBv::BvShr,
+                                _ => unimplemented!("unimplemented binop for bitvectors")
+                            };
+                            ast.bv_binop(op_kind, bv_size, left.to_viper(ast), right.to_viper(ast))                            
                         }
                         _ => match op {
                             BinOpKind::EqCmp => ast.eq_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),

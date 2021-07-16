@@ -136,10 +136,19 @@ impl Ord for PermAmount {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FloatSize {
     F32,
     F64,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum BVSize {
+    BV8,
+    BV16,
+    BV32,
+    BV64,
+    BV128,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -153,6 +162,7 @@ pub enum Type {
     Domain(String),
     Snapshot(String),
     Float(FloatSize),
+    Bitvector(BVSize),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -164,6 +174,7 @@ pub enum TypeId {
     Domain,
     Snapshot,
     Float,
+    Bitvector,
 }
 
 impl fmt::Display for Type {
@@ -176,7 +187,21 @@ impl fmt::Display for Type {
             Type::Domain(ref name) => write!(f, "Domain({})", name),
             Type::Snapshot(ref name) => write!(f, "Snapshot({})", name),
             Type::Seq(ref elem_ty) => write!(f, "Seq[{}]", elem_ty),
-            Type::Float(_) => write!(f, "Float"),
+            Type::Float(f_size) => {
+                match f_size{
+                    FloatSize::F32 => write!(f, "Float32"),
+                    FloatSize::F64 => write!(f, "Float64"),
+                }
+            }
+            Type::Bitvector(bv_size) => {
+                match bv_size {
+                    BVSize::BV8 => write!(f, "BV8"),
+                    BVSize::BV16 => write!(f, "BV16"),
+                    BVSize::BV32 => write!(f, "BV32"),
+                    BVSize::BV64 => write!(f, "BV64"),
+                    BVSize::BV128 => write!(f, "BV128"),
+                }
+            }
         }
     }
 }
@@ -202,10 +227,17 @@ impl Type {
             Type::Domain(ref pred_name) => pred_name.to_string(),
             Type::Snapshot(ref pred_name) => pred_name.to_string(),
             Type::Seq(_) => "Seq".to_string(),
-            Type::Float(t) => match t {
-                &FloatSize::F32 => "float32".to_string(),
-                &FloatSize::F64 => "float64".to_string(),
-            }            
+            Type::Float(f_size) => match f_size {
+                FloatSize::F32 => "float32".to_string(),
+                FloatSize::F64 => "float64".to_string(),
+            }
+            Type::Bitvector(size) => match size {
+                BVSize::BV8 => "bv8".to_string(),
+                BVSize::BV16 => "bv16".to_string(),
+                BVSize::BV32 => "bv32".to_string(),
+                BVSize::BV64 => "bv64".to_string(),
+                BVSize::BV128 => "bv128".to_string(),
+            }         
         }
     }
 
@@ -243,6 +275,7 @@ impl Type {
             Type::Snapshot(_) => TypeId::Snapshot,
             Type::Seq(_) => TypeId::Seq,
             Type::Float(_) => TypeId::Float,
+            Type::Bitvector(_) => TypeId::Bitvector,
         }
     }
 }

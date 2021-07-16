@@ -18,7 +18,6 @@ use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
-use prusti_common::vir::BinOpKind;
 use prusti_common::{
     config,
     report::log,
@@ -29,7 +28,8 @@ use prusti_common::{
         borrows::Borrow,
         collect_assigned_vars,
         fixes::fix_ghost_vars,
-        CfgBlockIndex, Expr, ExprIterator, Successor, Type, FloatSize, UnaryOpKind,
+        optimizations::bitvector_analysis::*,
+        CfgBlockIndex, Expr, ExprIterator, Successor, Type, FloatSize, UnaryOpKind, BinOpKind,
     },
 };
 use prusti_interface::{
@@ -498,9 +498,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir_span,
             )
         })?;
-
+        
         // Fix variable declarations.
-        let final_method = fix_ghost_vars(method_with_fold_unfold);
+        let after_ghost_var_fix_method = fix_ghost_vars(method_with_fold_unfold);
+
+        // Run Bitvector Analysis to determine variables affected by bitwise operation
+        // and replace them with the Bitvector type.
+        let mut analysis = BVAnalysis::new(after_ghost_var_fix_method);
+        let final_method = analysis.get_new_method();
 
         // Dump final CFG
         if config::dump_debug_info() {
@@ -888,8 +893,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Snapshot(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Seq(_) => BuiltinMethodKind::HavocRef,
-                vir::Type::Float(FloatSize::F32) => BuiltinMethodKind::HavocF32,
-                vir::Type::Float(FloatSize::F64) => BuiltinMethodKind::HavocF64,
+                vir::Type::Float(f_size) => match f_size {
+                    FloatSize::F32 => BuiltinMethodKind::HavocF32,
+                    FloatSize::F64 => BuiltinMethodKind::HavocF64,
+                }
+                vir::Type::Bitvector(bv_size) => match bv_size {
+                    vir::BVSize::BV8 => BuiltinMethodKind::HavocBV8,
+                    vir::BVSize::BV16 => BuiltinMethodKind::HavocBV16,
+                    vir::BVSize::BV32 => BuiltinMethodKind::HavocBV32,
+                    vir::BVSize::BV64 => BuiltinMethodKind::HavocBV64,
+                    vir::BVSize::BV128 => BuiltinMethodKind::HavocBV128,
+                }
             };
             let stmt = vir::Stmt::MethodCall(
                 self.encoder.encode_builtin_method_use(builtin_method),

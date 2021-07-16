@@ -211,28 +211,51 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV64")).unwrap();
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
+
+    pub fn bv_binop(&self, op_kind: BinOpBv, bv_size: BvSize, left: Expr, right: Expr) -> Expr<'a> {
+        let factory_ = ast::utility::BVFactory::with(self.env); // FloatFactory
+        let factory = match bv_size { //
+            BvSize::BV8 => ast::utility::BVFactory::new(&factory_,8),
+            BvSize::BV16 => ast::utility::BVFactory::new(&factory_,16),
+            BvSize::BV32 => ast::utility::BVFactory::new(&factory_,32),
+            BvSize::BV64 => ast::utility::BVFactory::new(&factory_,64),
+            BvSize::BV128 => ast::utility::BVFactory::new(&factory_,128),
+        }.unwrap();
+        let op = match op_kind {
+            BinOpBv::BitAnd => ast::utility::BVFactory::call_and(&factory_, factory, self.jni.new_string("and")),
+            BinOpBv::BitOr => ast::utility::BVFactory::call_or(&factory_, factory, self.jni.new_string("or")),
+            BinOpBv::BitXor => ast::utility::BVFactory::call_xor(&factory_, factory, self.jni.new_string("xor")),
+            BinOpBv::BvAdd => ast::utility::BVFactory::call_add(&factory_, factory, self.jni.new_string("add")),
+            BinOpBv::BvMul => ast::utility::BVFactory::call_mul(&factory_, factory, self.jni.new_string("mul")),
+            BinOpBv::BvShl => ast::utility::BVFactory::call_shl(&factory_, factory, self.jni.new_string("shl")),
+            BinOpBv::BvShr => ast::utility::BVFactory::call_shr(&factory_, factory, self.jni.new_string("shr")),
+        }.unwrap();
+        self.backend_func_app(op, &[left, right], self.no_position())
+    }
+
+
     
     // Backend Floating-Points    
     pub fn float_binop(&self, op_kind: BinOpFloat, f_size: FloatSizeViper, left: Expr, right: Expr) -> Expr<'a> {
         let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap(); // Rounding mode
         let factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
         let factory = match f_size { //
-            FloatSizeViper::F32 => ast::utility::FloatFactory::new(&factory_, 24,8, rm).unwrap(),
-            FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52,12, rm).unwrap(),
-        };
+            FloatSizeViper::F32 => ast::utility::FloatFactory::new(&factory_, 24,8, rm),
+            FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52,12, rm),
+        }.unwrap();
         let op = match op_kind { // create FloatFactory function to call
-            BinOpFloat::Add => ast::utility::FloatFactory::call_add(&factory_, factory, self.jni.new_string("fp_add")).unwrap(),
-            BinOpFloat::Sub => ast::utility::FloatFactory::call_sub(&factory_, factory, self.jni.new_string("fp_sub")).unwrap(),
-            BinOpFloat::Mul => ast::utility::FloatFactory::call_mul(&factory_, factory, self.jni.new_string("fp_mul")).unwrap(),
-            BinOpFloat::Div => ast::utility::FloatFactory::call_div(&factory_, factory, self.jni.new_string("fp_div")).unwrap(),
-            BinOpFloat::Min => ast::utility::FloatFactory::call_min(&factory_, factory, self.jni.new_string("fp_min")).unwrap(),
-            BinOpFloat::Max => ast::utility::FloatFactory::call_max(&factory_, factory, self.jni.new_string("fp_max")).unwrap(),
-            BinOpFloat::Eq => ast::utility::FloatFactory::call_eq(&factory_, factory, self.jni.new_string("fp_eq")).unwrap(),
-            BinOpFloat::Leq => ast::utility::FloatFactory::call_leq(&factory_, factory, self.jni.new_string("fp_leq")).unwrap(),
-            BinOpFloat::Geq => ast::utility::FloatFactory::call_geq(&factory_, factory, self.jni.new_string("fp_geq")).unwrap(),
-            BinOpFloat::Lt => ast::utility::FloatFactory::call_lt(&factory_, factory, self.jni.new_string("fp_lt")).unwrap(),
-            BinOpFloat::Gt => ast::utility::FloatFactory::call_gt(&factory_, factory, self.jni.new_string("fp_gt")).unwrap(),
-        };
+            BinOpFloat::Add => ast::utility::FloatFactory::call_add(&factory_, factory, self.jni.new_string("fp_add")),
+            BinOpFloat::Sub => ast::utility::FloatFactory::call_sub(&factory_, factory, self.jni.new_string("fp_sub")),
+            BinOpFloat::Mul => ast::utility::FloatFactory::call_mul(&factory_, factory, self.jni.new_string("fp_mul")),
+            BinOpFloat::Div => ast::utility::FloatFactory::call_div(&factory_, factory, self.jni.new_string("fp_div")),
+            BinOpFloat::Min => ast::utility::FloatFactory::call_min(&factory_, factory, self.jni.new_string("fp_min")),
+            BinOpFloat::Max => ast::utility::FloatFactory::call_max(&factory_, factory, self.jni.new_string("fp_max")),
+            BinOpFloat::Eq => ast::utility::FloatFactory::call_eq(&factory_, factory, self.jni.new_string("fp_eq")),
+            BinOpFloat::Leq => ast::utility::FloatFactory::call_leq(&factory_, factory, self.jni.new_string("fp_leq")),
+            BinOpFloat::Geq => ast::utility::FloatFactory::call_geq(&factory_, factory, self.jni.new_string("fp_geq")),
+            BinOpFloat::Lt => ast::utility::FloatFactory::call_lt(&factory_, factory, self.jni.new_string("fp_lt")),
+            BinOpFloat::Gt => ast::utility::FloatFactory::call_gt(&factory_, factory, self.jni.new_string("fp_gt")),
+        }.unwrap();
         self.backend_func_app(op, &[left, right], self.no_position())
     }
 
@@ -240,22 +263,22 @@ impl<'a> AstFactory<'a> {
         let rm = ast::utility::RoundingMode::with(self.env).call_RNE().unwrap(); // Rounding mode
         let factory_ = ast::utility::FloatFactory::with(self.env); // FloatFactory
         let factory = match f_size { // FloatFactory JObject
-            FloatSizeViper::F32 => ast::utility::FloatFactory::new(&factory_, 24,8, rm).unwrap(),
-            FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52,12, rm).unwrap(),
-        };
+            FloatSizeViper::F32 => ast::utility::FloatFactory::new(&factory_, 24,8, rm),
+            FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52,12, rm),
+        }.unwrap();
 
         let op = match op_kind {
-            UnOpFloat::Neg => ast::utility::FloatFactory::call_neg(&factory_, factory, self.jni.new_string("fp_neg")).unwrap(),
-            UnOpFloat::Abs => ast::utility::FloatFactory::call_abs(&factory_, factory, self.jni.new_string("fp_abs")).unwrap(),
-            UnOpFloat::IsZero => ast::utility::FloatFactory::call_isZero(&factory_, factory, self.jni.new_string("fp_isZero")).unwrap(),
-            UnOpFloat::IsInfinite => ast::utility::FloatFactory::call_isInfinite(&factory_, factory, self.jni.new_string("fp_isInfinite")).unwrap(),
-            UnOpFloat::IsNan => ast::utility::FloatFactory::call_isNaN(&factory_, factory, self.jni.new_string("fp_isNaN")).unwrap(),
-            UnOpFloat::IsNegative => ast::utility::FloatFactory::call_isNegative(&factory_, factory, self.jni.new_string("fp_isNegative")).unwrap(),
-            UnOpFloat::IsPositive => ast::utility::FloatFactory::call_isPositive(&factory_, factory, self.jni.new_string("fp_isPositive")).unwrap(),
-            UnOpFloat::GetType => ast::utility::FloatFactory::call_typ(&factory_, factory).unwrap(),
+            UnOpFloat::Neg => ast::utility::FloatFactory::call_neg(&factory_, factory, self.jni.new_string("fp_neg")),
+            UnOpFloat::Abs => ast::utility::FloatFactory::call_abs(&factory_, factory, self.jni.new_string("fp_abs")),
+            UnOpFloat::IsZero => ast::utility::FloatFactory::call_isZero(&factory_, factory, self.jni.new_string("fp_isZero")),
+            UnOpFloat::IsInfinite => ast::utility::FloatFactory::call_isInfinite(&factory_, factory, self.jni.new_string("fp_isInfinite")),
+            UnOpFloat::IsNan => ast::utility::FloatFactory::call_isNaN(&factory_, factory, self.jni.new_string("fp_isNaN")),
+            UnOpFloat::IsNegative => ast::utility::FloatFactory::call_isNegative(&factory_, factory, self.jni.new_string("fp_isNegative")),
+            UnOpFloat::IsPositive => ast::utility::FloatFactory::call_isPositive(&factory_, factory, self.jni.new_string("fp_isPositive")),
+            UnOpFloat::GetType => ast::utility::FloatFactory::call_typ(&factory_, factory),
             UnOpFloat::FromBV => todo!(),
             UnOpFloat::ToBV => todo!(),
-        };
+        }.unwrap();
 
         self.backend_func_app(op, &[arg], self.no_position())
     }
@@ -1063,4 +1086,18 @@ pub enum FloatOpKind {
 pub enum FloatSizeViper {
     F32,
     F64,
+}
+
+// Bitwise Operations on Backend Bitvectors
+pub enum UnOpBv {
+    Not, Neg,
+    GetType, FromInt, ToInt, FromNat, ToNat,
+}
+
+pub enum BinOpBv {
+    BitAnd, BitOr, BitXor,
+    BvAdd, BvMul, BvShl, BvShr,
+}
+pub enum BvSize {
+    BV8, BV16, BV32, BV64, BV128,
 }

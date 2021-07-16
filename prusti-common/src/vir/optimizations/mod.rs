@@ -14,6 +14,7 @@ pub mod functions;
 pub mod methods;
 pub mod predicates;
 pub mod purification;
+pub mod bitvector_analysis;
 
 fn log_method(
     source_file_name: &str,

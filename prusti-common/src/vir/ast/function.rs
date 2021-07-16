@@ -87,8 +87,15 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
             Type::Snapshot(ref name) => format!("Snap${}", name),
             Type::Seq(ref elem_ty) => format!("Seq${}", type_name(elem_ty)),
             Type::Float(t) => match t {
-                &FloatSize::F32 => "$float32$".to_string(),
-                &FloatSize::F64 => "$float64$".to_string(),
+                FloatSize::F32 => "$float32$".to_string(),
+                FloatSize::F64 => "$float64$".to_string(),
+            }
+            Type::Bitvector(size) => match size {
+                BVSize::BV8 => "$bv8$".to_string(),
+                BVSize::BV16 => "$bv16$".to_string(),
+                BVSize::BV32 => "$bv32$".to_string(),
+                BVSize::BV64 => "$bv64$".to_string(),
+                BVSize::BV128 => "$bv128$".to_string(),
             }
         }
     }

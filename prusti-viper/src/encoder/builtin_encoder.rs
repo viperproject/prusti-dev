@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_common::{vir, vir_local, vir::WithIdentifier};
-use prusti_common::vir::FloatSize;
+use prusti_common::vir::{BVSize, FloatSize};
 use rustc_middle::ty;
 
 const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
@@ -17,6 +17,11 @@ pub enum BuiltinMethodKind {
     HavocRef,
     HavocF32,
     HavocF64,
+    HavocBV8,
+    HavocBV16,
+    HavocBV32,
+    HavocBV64,
+    HavocBV128,
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -64,6 +69,8 @@ impl BuiltinEncoder {
             BuiltinMethodKind::HavocInt => "builtin$havoc_int".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
             BuiltinMethodKind::HavocF32 | BuiltinMethodKind::HavocF64 => "builtin$havoc_float".to_string(),
+            BuiltinMethodKind::HavocBV8 | BuiltinMethodKind::HavocBV16 | BuiltinMethodKind::HavocBV32 |
+            BuiltinMethodKind::HavocBV64 | BuiltinMethodKind::HavocBV128 => "builtin$havoc_bv".to_string(),
         }
     }
 
@@ -74,6 +81,11 @@ impl BuiltinEncoder {
             BuiltinMethodKind::HavocRef => vir::Type::TypedRef("".to_string()),
             BuiltinMethodKind::HavocF32 => vir::Type::Float(FloatSize::F32),
             BuiltinMethodKind::HavocF64 => vir::Type::Float(FloatSize::F64),
+            BuiltinMethodKind::HavocBV8 => vir::Type::Bitvector(BVSize::BV8),
+            BuiltinMethodKind::HavocBV16 => vir::Type::Bitvector(BVSize::BV16),
+            BuiltinMethodKind::HavocBV32 => vir::Type::Bitvector(BVSize::BV32),
+            BuiltinMethodKind::HavocBV64 => vir::Type::Bitvector(BVSize::BV64),
+            BuiltinMethodKind::HavocBV128 => vir::Type::Bitvector(BVSize::BV128),
         };
         vir::BodylessMethod {
             name: self.encode_builtin_method_name(method),
@@ -110,6 +122,8 @@ impl BuiltinEncoder {
             BuiltinFunctionKind::SliceLen { .. } => "Slice$len".to_string(),
             BuiltinFunctionKind::Unreachable(vir::Type::Float(_)) => "builtin$unreach_float".to_string(),
             BuiltinFunctionKind::Undefined(vir::Type::Float(_)) => "builtin$undef_float".to_string(),
+            BuiltinFunctionKind::Unreachable(vir::Type::Bitvector(_)) => "builtin$unreach_bitvector".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::Bitvector(_)) => "builtin$undef_bitvector".to_string(),
         }
     }
 

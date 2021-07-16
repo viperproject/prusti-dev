@@ -92,4 +92,48 @@ impl<'a> AstFactory<'a> {
         Type::new(obj)
     }
 
+    pub fn backend_bv8_type(&self) -> Type<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 8).unwrap();
+        let obj = self
+            .jni
+            .unwrap_result(ast::utility::BVFactory::call_typ(&bv_factory_, bv_factory));
+        Type::new(obj)
+    }
+
+    pub fn backend_bv16_type(&self) -> Type<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 16).unwrap();
+        let obj = self
+            .jni
+            .unwrap_result(ast::utility::BVFactory::call_typ(&bv_factory_, bv_factory));
+        Type::new(obj)
+    }
+    
+    pub fn backend_bv32_type(&self) -> Type<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 32).unwrap();
+        let obj = self
+            .jni
+            .unwrap_result(ast::utility::BVFactory::call_typ(&bv_factory_, bv_factory));
+        Type::new(obj)
+    }
+
+    pub fn backend_bv64_type(&self) -> Type<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
+        let obj = self
+            .jni
+            .unwrap_result(ast::utility::BVFactory::call_typ(&bv_factory_, bv_factory));
+        Type::new(obj)
+    }
+
+    pub fn backend_bv128_type(&self) -> Type<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 128).unwrap();
+        let obj = self
+            .jni
+            .unwrap_result(ast::utility::BVFactory::call_typ(&bv_factory_, bv_factory));
+        Type::new(obj)
+    }
 }
