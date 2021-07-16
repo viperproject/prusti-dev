@@ -8,7 +8,7 @@ use syn::spanned::Spanned;
 use quote::quote;
 
 use super::common;
-use crate::specifications::common::{ForAllVars, SpecEntailmentVars, TriggerSet, Trigger};
+use crate::specifications::common::{QuantifierVars, SpecEntailmentVars, TriggerSet, Trigger};
 
 pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
 pub type PledgeWithoutId = common::Pledge<(), syn::Expr, Arg>;
@@ -331,7 +331,7 @@ impl Parser {
             trigger_set = TriggerSet(vec_of_triggers);
         }
 
-        let vars = ForAllVars {
+        let vars = QuantifierVars {
             spec_id: common::SpecificationId::dummy(),
             id: (),
             vars,
