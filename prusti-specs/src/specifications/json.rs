@@ -110,7 +110,7 @@ impl untyped::AssertionKind {
             And(assertions) => {
                 AssertionKind::And(
                     assertions.iter()
-                              .map(|assertion| Assertion { kind: box assertion.kind.to_structure() })
+                              .map(|assertion| Assertion { kind: Box::new(assertion.kind.to_structure()) })
                               .collect()
                 )
             }
@@ -144,7 +144,7 @@ impl untyped::AssertionKind {
 impl untyped::Assertion {
     fn to_structure(&self) -> Assertion {
         Assertion {
-            kind: box self.kind.to_structure(),
+            kind: Box::new(self.kind.to_structure()),
         }
     }
 }

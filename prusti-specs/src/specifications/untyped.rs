@@ -121,7 +121,7 @@ impl Parse for common::Assertion<(), syn::Expr, Arg> {
         // here:
         // https://gitlab.inf.ethz.ch/OU-PMUELLER/prusti-dev/-/commits/new-parser/
         Ok(Self {
-            kind: box common::AssertionKind::Expr(input.parse()?),
+            kind: Box::new(common::AssertionKind::Expr(input.parse()?)),
         })
     }
 }
@@ -305,7 +305,7 @@ impl AssignExpressionId<Box<AssertionKind>> for Box<common::AssertionKind<(), sy
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> Box<AssertionKind> {
-        box (*self).assign_id(spec_id, id_generator)
+        Box::new((*self).assign_id(spec_id, id_generator))
     }
 }
 
