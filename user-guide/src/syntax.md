@@ -7,6 +7,7 @@ Prusti specifications are a superset of Rust boolean expressions. They must be d
 | [`old(...)`](#old-expressions) | Value of expression in a previous state |
 | [`... ==> ...`](#implications) | Implication |
 | [`forall(...)`](#quantifiers) | Universal quantifier |
+| [`exists(...)`](#quantifiers) | Existential quantifier |
 | [<code>... &#x7C;= ...</code>](#specification-entailments) | Specification entailment |
 
 ## Old expressions
@@ -70,8 +71,10 @@ forall(|x: isize, y: isize| ...)
 The syntax of quantifiers is:
 
 ```plain
-forall(|<bound variable>: <bound variable type>, ...| <filter> ==> <expression>)
+<quantifier_type>(|<bound variable>: <bound variable type>, ...| <filter> ==> <expression>)
 ```
+
+where `<quantifier_type>` is either `forall` or `exists`.
 
 ## Specification entailments
 
