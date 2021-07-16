@@ -92,7 +92,7 @@ impl Parser {
     pub fn extract_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
         if self.tokens.is_empty() {
             Ok(AssertionWithoutId {
-                kind: box common::AssertionKind::And(vec![])
+                kind: Box::new(common::AssertionKind::And(vec![]))
             })
         } else {
             if let Some(span) = self.contains_both_and_or(&self.tokens) {
@@ -162,7 +162,7 @@ impl Parser {
         if self.consume_operator("==>") {
             let rhs = self.parse_prusti()?;
             Ok(AssertionWithoutId {
-                kind: box common::AssertionKind::Implies(lhs, rhs),
+                kind: Box::new(common::AssertionKind::Implies(lhs, rhs)),
             })
         } else {
             Ok(lhs)
@@ -177,7 +177,7 @@ impl Parser {
             Ok(conjuncts.pop().unwrap())
         } else {
             Ok(AssertionWithoutId {
-                kind: box common::AssertionKind::And(conjuncts)
+                kind: Box::new(common::AssertionKind::And(conjuncts))
             })
         }
     }
@@ -209,7 +209,7 @@ impl Parser {
                 }
             } else {
                 Ok(AssertionWithoutId {
-                    kind: box common::AssertionKind::Expr(lhs)
+                    kind: Box::new(common::AssertionKind::Expr(lhs))
                 })
             }
         }
@@ -338,9 +338,9 @@ impl Parser {
         };
         Ok(AssertionWithoutId {
             kind: if exists {
-                box common::AssertionKind::Exists(vars, trigger_set, body)
+                Box::new(common::AssertionKind::Exists(vars, trigger_set, body))
             } else {
-                box common::AssertionKind::ForAll(vars, trigger_set, body)
+                Box::new(common::AssertionKind::ForAll(vars, trigger_set, body))
             }
         })
     }
