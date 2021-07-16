@@ -8,17 +8,32 @@
 use prusti_contracts::*;
 
 predicate! {
-    fn pred(a: bool) -> bool {
+    fn pred1(a: bool) -> bool {
         forall(|b: bool| a == b)
     }
 }
 
-#[requires(pred(true))]
-fn use_pred() {}
+#[requires(pred1(true))]
+fn use_pred1() {}
+
+predicate! {
+    fn pred2(a: bool) -> bool {
+        exists(|b: bool| a == b)
+    }
+}
+
+#[requires(pred2(true))]
+fn use_pred2() {}
 
 predicate! {
     fn forall_implication() -> bool {
         forall(|x: usize| (x != 0) ==> x*2 != 0)
+    }
+}
+
+predicate! {
+    fn exists_implication() -> bool {
+        exists(|x: usize| (x != 0) ==> x*2 != 0)
     }
 }
 

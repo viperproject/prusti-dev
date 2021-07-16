@@ -35,9 +35,6 @@ fn test9() {}
 #[requires(true && forall(|a: i32| a == 5))]
 fn test10() {}
 
-#[requires(true && forall(|a: i32| a == 5))]
-fn test11() {}
-
 #[requires(forall(|a: i32| a == 5))]
 fn test12() {}
 
@@ -52,5 +49,23 @@ fn test15() {}
 
 #[requires(forall(|b: i32| b == 10) ==> true ==> forall(|a: u32, b: u32| a == 5))]
 fn test16() {}
+
+#[requires(true && exists(|a: i32| a == 5))]
+fn test17() {}
+
+#[requires(exists(|a: i32| a == 5))]
+fn test19() {}
+
+#[requires(true ==> exists(|a: i32, b: i32| a == 5) ==> true)]
+fn test20() {}
+
+#[requires(true ==> exists(|a: i32| a == 5))]
+fn test21() {}
+
+#[requires(exists(|a: i32| a == 5) ==> true)]
+fn test22() {}
+
+#[requires(exists(|b: i32| b == 10) ==> true ==> exists(|a: u32, b: u32| a == 5))]
+fn test23() {}
 
 fn main() {}

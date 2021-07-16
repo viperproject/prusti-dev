@@ -17,4 +17,16 @@ fn test3() {}
 #[requires(forall(|a: i32| forall(|b: i32| true, triggers=[(a == b,)]), triggers=[(a == a && true,)]))]
 fn test4() {}
 
+#[requires(exists(|a: i32| true, triggers=[(a == a,)]))]
+fn test5() {}
+
+#[requires(exists(|a: i32| exists(|b: i32| true), triggers=[(a == a && true,)]))]
+fn test6() {}
+
+#[requires(exists(|a: i32| exists(|b: i32| true, triggers=[(a == a,)]), triggers=[(a == a,)]))]
+fn test7() {}
+
+#[requires(exists(|a: i32| exists(|b: i32| true, triggers=[(a == b,)]), triggers=[(a == a && true,)]))]
+fn test8() {}
+
 fn main() {}
