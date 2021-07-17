@@ -65,11 +65,7 @@ fn simple_assert_false() {
   |
   = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-[ERROR] aborting due to previous error
-
-[ERROR] could not compile `foo`
-
-To learn more, run the command again with --verbose.
+error: could not compile `foo` due to previous error
 ",
         )
         .run();
