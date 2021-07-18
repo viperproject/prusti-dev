@@ -309,7 +309,7 @@ pub enum AssertionKind<EID, ET, AT> {
 /// Folder to transform an assertion
 pub trait AssertionFolder<EID, ET, AT> {
     fn fold_assertion(&mut self, a: Assertion<EID, ET, AT>) -> Assertion<EID, ET, AT> {
-        Assertion { kind: box self.fold_kind(*a.kind) }
+        Assertion { kind: Box::new(self.fold_kind(*a.kind)) }
     }
     fn fold_kind(&mut self, kind: AssertionKind<EID, ET, AT>) -> AssertionKind<EID, ET, AT> {
         match kind {
@@ -318,6 +318,7 @@ pub trait AssertionFolder<EID, ET, AT> {
             AssertionKind::Implies(left, right) => self.fold_implies(left, right),
             AssertionKind::TypeCond(vars, a) => self.fold_type_cond(vars, a),
             AssertionKind::ForAll(vars, t, a) => self.fold_for_all(vars, t, a),
+            AssertionKind::Exists(vars, t, a) => self.fold_exists(vars, t, a),
             AssertionKind::SpecEntailment {closure, arg_binders, pres, posts} => {
                 self.fold_spec_entailment(closure, arg_binders, pres, posts)
             },
@@ -335,16 +336,24 @@ pub trait AssertionFolder<EID, ET, AT> {
     fn fold_implies(&mut self, left: Assertion<EID, ET, AT>, right: Assertion<EID, ET, AT>) -> AssertionKind<EID, ET, AT> {
         AssertionKind::Implies(self.fold_assertion(left), self.fold_assertion(right))
     }
-    fn fold_type_cond(&mut self, vars: ForAllVars<EID, AT>, assertion: Assertion<EID, ET, AT>) -> AssertionKind<EID, ET, AT> {
+    fn fold_type_cond(&mut self, vars: QuantifierVars<EID, AT>, assertion: Assertion<EID, ET, AT>) -> AssertionKind<EID, ET, AT> {
         AssertionKind::TypeCond(vars, self.fold_assertion(assertion))
     }
     fn fold_for_all(
         &mut self,
-        vars: ForAllVars<EID, AT>,
+        vars: QuantifierVars<EID, AT>,
         triggers: TriggerSet<EID, ET>,
         assertion: Assertion<EID, ET, AT>
     ) -> AssertionKind<EID, ET, AT> {
         AssertionKind::ForAll(vars, triggers, self.fold_assertion(assertion))
+    }
+    fn fold_exists(
+        &mut self,
+        vars: QuantifierVars<EID, AT>,
+        triggers: TriggerSet<EID, ET>,
+        assertion: Assertion<EID, ET, AT>
+    ) -> AssertionKind<EID, ET, AT> {
+        AssertionKind::Exists(vars, triggers, self.fold_assertion(assertion))
     }
     fn fold_spec_entailment(
         &mut self,

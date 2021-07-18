@@ -187,7 +187,7 @@ impl AstRewriter {
                 }
             };
             let mut coeff_any_fn = untyped::AnyFnItem::Fn(coeff_fn);
-            let attributes_vec = extract_prusti_attributes(&mut coeff_any_fn).collect();
+            let attributes_vec = extract_prusti_attributes(&mut coeff_any_fn);
             let (generated_spec_items, generated_attributes) =
                 generate_spec_and_assertions(attributes_vec, &coeff_any_fn)
                     .expect("Internal error while creating abstract coefficient function");     //TODO: better error?

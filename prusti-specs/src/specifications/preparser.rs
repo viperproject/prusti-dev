@@ -101,7 +101,7 @@ impl Parse for CreditPolynomialTerm<(), syn::Expr, Arg> {     //TODO: maybe gene
                     let coefficient = input.parse::<syn::ExprPath>()?;
                     syn::Expr::Call(syn::ExprCall {
                         attrs: vec![],
-                        func: box syn::Expr::Path(coefficient),
+                        func: Box::new(syn::Expr::Path(coefficient)),
                         paren_token: syn::token::Paren::default(),
                         args: syn::punctuated::Punctuated::new(),
                     })
