@@ -66,7 +66,7 @@ def get_linux_env():
             report("could not find libjvm.so in {}", java_home)
         else:
             variables.append(('LD_LIBRARY_PATH', ld_library_path))
-    viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/server'))
+    viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/backends'))
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
@@ -200,8 +200,7 @@ def setup_ubuntu():
           'curl gcc libssl-dev')
     # Download Viper.
     shell(
-        'curl https://github.com/viperproject/viper-ide/releases/'
-        'download/{}/ViperToolsLinux.zip -Lo ViperToolsLinux.zip'.format(viper_version())
+        'curl viper.ethz.ch/downloads/ViperToolsRCLinux.zip -Lo ViperToolsLinux.zip'
     )
     if os.path.exists('viper_tools'):
         shutil.rmtree('viper_tools')
@@ -212,8 +211,7 @@ def setup_ubuntu():
 def setup_linux():
     """Install the dependencies on generic Linux."""
     shell(
-        'curl https://github.com/viperproject/viper-ide/releases/'
-        'download/{}/ViperToolsLinux.zip -Lo ViperToolsLinux.zip'.format(viper_version())
+        'curl viper.ethz.ch/downloads/ViperToolsRCLinux.zip -Lo ViperToolsLinux.zip'
     )
     if os.path.exists('viper_tools'):
         shutil.rmtree('viper_tools')
@@ -226,8 +224,7 @@ def setup_mac():
     # Non-Viper dependencies must be installed manually.
     # Download Viper.
     shell(
-        'curl https://github.com/viperproject/viper-ide/releases/'
-        'download/{}/ViperToolsMac.zip -Lo ViperToolsMac.zip'.format(viper_version())
+        'curl viper.ethz.ch/downloads/ViperToolsRCMac.zip  -Lo ViperToolsMac.zip'
     )
     if os.path.exists('viper_tools'):
         shutil.rmtree('viper_tools')
@@ -240,8 +237,7 @@ def setup_win():
     # Non-Viper dependencies must be installed manually.
     # Download Viper.
     shell(
-        'curl https://github.com/viperproject/viper-ide/releases/'
-        'download/{}/ViperToolsWin.zip -Lo ViperToolsWin.zip'.format(viper_version())
+        'curl viper.ethz.ch/downloads/ViperToolsRCWin.zip  -Lo ViperToolsWin.zip'
     )
     if os.path.exists('viper_tools'):
         shutil.rmtree('viper_tools')
