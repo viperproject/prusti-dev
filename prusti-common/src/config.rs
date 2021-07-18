@@ -113,6 +113,9 @@ lazy_static! {
         allowed_keys.insert("server_max_stored_verifiers".to_string());
         allowed_keys.insert("server_max_concurrency".to_string());
         allowed_keys.insert("server_address".to_string());
+        allowed_keys.insert("config".to_string());
+        allowed_keys.insert("log".to_string());
+        allowed_keys.insert("log_style".to_string());
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
