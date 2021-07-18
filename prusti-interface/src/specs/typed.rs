@@ -28,8 +28,8 @@ pub type AssertionKind<'tcx> = common::AssertionKind<ExpressionId, LocalDefId, (
 pub type Expression = common::Expression<ExpressionId, LocalDefId>;
 /// A trigger set that has no types associated with it.
 pub type TriggerSet = common::TriggerSet<ExpressionId, LocalDefId>;
-/// For all variables that have no types associated with it.
-pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
+/// Quantifier variables that have no types associated with it.
+pub type QuantifierVars<'tcx> = common::QuantifierVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
 /// Credit polynomial term that has types associated with it
 pub type CreditPolynomialTerm<'tcx> = common::CreditPolynomialTerm<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 /// Credit power that has types associated with it
@@ -80,7 +80,7 @@ impl<'tcx> Spanned<'tcx> for Expression {
     }
 }
 
-impl<'tcx> Spanned<'tcx> for ForAllVars<'tcx> {
+impl<'tcx> Spanned<'tcx> for QuantifierVars<'tcx> {
     fn get_spans(&self, mir_body: &mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Vec<Span> {
         self.vars
             .iter()
@@ -127,7 +127,8 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                 spans.extend(rhs.get_spans(mir_body, tcx));
                 spans
             }
-            AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
+            AssertionKind::ForAll(ref vars, ref trigger_set, ref body)
+            | AssertionKind::Exists(ref vars, ref trigger_set, ref body) => {
                 let mut spans = vars.get_spans(mir_body, tcx);
                 spans.extend(trigger_set
                     .triggers()
@@ -212,8 +213,8 @@ impl<'tcx> StructuralToTyped<'tcx, Trigger> for json::Trigger {
     }
 }
 
-impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> ForAllVars<'tcx> {
+impl<'tcx> StructuralToTyped<'tcx, QuantifierVars<'tcx>> for json::QuantifierVars {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> QuantifierVars<'tcx> {
         let local_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
         let (body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_id));
         let body = body.borrow();
@@ -232,7 +233,7 @@ impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
 
         assert!(body.arg_count-1 == self.count);
         assert_eq!(vars.len(), self.count);
-        return ForAllVars {
+        return QuantifierVars {
             spec_id: self.spec_id,
             id: self.expr_id,
             vars
@@ -333,6 +334,11 @@ impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind 
                 rhs.to_typed(typed_expressions, tcx)
             ),
             ForAll(vars, body, triggers) => AssertionKind::ForAll(
+                vars.to_typed(typed_expressions, tcx),
+                triggers.to_typed(typed_expressions, tcx),
+                body.to_typed(typed_expressions, tcx),
+            ),
+            Exists(vars, body, triggers) => AssertionKind::Exists(
                 vars.to_typed(typed_expressions, tcx),
                 triggers.to_typed(typed_expressions, tcx),
                 body.to_typed(typed_expressions, tcx),

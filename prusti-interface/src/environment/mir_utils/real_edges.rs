@@ -60,6 +60,7 @@ fn real_targets(terminator: &mir::Terminator) -> Vec<mir::BasicBlock> {
         TerminatorKind::Resume
         | TerminatorKind::Abort
         | TerminatorKind::Return
+        | TerminatorKind::GeneratorDrop
         | TerminatorKind::Unreachable => vec![],
 
         TerminatorKind::DropAndReplace { ref target, .. }
@@ -80,8 +81,15 @@ fn real_targets(terminator: &mir::Terminator) -> Vec<mir::BasicBlock> {
             ref real_target, ..
         } => vec![*real_target],
 
-        TerminatorKind::Yield { .. }
-        | TerminatorKind::GeneratorDrop
-        | TerminatorKind::InlineAsm { .. } => unimplemented!(),
+        TerminatorKind::Yield {
+            ref resume, ..
+        } => vec![*resume],
+
+        TerminatorKind::InlineAsm {
+            ref destination, ..
+        } => match *destination {
+            Some(target) => vec![target],
+            None => vec![],
+        },
     }
 }

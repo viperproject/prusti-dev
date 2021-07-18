@@ -488,13 +488,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             method_pos,
         )
         .map_err(|foldunfold_error| {
-            SpannedEncodingError::internal(
-                format!(
-                    "generating fold-unfold Viper statements failed ({:?})",
-                    foldunfold_error
+            match foldunfold_error {
+                foldunfold::FoldUnfoldError::Unsupported(msg) => {
+                    SpannedEncodingError::unsupported(msg, mir_span)
+                }
+                
+                _ => SpannedEncodingError::internal(
+                    format!(
+                        "generating fold-unfold Viper statements failed ({:?})",
+                        foldunfold_error,
+                    ),
+                    mir_span,
                 ),
-                mir_span,
-            )
+            }
         })?;
 
         // Fix variable declarations.
@@ -4899,69 +4905,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     mir::ConstantKind::Ty(ty::Const { ty, val }) => (ty, *val),
                     mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(*val)),
                 };
-                if let ty::TyKind::Tuple(elements) = ty.kind() {
-                    // FIXME: This is most likley completely wrong. We need to
-                    // implement proper support for handling constants of
-                    // non-primitive types.
-                    if !elements.is_empty() {
-                        unimplemented!("Only ZSTs are currently supported, got: {:?}", elements);
+                match ty.kind() {
+                    ty::TyKind::Tuple(elements) if elements.is_empty() => Vec::new(),
+                    _ => {
+                        let field = self.encoder.encode_value_field(ty).with_span(span)?;
+                        let mut stmts = self.prepare_assign_target(
+                            lhs.clone(),
+                            field.clone(),
+                            location,
+                            vir::AssignKind::Copy,
+                        )?;
+                        // Initialize the constant
+                        let const_val = self.encoder
+                            .encode_const_expr(*ty, &val)
+                            .with_span(span)?;
+                        // Initialize value of lhs
+                        stmts.push(vir::Stmt::Assign(
+                            lhs.clone().field(field),
+                            const_val,
+                            vir::AssignKind::Copy,
+                        ));
+                        stmts
                     }
-                    // Since we have a ZST, we do not need to do anything to
-                    // encode it.
-                    Vec::new()
-                } else {
-                    // We expect to have a constant of a primitive type here.
-                    let field = self.encoder.encode_value_field(ty).with_span(span)?;
-                    let mut stmts = self.prepare_assign_target(
-                        lhs.clone(),
-                        field.clone(),
-                        location,
-                        vir::AssignKind::Copy,
-                    )?;
-                    // Initialize the constant
-                    let const_val = self.encoder
-                        .encode_const_expr(*ty, &val)
-                        .with_span(span)?;
-                    // Initialize value of lhs
-                    stmts.push(vir::Stmt::Assign(
-                        lhs.clone().field(field),
-                        const_val,
-                        vir::AssignKind::Copy,
-                    ));
-                    stmts
                 }
-
-                // FIXME: Delete the code below.
-                // match literal {
-                //     mir::Literal::Value { value } => {
-                //         let const_val = self.encoder.encode_const_expr(value);
-                //         // Initialize value of lhs
-                //         stmts.push(vir::Stmt::Assign(
-                //             lhs.clone().field(field),
-                //             const_val,
-                //             vir::AssignKind::Copy,
-                //         ));
-                //     }
-                //     mir::Literal::Promoted { index } => {
-                //         trace!("promoted constant literal {:?}: {:?}", index, ty);
-                //         trace!("{:?}", self.mir.promoted[*index].basic_blocks());
-                //         trace!(
-                //             "{:?}",
-                //             self.mir.promoted[*index]
-                //                 .basic_blocks()
-                //                 .into_iter()
-                //                 .next()
-                //                 .unwrap()
-                //                 .statements[0]
-                //         );
-                //         // TODO: call eval_const
-                //         debug!(
-                //             "Encoding of promoted constant literal '{:?}: {:?}' is incomplete",
-                //             index, ty
-                //         );
-                //         // Workaround: do not initialize values
-                //     }
-                // }
             }
         };
         debug!(
@@ -5733,7 +5699,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) => {
+            mir::AggregateKind::Adt(adt_def, variant_index, subst, _, _) if !adt_def.is_union() => {
                 let num_variants = adt_def.variants.len();
                 let variant_def = &adt_def.variants[variant_index];
                 let mut dst_base = dst.clone();
@@ -5794,6 +5760,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         location,
                     )?);
                 }
+            }
+
+            mir::AggregateKind::Adt(..) => {
+                // It is a union
+                return Err(SpannedEncodingError::unsupported(
+                    "unions are not supported",
+                    span
+                ));
             }
 
             mir::AggregateKind::Closure(def_id, _substs) => {
