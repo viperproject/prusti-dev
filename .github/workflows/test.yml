@@ -41,6 +41,38 @@ jobs:
           key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
       - name: Build with cargo
         run: python x.py build --all --verbose
+      - name: Run "quick" cargo tests
+        run: python x.py test --all --verbose quick
+
+  # Run clippy checks on PRs.
+  clippy-check:
+    runs-on: ubuntu-latest
+    # Only run when triggered by a pull request event
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # deep clone, to allow us to use git merge-base
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
+      - name: Build with cargo
+        run: python x.py build --all --verbose
       - name: Check and report Clippy errors
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -53,8 +85,6 @@ jobs:
             git fetch upstream "$GITHUB_BASE_REF"
             python x.py exec cargo-clippy-diff --output=github $BASE_SHA HEAD
           fi
-      - name: Run "quick" cargo tests
-        run: python x.py test --all --verbose quick
 
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
@@ -129,7 +159,7 @@ jobs:
       - name: Check prusti-contracts
         run: |
           cd prusti-contracts-test/
-          cargo build
+          cargo +stable build
 
   # Run Prusti on itself. Currently disabled because of many bugs in Prusti.
   test-on-prusti:

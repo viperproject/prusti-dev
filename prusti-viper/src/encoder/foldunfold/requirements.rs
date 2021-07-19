@@ -283,7 +283,8 @@ impl RequiredPermissionsGetter for vir::Expr {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
 
-            vir::Expr::ForAll(vars, _triggers, box body, _) => {
+            vir::Expr::ForAll(vars, _triggers, box body, _)
+            | vir::Expr::Exists(vars, _triggers, box body, _) => {
                 assert!(vars.iter().all(|var| !var.typ.is_ref()));
 
                 let vars_places: HashSet<_> = vars

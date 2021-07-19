@@ -90,17 +90,17 @@ impl Parser {
     /// Stubs to maintain existing public API
     pub fn extract_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
         Ok(AssertionWithoutId {
-            kind: box common::AssertionKind::And(vec![])
+            kind: Box::new(common::AssertionKind::And(vec![]))
         })
     }
     pub fn extract_pledge(&mut self) -> syn::Result<PledgeWithoutId> {
         Ok(PledgeWithoutId {
             reference: None,
             lhs: Some(AssertionWithoutId {
-                        kind: box common::AssertionKind::And(vec![])
+                        kind: Box::new(common::AssertionKind::And(vec![]))
                       }),
             rhs: AssertionWithoutId {
-                    kind: box common::AssertionKind::And(vec![])
+                    kind: Box::new(common::AssertionKind::And(vec![]))
                  },
         })
     }
@@ -109,7 +109,7 @@ impl Parser {
             reference: None,
             lhs: None,
             rhs: AssertionWithoutId {
-                    kind: box common::AssertionKind::And(vec![])
+                    kind: Box::new(common::AssertionKind::And(vec![]))
                  },
         })
     }

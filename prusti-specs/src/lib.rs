@@ -1,7 +1,3 @@
-#![feature(box_syntax)]
-#![feature(box_patterns)]
-#![feature(drain_filter)]
-
 #![deny(unused_must_use)]
 
 #[macro_use]
@@ -16,7 +12,7 @@ pub mod specifications;
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryInto;
 
 use specifications::untyped;
 use parse_closure_macro::ClosureWithSpec;
@@ -31,14 +27,14 @@ macro_rules! handle_result {
     };
 }
 
-fn extract_prusti_attributes<'a>(item: &'a mut untyped::AnyFnItem) -> impl Iterator<Item=(SpecAttributeKind, TokenStream)> + 'a {
-    item.attrs_mut().drain_filter(
-        |attr|
-            attr.path.segments.len() == 1
-                && SpecAttributeKind::try_from(attr.path.segments[0].ident.to_string()).is_ok()
-    ).map(
-        |attr| attr.path.segments[0].ident.to_string().try_into().ok().map(
-            |attr_kind| {
+fn extract_prusti_attributes(
+    item: &mut untyped::AnyFnItem
+) -> Vec<(SpecAttributeKind, TokenStream)> {
+    let mut prusti_attributes = Vec::new();
+    let mut regular_attributes = Vec::new();
+    for attr in item.attrs_mut().drain(0..) {
+        if attr.path.segments.len() == 1 {
+            if let Ok(attr_kind) = attr.path.segments[0].ident.to_string().try_into() {
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires
                     | SpecAttributeKind::Ensures
@@ -64,10 +60,16 @@ fn extract_prusti_attributes<'a>(item: &'a mut untyped::AnyFnItem) -> impl Itera
                         attr.tokens
                     }
                 };
-                (attr_kind, tokens)
+                prusti_attributes.push((attr_kind, tokens));
+            } else {
+                regular_attributes.push(attr);
             }
-        )
-    ).flatten()
+        } else {
+            regular_attributes.push(attr);
+        }
+    }
+    *item.attrs_mut() = regular_attributes;
+    prusti_attributes
 }
 
 /// Rewrite an item as required by *all* its specification attributes.
@@ -366,7 +368,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
         match item {
             syn::ImplItem::Method(method) => {
                 let mut method_item = untyped::AnyFnItem::ImplMethod(method);
-                let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item).collect();
+                let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item);
                 let (spec_items, generated_attributes) = handle_result!(
                     generate_spec_and_assertions(prusti_attributes, &method_item)
                 );
