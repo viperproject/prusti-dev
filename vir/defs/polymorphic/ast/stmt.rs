@@ -9,6 +9,8 @@ use super::super::cfg::CfgBlockIndex;
 use crate::polymorphic::ast::*;
 use std::fmt;
 
+use super::super::super::legacy;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Stmt {
     Comment(Comment),
@@ -60,6 +62,93 @@ pub enum Stmt {
     Downcast(Downcast),
 }
 
+impl From<Stmt> for legacy::Stmt {
+    fn from(stmt: Stmt) -> legacy::Stmt {
+        match stmt {
+            Stmt::Comment(comment) => legacy::Stmt::Comment(
+                comment.comment.clone(),
+            ),
+            Stmt::Label(label) => legacy::Stmt::Label (
+                label.label.clone(),
+            ),
+            Stmt::Inhale(inhale) => legacy::Stmt::Inhale (
+                legacy::Expr::from(inhale.expr.clone()),
+            ),
+            Stmt::Exhale(exhale) => legacy::Stmt::Exhale (
+                legacy::Expr::from(exhale.expr.clone()),
+                legacy::Position::from(exhale.position.clone()),
+            ),
+            Stmt::Assert(assert) => legacy::Stmt::Assert (
+                legacy::Expr::from(assert.expr.clone()),
+                legacy::Position::from(assert.position.clone()),
+            ),
+            Stmt::MethodCall(method_call) => legacy::Stmt::MethodCall (
+                method_call.method_name.clone(),
+                method_call.arguments.iter().map(|argument| legacy::Expr::from(argument.clone())).collect(),
+                method_call.targets.iter().map(|target| legacy::LocalVar::from(target.clone())).collect(),
+            ),
+            Stmt::Assign(assign) => legacy::Stmt::Assign (
+                legacy::Expr::from(assign.target.clone()),
+                legacy::Expr::from(assign.source.clone()),
+                legacy::AssignKind::from(assign.kind.clone()),
+            ),
+            Stmt::Fold(fold) => legacy::Stmt::Fold (
+                fold.predicate_name.clone(),
+                fold.arguments.iter().map(|argument| legacy::Expr::from(argument.clone())).collect(),
+                legacy::PermAmount::from(fold.permission),
+                match fold.enum_variant {
+                    Some(enum_variant_index) => Some(legacy::EnumVariantIndex::from(enum_variant_index.clone())),
+                    _ => None,
+                },
+                legacy::Position::from(fold.position.clone()),
+            ),
+            Stmt::Unfold(unfold) => legacy::Stmt::Unfold (
+                unfold.predicate_name.clone(),
+                unfold.arguments.iter().map(|argument| legacy::Expr::from(argument.clone())).collect(),
+                legacy::PermAmount::from(unfold.permission),
+                match unfold.enum_variant {
+                    Some(enum_variant_index) => Some(legacy::EnumVariantIndex::from(enum_variant_index.clone())),
+                    _ => None,
+                },
+            ),
+            Stmt::Obtain(obtain) => legacy::Stmt::Obtain (
+                legacy::Expr::from(obtain.predicate_name.clone()),
+                legacy::Position::from(obtain.position.clone()),
+            ),
+            Stmt::BeginFrame(_) => legacy::Stmt::BeginFrame,
+            Stmt::EndFrame(_) => legacy::Stmt::EndFrame,
+            Stmt::TransferPerm(transfer_perm) => legacy::Stmt::TransferPerm (
+                legacy::Expr::from(transfer_perm.left.clone()),
+                legacy::Expr::from(transfer_perm.right.clone()),
+                transfer_perm.unchecked,
+            ),
+            Stmt::PackageMagicWand(package_magic_wand) => legacy::Stmt::PackageMagicWand (
+                legacy::Expr::from(package_magic_wand.magic_wand.clone()),
+                package_magic_wand.package_stmts.iter().map(|package_stmt| legacy::Stmt::from(package_stmt.clone())).collect(),
+                package_magic_wand.label.clone(),
+                package_magic_wand.variables.iter().map(|variable| legacy::LocalVar::from(variable.clone())).collect(),
+                legacy::Position::from(package_magic_wand.position.clone()),
+            ),
+            Stmt::ApplyMagicWand(apply_magic_wand) => legacy::Stmt::ApplyMagicWand (
+                legacy::Expr::from(apply_magic_wand.magic_wand.clone()),
+                legacy::Position::from(apply_magic_wand.position.clone()),
+            ),
+            Stmt::ExpireBorrows(expire_borrows) => legacy::Stmt::ExpireBorrows (
+                legacy::DAG::from(expire_borrows.dag.clone()),
+            ),
+            Stmt::If(if_stmt) => legacy::Stmt::If (
+                legacy::Expr::from(if_stmt.guard.clone()),
+                if_stmt.then_stmts.iter().map(|then_stmt| legacy::Stmt::from(then_stmt.clone())).collect(),
+                if_stmt.else_stmts.iter().map(|else_stmt| legacy::Stmt::from(else_stmt.clone())).collect(),
+            ),
+            Stmt::Downcast(downcast) => legacy::Stmt::Downcast (
+                legacy::Expr::from(downcast.base.clone()),
+                legacy::Field::from(downcast.field.clone()),
+            ),
+        }
+    }
+}
+
 impl fmt::Display for Stmt {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self)
@@ -83,6 +172,18 @@ pub enum AssignKind {
     /// Used to mark that the assignment is to a ghost variable and should be ignored by
     /// the fold-unfold algorithm.
     Ghost,
+}
+
+impl From<AssignKind> for legacy::AssignKind {
+    fn from(assign_kind: AssignKind) -> legacy::AssignKind {
+        match assign_kind {
+            AssignKind::Copy => legacy::AssignKind::Copy,
+            AssignKind::Move => legacy::AssignKind::Move,
+            AssignKind::MutableBorrow(borrow) => legacy::AssignKind::MutableBorrow(legacy::Borrow::from(borrow)),
+            AssignKind::SharedBorrow(borrow) => legacy::AssignKind::SharedBorrow(legacy::Borrow::from(borrow)),
+            AssignKind::Ghost => legacy::AssignKind::Ghost,
+        }
+    }
 }
 
 /// Individual structs for different cases of Expr

@@ -8,6 +8,8 @@ use crate::polymorphic::ast::*;
 use std::fmt;
 use std::collections::HashSet;
 
+use super::super::super::legacy;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Predicate {
     Struct(StructPredicate),
@@ -21,6 +23,16 @@ impl fmt::Display for Predicate {
             Predicate::Struct(p) => write!(f, "{}", p),
             Predicate::Enum(p) => write!(f, "{}", p),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {}({});", name, this),
+        }
+    }
+}
+
+impl From<Predicate> for legacy::Predicate {
+    fn from(predicate: Predicate) -> legacy::Predicate {
+        match predicate {
+            Predicate::Struct(struct_predicate) => legacy::Predicate::Struct(legacy::StructPredicate::from(struct_predicate.clone())),
+            Predicate::Enum(enum_predicate) => legacy::Predicate::Enum(legacy::EnumPredicate::from(enum_predicate.clone())),
+            Predicate::Bodyless(label, local_var) => legacy::Predicate::Bodyless(label.clone(), legacy::LocalVar::from(local_var.clone())),
         }
     }
 }
@@ -50,6 +62,19 @@ impl fmt::Display for StructPredicate {
     }
 }
 
+impl From<StructPredicate> for legacy::StructPredicate {
+    fn from(struct_predicate: StructPredicate) -> legacy::StructPredicate {
+        legacy::StructPredicate {
+            name: struct_predicate.name.clone(),
+            this: legacy::LocalVar::from(struct_predicate.this.clone()),
+            body: match struct_predicate.body {
+                Some(body_expr) => Some(legacy::Expr::from(body_expr.clone())),
+                _ => None,
+            },
+        }
+    }
+}
+
 /// The predicate for types that have 0 or more than one variants.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct EnumPredicate {
@@ -66,9 +91,47 @@ pub struct EnumPredicate {
     pub variants: Vec<(Expr, String, StructPredicate)>,
 }
 
+impl From<EnumPredicate> for legacy::EnumPredicate {
+    fn from(enum_predicate: EnumPredicate) -> legacy::EnumPredicate {
+        legacy::EnumPredicate {
+            name: enum_predicate.name.clone(),
+            this: legacy::LocalVar::from(enum_predicate.this.clone()),
+            discriminant_field: legacy::Field::from(enum_predicate.discriminant_field.clone()),
+            discriminant_bounds: legacy::Expr::from(enum_predicate.discriminant_bounds.clone()),
+            variants: enum_predicate.variants.iter().map(|(expr, label, struct_predicate)| (legacy::Expr::from(expr.clone()), label.clone(), legacy::StructPredicate::from(struct_predicate.clone()))).collect(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct EnumVariantIndex(String);
+
+impl EnumVariantIndex {
+    pub fn get_variant_name(&self) -> &str {
+        &self.0
+    }
+
+    pub fn new(s: String) -> Self {
+        EnumVariantIndex(s)
+    }
+}
+
+impl From<EnumVariantIndex> for legacy::EnumVariantIndex {
+    fn from(enum_variant_index: EnumVariantIndex) -> legacy::EnumVariantIndex {
+        legacy::EnumVariantIndex::new(enum_variant_index.0.clone())
+    }
+}
+
 pub type MaybeEnumVariantIndex = Option<EnumVariantIndex>;
+
+// impl From<Option<EnumVariantIndex>> for Option<legacy::EnumVariantIndex> {
+//     fn from(maybe_enum_variant_index: Option<EnumVariantIndex>) -> legacy::Option<EnumVariantIndex> {
+//         match maybe_enum_variant_index {
+//             Some(enum_variant_index) => legacy::EnumVariantIndex::from(enum_variant_index),
+//             _ => None,
+//         }
+//     }
+// }
 
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

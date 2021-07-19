@@ -7,6 +7,8 @@
 use crate::polymorphic::ast::*;
 use std::fmt;
 
+use super::super::super::legacy;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Trigger(Vec<Expr>);
 
@@ -21,5 +23,17 @@ impl fmt::Display for Trigger {
                 .collect::<Vec<String>>()
                 .join(", ")
         )
+    }
+}
+
+impl Trigger {
+    pub fn new(items: Vec<Expr>) -> Self {
+        Trigger(items)
+    }
+}
+
+impl From<Trigger> for legacy::Trigger {
+    fn from(trigger: Trigger) -> legacy::Trigger {
+        legacy::Trigger::new(trigger.0.iter().map(|expr| legacy::Expr::from(expr.clone())).collect())
     }
 }
