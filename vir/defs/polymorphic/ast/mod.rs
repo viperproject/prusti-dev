@@ -23,4 +23,3 @@ mod function;
 mod predicate;
 mod stmt;
 mod trigger;
-pub mod typaram;

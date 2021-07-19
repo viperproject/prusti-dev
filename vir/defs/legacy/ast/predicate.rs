@@ -70,6 +70,16 @@ pub struct EnumPredicate {
 pub struct EnumVariantIndex(String);
 pub type MaybeEnumVariantIndex = Option<EnumVariantIndex>;
 
+impl EnumVariantIndex {
+    pub fn get_variant_name(&self) -> &str {
+        &self.0
+    }
+
+    pub fn new(s: String) -> Self {
+        EnumVariantIndex(s)
+    }
+}
+
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "enum_predicate {}({}){{\n", self.name, self.this)?;

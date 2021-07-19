@@ -8,6 +8,8 @@ use super::ast::{Expr, Stmt};
 use std::collections::{HashMap, VecDeque};
 use std::fmt;
 
+use super::super::legacy;
+
 /// The method-unique borrow identifier.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct Borrow(usize);
@@ -15,6 +17,12 @@ pub struct Borrow(usize);
 impl fmt::Debug for Borrow {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "L{}", self.0)
+    }
+}
+
+impl From<Borrow> for legacy::Borrow {
+    fn from(borrow: Borrow) -> legacy::Borrow {
+        legacy::Borrow::new(borrow.0)
     }
 }
 
@@ -44,6 +52,25 @@ impl fmt::Debug for Node {
     }
 }
 
+impl From<Node> for legacy::Node {
+    fn from(node: Node) -> legacy::Node {
+        legacy::Node {
+            guard: legacy::Expr::from(node.guard.clone()),
+            borrow: legacy::Borrow::from(node.borrow.clone()),
+            reborrowing_nodes: node.reborrowing_nodes.iter().map(|reborrowing_node| legacy::Borrow::from(reborrowing_node.clone())).collect(),
+            reborrowed_nodes: node.reborrowed_nodes.iter().map(|reborrowed_node| legacy::Borrow::from(reborrowed_node.clone())).collect(),
+            stmts: node.stmts.iter().map(|stmt| legacy::Stmt::from(stmt.clone())).collect(),
+            borrowed_places: node.borrowed_places.iter().map(|borrowed_place| legacy::Expr::from(borrowed_place.clone())).collect(),
+            conflicting_borrows: node.conflicting_borrows.iter().map(|conflicting_borrow| legacy::Borrow::from(conflicting_borrow.clone())).collect(),
+            alive_conflicting_borrows: node.alive_conflicting_borrows.iter().map(|alive_conflicting_borrow| legacy::Borrow::from(alive_conflicting_borrow.clone())).collect(),
+            place: match node.place {
+                Some(expr) => Some(legacy::Expr::from(expr.clone())),
+                _ => None,
+            },
+        }
+    }
+}
+
 /// Reborrowing directed acyclic graph (DAG). It should not be mutated
 /// after it is constructed. For construction use `DAGBuilder`.
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -55,6 +82,27 @@ pub struct DAG {
     nodes: Vec<Node>,
     #[serde(skip)]
     borrowed_places: Vec<Expr>,
+}
+
+impl DAG {
+    // FIXME: this constructor is currently only used for conversion
+    pub fn new(borrow_indices: HashMap<Borrow, usize>, nodes: Vec<Node>, borrowed_places: Vec<Expr>) -> Self {
+        DAG {
+            borrow_indices: borrow_indices,
+            nodes: nodes,
+            borrowed_places: borrowed_places,
+        }
+    }
+}
+
+impl From<DAG> for legacy::DAG {
+    fn from(dag: DAG) -> legacy::DAG {
+        legacy::DAG::new (
+            dag.borrow_indices.iter().map(|(borrow, index)| (legacy::Borrow::from(borrow.clone()), *index)).collect(),
+            dag.nodes.iter().map(|node| legacy::Node::from(node.clone())).collect(),
+            dag.borrowed_places.iter().map(|borrowed_place| legacy::Expr::from(borrowed_place.clone())).collect(),
+        )
+    }
 }
 
 /// A struct for constructing the reborrowing DAG.

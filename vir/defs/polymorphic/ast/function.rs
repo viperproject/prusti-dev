@@ -8,6 +8,8 @@ use crate::legacy::ast::*;
 use std::collections::HashMap;
 use std::fmt;
 
+use super::super::super::legacy;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Function {
     pub name: String,
@@ -42,5 +44,21 @@ impl fmt::Display for Function {
             write!(f, "}}")?;
         }
         write!(f, "")
+    }
+}
+
+impl From<Function> for legacy::Function {
+    fn from(function: Function) -> legacy::Function {
+        legacy::Function {
+            name: function.name.clone(),
+            formal_args: function.formal_args.iter().map(|formal_arg| legacy::LocalVar::from(formal_arg.clone())).collect(),
+            return_type: legacy::Type::from(function.return_type.clone()),
+            pres: function.pres.iter().map(|pre| legacy::Expr::from(pre.clone())).collect(),
+            posts: function.posts.iter().map(|post| legacy::Expr::from(post.clone())).collect(),
+            body: match function.body {
+                Some(body_expr) => Some(legacy::Expr::from(body_expr.clone())),
+                _ => None,
+            }
+        }
     }
 }

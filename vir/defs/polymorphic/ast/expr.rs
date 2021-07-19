@@ -12,6 +12,8 @@ use std::hash::{Hash, Hasher};
 use std::mem;
 use std::mem::discriminant;
 
+use super::super::super::legacy;
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Expr {
     /// A local var
@@ -62,6 +64,123 @@ impl fmt::Display for Expr {
     }
 }
 
+impl From<Expr> for legacy::Expr {
+    fn from(expr: Expr) -> legacy::Expr {
+        match expr {
+            Expr::Local(local) => legacy::Expr::Local(
+                legacy::LocalVar::from(local.variable.clone()), 
+                legacy::Position::from(local.position.clone())
+            ),
+            Expr::Variant(variant) => legacy::Expr::Variant(
+                Box::new(legacy::Expr::from(*(variant.base).clone())), 
+                legacy::Field::from(variant.variant_index.clone()), 
+                legacy::Position::from(variant.position.clone())
+            ),
+            Expr::Field(field) => legacy::Expr::Field(
+                Box::new(legacy::Expr::from(*(field.base).clone())), 
+                legacy::Field::from(field.field.clone()), 
+                legacy::Position::from(field.position.clone())
+            ),
+            Expr::AddrOf(addr_of) => legacy::Expr::AddrOf(
+                Box::new(legacy::Expr::from(*(addr_of.base).clone())), 
+                legacy::Type::from(addr_of.addr_type.clone()),
+                legacy::Position::from(addr_of.position.clone()),
+            ),
+            Expr::LabelledOld(labelled_old) => legacy::Expr::LabelledOld(
+                labelled_old.label.clone(),
+                Box::new(legacy::Expr::from(*(labelled_old.base).clone())), 
+                legacy::Position::from(labelled_old.position.clone()),
+            ),
+            Expr::Const(const_expr) => legacy::Expr::Const(
+                legacy::Const::from(const_expr.value.clone()),
+                legacy::Position::from(const_expr.position.clone()),
+            ),
+            Expr::MagicWand(magic_wand) => legacy::Expr::MagicWand(
+                Box::new(legacy::Expr::from(*(magic_wand.left).clone())), 
+                Box::new(legacy::Expr::from(*(magic_wand.right).clone())), 
+                match magic_wand.borrow {
+                    Some(borrow) => Some(legacy::Borrow::from(borrow.clone())),
+                    _ => None,
+                },
+                legacy::Position::from(magic_wand.position.clone()),
+            ),
+            Expr::PredicateAccessPredicate(predicate_access_predicate) => legacy::Expr::PredicateAccessPredicate(
+                predicate_access_predicate.predicate_name.clone(),
+                Box::new(legacy::Expr::from(*(predicate_access_predicate.argument).clone())),
+                legacy::PermAmount::from(predicate_access_predicate.permission),
+                legacy::Position::from(predicate_access_predicate.position.clone()),
+            ),
+            Expr::FieldAccessPredicate(field_access_predicate) => legacy::Expr::FieldAccessPredicate(
+                Box::new(legacy::Expr::from(*(field_access_predicate.base).clone())),
+                legacy::PermAmount::from(field_access_predicate.permission),
+                legacy::Position::from(field_access_predicate.position.clone()),
+            ),
+            Expr::UnaryOp(unary_op) => legacy::Expr::UnaryOp(
+                legacy::UnaryOpKind::from(unary_op.op_kind),
+                Box::new(legacy::Expr::from(*(unary_op.argument).clone())),
+                legacy::Position::from(unary_op.position.clone()),
+            ),
+            Expr::BinOp(bin_op) => legacy::Expr::BinOp(
+                legacy::BinOpKind::from(bin_op.op_kind),
+                Box::new(legacy::Expr::from(*(bin_op.left).clone())),
+                Box::new(legacy::Expr::from(*(bin_op.right).clone())),
+                legacy::Position::from(bin_op.position.clone()),
+            ),
+            Expr::Unfolding(unfolding) => legacy::Expr::Unfolding(
+                unfolding.predicate_name.clone(),
+                unfolding.arguments.iter().map(|argument| legacy::Expr::from(argument.clone())).collect(),
+                Box::new(legacy::Expr::from(*(unfolding.base).clone())),
+                legacy::PermAmount::from(unfolding.permission),
+                match unfolding.variant {
+                    Some(enum_variant_index) => Some(legacy::EnumVariantIndex::from(enum_variant_index.clone())),
+                    _ => None,
+                },
+                legacy::Position::from(unfolding.position.clone()),
+            ),
+            Expr::Cond(cond) => legacy::Expr::Cond(
+                Box::new(legacy::Expr::from(*(cond.guard).clone())),
+                Box::new(legacy::Expr::from(*(cond.then_expr).clone())),
+                Box::new(legacy::Expr::from(*(cond.else_expr).clone())),
+                legacy::Position::from(cond.position.clone()),
+            ),
+            Expr::ForAll(for_all) => legacy::Expr::ForAll(
+                for_all.variables.iter().map(|variable| legacy::LocalVar::from(variable.clone())).collect(),
+                for_all.triggers.iter().map(|trigger| legacy::Trigger::from(trigger.clone())).collect(),
+                Box::new(legacy::Expr::from(*(for_all.body).clone())),
+                legacy::Position::from(for_all.position.clone()),
+            ),
+            Expr::LetExpr(let_expr) => legacy::Expr::LetExpr(
+                legacy::LocalVar::from(let_expr.variable.clone()), 
+                Box::new(legacy::Expr::from(*(let_expr.def).clone())),
+                Box::new(legacy::Expr::from(*(let_expr.body).clone())),
+                legacy::Position::from(let_expr.position.clone()),
+            ),
+            Expr::FuncApp(func_app) => legacy::Expr::FuncApp(
+                func_app.function_name.clone(),
+                func_app.arguments.iter().map(|argument| legacy::Expr::from(argument.clone())).collect(),
+                func_app.formal_arguments.iter().map(|formal_argument| legacy::LocalVar::from(formal_argument.clone())).collect(),
+                legacy::Type::from(func_app.return_type.clone()),
+                legacy::Position::from(func_app.position.clone()),
+            ),
+            Expr::DomainFuncApp(domain_func_app) => legacy::Expr::DomainFuncApp(
+                legacy::DomainFunc::from(domain_func_app.domain_function.clone()),
+                domain_func_app.arguments.iter().map(|argument| legacy::Expr::from(argument.clone())).collect(),
+                legacy::Position::from(domain_func_app.position.clone()),
+            ),
+            Expr::InhaleExhale(inhale_exhale) => legacy::Expr::InhaleExhale(
+                Box::new(legacy::Expr::from(*(inhale_exhale.inhale_expr).clone())),
+                Box::new(legacy::Expr::from(*(inhale_exhale.exhale_expr).clone())),
+                legacy::Position::from(inhale_exhale.position.clone()),
+            ),
+            Expr::Downcast(down_cast) => legacy::Expr::Downcast(
+                Box::new(legacy::Expr::from(*(down_cast.base).clone())),
+                Box::new(legacy::Expr::from(*(down_cast.enum_place).clone())),
+                legacy::Field::from(down_cast.field.clone()),
+            )
+        }
+    }
+}
+
 /// A component that can be used to represent a place as a vector.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PlaceComponent {
@@ -69,10 +188,28 @@ pub enum PlaceComponent {
     Variant(Field, Position),
 }
 
+impl From<PlaceComponent> for legacy::PlaceComponent {
+    fn from(place_component: PlaceComponent) -> legacy::PlaceComponent {
+        match place_component {
+            PlaceComponent::Field(field, position) => legacy::PlaceComponent::Field(legacy::Field::from(field), legacy::Position::from(position)),
+            PlaceComponent::Variant(field, position) => legacy::PlaceComponent::Variant(legacy::Field::from(field), legacy::Position::from(position)),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum UnaryOpKind {
     Not,
     Minus,
+}
+
+impl From<UnaryOpKind> for legacy::UnaryOpKind {
+    fn from(unary_op_kind: UnaryOpKind) -> legacy::UnaryOpKind {
+        match unary_op_kind {
+            UnaryOpKind::Not => legacy::UnaryOpKind::Not,
+            UnaryOpKind::Minus => legacy::UnaryOpKind::Minus,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -93,6 +230,27 @@ pub enum BinOpKind {
     Implies,
 }
 
+impl From<BinOpKind> for legacy::BinOpKind {
+    fn from(bin_op_kind: BinOpKind) -> legacy::BinOpKind {
+        match bin_op_kind {
+            BinOpKind::EqCmp => legacy::BinOpKind::EqCmp,
+            BinOpKind::NeCmp => legacy::BinOpKind::NeCmp,
+            BinOpKind::GtCmp => legacy::BinOpKind::GtCmp,
+            BinOpKind::GeCmp => legacy::BinOpKind::GeCmp,
+            BinOpKind::LtCmp => legacy::BinOpKind::LtCmp,
+            BinOpKind::LeCmp => legacy::BinOpKind::LeCmp,
+            BinOpKind::Add => legacy::BinOpKind::Add,
+            BinOpKind::Sub => legacy::BinOpKind::Sub,
+            BinOpKind::Mul => legacy::BinOpKind::Mul,
+            BinOpKind::Div => legacy::BinOpKind::Div,
+            BinOpKind::Mod => legacy::BinOpKind::Mod,
+            BinOpKind::And => legacy::BinOpKind::And,
+            BinOpKind::Or => legacy::BinOpKind::Or,
+            BinOpKind::Implies => legacy::BinOpKind::Implies,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
@@ -101,6 +259,17 @@ pub enum Const {
     /// All function pointers share the same constant, because their function
     /// is determined by the type system.
     FnPtr,
+}
+
+impl From<Const> for legacy::Const {
+    fn from(old_const: Const) -> legacy::Const {
+        match old_const {
+            Const::Bool(bool_value) => legacy::Const::Bool(bool_value),
+            Const::Int(i64_value) => legacy::Const::Int(i64_value),
+            Const::BigInt(label) => legacy::Const::BigInt(label.clone()),
+            Const::FnPtr => legacy::Const::FnPtr,
+        }
+    }
 }
 
 /// Individual structs for different cases of Expr

@@ -34,10 +34,65 @@ pub struct CfgMethod {
     fresh_label_index: i32,
 }
 
+impl CfgMethod {
+    pub fn new(
+        method_name: String,
+        formal_arg_count: usize,
+        formal_returns: Vec<LocalVar>,
+        local_vars: Vec<LocalVar>,
+        reserved_labels: Vec<String>,
+    ) -> Self {
+        CfgMethod {
+            uuid: Uuid::new_v4(),
+            method_name,
+            formal_arg_count,
+            formal_returns,
+            local_vars,
+            labels: HashSet::new(),
+            reserved_labels: HashSet::from_iter(reserved_labels),
+            basic_blocks: vec![],
+            basic_blocks_labels: vec![],
+            fresh_var_index: 0,
+            fresh_label_index: 0,
+        }
+    }
+
+    // FIXME: should not allow such constructor to be publicly accessible (currently for conversion)
+    pub fn new_copy(uuid: Uuid, method_name: String, formal_arg_count: usize, formal_returns: Vec<LocalVar>, local_vars: Vec<LocalVar>, labels: HashSet<String>, 
+        reserved_labels: HashSet<String>, basic_blocks: Vec<CfgBlock>, basic_blocks_labels: Vec<String>, fresh_var_index: i32, fresh_label_index: i32) -> Self {
+        CfgMethod {
+            uuid: uuid,
+            method_name: method_name,
+            formal_arg_count: formal_arg_count,
+            formal_returns: formal_returns,
+            local_vars: local_vars,
+            labels: labels,
+            reserved_labels: reserved_labels,
+            basic_blocks: basic_blocks,
+            basic_blocks_labels:basic_blocks_labels,
+            fresh_var_index: fresh_var_index,
+            fresh_label_index: fresh_label_index,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
     pub(in super::super) successor: Successor,
+}
+
+impl CfgBlock {
+    // FIXME: should not allow such constructor to be publicly accessible (currently for conversion)
+    pub fn new(
+        stmts: Vec<Stmt>,
+        successor: Successor,
+    ) -> Self {
+        CfgBlock {
+            stmts: stmts,
+            successor: successor,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -58,5 +113,18 @@ pub struct CfgBlockIndex {
 impl fmt::Debug for CfgBlockIndex {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "cfg:{}", self.block_index)
+    }
+}
+
+impl CfgBlockIndex {
+    // FIXME: should not allow such constructor to be publicly accessible (currently for conversion)
+    pub fn new(
+        method_uuid: Uuid,
+        block_index: usize,
+    ) -> Self {
+        CfgBlockIndex {
+            method_uuid: method_uuid,
+            block_index: block_index,
+        }
     }
 }

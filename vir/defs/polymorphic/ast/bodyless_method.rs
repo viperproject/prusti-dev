@@ -7,6 +7,8 @@
 use crate::polymorphic::ast::*;
 use std::fmt;
 
+use super::super::super::legacy;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct BodylessMethod {
     pub name: String,
@@ -34,5 +36,15 @@ impl fmt::Display for BodylessMethod {
             first = false
         }
         write!(f, ");")
+    }
+}
+
+impl From<BodylessMethod> for legacy::BodylessMethod {
+    fn from(bodyless_method: BodylessMethod) -> legacy::BodylessMethod {
+        legacy::BodylessMethod {
+            name: bodyless_method.name,
+            formal_args: bodyless_method.formal_args.iter().map(|formal_arg| legacy::LocalVar::from(formal_arg.clone())).collect(),
+            formal_returns: bodyless_method.formal_returns.iter().map(|formal_return| legacy::LocalVar::from(formal_return.clone())).collect(),
+        }
     }
 }

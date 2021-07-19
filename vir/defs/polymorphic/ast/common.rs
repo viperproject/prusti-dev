@@ -13,6 +13,8 @@ use std::{
     ops,
 };
 
+use super::super::super::legacy;
+
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Position {
@@ -21,9 +23,56 @@ pub struct Position {
     id: u64,
 }
 
+impl Position {
+    pub fn new(line: i32, column: i32, id: u64) -> Self {
+        Position { line, column, id }
+    }
+
+    pub fn line(&self) -> i32 {
+        self.line
+    }
+
+    pub fn column(&self) -> i32 {
+        self.column
+    }
+
+    pub fn id(&self) -> u64 {
+        self.id
+    }
+
+    pub fn is_default(&self) -> bool {
+        self.line == 0 && self.column == 0 && self.id == 0
+    }
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        Position::new(0, 0, 0)
+    }
+}
+
+impl From<Position> for legacy::Position {
+    fn from(position: Position) -> legacy::Position {
+        legacy::Position::new(
+            position.line,
+            position.column,
+            position.id
+        )
+    }
+}
+
 pub enum PermAmountError {
     InvalidAdd(PermAmount, PermAmount),
     InvalidSub(PermAmount, PermAmount)
+}
+
+impl From<PermAmountError> for legacy::PermAmountError {
+    fn from(perm_amount_error: PermAmountError) -> legacy::PermAmountError {
+        match perm_amount_error {
+            PermAmountError::InvalidAdd(perm_amount_1, perm_amount_2) => legacy::PermAmountError::InvalidAdd(legacy::PermAmount::from(perm_amount_1), legacy::PermAmount::from(perm_amount_2)),
+            PermAmountError::InvalidSub(perm_amount_1, perm_amount_2) => legacy::PermAmountError::InvalidSub(legacy::PermAmount::from(perm_amount_1), legacy::PermAmount::from(perm_amount_2)),
+        }
+    }
 }
 
 /// The permission amount.
@@ -64,6 +113,16 @@ impl Ord for PermAmount {
             "Undefined comparison between {:?} and {:?}",
             self, other
         ))
+    }
+}
+
+impl From<PermAmount> for legacy::PermAmount {
+    fn from(perm_amount: PermAmount) -> legacy::PermAmount {
+        match perm_amount {
+            PermAmount::Read => legacy::PermAmount::Read,
+            PermAmount::Write => legacy::PermAmount::Write,
+            PermAmount::Remaining => legacy::PermAmount::Remaining,
+        }
     }
 }
 
@@ -113,6 +172,30 @@ impl Hash for Type {
     }
 }
 
+impl From<Type> for legacy::Type {
+    fn from(typ: Type) -> legacy::Type {
+        match typ {
+            Type::Int => legacy::Type::Int,
+            Type::Bool => legacy::Type::Bool,
+            Type::TypedRef(label, _) => legacy::Type::TypedRef(label.clone()),
+            Type::Domain(label, _) => legacy::Type::Domain(label.clone()),
+            // FIXME: needs update for type substitution
+            Type::TypedVar(label) => legacy::Type::TypedRef(label.clone()),
+        }
+    }
+}
+
+impl From<TypeId> for legacy::TypeId {
+    fn from(type_id: TypeId) -> legacy::TypeId {
+        match type_id {
+            TypeId::Int => legacy::TypeId::Int,
+            TypeId::Bool => legacy::TypeId::Bool,
+            TypeId::Ref => legacy::TypeId::Ref,
+            TypeId::Domain => legacy::TypeId::Domain,
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct LocalVar {
     pub name: String,
@@ -131,6 +214,15 @@ impl fmt::Debug for LocalVar {
     }
 }
 
+impl From<LocalVar> for legacy::LocalVar {
+    fn from(type_id: LocalVar) -> legacy::LocalVar {
+        legacy::LocalVar {
+            name: type_id.name.clone(),
+            typ: legacy::Type::from(type_id.typ.clone()),
+        }
+    }
+}
+
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
@@ -146,5 +238,14 @@ impl fmt::Display for Field {
 impl fmt::Debug for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}: {}", self.name, self.typ)
+    }
+}
+
+impl From<Field> for legacy::Field {
+    fn from(field: Field) -> legacy::Field {
+        legacy::Field {
+            name: field.name.clone(),
+            typ: legacy::Type::from(field.typ.clone()),
+        }
     }
 }

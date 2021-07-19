@@ -23,3 +23,10 @@ impl fmt::Display for Trigger {
         )
     }
 }
+
+impl Trigger {
+    pub fn new(items: Vec<Expr>) -> Self {
+        Trigger(items)
+    }
+}
+

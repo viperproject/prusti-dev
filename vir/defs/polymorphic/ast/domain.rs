@@ -7,6 +7,8 @@
 use std::fmt;
 use crate::polymorphic::ast::*;
 
+use super::super::super::legacy;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Domain {
     pub name: String,
@@ -43,6 +45,17 @@ impl fmt::Display for Domain {
     }
 }
 
+impl From<Domain> for legacy::Domain {
+    fn from(domain: Domain) -> legacy::Domain {
+        legacy::Domain {
+            name: domain.name.clone(),
+            functions: domain.functions.iter().map(|function| legacy::DomainFunc::from(function.clone())).collect(),
+            axioms: domain.axioms.iter().map(|axiom| legacy::DomainAxiom::from(axiom.clone())).collect(),
+            type_vars: domain.type_vars.iter().map(|type_var| legacy::Type::from(type_var.clone())).collect(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DomainFunc {
     pub name: String,
@@ -70,6 +83,18 @@ impl fmt::Display for DomainFunc {
     }
 }
 
+impl From<DomainFunc> for legacy::DomainFunc {
+    fn from(domain_func: DomainFunc) -> legacy::DomainFunc {
+        legacy::DomainFunc {
+            name: domain_func.name.clone(),
+            formal_args: domain_func.formal_args.iter().map(|formal_arg| legacy::LocalVar::from(formal_arg.clone())).collect(),
+            return_type: legacy::Type::from(domain_func.return_type.clone()),
+            unique: domain_func.unique,
+            domain_name: domain_func.domain_name.clone(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DomainAxiom {
     pub name: String,
@@ -80,5 +105,15 @@ pub struct DomainAxiom {
 impl fmt::Display for DomainAxiom {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "axiom {} {{ {} }}", self.name, self.expr)
+    }
+}
+
+impl From<DomainAxiom> for legacy::DomainAxiom {
+    fn from(domain_axiom: DomainAxiom) -> legacy::DomainAxiom {
+        legacy::DomainAxiom {
+            name: domain_axiom.name.clone(),
+            expr: legacy::Expr::from(domain_axiom.expr.clone()),
+            domain_name: domain_axiom.domain_name.clone(),
+        }
     }
 }
