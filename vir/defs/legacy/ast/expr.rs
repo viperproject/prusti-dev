@@ -31,12 +31,18 @@ pub enum Expr {
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>, Position),
+    /// Container Operation on a Viper container (e.g. Seq index)
+    ContainerOp(ContainerOpKind, Box<Expr>, Box<Expr>, Position),
+    /// Viper Seq
+    Seq(Type, Vec<Expr>, Position),
     /// Unfolding: predicate name, predicate_args, in_expr, permission amount, enum variant
     Unfolding(String, Vec<Expr>, Box<Expr>, PermAmount, MaybeEnumVariantIndex, Position),
     /// Cond: guard, then_expr, else_expr
     Cond(Box<Expr>, Box<Expr>, Box<Expr>, Position),
     /// ForAll: variables, triggers, body
     ForAll(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
+    /// Exists: variables, triggers, body
+    Exists(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
     /// let variable == (expr) in body
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
@@ -54,6 +60,8 @@ pub enum Expr {
     /// * place to the enumeration that is downcasted
     /// * field that encodes the variant
     Downcast(Box<Expr>, Box<Expr>, Field),
+    /// Snapshot call to convert from a Ref to a snapshot value
+    SnapApp(Box<Expr>, Position),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -88,6 +96,14 @@ pub enum BinOpKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ContainerOpKind {
+    SeqIndex,
+    SeqConcat,
+    SeqLen,
+    // more to follow if required
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
     Int(i64),
@@ -109,6 +125,18 @@ impl fmt::Display for Expr {
             Expr::Const(ref value, ref _pos) => write!(f, "{}", value),
             Expr::BinOp(op, ref left, ref right, ref _pos) => {
                 write!(f, "({}) {} ({})", left, op, right)
+            }
+            Expr::ContainerOp(op, box ref left, box ref right, _) => {
+                match op {
+                    ContainerOpKind::SeqIndex => write!(f, "{}[{}]", left, right),
+                    ContainerOpKind::SeqConcat => write!(f, "{} ++ {}", left, right),
+                    ContainerOpKind::SeqLen => write!(f, "|{}|", left),
+                }
+            }
+            Expr::Seq(ty, elems, _) => {
+                let elems_printed = elems.iter().map(|e| format!("{}", e)).collect::<Vec<_>>().join(", ");
+                let elem_ty = if let Type::Seq(box elem_ty) = ty { elem_ty } else { unreachable!() };
+                write!(f, "Seq[{}]({})", elem_ty, elems_printed)
             }
             Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{}({})", op, expr),
             Expr::PredicateAccessPredicate(ref pred_name, ref arg, perm, ref _pos) => {
@@ -146,6 +174,20 @@ impl fmt::Display for Expr {
             Expr::ForAll(ref vars, ref triggers, ref body, ref _pos) => write!(
                 f,
                 "forall {} {} :: {}",
+                vars.iter()
+                    .map(|x| format!("{:?}", x))
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                triggers
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                body.to_string()
+            ),
+            Expr::Exists(ref vars, ref triggers, ref body, ref _pos) => write!(
+                f,
+                "exists {} {} :: {}",
                 vars.iter()
                     .map(|x| format!("{:?}", x))
                     .collect::<Vec<String>>()
@@ -217,6 +259,7 @@ impl fmt::Display for Expr {
                 field,
                 base.to_string(),
             ),
+            Expr::SnapApp(ref expr, _) => write!(f, "snap({})", expr.to_string()),
         }
     }
 }
@@ -307,12 +350,23 @@ impl PartialEq for Expr {
                 Expr::BinOp(other_op, box ref other_left, box ref other_right, _),
             ) => (self_op, self_left, self_right) == (other_op, other_left, other_right),
             (
+                Expr::ContainerOp(self_op, box ref self_left, box ref self_right, _),
+                Expr::ContainerOp(other_op, box ref other_left, box ref other_right, _),
+            ) => (self_op, self_left, self_right) == (other_op, other_left, other_right),
+            (
+                Expr::Seq(self_ty, self_elems, _), Expr::Seq(other_ty, other_elems, _)
+            ) => (self_ty, self_elems) == (other_ty, other_elems),
+            (
                 Expr::Cond(box ref self_cond, box ref self_then, box ref self_else, _),
                 Expr::Cond(box ref other_cond, box ref other_then, box ref other_else, _),
             ) => (self_cond, self_then, self_else) == (other_cond, other_then, other_else),
             (
                 Expr::ForAll(ref self_vars, ref self_triggers, box ref self_expr, _),
                 Expr::ForAll(ref other_vars, ref other_triggers, box ref other_expr, _),
+            ) => (self_vars, self_triggers, self_expr) == (other_vars, other_triggers, other_expr),
+            (
+                Expr::Exists(ref self_vars, ref self_triggers, box ref self_expr, _),
+                Expr::Exists(ref other_vars, ref other_triggers, box ref other_expr, _),
             ) => (self_vars, self_triggers, self_expr) == (other_vars, other_triggers, other_expr),
             (
                 Expr::LetExpr(ref self_var, box ref self_def, box ref self_expr, _),
@@ -336,6 +390,10 @@ impl PartialEq for Expr {
                 (self_function_name, self_args)
                     == (other_function_name, other_args)
             }
+            (
+                Expr::SnapApp(ref self_expr, _),
+                Expr::SnapApp(ref other_expr, _),
+            ) => self_expr == other_expr,
             (a, b) => {
                 debug_assert_ne!(discriminant(a), discriminant(b));
                 false
@@ -370,6 +428,9 @@ impl Hash for Expr {
             Expr::ForAll(ref vars, ref triggers, box ref expr, _) => {
                 (vars, triggers, expr).hash(state)
             }
+            Expr::Exists(ref vars, ref triggers, box ref expr, _) => {
+                (vars, triggers, expr).hash(state)
+            }
             Expr::LetExpr(ref var, box ref def, box ref expr, _) => (var, def, expr).hash(state),
             Expr::FuncApp(ref name, ref args, _, _, _) => (name, args).hash(state),
             Expr::DomainFuncApp(ref function, ref args, _) => (&function.name, args).hash(state),
@@ -382,6 +443,13 @@ impl Hash for Expr {
             }
             Expr::Downcast(box ref base, box ref enum_place, ref field) => {
                 (base, enum_place, field).hash(state)
+            }
+            Expr::SnapApp(ref expr, _) => expr.hash(state),
+            Expr::ContainerOp(op_kind, box ref left, box ref right, _) => {
+                (op_kind, left, right).hash(state)
+            }
+            Expr::Seq(ty, elems, _) => {
+                (ty, elems).hash(state)
             }
         }
     }

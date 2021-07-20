@@ -33,12 +33,18 @@ pub enum Expr {
     FieldAccessPredicate(FieldAccessPredicate),
     UnaryOp(UnaryOp),
     BinOp(BinOp),
+    /// Container Operation on a Viper container (e.g. Seq index)
+    ContainerOp(ContainerOp),
+    /// Viper Seq
+    Seq(Seq),
     /// Unfolding: predicate name, predicate_args, in_expr, permission amount, enum variant
     Unfolding(Unfolding),
     /// Cond: guard, then_expr, else_expr
     Cond(Cond),
     /// ForAll: variables, triggers, body
     ForAll(ForAll),
+    /// Exists: variables, triggers, body
+    Exists(Exists),
     /// let variable == (expr) in body
     LetExpr(LetExpr),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
@@ -56,6 +62,8 @@ pub enum Expr {
     /// * place to the enumeration that is downcasted
     /// * field that encodes the variant
     Downcast(Downcast),
+    /// Snapshot call to convert from a Ref to a snapshot value
+    SnapApp(SnapApp),
 }
 
 impl fmt::Display for Expr {
@@ -126,6 +134,17 @@ impl From<Expr> for legacy::Expr {
                 Box::new(legacy::Expr::from(*(bin_op.right).clone())),
                 legacy::Position::from(bin_op.position.clone()),
             ),
+            Expr::ContainerOp(container_op) => legacy::Expr::ContainerOp(
+                legacy::ContainerOpKind::from(container_op.op_kind),
+                Box::new(legacy::Expr::from(*(container_op.left).clone())),
+                Box::new(legacy::Expr::from(*(container_op.left).clone())),
+                legacy::Position::from(container_op.position.clone()),
+            ),
+            Expr::Seq(seq) => legacy::Expr::Seq(
+                legacy::Type::from(seq.typ.clone()),
+                seq.elements.iter().map(|element| legacy::Expr::from(element.clone())).collect(),
+                legacy::Position::from(seq.position.clone()),
+            ),
             Expr::Unfolding(unfolding) => legacy::Expr::Unfolding(
                 unfolding.predicate_name.clone(),
                 unfolding.arguments.iter().map(|argument| legacy::Expr::from(argument.clone())).collect(),
@@ -148,6 +167,12 @@ impl From<Expr> for legacy::Expr {
                 for_all.triggers.iter().map(|trigger| legacy::Trigger::from(trigger.clone())).collect(),
                 Box::new(legacy::Expr::from(*(for_all.body).clone())),
                 legacy::Position::from(for_all.position.clone()),
+            ),
+            Expr::Exists(exists) => legacy::Expr::Exists(
+                exists.variables.iter().map(|variable| legacy::LocalVar::from(variable.clone())).collect(),
+                exists.triggers.iter().map(|trigger| legacy::Trigger::from(trigger.clone())).collect(),
+                Box::new(legacy::Expr::from(*(exists.body).clone())),
+                legacy::Position::from(exists.position.clone()),
             ),
             Expr::LetExpr(let_expr) => legacy::Expr::LetExpr(
                 legacy::LocalVar::from(let_expr.variable.clone()), 
@@ -176,6 +201,10 @@ impl From<Expr> for legacy::Expr {
                 Box::new(legacy::Expr::from(*(down_cast.base).clone())),
                 Box::new(legacy::Expr::from(*(down_cast.enum_place).clone())),
                 legacy::Field::from(down_cast.field.clone()),
+            ),
+            Expr::SnapApp(snap_app) => legacy::Expr::SnapApp(
+                Box::new(legacy::Expr::from(*(snap_app.base).clone())),
+                legacy::Position::from(snap_app.position.clone()),
             )
         }
     }
@@ -247,6 +276,23 @@ impl From<BinOpKind> for legacy::BinOpKind {
             BinOpKind::And => legacy::BinOpKind::And,
             BinOpKind::Or => legacy::BinOpKind::Or,
             BinOpKind::Implies => legacy::BinOpKind::Implies,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ContainerOpKind {
+    SeqIndex,
+    SeqConcat,
+    SeqLen,
+}
+
+impl From<ContainerOpKind> for legacy::ContainerOpKind {
+    fn from(container_op_kind: ContainerOpKind) -> legacy::ContainerOpKind {
+        match container_op_kind {
+            ContainerOpKind::SeqIndex => legacy::ContainerOpKind::SeqIndex,
+            ContainerOpKind::SeqConcat => legacy::ContainerOpKind::SeqConcat,
+            ContainerOpKind::SeqLen => legacy::ContainerOpKind::SeqLen,
         }
     }
 }
@@ -561,6 +607,66 @@ impl Hash for BinOp {
 }
 
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
+pub struct ContainerOp {
+    pub op_kind: ContainerOpKind,
+    pub left: Box<Expr>,
+    pub right: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for ContainerOp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.op_kind {
+            ContainerOpKind::SeqIndex => write!(f, "{}[{}]", &self.left, &self.right),
+            ContainerOpKind::SeqConcat => write!(f, "{} ++ {}", &self.left, &self.right),
+            ContainerOpKind::SeqLen => write!(f, "|{}|", &self.left),
+        }
+    }
+}
+
+impl PartialEq for ContainerOp {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.op_kind, &*self.left, &*self.right) == (&other.op_kind, &*other.left, &*other.right)
+    }
+}
+
+impl Hash for ContainerOp {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        discriminant(self).hash(state);
+        (&self.op_kind, &*self.left, &*self.right).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
+pub struct Seq {
+    pub typ: Type,
+    pub elements: Vec<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for Seq {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let typ = &self.typ;
+        let elems_printed = self.elements.iter().map(|e| format!("{}", e)).collect::<Vec<_>>().join(", ");
+        let elem_ty = if let Type::Seq(box typ) = typ { typ } else { unreachable!() };
+        write!(f, "Seq[{}]({})", elem_ty, elems_printed)
+    }
+}
+
+impl PartialEq for Seq {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.typ, &*self.elements) == (&other.typ, &*other.elements)
+    }
+}
+
+impl Hash for Seq {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        discriminant(self).hash(state);
+        (&self.typ, &*self.elements).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct Unfolding {
     pub predicate_name: String,
     pub arguments: Vec<Expr>,
@@ -664,6 +770,46 @@ impl PartialEq for ForAll {
 }
 
 impl Hash for ForAll {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        discriminant(self).hash(state);
+        (&self.variables, &self.triggers, &*self.body).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
+pub struct Exists {
+    pub variables: Vec<LocalVar>,
+    pub triggers: Vec<Trigger>,
+    pub body: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for Exists {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "exists {} {} :: {}",
+            (&self.variables).iter()
+                .map(|x| format!("{:?}", x))
+                .collect::<Vec<String>>()
+                .join(", "),
+            (&self.triggers)
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join(", "),
+            (&self.body).to_string()
+        )
+    }
+}
+
+impl PartialEq for Exists {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.variables, &self.triggers, &*self.body) == (&other.variables, &other.triggers, &*other.body)
+    }
+}
+
+impl Hash for Exists {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&self.variables, &self.triggers, &*self.body).hash(state);
@@ -835,6 +981,31 @@ impl Hash for Downcast {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&*self.base, &*self.enum_place, &self.field).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
+pub struct SnapApp {
+    pub base: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for SnapApp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "snap({})", (&*self.base).to_string())
+    }
+}
+
+impl PartialEq for SnapApp {
+    fn eq(&self, other: &Self) -> bool {
+        &*self.base == &*other.base
+    }
+}
+
+impl Hash for SnapApp {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        discriminant(self).hash(state);
+        (&*self.base).hash(state);
     }
 }
 

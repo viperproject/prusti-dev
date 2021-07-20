@@ -130,11 +130,13 @@ impl From<PermAmount> for legacy::PermAmount {
 pub enum Type {
     Int,
     Bool,
+    Seq(Box<Type>),
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String, Vec<Type>),
     Domain(String, Vec<Type>),
     TypedVar(String),
+    Snapshot(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -142,7 +144,9 @@ pub enum TypeId {
     Int,
     Bool,
     Ref,
+    Seq,
     Domain,
+    Snapshot,
 }
 
 impl fmt::Display for Type {
@@ -153,6 +157,8 @@ impl fmt::Display for Type {
             //Type::Ref => write!(f, "Ref"),
             Type::TypedRef(ref name, _) => write!(f, "Ref({})", name),
             Type::Domain(ref name, _) => write!(f, "Domain({})", name),
+            Type::Snapshot(ref name) => write!(f, "Snapshot({})", name),
+            Type::Seq(ref elem_ty) => write!(f, "Seq[{}]", elem_ty),
             Type::TypedVar(ref name) => write!(f, "TypedVar({})", name),
         }
     }
@@ -177,10 +183,12 @@ impl From<Type> for legacy::Type {
         match typ {
             Type::Int => legacy::Type::Int,
             Type::Bool => legacy::Type::Bool,
+            Type::Seq(elem_ty) => legacy::Type::Seq(Box::new(legacy::Type::from(*elem_ty.clone()))),
             Type::TypedRef(label, _) => legacy::Type::TypedRef(label.clone()),
             Type::Domain(label, _) => legacy::Type::Domain(label.clone()),
             // FIXME: needs update for type substitution
             Type::TypedVar(label) => legacy::Type::TypedRef(label.clone()),
+            Type::Snapshot(label) => legacy::Type::Snapshot(label.clone()),
         }
     }
 }
@@ -191,7 +199,9 @@ impl From<TypeId> for legacy::TypeId {
             TypeId::Int => legacy::TypeId::Int,
             TypeId::Bool => legacy::TypeId::Bool,
             TypeId::Ref => legacy::TypeId::Ref,
+            TypeId::Seq => legacy::TypeId::Seq,
             TypeId::Domain => legacy::TypeId::Domain,
+            TypeId::Snapshot => legacy::TypeId::Snapshot,
         }
     }
 }
