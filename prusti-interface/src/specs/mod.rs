@@ -40,7 +40,7 @@ pub struct SpecCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
     extern_resolver: ExternSpecResolver<'tcx>,
 
-    /// Map between specification ids and their corresponding function
+    /// Map between specification ids and their typed expression (inside the function)
     spec_functions: HashMap<SpecificationId, LocalDefId>,
 
     /// Map between specified function/loop and its specifications
@@ -171,7 +171,6 @@ impl<'tcx> intravisit::Visitor<'tcx> for SpecCollector<'tcx> {
 
             // Collect loop specifications            
             if has_prusti_attr(attrs, "loop_body_invariant_spec") {
-                // TODO: surely this isn't all we need to do for loops?
                 self.loop_specs.entry(local_id).or_insert(vec![]).push(spec_id);
             }
         }
