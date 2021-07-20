@@ -18,6 +18,8 @@ pub fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &mut syn::Path) -> syn::Re
     }
 
     path.segments.push(syn::PathSegment { ident: item_mod.ident.clone(), arguments: syn::PathArguments::None });
+    item_mod.attrs.push(parse_quote_spanned!(item_mod.span() => #[prusti::export_path(#path)]));
+
     let name_generator = NameGenerator::new();
     item_mod.ident = syn::Ident::new(&name_generator.generate_mod_name(&item_mod.ident),
                                     item_mod.span());
@@ -81,6 +83,7 @@ fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &mut syn::Path) {
         }
     };
 
+    item_fn.attrs.push(parse_quote_spanned!(item_fn_span=> #[prusti::export_path(#path::#ident)]));
     item_fn.attrs.push(parse_quote_spanned!(item_fn_span=> #[prusti::extern_spec]));
     item_fn.attrs.push(parse_quote_spanned!(item_fn_span=> #[trusted]));
 }
@@ -98,6 +101,8 @@ pub fn rewrite_impl(
                 genargs.colon2_token = Some(syn::token::Colon2::default());
             }
         }
+        let impl_path = &type_path.path;
+        impl_item.attrs.push(parse_quote_spanned!(impl_path.span() => #[prusti::export_path(#impl_path)]));
     }
 
     for item in impl_item.items.iter_mut() {
@@ -111,6 +116,14 @@ pub fn rewrite_impl(
                 let args = rewrite_method_inputs(item_ty, method);
                 let ident = &method.sig.ident;
 
+                if let syn::Type::Path(type_path) = new_ty.as_ref() {
+                    let path = &type_path.path;
+                    method.attrs.push(parse_quote_spanned!(item_span => #[prusti::type_path(#path)]));
+                }
+                if let syn::Type::Path(type_path) = item_ty.as_ref() {
+                    let impl_path = &type_path.path;
+                    method.attrs.push(parse_quote_spanned!(item_span=> #[prusti::export_path(#impl_path :: #ident)]));
+                }
                 method.attrs.push(parse_quote_spanned!(item_span=> #[prusti::extern_spec]));
                 method.attrs.push(parse_quote_spanned!(item_span=> #[trusted]));
 

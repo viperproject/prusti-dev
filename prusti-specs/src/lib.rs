@@ -7,6 +7,7 @@ mod extern_spec_rewriter;
 mod rewriter;
 mod parse_closure_macro;
 mod spec_attribute_kind;
+mod export_spec_rewriter;
 pub mod specifications;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
@@ -442,12 +443,23 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     }
 }
 
+pub fn export_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let item: syn::Item = handle_result!(syn::parse2(tokens));
+    let item_span = item.span();
+    let path: syn::Path = handle_result!(export_spec_rewriter::parse_valid_export(attr));
+    let macros = handle_result!(export_spec_rewriter::rewrite_export_spec(&path, &item));
+    parse_quote_spanned!(item_span => 
+        #item
+        #macros
+    )
+}
+
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
     match item {
         syn::Item::Impl(mut item_impl) => {
-            let new_struct = handle_result!(
+            let mut new_struct = handle_result!(
                 extern_spec_rewriter::generate_new_struct(&item_impl)
             );
 
@@ -458,6 +470,16 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
                 #struct_ident #generics
             };
 
+            // annotate impl and struct with export attributes
+            new_struct.attrs.push(parse_quote_spanned! {item_span=>
+                #[export_spec(::)]
+            });
+            item_impl.attrs.push(parse_quote_spanned! {item_span=>
+                #[export_spec(::)]
+            });
+            item_impl.attrs.push(parse_quote_spanned! {item_span => 
+                #[prusti::type_path(#struct_ty)]
+            });
             let rewritten_item = handle_result!(
                 extern_spec_rewriter::rewrite_impl(&mut item_impl, Box::from(struct_ty))
             );
@@ -472,6 +494,9 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
                 leading_colon: None,
                 segments: syn::punctuated::Punctuated::new(),
             };
+            item_mod.attrs.push(parse_quote_spanned! {item_span=>
+                #[export_spec(::)]
+            });
             handle_result!(extern_spec_rewriter::rewrite_mod(&mut item_mod, &mut path));
             quote!(#item_mod)
         }

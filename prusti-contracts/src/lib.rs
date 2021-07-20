@@ -35,6 +35,9 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_impl::predicate;
+
+    /// A macro for specifying specs to export
+    pub use prusti_contracts_impl::export_spec;
 }
 
 #[cfg(feature = "prusti")]
@@ -72,6 +75,9 @@ mod private {
     /// A macro for defining a predicate using prusti expression syntax instead
     /// of just Rust expressions.
     pub use prusti_contracts_internal::predicate;
+
+    /// A macro for exporting prusti specification
+    pub use prusti_contracts_internal::export_spec;
 }
 
 
