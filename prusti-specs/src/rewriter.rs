@@ -3,7 +3,7 @@ use crate::specifications::untyped;
 use proc_macro2::{TokenStream, Span};
 use syn::{Type, punctuated::Punctuated, Pat, Token};
 use syn::spanned::Spanned;
-use quote::{quote_spanned, format_ident};
+use quote::{quote_spanned, format_ident, ToTokens};
 use crate::specifications::preparser::Parser;
 
 pub(crate) struct AstRewriter {
@@ -289,32 +289,23 @@ pub fn translate_implication(lhs: syn::Expr, rhs: syn::Expr) -> syn::Expr {
 
 pub fn translate_conjunction(mut conjuncts: Vec<syn::Expr>) -> syn::Expr {
     debug_assert!(conjuncts.len() != 0, "empty conjuncts given");
-    if conjuncts.len() == 1 {
-        conjuncts.pop().unwrap()
-    } else {
-        let last = conjuncts.pop().unwrap();
-        let rest = translate_conjunction(conjuncts);
-        parse_quote_spanned! {rest.span().join(last.span()).unwrap()=>
-            #rest && #last
+    conjuncts.into_iter().reduce(|a, b| {
+        parse_quote_spanned! {a.span().join(b.span()).unwrap()=>
+            #a && #b
         }
-    }
+    }).unwrap()
 }
 
 fn args_to_tokens(mut args: Vec<(syn::Ident, syn::Type)>) -> TokenStream {
-    if args.len() == 0 {
-        TokenStream::new()
-    } else if args.len() == 1 {
-        let (ident, typ) = args.pop().unwrap();
+    args.into_iter().map(|(ident, typ)| {
         quote_spanned! {ident.span().join(typ.span()).unwrap()=>
             #ident: #typ
         }
-    } else {
-        let (ident, typ) = args.pop().unwrap();
-        let rest = args_to_tokens(args);
-        quote_spanned! {rest.span().join(typ.span()).unwrap()=>
-            #rest, #ident: #typ
+    }).reduce(|a, b| {
+        quote_spanned! {a.span().join(b.span()).unwrap()=>
+            #a, #b
         }
-    }
+    }).unwrap_or_else(TokenStream::new)
 }
 
 pub fn translate_spec_entailment(closure: syn::Expr, args: Vec<(syn::Ident, syn::Type)>, pres: Vec<syn::Expr>, posts: Vec<syn::Expr>) -> syn::Expr {
@@ -333,22 +324,17 @@ pub fn translate_spec_entailment(closure: syn::Expr, args: Vec<(syn::Ident, syn:
     }
 }
 
-fn tuple_to_tokens(mut exprs: Vec<syn::Expr>) -> TokenStream {
-    if exprs.len() == 0 {
-        quote_spanned! {Span::call_site()=> // TODO: get the right span
-            ,
+fn tuple_to_tokens(exprs: Vec<syn::Expr>) -> TokenStream {
+    let inner = exprs.into_iter().map(|a| {
+        a.to_token_stream()
+    }).reduce(|a, b| {
+        quote_spanned! {a.span().join(b.span()).unwrap()=>
+            #a, #b
         }
-    } else if exprs.len() == 1 {
-        let expr = exprs.pop().unwrap();
-        quote_spanned! {expr.span()=>
-            #expr,
-        }
-    } else {
-        let last = exprs.pop().unwrap();
-        let rest = tuple_to_tokens(exprs);
-        quote_spanned! {rest.span().join(last.span()).unwrap()=>
-            #rest #last,
-        }
+    }).unwrap_or_else(TokenStream::new);
+
+    quote_spanned! {inner.span()=>
+        (#inner,)
     }
 }
 
@@ -356,7 +342,7 @@ pub fn translate_forall(vars: Vec<(syn::Ident, syn::Type)>, trigger_set: Vec<syn
     let arg_tokens = args_to_tokens(vars);
     let trigger_tuple = tuple_to_tokens(trigger_set);
     parse_quote_spanned! {Span::call_site()=> // TODO: get the right span
-        forall((#trigger_tuple),
+        forall(#trigger_tuple,
                |#arg_tokens| -> bool {
                    #body
                })
