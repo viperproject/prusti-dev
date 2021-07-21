@@ -126,7 +126,7 @@ fn run_no_verification(group_name: &str, filter: &Option<String>) {
     run_prusti_tests(group_name, filter, None);
 }
 
-fn run_verification(group_name: &str, filter: &Option<String>) {
+fn run_verification_base(group_name: &str, filter: &Option<String>) {
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_FULL_COMPILATION", "true"),
         TemporaryEnvVar::set("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true"),
@@ -136,20 +136,29 @@ fn run_verification(group_name: &str, filter: &Option<String>) {
     run_prusti_tests(group_name, filter, Some("-A warnings"));
 }
 
+fn run_verification_no_overflow(group_name: &str, filter: &Option<String>) {
+    let _temporary_env_vars = (
+        TemporaryEnvVar::set("PRUSTI_CHECK_OVERFLOWS", "false"),
+    );
+
+    run_verification_base(group_name, filter);
+}
+
 fn run_verification_overflow(group_name: &str, filter: &Option<String>) {
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_CHECK_OVERFLOWS", "true"),
     );
 
-    run_verification(group_name, filter);
+    run_verification_base(group_name, filter);
 }
 
 fn run_verification_core_proof(group_name: &str, filter: &Option<String>) {
     let _temporary_env_vars = (
         TemporaryEnvVar::set("PRUSTI_CHECK_PANICS", "false"),
+        TemporaryEnvVar::set("PRUSTI_CHECK_OVERFLOWS", "false"),
     );
 
-    run_verification(group_name, filter);
+    run_verification_base(group_name, filter);
 }
 
 fn test_runner(_tests: &[&()]) {
@@ -170,7 +179,7 @@ fn test_runner(_tests: &[&()]) {
 
     // Test the verifier.
     println!("[verify]");
-    run_verification("verify", &filter);
+    run_verification_no_overflow("verify", &filter);
 
     // Test the verifier with overflow checks enabled.
     println!("[verify_overflow]");
