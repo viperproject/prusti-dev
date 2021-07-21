@@ -104,6 +104,11 @@ pub fn find_java_home() -> Option<PathBuf> {
         })
 }
 
+/// Collect the directories containing java policy files.
+pub fn collect_java_policies() -> Vec<PathBuf> {
+    glob::glob("/etc/java-*").unwrap().map(|result| result.unwrap()).collect()
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     color_backtrace::install();
     setup_logs();
@@ -119,10 +124,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let host_java_home = env::var("JAVA_HOME").ok().map(|s| s.into())
         .or_else(find_java_home)
         .expect("Please set JAVA_HOME");
+    let host_java_policies = collect_java_policies();
     let guest_prusti_home = Path::new("/opt/rustwide/prusti-home");
     let guest_viper_home = Path::new("/opt/rustwide/viper-home");
     let guest_z3_home = Path::new("/opt/rustwide/z3-home");
-    let guest_java_home = Path::new("/opt/rustwide/java-home");
+    // Map JAVA at exactly the same location on the guest so that symlinks work.
+    let guest_java_home = host_java_home.clone();
 
     info!("Using host's Java home {:?}", host_java_home);
     let cargo_prusti = CargoPrusti {
@@ -209,13 +216,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         {
             let mut build_dir = workspace.build_dir(&format!("verify_{}", index));
 
-            let sandbox = cmd::SandboxBuilder::new()
+            let mut sandbox = cmd::SandboxBuilder::new()
                 .memory_limit(Some(1024 * 1024 * 1024))
                 .enable_networking(false)
                 .mount(&host_prusti_home, &guest_prusti_home, cmd::MountKind::ReadOnly)
                 .mount(&host_viper_home, &guest_viper_home, cmd::MountKind::ReadOnly)
                 .mount(&host_z3_home, &guest_z3_home, cmd::MountKind::ReadOnly)
                 .mount(&host_java_home, &guest_java_home, cmd::MountKind::ReadOnly);
+            for java_policy_path in &host_java_policies {
+                sandbox = sandbox.mount(
+                    java_policy_path, java_policy_path, cmd::MountKind::ReadOnly);
+            }
 
             let mut storage = LogStorage::new(LevelFilter::Info);
             storage.set_max_size(1024 * 1024);
