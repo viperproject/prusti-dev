@@ -256,7 +256,7 @@ fn generate_for_trusted(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
-    let check = handle_result!(rewriter.process_loop(spec_id, tokens));
+    let check = handle_result!(rewriter.process_loop_invariant(spec_id, tokens));
     let callsite_span = Span::call_site();
     quote_spanned! {callsite_span=>
         #[allow(unused_must_use, unused_variables)]

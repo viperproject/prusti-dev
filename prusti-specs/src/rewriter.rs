@@ -98,7 +98,7 @@ impl AstRewriter {
         );
         let spec_id_str = spec_id.to_string();
 
-        let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span =>
+        let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_variables, dead_code)]
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
@@ -108,9 +108,12 @@ impl AstRewriter {
         };
         spec_item.sig.generics = item.sig().generics.clone();
         spec_item.sig.inputs = item.sig().inputs.clone();
-        if spec_type != SpecItemType::Precondition {
-            let fn_arg = self.generate_result_arg(item);
-            spec_item.sig.inputs.push(fn_arg);
+        match spec_type {
+            SpecItemType::Postcondition | SpecItemType::Pledge => {
+                let fn_arg = self.generate_result_arg(item);
+                spec_item.sig.inputs.push(fn_arg);
+            },
+            _ => (),
         }
         Ok(syn::Item::Fn(spec_item))
     }
@@ -162,7 +165,7 @@ impl AstRewriter {
     }
 
     /// Parse a loop invariant into a Rust expression
-    pub fn process_loop(
+    pub fn process_loop_invariant(
         &mut self,
         spec_id: untyped::SpecificationId,
         tokens: TokenStream,
@@ -184,6 +187,7 @@ impl AstRewriter {
     }
 
     /// Parse a closure with specifications into a Rust expression
+    /// TODO: arguments, result (types are typically not known yet after parsing...)
     pub fn process_closure(
         &mut self,
         inputs: Punctuated<Pat, Token![,]>,
@@ -198,13 +202,13 @@ impl AstRewriter {
             let name = format_ident!("prusti_{}_closure_{}", if is_post { "post" } else { "pre" }, spec_id_str);
             let callsite_span = Span::call_site();
             let result = if is_post && !inputs.empty_or_trailing() {
-                quote_spanned! { callsite_span => , result: #output }
+                quote_spanned! {callsite_span=> , result: #output }
             } else if is_post {
-                quote_spanned! { callsite_span => result: #output }
+                quote_spanned! {callsite_span=> result: #output }
             } else {
                 TokenStream::new()
             };
-            quote_spanned! { callsite_span =>
+            quote_spanned! {callsite_span=>
                 #[prusti::spec_only]
                 #[prusti::spec_id = #spec_id_str]
                 fn #name(#inputs #result) {
@@ -248,23 +252,18 @@ impl AstRewriter {
 }
 
 pub fn translate_empty_assertion() -> syn::Expr {
-    parse_quote_spanned! {
-        Span::call_site() =>
+    parse_quote_spanned! {Span::call_site()=>
         true
     }
 }
 
 pub fn translate_pledge_rhs_only(reference: Option<syn::Expr>, rhs: syn::Expr) -> syn::Expr {
     if let Some(reference) = reference {
-        parse_quote_spanned! {
-            // TODO: figure out span
-            Span::call_site() =>
+        parse_quote_spanned! {Span::call_site()=> // TODO: figure out span
             pledge_rhs(#reference, #rhs)
         }
     } else {
-        parse_quote_spanned! {
-            // TODO: figure out span
-            Span::call_site() =>
+        parse_quote_spanned! {Span::call_site()=> // TODO: figure out span
             pledge_rhs(result, #rhs)
         }
     }
@@ -272,23 +271,18 @@ pub fn translate_pledge_rhs_only(reference: Option<syn::Expr>, rhs: syn::Expr) -
 
 pub fn translate_pledge(reference: Option<syn::Expr>, lhs: syn::Expr, rhs: syn::Expr) -> syn::Expr {
     if let Some(reference) = reference {
-        parse_quote_spanned! {
-            // TODO: figure out span
-            Span::call_site() =>
+        parse_quote_spanned! {Span::call_site()=> // TODO: figure out span
             pledge(#reference, #lhs, #rhs)
         }
     } else {
-        parse_quote_spanned! {
-            // TODO: figure out span
-            Span::call_site() =>
+        parse_quote_spanned! {Span::call_site()=> // TODO: figure out span
             pledge(result, #lhs, #rhs)
         }
     }
 }
 
 pub fn translate_implication(lhs: syn::Expr, rhs: syn::Expr) -> syn::Expr {
-    parse_quote_spanned! {
-        lhs.span().join(rhs.span()).unwrap() =>
+    parse_quote_spanned! {lhs.span().join(rhs.span()).unwrap()=>
         implication(#lhs, #rhs)
     }
 }
@@ -300,8 +294,7 @@ pub fn translate_conjunction(mut conjuncts: Vec<syn::Expr>) -> syn::Expr {
     } else {
         let last = conjuncts.pop().unwrap();
         let rest = translate_conjunction(conjuncts);
-        parse_quote_spanned! {
-            rest.span().join(last.span()).unwrap() =>
+        parse_quote_spanned! {rest.span().join(last.span()).unwrap()=>
             #rest && #last
         }
     }
@@ -312,15 +305,13 @@ fn args_to_tokens(mut args: Vec<(syn::Ident, syn::Type)>) -> TokenStream {
         TokenStream::new()
     } else if args.len() == 1 {
         let (ident, typ) = args.pop().unwrap();
-        quote_spanned! {
-            ident.span().join(typ.span()).unwrap() =>
+        quote_spanned! {ident.span().join(typ.span()).unwrap()=>
             #ident: #typ
         }
     } else {
         let (ident, typ) = args.pop().unwrap();
         let rest = args_to_tokens(args);
-        quote_spanned! {
-            rest.span().join(typ.span()).unwrap() =>
+        quote_spanned! {rest.span().join(typ.span()).unwrap()=>
             #rest, #ident: #typ
         }
     }
@@ -330,9 +321,7 @@ pub fn translate_spec_entailment(closure: syn::Expr, args: Vec<(syn::Ident, syn:
     let arg_tokens = args_to_tokens(args);
     let pre_conjuncts = translate_conjunction(pres);
     let post_conjuncts = translate_conjunction(posts);
-    parse_quote_spanned! {
-        // TODO: get the right span
-        Span::call_site() =>
+    parse_quote_spanned! {Span::call_site()=> // TODO: get the right span
         entailment(#closure, |#arg_tokens| {
             {
                 #pre_conjuncts
@@ -346,22 +335,18 @@ pub fn translate_spec_entailment(closure: syn::Expr, args: Vec<(syn::Ident, syn:
 
 fn tuple_to_tokens(mut exprs: Vec<syn::Expr>) -> TokenStream {
     if exprs.len() == 0 {
-        quote_spanned! {
-            // TODO: get the right span
-            Span::call_site() =>
+        quote_spanned! {Span::call_site()=> // TODO: get the right span
             ,
         }
     } else if exprs.len() == 1 {
         let expr = exprs.pop().unwrap();
-        quote_spanned! {
-            expr.span() =>
+        quote_spanned! {expr.span()=>
             #expr,
         }
     } else {
         let last = exprs.pop().unwrap();
         let rest = tuple_to_tokens(exprs);
-        quote_spanned! {
-            rest.span().join(last.span()).unwrap() =>
+        quote_spanned! {rest.span().join(last.span()).unwrap()=>
             #rest #last,
         }
     }
@@ -370,9 +355,7 @@ fn tuple_to_tokens(mut exprs: Vec<syn::Expr>) -> TokenStream {
 pub fn translate_forall(vars: Vec<(syn::Ident, syn::Type)>, trigger_set: Vec<syn::Expr>, body: syn::Expr) -> syn::Expr {
     let arg_tokens = args_to_tokens(vars);
     let trigger_tuple = tuple_to_tokens(trigger_set);
-    parse_quote_spanned! {
-        // TODO: get the right span
-        Span::call_site() =>
+    parse_quote_spanned! {Span::call_site()=> // TODO: get the right span
         forall((#trigger_tuple),
                |#arg_tokens| -> bool {
                    #body
