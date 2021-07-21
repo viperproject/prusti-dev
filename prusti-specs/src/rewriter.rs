@@ -287,7 +287,7 @@ pub fn translate_implication(lhs: syn::Expr, rhs: syn::Expr) -> syn::Expr {
     }
 }
 
-pub fn translate_conjunction(mut conjuncts: Vec<syn::Expr>) -> syn::Expr {
+pub fn translate_conjunction(conjuncts: Vec<syn::Expr>) -> syn::Expr {
     debug_assert!(conjuncts.len() != 0, "empty conjuncts given");
     conjuncts.into_iter().reduce(|a, b| {
         parse_quote_spanned! {a.span().join(b.span()).unwrap()=>
@@ -296,7 +296,7 @@ pub fn translate_conjunction(mut conjuncts: Vec<syn::Expr>) -> syn::Expr {
     }).unwrap()
 }
 
-fn args_to_tokens(mut args: Vec<(syn::Ident, syn::Type)>) -> TokenStream {
+fn args_to_tokens(args: Vec<(syn::Ident, syn::Type)>) -> TokenStream {
     args.into_iter().map(|(ident, typ)| {
         quote_spanned! {ident.span().join(typ.span()).unwrap()=>
             #ident: #typ
@@ -313,14 +313,14 @@ pub fn translate_spec_entailment(closure: syn::Expr, args: Vec<(syn::Ident, syn:
     let pre_conjuncts = translate_conjunction(pres);
     let post_conjuncts = translate_conjunction(posts);
     parse_quote_spanned! {Span::call_site()=> // TODO: get the right span
-        entailment(#closure, |#arg_tokens| {
-            {
-                #pre_conjuncts
-            } &&
-            {
-                #post_conjuncts
-            }
-        })
+        entailment(#closure,
+                   |#arg_tokens| {
+                       #pre_conjuncts
+                   },
+                   |#arg_tokens| {
+                       #post_conjuncts
+                   }
+        )
     }
 }
 
