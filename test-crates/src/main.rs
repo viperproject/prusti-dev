@@ -214,7 +214,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let mut build_dir = workspace.build_dir(&format!("verify_{}", index));
 
             let mut sandbox = cmd::SandboxBuilder::new()
-                .memory_limit(Some(1024 * 1024 * 1024))
+                .memory_limit(Some(4024 * 1024 * 1024))
                 .enable_networking(false)
                 .mount(
                     &host_prusti_home,
