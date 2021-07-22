@@ -6,12 +6,7 @@ use syn::parse::{ParseStream, Parse};
 use syn::Token;
 use syn::spanned::Spanned;
 
-use super::common;
 use crate::rewriter;
-
-pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
-pub type PledgeWithoutId = common::Pledge<(), syn::Expr, Arg>;
-pub type ExpressionWithoutId = common::Expression<(), syn::Expr>;
 
 /// The representation of an argument to `forall` (for example `a: i32`)
 #[derive(Debug, Clone)]
@@ -86,32 +81,6 @@ impl Parser {
             last_span: None,
             source_span: self.last_span,
         }
-    }
-    /// Stubs to maintain existing public API
-    pub fn extract_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
-        Ok(AssertionWithoutId {
-            kind: Box::new(common::AssertionKind::And(vec![]))
-        })
-    }
-    pub fn extract_pledge(&mut self) -> syn::Result<PledgeWithoutId> {
-        Ok(PledgeWithoutId {
-            reference: None,
-            lhs: Some(AssertionWithoutId {
-                        kind: Box::new(common::AssertionKind::And(vec![]))
-                      }),
-            rhs: AssertionWithoutId {
-                    kind: Box::new(common::AssertionKind::And(vec![]))
-                 },
-        })
-    }
-    pub fn extract_pledge_rhs_only(&mut self) -> syn::Result<PledgeWithoutId> {
-        Ok(PledgeWithoutId {
-            reference: None,
-            lhs: None,
-            rhs: AssertionWithoutId {
-                    kind: Box::new(common::AssertionKind::And(vec![]))
-                 },
-        })
     }
 
     /// Creates a single Prusti assertion from the input and returns it.
