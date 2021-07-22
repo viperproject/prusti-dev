@@ -73,10 +73,14 @@ impl PrustiError {
     /// Report an internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
-        PrustiError::new(
+        let mut error = PrustiError::new(
             format!("[Prusti internal error] {}", message.to_string()),
             span
-        )
+        );
+        if config::skip_unsupported_features() {
+            error.set_warning();
+        }
+        error
     }
 
     /// Set that this Prusti error should be reported as a warning to the user

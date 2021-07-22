@@ -152,7 +152,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     info!("Read lists of crates...");
     // TODO: do something to freeze the version of the dependencies.
     let crates_list: Vec<Crate> = csv::Reader::from_reader(
-       fs::File::open("test-crates/no_panic.csv")?
+       fs::File::open("test-crates/crates.csv")?
     ).deserialize()
         .collect::<Result<Vec<CrateRecord>, _>>()?
         .into_iter()
