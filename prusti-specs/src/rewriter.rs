@@ -64,11 +64,13 @@ impl AstRewriter {
         for param in &item.sig().inputs {
             match param {
                 syn::FnArg::Typed(syn::PatType {
-                    pat: box syn::Pat::Ident(syn::PatIdent { ident, .. }),
+                    pat,
                     ..
                 }) => {
-                    if ident == keyword {
-                        return Some(param.span());
+                    if let syn::Pat::Ident(syn::PatIdent { ident, .. }) = &**pat {
+                        if ident == keyword {
+                            return Some(param.span());
+                        }
                     }
                 }
                 _ => {}
@@ -85,7 +87,7 @@ impl AstRewriter {
         let fn_arg = syn::FnArg::Typed(
             syn::PatType {
                 attrs: Vec::new(),
-                pat: box parse_quote_spanned!(item_span=> result),
+                pat: Box::new(parse_quote_spanned!(item_span=> result)),
                 colon_token: syn::Token![:](item.sig().output.span()),
                 ty: output_ty,
             }

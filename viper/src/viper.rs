@@ -30,7 +30,7 @@ impl Viper {
     pub fn new_with_args(java_args: Vec<String>) -> Self {
         let viper_home = env::var("VIPER_HOME")
             .expect("the VIPER_HOME environment variable should not be empty");
-        let heap_size = env::var("JAVA_HEAP_SIZE").unwrap_or_else(|_| "4096".to_string());
+        let heap_size = env::var("JAVA_HEAP_SIZE").unwrap_or_else(|_| "512".to_string());
 
         debug!("Using Viper home: '{}'", &viper_home);
         assert!(
@@ -53,7 +53,7 @@ impl Viper {
             // maximum heap size
             .option(&format!("-Xmx{}m", heap_size))
             // stack size
-            .option("-Xss1024m");
+            .option("-Xss512m");
             //.option("-Xdebug")
             //.option("-verbose:gc")
             //.option("-Xcheck:jni")

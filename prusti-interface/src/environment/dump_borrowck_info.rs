@@ -1048,23 +1048,28 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     }
 
     fn show_statement_indices(&self) -> bool {
-        get_config_option("PRUSTI_DUMP_SHOW_STATEMENT_INDICES", true)
+        unimplemented!("Should use SETTINGS.");
+        // get_config_option("PRUSTI_DUMP_SHOW_STATEMENT_INDICES", true)
     }
 
     fn show_temp_variables(&self) -> bool {
-        get_config_option("PRUSTI_DUMP_SHOW_TEMP_VARIABLES", true)
+        unimplemented!("Should use SETTINGS.");
+        // get_config_option("PRUSTI_DUMP_SHOW_TEMP_VARIABLES", true)
     }
 
     fn show_borrow_regions(&self) -> bool {
-        get_config_option("PRUSTI_DUMP_SHOW_BORROW_REGIONS", false)
+        unimplemented!("Should use SETTINGS.");
+        // get_config_option("PRUSTI_DUMP_SHOW_BORROW_REGIONS", false)
     }
 
     fn show_restricts(&self) -> bool {
-        get_config_option("PRUSTI_DUMP_SHOW_RESTRICTS", false)
+        unimplemented!("Should use SETTINGS.");
+        // get_config_option("PRUSTI_DUMP_SHOW_RESTRICTS", false)
     }
 
     fn show_liveness(&self) -> bool {
-        get_config_option("PRUSTI_DUMP_SHOW_LIVENESS", false)
+        unimplemented!("Should use SETTINGS.");
+        // get_config_option("PRUSTI_DUMP_SHOW_LIVENESS", false)
     }
 }
 

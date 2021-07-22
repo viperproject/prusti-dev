@@ -41,6 +41,8 @@ pub enum Expr {
     Cond(Box<Expr>, Box<Expr>, Box<Expr>, Position),
     /// ForAll: variables, triggers, body
     ForAll(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
+    /// Exists: variables, triggers, body
+    Exists(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
     /// let variable == (expr) in body
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
@@ -183,6 +185,20 @@ impl fmt::Display for Expr {
                     .join(", "),
                 body.to_string()
             ),
+            Expr::Exists(ref vars, ref triggers, ref body, ref _pos) => write!(
+                f,
+                "exists {} {} :: {}",
+                vars.iter()
+                    .map(|x| format!("{:?}", x))
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                triggers
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                body.to_string()
+            ),
             Expr::LetExpr(ref var, ref expr, ref body, ref _pos) => write!(
                 f,
                 "(let {:?} == ({}) in {})",
@@ -306,6 +322,7 @@ impl Expr {
             | Expr::Unfolding(_, _, _, _, _, p)
             | Expr::Cond(_, _, _, p)
             | Expr::ForAll(_, _, _, p)
+            | Expr::Exists(_, _, _, p)
             | Expr::LetExpr(_, _, _, p)
             | Expr::FuncApp(_, _, _, _, p)
             | Expr::DomainFuncApp(_, _, p)
@@ -338,6 +355,7 @@ impl Expr {
             },
             Expr::Cond(x, y, z, _) => Expr::Cond(x, y, z, pos),
             Expr::ForAll(x, y, z, _) => Expr::ForAll(x, y, z, pos),
+            Expr::Exists(x, y, z, _) => Expr::Exists(x, y, z, pos),
             Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
             Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
             Expr::DomainFuncApp(x,y,_) => Expr::DomainFuncApp(x,y,pos),
@@ -482,6 +500,11 @@ impl Expr {
     pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
         assert!(!vars.is_empty(), "A quantifier must have at least one variable.");
         Expr::ForAll(vars, triggers, box body, Position::default())
+    }
+
+    pub fn exists(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
+        assert!(!vars.is_empty(), "A quantifier must have at least one variable.");
+        Expr::Exists(vars, triggers, box body, Position::default())
     }
 
     pub fn ite(guard: Expr, left: Expr, right: Expr) -> Self {
@@ -1067,7 +1090,8 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {:?}", self);
                 typ1
             }
-            Expr::ForAll(..) => {
+            Expr::ForAll(..)
+            | Expr::Exists(..) => {
                 &Type::Bool
             }
             Expr::MagicWand(..) |
@@ -1100,7 +1124,8 @@ impl Expr {
                 Expr::Const(Const::Bool(_), _) |
                 Expr::UnaryOp(UnaryOpKind::Not, _, _) |
                 Expr::FuncApp(_, _, _, Type::Bool, _) |
-                Expr::ForAll(..) => {
+                Expr::ForAll(..) |
+                Expr::Exists(..) => {
                     true
                 },
                 Expr::BinOp(kind, _, _, _) => {
@@ -1218,6 +1243,29 @@ impl Expr {
                     Expr::ForAll(vars, triggers, body, pos)
                 } else {
                     Expr::ForAll(
+                        vars,
+                        triggers
+                            .into_iter()
+                            .map(|x| x.replace_place(self.target, self.replacement))
+                            .collect(),
+                        self.fold_boxed(body),
+                        pos,
+                    )
+                }
+            }
+
+            fn fold_exists(
+                &mut self,
+                vars: Vec<LocalVar>,
+                triggers: Vec<Trigger>,
+                body: Box<Expr>,
+                pos: Position,
+            ) -> Expr {
+                if vars.contains(&self.target.get_base()) {
+                    // Do nothing
+                    Expr::Exists(vars, triggers, body, pos)
+                } else {
+                    Expr::Exists(
                         vars,
                         triggers
                             .into_iter()
@@ -1358,6 +1406,36 @@ impl Expr {
                     pos,
                 )
             }
+
+            fn fold_exists(
+                &mut self,
+                vars: Vec<LocalVar>,
+                triggers: Vec<Trigger>,
+                body: Box<Expr>,
+                pos: Position,
+            ) -> Expr {
+                // TODO: the correct solution is the following:
+                // (1) skip replacements where `src` uses a quantified variable;
+                // (2) rename with a fresh name the quantified variables that conflict with `dst`.
+                for (src, dst) in self.replacements.iter() {
+                    if vars.contains(&src.get_base()) || vars.contains(&dst.get_base()) {
+                        unimplemented!(
+                            "replace_multiple_places doesn't handle replacements that conflict \
+                            with quantified variables"
+                        )
+                    }
+                }
+
+                Expr::Exists(
+                    vars,
+                    triggers
+                        .into_iter()
+                        .map(|x| x.replace_multiple_places(self.replacements))
+                        .collect(),
+                    self.fold_boxed(body),
+                    pos,
+                )
+            }
         }
         let typaram_substs = replacements.iter().map(
             |(target, replacement)| {
@@ -1436,6 +1514,7 @@ impl Expr {
                     | Expr::AddrOf(..)
                     | Expr::LabelledOld(..)
                     | Expr::ForAll(..)
+                    | Expr::Exists(..)
                     | Expr::LetExpr(..)
                     | Expr::FuncApp(..)
                     | Expr::DomainFuncApp(..)
@@ -1614,6 +1693,10 @@ impl PartialEq for Expr {
                 Expr::ForAll(ref other_vars, ref other_triggers, box ref other_expr, _),
             ) => (self_vars, self_triggers, self_expr) == (other_vars, other_triggers, other_expr),
             (
+                Expr::Exists(ref self_vars, ref self_triggers, box ref self_expr, _),
+                Expr::Exists(ref other_vars, ref other_triggers, box ref other_expr, _),
+            ) => (self_vars, self_triggers, self_expr) == (other_vars, other_triggers, other_expr),
+            (
                 Expr::LetExpr(ref self_var, box ref self_def, box ref self_expr, _),
                 Expr::LetExpr(ref other_var, box ref other_def, box ref other_expr, _),
             ) => (self_var, self_def, self_expr) == (other_var, other_def, other_expr),
@@ -1671,6 +1754,9 @@ impl Hash for Expr {
                 (cond, then_expr, else_expr).hash(state)
             }
             Expr::ForAll(ref vars, ref triggers, box ref expr, _) => {
+                (vars, triggers, expr).hash(state)
+            }
+            Expr::Exists(ref vars, ref triggers, box ref expr, _) => {
                 (vars, triggers, expr).hash(state)
             }
             Expr::LetExpr(ref var, box ref def, box ref expr, _) => (var, def, expr).hash(state),
