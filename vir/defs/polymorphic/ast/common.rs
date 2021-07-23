@@ -130,23 +130,14 @@ impl From<PermAmount> for legacy::PermAmount {
 pub enum Type {
     Int,
     Bool,
-    Seq(Box<Type>),
+    Seq(SeqType),
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
-    TypedRef(String, Vec<Type>),
-    Domain(String, Vec<Type>),
-    TypedVar(String),
-    Snapshot(String),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum TypeId {
-    Int,
-    Bool,
-    Ref,
-    Seq,
-    Domain,
-    Snapshot,
+    TypedRef(TypedRef),
+    Domain(DomainType),
+    Snapshot(SnapshotType),
+    // For type substitution
+    TypeVar(TypeVar),
 }
 
 impl fmt::Display for Type {
@@ -154,12 +145,7 @@ impl fmt::Display for Type {
         match self {
             Type::Int => write!(f, "Int"),
             Type::Bool => write!(f, "Bool"),
-            //Type::Ref => write!(f, "Ref"),
-            Type::TypedRef(ref name, _) => write!(f, "Ref({})", name),
-            Type::Domain(ref name, _) => write!(f, "Domain({})", name),
-            Type::Snapshot(ref name) => write!(f, "Snapshot({})", name),
-            Type::Seq(ref elem_ty) => write!(f, "Seq[{}]", elem_ty),
-            Type::TypedVar(ref name) => write!(f, "TypedVar({})", name),
+            _ => write!(f, "{}", self),
         }
     }
 }
@@ -183,14 +169,157 @@ impl From<Type> for legacy::Type {
         match typ {
             Type::Int => legacy::Type::Int,
             Type::Bool => legacy::Type::Bool,
-            Type::Seq(elem_ty) => legacy::Type::Seq(Box::new(legacy::Type::from(*elem_ty.clone()))),
-            Type::TypedRef(label, _) => legacy::Type::TypedRef(label.clone()),
-            Type::Domain(label, _) => legacy::Type::Domain(label.clone()),
-            // FIXME: needs update for type substitution
-            Type::TypedVar(label) => legacy::Type::TypedRef(label.clone()),
-            Type::Snapshot(label) => legacy::Type::Snapshot(label.clone()),
+            Type::Seq(seq) => legacy::Type::Seq(Box::new(legacy::Type::from((*seq.typ).clone()))),
+            Type::TypedRef(typed_ref) => legacy::Type::TypedRef(typed_ref.label.clone()),
+            Type::Domain(domain_type) => legacy::Type::Domain(domain_type.label.clone()),
+            // Does not happen, unless type substitution is incorrect
+            Type::Snapshot(snapshot_type) => legacy::Type::Snapshot(snapshot_type.label.clone()),
+            Type::TypeVar(_) => unreachable!(),
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SeqType {
+    pub typ: Box<Type>,
+}
+
+impl PartialEq for SeqType {
+    fn eq(&self, other: &Self) -> bool {
+        *self.typ == *other.typ
+    }
+}
+
+impl Eq for SeqType {}
+
+impl Hash for SeqType {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        discriminant(self).hash(state);
+        (&*self.typ).hash(state);
+    }
+}
+
+impl fmt::Display for SeqType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Seq[{}]", &self.typ)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TypedRef {
+    pub label: String,
+    pub arguments: Vec<Type>,
+}
+
+impl PartialEq for TypedRef {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.label, &self.arguments) == (&other.label, &other.arguments)
+    }
+}
+
+impl Eq for TypedRef {}
+
+impl Hash for TypedRef {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        discriminant(self).hash(state);
+        (&self.label, &self.arguments).hash(state);
+    }
+}
+
+impl fmt::Display for TypedRef {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Ref({})", &self.label)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainType {
+    pub label: String,
+    pub arguments: Vec<Type>,
+}
+
+impl PartialEq for DomainType {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.label, &self.arguments) == (&other.label, &other.arguments)
+    }
+}
+
+impl Eq for DomainType {}
+
+impl Hash for DomainType {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        discriminant(self).hash(state);
+        (&self.label, &self.arguments).hash(state);
+    }
+}
+
+impl fmt::Display for DomainType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Domain({})", &self.label)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SnapshotType {
+    pub label: String,
+    pub arguments: Vec<Type>,
+}
+
+impl PartialEq for SnapshotType {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.label, &self.arguments) == (&other.label, &other.arguments)
+    }
+}
+
+impl Eq for SnapshotType {}
+
+impl Hash for SnapshotType {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        discriminant(self).hash(state);
+        (&self.label, &self.arguments).hash(state);
+    }
+}
+
+impl fmt::Display for SnapshotType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Snapshot({})", &self.label)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TypeVar {
+    pub label: String,
+}
+
+impl PartialEq for TypeVar {
+    fn eq(&self, other: &Self) -> bool {
+        &self.label == &other.label
+    }
+}
+
+impl Eq for TypeVar {}
+
+impl Hash for TypeVar {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        discriminant(self).hash(state);
+        (&self.label).hash(state);
+    }
+}
+
+impl fmt::Display for TypeVar {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "TypeVar({})", &self.label)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TypeId {
+    Int,
+    Bool,
+    Ref,
+    Seq,
+    Domain,
+    Snapshot,
 }
 
 impl From<TypeId> for legacy::TypeId {
