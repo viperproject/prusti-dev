@@ -648,7 +648,9 @@ impl fmt::Display for Seq {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let typ = &self.typ;
         let elems_printed = self.elements.iter().map(|e| format!("{}", e)).collect::<Vec<_>>().join(", ");
-        let elem_ty = if let Type::Seq(box typ) = typ { typ } else { unreachable!() };
+        let elem_ty = if let Type::Seq(seq_type) = typ { 
+            &*seq_type.typ
+         } else { unreachable!() };
         write!(f, "Seq[{}]({})", elem_ty, elems_printed)
     }
 }
