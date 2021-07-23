@@ -158,7 +158,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     info!("Read lists of crates...");
     // TODO: do something to freeze the version of the dependencies.
     let crates_list: Vec<Crate> = csv::Reader::from_reader(
-       fs::File::open("test-crates/crates.csv")?
+       fs::File::open("test-crates/no-panic.csv")?
     ).deserialize()
         .collect::<Result<Vec<CrateRecord>, _>>()?
         .into_iter()
@@ -174,17 +174,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     // List of crates on which Prusti succeed.
     let mut successful_crates = vec![];
 
-    let part1 = false;
+    //let part1 = false;
 
     info!("Iterate over all {} crates...", crates_list.len());
     for (index, krate) in crates_list.iter().enumerate() {
-        if part1 && index >= 250 {
+        /*if part1 && index >= 250 {
             continue;
         }
 
         if !part1 && index < 250 {
             continue;
-        }
+        }*/
 
         info!("Crate {}/{}: {}", index + 1, crates_list.len(), krate);
 
