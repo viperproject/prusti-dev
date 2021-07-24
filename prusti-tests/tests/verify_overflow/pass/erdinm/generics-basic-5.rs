@@ -6,11 +6,14 @@ struct Number<A, B, C> {
     c: C,
 }
 
+
+#[requires(-10_000 < arg.b && arg.b < 10_000)]
 #[ensures(arg.b == old(arg.b) - 1000)]
 fn test1<A, B>(arg: &mut Number<A, i32, B>) {
     arg.b -= 1000;
 }
 
+#[requires(-10_000 < arg.b.b && arg.b.b < 10_000)]
 #[ensures(arg.b.b == old(arg.b.b) - 1000)]
 fn test2<A, B, C, D>(arg: &mut Number<A, Number<B, i32, C>, D>) {
     arg.b.b -= 1000;

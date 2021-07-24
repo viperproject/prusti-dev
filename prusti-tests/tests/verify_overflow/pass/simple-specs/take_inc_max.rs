@@ -4,6 +4,7 @@ use prusti_contracts::*;
 /// authored by Yusuke Matsushita, Takeshi Tsukada, and Naoki Kobayashi
 
 #[ensures(*result >= old(*ma) && *result >= old(*mb))]
+#[ensures(*result == old(*ma) || *result == old(*mb))]
 #[after_expiry(if old(*ma >= *mb) {
         (*ma == before_expiry(*result) && *mb == old(*mb))
     } else {
@@ -13,6 +14,8 @@ fn take_max<'a>(ma: &'a mut i32, mb: &'a mut i32) -> &'a mut i32 {
     if *ma >= *mb { ma } else { mb }
 }
 
+#[requires(a < i32::MAX)]
+#[requires(b < i32::MAX)]
 #[ensures(result == true)]
 fn inc_max(mut a: i32, mut b: i32) -> bool {
     // Optional, to avoid the warning on the mutable arguments
