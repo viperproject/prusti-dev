@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::polymorphic::ast::*;
 use std::{
     cmp::Ordering,
     collections::HashMap,
@@ -13,7 +14,7 @@ use std::{
     ops,
 };
 
-use super::super::super::legacy;
+use super::super::super::{legacy, converter};
 
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -172,9 +173,40 @@ impl From<Type> for legacy::Type {
             Type::Seq(seq) => legacy::Type::Seq(Box::new(legacy::Type::from((*seq.typ).clone()))),
             Type::TypedRef(typed_ref) => legacy::Type::TypedRef(typed_ref.label.clone()),
             Type::Domain(domain_type) => legacy::Type::Domain(domain_type.label.clone()),
-            // Does not happen, unless type substitution is incorrect
             Type::Snapshot(snapshot_type) => legacy::Type::Snapshot(snapshot_type.label.clone()),
+            // Does not happen, unless type substitution is incorrect
             Type::TypeVar(_) => unreachable!(),
+        }
+    }
+}
+
+impl converter::Generic for Type {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        match self {
+            Type::Bool | Type::Int => self,
+            Type::Seq(mut seq) => {
+                let typ = *seq.typ;
+                *seq.typ = typ.substitute(map);
+                Type::Seq(seq)
+            },
+            Type::TypedRef(mut typed_ref) => {
+                typed_ref.arguments = typed_ref.arguments.into_iter().map(|arg| arg.substitute(map)).collect();
+                Type::TypedRef(typed_ref)
+            },
+            Type::Domain(mut domain_type) => {
+                domain_type.arguments = domain_type.arguments.into_iter().map(|arg| arg.substitute(map)).collect();
+                Type::Domain(domain_type)
+            },
+            Type::Snapshot(mut snapshot_type) => {
+                snapshot_type.arguments = snapshot_type.arguments.into_iter().map(|arg| arg.substitute(map)).collect();
+                Type::Snapshot(snapshot_type)
+            },
+            Type::TypeVar(type_var) => {
+                match map.get(&type_var) {
+                    Some(substituted_typ) => substituted_typ.clone(),
+                    _ => Type::TypeVar(type_var),
+                }
+            }
         }
     }
 }
@@ -362,6 +394,14 @@ impl From<LocalVar> for legacy::LocalVar {
     }
 }
 
+impl converter::Generic for LocalVar {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut local_var = self;
+        local_var.typ = local_var.typ.substitute(map);
+        local_var
+    }
+}
+
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
@@ -386,5 +426,13 @@ impl From<Field> for legacy::Field {
             name: field.name.clone(),
             typ: legacy::Type::from(field.typ.clone()),
         }
+    }
+}
+
+impl converter::Generic for Field {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut field = self;
+        field.typ = field.typ.substitute(map);
+        field
     }
 }

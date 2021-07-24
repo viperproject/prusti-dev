@@ -6,8 +6,9 @@
 
 use crate::polymorphic::ast::*;
 use std::fmt;
+use std::collections::HashMap;
 
-use super::super::super::legacy;
+use super::super::super::{legacy, converter};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Trigger(Vec<Expr>);
@@ -35,5 +36,13 @@ impl Trigger {
 impl From<Trigger> for legacy::Trigger {
     fn from(trigger: Trigger) -> legacy::Trigger {
         legacy::Trigger::new(trigger.0.iter().map(|expr| legacy::Expr::from(expr.clone())).collect())
+    }
+}
+
+impl converter::Generic for Trigger {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut trigger = self;
+        trigger.0 = trigger.0.into_iter().map(|expr| expr.substitute(map)).collect();
+        trigger
     }
 }
