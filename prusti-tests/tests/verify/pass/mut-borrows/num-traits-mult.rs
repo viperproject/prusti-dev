@@ -1,5 +1,3 @@
-#![feature(nll)]
-
 use prusti_contracts::*;
 
 /// The fused multiply-add assignment operation.
