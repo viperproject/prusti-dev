@@ -6,9 +6,9 @@
 
 use crate::polymorphic::ast::*;
 use std::fmt;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
-use super::super::super::legacy;
+use super::super::super::{legacy, converter};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Predicate {
@@ -33,6 +33,16 @@ impl From<Predicate> for legacy::Predicate {
             Predicate::Struct(struct_predicate) => legacy::Predicate::Struct(legacy::StructPredicate::from(struct_predicate.clone())),
             Predicate::Enum(enum_predicate) => legacy::Predicate::Enum(legacy::EnumPredicate::from(enum_predicate.clone())),
             Predicate::Bodyless(label, local_var) => legacy::Predicate::Bodyless(label.clone(), legacy::LocalVar::from(local_var.clone())),
+        }
+    }
+}
+
+impl converter::Generic for Predicate {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        match self {
+            Predicate::Struct(struct_predicate) => Predicate::Struct(struct_predicate.substitute(map)),
+            Predicate::Enum(enum_predicate) => Predicate::Enum(enum_predicate.substitute(map)),
+            Predicate::Bodyless(label, local_var) => Predicate::Bodyless(label, local_var.substitute(map)),
         }
     }
 }
@@ -75,6 +85,18 @@ impl From<StructPredicate> for legacy::StructPredicate {
     }
 }
 
+impl converter::Generic for StructPredicate {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut struct_predicate = self;
+        struct_predicate.this = struct_predicate.this.substitute(map);
+        struct_predicate.body = match struct_predicate.body {
+            Some(expr) => Some(expr.substitute(map)),
+            _ => None,
+        };
+        struct_predicate
+    }
+}
+
 /// The predicate for types that have 0 or more than one variants.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct EnumPredicate {
@@ -103,6 +125,18 @@ impl From<EnumPredicate> for legacy::EnumPredicate {
     }
 }
 
+impl converter::Generic for EnumPredicate {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut enum_predicate = self;
+        enum_predicate.this = enum_predicate.this.substitute(map);
+        enum_predicate.discriminant_field = enum_predicate.discriminant_field.substitute(map);
+        enum_predicate.discriminant_bounds = enum_predicate.discriminant_bounds.substitute(map);
+        enum_predicate.variants = enum_predicate.variants.into_iter().map(|(expr, label, struct_predicate)| (expr.substitute(map), label, struct_predicate.substitute(map))).collect();
+        enum_predicate
+    }
+}
+
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct EnumVariantIndex(String);
 
@@ -122,16 +156,13 @@ impl From<EnumVariantIndex> for legacy::EnumVariantIndex {
     }
 }
 
-pub type MaybeEnumVariantIndex = Option<EnumVariantIndex>;
+impl converter::Generic for EnumVariantIndex {
+    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+        self
+    }
+}
 
-// impl From<Option<EnumVariantIndex>> for Option<legacy::EnumVariantIndex> {
-//     fn from(maybe_enum_variant_index: Option<EnumVariantIndex>) -> legacy::Option<EnumVariantIndex> {
-//         match maybe_enum_variant_index {
-//             Some(enum_variant_index) => legacy::EnumVariantIndex::from(enum_variant_index),
-//             _ => None,
-//         }
-//     }
-// }
+pub type MaybeEnumVariantIndex = Option<EnumVariantIndex>;
 
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

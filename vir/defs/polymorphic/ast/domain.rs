@@ -4,10 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fmt;
 use crate::polymorphic::ast::*;
+use std::fmt;
+use std::collections::HashMap;
 
-use super::super::super::legacy;
+use super::super::super::{legacy, converter};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Domain {
@@ -56,6 +57,16 @@ impl From<Domain> for legacy::Domain {
     }
 }
 
+impl converter::Generic for Domain {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut domain = self;
+        domain.functions = domain.functions.into_iter().map(|function| function.substitute(map)).collect();
+        domain.axioms = domain.axioms.into_iter().map(|axiom| axiom.substitute(map)).collect();
+        domain.type_vars = domain.type_vars.into_iter().map(|type_var| type_var.substitute(map)).collect();
+        domain
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DomainFunc {
     pub name: String,
@@ -95,6 +106,15 @@ impl From<DomainFunc> for legacy::DomainFunc {
     }
 }
 
+impl converter::Generic for DomainFunc {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut domain_func = self;
+        domain_func.formal_args = domain_func.formal_args.into_iter().map(|formal_arg| formal_arg.substitute(map)).collect();
+        domain_func.return_type = domain_func.return_type.substitute(map);
+        domain_func
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DomainAxiom {
     pub name: String,
@@ -115,5 +135,13 @@ impl From<DomainAxiom> for legacy::DomainAxiom {
             expr: legacy::Expr::from(domain_axiom.expr.clone()),
             domain_name: domain_axiom.domain_name.clone(),
         }
+    }
+}
+
+impl converter::Generic for DomainAxiom {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut domain_axiom = self;
+        domain_axiom.expr = domain_axiom.expr.substitute(map);
+        domain_axiom
     }
 }

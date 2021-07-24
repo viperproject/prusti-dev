@@ -4,11 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::legacy::ast::*;
+use crate::polymorphic::ast::*;
 use std::collections::HashMap;
 use std::fmt;
 
-use super::super::super::legacy;
+use super::super::super::{legacy, converter};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Function {
@@ -60,5 +60,20 @@ impl From<Function> for legacy::Function {
                 _ => None,
             }
         }
+    }
+}
+
+impl converter::Generic for Function {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut function = self;
+        function.formal_args = function.formal_args.into_iter().map(|formal_arg| formal_arg.substitute(map)).collect();
+        function.return_type = function.return_type.substitute(map);
+        function.pres = function.pres.into_iter().map(|pre| pre.substitute(map)).collect();
+        function.posts = function.posts.into_iter().map(|post| post.substitute(map)).collect();
+        function.body = match function.body {
+            Some(body_expr) => Some(body_expr.substitute(map)),
+            _ => None,
+        };
+        function
     }
 }

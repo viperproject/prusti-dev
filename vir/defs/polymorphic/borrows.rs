@@ -4,11 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::ast::{Expr, Stmt};
+use super::ast::*;
 use std::collections::{HashMap, VecDeque};
 use std::fmt;
 
-use super::super::legacy;
+use super::super::{legacy, converter};
 
 /// The method-unique borrow identifier.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
@@ -23,6 +23,12 @@ impl fmt::Debug for Borrow {
 impl From<Borrow> for legacy::Borrow {
     fn from(borrow: Borrow) -> legacy::Borrow {
         legacy::Borrow::new(borrow.0)
+    }
+}
+
+impl converter::Generic for Borrow {
+    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+        self
     }
 }
 
@@ -71,6 +77,25 @@ impl From<Node> for legacy::Node {
     }
 }
 
+impl converter::Generic for Node {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut node = self;
+        node.guard = node.guard.substitute(map);
+        node.borrow = node.borrow.substitute(map);
+        node.reborrowing_nodes = node.reborrowing_nodes.into_iter().map(|reborrowing_node| reborrowing_node.substitute(map)).collect();
+        node.reborrowed_nodes = node.reborrowed_nodes.into_iter().map(|reborrowed_nodes| reborrowed_nodes.substitute(map)).collect();
+        node.stmts = node.stmts.into_iter().map(|stmt| stmt.substitute(map)).collect();
+        node.borrowed_places = node.borrowed_places.into_iter().map(|borrowed_place| borrowed_place.substitute(map)).collect();
+        node.conflicting_borrows = node.conflicting_borrows.into_iter().map(|conflicting_borrow| conflicting_borrow.substitute(map)).collect();
+        node.alive_conflicting_borrows = node.alive_conflicting_borrows.into_iter().map(|alive_conflicting_borrow| alive_conflicting_borrow.substitute(map)).collect();
+        node.place = match node.place {
+            Some(expr) => Some(expr.substitute(map)),
+            _ => None,
+        };
+        node
+    }
+}
+
 /// Reborrowing directed acyclic graph (DAG). It should not be mutated
 /// after it is constructed. For construction use `DAGBuilder`.
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -102,6 +127,16 @@ impl From<DAG> for legacy::DAG {
             dag.nodes.iter().map(|node| legacy::Node::from(node.clone())).collect(),
             dag.borrowed_places.iter().map(|borrowed_place| legacy::Expr::from(borrowed_place.clone())).collect(),
         )
+    }
+}
+
+impl converter::Generic for DAG {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut dag = self;
+        dag.borrow_indices = dag.borrow_indices.into_iter().map(|(borrow, index)| (borrow.substitute(map), index)).collect();
+        dag.nodes = dag.nodes.into_iter().map(|node| node.substitute(map)).collect();
+        dag.borrowed_places = dag.borrowed_places.into_iter().map(|borrowed_place| borrowed_place.substitute(map)).collect();
+        dag
     }
 }
 

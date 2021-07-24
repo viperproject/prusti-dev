@@ -12,7 +12,7 @@ use std::hash::{Hash, Hasher};
 use std::mem;
 use std::mem::discriminant;
 
-use super::super::super::legacy;
+use super::super::super::{legacy, converter};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Expr {
@@ -210,6 +210,37 @@ impl From<Expr> for legacy::Expr {
     }
 }
 
+impl converter::Generic for Expr {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        match self {
+            Expr::Local(local) => Expr::Local(local.substitute(map)),
+            Expr::Variant(variant) => Expr::Variant(variant.substitute(map)),
+            Expr::Field(field) => Expr::Field(field.substitute(map)),
+            Expr::AddrOf(addr_of) => Expr::AddrOf(addr_of.substitute(map)),
+            Expr::LabelledOld(labelled_old) => Expr::LabelledOld(labelled_old.substitute(map)),
+            Expr::Const(const_expr) => Expr::Const(const_expr.substitute(map)),
+            Expr::MagicWand(magic_wand) => Expr::MagicWand(magic_wand.substitute(map)),
+            Expr::PredicateAccessPredicate(predicate_access_predicate) => Expr::PredicateAccessPredicate(predicate_access_predicate.substitute(map)),
+            Expr::FieldAccessPredicate(field_access_predicate) => Expr::FieldAccessPredicate(field_access_predicate.substitute(map)),
+            Expr::UnaryOp(unary_op) => Expr::UnaryOp(unary_op.substitute(map)),
+            Expr::BinOp(bin_op) => Expr::BinOp(bin_op.substitute(map)),
+            Expr::ContainerOp(container_op) => Expr::ContainerOp(container_op.substitute(map)),
+            Expr::Seq(seq) => Expr::Seq(seq.substitute(map)),
+            Expr::Unfolding(unfolding) => Expr::Unfolding(unfolding.substitute(map)),
+            Expr::Local(local) => Expr::Local(local.substitute(map)),
+            Expr::Cond(cond) => Expr::Cond(cond.substitute(map)),
+            Expr::ForAll(for_all) => Expr::ForAll(for_all.substitute(map)),
+            Expr::Exists(exists) => Expr::Exists(exists.substitute(map)),
+            Expr::LetExpr(let_expr) => Expr::LetExpr(let_expr.substitute(map)),
+            Expr::FuncApp(func_app) => Expr::FuncApp(func_app.substitute(map)),
+            Expr::DomainFuncApp(domain_func_app) => Expr::DomainFuncApp(domain_func_app.substitute(map)),
+            Expr::InhaleExhale(inhale_exhale) => Expr::InhaleExhale(inhale_exhale.substitute(map)),
+            Expr::Downcast(down_cast) => Expr::Downcast(down_cast.substitute(map)),
+            Expr::SnapApp(snap_app) => Expr::SnapApp(snap_app.substitute(map)),
+        }
+    }
+}
+
 /// A component that can be used to represent a place as a vector.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PlaceComponent {
@@ -344,6 +375,14 @@ impl Hash for Local {
     }
 }
 
+impl converter::Generic for Local {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut local = self;
+        local.variable = local.variable.substitute(map);
+        local
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct Variant {
     pub base: Box<Expr>,
@@ -367,6 +406,15 @@ impl Hash for Variant {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&*self.base, &self.variant_index).hash(state);
+    }
+}
+
+impl converter::Generic for Variant {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut variant = self;
+        *variant.base = variant.base.substitute(map);
+        variant.variant_index = variant.variant_index.substitute(map);
+        variant
     }
 }
 
@@ -396,6 +444,15 @@ impl Hash for FieldExpr {
     }
 }
 
+impl converter::Generic for FieldExpr {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut field_expr = self;
+        *field_expr.base = field_expr.base.substitute(map);
+        field_expr.field = field_expr.field.substitute(map);
+        field_expr
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct AddrOf {
     pub base: Box<Expr>,
@@ -419,6 +476,15 @@ impl Hash for AddrOf {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&*self.base, &self.addr_type).hash(state);
+    }
+}
+
+impl converter::Generic for AddrOf {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut addr_of = self;
+        *addr_of.base = addr_of.base.substitute(map);
+        addr_of.addr_type = addr_of.addr_type.substitute(map);
+        addr_of
     }
 }
 
@@ -448,6 +514,14 @@ impl Hash for LabelledOld {
     }
 }
 
+impl converter::Generic for LabelledOld {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut labelled_old = self;
+        *labelled_old.base = labelled_old.base.substitute(map);
+        labelled_old
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct ConstExpr {
     pub value: Const,
@@ -470,6 +544,12 @@ impl Hash for ConstExpr {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&self.value).hash(state);
+    }
+}
+
+impl converter::Generic for ConstExpr {
+    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+        self
     }
 }
 
@@ -500,6 +580,19 @@ impl Hash for MagicWand {
     }
 }
 
+impl converter::Generic for MagicWand {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut magic_wand = self;
+        *magic_wand.left = magic_wand.left.substitute(map);
+        *magic_wand.right = magic_wand.right.substitute(map);
+        magic_wand.borrow = match magic_wand.borrow {
+            Some(borrow) => Some(borrow.substitute(map)),
+            _ => None,
+        };
+        magic_wand
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct PredicateAccessPredicate {
     pub predicate_name: String,
@@ -524,6 +617,14 @@ impl Hash for PredicateAccessPredicate {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&self.predicate_name, &self.argument, self.permission).hash(state);
+    }
+}
+
+impl converter::Generic for PredicateAccessPredicate {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut predicate_access_predicate = self;
+        *predicate_access_predicate.argument = predicate_access_predicate.argument.substitute(map);
+        predicate_access_predicate
     }
 }
 
@@ -553,6 +654,14 @@ impl Hash for FieldAccessPredicate {
     }
 }
 
+impl converter::Generic for FieldAccessPredicate {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut field_access_predicate = self;
+        *field_access_predicate.base = field_access_predicate.base.substitute(map);
+        field_access_predicate
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct UnaryOp {
     pub op_kind: UnaryOpKind,
@@ -576,6 +685,14 @@ impl Hash for UnaryOp {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&self.op_kind, &*self.argument).hash(state);
+    }
+}
+
+impl converter::Generic for UnaryOp {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut unary_op = self;
+        *unary_op.argument = unary_op.argument.substitute(map);
+        unary_op
     }
 }
 
@@ -603,6 +720,15 @@ impl Hash for BinOp {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&self.op_kind, &*self.left, &*self.right).hash(state);
+    }
+}
+
+impl converter::Generic for BinOp {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut bin_op = self;
+        *bin_op.left = bin_op.left.substitute(map);
+        *bin_op.right = bin_op.right.substitute(map);
+        bin_op
     }
 }
 
@@ -637,6 +763,15 @@ impl Hash for ContainerOp {
     }
 }
 
+impl converter::Generic for ContainerOp {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut container_op = self;
+        *container_op.left = container_op.left.substitute(map);
+        *container_op.right = container_op.right.substitute(map);
+        container_op
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct Seq {
     pub typ: Type,
@@ -665,6 +800,15 @@ impl Hash for Seq {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&self.typ, &*self.elements).hash(state);
+    }
+}
+
+impl converter::Generic for Seq {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut seq = self;
+        seq.typ = seq.typ.substitute(map);
+        seq.elements = seq.elements.into_iter().map(|element| element.substitute(map)).collect();
+        seq
     }
 }
 
@@ -711,6 +855,19 @@ impl Hash for Unfolding {
     }
 }
 
+impl converter::Generic for Unfolding {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut unfolding = self;
+        unfolding.arguments = unfolding.arguments.into_iter().map(|argument| argument.substitute(map)).collect();
+        *unfolding.base = unfolding.base.substitute(map);
+        unfolding.variant = match unfolding.variant {
+            Some(enum_variant_index) => Some(enum_variant_index.substitute(map)),
+            _ => None,
+        };
+        unfolding
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct Cond {
     pub guard: Box<Expr>,
@@ -735,6 +892,16 @@ impl Hash for Cond {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&*self.guard, &*self.then_expr, &*self.else_expr).hash(state);
+    }
+}
+
+impl converter::Generic for Cond {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut cond = self;
+        *cond.guard = cond.guard.substitute(map);
+        *cond.then_expr = cond.then_expr.substitute(map);
+        *cond.else_expr = cond.else_expr.substitute(map);
+        cond
     }
 }
 
@@ -778,6 +945,16 @@ impl Hash for ForAll {
     }
 }
 
+impl converter::Generic for ForAll {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut for_all = self;
+        for_all.variables = for_all.variables.into_iter().map(|variable| variable.substitute(map)).collect();
+        for_all.triggers = for_all.triggers.into_iter().map(|trigger| trigger.substitute(map)).collect();
+        *for_all.body = for_all.body.substitute(map);
+        for_all
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct Exists {
     pub variables: Vec<LocalVar>,
@@ -818,6 +995,16 @@ impl Hash for Exists {
     }
 }
 
+impl converter::Generic for Exists {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut exists = self;
+        exists.variables = exists.variables.into_iter().map(|variable| variable.substitute(map)).collect();
+        exists.triggers = exists.triggers.into_iter().map(|trigger| trigger.substitute(map)).collect();
+        *exists.body = exists.body.substitute(map);
+        exists
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct LetExpr {
     pub variable: LocalVar,
@@ -848,6 +1035,16 @@ impl Hash for LetExpr {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&self.variable, &*self.def, &*self.body).hash(state);
+    }
+}
+
+impl converter::Generic for LetExpr {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut let_expr = self;
+        let_expr.variable = let_expr.variable.substitute(map);
+        *let_expr.def = let_expr.def.substitute(map);
+        *let_expr.body = let_expr.body.substitute(map);
+        let_expr
     }
 }
 
@@ -893,6 +1090,15 @@ impl Hash for FuncApp {
     }
 }
 
+impl converter::Generic for FuncApp {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut func_app = self;
+        func_app.arguments = func_app.arguments.into_iter().map(|argument| argument.substitute(map)).collect();
+        func_app.formal_arguments = func_app.formal_arguments.into_iter().map(|formal_argument| formal_argument.substitute(map)).collect();
+        func_app.return_type = func_app.return_type.substitute(map);
+        func_app
+    }
+}
 
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct DomainFuncApp {
@@ -928,6 +1134,15 @@ impl Hash for DomainFuncApp {
     }
 }
 
+impl converter::Generic for DomainFuncApp {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut domain_func_app = self;
+        domain_func_app.domain_function = domain_func_app.domain_function.substitute(map);
+        domain_func_app.arguments = domain_func_app.arguments.into_iter().map(|argument| argument.substitute(map)).collect();
+        domain_func_app
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct InhaleExhale {
     pub inhale_expr: Box<Expr>,
@@ -951,6 +1166,15 @@ impl Hash for InhaleExhale {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&*self.inhale_expr, &*self.exhale_expr).hash(state);
+    }
+}
+
+impl converter::Generic for InhaleExhale {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut inhale_exhale = self;
+        *inhale_exhale.inhale_expr = inhale_exhale.inhale_expr.substitute(map);
+        *inhale_exhale.exhale_expr = inhale_exhale.exhale_expr.substitute(map);
+        inhale_exhale
     }
 }
 
@@ -986,6 +1210,16 @@ impl Hash for Downcast {
     }
 }
 
+impl converter::Generic for Downcast {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut downcast = self;
+        *downcast.base = downcast.base.substitute(map);
+        *downcast.enum_place = downcast.enum_place.substitute(map);
+        downcast.field = downcast.field.substitute(map);
+        downcast
+    }
+}
+
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct SnapApp {
     pub base: Box<Expr>,
@@ -1008,6 +1242,14 @@ impl Hash for SnapApp {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
         (&*self.base).hash(state);
+    }
+}
+
+impl converter::Generic for SnapApp {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut snap_app = self;
+        *snap_app.base = snap_app.base.substitute(map);
+        snap_app
     }
 }
 
