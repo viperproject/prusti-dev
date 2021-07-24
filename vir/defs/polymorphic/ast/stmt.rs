@@ -8,8 +8,9 @@ use super::super::borrows::{Borrow, DAG as ReborrowingDAG};
 use super::super::cfg::CfgBlockIndex;
 use crate::polymorphic::ast::*;
 use std::fmt;
+use std::collections::HashMap;
 
-use super::super::super::legacy;
+use super::super::super::{legacy, converter};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Stmt {
@@ -155,6 +156,31 @@ impl fmt::Display for Stmt {
     }
 }
 
+impl converter::Generic for Stmt {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        match self {
+            Stmt::Comment(comment) => Stmt::Comment(comment.substitute(map)),
+            Stmt::Label(label) => Stmt::Label(label.substitute(map)),
+            Stmt::Inhale(inhale) => Stmt::Inhale(inhale.substitute(map)),
+            Stmt::Exhale(exhale) => Stmt::Exhale(exhale.substitute(map)),
+            Stmt::Assert(assert) => Stmt::Assert(assert.substitute(map)),
+            Stmt::MethodCall(method_call) => Stmt::MethodCall(method_call.substitute(map)),
+            Stmt::Assign(assign) =>  Stmt::Assign(assign.substitute(map)),
+            Stmt::Fold(fold) => Stmt::Fold(fold.substitute(map)),
+            Stmt::Unfold(unfold) => Stmt::Unfold(unfold.substitute(map)),
+            Stmt::Obtain(obtain) => Stmt::Obtain(obtain.substitute(map)),
+            Stmt::BeginFrame(begin_frame) => Stmt::BeginFrame(begin_frame.substitute(map)),
+            Stmt::EndFrame(end_frame) => Stmt::EndFrame(end_frame.substitute(map)),
+            Stmt::TransferPerm(transfer_perm) => Stmt::TransferPerm(transfer_perm.substitute(map)),
+            Stmt::PackageMagicWand(package_magic_wand) => Stmt::PackageMagicWand(package_magic_wand.substitute(map)),
+            Stmt::ApplyMagicWand(apply_magic_wand) => Stmt::ApplyMagicWand(apply_magic_wand.substitute(map)),
+            Stmt::ExpireBorrows(expire_borrows) => Stmt::ExpireBorrows(expire_borrows.substitute(map)),
+            Stmt::If(if_stmt) => Stmt::If(if_stmt.substitute(map)),
+            Stmt::Downcast(downcast) => Stmt::Downcast(downcast.substitute(map)),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AssignKind {
     /// Encodes a Rust copy.
@@ -198,6 +224,12 @@ impl fmt::Display for Comment {
     }
 }
 
+impl converter::Generic for Comment {
+    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+        self
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Label {
     pub label: String,
@@ -209,6 +241,12 @@ impl fmt::Display for Label {
     }
 }
 
+impl converter::Generic for Label {
+    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+        self
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Inhale {
     pub expr: Expr,
@@ -217,6 +255,14 @@ pub struct Inhale {
 impl fmt::Display for Inhale {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "inhale {}", self.expr)
+    }
+}
+
+impl converter::Generic for Inhale {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut inhale = self;
+        inhale.expr = inhale.expr.substitute(map);
+        inhale
     }
 }
 
@@ -232,6 +278,14 @@ impl fmt::Display for Exhale {
     }
 }
 
+impl converter::Generic for Exhale {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut exhale = self;
+        exhale.expr = exhale.expr.substitute(map);
+        exhale
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Assert {
     pub expr: Expr,
@@ -241,6 +295,14 @@ pub struct Assert {
 impl fmt::Display for Assert {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "assert {}", self.expr)
+    }
+}
+
+impl converter::Generic for Assert {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut assert = self;
+        assert.expr = assert.expr.substitute(map);
+        assert
     }
 }
 
@@ -269,6 +331,15 @@ impl fmt::Display for MethodCall {
     }
 }
 
+impl converter::Generic for MethodCall {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut method_call = self;
+        method_call.arguments = method_call.arguments.into_iter().map(|argument| argument.substitute(map)).collect();
+        method_call.targets = method_call.targets.into_iter().map(|target| target.substitute(map)).collect();
+        method_call
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Assign {
     pub target: Expr,
@@ -289,6 +360,15 @@ impl fmt::Display for Assign {
             }
             AssignKind::Ghost => write!(f, "{} := ghost {}", self.target, self.source),
         }
+    }
+}
+
+impl converter::Generic for Assign {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut assign = self;
+        assign.target = assign.target.substitute(map);
+        assign.source = assign.source.substitute(map);
+        assign
     }
 }
 
@@ -320,6 +400,18 @@ impl fmt::Display for Fold {
     }
 }
 
+impl converter::Generic for Fold {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut fold = self;
+        fold.arguments = fold.arguments.into_iter().map(|argument| argument.substitute(map)).collect();
+        fold.enum_variant = match fold.enum_variant {
+            Some(enum_variant_index) => Some(enum_variant_index.substitute(map)),
+            _ => None,
+        };
+        fold
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Unfold {
     pub predicate_name: String,
@@ -347,6 +439,18 @@ impl fmt::Display for Unfold {
     }
 }
 
+impl converter::Generic for Unfold {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut unfold = self;
+        unfold.arguments = unfold.arguments.into_iter().map(|argument| argument.substitute(map)).collect();
+        unfold.enum_variant = match unfold.enum_variant {
+            Some(enum_variant_index) => Some(enum_variant_index.substitute(map)),
+            _ => None,
+        };
+        unfold
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Obtain {
     pub predicate_name: Expr,
@@ -359,6 +463,14 @@ impl fmt::Display for Obtain {
     }
 }
 
+impl converter::Generic for Obtain {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut obtain = self;
+        obtain.predicate_name = obtain.predicate_name.substitute(map);
+        obtain
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BeginFrame {}
 
@@ -368,12 +480,24 @@ impl fmt::Display for BeginFrame {
     }
 }
 
+impl converter::Generic for BeginFrame {
+    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+        self
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EndFrame {}
 
 impl fmt::Display for EndFrame {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "end frame")
+    }
+}
+
+impl converter::Generic for EndFrame {
+    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+        self
     }
 }
 
@@ -394,6 +518,15 @@ impl fmt::Display for TransferPerm {
     }
 }
 
+impl converter::Generic for TransferPerm {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut transfer_perm = self;
+        transfer_perm.left = transfer_perm.left.substitute(map);
+        transfer_perm.right = transfer_perm.right.substitute(map);
+        transfer_perm
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PackageMagicWand {
     pub magic_wand: Expr,
@@ -406,7 +539,7 @@ pub struct PackageMagicWand {
 impl fmt::Display for PackageMagicWand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Expr::MagicWand(magic_wand_expr) = &self.magic_wand {
-            if (!magic_wand_expr.borrow.is_some()) {
+            if !magic_wand_expr.borrow.is_some() {
                 writeln!(f, "package[{}] {}", self.label, magic_wand_expr.left)?;
                 writeln!(f, "    --* {}", magic_wand_expr.right)?;
             } else {
@@ -426,6 +559,16 @@ impl fmt::Display for PackageMagicWand {
     }
 }
 
+impl converter::Generic for PackageMagicWand {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut package_magic_wand = self;
+        package_magic_wand.magic_wand = package_magic_wand.magic_wand.substitute(map);
+        package_magic_wand.package_stmts = package_magic_wand.package_stmts.into_iter().map(|package_stmt| package_stmt.substitute(map)).collect();
+        package_magic_wand.variables = package_magic_wand.variables.into_iter().map(|variable| variable.substitute(map)).collect();
+        package_magic_wand
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ApplyMagicWand {
     pub magic_wand: Expr,
@@ -435,11 +578,19 @@ pub struct ApplyMagicWand {
 impl fmt::Display for ApplyMagicWand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Expr::MagicWand(magic_wand_expr) = &self.magic_wand {
-            if (magic_wand_expr.borrow.is_some()) {
+            if magic_wand_expr.borrow.is_some() {
                 return writeln!(f, "apply[{:?}] {} --* {}", magic_wand_expr.borrow.unwrap(), magic_wand_expr.left, magic_wand_expr.right);
             }
         }
         writeln!(f, "apply {}", self.magic_wand)
+    }
+}
+
+impl converter::Generic for ApplyMagicWand {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut apply_magic_wand = self;
+        apply_magic_wand.magic_wand = apply_magic_wand.magic_wand.substitute(map);
+        apply_magic_wand
     }
 }
 
@@ -451,6 +602,14 @@ pub struct ExpireBorrows {
 impl fmt::Display for ExpireBorrows {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "expire_borrows {:?}", self.dag)
+    }
+}
+
+impl converter::Generic for ExpireBorrows {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut expire_borrows = self;
+        expire_borrows.dag = expire_borrows.dag.substitute(map);
+        expire_borrows
     }
 }
 
@@ -483,6 +642,16 @@ impl fmt::Display for If {
     }
 }
 
+impl converter::Generic for If {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut if_stmt = self;
+        if_stmt.guard = if_stmt.guard.substitute(map);
+        if_stmt.then_stmts = if_stmt.then_stmts.into_iter().map(|then_stmt| then_stmt.substitute(map)).collect();
+        if_stmt.else_stmts = if_stmt.else_stmts.into_iter().map(|else_stmt| else_stmt.substitute(map)).collect();
+        if_stmt
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Downcast {
     pub base: Expr,
@@ -492,5 +661,14 @@ pub struct Downcast {
 impl fmt::Display for Downcast {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "downcast {} to {}", self.base, self.field)
+    }
+}
+
+impl converter::Generic for Downcast {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut downcast = self;
+        downcast.base = downcast.base.substitute(map);
+        downcast.field = downcast.field.substitute(map);
+        downcast
     }
 }

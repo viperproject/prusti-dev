@@ -4,5 +4,5 @@ use super::super::polymorphic;
 use super::super::legacy;
 
 pub trait Generic {
-    fn substitute(&self, HashMap<polymorphic::TypeVar, polymorphic::Type>) -> &Self;
+    fn substitute(self, map: &HashMap<polymorphic::TypeVar, polymorphic::Type>) -> Self;
 }

@@ -6,8 +6,9 @@
 
 use crate::polymorphic::ast::*;
 use std::fmt;
+use std::collections::HashMap;
 
-use super::super::super::legacy;
+use super::super::super::{legacy, converter};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct BodylessMethod {
@@ -46,5 +47,14 @@ impl From<BodylessMethod> for legacy::BodylessMethod {
             formal_args: bodyless_method.formal_args.iter().map(|formal_arg| legacy::LocalVar::from(formal_arg.clone())).collect(),
             formal_returns: bodyless_method.formal_returns.iter().map(|formal_return| legacy::LocalVar::from(formal_return.clone())).collect(),
         }
+    }
+}
+
+impl converter::Generic for BodylessMethod {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut bodyless_method = self;
+        bodyless_method.formal_args = bodyless_method.formal_args.into_iter().map(|formal_arg| formal_arg.substitute(map)).collect();
+        bodyless_method.formal_returns = bodyless_method.formal_returns.into_iter().map(|formal_return| formal_return.substitute(map)).collect();
+        bodyless_method
     }
 }

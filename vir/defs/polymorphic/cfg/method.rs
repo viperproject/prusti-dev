@@ -10,7 +10,7 @@ use std::iter::FromIterator;
 use uuid::Uuid;
 use crate::polymorphic::ast::*;
 
-use super::super::super::legacy;
+use super::super::super::{legacy, converter};
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
@@ -78,6 +78,16 @@ impl From<CfgMethod> for legacy::CfgMethod {
     }
 }
 
+impl converter::Generic for CfgMethod {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut cfg_method = self;
+        cfg_method.formal_returns = cfg_method.formal_returns.into_iter().map(|formal_return| formal_return.substitute(map)).collect();
+        cfg_method.local_vars = cfg_method.local_vars.into_iter().map(|local_var| local_var.substitute(map)).collect();
+        cfg_method.basic_blocks = cfg_method.basic_blocks.into_iter().map(|basic_block| basic_block.substitute(map)).collect();
+        cfg_method
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
@@ -90,6 +100,15 @@ impl From<CfgBlock> for legacy::CfgBlock {
             cfg_block.stmts.iter().map(|stmt| legacy::Stmt::from(stmt.clone())).collect(),
             legacy::Successor::from(cfg_block.successor.clone()),
         )
+    }
+}
+
+impl converter::Generic for CfgBlock {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        let mut cfg_block = self;
+        cfg_block.stmts = cfg_block.stmts.into_iter().map(|stmt| stmt.substitute(map)).collect();
+        cfg_block.successor = cfg_block.successor.substitute(map);
+        cfg_block
     }
 }
 
@@ -115,6 +134,19 @@ impl From<Successor> for legacy::Successor {
     }
 }
 
+impl converter::Generic for Successor {
+    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
+        match self {
+            Successor::Undefined | Successor::Return => self,
+            Successor::Goto(cfg_block_index) => Successor::Goto(cfg_block_index.substitute(map)),
+            Successor::GotoSwitch(expr_indices, cfg_block_index) => Successor::GotoSwitch(
+                expr_indices.into_iter().map(|(expr, index)| (expr.substitute(map), index.substitute(map))).collect(),
+                cfg_block_index.substitute(map),
+            ),
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct CfgBlockIndex {
     #[serde(skip)]
@@ -134,5 +166,11 @@ impl From<CfgBlockIndex> for legacy::CfgBlockIndex {
             cfg_block_index.method_uuid,
             cfg_block_index.block_index,
         )
+    }
+}
+
+impl converter::Generic for CfgBlockIndex {
+    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
+        self
     }
 }
