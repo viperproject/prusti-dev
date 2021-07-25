@@ -305,6 +305,7 @@ def run_benchmarks(args):
     report_name_suffix = ("-" + args[0]) if len(args) > 0 else ''
 
     env = get_env()
+    env['PRUSTI_CHECK_OVERFLOWS'] = 'false' # FIXME: This should not be needed.
     report("Starting prusti-server ({})", prusti_server_exe)
     server_process = subprocess.Popen([prusti_server_exe,"--port",server_port], env=env)
     time.sleep(2)
