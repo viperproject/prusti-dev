@@ -1449,10 +1449,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
 
             mir::Rvalue::Use(mir::Operand::Constant(box mir::Constant { literal, .. })) => {
-                let (ty, val) = match literal {
-                    mir::ConstantKind::Ty(&ty::Const { ty, val }) => (ty, val),
-                    mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(val)),
-                };
+                let (ty, val) = mir_constantkind_to_ty_val(literal);
                 let restored = self.encoder.encode_const_expr(ty, &val)?;
 
                 (expiring_base, restored, false, stmts)
@@ -4891,11 +4888,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 stmts
             }
 
-            mir::Operand::Constant(box mir::Constant { literal: ck, .. }) => {
-                let (ty, val) = match ck {
-                    mir::ConstantKind::Ty(ty::Const { ty, val }) => (ty, *val),
-                    mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(*val)),
-                };
+            mir::Operand::Constant(box mir::Constant { literal, .. }) => {
+                let (ty, val) = mir_constantkind_to_ty_val(*literal);
                 match ty.kind() {
                     ty::TyKind::Tuple(elements) if elements.is_empty() => Vec::new(),
                     _ => {
@@ -4908,7 +4902,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         )?;
                         // Initialize the constant
                         let const_val = self.encoder
-                            .encode_const_expr(*ty, &val)
+                            .encode_const_expr(ty, &val)
                             .with_span(span)?;
                         // Initialize value of lhs
                         stmts.push(vir::Stmt::Assign(
@@ -6054,4 +6048,11 @@ enum ArrayAccessKind {
 
 fn convert_loans_to_borrows(loans: &[facts::Loan]) -> Vec<Borrow> {
     loans.iter().map(|l| l.into()).collect()
+}
+
+fn mir_constantkind_to_ty_val(literal: mir::ConstantKind) -> (ty::Ty, ty::ConstKind) {
+    match literal {
+        mir::ConstantKind::Ty(&ty::Const { ty, val }) => (ty, val),
+        mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(val)),
+    }
 }
