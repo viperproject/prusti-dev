@@ -317,7 +317,7 @@ pub fn translate_spec_entailment(closure: syn::Expr, args: Vec<(syn::Ident, syn:
                    |#arg_tokens| {
                        #pre_conjuncts
                    },
-                   |#arg_tokens, cl_result: T| {
+                   |#arg_tokens, cl_result: i32| { // TODO: get the right type
                        #post_conjuncts
                    }
         )

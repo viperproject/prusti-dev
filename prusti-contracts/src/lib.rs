@@ -93,7 +93,7 @@ pub fn implication(lhs: bool, rhs: bool) -> bool {
 }
 
 #[allow(unused_variables, unused_mut)]
-pub fn entailment<F1, F2, F3, T>(f: F1, pres: F2, posts: F3) -> bool {
+pub fn entailment<F1, F2, F3>(f: F1, pres: F2, posts: F3) -> bool {
     true
 }
 
