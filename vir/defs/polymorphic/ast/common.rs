@@ -153,7 +153,15 @@ impl fmt::Display for Type {
 
 impl PartialEq for Type {
     fn eq(&self, other: &Self) -> bool {
-        discriminant(self) == discriminant(other)
+        discriminant(self) == discriminant(other) &&
+        match (self, other) {
+            (Type::Seq(seq), Type::Seq(other_seq)) => seq == other_seq,
+            (Type::TypedRef(typed_ref), Type::TypedRef(other_typed_ref)) => typed_ref == other_typed_ref,
+            (Type::Domain(domain_type), Type::Domain(other_domain_type)) => domain_type == other_domain_type,
+            (Type::Snapshot(snapshot_type), Type::Snapshot(other_snapshot_type)) => snapshot_type == other_snapshot_type,
+            (Type::TypeVar(type_var), Type::TypeVar(other_type_var)) => type_var == other_type_var,
+            _ => true,
+        }
     }
 }
 
