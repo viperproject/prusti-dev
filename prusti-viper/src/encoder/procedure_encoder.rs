@@ -241,11 +241,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mir_span = self.mir.span;
 
         // Retrieve the contract
-        self.procedure_contract = Some(
-            self.encoder
+        let procedure_contract = self.encoder
                 .get_procedure_contract_for_def(self.proc_def_id)
-                .with_span(mir_span)?
-        );
+                .with_span(mir_span)?;
+        assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(mir_span)?;
+        self.procedure_contract = Some(procedure_contract);
 
         // Prepare assertions to check specification refinement
         let mut precondition_weakening: Option<typed::Assertion> = None;
@@ -1710,11 +1710,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             expr
         };
         let borrow_infos = &contract.borrow_infos;
-        assert_eq!(
-            borrow_infos.len(),
-            1,
-            "We can have at most one magic wand in the postcondition."
-        );
+        if borrow_infos.len() != 1 {
+            return Err(SpannedEncodingError::internal(
+                format!("We require exactly one magic wand in the postcondition. But we have {:?}", borrow_infos.len()),
+                span,
+            ));
+        }
         let borrow_info = &borrow_infos[0];
 
         // Get the magic wand info.
@@ -2714,6 +2715,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 target_local,
             ).with_span(call_site_span)?
         };
+        assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(call_site_span)?;
 
         // Store a label for the pre state
         let pre_label = self.cfg_method.get_fresh_label_name();
@@ -6043,4 +6045,14 @@ enum ArrayAccessKind {
 
 fn convert_loans_to_borrows(loans: &[facts::Loan]) -> Vec<Borrow> {
     loans.iter().map(|l| l.into()).collect()
+}
+
+/// Check if size of ProcedureContract::borrow_infos is as required
+/// len: Length of borrow_infos
+fn assert_one_magic_wand(len: usize) -> EncodingResult<()> {
+    if len > 1 {
+        Err(EncodingError::internal(
+            format!("We can have at most one magic wand in the postcondition. But we have {:?}", len)
+        ))
+    } else { Ok(()) }
 }
