@@ -1449,6 +1449,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (expiring_base, restored, false, stmts)
             }
 
+            mir::Rvalue::Use(mir::Operand::Constant(box mir::Constant { literal, .. })) => {
+                let (ty, val) = match literal {
+                    mir::ConstantKind::Ty(&ty::Const { ty, val }) => (ty, val),
+                    mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(val)),
+                };
+                let restored = self.encoder.encode_const_expr(ty, &val)?;
+
+                (expiring_base, restored, false, stmts)
+            }
+
             ref x => unreachable!("Borrow restores value {:?}", x),
         })
     }
@@ -1515,6 +1525,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, _) |
                     &mir::Rvalue::Use(mir::Operand::Move(_)) => true,
                     &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), _, _ty) => false,
+                    &mir::Rvalue::Use(mir::Operand::Constant(_)) => false,
                     x => unreachable!("{:?}", x),
                 },
                 ref x => unreachable!("{:?}", x),
