@@ -61,12 +61,78 @@ impl<'tcx> SpecCollector<'tcx> {
         }
     }
 
-    pub fn build_def_specs(mut self, env: &Environment<'tcx>) -> typed::DefSpecificationMap<'tcx> {
-        println!("DEBUG: spec_functions: {:#?}", self.spec_functions);
-        println!("DEBUG: procedure_specs: {:#?}", self.procedure_specs);
-        println!("DEBUG: loop_specs: {:#?}", self.loop_specs);
+    pub fn build_def_specs(&self, env: &Environment<'tcx>) -> typed::DefSpecificationMap<'tcx> {
+        let mut def_spec = typed::DefSpecificationMap::new();
+        self.determine_procedure_specs(&mut def_spec);
+        self.determine_extern_specs(&mut def_spec, env);
+        self.determine_loop_specs(&mut def_spec);
+        def_spec
+    }
 
-        typed::DefSpecificationMap::new() // TODO
+    fn determine_procedure_specs(&self, def_specs: &mut typed::DefSpecificationMap<'tcx>) {
+        for (local_id, refs) in self.procedure_specs.iter() {
+            let mut pres = Vec::new();
+            let mut posts = Vec::new();
+            let mut pledges = Vec::new();
+            let mut predicate_body = None;
+            for spec_id_ref in &refs.spec_id_refs {
+                match spec_id_ref {
+                    SpecIdRef::Precondition(spec_id) => {
+                        pres.push(self.spec_functions.get(&spec_id).unwrap().clone());
+                    }
+                    SpecIdRef::Postcondition(spec_id) => {
+                        posts.push(self.spec_functions.get(&spec_id).unwrap().clone());
+                    }
+                    SpecIdRef::Pledge(spec_id) => {
+                        pledges.push(self.spec_functions.get(&spec_id).unwrap().clone());
+                    }
+                    SpecIdRef::Predicate(spec_id) => {
+                        predicate_body = Some(self.spec_functions.get(&spec_id).unwrap().clone());
+                    }
+                }
+            }
+            def_specs.specs.insert(
+                *local_id,
+                typed::SpecificationSet::Procedure(typed::ProcedureSpecification {
+                    pres,
+                    posts,
+                    pledges,
+                    predicate_body,
+                    pure: refs.pure,
+                    trusted: refs.trusted,
+                })
+            );
+        }
+    }
+
+    fn determine_extern_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, env: &Environment<'tcx>) {
+        self.extern_resolver.check_duplicates(env);
+        // TODO: do something with the traits
+        for (real_id, (_, spec_id)) in self.extern_resolver.extern_fn_map.iter() {
+            if let Some(local_id) = real_id.as_local() {
+                if def_spec.specs.contains_key(&local_id) {
+                    PrustiError::incorrect(
+                        format!("external specification provided for {}, which already has a specification",
+                            env.get_item_name(*real_id)),
+                        MultiSpan::from_span(env.get_item_span(*spec_id)),
+                    ).emit(env);
+                }
+            }
+            if let Some(_spec) = def_spec.specs.get(&spec_id.expect_local()) {
+                def_spec.extern_specs.insert(*real_id, spec_id.expect_local());
+            }
+        }
+    }
+
+    fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
+        for (local_id, spec_ids) in self.loop_specs.iter() {
+            let specs = spec_ids.iter()
+                .map(|spec_id| self.spec_functions.get(&spec_id).unwrap().clone())
+                .collect();
+            def_spec.specs.insert(*local_id, typed::SpecificationSet::Loop(typed::LoopSpecification {
+                invariant: specs
+            }));
+        }
     }
 }
 
