@@ -5,6 +5,7 @@ use std::{
 
 use super::super::polymorphic;
 use super::super::legacy;
+use uuid::Uuid;
 
 pub trait Generic {
     fn substitute(self, map: &HashMap<polymorphic::TypeVar, polymorphic::Type>) -> Self;
@@ -1936,6 +1937,187 @@ mod tests {
         test(source, expected, &SUBSTITUTION_MAP);
 
         // ExpireBorrows TODO: add this after DAG is checked
+        source = polymorphic::Stmt::ExpireBorrows(polymorphic::ExpireBorrows {
+            dag: polymorphic::DAG {
+                borrow_indices: vec![(polymorphic::Borrow(1), 1), (polymorphic::Borrow(2), 2)].into_iter().collect(),
+                nodes: vec![
+                    polymorphic::Node {
+                        guard: polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v1"),
+                                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                    label: String::from("T"),
+                                }),
+                            },
+                            position: position.clone(),
+                        }),
+                        borrow: polymorphic::Borrow(123),
+                        reborrowing_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+                        reborrowed_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+                        stmts: vec![
+                            polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                                predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                    variable: polymorphic::LocalVar {
+                                        name: String::from("_v2"),
+                                        typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                            label: String::from("T"),
+                                        }),
+                                    },
+                                    position: position.clone(),
+                                }),
+                                position: position.clone(),
+                            }),
+                            polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                                predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                    variable: polymorphic::LocalVar {
+                                        name: String::from("_v3"),
+                                        typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                            label: String::from("E"),
+                                        }),
+                                    },
+                                    position: position.clone(),
+                                }),
+                                position: position.clone(),
+                            }),
+                        ],
+                        borrowed_places: vec![
+                            polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v4"),
+                                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                        label: String::from("T"),
+                                    }),
+                                },
+                                position: position.clone(),
+                            }),
+                            polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v5"),
+                                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                        label: String::from("E"),
+                                    }),
+                                },
+                                position: position.clone(),
+                            }),
+                        ],
+                        conflicting_borrows: vec![polymorphic::Borrow(403), polymorphic::Borrow(404)],
+                        alive_conflicting_borrows: vec![polymorphic::Borrow(1403), polymorphic::Borrow(1404)],
+                        place: Some(polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v6"),
+                                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                    label: String::from("T"),
+                                }),
+                            },
+                            position: position.clone(),
+                        })),
+                    }
+                ],
+                borrowed_places: vec![
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v7"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v8"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("E"),
+                            }),
+                        },
+                        position: position.clone(),
+                    })
+                ],
+            },
+        });
+        expected = polymorphic::Stmt::ExpireBorrows(polymorphic::ExpireBorrows {
+            dag: polymorphic::DAG {
+                borrow_indices: vec![(polymorphic::Borrow(1), 1), (polymorphic::Borrow(2), 2)].into_iter().collect(),
+                nodes: vec![
+                    polymorphic::Node {
+                        guard: polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v1"),
+                                typ: polymorphic::Type::Int,
+                            },
+                            position: position.clone(),
+                        }),
+                        borrow: polymorphic::Borrow(123),
+                        reborrowing_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+                        reborrowed_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+                        stmts: vec![
+                            polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                                predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                    variable: polymorphic::LocalVar {
+                                        name: String::from("_v2"),
+                                        typ: polymorphic::Type::Int,
+                                    },
+                                    position: position.clone(),
+                                }),
+                                position: position.clone(),
+                            }),
+                            polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                                predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                    variable: polymorphic::LocalVar {
+                                        name: String::from("_v3"),
+                                        typ: polymorphic::Type::Bool,
+                                    },
+                                    position: position.clone(),
+                                }),
+                                position: position.clone(),
+                            }),
+                        ],
+                        borrowed_places: vec![
+                            polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v4"),
+                                    typ: polymorphic::Type::Int,
+                                },
+                                position: position.clone(),
+                            }),
+                            polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v5"),
+                                    typ: polymorphic::Type::Bool,
+                                },
+                                position: position.clone(),
+                            }),
+                        ],
+                        conflicting_borrows: vec![polymorphic::Borrow(403), polymorphic::Borrow(404)],
+                        alive_conflicting_borrows: vec![polymorphic::Borrow(1403), polymorphic::Borrow(1404)],
+                        place: Some(polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v6"),
+                                typ: polymorphic::Type::Int,
+                            },
+                            position: position.clone(),
+                        })),
+                    }
+                ],
+                borrowed_places: vec![
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v7"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    }),
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v8"),
+                            typ: polymorphic::Type::Bool,
+                        },
+                        position: position.clone(),
+                    })
+                ],
+            },
+        });
+        test(source, expected, &SUBSTITUTION_MAP);
 
         // If
         source = polymorphic::Stmt::If(polymorphic::If {
@@ -2193,6 +2375,1550 @@ mod tests {
             return_type: polymorphic::Type::Int,
             unique: true,
             domain_name: String::from("dn"),
+        };
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within DomainAxiom
+    fn substitution_type_var_domain_axiom_test() {
+        // dummy position for convenient copying
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        let source = polymorphic::DomainAxiom {
+            name: String::from("da"),
+            expr: polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v1"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("T"),
+                    }),
+                },
+                position: position.clone(),
+            }),
+            domain_name: String::from("dn"),
+        };
+
+        let expected = polymorphic::DomainAxiom {
+            name: String::from("da"),
+            expr: polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v1"),
+                    typ: polymorphic::Type::Int,
+                },
+                position: position.clone(),
+            }),
+            domain_name: String::from("dn"),
+        };
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within Domain
+    fn substitution_type_var_domain_test() {
+        // dummy position for convenient copying
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        let source = polymorphic::Domain {
+            name: String::from("domain"),
+            functions: vec![
+                polymorphic::DomainFunc {
+                    name: String::from("df1"),
+                    formal_args: vec![
+                        polymorphic::LocalVar {
+                            name: String::from("_v1"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        polymorphic::LocalVar {
+                            name: String::from("_v2"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("D"),
+                            }),
+                        },
+                    ],
+                    return_type: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("T"),
+                    }),
+                    unique: true,
+                    domain_name: String::from("dn1"),
+                },
+                polymorphic::DomainFunc {
+                    name: String::from("df2"),
+                    formal_args: vec![
+                        polymorphic::LocalVar {
+                            name: String::from("_v3"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        polymorphic::LocalVar {
+                            name: String::from("_v4"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("C"),
+                            }),
+                        },
+                    ],
+                    return_type: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("E"),
+                    }),
+                    unique: true,
+                    domain_name: String::from("dn2"),
+                }
+            ],
+            axioms: vec![
+                polymorphic::DomainAxiom {
+                    name: String::from("da1"),
+                    expr: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v5"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    domain_name: String::from("dn3"),
+                },
+                polymorphic::DomainAxiom {
+                    name: String::from("da2"),
+                    expr: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v6"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("E"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    domain_name: String::from("dn4"),
+                }
+            ],
+            type_vars: vec![
+                polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                    label: String::from("T"),
+                }),
+                polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                    label: String::from("E"),
+                }),
+            ]
+        };
+
+        let expected = polymorphic::Domain {
+            name: String::from("domain"),
+            functions: vec![
+                polymorphic::DomainFunc {
+                    name: String::from("df1"),
+                    formal_args: vec![
+                        polymorphic::LocalVar {
+                            name: String::from("_v1"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        polymorphic::LocalVar {
+                            name: String::from("_v2"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("D"),
+                            }),
+                        },
+                    ],
+                    return_type: polymorphic::Type::Int,
+                    unique: true,
+                    domain_name: String::from("dn1"),
+                },
+                polymorphic::DomainFunc {
+                    name: String::from("df2"),
+                    formal_args: vec![
+                        polymorphic::LocalVar {
+                            name: String::from("_v3"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        polymorphic::LocalVar {
+                            name: String::from("_v4"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("C"),
+                            }),
+                        },
+                    ],
+                    return_type: polymorphic::Type::Bool,
+                    unique: true,
+                    domain_name: String::from("dn2"),
+                }
+            ],
+            axioms: vec![
+                polymorphic::DomainAxiom {
+                    name: String::from("da1"),
+                    expr: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v5"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    }),
+                    domain_name: String::from("dn3"),
+                },
+                polymorphic::DomainAxiom {
+                    name: String::from("da2"),
+                    expr: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v6"),
+                            typ: polymorphic::Type::Bool,
+                        },
+                        position: position.clone(),
+                    }),
+                    domain_name: String::from("dn4"),
+                }
+            ],
+            type_vars: vec![
+                polymorphic::Type::Int,
+                polymorphic::Type::Bool,
+            ]
+        };
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within Function
+    fn substitution_type_var_function_test() {
+        // dummy position for convenient copying
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        let source = polymorphic::Function {
+            name: String::from("f1"),
+            formal_args: vec![
+                polymorphic::LocalVar {
+                    name: String::from("_v1"),
+                    typ: polymorphic::Type::Int,
+                },
+                polymorphic::LocalVar {
+                    name: String::from("_v2"),
+                    typ: polymorphic::Type::Bool,
+                },
+            ],
+            return_type: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                label: String::from("T"),
+            }),
+            pres: vec![
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v3"),
+                        typ: polymorphic::Type::Int,
+                    },
+                    position: position.clone(),
+                }),
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v4"),
+                        typ: polymorphic::Type::Bool,
+                    },
+                    position: position.clone(),
+                }),
+            ],
+            posts: vec![
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v5"),
+                        typ: polymorphic::Type::Int,
+                    },
+                    position: position.clone(),
+                }),
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v6"),
+                        typ: polymorphic::Type::Bool,
+                    },
+                    position: position.clone(),
+                }),
+            ],
+            body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v7"),
+                    typ: polymorphic::Type::Int,
+                },
+                position: position.clone(),
+            })),
+        };
+
+        let expected = polymorphic::Function {
+            name: String::from("f1"),
+            formal_args: vec![
+                polymorphic::LocalVar {
+                    name: String::from("_v1"),
+                    typ: polymorphic::Type::Int,
+                },
+                polymorphic::LocalVar {
+                    name: String::from("_v2"),
+                    typ: polymorphic::Type::Bool,
+                },
+            ],
+            return_type: polymorphic::Type::Int,
+            pres: vec![
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v3"),
+                        typ: polymorphic::Type::Int,
+                    },
+                    position: position.clone(),
+                }),
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v4"),
+                        typ: polymorphic::Type::Bool,
+                    },
+                    position: position.clone(),
+                }),
+            ],
+            posts: vec![
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v5"),
+                        typ: polymorphic::Type::Int,
+                    },
+                    position: position.clone(),
+                }),
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v6"),
+                        typ: polymorphic::Type::Bool,
+                    },
+                    position: position.clone(),
+                }),
+            ],
+            body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v7"),
+                    typ: polymorphic::Type::Int,
+                },
+                position: position.clone(),
+            })),
+        };
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within StructPredicate
+    fn substitution_type_var_struct_predicate_test() {
+        // dummy position for convenient copying
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        let source = polymorphic::StructPredicate {
+            name: String::from("sp1"),
+            this: polymorphic::LocalVar {
+                name: String::from("_v1"),
+                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                    label: String::from("T"),
+                }),
+            },
+            body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v7"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("E"),
+                    }),
+                },
+                position: position.clone(),
+            })),
+        };
+
+        let expected = polymorphic::StructPredicate {
+            name: String::from("sp1"),
+            this: polymorphic::LocalVar {
+                name: String::from("_v1"),
+                typ: polymorphic::Type::Int,
+            },
+            body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v7"),
+                    typ: polymorphic::Type::Bool,
+                },
+                position: position.clone(),
+            })),
+        };
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within EnumPredicate
+    fn substitution_type_var_enum_predicate_test() {
+        // dummy position for convenient copying
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        let source = polymorphic::EnumPredicate {
+            name: String::from("ep1"),
+            this: polymorphic::LocalVar {
+                name: String::from("_v1"),
+                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                    label: String::from("T"),
+                }),
+            },
+            discriminant_field: polymorphic::Field {
+                name: String::from("f1"),
+                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                    label: String::from("E"),
+                }),
+            },
+            discriminant_bounds: polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v2"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("E"),
+                    }),
+                },
+                position: position.clone(),
+            }),
+            variants: vec![
+                (
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v3"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    String::from("variant1"),
+                    polymorphic::StructPredicate {
+                        name: String::from("sp1"),
+                        this: polymorphic::LocalVar {
+                            name: String::from("_v4"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("E"),
+                            }),
+                        },
+                        body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v5"),
+                                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                    label: String::from("T"),
+                                }),
+                            },
+                            position: position.clone(),
+                        })),
+                    },
+                ),
+                (
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v6"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    String::from("variant1"),
+                    polymorphic::StructPredicate {
+                        name: String::from("sp1"),
+                        this: polymorphic::LocalVar {
+                            name: String::from("_v7"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("E"),
+                            }),
+                        },
+                        body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v8"),
+                                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                    label: String::from("T"),
+                                }),
+                            },
+                            position: position.clone(),
+                        })),
+                    },
+                ),
+            ]
+        };
+
+        let expected = polymorphic::EnumPredicate {
+            name: String::from("ep1"),
+            this: polymorphic::LocalVar {
+                name: String::from("_v1"),
+                typ: polymorphic::Type::Int,
+            },
+            discriminant_field: polymorphic::Field {
+                name: String::from("f1"),
+                typ: polymorphic::Type::Bool,
+            },
+            discriminant_bounds: polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v2"),
+                    typ: polymorphic::Type::Bool,
+                },
+                position: position.clone(),
+            }),
+            variants: vec![
+                (
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v3"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    }),
+                    String::from("variant1"),
+                    polymorphic::StructPredicate {
+                        name: String::from("sp1"),
+                        this: polymorphic::LocalVar {
+                            name: String::from("_v4"),
+                            typ: polymorphic::Type::Bool,
+                        },
+                        body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v5"),
+                                typ: polymorphic::Type::Int,
+                            },
+                            position: position.clone(),
+                        })),
+                    },
+                ),
+                (
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v6"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    }),
+                    String::from("variant1"),
+                    polymorphic::StructPredicate {
+                        name: String::from("sp1"),
+                        this: polymorphic::LocalVar {
+                            name: String::from("_v7"),
+                            typ: polymorphic::Type::Bool,
+                        },
+                        body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v8"),
+                                typ: polymorphic::Type::Int,
+                            },
+                            position: position.clone(),
+                        })),
+                    },
+                ),
+            ]
+        };
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within Predicate, going over all variants
+    fn substitution_type_var_predicate_test() {
+        // dummy position for convenient copying
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        // Struct
+        let mut source = polymorphic::Predicate::Struct(polymorphic::StructPredicate {
+            name: String::from("sp1"),
+            this: polymorphic::LocalVar {
+                name: String::from("_v4"),
+                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                    label: String::from("E"),
+                }),
+            },
+            body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v5"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("T"),
+                    }),
+                },
+                position: position.clone(),
+            })),
+        });
+        let mut expected = polymorphic::Predicate::Struct(polymorphic::StructPredicate {
+            name: String::from("sp1"),
+            this: polymorphic::LocalVar {
+                name: String::from("_v4"),
+                typ: polymorphic::Type::Bool,
+            },
+            body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v5"),
+                    typ: polymorphic::Type::Int,
+                },
+                position: position.clone(),
+            })),
+        });
+        test(source, expected, &SUBSTITUTION_MAP);
+
+        // Enum
+        source = polymorphic::Predicate::Enum(polymorphic::EnumPredicate {
+            name: String::from("ep1"),
+            this: polymorphic::LocalVar {
+                name: String::from("_v1"),
+                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                    label: String::from("T"),
+                }),
+            },
+            discriminant_field: polymorphic::Field {
+                name: String::from("f1"),
+                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                    label: String::from("E"),
+                }),
+            },
+            discriminant_bounds: polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v2"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("E"),
+                    }),
+                },
+                position: position.clone(),
+            }),
+            variants: vec![
+                (
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v3"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    String::from("variant1"),
+                    polymorphic::StructPredicate {
+                        name: String::from("sp1"),
+                        this: polymorphic::LocalVar {
+                            name: String::from("_v4"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("E"),
+                            }),
+                        },
+                        body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v5"),
+                                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                    label: String::from("T"),
+                                }),
+                            },
+                            position: position.clone(),
+                        })),
+                    },
+                ),
+                (
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v6"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    String::from("variant1"),
+                    polymorphic::StructPredicate {
+                        name: String::from("sp1"),
+                        this: polymorphic::LocalVar {
+                            name: String::from("_v7"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("E"),
+                            }),
+                        },
+                        body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v8"),
+                                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                    label: String::from("T"),
+                                }),
+                            },
+                            position: position.clone(),
+                        })),
+                    },
+                ),
+            ]
+        });
+        expected = polymorphic::Predicate::Enum(polymorphic::EnumPredicate {
+            name: String::from("ep1"),
+            this: polymorphic::LocalVar {
+                name: String::from("_v1"),
+                typ: polymorphic::Type::Int,
+            },
+            discriminant_field: polymorphic::Field {
+                name: String::from("f1"),
+                typ: polymorphic::Type::Bool,
+            },
+            discriminant_bounds: polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v2"),
+                    typ: polymorphic::Type::Bool,
+                },
+                position: position.clone(),
+            }),
+            variants: vec![
+                (
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v3"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    }),
+                    String::from("variant1"),
+                    polymorphic::StructPredicate {
+                        name: String::from("sp1"),
+                        this: polymorphic::LocalVar {
+                            name: String::from("_v4"),
+                            typ: polymorphic::Type::Bool,
+                        },
+                        body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v5"),
+                                typ: polymorphic::Type::Int,
+                            },
+                            position: position.clone(),
+                        })),
+                    },
+                ),
+                (
+                    polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v6"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    }),
+                    String::from("variant1"),
+                    polymorphic::StructPredicate {
+                        name: String::from("sp1"),
+                        this: polymorphic::LocalVar {
+                            name: String::from("_v7"),
+                            typ: polymorphic::Type::Bool,
+                        },
+                        body: Some(polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v8"),
+                                typ: polymorphic::Type::Int,
+                            },
+                            position: position.clone(),
+                        })),
+                    },
+                ),
+            ]
+        });
+        test(source, expected, &SUBSTITUTION_MAP);
+
+        // Bodyless
+        source = polymorphic::Predicate::Bodyless(
+            String::from("b1"),
+            polymorphic::LocalVar {
+                name: String::from("_v1"),
+                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                    label: String::from("T"),
+                }),
+            },
+        );
+
+        expected = polymorphic::Predicate::Bodyless(
+            String::from("b1"),
+            polymorphic::LocalVar {
+                name: String::from("_v1"),
+                typ: polymorphic::Type::Int,
+            },
+        );
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within Trigger
+    fn substitution_type_var_trigger_test() {
+        // dummy position for convenient copying
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        let source = polymorphic::Trigger::new(
+            vec![
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v1"),
+                        typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                            label: String::from("T"),
+                        }),
+                    },
+                    position: position.clone(),
+                }),
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v2"),
+                        typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                            label: String::from("E"),
+                        }),
+                    },
+                    position: position.clone(),
+                }),
+            ]
+        );
+        let expected = polymorphic::Trigger::new(
+            vec![
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v1"),
+                        typ: polymorphic::Type::Int,
+                    },
+                    position: position.clone(),
+                }),
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v2"),
+                        typ: polymorphic::Type::Bool,
+                    },
+                    position: position.clone(),
+                }),
+            ]
+        );
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within CfgBlockIndex
+    fn substitution_type_var_cfg_block_index_test() {
+        // dummy position for convenient copying
+        let uuid = Uuid::new_v4();
+
+        let source = polymorphic::CfgBlockIndex {
+            method_uuid: uuid,
+            block_index: 123,
+        };
+        let expected = polymorphic::CfgBlockIndex {
+            method_uuid: uuid,
+            block_index: 123,
+        };
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within Successor, going over all variants
+    fn substitution_type_var_successor_test() {
+        // dummy uuid and position for convenient copying
+        let uuid = Uuid::new_v4();
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        // Undefined
+        let mut source = polymorphic::Successor::Undefined;
+        let mut expected = polymorphic::Successor::Undefined;
+        test(source, expected, &SUBSTITUTION_MAP);
+
+        // Return
+        source = polymorphic::Successor::Return;
+        expected = polymorphic::Successor::Return;
+        test(source, expected, &SUBSTITUTION_MAP);
+
+        // Goto
+        source = polymorphic::Successor::Goto(
+            polymorphic::CfgBlockIndex {
+                method_uuid: uuid,
+                block_index: 123,
+            }
+        );
+        expected = polymorphic::Successor::Goto(
+            polymorphic::CfgBlockIndex {
+                method_uuid: uuid,
+                block_index: 123,
+            }
+        );
+        test(source, expected, &SUBSTITUTION_MAP);
+
+        // GotoSwitch
+        source = polymorphic::Successor::GotoSwitch(
+            vec![
+                (polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v1"),
+                        typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                            label: String::from("T"),
+                        }),
+                    },
+                    position: position.clone(),
+                }), polymorphic::CfgBlockIndex {
+                    method_uuid: uuid,
+                    block_index: 1,
+                }),
+                (polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v2"),
+                        typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                            label: String::from("E"),
+                        }),
+                    },
+                    position: position.clone(),
+                }), polymorphic::CfgBlockIndex {
+                    method_uuid: uuid,
+                    block_index: 2,
+                }),
+            ],
+            polymorphic::CfgBlockIndex {
+                method_uuid: uuid,
+                block_index: 123,
+            }
+        );
+        expected = polymorphic::Successor::GotoSwitch(
+            vec![
+                (polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v1"),
+                        typ: polymorphic::Type::Int,
+                    },
+                    position: position.clone(),
+                }), polymorphic::CfgBlockIndex {
+                    method_uuid: uuid,
+                    block_index: 1,
+                }),
+                (polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v2"),
+                        typ: polymorphic::Type::Bool,
+                    },
+                    position: position.clone(),
+                }), polymorphic::CfgBlockIndex {
+                    method_uuid: uuid,
+                    block_index: 2,
+                }),
+            ],
+            polymorphic::CfgBlockIndex {
+                method_uuid: uuid,
+                block_index: 123,
+            }
+        );
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+
+    #[test]
+    // successful substitution within CfgBlock
+    fn substitution_type_var_cfg_block_test() {
+        // dummy uuid and position for convenient copying
+        let uuid = Uuid::new_v4();
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        let source = polymorphic::CfgBlock {
+            stmts: vec![
+                polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                    predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v1"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    position: position.clone(),
+                }),
+                polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                    predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v2"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("E"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    position: position.clone(),
+                }),
+            ],
+            successor: polymorphic::Successor::GotoSwitch(
+                vec![
+                    (polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v3"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }), polymorphic::CfgBlockIndex {
+                        method_uuid: uuid,
+                        block_index: 1,
+                    }),
+                    (polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v4"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("E"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }), polymorphic::CfgBlockIndex {
+                        method_uuid: uuid,
+                        block_index: 2,
+                    }),
+                ],
+                polymorphic::CfgBlockIndex {
+                    method_uuid: uuid,
+                    block_index: 123,
+                }
+            ),
+        };
+        let expected = polymorphic::CfgBlock {
+            stmts: vec![
+                polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                    predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v1"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    }),
+                    position: position.clone(),
+                }),
+                polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                    predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v2"),
+                            typ: polymorphic::Type::Bool,
+                        },
+                        position: position.clone(),
+                    }),
+                    position: position.clone(),
+                }),
+            ],
+            successor: polymorphic::Successor::GotoSwitch(
+                vec![
+                    (polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v3"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    }), polymorphic::CfgBlockIndex {
+                        method_uuid: uuid,
+                        block_index: 1,
+                    }),
+                    (polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v4"),
+                            typ: polymorphic::Type::Bool,
+                        },
+                        position: position.clone(),
+                    }), polymorphic::CfgBlockIndex {
+                        method_uuid: uuid,
+                        block_index: 2,
+                    }),
+                ],
+                polymorphic::CfgBlockIndex {
+                    method_uuid: uuid,
+                    block_index: 123,
+                }
+            ),
+        };
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within CfgMethod
+    fn substitution_type_var_cfg_method_test() {
+        // dummy uuid and position for convenient copying
+        let uuid = Uuid::new_v4();
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        let source = polymorphic::CfgMethod {
+            uuid: uuid,
+            method_name: String::from("mn1"),
+            formal_arg_count: 5,
+            formal_returns: vec![
+                polymorphic::LocalVar {
+                    name: String::from("_v1"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("T"),
+                    }),
+                },
+                polymorphic::LocalVar {
+                    name: String::from("_v2"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("E"),
+                    }),
+                }
+            ],
+            local_vars: vec![
+                polymorphic::LocalVar {
+                    name: String::from("_v3"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("T"),
+                    }),
+                },
+                polymorphic::LocalVar {
+                    name: String::from("_v4"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("E"),
+                    }),
+                }
+            ],
+            labels: vec![String::from("l1"), String::from("l2")].into_iter().collect(),
+            reserved_labels: vec![String::from("rl1"), String::from("rl2")].into_iter().collect(),
+            basic_blocks: vec![
+                polymorphic::CfgBlock {
+                    stmts: vec![
+                        polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                            predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v1"),
+                                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                        label: String::from("T"),
+                                    }),
+                                },
+                                position: position.clone(),
+                            }),
+                            position: position.clone(),
+                        }),
+                        polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                            predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v2"),
+                                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                        label: String::from("E"),
+                                    }),
+                                },
+                                position: position.clone(),
+                            }),
+                            position: position.clone(),
+                        }),
+                    ],
+                    successor: polymorphic::Successor::GotoSwitch(
+                        vec![
+                            (polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v3"),
+                                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                        label: String::from("T"),
+                                    }),
+                                },
+                                position: position.clone(),
+                            }), polymorphic::CfgBlockIndex {
+                                method_uuid: uuid,
+                                block_index: 1,
+                            }),
+                            (polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v4"),
+                                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                        label: String::from("E"),
+                                    }),
+                                },
+                                position: position.clone(),
+                            }), polymorphic::CfgBlockIndex {
+                                method_uuid: uuid,
+                                block_index: 2,
+                            }),
+                        ],
+                        polymorphic::CfgBlockIndex {
+                            method_uuid: uuid,
+                            block_index: 123,
+                        }
+                    ),
+                }
+            ],
+            basic_blocks_labels: vec![String::from("bbl1"), String::from("bbl2")],
+            fresh_var_index: 1,
+            fresh_label_index: 2,
+        };
+        let expected = polymorphic::CfgMethod {
+            uuid: uuid,
+            method_name: String::from("mn1"),
+            formal_arg_count: 5,
+            formal_returns: vec![
+                polymorphic::LocalVar {
+                    name: String::from("_v1"),
+                    typ: polymorphic::Type::Int,
+                },
+                polymorphic::LocalVar {
+                    name: String::from("_v2"),
+                    typ: polymorphic::Type::Bool,
+                }
+            ],
+            local_vars: vec![
+                polymorphic::LocalVar {
+                    name: String::from("_v3"),
+                    typ: polymorphic::Type::Int,
+                },
+                polymorphic::LocalVar {
+                    name: String::from("_v4"),
+                    typ: polymorphic::Type::Bool,
+                }
+            ],
+            labels: vec![String::from("l1"), String::from("l2")].into_iter().collect(),
+            reserved_labels: vec![String::from("rl1"), String::from("rl2")].into_iter().collect(),
+            basic_blocks: vec![
+                polymorphic::CfgBlock {
+                    stmts: vec![
+                        polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                            predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v1"),
+                                    typ: polymorphic::Type::Int,
+                                },
+                                position: position.clone(),
+                            }),
+                            position: position.clone(),
+                        }),
+                        polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                            predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v2"),
+                                    typ: polymorphic::Type::Bool,
+                                },
+                                position: position.clone(),
+                            }),
+                            position: position.clone(),
+                        }),
+                    ],
+                    successor: polymorphic::Successor::GotoSwitch(
+                        vec![
+                            (polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v3"),
+                                    typ: polymorphic::Type::Int,
+                                },
+                                position: position.clone(),
+                            }), polymorphic::CfgBlockIndex {
+                                method_uuid: uuid,
+                                block_index: 1,
+                            }),
+                            (polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v4"),
+                                    typ: polymorphic::Type::Bool,
+                                },
+                                position: position.clone(),
+                            }), polymorphic::CfgBlockIndex {
+                                method_uuid: uuid,
+                                block_index: 2,
+                            }),
+                        ],
+                        polymorphic::CfgBlockIndex {
+                            method_uuid: uuid,
+                            block_index: 123,
+                        }
+                    ),
+                }
+            ],
+            basic_blocks_labels: vec![String::from("bbl1"), String::from("bbl2")],
+            fresh_var_index: 1,
+            fresh_label_index: 2,
+        };
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within Node
+    fn substitution_type_var_node_test() {
+        // dummy position for convenient copying
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        let source = polymorphic::Node {
+            guard: polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v1"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("T"),
+                    }),
+                },
+                position: position.clone(),
+            }),
+            borrow: polymorphic::Borrow(123),
+            reborrowing_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+            reborrowed_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+            stmts: vec![
+                polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                    predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v2"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    position: position.clone(),
+                }),
+                polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                    predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v3"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("E"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    position: position.clone(),
+                }),
+            ],
+            borrowed_places: vec![
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v4"),
+                        typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                            label: String::from("T"),
+                        }),
+                    },
+                    position: position.clone(),
+                }),
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v5"),
+                        typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                            label: String::from("E"),
+                        }),
+                    },
+                    position: position.clone(),
+                }),
+            ],
+            conflicting_borrows: vec![polymorphic::Borrow(403), polymorphic::Borrow(404)],
+            alive_conflicting_borrows: vec![polymorphic::Borrow(1403), polymorphic::Borrow(1404)],
+            place: Some(polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v6"),
+                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                        label: String::from("T"),
+                    }),
+                },
+                position: position.clone(),
+            })),
+        };
+
+        let expected = polymorphic::Node {
+            guard: polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v1"),
+                    typ: polymorphic::Type::Int,
+                },
+                position: position.clone(),
+            }),
+            borrow: polymorphic::Borrow(123),
+            reborrowing_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+            reborrowed_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+            stmts: vec![
+                polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                    predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v2"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    }),
+                    position: position.clone(),
+                }),
+                polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                    predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v3"),
+                            typ: polymorphic::Type::Bool,
+                        },
+                        position: position.clone(),
+                    }),
+                    position: position.clone(),
+                }),
+            ],
+            borrowed_places: vec![
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v4"),
+                        typ: polymorphic::Type::Int,
+                    },
+                    position: position.clone(),
+                }),
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v5"),
+                        typ: polymorphic::Type::Bool,
+                    },
+                    position: position.clone(),
+                }),
+            ],
+            conflicting_borrows: vec![polymorphic::Borrow(403), polymorphic::Borrow(404)],
+            alive_conflicting_borrows: vec![polymorphic::Borrow(1403), polymorphic::Borrow(1404)],
+            place: Some(polymorphic::Expr::Local(polymorphic::Local {
+                variable: polymorphic::LocalVar {
+                    name: String::from("_v6"),
+                    typ: polymorphic::Type::Int,
+                },
+                position: position.clone(),
+            })),
+        };
+
+        test(source, expected, &SUBSTITUTION_MAP);
+    }
+
+    #[test]
+    // successful substitution within DAG
+    fn substitution_type_var_dag_test() {
+        // dummy position for convenient copying
+
+        let position = polymorphic::Position::new(1, 2, 3);
+
+        let source = polymorphic::DAG {
+            borrow_indices: vec![(polymorphic::Borrow(1), 1), (polymorphic::Borrow(2), 2)].into_iter().collect(),
+            nodes: vec![
+                polymorphic::Node {
+                    guard: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v1"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    }),
+                    borrow: polymorphic::Borrow(123),
+                    reborrowing_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+                    reborrowed_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+                    stmts: vec![
+                        polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                            predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v2"),
+                                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                        label: String::from("T"),
+                                    }),
+                                },
+                                position: position.clone(),
+                            }),
+                            position: position.clone(),
+                        }),
+                        polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                            predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v3"),
+                                    typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                        label: String::from("E"),
+                                    }),
+                                },
+                                position: position.clone(),
+                            }),
+                            position: position.clone(),
+                        }),
+                    ],
+                    borrowed_places: vec![
+                        polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v4"),
+                                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                    label: String::from("T"),
+                                }),
+                            },
+                            position: position.clone(),
+                        }),
+                        polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v5"),
+                                typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                    label: String::from("E"),
+                                }),
+                            },
+                            position: position.clone(),
+                        }),
+                    ],
+                    conflicting_borrows: vec![polymorphic::Borrow(403), polymorphic::Borrow(404)],
+                    alive_conflicting_borrows: vec![polymorphic::Borrow(1403), polymorphic::Borrow(1404)],
+                    place: Some(polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v6"),
+                            typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                                label: String::from("T"),
+                            }),
+                        },
+                        position: position.clone(),
+                    })),
+                }
+            ],
+            borrowed_places: vec![
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v7"),
+                        typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                            label: String::from("T"),
+                        }),
+                    },
+                    position: position.clone(),
+                }),
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v8"),
+                        typ: polymorphic::Type::TypeVar(polymorphic::TypeVar {
+                            label: String::from("E"),
+                        }),
+                    },
+                    position: position.clone(),
+                })
+            ],
+        };
+
+        let expected = polymorphic::DAG {
+            borrow_indices: vec![(polymorphic::Borrow(1), 1), (polymorphic::Borrow(2), 2)].into_iter().collect(),
+            nodes: vec![
+                polymorphic::Node {
+                    guard: polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v1"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    }),
+                    borrow: polymorphic::Borrow(123),
+                    reborrowing_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+                    reborrowed_nodes: vec![polymorphic::Borrow(1), polymorphic::Borrow(2)],
+                    stmts: vec![
+                        polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                            predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v2"),
+                                    typ: polymorphic::Type::Int,
+                                },
+                                position: position.clone(),
+                            }),
+                            position: position.clone(),
+                        }),
+                        polymorphic::Stmt::Obtain(polymorphic::Obtain {
+                            predicate_name: polymorphic::Expr::Local(polymorphic::Local {
+                                variable: polymorphic::LocalVar {
+                                    name: String::from("_v3"),
+                                    typ: polymorphic::Type::Bool,
+                                },
+                                position: position.clone(),
+                            }),
+                            position: position.clone(),
+                        }),
+                    ],
+                    borrowed_places: vec![
+                        polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v4"),
+                                typ: polymorphic::Type::Int,
+                            },
+                            position: position.clone(),
+                        }),
+                        polymorphic::Expr::Local(polymorphic::Local {
+                            variable: polymorphic::LocalVar {
+                                name: String::from("_v5"),
+                                typ: polymorphic::Type::Bool,
+                            },
+                            position: position.clone(),
+                        }),
+                    ],
+                    conflicting_borrows: vec![polymorphic::Borrow(403), polymorphic::Borrow(404)],
+                    alive_conflicting_borrows: vec![polymorphic::Borrow(1403), polymorphic::Borrow(1404)],
+                    place: Some(polymorphic::Expr::Local(polymorphic::Local {
+                        variable: polymorphic::LocalVar {
+                            name: String::from("_v6"),
+                            typ: polymorphic::Type::Int,
+                        },
+                        position: position.clone(),
+                    })),
+                }
+            ],
+            borrowed_places: vec![
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v7"),
+                        typ: polymorphic::Type::Int,
+                    },
+                    position: position.clone(),
+                }),
+                polymorphic::Expr::Local(polymorphic::Local {
+                    variable: polymorphic::LocalVar {
+                        name: String::from("_v8"),
+                        typ: polymorphic::Type::Bool,
+                    },
+                    position: position.clone(),
+                })
+            ],
         };
         test(source, expected, &SUBSTITUTION_MAP);
     }
