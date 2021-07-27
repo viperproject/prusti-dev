@@ -10,14 +10,7 @@ use std::fmt;
 
 /// The method-unique borrow identifier.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
-pub struct Borrow(usize);
-
-impl Borrow {
-    // FIXME: this constructor is currently only used for conversion
-    pub fn new(index: usize) -> Self {
-        Borrow(index)
-    }
-}
+pub struct Borrow(pub(crate) usize);
 
 impl fmt::Debug for Borrow {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -57,22 +50,11 @@ impl fmt::Debug for Node {
 pub struct DAG {
     /// Mapping from borrows to their node indices.
     #[serde(skip)]
-    borrow_indices: HashMap<Borrow, usize>,
+    pub(crate) borrow_indices: HashMap<Borrow, usize>,
     #[serde(skip)]
-    nodes: Vec<Node>,
+    pub(crate) nodes: Vec<Node>,
     #[serde(skip)]
-    borrowed_places: Vec<Expr>,
-}
-
-impl DAG {
-    // FIXME: this constructor is currently only used for conversion
-    pub fn new(borrow_indices: HashMap<Borrow, usize>, nodes: Vec<Node>, borrowed_places: Vec<Expr>) -> Self {
-        DAG {
-            borrow_indices: borrow_indices,
-            nodes: nodes,
-            borrowed_places: borrowed_places,
-        }
-    }
+    pub(crate) borrowed_places: Vec<Expr>,
 }
 
 /// A struct for constructing the reborrowing DAG.
