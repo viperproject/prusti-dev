@@ -18,22 +18,22 @@ pub(super) const RETURN_LABEL: &str = "end_of_method";
 pub struct CfgMethod {
     // TODO: extract logic using (most) skipped fields to CfgMethodBuilder
     #[serde(skip)]
-    pub(super) uuid: Uuid,
-    pub(super) method_name: String,
-    pub(in super::super) formal_arg_count: usize,
-    pub(in super::super) formal_returns: Vec<LocalVar>,
+    pub(crate) uuid: Uuid,
+    pub(crate) method_name: String,
+    pub(crate) formal_arg_count: usize,
+    pub(crate) formal_returns: Vec<LocalVar>,
     // FIXME: This should be pub(in super::super). However, the optimization
     // that depends on snapshots needs to modify this field.
     pub local_vars: Vec<LocalVar>,
-    pub(super) labels: HashSet<String>,
+    pub(crate) labels: HashSet<String>,
     #[serde(skip)]
-    pub(super) reserved_labels: HashSet<String>,
+    pub(crate) reserved_labels: HashSet<String>,
     pub basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
-    pub(super) basic_blocks_labels: Vec<String>,
+    pub(crate) basic_blocks_labels: Vec<String>,
     #[serde(skip)]
-    fresh_var_index: i32,
+    pub(crate) fresh_var_index: i32,
     #[serde(skip)]
-    fresh_label_index: i32,
+    pub(crate) fresh_label_index: i32,
 }
 
 impl CfgMethod {
@@ -62,19 +62,19 @@ impl CfgMethod {
 
 impl From<CfgMethod> for legacy::CfgMethod {
     fn from(cfg_method: CfgMethod) -> legacy::CfgMethod {
-        legacy::CfgMethod::new_copy(
-            cfg_method.uuid,
-            cfg_method.method_name.clone(),
-            cfg_method.formal_arg_count,
-            cfg_method.formal_returns.iter().map(|formal_return| legacy::LocalVar::from(formal_return.clone())).collect(),
-            cfg_method.local_vars.iter().map(|local_var| legacy::LocalVar::from(local_var.clone())).collect(),
-            cfg_method.labels.iter().map(|label| label.clone()).collect(),
-            cfg_method.reserved_labels.iter().map(|reserved_label| reserved_label.clone()).collect(),
-            cfg_method.basic_blocks.iter().map(|basic_block| legacy::CfgBlock::from(basic_block.clone())).collect(),
-            cfg_method.basic_blocks_labels.iter().map(|basic_blocks_label| basic_blocks_label.clone()).collect(),
-            cfg_method.fresh_var_index,
-            cfg_method.fresh_label_index,
-        )
+        legacy::CfgMethod {
+            uuid: cfg_method.uuid,
+            method_name: cfg_method.method_name.clone(),
+            formal_arg_count: cfg_method.formal_arg_count,
+            formal_returns: cfg_method.formal_returns.iter().map(|formal_return| legacy::LocalVar::from(formal_return.clone())).collect(),
+            local_vars: cfg_method.local_vars.iter().map(|local_var| legacy::LocalVar::from(local_var.clone())).collect(),
+            labels: cfg_method.labels.iter().map(|label| label.clone()).collect(),
+            reserved_labels: cfg_method.reserved_labels.iter().map(|reserved_label| reserved_label.clone()).collect(),
+            basic_blocks: cfg_method.basic_blocks.iter().map(|basic_block| legacy::CfgBlock::from(basic_block.clone())).collect(),
+            basic_blocks_labels: cfg_method.basic_blocks_labels.iter().map(|basic_blocks_label| basic_blocks_label.clone()).collect(),
+            fresh_var_index: cfg_method.fresh_var_index,
+            fresh_label_index: cfg_method.fresh_label_index,
+        }
     }
 }
 
@@ -91,15 +91,15 @@ impl converter::Generic for CfgMethod {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
-    pub(in super::super) successor: Successor,
+    pub(crate) successor: Successor,
 }
 
 impl From<CfgBlock> for legacy::CfgBlock {
     fn from(cfg_block: CfgBlock) -> legacy::CfgBlock {
-        legacy::CfgBlock::new(
-            cfg_block.stmts.iter().map(|stmt| legacy::Stmt::from(stmt.clone())).collect(),
-            legacy::Successor::from(cfg_block.successor.clone()),
-        )
+        legacy::CfgBlock {
+            stmts: cfg_block.stmts.iter().map(|stmt| legacy::Stmt::from(stmt.clone())).collect(),
+            successor: legacy::Successor::from(cfg_block.successor.clone()),
+        }
     }
 }
 
@@ -150,8 +150,8 @@ impl converter::Generic for Successor {
 #[derive(PartialEq, Eq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct CfgBlockIndex {
     #[serde(skip)]
-    pub(super) method_uuid: Uuid,
-    pub(in super::super) block_index: usize,
+    pub(crate) method_uuid: Uuid,
+    pub(crate) block_index: usize,
 }
 
 impl fmt::Debug for CfgBlockIndex {
@@ -162,10 +162,10 @@ impl fmt::Debug for CfgBlockIndex {
 
 impl From<CfgBlockIndex> for legacy::CfgBlockIndex {
     fn from(cfg_block_index: CfgBlockIndex) -> legacy::CfgBlockIndex {
-        legacy::CfgBlockIndex::new(
-            cfg_block_index.method_uuid,
-            cfg_block_index.block_index,
-        )
+        legacy::CfgBlockIndex {
+            method_uuid: cfg_block_index.method_uuid,
+            block_index: cfg_block_index.block_index,
+        }
     }
 }
 
