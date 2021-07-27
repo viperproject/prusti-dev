@@ -61,7 +61,7 @@ pub enum Expr {
     /// * expression in which the downcast is visible
     /// * place to the enumeration that is downcasted
     /// * field that encodes the variant
-    Downcast(Downcast),
+    Downcast(DowncastExpr),
     /// Snapshot call to convert from a Ref to a snapshot value
     SnapApp(SnapApp),
 }
@@ -370,7 +370,6 @@ impl PartialEq for Local {
 
 impl Hash for Local {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.variable).hash(state);
     }
 }
@@ -404,7 +403,6 @@ impl PartialEq for Variant {
 
 impl Hash for Variant {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&*self.base, &self.variant_index).hash(state);
     }
 }
@@ -439,7 +437,6 @@ impl PartialEq for FieldExpr {
 
 impl Hash for FieldExpr {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&*self.base, &self.field).hash(state);
     }
 }
@@ -474,7 +471,6 @@ impl PartialEq for AddrOf {
 
 impl Hash for AddrOf {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&*self.base, &self.addr_type).hash(state);
     }
 }
@@ -509,7 +505,6 @@ impl PartialEq for LabelledOld {
 
 impl Hash for LabelledOld {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.label, &*self.base).hash(state);
     }
 }
@@ -542,7 +537,6 @@ impl PartialEq for ConstExpr {
 
 impl Hash for ConstExpr {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.value).hash(state);
     }
 }
@@ -575,7 +569,6 @@ impl PartialEq for MagicWand {
 
 impl Hash for MagicWand {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&*self.left, &*self.right, self.borrow).hash(state);
     }
 }
@@ -615,7 +608,6 @@ impl PartialEq for PredicateAccessPredicate {
 
 impl Hash for PredicateAccessPredicate {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.predicate_name, &self.argument, self.permission).hash(state);
     }
 }
@@ -649,7 +641,6 @@ impl PartialEq for FieldAccessPredicate {
 
 impl Hash for FieldAccessPredicate {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&*self.base, self.permission).hash(state);
     }
 }
@@ -683,7 +674,6 @@ impl PartialEq for UnaryOp {
 
 impl Hash for UnaryOp {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.op_kind, &*self.argument).hash(state);
     }
 }
@@ -718,7 +708,6 @@ impl PartialEq for BinOp {
 
 impl Hash for BinOp {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.op_kind, &*self.left, &*self.right).hash(state);
     }
 }
@@ -758,7 +747,6 @@ impl PartialEq for ContainerOp {
 
 impl Hash for ContainerOp {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.op_kind, &*self.left, &*self.right).hash(state);
     }
 }
@@ -798,7 +786,6 @@ impl PartialEq for Seq {
 
 impl Hash for Seq {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.typ, &*self.elements).hash(state);
     }
 }
@@ -850,7 +837,6 @@ impl PartialEq for Unfolding {
 
 impl Hash for Unfolding {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.predicate_name, &self.arguments, &*self.base, self.permission, &self.variant).hash(state);
     }
 }
@@ -890,7 +876,6 @@ impl PartialEq for Cond {
 
 impl Hash for Cond {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&*self.guard, &*self.then_expr, &*self.else_expr).hash(state);
     }
 }
@@ -940,7 +925,6 @@ impl PartialEq for ForAll {
 
 impl Hash for ForAll {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.variables, &self.triggers, &*self.body).hash(state);
     }
 }
@@ -990,7 +974,6 @@ impl PartialEq for Exists {
 
 impl Hash for Exists {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.variables, &self.triggers, &*self.body).hash(state);
     }
 }
@@ -1033,7 +1016,6 @@ impl PartialEq for LetExpr {
 
 impl Hash for LetExpr {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.variable, &*self.def, &*self.body).hash(state);
     }
 }
@@ -1085,7 +1067,6 @@ impl PartialEq for FuncApp {
 
 impl Hash for FuncApp {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.function_name, &self.arguments).hash(state);
     }
 }
@@ -1129,7 +1110,6 @@ impl PartialEq for DomainFuncApp {
 
 impl Hash for DomainFuncApp {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.domain_function, &self.arguments).hash(state);
     }
 }
@@ -1164,7 +1144,6 @@ impl PartialEq for InhaleExhale {
 
 impl Hash for InhaleExhale {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&*self.inhale_expr, &*self.exhale_expr).hash(state);
     }
 }
@@ -1179,13 +1158,13 @@ impl converter::Generic for InhaleExhale {
 }
 
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
-pub struct Downcast {
+pub struct DowncastExpr {
     pub base: Box<Expr>,
     pub enum_place: Box<Expr>,
     pub field: Field,
 }
 
-impl fmt::Display for Downcast {
+impl fmt::Display for DowncastExpr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -1197,20 +1176,19 @@ impl fmt::Display for Downcast {
     }
 }
 
-impl PartialEq for Downcast {
+impl PartialEq for DowncastExpr {
     fn eq(&self, other: &Self) -> bool {
         (&*self.base, &*self.enum_place, &self.field) == (&*other.base, &*other.enum_place, &other.field)
     }
 }
 
-impl Hash for Downcast {
+impl Hash for DowncastExpr {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&*self.base, &*self.enum_place, &self.field).hash(state);
     }
 }
 
-impl converter::Generic for Downcast {
+impl converter::Generic for DowncastExpr {
     fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
         let mut downcast = self;
         *downcast.base = downcast.base.substitute(map);
@@ -1240,7 +1218,6 @@ impl PartialEq for SnapApp {
 
 impl Hash for SnapApp {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&*self.base).hash(state);
     }
 }

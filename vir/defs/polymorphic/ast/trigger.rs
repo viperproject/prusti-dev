@@ -40,3 +40,9 @@ impl converter::Generic for Trigger {
         trigger
     }
 }
+
+impl Trigger {
+    pub fn new(items: Vec<Expr>) -> Self {
+        Trigger(items)
+    }
+}

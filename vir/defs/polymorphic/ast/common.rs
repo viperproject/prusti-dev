@@ -24,6 +24,12 @@ pub struct Position {
     id: u64,
 }
 
+impl Position {
+    pub fn new(line: i32, column: i32, id: u64) -> Self {
+        Position { line, column, id }
+    }
+}
+
 impl From<Position> for legacy::Position {
     fn from(position: Position) -> legacy::Position {
         legacy::Position::new(
