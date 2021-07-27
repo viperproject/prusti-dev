@@ -12,7 +12,7 @@ use super::super::{legacy, converter};
 
 /// The method-unique borrow identifier.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
-pub struct Borrow(usize);
+pub struct Borrow(pub(crate) usize);
 
 impl fmt::Debug for Borrow {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -22,7 +22,7 @@ impl fmt::Debug for Borrow {
 
 impl From<Borrow> for legacy::Borrow {
     fn from(borrow: Borrow) -> legacy::Borrow {
-        legacy::Borrow::new(borrow.0)
+        legacy::Borrow(borrow.0)
     }
 }
 
@@ -102,31 +102,20 @@ impl converter::Generic for Node {
 pub struct DAG {
     /// Mapping from borrows to their node indices.
     #[serde(skip)]
-    borrow_indices: HashMap<Borrow, usize>,
+    pub(crate) borrow_indices: HashMap<Borrow, usize>,
     #[serde(skip)]
-    nodes: Vec<Node>,
+    pub(crate) nodes: Vec<Node>,
     #[serde(skip)]
-    borrowed_places: Vec<Expr>,
-}
-
-impl DAG {
-    // FIXME: this constructor is currently only used for conversion
-    pub fn new(borrow_indices: HashMap<Borrow, usize>, nodes: Vec<Node>, borrowed_places: Vec<Expr>) -> Self {
-        DAG {
-            borrow_indices: borrow_indices,
-            nodes: nodes,
-            borrowed_places: borrowed_places,
-        }
-    }
+    pub(crate) borrowed_places: Vec<Expr>,
 }
 
 impl From<DAG> for legacy::DAG {
     fn from(dag: DAG) -> legacy::DAG {
-        legacy::DAG::new (
-            dag.borrow_indices.iter().map(|(borrow, index)| (legacy::Borrow::from(borrow.clone()), *index)).collect(),
-            dag.nodes.iter().map(|node| legacy::Node::from(node.clone())).collect(),
-            dag.borrowed_places.iter().map(|borrowed_place| legacy::Expr::from(borrowed_place.clone())).collect(),
-        )
+        legacy::DAG {
+            borrow_indices: dag.borrow_indices.iter().map(|(borrow, index)| (legacy::Borrow::from(borrow.clone()), *index)).collect(),
+            nodes: dag.nodes.iter().map(|node| legacy::Node::from(node.clone())).collect(),
+            borrowed_places: dag.borrowed_places.iter().map(|borrowed_place| legacy::Expr::from(borrowed_place.clone())).collect(),
+        }
     }
 }
 
