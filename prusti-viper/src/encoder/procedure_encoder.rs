@@ -1710,11 +1710,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             expr
         };
         let borrow_infos = &contract.borrow_infos;
-        assert_eq!(
-            borrow_infos.len(),
-            1,
-            "We can have at most one magic wand in the postcondition."
-        );
+        if borrow_infos.len() != 1 {
+            return Err(SpannedEncodingError::internal(
+                format!("We require exactly one magic wand in the postcondition. But we have {:?}", borrow_infos.len()),
+                span,
+            ));
+        }
         let borrow_info = &borrow_infos[0];
 
         // Get the magic wand info.
