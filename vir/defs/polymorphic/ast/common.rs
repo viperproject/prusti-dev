@@ -212,7 +212,6 @@ impl Eq for SeqType {}
 
 impl Hash for SeqType {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&*self.typ).hash(state);
     }
 }
@@ -239,7 +238,6 @@ impl Eq for TypedRef {}
 
 impl Hash for TypedRef {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.label, &self.arguments).hash(state);
     }
 }
@@ -266,7 +264,6 @@ impl Eq for DomainType {}
 
 impl Hash for DomainType {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.label, &self.arguments).hash(state);
     }
 }
@@ -293,7 +290,6 @@ impl Eq for SnapshotType {}
 
 impl Hash for SnapshotType {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.label, &self.arguments).hash(state);
     }
 }
@@ -319,7 +315,6 @@ impl Eq for TypeVar {}
 
 impl Hash for TypeVar {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
         (&self.label).hash(state);
     }
 }
