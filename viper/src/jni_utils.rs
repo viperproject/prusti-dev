@@ -12,6 +12,7 @@ use jni::sys::jsize;
 use jni::JNIEnv;
 use viper_sys::wrappers::*;
 use java_exception::JavaException;
+use std::collections::HashMap;
 
 #[derive(Clone, Copy)]
 pub struct JniUtils<'a> {
@@ -139,6 +140,42 @@ impl<'a> JniUtils<'a> {
             res.push(item);
         }
         res
+    }
+
+    pub fn list_to_vec(&self, list: JObject<'a>) -> Vec<JObject<'a>> {
+        let list_wrapper = scala::collection::immutable::List::with(self.env);
+        let seq = self.unwrap_result(
+            list_wrapper.call_toSeq(list)
+        );
+        self.seq_to_vec(seq)
+    }
+    
+    /// Converts a Scala Map (using strings! JObjects are not hashable) to a Rust HashMap
+    pub fn stringmap_to_hashmap(&self, map: JObject<'a>) -> HashMap<String, JObject<'a>> {
+        let iter_wrapper = scala::collection::Iterable::with(self.env);
+        let product_wrapper = scala::Product::with(self.env);
+        let seq = self.unwrap_result(iter_wrapper.call_toSeq(map));
+        self.seq_to_vec(seq).into_iter()
+            .map(|item| {
+                let item1 = self.unwrap_result(product_wrapper.call_productElement(item, 0));
+                let item2 = self.unwrap_result(product_wrapper.call_productElement(item, 1));
+                (self.to_string(item1), item2)
+            })
+            .collect::<HashMap<_, _>>()
+    }
+
+    /// Converts a Scala Map to a Vec of its keys. The order of keys is
+    /// maintained for map types with a consistent iteration order.
+    pub fn stringmap_to_keyvec(&self, map: JObject<'a>) -> Vec<String> {
+        let iter_wrapper = scala::collection::Iterable::with(self.env);
+        let product_wrapper = scala::Product::with(self.env);
+        let seq = self.unwrap_result(iter_wrapper.call_toSeq(map));
+        self.seq_to_vec(seq).into_iter()
+            .map(|item| {
+                let item = self.unwrap_result(product_wrapper.call_productElement(item, 0));
+                self.to_string(item)
+            })
+            .collect::<Vec<_>>()
     }
 
     /// Checks if an object is a subtype of a Java class
