@@ -61,16 +61,16 @@ impl fmt::Debug for Node {
 impl From<Node> for legacy::Node {
     fn from(node: Node) -> legacy::Node {
         legacy::Node {
-            guard: legacy::Expr::from(node.guard.clone()),
-            borrow: legacy::Borrow::from(node.borrow.clone()),
-            reborrowing_nodes: node.reborrowing_nodes.iter().map(|reborrowing_node| legacy::Borrow::from(reborrowing_node.clone())).collect(),
-            reborrowed_nodes: node.reborrowed_nodes.iter().map(|reborrowed_node| legacy::Borrow::from(reborrowed_node.clone())).collect(),
-            stmts: node.stmts.iter().map(|stmt| legacy::Stmt::from(stmt.clone())).collect(),
-            borrowed_places: node.borrowed_places.iter().map(|borrowed_place| legacy::Expr::from(borrowed_place.clone())).collect(),
-            conflicting_borrows: node.conflicting_borrows.iter().map(|conflicting_borrow| legacy::Borrow::from(conflicting_borrow.clone())).collect(),
-            alive_conflicting_borrows: node.alive_conflicting_borrows.iter().map(|alive_conflicting_borrow| legacy::Borrow::from(alive_conflicting_borrow.clone())).collect(),
+            guard: legacy::Expr::from(node.guard),
+            borrow: legacy::Borrow::from(node.borrow),
+            reborrowing_nodes: node.reborrowing_nodes.into_iter().map(|reborrowing_node| legacy::Borrow::from(reborrowing_node)).collect(),
+            reborrowed_nodes: node.reborrowed_nodes.into_iter().map(|reborrowed_node| legacy::Borrow::from(reborrowed_node)).collect(),
+            stmts: node.stmts.into_iter().map(|stmt| legacy::Stmt::from(stmt)).collect(),
+            borrowed_places: node.borrowed_places.into_iter().map(|borrowed_place| legacy::Expr::from(borrowed_place)).collect(),
+            conflicting_borrows: node.conflicting_borrows.into_iter().map(|conflicting_borrow| legacy::Borrow::from(conflicting_borrow)).collect(),
+            alive_conflicting_borrows: node.alive_conflicting_borrows.into_iter().map(|alive_conflicting_borrow| legacy::Borrow::from(alive_conflicting_borrow)).collect(),
             place: match node.place {
-                Some(expr) => Some(legacy::Expr::from(expr.clone())),
+                Some(expr) => Some(legacy::Expr::from(expr)),
                 _ => None,
             },
         }
@@ -112,9 +112,9 @@ pub struct DAG {
 impl From<DAG> for legacy::DAG {
     fn from(dag: DAG) -> legacy::DAG {
         legacy::DAG {
-            borrow_indices: dag.borrow_indices.iter().map(|(borrow, index)| (legacy::Borrow::from(borrow.clone()), *index)).collect(),
-            nodes: dag.nodes.iter().map(|node| legacy::Node::from(node.clone())).collect(),
-            borrowed_places: dag.borrowed_places.iter().map(|borrowed_place| legacy::Expr::from(borrowed_place.clone())).collect(),
+            borrow_indices: dag.borrow_indices.into_iter().map(|(borrow, index)| (legacy::Borrow::from(borrow), index)).collect(),
+            nodes: dag.nodes.into_iter().map(|node| legacy::Node::from(node)).collect(),
+            borrowed_places: dag.borrowed_places.into_iter().map(|borrowed_place| legacy::Expr::from(borrowed_place)).collect(),
         }
     }
 }
