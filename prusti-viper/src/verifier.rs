@@ -293,7 +293,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         stopwatch.finish();
 
         let verification_errors = match verification_result {
-            viper::VerificationResult::Success() => vec![],
+            viper::VerificationResult::Success => vec![],
             viper::VerificationResult::Failure(errors) => errors,
             viper::VerificationResult::ConsistencyErrors(errors) => {
                 debug_assert!(!errors.is_empty());
