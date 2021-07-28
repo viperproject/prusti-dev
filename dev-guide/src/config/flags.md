@@ -2,9 +2,9 @@
 
 Flags can be set in one of three ways, in increasing order of priority:
 
-1. Provided in a `Prusti.toml` file in the current working directory.
-2. Provided in a TOML file with the path in the environment variable `PRUSTI_CONFIG`.
-3. Provided individually as environment variables with the prefix `PRUSTI_` (e.g. `PRUSTI_ASSERT_TIMEOUT` for the [`ASSERT_TIMEOUT`](#assert_timeout) flag).
+1. Provided lowercase in a `Prusti.toml` file in the current working directory (for example, `check_overflows` for the [`CHECK_OVERFLOWS`](#check_overflows) flag).
+2. Provided lowercase in a TOML file with the path in the environment variable `PRUSTI_CONFIG`.
+3. Provided individually as environment variables with the prefix `PRUSTI_` (for example, `PRUSTI_ASSERT_TIMEOUT` for the [`ASSERT_TIMEOUT`](#assert_timeout) flag).
 
 | Name | Rust type | Default value |
 | --- | --- | --- |
