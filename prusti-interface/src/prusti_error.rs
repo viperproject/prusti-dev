@@ -93,7 +93,7 @@ impl PrustiError {
         self
     }
 
-    pub fn add_note<S: ToString>(mut self, message: S, opt_span: Option<Span>) -> Self{
+    pub fn add_note<S: ToString>(mut self, message: S, opt_span: Option<Span>) -> Self {
         self.notes.push((message.to_string(), opt_span.map(|x| MultiSpan::from(x))));
         self
     }
@@ -101,14 +101,14 @@ impl PrustiError {
     /// Report the encoding error using the compiler's interface
     pub fn emit(self, env: &Environment) {
         if self.is_error {
-            env.span_err_with_help_and_note(
+            env.span_err_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
             );
         } else {
-            env.span_warn_with_help_and_note(
+            env.span_warn_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,

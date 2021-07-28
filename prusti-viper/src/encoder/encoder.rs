@@ -1469,12 +1469,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn add_discriminant_info(&self, enum_id: String, discr_id: String, proc_def_id: ProcedureDefId) {
-        let mut map = self.discriminants_info.borrow_mut();
-        let mut previous_entries = map.get_mut(&(proc_def_id.clone(), enum_id.clone()));
-        match previous_entries {
-            None => {map.insert((proc_def_id, enum_id), vec![discr_id]);},
-            Some(v) => v.push(discr_id),
-        };
+        self.discriminants_info.borrow_mut()
+            .entry((proc_def_id.clone(), enum_id.clone()))
+            .or_default()
+            .push(discr_id);
     }
 
     pub fn discriminants_info(&self) -> HashMap<(ProcedureDefId, String), Vec<String>> {

@@ -111,12 +111,12 @@ impl<'tcx> Environment<'tcx> {
     // }
 
     /// Emits an error message.
-    pub fn span_err_with_help_and_note<S: Into<MultiSpan> + Clone>(
+    pub fn span_err_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
         msg: &str,
         help: &Option<String>,
-        notes: &Vec<(String, Option<S>)>,
+        notes: &[(String, Option<S>)],
     ) {
         let mut diagnostic = self.tcx.sess.struct_err(msg);
         diagnostic.set_span(sp);
@@ -134,12 +134,12 @@ impl<'tcx> Environment<'tcx> {
     }
 
     /// Emits an error message.
-    pub fn span_warn_with_help_and_note<S: Into<MultiSpan> + Clone>(
+    pub fn span_warn_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
         msg: &str,
         help: &Option<String>,
-        notes: &Vec<(String, Option<S>)>,
+        notes: &[(String, Option<S>)],
     ) {
         let mut diagnostic = self.tcx.sess.struct_warn(msg);
         diagnostic.set_span(sp);

@@ -102,8 +102,7 @@ pub enum ErrorCtxt {
 pub struct ErrorManager<'tcx> {
     codemap: &'tcx SourceMap,
     source_span: HashMap<u64, MultiSpan>,
-    error_contexts: HashMap<u64, ErrorCtxt>,
-    def_id: HashMap<u64, ProcedureDefId>,
+    error_contexts: HashMap<u64, (ErrorCtxt, ProcedureDefId)>,
     next_pos_id: u64,
 }
 
@@ -114,15 +113,14 @@ impl<'tcx> ErrorManager<'tcx>
             codemap,
             source_span: HashMap::new(),
             error_contexts: HashMap::new(),
-            def_id: HashMap::new(),
             next_pos_id: 1,
         }
     }
 
     pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
         let pos = self.register_span(span);
-        self.register_error(&pos, error_ctxt);
-        self.def_id.insert(pos.id(), def_id);
+        debug!("Register error at: {:?}", pos.id());
+        self.error_contexts.insert(pos.id(), (error_ctxt, def_id));
         pos
     }
 
@@ -154,15 +152,11 @@ impl<'tcx> ErrorManager<'tcx>
         pos
     }
 
-    pub fn register_error(&mut self, pos: &Position, error_ctxt: ErrorCtxt) {
-        debug!("Register error at: {:?}", pos.id());
-        self.error_contexts.insert(pos.id(), error_ctxt);
-    }
-
     pub fn get_def_id(&self, ver_error: &VerificationError) -> Option<&ProcedureDefId> {
         ver_error.pos_id.as_ref()
             .and_then(|id| id.parse().ok())
-            .and_then(|id| self.def_id.get(&id)) 
+            .and_then(|id| self.error_contexts.get(&id))
+            .map(|v| &v.1)
     }
 
     pub fn translate_verification_error(&self, ver_error: &VerificationError) -> PrustiError {
@@ -202,7 +196,9 @@ impl<'tcx> ErrorManager<'tcx>
             None => None
         };
 
-        let opt_error_ctxt = opt_pos_id.and_then(|pos_id| self.error_contexts.get(&pos_id));
+        let opt_error_ctxt = opt_pos_id
+            .and_then(|pos_id| self.error_contexts.get(&pos_id))
+            .map(|v| &v.0);
         let opt_error_span = opt_pos_id.and_then(|pos_id| self.source_span.get(&pos_id));
         let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
             let res = self.source_span.get(&reason_pos_id);
