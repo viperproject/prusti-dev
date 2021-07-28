@@ -46,7 +46,7 @@ impl CounterexampleEntry {
 /// second line.
 fn indented_debug<T: std::fmt::Debug>(val: &T) -> String {
     format!("{:#?}", val)
-        .split("\n")
+        .split('\n')
         .collect::<Vec<&str>>()
         .join("\n  ")
 }
@@ -117,7 +117,7 @@ pub enum Entry {
 impl Entry {
     pub fn is_unit(&self) -> bool {
         match self {
-            Entry::Tuple(fields) => fields.len() == 0,
+            Entry::Tuple(fields) => fields.is_empty(),
             _ => false,
         }
     }
@@ -144,7 +144,7 @@ impl fmt::Debug for Entry {
             }
             Entry::Ref(el) => write!(f, "ref({:#?})", el),
             Entry::Enum { super_name, name, field_entries } => {
-                let named_fields = field_entries.len() > 0 && !field_entries[0].0.parse::<usize>().is_ok();
+                let named_fields = field_entries.len() > 0 && field_entries[0].0.parse::<usize>().is_err();
                 let enum_name = format!("{}::{}", super_name, name);
                 if named_fields {
                     let mut f1 = f.debug_struct(&enum_name);
