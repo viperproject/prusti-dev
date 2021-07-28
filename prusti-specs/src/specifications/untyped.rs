@@ -28,9 +28,9 @@ pub type Expression = common::Expression<ExpressionId, syn::Expr>;
 /// A trigger set that has not types associated with it.
 pub type TriggerSet = common::TriggerSet<ExpressionId, syn::Expr>;
 /// A credit polynomial term that has expression ids but no types associated with it
-pub type CreditPolynomialTerm = common::CreditPolynomialTerm<ExpressionId, syn::Expr, Arg>;
+pub type CreditPolynomialTerm = common::CreditPolynomialTerm<ExpressionId, syn::Expr>;
 /// A credit power that has expression ids but no types associated with it
-pub type CreditVarPower = common::CreditVarPower<ExpressionId, Arg>;
+pub type CreditVarPower = common::CreditVarPower<ExpressionId, syn::Expr>;
 /// A pledge that has not types associated with it.
 pub type Pledge = common::Pledge<ExpressionId, syn::Expr, Arg>;
 
@@ -257,7 +257,7 @@ impl AssignExpressionId<TriggerSet> for common::TriggerSet<(), syn::Expr> {
     }
 }
 
-impl AssignExpressionId<CreditVarPower> for common::CreditVarPower<(), Arg> {
+impl AssignExpressionId<CreditVarPower> for common::CreditVarPower<(), syn::Expr> {
     fn assign_id(
         self,
         spec_id: SpecificationId,
@@ -266,13 +266,13 @@ impl AssignExpressionId<CreditVarPower> for common::CreditVarPower<(), Arg> {
         CreditVarPower {
             spec_id,
             id: id_generator.generate(),
-            var: self.var,
+            base: self.base,
             exponent: self.exponent,
         }
     }
 }
 
-impl AssignExpressionId<CreditPolynomialTerm> for common::CreditPolynomialTerm<(), syn::Expr, Arg> {
+impl AssignExpressionId<CreditPolynomialTerm> for common::CreditPolynomialTerm<(), syn::Expr> {
     fn assign_id(
         self,
         spec_id: SpecificationId,
@@ -407,9 +407,9 @@ impl EncodeTypeCheck for TriggerSet {
 
 impl EncodeTypeCheck for CreditVarPower {
     fn encode_type_check(&self, tokens: &mut TokenStream) {
-        // check type of variable
-        let span = self.var.name.span();
-        let expr = &self.var.name;
+        // check if the variable is a valid expression of type u32
+        let span = self.base.span();
+        let expr = &self.base;
         let identifier = format!("{}_{}", self.spec_id, self.id);
         let var_typeck_call = quote_spanned! { span =>
             #[prusti::spec_only]

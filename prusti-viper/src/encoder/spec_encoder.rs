@@ -379,9 +379,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     for pow in term.powers.iter() {
                         exponents.push(pow.exponent);
 
-                        let var_name = format!("{:?}", pow.var.0);
-                        let ty = self.encoder.encode_type(pow.var.1).unwrap();      // should succeed
-                        args.push(vir::Expr::local(vir::LocalVar::new(var_name, ty)));        //TODO: allow other expressions
+                        let base_expr = self.encode_expression(&typed::Expression {         //TODO: ugly to create an expression
+                            spec_id: pow.spec_id,
+                            id: pow.id,
+                            expr: pow.base
+                        })?;
+                        args.push(base_expr);
                     }
 
                     let pred_name = self.encoder.encode_credit_predicate_use(credit_type, exponents);

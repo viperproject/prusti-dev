@@ -31,9 +31,9 @@ pub type TriggerSet = common::TriggerSet<ExpressionId, LocalDefId>;
 /// Quantifier variables that have no types associated with it.
 pub type QuantifierVars<'tcx> = common::QuantifierVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
 /// Credit polynomial term that has types associated with it
-pub type CreditPolynomialTerm<'tcx> = common::CreditPolynomialTerm<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
+pub type CreditPolynomialTerm<'tcx> = common::CreditPolynomialTerm<ExpressionId, LocalDefId>;
 /// Credit power that has types associated with it
-pub type CreditVarPower<'tcx> = common::CreditVarPower<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
+pub type CreditVarPower<'tcx> = common::CreditVarPower<ExpressionId, LocalDefId>;
 /// Specification entailment variables that have no types associated.
 pub type SpecEntailmentVars<'tcx> = common::SpecEntailmentVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
 /// A trigger that has no types associated with it.
@@ -91,13 +91,8 @@ impl<'tcx> Spanned<'tcx> for QuantifierVars<'tcx> {
 }
 
 impl<'tcx> Spanned<'tcx> for CreditVarPower<'tcx> {
-    fn get_spans(&self, mir_body: &mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Vec<Span> {
-        if let Some(var) = mir_body.local_decls.get(self.var.0) {
-            vec![var.source_info.span]
-        }
-        else {
-            vec![]
-        }
+    fn get_spans(&self, _mir_body: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Vec<Span> {
+        vec![tcx.def_span(self.base)]
     }
 }
 
@@ -282,28 +277,14 @@ impl<'tcx> StructuralToTyped<'tcx, SpecEntailmentVars<'tcx>> for json::SpecEntai
 }
 
 impl<'tcx> StructuralToTyped<'tcx, CreditVarPower<'tcx>> for json::CreditVarPower {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> CreditVarPower<'tcx> {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, _tcx: TyCtxt<'tcx>) -> CreditVarPower<'tcx> {
         let local_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
-        let (body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_id));
-        let body = body.borrow();
-
-        assert!(body.basic_blocks().len() == 1);
-        if let Some(bb0) = body.basic_blocks().get(0u32.into()) {
-            assert!(bb0.statements.len() == 1);
-            if let mir::StatementKind::Assign(box (_,
-                mir::Rvalue::Use(mir::Operand::Copy(place)))) = bb0.statements[0].kind {
-                let local = place.local;
-                let ty = place.ty(&body.clone(), tcx).ty;           //TODO: avoid cloning!?
-                return CreditVarPower {
-                    spec_id: self.spec_id,
-                    id: self.expr_id,
-                    exponent: self.exponent,
-                    var: (local, ty),
-                }
-            }
+        CreditVarPower {
+            spec_id: self.spec_id,
+            id: self.expr_id,
+            base: local_id,
+            exponent: self.exponent,
         }
-
-        unreachable!();     //TODO: better error?
     }
 }
 

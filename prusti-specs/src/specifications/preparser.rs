@@ -62,26 +62,22 @@ impl Parse for SpecEntArgs {
     }
 }
 
-impl Parse for CreditVarPower<(), Arg> {
+impl Parse for CreditVarPower<(), syn::Expr> {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let var_name = input.parse::<syn::Ident>()?;       //TODO: allow .len() & similar
-        let var = Arg {
-            name: var_name,
-            typ: syn::Type::Infer(syn::TypeInfer { underscore_token: Token![_](input.span())}),         // placeholder      //TODO: avoid?
-        };
+        let var_expr = input.parse::<syn::ExprPath>()?;       //TODO: allow .len() & similar
         input.parse::<Token![^]>()?;
         let exponent_lit: syn::LitInt = input.parse()?;
         let exponent = exponent_lit.base10_parse()?;
         Ok(Self {
             spec_id: common::SpecificationId::dummy(),
             id: (),
-            var,
+            base: syn::Expr::Path(var_expr),
             exponent,
         })
     }
 }
 
-impl Parse for CreditPolynomialTerm<(), syn::Expr, Arg> {     //TODO: maybe generic type parameters?
+impl Parse for CreditPolynomialTerm<(), syn::Expr> {     //TODO: maybe generic type parameters?
     fn parse(input: ParseStream) -> syn::Result<Self> {
         // parse parenthesized expression or single literal as coefficient expression
         // need to distinguish to avoid parsing beyond the `*` separating the coefficient from the powers
@@ -125,11 +121,11 @@ impl Parse for CreditPolynomialTerm<(), syn::Expr, Arg> {     //TODO: maybe gene
         while input.peek(Token![*]) {
             input.parse::<Token![*]>()?;
 
-            powers.push(input.parse::<CreditVarPower<(), Arg>>()?);
+            powers.push(input.parse::<CreditVarPower<(), syn::Expr>>()?);
         }
 
         // sort powers by var name
-        powers.sort_unstable_by_key(|pow| pow.var.name.to_string());           //TODO: here we assume no duplicate variables, still needs to be ensured before!
+        powers.sort_unstable_by_key(|pow| pow.base_string());           //TODO: here we assume no duplicate variables, still needs to be ensured before!
         Ok(Self{
             coeff_expr,
             powers,
@@ -139,12 +135,12 @@ impl Parse for CreditPolynomialTerm<(), syn::Expr, Arg> {     //TODO: maybe gene
 
 // just needed to be able to use parse_terminated
 struct CreditPolynomialTermVec {
-    term_vector: Vec<CreditPolynomialTerm<(), syn::Expr, Arg>>,
+    term_vector: Vec<CreditPolynomialTerm<(), syn::Expr>>,
 }
 
 impl Parse for CreditPolynomialTermVec {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let parsed: syn::punctuated::Punctuated<CreditPolynomialTerm<(), syn::Expr, Arg>, Token![+]>
+        let parsed: syn::punctuated::Punctuated<CreditPolynomialTerm<(), syn::Expr>, Token![+]>
             = input.parse_terminated(CreditPolynomialTerm::parse)?;
         Ok(Self{
             term_vector: parsed.into_iter().collect()
@@ -455,10 +451,10 @@ impl Parser {
                 let parsed_term_vec: CreditPolynomialTermVec = syn::parse2(stream)?;
 
                 fn add_term_and_smaller(
-                    already_added_powers: &mut HashSet<Vec<CreditVarPower<(), Arg>>>,
-                    term_to_add: Vec<CreditVarPower<(), Arg>>,
+                    already_added_powers: &mut HashSet<Vec<CreditVarPower<(), syn::Expr>>>,
+                    term_to_add: Vec<CreditVarPower<(), syn::Expr>>,
                     user_id: &syn::ExprLit,
-                    result_vec: &mut Vec<CreditPolynomialTerm<(), syn::Expr, Arg>>,
+                    result_vec: &mut Vec<CreditPolynomialTerm<(), syn::Expr>>,
                 ) {
                     if !already_added_powers.contains(&term_to_add) {
                         result_vec.push(CreditPolynomialTerm {

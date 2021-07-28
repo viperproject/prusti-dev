@@ -251,18 +251,29 @@ pub struct CreditVarPower<EID, VT> {
     /// Unique id for this power.
     pub id: EID,
     /// variable at the base of the exponentiation
-    pub var: VT,
+    pub base: VT,
     pub exponent: u32,
+}
+
+impl<EID> CreditVarPower<EID, syn::Expr> {
+    pub fn base_string(&self) -> String {
+        if let syn::Expr::Path(syn::ExprPath { path, ..}) = &self.base {
+            if path.segments.len() == 1 {
+                return path.segments.first().unwrap().ident.to_string()
+            }
+        }
+        unimplemented!()
+    }
 }
 
 #[derive(Debug, Clone)]
 /// One term of a credit polynomial, e.g. 3*n^2m^1
-pub struct CreditPolynomialTerm<EID, ET, VT> {
+pub struct CreditPolynomialTerm<EID, ET> {
     /// constant coefficient expression, possibly containing identifiers
     /// for cost function coefficients of called functions
     pub coeff_expr: Expression<EID, ET>,
     /// Product/vector of variables raised to nonnegative powers
-    pub powers: Vec<CreditVarPower<EID, VT>>,
+    pub powers: Vec<CreditVarPower<EID, ET>>,
 }
 
 #[derive(Debug, Clone)]
@@ -301,8 +312,8 @@ pub enum AssertionKind<EID, ET, AT> {
         /// Id for this polynomial.
         id: EID,
         credit_type: String,    //TODO: enum later
-        concrete_terms: Vec<CreditPolynomialTerm<EID, ET, AT>>,          // TODO: replace AT? is not really an argument declaration
-        abstract_terms: Vec<CreditPolynomialTerm<EID, ET, AT>>,
+        concrete_terms: Vec<CreditPolynomialTerm<EID, ET>>,
+        abstract_terms: Vec<CreditPolynomialTerm<EID, ET>>,
     },
 }
 
@@ -374,8 +385,8 @@ pub trait AssertionFolder<EID, ET, AT> {
         spec_id: SpecificationId,
         id: EID,
         credit_type: String,
-        concrete_terms: Vec<CreditPolynomialTerm<EID, ET, AT>>,
-        abstract_terms: Vec<CreditPolynomialTerm<EID, ET, AT>>,
+        concrete_terms: Vec<CreditPolynomialTerm<EID, ET>>,
+        abstract_terms: Vec<CreditPolynomialTerm<EID, ET>>,
     ) -> AssertionKind<EID, ET, AT> {
         AssertionKind::CreditPolynomial {
             spec_id,

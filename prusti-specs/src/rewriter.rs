@@ -133,7 +133,7 @@ impl AstRewriter {
                     for term in abstract_terms.iter_mut() {
                         // construct name of coefficient
                         let mut powers_str = term.powers.iter()  // powers are ordered by var name
-                            .map(|pow| format!("{}{}", pow.var.name, pow.exponent))
+                            .map(|pow| format!("{}{}", pow.base_string(), pow.exponent))
                             .collect::<Vec<String>>().concat();
                         if powers_str.is_empty() {
                             powers_str = "0".to_string();
