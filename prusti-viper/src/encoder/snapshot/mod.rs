@@ -27,7 +27,7 @@ enum Snapshot {
         predicate_name: String,
         domain: vir::Domain,
         discriminant_func: vir::DomainFunc,
-        snap_func: vir::Function,
+        snap_func: vir::FunctionIdentifier,
         /// [variants] has one entry for tuples, structs, and closures.
         /// For enums, it has as many entries as there are variants.
         /// The first function is the constructor, the hashmap encodes the
@@ -41,8 +41,8 @@ enum Snapshot {
     Array {
         predicate_name: String,
         domain: vir::Domain,
-        snap_func: vir::Function,
-        slice_helper: vir::Function,
+        snap_func: vir::FunctionIdentifier,
+        slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
         read: vir::DomainFunc,
     },
@@ -50,13 +50,13 @@ enum Snapshot {
     Slice {
         predicate_name: String,
         domain: vir::Domain,
-        snap_func: vir::Function,
+        snap_func: vir::FunctionIdentifier,
         /// Collect a slice snapshot from an impure context using lookup_pure calls until we have
         /// Slice$len(self) elements in the result Seq[elem_ty]
-        slice_collect_func: vir::Function,
+        slice_collect_func: vir::FunctionIdentifier,
         /// This slice snapshot is being sliced, so we collect elements using read from self in the
         /// result Seq[elem_ty]
-        slice_helper: vir::Function,
+        slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
         read: vir::DomainFunc,
         len: vir::DomainFunc,
@@ -65,7 +65,7 @@ enum Snapshot {
     Abstract {
         predicate_name: String,
         domain: vir::Domain,
-        snap_func: vir::Function,
+        snap_func: vir::FunctionIdentifier,
     },
 
     /// A type which will be resolved to a different snapshot kind.

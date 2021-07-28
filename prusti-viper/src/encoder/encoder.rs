@@ -337,9 +337,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub(super) fn get_function<'a>(&'a self, identifier: &vir::FunctionIdentifier) -> Ref<'a, vir::Function> {
-        Ref::map(self.functions.borrow(), |map| {
-            &map[identifier]
-        })
+        if self.functions.borrow().contains_key(identifier) {
+            Ref::map(self.functions.borrow(), |map| {
+                &map[identifier]
+            })
+        } else if self.snapshot_encoder.borrow().contains_function(identifier) {
+            Ref::map(self.snapshot_encoder.borrow(), |encoder| {
+                encoder.get_function(identifier)
+            })
+        } else {
+            unreachable!("Not found function: {:?}", identifier)
+        }
+
 
         // if let Some(key) = self.builtin_function_keys.borrow().get(identifier) {
         //     Ref::map(self.builtin_functions.borrow(), |map| {
