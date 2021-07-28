@@ -64,14 +64,14 @@ impl From<CfgMethod> for legacy::CfgMethod {
     fn from(cfg_method: CfgMethod) -> legacy::CfgMethod {
         legacy::CfgMethod {
             uuid: cfg_method.uuid,
-            method_name: cfg_method.method_name.clone(),
+            method_name: cfg_method.method_name,
             formal_arg_count: cfg_method.formal_arg_count,
-            formal_returns: cfg_method.formal_returns.iter().map(|formal_return| legacy::LocalVar::from(formal_return.clone())).collect(),
-            local_vars: cfg_method.local_vars.iter().map(|local_var| legacy::LocalVar::from(local_var.clone())).collect(),
-            labels: cfg_method.labels.iter().map(|label| label.clone()).collect(),
-            reserved_labels: cfg_method.reserved_labels.iter().map(|reserved_label| reserved_label.clone()).collect(),
-            basic_blocks: cfg_method.basic_blocks.iter().map(|basic_block| legacy::CfgBlock::from(basic_block.clone())).collect(),
-            basic_blocks_labels: cfg_method.basic_blocks_labels.iter().map(|basic_blocks_label| basic_blocks_label.clone()).collect(),
+            formal_returns: cfg_method.formal_returns.into_iter().map(|formal_return| legacy::LocalVar::from(formal_return)).collect(),
+            local_vars: cfg_method.local_vars.into_iter().map(|local_var| legacy::LocalVar::from(local_var)).collect(),
+            labels: cfg_method.labels.into_iter().map(|label| label).collect(),
+            reserved_labels: cfg_method.reserved_labels.into_iter().map(|reserved_label| reserved_label).collect(),
+            basic_blocks: cfg_method.basic_blocks.into_iter().map(|basic_block| legacy::CfgBlock::from(basic_block)).collect(),
+            basic_blocks_labels: cfg_method.basic_blocks_labels.into_iter().map(|basic_blocks_label| basic_blocks_label).collect(),
             fresh_var_index: cfg_method.fresh_var_index,
             fresh_label_index: cfg_method.fresh_label_index,
         }
@@ -97,8 +97,8 @@ pub struct CfgBlock {
 impl From<CfgBlock> for legacy::CfgBlock {
     fn from(cfg_block: CfgBlock) -> legacy::CfgBlock {
         legacy::CfgBlock {
-            stmts: cfg_block.stmts.iter().map(|stmt| legacy::Stmt::from(stmt.clone())).collect(),
-            successor: legacy::Successor::from(cfg_block.successor.clone()),
+            stmts: cfg_block.stmts.into_iter().map(|stmt| legacy::Stmt::from(stmt)).collect(),
+            successor: legacy::Successor::from(cfg_block.successor),
         }
     }
 }
@@ -125,10 +125,10 @@ impl From<Successor> for legacy::Successor {
         match successor {
             Successor::Undefined => legacy::Successor::Undefined,
             Successor::Return => legacy::Successor::Return,
-            Successor::Goto(cfg_block_index) => legacy::Successor::Goto(legacy::CfgBlockIndex::from(cfg_block_index.clone())),
+            Successor::Goto(cfg_block_index) => legacy::Successor::Goto(legacy::CfgBlockIndex::from(cfg_block_index)),
             Successor::GotoSwitch(expr_indices, cfg_block_index) => legacy::Successor::GotoSwitch(
-                expr_indices.iter().map(|(expr, index)| (legacy::Expr::from(expr.clone()), legacy::CfgBlockIndex::from(index.clone()))).collect(),
-                legacy::CfgBlockIndex::from(cfg_block_index.clone()),
+                expr_indices.into_iter().map(|(expr, index)| (legacy::Expr::from(expr), legacy::CfgBlockIndex::from(index))).collect(),
+                legacy::CfgBlockIndex::from(cfg_block_index),
             ),
         }
     }
