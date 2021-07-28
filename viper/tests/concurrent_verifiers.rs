@@ -72,7 +72,7 @@ fn concurrent_verifier_initialization() {
 
                     let verification_result = verifier.verify(program);
 
-                    assert_eq!(verification_result, VerificationResult::Success());
+                    assert!(verification_result.is_success());
                 }));
             }
 

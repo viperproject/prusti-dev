@@ -11,13 +11,19 @@ use silicon_counterexample::SiliconCounterexample;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum VerificationResult {
     /// The program verified.
-    Success(),
+    Success,
     /// The program did not verify.
     Failure(Vec<VerificationError>),
     /// The program has consistency errors.
     ConsistencyErrors(Vec<String>),
     /// The verification raised a Java exception.
     JavaException(JavaException),
+}
+
+impl VerificationResult {
+    pub fn is_success(&self) -> bool {
+        matches!(self, Self::Success)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

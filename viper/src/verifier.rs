@@ -297,7 +297,7 @@ impl<'a> Verifier<'a, state::Started> {
 
             VerificationResult::Failure(errors)
         } else {
-            VerificationResult::Success()
+            VerificationResult::Success
         }
     }
 }
