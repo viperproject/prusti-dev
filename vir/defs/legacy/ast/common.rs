@@ -13,6 +13,10 @@ use std::{
     ops,
 };
 
+pub trait WithIdentifier {
+    fn get_identifier(&self) -> String;
+}
+
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Position {
@@ -49,6 +53,17 @@ impl Default for Position {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_position() {
+        assert!(!Position::new(123, 234, 345).is_default());
+        assert!(Position::default().is_default());
+    }
+}
+
 pub enum PermAmountError {
     InvalidAdd(PermAmount, PermAmount),
     InvalidSub(PermAmount, PermAmount)
@@ -61,6 +76,32 @@ pub enum PermAmount {
     Write,
     /// The permission remaining after ``Read`` was subtracted from ``Write``.
     Remaining,
+}
+
+impl PermAmount {
+    /// Can this permission amount be used in specifications?
+    pub fn is_valid_for_specs(&self) -> bool {
+        match self {
+            PermAmount::Read | PermAmount::Write => true,
+            PermAmount::Remaining => false,
+        }
+    }
+
+    pub fn add(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
+        match (self, other) {
+            (PermAmount::Read, PermAmount::Remaining)
+            | (PermAmount::Remaining, PermAmount::Read) => Ok(PermAmount::Write),
+            _ => Err(PermAmountError::InvalidAdd(self, other)),
+        }
+    }
+
+    pub fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
+        match (self, other) {
+            (PermAmount::Write, PermAmount::Read) => Ok(PermAmount::Remaining),
+            (PermAmount::Write, PermAmount::Remaining) => Ok(PermAmount::Read),
+            _ => Err(PermAmountError::InvalidSub(self, other)),
+        }
+    }
 }
 
 impl fmt::Display for PermAmount {
@@ -104,7 +145,6 @@ pub enum Type {
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
     Domain(String),
-    TypedVar(String),
     Snapshot(String),
 }
 
@@ -128,7 +168,67 @@ impl fmt::Display for Type {
             Type::Domain(ref name) => write!(f, "Domain({})", name),
             Type::Snapshot(ref name) => write!(f, "Snapshot({})", name),
             Type::Seq(ref elem_ty) => write!(f, "Seq[{}]", elem_ty),
-            Type::TypedVar(ref name) => write!(f, "TypedVar({})", name),
+        }
+    }
+}
+
+impl Type {
+    pub fn is_ref(&self) -> bool {
+        matches!(self, &Type::TypedRef(_))
+    }
+
+    pub fn is_domain(&self) -> bool {
+        matches!(self, &Type::Domain(_))
+    }
+
+    pub fn is_snapshot(&self) -> bool {
+        matches!(self, &Type::Snapshot(_))
+    }
+
+    pub fn name(&self) -> String {
+        match self {
+            Type::Bool => "bool".to_string(),
+            Type::Int => "int".to_string(),
+            Type::TypedRef(ref pred_name) => pred_name.to_string(),
+            Type::Domain(ref pred_name) => pred_name.to_string(),
+            Type::Snapshot(ref pred_name) => pred_name.to_string(),
+            Type::Seq(_) => "Seq".to_string(),
+        }
+    }
+
+    /// Construct a new VIR type that corresponds to an enum variant.
+    pub fn variant(self, variant: &str) -> Self {
+        match self {
+            Type::TypedRef(mut name) => {
+                name.push_str(variant);
+                Type::TypedRef(name)
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    /// Replace all generic types with their instantiations by using string substitution.
+    /// FIXME: this is a hack to support generics. See issue #187.
+    pub fn patch(self, substs: &HashMap<String, String>) -> Self {
+        match self {
+            Type::TypedRef(mut predicate_name) => {
+                for (typ, subst) in substs {
+                    predicate_name = predicate_name.replace(typ, subst);
+                }
+                Type::TypedRef(predicate_name)
+            }
+            typ => typ,
+        }
+    }
+
+    pub fn get_id(&self) -> TypeId {
+        match self {
+            Type::Bool => TypeId::Bool,
+            Type::Int => TypeId::Int,
+            Type::TypedRef(_) => TypeId::Ref,
+            Type::Domain(_) => TypeId::Domain,
+            Type::Snapshot(_) => TypeId::Snapshot,
+            Type::Seq(_) => TypeId::Seq,
         }
     }
 }
@@ -165,6 +265,20 @@ impl fmt::Debug for LocalVar {
     }
 }
 
+impl LocalVar {
+    pub fn new<S: Into<String>>(name: S, typ: Type) -> Self {
+        LocalVar {
+            name: name.into(),
+            typ,
+        }
+    }
+
+    pub fn new_typed_ref<S: Into<String>>(name: S, ty_ref_name: String) -> Self {
+        LocalVar::new(name, Type::TypedRef(ty_ref_name))
+    }
+}
+
+
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
@@ -180,5 +294,27 @@ impl fmt::Display for Field {
 impl fmt::Debug for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}: {}", self.name, self.typ)
+    }
+}
+
+impl Field {
+    pub fn new<S: Into<String>>(name: S, typ: Type) -> Self {
+        Field {
+            name: name.into(),
+            typ,
+        }
+    }
+
+    pub fn typed_ref_name(&self) -> Option<String> {
+        match self.typ {
+            Type::TypedRef(ref name) => Some(name.clone()),
+            _ => None,
+        }
+    }
+}
+
+impl WithIdentifier for Field {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
     }
 }
