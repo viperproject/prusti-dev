@@ -44,3 +44,60 @@ impl fmt::Display for Function {
         write!(f, "")
     }
 }
+
+impl Function {
+    pub fn inline_body(&self, args: Vec<Expr>) -> Expr {
+        let subst: HashMap<LocalVar, Expr> = self
+            .formal_args
+            .iter()
+            .cloned()
+            .zip(args.into_iter())
+            .collect();
+        // TODO: this does not handle let expressions, quantifiers, and so on
+        self.body.clone().unwrap().fold_expr(|orig_expr| {
+            if let Expr::Local(ref local, ref _pos) = orig_expr {
+                subst[local].clone()
+            } else {
+                orig_expr
+            }
+        })
+    }
+
+    pub fn apply(&self, args: Vec<Expr>) -> Expr {
+        Expr::FuncApp(
+            self.name.to_string(),
+            args,
+            self.formal_args.clone(),
+            self.return_type.clone(),
+            Position::default(),
+        )
+    }
+}
+
+pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Type) -> String {
+    let mut identifier = name.to_string();
+    // Include the signature of the function in the function name
+    identifier.push_str("__$TY$__");
+    fn type_name(typ: &Type) -> String {
+        match typ {
+            Type::Int => "$int$".to_string(),
+            Type::Bool => "$bool$".to_string(),
+            Type::TypedRef(ref name) => name.to_string(),
+            Type::Domain(ref name) => name.to_string(),
+            Type::Snapshot(ref name) => format!("Snap${}", name),
+            Type::Seq(ref elem_ty) => format!("Seq${}", type_name(elem_ty)),
+        }
+    }
+    for arg in formal_args {
+        identifier.push_str(&type_name(&arg.typ));
+        identifier.push_str("$");
+    }
+    identifier.push_str(&type_name(return_type));
+    identifier
+}
+
+impl WithIdentifier for Function {
+    fn get_identifier(&self) -> String {
+        compute_identifier(&self.name, &self.formal_args, &self.return_type)
+    }
+}
