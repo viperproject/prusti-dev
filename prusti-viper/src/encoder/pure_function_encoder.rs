@@ -562,10 +562,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
             }
         })
     }
-
-    pub(super) fn parent_def_id(&self) -> DefId {
-        self.parent_def_id
-    }
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>

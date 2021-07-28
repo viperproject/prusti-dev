@@ -1,72 +1,104 @@
-use std::collections::HashMap;
 use std::fmt;
 use rustc_span::Span;
 use prusti_interface::PrustiError;
 
-pub struct Counterexample {
-    result: Entry,
-    result_span: Option<Span>,
-    args: HashMap<(String, Span), Entry>,
-    entries: HashMap<(String, Span), Entry>,
-    is_pure: bool,
+/// Counterexample information for a single variable.
+pub struct CounterexampleEntry {
+    span: Span,
+    /// Name of local variable or None for the result.
+    name: Option<String>,
+    /// Value in the prestate.
+    initial_value: Option<Entry>,
+    /// Value in the poststate (or at assertion failure).
+    final_value: Entry,
 }
 
-impl Counterexample {
-    pub fn new(
-        result: Entry,
-        result_span: Option<Span>,
-        args: HashMap<(String, Span), Entry>,
-        entries: HashMap<(String, Span), Entry>,
-        is_pure: bool,
-    ) -> Counterexample {
-        Counterexample {
-            result,
-            result_span,
-            args,
-            entries,
-            is_pure,
+impl CounterexampleEntry {
+    pub fn with_one_value(
+        span: Span,
+        name: Option<String>,
+        final_value: Entry,
+    ) -> Self {
+        CounterexampleEntry {
+            span,
+            name,
+            initial_value: None,
+            final_value,
         }
     }
 
-    pub fn annotate_error(&self, mut prusti_error: PrustiError) -> PrustiError {
-        if !self.is_pure {
-            for (place, entry) in &self.entries {
-                //place is a tuple (Name of the variable, Option<Scope>)
-                if let Some(entry_arg) = self.args.get(place) {
-                    let note = format!("counterexample for \"{0}\"\ninitial: {0} <- {1:#?}\nfinal: {0} <- {2:#?}", 
-                        place.0, 
-                        entry_arg,  
-                        entry,
-                    );
-                    prusti_error = prusti_error.add_note(&note, Some(place.1.clone()));
-                } else {
-                    let note = format!("counterexample for \"{0}\"\n{0} <- {1:#?}", place.0, entry);
-                    prusti_error = prusti_error.add_note(&note, Some(place.1.clone()));
-                }
-            }
-            let result_note = format!("result <- {:#?}", self.result);
-            prusti_error = prusti_error.add_note(&result_note, self.result_span.clone());
+    pub fn with_two_values(
+        span: Span,
+        name: Option<String>,
+        initial_value: Entry,
+        final_value: Entry
+    ) -> Self {
+        CounterexampleEntry {
+            span,
+            name,
+            initial_value: Some(initial_value),
+            final_value,
+        }
+    }
+}
+
+/// Indents the debug output of the given value with "  " starting with the
+/// second line.
+fn indented_debug<T: std::fmt::Debug>(val: &T) -> String {
+    format!("{:#?}", val)
+        .split("\n")
+        .collect::<Vec<&str>>()
+        .join("\n  ")
+}
+
+impl fmt::Display for CounterexampleEntry {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "counterexample for ")?;
+        if let Some(name) = &self.name {
+            write!(f, "\"{}\"", name)?;
         } else {
-            for (place, entry) in &self.args {
-                let note = format!("counterexample for \"{0}\"\n{0} <- {1:#?}", 
-                        place.0,   
-                        entry,
-                    );
-                prusti_error = prusti_error.add_note(&note, Some(place.1.clone()));
-            }
-            // Todo: find span of return type to give this note a span
-            let result_note = format!("counterexample for result \nresult <- {:#?}", self.result);
-            prusti_error = prusti_error.add_note(&result_note, None);
+            write!(f, "result")?;
+        }
+        if let Some(initial_value) = &self.initial_value {
+            write!(f, "\n  initial value: {}", indented_debug(&initial_value))?;
+        }
+        write!(f, "\n  final value:   {}", indented_debug(&self.final_value))
+    }
+}
+
+/// A concrete counterexample containing mapped values of arguments and locals
+/// (the latter only for impure functions), as well as the result (if any).
+pub struct Counterexample(Vec<CounterexampleEntry>);
+
+impl Counterexample {
+    pub fn new(
+        entries: Vec<CounterexampleEntry>,
+    ) -> Self {
+        Self(entries)
+    }
+
+    /// Annotates a Prusti error with notes for any variable present in the
+    /// mapped counterexample.
+    pub fn annotate_error(&self, mut prusti_error: PrustiError) -> PrustiError {
+        for entry in &self.0 {
+            prusti_error = prusti_error.add_note(
+                &format!("{}", entry),
+                Some(entry.span),
+            );
         }
         prusti_error
     }
 }
 
+/// An expression mapped from a Silicon counterexample.
+#[derive(Clone)]
 pub enum Entry {
-    IntEntry { value: i64 },
-    BoolEntry { value: bool },
-    CharEntry { value: char },
-    RefEntry { el: Box<Entry> },
+    /// A string is used to be able to represent integers outside the 128-bit
+    /// range.
+    Int(String),
+    Bool(bool),
+    Char(char),
+    Ref(Box<Entry>),
     Struct {
         name: String,
         field_entries: Vec<(String, Entry)>,
@@ -78,20 +110,39 @@ pub enum Entry {
         //note: if fields are not named, their order is important!
         //that is why no HashMap is used
     },
-    Tuple {
-        fields: Vec<Entry>,
-    },
-    Unit,
-    UnknownEntry,
+    Tuple(Vec<Entry>),
+    Unknown,
+}
+
+impl Entry {
+    pub fn is_unit(&self) -> bool {
+        match self {
+            Entry::Tuple(fields) => fields.len() == 0,
+            _ => false,
+        }
+    }
+}
+
+impl Default for Entry {
+    fn default() -> Self {
+        Entry::Unknown
+    }
 }
 
 impl fmt::Debug for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Entry::IntEntry { value } => write!(f, "{}", value),
-            Entry::BoolEntry { value } => write!(f, "{}", value),
-            Entry::CharEntry { value } => write!(f, "'{}' (0x{:x})", value, *value as i32),
-            Entry::RefEntry { el } => write!(f, "ref({:#?})", el),
+            Entry::Int(value) => write!(f, "{}", value),
+            Entry::Bool(value) => write!(f, "{}", value),
+            Entry::Char(value) => {
+                if value.is_control() {
+                    // avoid displaying line breaks etc directly
+                    write!(f, "0x{:x}", *value as i32)
+                } else {
+                    write!(f, "'{}' (0x{:x})", value, *value as i32)
+                }
+            }
+            Entry::Ref(el) => write!(f, "ref({:#?})", el),
             Entry::Enum { super_name, name, field_entries } => {
                 let named_fields = field_entries.len() > 0 && !field_entries[0].0.parse::<usize>().is_ok();
                 let enum_name = format!("{}::{}", super_name, name);
@@ -108,24 +159,26 @@ impl fmt::Debug for Entry {
                     }
                     return f1.finish();
                 }
-            },
+            }
             Entry::Struct { name, field_entries } => {
                 let mut f1 = f.debug_struct(name);
                 for (fieldname, entry) in field_entries {
                     f1.field(fieldname, entry);
                 }
                 f1.finish()
-
-            },
-            Entry::Tuple { fields } => {
-                let mut f1 = f.debug_tuple("");
-                for entry in fields {
-                    f1.field(entry);
+            }
+            Entry::Tuple(fields) => {
+                if fields.len() == 0 {
+                    write!(f, "()")
+                } else {
+                    let mut f1 = f.debug_tuple("");
+                    for entry in fields {
+                        f1.field(entry);
+                    }
+                    f1.finish()
                 }
-                f1.finish()
-            },
-            Entry::Unit => write!(f, "()"),
-            _ => write!(f, "?"),
+            }
+            Entry::Unknown => write!(f, "?"),
         }
     }
 }

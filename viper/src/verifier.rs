@@ -220,10 +220,9 @@ impl<'a> Verifier<'a, state::Started> {
                     let original_counterexample = self
                         .jni
                         .unwrap_result(scala::Some::with(self.env).call_get(option_original_counterexample));
-                    if self.jni.is_instance_of(original_counterexample, "viper/silicon/interfaces/SiliconMappedCounterexample"){
-                        //only the Mapped Counterexamples are processed
-                        let ce = SiliconCounterexample::new(self.env, self.jni, original_counterexample);
-                        Some(ce)
+                    if self.jni.is_instance_of(original_counterexample, "viper/silicon/interfaces/SiliconMappedCounterexample") {
+                        // only mapped counterexamples are processed
+                        Some(SiliconCounterexample::new(self.env, self.jni, original_counterexample))
                     } else {
                         None
                     }

@@ -8,7 +8,7 @@ use JavaException;
 use silicon_counterexample::SiliconCounterexample;
 
 /// The result of a verification request on a Viper program.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum VerificationResult {
     /// The program verified.
     Success(),
@@ -20,7 +20,7 @@ pub enum VerificationResult {
     JavaException(JavaException),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VerificationError {
     pub full_id: String,
     pub pos_id: Option<String>,

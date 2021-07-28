@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::hash::{Hasher, Hash};
 
 use jni::JNIEnv;
 use jni::objects::JObject;
@@ -13,11 +12,9 @@ pub struct SiliconCounterexample {
     //pub old_heaps: HashMap<String, Heap>,
     pub model: Model,
     pub old_models: HashMap<String, Model>,
-    //label_order because HashMap's do not guarantee order of elements
-    //where as the Map used in scala does guarantee it
+    // label_order because HashMaps do not guarantee order of elements
+    // whereas the Map used in scala does guarantee it
     pub label_order: Vec<String>,
-    hash_helper: String,
-    //this is part of a very ugly way to make this implement Hash and Eq
 }
 
 impl SiliconCounterexample {
@@ -28,82 +25,36 @@ impl SiliconCounterexample {
     ) -> SiliconCounterexample {
         unwrap_counterexample(env, jni, counterexample)
     }
-
-    pub fn get_entry_at_label(
-        &self, 
-        name: &String,
-        label: Option<&String>,
-    ) -> Option<&ModelEntry> {
-        match label {
-            Some(s) => {
-                let model = self.old_models.get(s);
-                match model {
-                    Some(m) => m.entries.get(name),
-                    None => None
-                }
-            },
-            None => {
-                self.model.entries.get(name)
-            }
-        }
-    }
-    pub fn get_entries_at_label(
-        &self, 
-        label: Option<&String>,
-    ) -> Option<HashMap<String, ModelEntry>> {
-        match label {
-            Some(l) => {
-                self.old_models.get(l).map(|x| x.entries.clone())
-            },
-            None => {
-                Some(self.model.entries.clone())
-            }
-        }
-    }
 }
 
-impl PartialEq for SiliconCounterexample {
-    fn eq(&self, other: &Self) -> bool {
-        self.hash_helper == other.hash_helper
-    }
-}
-impl Eq for SiliconCounterexample{}
-
-impl Hash for SiliconCounterexample {
-    fn hash<H:Hasher>(&self, state: &mut H) {
-        self.hash_helper.hash(state);
-    }
-}
-
-//Heap Definitions
+// Heap Definitions
 /*
 this stuff might be useful at a later stage, when we can actually
-trigger unfolding of certain predicates, but for now there is 
+trigger unfolding of certain predicates, but for now there is
 nothing to be used stored in the heap
 */
 /*
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Heap{
-    pub entries: Vec<HeapEntry>
+pub struct Heap {
+    pub entries: Vec<HeapEntry>,
 }
-*/
-/*
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum HeapEntry{
-    FieldEntry{
+pub enum HeapEntry {
+    FieldEntry {
         recv: ModelEntry,
         //perm & sort omitted
         field: String,
-        entry: ModelEntry
+        entry: ModelEntry,
     },
-    PredicateEntry{
+    PredicateEntry {
         name: String,
-        args: Vec<ModelEntry> 
-    }
+        args: Vec<ModelEntry>,
+    },
 }
 */
 
-//Model Definitions
+// Model Definitions
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Model {
     pub entries: HashMap<String, ModelEntry>,
@@ -111,36 +62,32 @@ pub struct Model {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ModelEntry {
-    LitIntEntry(i64),
-    LitBoolEntry(bool),
-    LitPermEntry(f64),
-    RefEntry(String, HashMap<String, ModelEntry>),
-    NullRefEntry(String),
-    RecursiveRefEntry(String),
-    VarEntry(String),
-    SeqEntry(String, Vec<ModelEntry>), //not necessarily supported
-    OtherEntry(String, String),
-    UnprocessedModelEntry, //do not use these at all
+    LitInt(String),
+    LitBool(bool),
+    LitPerm(f64),
+    Ref(String, HashMap<String, ModelEntry>),
+    NullRef(String),
+    RecursiveRef(String),
+    Var(String),
+    Seq(String, Vec<ModelEntry>), // not necessarily supported
+    Other(String, String),
+    UnprocessedModel, // do not use these at all
 }
 
-//methods unwrapping scala converter to newly defined structures:
+// methods unwrapping scala converter to newly defined structures
 
 fn unwrap_counterexample<'a>(
-    env: &'a JNIEnv<'a>, 
-    jni: JniUtils<'a>, 
+    env: &'a JNIEnv<'a>,
+    jni: JniUtils<'a>,
     counterexample: JObject<'a>,
 ) -> SiliconCounterexample {
     let converter_wrapper = silicon::reporting::Converter::with(env);
     let ce_wrapper = silicon::interfaces::SiliconMappedCounterexample::with(env);
-    //1. get converter from counterexample
-        
-    let converter_original = jni
-        .unwrap_result(
-            ce_wrapper
-            .call_converter(counterexample)
-        );
+    let converter_original = jni.unwrap_result(
+        ce_wrapper.call_converter(counterexample),
+    );
 
-        /*
+    /*
     let heap_scala = jni.
         unwrap_result(
             converter_wrapper
@@ -162,37 +109,26 @@ fn unwrap_counterexample<'a>(
     }
     */
 
-    let model_scala = jni
-        .unwrap_result(
-            converter_wrapper
-            .call_extractedModel(converter_original)
-        );
+    let model_scala = jni.unwrap_result(
+        converter_wrapper.call_extractedModel(converter_original),
+    );
     let model = unwrap_model(env, jni, model_scala);
 
+    let old_models_scala = jni.unwrap_result(
+        converter_wrapper.call_modelAtLabel(converter_original),
+    );
+    let old_models = jni.stringmap_to_hashmap(old_models_scala).into_iter()
+        .map(|(label, m)| (label, unwrap_model(env, jni, m)))
+        .collect::<HashMap<_, _>>();
 
-    let old_models_scala = jni
-        .unwrap_result(
-            converter_wrapper
-            .call_modelAtLabel(converter_original)
-        );
-    let old_models_map = jni.stringmap_to_hashmap(old_models_scala);
-    let mut old_models = HashMap::new();
-    for (label, m) in old_models_map {
-        let old_model = unwrap_model(env, jni, m);
-        old_models.insert(label, old_model);
-    }
-    let hash_helper = "hashme".to_string();
-    let label_order = jni.stringmap_to_keyvec(old_models_scala);
     SiliconCounterexample {
         //heap,
         //old_heaps,
         model,
         old_models,
-        label_order,
-        hash_helper,
+        label_order: jni.stringmap_to_keyvec(old_models_scala),
     }
-} 
-
+}
 
 /*
 fn unwrap_heap<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, heap: JObject<'a>) -> Heap {
@@ -211,14 +147,13 @@ fn unwrap_heap<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, heap: JObject<'a>) ->
         };
     }
     Heap{
-        entries 
+        entries
     }
 }
-*/
-/*
+
 fn unwrap_heap_entry<'a>(
-    env: &'a JNIEnv<'a>, 
-    jni: JniUtils<'a>, 
+    env: &'a JNIEnv<'a>,
+    jni: JniUtils<'a>,
     entry: JObject<'a>
 ) -> Option<HeapEntry> {
     //we can ignore FieldEntries since the ones that are interesting should already be in model
@@ -263,18 +198,16 @@ fn unwrap_model<'a>(
     model: JObject<'a>,
 ) -> Model {
     let model_wrapper = silicon::reporting::ExtractedModel::with(env);
-    let entries_scala = jni.unwrap_result(model_wrapper.call_entries(model));    
+    let entries_scala = jni.unwrap_result(model_wrapper.call_entries(model));
     let map_string_scala = jni.stringmap_to_hashmap(entries_scala);
-
     let mut entries = HashMap::new();
     for (name, entry_scala) in map_string_scala {
         let entry = unwrap_model_entry(env, jni, entry_scala, &mut entries);
-        match entry{
-            Some(e) => { entries.insert(name, e); },
-            None => (),
-        };
+        if let Some(e) = entry {
+            entries.insert(name, e);
+        }
     }
-    Model{entries}
+    Model { entries }
 }
 
 fn unwrap_model_entry<'a>(
@@ -285,96 +218,82 @@ fn unwrap_model_entry<'a>(
 ) -> Option<ModelEntry> {
     match jni.class_name(entry).as_str() {
         "viper.silicon.reporting.LitIntEntry" => {
-            //one weakness: in scala value is BigInt
-            let litint_wrapper = silicon::reporting::LitIntEntry::with(env);
-            let value_scala = jni.unwrap_result(litint_wrapper.call_value(entry));
-            let value_str = jni.to_string(value_scala);
-            let value = value_str.parse::<i64>().unwrap();
-            Some(ModelEntry::LitIntEntry(value))
-        },
+            let lit_int_wrapper = silicon::reporting::LitIntEntry::with(env);
+            let value_scala = jni.unwrap_result(lit_int_wrapper.call_value(entry));
+            let value = jni.to_string(value_scala);
+            Some(ModelEntry::LitInt(value))
+        }
         "viper.silicon.reporting.LitBoolEntry" => {
             let lit_bool_wrapper = silicon::reporting::LitBoolEntry::with(env);
             let value = jni.unwrap_result(lit_bool_wrapper.call_value(entry));
-            Some(ModelEntry::LitBoolEntry(value))
-        },
+            Some(ModelEntry::LitBool(value))
+        }
         "viper.silicon.reporting.LitPermEntry" => {
             let lit_perm_wrapper = silicon::reporting::LitPermEntry::with(env);
             let value = jni.unwrap_result(lit_perm_wrapper.call_value(entry));
-            Some(ModelEntry::LitPermEntry(value))
-        },
+            Some(ModelEntry::LitPerm(value))
+        }
         "viper.silicon.reporting.RefEntry" => {
             let ref_wrapper = silicon::reporting::RefEntry::with(env);
             let product_wrapper = scala::Product::with(env);
-            
-            let mut result = HashMap::new();
-            //get name
+            // get name
             let name_scala = jni.unwrap_result(ref_wrapper.call_name(entry));
             let fields_scala = jni.unwrap_result(ref_wrapper.call_fields(entry));
             let name = jni.to_string(name_scala);
-            //get list of fields
-            let fields_map_scala = jni.stringmap_to_hashmap(fields_scala);
-            for (field, tuple_scala) in fields_map_scala {
-                let element_scala = jni.unwrap_result(product_wrapper.call_productElement(tuple_scala, 0));
-                let element = unwrap_model_entry(env, jni, element_scala, entries);
-                match element{
-                    Some(e) => {result.insert(field, e);},
-                    None => ()
-                }
-            }
-            entries.insert(name.clone(), ModelEntry::RefEntry(name.clone(), result.clone()));
-            Some(ModelEntry::RefEntry(name, result))
-        },
+            // get list of fields
+            let result = jni.stringmap_to_hashmap(fields_scala).into_iter()
+                .filter_map(|(field, tuple_scala)| {
+                    let element_scala = jni.unwrap_result(
+                        product_wrapper.call_productElement(tuple_scala, 0),
+                    );
+                    Some((field, unwrap_model_entry(env, jni, element_scala, entries)?))
+                })
+                .collect::<HashMap<_, _>>();
+            entries.insert(name.clone(), ModelEntry::Ref(name.clone(), result.clone()));
+            Some(ModelEntry::Ref(name, result))
+        }
         "viper.silicon.reporting.NullRefEntry" => {
             let null_ref_wrapper = silicon::reporting::NullRefEntry::with(env);
             let name = jni.to_string(
-                jni.unwrap_result(null_ref_wrapper.call_name(entry))
+                jni.unwrap_result(null_ref_wrapper.call_name(entry)),
             );
-            Some(ModelEntry::NullRefEntry(name))
-        },
+            Some(ModelEntry::NullRef(name))
+        }
         "viper.silicon.reporting.RecursiveRefEntry" => {
             let rec_ref_wrapper = silicon::reporting::RecursiveRefEntry::with(env);
             let name = jni.to_string(
-                jni.unwrap_result(rec_ref_wrapper.call_name(entry))
+                jni.unwrap_result(rec_ref_wrapper.call_name(entry)),
             );
-            Some(ModelEntry::RecursiveRefEntry(name))
-        },
+            Some(ModelEntry::RecursiveRef(name))
+        }
         "viper.silicon.reporting.VarEntry" => {
             let var_wrapper = silicon::reporting::VarEntry::with(env);
             let name = jni.to_string(
-                jni.unwrap_result(var_wrapper.call_name(entry))
+                jni.unwrap_result(var_wrapper.call_name(entry)),
             );
-            Some(ModelEntry::VarEntry(name))
-        },
+            Some(ModelEntry::Var(name))
+        }
         "viper.silicon.reporting.OtherEntry" => {
-            let other_entry_wrapper = silicon::reporting::OtherEntry::with(env);
+            let other_wrapper = silicon::reporting::OtherEntry::with(env);
             let value = jni.to_string(
-                jni.unwrap_result(other_entry_wrapper.call_value(entry))
+                jni.unwrap_result(other_wrapper.call_value(entry)),
             );
             let problem = jni.to_string(
-                jni.unwrap_result(other_entry_wrapper.call_problem(entry))
+                jni.unwrap_result(other_wrapper.call_problem(entry)),
             );
-            Some(ModelEntry::OtherEntry(value, problem))
-
-        },
-        "viper.silicon.reporting.SeqEntry" => {
-            let seq_entry_wrapper = silicon::reporting::SeqEntry::with(env);
-            let name = jni.to_string(
-                jni.unwrap_result(seq_entry_wrapper.call_name(entry))
-            );
-            let list_scala = jni.unwrap_result(seq_entry_wrapper.call_values(entry));
-            let vec_scala = jni.list_to_vec(list_scala);
-            let mut res = vec![];
-            for el in vec_scala{
-                let element = unwrap_model_entry(env, jni, el, entries);
-                match element {
-                    Some(e) => res.push(e),
-                    None => (),
-                }
-            }
-            Some(ModelEntry::SeqEntry(name, res))
-        },
-        _ => {
-            None
+            Some(ModelEntry::Other(value, problem))
         }
+        "viper.silicon.reporting.SeqEntry" => {
+            let seq_wrapper = silicon::reporting::SeqEntry::with(env);
+            let name = jni.to_string(
+                jni.unwrap_result(seq_wrapper.call_name(entry)),
+            );
+            let list_scala = jni.unwrap_result(seq_wrapper.call_values(entry));
+            let res = jni.list_to_vec(list_scala).into_iter()
+                .filter_map(|el| unwrap_model_entry(env, jni, el, entries))
+                .collect();
+            Some(ModelEntry::Seq(name, res))
+        }
+        _ => None,
     }
 }
