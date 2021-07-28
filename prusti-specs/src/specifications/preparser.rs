@@ -15,7 +15,7 @@ pub type PledgeWithoutId = common::Pledge<(), syn::Expr, Arg>;
 pub type ExpressionWithoutId = common::Expression<(), syn::Expr>;
 
 /// The representation of an argument to `forall` (for example `a: i32`)
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Arg {
     pub name: syn::Ident,
     pub typ: syn::Type
@@ -455,20 +455,12 @@ impl Parser {
                 let parsed_term_vec: CreditPolynomialTermVec = syn::parse2(stream)?;
 
                 fn add_term_and_smaller(
-                    already_added_powers: &mut HashSet<String>,
-                    mut term_to_add: Vec<CreditVarPower<(), Arg>>,
+                    already_added_powers: &mut HashSet<Vec<CreditVarPower<(), Arg>>>,
+                    term_to_add: Vec<CreditVarPower<(), Arg>>,
                     user_id: &syn::ExprLit,
                     result_vec: &mut Vec<CreditPolynomialTerm<(), syn::Expr, Arg>>,
                 ) {
-                    // construct string of powers
-                    let mut powers_str = term_to_add.iter()  // powers are ordered by var name
-                        .map(|pow| format!("{}{}", pow.var.name, pow.exponent))
-                        .collect::<Vec<String>>().concat();
-                    if powers_str.is_empty() {
-                        powers_str = "0".to_string();
-                    }
-
-                    if !already_added_powers.contains(&powers_str) {
+                    if !already_added_powers.contains(&term_to_add) {
                         result_vec.push(CreditPolynomialTerm {
                             coeff_expr: ExpressionWithoutId {
                                 spec_id: common::SpecificationId::dummy(),
@@ -478,20 +470,27 @@ impl Parser {
                             },
                             powers: term_to_add.clone(),
                         });
-                        already_added_powers.insert(powers_str);
+                        already_added_powers.insert(term_to_add.clone());
 
-                        // add sub-terms with smaller exponents
-                        if !term_to_add.is_empty() {
-                            // reduce last exponent
-                            if term_to_add.last().unwrap().exponent == 1 {
-                                // need to remove last power
-                                term_to_add.remove(term_to_add.len()-1);
-                            }
-                            else {
-                                term_to_add.last_mut().unwrap().exponent -= 1;
-                            }
+                        // add all sub-terms with smaller exponents
+                        for i in 0..term_to_add.len() {
+                            // reduce ith exponent
+                            if term_to_add[i].exponent == 1 {
+                                // need to remove power
+                                let mut subterm_to_add = vec![];
+                                for (j, term) in term_to_add.iter().enumerate() {
+                                    if i != j {
+                                        subterm_to_add.push(term.clone());
+                                    }
+                                }
 
-                            add_term_and_smaller(already_added_powers, term_to_add, user_id, result_vec);
+                                add_term_and_smaller(already_added_powers, subterm_to_add, user_id, result_vec);
+                            } else {
+                                let mut subterm_to_add = term_to_add.clone();
+                                subterm_to_add[i].exponent -= 1;
+
+                                add_term_and_smaller(already_added_powers, subterm_to_add, user_id, result_vec);
+                            }
                         }
                     }
                 }

@@ -243,7 +243,7 @@ pub struct SpecEntailmentVars<EID, AT> {
     pub result: AT,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 /// A variable raised to a nonnegative power used in credit polynomials
 pub struct CreditVarPower<EID, VT> {
     /// Identifier of the specification to which this power belongs.
