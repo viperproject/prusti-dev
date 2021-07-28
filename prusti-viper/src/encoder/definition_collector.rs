@@ -20,7 +20,7 @@ pub(super) fn collect_definitions(
     vir::utils::walk_methods(&methods, &mut collector);
     vir::Program {
         name,
-        domains: Vec::new(),
+        domains: collector.get_used_domains(),
         fields: collector.get_used_fields(),
         builtin_methods: collector.get_all_methods(),
         methods,
@@ -61,8 +61,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         let mut functions: Vec<_> = self.used_functions.iter().map(|identifier| {
             self.encoder.get_function(&identifier).clone()
         }).collect();
-        functions.sort_by_key(|f| f.get_identifier());
+        functions.sort_by_cached_key(|f| f.get_identifier());
         functions
+    }
+    fn get_used_domains(&self) -> Vec<vir::Domain> {
+        let mut domains: Vec<_> = self.used_domains.iter().map(|domain_name| {
+            self.encoder.get_domain(domain_name)
+        }).collect();
+        domains.sort_by_cached_key(|domain| domain.name.clone());
+        domains
     }
 }
 
@@ -174,7 +181,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
             ExprWalker::walk_local_var(self, arg)
         }
     }
-    // fn walk_snap_app(&mut self, expr: &vir::Expr, _pos: &vir::Position) {
-    //     ExprWalker::walk(self, expr);
-    // }
+    fn walk_type(&mut self, typ: &vir::Type) {
+        match typ {
+            vir::Type::Seq(typ) => {
+                self.walk_type(typ);
+            },
+            vir::Type::TypedRef(name) => {
+                self.used_predicates.insert(name.clone());
+            }
+            vir::Type::Domain(name) => {
+                self.used_domains.insert(name.clone());
+            }
+            vir::Type::Snapshot(name) => {
+                self.used_domains.insert(format!("Snap${}", name));
+            }
+            _ => {}
+        }
+    }
 }
