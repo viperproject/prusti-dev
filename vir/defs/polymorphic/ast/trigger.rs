@@ -29,7 +29,7 @@ impl fmt::Display for Trigger {
 
 impl From<Trigger> for legacy::Trigger {
     fn from(trigger: Trigger) -> legacy::Trigger {
-        legacy::Trigger::new(trigger.0.iter().map(|expr| legacy::Expr::from(expr.clone())).collect())
+        legacy::Trigger::new(trigger.0.into_iter().map(|expr| legacy::Expr::from(expr)).collect())
     }
 }
 

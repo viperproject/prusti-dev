@@ -11,7 +11,6 @@ use std::{
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,
-    ops,
 };
 
 use super::super::super::{legacy, converter};
@@ -156,10 +155,10 @@ impl From<Type> for legacy::Type {
         match typ {
             Type::Int => legacy::Type::Int,
             Type::Bool => legacy::Type::Bool,
-            Type::Seq(seq) => legacy::Type::Seq(Box::new(legacy::Type::from((*seq.typ).clone()))),
-            Type::TypedRef(typed_ref) => legacy::Type::TypedRef(typed_ref.label.clone()),
-            Type::Domain(domain_type) => legacy::Type::Domain(domain_type.label.clone()),
-            Type::Snapshot(snapshot_type) => legacy::Type::Snapshot(snapshot_type.label.clone()),
+            Type::Seq(seq) => legacy::Type::Seq(Box::new(legacy::Type::from(*seq.typ))),
+            Type::TypedRef(typed_ref) => legacy::Type::TypedRef(typed_ref.label),
+            Type::Domain(domain_type) => legacy::Type::Domain(domain_type.label),
+            Type::Snapshot(snapshot_type) => legacy::Type::Snapshot(snapshot_type.label),
             // Does not happen, unless type substitution is incorrect
             Type::TypeVar(_) => unreachable!(),
         }
@@ -369,8 +368,8 @@ impl fmt::Debug for LocalVar {
 impl From<LocalVar> for legacy::LocalVar {
     fn from(type_id: LocalVar) -> legacy::LocalVar {
         legacy::LocalVar {
-            name: type_id.name.clone(),
-            typ: legacy::Type::from(type_id.typ.clone()),
+            name: type_id.name,
+            typ: legacy::Type::from(type_id.typ),
         }
     }
 }
@@ -404,8 +403,8 @@ impl fmt::Debug for Field {
 impl From<Field> for legacy::Field {
     fn from(field: Field) -> legacy::Field {
         legacy::Field {
-            name: field.name.clone(),
-            typ: legacy::Type::from(field.typ.clone()),
+            name: field.name,
+            typ: legacy::Type::from(field.typ),
         }
     }
 }

@@ -67,84 +67,78 @@ impl From<Stmt> for legacy::Stmt {
     fn from(stmt: Stmt) -> legacy::Stmt {
         match stmt {
             Stmt::Comment(comment) => legacy::Stmt::Comment(
-                comment.comment.clone(),
+                comment.comment,
             ),
             Stmt::Label(label) => legacy::Stmt::Label (
-                label.label.clone(),
+                label.label,
             ),
             Stmt::Inhale(inhale) => legacy::Stmt::Inhale (
-                legacy::Expr::from(inhale.expr.clone()),
+                legacy::Expr::from(inhale.expr),
             ),
             Stmt::Exhale(exhale) => legacy::Stmt::Exhale (
-                legacy::Expr::from(exhale.expr.clone()),
-                legacy::Position::from(exhale.position.clone()),
+                legacy::Expr::from(exhale.expr),
+                legacy::Position::from(exhale.position),
             ),
             Stmt::Assert(assert) => legacy::Stmt::Assert (
-                legacy::Expr::from(assert.expr.clone()),
-                legacy::Position::from(assert.position.clone()),
+                legacy::Expr::from(assert.expr),
+                legacy::Position::from(assert.position),
             ),
             Stmt::MethodCall(method_call) => legacy::Stmt::MethodCall (
-                method_call.method_name.clone(),
-                method_call.arguments.iter().map(|argument| legacy::Expr::from(argument.clone())).collect(),
-                method_call.targets.iter().map(|target| legacy::LocalVar::from(target.clone())).collect(),
+                method_call.method_name,
+                method_call.arguments.into_iter().map(|argument| legacy::Expr::from(argument)).collect(),
+                method_call.targets.into_iter().map(|target| legacy::LocalVar::from(target)).collect(),
             ),
             Stmt::Assign(assign) => legacy::Stmt::Assign (
-                legacy::Expr::from(assign.target.clone()),
-                legacy::Expr::from(assign.source.clone()),
-                legacy::AssignKind::from(assign.kind.clone()),
+                legacy::Expr::from(assign.target),
+                legacy::Expr::from(assign.source),
+                legacy::AssignKind::from(assign.kind),
             ),
             Stmt::Fold(fold) => legacy::Stmt::Fold (
-                fold.predicate_name.clone(),
-                fold.arguments.iter().map(|argument| legacy::Expr::from(argument.clone())).collect(),
+                fold.predicate_name,
+                fold.arguments.into_iter().map(|argument| legacy::Expr::from(argument)).collect(),
                 legacy::PermAmount::from(fold.permission),
-                match fold.enum_variant {
-                    Some(enum_variant_index) => Some(legacy::EnumVariantIndex::from(enum_variant_index.clone())),
-                    _ => None,
-                },
-                legacy::Position::from(fold.position.clone()),
+                fold.enum_variant.map(|enum_variant_index| legacy::EnumVariantIndex::from(enum_variant_index)),
+                legacy::Position::from(fold.position),
             ),
             Stmt::Unfold(unfold) => legacy::Stmt::Unfold (
-                unfold.predicate_name.clone(),
-                unfold.arguments.iter().map(|argument| legacy::Expr::from(argument.clone())).collect(),
+                unfold.predicate_name,
+                unfold.arguments.into_iter().map(|argument| legacy::Expr::from(argument)).collect(),
                 legacy::PermAmount::from(unfold.permission),
-                match unfold.enum_variant {
-                    Some(enum_variant_index) => Some(legacy::EnumVariantIndex::from(enum_variant_index.clone())),
-                    _ => None,
-                },
+                unfold.enum_variant.map(|enum_variant_index| legacy::EnumVariantIndex::from(enum_variant_index)),
             ),
             Stmt::Obtain(obtain) => legacy::Stmt::Obtain (
-                legacy::Expr::from(obtain.predicate_name.clone()),
-                legacy::Position::from(obtain.position.clone()),
+                legacy::Expr::from(obtain.predicate_name),
+                legacy::Position::from(obtain.position),
             ),
             Stmt::BeginFrame(_) => legacy::Stmt::BeginFrame,
             Stmt::EndFrame(_) => legacy::Stmt::EndFrame,
             Stmt::TransferPerm(transfer_perm) => legacy::Stmt::TransferPerm (
-                legacy::Expr::from(transfer_perm.left.clone()),
-                legacy::Expr::from(transfer_perm.right.clone()),
+                legacy::Expr::from(transfer_perm.left),
+                legacy::Expr::from(transfer_perm.right),
                 transfer_perm.unchecked,
             ),
             Stmt::PackageMagicWand(package_magic_wand) => legacy::Stmt::PackageMagicWand (
-                legacy::Expr::from(package_magic_wand.magic_wand.clone()),
-                package_magic_wand.package_stmts.iter().map(|package_stmt| legacy::Stmt::from(package_stmt.clone())).collect(),
-                package_magic_wand.label.clone(),
-                package_magic_wand.variables.iter().map(|variable| legacy::LocalVar::from(variable.clone())).collect(),
-                legacy::Position::from(package_magic_wand.position.clone()),
+                legacy::Expr::from(package_magic_wand.magic_wand),
+                package_magic_wand.package_stmts.into_iter().map(|package_stmt| legacy::Stmt::from(package_stmt)).collect(),
+                package_magic_wand.label,
+                package_magic_wand.variables.into_iter().map(|variable| legacy::LocalVar::from(variable)).collect(),
+                legacy::Position::from(package_magic_wand.position),
             ),
             Stmt::ApplyMagicWand(apply_magic_wand) => legacy::Stmt::ApplyMagicWand (
-                legacy::Expr::from(apply_magic_wand.magic_wand.clone()),
-                legacy::Position::from(apply_magic_wand.position.clone()),
+                legacy::Expr::from(apply_magic_wand.magic_wand),
+                legacy::Position::from(apply_magic_wand.position),
             ),
             Stmt::ExpireBorrows(expire_borrows) => legacy::Stmt::ExpireBorrows (
-                legacy::DAG::from(expire_borrows.dag.clone()),
+                legacy::DAG::from(expire_borrows.dag),
             ),
             Stmt::If(if_stmt) => legacy::Stmt::If (
-                legacy::Expr::from(if_stmt.guard.clone()),
-                if_stmt.then_stmts.iter().map(|then_stmt| legacy::Stmt::from(then_stmt.clone())).collect(),
-                if_stmt.else_stmts.iter().map(|else_stmt| legacy::Stmt::from(else_stmt.clone())).collect(),
+                legacy::Expr::from(if_stmt.guard),
+                if_stmt.then_stmts.into_iter().map(|then_stmt| legacy::Stmt::from(then_stmt)).collect(),
+                if_stmt.else_stmts.into_iter().map(|else_stmt| legacy::Stmt::from(else_stmt)).collect(),
             ),
             Stmt::Downcast(downcast) => legacy::Stmt::Downcast (
-                legacy::Expr::from(downcast.base.clone()),
-                legacy::Field::from(downcast.field.clone()),
+                legacy::Expr::from(downcast.base),
+                legacy::Field::from(downcast.field),
             ),
         }
     }
@@ -404,10 +398,7 @@ impl converter::Generic for Fold {
     fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
         let mut fold = self;
         fold.arguments = fold.arguments.into_iter().map(|argument| argument.substitute(map)).collect();
-        fold.enum_variant = match fold.enum_variant {
-            Some(enum_variant_index) => Some(enum_variant_index.substitute(map)),
-            _ => None,
-        };
+        fold.enum_variant = fold.enum_variant.map(|enum_variant_index| enum_variant_index.substitute(map));
         fold
     }
 }
@@ -443,10 +434,7 @@ impl converter::Generic for Unfold {
     fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
         let mut unfold = self;
         unfold.arguments = unfold.arguments.into_iter().map(|argument| argument.substitute(map)).collect();
-        unfold.enum_variant = match unfold.enum_variant {
-            Some(enum_variant_index) => Some(enum_variant_index.substitute(map)),
-            _ => None,
-        };
+        unfold.enum_variant = unfold.enum_variant.map(|enum_variant_index| enum_variant_index.substitute(map));
         unfold
     }
 }

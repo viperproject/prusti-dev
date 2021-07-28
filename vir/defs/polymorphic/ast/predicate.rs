@@ -30,9 +30,9 @@ impl fmt::Display for Predicate {
 impl From<Predicate> for legacy::Predicate {
     fn from(predicate: Predicate) -> legacy::Predicate {
         match predicate {
-            Predicate::Struct(struct_predicate) => legacy::Predicate::Struct(legacy::StructPredicate::from(struct_predicate.clone())),
-            Predicate::Enum(enum_predicate) => legacy::Predicate::Enum(legacy::EnumPredicate::from(enum_predicate.clone())),
-            Predicate::Bodyless(label, local_var) => legacy::Predicate::Bodyless(label.clone(), legacy::LocalVar::from(local_var.clone())),
+            Predicate::Struct(struct_predicate) => legacy::Predicate::Struct(legacy::StructPredicate::from(struct_predicate)),
+            Predicate::Enum(enum_predicate) => legacy::Predicate::Enum(legacy::EnumPredicate::from(enum_predicate)),
+            Predicate::Bodyless(label, local_var) => legacy::Predicate::Bodyless(label, legacy::LocalVar::from(local_var)),
         }
     }
 }
@@ -75,12 +75,9 @@ impl fmt::Display for StructPredicate {
 impl From<StructPredicate> for legacy::StructPredicate {
     fn from(struct_predicate: StructPredicate) -> legacy::StructPredicate {
         legacy::StructPredicate {
-            name: struct_predicate.name.clone(),
-            this: legacy::LocalVar::from(struct_predicate.this.clone()),
-            body: match struct_predicate.body {
-                Some(body_expr) => Some(legacy::Expr::from(body_expr.clone())),
-                _ => None,
-            },
+            name: struct_predicate.name,
+            this: legacy::LocalVar::from(struct_predicate.this),
+            body: struct_predicate.body.map(|body_expr| legacy::Expr::from(body_expr)),
         }
     }
 }
@@ -89,10 +86,7 @@ impl converter::Generic for StructPredicate {
     fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
         let mut struct_predicate = self;
         struct_predicate.this = struct_predicate.this.substitute(map);
-        struct_predicate.body = match struct_predicate.body {
-            Some(expr) => Some(expr.substitute(map)),
-            _ => None,
-        };
+        struct_predicate.body = struct_predicate.body.map(|expr| expr.substitute(map));
         struct_predicate
     }
 }
@@ -116,11 +110,11 @@ pub struct EnumPredicate {
 impl From<EnumPredicate> for legacy::EnumPredicate {
     fn from(enum_predicate: EnumPredicate) -> legacy::EnumPredicate {
         legacy::EnumPredicate {
-            name: enum_predicate.name.clone(),
-            this: legacy::LocalVar::from(enum_predicate.this.clone()),
-            discriminant_field: legacy::Field::from(enum_predicate.discriminant_field.clone()),
-            discriminant_bounds: legacy::Expr::from(enum_predicate.discriminant_bounds.clone()),
-            variants: enum_predicate.variants.iter().map(|(expr, label, struct_predicate)| (legacy::Expr::from(expr.clone()), label.clone(), legacy::StructPredicate::from(struct_predicate.clone()))).collect(),
+            name: enum_predicate.name,
+            this: legacy::LocalVar::from(enum_predicate.this),
+            discriminant_field: legacy::Field::from(enum_predicate.discriminant_field),
+            discriminant_bounds: legacy::Expr::from(enum_predicate.discriminant_bounds),
+            variants: enum_predicate.variants.into_iter().map(|(expr, label, struct_predicate)| (legacy::Expr::from(expr), label, legacy::StructPredicate::from(struct_predicate))).collect(),
         }
     }
 }
@@ -152,7 +146,7 @@ impl EnumVariantIndex {
 
 impl From<EnumVariantIndex> for legacy::EnumVariantIndex {
     fn from(enum_variant_index: EnumVariantIndex) -> legacy::EnumVariantIndex {
-        legacy::EnumVariantIndex::new(enum_variant_index.0.clone())
+        legacy::EnumVariantIndex::new(enum_variant_index.0)
     }
 }
 
