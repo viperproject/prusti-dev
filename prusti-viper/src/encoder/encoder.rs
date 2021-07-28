@@ -796,7 +796,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         targets_are_values: bool,
         assertion_location: Option<mir::BasicBlock>,
         error: ErrorCtxt,
-        parent_def_id: ProcedureDefId, //added for counterexample
+        parent_def_id: ProcedureDefId,
     ) -> SpannedEncodingResult<vir::Expr> {
         trace!("encode_assertion {:?}", assertion);
         let encoded_assertion = encode_spec_assertion(
@@ -1470,7 +1470,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn add_discriminant_info(&self, enum_id: String, discr_id: String, proc_def_id: ProcedureDefId) {
         self.discriminants_info.borrow_mut()
-            .entry((proc_def_id.clone(), enum_id.clone()))
+            .entry((proc_def_id, enum_id))
             .or_default()
             .push(discr_id);
     }

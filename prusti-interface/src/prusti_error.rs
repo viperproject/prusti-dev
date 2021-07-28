@@ -94,7 +94,7 @@ impl PrustiError {
     }
 
     pub fn add_note<S: ToString>(mut self, message: S, opt_span: Option<Span>) -> Self {
-        self.notes.push((message.to_string(), opt_span.map(|x| MultiSpan::from(x))));
+        self.notes.push((message.to_string(), opt_span.map(MultiSpan::from)));
         self
     }
 
@@ -133,7 +133,7 @@ impl PrustiError {
     /// Note: this is a noop if `opt_span` is None
     pub fn push_primary_span(mut self, opt_span: Option<&MultiSpan>) -> Self {
         if let Some(span) = opt_span {
-            self.notes.push(("the error originates here".to_string(), Some(span.clone())));
+            self.notes.push(("the error originates here".to_string(), Some(self.span)));
             self.span = span.clone();
         }
         self
