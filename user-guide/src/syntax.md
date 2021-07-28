@@ -68,13 +68,17 @@ There may be multiple bound variables:
 forall(|x: isize, y: isize| ...)
 ```
 
-The syntax of quantifiers is:
+The syntax of universal quantifiers is:
 
 ```plain
-<quantifier_type>(|<bound variable>: <bound variable type>, ...| <filter> ==> <expression>)
+forall(|<bound variable>: <bound variable type>, ...| <filter> ==> <expression>)
 ```
 
-where `<quantifier_type>` is either `forall` or `exists`.
+and the syntax of existential ones:
+
+```plain
+exists(|<bound variable>: <bound variable type>, ...| <expression>)
+```
 
 ## Specification entailments
 
