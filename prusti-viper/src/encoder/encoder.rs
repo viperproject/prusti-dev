@@ -279,6 +279,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub(super) fn get_domain(&self, name: &str) -> vir::Domain {
         if let Some(domain) = self.snapshot_encoder.borrow().get_domain(name) {
             domain.clone()
+        } else if let Some(domain) = self.mirror_encoder.borrow().get_domain(name) {
+            domain.clone()
         } else {
             unreachable!("Domain not found: {}", name);
         }
