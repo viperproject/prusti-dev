@@ -110,7 +110,9 @@ pub struct Encoder<'v, 'tcx: 'v> {
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
     /// The procedure that is currently being encoded.
-    pub current_proc: RefCell<Option<ProcedureDefId>>
+    pub current_proc: RefCell<Option<ProcedureDefId>>,
+    /// Maps locals to the local of their discriminant.
+    discriminants_info: RefCell<HashMap<(ProcedureDefId, String), Vec<String>>>,
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -171,6 +173,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
             current_proc: RefCell::new(None),
+            discriminants_info: RefCell::new(HashMap::new()),
         }
     }
 
@@ -793,6 +796,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         targets_are_values: bool,
         assertion_location: Option<mir::BasicBlock>,
         error: ErrorCtxt,
+        parent_def_id: ProcedureDefId,
     ) -> SpannedEncodingResult<vir::Expr> {
         trace!("encode_assertion {:?}", assertion);
         let encoded_assertion = encode_spec_assertion(
@@ -803,10 +807,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             target_return,
             targets_are_values,
             assertion_location,
+            parent_def_id,
         )?;
         Ok(encoded_assertion.set_default_pos(
             self.error_manager()
-                .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error),
+                .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error, parent_def_id)
         ))
     }
 
@@ -1099,9 +1104,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// Encode the body of the given procedure as a pure expression.
-    pub fn encode_pure_expression(&self, proc_def_id: ProcedureDefId)
-        -> SpannedEncodingResult<vir::Expr>
-    {
+    pub fn encode_pure_expression(
+        &self,
+        proc_def_id: ProcedureDefId,
+        parent_def_id: ProcedureDefId,
+    ) -> SpannedEncodingResult<vir::Expr> {
         let mir_span = self.env.tcx().def_span(proc_def_id);
         let substs_key = self.type_substitution_key().with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
@@ -1112,6 +1119,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 proc_def_id,
                 procedure.get_mir(),
                 true,
+                parent_def_id,
             );
             let body = pure_function_encoder.encode_body()?;
             self.pure_function_bodies
@@ -1157,7 +1165,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
             let procedure = self.env.get_procedure(wrapper_def_id);
             let pure_function_encoder =
-                PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
+                PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false, proc_def_id);
             let (mut function, needs_patching) = if let Some(predicate_body) = self.get_predicate_body(proc_def_id) {
                 (pure_function_encoder.encode_predicate_function(predicate_body)?, false)
             } else if self.is_trusted(proc_def_id) {
@@ -1198,6 +1206,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_pure_function_use(
         &self,
         proc_def_id: ProcedureDefId,
+        parent_def_id: ProcedureDefId,
     ) -> SpannedEncodingResult<(String, vir::Type)> {
         let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
         let procedure = self.env.get_procedure(wrapper_def_id);
@@ -1209,7 +1218,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         );
 
         let pure_function_encoder =
-            PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
+            PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false, parent_def_id);
 
         self.queue_pure_function_encoding(proc_def_id);
 
@@ -1457,6 +1466,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.array_types_encoder
             .borrow_mut()
             .encode_slice_types(self, slice_ty)
+    }
+
+    pub fn add_discriminant_info(&self, enum_id: String, discr_id: String, proc_def_id: ProcedureDefId) {
+        self.discriminants_info.borrow_mut()
+            .entry((proc_def_id, enum_id))
+            .or_default()
+            .push(discr_id);
+    }
+
+    pub fn discriminants_info(&self) -> HashMap<(ProcedureDefId, String), Vec<String>> {
+        self.discriminants_info.borrow().clone()
     }
 }
 

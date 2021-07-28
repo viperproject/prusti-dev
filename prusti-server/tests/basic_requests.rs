@@ -39,7 +39,7 @@ fn empty_program() {
     let result = process_program(|_| ());
 
     match result {
-        VerificationResult::Success() => (),
+        VerificationResult::Success => (),
         other => panic!(
             "empty program not verified successfully, instead found {:?}",
             other

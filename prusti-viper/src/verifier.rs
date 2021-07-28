@@ -9,6 +9,7 @@ use prusti_common::{
     config, report::log, verification_context::VerifierBuilder, verification_service::*, Stopwatch,
 };
 use crate::encoder::Encoder;
+use crate::encoder::counterexample_translation;
 // use prusti_filter::validators::Validator;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
@@ -292,7 +293,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         stopwatch.finish();
 
         let verification_errors = match verification_result {
-            viper::VerificationResult::Success() => vec![],
+            viper::VerificationResult::Success => vec![],
             viper::VerificationResult::Failure(errors) => errors,
             viper::VerificationResult::ConsistencyErrors(errors) => {
                 debug_assert!(!errors.is_empty());
@@ -319,7 +320,27 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
             for verification_error in verification_errors {
                 debug!("Verification error: {:?}", verification_error);
-                let prusti_error = error_manager.translate_verification_error(&verification_error);
+                let mut prusti_error = error_manager.translate_verification_error(&verification_error);
+
+                // annotate with counterexample, if requested
+                if config::produce_counterexample() {
+                    if let Some(silicon_counterexample) = &verification_error.counterexample {
+                        if let Some(def_id) = error_manager.get_def_id(&verification_error) {
+                            let counterexample = counterexample_translation::backtranslate(
+                                &self.encoder,
+                                *def_id,
+                                silicon_counterexample,
+                            );
+                            prusti_error = counterexample.annotate_error(prusti_error);
+                        } else {
+                            prusti_error = prusti_error.add_note(
+                                "the verifier produced a counterexample, but it could not be mapped to source code",
+                                None,
+                            );
+                        }
+                    }
+                }
+
                 debug!("Prusti error: {:?}", prusti_error);
                 prusti_error.emit(self.env);
             }

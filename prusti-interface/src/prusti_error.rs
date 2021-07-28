@@ -24,7 +24,7 @@ pub struct PrustiError {
     message: String,
     span: MultiSpan,
     help: Option<String>,
-    note: Option<(String, MultiSpan)>,
+    notes: Vec<(String, Option<MultiSpan>)>,
 }
 
 impl PrustiError {
@@ -35,7 +35,7 @@ impl PrustiError {
             message,
             span,
             help: None,
-            note: None,
+            notes: vec![],
         }
     }
 
@@ -93,26 +93,26 @@ impl PrustiError {
         self
     }
 
-    pub fn set_note<S: ToString>(mut self, note: S, note_span: Span) -> Self {
-        self.note = Some((note.to_string(), MultiSpan::from_span(note_span)));
+    pub fn add_note<S: ToString>(mut self, message: S, opt_span: Option<Span>) -> Self {
+        self.notes.push((message.to_string(), opt_span.map(MultiSpan::from)));
         self
     }
 
     /// Report the encoding error using the compiler's interface
     pub fn emit(self, env: &Environment) {
         if self.is_error {
-            env.span_err_with_help_and_note(
+            env.span_err_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,
-                &self.note,
+                &self.notes,
             );
         } else {
-            env.span_warn_with_help_and_note(
+            env.span_warn_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,
-                &self.note,
+                &self.notes,
             );
         }
     }
@@ -122,7 +122,8 @@ impl PrustiError {
     /// Note: this is a noop if `opt_span` is None
     pub fn set_failing_assertion(mut self, opt_span: Option<&MultiSpan>) -> Self {
         if let Some(span) = opt_span {
-            self.note = Some(("the failing assertion is here".to_string(), span.clone()));
+            let note = "the failing assertion is here".to_string();
+            self.notes.push((note, Some(span.clone())));
         }
         self
     }
@@ -132,7 +133,7 @@ impl PrustiError {
     /// Note: this is a noop if `opt_span` is None
     pub fn push_primary_span(mut self, opt_span: Option<&MultiSpan>) -> Self {
         if let Some(span) = opt_span {
-            self.note = Some(("the error originates here".to_string(), self.span));
+            self.notes.push(("the error originates here".to_string(), Some(self.span)));
             self.span = span.clone();
         }
         self
