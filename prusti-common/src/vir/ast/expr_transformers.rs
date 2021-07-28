@@ -328,19 +328,25 @@ pub trait ExprWalker: Sized {
         default_walk_expr(self, expr);
     }
 
-    fn walk_local_var(&mut self, _var: &LocalVar) {}
+    fn walk_type(&mut self, _typ: &Type) {}
+    fn walk_local_var(&mut self, var: &LocalVar) {
+        self.walk_type(&var.typ);
+    }
 
     fn walk_local(&mut self, var: &LocalVar, _pos: &Position) {
         self.walk_local_var(var);
     }
-    fn walk_variant(&mut self, base: &Expr, _variant: &Field, _pos: &Position) {
+    fn walk_variant(&mut self, base: &Expr, variant: &Field, _pos: &Position) {
         self.walk(base);
+        self.walk_type(&variant.typ);
     }
-    fn walk_field(&mut self, receiver: &Expr, _field: &Field, _pos: &Position) {
+    fn walk_field(&mut self, receiver: &Expr, field: &Field, _pos: &Position) {
         self.walk(receiver);
+        self.walk_type(&field.typ);
     }
-    fn walk_addr_of(&mut self, receiver: &Expr, _typ: &Type, _pos: &Position) {
+    fn walk_addr_of(&mut self, receiver: &Expr, typ: &Type, _pos: &Position) {
         self.walk(receiver);
+        self.walk_type(typ);
     }
     fn walk_const(&mut self, _const: &Const, _pos: &Position) {}
     fn walk_labelled_old(&mut self, _label: &str, body: &Expr, _pos: &Position) {
@@ -433,7 +439,7 @@ pub trait ExprWalker: Sized {
         _name: &str,
         args: &Vec<Expr>,
         formal_args: &Vec<LocalVar>,
-        _return_type: &Type,
+        return_type: &Type,
         _pos: &Position
     ) {
         for arg in args {
@@ -442,6 +448,7 @@ pub trait ExprWalker: Sized {
         for arg in formal_args {
             self.walk_local_var(arg);
         }
+        self.walk_type(return_type);
     }
     fn walk_domain_func_app(&mut self, func: &DomainFunc, args: &Vec<Expr>, _pos: &Position) {
         for arg in args {
@@ -450,6 +457,7 @@ pub trait ExprWalker: Sized {
         for arg in &func.formal_args {
             self.walk_local_var(arg)
         }
+        self.walk_type(&func.return_type);
     }
     /* TODO
     fn walk_domain_func_app(
@@ -492,10 +500,11 @@ pub trait ExprWalker: Sized {
         self.walk(r);
     }
 
-    fn walk_seq(&mut self, _ty: &Type, elems: &[Expr], _pos: &Position) {
+    fn walk_seq(&mut self, typ: &Type, elems: &[Expr], _pos: &Position) {
         for elem in elems {
             self.walk(elem);
         }
+        self.walk_type(typ);
     }
 }
 
