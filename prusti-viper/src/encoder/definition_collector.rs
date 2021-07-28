@@ -12,7 +12,6 @@ pub(super) fn collect_definitions(
 
     let mut collector = Collector {
         encoder,
-        used_methods: Default::default(),
         used_predicates: Default::default(),
         used_fields: Default::default(),
         used_domains: Default::default(),
@@ -23,7 +22,7 @@ pub(super) fn collect_definitions(
         name,
         domains: Vec::new(),
         fields: collector.get_used_fields(),
-        builtin_methods: collector.get_used_methods(),
+        builtin_methods: collector.get_all_methods(),
         methods,
         functions: collector.get_used_functions(),
         viper_predicates: collector.get_used_predicates(),
@@ -32,7 +31,6 @@ pub(super) fn collect_definitions(
 
 struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
-    used_methods: HashSet<String>,
     used_predicates: HashSet<String>,
     used_fields: HashSet<vir::Field>,
     used_domains: HashSet<String>,
@@ -43,10 +41,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     fn get_used_fields(&self) -> Vec<vir::Field> {
         self.used_fields.iter().cloned().collect()
     }
-    fn get_used_methods(&self) -> Vec<vir::BodylessMethod> {
-        self.encoder.get_builtin_methods().values().filter(|method| {
-            self.used_methods.contains(&method.name)
-        }).cloned().collect()
+    /// The purification optimization that is executed after this assumes that
+    /// all bodyless methods are present. That is why we are returning all
+    /// methods here.
+    fn get_all_methods(&self) -> Vec<vir::BodylessMethod> {
+        self.encoder.get_builtin_methods().values().cloned().collect()
     }
     fn get_used_predicates(&self) -> Vec<vir::Predicate> {
         let mut predicates: Vec<_> = self.used_predicates.iter().map(|name| {
@@ -72,8 +71,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> StmtWalker for Collector<'p, 'v, 'tcx> {
         ExprWalker::walk(self, expr);
     }
     fn walk_method_call(&mut self, method_name: &str, args: &Vec<vir::Expr>, targets: &Vec<vir::LocalVar>) {
-        eprintln!("method_name={}", method_name);
-        self.used_methods.insert(method_name.to_string());
         for arg in args {
             self.walk_expr(arg);
         }
