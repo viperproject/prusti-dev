@@ -275,19 +275,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         *self.encoding_errors_counter.borrow()
     }
 
-    pub fn get_used_viper_domains(&self) -> Vec<vir::Domain> {
-        let mut domains = vec![];
-        domains.extend(self.snapshot_encoder.borrow().get_viper_domains());
-        domains.extend(self.mirror_encoder.borrow().get_viper_domains());
 
-        if config::enable_manual_axiomatization() {
-            let builtin_encoder =  BuiltinEncoder::new();
-            domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Nat));
-            domains.push(builtin_encoder.encode_builtin_domain(BuiltinDomainKind::Primitive));
+    pub(super) fn get_domain(&self, name: &str) -> vir::Domain {
+        if let Some(domain) = self.snapshot_encoder.borrow().get_domain(name) {
+            domain.clone()
+        } else {
+            unreachable!("Domain not found: {}", name);
         }
-
-        domains.sort_by_key(|d| d.get_identifier());
-        domains
     }
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {

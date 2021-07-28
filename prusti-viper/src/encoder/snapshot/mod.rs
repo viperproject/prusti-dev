@@ -25,7 +25,7 @@ enum Snapshot {
     /// Encodes a complex type: tuples, ADTs, or closures.
     Complex {
         predicate_name: String,
-        domain: vir::Domain,
+        domain: String,
         discriminant_func: vir::DomainFunc,
         snap_func: vir::FunctionIdentifier,
         /// [variants] has one entry for tuples, structs, and closures.
@@ -40,7 +40,7 @@ enum Snapshot {
     /// Arrays
     Array {
         predicate_name: String,
-        domain: vir::Domain,
+        domain: String,
         snap_func: vir::FunctionIdentifier,
         slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
@@ -49,7 +49,7 @@ enum Snapshot {
     /// Slices
     Slice {
         predicate_name: String,
-        domain: vir::Domain,
+        domain: String,
         snap_func: vir::FunctionIdentifier,
         /// Collect a slice snapshot from an impure context using lookup_pure calls until we have
         /// Slice$len(self) elements in the result Seq[elem_ty]
@@ -64,7 +64,7 @@ enum Snapshot {
     /// Type cannot be encoded: type parameters, unsupported types.
     Abstract {
         predicate_name: String,
-        domain: vir::Domain,
+        domain: String,
         snap_func: vir::FunctionIdentifier,
     },
 

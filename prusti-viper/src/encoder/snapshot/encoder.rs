@@ -50,12 +50,11 @@ pub struct SnapshotEncoder {
     /// Maps predicate names to encoded snapshots.
     encoded: HashMap<PredicateName, Snapshot>,
 
-    /// Whether the unit domain was used in encoding or not.
-    unit_used: bool,
-    unit_domain: vir::Domain,
 
-    /// Encoded functions.
+    /// Interning table for functions.
     functions: HashMap<vir::FunctionIdentifier, vir::Function>,
+    /// Interning table for domains.
+    domains: HashMap<String, vir::Domain>,
 }
 
 /// Snapshot encoding flattens references and boxes. This function removes any
@@ -112,24 +111,36 @@ fn forall_or_body(
 
 impl SnapshotEncoder {
     pub fn new() -> Self {
+        let unit_domain = vir::Domain {
+            name: UNIT_DOMAIN_NAME.to_string(),
+            functions: vec![vir::DomainFunc {
+                name: "unit$".to_string(),
+                formal_args: vec![],
+                return_type: Type::Domain(UNIT_DOMAIN_NAME.to_string()),
+                unique: false,
+                domain_name: UNIT_DOMAIN_NAME.to_string(),
+            }],
+            axioms: vec![],
+            type_vars: vec![],
+        };
+        let mut domains = HashMap::new();
+        domains.insert(UNIT_DOMAIN_NAME.to_string(), unit_domain);
         Self {
             in_progress: HashMap::new(),
             encoded: HashMap::new(),
-            unit_used: false,
-            unit_domain: vir::Domain {
-                name: UNIT_DOMAIN_NAME.to_string(),
-                functions: vec![vir::DomainFunc {
-                    name: "unit$".to_string(),
-                    formal_args: vec![],
-                    return_type: Type::Domain(UNIT_DOMAIN_NAME.to_string()),
-                    unique: false,
-                    domain_name: UNIT_DOMAIN_NAME.to_string(),
-                }],
-                axioms: vec![],
-                type_vars: vec![],
-            },
             functions: HashMap::new(),
+            domains,
         }
+    }
+
+    pub fn get_domain(&self, name: &str) -> Option<&vir::Domain> {
+        self.domains.get(name)
+    }
+
+    fn insert_domain(&mut self, domain: vir::Domain) -> String {
+        let name = domain.name.clone();
+        assert!(self.domains.insert(name.clone(), domain).is_none());
+        name
     }
 
     pub fn contains_function(&self, identifier: &vir::FunctionIdentifier) -> bool {
@@ -150,23 +161,6 @@ impl SnapshotEncoder {
         self.functions[identifier].apply(args)
     }
 
-    /// Returns a list of Viper domains needed by the encoded snapshots.
-    pub fn get_viper_domains(&self) -> Vec<vir::Domain> {
-        let mut domains = vec![];
-        for snapshot in self.encoded.values() {
-            match snapshot {
-                Snapshot::Complex { domain, .. }
-                | Snapshot::Abstract { domain, .. }
-                | Snapshot::Array { domain, .. }
-                | Snapshot::Slice { domain, .. } => domains.push(domain.clone()),
-                _ => {},
-            }
-        }
-        if self.unit_used {
-            domains.push(self.unit_domain.clone());
-        }
-        domains
-    }
 
     /// Patches snapshots in a method.
     pub fn patch_snapshots_method<'p, 'v: 'p, 'tcx: 'v>(
@@ -362,8 +356,7 @@ impl SnapshotEncoder {
 
     /// Returns a unit domain expression.
     fn snap_unit(&mut self) -> Expr {
-        self.unit_used = true;
-        self.unit_domain.functions[0].apply(vec![])
+        self.domains[UNIT_DOMAIN_NAME].functions[0].apply(vec![])
     }
 
     /// Returns [true] iff we can encode equality between two instances of the
@@ -891,7 +884,7 @@ impl SnapshotEncoder {
 
                 Ok(Snapshot::Array {
                     predicate_name: predicate_name.to_string(),
-                    domain,
+                    domain: self.insert_domain(domain),
                     snap_func: self.insert_function(snap_func),
                     slice_helper: self.insert_function(slice_helper),
                     cons,
@@ -1187,7 +1180,7 @@ impl SnapshotEncoder {
 
                 Ok(Snapshot::Slice {
                     predicate_name: predicate_name.to_string(),
-                    domain,
+                    domain: self.insert_domain(domain),
                     snap_func: self.insert_function(snap_func),
                     slice_collect_func: self.insert_function(slice_collect_func),
                     slice_helper: self.insert_function(slice_helper),
@@ -1326,12 +1319,12 @@ impl SnapshotEncoder {
 
         Ok(Snapshot::Abstract {
             predicate_name: predicate_name.to_string(),
-            domain: vir::Domain {
+            domain: self.insert_domain(vir::Domain {
                 name: domain_name,
                 functions: vec![],
                 axioms: vec![],
                 type_vars: vec![],
-            },
+            }),
             snap_func: self.insert_function(snap_func),
         })
     }
@@ -1650,7 +1643,7 @@ impl SnapshotEncoder {
 
         Ok(Snapshot::Complex {
             predicate_name: predicate_name.to_string(),
-            domain,
+            domain: self.insert_domain(domain),
             discriminant_func,
             snap_func: self.insert_function(snap_func),
             variants: variant_domain_funcs,
