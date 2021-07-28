@@ -10,7 +10,7 @@ Flags can be set in one of three ways, in increasing order of priority:
 | --- | --- | --- |
 | [`ASSERT_TIMEOUT`](#assert_timeout) | `u64` | `10_000` |
 | [`BE_RUSTC`](#be_rustc) | `bool` | `false` |
-| [`CHECK_OVERFLOWS`](#check_overflows) | `bool` | `false` |
+| [`CHECK_OVERFLOWS`](#check_overflows) | `bool` | `true` |
 | [`CHECK_FOLDUNFOLD_STATE`](#check_foldunfold_state) | `bool` | `false` |
 | [`CHECK_PANICS`](#check_panics) | `bool` | `true` |
 | [`CONTRACTS_LIB`](#contracts_lib) | `String` | `""` |
