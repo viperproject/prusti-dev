@@ -14,7 +14,7 @@ fn hash_path(path: syn::Path) -> u64 {
 
 // generate a macro identifier with given path in this format:
 // {last_segment in path}_{hash(path)}
-fn generate_macro_ident(path: syn::Path) -> syn::Ident {
+pub fn generate_macro_ident(path: syn::Path) -> syn::Ident {
     let ident = path.segments.last().unwrap().ident.to_owned();
     syn::Ident::new(&format!("{}_{}", ident, hash_path(path)), ident.span())
 }

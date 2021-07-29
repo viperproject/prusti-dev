@@ -454,6 +454,39 @@ pub fn export_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     )
 }
 
+pub fn prusti_use(tokens: TokenStream) -> TokenStream {
+    let path: syn::Path = handle_result!(syn::parse2(tokens.into()));
+    let macro_path = handle_result!(prusti_use_macro(path));
+    parse_quote_spanned!(macro_path.span()=> #macro_path!();) 
+}
+
+fn prusti_use_macro(path: syn::Path) -> syn::Result<syn::Path> {
+    let mut macro_path = syn::Path {
+        leading_colon: None,
+        segments: syn::punctuated::Punctuated::new(),
+    };
+    let mut mod_path_for_hashing = syn::Path {
+        leading_colon: None,
+        segments: syn::punctuated::Punctuated::new(),
+    };
+
+    let mut seg_iter = path.segments.clone().into_iter();
+
+    if let Some(crate_seg) = seg_iter.next() {
+        if let Some(_last_seg) = path.segments.last() {
+            macro_path.segments.push(crate_seg);
+            mod_path_for_hashing.segments.extend(seg_iter);
+            macro_path.segments.push(syn::PathSegment {
+                ident: export_spec_rewriter::generate_macro_ident(mod_path_for_hashing),
+                arguments: syn::PathArguments::None,
+            });
+
+            return Ok(macro_path);
+        }
+    }
+
+    Err(syn::Error::new(path.span(), "prusti_use! must be used with a path that has more than one segment"))
+}
 pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
