@@ -279,11 +279,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub(super) fn get_domain(&self, name: &str) -> vir::Domain {
         if let Some(domain) = self.snapshot_encoder.borrow().get_domain(name) {
             domain.clone()
-        } else if let Some(domain) = self.mirror_encoder.borrow().get_domain(name) {
-            domain.clone()
         } else {
             unreachable!("Domain not found: {}", name);
         }
+    }
+
+    pub(super) fn get_mirror_domain(&self) -> Option<vir::Domain> {
+        self.mirror_encoder.borrow().get_domain().cloned()
     }
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
