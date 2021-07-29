@@ -27,7 +27,7 @@ pub(super) fn collect_definitions(
         unfolded_predicates: unfolded_predicate_collector.unfolded_predicates,
         used_predicates: Default::default(),
         used_fields: Default::default(),
-        used_domains: Default::default(),
+        used_snapshots: Default::default(),
         used_functions: Default::default(),
         unfolded_functions: Default::default(),
         explicitly_called_functions: unfolded_predicate_collector.called_functions,
@@ -52,7 +52,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     /// unfolded in the method.
     unfolded_predicates: HashSet<String>,
     used_fields: HashSet<vir::Field>,
-    used_domains: HashSet<String>,
+    used_snapshots: HashSet<String>,
     /// The set of all predicates that are mentioned in the method.
     used_functions: HashSet<vir::FunctionIdentifier>,
     /// The set of functions whose bodies have to be included because predicates
@@ -121,7 +121,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         functions
     }
     fn get_used_domains(&self) -> Vec<vir::Domain> {
-        let mut domains: Vec<_> = self.used_domains.iter().map(|domain_name| {
+        let mut domains: Vec<_> = self.used_snapshots.iter().map(|domain_name| {
             let mut domain = self.encoder.get_domain(domain_name);
             if let Some(predicate_name) = domain_name.strip_prefix("Snap$") {
                 // We have a snapshot for some type.
@@ -133,6 +133,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             }
             domain
         }).collect();
+        domains.extend(self.encoder.get_mirror_domain());
         domains.sort_by_cached_key(|domain| domain.name.clone());
         domains
     }
@@ -219,7 +220,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         }
     }
     fn walk_domain_func_app(&mut self, func: &vir::DomainFunc, args: &Vec<vir::Expr>, _pos: &vir::Position) {
-        self.used_domains.insert(func.domain_name.clone());
+        if func.domain_name.starts_with("Snap$") {
+            self.used_snapshots.insert(func.domain_name.clone());
+        } else {
+            assert_eq!("MirrorDomain", &func.domain_name);
+        }
         for arg in args {
             ExprWalker::walk(self, arg)
         }
@@ -236,10 +241,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
                 self.used_predicates.insert(name.clone());
             }
             vir::Type::Domain(name) => {
-                self.used_domains.insert(name.clone());
+                unreachable!("Unexpected type that is not snapshot: {}", name);
             }
             vir::Type::Snapshot(name) => {
-                self.used_domains.insert(format!("Snap${}", name));
+                self.used_snapshots.insert(format!("Snap${}", name));
             }
             _ => {}
         }

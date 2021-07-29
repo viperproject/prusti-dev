@@ -35,8 +35,8 @@ impl MirrorEncoder {
     }
 
 
-    pub fn get_domain(&self, name: &str) -> Option<&vir::Domain> {
-        if self.encoded.is_empty() || name != MIRROR_DOMAIN_NAME {
+    pub fn get_domain(&self) -> Option<&vir::Domain> {
+        if self.encoded.is_empty() {
             None
         } else {
             Some(&self.domain)
