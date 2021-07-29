@@ -1631,6 +1631,18 @@ impl Expr {
         let mut patcher = TypePatcher { substs: substs };
         patcher.fold(self)
     }
+
+    /// Is this expression a constant?
+    pub fn is_constant(&self) -> bool {
+        match self {
+            Expr::Const(_, _) => true,
+            Expr::UnaryOp(_, box subexpr, _) => subexpr.is_constant(),
+            Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
+                subexpr1.is_constant() && subexpr2.is_constant()
+            }
+            _ => false,
+        }
+    }
 }
 
 impl PartialEq for Expr {
