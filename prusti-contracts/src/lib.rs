@@ -38,6 +38,9 @@ mod private {
 
     /// A macro for specifying specs to export
     pub use prusti_contracts_impl::export_spec;
+
+    /// A macro for specifying specs to import
+    pub use prusti_contracts_impl::prusti_use;
 }
 
 #[cfg(feature = "prusti")]
@@ -78,6 +81,9 @@ mod private {
 
     /// A macro for exporting prusti specification
     pub use prusti_contracts_internal::export_spec;
+
+    /// A macro for importing prusti specification
+    pub use prusti_contracts_internal::prusti_use;
 }
 
 

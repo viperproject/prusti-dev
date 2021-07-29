@@ -62,3 +62,8 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
 pub fn export_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::export_spec(attr.into(), tokens.into()).into()
 }
+
+#[proc_macro]
+pub fn prusti_use(tokens: TokenStream) -> TokenStream {
+    prusti_specs::prusti_use(tokens.into()).into()
+}
