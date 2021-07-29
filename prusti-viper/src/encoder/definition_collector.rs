@@ -122,7 +122,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     }
     fn get_used_domains(&self) -> Vec<vir::Domain> {
         let mut domains: Vec<_> = self.used_domains.iter().map(|domain_name| {
-            self.encoder.get_domain(domain_name)
+            let mut domain = self.encoder.get_domain(domain_name);
+            if let Some(predicate_name) = domain_name.strip_prefix("Snap$") {
+                // We have a snapshot for some type.
+                if !self.unfolded_predicates.contains(predicate_name) {
+                    // The type is never unfolded, so the snapshot should be abstract.
+                    domain.axioms.clear();
+                    domain.functions.clear();
+                }
+            }
+            domain
         }).collect();
         domains.sort_by_cached_key(|domain| domain.name.clone());
         domains
