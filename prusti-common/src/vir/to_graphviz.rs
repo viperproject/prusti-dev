@@ -122,7 +122,7 @@ impl CfgMethod {
     }
 
     fn index_to_label(&self, index: usize) -> String {
-        self.basic_blocks_labels[index].clone()
+        self.basic_blocks_labels()[index].clone()
     }
 
     fn block_to_graphviz<'b>(
