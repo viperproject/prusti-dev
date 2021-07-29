@@ -27,7 +27,7 @@ pub(super) fn collect_definitions(
         unfolded_predicates: unfolded_predicate_collector.unfolded_predicates,
         used_predicates: Default::default(),
         used_fields: Default::default(),
-        used_snapshots: Default::default(),
+        used_domains: Default::default(),
         used_functions: Default::default(),
         unfolded_functions: Default::default(),
         explicitly_called_functions: unfolded_predicate_collector.called_functions,
@@ -52,7 +52,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     /// unfolded in the method.
     unfolded_predicates: HashSet<String>,
     used_fields: HashSet<vir::Field>,
-    used_snapshots: HashSet<String>,
+    used_domains: HashSet<String>,
     /// The set of all predicates that are mentioned in the method.
     used_functions: HashSet<vir::FunctionIdentifier>,
     /// The set of functions whose bodies have to be included because predicates
@@ -112,8 +112,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         let mut functions: Vec<_> = self.used_functions.iter().map(|identifier| {
             let mut function = self.encoder.get_function(identifier).clone();
             if !self.unfolded_functions.contains(identifier) && !self.explicitly_called_functions.contains(identifier) {
-                // The function body is not needed, make it abstract.
-                function.body = None;
+                // The function body is not needed.
+                if !function.has_constant_body() {
+                    // The function body is non-constant, make the function
+                    // abstract. (We leave the constant bodies so that they
+                    // could be inlined by one of the optimizations.)
+                    function.body = None;
+                }
             }
             function
         }).collect();
@@ -121,11 +126,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         functions
     }
     fn get_used_domains(&self) -> Vec<vir::Domain> {
-        let mut domains: Vec<_> = self.used_snapshots.iter().map(|domain_name| {
-            let mut domain = self.encoder.get_domain(domain_name);
-            if let Some(predicate_name) = domain_name.strip_prefix("Snap$") {
+        let mut domains: Vec<_> = self.used_domains.iter().map(|snapshot_name| {
+            let mut domain = self.encoder.get_domain(snapshot_name);
+            if let Some(predicate_name) = snapshot_name.strip_prefix("Snap$") {
                 // We have a snapshot for some type.
-                if !self.unfolded_predicates.contains(predicate_name) {
+                if !self.unfolded_predicates.contains(predicate_name) && !predicate_name.starts_with("Slice$") {
                     // The type is never unfolded, so the snapshot should be abstract.
                     domain.axioms.clear();
                     domain.functions.clear();
@@ -221,9 +226,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
     }
     fn walk_domain_func_app(&mut self, func: &vir::DomainFunc, args: &Vec<vir::Expr>, _pos: &vir::Position) {
         if func.domain_name.starts_with("Snap$") {
-            self.used_snapshots.insert(func.domain_name.clone());
+            self.used_domains.insert(func.domain_name.clone());
         } else {
-            assert_eq!("MirrorDomain", &func.domain_name);
+            match func.domain_name.as_str() {
+                "MirrorDomain" => {
+                    // Always included when encoded, do nothing.
+                }
+                "UnitDomain" => {
+                    self.used_domains.insert(func.domain_name.clone());
+                }
+                name => {
+                    unreachable!("Unexpected domain: {}", name);
+                }
+            }
         }
         for arg in args {
             ExprWalker::walk(self, arg)
@@ -244,7 +259,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
                 unreachable!("Unexpected type that is not snapshot: {}", name);
             }
             vir::Type::Snapshot(name) => {
-                self.used_snapshots.insert(format!("Snap${}", name));
+                self.used_domains.insert(format!("Snap${}", name));
             }
             _ => {}
         }
