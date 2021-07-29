@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use cargo_test_support::{cargo_test, project, symlink_supported};
+use cargo_test_support::{ProjectBuilder, cargo_test, project, symlink_supported};
 use std::path::{Path, PathBuf};
 use std::fs;
 
@@ -36,6 +36,27 @@ fn cargo_prusti_path() -> PathBuf {
         It might be that Prusti has not been compiled correctly.",
         target_directory
     );
+}
+
+fn link_prusti_crates_dep(mut project_builder: ProjectBuilder) -> ProjectBuilder {
+    if let Some(prusti_dev_path) = project_builder.root().ancestors().find(|p| p.ends_with("prusti-dev")) {
+        if let Ok(prusti_dev_path) = fs::canonicalize(prusti_dev_path) {
+            let prusti_contract_deps = [
+                "prusti-specs",
+                "prusti-contracts",
+                "prusti-contracts-impl",
+                "prusti-contracts-internal",
+            ];
+
+            for crate_name in &prusti_contract_deps {
+                project_builder = project_builder.symlink_dir(
+                    prusti_dev_path.join(crate_name).as_path(),
+                    &Path::new(crate_name)
+                );
+            }
+        }
+    }
+    project_builder
 }
 
 #[cargo_test]
@@ -106,23 +127,12 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
     }
 
     // Create a special symlink for prusti_contract and related Prusti crates
-    let prusti_dev_path = project_path
-        .parent()
-        .and_then(|p| p.parent())
-        .and_then(|p| p.parent())
-        .and_then(|p| p.parent())
-        .expect(&format!("Failed to obtain parent folders of {}", project_path.display()));
-    let prusti_contract_deps = [
-        "prusti-utils",
-        "prusti-specs",
-        "prusti-contracts",
-        "prusti-contracts-impl",
-        "prusti-contracts-internal",
-    ];
-    for crate_name in &prusti_contract_deps {
+    project_builder = link_prusti_crates_dep(project_builder);
+
+     // symlink export spec crate
+    if let Ok(spec_path) = fs::canonicalize(&Path::new("tests/cargo_verify/export-crate-tests/export-specs-crate")) {
         project_builder = project_builder.symlink_dir(
-            prusti_dev_path.join(crate_name).as_path(),
-            &Path::new(crate_name)
+           spec_path.as_path(), &Path::new("export-specs-crate")
         );
     }
 
@@ -177,4 +187,25 @@ fn test_prusti_toml_fail() {
     }
 }
 
+// run all tests crates in extern_crate_tests
+#[cargo_test]
+fn test_all_export_tests() {
+    if let Ok(export_tests_path) = fs::canonicalize(Path::new("tests/cargo_verify/export-crate-tests")) {
+        // run all tests that suppose to pass
+        if let Ok(pass_dir) = fs::read_dir(&export_tests_path.join("pass")) {
+            for entry in pass_dir {
+                let entry = entry.unwrap();
+                test_local_project(entry.path());
+            }
+        }
+        
+        // run all tests that suppose to fail
+        if let Ok(fail_dir) = fs::read_dir(&export_tests_path.join("fail")) {
+            for entry in fail_dir {
+                let entry = entry.unwrap();
+                test_local_project(entry.path());
+            }
+        }
+    }
+}
 // TODO: automatically create a test for each folder in `test/cargo_verify`.
