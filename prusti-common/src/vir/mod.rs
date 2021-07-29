@@ -9,6 +9,7 @@ pub use self::cfg::*;
 pub use self::conversions::*;
 pub use self::to_viper::*;
 pub use self::program::*;
+pub use self::to_graphviz::*;
 
 mod ast;
 pub mod borrows;
@@ -20,5 +21,6 @@ mod to_viper;
 pub mod utils;
 mod program;
 mod gather_labels;
+mod to_graphviz;
 
 mod vir_macro;

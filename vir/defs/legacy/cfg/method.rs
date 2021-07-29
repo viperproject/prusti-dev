@@ -13,7 +13,7 @@ use crate::legacy::{
     gather_labels::gather_labels,
 };
 
-pub(super) const RETURN_LABEL: &str = "end_of_method";
+pub(in super::super) const RETURN_LABEL: &str = "end_of_method";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgMethod {
@@ -158,6 +158,14 @@ impl CfgMethod {
 
     pub fn name(&self) -> String {
         self.method_name.clone()
+    }
+
+    pub fn labels(&self) -> &HashSet<String> {
+        &self.labels
+    }
+
+    pub fn basic_blocks_labels(&self) -> &Vec<String> {
+        &self.basic_blocks_labels
     }
 
     pub(super) fn block_index(&self, index: usize) -> CfgBlockIndex {
