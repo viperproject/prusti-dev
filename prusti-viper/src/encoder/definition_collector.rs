@@ -202,6 +202,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         if !self.used_functions.contains(&identifier) {
             let function = self.encoder.get_function(&identifier);
             if self.explicitly_called_functions.contains(&identifier) || self.contains_unfolded_predicates(&function.pres) {
+                self.used_functions.insert(identifier.clone());
                 self.unfolded_functions.insert(identifier);
                 for expr in function.pres.iter().chain(&function.posts).chain(&function.body) {
                     self.walk_expr(expr);
