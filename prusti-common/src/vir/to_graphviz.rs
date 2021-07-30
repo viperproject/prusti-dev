@@ -6,7 +6,7 @@
 
 use crate::config;
 use std::io::Write;
-use crate::vir::{self, cfg::method::*};
+use crate::vir::{self, cfg::{CfgMethod, CfgBlock, Successor}};
 
 fn escape_html<S: ToString>(s: S) -> String {
     s.to_string()
@@ -16,12 +16,29 @@ fn escape_html<S: ToString>(s: S) -> String {
         .replace("\n", "<br/>")
 }
 
-impl CfgMethod {
-    pub fn to_graphviz(&self, graph: &mut dyn Write) {
+pub trait ToGraphViz {
+    fn to_graphviz(&self, graph: &mut dyn Write);
+
+    fn to_graphviz_with_extra<F: Fn(usize) -> Vec<String>>(&self, graph: &mut dyn Write, extra: F);
+
+    fn index_to_label(&self, index: usize) -> String;
+
+    fn block_to_graphviz<'b>(
+        &self,
+        index: usize,
+        label: &str,
+        block: &'b CfgBlock,
+        header_rows: &[String],
+        footer_rows: &[String],
+    ) -> (String, Vec<&'b vir::borrows::DAG>);
+}
+
+impl ToGraphViz for CfgMethod {
+    fn to_graphviz(&self, graph: &mut dyn Write) {
         self.to_graphviz_with_extra(graph, |_| vec![])
     }
 
-    pub fn to_graphviz_with_extra<F: Fn(usize) -> Vec<String>>(&self, graph: &mut dyn Write, extra: F) {
+    fn to_graphviz_with_extra<F: Fn(usize) -> Vec<String>>(&self, graph: &mut dyn Write, extra: F) {
         writeln!(graph, "digraph CFG {{").unwrap();
         writeln!(graph, "graph [fontname=monospace];").unwrap();
         writeln!(graph, "node [fontname=monospace];").unwrap();
@@ -107,7 +124,7 @@ impl CfgMethod {
         for (index, block) in self.basic_blocks.iter().enumerate() {
             let block_label = self.index_to_label(index);
             for target in block.successor.get_following() {
-                let target_label = self.index_to_label(target.block_index);
+                let target_label = self.index_to_label(target.index());
                 writeln!(
                     graph,
                     "\"block_{}\" -> \"block_{}\";",
