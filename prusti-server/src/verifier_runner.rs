@@ -66,7 +66,7 @@ impl<'v> VerifierRunner<'v> {
             }
             stopwatch.start_next("verification");
             match self.verifier.verify(viper_program) {
-                VerificationResult::Success() => {},
+                VerificationResult::Success => {},
                 VerificationResult::Failure(errors) => {
                     results.verification_errors.extend(errors);
                 }
