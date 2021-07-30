@@ -103,7 +103,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     /// Stub pure functions. Generated when an impure Rust function is invoked
     /// where a pure function is required.
     stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::FunctionIdentifier>>,
-    spec_functions: RefCell<HashMap<ProcedureDefId, Vec<vir::Function>>>,
+    spec_functions: RefCell<HashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_predicate_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     type_tag_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
@@ -841,12 +841,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Encodes the specification functions for the function/closure def_id.
     pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
-        -> SpannedEncodingResult<Vec<vir::Function>>
+        -> SpannedEncodingResult<Vec<vir::FunctionIdentifier>>
     {
         if !self.spec_functions.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
             let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure);
-            let result = spec_func_encoder.encode()?;
+            let result = spec_func_encoder.encode()?.into_iter().map(|function| {
+                self.insert_function(function)
+            }).collect();
             self.spec_functions.borrow_mut().insert(def_id, result);
         }
         Ok(self.spec_functions.borrow()[&def_id].clone())
