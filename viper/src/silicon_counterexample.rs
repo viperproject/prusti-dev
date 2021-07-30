@@ -6,7 +6,7 @@ use jni_utils::JniUtils;
 use viper_sys::wrappers::viper::silicon;
 use viper_sys::wrappers::scala;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SiliconCounterexample {
     //pub heap: Heap,
     //pub old_heaps: HashMap<String, Heap>,

@@ -320,7 +320,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let error_manager = self.encoder.error_manager();
         let mut prusti_errors: Vec<_> = verification_errors.iter().map(|verification_error| {
             debug!("Verification error: {:?}", verification_error);
-            let prusti_error = error_manager.translate_verification_error(&verification_error);
+            let mut prusti_error = error_manager.translate_verification_error(&verification_error);
 
             // annotate with counterexample, if requested
             if config::produce_counterexample() {
