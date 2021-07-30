@@ -215,14 +215,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         let identifier: vir::FunctionIdentifier = compute_identifier(name, formal_args, return_type).into();
         if !self.used_functions.contains(&identifier) {
             let function = self.encoder.get_function(&identifier);
+            self.used_functions.insert(identifier.clone());
+            for expr in function.pres.iter().chain(&function.posts) {
+                self.walk_expr(expr);
+            }
             if self.explicitly_called_functions.contains(&identifier) || self.contains_unfolded_predicates(&function.pres) {
-                self.used_functions.insert(identifier.clone());
                 self.unfolded_functions.insert(identifier);
-                for expr in function.pres.iter().chain(&function.posts).chain(&function.body) {
-                    self.walk_expr(expr);
+                if let Some(body) = &function.body {
+                    self.walk_expr(body);
                 }
-            } else {
-                self.used_functions.insert(identifier);
             }
         }
         for arg in args {
@@ -369,15 +370,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for UnfoldedPredicateCollector<'p, 'v, 'tc
         return_type: &vir::Type,
         _pos: &vir::Position
     ) {
-        if !self.inside_function_definition {
-            self.inside_function_definition = true;
-            let identifier: vir::FunctionIdentifier = compute_identifier(name, formal_args, return_type).into();
+        let identifier: vir::FunctionIdentifier = compute_identifier(name, formal_args, return_type).into();
+        if !self.inside_function_definition && !self.called_functions.contains(&identifier) {
             let function = self.encoder.get_function(&identifier);
-            for expr in function.pres.iter().chain(&function.posts).chain(&function.body) {
+            self.called_functions.insert(identifier);
+            for expr in function.pres.iter().chain(&function.posts) {
+                // Since limited functions do not apply to preconditions and
+                // postconditions, we need to treat all functions called in the
+                // postconditions as directly called.
                 self.walk_expr(expr);
             }
-            self.called_functions.insert(identifier);
+            self.inside_function_definition = true;
+            if let Some(body) = &function.body {
+                self.walk_expr(body);
+            }
             self.inside_function_definition = false;
+        }
+        for arg in args {
+            self.walk_expr(arg);
         }
     }
 }
