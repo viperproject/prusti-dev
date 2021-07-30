@@ -841,7 +841,100 @@ fn cfg_method_convert_basic_block_path<'v>(
         blocks_ast.push(block_to_viper(ast, &cfg_method.basic_blocks_labels(), block, index));
         declarations.push(ast.label(&label, &[]).into());
     }
+
+    for label in config::delete_basic_blocks() {
+        let (index, block) = remaining_blocks.remove(&label).unwrap();
+        let fake_position = Position::default();
+        let stmts: Vec<viper::Stmt> = vec![
+            ast.label(&label, &[]),
+            ast.inhale(
+                ast.false_lit_with_pos(fake_position.to_viper(ast)),
+                fake_position.to_viper(ast),
+            ),
+            successor_to_viper(ast, index, &cfg_method.basic_blocks_labels(), &block.successor),
+        ];
+        blocks_ast.push(ast.seqn(&stmts, &[]));
+        declarations.push(ast.label(&label, &[]).into());
+    }
+
+    for (label, (index, block)) in remaining_blocks {
+        blocks_ast.push(block_to_viper(ast, &cfg_method.basic_blocks_labels(), block, index));
+        declarations.push(ast.label(&label, &[]).into());
+    }
 }
+
+// impl CfgMethod {
+//     fn convert_basic_block_path<'v>(
+//         &self,
+//         mut path: Vec<String>,
+//         ast: &'v AstFactory,
+//         blocks_ast: &mut Vec<viper::Stmt<'v>>,
+//         declarations: &mut Vec<viper::Declaration<'v>>,
+//     ) {
+//         path.reverse();
+//         let mut remaining_blocks: HashMap<_, _> = self
+//             .basic_blocks
+//             .iter()
+//             .enumerate()
+//             .map(|(index, block)| {
+//                 (
+//                     index_to_label(&self.basic_blocks_labels(), index),
+//                     (index, block),
+//                 )
+//             })
+//             .collect();
+//         let mut current_label = index_to_label(&self.basic_blocks_labels(), 0);
+//         while let Some((index, block)) = remaining_blocks.remove(&current_label) {
+//             blocks_ast.push(block_to_viper(ast, &self.basic_blocks_labels(), block, index));
+//             declarations.push(
+//                 ast.label(&index_to_label(&self.basic_blocks_labels(), index), &[])
+//                     .into(),
+//             );
+
+//             let mut successors: Vec<_> = block
+//                 .successor
+//                 .get_following()
+//                 .into_iter()
+//                 .map(|ci| index_to_label(&self.basic_blocks_labels(), ci.block_index))
+//                 .collect();
+//             assert!(!successors.is_empty());
+
+//             if successors.len() == 1 {
+//                 current_label = successors.pop().unwrap();
+//             } else if let Some(next_label) = path.pop() {
+//                 current_label = next_label;
+//                 assert!(
+//                     successors.contains(&current_label),
+//                     "successors: {:?} next_label: {:?}",
+//                     successors,
+//                     current_label
+//                 );
+//             } else {
+//                 break;
+//             }
+//         }
+
+//         for label in config::delete_basic_blocks() {
+//             let (index, block) = remaining_blocks.remove(&label).unwrap();
+//             let fake_position = Position::default();
+//             let stmts: Vec<viper::Stmt> = vec![
+//                 ast.label(&label, &[]),
+//                 ast.inhale(
+//                     ast.false_lit_with_pos(fake_position.to_viper(ast)),
+//                     fake_position.to_viper(ast),
+//                 ),
+//                 successor_to_viper(ast, index, &self.basic_blocks_labels(), &block.successor),
+//             ];
+//             blocks_ast.push(ast.seqn(&stmts, &[]));
+//             declarations.push(ast.label(&label, &[]).into());
+//         }
+
+//         for (label, (index, block)) in remaining_blocks {
+//             blocks_ast.push(block_to_viper(ast, &self.basic_blocks_labels(), block, index));
+//             declarations.push(ast.label(&label, &[]).into());
+//         }
+//     }
+// }
 
 impl<'v> ToViper<'v, Vec<viper::Method<'v>>> for Vec<CfgMethod> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Method<'v>> {
