@@ -76,30 +76,30 @@ fn try_purify(function: &mut ast::Function) -> Option<ast::Expr> {
     None
 }
 
-impl ast::Function {
-    /// Does the function has a body that does not depend neither on
-    /// function parameters nor on the heap?
-    fn has_constant_body(&self) -> bool {
-        match self.body {
-            Some(ref expr) => expr.is_constant(),
-            None => false,
-        }
-    }
-}
+// impl ast::Function {
+//     /// Does the function has a body that does not depend neither on
+//     /// function parameters nor on the heap?
+//     fn has_constant_body(&self) -> bool {
+//         match self.body {
+//             Some(ref expr) => expr.is_constant(),
+//             None => false,
+//         }
+//     }
+// }
 
-impl ast::Expr {
-    /// Is this expression a constant?
-    fn is_constant(&self) -> bool {
-        match self {
-            ast::Expr::Const(_, _) => true,
-            ast::Expr::UnaryOp(_, box subexpr, _) => subexpr.is_constant(),
-            ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
-                subexpr1.is_constant() && subexpr2.is_constant()
-            }
-            _ => false,
-        }
-    }
-}
+// impl ast::Expr {
+//     /// Is this expression a constant?
+//     fn is_constant(&self) -> bool {
+//         match self {
+//             ast::Expr::Const(_, _) => true,
+//             ast::Expr::UnaryOp(_, box subexpr, _) => subexpr.is_constant(),
+//             ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
+//                 subexpr1.is_constant() && subexpr2.is_constant()
+//             }
+//             _ => false,
+//         }
+//     }
+// }
 
 /// Inline all calls to constant functions.
 struct ConstantFunctionInliner<'a> {

@@ -23,6 +23,7 @@ use prusti_common::{
     report::log,
     utils::to_string::ToString,
     vir,
+    vir::ToGraphViz,
     vir_local,
     vir::{
         borrows::Borrow,
