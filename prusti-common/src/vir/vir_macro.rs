@@ -118,6 +118,13 @@ macro_rules! vir {
             vir!($body),
         )
     };
+    (exists $($name: ident : $type: tt),+ :: {$($triggers: tt),*} $body: tt) => {
+        $crate::vir::Expr::exists(
+            vec![$($crate::vir_local!($name: $type)),+],
+            vec![$($crate::vir::Trigger::new(vec![vir!($triggers)])),*],
+            vir!($body),
+        )
+    };
     ([ $e: expr ]) => { $e.clone() };
     (( $($tokens: tt)+ )) => { vir!($($tokens)+) }
 }
