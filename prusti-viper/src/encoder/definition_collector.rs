@@ -29,6 +29,7 @@ pub(super) fn collect_definitions(
         used_fields: Default::default(),
         used_domains: Default::default(),
         used_functions: Default::default(),
+        used_mirror_functions: Default::default(),
         unfolded_functions: Default::default(),
         explicitly_called_functions: unfolded_predicate_collector.called_functions,
     };
@@ -53,8 +54,10 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     unfolded_predicates: HashSet<String>,
     used_fields: HashSet<vir::Field>,
     used_domains: HashSet<String>,
-    /// The set of all predicates that are mentioned in the method.
+    /// The set of all functions that are mentioned in the method.
     used_functions: HashSet<vir::FunctionIdentifier>,
+    /// The set of all mirror functions that are mentioned in the method.
+    used_mirror_functions: HashSet<vir::FunctionIdentifier>,
     /// The set of functions whose bodies have to be included because predicates
     /// in their preconditions are unfolded.
     unfolded_functions: HashSet<vir::FunctionIdentifier>,
@@ -130,7 +133,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             let mut domain = self.encoder.get_domain(snapshot_name);
             if let Some(predicate_name) = snapshot_name.strip_prefix("Snap$") {
                 // We have a snapshot for some type.
-                if !self.unfolded_predicates.contains(predicate_name) && !predicate_name.starts_with("Slice$") {
+                if !self.unfolded_predicates.contains(predicate_name) && !predicate_name.starts_with("Slice$") && !predicate_name.starts_with("Array$") {
                     // The type is never unfolded, so the snapshot should be abstract.
                     domain.axioms.clear();
                     domain.functions.clear();
@@ -138,7 +141,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             }
             domain
         }).collect();
-        domains.extend(self.encoder.get_mirror_domain());
+        if let Some(mut mirror_domain) = self.encoder.get_mirror_domain() {
+            mirror_domain.functions.retain(
+                |function| self.used_mirror_functions.contains(&function.get_identifier().into())
+            );
+            domains.push(mirror_domain);
+        }
         domains.sort_by_cached_key(|domain| domain.name.clone());
         domains
     }
@@ -231,6 +239,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
             match func.domain_name.as_str() {
                 "MirrorDomain" => {
                     // Always included when encoded, do nothing.
+                    self.used_mirror_functions.insert(func.get_identifier().into());
                 }
                 "UnitDomain" => {
                     self.used_domains.insert(func.domain_name.clone());
