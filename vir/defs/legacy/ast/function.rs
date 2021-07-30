@@ -72,6 +72,15 @@ impl Function {
             Position::default(),
         )
     }
+
+    /// Does the function has a body that does not depend neither on
+    /// function parameters nor on the heap?
+    pub fn has_constant_body(&self) -> bool {
+        match self.body {
+            Some(ref expr) => expr.is_constant(),
+            None => false,
+        }
+    }
 }
 
 pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Type) -> String {

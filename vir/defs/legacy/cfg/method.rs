@@ -13,7 +13,7 @@ use crate::legacy::{
     gather_labels::gather_labels,
 };
 
-pub(in super::super) const RETURN_LABEL: &str = "end_of_method";
+pub const RETURN_LABEL: &str = "end_of_method";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgMethod {
@@ -40,7 +40,7 @@ pub struct CfgMethod {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
-    pub(crate) successor: Successor,
+    pub successor: Successor,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -55,7 +55,7 @@ pub enum Successor {
 pub struct CfgBlockIndex {
     #[serde(skip)]
     pub(crate) method_uuid: Uuid,
-    pub(crate) block_index: usize,
+    pub block_index: usize,
 }
 
 impl fmt::Debug for CfgBlockIndex {
@@ -166,6 +166,10 @@ impl CfgMethod {
 
     pub fn basic_blocks_labels(&self) -> &Vec<String> {
         &self.basic_blocks_labels
+    }
+
+    pub fn get_formal_returns(&self) -> &Vec<LocalVar> {
+        &self.formal_returns
     }
 
     pub(super) fn block_index(&self, index: usize) -> CfgBlockIndex {

@@ -6,7 +6,7 @@
 
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::Encoder;
-use prusti_common::vir;
+use prusti_common::vir::{self, ToGraphViz};
 use prusti_common::vir::Successor;
 use prusti_common::config;
 use prusti_interface::environment::Procedure;
