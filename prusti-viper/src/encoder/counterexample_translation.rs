@@ -138,6 +138,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             silicon_counterexample,
             tcx: encoder.env().tcx(),
             is_pure: false, // No verified functions are pure. encoder.is_pure(def_id),
+                            // TODO: This assumption should allow simplifying the translator quite a bit.
             disc_info: encoder.discriminants_info(),
             var_debug_info,
             local_variable_manager,
