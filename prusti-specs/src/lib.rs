@@ -23,7 +23,7 @@ macro_rules! handle_result {
         match $parse_result {
             Ok(data) => data,
             Err(err) => return err.to_compile_error(),
-        };
+        }
     };
 }
 
