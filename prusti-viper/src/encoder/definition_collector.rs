@@ -17,27 +17,24 @@ use super::Encoder;
 ///         or whose parameter is a snapshot of an unfolded predicate;
 ///     3.  in the bodies of functions whose preconditions contain an unfolded
 ///         predicate or whose parameter is a snapshot of an unfolded predicate.
+///
+/// We include bodies of all predicates which we observed unfolded at any step
+/// of the process.
 pub(super) fn collect_definitions(
     encoder: &Encoder,
     name: String,
     methods: Vec<vir::CfgMethod>
 ) -> vir::Program {
 
-    // let mut explictly_called_function_collector = ExplicitlyCalledFunctionCollector {
-    //     called_functions: Default::default(),
-    // };
-    // vir::utils::walk_methods(&methods, &mut explictly_called_function_collector);
     let mut unfolded_predicate_collector = UnfoldedPredicateCollector {
         encoder,
         unfolded_predicates: Default::default(),
-        called_functions: Default::default(),
-        // explictly_called_function_collector.called_functions,
-        inside_function_definition: false,
     };
     vir::utils::walk_methods(&methods, &mut unfolded_predicate_collector);
     let mut collector = Collector {
         encoder,
         unfolded_predicates: unfolded_predicate_collector.unfolded_predicates,
+        new_unfolded_predicates: Default::default(),
         used_predicates: Default::default(),
         used_fields: Default::default(),
         used_domains: Default::default(),
@@ -45,7 +42,8 @@ pub(super) fn collect_definitions(
         used_functions: Default::default(),
         used_mirror_functions: Default::default(),
         unfolded_functions: Default::default(),
-        explicitly_called_functions: unfolded_predicate_collector.called_functions,
+        directly_called_functions: Default::default(),
+        in_directly_calling_state: true,
     };
     collector.walk_methods(&methods);
     vir::Program {
@@ -66,6 +64,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     /// The set of predicates whose bodies have to be included because they are
     /// unfolded in the method.
     unfolded_predicates: HashSet<String>,
+    new_unfolded_predicates: HashSet<String>,
     used_fields: HashSet<vir::Field>,
     used_domains: HashSet<String>,
     used_snap_domain_functions: HashSet<vir::FunctionIdentifier>,
@@ -77,7 +76,8 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     /// in their preconditions are unfolded.
     unfolded_functions: HashSet<vir::FunctionIdentifier>,
     /// Functions that are explicitly called in the program.
-    explicitly_called_functions: HashSet<vir::FunctionIdentifier>,
+    directly_called_functions: HashSet<vir::FunctionIdentifier>,
+    in_directly_calling_state: bool,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
@@ -100,7 +100,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             *name != "AuxRef" // This is not a real type
         }).map(|name| {
             let predicate = self.encoder.get_viper_predicate(name);
-            if !self.unfolded_predicates.contains(name) {
+            if !self.unfolded_predicates.contains(name) && !self.new_unfolded_predicates.contains(name) {
                 // The predicate is never unfolded. Make it abstract.
                 match self.encoder.get_viper_predicate(name) {
                     vir::Predicate::Struct(mut predicate) => {
@@ -129,7 +129,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     fn get_used_functions(&self) -> Vec<vir::Function> {
         let mut functions: Vec<_> = self.used_functions.iter().map(|identifier| {
             let mut function = self.encoder.get_function(identifier).clone();
-            if !self.unfolded_functions.contains(identifier) && !self.explicitly_called_functions.contains(identifier) {
+            if !self.unfolded_functions.contains(identifier) && !self.directly_called_functions.contains(identifier) {
                 // The function body is not needed.
                 if !function.has_constant_body() {
                     // The function body is non-constant, make the function
@@ -148,7 +148,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             let mut domain = self.encoder.get_domain(snapshot_name);
             if let Some(predicate_name) = snapshot_name.strip_prefix("Snap$") {
                 // We have a snapshot for some type.
-                if !self.unfolded_predicates.contains(predicate_name) && !predicate_name.starts_with("Slice$") && !predicate_name.starts_with("Array$") {
+                if !self.unfolded_predicates.contains(predicate_name) && !self.new_unfolded_predicates.contains(predicate_name) && !predicate_name.starts_with("Slice$") && !predicate_name.starts_with("Array$") {
                     // The type is never unfolded, so the snapshot should be
                     // abstract. The only exception is the discriminant function
                     // because it can be called on a folded type.
@@ -179,6 +179,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             unfolded_predicate_checker.found
         })
     }
+    fn contains_unfolded_parameters(&self, formal_args: &[vir::LocalVar]) -> bool {
+        formal_args.iter().any(|parameter|
+            if let vir::Type::Snapshot(predicate) = &parameter.typ {
+                self.unfolded_predicates.contains(predicate)
+            } else {
+                false
+            }
+        )
+    }
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> StmtWalker for Collector<'p, 'v, 'tcx> {
@@ -208,21 +217,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         self.used_predicates.insert(name.to_string());
         ExprWalker::walk(self, arg)
     }
-    // fn walk_unfolding(
-    //     &mut self,
-    //     name: &str,
-    //     args: &Vec<vir::Expr>,
-    //     body: &vir::Expr,
-    //     _perm: vir::PermAmount,
-    //     _variant: &vir::MaybeEnumVariantIndex,
-    //     _pos: &vir::Position
-    // ) {
-    //     self.used_predicates.insert(name.to_string());
-    //     for arg in args {
-    //         ExprWalker::walk(self, arg);
-    //     }
-    //     ExprWalker::walk(self, body);
-    // }
+    fn walk_unfolding(
+        &mut self,
+        name: &str,
+        args: &Vec<vir::Expr>,
+        body: &vir::Expr,
+        _perm: vir::PermAmount,
+        _variant: &vir::MaybeEnumVariantIndex,
+        _pos: &vir::Position
+    ) {
+        self.new_unfolded_predicates.insert(name.to_string());
+        for arg in args {
+            ExprWalker::walk(self, arg);
+        }
+        ExprWalker::walk(self, body);
+    }
     fn walk_func_app(
         &mut self,
         name: &str,
@@ -232,17 +241,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         _pos: &vir::Position
     ) {
         let identifier: vir::FunctionIdentifier = compute_identifier(name, formal_args, return_type).into();
-        if !self.used_functions.contains(&identifier) {
+        let have_visited = !self.used_functions.contains(&identifier);
+        let have_visited_in_directly_calling_state =
+            self.in_directly_calling_state && !self.directly_called_functions.contains(&identifier);
+        if have_visited || have_visited_in_directly_calling_state {
             let function = self.encoder.get_function(&identifier);
             self.used_functions.insert(identifier.clone());
             for expr in function.pres.iter().chain(&function.posts) {
                 self.walk_expr(expr);
             }
-            if self.explicitly_called_functions.contains(&identifier) || self.contains_unfolded_predicates(&function.pres) {
+            let is_unfoldable =
+                self.contains_unfolded_predicates(&function.pres) ||
+                self.contains_unfolded_parameters(&function.formal_args);
+            if self.in_directly_calling_state || is_unfoldable {
                 self.unfolded_functions.insert(identifier);
+                let old_in_directly_calling_state = self.in_directly_calling_state;
+                if !is_unfoldable {
+                    // The functions called in the body of this function are
+                    // directly callable only if this function is unfoldable.
+                    self.in_directly_calling_state = false;
+                }
                 if let Some(body) = &function.body {
                     self.walk_expr(body);
                 }
+                self.in_directly_calling_state = old_in_directly_calling_state;
             }
         }
         for arg in args {
@@ -327,9 +349,6 @@ struct UnfoldedPredicateCollector<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     /// The predicates that are explicitly unfolded in the program.
     unfolded_predicates: HashSet<String>,
-    /// The functions that are explicitly called in the program.
-    called_functions: HashSet<FunctionIdentifier>,
-    inside_function_definition: bool,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> StmtWalker for UnfoldedPredicateCollector<'p, 'v, 'tcx> {
@@ -382,34 +401,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for UnfoldedPredicateCollector<'p, 'v, 'tc
         }
         ExprWalker::walk(self, body);
     }
-    fn walk_func_app(
-        &mut self,
-        name: &str,
-        args: &Vec<vir::Expr>,
-        formal_args: &Vec<vir::LocalVar>,
-        return_type: &vir::Type,
-        _pos: &vir::Position
-    ) {
-        let identifier: vir::FunctionIdentifier = compute_identifier(name, formal_args, return_type).into();
-        if !self.inside_function_definition && !self.called_functions.contains(&identifier) {
-            let function = self.encoder.get_function(&identifier);
-            self.called_functions.insert(identifier);
-            for expr in function.pres.iter().chain(&function.posts) {
-                // Since limited functions do not apply to preconditions and
-                // postconditions, we need to treat all functions called in the
-                // postconditions as directly called.
-                self.walk_expr(expr);
-            }
-            self.inside_function_definition = true;
-            if let Some(body) = &function.body {
-                self.walk_expr(body);
-            }
-            self.inside_function_definition = false;
-        }
-        for arg in args {
-            self.walk_expr(arg);
-        }
-    }
+    // fn walk_func_app(
+    //     &mut self,
+    //     name: &str,
+    //     args: &Vec<vir::Expr>,
+    //     formal_args: &Vec<vir::LocalVar>,
+    //     return_type: &vir::Type,
+    //     _pos: &vir::Position
+    // ) {
+    //     let identifier: vir::FunctionIdentifier = compute_identifier(name, formal_args, return_type).into();
+    //     if !self.inside_function_definition && !self.called_functions.contains(&identifier) {
+    //         let function = self.encoder.get_function(&identifier);
+    //         self.called_functions.insert(identifier);
+    //         for expr in function.pres.iter().chain(&function.posts) {
+    //             // Since limited functions do not apply to preconditions and
+    //             // postconditions, we need to treat all functions called in the
+    //             // postconditions as directly called.
+    //             self.walk_expr(expr);
+    //         }
+    //         self.inside_function_definition = true;
+    //         if let Some(body) = &function.body {
+    //             self.walk_expr(body);
+    //         }
+    //         self.inside_function_definition = false;
+    //     }
+    //     for arg in args {
+    //         self.walk_expr(arg);
+    //     }
+    // }
 }
 
 
