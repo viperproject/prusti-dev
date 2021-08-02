@@ -1,10 +1,4 @@
-# Flags
-
-Flags can be set in one of three ways, in increasing order of priority:
-
-1. Provided lowercase in a `Prusti.toml` file in the current working directory (for example, `check_overflows` for the [`CHECK_OVERFLOWS`](#check_overflows) flag).
-2. Provided lowercase in a TOML file with the path in the environment variable `PRUSTI_CONFIG`.
-3. Provided individually as environment variables with the prefix `PRUSTI_` (for example, `PRUSTI_ASSERT_TIMEOUT` for the [`ASSERT_TIMEOUT`](#assert_timeout) flag).
+# List of Configuration Flags
 
 | Name | Rust type | Default value |
 | --- | --- | --- |
@@ -14,6 +8,7 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`CHECK_FOLDUNFOLD_STATE`](#check_foldunfold_state) | `bool` | `false` |
 | [`CHECK_PANICS`](#check_panics) | `bool` | `true` |
 | [`CONTRACTS_LIB`](#contracts_lib) | `String` | `""` |
+| [`COUNTEREXAMPLE`](#counterexample) | `bool` | `false` |
 | [`DELETE_BASIC_BLOCKS`](#delete_basic_blocks) | `Vec<String>` | `vec![]` |
 | [`DISABLE_NAME_MANGLING`](#disable_name_mangling) | `bool` | `false` |
 | [`DUMP_BORROWCK_INFO`](#dump_borrowck_info) | `bool` | `false` |
@@ -28,11 +23,15 @@ Flags can be set in one of three ways, in increasing order of priority:
 | [`EXTRA_VERIFIER_ARGS`](#extra_verifier_args) | `Vec<String>` | `vec![]` |
 | [`FOLDUNFOLD_STATE_FILTER`](#foldunfold_state_filter) | `String` | `""` |
 | [`FULL_COMPILATION`](#full_compilation) | `bool` | `false` |
+| [`HIDE_UUIDS`](#hide_uuids) | `bool` | `false` |
 | [`JSON_COMMUNICATION`](#json_communication) | `bool` | `false` |
 | [`LOG`](#log) | `Option<String>` | `None` |
 | [`LOG_DIR`](#log_dir) | `String` | `"./log/"` |
 | [`LOG_STYLE`](#log_style) | `String` | `"auto"` |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` |
+| [`PRINT_COLLECTED_VERFICATION_ITEMS`](#print_collected_verfication_items) | `bool` | `false` |
+| [`PRINT_DESUGARED_SPECS`](#print_desugared_specs) | `bool` | `false` |
+| [`PRINT_TYPECKD_SPECS`](#print_typeckd_specs) | `bool` | `false` | `bool` | `false` |
 | [`QUIET`](#quiet) | `bool` | `false` |
 | [`SERVER_ADDRESS`](#server_address) | `Option<String>` | `None` |
 | [`SERVER_MAX_CONCURRENCY`](#server_max_concurrency) | `Option<usize>` | `None` |
@@ -67,6 +66,10 @@ When enabled, Prusti will check for an absence of `panic!`s.
 ## `CONTRACTS_LIB`
 
 Path to `libprusti_contracts*.rlib`.
+
+## `COUNTEREXAMPLE`
+
+When enabled, Prusti will try to find and print a counterexample for any failed assertion or specification.
 
 ## `DELETE_BASIC_BLOCKS`
 
@@ -128,6 +131,10 @@ Filter for `fold`/`unfold` nodes when debug info is dumped.
 
 When enabled, compilation will continue and a binary will be generated after Prusti terminates.
 
+## `HIDE_UUIDS`
+
+When enabled, UUIDs of expressions and specifications printed with [`PRINT_TYPECKD_SPECS`](#print_typeckd_specs) are hidden.
+
 ## `JSON_COMMUNICATION`
 
 When enabled, communication with the server will be encoded as JSON instead of bincode.
@@ -147,6 +154,18 @@ Log style. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env
 ## `NO_VERIFY`
 
 When enabled, verification is skipped altogether.
+
+## `PRINT_DESUGARED_SPECS`
+
+When enabled, prints the AST with desugared specifications.
+
+## `PRINT_TYPECKD_SPECS`
+
+When enabled, prints the type-checked specifications.
+
+## `PRINT_COLLECTED_VERFICATION_ITEMS`
+
+When enabled, prints the items collected for verification.
 
 ## `QUIET`
 

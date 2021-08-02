@@ -2,8 +2,8 @@
 
 - [Introduction](intro.md)
 - [Configuration](config/summary.md)
-  - [Arguments](config/arguments.md)
-  - [Flags](config/flags.md)
+  - [Providing Flags](config/providing.md)
+  - [List of Configuration Flags](config/flags.md)
 - [Verification Pipeline](pipeline/summary.md)
   - [Binary stage](pipeline/binary.md)
   - [Rust compilation stage](pipeline/rust.md)
