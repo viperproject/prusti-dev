@@ -41,6 +41,7 @@ pub(super) fn collect_definitions(
         used_predicates: Default::default(),
         used_fields: Default::default(),
         used_domains: Default::default(),
+        used_snap_domain_functions: Default::default(),
         used_functions: Default::default(),
         used_mirror_functions: Default::default(),
         unfolded_functions: Default::default(),
@@ -67,6 +68,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     unfolded_predicates: HashSet<String>,
     used_fields: HashSet<vir::Field>,
     used_domains: HashSet<String>,
+    used_snap_domain_functions: HashSet<vir::FunctionIdentifier>,
     /// The set of all functions that are mentioned in the method.
     used_functions: HashSet<vir::FunctionIdentifier>,
     /// The set of all mirror functions that are mentioned in the method.
@@ -147,9 +149,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             if let Some(predicate_name) = snapshot_name.strip_prefix("Snap$") {
                 // We have a snapshot for some type.
                 if !self.unfolded_predicates.contains(predicate_name) && !predicate_name.starts_with("Slice$") && !predicate_name.starts_with("Array$") {
-                    // The type is never unfolded, so the snapshot should be abstract.
+                    // The type is never unfolded, so the snapshot should be
+                    // abstract. The only exception is the discriminant function
+                    // because it can be called on a folded type.
                     domain.axioms.clear();
-                    domain.functions.clear();
+                    domain.functions.retain(|function|
+                        self.used_snap_domain_functions.contains(&function.get_identifier().into())
+                    );
                 }
             }
             domain
@@ -248,6 +254,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
     }
     fn walk_domain_func_app(&mut self, func: &vir::DomainFunc, args: &Vec<vir::Expr>, _pos: &vir::Position) {
         if func.domain_name.starts_with("Snap$") {
+            self.used_snap_domain_functions.insert(func.get_identifier().into());
             self.used_domains.insert(func.domain_name.clone());
         } else {
             match func.domain_name.as_str() {
