@@ -254,6 +254,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
                 self.contains_unfolded_predicates(&function.pres) ||
                 self.contains_unfolded_parameters(&function.formal_args);
             if self.in_directly_calling_state || is_unfoldable {
+                self.directly_called_functions.insert(identifier.clone());
                 self.unfolded_functions.insert(identifier);
                 let old_in_directly_calling_state = self.in_directly_calling_state;
                 if !is_unfoldable {
