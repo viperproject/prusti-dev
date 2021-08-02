@@ -750,7 +750,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ),
         };
 
-        let function = vir::Function {
+        let mut function = vir::Function {
             name: invariant_name,
             formal_args: vec![self_local_var],
             return_type: vir::Type::Bool,
@@ -758,6 +758,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             posts: Vec::new(),
             body: field_invariants.map(|invs| invs.into_iter().conjoin()),
         };
+
+        if config::enable_purification_optimization() {
+            if let Some(body) = &mut function.body {
+                // FIXME: THis in theory introduces a huge unsoudness. However,
+                // since invariants are currently not supported, this is fine
+                // until we fix them.
+                *body = true.into();
+            }
+        }
 
         // Patch snapshots
         let function = self.encoder.patch_snapshots_function(function)?;
