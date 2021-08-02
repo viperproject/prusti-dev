@@ -4,6 +4,19 @@ use prusti_common::{vir::{self, ExprWalker, FunctionIdentifier, StmtWalker, With
 
 use super::Encoder;
 
+/// Determining which of the collected functions should have bodies works as
+/// follows:
+///
+/// 1.  Collect all predicates that are unfolded or folded in the method body.
+///     This marks how deeply we need to instantiate function definitions (level
+///     n).
+/// 2.  Collect all functions that are directly called:
+///     1.  in the method;
+///     2.  in the preconditions or postconditions of functions directly called
+///         in the method or whose preconditions contain an unfolded predicate
+///         or whose parameter is a snapshot of an unfolded predicate;
+///     3.  in the bodies of functions whose preconditions contain an unfolded
+///         predicate or whose parameter is a snapshot of an unfolded predicate.
 pub(super) fn collect_definitions(
     encoder: &Encoder,
     name: String,
@@ -402,7 +415,7 @@ impl<'a> ExprWalker for UnfoldedPredicateChecker<'a> {
     fn walk_predicate_access_predicate(
         &mut self,
         name: &str,
-        arg: &vir::Expr,
+        _arg: &vir::Expr,
         _perm_amount: vir::PermAmount,
         _pos: &vir::Position
     ) {
