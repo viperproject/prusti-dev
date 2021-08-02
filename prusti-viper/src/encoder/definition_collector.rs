@@ -314,7 +314,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
                 self.used_predicates.insert(name.clone());
             }
             vir::Type::Domain(name) => {
-                unreachable!("Unexpected type that is not snapshot: {}", name);
+                if name != "UnitDomain" {
+                    unreachable!("Unexpected type that is not snapshot: {}", name);
+                }
             }
             vir::Type::Snapshot(name) => {
                 self.used_domains.insert(format!("Snap${}", name));
