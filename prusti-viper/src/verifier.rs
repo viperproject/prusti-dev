@@ -341,7 +341,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                 }
             }
 
-            error_manager.translate_verification_error(verification_error)
+            prusti_error
         }).collect();
         prusti_errors.sort();
         for prusti_error in prusti_errors {
