@@ -158,3 +158,7 @@ fn max3(a: i32, b: i32, c: i32) -> i32 {
 ```
 
 When running Prusti on this example, it highlights the failing assertion and thus enables us to quickly locate and fix the issue. 
+
+## Configuration
+
+Prusti offers a many flags to configure its behavior. See [Providing Flags](https://viperproject.github.io/prusti-dev/dev-guide/config/providing.html) for how to provide these flags and [List of Configuration Flags](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html) in the developer guide.
