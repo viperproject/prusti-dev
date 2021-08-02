@@ -1,4 +1,4 @@
-use std::{collections::HashSet, hash::Hash};
+use std::{collections::{HashMap, HashSet}, hash::Hash};
 
 use prusti_common::{vir::{self, ExprWalker, FunctionIdentifier, StmtWalker, WithIdentifier, compute_identifier}, vir_local};
 
@@ -33,6 +33,7 @@ pub(super) fn collect_definitions(
     vir::utils::walk_methods(&methods, &mut unfolded_predicate_collector);
     let mut collector = Collector {
         encoder,
+        method_names: methods.iter().map(|method| method.name()).collect(),
         unfolded_predicates: unfolded_predicate_collector.unfolded_predicates,
         new_unfolded_predicates: Default::default(),
         used_predicates: Default::default(),
@@ -59,6 +60,9 @@ pub(super) fn collect_definitions(
 
 struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
+    /// The list of encoded methods for checking that they do not clash with
+    /// functions.
+    method_names: HashSet<String>,
     /// The set of all predicates that are mentioned in the method.
     used_predicates: HashSet<String>,
     /// The set of predicates whose bodies have to be included because they are
@@ -138,6 +142,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                     function.body = None;
                 }
             }
+            assert!(!self.method_names.contains(&function.name), "same Rust function encoded as both Viper method and function");
             function
         }).collect();
         functions.sort_by_cached_key(|f| f.get_identifier());

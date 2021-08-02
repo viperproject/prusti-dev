@@ -2240,7 +2240,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         _ => {
-                            let is_pure_function = self.encoder.is_pure(def_id);
+                            let is_pure_function = self.encoder.is_pure(def_id) &&
+                                // We are verifying this pure function and,
+                                // therefore, need to always encode it as a
+                                // method.
+                                self.proc_def_id != def_id;
                             if is_pure_function {
                                 let (function_name, _) = self.encoder
                                     .encode_pure_function_use(def_id, self.proc_def_id)
