@@ -1,5 +1,3 @@
-// ignore-test: issue https://github.com/viperproject/prusti-dev/issues/599
-
 use prusti_contracts::*;
 
 #[derive(Clone,PartialEq,Eq)]
