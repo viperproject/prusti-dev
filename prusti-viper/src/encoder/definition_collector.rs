@@ -1,6 +1,12 @@
-use std::{collections::{HashMap, HashSet}, hash::Hash};
+use std::{
+    collections::{HashMap, HashSet},
+    hash::Hash,
+};
 
-use prusti_common::{vir::{self, ExprWalker, FunctionIdentifier, StmtWalker, WithIdentifier, compute_identifier}, vir_local};
+use prusti_common::{
+    vir::{self, compute_identifier, ExprWalker, FunctionIdentifier, StmtWalker, WithIdentifier},
+    vir_local,
+};
 
 use super::Encoder;
 
@@ -23,9 +29,8 @@ use super::Encoder;
 pub(super) fn collect_definitions(
     encoder: &Encoder,
     name: String,
-    methods: Vec<vir::CfgMethod>
+    methods: Vec<vir::CfgMethod>,
 ) -> vir::Program {
-
     let mut unfolded_predicate_collector = UnfoldedPredicateCollector {
         unfolded_predicates: Default::default(),
     };
@@ -92,16 +97,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         }
     }
     fn walk_methods(&mut self, methods: &[vir::CfgMethod]) {
-        let predicates: Vec<_> = self.unfolded_predicates.iter().map(|name| {
-            self.encoder.get_viper_predicate(name)
-        }).collect();
+        let predicates: Vec<_> = self
+            .unfolded_predicates
+            .iter()
+            .map(|name| self.encoder.get_viper_predicate(name))
+            .collect();
         for predicate in &predicates {
             // make sure we include all the fields
             predicate.body().as_ref().map(|body| self.walk_expr(body));
         }
         vir::utils::walk_methods(&methods, self);
-        self.used_predicates.extend(self.unfolded_predicates.iter().cloned());
-        self.used_functions.extend(self.unfolded_functions.iter().cloned());
+        self.used_predicates
+            .extend(self.unfolded_predicates.iter().cloned());
+        self.used_functions
+            .extend(self.unfolded_functions.iter().cloned());
     }
     fn get_used_fields(&self) -> Vec<vir::Field> {
         self.used_fields.iter().cloned().collect()
@@ -110,78 +119,109 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     /// all bodyless methods are present. That is why we are returning all
     /// methods here.
     fn get_all_methods(&self) -> Vec<vir::BodylessMethod> {
-        self.encoder.get_builtin_methods().values().cloned().collect()
+        self.encoder
+            .get_builtin_methods()
+            .values()
+            .cloned()
+            .collect()
     }
     fn get_used_predicates(&mut self) -> Vec<vir::Predicate> {
-        let mut predicates: Vec<_> = self.used_predicates.iter().filter(|name| {
-            *name != "AuxRef" // This is not a real type
-        }).map(|name| {
-            let predicate = self.encoder.get_viper_predicate(name);
-            if !self.unfolded_predicates.contains(name) && !self.new_unfolded_predicates.contains(name) {
-                // The predicate is never unfolded. Make it abstract.
-                match predicate {
-                    vir::Predicate::Struct(mut predicate) => {
-                        predicate.body = None;
-                        vir::Predicate::Struct(predicate)
+        let mut predicates: Vec<_> = self
+            .used_predicates
+            .iter()
+            .filter(|name| {
+                *name != "AuxRef" // This is not a real type
+            })
+            .map(|name| {
+                let predicate = self.encoder.get_viper_predicate(name);
+                if !self.unfolded_predicates.contains(name)
+                    && !self.new_unfolded_predicates.contains(name)
+                {
+                    // The predicate is never unfolded. Make it abstract.
+                    match predicate {
+                        vir::Predicate::Struct(mut predicate) => {
+                            predicate.body = None;
+                            vir::Predicate::Struct(predicate)
+                        }
+                        vir::Predicate::Enum(predicate) => {
+                            vir::Predicate::Struct(vir::StructPredicate {
+                                name: predicate.name,
+                                this: predicate.this,
+                                body: None,
+                            })
+                        }
+                        predicate => predicate,
                     }
-                    vir::Predicate::Enum(predicate) => {
-                        vir::Predicate::Struct(vir::StructPredicate {
-                            name: predicate.name,
-                            this: predicate.this,
-                            body: None,
-                        })
-                    }
-                    predicate => predicate,
+                } else {
+                    predicate
                 }
-            } else {
-                predicate
-            }
-        }).chain(Some(vir::Predicate::Bodyless(
-            "DeadBorrowToken$".to_string(),
-            vir_local!{ borrow: Int },
-        ))).collect();
+            })
+            .chain(Some(vir::Predicate::Bodyless(
+                "DeadBorrowToken$".to_string(),
+                vir_local! { borrow: Int },
+            )))
+            .collect();
         predicates.sort_by_key(|f| f.get_identifier());
         predicates
     }
     fn get_used_functions(&self) -> Vec<vir::Function> {
-        let mut functions: Vec<_> = self.used_functions.iter().map(|identifier| {
-            let mut function = self.encoder.get_function(identifier).clone();
-            if !self.unfolded_functions.contains(identifier) && !self.directly_called_functions.contains(identifier) {
-                // The function body is not needed.
-                if !function.has_constant_body() {
-                    // The function body is non-constant, make the function
-                    // abstract. (We leave the constant bodies so that they
-                    // could be inlined by one of the optimizations.)
-                    function.body = None;
+        let mut functions: Vec<_> = self
+            .used_functions
+            .iter()
+            .map(|identifier| {
+                let mut function = self.encoder.get_function(identifier).clone();
+                if !self.unfolded_functions.contains(identifier)
+                    && !self.directly_called_functions.contains(identifier)
+                {
+                    // The function body is not needed.
+                    if !function.has_constant_body() {
+                        // The function body is non-constant, make the function
+                        // abstract. (We leave the constant bodies so that they
+                        // could be inlined by one of the optimizations.)
+                        function.body = None;
+                    }
                 }
-            }
-            assert!(!self.method_names.contains(&function.name), "same Rust function encoded as both Viper method and function");
-            function
-        }).collect();
+                assert!(
+                    !self.method_names.contains(&function.name),
+                    "same Rust function encoded as both Viper method and function"
+                );
+                function
+            })
+            .collect();
         functions.sort_by_cached_key(|f| f.get_identifier());
         functions
     }
     fn get_used_domains(&self) -> Vec<vir::Domain> {
-        let mut domains: Vec<_> = self.used_domains.iter().map(|snapshot_name| {
-            let mut domain = self.encoder.get_domain(snapshot_name);
-            if let Some(predicate_name) = snapshot_name.strip_prefix("Snap$") {
-                // We have a snapshot for some type.
-                if !self.unfolded_predicates.contains(predicate_name) && !self.new_unfolded_predicates.contains(predicate_name) && !predicate_name.starts_with("Slice$") && !predicate_name.starts_with("Array$") {
-                    // The type is never unfolded, so the snapshot should be
-                    // abstract. The only exception is the discriminant function
-                    // because it can be called on a folded type.
-                    domain.axioms.clear();
-                    domain.functions.retain(|function|
-                        self.used_snap_domain_functions.contains(&function.get_identifier().into())
-                    );
+        let mut domains: Vec<_> = self
+            .used_domains
+            .iter()
+            .map(|snapshot_name| {
+                let mut domain = self.encoder.get_domain(snapshot_name);
+                if let Some(predicate_name) = snapshot_name.strip_prefix("Snap$") {
+                    // We have a snapshot for some type.
+                    if !self.unfolded_predicates.contains(predicate_name)
+                        && !self.new_unfolded_predicates.contains(predicate_name)
+                        && !predicate_name.starts_with("Slice$")
+                        && !predicate_name.starts_with("Array$")
+                    {
+                        // The type is never unfolded, so the snapshot should be
+                        // abstract. The only exception is the discriminant function
+                        // because it can be called on a folded type.
+                        domain.axioms.clear();
+                        domain.functions.retain(|function| {
+                            self.used_snap_domain_functions
+                                .contains(&function.get_identifier().into())
+                        });
+                    }
                 }
-            }
-            domain
-        }).collect();
+                domain
+            })
+            .collect();
         if let Some(mut mirror_domain) = self.encoder.get_mirror_domain() {
-            mirror_domain.functions.retain(
-                |function| self.used_mirror_functions.contains(&function.get_identifier().into())
-            );
+            mirror_domain.functions.retain(|function| {
+                self.used_mirror_functions
+                    .contains(&function.get_identifier().into())
+            });
             domains.push(mirror_domain);
         }
         domains.sort_by_cached_key(|domain| domain.name.clone());
@@ -198,13 +238,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         })
     }
     fn contains_unfolded_parameters(&self, formal_args: &[vir::LocalVar]) -> bool {
-        formal_args.iter().any(|parameter|
+        formal_args.iter().any(|parameter| {
             if let vir::Type::Snapshot(predicate) = &parameter.typ {
                 self.unfolded_predicates.contains(predicate)
             } else {
                 false
             }
-        )
+        })
     }
 }
 
@@ -230,7 +270,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         name: &str,
         arg: &vir::Expr,
         _perm_amount: vir::PermAmount,
-        _pos: &vir::Position
+        _pos: &vir::Position,
     ) {
         self.used_predicates.insert(name.to_string());
         ExprWalker::walk(self, arg)
@@ -242,7 +282,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         body: &vir::Expr,
         _perm: vir::PermAmount,
         _variant: &vir::MaybeEnumVariantIndex,
-        _pos: &vir::Position
+        _pos: &vir::Position,
     ) {
         if self.new_unfolded_predicates.insert(name.to_string()) {
             let predicate = self.encoder.get_viper_predicate(name);
@@ -260,9 +300,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         args: &Vec<vir::Expr>,
         formal_args: &Vec<vir::LocalVar>,
         return_type: &vir::Type,
-        _pos: &vir::Position
+        _pos: &vir::Position,
     ) {
-        let identifier: vir::FunctionIdentifier = compute_identifier(name, formal_args, return_type).into();
+        let identifier: vir::FunctionIdentifier =
+            compute_identifier(name, formal_args, return_type).into();
         let have_visited = !self.used_functions.contains(&identifier);
         let have_visited_in_directly_calling_state =
             self.in_directly_calling_state && !self.directly_called_functions.contains(&identifier);
@@ -272,9 +313,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
             for expr in function.pres.iter().chain(&function.posts) {
                 self.walk_expr(expr);
             }
-            let is_unfoldable =
-                self.contains_unfolded_predicates(&function.pres) ||
-                self.contains_unfolded_parameters(&function.formal_args);
+            let is_unfoldable = self.contains_unfolded_predicates(&function.pres)
+                || self.contains_unfolded_parameters(&function.formal_args);
             if self.in_directly_calling_state || is_unfoldable {
                 self.directly_called_functions.insert(identifier.clone());
                 self.unfolded_functions.insert(identifier);
@@ -298,15 +338,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         }
         ExprWalker::walk_type(self, return_type);
     }
-    fn walk_domain_func_app(&mut self, func: &vir::DomainFunc, args: &Vec<vir::Expr>, _pos: &vir::Position) {
+    fn walk_domain_func_app(
+        &mut self,
+        func: &vir::DomainFunc,
+        args: &Vec<vir::Expr>,
+        _pos: &vir::Position,
+    ) {
         if func.domain_name.starts_with("Snap$") {
-            self.used_snap_domain_functions.insert(func.get_identifier().into());
+            self.used_snap_domain_functions
+                .insert(func.get_identifier().into());
             self.used_domains.insert(func.domain_name.clone());
         } else {
             match func.domain_name.as_str() {
                 "MirrorDomain" => {
                     // Always included when encoded, do nothing.
-                    self.used_mirror_functions.insert(func.get_identifier().into());
+                    self.used_mirror_functions
+                        .insert(func.get_identifier().into());
                 }
                 "UnitDomain" => {
                     self.used_domains.insert(func.domain_name.clone());
@@ -327,7 +374,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         match typ {
             vir::Type::Seq(typ) => {
                 self.walk_type(typ);
-            },
+            }
             vir::Type::TypedRef(name) => {
                 self.used_predicates.insert(name.clone());
             }
@@ -361,7 +408,7 @@ impl StmtWalker for UnfoldedPredicateCollector {
         args: &Vec<vir::Expr>,
         _perm: &vir::PermAmount,
         _variant: &vir::MaybeEnumVariantIndex,
-        _pos: &vir::Position
+        _pos: &vir::Position,
     ) {
         self.unfolded_predicates.insert(predicate_name.to_string());
         for arg in args {
@@ -381,7 +428,6 @@ impl StmtWalker for UnfoldedPredicateCollector {
             self.walk_expr(arg);
         }
     }
-
 }
 
 impl ExprWalker for UnfoldedPredicateCollector {
@@ -392,7 +438,7 @@ impl ExprWalker for UnfoldedPredicateCollector {
         body: &vir::Expr,
         _perm: vir::PermAmount,
         _variant: &vir::MaybeEnumVariantIndex,
-        _pos: &vir::Position
+        _pos: &vir::Position,
     ) {
         self.unfolded_predicates.insert(name.to_string());
         for arg in args {
@@ -401,7 +447,6 @@ impl ExprWalker for UnfoldedPredicateCollector {
         ExprWalker::walk(self, body);
     }
 }
-
 
 struct UnfoldedPredicateChecker<'a> {
     unfolded_predicates: &'a HashSet<String>,
@@ -414,7 +459,7 @@ impl<'a> ExprWalker for UnfoldedPredicateChecker<'a> {
         name: &str,
         _arg: &vir::Expr,
         _perm_amount: vir::PermAmount,
-        _pos: &vir::Position
+        _pos: &vir::Position,
     ) {
         if self.unfolded_predicates.contains(name) {
             self.found = true;
