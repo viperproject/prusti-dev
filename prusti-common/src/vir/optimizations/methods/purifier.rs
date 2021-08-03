@@ -279,14 +279,14 @@ impl VarPurifier {
             match predicate_name {
                 "usize" => {
                     ast::Expr::and(
-                        ast::Expr::ge_cmp(replacement.clone().into(), std::usize::MIN.into()),
-                        ast::Expr::ge_cmp(std::usize::MAX.into(), replacement.into()),
+                        ast::Expr::ge_cmp(replacement.clone(), std::usize::MIN.into()),
+                        ast::Expr::ge_cmp(std::usize::MAX.into(), replacement),
                     )
                 }
                 "isize" => {
                     ast::Expr::and(
-                        ast::Expr::ge_cmp(replacement.clone().into(), std::isize::MIN.into()),
-                        ast::Expr::ge_cmp(std::isize::MAX.into(), replacement.into()),
+                        ast::Expr::ge_cmp(replacement.clone(), std::isize::MIN.into()),
+                        ast::Expr::ge_cmp(std::isize::MAX.into(), replacement),
                     )
                 }
                 _ => unreachable!()
