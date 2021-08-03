@@ -641,7 +641,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let builtin_encoder = BuiltinEncoder::new();
             let function = builtin_encoder.encode_builtin_function_def(function_kind.clone());
             self.log_vir_program_before_viper(function.to_string());
-            let identifier = function.get_identifier();
             self.builtin_functions
                 .borrow_mut()
                 .insert(function_kind.clone(), self.insert_function(function));
