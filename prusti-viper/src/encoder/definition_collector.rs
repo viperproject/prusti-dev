@@ -47,15 +47,7 @@ pub(super) fn collect_definitions(
         in_directly_calling_state: true,
     };
     collector.walk_methods(&methods);
-    vir::Program {
-        name,
-        domains: collector.get_used_domains(),
-        fields: collector.get_used_fields(),
-        builtin_methods: collector.get_all_methods(),
-        methods,
-        functions: collector.get_used_functions(),
-        viper_predicates: collector.get_used_predicates(),
-    }
+    collector.into_program(name, methods)
 }
 
 struct Collector<'p, 'v: 'p, 'tcx: 'v> {
@@ -85,7 +77,29 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
+    fn into_program(mut self, name: String, methods: Vec<vir::CfgMethod>) -> vir::Program {
+        let functions = self.get_used_functions();
+        let viper_predicates = self.get_used_predicates();
+        let domains = self.get_used_domains();
+        let fields = self.get_used_fields();
+        vir::Program {
+            name,
+            domains,
+            fields,
+            builtin_methods: self.get_all_methods(),
+            methods,
+            functions,
+            viper_predicates,
+        }
+    }
     fn walk_methods(&mut self, methods: &[vir::CfgMethod]) {
+        let predicates: Vec<_> = self.unfolded_predicates.iter().map(|name| {
+            self.encoder.get_viper_predicate(name)
+        }).collect();
+        for predicate in &predicates {
+            // make sure we include all the fields
+            predicate.body().as_ref().map(|body| self.walk_expr(body));
+        }
         vir::utils::walk_methods(&methods, self);
         self.used_predicates.extend(self.unfolded_predicates.iter().cloned());
         self.used_functions.extend(self.unfolded_functions.iter().cloned());
@@ -99,14 +113,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     fn get_all_methods(&self) -> Vec<vir::BodylessMethod> {
         self.encoder.get_builtin_methods().values().cloned().collect()
     }
-    fn get_used_predicates(&self) -> Vec<vir::Predicate> {
+    fn get_used_predicates(&mut self) -> Vec<vir::Predicate> {
         let mut predicates: Vec<_> = self.used_predicates.iter().filter(|name| {
             *name != "AuxRef" // This is not a real type
         }).map(|name| {
             let predicate = self.encoder.get_viper_predicate(name);
             if !self.unfolded_predicates.contains(name) && !self.new_unfolded_predicates.contains(name) {
                 // The predicate is never unfolded. Make it abstract.
-                match self.encoder.get_viper_predicate(name) {
+                match predicate {
                     vir::Predicate::Struct(mut predicate) => {
                         predicate.body = None;
                         vir::Predicate::Struct(predicate)
@@ -231,7 +245,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         _variant: &vir::MaybeEnumVariantIndex,
         _pos: &vir::Position
     ) {
-        self.new_unfolded_predicates.insert(name.to_string());
+        if self.new_unfolded_predicates.insert(name.to_string()) {
+            let predicate = self.encoder.get_viper_predicate(name);
+            // make sure we include all the fields
+            predicate.body().as_ref().map(|body| self.walk_expr(body));
+        }
         for arg in args {
             ExprWalker::walk(self, arg);
         }
