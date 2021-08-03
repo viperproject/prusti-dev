@@ -23,6 +23,10 @@ pub struct PrustiError {
     is_error: bool,
     /// If `true`, it should not be reported to the user. We need this in cases
     /// when the same error could be reported twice.
+    ///
+    /// FIXME: This is a workaround: we get duplicate errors because we
+    /// currently verify functions multiple times. Once this is fixed, this
+    /// field should be removed.
     is_disabled: bool,
     message: String,
     span: MultiSpan,
