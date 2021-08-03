@@ -288,46 +288,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.mirror_encoder.borrow().get_domain().cloned()
     }
 
-    fn get_used_viper_fields(&self) -> Vec<vir::Field> {
-        let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
-        fields.sort_by_key(|f| f.get_identifier());
-        fields
-    }
-
-    // fn get_used_viper_functions(&self) -> Vec<vir::Function> {
-    //     let mut functions: Vec<_> = vec![];
-    //     for function in self.builtin_functions.borrow().values() {
-    //         functions.push(function.clone());
-    //     }
-    //     for function in self.pure_functions.borrow().values() {
-    //         functions.push(function.clone());
-    //     }
-    //     for function in self.stub_pure_functions.borrow().values() {
-    //         functions.push(function.clone());
-    //     }
-    //     for function in self.type_invariants.borrow().values() {
-    //         functions.push(function.clone());
-    //     }
-    //     for function in self.type_tags.borrow().values() {
-    //         functions.push(function.clone());
-    //     }
-    //     for function in self.type_discriminant_funcs.borrow().values() {
-    //         functions.push(function.clone());
-    //     }
-    //     for function in self.type_cast_functions.borrow().values() {
-    //         functions.push(function.clone());
-    //     }
-    //     functions.extend(self.snapshot_encoder.borrow().get_viper_functions());
-    //     functions.extend(self.mirror_encoder.borrow().get_viper_functions());
-    //     for sfs in self.spec_functions.borrow().values() {
-    //         for sf in sfs {
-    //             functions.push(sf.clone());
-    //         }
-    //     }
-    //     functions.sort_by_key(|f| f.get_identifier());
-    //     functions
-    // }
-
     pub(super) fn insert_function(&self, function: vir::Function) -> vir::FunctionIdentifier {
         let identifier: vir::FunctionIdentifier = function.get_identifier().into();
         assert!(self.functions.borrow_mut().insert(identifier.clone(), function).is_none());
@@ -346,53 +306,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         } else {
             unreachable!("Not found function: {:?}", identifier)
         }
-
-
-        // if let Some(key) = self.builtin_function_keys.borrow().get(identifier) {
-        //     Ref::map(self.builtin_functions.borrow(), |map| {
-        //         &map[key]
-        //     })
-        // } else if let Some(key) = self.pure_function_keys.borrow().get(identifier) {
-        //     Ref::map(self.pure_functions.borrow(), |map| {
-        //         &map[key]
-        //     })
-        // } else if let Some(key) = self.stub_pure_function_keys.borrow().get(identifier) {
-        //     Ref::map(self.stub_pure_functions.borrow(), |map| {
-        //         &map[key]
-        //     })
-        // } else if let Some(key) = self.type_invariant_keys.borrow().get(identifier) {
-        //     Ref::map(self.type_invariants.borrow(), |map| {
-        //         &map[key]
-        //     })
-        // } else if let Some(key) = self.type_tag_keys.borrow().get(identifier) {
-        //     Ref::map(self.type_tags.borrow(), |map| {
-        //         &map[key]
-        //     })
-        // } else if let Some(key) = self.type_discriminant_func_keys.borrow().get(identifier) {
-        //     Ref::map(self.type_discriminant_funcs.borrow(), |map| {
-        //         &map[key]
-        //     })
-        // } else if let Some(key) = self.type_cast_function_keys.borrow().get(identifier) {
-        //     Ref::map(self.type_cast_functions.borrow(), |map| {
-        //         &map[key]
-        //     })
-        // } else {
-        //     unreachable!("function identifier: {}", identifier);
-        // }
     }
-
-    // fn get_used_viper_predicates(&self) -> Vec<vir::Predicate> {
-    //     let mut predicates: Vec<_> = self.type_predicates.borrow().values().cloned().collect();
-
-        // // Add a predicate that represents the dead loan token.
-        // predicates.push(vir::Predicate::Bodyless(
-        //     "DeadBorrowToken$".to_string(),
-        //     vir_local!{ borrow: Int },
-        // ));
-
-    //     predicates.sort_by_key(|f| f.get_identifier());
-    //     predicates
-    // }
 
     pub fn get_used_viper_predicates_map(&self) -> HashMap<String, vir::Predicate> {
         self.type_predicates.borrow().clone()
@@ -401,10 +315,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub(super) fn get_viper_predicate(&self, name: &str) -> vir::Predicate {
         self.type_predicates.borrow()[name].clone()
     }
-
-    // fn get_used_builtin_methods(&self) -> Vec<vir::BodylessMethod> {
-    //     self.builtin_methods.borrow().values().cloned().collect()
-    // }
 
     pub(super) fn get_builtin_methods<'a>(
         &'a self
