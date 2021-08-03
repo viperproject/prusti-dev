@@ -42,66 +42,6 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         TypeEncoder { encoder, ty }
     }
 
-    /// Is this type supported?
-    fn is_supported_type(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.kind() {
-            ty::TyKind::Bool
-            | ty::TyKind::Int(_)
-            | ty::TyKind::Uint(_)
-            | ty::TyKind::Char
-            | ty::TyKind::Ref(_, _, _)
-            | ty::TyKind::Adt(_, _)
-            | ty::TyKind::Tuple(_)
-            | ty::TyKind::Never
-            | ty::TyKind::Param(_) => true,
-            _ => false,
-        }
-    }
-
-    fn is_supported_subst(&self, subst: ty::subst::SubstsRef<'tcx>) -> bool {
-        subst.iter().all(|kind| {
-            if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                trace!(
-                    "is_supported_subst({:?}) = {}",
-                    ty,
-                    self.is_supported_type(ty)
-                );
-                self.is_supported_type(ty)
-            } else {
-                true
-            }
-        })
-    }
-
-    /// Is this type supported?
-    fn is_supported_field_type(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.kind() {
-            ty::TyKind::Adt(_, subst) => self.is_supported_subst(subst),
-            _ => self.is_supported_type(ty),
-        }
-    }
-
-    /// Are all fields in the struct of a supported type?
-    fn is_supported_struct_type(
-        &self,
-        adt_def: &ty::AdtDef,
-        subst:ty::subst::SubstsRef<'tcx>,
-    ) -> bool {
-        let tcx = self.encoder.env().tcx();
-        let supported_fields = adt_def.variants.iter().all(|variant| {
-            variant.fields.iter().all(|field| {
-                let field_ty = field.ty(tcx, subst);
-                trace!(
-                    "is_supported_type({:?}) = {}",
-                    field_ty,
-                    self.is_supported_type(field_ty)
-                );
-                self.is_supported_field_type(field_ty)
-            })
-        });
-        supported_fields && self.is_supported_subst(subst)
-    }
-
     pub fn encode_type(self) -> EncodingResult<vir::Type> {
         debug!("Encode type '{:?}'", self.ty);
         Ok(vir::Type::TypedRef(self.encode_predicate_use()?))
