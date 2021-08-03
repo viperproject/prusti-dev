@@ -73,7 +73,7 @@ impl Function {
         )
     }
 
-    /// Does the function has a body that does not depend neither on
+    /// Does the function have a body that depends neither on
     /// function parameters nor on the heap?
     pub fn has_constant_body(&self) -> bool {
         match self.body {
