@@ -297,6 +297,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         for arg in formal_args {
             ExprWalker::walk_local_var(self, arg);
         }
+        ExprWalker::walk_type(self, return_type);
     }
     fn walk_domain_func_app(&mut self, func: &vir::DomainFunc, args: &Vec<vir::Expr>, _pos: &vir::Position) {
         if func.domain_name.starts_with("Snap$") {
