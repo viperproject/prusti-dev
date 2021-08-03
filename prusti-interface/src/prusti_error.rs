@@ -114,6 +114,9 @@ impl PrustiError {
         self.is_error
     }
 
+    // FIXME: This flag is a temporary workaround for having duplicate errors
+    // coming from verifying functions multiple times. We should verify each
+    // function only once.
     pub fn is_disabled(&self) -> bool {
         self.is_disabled
     }
