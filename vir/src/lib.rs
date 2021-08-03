@@ -9,7 +9,6 @@
 // #![deny(unused_imports)]
 // #![deny(unused_doc_comments)]
 
-extern crate config as config_crate;
 #[macro_use]
 extern crate log;
 #[macro_use]
