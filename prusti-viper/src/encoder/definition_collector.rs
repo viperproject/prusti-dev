@@ -27,7 +27,6 @@ pub(super) fn collect_definitions(
 ) -> vir::Program {
 
     let mut unfolded_predicate_collector = UnfoldedPredicateCollector {
-        encoder,
         unfolded_predicates: Default::default(),
     };
     vir::utils::walk_methods(&methods, &mut unfolded_predicate_collector);
@@ -345,40 +344,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
     }
 }
 
-// /// Collects all functions that are explicitly called.
-// struct ExplicitlyCalledFunctionCollector {
-//     /// The functions that are explicitly called in the program.
-//     called_functions: HashSet<FunctionIdentifier>,
-// }
-
-// impl StmtWalker for ExplicitlyCalledFunctionCollector {
-//     fn walk_expr(&mut self, expr: &vir::Expr) {
-//         ExprWalker::walk(self, expr);
-//     }
-// }
-
-// impl ExprWalker for ExplicitlyCalledFunctionCollector {
-//     fn walk_func_app(
-//         &mut self,
-//         name: &str,
-//         args: &Vec<vir::Expr>,
-//         formal_args: &Vec<vir::LocalVar>,
-//         return_type: &vir::Type,
-//         _pos: &vir::Position
-//     ) {
-//         let identifier: vir::FunctionIdentifier = compute_identifier(name, formal_args, return_type).into();
-//         self.called_functions.insert(identifier);
-//     }
-// }
-
 /// Collects all predicates that are unfolded.
-struct UnfoldedPredicateCollector<'p, 'v: 'p, 'tcx: 'v> {
-    encoder: &'p Encoder<'v, 'tcx>,
+struct UnfoldedPredicateCollector {
     /// The predicates that are explicitly unfolded in the program.
     unfolded_predicates: HashSet<String>,
 }
 
-impl<'p, 'v: 'p, 'tcx: 'v> StmtWalker for UnfoldedPredicateCollector<'p, 'v, 'tcx> {
+impl StmtWalker for UnfoldedPredicateCollector {
     fn walk_expr(&mut self, expr: &vir::Expr) {
         ExprWalker::walk(self, expr);
     }
@@ -412,7 +384,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StmtWalker for UnfoldedPredicateCollector<'p, 'v, 'tc
 
 }
 
-impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for UnfoldedPredicateCollector<'p, 'v, 'tcx> {
+impl ExprWalker for UnfoldedPredicateCollector {
     fn walk_unfolding(
         &mut self,
         name: &str,
@@ -428,34 +400,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for UnfoldedPredicateCollector<'p, 'v, 'tc
         }
         ExprWalker::walk(self, body);
     }
-    // fn walk_func_app(
-    //     &mut self,
-    //     name: &str,
-    //     args: &Vec<vir::Expr>,
-    //     formal_args: &Vec<vir::LocalVar>,
-    //     return_type: &vir::Type,
-    //     _pos: &vir::Position
-    // ) {
-    //     let identifier: vir::FunctionIdentifier = compute_identifier(name, formal_args, return_type).into();
-    //     if !self.inside_function_definition && !self.called_functions.contains(&identifier) {
-    //         let function = self.encoder.get_function(&identifier);
-    //         self.called_functions.insert(identifier);
-    //         for expr in function.pres.iter().chain(&function.posts) {
-    //             // Since limited functions do not apply to preconditions and
-    //             // postconditions, we need to treat all functions called in the
-    //             // postconditions as directly called.
-    //             self.walk_expr(expr);
-    //         }
-    //         self.inside_function_definition = true;
-    //         if let Some(body) = &function.body {
-    //             self.walk_expr(body);
-    //         }
-    //         self.inside_function_definition = false;
-    //     }
-    //     for arg in args {
-    //         self.walk_expr(arg);
-    //     }
-    // }
 }
 
 
