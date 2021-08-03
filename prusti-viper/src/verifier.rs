@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir::{self, optimizations, ToViper, ToViperDecl};
+use prusti_common::vir::{self, optimizations::optimize_program, ToViper, ToViperDecl};
 use prusti_common::{
     config, report::log, verification_context::VerifierBuilder, verification_service::*, Stopwatch,
 };
@@ -249,7 +249,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             stopwatch.start_next("optimizing Viper program");
             let source_file_name = self.encoder.env().source_file_name();
             programs = programs.into_iter().map(
-                |program| program.optimized(&source_file_name)
+                |program| optimize_program(program, &source_file_name)
             ).collect();
         }
 
