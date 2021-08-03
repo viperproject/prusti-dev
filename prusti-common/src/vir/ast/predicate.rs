@@ -111,6 +111,19 @@ impl Predicate {
             Predicate::Bodyless(ref name, _) => name,
         }
     }
+    pub fn body(&self) -> Option<Expr> {
+        match self {
+            Predicate::Struct(struct_predicate) => {
+                struct_predicate.body.clone()
+            }
+            Predicate::Enum(enum_predicate) => {
+                Some(enum_predicate.body())
+            }
+            Predicate::Bodyless(_, _) => {
+                None
+            }
+        }
+    }
 }
 
 impl WithIdentifier for Predicate {
