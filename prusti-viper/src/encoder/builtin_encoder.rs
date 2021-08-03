@@ -41,6 +41,8 @@ pub enum BuiltinFunctionKind {
     },
 }
 
+// This code is currently dead, but we should start using it soon.
+#[allow(dead_code)]
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinDomainKind {
     Nat,
@@ -218,6 +220,8 @@ impl BuiltinEncoder {
         }
     }
 
+    // This code is currently dead, but we should start using it soon.
+    #[allow(dead_code)]
     pub fn encode_builtin_domain(&self, kind: BuiltinDomainKind) -> vir::Domain {
         match kind {
             BuiltinDomainKind::Nat => self.encode_nat_builtin_domain(),
