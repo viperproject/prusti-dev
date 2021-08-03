@@ -43,10 +43,6 @@ impl MirrorEncoder {
         }
     }
 
-    pub fn get_viper_functions(&self) -> Vec<vir::Function> {
-        vec![]
-    }
-
     pub fn encode_mirrors(
         &mut self,
         // encoder: &Encoder,
