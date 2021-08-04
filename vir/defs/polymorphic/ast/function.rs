@@ -8,8 +8,6 @@ use crate::polymorphic::ast::*;
 use std::collections::HashMap;
 use std::fmt;
 
-use super::super::super::{legacy, converter};
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Function {
     pub name: String,
@@ -44,30 +42,5 @@ impl fmt::Display for Function {
             write!(f, "}}")?;
         }
         write!(f, "")
-    }
-}
-
-impl From<Function> for legacy::Function {
-    fn from(function: Function) -> legacy::Function {
-        legacy::Function {
-            name: function.name,
-            formal_args: function.formal_args.into_iter().map(|formal_arg| legacy::LocalVar::from(formal_arg)).collect(),
-            return_type: legacy::Type::from(function.return_type),
-            pres: function.pres.into_iter().map(|pre| legacy::Expr::from(pre)).collect(),
-            posts: function.posts.into_iter().map(|post| legacy::Expr::from(post)).collect(),
-            body: function.body.map(|body_expr| legacy::Expr::from(body_expr)),
-        }
-    }
-}
-
-impl converter::Generic for Function {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
-        let mut function = self;
-        function.formal_args = function.formal_args.into_iter().map(|formal_arg| formal_arg.substitute(map)).collect();
-        function.return_type = function.return_type.substitute(map);
-        function.pres = function.pres.into_iter().map(|pre| pre.substitute(map)).collect();
-        function.posts = function.posts.into_iter().map(|post| post.substitute(map)).collect();
-        function.body = function.body.map(|body_expr| body_expr.substitute(map));
-        function
     }
 }
