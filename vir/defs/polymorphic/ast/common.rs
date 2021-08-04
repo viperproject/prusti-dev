@@ -39,6 +39,12 @@ impl Position {
     }
 }
 
+impl Default for Position {
+    fn default() -> Self {
+        Position::new(0, 0, 0)
+    }
+}
+
 pub enum PermAmountError {
     InvalidAdd(PermAmount, PermAmount),
     InvalidSub(PermAmount, PermAmount)
@@ -128,6 +134,38 @@ impl Eq for Type {}
 impl Hash for Type {
     fn hash<H: Hasher>(&self, state: &mut H) {
         discriminant(self).hash(state);
+    }
+}
+
+impl Type {
+    pub fn typed_ref<S: Into<String>>(name: S) -> Self {
+        Type::TypedRef(TypedRef {
+            label: name.into(),
+            arguments: vec![],
+        })
+    }
+
+    pub fn name(&self) -> String {
+        match self {
+            Type::Bool => "bool".to_string(),
+            Type::Int => "int".to_string(),
+            Type::TypedRef(ref pred_name) => pred_name.to_string(),
+            Type::Domain(ref pred_name) => pred_name.to_string(),
+            Type::Snapshot(ref pred_name) => pred_name.to_string(),
+            Type::TypeVar(_) => "TypeVar".to_string(),
+            Type::Seq(_) => "Seq".to_string(),
+        }
+    }
+
+    /// Construct a new VIR type that corresponds to an enum variant.
+    pub fn variant(self, variant: &str) -> Self {
+        match self {
+            Type::TypedRef(mut typed_ref) => {
+                typed_ref.label.push_str(variant);
+                Type::TypedRef(typed_ref)
+            }
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -287,6 +325,15 @@ impl fmt::Debug for LocalVar {
     }
 }
 
+impl LocalVar {
+    pub fn new<S: Into<String>>(name: S, typ: Type) -> Self {
+        LocalVar {
+            name: name.into(),
+            typ,
+        }
+    }
+}
+
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
@@ -302,5 +349,21 @@ impl fmt::Display for Field {
 impl fmt::Debug for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}: {}", self.name, self.typ)
+    }
+}
+
+impl Field {
+    pub fn new<S: Into<String>>(name: S, typ: Type) -> Self {
+        Field {
+            name: name.into(),
+            typ,
+        }
+    }
+
+    pub fn typed_ref_name(&self) -> Option<String> {
+        match self.typ {
+            Type::TypedRef(ref typed_ref) => Some(typed_ref.label.clone()),
+            _ => None,
+        }
     }
 }

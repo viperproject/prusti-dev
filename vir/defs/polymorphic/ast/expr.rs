@@ -70,6 +70,107 @@ impl fmt::Display for Expr {
     }
 }
 
+impl Expr {
+    pub fn pos(&self) -> Position {
+        match self {
+            Expr::Local(local) => local.position,
+            Expr::Variant(variant) => variant.position,
+            Expr::Field(field) => field.position,
+            Expr::AddrOf(addr_of) => addr_of.position,
+            Expr::Const(const_expr) => const_expr.position,
+            Expr::LabelledOld(labelled_old) => labelled_old.position,
+            Expr::MagicWand(magic_wand) => magic_wand.position,
+            Expr::PredicateAccessPredicate(predicate_access_predicate) => predicate_access_predicate.position,
+            Expr::FieldAccessPredicate(field_access_predicate) => field_access_predicate.position,
+            Expr::UnaryOp(unary_op) => unary_op.position,
+            Expr::BinOp(bin_op) => bin_op.position,
+            Expr::Unfolding(unfolding) => unfolding.position,
+            Expr::Cond(cond) => cond.position,
+            Expr::ForAll(for_all) => for_all.position,
+            Expr::Exists(exists) => exists.position,
+            Expr::LetExpr(let_expr) => let_expr.position,
+            Expr::FuncApp(func_app) => func_app.position,
+            Expr::DomainFuncApp(domain_func_app) => domain_func_app.position,
+            Expr::InhaleExhale(inhale_exhale) => inhale_exhale.position,
+            Expr::SnapApp(snap_app) => snap_app.position,
+            Expr::ContainerOp(container_op) => container_op.position,
+            Expr::Seq(seq) => seq.position,
+            Expr::Downcast(downcast_expr) => (*downcast_expr.base).pos(),
+        }
+    }
+
+    pub fn acc_permission(place: Expr, perm: PermAmount) -> Self {
+        Expr::FieldAccessPredicate(FieldAccessPredicate {
+            base: Box::new(place),
+            permission: perm,
+            position: Position::default(),
+        })
+    }
+
+    pub fn eq_cmp(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOp {
+            op_kind: BinOpKind::EqCmp,
+            left: Box::new(left),
+            right: Box::new(right),
+            position: Position::default(),
+        })
+    }
+
+    pub fn le_cmp(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOp {
+            op_kind: BinOpKind::LeCmp,
+            left: Box::new(left),
+            right: Box::new(right),
+            position: Position::default(),
+        })
+    }
+
+    pub fn and(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOp {
+            op_kind: BinOpKind::And,
+            left: Box::new(left),
+            right: Box::new(right),
+            position: Position::default(),
+        })
+    }
+
+    pub fn or(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOp {
+            op_kind: BinOpKind::Or,
+            left: Box::new(left),
+            right: Box::new(right),
+            position: Position::default(),
+        })
+    }
+
+    pub fn implies(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOp {
+            op_kind: BinOpKind::Implies,
+            left: Box::new(left),
+            right: Box::new(right),
+            position: Position::default(),
+        })
+    }
+
+    pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, perm: PermAmount) -> Self {
+        let pos = place.pos();
+        Expr::PredicateAccessPredicate(PredicateAccessPredicate {
+            predicate_name: name.to_string(),
+            argument: Box::new(place),
+            permission: perm,
+            position: pos,
+        })
+    }
+
+    pub fn field(self, field: Field) -> Self {
+        Expr::Field(FieldExpr {
+            base: Box::new(self),
+            field: field,
+            position: Position::default(),
+        })
+    }
+}
+
 /// A component that can be used to represent a place as a vector.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PlaceComponent {
@@ -825,5 +926,48 @@ impl fmt::Display for Const {
             Const::BigInt(ref val) => write!(f, "{}", val),
             Const::FnPtr => write!(f, "FnPtr"),
         }
+    }
+}
+
+pub trait ExprIterator {
+    /// Conjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    fn conjoin(&mut self) -> Expr;
+
+    /// Disjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    fn disjoin(&mut self) -> Expr;
+}
+
+impl<T> ExprIterator for T
+where
+    T: Iterator<Item = Expr>,
+{
+    fn conjoin(&mut self) -> Expr {
+        fn rfold<T>(s: &mut T) -> Expr
+        where
+            T: Iterator<Item = Expr>,
+        {
+            if let Some(conjunct) = s.next() {
+                Expr::and(conjunct, rfold(s))
+            } else {
+                true.into()
+            }
+        }
+        rfold(self)
+    }
+
+    fn disjoin(&mut self) -> Expr {
+        fn rfold<T>(s: &mut T) -> Expr
+        where
+            T: Iterator<Item = Expr>,
+        {
+            if let Some(conjunct) = s.next() {
+                Expr::or(conjunct, rfold(s))
+            } else {
+                false.into()
+            }
+        }
+        rfold(self)
     }
 }
