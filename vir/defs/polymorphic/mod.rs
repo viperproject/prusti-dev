@@ -8,8 +8,10 @@ pub use self::ast::*;
 pub use self::cfg::*;
 pub use self::borrows::*;
 pub use self::program::*;
+pub use self::conversions::*;
 
 pub mod ast;
 pub mod cfg;
 pub mod borrows;
 pub mod program;
+pub mod conversions;
