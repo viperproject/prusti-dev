@@ -149,9 +149,9 @@ impl Type {
         match self {
             Type::Bool => "bool".to_string(),
             Type::Int => "int".to_string(),
-            Type::TypedRef(ref pred_name) => pred_name.to_string(),
-            Type::Domain(ref pred_name) => pred_name.to_string(),
-            Type::Snapshot(ref pred_name) => pred_name.to_string(),
+            Type::TypedRef(ref typed_ref) => typed_ref.label.clone(),
+            Type::Domain(ref domain) => domain.label.clone(),
+            Type::Snapshot(ref snapshot) => snapshot.label.clone(),
             Type::TypeVar(_) => "TypeVar".to_string(),
             Type::Seq(_) => "Seq".to_string(),
         }
