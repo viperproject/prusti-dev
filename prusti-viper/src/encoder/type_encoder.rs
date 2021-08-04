@@ -14,6 +14,8 @@ use prusti_common::{
     vir_local,
     vir::{ExprIterator, ExprFolder},
 };
+use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::polymorphic::ExprIterator as PolymorphicExprIterator;
 // use prusti_interface::specifications::*;
 // use rustc::middle::const_val::ConstVal;
 use rustc_middle::ty;
@@ -43,22 +45,30 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_type(self) -> EncodingResult<vir::Type> {
+        Ok(self.encode_polymorphic_type()?.into())
+    }
+
+    pub fn encode_polymorphic_type(self) -> EncodingResult<polymorphic_vir::Type> {
         debug!("Encode type '{:?}'", self.ty);
-        Ok(vir::Type::TypedRef(self.encode_predicate_use()?))
+        Ok(polymorphic_vir::Type::typed_ref(self.encode_predicate_use()?))
     }
 
     pub fn encode_value_field(self) -> EncodingResult<vir::Field> {
+        Ok(self.encode_polymorphic_value_field()?.into())
+    }
+
+    pub fn encode_polymorphic_value_field(self) -> EncodingResult<polymorphic_vir::Field> {
         trace!("Encode value field for type '{:?}'", self.ty);
         Ok(match self.ty.kind() {
-            ty::TyKind::Bool => vir::Field::new("val_bool", vir::Type::Bool),
+            ty::TyKind::Bool => polymorphic_vir::Field::new("val_bool", polymorphic_vir::Type::Bool),
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
-                vir::Field::new("val_int", vir::Type::Int)
+                polymorphic_vir::Field::new("val_int", polymorphic_vir::Type::Int)
             }
 
             ty::TyKind::Ref(_, ref ty, _) => {
                 let type_name = self.encoder.encode_type_predicate_use(ty)?;
-                vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
+                polymorphic_vir::Field::new("val_ref", polymorphic_vir::Type::typed_ref(type_name))
             }
 
             // For composed data structures, we typically use a snapshot rather than a field.
@@ -68,7 +78,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Closure(_, _)
             | ty::TyKind::FnDef(_, _) => {
                 let type_name = self.encoder.encode_type_predicate_use(self.ty)?;
-                vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
+                polymorphic_vir::Field::new("val_ref", polymorphic_vir::Type::typed_ref(type_name))
             }
 
             ty::TyKind::RawPtr(ty::TypeAndMut { .. }) => {
@@ -176,7 +186,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    fn get_integer_bounds(&self) -> Option<(vir::Expr, vir::Expr)> {
+    fn get_integer_bounds(&self) -> Option<(polymorphic_vir::Expr, polymorphic_vir::Expr)> {
         match self.ty.kind() {
             ty::TyKind::Int(int_ty) => {
                 let bounds = match int_ty {
@@ -211,8 +221,19 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     pub fn encode_bounds(self, var: &vir::Expr) -> Vec<vir::Expr> {
         if let Some((lower, upper)) = self.get_integer_bounds() {
             vec![
-                vir::Expr::le_cmp(lower, var.clone()),
-                vir::Expr::le_cmp(var.clone(), upper),
+                vir::Expr::le_cmp(lower.into(), var.clone()),
+                vir::Expr::le_cmp(var.clone(), upper.into()),
+            ]
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn encode_polymorphic_bounds(self, var: &polymorphic_vir::Expr) -> Vec<polymorphic_vir::Expr> {
+        if let Some((lower, upper)) = self.get_integer_bounds() {
+            vec![
+                polymorphic_vir::Expr::le_cmp(lower, var.clone()),
+                polymorphic_vir::Expr::le_cmp(var.clone(), upper),
             ]
         } else {
             Vec::new()
@@ -220,14 +241,18 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_predicate_def(self) -> EncodingResult<Vec<vir::Predicate>> {
+        Ok(self.encode_polymorphic_predicate_def()?.into_iter().map(|predicate| predicate.into()).collect())
+    }
+
+    pub fn encode_polymorphic_predicate_def(self) -> EncodingResult<Vec<polymorphic_vir::Predicate>> {
         debug!("Encode type predicate '{:?}'", self.ty);
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
-        let typ = vir::Type::TypedRef(predicate_name.clone());
+        let typ = polymorphic_vir::Type::typed_ref(predicate_name.clone());
 
         Ok(match self.ty.kind() {
-            ty::TyKind::Bool => vec![vir::Predicate::new_primitive_value(
+            ty::TyKind::Bool => vec![polymorphic_vir::Predicate::new_primitive_value(
                 typ,
-                self.encoder.encode_value_field(self.ty)?,
+                self.encoder.encode_polymorphic_value_field(self.ty)?,
                 None,
                 false,
             )],
@@ -243,18 +268,18 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 } else {
                     false
                 };
-                vec![vir::Predicate::new_primitive_value(
+                vec![polymorphic_vir::Predicate::new_primitive_value(
                     typ,
-                    self.encoder.encode_value_field(self.ty)?,
+                    self.encoder.encode_polymorphic_value_field(self.ty)?,
                     bounds,
                     unsigned,
                 )]
             }
 
             ty::TyKind::Ref(_, ref ty, _) => {
-                vec![vir::Predicate::new_struct(
+                vec![polymorphic_vir::Predicate::new_struct(
                     typ,
-                    vec![self.encoder.encode_dereference_field(ty)?],
+                    vec![self.encoder.encode_polymorphic_dereference_field(ty)?],
                 )]
             },
 
@@ -264,10 +289,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     .enumerate()
                     .map(|(field_num, ty)| {
                         let field_name = format!("tuple_{}", field_num);
-                        self.encoder.encode_raw_ref_field(field_name, ty.expect_ty())
+                        self.encoder.encode_polymorphic_raw_ref_field(field_name, ty.expect_ty())
                     })
                     .collect::<Result<_, _>>()?;
-                vec![vir::Predicate::new_struct(typ, fields)]
+                vec![polymorphic_vir::Predicate::new_struct(typ, fields)]
             }
 
             ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
@@ -280,21 +305,21 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         let field_name = field.ident.to_string();
                         let field_ty = field.ty(tcx, subst);
                         fields.push(
-                            self.encoder.encode_struct_field(
+                            self.encoder.encode_polymorphic_struct_field(
                                 &field_name,
                                 field_ty
                             )?
                         );
                     }
-                    vec![vir::Predicate::new_struct(typ, fields)]
+                    vec![polymorphic_vir::Predicate::new_struct(typ, fields)]
                 } else {
                     debug!("ADT {:?} has {} variants", adt_def, num_variants);
-                    let discriminant_field = self.encoder.encode_discriminant_field();
-                    let this = vir::Predicate::construct_this(typ.clone());
+                    let discriminant_field = self.encoder.encode_polymorphic_discriminant_field();
+                    let this = polymorphic_vir::Predicate::construct_this(typ.clone());
                     let discriminant_loc =
-                        vir::Expr::from(this.clone()).field(discriminant_field.clone());
+                        polymorphic_vir::Expr::from(this.clone()).field(discriminant_field.clone());
                     let discriminant_bounds =
-                        compute_discriminant_bounds(adt_def, tcx, &discriminant_loc);
+                        compute_polymorphic_discriminant_bounds(adt_def, tcx, &discriminant_loc);
 
                     let discriminant_values = compute_discriminant_values(adt_def, tcx);
                     let variants: Vec<_> = adt_def
@@ -309,11 +334,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                                     debug!("Encoding field {:?}", field);
                                     let field_name = &field.ident.as_str();
                                     let field_ty = field.ty(tcx, subst);
-                                    self.encoder.encode_struct_field(field_name, field_ty)
+                                    self.encoder.encode_polymorphic_struct_field(field_name, field_ty)
                                 })
                                 .collect::<Result<_, _>>();
                             let variant_name = &variant_def.ident.as_str();
-                            let guard = vir::Expr::eq_cmp(
+                            let guard = polymorphic_vir::Expr::eq_cmp(
                                 discriminant_loc.clone().into(),
                                 variant_index.into(),
                             );
@@ -321,19 +346,19 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                             fields_res.map(|fields| (
                                 guard,
                                 variant_name.to_string(),
-                                vir::StructPredicate::new(variant_typ, fields),
+                                polymorphic_vir::StructPredicate::new(variant_typ, fields),
                             ))
                         })
                         .collect::<Result<_, _>>()?;
                     for (_, name, _) in &variants {
-                        self.encoder.encode_enum_variant_field(name);
+                        self.encoder.encode_polymorphic_enum_variant_field(name);
                     }
                     let mut predicates: Vec<_> = variants
                         .iter()
                         .filter(|(_, _, predicate)| !predicate.has_empty_body())
-                        .map(|(_, _, predicate)| vir::Predicate::Struct(predicate.clone()))
+                        .map(|(_, _, predicate)| polymorphic_vir::Predicate::Struct(predicate.clone()))
                         .collect();
-                    let enum_predicate = vir::Predicate::new_enum(
+                    let enum_predicate = polymorphic_vir::Predicate::new_enum(
                         this,
                         discriminant_field,
                         discriminant_bounds,
@@ -348,20 +373,20 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 let num_variants = adt_def.variants.len();
                 assert_eq!(num_variants, 1);
                 let field_ty = self.ty.boxed_ty();
-                vec![vir::Predicate::new_struct(
+                vec![polymorphic_vir::Predicate::new_struct(
                     typ,
-                    vec![self.encoder.encode_dereference_field(field_ty)?],
+                    vec![self.encoder.encode_polymorphic_dereference_field(field_ty)?],
                 )]
             }
 
             ty::TyKind::Never => {
                 // FIXME: This should be a predicate with the body `false`. See issue #38.
-                vec![vir::Predicate::new_abstract(typ)]
+                vec![polymorphic_vir::Predicate::new_abstract(typ)]
             }
 
             ty::TyKind::Param(_) => {
                 // special case: type parameters shall be encoded as *abstract* predicates
-                vec![vir::Predicate::new_abstract(typ)]
+                vec![polymorphic_vir::Predicate::new_abstract(typ)]
             }
 
             ty::TyKind::Closure(_def_id, internal_substs) => {
@@ -377,7 +402,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         // let field_name = "upvars".to_owned();
                         // let field = self.encoder.encode_raw_ref_field(field_name, cl_upvars);
                         // let pred = vir::Predicate::new_struct(typ, vec![field.clone()]);
-                        let pred = vir::Predicate::new_struct(typ.clone(), vec![]);
+                        let pred = polymorphic_vir::Predicate::new_struct(typ.clone(), vec![]);
                         // trace!("Encoded closure type {:?} as {:?} with field {:?}", typ, pred, field);
                         trace!("Encoded closure type {:?} as {:?}", typ, pred);
                         vec![pred]
@@ -389,13 +414,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Array(..) => {
                 vec![
-                    vir::Predicate::new_abstract(vir::Type::TypedRef(predicate_name)),
+                    polymorphic_vir::Predicate::new_abstract(polymorphic_vir::Type::typed_ref(predicate_name)),
                 ]
             }
 
             ref ty_variant => {
                 debug!("Encoding of type '{:?}' is incomplete", ty_variant);
-                vec![vir::Predicate::new_abstract(typ)]
+                vec![polymorphic_vir::Predicate::new_abstract(typ)]
             }
         })
     }
@@ -548,6 +573,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_invariant_def(self) -> EncodingResult<vir::Function> {
+        Ok(self.encode_polymorphic_invariant_def()?.into())
+    }
+
+    pub fn encode_polymorphic_invariant_def(self) -> EncodingResult<polymorphic_vir::Function> {
         debug!("[enter] encode_invariant_def({:?})", self.ty);
 
         // let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
@@ -721,11 +750,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         // snapshots. However, that mechanism is currently very hacky and needs
         // proper refactoring, which is blocked by VIR 2.0.
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
-        let self_local_var = vir_local!{ self: {vir::Type::TypedRef(predicate_name.clone())} };
-        Ok(vir::Function {
+        let self_local_var = polymorphic_vir::LocalVar::new(predicate_name.clone(), polymorphic_vir::Type::typed_ref(predicate_name.clone()));
+        Ok(polymorphic_vir::Function {
             name: self.encoder.encode_type_invariant_use(self.ty)?,
             formal_args: vec![self_local_var],
-            return_type: vir::Type::Bool,
+            return_type: polymorphic_vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),
             body: Some(true.into()),
@@ -738,6 +767,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_tag_def(self) -> vir::Function {
+        self.encode_tag_def().into()
+    }
+
+    pub fn encode_polymorphic_tag_def(self) -> polymorphic_vir::Function {
         debug!("Encode type invariant '{:?}'", self.ty);
 
         //let pred_name = self.encoder.encode_type_tag_use(self.ty);
@@ -747,7 +780,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
         let body = match self.ty.kind() {
             ty::TyKind::Param(_param_ty) => None,
-            _ => Some((vir::Const::Int((self.ty as *const ty::TyS<'tcx>) as i64)).into()),
+            _ => Some((polymorphic_vir::Const::Int((self.ty as *const ty::TyS<'tcx>) as i64)).into()),
         };
 
         //let precondition = vir::Expr::PredicateAccessPredicate(
@@ -756,10 +789,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         //    vir::PermAmount::Write,
         //);
 
-        let function = vir::Function {
+        let function = polymorphic_vir::Function {
             name: tag_name,
             formal_args: Vec::new(),
-            return_type: vir::Type::Int,
+            return_type: polymorphic_vir::Type::Int,
             pres: Vec::new(),
             posts: Vec::new(),
             body,
@@ -815,6 +848,40 @@ pub fn compute_discriminant_bounds<'tcx>(
                     vir::Expr::and(
                         vir::Expr::le_cmp(from.into(), discriminant_loc.clone()),
                         vir::Expr::le_cmp(discriminant_loc.clone(), to.into()),
+                    )
+                }
+            })
+            .disjoin()
+    }
+
+    // Handle *signed* discriminats
+    let discr_values = compute_discriminant_values(adt_def, tcx);
+    build_discr_range_expr(discriminant_loc, discr_values)
+}
+
+pub fn compute_polymorphic_discriminant_bounds<'tcx>(
+    adt_def: &'tcx ty::AdtDef,
+    tcx: ty::TyCtxt<'tcx>,
+    discriminant_loc: &polymorphic_vir::Expr,
+) -> polymorphic_vir::Expr {
+    /// Try to produce the minimal disjunction.
+    fn build_discr_range_expr<T: Ord + PartialEq + Eq + Copy + Into<polymorphic_vir::Expr> + PlusOne>(
+        discriminant_loc: &polymorphic_vir::Expr,
+        discr_values: Vec<T>,
+    ) -> polymorphic_vir::Expr {
+        if discr_values.is_empty() {
+            // A `false` here is unsound. See issues #38 and #158.
+            return true.into();
+        }
+        range_extract(discr_values)
+            .into_iter()
+            .map(|(from, to)| {
+                if from == to {
+                    polymorphic_vir::Expr::eq_cmp(discriminant_loc.clone(), from.into())
+                } else {
+                    polymorphic_vir::Expr::and(
+                        polymorphic_vir::Expr::le_cmp(from.into(), discriminant_loc.clone()),
+                        polymorphic_vir::Expr::le_cmp(discriminant_loc.clone(), to.into()),
                     )
                 }
             })
