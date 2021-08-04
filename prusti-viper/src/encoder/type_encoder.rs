@@ -767,7 +767,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_tag_def(self) -> vir::Function {
-        self.encode_tag_def().into()
+        self.encode_polymorphic_tag_def().into()
     }
 
     pub fn encode_polymorphic_tag_def(self) -> polymorphic_vir::Function {
