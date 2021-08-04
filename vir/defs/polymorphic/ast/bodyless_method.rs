@@ -8,8 +8,6 @@ use crate::polymorphic::ast::*;
 use std::fmt;
 use std::collections::HashMap;
 
-use super::super::super::{legacy, converter};
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct BodylessMethod {
     pub name: String,
@@ -37,24 +35,5 @@ impl fmt::Display for BodylessMethod {
             first = false
         }
         write!(f, ");")
-    }
-}
-
-impl From<BodylessMethod> for legacy::BodylessMethod {
-    fn from(bodyless_method: BodylessMethod) -> legacy::BodylessMethod {
-        legacy::BodylessMethod {
-            name: bodyless_method.name,
-            formal_args: bodyless_method.formal_args.into_iter().map(|formal_arg| legacy::LocalVar::from(formal_arg)).collect(),
-            formal_returns: bodyless_method.formal_returns.into_iter().map(|formal_return| legacy::LocalVar::from(formal_return)).collect(),
-        }
-    }
-}
-
-impl converter::Generic for BodylessMethod {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
-        let mut bodyless_method = self;
-        bodyless_method.formal_args = bodyless_method.formal_args.into_iter().map(|formal_arg| formal_arg.substitute(map)).collect();
-        bodyless_method.formal_returns = bodyless_method.formal_returns.into_iter().map(|formal_return| formal_return.substitute(map)).collect();
-        bodyless_method
     }
 }

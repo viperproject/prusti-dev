@@ -8,8 +8,6 @@ use super::ast::*;
 use std::collections::{HashMap, VecDeque};
 use std::fmt;
 
-use super::super::{legacy, converter};
-
 /// The method-unique borrow identifier.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct Borrow(pub(crate) usize);
@@ -17,18 +15,6 @@ pub struct Borrow(pub(crate) usize);
 impl fmt::Debug for Borrow {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "L{}", self.0)
-    }
-}
-
-impl From<Borrow> for legacy::Borrow {
-    fn from(borrow: Borrow) -> legacy::Borrow {
-        legacy::Borrow(borrow.0)
-    }
-}
-
-impl converter::Generic for Borrow {
-    fn substitute(self, _map: &HashMap<TypeVar, Type>) -> Self {
-        self
     }
 }
 
@@ -58,44 +44,6 @@ impl fmt::Debug for Node {
     }
 }
 
-impl From<Node> for legacy::Node {
-    fn from(node: Node) -> legacy::Node {
-        legacy::Node {
-            guard: legacy::Expr::from(node.guard),
-            borrow: legacy::Borrow::from(node.borrow),
-            reborrowing_nodes: node.reborrowing_nodes.into_iter().map(|reborrowing_node| legacy::Borrow::from(reborrowing_node)).collect(),
-            reborrowed_nodes: node.reborrowed_nodes.into_iter().map(|reborrowed_node| legacy::Borrow::from(reborrowed_node)).collect(),
-            stmts: node.stmts.into_iter().map(|stmt| legacy::Stmt::from(stmt)).collect(),
-            borrowed_places: node.borrowed_places.into_iter().map(|borrowed_place| legacy::Expr::from(borrowed_place)).collect(),
-            conflicting_borrows: node.conflicting_borrows.into_iter().map(|conflicting_borrow| legacy::Borrow::from(conflicting_borrow)).collect(),
-            alive_conflicting_borrows: node.alive_conflicting_borrows.into_iter().map(|alive_conflicting_borrow| legacy::Borrow::from(alive_conflicting_borrow)).collect(),
-            place: match node.place {
-                Some(expr) => Some(legacy::Expr::from(expr)),
-                _ => None,
-            },
-        }
-    }
-}
-
-impl converter::Generic for Node {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
-        let mut node = self;
-        node.guard = node.guard.substitute(map);
-        node.borrow = node.borrow.substitute(map);
-        node.reborrowing_nodes = node.reborrowing_nodes.into_iter().map(|reborrowing_node| reborrowing_node.substitute(map)).collect();
-        node.reborrowed_nodes = node.reborrowed_nodes.into_iter().map(|reborrowed_nodes| reborrowed_nodes.substitute(map)).collect();
-        node.stmts = node.stmts.into_iter().map(|stmt| stmt.substitute(map)).collect();
-        node.borrowed_places = node.borrowed_places.into_iter().map(|borrowed_place| borrowed_place.substitute(map)).collect();
-        node.conflicting_borrows = node.conflicting_borrows.into_iter().map(|conflicting_borrow| conflicting_borrow.substitute(map)).collect();
-        node.alive_conflicting_borrows = node.alive_conflicting_borrows.into_iter().map(|alive_conflicting_borrow| alive_conflicting_borrow.substitute(map)).collect();
-        node.place = match node.place {
-            Some(expr) => Some(expr.substitute(map)),
-            _ => None,
-        };
-        node
-    }
-}
-
 /// Reborrowing directed acyclic graph (DAG). It should not be mutated
 /// after it is constructed. For construction use `DAGBuilder`.
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -107,26 +55,6 @@ pub struct DAG {
     pub(crate) nodes: Vec<Node>,
     #[serde(skip)]
     pub(crate) borrowed_places: Vec<Expr>,
-}
-
-impl From<DAG> for legacy::DAG {
-    fn from(dag: DAG) -> legacy::DAG {
-        legacy::DAG {
-            borrow_indices: dag.borrow_indices.into_iter().map(|(borrow, index)| (legacy::Borrow::from(borrow), index)).collect(),
-            nodes: dag.nodes.into_iter().map(|node| legacy::Node::from(node)).collect(),
-            borrowed_places: dag.borrowed_places.into_iter().map(|borrowed_place| legacy::Expr::from(borrowed_place)).collect(),
-        }
-    }
-}
-
-impl converter::Generic for DAG {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
-        let mut dag = self;
-        dag.borrow_indices = dag.borrow_indices.into_iter().map(|(borrow, index)| (borrow.substitute(map), index)).collect();
-        dag.nodes = dag.nodes.into_iter().map(|node| node.substitute(map)).collect();
-        dag.borrowed_places = dag.borrowed_places.into_iter().map(|borrowed_place| borrowed_place.substitute(map)).collect();
-        dag
-    }
 }
 
 /// A struct for constructing the reborrowing DAG.

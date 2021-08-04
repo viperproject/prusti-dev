@@ -8,10 +8,8 @@ use crate::polymorphic::ast::*;
 use std::fmt;
 use std::collections::HashMap;
 
-use super::super::super::{legacy, converter};
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Trigger(Vec<Expr>);
+pub struct Trigger(pub(crate) Vec<Expr>);
 
 impl fmt::Display for Trigger {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -24,20 +22,6 @@ impl fmt::Display for Trigger {
                 .collect::<Vec<String>>()
                 .join(", ")
         )
-    }
-}
-
-impl From<Trigger> for legacy::Trigger {
-    fn from(trigger: Trigger) -> legacy::Trigger {
-        legacy::Trigger::new(trigger.0.into_iter().map(|expr| legacy::Expr::from(expr)).collect())
-    }
-}
-
-impl converter::Generic for Trigger {
-    fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
-        let mut trigger = self;
-        trigger.0 = trigger.0.into_iter().map(|expr| expr.substitute(map)).collect();
-        trigger
     }
 }
 

@@ -6,5 +6,7 @@
 
 
 pub use self::polymorphic_to_legacy::*;
+pub use self::type_substitution::Generic;
 
 pub mod polymorphic_to_legacy;
+pub mod type_substitution;
