@@ -33,6 +33,7 @@ use prusti_interface::specs::typed::SpecificationId;
 use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
 use prusti_interface::PrustiError;
 use prusti_specs::specifications::common::SpecIdRef;
+use vir_crate::polymorphic as polymorphic_vir;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 // use rustc::middle::const_val::ConstVal;
@@ -113,7 +114,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_tags: RefCell<HashMap<String, vir::FunctionIdentifier>>,
     type_discriminant_funcs: RefCell<HashMap<String, vir::FunctionIdentifier>>,
     type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
-    fields: RefCell<HashMap<String, vir::Field>>,
+    fields: RefCell<HashMap<String, polymorphic_vir::Field>>,
     snapshot_encoder: RefCell<SnapshotEncoder>,
     mirror_encoder: RefCell<MirrorEncoder>,
     array_types_encoder: RefCell<ArrayTypesEncoder<'tcx>>,
@@ -494,8 +495,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Field> {
+        Ok(self.encode_polymorphic_value_field(ty)?.into())
+    }
+
+    pub fn encode_polymorphic_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<polymorphic_vir::Field> {
         let type_encoder = TypeEncoder::new(self, ty);
-        let field = type_encoder.encode_value_field()?;
+        let field = type_encoder.encode_polymorphic_value_field()?;
         self.fields
             .borrow_mut()
             .entry(field.name.clone())
@@ -508,47 +513,75 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         viper_field_name: String,
         ty: ty::Ty<'tcx>
     ) -> EncodingResult<vir::Field> {
+        Ok(self.encode_polymorphic_raw_ref_field(viper_field_name, ty)?.into())
+    }
+
+    pub fn encode_polymorphic_raw_ref_field(
+        &self,
+        viper_field_name: String,
+        ty: ty::Ty<'tcx>
+    ) -> EncodingResult<polymorphic_vir::Field> {
         let type_name = self.encode_type_predicate_use(ty)?;
         self.fields
             .borrow_mut()
             .entry(viper_field_name.clone())
             .or_insert_with(|| {
                 // Do not store the name of the type in self.fields
-                vir::Field::new(
+                polymorphic_vir::Field::new(
                     viper_field_name.clone(),
-                    vir::Type::TypedRef("".to_string()),
+                    polymorphic_vir::Type::typed_ref(""),
                 )
             });
-        Ok(vir::Field::new(viper_field_name, vir::Type::TypedRef(type_name)))
+        Ok(polymorphic_vir::Field::new(viper_field_name, polymorphic_vir::Type::typed_ref(type_name)))
     }
 
     pub fn encode_dereference_field(&self, ty: ty::Ty<'tcx>)
         -> EncodingResult<vir::Field>
     {
-        self.encode_raw_ref_field("val_ref".to_string(), ty)
+        Ok(self.encode_polymorphic_dereference_field(ty)?.into())
+    }
+
+    pub fn encode_polymorphic_dereference_field(&self, ty: ty::Ty<'tcx>)
+    -> EncodingResult<polymorphic_vir::Field>
+    {
+        self.encode_polymorphic_raw_ref_field("val_ref".to_string(), ty)
     }
 
     pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>)
         -> EncodingResult<vir::Field>
     {
+        Ok(self.encode_polymorphic_struct_field(field_name, ty)?.into())
+    }
+
+    pub fn encode_polymorphic_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>)
+    -> EncodingResult<polymorphic_vir::Field>
+    {
         let viper_field_name = format!("f${}", field_name);
-        self.encode_raw_ref_field(viper_field_name, ty)
+        self.encode_polymorphic_raw_ref_field(viper_field_name, ty)
     }
 
     /// Creates a field that corresponds to the enum variant ``index``.
     pub fn encode_enum_variant_field(&self, index: &str) -> vir::Field {
+        self.encode_polymorphic_enum_variant_field(index).into()
+    }
+
+    pub fn encode_polymorphic_enum_variant_field(&self, index: &str) -> polymorphic_vir::Field {
         let name = format!("enum_{}", index);
         let mut fields = self.fields.borrow_mut();
         if !fields.contains_key(&name) {
-            let field = vir::Field::new(name.clone(), vir::Type::TypedRef("".to_string()));
+            let field = polymorphic_vir::Field::new(name.clone(), polymorphic_vir::Type::typed_ref(""));
             fields.insert(name.clone(), field);
         }
         fields.get(&name).cloned().unwrap()
     }
 
     pub fn encode_discriminant_field(&self) -> vir::Field {
+        self.encode_polymorphic_discriminant_field().into()
+    }
+
+    pub fn encode_polymorphic_discriminant_field(&self) -> polymorphic_vir::Field {
         let name = "discriminant";
-        let field = vir::Field::new(name, vir::Type::Int);
+        let field = polymorphic_vir::Field::new(name, polymorphic_vir::Type::Int);
         self.fields
             .borrow_mut()
             .entry(name.to_string())
@@ -773,6 +806,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_type_bounds(&self, var: &vir::Expr, ty: ty::Ty<'tcx>) -> Vec<vir::Expr> {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_bounds(var)
+    }
+
+    pub fn encode_polymorphic_type_bounds(&self, var: &polymorphic_vir::Expr, ty: ty::Ty<'tcx>) -> Vec<polymorphic_vir::Expr> {
+        let type_encoder = TypeEncoder::new(self, ty);
+        type_encoder.encode_polymorphic_bounds(var)
     }
 
     /// See `spec_encoder::encode_spec_assertion` for a description of the arguments.
