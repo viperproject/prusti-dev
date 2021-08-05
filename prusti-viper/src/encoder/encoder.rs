@@ -18,7 +18,7 @@ use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 use crate::encoder::spec_encoder::encode_spec_assertion;
 use crate::encoder::type_encoder::{
-    compute_discriminant_values, compute_discriminant_bounds, TypeEncoder,
+    compute_discriminant_values, compute_discriminant_bounds, TypeEncoder, encode_polymorphic_type_to_string,
 };
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
@@ -105,11 +105,11 @@ pub struct Encoder<'v, 'tcx: 'v> {
     /// where a pure function is required.
     stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::FunctionIdentifier>>,
     spec_functions: RefCell<HashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
-    type_predicate_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
+    type_predicate_types: RefCell<HashMap<ty::TyKind<'tcx>, polymorphic_vir::Type>>,
     type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     type_tag_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
-    type_predicates: RefCell<HashMap<String, vir::Predicate>>,
+    type_predicates: RefCell<HashMap<String, polymorphic_vir::Predicate>>,
     type_invariants: RefCell<HashMap<String, vir::FunctionIdentifier>>,
     type_tags: RefCell<HashMap<String, vir::FunctionIdentifier>>,
     type_discriminant_funcs: RefCell<HashMap<String, vir::FunctionIdentifier>>,
@@ -168,7 +168,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             failed_pure_functions: RefCell::new(HashSet::new()),
             stub_pure_functions: RefCell::new(HashMap::new()),
             spec_functions: RefCell::new(HashMap::new()),
-            type_predicate_names: RefCell::new(HashMap::new()),
+            type_predicate_types: RefCell::new(HashMap::new()),
             type_invariant_names: RefCell::new(HashMap::new()),
             type_tag_names: RefCell::new(HashMap::new()),
             predicate_types: RefCell::new(HashMap::new()),
@@ -310,11 +310,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn get_used_viper_predicates_map(&self) -> HashMap<String, vir::Predicate> {
-        self.type_predicates.borrow().clone()
+        self.type_predicates.borrow().clone().into_iter().map(|(str, predicate_type)| (str, predicate_type.into())).collect()
     }
 
     pub(super) fn get_viper_predicate(&self, name: &str) -> vir::Predicate {
-        self.type_predicates.borrow()[name].clone()
+        self.type_predicates.borrow()[name].clone().into()
     }
 
     pub(super) fn get_builtin_methods<'a>(
@@ -858,29 +858,41 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>)
         -> EncodingResult<String>
     {
-        if !self.type_predicate_names.borrow().contains_key(ty.kind()) {
+        Ok(encode_polymorphic_type_to_string(self.encode_polymorphic_type_predicate_use(ty)?.into())?)
+    }
+
+    pub fn encode_polymorphic_type_predicate_use(&self, ty: ty::Ty<'tcx>)
+        -> EncodingResult<polymorphic_vir::Type>
+    {
+        if !self.type_predicate_types.borrow().contains_key(ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let name = type_encoder.encode_predicate_use()?;
-            self.type_predicate_names
+            let encoded_type = type_encoder.encode_polymorphic_predicate_use()?;
+            self.type_predicate_types
                 .borrow_mut()
-                .insert(ty.kind().clone(), name.clone());
+                .insert(ty.kind().clone(), encoded_type.clone());
             self.predicate_types
                 .borrow_mut()
-                .insert(name, ty);
+                .insert(encode_polymorphic_type_to_string(encoded_type)?, ty);
             // Trigger encoding of definition
-            self.encode_type_predicate_def(ty)?;
+            self.encode_polymorphic_type_predicate_def(ty)?;
         }
-        let predicate_name = self.type_predicate_names.borrow()[&ty.kind()].clone();
-        Ok(predicate_name)
+        let predicate_type = self.type_predicate_types.borrow()[&ty.kind()].clone();
+        Ok(predicate_type)
     }
 
     pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>)
         -> EncodingResult<vir::Predicate>
     {
-        let predicate_name = self.encode_type_predicate_use(ty).unwrap();
+        Ok(self.encode_polymorphic_type_predicate_def(ty)?.into())
+    }
+
+    pub fn encode_polymorphic_type_predicate_def(&self, ty: ty::Ty<'tcx>)
+        -> EncodingResult<polymorphic_vir::Predicate>
+    {
+        let predicate_name = self.encode_type_predicate_use(ty)?;
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let predicates = type_encoder.encode_predicate_def()?;
+            let predicates = type_encoder.encode_polymorphic_predicate_def()?;
             for predicate in predicates {
                 self.log_vir_program_before_viper(predicate.to_string());
                 let predicate_name = predicate.name();
@@ -1426,15 +1438,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.current_tymap()
             .iter()
             .map(|(typ, subst)| {
-                let encoded_typ = self.encode_type(typ).map(|t| match t {
-                    vir::Type::TypedRef(s) => s.clone(),
-                    x => unreachable!("{:?}", x),
-                });
-                let encoded_subst = self.encode_type(subst).map(|s| match s {
-                    vir::Type::TypedRef(s) => s.clone(),
-                    x => unreachable!("{:?}", x),
-                });
-                transpose((encoded_typ, encoded_subst))
+                let typ_encoder = TypeEncoder::new(self, typ);
+                let subst_encoder = TypeEncoder::new(self, subst);
+                transpose((typ_encoder.encode_predicate_use(), subst_encoder.encode_predicate_use()))
             })
             .collect::<Result<_, _>>()
     }

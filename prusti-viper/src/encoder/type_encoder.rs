@@ -50,7 +50,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_polymorphic_type(self) -> EncodingResult<polymorphic_vir::Type> {
         debug!("Encode type '{:?}'", self.ty);
-        Ok(polymorphic_vir::Type::typed_ref(self.encode_predicate_use()?))
+        self.encode_polymorphic_predicate_use()
     }
 
     pub fn encode_value_field(self) -> EncodingResult<vir::Field> {
@@ -425,148 +425,117 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    /// The string to be appended to the encoding of certain types to make generics "less fragile".
-    fn encode_substs(&self, substs: ty::subst::SubstsRef<'tcx>) -> EncodingResult<String> {
-        let mut composed_name = vec![
-            "_beg_".to_string(),  // makes generics "less fragile"
-        ];
-        let mut first = true;
-        for kind in substs.iter() {
-            if first {
-                first = false
-            } else {
-                // makes generics "less fragile"
-                composed_name.push("_sep_".to_string());
-            }
-            if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                composed_name.push(
-                    self.encoder.encode_type_predicate_use(ty)?
-                )
-            }
-        }
-        composed_name.push("_end_".to_string()); // makes generics "less fragile"
-        Ok(composed_name.join("$"))
+    pub fn encode_predicate_use(self) -> EncodingResult<String> {
+        let typ = self.encoder.encode_polymorphic_type_predicate_use(self.ty)?;
+        encode_polymorphic_type_to_string(typ)
     }
 
-    pub fn encode_predicate_use(self) -> EncodingResult<String> {
+    pub fn encode_polymorphic_predicate_use(self) -> EncodingResult<polymorphic_vir::Type> {
         debug!("Encode type predicate name '{:?}'", self.ty);
 
         let result = match self.ty.kind() {
-            ty::TyKind::Bool => "bool".to_string(),
+            ty::TyKind::Bool => polymorphic_vir::Type::typed_ref("bool"),
 
-            ty::TyKind::Int(ty::IntTy::I8) => "i8".to_string(),
-            ty::TyKind::Int(ty::IntTy::I16) => "i16".to_string(),
-            ty::TyKind::Int(ty::IntTy::I32) => "i32".to_string(),
-            ty::TyKind::Int(ty::IntTy::I64) => "i64".to_string(),
-            ty::TyKind::Int(ty::IntTy::I128) => "i128".to_string(),
-            ty::TyKind::Int(ty::IntTy::Isize) => "isize".to_string(),
+            ty::TyKind::Int(ty::IntTy::I8) => polymorphic_vir::Type::typed_ref("i8"),
+            ty::TyKind::Int(ty::IntTy::I16) => polymorphic_vir::Type::typed_ref("i16"),
+            ty::TyKind::Int(ty::IntTy::I32) => polymorphic_vir::Type::typed_ref("i32"),
+            ty::TyKind::Int(ty::IntTy::I64) => polymorphic_vir::Type::typed_ref("i64"),
+            ty::TyKind::Int(ty::IntTy::I128) => polymorphic_vir::Type::typed_ref("i128"),
+            ty::TyKind::Int(ty::IntTy::Isize) => polymorphic_vir::Type::typed_ref("isize"),
 
-            ty::TyKind::Uint(ty::UintTy::U8) => "u8".to_string(),
-            ty::TyKind::Uint(ty::UintTy::U16) => "u16".to_string(),
-            ty::TyKind::Uint(ty::UintTy::U32) => "u32".to_string(),
-            ty::TyKind::Uint(ty::UintTy::U64) => "u64".to_string(),
-            ty::TyKind::Uint(ty::UintTy::U128) => "u128".to_string(),
-            ty::TyKind::Uint(ty::UintTy::Usize) => "usize".to_string(),
+            ty::TyKind::Uint(ty::UintTy::U8) => polymorphic_vir::Type::typed_ref("u8"),
+            ty::TyKind::Uint(ty::UintTy::U16) => polymorphic_vir::Type::typed_ref("u16"),
+            ty::TyKind::Uint(ty::UintTy::U32) => polymorphic_vir::Type::typed_ref("u32"),
+            ty::TyKind::Uint(ty::UintTy::U64) => polymorphic_vir::Type::typed_ref("u64"),
+            ty::TyKind::Uint(ty::UintTy::U128) => polymorphic_vir::Type::typed_ref("u128"),
+            ty::TyKind::Uint(ty::UintTy::Usize) => polymorphic_vir::Type::typed_ref("usize"),
 
-            ty::TyKind::Char => "char".to_string(),
+            ty::TyKind::Char => polymorphic_vir::Type::typed_ref("char"),
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
-                format!("raw_ref${}", self.encoder.encode_type_predicate_use(ty)?)
+                polymorphic_vir::Type::typed_ref_with_args("raw_ref", vec![self.encoder.encode_polymorphic_type_predicate_use(ty)?])
             }
             ty::TyKind::Ref(_, ref ty, _) => {
-                format!("ref${}", self.encoder.encode_type_predicate_use(ty)?)
+                polymorphic_vir::Type::typed_ref_with_args("ref", vec![self.encoder.encode_polymorphic_type_predicate_use(ty)?])
             }
 
             ty::TyKind::Adt(adt_def, subst) => {
-                let mut composed_name = vec![self.encoder.encode_item_name(adt_def.did)];
-                // makes generics "less fragile"
-                composed_name.push(self.encode_substs(subst)?);
-                composed_name.join("$")
+                polymorphic_vir::Type::typed_ref_with_args(format!("adt${}", self.encoder.encode_item_name(adt_def.did)), subst.iter().filter_map(|kind|
+                    if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
+                        self.encoder.encode_polymorphic_type_predicate_use(ty).map_or(None, |val| Some(val))
+                    } else {
+                        None
+                    }
+                ).collect())
             }
 
             ty::TyKind::Tuple(elems) => {
-                let elem_predicate_names: EncodingResult<Vec<_>> = elems
-                    .iter()
-                    .map(|ty| {
-                        self.encoder.encode_type_predicate_use(ty.expect_ty())
-                    })
-                    .collect();
-                format!(
-                    "tuple{}${}",
-                    elems.len(),
-                    elem_predicate_names?.join("$")
-                )
+                polymorphic_vir::Type::typed_ref_with_args("tuple", elems.iter().filter_map(|ty|
+                    self.encoder.encode_polymorphic_type_predicate_use(ty.expect_ty()).map_or(None, |val|Some(val))
+                ).collect())
             }
 
-            ty::TyKind::Never => "never".to_string(),
+            ty::TyKind::Never => polymorphic_vir::Type::typed_ref("never"),
 
-            ty::TyKind::Str => "str".to_string(),
+            ty::TyKind::Str => polymorphic_vir::Type::typed_ref("str"),
 
             ty::TyKind::Array(elem_ty, size) => {
                 let array_len =
                     self.encoder
                         .const_eval_intlike(&size.val).unwrap()
                         .to_u64().unwrap();
-                format!(
-                    "Array${}${}",
-                    array_len,
-                    self.encoder.encode_type_predicate_use(elem_ty)?,
-                )
+                polymorphic_vir::Type::typed_ref_with_args(format!("Array${}", array_len), vec![self.encoder.encode_polymorphic_type_predicate_use(elem_ty)?])
             }
 
             ty::TyKind::Slice(elem_ty) => {
-                format!(
-                    "Slice${}",
-                    self.encoder.encode_type_predicate_use(elem_ty)?
-                )
+                polymorphic_vir::Type::typed_ref_with_args("Slice", vec![self.encoder.encode_polymorphic_type_predicate_use(elem_ty)?])
             }
 
             ty::TyKind::Closure(def_id, closure_subst) => {
-                let subst_hash = {
-                    let mut s = DefaultHasher::new();
-                    closure_subst.hash(&mut s);
-                    s.finish()
-                };
-
-                format!(
-                    "closure${}_{}${}${}",
-                    def_id.krate.as_u32(),
-                    def_id.index.as_u32(),
-                    closure_subst.len(),
-                    subst_hash
+                polymorphic_vir::Type::typed_ref_with_args(
+                    format!("closure${}_{}", def_id.krate.as_u32(), def_id.index.as_u32()), 
+                    closure_subst.iter().filter_map(|kind|
+                        if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
+                            self.encoder.encode_polymorphic_type_predicate_use(ty).map_or(None, |val| Some(val))
+                        } else {
+                            None
+                        }
+                    ).collect()
                 )
             }
 
             ty::TyKind::Param(param_ty) => {
-                // make sure to avoid "$T$" used internally in Silicon
-                format!("__TYPARAM__$_{}$__", param_ty.name.as_str())
+                polymorphic_vir::Type::type_var(format!("{}", param_ty.name.as_str()))
             }
 
             ty::TyKind::Projection(ty::ProjectionTy { item_def_id, substs }) => {
-                let mut composed_name = vec![self.encoder.encode_item_name(*item_def_id)];
-                // makes generics "less fragile"
-                composed_name.push(self.encode_substs(substs)?);
-                composed_name.join("$")
+                polymorphic_vir::Type::typed_ref_with_args(self.encoder.encode_item_name(*item_def_id), substs.iter().filter_map(|kind|
+                    if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
+                        self.encoder.encode_polymorphic_type_predicate_use(ty).map_or(None, |val| Some(val))
+                    } else {
+                        None
+                    }
+                ).collect())
             }
 
             ty::TyKind::Dynamic(..) => {
-                "unsupported$dynamic".to_string()
+                polymorphic_vir::Type::typed_ref_with_args("unsupported$dynamic", vec![])
             }
 
             ty::TyKind::FnPtr(..) => {
-                "unsupported$fnptr".to_string()
+                polymorphic_vir::Type::typed_ref_with_args("unsupported$fnptr", vec![])
             }
 
             ty::TyKind::FnDef(..) => {
-                "unsupported$fndef".to_string()
+                polymorphic_vir::Type::typed_ref_with_args("unsupported$fndef", vec![])
             }
 
             ty::TyKind::Foreign(..) => {
-                "unsupported$foreign".to_string()
+                polymorphic_vir::Type::typed_ref_with_args("unsupported$foreign", vec![])
             }
 
             _ => {
-                "unsupported".to_string()
+                polymorphic_vir::Type::typed_ref_with_args("unsupported", vec![])
             }
         };
         Ok(result)
@@ -901,4 +870,66 @@ impl ExprFolder for HackyExprFolder {
     fn fold_local(&mut self, _var: vir::LocalVar, pos: vir::Position) -> vir::Expr {
         vir::Expr::Local(self.saelf.clone(), pos)
     }
+}
+
+/// The string to be appended to the encoding of certain types to make generics "less fragile".
+fn encode_substs(types: Vec<polymorphic_vir::Type>) -> EncodingResult<String> {
+    let mut composed_name = vec![
+        "_beg_".to_string(),  // makes generics "less fragile"
+    ];
+    let mut first = true;
+    for typ in types.into_iter() {
+        if first {
+            first = false
+        } else {
+            // makes generics "less fragile"
+            composed_name.push("_sep_".to_string());
+        }
+        composed_name.push(encode_polymorphic_type_to_string(typ)?);
+    }
+    composed_name.push("_end_".to_string()); // makes generics "less fragile"
+    Ok(composed_name.join("$"))
+}
+
+/// Converts vector of arguments to string connected with "$".
+fn arguments_to_string(args: Vec<polymorphic_vir::Type>) -> EncodingResult<String> {
+    let mut composed_name = vec![];
+
+    for arg in args.into_iter() {
+        composed_name.push(encode_polymorphic_type_to_string(arg)?);
+    }
+
+    Ok(composed_name.join("$"))
+}
+
+pub fn encode_polymorphic_type_to_string(typ: polymorphic_vir::Type) -> EncodingResult<String> {
+    let str = 
+    match typ {
+        polymorphic_vir::Type::TypedRef(polymorphic_vir::TypedRef{label, arguments}) => {
+            let label_str = label.as_str();
+            match label_str {
+                "ref" | "raw_ref" | "Slice"
+                    => format!("{}${}", label_str, arguments_to_string(arguments)?),
+                array if array.starts_with("Array") 
+                    => format!("{}${}", label_str, arguments_to_string(arguments)?),
+                "tuple"
+                    => format!("tuple{}${}", arguments.len(), arguments_to_string(arguments)?),
+                closure if closure.starts_with("closure")
+                    => format!("tuple{}${}", arguments.len(), arguments_to_string(arguments)?),
+                adt if adt.starts_with("adt")
+                    => format!("{}${}", &adt[4..], encode_substs(arguments)?),
+                _label => if arguments.len() > 0 {
+                    // Projection
+                    format!("{}${}", label_str, arguments_to_string(arguments)?)
+                } else {
+                    // General cases (e.g. bool, isize, never, ...)
+                    String::from(label_str)
+                }
+            }
+        },
+        polymorphic_vir::Type::TypeVar(polymorphic_vir::TypeVar{label}) => format!("__TYPARAM__$_{}$__", label),
+        // could only be encoded as a TypeVar for parameters, or TypedRef for any other cases
+        x => unreachable!(x),
+    };
+    Ok(str)
 }
