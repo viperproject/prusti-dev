@@ -145,6 +145,19 @@ impl Type {
         })
     }
 
+    pub fn typed_ref_with_args<S: Into<String>>(name: S, arguments: Vec<Type>) -> Self {
+        Type::TypedRef(TypedRef {
+            label: name.into(),
+            arguments: arguments,
+        })
+    }
+
+    pub fn type_var<S: Into<String>>(name: S) -> Self {
+        Type::TypeVar(TypeVar {
+            label: name.into(),
+        })
+    }
+
     pub fn name(&self) -> String {
         match self {
             Type::Bool => "bool".to_string(),
@@ -152,8 +165,8 @@ impl Type {
             Type::TypedRef(ref typed_ref) => typed_ref.label.clone(),
             Type::Domain(ref domain) => domain.label.clone(),
             Type::Snapshot(ref snapshot) => snapshot.label.clone(),
-            Type::TypeVar(_) => "TypeVar".to_string(),
-            Type::Seq(_) => "Seq".to_string(),
+            Type::TypeVar(ref type_var) => type_var.label.clone(),
+            Type::Seq(SeqType {box ref typ} ) => typ.name(),
         }
     }
 
