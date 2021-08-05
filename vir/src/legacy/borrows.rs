@@ -5,8 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::ast::{Expr, ExprIterator, Stmt};
-use std::collections::{HashMap, VecDeque};
-use std::fmt;
+use std::{
+    collections::{HashMap, VecDeque},
+    fmt,
+};
 
 /// The method-unique borrow identifier.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]

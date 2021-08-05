@@ -4,14 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::fmt;
-use std::iter::FromIterator;
-use uuid::Uuid;
-use crate::legacy::{
-    ast::*,
-    gather_labels::gather_labels,
+use crate::legacy::{ast::*, gather_labels::gather_labels};
+use std::{
+    collections::{HashMap, HashSet, VecDeque},
+    fmt,
+    iter::FromIterator,
 };
+use uuid::Uuid;
 
 pub const RETURN_LABEL: &str = "end_of_method";
 

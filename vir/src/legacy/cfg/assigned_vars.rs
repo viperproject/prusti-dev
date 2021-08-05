@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::legacy::{self, ast::*, CfgMethod, CfgBlock, CfgBlockIndex};
+use crate::legacy::{self, ast::*, CfgBlock, CfgBlockIndex, CfgMethod};
 use std::collections::HashSet;
 
 pub fn collect_assigned_vars(
@@ -36,10 +36,7 @@ pub fn collect_assigned_vars(
     result
 }
 
-fn check_block(
-    vars: &mut HashSet<LocalVar>,
-    block: &CfgBlock
-) {
+fn check_block(vars: &mut HashSet<LocalVar>, block: &CfgBlock) {
     for stmt in &block.stmts {
         match stmt {
             Stmt::MethodCall(_, _, targets) => {

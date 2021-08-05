@@ -5,8 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::legacy::ast::*;
-use std::fmt;
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Predicate {
@@ -86,7 +85,14 @@ impl Predicate {
         variants: Vec<(Expr, String, StructPredicate)>,
     ) -> Predicate {
         let predicate_name = this.typ.name();
-        debug_assert!(variants.iter().map(|(_, name, _)| name.to_string()).collect::<HashSet<_>>().len() == variants.len());
+        debug_assert!(
+            variants
+                .iter()
+                .map(|(_, name, _)| name.to_string())
+                .collect::<HashSet<_>>()
+                .len()
+                == variants.len()
+        );
         Predicate::Enum(EnumPredicate {
             name: predicate_name,
             this,
@@ -113,15 +119,9 @@ impl Predicate {
     }
     pub fn body(&self) -> Option<Expr> {
         match self {
-            Predicate::Struct(struct_predicate) => {
-                struct_predicate.body.clone()
-            }
-            Predicate::Enum(enum_predicate) => {
-                Some(enum_predicate.body())
-            }
-            Predicate::Bodyless(_, _) => {
-                None
-            }
+            Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
+            Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
+            Predicate::Bodyless(_, _) => None,
         }
     }
 }

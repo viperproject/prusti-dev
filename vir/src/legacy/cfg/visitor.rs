@@ -4,11 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::legacy::{
-    ast::*,
-    cfg::method::*,
-    to_string::ToString,
-};
+use crate::legacy::{ast::*, cfg::method::*, to_string::ToString};
 use std::fmt::Debug;
 
 pub trait CheckNoOpAction {
@@ -20,10 +16,7 @@ pub trait CheckNoOpAction {
 /// During the visit, statements can be modified and injected.
 /// However, the structure of the CFG can not change.
 /// For each branch a context is updated, duplicated at forks, and merged with other contexts at joins.
-pub trait CfgReplacer<
-    PathCtxt: Debug + Clone,
-    Action: CheckNoOpAction + Debug
-> {
+pub trait CfgReplacer<PathCtxt: Debug + Clone, Action: CheckNoOpAction + Debug> {
     type Error;
 
     /*
@@ -40,7 +33,8 @@ pub trait CfgReplacer<
         _cfg: &CfgMethod,
         _initial_pctxt: &[Option<PathCtxt>],
         _final_pctxt: &[Option<PathCtxt>],
-    ) {}
+    ) {
+    }
 
     /// Are two branch context compatible for a back edge?
     fn check_compatible_back_edge(left: &PathCtxt, right: &PathCtxt);
@@ -88,7 +82,7 @@ pub trait CfgReplacer<
     /// returning the merged branch context.
     fn prepend_join(
         &mut self,
-        pctxts: Vec<&PathCtxt>
+        pctxts: Vec<&PathCtxt>,
     ) -> Result<(Vec<Action>, PathCtxt), Self::Error>;
 
     /// Convert actions to statements.
@@ -96,7 +90,8 @@ pub trait CfgReplacer<
         &mut self,
         pctxt: &mut PathCtxt,
         block_index: CfgBlockIndex,
-        actions: Action) -> Result<Vec<Stmt>, Self::Error>;
+        actions: Action,
+    ) -> Result<Vec<Stmt>, Self::Error>;
 
     /// The main method: visit and replace the reachable blocks of a CFG.
     fn replace_cfg(&mut self, cfg: &CfgMethod) -> Result<CfgMethod, Self::Error> {
@@ -200,7 +195,8 @@ pub trait CfgReplacer<
                                 new_label
                             ))],
                         );
-                        let stmts_to_add = self.perform_prejoin_action(&mut pctxt, new_block_index, action)?;
+                        let stmts_to_add =
+                            self.perform_prejoin_action(&mut pctxt, new_block_index, action)?;
                         new_cfg.add_stmts(new_block_index, stmts_to_add);
                         new_cfg.set_successor(new_block_index, Successor::Goto(curr_block_index));
                         new_cfg.set_successor(
@@ -354,12 +350,14 @@ impl CfgMethod {
     }
 
     // TODO: maybe just let basic_blocks be public and modify those directly?
-    pub fn patch_statements<E, F: FnMut(Stmt)->Result<Stmt, E>>(
+    pub fn patch_statements<E, F: FnMut(Stmt) -> Result<Stmt, E>>(
         mut self,
-        mut walker: F
+        mut walker: F,
     ) -> Result<Self, E> {
         for block in self.basic_blocks.iter_mut() {
-            block.stmts = block.stmts.drain(..)
+            block.stmts = block
+                .stmts
+                .drain(..)
                 .map(&mut walker)
                 .collect::<Result<Vec<_>, _>>()?;
         }
@@ -383,7 +381,7 @@ impl CfgMethod {
                 (self.walker)(expr);
             }
         }
-        let mut stmt_walker = ExprStmtWalker{
+        let mut stmt_walker = ExprStmtWalker {
             walker: &mut walker,
         };
         self.walk_statements(|stmt| stmt_walker.walk(stmt));

@@ -1,6 +1,5 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
-
 #![allow(unused_imports)]
 #![deny(unused_must_use)]
 #![deny(unreachable_patterns)]
@@ -21,8 +20,8 @@ extern crate serde;
 // `"rust-analyzer.cargo.loadOutDirsFromCheck": true` to your VS Code settings.
 include!(concat!(env!("OUT_DIR"), "/vir_gen.rs"));
 
-pub mod legacy;
 pub mod converter;
+pub mod legacy;
 
 #[cfg(test)]
 mod tests {

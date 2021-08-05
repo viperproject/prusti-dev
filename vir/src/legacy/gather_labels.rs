@@ -8,7 +8,7 @@ pub(super) fn gather_labels(stmt: &ast::Stmt) -> Vec<String> {
 
 #[derive(Default)]
 struct GatherLabels {
-    labels: Vec<String>
+    labels: Vec<String>,
 }
 
 impl StmtWalker for GatherLabels {
