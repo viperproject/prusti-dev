@@ -1,13 +1,12 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
-// #![allow(unused_imports)]
-// #![deny(unused_must_use)]
-// #![deny(unreachable_patterns)]
-// #![deny(unused_mut)]
-// #![deny(unused_variables)]
-// #![deny(unused_imports)]
-// #![deny(unused_doc_comments)]
+#![allow(unused_imports)]
+#![deny(unused_must_use)]
+#![deny(unreachable_patterns)]
+#![deny(unused_mut)]
+#![deny(unused_variables)]
+#![deny(unused_doc_comments)]
 
 #[macro_use]
 extern crate log;
@@ -20,7 +19,10 @@ extern crate serde;
 //
 // To enable autocompletion of the generated code, please add
 // `"rust-analyzer.cargo.loadOutDirsFromCheck": true` to your VS Code settings.
-include!(concat!(env!("OUT_DIR"), "/vir.rs"));
+include!(concat!(env!("OUT_DIR"), "/vir_gen.rs"));
+
+pub mod legacy;
+pub mod converter;
 
 #[cfg(test)]
 mod tests {

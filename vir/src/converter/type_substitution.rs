@@ -1,4 +1,4 @@
-use std::{ 
+use std::{
     fmt,
     collections::HashMap,
 };
@@ -679,9 +679,9 @@ mod tests {
             m.insert(TypeVar { label: String::from("H") }, Type::TypedRef(TypedRef {
                 label: String::from("ComplexRef2"),
                 arguments: vec![
-                    Type::TypeVar(TypeVar {label: String::from("H") }), 
+                    Type::TypeVar(TypeVar {label: String::from("H") }),
                     Type::Domain(DomainType {
-                        label: String::from("ComplexDomain"), 
+                        label: String::from("ComplexDomain"),
                         arguments: vec![Type::TypeVar(TypeVar {label: String::from("T")})],
                     })
                 ],
@@ -724,7 +724,7 @@ mod tests {
         source = Type::Snapshot(SnapshotType {
             label: String::from("CustomSnapshot"),
             arguments: vec![
-                Type::Bool, 
+                Type::Bool,
                 Type::TypedRef(
                     TypedRef {
                         label: String::from("vec"),
@@ -871,7 +871,7 @@ mod tests {
     // successful substitution more complex case
     fn substitution_type_var_complex_test() {
         // more nested structure
-        let mut source = Type::TypedRef(TypedRef {
+        let source = Type::TypedRef(TypedRef {
             label: String::from("CustomStruct"),
             arguments: vec![
                 Type::Int,
@@ -887,13 +887,13 @@ mod tests {
                                 Type::TypeVar(TypeVar {
                                     label: String::from("F"),
                                 }),
-                            ]    
+                            ]
                         }),
                     ]
                 }),
             ],
         });
-        let mut expected = Type::TypedRef(TypedRef {
+        let expected = Type::TypedRef(TypedRef {
             label: String::from("CustomStruct"),
             arguments: vec![
                 Type::Int,
@@ -908,7 +908,7 @@ mod tests {
                                     label: String::from("SimpleRef"),
                                     arguments: vec![],
                                 }),
-                            ]    
+                            ]
                         }),
                     ]
                 }),
@@ -917,7 +917,7 @@ mod tests {
         test(source, expected, &SUBSTITUTION_MAP);
 
         // structures having type vars after substitution
-        let mut source = Type::TypedRef(TypedRef {
+        let source = Type::TypedRef(TypedRef {
             label: String::from("CustomStruct"),
             arguments: vec![
                 Type::TypeVar(TypeVar {
@@ -935,13 +935,13 @@ mod tests {
                                 Type::TypeVar(TypeVar {
                                     label: String::from("F"),
                                 }),
-                            ]    
+                            ]
                         }),
                     ]
                 }),
             ],
         });
-        let mut expected = Type::TypedRef(TypedRef {
+        let expected = Type::TypedRef(TypedRef {
             label: String::from("CustomStruct"),
             arguments: vec![
                 Type::TypedRef(TypedRef {
@@ -954,9 +954,9 @@ mod tests {
                         Type::TypedRef(TypedRef {
                             label: String::from("ComplexRef2"),
                             arguments: vec![
-                                Type::TypeVar(TypeVar {label: String::from("H") }), 
+                                Type::TypeVar(TypeVar {label: String::from("H") }),
                                 Type::Domain(DomainType {
-                                    label: String::from("ComplexDomain"), 
+                                    label: String::from("ComplexDomain"),
                                     arguments: vec![Type::TypeVar(TypeVar {label: String::from("T")})],
                                 })
                             ],
@@ -968,7 +968,7 @@ mod tests {
                                     label: String::from("SimpleRef"),
                                     arguments: vec![],
                                 }),
-                            ]    
+                            ]
                         }),
                     ]
                 }),
