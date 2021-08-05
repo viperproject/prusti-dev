@@ -86,6 +86,33 @@ jobs:
             python x.py exec cargo-clippy-diff --output=github $BASE_SHA HEAD
           fi
 
+  # Run rustfmt checks on PRs.
+  fmt-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # deep clone, to allow us to use git merge-base
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
+      - name: Check and report formatting warnings
+        run: |
+          if rustup component add rustfmt
+          then
+            cd vir && cargo fmt -- --check
+          fi
+
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
   purification-tests:
