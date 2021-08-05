@@ -78,12 +78,7 @@ impl Expr {
         where
             T: Fn(&str, Expr) -> Expr,
         {
-            fn fold_labelled_old(
-                &mut self,
-                x: String,
-                y: Box<Expr>,
-                p: Position,
-            ) -> Expr {
+            fn fold_labelled_old(&mut self, x: String, y: Box<Expr>, p: Position) -> Expr {
                 (self.substitutor)(&x, *y).set_pos(p)
             }
         }
@@ -108,12 +103,7 @@ impl Expr {
         where
             T: Fn(String) -> String,
         {
-            fn fold_labelled_old(
-                &mut self,
-                x: String,
-                y: Box<Expr>,
-                p: Position,
-            ) -> Expr {
+            fn fold_labelled_old(&mut self, x: String, y: Box<Expr>, p: Position) -> Expr {
                 Expr::LabelledOld((self.substitutor)(x), y, p)
             }
         }
@@ -128,7 +118,7 @@ pub fn walk_methods(methods: &[CfgMethod], walker: &mut (impl StmtWalker + ExprW
     }
 }
 
-pub fn walk_method(method: &CfgMethod,  walker: &mut (impl StmtWalker + ExprWalker)) {
+pub fn walk_method(method: &CfgMethod, walker: &mut (impl StmtWalker + ExprWalker)) {
     method.walk_statements(|stmt| {
         StmtWalker::walk(walker, stmt);
     });

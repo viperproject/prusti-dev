@@ -66,7 +66,7 @@ mod tests {
 
 pub enum PermAmountError {
     InvalidAdd(PermAmount, PermAmount),
-    InvalidSub(PermAmount, PermAmount)
+    InvalidSub(PermAmount, PermAmount),
 }
 
 /// The permission amount.
@@ -277,7 +277,6 @@ impl LocalVar {
         LocalVar::new(name, Type::TypedRef(ty_ref_name))
     }
 }
-
 
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Field {

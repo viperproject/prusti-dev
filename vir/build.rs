@@ -1,7 +1,5 @@
 use quote::quote;
-use std::env;
-use std::io::Write;
-use std::path::Path;
+use std::{env, io::Write, path::Path};
 use vir_gen::define_vir;
 
 fn main() {
