@@ -73,7 +73,7 @@ impl Function {
         )
     }
 
-    /// Does the function has a body that does not depend neither on
+    /// Does the function have a body that depends neither on
     /// function parameters nor on the heap?
     pub fn has_constant_body(&self) -> bool {
         match self.body {
@@ -108,5 +108,14 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
 impl WithIdentifier for Function {
     fn get_identifier(&self) -> String {
         compute_identifier(&self.name, &self.formal_args, &self.return_type)
+    }
+}
+
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub struct FunctionIdentifier(String);
+
+impl From<String> for FunctionIdentifier {
+    fn from(string: String) -> Self {
+        Self(string)
     }
 }
