@@ -18,7 +18,7 @@ fn main() {
     };
     let tokens = define_vir(root, Path::new("defs/root.rs"));
     let out_dir = env::var("OUT_DIR").unwrap();
-    let dest_path = Path::new(&out_dir).join("vir.rs");
+    let dest_path = Path::new(&out_dir).join("vir_gen.rs");
     let mut file = std::fs::File::create(dest_path).unwrap();
     file.write_all(tokens.to_string().as_bytes()).unwrap();
 }
