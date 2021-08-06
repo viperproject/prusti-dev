@@ -18,7 +18,7 @@ use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 use crate::encoder::spec_encoder::encode_spec_assertion;
 use crate::encoder::type_encoder::{
-    compute_discriminant_values, compute_discriminant_bounds, TypeEncoder, encode_polymorphic_type_to_string,
+    compute_discriminant_values, compute_discriminant_bounds, TypeEncoder,
 };
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
@@ -109,6 +109,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     type_tag_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
+    polymorphic_type_names: RefCell<HashMap<polymorphic_vir::Type, String>>,
     type_predicates: RefCell<HashMap<String, polymorphic_vir::Predicate>>,
     type_invariants: RefCell<HashMap<String, vir::FunctionIdentifier>>,
     type_tags: RefCell<HashMap<String, vir::FunctionIdentifier>>,
@@ -172,6 +173,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_invariant_names: RefCell::new(HashMap::new()),
             type_tag_names: RefCell::new(HashMap::new()),
             predicate_types: RefCell::new(HashMap::new()),
+            polymorphic_type_names: RefCell::new(HashMap::new()),
             type_predicates: RefCell::new(HashMap::new()),
             type_invariants: RefCell::new(HashMap::new()),
             type_tags: RefCell::new(HashMap::new()),
@@ -858,7 +860,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>)
         -> EncodingResult<String>
     {
-        Ok(encode_polymorphic_type_to_string(self.encode_polymorphic_type_predicate_use(ty)?.into())?)
+        let encoded_type = self.encode_polymorphic_type_predicate_use(ty)?;
+        Ok(self.polymorphic_type_names.borrow()[&encoded_type].clone())
     }
 
     pub fn encode_polymorphic_type_predicate_use(&self, ty: ty::Ty<'tcx>)
@@ -870,9 +873,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.type_predicate_types
                 .borrow_mut()
                 .insert(ty.kind().clone(), encoded_type.clone());
+            let encoded_string = encoded_type.clone().encode_as_string();
             self.predicate_types
                 .borrow_mut()
-                .insert(encode_polymorphic_type_to_string(encoded_type)?, ty);
+                .insert(encoded_string.clone(), ty);
+            self.polymorphic_type_names
+                .borrow_mut()
+                .insert(encoded_type, encoded_string);
             // Trigger encoding of definition
             self.encode_polymorphic_type_predicate_def(ty)?;
         }

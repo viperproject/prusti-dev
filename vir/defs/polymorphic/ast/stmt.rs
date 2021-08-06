@@ -63,7 +63,26 @@ pub enum Stmt {
 
 impl fmt::Display for Stmt {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        match self {
+            Stmt::Comment(comment) => comment.fmt(f),
+            Stmt::Label(label) => label.fmt(f),
+            Stmt::Inhale(inhale) => inhale.fmt(f),
+            Stmt::Exhale(exhale) => exhale.fmt(f),
+            Stmt::Assert(assert) => assert.fmt(f),
+            Stmt::MethodCall(method_call) => method_call.fmt(f),
+            Stmt::Assign(assign) => assign.fmt(f),
+            Stmt::Fold(fold) => fold.fmt(f),
+            Stmt::Unfold(unfold) => unfold.fmt(f),
+            Stmt::Obtain(obtain) => obtain.fmt(f),
+            Stmt::BeginFrame(begin_frame) => begin_frame.fmt(f),
+            Stmt::EndFrame(end_frame) => end_frame.fmt(f),
+            Stmt::TransferPerm(transfer_perm) => transfer_perm.fmt(f),
+            Stmt::PackageMagicWand(package_magic_wand) => package_magic_wand.fmt(f),
+            Stmt::ApplyMagicWand(apply_magic_wand) => apply_magic_wand.fmt(f),
+            Stmt::ExpireBorrows(expire_borrows) => expire_borrows.fmt(f),
+            Stmt::If(if_stmt) => if_stmt.fmt(f),
+            Stmt::Downcast(downcast) => downcast.fmt(f),
+        }
     }
 }
 
