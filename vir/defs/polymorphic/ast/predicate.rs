@@ -32,7 +32,7 @@ impl Predicate {
     }
     /// Construct a new abstract predicate of the given type.
     pub fn new_abstract(typ: Type) -> Predicate {
-        let predicate_name = typ.name();
+        let predicate_name = typ.encode_as_string();
         Predicate::Struct(StructPredicate {
             name: predicate_name,
             this: Self::construct_this(typ),
@@ -46,6 +46,7 @@ impl Predicate {
             _ => false,
         }
     }
+
     /// Construct a new predicate that represents a type that models a primitive
     /// value such as an integer or a boolean.
     pub fn new_primitive_value(
@@ -54,8 +55,8 @@ impl Predicate {
         bounds: Option<(Expr, Expr)>,
         is_unsigned: bool,
     ) -> Predicate {
-        let predicate_name = typ.name();
-        let this = Self::construct_this(typ);
+        let predicate_name = typ.encode_as_string();
+        let this = Self::construct_this(typ.clone());
         let val_field = Expr::from(this.clone()).field(field);
         let perm = Expr::acc_permission(val_field.clone(), PermAmount::Write);
         let mut conjuncts = vec![perm];
@@ -85,7 +86,7 @@ impl Predicate {
         discriminant_bounds: Expr,
         variants: Vec<(Expr, String, StructPredicate)>,
     ) -> Predicate {
-        let predicate_name = this.typ.name();
+        let predicate_name = this.typ.encode_as_string();
         debug_assert!(variants.iter().map(|(_, name, _)| name.to_string()).collect::<HashSet<_>>().len() == variants.len());
         Predicate::Enum(EnumPredicate {
             name: predicate_name,
@@ -153,7 +154,7 @@ impl fmt::Display for StructPredicate {
 
 impl StructPredicate {
     pub fn new(typ: Type, fields: Vec<Field>) -> Self {
-        let predicate_name = typ.name();
+        let predicate_name = typ.encode_as_string();
         let this = Predicate::construct_this(typ);
         let body = fields
             .into_iter()

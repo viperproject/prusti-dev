@@ -66,7 +66,31 @@ pub enum Expr {
 
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        match self {
+            Expr::Local(local) => local.fmt(f),
+            Expr::Variant(variant) => variant.fmt(f),
+            Expr::Field(field) => field.fmt(f),
+            Expr::AddrOf(addr_of) => addr_of.fmt(f),
+            Expr::Const(const_expr) => const_expr.fmt(f),
+            Expr::LabelledOld(labelled_old) => labelled_old.fmt(f),
+            Expr::MagicWand(magic_wand) => magic_wand.fmt(f),
+            Expr::PredicateAccessPredicate(predicate_access_predicate) => predicate_access_predicate.fmt(f),
+            Expr::FieldAccessPredicate(field_access_predicate) => field_access_predicate.fmt(f),
+            Expr::UnaryOp(unary_op) => unary_op.fmt(f),
+            Expr::BinOp(bin_op) => bin_op.fmt(f),
+            Expr::Unfolding(unfolding) => unfolding.fmt(f),
+            Expr::Cond(cond) => cond.fmt(f),
+            Expr::ForAll(for_all) => for_all.fmt(f),
+            Expr::Exists(exists) => exists.fmt(f),
+            Expr::LetExpr(let_expr) => let_expr.fmt(f),
+            Expr::FuncApp(func_app) => func_app.fmt(f),
+            Expr::DomainFuncApp(domain_func_app) => domain_func_app.fmt(f),
+            Expr::InhaleExhale(inhale_exhale) => inhale_exhale.fmt(f),
+            Expr::SnapApp(snap_app) => snap_app.fmt(f),
+            Expr::ContainerOp(container_op) => container_op.fmt(f),
+            Expr::Seq(seq) => seq.fmt(f),
+            Expr::Downcast(downcast_expr) => downcast_expr.fmt(f),
+        }
     }
 }
 

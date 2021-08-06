@@ -110,7 +110,11 @@ impl fmt::Display for Type {
         match self {
             Type::Int => write!(f, "Int"),
             Type::Bool => write!(f, "Bool"),
-            _ => write!(f, "{}", self),
+            Type::Seq(seq) => seq.fmt(f),
+            Type::TypedRef(typed_ref) => write!(f, "Ref({})", self.encode_as_string()),
+            Type::Domain(domain_type) => domain_type.fmt(f),
+            Type::Snapshot(snapshot_type) => snapshot_type.fmt(f),
+            Type::TypeVar(type_var) => type_var.fmt(f),
         }
     }
 }
@@ -180,7 +184,68 @@ impl Type {
             _ => unreachable!(),
         }
     }
+
+    pub fn encode_as_string(&self) -> String {
+        match self {
+            Type::TypedRef(TypedRef{label, arguments}) => {
+                let label_str = label.as_str();
+                match label_str {
+                    "ref" | "raw_ref" | "Slice"
+                        => format!("{}${}", label_str, Self::encode_arguments(arguments)),
+                    array if array.starts_with("Array") 
+                        => format!("{}${}", label_str, Self::encode_arguments(arguments)),
+                    "tuple"
+                        => format!("tuple{}${}", arguments.len(), Self::encode_arguments(arguments)),
+                    closure if closure.starts_with("closure")
+                        => format!("closure{}${}", arguments.len(), Self::encode_arguments(arguments)),
+                    adt if adt.starts_with("adt")
+                        => format!("{}${}", &adt[4..], Self::encode_substs(arguments)),
+                    _label => if arguments.len() > 0 {
+                        // Projection
+                        format!("{}${}", label_str, Self::encode_arguments(arguments))
+                    } else {
+                        // General cases (e.g. bool, isize, never, ...)
+                        String::from(label_str)
+                    }
+                }
+            },
+            Type::TypeVar(TypeVar{label}) => format!("__TYPARAM__$_{}$__", label),
+            // could only be encoded as a TypeVar for parameters, or TypedRef for any other cases
+            x => unreachable!(x),
+        }
+    }
+
+    /// The string to be appended to the encoding of certain types to make generics "less fragile".
+    fn encode_substs(types: &Vec<Type>) -> String {
+        let mut composed_name = vec![
+            "_beg_".to_string(),  // makes generics "less fragile"
+        ];
+        let mut first = true;
+        for typ in types.into_iter() {
+            if first {
+                first = false
+            } else {
+                // makes generics "less fragile"
+                composed_name.push("_sep_".to_string());
+            }
+            composed_name.push(typ.encode_as_string());
+        }
+        composed_name.push("_end_".to_string()); // makes generics "less fragile"
+        composed_name.join("$")
+    }
+
+    /// Converts vector of arguments to string connected with "$".
+    fn encode_arguments(args: &Vec<Type>) -> String {
+        let mut composed_name = vec![];
+
+        for arg in args.into_iter() {
+            composed_name.push(arg.encode_as_string());
+        }
+
+        composed_name.join("$")
+    }
 }
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SeqType {
@@ -224,12 +289,6 @@ impl Eq for TypedRef {}
 impl Hash for TypedRef {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (&self.label, &self.arguments).hash(state);
-    }
-}
-
-impl fmt::Display for TypedRef {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Ref({})", &self.label)
     }
 }
 

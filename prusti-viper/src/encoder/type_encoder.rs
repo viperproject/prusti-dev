@@ -246,8 +246,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_polymorphic_predicate_def(self) -> EncodingResult<Vec<polymorphic_vir::Predicate>> {
         debug!("Encode type predicate '{:?}'", self.ty);
-        let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
-        let typ = polymorphic_vir::Type::typed_ref(predicate_name.clone());
+        // let typ = polymorphic_vir::Type::typed_ref(predicate_name.clone());
+        let typ = self.encoder.encode_polymorphic_type_predicate_use(self.ty)?;
+        let predicate_name = typ.clone().encode_as_string();
 
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vec![polymorphic_vir::Predicate::new_primitive_value(
@@ -427,7 +428,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_predicate_use(self) -> EncodingResult<String> {
         let typ = self.encoder.encode_polymorphic_type_predicate_use(self.ty)?;
-        encode_polymorphic_type_to_string(typ)
+        Ok(typ.encode_as_string())
     }
 
     pub fn encode_polymorphic_predicate_use(self) -> EncodingResult<polymorphic_vir::Type> {
@@ -870,66 +871,4 @@ impl ExprFolder for HackyExprFolder {
     fn fold_local(&mut self, _var: vir::LocalVar, pos: vir::Position) -> vir::Expr {
         vir::Expr::Local(self.saelf.clone(), pos)
     }
-}
-
-/// The string to be appended to the encoding of certain types to make generics "less fragile".
-fn encode_substs(types: Vec<polymorphic_vir::Type>) -> EncodingResult<String> {
-    let mut composed_name = vec![
-        "_beg_".to_string(),  // makes generics "less fragile"
-    ];
-    let mut first = true;
-    for typ in types.into_iter() {
-        if first {
-            first = false
-        } else {
-            // makes generics "less fragile"
-            composed_name.push("_sep_".to_string());
-        }
-        composed_name.push(encode_polymorphic_type_to_string(typ)?);
-    }
-    composed_name.push("_end_".to_string()); // makes generics "less fragile"
-    Ok(composed_name.join("$"))
-}
-
-/// Converts vector of arguments to string connected with "$".
-fn arguments_to_string(args: Vec<polymorphic_vir::Type>) -> EncodingResult<String> {
-    let mut composed_name = vec![];
-
-    for arg in args.into_iter() {
-        composed_name.push(encode_polymorphic_type_to_string(arg)?);
-    }
-
-    Ok(composed_name.join("$"))
-}
-
-pub fn encode_polymorphic_type_to_string(typ: polymorphic_vir::Type) -> EncodingResult<String> {
-    let str = 
-    match typ {
-        polymorphic_vir::Type::TypedRef(polymorphic_vir::TypedRef{label, arguments}) => {
-            let label_str = label.as_str();
-            match label_str {
-                "ref" | "raw_ref" | "Slice"
-                    => format!("{}${}", label_str, arguments_to_string(arguments)?),
-                array if array.starts_with("Array") 
-                    => format!("{}${}", label_str, arguments_to_string(arguments)?),
-                "tuple"
-                    => format!("tuple{}${}", arguments.len(), arguments_to_string(arguments)?),
-                closure if closure.starts_with("closure")
-                    => format!("tuple{}${}", arguments.len(), arguments_to_string(arguments)?),
-                adt if adt.starts_with("adt")
-                    => format!("{}${}", &adt[4..], encode_substs(arguments)?),
-                _label => if arguments.len() > 0 {
-                    // Projection
-                    format!("{}${}", label_str, arguments_to_string(arguments)?)
-                } else {
-                    // General cases (e.g. bool, isize, never, ...)
-                    String::from(label_str)
-                }
-            }
-        },
-        polymorphic_vir::Type::TypeVar(polymorphic_vir::TypeVar{label}) => format!("__TYPARAM__$_{}$__", label),
-        // could only be encoded as a TypeVar for parameters, or TypedRef for any other cases
-        x => unreachable!(x),
-    };
-    Ok(str)
 }
