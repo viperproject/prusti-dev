@@ -523,7 +523,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         viper_field_name: String,
         ty: ty::Ty<'tcx>
     ) -> EncodingResult<polymorphic_vir::Field> {
-        let type_name = self.encode_type_predicate_use(ty)?;
+        let typ = self.encode_polymorphic_type_predicate_use(ty)?;
         self.fields
             .borrow_mut()
             .entry(viper_field_name.clone())
@@ -534,7 +534,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     polymorphic_vir::Type::typed_ref(""),
                 )
             });
-        Ok(polymorphic_vir::Field::new(viper_field_name, polymorphic_vir::Type::typed_ref(type_name)))
+        Ok(polymorphic_vir::Field::new(viper_field_name, typ))
     }
 
     pub fn encode_dereference_field(&self, ty: ty::Ty<'tcx>)
