@@ -7,7 +7,7 @@
 use crate::polymorphic::ast::*;
 use std::{
     cmp::Ordering,
-    collections::HashMap,
+    collections::{HashMap, hash_map::DefaultHasher},
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,
@@ -146,6 +146,7 @@ impl Type {
         Type::TypedRef(TypedRef {
             label: name.into(),
             arguments: vec![],
+            variant: String::from(""),
         })
     }
 
@@ -153,6 +154,7 @@ impl Type {
         Type::TypedRef(TypedRef {
             label: name.into(),
             arguments: arguments,
+            variant: String::from(""),
         })
     }
 
@@ -178,7 +180,7 @@ impl Type {
     pub fn variant(self, variant: &str) -> Self {
         match self {
             Type::TypedRef(mut typed_ref) => {
-                typed_ref.label.push_str(variant);
+                typed_ref.variant = variant.into();
                 Type::TypedRef(typed_ref)
             }
             _ => unreachable!(),
@@ -187,19 +189,21 @@ impl Type {
 
     pub fn encode_as_string(&self) -> String {
         match self {
-            Type::TypedRef(TypedRef{label, arguments}) => {
+            Type::TypedRef(TypedRef{label, arguments, variant}) => {
                 let label_str = label.as_str();
                 match label_str {
                     "ref" | "raw_ref" | "Slice"
                         => format!("{}${}", label_str, Self::encode_arguments(arguments)),
-                    array if array.starts_with("Array") 
+                    // TODO: remove len constraint once encoders are all updated with polymorphic
+                    array if array.starts_with("Array") && arguments.len() > 0
                         => format!("{}${}", label_str, Self::encode_arguments(arguments)),
                     "tuple"
                         => format!("tuple{}${}", arguments.len(), Self::encode_arguments(arguments)),
-                    closure if closure.starts_with("closure")
-                        => format!("closure{}${}", arguments.len(), Self::encode_arguments(arguments)),
+                    // TODO: remove len constraint once encoders are all updated with polymorphic
+                    closure if closure.starts_with("closure") && arguments.len() > 0
+                        => format!("{}${}${}", closure, arguments.len(), Self::hash_arguments(arguments)),
                     adt if adt.starts_with("adt")
-                        => format!("{}${}", &adt[4..], Self::encode_substs(arguments)),
+                        => format!("{}${}{}", &adt[4..], Self::encode_substs(arguments), variant),
                     _label => if arguments.len() > 0 {
                         // Projection
                         format!("{}${}", label_str, Self::encode_arguments(arguments))
@@ -244,6 +248,12 @@ impl Type {
 
         composed_name.join("$")
     }
+
+    fn hash_arguments(args: &Vec<Type>) -> u64 {
+        let mut s = DefaultHasher::new();
+        args.hash(&mut s);
+        s.finish()
+    }
 }
 
 
@@ -276,11 +286,12 @@ impl fmt::Display for SeqType {
 pub struct TypedRef {
     pub label: String,
     pub arguments: Vec<Type>,
+    pub variant: String,
 }
 
 impl PartialEq for TypedRef {
     fn eq(&self, other: &Self) -> bool {
-        (&self.label, &self.arguments) == (&other.label, &other.arguments)
+        (&self.label, &self.arguments, &self.variant) == (&other.label, &other.arguments, &other.variant)
     }
 }
 
@@ -288,7 +299,7 @@ impl Eq for TypedRef {}
 
 impl Hash for TypedRef {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (&self.label, &self.arguments).hash(state);
+        (&self.label, &self.arguments, &self.variant).hash(state);
     }
 }
 
@@ -434,7 +445,7 @@ impl Field {
 
     pub fn typed_ref_name(&self) -> Option<String> {
         match self.typ {
-            Type::TypedRef(ref typed_ref) => Some(typed_ref.label.clone()),
+            Type::TypedRef(_) => Some(self.typ.encode_as_string()),
             _ => None,
         }
     }

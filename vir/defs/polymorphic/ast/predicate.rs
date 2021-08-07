@@ -159,7 +159,7 @@ impl StructPredicate {
         let body = fields
             .into_iter()
             .flat_map(|field| {
-                let predicate_name = field.typed_ref_name().unwrap();
+                let predicate_name = field.typ.encode_as_string();
                 let location: Expr = Expr::from(this.clone()).field(field).into();
                 let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
                 let pred_perm =

@@ -23,7 +23,6 @@ use rustc_target::abi;
 use rustc_middle::ty::layout::IntegerExt;
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
-use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use prusti_interface::specs::typed;
@@ -245,10 +244,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_polymorphic_predicate_def(self) -> EncodingResult<Vec<polymorphic_vir::Predicate>> {
-        debug!("Encode type predicate '{:?}'", self.ty);
-        // let typ = polymorphic_vir::Type::typed_ref(predicate_name.clone());
         let typ = self.encoder.encode_polymorphic_type_predicate_use(self.ty)?;
-        let predicate_name = typ.clone().encode_as_string();
 
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vec![polymorphic_vir::Predicate::new_primitive_value(
@@ -415,7 +411,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Array(..) => {
                 vec![
-                    polymorphic_vir::Predicate::new_abstract(polymorphic_vir::Type::typed_ref(predicate_name)),
+                    polymorphic_vir::Predicate::new_abstract(typ),
                 ]
             }
 
@@ -719,8 +715,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         // we need make them to use the regular function encoding mechanism with
         // snapshots. However, that mechanism is currently very hacky and needs
         // proper refactoring, which is blocked by VIR 2.0.
-        let predicate_name = self.encoder.encode_type_predicate_use(self.ty)?;
-        let self_local_var = polymorphic_vir::LocalVar::new(predicate_name.clone(), polymorphic_vir::Type::typed_ref(predicate_name.clone()));
+        let typ = self.encoder.encode_polymorphic_type_predicate_use(self.ty)?;
+        let self_local_var = polymorphic_vir::LocalVar::new(typ.encode_as_string(), typ);
         Ok(polymorphic_vir::Function {
             name: self.encoder.encode_type_invariant_use(self.ty)?,
             formal_args: vec![self_local_var],
