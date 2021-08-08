@@ -58,13 +58,11 @@ impl From<polymorphic::Type> for legacy::Type {
             polymorphic::Type::Int => legacy::Type::Int,
             polymorphic::Type::Bool => legacy::Type::Bool,
             polymorphic::Type::Seq(seq) => legacy::Type::Seq(Box::new((*seq.typ).into())),
-            polymorphic::Type::TypedRef(typed_ref) => legacy::Type::TypedRef(typed_ref.label),
+            polymorphic::Type::TypedRef(_) | polymorphic::Type::TypeVar(_) => legacy::Type::TypedRef(typ.encode_as_string()),
             polymorphic::Type::Domain(domain_type) => legacy::Type::Domain(domain_type.label),
             polymorphic::Type::Snapshot(snapshot_type) => {
                 legacy::Type::Snapshot(snapshot_type.label)
             }
-            // Does not happen, unless type substitution is incorrect
-            polymorphic::Type::TypeVar(_) => unreachable!(),
         }
     }
 }
@@ -400,6 +398,12 @@ impl From<polymorphic::Function> for legacy::Function {
             posts: function.posts.into_iter().map(|post| post.into()).collect(),
             body: function.body.map(|body_expr| body_expr.into()),
         }
+    }
+}
+
+impl From<polymorphic::FunctionIdentifier> for legacy::FunctionIdentifier {
+    fn from(function_identifier: polymorphic::FunctionIdentifier) -> legacy::FunctionIdentifier {
+        legacy::FunctionIdentifier(function_identifier.0)
     }
 }
 
