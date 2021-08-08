@@ -1126,13 +1126,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         encoded_arg: vir::Expr
     ) -> EncodingResult<vir::Expr> {
-        let type_pred = self.encode_type_predicate_use(ty)
-            .expect("failed to encode unsupported type");
+        // TODO: adapt whole function to polymorphic
+        let type_pred = self.encode_polymorphic_type_predicate_use(ty)
+            .expect("failed to encode unsupported type").into();
         Ok(vir::Expr::FuncApp(
             self.encode_type_invariant_use(ty)?,
             vec![encoded_arg],
             // TODO ?
-            vec![vir_local!{ self: {vir::Type::TypedRef(type_pred)} }],
+            vec![vir_local!{ self: { type_pred } }],
             vir::Type::Bool,
             // TODO
             vir::Position::default(),

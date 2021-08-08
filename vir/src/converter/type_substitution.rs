@@ -1070,7 +1070,7 @@ mod tests {
     // successful substitution more complex case
     fn substitution_type_var_complex_test() {
         // more nested structure
-        let mut source = Type::typed_ref_with_args(
+        let source = Type::typed_ref_with_args(
             "CustomStruct",
             vec![
                 Type::Int,
@@ -1090,7 +1090,7 @@ mod tests {
                 }),
             ],
         );
-        let mut expected = Type::typed_ref_with_args(
+        let expected = Type::typed_ref_with_args(
             "CustomStruct",
             vec![
                 Type::Int,
@@ -1111,7 +1111,7 @@ mod tests {
         test(source, expected, &SUBSTITUTION_MAP);
 
         // structures having type vars after substitution
-        let mut source = Type::typed_ref_with_args(
+        let source = Type::typed_ref_with_args(
             "CustomStruct",
             vec![
                 Type::TypeVar(TypeVar {
@@ -1133,7 +1133,7 @@ mod tests {
                 }),
             ],
         );
-        let mut expected = Type::typed_ref_with_args(
+        let expected = Type::typed_ref_with_args(
             "CustomStruct",
             vec![
                 Type::typed_ref_with_args(

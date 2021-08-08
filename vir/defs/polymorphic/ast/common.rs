@@ -13,6 +13,10 @@ use std::{
     mem::discriminant,
 };
 
+pub trait WithIdentifier {
+    fn get_identifier(&self) -> String;
+}
+
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Position {
@@ -111,7 +115,7 @@ impl fmt::Display for Type {
             Type::Int => write!(f, "Int"),
             Type::Bool => write!(f, "Bool"),
             Type::Seq(seq) => seq.fmt(f),
-            Type::TypedRef(typed_ref) => write!(f, "Ref({})", self.encode_as_string()),
+            Type::TypedRef(_) => write!(f, "Ref({})", self.encode_as_string()),
             Type::Domain(domain_type) => domain_type.fmt(f),
             Type::Snapshot(snapshot_type) => snapshot_type.fmt(f),
             Type::TypeVar(type_var) => type_var.fmt(f),
