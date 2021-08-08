@@ -896,7 +896,7 @@ mod tests {
             m.insert(TypeVar { label: String::from("H") }, Type::typed_ref_with_args(
                 "ComplexRef2",
                 vec![
-                    Type::TypeVar(TypeVar {label: String::from("H") }), 
+                    Type::TypeVar(TypeVar {label: String::from("H") }),
                     Type::Domain(DomainType {
                         label: String::from("ComplexDomain"),
                         arguments: vec![Type::TypeVar(TypeVar {label: String::from("T")})],
@@ -943,7 +943,7 @@ mod tests {
         source = Type::Snapshot(SnapshotType {
             label: String::from("CustomSnapshot"),
             arguments: vec![
-                Type::Bool, 
+                Type::Bool,
                 Type::typed_ref_with_args("vec", vec![Type::Bool]),
             ],
         });
@@ -960,9 +960,12 @@ mod tests {
     #[test]
     // source having no matching type var for substitution
     fn substitution_no_matching_type_var_test() {
-        let mut source = Type::typed_ref_with_args ("CustomStruct", vec![Type::TypeVar(TypeVar {
+        let mut source = Type::typed_ref_with_args(
+            "CustomStruct",
+            vec![Type::TypeVar(TypeVar {
                 label: String::from("D"),
-            })]);
+            })],
+        );
         let mut expected = source.clone();
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -985,10 +988,11 @@ mod tests {
             label: String::from("Custom"),
             arguments: vec![
                 Type::Bool,
-                Type::typed_ref_with_args("vec", vec![Type::TypeVar(TypeVar {
-                            label: String::from("D")
-                        }
-                    )],
+                Type::typed_ref_with_args(
+                    "vec",
+                    vec![Type::TypeVar(TypeVar {
+                        label: String::from("D"),
+                    })],
                 ),
             ],
         });
@@ -1018,10 +1022,7 @@ mod tests {
         );
         expected = Type::typed_ref_with_args(
             "CustomStruct",
-            vec![
-                Type::Bool,
-                Type::typed_ref("SimpleRef"),
-            ],
+            vec![Type::Bool, Type::typed_ref("SimpleRef")],
         );
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1038,10 +1039,7 @@ mod tests {
         });
         expected = Type::Domain(DomainType {
             label: String::from("CustomDomain"),
-            arguments: vec![
-                Type::Bool,
-                Type::typed_ref("SimpleRef"),
-            ],
+            arguments: vec![Type::Bool, Type::typed_ref("SimpleRef")],
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1058,10 +1056,7 @@ mod tests {
         });
         expected = Type::Snapshot(SnapshotType {
             label: String::from("CustomSnapshot"),
-            arguments: vec![
-                Type::Bool,
-                Type::typed_ref("SimpleRef"),
-            ],
+            arguments: vec![Type::Bool, Type::typed_ref("SimpleRef")],
         });
         test(source, expected, &SUBSTITUTION_MAP);
     }
@@ -1100,9 +1095,7 @@ mod tests {
                         Type::Bool,
                         Type::Snapshot(SnapshotType {
                             label: String::from("CustomSnapshot"),
-                            arguments: vec![
-                                Type::typed_ref("SimpleRef"),
-                            ]    
+                            arguments: vec![Type::typed_ref("SimpleRef")],
                         }),
                     ],
                 }),
@@ -1138,7 +1131,9 @@ mod tests {
             vec![
                 Type::typed_ref_with_args(
                     "ComplexRef",
-                    vec![Type::TypeVar(TypeVar {label: String::from("T") })],
+                    vec![Type::TypeVar(TypeVar {
+                        label: String::from("T"),
+                    })],
                 ),
                 Type::Domain(DomainType {
                     label: String::from("CustomDomain"),
@@ -1146,7 +1141,9 @@ mod tests {
                         Type::typed_ref_with_args(
                             "ComplexRef2",
                             vec![
-                                Type::TypeVar(TypeVar {label: String::from("H") }), 
+                                Type::TypeVar(TypeVar {
+                                    label: String::from("H"),
+                                }),
                                 Type::Domain(DomainType {
                                     label: String::from("ComplexDomain"),
                                     arguments: vec![Type::TypeVar(TypeVar {
@@ -1157,9 +1154,7 @@ mod tests {
                         ),
                         Type::Snapshot(SnapshotType {
                             label: String::from("CustomSnapshot"),
-                            arguments: vec![
-                                Type::typed_ref("SimpleRef"),
-                            ]    
+                            arguments: vec![Type::typed_ref("SimpleRef")],
                         }),
                     ],
                 }),
@@ -3065,22 +3060,20 @@ mod tests {
                     }),
                 },
             ],
-            formal_returns: vec![
-                LocalVar {
-                    name: String::from("_r"),
-                    typ: Type::typed_ref_with_args(
-                        "CustomStruct",
-                        vec![
-                            Type::TypeVar(TypeVar {
-                                label: String::from("E"),
-                            }),
-                            Type::TypeVar(TypeVar {
-                                label: String::from("F"),
-                            }),
-                        ],
-                    ),
-                }
-            ],
+            formal_returns: vec![LocalVar {
+                name: String::from("_r"),
+                typ: Type::typed_ref_with_args(
+                    "CustomStruct",
+                    vec![
+                        Type::TypeVar(TypeVar {
+                            label: String::from("E"),
+                        }),
+                        Type::TypeVar(TypeVar {
+                            label: String::from("F"),
+                        }),
+                    ],
+                ),
+            }],
         };
 
         let expected = BodylessMethod {
@@ -3097,18 +3090,13 @@ mod tests {
                     }),
                 },
             ],
-            formal_returns: vec![
-                LocalVar {
-                    name: String::from("_r"),
-                    typ: Type::typed_ref_with_args(
-                        "CustomStruct",
-                        vec![
-                            Type::Bool,
-                            Type::typed_ref("SimpleRef"),
-                        ],
-                    )
-                },
-            ],
+            formal_returns: vec![LocalVar {
+                name: String::from("_r"),
+                typ: Type::typed_ref_with_args(
+                    "CustomStruct",
+                    vec![Type::Bool, Type::typed_ref("SimpleRef")],
+                ),
+            }],
         };
         test(source, expected, &SUBSTITUTION_MAP);
     }

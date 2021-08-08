@@ -58,7 +58,9 @@ impl From<polymorphic::Type> for legacy::Type {
             polymorphic::Type::Int => legacy::Type::Int,
             polymorphic::Type::Bool => legacy::Type::Bool,
             polymorphic::Type::Seq(seq) => legacy::Type::Seq(Box::new((*seq.typ).into())),
-            polymorphic::Type::TypedRef(_) | polymorphic::Type::TypeVar(_) => legacy::Type::TypedRef(typ.encode_as_string()),
+            polymorphic::Type::TypedRef(_) | polymorphic::Type::TypeVar(_) => {
+                legacy::Type::TypedRef(typ.encode_as_string())
+            }
             polymorphic::Type::Domain(domain_type) => legacy::Type::Domain(domain_type.label),
             polymorphic::Type::Snapshot(snapshot_type) => {
                 legacy::Type::Snapshot(snapshot_type.label)
