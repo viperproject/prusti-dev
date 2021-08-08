@@ -244,6 +244,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_polymorphic_predicate_def(self) -> EncodingResult<Vec<polymorphic_vir::Predicate>> {
+        debug!("Encode type predicate '{:?}'", self.ty);
         let typ = self.encoder.encode_polymorphic_type_predicate_use(self.ty)?;
 
         Ok(match self.ty.kind() {
