@@ -515,7 +515,7 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
                     .map(|enum_variant_index| enum_variant_index.into()),
             ),
             polymorphic::Stmt::Obtain(obtain) => {
-                legacy::Stmt::Obtain(obtain.predicate_name.into(), obtain.position.into())
+                legacy::Stmt::Obtain(obtain.expr.into(), obtain.position.into())
             }
             polymorphic::Stmt::BeginFrame(_) => legacy::Stmt::BeginFrame,
             polymorphic::Stmt::EndFrame(_) => legacy::Stmt::EndFrame,
