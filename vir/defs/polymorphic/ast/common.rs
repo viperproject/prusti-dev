@@ -41,6 +41,10 @@ impl Position {
     pub fn id(&self) -> u64 {
         self.id
     }
+
+    pub fn is_default(&self) -> bool {
+        self.line == 0 && self.column == 0 && self.id == 0
+    }
 }
 
 impl Default for Position {
@@ -61,6 +65,32 @@ pub enum PermAmount {
     Write,
     /// The permission remaining after ``Read`` was subtracted from ``Write``.
     Remaining,
+}
+
+impl PermAmount {
+    /// Can this permission amount be used in specifications?
+    pub fn is_valid_for_specs(&self) -> bool {
+        match self {
+            PermAmount::Read | PermAmount::Write => true,
+            PermAmount::Remaining => false,
+        }
+    }
+
+    pub fn add(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
+        match (self, other) {
+            (PermAmount::Read, PermAmount::Remaining)
+            | (PermAmount::Remaining, PermAmount::Read) => Ok(PermAmount::Write),
+            _ => Err(PermAmountError::InvalidAdd(self, other)),
+        }
+    }
+
+    pub fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
+        match (self, other) {
+            (PermAmount::Write, PermAmount::Read) => Ok(PermAmount::Remaining),
+            (PermAmount::Write, PermAmount::Remaining) => Ok(PermAmount::Read),
+            _ => Err(PermAmountError::InvalidSub(self, other)),
+        }
+    }
 }
 
 impl fmt::Display for PermAmount {
@@ -146,6 +176,57 @@ impl Hash for Type {
 }
 
 impl Type {
+    pub fn is_ref(&self) -> bool {
+        matches!(self, &Type::TypedRef(_))
+    }
+
+    pub fn is_domain(&self) -> bool {
+        matches!(self, &Type::Domain(_))
+    }
+
+    pub fn is_snapshot(&self) -> bool {
+        matches!(self, &Type::Snapshot(_))
+    }
+
+    pub fn name(&self) -> String {
+        match self {
+            Type::Bool => "bool".to_string(),
+            Type::Int => "int".to_string(),
+            Type::Domain(ref domain) => domain.label.clone(),
+            Type::Snapshot(ref snapshot) => snapshot.label.clone(),
+            Type::TypedRef(_) | Type::TypeVar(_) => {
+                self.encode_as_string()
+            },
+            Type::Seq(SeqType {box ref typ} ) => typ.name(),
+        }
+    }
+
+    /// Construct a new VIR type that corresponds to an enum variant.
+    pub fn variant(self, variant: &str) -> Self {
+        match self {
+            Type::TypedRef(mut typed_ref) => {
+                typed_ref.variant = variant.into();
+                Type::TypedRef(typed_ref)
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    // TODO: update this once type substitution is done
+    // /// Replace all generic types with their instantiations by using string substitution.
+    // /// FIXME: this is a hack to support generics. See issue #187.
+    // pub fn patch(self, substs: &HashMap<String, String>) -> Self {
+    //     match self {
+    //         Type::TypedRef(mut predicate_name) => {
+    //             for (typ, subst) in substs {
+    //                 predicate_name = predicate_name.replace(typ, subst);
+    //             }
+    //             Type::TypedRef(predicate_name)
+    //         }
+    //         typ => typ,
+    //     }
+    // }
+
     pub fn typed_ref<S: Into<String>>(name: S) -> Self {
         Type::TypedRef(TypedRef {
             label: name.into(),
@@ -168,26 +249,15 @@ impl Type {
         })
     }
 
-    pub fn name(&self) -> String {
+    pub fn get_id(&self) -> TypeId {
         match self {
-            Type::Bool => "bool".to_string(),
-            Type::Int => "int".to_string(),
-            Type::TypedRef(ref typed_ref) => typed_ref.label.clone(),
-            Type::Domain(ref domain) => domain.label.clone(),
-            Type::Snapshot(ref snapshot) => snapshot.label.clone(),
-            Type::TypeVar(ref type_var) => type_var.label.clone(),
-            Type::Seq(SeqType {box ref typ} ) => typ.name(),
-        }
-    }
-
-    /// Construct a new VIR type that corresponds to an enum variant.
-    pub fn variant(self, variant: &str) -> Self {
-        match self {
-            Type::TypedRef(mut typed_ref) => {
-                typed_ref.variant = variant.into();
-                Type::TypedRef(typed_ref)
-            }
-            _ => unreachable!(),
+            Type::Bool => TypeId::Bool,
+            Type::Int => TypeId::Int,
+            Type::TypedRef(_) => TypeId::Ref,
+            Type::Domain(_) => TypeId::Domain,
+            Type::Snapshot(_) => TypeId::Snapshot,
+            Type::Seq(_) => TypeId::Seq,
+            Type::TypeVar(t) => unreachable!(t),
         }
     }
 
@@ -452,5 +522,11 @@ impl Field {
             Type::TypedRef(_) => Some(self.typ.encode_as_string()),
             _ => None,
         }
+    }
+}
+
+impl WithIdentifier for Field {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
     }
 }
