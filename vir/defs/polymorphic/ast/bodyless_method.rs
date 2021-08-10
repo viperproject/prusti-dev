@@ -15,6 +15,12 @@ pub struct BodylessMethod {
     pub formal_returns: Vec<LocalVar>,
 }
 
+impl WithIdentifier for BodylessMethod {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
+    }
+}
+
 impl fmt::Display for BodylessMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "method {}(", self.name)?;

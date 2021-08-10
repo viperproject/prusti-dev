@@ -194,6 +194,12 @@ impl StructPredicate {
     }
 }
 
+impl WithIdentifier for StructPredicate {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
+    }
+}
+
 /// The predicate for types that have 0 or more than one variants.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct EnumPredicate {
@@ -214,12 +220,24 @@ pub struct EnumPredicate {
 pub struct EnumVariantIndex(pub(crate) String);
 
 impl EnumVariantIndex {
+    pub fn get_variant_name(&self) -> &str {
+        &self.0
+    }
+
     pub fn new(s: String) -> Self {
         EnumVariantIndex(s)
     }
 }
 
 pub type MaybeEnumVariantIndex = Option<EnumVariantIndex>;
+
+impl<'a> Into<EnumVariantIndex> for &'a Field {
+    fn into(self) -> EnumVariantIndex {
+        // TODO: Refactor to avoid string manipulations.
+        assert!(self.name.starts_with("enum_"));
+        EnumVariantIndex(self.name[5..].to_string())
+    }
+}
 
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -258,5 +276,11 @@ impl EnumPredicate {
             ));
         }
         parts.into_iter().conjoin()
+    }
+}
+
+impl WithIdentifier for EnumPredicate {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
     }
 }
