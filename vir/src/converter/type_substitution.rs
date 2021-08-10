@@ -624,7 +624,7 @@ impl Generic for Unfold {
 impl Generic for Obtain {
     fn substitute(self, map: &HashMap<TypeVar, Type>) -> Self {
         let mut obtain = self;
-        obtain.predicate_name = obtain.predicate_name.substitute(map);
+        obtain.expr = obtain.expr.substitute(map);
         obtain
     }
 }
@@ -2521,7 +2521,7 @@ mod tests {
 
         // Obtain
         source = Stmt::Obtain(Obtain {
-            predicate_name: Expr::Local(Local {
+            expr: Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v1"),
                     typ: Type::TypeVar(TypeVar {
@@ -2533,7 +2533,7 @@ mod tests {
             position: position.clone(),
         });
         expected = Stmt::Obtain(Obtain {
-            predicate_name: Expr::Local(Local {
+            expr: Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v1"),
                     typ: Type::Int,
@@ -2736,7 +2736,7 @@ mod tests {
                     reborrowed_nodes: vec![Borrow(1), Borrow(2)],
                     stmts: vec![
                         Stmt::Obtain(Obtain {
-                            predicate_name: Expr::Local(Local {
+                            expr: Expr::Local(Local {
                                 variable: LocalVar {
                                     name: String::from("_v2"),
                                     typ: Type::TypeVar(TypeVar {
@@ -2748,7 +2748,7 @@ mod tests {
                             position: position.clone(),
                         }),
                         Stmt::Obtain(Obtain {
-                            predicate_name: Expr::Local(Local {
+                            expr: Expr::Local(Local {
                                 variable: LocalVar {
                                     name: String::from("_v3"),
                                     typ: Type::TypeVar(TypeVar {
@@ -2830,7 +2830,7 @@ mod tests {
                     reborrowed_nodes: vec![Borrow(1), Borrow(2)],
                     stmts: vec![
                         Stmt::Obtain(Obtain {
-                            predicate_name: Expr::Local(Local {
+                            expr: Expr::Local(Local {
                                 variable: LocalVar {
                                     name: String::from("_v2"),
                                     typ: Type::Int,
@@ -2840,7 +2840,7 @@ mod tests {
                             position: position.clone(),
                         }),
                         Stmt::Obtain(Obtain {
-                            predicate_name: Expr::Local(Local {
+                            expr: Expr::Local(Local {
                                 variable: LocalVar {
                                     name: String::from("_v3"),
                                     typ: Type::Bool,
@@ -4056,7 +4056,7 @@ mod tests {
         let source = CfgBlock {
             stmts: vec![
                 Stmt::Obtain(Obtain {
-                    predicate_name: Expr::Local(Local {
+                    expr: Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v1"),
                             typ: Type::TypeVar(TypeVar {
@@ -4068,7 +4068,7 @@ mod tests {
                     position: position.clone(),
                 }),
                 Stmt::Obtain(Obtain {
-                    predicate_name: Expr::Local(Local {
+                    expr: Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::TypeVar(TypeVar {
@@ -4122,7 +4122,7 @@ mod tests {
         let expected = CfgBlock {
             stmts: vec![
                 Stmt::Obtain(Obtain {
-                    predicate_name: Expr::Local(Local {
+                    expr: Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v1"),
                             typ: Type::Int,
@@ -4132,7 +4132,7 @@ mod tests {
                     position: position.clone(),
                 }),
                 Stmt::Obtain(Obtain {
-                    predicate_name: Expr::Local(Local {
+                    expr: Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::Bool,
@@ -4228,7 +4228,7 @@ mod tests {
             basic_blocks: vec![CfgBlock {
                 stmts: vec![
                     Stmt::Obtain(Obtain {
-                        predicate_name: Expr::Local(Local {
+                        expr: Expr::Local(Local {
                             variable: LocalVar {
                                 name: String::from("_v1"),
                                 typ: Type::TypeVar(TypeVar {
@@ -4240,7 +4240,7 @@ mod tests {
                         position: position.clone(),
                     }),
                     Stmt::Obtain(Obtain {
-                        predicate_name: Expr::Local(Local {
+                        expr: Expr::Local(Local {
                             variable: LocalVar {
                                 name: String::from("_v2"),
                                 typ: Type::TypeVar(TypeVar {
@@ -4328,7 +4328,7 @@ mod tests {
             basic_blocks: vec![CfgBlock {
                 stmts: vec![
                     Stmt::Obtain(Obtain {
-                        predicate_name: Expr::Local(Local {
+                        expr: Expr::Local(Local {
                             variable: LocalVar {
                                 name: String::from("_v1"),
                                 typ: Type::Int,
@@ -4338,7 +4338,7 @@ mod tests {
                         position: position.clone(),
                     }),
                     Stmt::Obtain(Obtain {
-                        predicate_name: Expr::Local(Local {
+                        expr: Expr::Local(Local {
                             variable: LocalVar {
                                 name: String::from("_v2"),
                                 typ: Type::Bool,
@@ -4411,7 +4411,7 @@ mod tests {
             reborrowed_nodes: vec![Borrow(1), Borrow(2)],
             stmts: vec![
                 Stmt::Obtain(Obtain {
-                    predicate_name: Expr::Local(Local {
+                    expr: Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::TypeVar(TypeVar {
@@ -4423,7 +4423,7 @@ mod tests {
                     position: position.clone(),
                 }),
                 Stmt::Obtain(Obtain {
-                    predicate_name: Expr::Local(Local {
+                    expr: Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v3"),
                             typ: Type::TypeVar(TypeVar {
@@ -4481,7 +4481,7 @@ mod tests {
             reborrowed_nodes: vec![Borrow(1), Borrow(2)],
             stmts: vec![
                 Stmt::Obtain(Obtain {
-                    predicate_name: Expr::Local(Local {
+                    expr: Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v2"),
                             typ: Type::Int,
@@ -4491,7 +4491,7 @@ mod tests {
                     position: position.clone(),
                 }),
                 Stmt::Obtain(Obtain {
-                    predicate_name: Expr::Local(Local {
+                    expr: Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v3"),
                             typ: Type::Bool,
@@ -4555,7 +4555,7 @@ mod tests {
                 reborrowed_nodes: vec![Borrow(1), Borrow(2)],
                 stmts: vec![
                     Stmt::Obtain(Obtain {
-                        predicate_name: Expr::Local(Local {
+                        expr: Expr::Local(Local {
                             variable: LocalVar {
                                 name: String::from("_v2"),
                                 typ: Type::TypeVar(TypeVar {
@@ -4567,7 +4567,7 @@ mod tests {
                         position: position.clone(),
                     }),
                     Stmt::Obtain(Obtain {
-                        predicate_name: Expr::Local(Local {
+                        expr: Expr::Local(Local {
                             variable: LocalVar {
                                 name: String::from("_v3"),
                                 typ: Type::TypeVar(TypeVar {
@@ -4648,7 +4648,7 @@ mod tests {
                 reborrowed_nodes: vec![Borrow(1), Borrow(2)],
                 stmts: vec![
                     Stmt::Obtain(Obtain {
-                        predicate_name: Expr::Local(Local {
+                        expr: Expr::Local(Local {
                             variable: LocalVar {
                                 name: String::from("_v2"),
                                 typ: Type::Int,
@@ -4658,7 +4658,7 @@ mod tests {
                         position: position.clone(),
                     }),
                     Stmt::Obtain(Obtain {
-                        predicate_name: Expr::Local(Local {
+                        expr: Expr::Local(Local {
                             variable: LocalVar {
                                 name: String::from("_v3"),
                                 typ: Type::Bool,
