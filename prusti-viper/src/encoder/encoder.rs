@@ -752,6 +752,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
         -> SpannedEncodingResult<Vec<vir::FunctionIdentifier>>
     {
+        if !self.env().tcx().is_mir_available(def_id) || self.env().tcx().is_constructor(def_id) {
+            return Ok(vec![]);
+        }
+
         if !self.spec_functions.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
             let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure);
