@@ -35,6 +35,8 @@ extern crate rustc_data_structures;
 extern crate rustc_index;
 extern crate rustc_trait_selection;
 extern crate polonius_engine;
+extern crate rustc_session;
+extern crate rustc_errors;
 #[macro_use]
 extern crate lazy_static;
 
@@ -42,6 +44,7 @@ pub mod data;
 pub mod environment;
 pub mod specs;
 pub mod utils;
+pub mod emitter;
 
 pub use prusti_error::*;
 

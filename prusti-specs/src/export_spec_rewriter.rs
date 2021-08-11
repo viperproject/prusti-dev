@@ -6,7 +6,6 @@ use syn::spanned::Spanned;
 fn hash_path(path: syn::Path) -> u64 {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
-    println!("path to hash: {:?} \n", &path);
     let mut hasher = DefaultHasher::new();
     path.hash(&mut hasher);
     hasher.finish()
@@ -16,7 +15,7 @@ fn hash_path(path: syn::Path) -> u64 {
 // {last_segment in path}_{hash(path)}
 pub fn generate_macro_ident(path: syn::Path) -> syn::Ident {
     let ident = path.segments.last().unwrap().ident.to_owned();
-    syn::Ident::new(&format!("{}_{}", ident, hash_path(path)), ident.span())
+    syn::Ident::new(&format!("{}_{}_{}", "prusti_export", ident, hash_path(path)), ident.span())
 }
 
 // generate macro for export based on given identifier and item
@@ -26,6 +25,7 @@ fn generate_macro_for_export<T: ToTokens>(
 ) -> TokenStream {
     quote_spanned! {macro_ident.span() =>
         #[macro_export]
+        #[prusti::export_spec_macro]
         macro_rules! #macro_ident {
             () => {
                 #macro_content
@@ -112,7 +112,6 @@ pub fn rewrite_export_spec(path: &syn::Path, item: &syn::Item) -> syn::Result<To
             );
         }
         syn::Item::Mod(item_mod) => {
-            // println!("{}", );
             rewrite_mod(
                 path,
                 mod_path,
@@ -256,7 +255,6 @@ fn rewrite_impl(
         path.segments.extend(type_path.path.segments.clone());
     }
 
-    // println!("path in impl: {:?} \n", path);
     for item in item_impl.items.iter() {
         match item {
             syn::ImplItem::Method(item_method) => {

@@ -10,9 +10,9 @@ impl LinkedList::<i32> {
 }
 
 #[extern_spec]
-impl<T> LinkedList<T> {
-    #[ensures(true)] //~ ERROR duplicate specification
-    pub fn new() -> LinkedList<T>;
+impl<T> LinkedList<T> { //~ ERROR duplicate export specification
+    #[ensures(true)]
+    pub fn new() -> LinkedList<T>; //~ ERROR duplicate export specification
 }
 
 fn main() {
