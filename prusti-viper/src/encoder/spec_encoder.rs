@@ -195,7 +195,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
     fn encode_credit_perm_amount(&self, coeff: &typed::Expression) -> SpannedEncodingResult<vir::FracPermAmount> {      //TODO: move to encoder? & use there
         //TODO: allow fractions in annotation
-        //TODO: allow called function coefficients in annotation
         let enc_coeff = self.encode_expression(coeff)?;
         Ok(vir::FracPermAmount::new(box enc_coeff, box 1.into()))
     }
