@@ -55,7 +55,7 @@ use rustc_middle::ty::layout::IntegerExt;
 use rustc_index::vec::Idx;
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
-use std::collections::HashMap;
+use std::collections::{HashMap, BTreeSet};
 use std::collections::HashSet;
 use rustc_attr::IntType::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
@@ -67,6 +67,11 @@ use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use crate::encoder::snapshot;
 use std::convert::TryInto;
+use crate::encoder::mir_interpreter::BackwardMirInterpreter;
+use std::cmp::Ordering;
+use prusti_interface::specs::typed::CreditVarPower;
+use num_traits::real::Real;
+use crate::encoder::cost_encoder::encode_credit_preconditions;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -293,7 +298,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         let proc_trait_pre = typed::Assertion {
                             kind: box typed::AssertionKind::And(
                                 procedure_trait_contract
-                                    .functional_precondition()
+                                    .functional_precondition()          //TODO: causes problems with credit spec?!
                                     .iter()
                                     .cloned()
                                     .collect(),
@@ -2730,6 +2735,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_mandatory_type_spec,
             pre_invs_spec,
             pre_func_spec,
+            _,
+            _,
             _, // We don't care about verifying that the weakening is valid,
                // since it isn't the task of the caller
         ) = self.encode_precondition_expr(&procedure_contract, None, false)?;
@@ -3118,10 +3125,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    /// Encode the precondition with three expressions:
-    /// - one for the type encoding
-    /// - one for the type invariants
-    /// - one for the functional specification.
+    /// Encode the precondition into the following elements
+    /// - Type spec in which read permissions can be removed.
+    /// - Type spec containing the read permissions that must be exhaled because they were moved into a magic wand.
+    /// - Type invariants
+    /// - Functional specification.
+    /// - Credit specification (if any)
+    /// - Statements to be inserted after inhaling the preconditions to check that asymptotic credit bounds are satisfied
+    /// - Precondition weakening
     ///
     /// `function_start` – are we encoding the inhale of the precondition
     /// at the start of the method?
@@ -3135,6 +3146,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Vec<vir::Expr>,
         vir::Expr,
         vir::Expr,
+        Option<vir::Expr>,
+        Vec<vir::Stmt>,
         Option<vir::Expr>,
     )> {
         let borrow_infos = &contract.borrow_infos;
@@ -3193,7 +3206,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
         let func_precondition = contract.functional_precondition();
-        for assertion in func_precondition {
+
+        let (credit_pre, asymp_check_stmts, remaining_func_pres) =
+            if function_start {
+                encode_credit_preconditions(
+                    func_precondition,
+                    &encoded_args,
+                    &self.encoder,
+                    &self,
+                    &self.mir_encoder,
+                    &self.mir,
+                    self.proc_def_id,
+                    true
+                )?
+            }
+            else {
+                (None, vec![], func_precondition.iter().collect())
+            };
+
+        for assertion in remaining_func_pres {
             // FIXME
             let value = self.encoder.encode_assertion(
                 &assertion,
@@ -3254,6 +3285,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
             func_spec.into_iter().conjoin(),
+            credit_pre,
+            asymp_check_stmts,
             precondition_weakening,
         ))
     }
@@ -3266,7 +3299,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-        let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
+        let (type_spec, mandatory_type_spec, invs_spec, func_spec, credit_spec, asymp_check_stmts, weakening_spec) =
             self.encode_precondition_expr(
                 self.procedure_contract(),
                 precondition_weakening,
@@ -3299,9 +3332,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             start_cfg_block,
             vir::Stmt::Inhale(func_spec),
         );
+        if let Some(credit_pre) = credit_spec {
+            self.cfg_method.add_stmt(
+                start_cfg_block,
+                vir::Stmt::Inhale(credit_pre)
+            );
+        }
         self.cfg_method.add_stmt(
             start_cfg_block,
             vir::Stmt::Label(PRECONDITION_LABEL.to_string()),
+        );
+        self.cfg_method.add_stmts(
+            start_cfg_block,
+            asymp_check_stmts,
         );
         Ok(())
     }
@@ -4603,7 +4646,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
-    fn encode_prusti_local(&self, local: Local) -> vir::LocalVar {
+    pub(crate) fn encode_prusti_local(&self, local: Local) -> vir::LocalVar {
         let var_name = self.locals.get_name(local);
         let type_name = self
             .encoder
