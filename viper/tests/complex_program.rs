@@ -195,5 +195,5 @@ fn success_with_complex_program() {
 
     let verification_result = verifier.verify(program);
 
-    assert_eq!(verification_result, VerificationResult::Success());
+    assert!(verification_result.is_success());
 }

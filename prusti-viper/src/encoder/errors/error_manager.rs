@@ -11,6 +11,7 @@ use rustc_span::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
 use log::debug;
+use prusti_interface::data::ProcedureDefId;
 
 /// The cause of a panic!()
 #[derive(Clone, Debug)]
@@ -101,7 +102,7 @@ pub enum ErrorCtxt {
 pub struct ErrorManager<'tcx> {
     codemap: &'tcx SourceMap,
     source_span: HashMap<u64, MultiSpan>,
-    error_contexts: HashMap<u64, ErrorCtxt>,
+    error_contexts: HashMap<u64, (ErrorCtxt, ProcedureDefId)>,
     next_pos_id: u64,
 }
 
@@ -116,9 +117,10 @@ impl<'tcx> ErrorManager<'tcx>
         }
     }
 
-    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt) -> Position {
+    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
         let pos = self.register_span(span);
-        self.register_error(&pos, error_ctxt);
+        debug!("Register error at: {:?}", pos.id());
+        self.error_contexts.insert(pos.id(), (error_ctxt, def_id));
         pos
     }
 
@@ -150,9 +152,11 @@ impl<'tcx> ErrorManager<'tcx>
         pos
     }
 
-    pub fn register_error(&mut self, pos: &Position, error_ctxt: ErrorCtxt) {
-        debug!("Register error at: {:?}", pos.id());
-        self.error_contexts.insert(pos.id(), error_ctxt);
+    pub fn get_def_id(&self, ver_error: &VerificationError) -> Option<&ProcedureDefId> {
+        ver_error.pos_id.as_ref()
+            .and_then(|id| id.parse().ok())
+            .and_then(|id| self.error_contexts.get(&id))
+            .map(|v| &v.1)
     }
 
     pub fn translate_verification_error(&self, ver_error: &VerificationError) -> PrustiError {
@@ -192,7 +196,9 @@ impl<'tcx> ErrorManager<'tcx>
             None => None
         };
 
-        let opt_error_ctxt = opt_pos_id.and_then(|pos_id| self.error_contexts.get(&pos_id));
+        let opt_error_ctxt = opt_pos_id
+            .and_then(|pos_id| self.error_contexts.get(&pos_id))
+            .map(|v| &v.0);
         let opt_error_span = opt_pos_id.and_then(|pos_id| self.source_span.get(&pos_id));
         let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
             let res = self.source_span.get(&reason_pos_id);
@@ -370,7 +376,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Generic),
             ) => {
-                PrustiError::verification("statement in pure function might panic", error_span)
+                PrustiError::disabled_verification("statement in pure function might panic", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
@@ -378,7 +384,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Panic),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "panic!(..) statement in pure function might panic",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -388,7 +394,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Assert),
             ) => {
-                PrustiError::verification("asserted expression might not hold", error_span)
+                PrustiError::disabled_verification("asserted expression might not hold", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
@@ -396,7 +402,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Unreachable),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "unreachable!(..) statement in pure function might be reachable",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -406,7 +412,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Unimplemented),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "unimplemented!(..) statement in pure function might be reachable",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -415,7 +421,7 @@ impl<'tcx> ErrorManager<'tcx>
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) |
             ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "postcondition of pure function definition might not hold",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -425,7 +431,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PureFunctionAssertTerminator(ref message),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     format!("assertion might fail with \"{}\"", message),
                     error_span
                 ).set_failing_assertion(opt_cause_span)

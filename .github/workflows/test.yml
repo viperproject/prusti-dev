@@ -86,6 +86,33 @@ jobs:
             python x.py exec cargo-clippy-diff --output=github $BASE_SHA HEAD
           fi
 
+  # Run rustfmt checks on PRs.
+  fmt-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # deep clone, to allow us to use git merge-base
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
+      - name: Check and report formatting warnings
+        run: |
+          if rustup component add rustfmt
+          then
+            cd vir && cargo fmt -- --check
+          fi
+
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
   purification-tests:
@@ -117,21 +144,21 @@ jobs:
       - name: Run "quick" cargo tests
         run: |
           python x.py verify-test prusti-tests/tests/verify/pass/rosetta/Knuth_shuffle.rs
-          python x.py test --all --verbose pass/rosetta/Binary_search_shared.rs
-          python x.py test --all --verbose pass/demos/account.rs
-          python x.py test --all --verbose pass/rosetta/Knights_tour.rs
-          python x.py test --all --verbose pass/quick/fold-unfold.rs
-          python x.py test --all --verbose pass/quick/moves.rs
-          python x.py test --all --verbose pass/quick/mut-borrows.rs
-          python x.py test --all --verbose pass/quick/shared-borrows.rs
-          python x.py test --all --verbose pass/quick/trait-contracts-refinement.rs
-          python x.py test --all --verbose pass/quick/fibonacci.rs
-          python x.py test --all --verbose pass/pure-fn/len-lookup.rs
-          python x.py test --all --verbose pass/pure-fn/quantifiers.rs
-          python x.py test --all --verbose pass/pure-fn/recursive-pure-fn.rs
-          python x.py test --all --verbose pass/pure-fn/ref-mut-arg.rs
-          python x.py test --all --verbose pass/rosetta/Ackermann_function.rs
-          python x.py test --all --verbose pass/rosetta/Heapsort.rs
+          # python x.py test --all --verbose pass/rosetta/Binary_search_shared.rs
+          # python x.py test --all --verbose pass/demos/account.rs
+          # python x.py test --all --verbose pass/rosetta/Knights_tour.rs
+          # python x.py test --all --verbose pass/quick/fold-unfold.rs
+          # python x.py test --all --verbose pass/quick/moves.rs
+          # python x.py test --all --verbose pass/quick/mut-borrows.rs
+          # python x.py test --all --verbose pass/quick/shared-borrows.rs
+          # python x.py test --all --verbose pass/quick/trait-contracts-refinement.rs
+          # python x.py test --all --verbose pass/quick/fibonacci.rs
+          # python x.py test --all --verbose pass/pure-fn/len-lookup.rs
+          # python x.py test --all --verbose pass/pure-fn/quantifiers.rs
+          # python x.py test --all --verbose pass/pure-fn/recursive-pure-fn.rs
+          # python x.py test --all --verbose pass/pure-fn/ref-mut-arg.rs
+          # python x.py test --all --verbose pass/rosetta/Ackermann_function.rs
+          # python x.py test --all --verbose pass/rosetta/Heapsort.rs
 
   # Run all the tests.
   all-tests:

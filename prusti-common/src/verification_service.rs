@@ -3,12 +3,12 @@ use viper::{self, VerificationBackend};
 use crate::vir::Program;
 
 pub trait VerificationService {
-    fn verify(&self, request: VerificationRequest) -> viper::VerificationResult;
+    fn verify(&self, request: VerificationRequest) -> viper::ProgramVerificationResult;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VerificationRequest {
-    pub program: Program,
+    pub programs: Vec<Program>,
     pub program_name: String,
     pub backend_config: ViperBackendConfig,
 }
@@ -32,6 +32,11 @@ impl Default for ViperBackendConfig {
                 if config::use_more_complete_exhale() {
                     verifier_args.push("--enableMoreCompleteExhale".to_string());
                 }
+                if config::produce_counterexample() {
+                    verifier_args.push("--counterexample".to_string());
+                    verifier_args.push("mapped".to_string());
+                }
+
                 verifier_args.extend(vec![
                     "--assertTimeout".to_string(),
                     config::assert_timeout().to_string(),

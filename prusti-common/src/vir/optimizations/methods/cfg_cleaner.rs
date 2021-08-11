@@ -36,12 +36,12 @@ pub fn clean_cfg(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         match &mut basic_block.successor {
             vir::cfg::Successor::Undefined | vir::cfg::Successor::Return => {},
             vir::cfg::Successor::Goto(target) => {
-                target.block_index = new_indices[&target.block_index];
+                target.block_index = new_indices[&target.index()];
             }
             vir::cfg::Successor::GotoSwitch(conditional_targets, default_target) => {
-                default_target.block_index = new_indices[&default_target.block_index];
+                default_target.block_index = new_indices[&default_target.index()];
                 for (_, target) in conditional_targets {
-                    target.block_index = new_indices[&target.block_index];
+                    target.block_index = new_indices[&target.index()];
                 }
             }
         }

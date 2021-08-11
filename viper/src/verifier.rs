@@ -17,6 +17,8 @@ use verification_backend::VerificationBackend;
 use verification_result::VerificationError;
 use verification_result::VerificationResult;
 use viper_sys::wrappers::viper::*;
+use viper_sys::wrappers::scala;
+use silicon_counterexample::SiliconCounterexample;
 
 pub mod state {
     pub struct Uninitialized;
@@ -207,6 +209,27 @@ impl<'a> Verifier<'a, state::Started> {
                     );
                 };
 
+                let option_original_counterexample = self
+                    .jni
+                    .unwrap_result(verification_error_wrapper.call_counterexample(viper_error));
+                
+                let counterexample: Option<SiliconCounterexample> = if !self
+                    .jni
+                    .is_instance_of(option_original_counterexample, "scala/None$")
+                {
+                    let original_counterexample = self
+                        .jni
+                        .unwrap_result(scala::Some::with(self.env).call_get(option_original_counterexample));
+                    if self.jni.is_instance_of(original_counterexample, "viper/silicon/interfaces/SiliconMappedCounterexample") {
+                        // only mapped counterexamples are processed
+                        Some(SiliconCounterexample::new(self.env, self.jni, original_counterexample))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+                
                 let reason = self
                     .jni
                     .unwrap_result(verification_error_wrapper.call_reason(viper_error));
@@ -268,12 +291,13 @@ impl<'a> Verifier<'a, state::Started> {
                     pos_id,
                     reason_pos_id,
                     message,
+                    counterexample,
                 ))
             }
 
             VerificationResult::Failure(errors)
         } else {
-            VerificationResult::Success()
+            VerificationResult::Success
         }
     }
 }

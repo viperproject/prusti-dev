@@ -111,39 +111,47 @@ impl<'tcx> Environment<'tcx> {
     // }
 
     /// Emits an error message.
-    pub fn span_err_with_help_and_note<S: Into<MultiSpan> + Clone>(
+    pub fn span_err_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
         msg: &str,
         help: &Option<String>,
-        note: &Option<(String, S)>
+        notes: &[(String, Option<S>)],
     ) {
         let mut diagnostic = self.tcx.sess.struct_err(msg);
         diagnostic.set_span(sp);
         if let Some(help_msg) = help {
             diagnostic.help(help_msg);
         }
-        if let Some((note_msg, note_sp)) = note {
-            diagnostic.span_note(note_sp.clone(), note_msg);
+        for (note_msg, opt_note_sp) in notes {
+            if let Some(note_sp) = opt_note_sp {
+                diagnostic.span_note(note_sp.clone(), note_msg);
+            } else {
+                diagnostic.note(note_msg);
+            }
         }
         diagnostic.emit();
     }
 
     /// Emits an error message.
-    pub fn span_warn_with_help_and_note<S: Into<MultiSpan> + Clone>(
+    pub fn span_warn_with_help_and_notes<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
         msg: &str,
         help: &Option<String>,
-        note: &Option<(String, S)>
+        notes: &[(String, Option<S>)],
     ) {
         let mut diagnostic = self.tcx.sess.struct_warn(msg);
         diagnostic.set_span(sp);
         if let Some(help_msg) = help {
             diagnostic.help(help_msg);
         }
-        if let Some((note_msg, note_sp)) = note {
-            diagnostic.span_note(note_sp.clone(), note_msg);
+        for (note_msg, opt_note_sp) in notes {
+            if let Some(note_sp) = opt_note_sp {
+                diagnostic.span_note(note_sp.clone(), note_msg);
+            } else {
+                diagnostic.note(note_msg);
+            }
         }
         diagnostic.emit();
     }

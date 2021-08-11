@@ -6,8 +6,9 @@
 
 pub mod commandline;
 
-use config_crate::{Config, Environment, File};
+use config_crate::{Config, Environment, File, FileFormat};
 use self::commandline::CommandLine;
+use std::collections::HashSet;
 use std::env;
 use std::sync::RwLock;
 use serde::Deserialize;
@@ -65,7 +66,7 @@ lazy_static! {
         settings.set_default("be_rustc", false).unwrap();
         settings.set_default("viper_backend", "Silicon").unwrap();
         settings.set_default("check_foldunfold_state", false).unwrap();
-        settings.set_default("check_overflows", false).unwrap();
+        settings.set_default("check_overflows", true).unwrap();
         settings.set_default("check_panics", true).unwrap();
         settings.set_default("encode_unsigned_num_constraint", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
@@ -99,6 +100,7 @@ lazy_static! {
         settings.set_default("print_typeckd_specs", false).unwrap();
         settings.set_default("print_collected_verification_items", false).unwrap();
         settings.set_default("hide_uuids", false).unwrap();
+        settings.set_default("counterexample", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("disable_name_mangling", false).unwrap();
@@ -107,29 +109,62 @@ lazy_static! {
         settings.set_default::<Vec<String>>("verify_only_basic_block_path", vec![]).unwrap();
         settings.set_default::<Vec<String>>("delete_basic_blocks", vec![]).unwrap();
 
+        // Get the list of all allowed flags.
+        let mut allowed_keys = get_keys(&settings);
+        allowed_keys.insert("server_max_stored_verifiers".to_string());
+        allowed_keys.insert("server_max_concurrency".to_string());
+        allowed_keys.insert("server_address".to_string());
+        allowed_keys.insert("config".to_string());
+        allowed_keys.insert("log".to_string());
+        allowed_keys.insert("log_style".to_string());
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
-            File::with_name("Prusti.toml").required(false)
+            File::new("Prusti.toml", FileFormat::Toml).required(false)
         ).unwrap();
+        check_keys(&settings, &allowed_keys, "Prusti.toml file");
 
         // 3. Override with an optional TOML file specified by the `PRUSTI_CONFIG` env variable
-        settings.merge(
-            File::with_name(&env::var("PRUSTI_CONFIG").unwrap_or("".to_string())).required(false)
-        ).unwrap();
+        if let Ok(file) = env::var("PRUSTI_CONFIG") {
+            // Since this file is explicitly specified by the user, it would be
+            // nice to tell them if we cannot open it.
+            settings.merge(File::with_name(&file)).unwrap();
+            check_keys(&settings, &allowed_keys, &format!("{} file", file));
+        }
 
         // 4. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)
         settings.merge(
             Environment::with_prefix("PRUSTI").ignore_empty(true)
         ).unwrap();
+        check_keys(&settings, &allowed_keys, "environment variables");
 
         // 5. Override with command-line arguments -P<arg>=<val>
         settings.merge(
             CommandLine::with_prefix("-P").ignore_invalid(true)
         ).unwrap();
+        check_keys(&settings, &allowed_keys, "command line arguments");
 
         settings
     });
+}
+
+fn get_keys(settings: &Config) -> HashSet<String> {
+    settings
+        .cache
+        .clone()
+        .into_table()
+        .unwrap()
+        .into_iter()
+        .map(|(key, _)| key)
+        .collect()
+}
+
+fn check_keys(settings: &Config, allowed_keys: &HashSet<String>, source: &str) {
+    for (key, _) in &settings.cache.clone().into_table().unwrap() {
+        if !allowed_keys.contains(key) {
+            panic!("{} contains unknown configuration flag: “{}”", source, key);
+        }
+    }
 }
 
 /// Return vector of arguments filtered out by prefix
@@ -290,6 +325,11 @@ pub fn print_typeckd_specs() -> bool {
 /// Should Prusti hide the UUIDs of expressions and specifications.
 pub fn hide_uuids() -> bool {
     read_setting("hide_uuids")
+}
+
+/// Should Prusti produce a counterexample.
+pub fn produce_counterexample() -> bool {
+    read_setting("counterexample")
 }
 
 /**

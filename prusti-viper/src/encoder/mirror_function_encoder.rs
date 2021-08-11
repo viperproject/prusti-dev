@@ -34,17 +34,13 @@ impl MirrorEncoder {
         }
     }
 
-    /// Returns a list of Viper domains needed by the encoded mirrors.
-    pub fn get_viper_domains(&self) -> Vec<vir::Domain> {
-        if self.encoded.is_empty() {
-            vec![]
-        } else {
-            vec![self.domain.clone()]
-        }
-    }
 
-    pub fn get_viper_functions(&self) -> Vec<vir::Function> {
-        vec![]
+    pub fn get_domain(&self) -> Option<&vir::Domain> {
+        if self.encoded.is_empty() {
+            None
+        } else {
+            Some(&self.domain)
+        }
     }
 
     pub fn encode_mirrors(

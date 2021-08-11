@@ -155,4 +155,25 @@ fn test_failing_crate() {
     test_local_project("failing_crate");
 }
 
+#[cargo_test]
+fn test_prusti_toml() {
+    test_local_project("prusti_toml");
+}
+
+#[cargo_test]
+fn test_prusti_toml_fail() {
+    let old_value = if let Ok(value) = std::env::var("RUST_BACKTRACE") {
+        // We need to remove this environment variable because it affects the
+        // compiler output.
+        std::env::remove_var("RUST_BACKTRACE");
+        Some(value)
+    } else {
+        None
+    };
+    test_local_project("prusti_toml_fail");
+    if let Some(value) = old_value {
+        std::env::set_var("RUST_BACKTRACE", value)
+    }
+}
+
 // TODO: automatically create a test for each folder in `test/cargo_verify`.
