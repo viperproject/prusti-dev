@@ -753,7 +753,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         -> SpannedEncodingResult<Vec<vir::FunctionIdentifier>>
     {
         if !self.env().tcx().is_mir_available(def_id) || self.env().tcx().is_constructor(def_id) {
-            return Ok(Vec::new());
+            return Ok(vec![]);
         }
 
         if !self.spec_functions.borrow().contains_key(&def_id) {
