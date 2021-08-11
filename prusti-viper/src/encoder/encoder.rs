@@ -867,8 +867,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     }
                 }
                 let max_idx_var = vir::Expr::local(vir::LocalVar::new(format!("_{}", max_idx), vir::Type::Int));
+                let var_perm_ge_zero = vir::Expr::ge_cmp(max_idx_var.clone(), 0.into());
                 let perm_amount = vir::FracPermAmount::new(box max_idx_var, box 1.into());
-                let pred_body = vir::Expr::credit_access_predicate(&sub_pred_name, sub_pred_args, perm_amount);
+                let credit_acc = vir::Expr::credit_access_predicate(&sub_pred_name, sub_pred_args, perm_amount);
+                let pred_body = vir::Expr::and(var_perm_ge_zero, credit_acc);
 
                 let predicate = vir::Predicate::new_credit_unit(pred_name.clone(), pred_args, Some(pred_body));
                 self.log_vir_program_before_viper(predicate.to_string());
