@@ -2244,18 +2244,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         _ => {
                             let is_pure_function = self.encoder.is_pure(def_id);
                             if is_pure_function {
-                                let (function_name, _) = self.encoder
-                                    .encode_pure_function_use(def_id)
-                                    .with_span(term.source_info.span)?;
-                                debug!("Encoding pure function call '{}'", function_name);
-                                assert!(destination.is_some());
-
-                                let mut arg_exprs = vec![];
-                                for operand in args.iter() {
-                                    let arg_expr = self.mir_encoder.encode_operand_expr(operand);
-                                    arg_exprs.push(arg_expr);
-                                }
-
                                 stmts.extend(
                                     self.encode_pure_function_call(
                                         location,
@@ -2527,7 +2515,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // for closure calls, where we need to unpack a tuple into the actual
         // call arguments. The components of the operands tuples are:
         // - the original MIR Operand
-        // - the VIR Local that will hold hold the argument before the call
+        // - the VIR Local that will hold the argument before the call
         // - the type of the argument
         // - if not constant, the VIR expression for the argument
         let mut operands: Vec<(&mir::Operand<'tcx>, Local, ty::Ty<'tcx>, Option<vir::Expr>)> = vec![];
