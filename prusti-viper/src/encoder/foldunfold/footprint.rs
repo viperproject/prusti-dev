@@ -100,6 +100,10 @@ impl ExprFootprintGetter for vir::Expr {
                 perm_difference(body.get_footprint(predicates), vars_places)
             }
 
+            vir::Expr::PredicateInstance(_, ref _args, _) => {
+                HashSet::new()      //TODO: ?
+            }
+
             vir::Expr::PredicateAccessPredicate(_, box ref arg, perm_amount, _) => {
                 let opt_perm = if arg.is_place() {
                     Some(match arg.get_label() {
@@ -123,6 +127,10 @@ impl ExprFootprintGetter for vir::Expr {
                 let perm = Acc(place.clone(), *perm_amount);
 
                 Some(perm).into_iter().collect()
+            }
+
+            vir::Expr::PermEquality(box ref _target, ref _frac_perm_amount, _) => {
+                HashSet::new()      //TODO: ?
             }
 
             vir::Expr::MagicWand(ref _lhs, ref _rhs, _borrow, _) => {

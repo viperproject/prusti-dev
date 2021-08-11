@@ -27,11 +27,16 @@ pub enum Expr {
     Const(Const, Position),
     /// lhs, rhs, borrow, position
     MagicWand(Box<Expr>, Box<Expr>, Option<Borrow>, Position),
+    /// Instantiation of a predicate with name, args & position
+    PredicateInstance(String, Vec<Expr>, Position),
     /// PredicateAccessPredicate: predicate_name, arg, permission amount
     PredicateAccessPredicate(String, Box<Expr>, PermAmount, Position),
     /// arguments: predicate name (specifies exponents), arguments (variables), fractional amount/credit coefficient
     CreditAccessPredicate(String, Vec<Expr>, FracPermAmount, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
+    /// Checks if the currently held permissions to a location or predicate instance (perm) (1st argument)
+    /// are equal to the 2nd argument
+    PermEquality(Box<Expr>, FracPermAmount, Position),      //TODO: position needed?
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>, Position),
     /// Container Operation on a Viper container (e.g. Seq index)
@@ -142,14 +147,20 @@ impl fmt::Display for Expr {
                 write!(f, "Seq[{}]({})", elem_ty, elems_printed)
             }
             Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{}({})", op, expr),
+            Expr::PredicateInstance(ref pred_name, ref args, _) => {
+                write!(f, "{}({})", pred_name, args.iter().map(|a| a.to_string()).collect::<Vec<String>>().join(", "))
+            }
             Expr::PredicateAccessPredicate(ref pred_name, ref arg, perm, ref _pos) => {
                 write!(f, "acc({}({}), {})", pred_name, arg, perm)
             }
             Expr::CreditAccessPredicate(ref pred_name, ref args, ref frac_perm, _) => {
-                write!(f, "acc({}({}), {}", pred_name, args.iter().format(", "), frac_perm)
+                write!(f, "acc({}({}), {}", pred_name, args.iter().map(|a| a.to_string()).collect::<Vec<String>>().join(", "), frac_perm)
             }
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => {
                 write!(f, "acc({}, {})", expr, perm)
+            }
+            Expr::PermEquality(ref expr, ref perm_amount, _) => {
+                write!(f, "perm({}) == {}", expr, perm_amount)
             }
             Expr::LabelledOld(ref label, ref expr, ref _pos) => {
                 write!(f, "old[{}]({})", label, expr)
@@ -321,9 +332,11 @@ impl Expr {
             | Expr::Const(_, p)
             | Expr::LabelledOld(_, _, p)
             | Expr::MagicWand(_, _, _, p)
+            | Expr::PredicateInstance(_, _, p)
             | Expr::PredicateAccessPredicate(_, _, _, p)
             | Expr::CreditAccessPredicate(_, _, _, p)
             | Expr::FieldAccessPredicate(_, _, p)
+            | Expr::PermEquality(_, _, p)
             | Expr::UnaryOp(_, _, p)
             | Expr::BinOp(_, _, _, p)
             | Expr::Unfolding(_, _, _, _, _, p)
@@ -351,11 +364,13 @@ impl Expr {
             Expr::Const(x, _) => Expr::Const(x, pos),
             Expr::LabelledOld(x, y, _) => Expr::LabelledOld(x, y, pos),
             Expr::MagicWand(x, y, b, _) => Expr::MagicWand(x, y, b, pos),
+            Expr::PredicateInstance(n, a, _) => Expr::PredicateInstance(n, a, pos),
             Expr::PredicateAccessPredicate(x, y, z, _) => {
                 Expr::PredicateAccessPredicate(x, y, z, pos)
             }
             Expr::CreditAccessPredicate(n, a, p, _) => Expr::CreditAccessPredicate(n, a, p, pos),
             Expr::FieldAccessPredicate(x, y, _) => Expr::FieldAccessPredicate(x, y, pos),
+            Expr::PermEquality(e, p, _) => Expr::PermEquality(e, p, pos),
             Expr::UnaryOp(x, y, _) => Expr::UnaryOp(x, y, pos),
             Expr::BinOp(x, y, z, _) => Expr::BinOp(x, y, z, pos),
             Expr::Unfolding(x, y, z, perm, variant, _) => {
@@ -394,6 +409,11 @@ impl Expr {
         DefaultPosReplacer { new_pos: pos }.fold(self)
     }
 
+    pub fn predicate_instance<S: ToString>(name: S, args: Vec<Expr>) -> Self {
+        let pos = Position::default();          //TODO?
+        Expr::PredicateInstance(name.to_string(), args, pos)
+    }
+
     pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, perm: PermAmount) -> Self {
         let pos = place.pos();
         Expr::PredicateAccessPredicate(name.to_string(), box place, perm, pos)
@@ -417,6 +437,11 @@ impl Expr {
 
     pub fn acc_permission(place: Expr, perm: PermAmount) -> Self {
         Expr::FieldAccessPredicate(box place, perm, Position::default())
+    }
+
+    pub fn perm_equality(target: Expr, frac_perm: FracPermAmount) -> Self {
+        let pos = target.pos();
+        Expr::PermEquality(box target, frac_perm, pos)
     }
 
     pub fn labelled_old(label: &str, expr: Expr) -> Self {
@@ -1119,6 +1144,8 @@ impl Expr {
             | Expr::Exists(..) => {
                 &Type::Bool
             }
+            Expr::PredicateInstance(..) => &Type::Bool,
+            Expr::PermEquality(..) => &Type::Bool,
             Expr::MagicWand(..) |
             Expr::PredicateAccessPredicate(..) |
             Expr::CreditAccessPredicate(..) |       //TODO: correct?
@@ -1549,7 +1576,9 @@ impl Expr {
                     | Expr::Downcast(..)
                     | Expr::ContainerOp(..)
                     | Expr::Seq(..)
-                    | Expr::SnapApp(..) => true.into(),
+                    | Expr::SnapApp(..)
+                    | Expr::PredicateInstance(..)
+                    | Expr::PermEquality(..) => true.into(),
                 }
             }
         }
@@ -1689,6 +1718,10 @@ impl PartialEq for Expr {
                 Expr::MagicWand(box ref other_lhs, box ref other_rhs, other_borrow, _),
             ) => (self_lhs, self_rhs, self_borrow) == (other_lhs, other_rhs, other_borrow),
             (
+                Expr::PredicateInstance(ref self_name, ref self_args, _),
+                Expr::PredicateInstance(ref other_name, ref other_args, _)
+            ) => (self_name, self_args) == (other_name, other_args),
+            (
                 Expr::PredicateAccessPredicate(ref self_name, ref self_arg, self_perm, _),
                 Expr::PredicateAccessPredicate(ref other_name, ref other_arg, other_perm, _),
             ) => (self_name, self_arg, self_perm) == (other_name, other_arg, other_perm),
@@ -1700,6 +1733,10 @@ impl PartialEq for Expr {
                 Expr::FieldAccessPredicate(box ref self_base, self_perm, _),
                 Expr::FieldAccessPredicate(box ref other_base, other_perm, _),
             ) => (self_base, self_perm) == (other_base, other_perm),
+            (
+                Expr::PermEquality(ref self_expr, ref self_perm, _),
+                Expr::PermEquality(ref other_expr, ref other_perm, _)
+            ) => (self_expr, self_perm) == (other_expr, other_perm),
             (
                 Expr::UnaryOp(self_op, box ref self_arg, _),
                 Expr::UnaryOp(other_op, box ref other_arg, _),
@@ -1775,11 +1812,13 @@ impl Hash for Expr {
             Expr::LabelledOld(ref label, box ref base, _) => (label, base).hash(state),
             Expr::Const(ref const_expr, _) => const_expr.hash(state),
             Expr::MagicWand(box ref lhs, box ref rhs, b, _) => (lhs, rhs, b).hash(state),
+            Expr::PredicateInstance(ref name, ref args, _) => (name, args).hash(state),
             Expr::PredicateAccessPredicate(ref name, ref arg, perm, _) => {
                 (name, arg, perm).hash(state)
             }
             Expr::CreditAccessPredicate(ref name, ref args, frac_perm, _) => (name, args, frac_perm).hash(state),
             Expr::FieldAccessPredicate(box ref base, perm, _) => (base, perm).hash(state),
+            Expr::PermEquality(ref expr, ref frac_perm, _) => (expr, frac_perm).hash(state),
             Expr::UnaryOp(op, box ref arg, _) => (op, arg).hash(state),
             Expr::BinOp(op, box ref left, box ref right, _) => (op, left, right).hash(state),
             Expr::Cond(box ref cond, box ref then_expr, box ref else_expr, _) => {
