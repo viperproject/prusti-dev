@@ -174,7 +174,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // List of crates on which Prusti succeed.
     let mut successful_crates = vec![];
 
-    let part1 = false;
+    let part1 = true;
 
     info!("Iterate over all {} crates...", crates_list.len());
     for (index, krate) in crates_list.iter().enumerate() {
