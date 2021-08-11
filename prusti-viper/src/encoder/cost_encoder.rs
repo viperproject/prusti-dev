@@ -70,12 +70,12 @@ pub fn encode_credit_preconditions<'a, 'p: 'a, 'v: 'p, 'tcx: 'v>(
         if let Some(result_state) = run_backward_interpretation(mir, &cost_interpreter)? {
             let mut max_exponents = HashMap::new();
             let mut cond_acc_predicates = vec![];
-            for (credit_type, cond_cost) in result_state.cost {
+            for (opt_cond, credit_type_cost) in result_state.cost {
                 // overapprox e.g. (1, 2) & (2, 1) as (2, 2)        //TODO: make more precise?
                 // store max. exponent per number of exponents
-                let mut curr_max_exponents = HashMap::new();
-                for (opt_cond, coeff_map) in cond_cost {
-                    let mut acc_predicates = vec![];
+                let mut acc_predicates = vec![];
+                for (credit_type, coeff_map) in credit_type_cost {
+                    let curr_max_exponents: &mut HashMap<usize, u32> = max_exponents.entry(credit_type.clone()).or_default();
                     // cf. spec_encoder
                     for (vir_powers, coeff_expr) in coeff_map {
                         let mut pred_args = vec![];
@@ -102,19 +102,17 @@ pub fn encode_credit_preconditions<'a, 'p: 'a, 'v: 'p, 'tcx: 'v>(
                             frac_perm,
                         ));
                     }
-
-                    let conjoined_accs = acc_predicates.into_iter().conjoin();
-                    if let Some(cond) = opt_cond {
-                        cond_acc_predicates.push(
-                            vir::Expr::implies(cond, conjoined_accs)
-                        );
-                    }
-                    else {
-                        cond_acc_predicates.push(conjoined_accs);
-                    }
                 }
 
-                max_exponents.insert(credit_type, curr_max_exponents);
+                let conjoined_accs = acc_predicates.into_iter().conjoin();
+                if let Some(cond) = opt_cond {
+                    cond_acc_predicates.push(
+                        vir::Expr::implies(cond, conjoined_accs)
+                    );
+                }
+                else {
+                    cond_acc_predicates.push(conjoined_accs);
+                }
             }
             let concrete_cost_precond = cond_acc_predicates.into_iter().conjoin();
 
@@ -653,12 +651,13 @@ fn asymptotic_least_upper_bound(left: &BTreeSet<VirCreditPowers>, right: &BTreeS
 }
 
 fn compute_bound_combinations(abstract_credits: &[(String, Option<vir::Expr>, BTreeSet<VirCreditPowers>)], conditional: bool)
-    -> HashMap<String, BTreeMap<BTreeSet<VirCreditPowers>, Option<vir::Expr>>>
+    -> BTreeMap<String, BTreeMap<BTreeSet<VirCreditPowers>, Option<vir::Expr>>>
 {
-    let mut result_map: HashMap<String, BTreeMap<BTreeSet<VirCreditPowers>, Option<vir::Expr>>> = HashMap::new();
+    let mut result_map = BTreeMap::new();
 
     for (credit_type, opt_cond, abstract_cost) in abstract_credits {
-        let credit_type_map = result_map.entry(credit_type.clone()).or_default();
+        let credit_type_map: &mut BTreeMap<BTreeSet<VirCreditPowers>, Option<vir::Expr>>
+            = result_map.entry(credit_type.clone()).or_default();
 
         let mut to_remove = vec![];
         let mut to_insert = vec![];       // or overwrite
@@ -730,7 +729,7 @@ fn compute_bound_combinations(abstract_credits: &[(String, Option<vir::Expr>, BT
 
 
 fn add_concrete_costs<'a>(
-    coeff_map: &mut HashMap<VirCreditPowers, vir::Expr>,
+    coeff_map: &mut BTreeMap<VirCreditPowers, vir::Expr>,
     cost_to_add: impl Iterator<Item=(&'a VirCreditPowers, &'a vir::Expr)>)
 {
     for (powers, coeff) in cost_to_add {
@@ -742,7 +741,7 @@ fn add_concrete_costs<'a>(
     }
 }
 
-type CostMap = HashMap<String, Vec<(Option<vir::Expr>, HashMap<VirCreditPowers, vir::Expr>)>>;
+type CostMap = Vec<(Option<vir::Expr>, BTreeMap<String, BTreeMap<VirCreditPowers, vir::Expr>>)>;        // use ordered sets/maps just for deterministic encoding
 
 #[derive(Clone, Debug)]
 struct CostBackwardInterpreterState {
@@ -761,10 +760,9 @@ struct CostBackwardInterpreterState {
 
 impl CostBackwardInterpreterState {
     fn substitute(&mut self, target: &Expr, replacement: Expr) {
-        for credit_cost in &mut self.cost.values_mut() {
-            for (opt_condition, coeff_map) in credit_cost {
-                *opt_condition = opt_condition.as_ref().map(|cond_expr| cond_expr.clone().replace_place(target, &replacement));      //TODO: avoid cloning?
-
+        for (opt_condition, credit_cost) in &mut self.cost {
+            *opt_condition = opt_condition.as_ref().map(|cond_expr| cond_expr.clone().replace_place(target, &replacement));      //TODO: avoid cloning?
+            for coeff_map in credit_cost.values_mut() {
                 // coefficients should only contain constants (& abstract coefficient function calls)
                 // -> only replace in powers, but cannot directly modify the key!
                 let use_target_in_power = coeff_map.keys().any(|powers| powers.uses_place(target));
@@ -772,10 +770,11 @@ impl CostBackwardInterpreterState {
                     match replacement {
                         Expr::Local(..) => {
                             // simple 1:1-replacement
-                            let mut new_map = HashMap::new();
-                            let power_coeffs = coeff_map.drain()
+                            let mut new_map = BTreeMap::new();
+                            //TODO: avoid cloning
+                            let power_coeffs = coeff_map.into_iter()
                                 .map(|(powers, coeff)|
-                                    (powers.replace_place(target, &replacement), coeff))
+                                    (powers.clone().replace_place(target, &replacement), coeff.clone()))        // coeff only contains only constants
                                 .collect::<Vec<(VirCreditPowers, vir::Expr)>>();
                             add_concrete_costs(          // places may map to the same after replacement
                                 &mut new_map,
@@ -819,11 +818,12 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
     }
 
     fn use_place(&self, sub_target: &Expr) -> bool {
-        self.cost.values().any(|credit_cost|
-            credit_cost.iter().any(|(opt_cond, coeff_map)|
-                opt_cond.as_ref().map_or_else(|| false, |cond_expr| cond_expr.find(sub_target))
+        self.cost.iter().any(|(opt_cond, credit_cost)|
+            opt_cond.as_ref().map_or_else(|| false, |cond_expr| cond_expr.find(sub_target))
+            ||
+            credit_cost.values().any(|coeff_map|
                 // don't check coefficients (should not contain any places)
-                || coeff_map.keys().any(|powers| powers.uses_place(sub_target))
+                coeff_map.keys().any(|powers| powers.uses_place(sub_target))
             )
         )
     }
@@ -845,31 +845,30 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostBackwardInterpreter<'a, 'p, 'v, 'tcx> {
         target_cost: &CostMap,
         viper_guard: vir::Expr)
     {
-        for (target_credit_type, target_credit_cost) in target_cost {
-            let new_credit_cost = new_cost.entry(target_credit_type.clone()).or_default();
+        for (target_cond, target_credit_cost) in target_cost {
+            if self.conditional {
+                // conjoin the guard to the condition of the old concrete cost
+                let new_target_condition =
+                    if let Some(old_condition) = target_cond {
+                        vir::Expr::and(viper_guard.clone(), old_condition.clone())
+                    } else {
+                        viper_guard.clone()
+                    };
 
-            for (target_cond, target_coeff_map) in target_credit_cost {
-                if self.conditional {
-                    // conjoin the guard to the condition of the old concrete cost
-                    let new_target_condition =
-                        if let Some(old_condition) = target_cond {
-                            vir::Expr::and(viper_guard.clone(), old_condition.clone())
-                        } else {
-                            viper_guard.clone()
-                        };
+                new_cost.push((Some(new_target_condition), target_credit_cost.clone()));
+            }
+            else {
+                debug_assert!(target_cond.is_none());
 
-                    new_credit_cost.push((Some(new_target_condition), target_coeff_map.clone()));
+                if new_cost.is_empty() {
+                    new_cost.push((None, target_credit_cost.clone()));
                 }
                 else {
-                    debug_assert!(target_cond.is_none());
-
-                    if new_credit_cost.is_empty() {
-                        new_credit_cost.push((None, target_coeff_map.clone()));
-                    }
-                    else {
-                        debug_assert!(new_credit_cost.len() == 1);
-                        let (_, coeff_map) = new_credit_cost.first_mut().unwrap();
-                        // add coefficients
+                    debug_assert!(new_cost.len() == 1);
+                    let (_, credit_cost) = new_cost.first_mut().unwrap();
+                    // add coefficients
+                    for (target_credit_type, target_coeff_map) in target_credit_cost {
+                        let coeff_map = credit_cost.entry(target_credit_type.clone()).or_default();
                         add_concrete_costs(coeff_map, target_coeff_map.iter());
                     }
                 }
@@ -884,52 +883,26 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostBackwardInterpreter<'a, 'p, 'v, 'tcx> {
         opt_condition: Option<vir::Expr>,
         power_coeffs: Vec<(VirCreditPowers, vir::Expr)>)
     {
-        if let Some(curr_type_cost) = curr_cost.get_mut(&credit_type) {
-            if self.conditional && opt_condition.is_some() {
-                // duplicate all costs with the condition & the coefficients added
-                for i in 0..curr_type_cost.len() {
-                    let (curr_cond, curr_power_coeffs) = curr_type_cost.get(i).unwrap();
-
-                    let new_condition =
-                        if let Some(old_condition) = curr_cond {
-                            vir::Expr::and(opt_condition.clone().unwrap(), old_condition.clone())
-                        } else {
-                            opt_condition.clone().unwrap()
-                        };
-
-                    // add coefficients
-                    let mut power_coeffs_map = curr_power_coeffs.clone();
-                    add_concrete_costs(&mut power_coeffs_map, power_coeffs.iter().map(|(a, b)| (a, b)));
-                    curr_type_cost.push((Some(new_condition), power_coeffs_map));
-                }
-            }
-            else {
-                // add coefficients to all elements
-                for (_, curr_power_coeffs) in curr_type_cost {
-                    add_concrete_costs(curr_power_coeffs, power_coeffs.iter().map(|(a, b)| (a, b)));
-                }
-            }
-        }
-        else {
-            // credit type did not occur before => create completely new entry
+        if self.conditional && opt_condition.is_some() {
+            // add new conditioned cost
             // create map from power_coeffs
-            let mut power_coeffs_map = HashMap::new();
-            power_coeffs_map.extend(power_coeffs);
-
-            let condition = if self.conditional {
-                opt_condition
+            let mut power_coeffs_map = BTreeMap::new();
+            power_coeffs_map.extend(power_coeffs.clone());
+            let mut credit_type_map = BTreeMap::new();
+            credit_type_map.insert(credit_type, power_coeffs_map);
+            curr_cost.push((opt_condition, credit_type_map));
+        } else {      // addition of cost not dependent on a condition
+            // add coefficients to all elements
+            for (_, curr_credit_cost) in curr_cost {
+                let coeff_map = curr_credit_cost.entry(credit_type.clone()).or_default();
+                add_concrete_costs(coeff_map, power_coeffs.iter().map(|(a, b)| (a, b)));
             }
-            else {
-                None
-            };
-
-            curr_cost.insert(credit_type, vec![(condition, power_coeffs_map)]);
         }
     }
 }
 
 impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackwardInterpreter<'a, 'p, 'v, 'tcx> {
-    type Error = SpannedEncodingError;      //TODO:?
+    type Error = SpannedEncodingError;
     type State = CostBackwardInterpreterState;
 
     fn apply_terminator(&self, bb: mir::BasicBlock, terminator: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Result<Self::State, Self::Error> {
@@ -947,7 +920,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
 
                 let discr_val = self.mir_encoder.encode_operand_expr(discr).with_span(term_span)?;
 
-                let mut new_cost: CostMap = HashMap::new();
+                let mut new_cost: CostMap = vec![];
                 let mut guard_disjunction = None;
                 for (value, target) in targets.iter() {
                     // construct condition (cf. pure function encoder)
@@ -963,7 +936,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                         }
 
                         ty::TyKind::Int(_) | ty::TyKind::Uint(_) => {
-                            //TODO: eliminate discr_var since equal to constant
+                            //TODO: eliminate discr_var from Powers since equal to constant
                             vir::Expr::eq_cmp(
                                 discr_val.clone().into(),
                                 self.encoder.encode_int_cast(value, switch_ty),
@@ -975,7 +948,6 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
 
                     guard_disjunction = Some(guard_disjunction.map_or_else(|| viper_guard.clone(),
                                                                     |curr_guards| vir::Expr::or(viper_guard.clone(), curr_guards)));
-                    println!("otherwise_guard: {}, cost: {:?}", viper_guard, &states[&target].cost);
                     self.insert_guarded_cost(&mut new_cost, &states[&target].cost, viper_guard);
                 }
 
@@ -1137,7 +1109,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                     vir::Expr::not(cond_val)
                 };
 
-                let mut new_cost = HashMap::new();
+                let mut new_cost = vec![];
                 // ignore failure & add condition
                 self.insert_guarded_cost(&mut new_cost, &states[target].cost, viper_guard);
 
@@ -1174,7 +1146,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
             | TerminatorKind::Unreachable => {
                 // TOOD: error (for some)?
                 // no cost
-                Ok(CostBackwardInterpreterState { cost: HashMap::new() })
+                Ok(CostBackwardInterpreterState { cost: vec![(None, BTreeMap::new())] })
             }
 
             _ => unimplemented!("{:?}", terminator.kind),
