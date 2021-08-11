@@ -150,6 +150,20 @@
 <ul>
 <li><a href="https://github.com/viperproject/prusti-dev/blob/f3ce1acd3c38e9c60d94fbdd7ebc1fcbeb316067/prusti-specs/src/specifications/preparser.rs"><code>prusti-specs/src/specifications/preparser.rs</code></a></li>
 </ul>
+<p>The preparser accepts the following EBNF grammar:</p>
+<pre><code class="language-ebnf">assertion ::= prusti_expr ;
+pledge ::= pledge_lhs, &quot;,&quot;, prusti_expr ;
+pledge_lhs ::= [ ? actual rust expression ?, &quot;=&gt;&quot; ], prusti_expr ;
+ 
+prusti_expr ::= conjunction, [ &quot;==&gt;&quot;, prusti_expr ] ;
+conjunction ::= entailment, { &quot;&amp;&amp;&quot;, entailment } ;
+entailment ::= primary | ? actual rust expression ?, [ &quot;|=&quot;, [ &quot;|&quot;, ? args as parsed by syn2 ?, &quot;|&quot; ], &quot;[&quot;, [ ( requires | ensures ), { &quot;,&quot;, ( requires | ensures ) } ], &quot;]&quot; ] ;
+primary ::= &quot;(&quot;, prusti_expr, &quot;)&quot;
+          | &quot;forall&quot;, &quot;(&quot;, &quot;|&quot;, ? one or more args as parsed by syn2 ?, &quot;|&quot;, prusti_expr, [ &quot;,&quot;, &quot;triggers&quot;, &quot;=&quot;, ? array as parsed by syn2 ? ] &quot;)&quot;
+          ;
+requires ::= &quot;requires&quot;, &quot;(&quot;, prusti_expr, &quot;)&quot; ;
+ensures ::= &quot;ensures&quot;, &quot;(&quot;, prusti_expr, &quot;)&quot; ;
+</code></pre>
 <h2 id="specification-serialization"><a class="header" href="#specification-serialization">Specification serialization</a></h2>
 <p>Because procedural macros are executed in a separate, sandboxed process, it is not straight-forward to pass data from procedural macros to the rest of the <a href="pipeline/summary.html">Prusti pipeline</a>. Any collected data (e.g. parsed assertions) is therefore serialized and inserted into the processed HIR as attributes on dummy functions, where it can be picked up by a HIR visitor.</p>
 <ul>
