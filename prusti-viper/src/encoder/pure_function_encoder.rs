@@ -35,6 +35,7 @@ pub struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     proc_def_id: DefId,
     mir: &'p mir::Body<'tcx>,
     interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'tcx>,
+    parent_def_id: DefId,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
@@ -43,6 +44,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         proc_def_id: DefId,
         mir: &'p mir::Body<'tcx>,
         is_encoding_assertion: bool,
+        parent_def_id: DefId,
     ) -> Self {
         trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
         let interpreter = PureFunctionBackwardInterpreter::new(
@@ -50,12 +52,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             mir,
             proc_def_id,
             is_encoding_assertion,
+            parent_def_id,
         );
         PureFunctionEncoder {
             encoder,
             proc_def_id,
             mir,
             interpreter,
+            parent_def_id,
         }
     }
 
@@ -152,7 +156,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             None,
             true,
             None,
-            ErrorCtxt::GenericExpression)?;
+            ErrorCtxt::GenericExpression,
+            self.parent_def_id,
+        )?;
 
         self.encode_function_given_body(Some(predicate_body_encoded))
     }
@@ -203,6 +209,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let res_value_range_pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::PureFunctionPostconditionValueRangeOfResult,
+            self.parent_def_id,
         );
         let pure_fn_return_variable = vir_local!{ __result: {return_type.clone()} };
         // Add value range of the arguments and return value to the pre/postconditions
@@ -320,6 +327,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 true,
                 None,
                 ErrorCtxt::GenericExpression,
+                self.parent_def_id,
             )?);
         }
 
@@ -355,6 +363,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 true,
                 None,
                 ErrorCtxt::GenericExpression,
+                self.parent_def_id,
             )?;
             debug_assert!(!encoded_postcond.pos().is_default());
             func_spec.push(encoded_postcond);
@@ -366,7 +375,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let postcondition_pos = self
             .encoder
             .error_manager()
-            .register(self.mir.span, ErrorCtxt::GenericExpression);
+            .register(self.mir.span, ErrorCtxt::GenericExpression, self.parent_def_id);
 
         // Fix return variable
         let pure_fn_return_variable = vir_local!{ __result: {self.encode_function_return_type()?} };
@@ -423,6 +432,7 @@ pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     /// when to a undefined function calls. This distinction allows overflow checks to be checked
     /// on the caller side and assumed on the definition side.
     is_encoding_assertion: bool,
+    parent_def_id: DefId,
 }
 
 /// XXX: This encoding works backward, but there is the risk of generating expressions whose length
@@ -434,12 +444,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionBackwardInterpreter<'p, 'v, 'tcx> {
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
         is_encoding_assertion: bool,
+        parent_def_id: DefId,
     ) -> Self {
         PureFunctionBackwardInterpreter {
             encoder,
             mir,
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
             is_encoding_assertion,
+            parent_def_id,
         }
     }
 
@@ -597,7 +609,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let pos = self
                     .encoder
                     .error_manager()
-                    .register(term.source_info.span, ErrorCtxt::Unexpected);
+                    .register(term.source_info.span, ErrorCtxt::Unexpected, self.parent_def_id);
                 MultiExprBackwardInterpreterState::new_single(
                     undef_expr(pos).with_span(term.source_info.span)?
                 )
@@ -608,7 +620,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let pos = self
                     .encoder
                     .error_manager()
-                    .register(term.source_info.span, ErrorCtxt::Unexpected);
+                    .register(term.source_info.span, ErrorCtxt::Unexpected, self.parent_def_id);
                 MultiExprBackwardInterpreterState::new_single(
                     unreachable_expr(pos).with_span(term.source_info.span)?
                 )
@@ -911,7 +923,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             _ => {
                                 let is_pure_function = self.encoder.is_pure(def_id);
                                 let (function_name, return_type) = if is_pure_function {
-                                    self.encoder.encode_pure_function_use(def_id)
+                                    self.encoder.encode_pure_function_use(def_id, self.parent_def_id)
                                         .with_span(term.source_info.span)?
                                 } else {
                                     return Err(SpannedEncodingError::incorrect(
@@ -937,7 +949,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let pos = self
                                     .encoder
                                     .error_manager()
-                                    .register(term.source_info.span, ErrorCtxt::PureFunctionCall);
+                                    .register(term.source_info.span, ErrorCtxt::PureFunctionCall, self.parent_def_id);
                                 let encoded_rhs = vir::Expr::func_app(
                                     function_name,
                                     encoded_args,
@@ -973,7 +985,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let pos = self
                             .encoder
                             .error_manager()
-                            .register(term.source_info.span, error_ctxt);
+                            .register(term.source_info.span, error_ctxt, self.parent_def_id);
                         MultiExprBackwardInterpreterState::new_single(
                             unreachable_expr(pos).with_span(term.source_info.span)?
                         )
@@ -1010,12 +1022,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     ErrorCtxt::BoundsCheckAssert
                 } else {
                     let assert_msg = msg.description().to_string();
-                    ErrorCtxt::AssertTerminator(assert_msg)
+                    ErrorCtxt::PureFunctionAssertTerminator(assert_msg)
                 };
 
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
                     error_ctxt,
+                    self.parent_def_id,
                 );
 
                 MultiExprBackwardInterpreterState::new(
@@ -1344,7 +1357,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     let pos = self
                                         .encoder
                                         .error_manager()
-                                        .register(stmt.source_info.span, ErrorCtxt::Unexpected);
+                                        .register(stmt.source_info.span, ErrorCtxt::Unexpected, self.parent_def_id);
                                     let function_name = self.encoder.encode_builtin_function_use(
                                         BuiltinFunctionKind::Unreachable(vir::Type::Int),
                                     );

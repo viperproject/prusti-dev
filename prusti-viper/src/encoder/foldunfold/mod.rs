@@ -14,7 +14,7 @@ use crate::encoder::Encoder;
 use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
 use prusti_common::vir::borrows::Borrow;
-use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction, PermAmountError};
+use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction, PermAmountError, ToGraphViz};
 use prusti_common::vir::{ExprFolder, FallibleExprFolder, ExprWalker, PermAmount};
 use prusti_common::config;
 use prusti_common::report;

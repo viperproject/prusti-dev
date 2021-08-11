@@ -100,6 +100,7 @@ lazy_static! {
         settings.set_default("print_typeckd_specs", false).unwrap();
         settings.set_default("print_collected_verification_items", false).unwrap();
         settings.set_default("hide_uuids", false).unwrap();
+        settings.set_default("counterexample", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("disable_name_mangling", false).unwrap();
@@ -324,6 +325,11 @@ pub fn print_typeckd_specs() -> bool {
 /// Should Prusti hide the UUIDs of expressions and specifications.
 pub fn hide_uuids() -> bool {
     read_setting("hide_uuids")
+}
+
+/// Should Prusti produce a counterexample.
+pub fn produce_counterexample() -> bool {
+    read_setting("counterexample")
 }
 
 /**

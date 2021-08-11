@@ -17,7 +17,7 @@ use prusti_common::{
     vir_local,
     vir::{
         Expr, FallibleExprFolder, FallibleStmtFolder, Type, PermAmount,
-        EnumVariantIndex, ExprIterator, ContainerOpKind,
+        EnumVariantIndex, ExprIterator, ContainerOpKind, WithIdentifier,
     },
 };
 use crate::encoder::{
@@ -50,9 +50,11 @@ pub struct SnapshotEncoder {
     /// Maps predicate names to encoded snapshots.
     encoded: HashMap<PredicateName, Snapshot>,
 
-    /// Whether the unit domain was used in encoding or not.
-    unit_used: bool,
-    unit_domain: vir::Domain,
+
+    /// Interning table for functions.
+    functions: HashMap<vir::FunctionIdentifier, vir::Function>,
+    /// Interning table for domains.
+    domains: HashMap<String, vir::Domain>,
 }
 
 /// Snapshot encoding flattens references and boxes. This function removes any
@@ -109,61 +111,56 @@ fn forall_or_body(
 
 impl SnapshotEncoder {
     pub fn new() -> Self {
+        let unit_domain = vir::Domain {
+            name: UNIT_DOMAIN_NAME.to_string(),
+            functions: vec![vir::DomainFunc {
+                name: "unit$".to_string(),
+                formal_args: vec![],
+                return_type: Type::Domain(UNIT_DOMAIN_NAME.to_string()),
+                unique: false,
+                domain_name: UNIT_DOMAIN_NAME.to_string(),
+            }],
+            axioms: vec![],
+            type_vars: vec![],
+        };
+        let mut domains = HashMap::new();
+        domains.insert(UNIT_DOMAIN_NAME.to_string(), unit_domain);
         Self {
             in_progress: HashMap::new(),
             encoded: HashMap::new(),
-            unit_used: false,
-            unit_domain: vir::Domain {
-                name: UNIT_DOMAIN_NAME.to_string(),
-                functions: vec![vir::DomainFunc {
-                    name: "unit$".to_string(),
-                    formal_args: vec![],
-                    return_type: Type::Domain(UNIT_DOMAIN_NAME.to_string()),
-                    unique: false,
-                    domain_name: UNIT_DOMAIN_NAME.to_string(),
-                }],
-                axioms: vec![],
-                type_vars: vec![],
-            },
+            functions: HashMap::new(),
+            domains,
         }
     }
 
-    /// Returns a list of Viper functions needed by the encoded snapshots.
-    pub fn get_viper_functions(&self) -> Vec<vir::Function> {
-        let mut funcs = vec![];
-        for snapshot in self.encoded.values() {
-            match snapshot {
-                Snapshot::Complex { snap_func, .. }
-                | Snapshot::Abstract { snap_func, .. } => funcs.push(snap_func.clone()),
-                Snapshot::Array { snap_func, slice_helper, .. } => {
-                    funcs.extend([snap_func.clone(), slice_helper.clone()]);
-                }
-                Snapshot::Slice { snap_func, slice_collect_func, slice_helper, .. } => {
-                    funcs.extend([snap_func.clone(), slice_collect_func.clone(), slice_helper.clone()]);
-                }
-                _ => {},
-            }
-        }
-        funcs
+    pub fn get_domain(&self, name: &str) -> Option<&vir::Domain> {
+        self.domains.get(name)
     }
 
-    /// Returns a list of Viper domains needed by the encoded snapshots.
-    pub fn get_viper_domains(&self) -> Vec<vir::Domain> {
-        let mut domains = vec![];
-        for snapshot in self.encoded.values() {
-            match snapshot {
-                Snapshot::Complex { domain, .. }
-                | Snapshot::Abstract { domain, .. }
-                | Snapshot::Array { domain, .. }
-                | Snapshot::Slice { domain, .. } => domains.push(domain.clone()),
-                _ => {},
-            }
-        }
-        if self.unit_used {
-            domains.push(self.unit_domain.clone());
-        }
-        domains
+    fn insert_domain(&mut self, domain: vir::Domain) -> String {
+        let name = domain.name.clone();
+        assert!(self.domains.insert(name.clone(), domain).is_none());
+        name
     }
+
+    pub fn contains_function(&self, identifier: &vir::FunctionIdentifier) -> bool {
+        self.functions.contains_key(identifier)
+    }
+
+    pub fn get_function(&self, identifier: &vir::FunctionIdentifier) -> &vir::Function {
+        &self.functions[identifier]
+    }
+
+    fn insert_function(&mut self, function: vir::Function) -> vir::FunctionIdentifier {
+        let identifier: vir::FunctionIdentifier = function.get_identifier().into();
+        assert!(self.functions.insert(identifier.clone(), function).is_none());
+        identifier
+    }
+
+    fn apply_function(&self, identifier: &vir::FunctionIdentifier, args: Vec<vir::Expr>) -> vir::Expr {
+        self.functions[identifier].apply(args)
+    }
+
 
     /// Patches snapshots in a method.
     pub fn patch_snapshots_method<'p, 'v: 'p, 'tcx: 'v>(
@@ -359,8 +356,7 @@ impl SnapshotEncoder {
 
     /// Returns a unit domain expression.
     fn snap_unit(&mut self) -> Expr {
-        self.unit_used = true;
-        self.unit_domain.functions[0].apply(vec![])
+        self.domains[UNIT_DOMAIN_NAME].functions[0].apply(vec![])
     }
 
     /// Returns [true] iff we can encode equality between two instances of the
@@ -527,7 +523,7 @@ impl SnapshotEncoder {
                     ));
                 };
 
-                Ok(slice_cons.apply(vec![slice_helper.apply(vec![base, lo, hi])]))
+                Ok(slice_cons.apply(vec![self.apply_function(&slice_helper, vec![base, lo, hi])]))
             }
             _ => Err(EncodingError::internal(
                 format!("cannot slice type {:?}", base_ty)
@@ -888,9 +884,9 @@ impl SnapshotEncoder {
 
                 Ok(Snapshot::Array {
                     predicate_name: predicate_name.to_string(),
-                    domain,
-                    snap_func,
-                    slice_helper,
+                    domain: self.insert_domain(domain),
+                    snap_func: self.insert_function(snap_func),
+                    slice_helper: self.insert_function(slice_helper),
                     cons,
                     read,
                 })
@@ -1184,10 +1180,10 @@ impl SnapshotEncoder {
 
                 Ok(Snapshot::Slice {
                     predicate_name: predicate_name.to_string(),
-                    domain,
-                    snap_func,
-                    slice_collect_func,
-                    slice_helper,
+                    domain: self.insert_domain(domain),
+                    snap_func: self.insert_function(snap_func),
+                    slice_collect_func: self.insert_function(slice_collect_func),
+                    slice_helper: self.insert_function(slice_helper),
                     cons,
                     read,
                     len,
@@ -1295,7 +1291,7 @@ impl SnapshotEncoder {
     }
 
     fn encode_abstract<'p, 'v: 'p, 'tcx: 'v>(
-        &self,
+        &mut self,
         predicate_name: &str,
     ) -> EncodingResult<Snapshot> {
         let domain_name = format!("Snap${}", predicate_name);
@@ -1323,13 +1319,13 @@ impl SnapshotEncoder {
 
         Ok(Snapshot::Abstract {
             predicate_name: predicate_name.to_string(),
-            domain: vir::Domain {
+            domain: self.insert_domain(vir::Domain {
                 name: domain_name,
                 functions: vec![],
                 axioms: vec![],
                 type_vars: vec![],
-            },
-            snap_func,
+            }),
+            snap_func: self.insert_function(snap_func),
         })
     }
 
@@ -1338,7 +1334,7 @@ impl SnapshotEncoder {
     /// with one or more fields to encode. The returned snapshot will be of the
     /// [Snapshot::Complex] variant.
     fn encode_complex<'p, 'v: 'p, 'tcx: 'v>(
-        &self,
+        &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         variants: Vec<SnapshotVariant<'tcx>>,
         predicate_name: &str,
@@ -1647,9 +1643,9 @@ impl SnapshotEncoder {
 
         Ok(Snapshot::Complex {
             predicate_name: predicate_name.to_string(),
-            domain,
+            domain: self.insert_domain(domain),
             discriminant_func,
-            snap_func,
+            snap_func: self.insert_function(snap_func),
             variants: variant_domain_funcs,
             variant_names,
         })

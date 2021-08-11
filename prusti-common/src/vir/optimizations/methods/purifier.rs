@@ -277,15 +277,19 @@ impl VarPurifier {
         let replacement = self.get_replacement(var_expr);
         if config::check_overflows() {
             match predicate_name {
-                "usize" => ast::Expr::and(
-                    ast::Expr::ge_cmp(replacement.clone().into(), 0.into()),
-                    ast::Expr::ge_cmp(std::usize::MAX.into(), replacement.into()),
-                ),
-                "isize" => ast::Expr::and(
-                    ast::Expr::ge_cmp(replacement.clone().into(), std::isize::MIN.into()),
-                    ast::Expr::ge_cmp(std::isize::MAX.into(), replacement.into()),
-                ),
-                _ => unreachable!(),
+                "usize" => {
+                    ast::Expr::and(
+                        ast::Expr::ge_cmp(replacement.clone(), std::usize::MIN.into()),
+                        ast::Expr::ge_cmp(std::usize::MAX.into(), replacement),
+                    )
+                }
+                "isize" => {
+                    ast::Expr::and(
+                        ast::Expr::ge_cmp(replacement.clone(), std::isize::MIN.into()),
+                        ast::Expr::ge_cmp(std::isize::MAX.into(), replacement),
+                    )
+                }
+                _ => unreachable!()
             }
         } else if config::encode_unsigned_num_constraint() {
             ast::Expr::ge_cmp(replacement.into(), 0.into())

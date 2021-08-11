@@ -18,13 +18,32 @@ use ::log::warn;
 ///
 /// A `PrustiError` can be displayed as a *warning* to the user. (We should rename `PrustiError`,
 /// `SpannedEncodingError` and similar types to something less confusing.)
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrustiError {
     is_error: bool,
+    /// If `true`, it should not be reported to the user. We need this in cases
+    /// when the same error could be reported twice.
+    ///
+    /// FIXME: This is a workaround: we get duplicate errors because we
+    /// currently verify functions multiple times. Once this is fixed, this
+    /// field should be removed.
+    is_disabled: bool,
     message: String,
     span: MultiSpan,
     help: Option<String>,
-    note: Option<(String, MultiSpan)>,
+    notes: Vec<(String, Option<MultiSpan>)>,
+}
+
+impl PartialOrd for PrustiError {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.span.primary_span().partial_cmp(&other.span.primary_span())
+    }
+}
+
+impl Ord for PrustiError {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
 }
 
 impl PrustiError {
@@ -32,10 +51,11 @@ impl PrustiError {
     fn new(message: String, span: MultiSpan) -> Self {
         PrustiError {
             is_error: true,
+            is_disabled: false,
             message,
             span,
             help: None,
-            note: None,
+            notes: vec![],
         }
     }
 
@@ -46,6 +66,16 @@ impl PrustiError {
             format!("[Prusti: verification error] {}", message.to_string()),
             span
         )
+    }
+
+    pub fn disabled_verification<S: ToString>(message: S, span: MultiSpan) -> Self {
+        check_message(message.to_string());
+        let mut error = PrustiError::new(
+            format!("[Prusti: verification error] {}", message.to_string()),
+            span
+        );
+        error.is_disabled = true;
+        error
     }
 
     /// Report an unsupported feature of the verified Rust code (e.g. dereferencing raw pointers)
@@ -92,33 +122,46 @@ impl PrustiError {
         self.is_error
     }
 
+    // FIXME: This flag is a temporary workaround for having duplicate errors
+    // coming from verifying functions multiple times. We should verify each
+    // function only once.
+    pub fn is_disabled(&self) -> bool {
+        self.is_disabled
+    }
+
     pub fn set_help<S: ToString>(mut self, message: S) -> Self {
         self.help = Some(message.to_string());
         self
     }
 
-    pub fn set_note<S: ToString>(mut self, note: S, note_span: Span) -> Self {
-        self.note = Some((note.to_string(), MultiSpan::from_span(note_span)));
+    pub fn add_note<S: ToString>(mut self, message: S, opt_span: Option<Span>) -> Self {
+        self.notes.push((message.to_string(), opt_span.map(MultiSpan::from)));
         self
     }
 
     /// Report the encoding error using the compiler's interface
     pub fn emit(self, env: &Environment) {
+        assert!(!self.is_disabled);
         if self.is_error {
-            env.span_err_with_help_and_note(
+            env.span_err_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,
-                &self.note,
+                &self.notes,
             );
         } else {
-            env.span_warn_with_help_and_note(
+            env.span_warn_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,
-                &self.note,
+                &self.notes,
             );
         }
+    }
+
+    /// Cancel the error.
+    pub fn cancel(self) {
+        assert!(self.is_disabled);
     }
 
     /// Set the span of the failing assertion expression.
@@ -126,7 +169,8 @@ impl PrustiError {
     /// Note: this is a noop if `opt_span` is None
     pub fn set_failing_assertion(mut self, opt_span: Option<&MultiSpan>) -> Self {
         if let Some(span) = opt_span {
-            self.note = Some(("the failing assertion is here".to_string(), span.clone()));
+            let note = "the failing assertion is here".to_string();
+            self.notes.push((note, Some(span.clone())));
         }
         self
     }
@@ -136,7 +180,7 @@ impl PrustiError {
     /// Note: this is a noop if `opt_span` is None
     pub fn push_primary_span(mut self, opt_span: Option<&MultiSpan>) -> Self {
         if let Some(span) = opt_span {
-            self.note = Some(("the error originates here".to_string(), self.span));
+            self.notes.push(("the error originates here".to_string(), Some(self.span)));
             self.span = span.clone();
         }
         self
