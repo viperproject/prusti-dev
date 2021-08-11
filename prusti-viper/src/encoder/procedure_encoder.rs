@@ -4894,23 +4894,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::Operand::Copy(ref place) => {
                 let (src, mut stmts, ty, _) = self.encode_place(place, ArrayAccessKind::Shared).with_span(span)?;
-                let encode_stmts = if self.mir_encoder.is_reference(ty) {
-                    let loan = self.polonius_info().get_loan_at_location(location);
-                    let ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
-                    let mut stmts = self.prepare_assign_target(
-                        lhs.clone(),
-                        ref_field.clone(),
-                        location,
-                        vir::AssignKind::SharedBorrow(loan.into()),
-                    )?;
-                    stmts.push(vir::Stmt::Assign(
-                        lhs.clone().field(ref_field.clone()),
-                        src.field(ref_field),
-                        vir::AssignKind::SharedBorrow(loan.into()),
-                    ));
-                    stmts
-                } else {
-                    self.encode_copy2(src, lhs.clone(), ty, location)?
+                let encode_stmts = match ty.kind() {
+                    ty::TyKind::RawPtr(..) => {
+                        return Err(SpannedEncodingError::unsupported(
+                            "raw pointers are not supported",
+                            span,
+                        ));
+                    }
+                    ty::TyKind::Ref(..) => {
+                        let loan = self.polonius_info().get_loan_at_location(location);
+                        let ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
+                        let mut stmts = self.prepare_assign_target(
+                            lhs.clone(),
+                            ref_field.clone(),
+                            location,
+                            vir::AssignKind::SharedBorrow(loan.into()),
+                        )?;
+                        stmts.push(vir::Stmt::Assign(
+                            lhs.clone().field(ref_field.clone()),
+                            src.field(ref_field),
+                            vir::AssignKind::SharedBorrow(loan.into()),
+                        ));
+                        stmts
+                    }
+                    _ => self.encode_copy2(src, lhs.clone(), ty, location)?,
                 };
 
                 stmts.extend(encode_stmts);
