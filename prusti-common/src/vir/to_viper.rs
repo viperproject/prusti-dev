@@ -408,7 +408,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 }
             }
             Expr::Seq(ty, elems, _pos) => {
-                let elem_ty = if let Type::Seq(box elem_ty) = ty { elem_ty } else { unreachable!() };
+                let elem_ty = force_matches!(ty, Type::Seq(box elem_ty) => elem_ty);
                 let viper_elem_ty = elem_ty.to_viper(ast);
                 if elems.is_empty() {
                     ast.empty_seq(viper_elem_ty)

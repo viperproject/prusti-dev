@@ -45,11 +45,7 @@ fn extract_prusti_attributes(
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
                         let mut iter = attr.tokens.into_iter();
-                        let tokens = if let Some(TokenTree::Group(group)) = iter.next() {
-                            group.stream()
-                        } else {
-                            unreachable!()
-                        };
+                        let tokens = force_matches!(iter.next().unwrap(), TokenTree::Group(group) => group.stream());
                         assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
                         tokens
                     }
