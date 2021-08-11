@@ -17,6 +17,7 @@ use std::convert::TryInto;
 use specifications::untyped;
 use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
+use prusti_utils::force_matches;
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
@@ -44,11 +45,7 @@ fn extract_prusti_attributes(
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
                         let mut iter = attr.tokens.into_iter();
-                        let tokens = if let Some(TokenTree::Group(group)) = iter.next() {
-                            group.stream()
-                        } else {
-                            unreachable!()
-                        };
+                        let tokens = force_matches!(iter.next().unwrap(), TokenTree::Group(group) => group.stream());
                         assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
                         tokens
                     }
