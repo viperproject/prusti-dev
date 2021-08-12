@@ -1025,7 +1025,6 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                             let mut argument_locals: Vec<Local> = vec![];
 
                             for arg in args.iter() {
-                                let arg_ty = self.mir_encoder.get_operand_ty(arg);
                                 argument_locals.push(
                                     arg.place()
                                         .and_then(|place| place.as_local())

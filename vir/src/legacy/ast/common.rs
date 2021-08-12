@@ -145,7 +145,7 @@ impl FracPermAmount {
     /// Construct a new fractional permission amount `left/right`
     pub fn new(left: Box<Expr>, right: Box<Expr>) -> FracPermAmount {
         FracPermAmount(left, right)
-    }       //TODO: may need to add brackets
+    } //TODO: may need to add brackets
     pub fn left(&self) -> &Expr {
         &self.0
     }

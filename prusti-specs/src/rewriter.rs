@@ -125,7 +125,7 @@ impl AstRewriter {
                         unimplemented!()
                     };
 
-                    let mut credit_vec = credit_type.split("_").collect::<Vec<&str>>();
+                    let mut credit_vec = credit_type.split('_').collect::<Vec<&str>>();
                     credit_vec.remove(credit_vec.len()-1);      // remove "_credits"
                     let credit_name = credit_vec.join("_");
 

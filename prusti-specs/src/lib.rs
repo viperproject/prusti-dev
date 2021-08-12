@@ -152,7 +152,7 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
         rewriter::SpecItemType::Precondition,
         spec_id,
         assertion,
-        &item,
+        item,
     )?;
     generated_items.push(spec_item);
     Ok((

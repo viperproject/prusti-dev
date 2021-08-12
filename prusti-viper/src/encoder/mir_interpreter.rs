@@ -515,13 +515,11 @@ pub(super) trait PureBackwardSubstitutionState {
                                 vir::Type::Int,
                                 pos,
                             )
+                        } else if num_variants == 1 {
+                            0.into()
                         } else {
-                            if num_variants == 1 {
-                                0.into()
-                            } else {
-                                let discr_field = pure_fn_interpreter.encoder.encode_discriminant_field();
-                                encoded_src.field(discr_field).into()
-                            }
+                            let discr_field = pure_fn_interpreter.encoder.encode_discriminant_field();
+                            encoded_src.field(discr_field).into()
                         };
 
                         // Substitute a place of a value with an expression

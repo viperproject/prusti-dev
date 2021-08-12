@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::legacy::ast::*;
-use std::{collections::HashSet, fmt};
 use itertools::Itertools;
+use std::{collections::HashSet, fmt};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Predicate {
@@ -45,7 +45,7 @@ impl Predicate {
     pub fn is_abstract(&self) -> bool {
         match self {
             Predicate::Struct(StructPredicate { body: None, .. }) => true,
-            Predicate::CreditUnit(CreditUnitPredicate { body: None, .. }) => true,      //TODO:?
+            Predicate::CreditUnit(CreditUnitPredicate { body: None, .. }) => true, //TODO:?
             _ => false,
         }
     }
@@ -106,11 +106,7 @@ impl Predicate {
         })
     }
     pub fn new_credit_unit(name: String, args: Vec<LocalVar>, body: Option<Expr>) -> Predicate {
-        Predicate::CreditUnit(CreditUnitPredicate {
-            name,
-            args,
-            body
-        })
+        Predicate::CreditUnit(CreditUnitPredicate { name, args, body })
     }
     /// A `self` place getter.
     pub fn self_place(&self) -> Expr {
@@ -118,7 +114,10 @@ impl Predicate {
             Predicate::Struct(p) => p.this.clone().into(),
             Predicate::Enum(p) => p.this.clone().into(),
             Predicate::Bodyless(_, this) => this.clone().into(),
-            Predicate::CreditUnit(_) => unimplemented!("The self argument is not defined for CreditUnit predicates like: {:?}", self),
+            Predicate::CreditUnit(_) => unimplemented!(
+                "The self argument is not defined for CreditUnit predicates like: {:?}",
+                self
+            ),
         }
     }
     /// The predicate name getter.
@@ -319,7 +318,12 @@ pub struct CreditUnitPredicate {
 
 impl fmt::Display for CreditUnitPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "multi_arg_predicate {}({}", self.name, self.args.iter().format(", "))?;
+        write!(
+            f,
+            "credit_unit_predicate {}({}",
+            self.name,
+            self.args.iter().format(", ")
+        )?;
         match self.body {
             None => writeln!(f, ");"),
             Some(ref body) => {
