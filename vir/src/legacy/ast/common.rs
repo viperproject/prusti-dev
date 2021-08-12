@@ -13,7 +13,7 @@ use std::{
     ops,
 };
 
-use crate::vir::Expr;
+use crate::legacy::Expr;
 
 pub trait WithIdentifier {
     fn get_identifier(&self) -> String;

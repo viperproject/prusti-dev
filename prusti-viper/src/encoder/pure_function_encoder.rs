@@ -275,7 +275,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // Add folding/unfolding
         foldunfold::add_folding_unfolding_to_function(
             function,
-            self.encoder.get_used_viper_predicates_map(),
+            self.encoder.get_used_foldunfold_predicates_map(),
         )
         .map_err(|foldunfold_error| {
             SpannedEncodingError::internal(
@@ -1093,7 +1093,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
-                state.apply_assignment(self, lhs, rhs, span)?;
+                state.apply_assignment(self, lhs, rhs, span, self.parent_def_id)?;
             }
 
             ref stmt => unimplemented!("encoding of '{:?}'", stmt),

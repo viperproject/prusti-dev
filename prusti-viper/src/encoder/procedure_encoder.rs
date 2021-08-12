@@ -2752,7 +2752,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let pos = self
             .encoder
             .error_manager()
-            .register(call_site_span, ErrorCtxt::Unexpected);
+            .register(call_site_span, ErrorCtxt::Unexpected, self.proc_def_id);
         let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
         assert!(!pos.is_default());
         stmts.push(vir::Stmt::Exhale(

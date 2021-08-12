@@ -150,6 +150,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                                 body: None,
                             })
                         }
+                        vir::Predicate::CreditUnit(mut predicate) => {
+                            predicate.body = None;
+                            vir::Predicate::CreditUnit(predicate)
+                        }
                         predicate => predicate,
                     }
                 } else {
@@ -265,6 +269,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         ExprWalker::walk(self, receiver);
         ExprWalker::walk_type(self, &field.typ);
     }
+    fn walk_predicate_instance(&mut self, name: &str, args: &Vec<vir::Expr>, _pos: &vir::Position) {
+        self.used_predicates.insert(name.to_string());
+        for arg in args {
+            ExprWalker::walk(self, arg)
+        }
+    }
     fn walk_predicate_access_predicate(
         &mut self,
         name: &str,
@@ -274,6 +284,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
     ) {
         self.used_predicates.insert(name.to_string());
         ExprWalker::walk(self, arg)
+    }
+    fn walk_credit_access_predicate(&mut self, name: &str, args: &Vec<vir::Expr>, frac_perm_amount: &vir::FracPermAmount, _pos: &vir::Position) {
+        self.used_predicates.insert(name.to_string());
+        for arg in args {
+            ExprWalker::walk(self, arg)
+        }
+        ExprWalker::walk(self, frac_perm_amount.left());
+        ExprWalker::walk(self, frac_perm_amount.right());
     }
     fn walk_unfolding(
         &mut self,

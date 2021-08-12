@@ -30,14 +30,14 @@ pub fn encode_credit_preconditions<'a, 'p: 'a, 'v: 'p, 'tcx: 'v>(
     procedure_encoder: &ProcedureEncoder<'p, 'v, 'tcx>,
     mir_encoder: &MirEncoder<'p, 'v, 'tcx>,
     mir: &mir::Body<'tcx>,
-    def_id: ProcedureDefId,
+    proc_def_id: ProcedureDefId,
     conditional: bool,
 ) -> SpannedEncodingResult<(Option<Expr>, Vec<vir::Stmt>, Vec<&'a typed::Assertion<'tcx>>)>
 {
     let mut extracted_credits = vec![];
     let mut remaining_pres = vec![];
     for assertion in preconditions {
-        if let Some(cond_credits) = extract_conditional_credits(assertion, encoded_args, encoder, mir)? {
+        if let Some(cond_credits) = extract_conditional_credits(assertion, encoded_args, encoder, mir, proc_def_id)? {
             let cond_credits_no_coeff = (
                 cond_credits.0,
                 cond_credits.1,
@@ -60,11 +60,13 @@ pub fn encode_credit_preconditions<'a, 'p: 'a, 'v: 'p, 'tcx: 'v>(
             pure_fn_interpreter: PureFunctionBackwardInterpreter::new(
                 encoder,
                 mir,
-                def_id,
-                false
+                proc_def_id,
+                false,
+                proc_def_id,                 //TODO: correct?
             ),
             mir_encoder,
             mir,
+            proc_def_id,
             conditional,
         };
         if let Some(result_state) = run_backward_interpretation(mir, &cost_interpreter)? {
@@ -486,6 +488,7 @@ fn extract_credits<'v, 'tcx: 'v>(
     encoded_args: &Vec<vir::Expr>,
     encoder: &Encoder<'v, 'tcx>,
     mir: &mir::Body<'tcx>,
+    proc_def_id: ProcedureDefId,
 ) ->  SpannedEncodingResult<Vec<(VirCreditPowers, vir::Expr)>>
 {
     let mut power_coeffs = vec![];
@@ -512,6 +515,7 @@ fn extract_credits<'v, 'tcx: 'v>(
                 true,
                 None,
                 ErrorCtxt::GenericExpression,
+                proc_def_id
             )?;
 
             powers.insert(
@@ -534,6 +538,7 @@ fn extract_credits<'v, 'tcx: 'v>(
             true,
             None,
             ErrorCtxt::GenericExpression,
+            proc_def_id
         )?;
         power_coeffs.push((vir_credit_powers, coeff_expr));
     }
@@ -547,11 +552,12 @@ fn extract_conditional_credits<'v, 'tcx: 'v>(
     encoded_args: &Vec<vir::Expr>,
     encoder: &Encoder<'v, 'tcx>,
     mir: &mir::Body<'tcx>,
+    proc_def_id: ProcedureDefId
 ) -> SpannedEncodingResult<Option<(String, Option<vir::Expr>, Vec<(VirCreditPowers, vir::Expr)>)>>
 {
     match &assertion.kind {
         box typed::AssertionKind::CreditPolynomial { credit_type, abstract_terms, .. } => {
-            let power_coeffs = extract_credits(abstract_terms, encoded_args, encoder, mir)?;
+            let power_coeffs = extract_credits(abstract_terms, encoded_args, encoder, mir, proc_def_id)?;
             Ok(Some((credit_type.clone(), None, power_coeffs)))
         }
 
@@ -574,8 +580,9 @@ fn extract_conditional_credits<'v, 'tcx: 'v>(
                 true,
                 None,
                 ErrorCtxt::GenericExpression,
+                proc_def_id
             )?;
-            let power_coeffs = extract_credits(abstract_terms, encoded_args, encoder, mir)?;
+            let power_coeffs = extract_credits(abstract_terms, encoded_args, encoder, mir, proc_def_id)?;
             Ok(Some((credit_type.clone(), Some(vir_condition), power_coeffs)))
         }
         //TODO: other cases
@@ -835,6 +842,7 @@ struct CostBackwardInterpreter<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> {
     pure_fn_interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'tcx>,
     mir_encoder: &'a MirEncoder<'p, 'v, 'tcx>,
     mir: &'a mir::Body<'tcx>,
+    proc_def_id: ProcedureDefId,
     conditional: bool,
 }
 
@@ -1066,7 +1074,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                             let func_precondition = procedure_contract.functional_precondition();
                             for assertion in func_precondition {
                                 if let Some((credit_type, opt_condition, power_coeffs)) =
-                                extract_conditional_credits(assertion, &encoded_args, self.encoder, self.mir)?      //TODO: here we assume only one credit expression per assertion
+                                extract_conditional_credits(assertion, &encoded_args, self.encoder, self.mir, self.proc_def_id)?      //TODO: here we assume only one credit expression per assertion
                                 {
                                     self.add_cost(curr_cost, credit_type, opt_condition, power_coeffs);     //TODO: better (more efficient) to add all in one go?
                                 }
@@ -1091,7 +1099,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                 ..
             } => {
                 let mut new_state = states[target].clone();
-                new_state.apply_assignment(&self.pure_fn_interpreter, lhs, &mir::Rvalue::Use(value.clone()), term_span)?;
+                new_state.apply_assignment(&self.pure_fn_interpreter, lhs, &mir::Rvalue::Use(value.clone()), term_span, self.proc_def_id)?;
                 Ok(new_state)
             }
 
@@ -1162,7 +1170,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
 
         match stmt.kind {
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
-                state.apply_assignment(&self.pure_fn_interpreter, lhs, rhs, stmt_span)?;
+                state.apply_assignment(&self.pure_fn_interpreter, lhs, rhs, stmt_span, self.proc_def_id)?;
             }
 
             mir::StatementKind::FakeRead(..)

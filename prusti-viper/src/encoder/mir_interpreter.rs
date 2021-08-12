@@ -15,6 +15,7 @@ use log::{trace, debug};
 use crate::encoder::pure_function_encoder::{PureFunctionEncoder, PureFunctionBackwardInterpreter};
 use crate::encoder::errors::{SpannedEncodingResult, EncodingError, ErrorCtxt, WithSpan};
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
+use prusti_interface::data::ProcedureDefId;
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {
@@ -232,7 +233,8 @@ pub(super) trait PureBackwardSubstitutionState {
         pure_fn_interpreter: &PureFunctionBackwardInterpreter<'p, 'v, 'tcx>,
         lhs: &mir::Place<'tcx>,
         rhs: &mir::Rvalue<'tcx>,
-        span: Span
+        span: Span,
+        parent_def_id: ProcedureDefId
     ) -> SpannedEncodingResult<()>
     {
         let (encoded_lhs, ty, _) = pure_fn_interpreter.encode_place(lhs).unwrap();
@@ -502,7 +504,7 @@ pub(super) trait PureBackwardSubstitutionState {
                             let pos = pure_fn_interpreter
                                 .encoder
                                 .error_manager()
-                                .register(span, ErrorCtxt::Unexpected);
+                                .register(span, ErrorCtxt::Unexpected, parent_def_id);
                             let function_name = pure_fn_interpreter.encoder.encode_builtin_function_use(
                                 BuiltinFunctionKind::Unreachable(vir::Type::Int),
                             );

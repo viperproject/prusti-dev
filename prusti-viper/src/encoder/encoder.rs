@@ -311,10 +311,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub fn get_used_viper_predicates_map(&self) -> HashMap<String, vir::Predicate> {
-        let mut predicates = self.type_predicates.borrow().clone();
-        predicates.extend(self.credit_predicates.borrow().clone());
-        predicates
+    pub fn get_used_foldunfold_predicates_map(&self) -> HashMap<String, vir::Predicate> {
+        self.type_predicates.borrow().clone()
     }
 
     pub(super) fn get_viper_predicate(&self, name: &str) -> vir::Predicate {
@@ -611,7 +609,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                 let final_function = foldunfold::add_folding_unfolding_to_function(
                     function,
-                    self.get_used_viper_predicates_map(),
+                    self.get_used_foldunfold_predicates_map(),
                 );
                 self.insert_function(final_function.unwrap())
             });
