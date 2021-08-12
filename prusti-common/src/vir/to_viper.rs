@@ -13,6 +13,7 @@ use crate::vir::{
     borrows::borrow_id,
     Program,
 };
+use prusti_utils::force_matches;
 use itertools::Itertools;
 
 pub trait ToViper<'v, T> {
@@ -253,7 +254,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 )
             }
             Stmt::ApplyMagicWand(ref wand, ref pos) => {
-                let inhale = if let Expr::MagicWand(_, _, Some(borrow), _) = wand {
+                let inhale = force_matches!(wand, Expr::MagicWand(_, _, Some(borrow), _) => {
                     let borrow: usize = borrow_id(*borrow);
                     let borrow: Expr = borrow.into();
                     ast.inhale(
@@ -263,9 +264,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                         ),
                         pos.to_viper(ast),
                     )
-                } else {
-                    unreachable!()
-                };
+                });
                 let position = ast.identifier_position(pos.line(), pos.column(), &pos.id().to_string());
                 let apply = ast.apply(wand.to_viper(ast), position);
                 ast.seqn(&[inhale, apply], &[])
@@ -439,7 +438,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 }
             }
             Expr::Seq(ty, elems, _pos) => {
-                let elem_ty = if let Type::Seq(box elem_ty) = ty { elem_ty } else { unreachable!() };
+                let elem_ty = force_matches!(ty, Type::Seq(box elem_ty) => elem_ty);
                 let viper_elem_ty = elem_ty.to_viper(ast);
                 if elems.is_empty() {
                     ast.empty_seq(viper_elem_ty)

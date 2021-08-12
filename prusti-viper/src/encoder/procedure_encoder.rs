@@ -247,11 +247,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mir_span = self.mir.span;
 
         // Retrieve the contract
-        self.procedure_contract = Some(
-            self.encoder
+        let procedure_contract = self.encoder
                 .get_procedure_contract_for_def(self.proc_def_id)
-                .with_span(mir_span)?
-        );
+                .with_span(mir_span)?;
+        assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(mir_span)?;
+        self.procedure_contract = Some(procedure_contract);
 
         // Prepare assertions to check specification refinement
         let mut precondition_weakening: Option<typed::Assertion> = None;
@@ -1454,6 +1454,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 (expiring_base, restored, false, stmts)
             }
 
+            mir::Rvalue::Use(mir::Operand::Constant(box mir::Constant { literal, .. })) => {
+                let (ty, val) = mir_constantkind_to_ty_val(literal);
+                let restored = self.encoder.encode_const_expr(ty, &val)?;
+
+                (expiring_base, restored, false, stmts)
+            }
+
             ref x => unreachable!("Borrow restores value {:?}", x),
         })
     }
@@ -1520,6 +1527,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, _) |
                     &mir::Rvalue::Use(mir::Operand::Move(_)) => true,
                     &mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), _, _ty) => false,
+                    &mir::Rvalue::Use(mir::Operand::Constant(_)) => false,
                     x => unreachable!("{:?}", x),
                 },
                 ref x => unreachable!("{:?}", x),
@@ -1717,11 +1725,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             expr
         };
         let borrow_infos = &contract.borrow_infos;
-        assert_eq!(
-            borrow_infos.len(),
-            1,
-            "We can have at most one magic wand in the postcondition."
-        );
+        if borrow_infos.len() != 1 {
+            return Err(SpannedEncodingError::internal(
+                format!("We require exactly one magic wand in the postcondition. But we have {:?}", borrow_infos.len()),
+                span,
+            ));
+        }
         let borrow_info = &borrow_infos[0];
 
         // Get the magic wand info.
@@ -2716,6 +2725,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 target_local,
             ).with_span(call_site_span)?
         };
+        assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(call_site_span)?;
 
         // Store a label for the pre state
         let pre_label = self.cfg_method.get_fresh_label_name();
@@ -4943,23 +4953,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::Operand::Copy(ref place) => {
                 let (src, mut stmts, ty, _) = self.encode_place(place, ArrayAccessKind::Shared).with_span(span)?;
-                let encode_stmts = if self.mir_encoder.is_reference(ty) {
-                    let loan = self.polonius_info().get_loan_at_location(location);
-                    let ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
-                    let mut stmts = self.prepare_assign_target(
-                        lhs.clone(),
-                        ref_field.clone(),
-                        location,
-                        vir::AssignKind::SharedBorrow(loan.into()),
-                    )?;
-                    stmts.push(vir::Stmt::Assign(
-                        lhs.clone().field(ref_field.clone()),
-                        src.field(ref_field),
-                        vir::AssignKind::SharedBorrow(loan.into()),
-                    ));
-                    stmts
-                } else {
-                    self.encode_copy2(src, lhs.clone(), ty, location)?
+                let encode_stmts = match ty.kind() {
+                    ty::TyKind::RawPtr(..) => {
+                        return Err(SpannedEncodingError::unsupported(
+                            "raw pointers are not supported",
+                            span,
+                        ));
+                    }
+                    ty::TyKind::Ref(..) => {
+                        let loan = self.polonius_info().get_loan_at_location(location);
+                        let ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
+                        let mut stmts = self.prepare_assign_target(
+                            lhs.clone(),
+                            ref_field.clone(),
+                            location,
+                            vir::AssignKind::SharedBorrow(loan.into()),
+                        )?;
+                        stmts.push(vir::Stmt::Assign(
+                            lhs.clone().field(ref_field.clone()),
+                            src.field(ref_field),
+                            vir::AssignKind::SharedBorrow(loan.into()),
+                        ));
+                        stmts
+                    }
+                    _ => self.encode_copy2(src, lhs.clone(), ty, location)?,
                 };
 
                 stmts.extend(encode_stmts);
@@ -4973,11 +4990,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 stmts
             }
 
-            mir::Operand::Constant(box mir::Constant { literal: ck, .. }) => {
-                let (ty, val) = match ck {
-                    mir::ConstantKind::Ty(ty::Const { ty, val }) => (ty, *val),
-                    mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(*val)),
-                };
+            mir::Operand::Constant(box mir::Constant { literal, .. }) => {
+                let (ty, val) = mir_constantkind_to_ty_val(*literal);
                 match ty.kind() {
                     ty::TyKind::Tuple(elements) if elements.is_empty() => Vec::new(),
                     _ => {
@@ -4990,7 +5004,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         )?;
                         // Initialize the constant
                         let const_val = self.encoder
-                            .encode_const_expr(*ty, &val)
+                            .encode_const_expr(ty, &val)
                             .with_span(span)?;
                         // Initialize value of lhs
                         stmts.push(vir::Stmt::Assign(
@@ -6145,4 +6159,21 @@ enum ArrayAccessKind {
 
 fn convert_loans_to_borrows(loans: &[facts::Loan]) -> Vec<Borrow> {
     loans.iter().map(|l| l.into()).collect()
+}
+
+/// Check if size of ProcedureContract::borrow_infos is as required
+/// len: Length of borrow_infos
+fn assert_one_magic_wand(len: usize) -> EncodingResult<()> {
+    if len > 1 {
+        Err(EncodingError::internal(
+            format!("We can have at most one magic wand in the postcondition. But we have {:?}", len)
+        ))
+    } else { Ok(()) }
+}
+
+fn mir_constantkind_to_ty_val(literal: mir::ConstantKind) -> (ty::Ty, ty::ConstKind) {
+    match literal {
+        mir::ConstantKind::Ty(&ty::Const { ty, val }) => (ty, val),
+        mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(val)),
+    }
 }
