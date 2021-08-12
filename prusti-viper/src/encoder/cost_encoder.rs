@@ -591,7 +591,7 @@ fn extract_conditional_credits<'v, 'tcx: 'v>(
 }
 
 
-fn compute_asymptotic_cost<'a>(all_powers: impl Iterator<Item=&'a VirCreditPowers>) -> BTreeSet<VirCreditPowers> {
+/*fn compute_asymptotic_cost<'a>(all_powers: impl Iterator<Item=&'a VirCreditPowers>) -> BTreeSet<VirCreditPowers> {
     // invariant: All pairs in asymp_cost compare with dominates/partial_cmp == None
     let mut asymp_cost = BTreeSet::new();
 
@@ -655,7 +655,7 @@ fn asymptotic_least_upper_bound(left: &BTreeSet<VirCreditPowers>, right: &BTreeS
         result_set.insert(left_powers.clone());
     }
     result_set
-}
+}*/
 
 fn compute_bound_combinations(abstract_credits: &[(String, Option<vir::Expr>, BTreeSet<VirCreditPowers>)], conditional: bool)
     -> BTreeMap<String, BTreeMap<BTreeSet<VirCreditPowers>, Option<vir::Expr>>>
@@ -913,9 +913,9 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
     type Error = SpannedEncodingError;
     type State = CostBackwardInterpreterState;
 
-    fn apply_terminator(&self, bb: mir::BasicBlock, terminator: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Result<Self::State, Self::Error> {
+    fn apply_terminator(&self, _bb: mir::BasicBlock, terminator: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Result<Self::State, Self::Error> {
         let term_span = terminator.source_info.span;
-        let location = self.mir.terminator_loc(bb);
+        //let location = self.mir.terminator_loc(bb);
 
         match terminator.kind {
             TerminatorKind::SwitchInt { switch_ty, ref discr, ref targets } => {//TODO: treat like asignment, but not single assignment! (only when constant?)
@@ -1161,12 +1161,12 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
         }
     }
 
-    fn apply_statement(&self, bb: mir::BasicBlock, stmt_index: usize, stmt: &mir::Statement<'tcx>, state: &mut Self::State) -> Result<(), Self::Error> {
+    fn apply_statement(&self, _bb: mir::BasicBlock, _stmt_index: usize, stmt: &mir::Statement<'tcx>, state: &mut Self::State) -> Result<(), Self::Error> {
         let stmt_span = stmt.source_info.span;
-        let location = mir::Location {
+        /*let location = mir::Location {
             block: bb,
             statement_index: stmt_index,
-        };
+        };*/
 
         match stmt.kind {
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
