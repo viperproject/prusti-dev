@@ -4905,7 +4905,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ty::TyKind::RawPtr(..) => {
                         return Err(SpannedEncodingError::unsupported(
                             "raw pointers are not supported",
-                            span
+                            span,
                         ));
                     }
                     ty::TyKind::Ref(..) => {
