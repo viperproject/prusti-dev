@@ -188,7 +188,7 @@ impl From<polymorphic::Expr> for legacy::Expr {
             ),
             polymorphic::Expr::PredicateAccessPredicate(predicate_access_predicate) => {
                 legacy::Expr::PredicateAccessPredicate(
-                    predicate_access_predicate.predicate_name,
+                    predicate_access_predicate.predicate_type.encode_as_string(),
                     Box::new((*predicate_access_predicate.argument).into()),
                     predicate_access_predicate.permission.into(),
                     predicate_access_predicate.position.into(),
@@ -429,7 +429,7 @@ impl From<polymorphic::Predicate> for legacy::Predicate {
 impl From<polymorphic::StructPredicate> for legacy::StructPredicate {
     fn from(struct_predicate: polymorphic::StructPredicate) -> legacy::StructPredicate {
         legacy::StructPredicate {
-            name: struct_predicate.name,
+            name: struct_predicate.typ.encode_as_string(),
             this: struct_predicate.this.into(),
             body: struct_predicate.body.map(|body_expr| body_expr.into()),
         }

@@ -132,13 +132,13 @@ pub trait ExprFolder: Sized {
 
     fn fold_predicate_access_predicate(
         &mut self,
-        name: String,
+        typ: Type,
         arg: Box<Expr>,
         perm_amount: PermAmount,
         pos: Position,
     ) -> Expr {
         Expr::PredicateAccessPredicate( PredicateAccessPredicate {
-            predicate_name: name,
+            predicate_type: typ,
             argument: self.fold_boxed(arg),
             permission: perm_amount,
             position: pos,
@@ -365,8 +365,8 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Const( ConstExpr {value, position} ) => this.fold_const(value, position),
         Expr::LabelledOld( LabelledOld {label, base, position} ) => this.fold_labelled_old(label, base, position),
         Expr::MagicWand(MagicWand {left, right, borrow, position} )=> this.fold_magic_wand(left, right, borrow, position),
-        Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_name, argument, permission, position} ) => {
-            this.fold_predicate_access_predicate(predicate_name, argument, permission, position)
+        Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_type, argument, permission, position} ) => {
+            this.fold_predicate_access_predicate(predicate_type, argument, permission, position)
         },
         Expr::FieldAccessPredicate(FieldAccessPredicate {base, permission, position} ) => this.fold_field_access_predicate(base, permission, position),
         Expr::UnaryOp(UnaryOp {op_kind, argument, position} ) => this.fold_unary_op(op_kind, argument, position),
@@ -430,7 +430,7 @@ pub trait ExprWalker: Sized {
     }
     fn walk_predicate_access_predicate(
         &mut self,
-        _name: &str,
+        _typ: &Type,
         arg: &Expr,
         _perm_amount: PermAmount,
         _pos: &Position,
@@ -577,8 +577,8 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Const( ConstExpr {ref value, ref position} ) => this.walk_const(value, position),
         Expr::LabelledOld( LabelledOld {ref label, ref base, ref position} ) => this.walk_labelled_old(label, base, position),
         Expr::MagicWand(MagicWand {ref left, ref right, ref borrow, ref position} ) => this.walk_magic_wand(left, right, borrow, position),
-        Expr::PredicateAccessPredicate(PredicateAccessPredicate {ref predicate_name, ref argument, permission, ref position} ) => {
-            this.walk_predicate_access_predicate(predicate_name, argument, permission, position)
+        Expr::PredicateAccessPredicate(PredicateAccessPredicate {ref predicate_type, ref argument, permission, ref position} ) => {
+            this.walk_predicate_access_predicate(predicate_type, argument, permission, position)
         },
         Expr::FieldAccessPredicate(FieldAccessPredicate {ref base, permission, ref position} ) => this.walk_field_access_predicate(base, permission, position),
         Expr::UnaryOp(UnaryOp {op_kind, ref argument, ref position} ) => this.walk_unary_op(op_kind, argument, position),
@@ -695,13 +695,13 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_predicate_access_predicate(
         &mut self,
-        name: String,
+        typ: Type,
         arg: Box<Expr>,
         perm_amount: PermAmount,
         pos: Position,
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::PredicateAccessPredicate( PredicateAccessPredicate {
-            predicate_name: name,
+            predicate_type: typ,
             argument: self.fallible_fold_boxed(arg)?,
             permission: perm_amount,
             position: pos,
@@ -962,8 +962,8 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Const( ConstExpr {value, position} ) => this.fallible_fold_const(value, position),
         Expr::LabelledOld( LabelledOld {label, base, position} ) => this.fallible_fold_labelled_old(label, base, position),
         Expr::MagicWand(MagicWand {left, right, borrow, position} ) => this.fallible_fold_magic_wand(left, right, borrow, position),
-        Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_name, argument, permission, position} ) => {
-            this.fallible_fold_predicate_access_predicate(predicate_name, argument, permission, position)
+        Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_type, argument, permission, position} ) => {
+            this.fallible_fold_predicate_access_predicate(predicate_type, argument, permission, position)
         },
         Expr::FieldAccessPredicate(FieldAccessPredicate {base, permission, position} ) => this.fallible_fold_field_access_predicate(base, permission, position),
         Expr::UnaryOp(UnaryOp {op_kind, argument, position} ) => this.fallible_fold_unary_op(op_kind, argument, position),

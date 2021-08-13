@@ -32,9 +32,8 @@ impl Predicate {
     }
     /// Construct a new abstract predicate of the given type.
     pub fn new_abstract(typ: Type) -> Predicate {
-        let predicate_name = typ.encode_as_string();
         Predicate::Struct(StructPredicate {
-            name: predicate_name,
+            typ: typ.clone(),
             this: Self::construct_this(typ),
             body: None,
         })
@@ -55,7 +54,6 @@ impl Predicate {
         bounds: Option<(Expr, Expr)>,
         is_unsigned: bool,
     ) -> Predicate {
-        let predicate_name = typ.encode_as_string();
         let this = Self::construct_this(typ.clone());
         let val_field = Expr::from(this.clone()).field(field);
         let perm = Expr::acc_permission(val_field.clone(), PermAmount::Write);
@@ -68,7 +66,7 @@ impl Predicate {
         };
         let body = conjuncts.into_iter().conjoin();
         Predicate::Struct(StructPredicate {
-            name: predicate_name,
+            typ: typ,
             this: this,
             body: Some(body),
         })
@@ -105,11 +103,11 @@ impl Predicate {
         }
     }
     /// The predicate name getter.
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> String {
         match self {
-            Predicate::Struct(p) => &p.name,
-            Predicate::Enum(p) => &p.name,
-            Predicate::Bodyless(ref name, _) => name,
+            Predicate::Struct(p) => p.typ.name(),
+            Predicate::Enum(p) => p.name.clone(),
+            Predicate::Bodyless(ref name, _) => name.clone(),
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -131,7 +129,7 @@ impl Predicate {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct StructPredicate {
     /// The predicate name in Viper.
-    pub name: String,
+    pub typ: Type,
     /// The self reference.
     pub this: LocalVar,
     /// The optional body of the predicate.
@@ -140,7 +138,7 @@ pub struct StructPredicate {
 
 impl fmt::Display for StructPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "struct_predicate {}({}", self.name, self.this)?;
+        write!(f, "struct_predicate {}({}", self.typ.encode_as_string(), self.this)?;
         match self.body {
             None => writeln!(f, ");"),
             Some(ref body) => {
@@ -154,21 +152,19 @@ impl fmt::Display for StructPredicate {
 
 impl StructPredicate {
     pub fn new(typ: Type, fields: Vec<Field>) -> Self {
-        let predicate_name = typ.encode_as_string();
-        let this = Predicate::construct_this(typ);
+        let this = Predicate::construct_this(typ.clone());
         let body = fields
             .into_iter()
             .flat_map(|field| {
-                let predicate_name = field.typ.encode_as_string();
-                let location: Expr = Expr::from(this.clone()).field(field).into();
+                let location: Expr = Expr::from(this.clone()).field(field.clone()).into();
                 let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
                 let pred_perm =
-                    Expr::predicate_access_predicate(predicate_name, location, PermAmount::Write);
+                    Expr::predicate_access_predicate(field.typ.clone(), location, PermAmount::Write);
                 vec![field_perm, pred_perm]
             })
             .conjoin();
         Self {
-            name: predicate_name,
+            typ: typ,
             this: this,
             body: Some(body),
         }
@@ -176,7 +172,7 @@ impl StructPredicate {
     /// Construct a predicate access predicate for this predicate.
     pub fn construct_access(&self, this: Expr, perm_amount: PermAmount) -> Expr {
         Expr::PredicateAccessPredicate( PredicateAccessPredicate {
-            predicate_name: self.name.clone(),
+            predicate_type: self.typ.clone(),
             argument: Box::new(this),
             permission: perm_amount,
             position: Position::default(),
@@ -196,7 +192,7 @@ impl StructPredicate {
 
 impl WithIdentifier for StructPredicate {
     fn get_identifier(&self) -> String {
-        self.name.clone()
+        self.typ.encode_as_string()
     }
 }
 
