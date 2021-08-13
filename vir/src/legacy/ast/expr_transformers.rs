@@ -714,7 +714,7 @@ pub trait FallibleExprFolder: Sized {
         Ok(Expr::PermEquality(
             self.fallible_fold_boxed(target)?,
             new_perm,
-            pos
+            pos,
         ))
     }
     fn fallible_fold_unary_op(

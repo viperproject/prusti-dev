@@ -181,8 +181,7 @@ impl fmt::Display for Expr {
                     f,
                     "acc({}({}), {})",
                     pred_name,
-                    args
-                        .iter()
+                    args.iter()
                         .map(|a| a.to_string())
                         .collect::<Vec<String>>()
                         .join(", "),
@@ -456,7 +455,7 @@ impl Expr {
     pub fn credit_access_predicate<S: ToString>(
         name: S,
         args: Vec<Expr>,
-        frac_perm: FracPermAmount
+        frac_perm: FracPermAmount,
     ) -> Self {
         let pos = Position::default(); //TODO?
         Expr::CreditAccessPredicate(name.to_string(), args, frac_perm, pos)
