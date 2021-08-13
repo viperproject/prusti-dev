@@ -99,7 +99,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 arg_ty
             ).with_span(span)?;
             let new_place: vir::Expr = self.encode_local(arg)?.into();
-            state.substitute_place(&target_place, new_place);
+            state.substitute_place(&target_place, new_place)
+                .with_span(span)?;
         }
 
         let mut body_expr = state.into_expressions().remove(0);
@@ -821,7 +822,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         PRECONDITION_LABEL,
                                     );
                                 let mut state = states[&target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state.substitute_value(&lhs_value, encoded_rhs)
+                                    .with_span(span)?;
                                 state
                             }
 
@@ -832,7 +834,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .mir_encoder
                                     .encode_old_expr(encoded_args[0].clone(), WAND_LHS_LABEL);
                                 let mut state = states[&target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state.substitute_value(&lhs_value, encoded_rhs)
+                                    .with_span(span)?;
                                 state
                             }
 
@@ -846,7 +849,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     vir::Expr::snap_app(encoded_args[1].clone()),
                                 );
                                 let mut state = states[&target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state.substitute_value(&lhs_value, encoded_rhs)
+                                    .with_span(span)?;
                                 state
                             }
 
@@ -860,7 +864,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     vir::Expr::snap_app(encoded_args[1].clone()),
                                 );
                                 let mut state = states[&target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state.substitute_value(&lhs_value, encoded_rhs)
+                                    .with_span(span)?;
                                 state
                             }
 
@@ -871,7 +876,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .with_span(span)?;
 
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, len);
+                                state.substitute_value(&lhs_value, len)
+                                    .with_span(span)?;
                                 state
                             }
 
@@ -918,7 +924,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 ).with_span(span)?;
 
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, slice_expr);
+                                state.substitute_value(&lhs_value, slice_expr)
+                                    .with_span(span)?;
                                 state
                             }
 
@@ -961,7 +968,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     pos,
                                 );
                                 let mut state = states[&target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state.substitute_value(&lhs_value, encoded_rhs)
+                                    .with_span(span)?;
                                 state
                             }
                         }

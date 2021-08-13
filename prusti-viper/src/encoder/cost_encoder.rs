@@ -2,7 +2,7 @@ use prusti_common::vir;
 use std::collections::{HashMap, HashSet, BTreeMap, BTreeSet};
 use crate::encoder::places::Local;
 use ::log::{trace, debug};
-use crate::encoder::errors::{SpannedEncodingError, ErrorCtxt, WithSpan, EncodingError, SpannedEncodingResult};
+use crate::encoder::errors::{SpannedEncodingError, ErrorCtxt, WithSpan, EncodingError, SpannedEncodingResult, EncodingResult};
 use crate::encoder::mir_interpreter::{BackwardMirInterpreter, PureBackwardSubstitutionState, run_backward_interpretation};
 use prusti_interface::specs::typed;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
@@ -765,8 +765,8 @@ struct CostBackwardInterpreterState {
     cost: CostMap,
 }
 
-impl CostBackwardInterpreterState {
-    fn substitute(&mut self, target: &Expr, replacement: Expr) {
+impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
+    fn substitute(&mut self, target: &Expr, replacement: Expr) -> EncodingResult<()> {
         for (opt_condition, credit_cost) in &mut self.cost {
             *opt_condition = opt_condition.as_ref().map(|cond_expr| cond_expr.clone().replace_place(target, &replacement));      //TODO: avoid cloning?
             for coeff_map in credit_cost.values_mut() {
@@ -784,44 +784,19 @@ impl CostBackwardInterpreterState {
                                     (powers.clone().replace_place(target, &replacement), coeff.clone()))        // coeff only contains only constants
                                 .collect::<Vec<(VirCreditPowers, vir::Expr)>>();
                             add_concrete_costs(          // places may map to the same after replacement
-                                &mut new_map,
-                                power_coeffs.iter().map(|(a, b)| (a, b))        // convert &(A, B) into (&A, &B)
+                                                         &mut new_map,
+                                                         power_coeffs.iter().map(|(a, b)| (a, b))        // convert &(A, B) into (&A, &B)
                             );
                             *coeff_map = new_map;
                         }
                         _ => {
-                            unimplemented!("Assignment not supported");     //TODO: better error
+                            unimplemented!("Assignment not supported");     //TODO: better error: do not allow dependence on ...
                         }
                     }
                 }
             }
         }
-    }
-}
-
-impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
-    fn substitute_place(&mut self, sub_target: &Expr, replacement: Expr) {
-        trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
-
-        //TODO: necessary?
-        // If `replacement` is a reference, simplify also its dereferentiations
-        if let vir::Expr::AddrOf(box ref base_replacement, ref _dereferenced_type, ref pos) =
-        replacement
-        {
-            trace!("Substitution of a reference. Simplify its dereferentiations.");
-            let deref_field = vir::Field::new("val_ref", base_replacement.get_type().clone());
-            let deref_target = sub_target
-                .clone()
-                .field(deref_field.clone())
-                .set_pos(*pos);
-            self.substitute_place(&deref_target, base_replacement.clone());
-        }
-
-        self.substitute(sub_target, replacement);
-    }
-
-    fn substitute_value(&mut self, exact_target: &Expr, replacement: Expr) {
-        self.substitute(exact_target, replacement);
+        Ok(())
     }
 
     fn use_place(&self, sub_target: &Expr) -> bool {
