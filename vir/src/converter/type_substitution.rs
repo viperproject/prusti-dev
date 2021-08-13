@@ -1402,7 +1402,7 @@ mod tests {
 
         // PredicateAccessPredicate
         source = Expr::PredicateAccessPredicate(PredicateAccessPredicate {
-            predicate_name: String::from("_p1"),
+            predicate_type: Type::typed_ref("_p1"),
             argument: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v1"),
@@ -1416,7 +1416,7 @@ mod tests {
             position: position.clone(),
         });
         expected = Expr::PredicateAccessPredicate(PredicateAccessPredicate {
-            predicate_name: String::from("_p1"),
+            predicate_type: Type::typed_ref("_p1"),
             argument: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v1"),
@@ -3462,7 +3462,7 @@ mod tests {
         let position = Position::new(1, 2, 3);
 
         let source = StructPredicate {
-            name: String::from("sp1"),
+            typ: Type::typed_ref("sp1"),
             this: LocalVar {
                 name: String::from("_v1"),
                 typ: Type::TypeVar(TypeVar {
@@ -3481,7 +3481,7 @@ mod tests {
         };
 
         let expected = StructPredicate {
-            name: String::from("sp1"),
+            typ: Type::typed_ref("sp1"),
             this: LocalVar {
                 name: String::from("_v1"),
                 typ: Type::Int,
@@ -3539,7 +3539,7 @@ mod tests {
                     }),
                     String::from("variant1"),
                     StructPredicate {
-                        name: String::from("sp1"),
+                        typ: Type::typed_ref("sp1"),
                         this: LocalVar {
                             name: String::from("_v4"),
                             typ: Type::TypeVar(TypeVar {
@@ -3569,7 +3569,7 @@ mod tests {
                     }),
                     String::from("variant1"),
                     StructPredicate {
-                        name: String::from("sp1"),
+                        typ: Type::typed_ref("sp1"),
                         this: LocalVar {
                             name: String::from("_v7"),
                             typ: Type::TypeVar(TypeVar {
@@ -3618,7 +3618,7 @@ mod tests {
                     }),
                     String::from("variant1"),
                     StructPredicate {
-                        name: String::from("sp1"),
+                        typ: Type::typed_ref("sp1"),
                         this: LocalVar {
                             name: String::from("_v4"),
                             typ: Type::Bool,
@@ -3642,7 +3642,7 @@ mod tests {
                     }),
                     String::from("variant1"),
                     StructPredicate {
-                        name: String::from("sp1"),
+                        typ: Type::typed_ref("sp1"),
                         this: LocalVar {
                             name: String::from("_v7"),
                             typ: Type::Bool,
@@ -3669,7 +3669,7 @@ mod tests {
 
         // Struct
         let mut source = Predicate::Struct(StructPredicate {
-            name: String::from("sp1"),
+            typ: Type::typed_ref("sp1"),
             this: LocalVar {
                 name: String::from("_v4"),
                 typ: Type::TypeVar(TypeVar {
@@ -3687,7 +3687,7 @@ mod tests {
             })),
         });
         let mut expected = Predicate::Struct(StructPredicate {
-            name: String::from("sp1"),
+            typ: Type::typed_ref("sp1"),
             this: LocalVar {
                 name: String::from("_v4"),
                 typ: Type::Bool,
@@ -3739,7 +3739,7 @@ mod tests {
                     }),
                     String::from("variant1"),
                     StructPredicate {
-                        name: String::from("sp1"),
+                        typ: Type::typed_ref("sp1"),
                         this: LocalVar {
                             name: String::from("_v4"),
                             typ: Type::TypeVar(TypeVar {
@@ -3769,7 +3769,7 @@ mod tests {
                     }),
                     String::from("variant1"),
                     StructPredicate {
-                        name: String::from("sp1"),
+                        typ: Type::typed_ref("sp1"),
                         this: LocalVar {
                             name: String::from("_v7"),
                             typ: Type::TypeVar(TypeVar {
@@ -3817,7 +3817,7 @@ mod tests {
                     }),
                     String::from("variant1"),
                     StructPredicate {
-                        name: String::from("sp1"),
+                        typ: Type::typed_ref("sp1"),
                         this: LocalVar {
                             name: String::from("_v4"),
                             typ: Type::Bool,
@@ -3841,7 +3841,7 @@ mod tests {
                     }),
                     String::from("variant1"),
                     StructPredicate {
-                        name: String::from("sp1"),
+                        typ: Type::typed_ref("sp1"),
                         this: LocalVar {
                             name: String::from("_v7"),
                             typ: Type::Bool,
