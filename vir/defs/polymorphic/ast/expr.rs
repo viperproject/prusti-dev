@@ -26,7 +26,7 @@ pub enum Expr {
     Const(ConstExpr),
     /// lhs, rhs, borrow, position
     MagicWand(MagicWand),
-    /// PredicateAccessPredicate: predicate_name, arg, permission amount
+    /// PredicateAccessPredicate: predicate_type, arg, permission amount
     PredicateAccessPredicate(PredicateAccessPredicate),
     FieldAccessPredicate(FieldAccessPredicate),
     UnaryOp(UnaryOp),
@@ -132,7 +132,7 @@ impl Expr {
             Expr::Const( ConstExpr {value, ..} ) => Expr::Const( ConstExpr {value, position} ),
             Expr::LabelledOld( LabelledOld {label, base, ..} ) => Expr::LabelledOld( LabelledOld {label, base, position} ),
             Expr::MagicWand(MagicWand {left, right, borrow, ..} ) => Expr::MagicWand(MagicWand {left, right, borrow, position} ),
-            Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_name, argument, permission, ..} ) => Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_name, argument, permission, position} ),
+            Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_type, argument, permission, ..} ) => Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_type, argument, permission, position} ),
             Expr::FieldAccessPredicate(FieldAccessPredicate {base, permission, ..} ) => Expr::FieldAccessPredicate(FieldAccessPredicate {base, permission, position} ),
             Expr::UnaryOp(UnaryOp {op_kind, argument, ..} ) => Expr::UnaryOp(UnaryOp {op_kind, argument, position} ),
             Expr::BinOp(BinOp {op_kind, left, right, ..} ) => Expr::BinOp(BinOp {op_kind, left, right, position} ),
@@ -169,10 +169,10 @@ impl Expr {
         DefaultPosReplacer { new_pos: pos }.fold(self)
     }
 
-    pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, perm: PermAmount) -> Self {
+    pub fn predicate_access_predicate(predicate_type: Type, place: Expr, perm: PermAmount) -> Self {
         let pos = place.pos();
         Expr::PredicateAccessPredicate(PredicateAccessPredicate {
-            predicate_name: name.to_string(), 
+            predicate_type: predicate_type, 
             argument: Box::new(place), 
             permission: perm, 
             position: pos,
@@ -189,9 +189,12 @@ impl Expr {
     }
 
     pub fn pred_permission(place: Expr, perm: PermAmount) -> Option<Self> {
-        place
-            .typed_ref_name()
-            .map(|pred_name| Expr::predicate_access_predicate(pred_name, place, perm))
+        let typ = place.get_type();
+        if (typ.is_ref()) {
+            Some(Expr::predicate_access_predicate(typ.clone(), place, perm))
+        } else {
+            None
+        }
     }
 
     pub fn acc_permission(place: Expr, perm: PermAmount) -> Self {
@@ -517,7 +520,7 @@ impl Expr {
         impl ExprWalker for PredicateFinder {
             fn walk_predicate_access_predicate(
                 &mut self,
-                _name: &str,
+                _typ: &Type,
                 arg: &Expr,
                 perm_amount: PermAmount,
                 _pos: &Position,
@@ -781,7 +784,7 @@ impl Expr {
         impl ExprWalker for PurityFinder {
             fn walk_predicate_access_predicate(
                 &mut self,
-                _name: &str,
+                _typ: &Type,
                 _arg: &Expr,
                 _perm_amount: PermAmount,
                 _pos: &Position,
@@ -808,7 +811,7 @@ impl Expr {
         impl ExprFolder for Purifier {
             fn fold_predicate_access_predicate(
                 &mut self,
-                _name: String,
+                _typ: Type,
                 _arg: Box<Expr>,
                 _perm_amount: PermAmount,
                 _pos: Position,
@@ -834,7 +837,7 @@ impl Expr {
         impl ExprWalker for HeapAccessFinder {
             fn walk_predicate_access_predicate(
                 &mut self,
-                _name: &str,
+                _typ: &Type,
                 _arg: &Expr,
                 _perm_amount: PermAmount,
                 _pos: &Position,
@@ -1563,7 +1566,7 @@ impl Expr {
         impl ExprFolder for ReadPermRemover {
             fn fold_predicate_access_predicate(
                 &mut self,
-                name: String,
+                typ: Type,
                 arg: Box<Expr>,
                 perm_amount: PermAmount,
                 p: Position,
@@ -1571,7 +1574,7 @@ impl Expr {
                 assert!(perm_amount.is_valid_for_specs());
                 match perm_amount {
                     PermAmount::Write => Expr::PredicateAccessPredicate(PredicateAccessPredicate {
-                        predicate_name: name, 
+                        predicate_type: typ, 
                         argument: arg, 
                         permission: perm_amount, 
                         position: p,
@@ -1828,7 +1831,7 @@ impl Hash for MagicWand {
 
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct PredicateAccessPredicate {
-    pub predicate_name: String,
+    pub predicate_type: Type,
     pub argument: Box<Expr>,
     pub permission: PermAmount,
     pub position: Position,
@@ -1836,19 +1839,19 @@ pub struct PredicateAccessPredicate {
 
 impl fmt::Display for PredicateAccessPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "acc({}({}), {})", &self.predicate_name, &self.argument, self.permission)
+        write!(f, "acc({}({}), {})", &self.predicate_type.encode_as_string(), &self.argument, self.permission)
     }
 }
 
 impl PartialEq for PredicateAccessPredicate {
     fn eq(&self, other: &Self) -> bool {
-        (&self.predicate_name, &self.argument, self.permission) == (&other.predicate_name, &other.argument, other.permission)
+        (&self.predicate_type, &self.argument, self.permission) == (&other.predicate_type, &other.argument, other.permission)
     }
 }
 
 impl Hash for PredicateAccessPredicate {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (&self.predicate_name, &self.argument, self.permission).hash(state);
+        (&self.predicate_type, &self.argument, self.permission).hash(state);
     }
 }
 
