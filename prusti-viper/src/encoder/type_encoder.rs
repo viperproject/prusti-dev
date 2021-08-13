@@ -11,10 +11,10 @@ use crate::encoder::Encoder;
 use prusti_common::{
     config,
     vir,
-    vir_local,
     vir::{ExprIterator, ExprFolder},
 };
 use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::{vir_local, vir_type};
 use vir_crate::polymorphic::ExprIterator as PolymorphicExprIterator;
 // use prusti_interface::specifications::*;
 // use rustc::middle::const_val::ConstVal;
@@ -717,7 +717,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         // snapshots. However, that mechanism is currently very hacky and needs
         // proper refactoring, which is blocked by VIR 2.0.
         let typ = self.encoder.encode_polymorphic_type_predicate_use(self.ty)?;
-        let self_local_var = polymorphic_vir::LocalVar::new(typ.encode_as_string(), typ);
+        let self_local_var = vir_local!{ self: {typ} };
         Ok(polymorphic_vir::Function {
             name: self.encoder.encode_type_invariant_use(self.ty)?,
             formal_args: vec![self_local_var],
