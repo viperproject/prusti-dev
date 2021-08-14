@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_common::vir;
+use vir_crate::polymorphic as polymorphic_vir;
 use rustc_middle::mir;
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
@@ -224,7 +225,7 @@ pub trait ForwardMirInterpreter<'tcx> {
 
 #[derive(Clone, Debug)]
 pub struct MultiExprBackwardInterpreterState {
-    exprs: Vec<vir::Expr>,
+    exprs: Vec<polymorphic_vir::Expr>,
 }
 
 impl Display for MultiExprBackwardInterpreterState {
@@ -241,23 +242,35 @@ impl Display for MultiExprBackwardInterpreterState {
 }
 
 impl MultiExprBackwardInterpreterState {
-    pub fn new(exprs: Vec<vir::Expr>) -> Self {
+    pub fn new(exprs: Vec<polymorphic_vir::Expr>) -> Self {
         MultiExprBackwardInterpreterState { exprs }
     }
 
-    pub fn new_single(expr: vir::Expr) -> Self {
+    pub fn new_single(expr: polymorphic_vir::Expr) -> Self {
         MultiExprBackwardInterpreterState { exprs: vec![expr] }
     }
 
     pub fn exprs(&self) -> &Vec<vir::Expr> {
+        &self.exprs.into_iter().map(|expr| expr.into()).collect()
+    }
+
+    pub fn polymorphic_exprs(&self) -> &Vec<polymorphic_vir::Expr> {
         &self.exprs
     }
 
     pub fn exprs_mut(&mut self) -> &mut Vec<vir::Expr> {
+        &mut self.exprs.into_iter().map(|expr| expr.into()).collect()
+    }
+
+    pub fn polymorphic_exprs_mut(&mut self) -> &mut Vec<polymorphic_vir::Expr> {
         &mut self.exprs
     }
 
     pub fn into_expressions(self) -> Vec<vir::Expr> {
+        self.exprs.into_iter().map(|expr| expr.into()).collect()
+    }
+
+    pub fn into_polymorphic_expressions(self) -> Vec<polymorphic_vir::Expr> {
         self.exprs
     }
 
@@ -277,19 +290,52 @@ impl MultiExprBackwardInterpreterState {
             self.substitute_place(&deref_target, base_replacement.clone());
         }
 
-        for expr in &mut self.exprs {
+        for expr in self.exprs_mut() {
             *expr = expr.clone().replace_place(&sub_target, &replacement);
+        }
+    }
+
+    pub fn substitute_polymorphic_place(&mut self, substs: &HashMap<polymorphic_vir::TypeVar, polymorphic_vir::Type>) {
+        trace!("substitute_place");
+
+        // If `replacement` is a reference, simplify also its dereferentiations
+        if let vir::Expr::AddrOf(box ref base_replacement, ref _dereferenced_type, ref pos) =
+            replacement
+        {
+            trace!("Substitution of a reference. Simplify its dereferentiations.");
+            let deref_field = vir::Field::new("val_ref", base_replacement.get_type().clone());
+            let deref_target = sub_target
+                .clone()
+                .field(deref_field.clone())
+                .set_pos(*pos);
+            self.substitute_place(&deref_target, base_replacement.clone());
+        }
+
+        for expr in self.polymorphic_exprs_mut() {
+            *expr = expr.clone().substitute(substs);
         }
     }
 
     pub fn substitute_value(&mut self, exact_target: &vir::Expr, replacement: vir::Expr) {
         trace!("substitute_value {:?} --> {:?}", exact_target, replacement);
-        for expr in &mut self.exprs {
+        for expr in self.exprs_mut() {
             *expr = expr.clone().replace_place(exact_target, &replacement);
         }
     }
 
+    pub fn substitute_polymorphic_value(&mut self, substs: &HashMap<polymorphic_vir::TypeVar, polymorphic_vir::Type>) {
+        trace!("substitute_value");
+        for expr in self.exprs {
+            *expr = expr.clone().substitute(substs);
+        }
+    }
+
     pub fn use_place(&self, sub_target: &vir::Expr) -> bool {
+        trace!("use_place {:?}", sub_target);
+        self.exprs.iter().any(|expr| expr.into().find(sub_target))
+    }
+
+    pub fn use_polymorphic_place(&self, sub_target: &polymorphic_vir::Expr) -> bool {
         trace!("use_place {:?}", sub_target);
         self.exprs.iter().any(|expr| expr.find(sub_target))
     }

@@ -18,6 +18,8 @@ use crate::encoder::snapshot;
 use crate::encoder::Encoder;
 use prusti_common::{vir, vir_local};
 use prusti_common::vir::ExprIterator;
+use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::{vir_local as polymorphic_vir_local, vir_type};
 use prusti_common::config;
 use prusti_interface::specs::typed;
 use rustc_hir as hir;
@@ -80,6 +82,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         Ok(patched_body_expr)
     }
 
+    /// Used to encode expressions in assertions
+    pub fn encode_polymorphic_body(&self) -> SpannedEncodingResult<polymorphic_vir::Expr> {
+        let function_name = self.encoder.env().get_absolute_item_name(self.proc_def_id);
+        debug!("Encode body of pure function {}", function_name);
+
+        let state = run_backward_interpretation(self.mir, &self.interpreter)?
+            .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
+        let body_expr = state.into_polymorphic_expressions().remove(0);
+        debug!(
+            "Pure function {} has been encoded with expr: {}",
+            function_name, body_expr
+        );
+        let substs = self.encoder.type_substitution_polymorphic_type_map().with_span(self.mir.span)?;
+        let patched_body_expr = body_expr.patch_types(substs);
+        Ok(patched_body_expr)
+    }
+
     pub fn encode_function(&self) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode pure function {}", function_name);
@@ -125,6 +144,51 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.encode_function_given_body(Some(body_expr))
     }
 
+    pub fn encode_polymorphic_function(&self) -> SpannedEncodingResult<polymorphic_vir::Function> {
+        let function_name = self.encode_function_name();
+        debug!("Encode pure function {}", function_name);
+        let mut state = run_backward_interpretation(self.mir, &self.interpreter)?
+            .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
+
+        // Fix arguments
+        for arg in self.mir.args_iter() {
+            let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
+            let span = self.get_local_span(arg);
+            let target_place = self.encoder.encode_polymorphic_value_expr(
+                polymorphic_vir::Expr::local(
+                    self.interpreter
+                        .mir_encoder()
+                        .encode_polymorphic_local(arg)?
+                ),
+                arg_ty
+            ).with_span(span)?;
+            let new_place: polymorphic_vir::Expr = self.encode_polymorphic_local(arg)?.into();
+            state.substitute_polymorphic_place(self.encoder.type_substitution_polymorphic_type_map());
+        }
+
+        let mut body_expr = state.into_polymorphic_expressions().remove(0);
+        debug!(
+            "Pure function {} has been encoded with expr: {}",
+            function_name, body_expr
+        );
+
+        // if the function returns a snapshot, we take a snapshot of the body
+        if self.encode_function_return_type()?.is_snapshot() {
+            let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+            let return_span = self.get_local_span(mir::RETURN_PLACE);
+
+            if !self.encoder.env().type_is_copy(ty) {
+                return Err(SpannedEncodingError::unsupported(
+                    "return type of pure function does not implement Copy",
+                    return_span,
+                ));
+            }
+
+            body_expr = polymorphic_vir::Expr::snap_app(body_expr);
+        }
+        self.encode_polymorphic_function_given_body(Some(body_expr))
+    }
+
     pub fn encode_bodyless_function(&self)
         -> SpannedEncodingResult<vir::Function>
     {
@@ -132,6 +196,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         debug!("Encode trusted (bodyless) pure function {}", function_name);
 
         self.encode_function_given_body(None)
+    }
+
+    pub fn encode_polymorphic_bodyless_function(&self)
+    -> SpannedEncodingResult<polymorphic_vir::Function>
+    {
+        let function_name = self.encode_function_name();
+        debug!("Encode trusted (bodyless) pure function {}", function_name);
+
+        self.encode_polymorphic_function_given_body(None)
     }
 
     pub fn encode_predicate_function(&self, predicate_body: &typed::Assertion<'tcx>)
@@ -161,6 +234,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         )?;
 
         self.encode_function_given_body(Some(predicate_body_encoded))
+    }
+
+    pub fn encode_polymorphic_predicate_function(&self, predicate_body: &typed::Assertion<'tcx>)
+        -> SpannedEncodingResult<polymorphic_vir::Function>
+    {
+        let function_name = self.encode_function_name();
+        debug!("Encode predicate function {}", function_name);
+
+        let mir_span = self.encoder.env().tcx().def_span(self.proc_def_id);
+        let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id).with_span(mir_span)?;
+        let encoded_args = contract
+            .args
+            .iter()
+            .map(|local| self.encode_polymorphic_local(local.clone().into()).map(|l| l.into()))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let predicate_body_encoded = self.encoder.encode_polymorphic_assertion(
+            predicate_body,
+            self.mir,
+            None,
+            &encoded_args,
+            None,
+            true,
+            None,
+            ErrorCtxt::GenericExpression,
+            self.parent_def_id,
+        )?;
+
+        self.encode_polymorphic_function_given_body(Some(predicate_body_encoded))
     }
 
     // Private
@@ -287,6 +389,128 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         })
     }
 
+    fn encode_polymorphic_function_given_body(&self, body: Option<polymorphic_vir::Expr>)
+        -> SpannedEncodingResult<polymorphic_vir::Function>
+    {
+        let function_name = self.encode_function_name();
+        let is_bodyless = body.is_none();
+        if is_bodyless {
+            debug!("Encode pure function {} given body None", function_name);
+        } else {
+            debug!(
+                "Encode pure function {} given body Some({})",
+                function_name,
+                body.as_ref().unwrap()
+            );
+        }
+
+        let contract = self.encoder
+            .get_procedure_contract_for_def(self.proc_def_id)
+            .with_span(self.mir.span)?;
+        let substs = self.encoder.type_substitution_polymorphic_type_map().with_span(self.mir.span)?;
+
+        let (type_precondition, func_precondition) = self.encode_polymorphic_precondition_expr(&contract)?;
+        let patched_type_precondition = type_precondition.patch_types(substs);
+
+        let mut precondition = vec![patched_type_precondition, func_precondition];
+        let mut postcondition = vec![self.encode_polymorphic_postcondition_expr(&contract)?];
+
+        let mut formal_args = vec![];
+        for local in self.mir.args_iter() {
+            let mir_encoder = self.interpreter.mir_encoder();
+            let var_name = mir_encoder.encode_local_var_name(local);
+            let var_span = mir_encoder.get_local_span(local);
+            let mir_type = mir_encoder.get_local_ty(local);
+            let var_type = self
+                .encoder
+                .encode_polymorphic_snapshot_type(mir_type)
+                .with_span(var_span)?;
+            let var_type = var_type.substitute(substs);
+            formal_args.push(polymorphic_vir::LocalVar::new(var_name, var_type))
+        };
+        let return_type = self.encode_polymorphic_function_return_type()?;
+
+        let res_value_range_pos = self.encoder.error_manager().register_polymorphic(
+            self.mir.span,
+            ErrorCtxt::PureFunctionPostconditionValueRangeOfResult,
+            self.parent_def_id,
+        );
+        let pure_fn_return_variable = polymorphic_vir_local!{ __result: {return_type.clone()} };
+        // Add value range of the arguments and return value to the pre/postconditions
+        if config::check_overflows() {
+            let return_bounds: Vec<_> = self
+                .encoder
+                .encode_polymorphic_type_bounds(
+                    &polymorphic_vir::Expr::local(pure_fn_return_variable),
+                    self.mir.return_ty(),
+                )
+                .into_iter()
+                .map(|p| p.set_default_pos(res_value_range_pos))
+                .collect();
+            postcondition.extend(return_bounds);
+
+            for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
+                let typ = self.interpreter.mir_encoder().get_local_ty(local);
+                let bounds = self
+                    .encoder
+                    .encode_polymorphic_type_bounds(&polymorphic_vir::Expr::local(formal_arg.clone()), &typ);
+                precondition.extend(bounds);
+            }
+        } else if config::encode_unsigned_num_constraint() {
+            if let ty::TyKind::Uint(_) = self.mir.return_ty().kind() {
+                let expr = polymorphic_vir::Expr::le_cmp(0.into(), pure_fn_return_variable.into());
+                postcondition.push(expr.set_default_pos(res_value_range_pos));
+            }
+            for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
+                let typ = self.interpreter.mir_encoder().get_local_ty(local);
+                if let ty::TyKind::Uint(_) = typ.kind() {
+                    precondition.push(polymorphic_vir::Expr::le_cmp(0.into(), formal_arg.into()));
+                }
+            }
+        }
+
+        debug_assert!(
+            !postcondition.iter().any(|p| p.pos().is_default()),
+            "Some postcondition has no position: {:?}",
+            postcondition
+        );
+
+        let mut function = polymorphic_vir::Function {
+            name: function_name.clone(),
+            formal_args,
+            return_type,
+            pres: precondition,
+            posts: postcondition,
+            body,
+        };
+
+        self.encoder
+            .log_vir_program_before_foldunfold(function.to_string());
+
+        if config::simplify_encoding() {
+            function = vir::optimizations::functions::Simplifier::simplify(function);
+        }
+
+        // Patch snapshots
+        function = self.encoder.patch_snapshots_function(function)
+            .with_span(self.mir.span)?;
+
+        // Add folding/unfolding
+        foldunfold::add_folding_unfolding_to_function(
+            function,
+            self.encoder.get_used_viper_predicates_map(),
+        )
+        .map_err(|foldunfold_error| {
+            SpannedEncodingError::internal(
+                format!(
+                    "generating unfolding Viper expressions failed ({:?})",
+                    foldunfold_error
+                ),
+                self.mir.span,
+            )
+        })
+    }
+
     /// Encode the precondition with two expressions:
     /// - one for the type encoding
     /// - one for the functional specification.
@@ -319,6 +543,56 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         for item in contract.functional_precondition() {
             debug!("Encode spec item: {:?}", item);
             func_spec.push(self.encoder.encode_assertion(
+                &item,
+                &self.mir,
+                None,
+                &encoded_args,
+                None,
+                true,
+                None,
+                ErrorCtxt::GenericExpression,
+                self.parent_def_id,
+            )?);
+        }
+
+        Ok((
+            type_spec.into_iter().conjoin(),
+            func_spec.into_iter().conjoin(),
+        ))
+    }
+
+    /// Encode the precondition with two expressions:
+    /// - one for the type encoding
+    /// - one for the functional specification.
+    fn encode_polymorphic_precondition_expr(
+        &self,
+        contract: &ProcedureContract<'tcx>,
+    ) -> SpannedEncodingResult<(polymorphic_vir::Expr, polymorphic_vir::Expr)> {
+        let mut type_spec = vec![];
+        for &local in contract.args.iter() {
+            let local_ty = self.interpreter.mir_encoder().get_local_ty(local.into());
+            let fraction = if let ty::TyKind::Ref(_, _, hir::Mutability::Not) = local_ty.kind() {
+                polymorphic_vir::PermAmount::Read
+            } else {
+                polymorphic_vir::PermAmount::Write
+            };
+            let opt_pred_perm = self.interpreter.mir_encoder()
+                .encode_polymorphic_place_predicate_permission(self.encode_polymorphic_local(local.into())?.into(), fraction);
+            if let Some(spec) = opt_pred_perm {
+                type_spec.push(spec)
+            }
+        };
+        let mut func_spec: Vec<polymorphic_vir::Expr> = vec![];
+
+        // Encode functional specification
+        let encoded_args: Vec<polymorphic_vir::Expr> = contract
+            .args
+            .iter()
+            .map(|local| self.encode_polymorphic_local(local.clone().into()).map(|l| l.into()))
+            .collect::<Result<_, _>>()?;
+        for item in contract.functional_precondition() {
+            debug!("Encode spec item: {:?}", item);
+            func_spec.push(self.encoder.encode_polymorphic_assertion(
                 &item,
                 &self.mir,
                 None,
@@ -386,6 +660,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         Ok(post)
     }
 
+    /// Encode the postcondition with one expression just for the functional specification (no
+    /// type encoding).
+    fn encode_polymorphic_postcondition_expr(&self, contract: &ProcedureContract<'tcx>)
+        -> SpannedEncodingResult<polymorphic_vir::Expr>
+    {
+        let mut func_spec: Vec<polymorphic_vir::Expr> = vec![];
+
+        // Encode functional specification
+        let encoded_args: Vec<polymorphic_vir::Expr> = contract
+            .args
+            .iter()
+            .map(|local| self.encode_polymorphic_local(local.clone().into()).map(|l| l.into()))
+            .collect::<Result<_, _>>()?;
+        let encoded_return = self.encode_polymorphic_local(contract.returned_value.clone().into())?;
+        debug!("encoded_return: {:?}", encoded_return);
+
+        for item in contract.functional_postcondition() {
+            let encoded_postcond = self.encoder.encode_polymorphic_assertion(
+                &item,
+                &self.mir,
+                None,
+                &encoded_args,
+                Some(&encoded_return.clone().into()),
+                true,
+                None,
+                ErrorCtxt::GenericExpression,
+                self.parent_def_id,
+            )?;
+            debug_assert!(!encoded_postcond.pos().is_default());
+            func_spec.push(encoded_postcond);
+        }
+
+        let post = func_spec.into_iter().conjoin();
+
+        // TODO: use a better span
+        let postcondition_pos = self
+            .encoder
+            .error_manager()
+            .register_polymorphic(self.mir.span, ErrorCtxt::GenericExpression, self.parent_def_id);
+
+        // Fix return variable
+        let pure_fn_return_variable = vir_local!{ __result: {self.encode_function_return_type()?} };
+
+        let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
+            .set_default_pos(postcondition_pos);
+
+        Ok(post)
+    }
+
     fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
         let mir_encoder = self.interpreter.mir_encoder();
         let var_name = mir_encoder.encode_local_var_name(local);
@@ -394,6 +717,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .encode_snapshot_type(self.interpreter.mir_encoder().get_local_ty(local))
             .with_span(var_span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
+    }
+
+    fn encode_polymorphic_local(&self, local: mir::Local) -> SpannedEncodingResult<polymorphic_vir::LocalVar> {
+        let mir_encoder = self.interpreter.mir_encoder();
+        let var_name = mir_encoder.encode_local_var_name(local);
+        let var_span = mir_encoder.get_local_span(local);
+        let var_type = self.encoder
+            .encode_snapshot_type(self.interpreter.mir_encoder().get_local_ty(local))
+            .with_span(var_span)?;
+        Ok(polymorphic_vir::LocalVar::new(var_name, var_type))
     }
 
     fn get_local_span(&self, local: mir::Local) -> Span {
@@ -420,6 +753,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.interpreter.mir_encoder().get_local_span(return_local);
         self.encoder.encode_snapshot_type(ty).with_span(span)
+    }
+
+    pub fn encode_polymorphic_function_return_type(&self) -> SpannedEncodingResult<polymorphic_vir::Type> {
+        let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+        let return_span = self.get_local_span(mir::RETURN_PLACE);
+
+        // Return an error for unsupported return types
+        let tcx = self.encoder.env().tcx();
+        if !is_supported_type_of_pure_expression(tcx, ty) {
+            return Err(SpannedEncodingError::incorrect(
+                "invalid return type of pure function",
+                return_span,
+            ));
+        }
+
+        let return_local = mir::Place::return_place().as_local().unwrap();
+        let span = self.interpreter.mir_encoder().get_local_span(return_local);
+        self.encoder.encode_polymorphic_snapshot_type(ty).with_span(span)
     }
 }
 

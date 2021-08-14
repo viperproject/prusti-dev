@@ -496,6 +496,20 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
+    pub fn encode_polymorphic_value_expr(&self, base: polymorphic_vir::Expr, ty: ty::Ty<'tcx>) -> EncodingResult<polymorphic_vir::Expr> {
+        match ty.kind() {
+            ty::TyKind::Adt(_, _)
+            | ty::TyKind::Array(..)
+            | ty::TyKind::Tuple(_) => {
+                Ok(base) // don't use a field for tuples and ADTs
+            }
+            _ => {
+                let value_field = self.encode_polymorphic_value_field(ty)?;
+                Ok(base.field(value_field))
+            }
+        }
+    }
+
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Field> {
         Ok(self.encode_polymorphic_value_field(ty)?.into())
     }
@@ -849,6 +863,37 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ))
     }
 
+    // TODO polymorphic
+    /// See `spec_encoder::encode_spec_assertion` for a description of the arguments.
+    pub fn encode_polymorphic_assertion(
+        &self,
+        assertion: &typed::Assertion<'tcx>,
+        mir: &mir::Body<'tcx>,
+        pre_label: Option<&str>,
+        target_args: &[polymorphic_vir::Expr],
+        target_return: Option<&polymorphic_vir::Expr>,
+        targets_are_values: bool,
+        assertion_location: Option<mir::BasicBlock>,
+        error: ErrorCtxt,
+        parent_def_id: ProcedureDefId,
+    ) -> SpannedEncodingResult<polymorphic_vir::Expr> {
+        trace!("encode_assertion {:?}", assertion);
+        let encoded_assertion = encode_spec_assertion(
+            self,
+            assertion,
+            pre_label,
+            target_args,
+            target_return,
+            targets_are_values,
+            assertion_location,
+            parent_def_id,
+        )?;
+        Ok(encoded_assertion.set_default_pos(
+            self.error_manager()
+                .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error, parent_def_id)
+        ))
+    }
+
     pub fn decode_type_predicate(&self, name: &str)
         -> EncodingResult<ty::Ty<'tcx>>
     {
@@ -938,6 +983,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_snapshot_type(&self, ty: ty::Ty<'tcx>)
         -> EncodingResult<vir::Type>
+    {
+        self.snapshot_encoder.borrow_mut().encode_type(self, ty)
+    }
+
+    // TODO polymorphic
+    pub fn encode_polymorphic_snapshot_type(&self, ty: ty::Ty<'tcx>)
+    -> EncodingResult<polymorphic_vir::Type>
     {
         self.snapshot_encoder.borrow_mut().encode_type(self, ty)
     }
@@ -1457,6 +1509,19 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             })
             .collect::<Result<_, _>>()
     }
+
+    pub fn type_substitution_polymorphic_type_map(&self)
+    -> EncodingResult<&HashMap<polymorphic_vir::TypeVar, polymorphic_vir::Type>>
+    {
+        self.current_tymap()
+            .iter()
+            .map(|(typ, subst)| {
+                let typ_encoder = TypeEncoder::new(self, typ);
+                let subst_encoder = TypeEncoder::new(self, subst);
+                transpose((typ_encoder.encode_polymorphic_predicate_use()?.get_type_var(), subst_encoder.encode_polymorphic_predicate_use()))
+            })
+            .collect::<Result<_, _>>()
+}
 
     /// TODO: This is a hack, it generates a String that can be used for uniquely identifying this
     /// type substitution.
