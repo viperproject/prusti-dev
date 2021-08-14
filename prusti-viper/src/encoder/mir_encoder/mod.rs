@@ -15,6 +15,7 @@ use crate::encoder::errors::{
 use crate::encoder::Encoder;
 use crate::utils;
 use prusti_common::vir;
+use vir_crate::polymorphic as polymorphic_vir;
 use prusti_common::config;
 use rustc_target::abi;
 use rustc_hir::def_id::DefId;
@@ -53,6 +54,15 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             .encode_type_predicate_use(self.get_local_ty(local))
             .with_span(self.get_local_span(local))?;
         Ok(vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name)))
+    }
+
+    fn encode_polymorphic_local(&self, local: mir::Local) -> SpannedEncodingResult<polymorphic_vir::LocalVar> {
+        let var_name = self.encode_local_var_name(local);
+        let type_name = self
+            .encoder()
+            .encode_type_predicate_use(self.get_local_ty(local))
+            .with_span(self.get_local_span(local))?;
+        Ok(polymorphic_vir::LocalVar::new(var_name, polymorphic_vir::Type::typed_ref(type_name)))
     }
 
     /// Returns
@@ -775,6 +785,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         perm: vir::PermAmount,
     ) -> Option<vir::Expr> {
         vir::Expr::pred_permission(place, perm)
+    }
+
+    pub fn encode_polymorphic_place_predicate_permission(
+        &self,
+        place: polymorphic_vir::Expr,
+        perm: polymorphic_vir::PermAmount,
+    ) -> Option<polymorphic_vir::Expr> {
+        polymorphic_vir::Expr::pred_permission(place, perm)
     }
 
     pub fn encode_old_expr(&self, expr: vir::Expr, label: &str) -> vir::Expr {
