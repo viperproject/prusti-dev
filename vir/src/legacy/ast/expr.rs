@@ -1573,8 +1573,7 @@ impl Expr {
         collector.perms
     }
 
-    /// Replace all generic types with their instantiations by using string substitution.
-    /// FIXME: this is a hack to support generics. See issue #187.
+    /// Replace all generic types with their instantiations by using substitution.
     pub fn patch_types(self, substs: &HashMap<String, String>) -> Self {
         struct TypePatcher<'a> {
             substs: &'a HashMap<String, String>,

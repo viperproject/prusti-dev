@@ -249,6 +249,14 @@ impl Type {
         })
     }
 
+    pub fn get_type_var(&self) -> Option<TypeVar> {
+        if let Type::TypeVar(type_var) = self {
+            Some(type_var.clone())
+        } else {
+            None
+        }
+    }
+
     pub fn get_id(&self) -> TypeId {
         match self {
             Type::Bool => TypeId::Bool,
