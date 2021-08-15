@@ -16,7 +16,8 @@ use crate::encoder::foldunfold::FoldUnfoldError;
 use crate::encoder::foldunfold::FoldUnfoldError::FailedToObtain;
 use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
-use prusti_common::vir::PermAmount;
+use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::polymorphic::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -27,25 +28,25 @@ use log::{debug, trace};
 pub struct PathCtxt<'a> {
     state: State,
     /// The definition of the predicates
-    predicates: &'a HashMap<String, vir::Predicate>,
+    predicates: &'a HashMap<String, polymorphic_vir::Predicate>,
     /// All usages of old expressions to consider
-    old_exprs: &'a HashMap<String, Vec<vir::Expr>>,
+    old_exprs: &'a HashMap<String, Vec<polymorphic_vir::Expr>>,
     /// A log of some of the relevant actions that lead to this fold-unfold context
     log: EventLog,
 }
 
 impl<'a> PathCtxt<'a> {
     pub fn new(
-        local_vars: Vec<vir::LocalVar>,
-        predicates: &'a HashMap<String, vir::Predicate>,
-        old_exprs: &'a HashMap<String, Vec<vir::Expr>>,
+        local_vars: Vec<polymorphic_vir::LocalVar>,
+        predicates: &'a HashMap<String, polymorphic_vir::Predicate>,
+        old_exprs: &'a HashMap<String, Vec<polymorphic_vir::Expr>>,
     ) -> Self {
         PathCtxt {
             state: State::new(
                 HashMap::from_iter(
                     local_vars
                         .into_iter()
-                        .map(|v| (vir::Expr::local(v), PermAmount::Write)),
+                        .map(|v| (polymorphic_vir::Expr::local(v), PermAmount::Write)),
                 ),
                 HashMap::new(),
                 HashSet::new(),
@@ -76,20 +77,20 @@ impl<'a> PathCtxt<'a> {
         &mut self.state
     }
 
-    pub fn predicates(&self) -> &HashMap<String, vir::Predicate> {
+    pub fn predicates(&self) -> &HashMap<String, polymorphic_vir::Predicate> {
         self.predicates
     }
 
-    pub fn old_exprs(&self) -> &HashMap<String, Vec<vir::Expr>> {
+    pub fn old_exprs(&self) -> &HashMap<String, Vec<polymorphic_vir::Expr>> {
         self.old_exprs
     }
 
     /// Simulate an unfold
     fn unfold(
         &mut self,
-        pred_place: &vir::Expr,
+        pred_place: &polymorphic_vir::Expr,
         perm_amount: PermAmount,
-        variant: vir::MaybeEnumVariantIndex,
+        variant: polymorphic_vir::MaybeEnumVariantIndex,
     ) -> Result<Action, FoldUnfoldError> {
         debug!("We want to unfold {} with {}", pred_place, perm_amount);
         //assert!(self.state.contains_acc(pred_place), "missing acc({}) in {}", pred_place, self.state);
@@ -111,11 +112,12 @@ impl<'a> PathCtxt<'a> {
                 Err(FoldUnfoldError::MissingPredicate(predicate_name.clone()))
             )?;
 
-        let pred_self_place: vir::Expr = predicate.self_place();
+        let pred_self_place: polymorphic_vir::Expr = predicate.self_place();
         let places_in_pred: Vec<Perm> = predicate
             .get_body_footprint(&variant)
             .into_iter()
             .map(|perm| {
+                // TODO polymorphic
                 perm.map_place(|p| p.replace_place(&pred_self_place, pred_place))
                     .update_perm_amount(perm_amount)
             })
@@ -141,12 +143,12 @@ impl<'a> PathCtxt<'a> {
             self.state.display_pred()
         );
 
-        Ok(Action::Unfold(
-            predicate_name.clone(),
-            vec![pred_place.clone().into()],
-            perm_amount,
-            variant,
-        ))
+        Ok(Action::Unfold( polymorphic_vir::Unfold {
+            predicate_name: predicate_name.clone(),
+            arguments: vec![pred_place.clone().into()],
+            permission: perm_amount,
+            enum_variant: variant,
+        }))
     }
 
     /// left is self, right is other
@@ -536,7 +538,7 @@ impl<'a> PathCtxt<'a> {
 
         // 3. Obtain with an unfold
         // Find a predicate on a proper prefix of req
-        let existing_prefix_pred_opt: Option<vir::Expr> = self
+        let existing_prefix_pred_opt: Option<polymorphic_vir::Expr> = self
             .state
             .pred_places()
             .iter()
@@ -591,7 +593,9 @@ impl<'a> PathCtxt<'a> {
                 .into_iter()
                 .find(|p| p.has_proper_prefix(req.get_place()));
 
-            let pred_self_place: vir::Expr = predicate.self_place();
+            let pred_self_place: polymorphic_vir::Expr = predicate.self_place();
+
+            // TODO polymorphic
             let places_in_pred: Vec<Perm> = predicate
                 .get_body_footprint(&variant)
                 .into_iter()
@@ -651,13 +655,13 @@ impl<'a> PathCtxt<'a> {
                     .collect();
 
                 let pos = req.get_place().pos();
-                let fold_action = Action::Fold(
-                    predicate_name.clone(),
-                    vec![req.get_place().clone().into()],
-                    perm_amount,
-                    variant,
-                    pos,
-                );
+                let fold_action = Action::Fold( polymorphic_vir::Fold {
+                    predicate_name: predicate_name.clone(),
+                    arguments: vec![req.get_place().clone().into()],
+                    permission: perm_amount,
+                    enum_variant: variant,
+                    position: pos,
+                });
                 actions.push(fold_action);
 
                 // Simulate folding of `req`
@@ -694,7 +698,7 @@ Predicates: {{
                 );
                 return Ok(ObtainResult::Failure(req.clone()));
             }
-        } else if in_join && req.get_perm_amount() == vir::PermAmount::Read {
+        } else if in_join && req.get_perm_amount() == PermAmount::Read {
             // Permissions held by shared references can be dropped
             // without being explicitly moved becauce &T implements Copy.
             return Ok(ObtainResult::Failure(req.clone()));
@@ -720,7 +724,7 @@ Predicates: {{
     }
 
     /// Returns some of the dropped permissions
-    pub fn apply_stmt(&mut self, stmt: &vir::Stmt) -> Result<(), FoldUnfoldError> {
+    pub fn apply_stmt(&mut self, stmt: &polymorphic_vir::Stmt) -> Result<(), FoldUnfoldError> {
         debug!("apply_stmt: {}", stmt);
 
         trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
@@ -775,9 +779,9 @@ Predicates: {{
 
 /// Find in `variant_place` the variant index of the enum encoded by `enum_place`.
 fn find_variant(
-    enum_place: &vir::Expr,
-    variant_place: &vir::Expr,
-) -> vir::MaybeEnumVariantIndex {
+    enum_place: &polymorphic_vir::Expr,
+    variant_place: &polymorphic_vir::Expr,
+) -> polymorphic_vir::MaybeEnumVariantIndex {
     trace!(
         "[enter] find_variant(enum_place={}, variant_place={})",
         enum_place,
@@ -786,7 +790,7 @@ fn find_variant(
     let parent = variant_place.get_parent_ref().unwrap();
     let result = if enum_place == parent {
         match variant_place {
-            vir::Expr::Variant(_, field, _) => Some(field.into()),
+            polymorphic_vir::Expr::Variant( polymorphic_vir::Variant {variant_index, ..} ) => Some(variant_index.into()),
             _ => None,
         }
     } else {
@@ -803,7 +807,7 @@ fn find_variant(
 
 /// Find the variant of the place encoding an expression.
 /// Note: the place needs to be unfolded and downcasted for this to work.
-pub fn find_unfolded_variant(state: &State, enum_place: &vir::Expr) -> vir::MaybeEnumVariantIndex {
+pub fn find_unfolded_variant(state: &State, enum_place: &polymorphic_vir::Expr) -> polymorphic_vir::MaybeEnumVariantIndex {
     debug_assert!(enum_place.is_place());
     // Find an access permission for which req is a proper suffix and extract variant from it.
     let variants: HashSet<_> = state
@@ -840,14 +844,14 @@ pub fn find_unfolded_variant(state: &State, enum_place: &vir::Expr) -> vir::Mayb
 /// The elements from the first set that have any element in the second
 /// set as a prefix are dropped.
 pub fn compute_fold_target(
-    left: &HashSet<vir::Expr>,
-    right: &HashSet<vir::Expr>,
-) -> (HashSet<vir::Expr>, HashSet<vir::Expr>) {
+    left: &HashSet<polymorphic_vir::Expr>,
+    right: &HashSet<polymorphic_vir::Expr>,
+) -> (HashSet<polymorphic_vir::Expr>, HashSet<polymorphic_vir::Expr>) {
     let mut conflicting_base = HashSet::new();
     // If we have an enum unfolded only in one, then we add that enum to
     // conflicting places.
-    let mut conflicting_base_check = |item: &vir::Expr, second_set: &HashSet<vir::Expr>| {
-        if let vir::Expr::Variant(box ref base, _, _) = item {
+    let mut conflicting_base_check = |item: &polymorphic_vir::Expr, second_set: &HashSet<polymorphic_vir::Expr>| {
+        if let polymorphic_vir::Expr::Variant( polymorphic_vir::Variant {box ref base, ..} ) = item {
             if !second_set.iter().any(|p| p.has_prefix(item)) {
                 // The enum corresponding to base is completely folded in second_set or unfolded
                 // with a different variant.
@@ -864,7 +868,7 @@ pub fn compute_fold_target(
 
     let mut places = HashSet::new();
     let mut place_check =
-        |item: &vir::Expr, item_set: &HashSet<vir::Expr>, other_set: &HashSet<vir::Expr>| {
+        |item: &polymorphic_vir::Expr, item_set: &HashSet<polymorphic_vir::Expr>, other_set: &HashSet<polymorphic_vir::Expr>| {
             let is_leaf = !item_set.iter().any(|p| p.has_proper_prefix(item));
             let below_all_others = !other_set.iter().any(|p| p.has_prefix(item));
             let no_conflict_base = !conflicting_base.iter().any(|base| item.has_prefix(base));
