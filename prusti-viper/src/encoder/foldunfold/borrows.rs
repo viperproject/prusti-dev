@@ -5,15 +5,16 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_common::vir;
+use vir_crate::polymorphic as polymorphic_vir;
 use std::collections::HashMap;
 use std::io;
 
 pub(super) struct BasicBlock<'a> {
-    pub guard: vir::Expr,
-    pub current_guard: vir::Expr,
-    pub node: &'a vir::borrows::Node,
+    pub guard: polymorphic_vir::Expr,
+    pub current_guard: polymorphic_vir::Expr,
+    pub node: &'a polymorphic_vir::borrows::Node,
     pub predecessors: Vec<usize>,
-    pub statements: Vec<vir::Stmt>,
+    pub statements: Vec<polymorphic_vir::Stmt>,
     pub successors: Vec<usize>,
 }
 
@@ -21,7 +22,7 @@ pub(super) struct CFG<'a> {
     pub basic_blocks: Vec<BasicBlock<'a>>,
     /// Basic blocks that connect a pair of basic blocks. They are needed for performing
     /// fold-unfold operations on an edge.
-    pub edges: HashMap<(usize, usize), Vec<vir::Stmt>>,
+    pub edges: HashMap<(usize, usize), Vec<polymorphic_vir::Stmt>>,
 }
 
 impl<'a> CFG<'a> {

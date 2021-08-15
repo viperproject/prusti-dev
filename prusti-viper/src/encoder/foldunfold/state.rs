@@ -6,8 +6,8 @@
 
 use crate::encoder::foldunfold::perm::*;
 use prusti_common::vir;
-use prusti_common::vir::ExprIterator;
-use prusti_common::vir::PermAmount;
+use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::polymorphic::{ExprIterator, PermAmount};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::borrow::Borrow;
@@ -18,11 +18,11 @@ use crate::encoder::foldunfold::FoldUnfoldError;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {
     /// paths on which we (may) have a full access permission
-    acc: HashMap<vir::Expr, PermAmount>,
+    acc: HashMap<polymorphic_vir::Expr, PermAmount>,
     /// paths on which we (may) have a full predicate permission
-    pred: HashMap<vir::Expr, PermAmount>,
+    pred: HashMap<polymorphic_vir::Expr, PermAmount>,
     /// paths that have been "moved out" (for sure)
-    moved: HashSet<vir::Expr>,
+    moved: HashSet<polymorphic_vir::Expr>,
     /// Permissions currently framed
     framing_stack: Vec<PermSet>,
     /// Permissions that should be removed from the state
@@ -32,9 +32,9 @@ pub struct State {
 
 impl State {
     pub fn new(
-        acc: HashMap<vir::Expr, PermAmount>,
-        pred: HashMap<vir::Expr, PermAmount>,
-        moved: HashSet<vir::Expr>,
+        acc: HashMap<polymorphic_vir::Expr, PermAmount>,
+        pred: HashMap<polymorphic_vir::Expr, PermAmount>,
+        moved: HashSet<polymorphic_vir::Expr>,
     ) -> Self {
         State {
             acc,
@@ -178,7 +178,7 @@ impl State {
 
     pub fn replace_places<F>(&mut self, replace: F)
     where
-        F: Fn(vir::Expr) -> vir::Expr,
+        F: Fn(polymorphic_vir::Expr) -> polymorphic_vir::Expr,
     {
         for coll in vec![&mut self.acc, &mut self.pred] {
             let new_values = coll
@@ -192,15 +192,15 @@ impl State {
         }
     }
 
-    pub fn acc(&self) -> &HashMap<vir::Expr, PermAmount> {
+    pub fn acc(&self) -> &HashMap<polymorphic_vir::Expr, PermAmount> {
         &self.acc
     }
 
-    pub fn acc_places(&self) -> HashSet<vir::Expr> {
+    pub fn acc_places(&self) -> HashSet<polymorphic_vir::Expr> {
         self.acc.keys().cloned().collect()
     }
 
-    pub fn acc_leaves(&self) -> HashSet<vir::Expr> {
+    pub fn acc_leaves(&self) -> HashSet<polymorphic_vir::Expr> {
         let mut acc_leaves = HashSet::new();
         for place in self.acc.keys() {
             if !self.is_proper_prefix_of_some_acc(place) {
@@ -210,27 +210,27 @@ impl State {
         acc_leaves
     }
 
-    pub fn pred(&self) -> &HashMap<vir::Expr, PermAmount> {
+    pub fn pred(&self) -> &HashMap<polymorphic_vir::Expr, PermAmount> {
         &self.pred
     }
 
-    pub fn pred_places(&self) -> HashSet<vir::Expr> {
+    pub fn pred_places(&self) -> HashSet<polymorphic_vir::Expr> {
         self.pred.keys().cloned().collect()
     }
 
-    pub fn moved(&self) -> &HashSet<vir::Expr> {
+    pub fn moved(&self) -> &HashSet<polymorphic_vir::Expr> {
         &self.moved
     }
 
-    pub fn set_moved(&mut self, moved: HashSet<vir::Expr>) {
+    pub fn set_moved(&mut self, moved: HashSet<polymorphic_vir::Expr>) {
         self.moved = moved
     }
 
-    pub fn contains_acc(&self, place: &vir::Expr) -> bool {
+    pub fn contains_acc(&self, place: &polymorphic_vir::Expr) -> bool {
         self.acc.contains_key(&place)
     }
 
-    pub fn contains_pred(&self, place: &vir::Expr) -> bool {
+    pub fn contains_pred(&self, place: &polymorphic_vir::Expr) -> bool {
         self.pred.contains_key(&place)
     }
 
@@ -249,7 +249,7 @@ impl State {
         items.all(|x| self.contains_perm(x))
     }
 
-    pub fn is_proper_prefix_of_some_acc(&self, prefix: &vir::Expr) -> bool {
+    pub fn is_proper_prefix_of_some_acc(&self, prefix: &polymorphic_vir::Expr) -> bool {
         for place in self.acc.keys() {
             if place.has_proper_prefix(prefix) {
                 return true;
@@ -258,7 +258,7 @@ impl State {
         false
     }
 
-    pub fn is_prefix_of_some_acc(&self, prefix: &vir::Expr) -> bool {
+    pub fn is_prefix_of_some_acc(&self, prefix: &polymorphic_vir::Expr) -> bool {
         for place in self.acc.keys() {
             if place.has_prefix(prefix) {
                 return true;
@@ -267,7 +267,7 @@ impl State {
         false
     }
 
-    pub fn is_prefix_of_some_pred(&self, prefix: &vir::Expr) -> bool {
+    pub fn is_prefix_of_some_pred(&self, prefix: &polymorphic_vir::Expr) -> bool {
         for place in self.pred.keys() {
             if place.has_prefix(prefix) {
                 return true;
@@ -276,7 +276,7 @@ impl State {
         false
     }
 
-    pub fn is_prefix_of_some_moved(&self, prefix: &vir::Expr) -> bool {
+    pub fn is_prefix_of_some_moved(&self, prefix: &polymorphic_vir::Expr) -> bool {
         for place in &self.moved {
             if place.has_prefix(prefix) {
                 return true;
@@ -291,7 +291,7 @@ impl State {
 
     pub fn remove_matching_place<P>(&mut self, pred: P)
     where
-        P: Fn(&vir::Expr) -> bool,
+        P: Fn(&polymorphic_vir::Expr) -> bool,
     {
         self.remove_acc_matching(|x| pred(x));
         self.remove_pred_matching(|x| pred(x));
@@ -300,21 +300,21 @@ impl State {
 
     pub fn remove_acc_matching<P>(&mut self, pred: P)
     where
-        P: Fn(&vir::Expr) -> bool,
+        P: Fn(&polymorphic_vir::Expr) -> bool,
     {
         self.acc.retain(|e, _| !pred(e));
     }
 
     pub fn remove_pred_matching<P>(&mut self, pred: P)
     where
-        P: Fn(&vir::Expr) -> bool,
+        P: Fn(&polymorphic_vir::Expr) -> bool,
     {
         self.pred.retain(|e, _| !pred(e));
     }
 
     pub fn remove_moved_matching<P>(&mut self, pred: P)
     where
-        P: Fn(&vir::Expr) -> bool,
+        P: Fn(&polymorphic_vir::Expr) -> bool,
     {
         self.moved.retain(|e| !pred(e));
     }
@@ -349,7 +349,7 @@ impl State {
         info.join(",\n")
     }
 
-    pub fn insert_acc(&mut self, place: vir::Expr, perm: PermAmount)
+    pub fn insert_acc(&mut self, place: polymorphic_vir::Expr, perm: PermAmount)
         -> Result<(), FoldUnfoldError>
     {
         trace!("insert_acc {}, {}", place, perm);
@@ -371,7 +371,7 @@ impl State {
     pub fn insert_all_acc<I>(&mut self, items: I)
         -> Result<(), FoldUnfoldError>
     where
-        I: Iterator<Item = (vir::Expr, PermAmount)>,
+        I: Iterator<Item = (polymorphic_vir::Expr, PermAmount)>,
     {
         for (place, perm) in items {
             self.insert_acc(place, perm)?;
@@ -379,7 +379,7 @@ impl State {
         Ok(())
     }
 
-    pub fn insert_pred(&mut self, place: vir::Expr, perm: PermAmount)
+    pub fn insert_pred(&mut self, place: polymorphic_vir::Expr, perm: PermAmount)
         -> Result<(), FoldUnfoldError>
     {
         trace!("insert_pred {}, {}", place, perm);
@@ -401,7 +401,7 @@ impl State {
     pub fn insert_all_pred<I>(&mut self, items: I)
         -> Result<(), FoldUnfoldError>
     where
-        I: Iterator<Item = (vir::Expr, PermAmount)>,
+        I: Iterator<Item = (polymorphic_vir::Expr, PermAmount)>,
     {
         for (place, perm) in items {
             self.insert_pred(place, perm)?;
@@ -409,7 +409,7 @@ impl State {
         Ok(())
     }
 
-    pub fn insert_moved(&mut self, place: vir::Expr) {
+    pub fn insert_moved(&mut self, place: polymorphic_vir::Expr) {
         //assert!(!self.pred.contains(&place), "Place {} is already in state (pred), so it can not be added.", place);
         self.moved.insert(place);
     }
@@ -436,7 +436,7 @@ impl State {
         Ok(())
     }
 
-    pub fn remove_acc_place(&mut self, place: &vir::Expr) -> PermAmount {
+    pub fn remove_acc_place(&mut self, place: &polymorphic_vir::Expr) -> PermAmount {
         assert!(
             self.acc.contains_key(place),
             "Place {} is not in state (acc), so it can not be removed.",
@@ -445,7 +445,7 @@ impl State {
         self.acc.remove(place).unwrap()
     }
 
-    pub fn remove_pred_place(&mut self, place: &vir::Expr) -> PermAmount {
+    pub fn remove_pred_place(&mut self, place: &polymorphic_vir::Expr) -> PermAmount {
         assert!(
             self.pred.contains_key(place),
             "Place {} is not in state (pred), so it can not be removed.",
@@ -454,7 +454,7 @@ impl State {
         self.pred.remove(place).unwrap()
     }
 
-    pub fn remove_acc(&mut self, place: &vir::Expr, perm: PermAmount)
+    pub fn remove_acc(&mut self, place: &polymorphic_vir::Expr, perm: PermAmount)
         -> Result<(), FoldUnfoldError>
     {
         assert!(
@@ -470,7 +470,7 @@ impl State {
         Ok(())
     }
 
-    pub fn remove_pred(&mut self, place: &vir::Expr, perm: PermAmount)
+    pub fn remove_pred(&mut self, place: &polymorphic_vir::Expr, perm: PermAmount)
         -> Result<(), FoldUnfoldError>
     {
         trace!("remove_pred {}, {}", place, perm);
@@ -543,7 +543,7 @@ impl State {
         Ok(())
     }
 
-    fn restore_acc(&mut self, acc_place: vir::Expr, mut perm: PermAmount)
+    fn restore_acc(&mut self, acc_place: polymorphic_vir::Expr, mut perm: PermAmount)
         -> Result<(), FoldUnfoldError>
     {
         trace!("restore_acc {}, {}", acc_place, perm);
@@ -566,7 +566,7 @@ impl State {
         Ok(())
     }
 
-    fn restore_pred(&mut self, pred_place: vir::Expr, mut perm: PermAmount)
+    fn restore_pred(&mut self, pred_place: polymorphic_vir::Expr, mut perm: PermAmount)
         -> Result<(), FoldUnfoldError>
     {
         trace!("restore_pred {}, {}", pred_place, perm);
@@ -606,17 +606,17 @@ impl State {
         Ok(())
     }
 
-    pub fn as_vir_expr(&self) -> vir::Expr {
-        let mut exprs: Vec<vir::Expr> = vec![];
+    pub fn as_vir_expr(&self) -> polymorphic_vir::Expr {
+        let mut exprs: Vec<polymorphic_vir::Expr> = vec![];
         for (place, perm) in self.acc.iter() {
             if !place.is_local() && place.is_curr() {
                 if !self.is_dropped(&Perm::acc(place.clone(), *perm)) {
-                    exprs.push(vir::Expr::acc_permission(place.clone(), *perm));
+                    exprs.push(polymorphic_vir::Expr::acc_permission(place.clone(), *perm));
                 }
             }
         }
         for (place, perm_amount) in self.pred.iter() {
-            if let Some(perm) = vir::Expr::pred_permission(place.clone(), *perm_amount) {
+            if let Some(perm) = polymorphic_vir::Expr::pred_permission(place.clone(), *perm_amount) {
                 if !self.is_dropped(&Perm::pred(place.clone(), *perm_amount)) && place.is_curr() {
                     exprs.push(perm);
                 }
