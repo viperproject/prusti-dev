@@ -10,18 +10,13 @@ use rustc_errors::{
 use rustc_span::source_map::SourceMap;
 use rustc_session::config;
 
-// pub struct ExportErrorEmitter {
-//     inner: Box<dyn Emitter>,
-// }
 
 pub struct ExportErrorEmitter {
-    // inner_handler_ref: &'a Handler,
     inner: Box<dyn Emitter>,
 }
 
 impl Emitter for ExportErrorEmitter {
     fn emit_diagnostic(&mut self, diag: &Diagnostic) {
-        // println!("diag: {:?} \n", diag);
         self.custom_emit(diag);
     }
     fn source_map(&self) -> Option<&Lrc<SourceMap>> {
@@ -30,30 +25,6 @@ impl Emitter for ExportErrorEmitter {
 }
 
 impl ExportErrorEmitter {
-    // pub fn new(source_map: Lrc<SourceMap>) -> Self {
-    // Self {
-    //     inner_handler_ref: handler,
-    //     source_map,
-    // }
-    // Self {
-    //     inner: box EmitterWriter::stderr(
-    //         ColorConfig::Auto,
-    //         Some(source_map),
-    //         false,
-    //         false,
-    //         None,
-    //         true,
-    //     ),
-    // }
-    // Self {
-    //     inner: box AnnotateSnippetEmitterWriter::new(
-    //         Some(source_map),
-    //         false,
-    //         true
-    //     ),
-    // }
-    // }
-
     pub fn new(
         sopts: config::Options,
         registry: rustc_errors::registry::Registry,

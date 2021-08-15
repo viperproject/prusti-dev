@@ -446,7 +446,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 pub fn export_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
-    let path: syn::Path = handle_result!(export_spec_rewriter::parse_valid_export(attr));
+    let path: syn::Path = handle_result!(export_spec_rewriter::parse_valid_export_attr(attr));
     let macros = handle_result!(export_spec_rewriter::rewrite_export_spec(&path, &item));
     parse_quote_spanned!(item_span => 
         #item

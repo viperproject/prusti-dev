@@ -36,10 +36,10 @@ mod private {
     /// of just Rust expressions.
     pub use prusti_contracts_impl::predicate;
 
-    /// A macro for specifying specs to export
+    /// A macro for exporting prusti specifications
     pub use prusti_contracts_impl::export_spec;
 
-    /// A macro for specifying specs to import
+    /// A macro for importing prusti specifications
     pub use prusti_contracts_impl::prusti_use;
 }
 

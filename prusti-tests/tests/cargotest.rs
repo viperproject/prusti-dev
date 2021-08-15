@@ -46,6 +46,7 @@ fn link_prusti_crates_dep(mut project_builder: ProjectBuilder) -> ProjectBuilder
                 "prusti-contracts",
                 "prusti-contracts-impl",
                 "prusti-contracts-internal",
+                "prusti-utils",
             ];
 
             for crate_name in &prusti_contract_deps {
