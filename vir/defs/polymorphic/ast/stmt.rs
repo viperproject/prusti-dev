@@ -211,7 +211,7 @@ impl fmt::Display for Assign {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct Fold {
     pub predicate_name: String,
     pub arguments: Vec<Expr>,
@@ -239,7 +239,7 @@ impl fmt::Display for Fold {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct Unfold {
     pub predicate_name: String,
     pub arguments: Vec<Expr>,

@@ -7,6 +7,7 @@
 use crate::encoder::foldunfold::perm::*;
 use crate::encoder::foldunfold::FoldUnfoldError;
 use prusti_common::vir;
+use vir_crate::polymorphic as polymorphic_vir;
 use vir_crate::polymorphic::{Fold, Unfold, PermAmount, Stmt, Expr};
 use std::fmt;
 
@@ -22,8 +23,8 @@ pub enum Action {
 impl Action {
     pub fn to_stmt(&self) -> polymorphic_vir::Stmt {
         match self {
-            Action::Fold(fold) => fold.clone(),
-            Action::Unfold(unfold) => unfold.clone(),
+            Action::Fold(fold) => polymorphic_vir::Stmt::Fold(fold.clone()),
+            Action::Unfold(unfold) => polymorphic_vir::Stmt::Unfold(unfold.clone()),
             Action::Drop(..) => polymorphic_vir::Stmt::comment(self.to_string()),
         }
     }
