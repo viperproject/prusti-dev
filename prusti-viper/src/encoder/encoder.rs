@@ -315,6 +315,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.type_predicates.borrow().clone().into_iter().map(|(str, predicate_type)| (str, predicate_type.into())).collect()
     }
 
+    pub fn get_used_polymorphic_viper_predicates_map(&self) -> HashMap<String, polymorphic_vir::Predicate> {
+        self.type_predicates.borrow().clone()
+    }
+
     pub(super) fn get_viper_predicate(&self, name: &str) -> vir::Predicate {
         self.type_predicates.borrow()[name].clone().into()
     }

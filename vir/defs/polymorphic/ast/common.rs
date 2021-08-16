@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::ast::*;
+use crate::converter::type_substitution::Generic;
 use std::{
     cmp::Ordering,
     collections::{HashMap, hash_map::DefaultHasher},
@@ -212,20 +213,10 @@ impl Type {
         }
     }
 
-    // TODO: update this once type substitution is done
-    // /// Replace all generic types with their instantiations by using string substitution.
-    // /// FIXME: this is a hack to support generics. See issue #187.
-    // pub fn patch(self, substs: &HashMap<String, String>) -> Self {
-    //     match self {
-    //         Type::TypedRef(mut predicate_name) => {
-    //             for (typ, subst) in substs {
-    //                 predicate_name = predicate_name.replace(typ, subst);
-    //             }
-    //             Type::TypedRef(predicate_name)
-    //         }
-    //         typ => typ,
-    //     }
-    // }
+    /// Replace all generic types with their instantiations by using string substitution.
+    pub fn patch(self, substs: &HashMap<TypeVar, Type>) -> Self {
+        self.substitute(substs)
+    }
 
     pub fn typed_ref<S: Into<String>>(name: S) -> Self {
         Type::TypedRef(TypedRef {

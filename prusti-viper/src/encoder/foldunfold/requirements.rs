@@ -137,7 +137,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                     .collect()
             }
 
-            &polymorphic_vir::Stmt::BeginFrame | &polymorphic_vir::Stmt::EndFrame => HashSet::new(),
+            &polymorphic_vir::Stmt::BeginFrame(_) | &polymorphic_vir::Stmt::EndFrame(_) => HashSet::new(),
 
             &polymorphic_vir::Stmt::TransferPerm( polymorphic_vir::TransferPerm {ref left, unchecked, ..} ) => {
                 let mut res = HashSet::new();
@@ -152,9 +152,12 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                 HashSet::new()
             }
 
-            &polymorphic_vir::Stmt::ApplyMagicWand(..) => {
+            &polymorphic_vir::Stmt::ApplyMagicWand( polymorphic_vir::ApplyMagicWand {
+                magic_wand: polymorphic_vir::Expr::MagicWand( polymorphic_vir::MagicWand {ref left, ..} ),
+                ..
+            }) => {
                 // We model the magic wand as "assert lhs; inhale rhs"
-                lhs.get_required_permissions(predicates, old_exprs)
+                left.get_required_permissions(predicates, old_exprs)
             }
 
             &polymorphic_vir::Stmt::ExpireBorrows( polymorphic_vir::ExpireBorrows {ref dag} ) => {
@@ -216,30 +219,30 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                 req_places.into_iter().collect()
             }
 
-            polymorphic_vir::Expr::LabelledOld( polymorphic_vir::LabelledOld {ref label, ref expr, ..} ) => HashSet::new(),
+            polymorphic_vir::Expr::LabelledOld( polymorphic_vir::LabelledOld {ref label, ref base, ..} ) => HashSet::new(),
 
-            polymorphic_vir::Expr::PredicateAccessPredicate( polymorphic_vir::PredicateAccessPredicate { box place, ..} ) => {
-                debug_assert!(place.is_place());
+            polymorphic_vir::Expr::PredicateAccessPredicate( polymorphic_vir::PredicateAccessPredicate { box argument, ..} ) => {
+                debug_assert!(argument.is_place());
                 let epsilon = PermAmount::Read;
-                let result = match place.get_label() {
+                let result = match argument.get_label() {
                     None => {
-                        if place.is_old() {
-                            vec![Pred(place.clone(), epsilon)].into_iter().collect()
+                        if argument.is_old() {
+                            vec![Pred(argument.clone(), epsilon)].into_iter().collect()
                         } else {
-                            vec![Pred(place.clone(), epsilon), Acc(place.clone(), epsilon)]
+                            vec![Pred(argument.clone(), epsilon), Acc(argument.clone(), epsilon)]
                                 .into_iter()
                                 .collect()
                         }
                     }
                     Some(label) => {
-                        if place.is_old() {
-                            vec![Pred(place.clone().old(label), epsilon)]
+                        if argument.is_old() {
+                            vec![Pred(argument.clone().old(label), epsilon)]
                                 .into_iter()
                                 .collect()
                         } else {
                             vec![
-                                Pred(place.clone().old(label), epsilon),
-                                Acc(place.clone().old(label), epsilon),
+                                Pred(argument.clone().old(label), epsilon),
+                                Acc(argument.clone().old(label), epsilon),
                             ]
                             .into_iter()
                             .collect()
@@ -254,7 +257,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                 .into_iter()
                 .collect(),
 
-            polymorphic::Expr::UnaryOp( polymorphic_vir::UnaryOp {ref argument, ..} ) => argument.get_required_permissions(predicates, old_exprs),
+            polymorphic_vir::Expr::UnaryOp( polymorphic_vir::UnaryOp {ref argument, ..} ) => argument.get_required_permissions(predicates, old_exprs),
 
             polymorphic_vir::Expr::BinOp( polymorphic_vir::BinOp {box left, box right, ..} ) => {
                 vec![left, right].get_required_permissions(predicates, old_exprs)

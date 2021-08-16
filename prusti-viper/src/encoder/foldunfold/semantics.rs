@@ -103,9 +103,9 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                     match kind {
                         polymorphic_vir::AssignKind::Move | polymorphic_vir::AssignKind::MutableBorrow(_) => {
                             // In Prusti, we lose permission on the rhs
-                            state.remove_pred_matching(|p| p.has_prefix(&rhs));
+                            state.remove_pred_matching(|p| p.has_prefix(&source));
                             state.remove_acc_matching(|p| {
-                                p.has_proper_prefix(&rhs) && !p.is_local()
+                                p.has_proper_prefix(&source) && !p.is_local()
                             });
 
                             // We also lose permission on the lhs
@@ -135,7 +135,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                             state.insert_all_pred(new_pred_places)?;
 
                             // Finally, mark the rhs as moved
-                            if !rhs.has_prefix(target) {
+                            if !source.has_prefix(target) {
                                 state.insert_moved(source.clone());
                             }
                         }
@@ -167,7 +167,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 // Do nothing.
             }
 
-            &vipolymorphic_virr::Stmt::Fold( polymorphic_vir::Fold {ref arguments, permission, ref enum_variant, ..} ) => {
+            &polymorphic_vir::Stmt::Fold( polymorphic_vir::Fold {ref arguments, permission, ref enum_variant, ..} ) => {
                 assert_eq!(arguments.len(), 1);
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
@@ -198,7 +198,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 state.insert_pred(place.clone(), permission)?;
             }
 
-            &vipolymorphic_virr::Stmt::Unfold( polymorphic_vir::Unfold {ref arguments, permission, ref enum_variant, ..} ) => {
+            &polymorphic_vir::Stmt::Unfold( polymorphic_vir::Unfold {ref arguments, permission, ref enum_variant, ..} ) => {
                 assert_eq!(arguments.len(), 1);
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
@@ -225,9 +225,9 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 state.insert_all_perms(places_in_pred.into_iter())?;
             }
 
-            &polymorphic_vir::Stmt::BeginFrame => state.begin_frame(),
+            &polymorphic_vir::Stmt::BeginFrame(_) => state.begin_frame(),
 
-            &polymorphic_vir::Stmt::EndFrame => state.end_frame()?,
+            &polymorphic_vir::Stmt::EndFrame(_) => state.end_frame()?,
 
             &polymorphic_vir::Stmt::TransferPerm( polymorphic_vir::TransferPerm {ref left, ref right, unchecked} ) => {
                 let original_state = state.clone();
@@ -377,7 +377,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 // TODO: #133
             }
 
-            &polymorphic_vir::Stmt::Downcast( polymorphic_vir::Downcast {ref base, ref field} ) => {
+            &polymorphic_vir::Stmt::Downcast( polymorphic_vir::Downcast {base: ref enum_place, ref field} ) => {
                 if let Some(found_variant) = find_unfolded_variant(state, enum_place) {
                     // The enum has already been downcasted.
                     debug_assert!(field.name.ends_with(found_variant.get_variant_name()));

@@ -155,7 +155,7 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
     method_pos: polymorphic_vir::Position,
 ) -> Result<polymorphic_vir::CfgMethod, FoldUnfoldError> {
     let cfg_vars = cfg.get_all_vars();
-    let predicates = encoder.get_used_viper_predicates_map();
+    let predicates = encoder.get_used_polymorphic_viper_predicates_map();
     // Collect all old expressions used in the CFG
     let old_exprs = {
         struct OldExprCollector {
@@ -375,7 +375,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     .iter()
                     .map(|a| a.to_stmt()),
             );
-            let inhale_stmt = polymorphic_vir::Stmt::Inhale(access);
+            let inhale_stmt = polymorphic_vir::Stmt::Inhale( polymorphic_vir::Inhale {expr: access} );
             pctxt.apply_stmt(&inhale_stmt)?;
             stmts.push(inhale_stmt);
         }
@@ -452,7 +452,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                             position: *position,
                         })
                     }
-                    polymorphic_vir::Stmt::Unfold( polymorphic::Unfold {ref predicate_name, ref arguments, permission, enum_variant} ) => {
+                    polymorphic_vir::Stmt::Unfold( polymorphic_vir::Unfold {ref predicate_name, ref arguments, permission, enum_variant} ) => {
                         polymorphic_vir::Stmt::Unfold( polymorphic_vir::Unfold {
                             predicate_name: predicate_name.clone(),
                             arguments: patch_args(label, arguments),
@@ -595,7 +595,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> polymorphic_vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                     let mut labelled_pctxt = pctxt.clone();
                     let labelled_state = labelled_pctxt.mut_state();
                     labelled_state.remove_all();
-                    polymorphic_vir::Stmt::Inhale(lhs.clone())
+                    polymorphic_vir::Stmt::Inhale( polymorphic_vir::Inhale {expr: left.clone()} )
                     .apply_on_state(labelled_state, pctxt.predicates())?;
                     if let polymorphic_vir::Expr::PredicateAccessPredicate( polymorphic_vir::PredicateAccessPredicate {box ref argument, permission, ..} ) = left
                     {
@@ -744,7 +744,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> polymorphic_vir::CfgReplacer<PathCtxt<'p>, ActionVec>
         // 5. Apply effect of statement on state
         debug!("[step.5] replace_stmt: {}", stmt);
         stmt = match stmt {
-            polymorphic_vir::Stmt::If( polymorphic::If {guard, then_stmts, else_stmts} ) => {
+            polymorphic_vir::Stmt::If( polymorphic_vir::If {guard, then_stmts, else_stmts} ) => {
                 let mut then_pctxt = pctxt.clone();
                 let mut then_stmts = then_stmts.into_iter()
                     .map(|stmt| self.replace_stmt(
@@ -926,7 +926,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> polymorphic_vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 let new_place = place.replace_place(source, target);
                 debug!("    new place: {}", new_place);
                 let lhs_read_access = polymorphic_vir::Expr::PredicateAccessPredicate( polymorphic_vir::PredicateAccessPredicate {
-                    predicate_type: predicate_type,
+                    predicate_type: predicate_type.clone(),
                     argument: box new_place,
                     permission: polymorphic_vir::PermAmount::Read,
                     position: polymorphic_vir::Position::default(),
@@ -1281,7 +1281,12 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         std::mem::swap(&mut self.curr_pctxt, &mut rhs_pctxt);
 
         // Rewrite lhs and build magic wand
-        let res = polymorphic_vir::Expr::MagicWand(new_lhs, new_rhs, borrow, pos);
+        let res = polymorphic_vir::Expr::MagicWand( polymorphic_vir::MagicWand {
+            left: new_lhs,
+            right: new_rhs,
+            borrow,
+            position: pos
+        });
 
         debug!("[enter] fold_magic_wand = {}", res);
         Ok(res)
