@@ -34,22 +34,22 @@ impl Trigger {
         &self.0
     }
 
-    // TODO: update this after type substitution is in place
-    // pub fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
-    //     Trigger(
-    //         self.0
-    //             .into_iter()
-    //             .map(|x| x.replace_place(target, replacement))
-    //             .collect(),
-    //     )
-    // }
+    // TODO polymorphic: potentially remove usage of these 2 functions
+    pub fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
+        Trigger(
+            self.0
+                .into_iter()
+                .map(|x| x.replace_place(target, replacement))
+                .collect(),
+        )
+    }
 
-    // pub fn replace_multiple_places(self, replacements: &[(Expr, Expr)]) -> Self {
-    //     Trigger(
-    //         self.0
-    //             .into_iter()
-    //             .map(|x| x.replace_multiple_places(replacements))
-    //             .collect(),
-    //     )
-    // }
+    pub fn replace_multiple_places(self, replacements: &[(Expr, Expr)]) -> Self {
+        Trigger(
+            self.0
+                .into_iter()
+                .map(|x| x.replace_multiple_places(replacements))
+                .collect(),
+        )
+    }
 }
