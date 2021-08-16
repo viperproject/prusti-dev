@@ -115,7 +115,7 @@ impl EventLog {
     pub fn get_duplicated_read_permissions(
         &self,
         borrow: polymorphic_vir::borrows::Borrow,
-    ) -> Vec<(polymorphic_vir::Expr, vir::Expr)> {
+    ) -> Vec<(polymorphic_vir::Expr, polymorphic_vir::Expr)> {
         trace!("[enter] get_duplicated_read_permissions({:?})", borrow);
         let mut result = self
             .duplicated_reads
