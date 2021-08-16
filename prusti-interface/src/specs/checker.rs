@@ -93,10 +93,13 @@ impl<'v, 'tcx> Visitor<'tcx> for CheckPredicatesVisitor<'v, 'tcx> {
 
     fn visit_expr(&mut self, ex: &'tcx hir::Expr<'tcx>) {
         if let hir::ExprKind::Path(ref path) = ex.kind {
-            let res = self.tcx.typeck(ex.hir_id.owner).qpath_res(path, ex.hir_id);
-            if let hir::def::Res::Def(_, def_id) = res {
-                if let Some(pred_def_span) = self.predicates.get(&def_id) {
-                    self.pred_usages.push((ex.span, *pred_def_span));
+            let def_id = ex.hir_id.owner;
+            if self.tcx.is_mir_available(def_id) && !self.tcx.is_constructor(def_id.to_def_id()) {
+                let res = self.tcx.typeck(def_id).qpath_res(path, ex.hir_id);
+                if let hir::def::Res::Def(_, def_id) = res {
+                    if let Some(pred_def_span) = self.predicates.get(&def_id) {
+                        self.pred_usages.push((ex.span, *pred_def_span));
+                    }
                 }
             }
         }
