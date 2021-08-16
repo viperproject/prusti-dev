@@ -425,7 +425,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 .encoder
                 .encode_polymorphic_snapshot_type(mir_type)
                 .with_span(var_span)?;
-            let var_type = var_type.substitute(substs);
+            let var_type = var_type.patch(substs);
             formal_args.push(polymorphic_vir::LocalVar::new(var_name, var_type))
         };
         let return_type = self.encode_polymorphic_function_return_type()?;
