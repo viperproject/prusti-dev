@@ -8,12 +8,13 @@ use crate::config;
 use std::collections::HashMap;
 use viper::{self, AstFactory};
 use crate::vir::{
-    ast::*, 
+    ast::*,
     cfg::{CfgMethod, CfgBlock, Successor, RETURN_LABEL},
-    borrows::borrow_id, 
+    borrows::borrow_id,
     Program,
 };
 use prusti_utils::force_matches;
+use itertools::Itertools;
 
 pub trait ToViper<'v, T> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> T;
@@ -298,6 +299,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
     }
 }
 
+impl<'v> ToViper<'v, viper::Expr<'v>> for FracPermAmount {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        ast.fractional_perm(self.left().to_viper(ast), self.right().to_viper(ast))
+    }
+}
+
 impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         let expr = match self {
@@ -334,10 +341,27 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(ast),
                 )
             }
+            Expr::PredicateInstance(ref predicate_name, ref args, ref pos) => ast
+                .predicate_access_with_pos(
+                    &args.iter().map(|arg| arg.to_viper(ast)).collect::<Vec<_>>(),
+                    predicate_name,
+                    pos.to_viper(ast)
+                ),
             Expr::PredicateAccessPredicate(ref predicate_name, ref arg, perm, ref pos) => ast
                 .predicate_access_predicate_with_pos(
-                    ast.predicate_access(&[arg.to_viper(ast)], &predicate_name),
+                    ast.predicate_access(&[arg.to_viper(ast)], predicate_name),
                     perm.to_viper(ast),
+                    pos.to_viper(ast),
+                ),
+            Expr::CreditAccessPredicate(ref predicate_name, ref args, ref frac_perm, ref pos) => ast
+                .predicate_access_predicate_with_pos(
+                    ast.predicate_access(
+                        &args.iter()
+                            .sorted_unstable_by_key(|expr| expr.to_string())        // ensure that arguments are sorted //TODO
+                            .map(|arg| arg.to_viper(ast))
+                            .collect::<Vec<_>>(),
+                        predicate_name),
+                    frac_perm.to_viper(ast),
                     pos.to_viper(ast),
                 ),
             Expr::FieldAccessPredicate(ref loc, perm, ref pos) => ast
@@ -345,6 +369,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     loc.to_viper(ast),
                     perm.to_viper(ast),
                     pos.to_viper(ast),
+                ),
+            Expr::PermEquality(ref expr, ref frac_perm, ref pos) => ast
+                .eq_cmp_with_pos(
+                    ast.current_perm(expr.to_viper(ast)),
+                    frac_perm.to_viper(ast),
+                    pos.to_viper(ast)
                 ),
             Expr::UnaryOp(op, ref expr, ref pos) => match op {
                 UnaryOpKind::Not => ast.not_with_pos(expr.to_viper(ast), pos.to_viper(ast)),
@@ -551,6 +581,7 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
             Predicate::Bodyless(name, this) => {
                 ast.predicate(name, &[this.to_viper_decl(ast)], None)
             }
+            Predicate::CreditUnit(p) => p.to_viper(ast),
         }
     }
 }
@@ -571,6 +602,16 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for EnumPredicate {
             &self.name,
             &[self.this.to_viper_decl(ast)],
             Some(self.body().to_viper(ast)),
+        )
+    }
+}
+
+impl<'v> ToViper<'v, viper::Predicate<'v>> for CreditUnitPredicate {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Predicate<'v> {
+        ast.predicate(
+            &self.name,
+            &self.args.iter().map(|arg| arg.to_viper_decl(ast)).collect::<Vec<_>>(),
+            self.body.as_ref().map(|b| b.to_viper(ast)),
         )
     }
 }

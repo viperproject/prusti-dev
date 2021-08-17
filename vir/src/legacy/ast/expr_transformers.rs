@@ -8,8 +8,9 @@
 // (e.g. new position), so we feel it's ok to use single-digit identifiers there
 #![allow(clippy::many_single_char_names)]
 
-use super::super::borrows::Borrow;
 use crate::legacy::ast::*;
+
+use super::super::borrows::Borrow;
 
 impl Expr {
     /// Apply the closure to all places in the expression.
@@ -99,6 +100,9 @@ pub trait ExprFolder: Sized {
     ) -> Expr {
         Expr::MagicWand(self.fold_boxed(lhs), self.fold_boxed(rhs), borrow, pos)
     }
+    fn fold_predicate_instance(&mut self, name: String, args: Vec<Expr>, pos: Position) -> Expr {
+        Expr::PredicateInstance(name, args.into_iter().map(|e| self.fold(e)).collect(), pos)
+    }
     fn fold_predicate_access_predicate(
         &mut self,
         name: String,
@@ -108,6 +112,22 @@ pub trait ExprFolder: Sized {
     ) -> Expr {
         Expr::PredicateAccessPredicate(name, self.fold_boxed(arg), perm_amount, pos)
     }
+    fn fold_credit_access_predicate(
+        &mut self,
+        name: String,
+        args: Vec<Expr>,
+        frac_perm_amount: FracPermAmount,
+        pos: Position,
+    ) -> Expr {
+        let FracPermAmount(left, right) = frac_perm_amount;
+        let new_perm = FracPermAmount::new(self.fold_boxed(left), self.fold_boxed(right));
+        Expr::CreditAccessPredicate(
+            name,
+            args.into_iter().map(|e| self.fold(e)).collect(),
+            new_perm,
+            pos,
+        )
+    }
     fn fold_field_access_predicate(
         &mut self,
         receiver: Box<Expr>,
@@ -115,6 +135,16 @@ pub trait ExprFolder: Sized {
         pos: Position,
     ) -> Expr {
         Expr::FieldAccessPredicate(self.fold_boxed(receiver), perm_amount, pos)
+    }
+    fn fold_perm_equality(
+        &mut self,
+        target: Box<Expr>,
+        frac_perm_amount: FracPermAmount,
+        pos: Position,
+    ) -> Expr {
+        let FracPermAmount(left, right) = frac_perm_amount;
+        let new_perm = FracPermAmount::new(self.fold_boxed(left), self.fold_boxed(right));
+        Expr::PermEquality(self.fold_boxed(target), new_perm, pos)
     }
     fn fold_unary_op(&mut self, x: UnaryOpKind, y: Box<Expr>, p: Position) -> Expr {
         Expr::UnaryOp(x, self.fold_boxed(y), p)
@@ -270,10 +300,13 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Const(x, p) => this.fold_const(x, p),
         Expr::LabelledOld(x, y, p) => this.fold_labelled_old(x, y, p),
         Expr::MagicWand(x, y, b, p) => this.fold_magic_wand(x, y, b, p),
+        Expr::PredicateInstance(x, y, p) => this.fold_predicate_instance(x, y, p),
         Expr::PredicateAccessPredicate(x, y, z, p) => {
             this.fold_predicate_access_predicate(x, y, z, p)
         }
+        Expr::CreditAccessPredicate(x, y, z, p) => this.fold_credit_access_predicate(x, y, z, p),
         Expr::FieldAccessPredicate(x, y, p) => this.fold_field_access_predicate(x, y, p),
+        Expr::PermEquality(x, y, p) => this.fold_perm_equality(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fold_bin_op(x, y, z, p),
         Expr::Unfolding(x, y, z, perm, variant, p) => {
@@ -333,6 +366,11 @@ pub trait ExprWalker: Sized {
         self.walk(lhs);
         self.walk(rhs);
     }
+    fn walk_predicate_instance(&mut self, _name: &str, args: &Vec<Expr>, _pos: &Position) {
+        for arg in args {
+            self.walk(arg)
+        }
+    }
     fn walk_predicate_access_predicate(
         &mut self,
         _name: &str,
@@ -342,6 +380,19 @@ pub trait ExprWalker: Sized {
     ) {
         self.walk(arg)
     }
+    fn walk_credit_access_predicate(
+        &mut self,
+        _name: &str,
+        args: &Vec<Expr>,
+        frac_perm_amount: &FracPermAmount,
+        _pos: &Position,
+    ) {
+        for arg in args {
+            self.walk(arg)
+        }
+        self.walk(frac_perm_amount.left());
+        self.walk(frac_perm_amount.right());
+    }
     fn walk_field_access_predicate(
         &mut self,
         receiver: &Expr,
@@ -349,6 +400,16 @@ pub trait ExprWalker: Sized {
         _pos: &Position,
     ) {
         self.walk(receiver)
+    }
+    fn walk_perm_equality(
+        &mut self,
+        target: &Expr,
+        frac_perm_amount: &FracPermAmount,
+        _pos: &Position,
+    ) {
+        self.walk(target);
+        self.walk(frac_perm_amount.left());
+        self.walk(frac_perm_amount.right());
     }
     fn walk_unary_op(&mut self, _op: UnaryOpKind, arg: &Expr, _pos: &Position) {
         self.walk(arg)
@@ -482,10 +543,15 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Const(ref x, ref p) => this.walk_const(x, p),
         Expr::LabelledOld(ref x, ref y, ref p) => this.walk_labelled_old(x, y, p),
         Expr::MagicWand(ref x, ref y, ref b, ref p) => this.walk_magic_wand(x, y, b, p),
+        Expr::PredicateInstance(ref x, ref y, ref p) => this.walk_predicate_instance(x, y, p),
         Expr::PredicateAccessPredicate(ref x, ref y, z, ref p) => {
             this.walk_predicate_access_predicate(x, y, z, p)
         }
+        Expr::CreditAccessPredicate(ref x, ref y, ref z, ref p) => {
+            this.walk_credit_access_predicate(x, y, z, p)
+        }
         Expr::FieldAccessPredicate(ref x, y, ref p) => this.walk_field_access_predicate(x, y, p),
+        Expr::PermEquality(ref x, ref y, ref p) => this.walk_perm_equality(x, y, p),
         Expr::UnaryOp(x, ref y, ref p) => this.walk_unary_op(x, y, p),
         Expr::BinOp(x, ref y, ref z, ref p) => this.walk_bin_op(x, y, z, p),
         Expr::Unfolding(ref x, ref y, ref z, perm, ref variant, ref p) => {
@@ -573,6 +639,20 @@ pub trait FallibleExprFolder: Sized {
             pos,
         ))
     }
+    fn fallible_fold_predicate_instance(
+        &mut self,
+        name: String,
+        args: Vec<Expr>,
+        pos: Position,
+    ) -> Result<Expr, Self::Error> {
+        Ok(Expr::PredicateInstance(
+            name,
+            args.into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<Vec<_>, Self::Error>>()?,
+            pos,
+        ))
+    }
     fn fallible_fold_predicate_access_predicate(
         &mut self,
         name: String,
@@ -587,6 +667,27 @@ pub trait FallibleExprFolder: Sized {
             pos,
         ))
     }
+    fn fallible_fold_credit_access_predicate(
+        &mut self,
+        name: String,
+        args: Vec<Expr>,
+        frac_perm_amount: FracPermAmount,
+        pos: Position,
+    ) -> Result<Expr, Self::Error> {
+        let FracPermAmount(left, right) = frac_perm_amount;
+        let new_perm = FracPermAmount::new(
+            self.fallible_fold_boxed(left)?,
+            self.fallible_fold_boxed(right)?,
+        );
+        Ok(Expr::CreditAccessPredicate(
+            name,
+            args.into_iter()
+                .map(|e| self.fallible_fold(e))
+                .collect::<Result<Vec<_>, Self::Error>>()?,
+            new_perm,
+            pos,
+        ))
+    }
     fn fallible_fold_field_access_predicate(
         &mut self,
         receiver: Box<Expr>,
@@ -596,6 +697,23 @@ pub trait FallibleExprFolder: Sized {
         Ok(Expr::FieldAccessPredicate(
             self.fallible_fold_boxed(receiver)?,
             perm_amount,
+            pos,
+        ))
+    }
+    fn fallible_fold_perm_equality(
+        &mut self,
+        target: Box<Expr>,
+        frac_perm_amount: FracPermAmount,
+        pos: Position,
+    ) -> Result<Expr, Self::Error> {
+        let FracPermAmount(left, right) = frac_perm_amount;
+        let new_perm = FracPermAmount::new(
+            self.fallible_fold_boxed(left)?,
+            self.fallible_fold_boxed(right)?,
+        );
+        Ok(Expr::PermEquality(
+            self.fallible_fold_boxed(target)?,
+            new_perm,
             pos,
         ))
     }
@@ -814,10 +932,15 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Const(x, p) => this.fallible_fold_const(x, p),
         Expr::LabelledOld(x, y, p) => this.fallible_fold_labelled_old(x, y, p),
         Expr::MagicWand(x, y, b, p) => this.fallible_fold_magic_wand(x, y, b, p),
+        Expr::PredicateInstance(x, y, p) => this.fallible_fold_predicate_instance(x, y, p),
         Expr::PredicateAccessPredicate(x, y, z, p) => {
             this.fallible_fold_predicate_access_predicate(x, y, z, p)
         }
+        Expr::CreditAccessPredicate(x, y, z, p) => {
+            this.fallible_fold_credit_access_predicate(x, y, z, p)
+        }
         Expr::FieldAccessPredicate(x, y, p) => this.fallible_fold_field_access_predicate(x, y, p),
+        Expr::PermEquality(x, y, p) => this.fallible_fold_perm_equality(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fallible_fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fallible_fold_bin_op(x, y, z, p),
         Expr::Unfolding(x, y, z, perm, variant, p) => {

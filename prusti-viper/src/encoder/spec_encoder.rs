@@ -48,6 +48,8 @@ use prusti_interface::utils::read_prusti_attr;
 ///   `None` iff the assertion cannot mention `return` (e.g. a loop invariant).
 /// * `targets_are_values`: if `true`, the elements of `target_args` and `target_return` encode
 ///   _values_ and not _memory locations_. This is typically used to encode pure functions.
+/// * `only_exhaled`: Flag to signal that the assertion only occurs in contexts where it is
+///     exhaled/asserted. This is e.g. relevant for the encoding of resource credit assertions.
 /// * `assertion_location`: the basic block at which the assertion should be encoded. This should
 ///   be `Some(..)` iff the assertion is a loop invariant.
 pub fn encode_spec_assertion<'v, 'tcx: 'v>(
@@ -57,6 +59,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
     target_args: &[vir::Expr],
     target_return: Option<&vir::Expr>,
     targets_are_values: bool,
+    only_exhaled: bool,
     assertion_location: Option<mir::BasicBlock>,
     parent_def_id: DefId,
 ) -> SpannedEncodingResult<vir::Expr> {
@@ -66,6 +69,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
         target_args,
         target_return,
         targets_are_values,
+        only_exhaled,
         assertion_location,
         parent_def_id,
     );
@@ -82,6 +86,8 @@ struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
     target_return: Option<&'p vir::Expr>,
     /// Used to encode pure functions.
     targets_are_values: bool,
+    /// only occurs in contexts where it is exhaled/asserted
+    only_exhaled: bool,
     /// Location at which to encode loop invariants.
     assertion_location: Option<mir::BasicBlock>,
     /// When registering errors, this gives us their
@@ -96,6 +102,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         target_args: &'p [vir::Expr],
         target_return: Option<&'p vir::Expr>,
         targets_are_values: bool,
+        only_exhaled: bool,
         assertion_location: Option<mir::BasicBlock>,
         parent_def_id: DefId,
     ) -> Self {
@@ -107,6 +114,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             target_args,
             target_return,
             targets_are_values,
+            only_exhaled,
             assertion_location,
             parent_def_id,
         }
@@ -190,6 +198,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             }
         }
         Ok(vir::Trigger::new(encoded_expressions))
+    }
+
+    fn encode_credit_perm_amount(&self, coeff: &typed::Expression) -> SpannedEncodingResult<vir::FracPermAmount> {      //TODO: move to encoder? & use there
+        //TODO: allow fractions in annotation
+        let enc_coeff = self.encode_expression(coeff)?;
+        Ok(vir::FracPermAmount::new(box enc_coeff, box 1.into()))
     }
 
     /// Encode a specification item as a single expression.
@@ -350,6 +364,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     // TODO
                     true.into()
                 }
+            }
+            box typed::AssertionKind::CreditPolynomial {
+                ref credit_type,
+                ref concrete_terms,
+                ref abstract_terms,
+                ..
+            } => {
+                let mut acc_predicates = vec![];
+
+                let terms = if self.only_exhaled {
+                    abstract_terms
+                }
+                else {
+                    concrete_terms
+                };
+                for term in terms {
+                    let mut exponents = vec![];
+                    let mut args= vec![];
+                    for pow in term.powers.iter() {
+                        exponents.push(pow.exponent);
+
+                        let base_expr = self.encode_expression(&typed::Expression {         //TODO: ugly to create an expression
+                            spec_id: pow.spec_id,
+                            id: pow.id,
+                            expr: pow.base
+                        })?;
+                        args.push(base_expr);
+                    }
+
+                    let pred_name = self.encoder.encode_credit_predicate_use(credit_type, exponents);
+                    let frac_perm = self.encode_credit_perm_amount(&term.coeff_expr)?;
+
+                    acc_predicates.push(vir::Expr::credit_access_predicate(
+                        pred_name,
+                        args,
+                        frac_perm,
+                    ));
+                }
+
+                acc_predicates.into_iter().conjoin()
             }
         })
     }

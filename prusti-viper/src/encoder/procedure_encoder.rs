@@ -56,7 +56,7 @@ use rustc_middle::ty::layout::IntegerExt;
 use rustc_index::vec::Idx;
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
-use std::collections::HashMap;
+use std::collections::{HashMap, BTreeSet};
 use std::collections::HashSet;
 use rustc_attr::IntType::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
@@ -68,6 +68,11 @@ use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use crate::encoder::snapshot;
 use std::convert::TryInto;
+use crate::encoder::mir_interpreter::BackwardMirInterpreter;
+use std::cmp::Ordering;
+use prusti_interface::specs::typed::CreditVarPower;
+use num_traits::real::Real;
+use crate::encoder::cost_encoder::encode_credit_preconditions;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -294,7 +299,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         let proc_trait_pre = typed::Assertion {
                             kind: box typed::AssertionKind::And(
                                 procedure_trait_contract
-                                    .functional_precondition()
+                                    .functional_precondition()          //TODO: causes problems with credit spec?!
                                     .iter()
                                     .cloned()
                                     .collect(),
@@ -2256,18 +2261,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 // method.
                                 self.proc_def_id != def_id;
                             if is_pure_function {
-                                let (function_name, _) = self.encoder
-                                    .encode_pure_function_use(def_id, self.proc_def_id)
-                                    .with_span(term.source_info.span)?;
-                                debug!("Encoding pure function call '{}'", function_name);
-                                assert!(destination.is_some());
-
-                                let mut arg_exprs = vec![];
-                                for operand in args.iter() {
-                                    let arg_expr = self.mir_encoder.encode_operand_expr(operand);
-                                    arg_exprs.push(arg_expr);
-                                }
-
                                 stmts.extend(
                                     self.encode_pure_function_call(
                                         location,
@@ -2540,7 +2533,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // for closure calls, where we need to unpack a tuple into the actual
         // call arguments. The components of the operands tuples are:
         // - the original MIR Operand
-        // - the VIR Local that will hold hold the argument before the call
+        // - the VIR Local that will hold the argument before the call
         // - the type of the argument
         // - if not constant, the VIR expression for the argument
         let mut operands: Vec<(&mir::Operand<'tcx>, Local, ty::Ty<'tcx>, Option<vir::Expr>)> = vec![];
@@ -2749,14 +2742,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_mandatory_type_spec,
             pre_invs_spec,
             pre_func_spec,
+            _,
+            _,
             _, // We don't care about verifying that the weakening is valid,
                // since it isn't the task of the caller
-        ) = self.encode_precondition_expr(&procedure_contract, None)?;
+        ) = self.encode_precondition_expr(&procedure_contract, None, false)?;
         let pos = self
             .encoder
             .error_manager()
             .register(call_site_span, ErrorCtxt::ExhaleMethodPrecondition, self.proc_def_id);
-        stmts.push(vir::Stmt::Assert(
+        stmts.push(vir::Stmt::Exhale(
             replace_fake_exprs(pre_func_spec),
             pos,
         ));
@@ -2764,6 +2759,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             replace_fake_exprs(pre_invs_spec),
             pos,
         ));
+        let pos = self
+            .encoder
+            .error_manager()
+            .register(call_site_span, ErrorCtxt::Unexpected, self.proc_def_id);
         let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
         assert!(!pos.is_default());
         stmts.push(vir::Stmt::Exhale(
@@ -3133,19 +3132,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    /// Encode the precondition with three expressions:
-    /// - one for the type encoding
-    /// - one for the type invariants
-    /// - one for the functional specification.
+    /// Encode the precondition into the following elements
+    /// - Type spec in which read permissions can be removed.
+    /// - Type spec containing the read permissions that must be exhaled because they were moved into a magic wand.
+    /// - Type invariants
+    /// - Functional specification.
+    /// - Credit specification (if any)
+    /// - Statements to be inserted after inhaling the preconditions to check that asymptotic credit bounds are satisfied
+    /// - Precondition weakening
+    ///
+    /// `function_start` – are we encoding the inhale of the precondition
+    /// at the start of the method?
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
         precondition_weakening: Option<typed::Assertion<'tcx>>,
+        function_start: bool,
     ) -> SpannedEncodingResult<(
         vir::Expr,
         Vec<vir::Expr>,
         vir::Expr,
         vir::Expr,
+        Option<vir::Expr>,
+        Vec<vir::Stmt>,
         Option<vir::Expr>,
     )> {
         let borrow_infos = &contract.borrow_infos;
@@ -3204,7 +3213,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
         let func_precondition = contract.functional_precondition();
-        for assertion in func_precondition {
+
+        let (credit_pre, asymp_check_stmts, remaining_func_pres) =
+            if function_start {
+                encode_credit_preconditions(
+                    func_precondition,
+                    &encoded_args,
+                    &self.encoder,
+                    &self,
+                    &self.mir_encoder,
+                    &self.mir,
+                    self.proc_def_id,
+                    true
+                )?
+            }
+            else {
+                (None, vec![], func_precondition.iter().collect())
+            };
+
+        for assertion in remaining_func_pres {
             // FIXME
             let value = self.encoder.encode_assertion(
                 &assertion,
@@ -3213,6 +3240,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &encoded_args,
                 None,
                 false,
+                !function_start,
                 None,
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
@@ -3253,6 +3281,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &encoded_args,
                 None,
                 false,
+                function_start,
                 None,
                 ErrorCtxt::AssertMethodPreconditionWeakening(
                     precondition_spans.clone()
@@ -3265,6 +3294,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
             func_spec.into_iter().conjoin(),
+            credit_pre,
+            asymp_check_stmts,
             precondition_weakening,
         ))
     }
@@ -3277,10 +3308,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-        let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
+        let (type_spec, mandatory_type_spec, invs_spec, func_spec, credit_spec, asymp_check_stmts, weakening_spec) =
             self.encode_precondition_expr(
                 self.procedure_contract(),
-                precondition_weakening
+                precondition_weakening,
+                true
             )?;
         self.cfg_method.add_stmt(
             start_cfg_block,
@@ -3302,16 +3334,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let pos = weakening_spec.pos();
             self.cfg_method.add_stmt(
                 start_cfg_block,
-                vir::Stmt::Assert(weakening_spec, pos),
+                vir::Stmt::Assert(weakening_spec, pos),         //TODO: can there be credit spec in here -> need replace assert by exhale?
             );
         }
         self.cfg_method.add_stmt(
             start_cfg_block,
             vir::Stmt::Inhale(func_spec),
         );
+        if let Some(credit_pre) = credit_spec {
+            self.cfg_method.add_stmt(
+                start_cfg_block,
+                vir::Stmt::Inhale(credit_pre)
+            );
+        }
         self.cfg_method.add_stmt(
             start_cfg_block,
             vir::Stmt::Label(PRECONDITION_LABEL.to_string()),
+        );
+        self.cfg_method.add_stmts(
+            start_cfg_block,
+            asymp_check_stmts,
         );
         Ok(())
     }
@@ -3324,6 +3366,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
+        is_exhaled: bool,
     ) -> EncodingResult<Option<(vir::Expr, vir::Expr)>> {
         // Encode args and return.
         let encoded_args: Vec<vir::Expr> = contract
@@ -3393,6 +3436,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         &encoded_args,
                         Some(&encoded_return),
                         false,
+                        is_exhaled,
                         None,
                         ErrorCtxt::GenericExpression,
                         self.proc_def_id,
@@ -3407,6 +3451,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &encoded_args,
                     Some(&encoded_return),
                     false,
+                    is_exhaled,
                     None,
                     ErrorCtxt::GenericExpression,
                     self.proc_def_id,
@@ -3579,7 +3624,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location,
             contract,
             pre_label,
-            post_label
+            post_label,
+            function_end,
         ).with_span(self.mir.span)? {
             if let Some((location, fake_exprs)) = magic_wand_store_info {
                 let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
@@ -3619,6 +3665,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &encoded_args,
                 Some(&encoded_return),
                 false,
+                function_end,
                 None,
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
@@ -3654,6 +3701,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &encoded_args,
                     Some(&encoded_return),
                     false,
+                    function_end,
                     None,
                     ErrorCtxt::AssertMethodPostconditionStrengthening(
                         postcondition_span.clone()
@@ -3767,7 +3815,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             None,
             self.procedure_contract(),
             pre_label,
-            post_label
+            post_label,
+            false       //TODO: correct?
         ).with_span(span)? {
             let pos = self
                 .encoder
@@ -4451,6 +4500,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         loop_head: BasicBlockIndex,
         loop_inv_block: BasicBlockIndex,
+        is_exhaled: bool,
     ) -> SpannedEncodingResult<(Vec<vir::Expr>, MultiSpan)> {
         let spec_blocks = self.get_loop_spec_blocks(loop_head);
         trace!(
@@ -4491,6 +4541,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     &encoded_args,
                     None,
                     false,
+                    is_exhaled,
                     Some(loop_inv_block),
                     ErrorCtxt::GenericExpression,
                     self.proc_def_id,
@@ -4526,7 +4577,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .insert(loop_head, HashMap::new());
         }
         let (func_spec, func_spec_span) =
-            self.encode_loop_invariant_specs(loop_head, loop_inv_block)?;
+            self.encode_loop_invariant_specs(loop_head, loop_inv_block, true)?;
         let (permissions, equalities, invs_spec) =
             self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true)
                 .with_span(func_spec_span.clone())?;
@@ -4608,7 +4659,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             after_loop
         );
         let (func_spec, func_spec_span) =
-            self.encode_loop_invariant_specs(loop_head, loop_inv_block)?;
+            self.encode_loop_invariant_specs(loop_head, loop_inv_block, false)?;
         let (permissions, equalities, invs_spec) =
             self.encode_loop_invariant_permissions(loop_head, loop_inv_block, true)
                 .with_span(func_spec_span)?;
@@ -4635,7 +4686,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(stmts)
     }
 
-    fn encode_prusti_local(&self, local: Local) -> vir::LocalVar {
+    pub(crate) fn encode_prusti_local(&self, local: Local) -> vir::LocalVar {
         let var_name = self.locals.get_name(local);
         let type_name = self
             .encoder

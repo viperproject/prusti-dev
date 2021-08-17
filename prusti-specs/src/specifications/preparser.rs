@@ -1,21 +1,21 @@
 /// The preparser parses Prusti into an AST
 
 use proc_macro2::{Span, TokenStream, TokenTree, Delimiter};
-use std::collections::VecDeque;
+use std::collections::{VecDeque, HashSet};
 use syn::parse::{ParseStream, Parse};
 use syn::Token;
 use syn::spanned::Spanned;
 use quote::quote;
 
 use super::common;
-use crate::specifications::common::{QuantifierVars, SpecEntailmentVars, TriggerSet, Trigger};
+use crate::specifications::common::{QuantifierVars, SpecEntailmentVars, TriggerSet, Trigger, CreditVarPower, CreditPolynomialTerm};
 
 pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
 pub type PledgeWithoutId = common::Pledge<(), syn::Expr, Arg>;
 pub type ExpressionWithoutId = common::Expression<(), syn::Expr>;
 
 /// The representation of an argument to `forall` (for example `a: i32`)
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Arg {
     pub name: syn::Ident,
     pub typ: syn::Type
@@ -61,6 +61,93 @@ impl Parse for SpecEntArgs {
         })
     }
 }
+
+impl Parse for CreditVarPower<(), syn::Expr> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let var_expr = input.parse::<syn::ExprPath>()?;       //TODO: allow .len() & similar
+        input.parse::<Token![^]>()?;
+        let exponent_lit: syn::LitInt = input.parse()?;
+        let exponent = exponent_lit.base10_parse()?;
+        Ok(Self {
+            spec_id: common::SpecificationId::dummy(),
+            id: (),
+            base: syn::Expr::Path(var_expr),
+            exponent,
+        })
+    }
+}
+
+impl Parse for CreditPolynomialTerm<(), syn::Expr> {     //TODO: maybe generic type parameters?
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        // parse parenthesized expression or single literal as coefficient expression
+        // need to distinguish to avoid parsing beyond the `*` separating the coefficient from the powers
+        let parsed_coeff_expr =
+            if input.peek(syn::token::Paren) {
+                //TODO: check that expression has valid form (only relevant for concrete bounds)
+                let parsed = input.parse::<syn::ExprParen>()?;
+                syn::Expr::Paren(parsed)
+            }
+            else {
+                let parse_result = input.parse::<syn::ExprLit>();
+                if let Ok(lit) = parse_result {
+                    syn::Expr::Lit(lit)
+                }
+                else {
+                    // parsing as a call directly does not work (probably because the function is not defined?)
+                    let coefficient = input.parse::<syn::ExprPath>()?;
+                    syn::Expr::Call(syn::ExprCall {
+                        attrs: vec![],
+                        func: Box::new(syn::Expr::Path(coefficient)),
+                        paren_token: syn::token::Paren::default(),
+                        args: syn::punctuated::Punctuated::new(),
+                    })
+                }
+            };
+        let coeff_expr = ExpressionWithoutId {
+            spec_id: common::SpecificationId::dummy(),
+            id: (),
+            expr: parsed_coeff_expr,
+        };
+
+        let mut powers = vec![];        // stays empty for constant term
+
+        /* TODO: Nesting parse_terminated not working because whole stream is given to this function? expects * instead of +
+            let parsed_powers: syn::punctuated::Punctuated<CreditVarPower<Arg>, Token![*]>
+                = input.parse_terminated(CreditVarPower::parse)?;
+            Ok(Self{
+                coeff_expr,
+                powers: parsed_powers.into_iter().collect(),
+        })*/
+        while input.peek(Token![*]) {
+            input.parse::<Token![*]>()?;
+
+            powers.push(input.parse::<CreditVarPower<(), syn::Expr>>()?);
+        }
+
+        // sort powers by var name
+        powers.sort_unstable_by_key(|pow| pow.base_string());           //TODO: here we assume no duplicate variables, still needs to be ensured before!
+        Ok(Self{
+            coeff_expr,
+            powers,
+        })
+    }
+}
+
+// just needed to be able to use parse_terminated
+struct CreditPolynomialTermVec {
+    term_vector: Vec<CreditPolynomialTerm<(), syn::Expr>>,
+}
+
+impl Parse for CreditPolynomialTermVec {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let parsed: syn::punctuated::Punctuated<CreditPolynomialTerm<(), syn::Expr>, Token![+]>
+            = input.parse_terminated(CreditPolynomialTerm::parse)?;
+        Ok(Self{
+            term_vector: parsed.into_iter().collect()
+        })
+    }
+}
+
 
 pub struct Parser {
     /// Tokens yet to be consumed
@@ -158,6 +245,15 @@ impl Parser {
 
     /// Parse a prusti expression
     fn parse_prusti(&mut self) -> syn::Result<AssertionWithoutId> {
+        if self.peek_credit_keyword() {         //TODO: avoid occurence in forall & pledges?
+            // Like normal access predicates, credit specifications cannot occur on the lhs of implications.
+            // Also we restrict them to occur in isolation from functional specification.
+            // Therefore, they may only occur as a single assertion or as the single rhs of an implication.
+            let credit_f = self.parse_credit_function()?;
+            return Ok(credit_f);
+            //TODO: error if credits occur somewhere else
+        }
+
         let lhs = self.parse_conjunction()?;
         if self.consume_operator("==>") {
             let rhs = self.parse_prusti()?;
@@ -222,21 +318,21 @@ impl Parser {
         while !self.tokens.is_empty() {
             if first || self.consume_operator(",") {
                 first = false;
-                    if self.consume_keyword("requires") {
-                        if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-                            pres.push(self.from_token_stream_last_span(stream).extract_assertion()?);
-                        } else {
-                            return Err(self.error_expected("`(`"));
-                        }
-                    } else if self.consume_keyword("ensures") {
-                        if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-                            posts.push(self.from_token_stream_last_span(stream).extract_assertion()?);
-                        } else {
-                            return Err(self.error_expected("`(`"));
-                        }
+                if self.consume_keyword("requires") {
+                    if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                        pres.push(self.from_token_stream_last_span(stream).extract_assertion()?);
                     } else {
-                        return Err(self.error_expected("`requires` or `ensures`"));
+                        return Err(self.error_expected("`(`"));
                     }
+                } else if self.consume_keyword("ensures") {
+                    if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                        posts.push(self.from_token_stream_last_span(stream).extract_assertion()?);
+                    } else {
+                        return Err(self.error_expected("`(`"));
+                    }
+                } else {
+                    return Err(self.error_expected("`requires` or `ensures`"));
+                }
             } else {
                 return Err(self.error_expected("`,`"));
             }
@@ -308,9 +404,9 @@ impl Parser {
             }
 
             let arr: syn::ExprArray = syn::parse2(self.create_stream_remaining())
-                .map_err(|err| self.error_expected_tuple(err.span()))?;
+                .map_err(|err| self.error_expected_trigger_tuple(err.span()))?;
 
-                let mut vec_of_triggers = vec![];
+            let mut vec_of_triggers = vec![];
             for item in arr.elems {
                 if let syn::Expr::Tuple(tuple) = item {
                     vec_of_triggers.push(
@@ -325,7 +421,7 @@ impl Parser {
                         )
                     );
                 } else {
-                    return Err(self.error_expected_tuple(item.span()));
+                    return Err(self.error_expected_trigger_tuple(item.span()));
                 }
             }
             trigger_set = TriggerSet(vec_of_triggers);
@@ -343,6 +439,86 @@ impl Parser {
                 Box::new(common::AssertionKind::ForAll(vars, trigger_set, body))
             }
         })
+    }
+
+    fn parse_credit_function(&mut self) -> syn::Result<AssertionWithoutId> {
+        let credit_type = self.consume_and_return_keyword().unwrap();       // this function is only called when there is a keyword
+
+        if let Some(stream) = self.consume_group(Delimiter::Bracket) {
+            let user_id: syn::ExprLit = syn::parse2(stream)?;
+
+            if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                let parsed_term_vec: CreditPolynomialTermVec = syn::parse2(stream)?;
+
+                fn add_term_and_smaller(
+                    already_added_powers: &mut HashSet<Vec<CreditVarPower<(), syn::Expr>>>,
+                    term_to_add: Vec<CreditVarPower<(), syn::Expr>>,
+                    user_id: &syn::ExprLit,
+                    result_vec: &mut Vec<CreditPolynomialTerm<(), syn::Expr>>,
+                ) {
+                    if !already_added_powers.contains(&term_to_add) {
+                        result_vec.push(CreditPolynomialTerm {
+                            coeff_expr: ExpressionWithoutId {
+                                spec_id: common::SpecificationId::dummy(),
+                                id: (),
+                                // exploit coefficient to store user_id
+                                expr: syn::Expr::Lit(user_id.clone()),
+                            },
+                            powers: term_to_add.clone(),
+                        });
+                        already_added_powers.insert(term_to_add.clone());
+
+                        // add all sub-terms with smaller exponents
+                        for i in 0..term_to_add.len() {
+                            // reduce ith exponent
+                            if term_to_add[i].exponent == 1 {
+                                // need to remove power
+                                let mut subterm_to_add = vec![];
+                                for (j, term) in term_to_add.iter().enumerate() {
+                                    if i != j {
+                                        subterm_to_add.push(term.clone());
+                                    }
+                                }
+
+                                add_term_and_smaller(already_added_powers, subterm_to_add, user_id, result_vec);
+                            } else {
+                                let mut subterm_to_add = term_to_add.clone();
+                                subterm_to_add[i].exponent -= 1;
+
+                                add_term_and_smaller(already_added_powers, subterm_to_add, user_id, result_vec);
+                            }
+                        }
+                    }
+                }
+
+                // construct abstract terms with placeholder coefficients
+                // add missing powers in between
+                let mut already_added_powers = HashSet::new();
+                let mut abstract_terms = vec![];
+                for term in &parsed_term_vec.term_vector {
+                    add_term_and_smaller(
+                        &mut already_added_powers,
+                        term.powers.clone(),
+                        &user_id,
+                        &mut abstract_terms
+                    );
+                }
+
+                Ok(AssertionWithoutId {
+                    kind: Box::new(common::AssertionKind::CreditPolynomial {
+                        spec_id: common::SpecificationId::dummy(),
+                        id: (),
+                        credit_type,
+                        concrete_terms: parsed_term_vec.term_vector,
+                        abstract_terms,
+                    }),
+                })
+            } else {
+                Err(self.error_expected("`(`"))
+            }
+        } else {
+            Err(self.error_expected("`[`"))
+        }
     }
 
     fn parse_rust_until(&mut self, terminator: &str) -> syn::Result<ExpressionWithoutId> {
@@ -471,6 +647,16 @@ impl Parser {
         }
         false
     }
+    /// Check if the input starts with a keyword ending in 'credits'
+    //TODO: or check all possible keywords explicitly
+    fn peek_credit_keyword(&mut self) -> bool {
+        if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
+            if ident.to_string().ends_with("credits") {
+                return true;
+            }
+        }
+        false
+    }
     /// does the input start with a group with the given grouping?
     fn peek_group(&self, delimiter: Delimiter) -> bool {
         if let Some(TokenTree::Group(group)) = self.tokens.front() {
@@ -498,6 +684,15 @@ impl Parser {
         }
         self.last_span = Some(self.tokens.pop_front().unwrap().span());
         true
+    }
+    /// Consume any keyword and return its string representation
+    fn consume_and_return_keyword(&mut self) -> Option<String> {
+        if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
+            let keyword_string = ident.to_string();
+            self.last_span = Some(self.tokens.pop_front().unwrap().span());
+            return Some(keyword_string);
+        }
+        None
     }
     /// consume the group if it is next in the stream
     /// produced its TokenStream, if it has one
@@ -562,7 +757,7 @@ impl Parser {
     fn error_no_quantifier_arguments(&self) -> syn::Error {
         syn::Error::new(self.get_error_span(), "a quantifier must have at least one argument")
     }
-    fn error_expected_tuple(&self, span: Span) -> syn::Error {
+    fn error_expected_trigger_tuple(&self, span: Span) -> syn::Error {
         syn::Error::new(span, "`triggers` must be an array of tuples containing Rust expressions")
     }
     fn error_unexpected(&self) -> syn::Error {

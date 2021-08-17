@@ -225,6 +225,10 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::LabelledOld(_label, _expr, _) => HashSet::new(),
 
+            vir::Expr::PredicateInstance(_, args, _) => {
+                args.get_required_permissions(predicates, old_exprs)
+            }
+
             vir::Expr::PredicateAccessPredicate(_, box place, _perm_amount, _) => {
                 debug_assert!(place.is_place());
                 let epsilon = PermAmount::Read;
@@ -256,10 +260,24 @@ impl RequiredPermissionsGetter for vir::Expr {
                 result
             }
 
+            vir::Expr::CreditAccessPredicate(_, args, frac_perm, _) => {
+                let mut result_set = args.get_required_permissions(predicates, old_exprs);
+                result_set.extend(
+                    vec![frac_perm.left(), frac_perm.right()]
+                        .get_required_permissions(predicates, old_exprs)
+                );
+                result_set
+            }
+
             vir::Expr::FieldAccessPredicate(expr, _perm_amount, _) => expr
                 .get_required_permissions(predicates, old_exprs)
                 .into_iter()
                 .collect(),
+
+            vir::Expr::PermEquality(box target_expr, frac_perm, _) => {
+                vec![target_expr, frac_perm.left(), frac_perm.right()]
+                    .get_required_permissions(predicates, old_exprs)
+            }
 
             vir::Expr::UnaryOp(_, expr, _) => expr.get_required_permissions(predicates, old_exprs),
 
