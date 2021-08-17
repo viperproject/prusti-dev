@@ -101,7 +101,7 @@ impl ExprFootprintGetter for vir::Expr {
             }
 
             vir::Expr::PredicateInstance(_, ref _args, _) => {
-                HashSet::new()      //TODO: ?
+                HashSet::new()
             }
 
             vir::Expr::PredicateAccessPredicate(_, box ref arg, perm_amount, _) => {
@@ -130,7 +130,7 @@ impl ExprFootprintGetter for vir::Expr {
             }
 
             vir::Expr::PermEquality(box ref _target, ref _frac_perm_amount, _) => {
-                HashSet::new()      //TODO: ?
+                HashSet::new()
             }
 
             vir::Expr::MagicWand(ref _lhs, ref _rhs, _borrow, _) => {
