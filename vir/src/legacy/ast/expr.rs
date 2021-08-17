@@ -923,7 +923,7 @@ impl Expr {
             ) {
                 self.non_pure = true;
             }
-            /*fn walk_credit_access_predicate(      TODO: needed?
+            fn walk_credit_access_predicate(
                 &mut self,
                 _name: &str,
                 _args: &Vec<Expr>,
@@ -931,7 +931,7 @@ impl Expr {
                 _pos: &Position
             ) {
                 self.non_pure = true;
-            }*/
+            }
         }
         let mut walker = PurityFinder { non_pure: false };
         walker.walk(self);
@@ -959,7 +959,16 @@ impl Expr {
             ) -> Expr {
                 true.into()
             }
-            //TODO: need to add credit_access_predicate?
+            //TODO: ?
+            fn fold_credit_access_predicate(
+                &mut self,
+                _name: String,
+                _args: Vec<Expr>,
+                _frac_perm_amount: FracPermAmount,
+                _pos: Position
+            ) -> Expr {
+                true.into()
+            }
         }
         Purifier.fold(self)
     }
@@ -1022,7 +1031,16 @@ impl Expr {
             ) {
                 self.non_pure = true;
             }
-            //TODO: need to add credit access predicate?
+            //TODO: ? + more?
+            fn walk_credit_access_predicate(
+                &mut self,
+                _name: &str,
+                _args: &Vec<Expr>,
+                _frac_perm_amount: &FracPermAmount,
+                _pos: &Position
+            ) {
+                self.non_pure = true;
+            }
         }
         let mut walker = HeapAccessFinder { non_pure: false };
         walker.walk(self);
