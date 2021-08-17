@@ -47,22 +47,13 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         format!("{:?}", local)
     }
 
-    fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
+    fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<polymorphic_vir::LocalVar> {
         let var_name = self.encode_local_var_name(local);
-        let type_name = self
+        let typ = self
             .encoder()
-            .encode_type_predicate_use(self.get_local_ty(local))
+            .encode_polymorphic_type_predicate_use(self.get_local_ty(local))
             .with_span(self.get_local_span(local))?;
-        Ok(vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name)))
-    }
-
-    fn encode_polymorphic_local(&self, local: mir::Local) -> SpannedEncodingResult<polymorphic_vir::LocalVar> {
-        let var_name = self.encode_local_var_name(local);
-        let type_name = self
-            .encoder()
-            .encode_type_predicate_use(self.get_local_ty(local))
-            .with_span(self.get_local_span(local))?;
-        Ok(polymorphic_vir::LocalVar::new(var_name, polymorphic_vir::Type::typed_ref(type_name)))
+        Ok(polymorphic_vir::LocalVar::new(var_name, typ))
     }
 
     /// Returns
@@ -232,7 +223,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             | mir::ProjectionElem::ConstantIndex { .. } => {
                 // FIXME: this avoids some code duplication but the nested
                 // matches could probably be cleaner
-                let index: vir::Expr = match elem {
+                let index: polymorphic_vir::Expr = match elem {
                     mir::ProjectionElem::Index(idx) => {
                         debug!("index: {:?}[{:?}]", encoded_base, idx);
                         self.encode_local(*idx)?.into()
@@ -255,7 +246,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                                     self.encoder(),
                                     encoded_base.clone().try_into_expr()?,
                                 );
-                                vir! { [ slice_len ] - [ vir::Expr::from(offset) ] }
+                                vir! { [ slice_len ] - [ polymorphic_vir::Expr::from(offset) ] }
                             }
                             _ => return Err(EncodingError::unsupported(
                                 format!("pattern matching on the end of '{:?} is not supported", base_ty),
@@ -270,7 +261,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             PlaceEncoding::ArrayAccess {
                                 base: box encoded_base,
                                 index,
-                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                                encoded_elem_ty: self.encoder().encode_polymorphic_type(elem_ty)?,
                                 rust_array_ty: base_ty,
                             },
                             elem_ty,
@@ -282,7 +273,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             PlaceEncoding::SliceAccess {
                                 base: box encoded_base,
                                 index,
-                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
+                                encoded_elem_ty: self.encoder().encode_polymorphic_type(elem_ty)?,
                                 rust_slice_ty: base_ty,
                             },
                             elem_ty,
@@ -303,9 +294,9 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
     fn encode_deref(
         &self,
-        encoded_base: vir::Expr,
+        encoded_base: polymorphic_vir::Expr,
         base_ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<(vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
+    ) -> EncodingResult<(polymorphic_vir::Expr, ty::Ty<'tcx>, Option<usize>)> {
         trace!("encode_deref {} {}", encoded_base, base_ty);
 
         Ok(match base_ty.kind() {
@@ -316,10 +307,10 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     encoded_base.get_parent().unwrap()
                 } else {
                     match encoded_base {
-                        vir::Expr::AddrOf(box base_place, _, _) => base_place,
+                        polymorphic_vir::Expr::AddrOf( polymorphic_vir::AddrOf {box base, ..} ) => base,
                         _ => {
                             let ref_field = self.encoder()
-                                .encode_dereference_field(ty)?;
+                                .encode_polymorphic_dereference_field(ty)?;
                             encoded_base.field(ref_field)
                         }
                     }
@@ -445,17 +436,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_expr(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> EncodingResult<vir::Expr> {
+    ) -> EncodingResult<polymorphic_vir::Expr> {
         trace!("Encode operand expr {:?}", operand);
         Ok(match operand {
             &mir::Operand::Constant(box mir::Constant {
                 literal: mir::ConstantKind::Ty(ty::Const { ty, val }),
                 ..
-            }) => self.encoder.encode_const_expr(ty, val)?,
+            }) => self.encoder.encode_polymorphic_const_expr(ty, val)?,
             &mir::Operand::Constant(box mir::Constant {
                 literal: mir::ConstantKind::Val(val, ty),
                 ..
-            }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(val))?,
+            }) => self.encoder.encode_polymorphic_const_expr(ty, &ty::ConstKind::Value(val))?,
             &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
@@ -508,7 +499,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 
     /// Returns an `vir::Type` that corresponds to the type of the value of the operand
     pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>)
-        -> EncodingResult<vir::Type>
+        -> EncodingResult<polymorphic_vir::Type>
     {
         trace!("Encode operand expr {:?}", operand);
         // match operand {
@@ -531,26 +522,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_bin_op_expr(
         &self,
         op: mir::BinOp,
-        left: vir::Expr,
-        right: vir::Expr,
+        left: polymorphic_vir::Expr,
+        right: polymorphic_vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<vir::Expr> {
+    ) -> EncodingResult<polymorphic_vir::Expr> {
         let is_bool = ty.kind() == &ty::TyKind::Bool;
         Ok(match op {
-            mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
-            mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
-            mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
-            mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
-            mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
-            mir::BinOp::Le => vir::Expr::le_cmp(left, right),
-            mir::BinOp::Add => vir::Expr::add(left, right),
-            mir::BinOp::Sub => vir::Expr::sub(left, right),
-            mir::BinOp::Rem => vir::Expr::rem(left, right),
-            mir::BinOp::Div => vir::Expr::div(left, right),
-            mir::BinOp::Mul => vir::Expr::mul(left, right),
-            mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
-            mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
-            mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
+            mir::BinOp::Eq => polymorphic_vir::Expr::eq_cmp(left, right),
+            mir::BinOp::Ne => polymorphic_vir::Expr::ne_cmp(left, right),
+            mir::BinOp::Gt => polymorphic_vir::Expr::gt_cmp(left, right),
+            mir::BinOp::Ge => polymorphic_vir::Expr::ge_cmp(left, right),
+            mir::BinOp::Lt => polymorphic_vir::Expr::lt_cmp(left, right),
+            mir::BinOp::Le => polymorphic_vir::Expr::le_cmp(left, right),
+            mir::BinOp::Add => polymorphic_vir::Expr::add(left, right),
+            mir::BinOp::Sub => polymorphic_vir::Expr::sub(left, right),
+            mir::BinOp::Rem => polymorphic_vir::Expr::rem(left, right),
+            mir::BinOp::Div => polymorphic_vir::Expr::div(left, right),
+            mir::BinOp::Mul => polymorphic_vir::Expr::mul(left, right),
+            mir::BinOp::BitAnd if is_bool => polymorphic_vir::Expr::and(left, right),
+            mir::BinOp::BitOr if is_bool => polymorphic_vir::Expr::or(left, right),
+            mir::BinOp::BitXor if is_bool => polymorphic_vir::Expr::xor(left, right),
             mir::BinOp::BitAnd |
             mir::BinOp::BitOr |
             mir::BinOp::BitXor => {
@@ -567,10 +558,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         })
     }
 
-    pub fn encode_unary_op_expr(&self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {
+    pub fn encode_unary_op_expr(&self, op: mir::UnOp, expr: polymorphic_vir::Expr) -> polymorphic_vir::Expr {
         match op {
-            mir::UnOp::Not => vir::Expr::not(expr),
-            mir::UnOp::Neg => vir::Expr::minus(expr),
+            mir::UnOp::Not => polymorphic_vir::Expr::not(expr),
+            mir::UnOp::Neg => polymorphic_vir::Expr::minus(expr),
         }
     }
 
@@ -578,10 +569,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_bin_op_check(
         &self,
         op: mir::BinOp,
-        left: vir::Expr,
-        right: vir::Expr,
+        left: polymorphic_vir::Expr,
+        right: polymorphic_vir::Expr,
         ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<vir::Expr> {
+    ) -> EncodingResult<polymorphic_vir::Expr> {
         if !op.is_checkable() || !config::check_overflows() {
             Ok(false.into())
         } else {
@@ -590,54 +581,54 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             Ok(match op {
                 mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub => match ty.kind() {
                     // Unsigned
-                    ty::TyKind::Uint(ty::UintTy::U8) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::u8::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::u8::MAX.into()),
+                    ty::TyKind::Uint(ty::UintTy::U8) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::u8::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::u8::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ty::UintTy::U16) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::u16::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::u16::MAX.into()),
+                    ty::TyKind::Uint(ty::UintTy::U16) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::u16::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::u16::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ty::UintTy::U32) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::u32::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::u32::MAX.into()),
+                    ty::TyKind::Uint(ty::UintTy::U32) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::u32::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::u32::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ty::UintTy::U64) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::u64::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::u64::MAX.into()),
+                    ty::TyKind::Uint(ty::UintTy::U64) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::u64::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::u64::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ty::UintTy::U128) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::u128::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::u128::MAX.into()),
+                    ty::TyKind::Uint(ty::UintTy::U128) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::u128::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::u128::MAX.into()),
                     ),
-                    ty::TyKind::Uint(ty::UintTy::Usize) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::usize::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::usize::MAX.into()),
+                    ty::TyKind::Uint(ty::UintTy::Usize) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::usize::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::usize::MAX.into()),
                     ),
                     // Signed
-                    ty::TyKind::Int(ty::IntTy::I8) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::i8::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::i8::MAX.into()),
+                    ty::TyKind::Int(ty::IntTy::I8) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::i8::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::i8::MAX.into()),
                     ),
-                    ty::TyKind::Int(ty::IntTy::I16) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::i16::MIN.into()),
+                    ty::TyKind::Int(ty::IntTy::I16) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::i16::MIN.into()),
                     ),
-                    ty::TyKind::Int(ty::IntTy::I32) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::i32::MAX.into()),
+                    ty::TyKind::Int(ty::IntTy::I32) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::i32::MAX.into()),
                     ),
-                    ty::TyKind::Int(ty::IntTy::I64) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::i64::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::i64::MAX.into()),
+                    ty::TyKind::Int(ty::IntTy::I64) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::i64::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::i64::MAX.into()),
                     ),
-                    ty::TyKind::Int(ty::IntTy::I128) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::i128::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::i128::MAX.into()),
+                    ty::TyKind::Int(ty::IntTy::I128) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::i128::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::i128::MAX.into()),
                     ),
-                    ty::TyKind::Int(ty::IntTy::Isize) => vir::Expr::or(
-                        vir::Expr::lt_cmp(result.clone(), std::isize::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::isize::MAX.into()),
+                    ty::TyKind::Int(ty::IntTy::Isize) => polymorphic_vir::Expr::or(
+                        polymorphic_vir::Expr::lt_cmp(result.clone(), std::isize::MIN.into()),
+                        polymorphic_vir::Expr::gt_cmp(result, std::isize::MAX.into()),
                     ),
 
                     _ => {
@@ -665,7 +656,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
         span: Span,
-    ) -> SpannedEncodingResult<vir::Expr> {
+    ) -> SpannedEncodingResult<polymorphic_vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
         let encoded_val = match (src_ty.kind(), dst_ty.kind()) {
@@ -727,7 +718,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty)
                         .with_span(span)?;
                     let encoded_args = vec![encoded_operand];
-                    let formal_args = vec![vir::LocalVar::new(
+                    let formal_args = vec![polymorphic_vir::LocalVar::new(
                         String::from("number"),
                         self.encode_operand_expr_type(operand).with_span(span)?,
                     )];
@@ -735,8 +726,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         .encoder
                         .error_manager()
                         .register(span, ErrorCtxt::TypeCast, self.def_id);
-                    let return_type = self.encoder.encode_snapshot_type(dst_ty).with_span(span)?;
-                    return Ok(vir::Expr::func_app(
+                    let return_type = self.encoder.encode_polymorphic_snapshot_type(dst_ty).with_span(span)?;
+                    return Ok(polymorphic_vir::Expr::func_app(
                         function_name,
                         encoded_args,
                         formal_args,
@@ -767,7 +758,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     pub fn encode_operand_place(
         &self,
         operand: &mir::Operand<'tcx>,
-    ) -> EncodingResult<Option<vir::Expr>> {
+    ) -> EncodingResult<Option<polymorphic_vir::Expr>> {
         debug!("Encode operand place {:?}", operand);
         Ok(match operand {
             &mir::Operand::Move(ref place) | &mir::Operand::Copy(ref place) => {
@@ -781,23 +772,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_place_predicate_permission(
         &self,
-        place: vir::Expr,
-        perm: vir::PermAmount,
-    ) -> Option<vir::Expr> {
-        vir::Expr::pred_permission(place, perm)
-    }
-
-    pub fn encode_polymorphic_place_predicate_permission(
-        &self,
         place: polymorphic_vir::Expr,
         perm: polymorphic_vir::PermAmount,
     ) -> Option<polymorphic_vir::Expr> {
         polymorphic_vir::Expr::pred_permission(place, perm)
     }
 
-    pub fn encode_old_expr(&self, expr: vir::Expr, label: &str) -> vir::Expr {
+    pub fn encode_old_expr(&self, expr: polymorphic_vir::Expr, label: &str) -> polymorphic_vir::Expr {
         debug!("encode_old_expr {}, {}", expr, label);
-        vir::Expr::labelled_old(label, expr)
+        polymorphic_vir::Expr::labelled_old(label, expr)
     }
 
     pub fn get_span_of_location(&self, location: mir::Location) -> Span {
@@ -813,7 +796,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         bb_data.terminator().source_info.span
     }
 
-    pub fn encode_expr_pos(&self, span: Span) -> vir::Position {
+    pub fn encode_expr_pos(&self, span: Span) -> polymorphic_vir::Position {
         self.encoder
             .error_manager()
             .register(span, ErrorCtxt::GenericExpression, self.def_id)
