@@ -181,11 +181,10 @@ impl AstRewriter {
                 #[allow(unused_must_use, unused_variables, dead_code, unused_comparisons)]
                 #[pure]
                 #[trusted]
-                #[ensures(result >= 0)]
                 fn #coeff_ident() -> u32 {
                     unimplemented!()
                 }
-            };
+            };      //TODO: not needed with unsigned check on:                 #[ensures(result >= 0)]
             let mut coeff_any_fn = untyped::AnyFnItem::Fn(coeff_fn);
             let attributes_vec = extract_prusti_attributes(&mut coeff_any_fn);
             let (generated_spec_items, generated_attributes) =
