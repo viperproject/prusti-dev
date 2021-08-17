@@ -928,7 +928,7 @@ impl Expr {
                 _name: &str,
                 _args: &Vec<Expr>,
                 _perm_amount: &FracPermAmount,
-                _pos: &Position
+                _pos: &Position,
             ) {
                 self.non_pure = true;
             }
@@ -965,7 +965,7 @@ impl Expr {
                 _name: String,
                 _args: Vec<Expr>,
                 _frac_perm_amount: FracPermAmount,
-                _pos: Position
+                _pos: Position,
             ) -> Expr {
                 true.into()
             }
@@ -1037,7 +1037,7 @@ impl Expr {
                 _name: &str,
                 _args: &Vec<Expr>,
                 _frac_perm_amount: &FracPermAmount,
-                _pos: &Position
+                _pos: &Position,
             ) {
                 self.non_pure = true;
             }
