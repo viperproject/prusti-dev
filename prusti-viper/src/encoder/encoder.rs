@@ -34,7 +34,7 @@ use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
 use prusti_interface::PrustiError;
 use prusti_specs::specifications::common::SpecIdRef;
 use rustc_hir as hir;
-use rustc_hir::def_id::DefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
 // use rustc::middle::const_val::ConstVal;
 use rustc_middle::mir;
 // use rustc::mir::interpret::GlobalId;
@@ -352,13 +352,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
-    pub fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification<'tcx>> {
+    pub fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification> {
         let spec = self.def_spec.get(&def_id)?;
         Some(spec.expect_loop().clone())
     }
 
     /// Get the specifications attached to the `def_id` function.
-    pub fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::ProcedureSpecification<'tcx>> {
+    pub fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::ProcedureSpecification> {
         let spec = self.def_spec.get(&def_id)?;
         Some(spec.expect_procedure().clone())
     }
@@ -471,16 +471,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
         }
 
-        // merge specifications
-        let final_spec = trait_spec.refine(&impl_spec);
+        unimplemented!();
+        // // merge specifications
+        // let final_spec = trait_spec.refine(&impl_spec);
 
-        let contract = compute_procedure_contract(
-            proc_def_id,
-            self.env().tcx(),
-            typed::SpecificationSet::Procedure(final_spec),
-            Some(&tymap[0])
-        )?;
-        Ok(contract.to_call_site_contract(args, target))
+        // let contract = compute_procedure_contract(
+        //     proc_def_id,
+        //     self.env().tcx(),
+        //     typed::SpecificationSet::Procedure(final_spec),
+        //     Some(&tymap[0])
+        // )?;
+        // Ok(contract.to_call_site_contract(args, target))
     }
 
     /// Encodes a value in a field if the base expression is a reference or
@@ -785,7 +786,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// See `spec_encoder::encode_spec_assertion` for a description of the arguments.
     pub fn encode_assertion(
         &self,
-        assertion: &typed::Assertion<'tcx>,
+        assertion: &LocalDefId,
         mir: &mir::Body<'tcx>,
         pre_label: Option<&str>,
         target_args: &[vir::Expr],
@@ -795,19 +796,22 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         error: ErrorCtxt,
     ) -> SpannedEncodingResult<vir::Expr> {
         trace!("encode_assertion {:?}", assertion);
-        let encoded_assertion = encode_spec_assertion(
+        let proc_def_id = assertion.to_def_id();
+        let mir_span = self.env.tcx().def_span(proc_def_id);
+        let substs_key = self.type_substitution_key().with_span(mir_span)?;
+        let procedure = self.env.get_procedure(proc_def_id);
+        let pure_function_encoder = PureFunctionEncoder::new(
             self,
-            assertion,
-            pre_label,
-            target_args,
-            target_return,
-            targets_are_values,
-            assertion_location,
-        )?;
-        Ok(encoded_assertion.set_default_pos(
-            self.error_manager()
-                .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error),
-        ))
+            proc_def_id,
+            procedure.get_mir(),
+            true,
+        );
+        pure_function_encoder.encode_body()
+        // TODO: set the span of the encoded assertion
+        // Ok(encoded_assertion.set_default_pos(
+        //     self.error_manager()
+        //         .register(typed::Spanned::get_spans(assertion, mir, self.env().tcx()), error),
+        // ))
     }
 
     pub fn decode_type_predicate(&self, name: &str)
@@ -1311,7 +1315,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         result
     }
 
-    pub fn get_predicate_body(&self, def_id: ProcedureDefId) -> Option<&typed::Assertion<'tcx>> {
+    pub fn get_predicate_body(&self, def_id: ProcedureDefId) -> Option<&LocalDefId> {
         let result = self.def_spec.get(&def_id).map_or(None, |spec| spec.expect_procedure().predicate_body.as_ref());
         trace!("get_predicate_body {:?} = {:?}", def_id, result);
         result

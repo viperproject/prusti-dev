@@ -37,11 +37,39 @@ use crate::data::ProcedureDefId;
 /// A pledge in the postcondition.
 // pub type Pledge<'tcx> = common::Pledge<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 
+#[derive(Debug, Clone)]
 pub enum SpecificationSet {
     Procedure(ProcedureSpecification),
     Loop(LoopSpecification),
 }
 
+impl SpecificationSet {
+    #[track_caller]
+    pub fn expect_procedure(&self) -> &ProcedureSpecification {
+        if let SpecificationSet::Procedure(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Procedure: {:?}", self);
+    }
+
+    #[track_caller]
+    pub fn expect_mut_procedure(&mut self) -> &mut ProcedureSpecification {
+        if let SpecificationSet::Procedure(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Procedure: {:?}", self);
+    }
+
+    #[track_caller]
+    pub fn expect_loop(&self) -> &LoopSpecification {
+        if let SpecificationSet::Loop(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Loop: {:?}", self);
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct ProcedureSpecification {
     pub pres: Vec<LocalDefId>,
     pub posts: Vec<LocalDefId>,
@@ -51,6 +79,20 @@ pub struct ProcedureSpecification {
     pub trusted: bool,
 }
 
+impl ProcedureSpecification {
+    pub fn empty() -> Self {
+        ProcedureSpecification {
+            pres: Vec::new(),
+            posts: Vec::new(),
+            pledges: Vec::new(),
+            predicate_body: None,
+            pure: false,
+            trusted: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct LoopSpecification {
     pub invariant: Vec<LocalDefId>,
 }

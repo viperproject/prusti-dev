@@ -11,6 +11,7 @@ use prusti_interface::data::ProcedureDefId;
 //     TypedSpecificationSet,
 // };
 use rustc_hir::{self as hir, Mutability};
+use rustc_hir::def_id::LocalDefId;
 use rustc_middle::{mir, ty::FnSig, ty::subst::SubstsRef};
 use rustc_index::vec::Idx;
 use rustc_middle::ty::{self, Ty, TyCtxt, TyKind, TypeckResults};
@@ -71,7 +72,7 @@ impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
 /// procedure calls before translating call targets.
 /// TODO: Move to some properly named module.
 #[derive(Clone, Debug)]
-pub struct ProcedureContractGeneric<'tcx, L, P>
+pub struct ProcedureContractGeneric<L, P>
 where
     L: fmt::Debug,
     P: fmt::Debug,
@@ -96,11 +97,11 @@ where
     /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
     pub borrow_infos: Vec<BorrowInfo<P>>,
     /// The functional specification: precondition and postcondition
-    pub specification: typed::SpecificationSet<'tcx>,
+    pub specification: typed::SpecificationSet,
 }
 
-impl<'tcx, L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'tcx, L, P> {
-    pub fn functional_precondition(&self) -> &[typed::Assertion<'tcx>] {
+impl<'tcx, L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
+    pub fn functional_precondition(&self) -> &[LocalDefId] {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
             &spec.pres
         } else {
@@ -108,7 +109,7 @@ impl<'tcx, L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'tcx, L, P> {
         }
     }
 
-    pub fn functional_postcondition(&self) -> &[typed::Assertion<'tcx>] {
+    pub fn functional_postcondition(&self) -> &[LocalDefId] {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
             &spec.posts
         } else {
@@ -116,7 +117,7 @@ impl<'tcx, L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'tcx, L, P> {
         }
     }
 
-    pub fn pledges(&self) -> &[typed::Pledge<'tcx>] {
+    pub fn pledges(&self) -> &[LocalDefId] {
         if let typed::SpecificationSet::Procedure(spec) = &self.specification {
             &spec.pledges
         } else {
@@ -126,12 +127,12 @@ impl<'tcx, L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<'tcx, L, P> {
 }
 
 /// Procedure contract as it is defined in MIR.
-pub type ProcedureContractMirDef<'tcx> = ProcedureContractGeneric<'tcx, mir::Local, mir::Place<'tcx>>;
+pub type ProcedureContractMirDef<'tcx> = ProcedureContractGeneric<mir::Local, mir::Place<'tcx>>;
 
 /// Specialized procedure contract for use in translation.
-pub type ProcedureContract<'tcx> = ProcedureContractGeneric<'tcx, places::Local, places::Place<'tcx>>;
+pub type ProcedureContract<'tcx> = ProcedureContractGeneric<places::Local, places::Place<'tcx>>;
 
-impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<'_, L, P> {
+impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<L, P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "ProcedureContract {{")?;
         writeln!(f, "IN:")?;
@@ -420,7 +421,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     tcx: TyCtxt<'tcx>,
-    specification: typed::SpecificationSet<'tcx>,
+    specification: typed::SpecificationSet,
     maybe_tymap: Option<&HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>>
 where

@@ -53,6 +53,7 @@ use rustc_middle::ty::layout;
 use rustc_target::abi::Integer;
 use rustc_middle::ty::layout::IntegerExt;
 use rustc_index::vec::Idx;
+use rustc_hir::def_id::LocalDefId;
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
 use std::collections::HashMap;
@@ -248,8 +249,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
 
         // Prepare assertions to check specification refinement
-        let mut precondition_weakening: Option<typed::Assertion> = None;
-        let mut postcondition_strengthening: Option<typed::Assertion> = None;
+        let mut precondition_weakening: Option<LocalDefId> = None;
+        let mut postcondition_strengthening: Option<LocalDefId> = None;
         debug!("procedure_contract: {:?}", self.procedure_contract());
         //trace!("def_id of proc: {:?}", &self.proc_def_id);
         let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
@@ -269,68 +270,69 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     .item_name(self.proc_def_id);
                     // .as_symbol();
                 if let Some(assoc_item) = self.encoder.env().get_assoc_item(id, proc_name) {
-                    // TODO use the impl's specs if there are any (separately replace pre/post!)
-                    let procedure_trait_contract = self
-                        .encoder
-                        .get_procedure_contract_for_def(assoc_item.def_id)
-                        .with_span(mir_span)?;
-                    let typed::ProcedureSpecification {
-                        pres: proc_pre_specs,
-                        posts: proc_post_specs,
-                        pledges: proc_pledge_specs,
-                        ..
-                    } = self.mut_contract().specification.expect_mut_procedure();
+                    unimplemented!();
+                    // // TODO use the impl's specs if there are any (separately replace pre/post!)
+                    // let procedure_trait_contract = self
+                    //     .encoder
+                    //     .get_procedure_contract_for_def(assoc_item.def_id)
+                    //     .with_span(mir_span)?;
+                    // let typed::ProcedureSpecification {
+                    //     pres: proc_pre_specs,
+                    //     posts: proc_post_specs,
+                    //     pledges: proc_pledge_specs,
+                    //     ..
+                    // } = self.mut_contract().specification.expect_mut_procedure();
 
-                    if proc_pre_specs.is_empty() {
-                        proc_pre_specs
-                            .extend_from_slice(procedure_trait_contract.functional_precondition())
-                    } else {
-                        let proc_pre = typed::Assertion {
-                            kind: box typed::AssertionKind::And(
-                                proc_pre_specs.clone()
-                            ),
-                        };
-                        let proc_trait_pre = typed::Assertion {
-                            kind: box typed::AssertionKind::And(
-                                procedure_trait_contract
-                                    .functional_precondition()
-                                    .iter()
-                                    .cloned()
-                                    .collect(),
-                            ),
-                        };
-                        precondition_weakening = Some(typed::Assertion {
-                            kind: box typed::AssertionKind::Implies(proc_trait_pre, proc_pre),
-                        });
-                    }
+                    // if proc_pre_specs.is_empty() {
+                    //     proc_pre_specs
+                    //         .extend_from_slice(procedure_trait_contract.functional_precondition())
+                    // } else {
+                    //     let proc_pre = typed::Assertion {
+                    //         kind: box typed::AssertionKind::And(
+                    //             proc_pre_specs.clone()
+                    //         ),
+                    //     };
+                    //     let proc_trait_pre = typed::Assertion {
+                    //         kind: box typed::AssertionKind::And(
+                    //             procedure_trait_contract
+                    //                 .functional_precondition()
+                    //                 .iter()
+                    //                 .cloned()
+                    //                 .collect(),
+                    //         ),
+                    //     };
+                    //     precondition_weakening = Some(typed::Assertion {
+                    //         kind: box typed::AssertionKind::Implies(proc_trait_pre, proc_pre),
+                    //     });
+                    // }
 
-                    if proc_post_specs.is_empty() && proc_pledge_specs.is_empty() {
-                        proc_post_specs
-                            .extend_from_slice(procedure_trait_contract.functional_postcondition());
-                        proc_pledge_specs
-                            .extend_from_slice(procedure_trait_contract.pledges());
-                    } else {
-                        if !proc_pledge_specs.is_empty() {
-                            unimplemented!("Refining specifications with pledges is not supported");
-                        }
-                        let proc_post = typed::Assertion {
-                            kind: box typed::AssertionKind::And(
-                                proc_post_specs.clone()
-                            ),
-                        };
-                        let proc_trait_post = typed::Assertion {
-                            kind: box typed::AssertionKind::And(
-                                procedure_trait_contract
-                                    .functional_postcondition()
-                                    .iter()
-                                    .cloned()
-                                    .collect(),
-                            ),
-                        };
-                        postcondition_strengthening = Some(typed::Assertion {
-                            kind: box typed::AssertionKind::Implies(proc_post, proc_trait_post),
-                        });
-                    }
+                    // if proc_post_specs.is_empty() && proc_pledge_specs.is_empty() {
+                    //     proc_post_specs
+                    //         .extend_from_slice(procedure_trait_contract.functional_postcondition());
+                    //     proc_pledge_specs
+                    //         .extend_from_slice(procedure_trait_contract.pledges());
+                    // } else {
+                    //     if !proc_pledge_specs.is_empty() {
+                    //         unimplemented!("Refining specifications with pledges is not supported");
+                    //     }
+                    //     let proc_post = typed::Assertion {
+                    //         kind: box typed::AssertionKind::And(
+                    //             proc_post_specs.clone()
+                    //         ),
+                    //     };
+                    //     let proc_trait_post = typed::Assertion {
+                    //         kind: box typed::AssertionKind::And(
+                    //             procedure_trait_contract
+                    //                 .functional_postcondition()
+                    //                 .iter()
+                    //                 .cloned()
+                    //                 .collect(),
+                    //         ),
+                    //     };
+                    //     postcondition_strengthening = Some(typed::Assertion {
+                    //         kind: box typed::AssertionKind::Implies(proc_post, proc_trait_post),
+                    //     });
+                    // }
                 }
             }
         }
@@ -3121,7 +3123,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
-        precondition_weakening: Option<typed::Assertion<'tcx>>,
+        precondition_weakening: Option<LocalDefId>,
     ) -> SpannedEncodingResult<(
         vir::Expr,
         Vec<vir::Expr>,
@@ -3199,16 +3201,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?;
             func_spec.push(value);
         }
-        let precondition_spans = MultiSpan::from_spans(
-            func_precondition
-                .iter()
-                .flat_map(|ts| typed::Spanned::get_spans(
-                    ts,
-                    &self.mir,
-                    self.encoder.env().tcx()
-                ))
-                .collect(),
-        );
+        let precondition_spans = MultiSpan::new(); // TODO: get the right span
 
         let mut invs_spec: Vec<vir::Expr> = vec![];
         for arg in contract.args.iter() {
@@ -3252,7 +3245,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_preconditions(
         &mut self,
         start_cfg_block: CfgBlockIndex,
-        precondition_weakening: Option<typed::Assertion<'tcx>>,
+        precondition_weakening: Option<LocalDefId>,
     ) -> SpannedEncodingResult<()> {
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
@@ -3355,77 +3348,78 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .iter()
                 .map(|(place, mutability)| encode_place_perm(place, *mutability, pre_label))
                 .collect::<SpannedEncodingResult<_>>()?;
-            if let Some(typed::Pledge { reference, lhs: body_lhs, rhs: body_rhs}) = pledges.first() {
-                debug!(
-                    "pledge reference={:?} lhs={:?} rhs={:?}",
-                    reference, body_lhs, body_rhs
-                );
-                assert!(
-                    reference.is_none(),
-                    "The reference should be none in postcondition."
-                );
-                let mut assertion_lhs = if let Some(body_lhs) = body_lhs {
-                    self.encoder.encode_assertion(
-                        &body_lhs,
-                        &self.mir,
-                        Some(pre_label),
-                        &encoded_args,
-                        Some(&encoded_return),
-                        false,
-                        None,
-                        ErrorCtxt::GenericExpression,
-                    )?
-                } else {
-                    true.into()
-                };
-                let mut assertion_rhs = self.encoder.encode_assertion(
-                    &body_rhs,
-                    &self.mir,
-                    Some(pre_label),
-                    &encoded_args,
-                    Some(&encoded_return),
-                    false,
-                    None,
-                    ErrorCtxt::GenericExpression,
-                )?;
-                assertion_lhs = self.wrap_arguments_into_old(
-                    assertion_lhs,
-                    pre_label,
-                    contract,
-                    &encoded_args
-                )?;
-                assertion_rhs = self.wrap_arguments_into_old(
-                    assertion_rhs,
-                    pre_label,
-                    contract,
-                    &encoded_args
-                )?;
-                let ty = self.locals.get_type(contract.returned_value);
-                let return_span = self.mir_encoder.get_local_span(
-                    contract.returned_value.into()
-                );
-                let (encoded_deref, ..) = self
-                    .mir_encoder
-                    .encode_deref(encoded_return.clone(), ty)
-                    .with_span(return_span)?;
+            unimplemented!();
+            // if let Some(typed::Pledge { reference, lhs: body_lhs, rhs: body_rhs}) = pledges.first() {
+            //     debug!(
+            //         "pledge reference={:?} lhs={:?} rhs={:?}",
+            //         reference, body_lhs, body_rhs
+            //     );
+            //     assert!(
+            //         reference.is_none(),
+            //         "The reference should be none in postcondition."
+            //     );
+            //     let mut assertion_lhs = if let Some(body_lhs) = body_lhs {
+            //         self.encoder.encode_assertion(
+            //             &body_lhs,
+            //             &self.mir,
+            //             Some(pre_label),
+            //             &encoded_args,
+            //             Some(&encoded_return),
+            //             false,
+            //             None,
+            //             ErrorCtxt::GenericExpression,
+            //         )?
+            //     } else {
+            //         true.into()
+            //     };
+            //     let mut assertion_rhs = self.encoder.encode_assertion(
+            //         &body_rhs,
+            //         &self.mir,
+            //         Some(pre_label),
+            //         &encoded_args,
+            //         Some(&encoded_return),
+            //         false,
+            //         None,
+            //         ErrorCtxt::GenericExpression,
+            //     )?;
+            //     assertion_lhs = self.wrap_arguments_into_old(
+            //         assertion_lhs,
+            //         pre_label,
+            //         contract,
+            //         &encoded_args
+            //     )?;
+            //     assertion_rhs = self.wrap_arguments_into_old(
+            //         assertion_rhs,
+            //         pre_label,
+            //         contract,
+            //         &encoded_args
+            //     )?;
+            //     let ty = self.locals.get_type(contract.returned_value);
+            //     let return_span = self.mir_encoder.get_local_span(
+            //         contract.returned_value.into()
+            //     );
+            //     let (encoded_deref, ..) = self
+            //         .mir_encoder
+            //         .encode_deref(encoded_return.clone(), ty)
+            //         .with_span(return_span)?;
 
-                let original_expr = encoded_deref;
-                let old_expr = vir::Expr::labelled_old(post_label, original_expr.clone());
-                // TODO ??
-                assertion_lhs = assertion_lhs.replace_place(&original_expr, &old_expr);
-                assertion_lhs = assertion_lhs.remove_redundant_old();
-                assertion_rhs = assertion_rhs.replace_place(&original_expr, &old_expr);
-                assertion_rhs = assertion_rhs.remove_redundant_old();
-                lhs.push(assertion_lhs);
-                rhs.push(assertion_rhs);
-            }
-            let lhs = lhs
-                .into_iter()
-                .conjoin();
-            let rhs = rhs
-                .into_iter()
-                .conjoin();
-            Ok(Some((lhs, rhs)))
+            //     let original_expr = encoded_deref;
+            //     let old_expr = vir::Expr::labelled_old(post_label, original_expr.clone());
+            //     // TODO ??
+            //     assertion_lhs = assertion_lhs.replace_place(&original_expr, &old_expr);
+            //     assertion_lhs = assertion_lhs.remove_redundant_old();
+            //     assertion_rhs = assertion_rhs.replace_place(&original_expr, &old_expr);
+            //     assertion_rhs = assertion_rhs.remove_redundant_old();
+            //     lhs.push(assertion_lhs);
+            //     rhs.push(assertion_rhs);
+            // }
+            // let lhs = lhs
+            //     .into_iter()
+            //     .conjoin();
+            // let rhs = rhs
+            //     .into_iter()
+            //     .conjoin();
+            // Ok(Some((lhs, rhs)))
         } else {
             Ok(None)
         }
@@ -3481,7 +3475,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         location: Option<mir::Location>,
         contract: &ProcedureContract<'tcx>,
-        postcondition_strengthening: Option<typed::Assertion<'tcx>>,
+        postcondition_strengthening: Option<LocalDefId>,
         pre_label: &str,
         post_label: &str,
         magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
@@ -3599,7 +3593,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 None,
                 ErrorCtxt::GenericExpression,
             )?;
-            func_spec_spans.extend(typed::Spanned::get_spans(typed_assertion, &self.mir, self.encoder.env().tcx()));
+            // TODO: get the right span
+            // func_spec_spans.extend(typed::Spanned::get_spans(typed_assertion, &self.mir, self.encoder.env().tcx()));
             assertion = self.wrap_arguments_into_old(
                 assertion,
                 pre_label,
@@ -3860,7 +3855,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_postconditions(
         &mut self,
         return_cfg_block: CfgBlockIndex,
-        postcondition_strengthening: Option<typed::Assertion<'tcx>>,
+        postcondition_strengthening: Option<LocalDefId>,
     ) -> SpannedEncodingResult<()> {
         // This clone is only due to borrow checker restrictions
         let contract = self.procedure_contract().clone();
@@ -4441,24 +4436,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .map(|local| self.mir_encoder.encode_local(local).map(|l| l.into()))
                 .collect::<Result<Vec<_>, _>>()?;
             for assertion in &specs {
-                // TODO: Mmm... are these parameters correct?
-                let encoded_spec = self.encoder.encode_assertion(
-                    &assertion,
-                    &self.mir,
-                    Some(PRECONDITION_LABEL),
-                    &encoded_args,
-                    None,
-                    false,
-                    Some(loop_inv_block),
-                    ErrorCtxt::GenericExpression,
-                )?;
-                let spec_spans = typed::Spanned::get_spans(assertion, &self.mir, self.encoder.env().tcx());
-                let spec_pos = self
-                    .encoder
-                    .error_manager()
-                    .register_span(spec_spans.clone());
-                encoded_specs.push(encoded_spec.set_default_pos(spec_pos));
-                encoded_spec_spans.extend(spec_spans);
+                unimplemented!();
+                // // TODO: Mmm... are these parameters correct?
+                // let encoded_spec = self.encoder.encode_assertion(
+                //     &assertion,
+                //     &self.mir,
+                //     Some(PRECONDITION_LABEL),
+                //     &encoded_args,
+                //     None,
+                //     false,
+                //     Some(loop_inv_block),
+                //     ErrorCtxt::GenericExpression,
+                // )?;
+                // let spec_spans = typed::Spanned::get_spans(assertion, &self.mir, self.encoder.env().tcx());
+                // let spec_pos = self
+                //     .encoder
+                //     .error_manager()
+                //     .register_span(spec_spans.clone());
+                // encoded_specs.push(encoded_spec.set_default_pos(spec_pos));
+                // encoded_spec_spans.extend(spec_spans);
             }
             trace!("encoded_specs: {:?}", encoded_specs);
         }

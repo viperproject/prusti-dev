@@ -672,25 +672,26 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         //     saelf: self_local_var.clone(),
                         // };
 
-                        match spec {
-                            typed::SpecificationSet::Struct(items) => {
-                                for _item in items {
-                                    // let enc = encode_simple_spec_assertion(
-                                    //     self.encoder,
-                                    //     &[],
-                                    //     &item.assertion
-                                    // );
-                                    let _enc = unimplemented!(
-                                        "TODO: type invariants need to be upgraded \
-                                        to the new compiler version"
-                                    );
-                                    // OPEN TODO: hacky fix here to convert the closure var to "self"...
-                                    // let enc = hacky_folder.fold(enc);
-                                    // exprs.push(enc);
-                                }
-                            }
-                            _ => unreachable!(),
-                        }
+                        unimplemented!();
+                        // match spec {
+                        //     typed::SpecificationSet::Struct(items) => {
+                        //         for _item in items {
+                        //             // let enc = encode_simple_spec_assertion(
+                        //             //     self.encoder,
+                        //             //     &[],
+                        //             //     &item.assertion
+                        //             // );
+                        //             let _enc = unimplemented!(
+                        //                 "TODO: type invariants need to be upgraded \
+                        //                 to the new compiler version"
+                        //             );
+                        //             // OPEN TODO: hacky fix here to convert the closure var to "self"...
+                        //             // let enc = hacky_folder.fold(enc);
+                        //             // exprs.push(enc);
+                        //         }
+                        //     }
+                        //     _ => unreachable!(),
+                        // }
                     }
 
                     if num_variants == 0 {

@@ -21,7 +21,7 @@ use prusti_common::vir::ExprIterator;
 use prusti_common::config;
 use prusti_interface::specs::typed;
 use rustc_hir as hir;
-use rustc_hir::def_id::DefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_middle::{mir, ty, span_bug};
 use std::collections::HashMap;
 use log::{debug, trace};
@@ -130,7 +130,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.encode_function_given_body(None)
     }
 
-    pub fn encode_predicate_function(&self, predicate_body: &typed::Assertion<'tcx>)
+    pub fn encode_predicate_function(&self, predicate_body: &LocalDefId)
         -> SpannedEncodingResult<vir::Function>
     {
         let function_name = self.encode_function_name();
@@ -904,6 +904,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                                 let mut state = states[target_block].clone();
                                 state.substitute_value(&lhs_value, slice_expr);
+                                state
+                            }
+
+                            "prusti_contracts::implication" => {
+                                trace!("Encoding implication expression {:?} ==> {:?}", args[0], args[1]);
+                                assert_eq!(args.len(), 2);
+                                let encoded_rhs = vir::Expr::implies(
+                                    vir::Expr::snap_app(encoded_args[0].clone()),
+                                    vir::Expr::snap_app(encoded_args[1].clone()),
+                                );
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&lhs_value, encoded_rhs);
                                 state
                             }
 

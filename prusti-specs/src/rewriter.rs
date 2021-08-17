@@ -314,7 +314,7 @@ pub fn translate_spec_entailment(closure: syn::Expr, args: Vec<(syn::Ident, syn:
     let post_conjuncts = translate_conjunction(posts);
     parse_quote_spanned! {Span::call_site()=> // TODO: get the right span
         entailment(#closure,
-                   |#arg_tokens| {
+                   |#arg_tokens| { // TODO: pass this as a tuple
                        #pre_conjuncts
                    },
                    |#arg_tokens, cl_result: i32| { // TODO: get the right type
