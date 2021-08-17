@@ -158,7 +158,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 polymorphic_vir::Expr::local(
                     self.interpreter
                         .mir_encoder()
-                        .encode_polymorphic_local(arg)?
+                        .encode_local(arg)?
                 ),
                 arg_ty
             ).with_span(span)?;
@@ -577,7 +577,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 polymorphic_vir::PermAmount::Write
             };
             let opt_pred_perm = self.interpreter.mir_encoder()
-                .encode_polymorphic_place_predicate_permission(self.encode_polymorphic_local(local.into())?.into(), fraction);
+                .encode_place_predicate_permission(self.encode_polymorphic_local(local.into())?.into(), fraction);
             if let Some(spec) = opt_pred_perm {
                 type_spec.push(spec)
             }

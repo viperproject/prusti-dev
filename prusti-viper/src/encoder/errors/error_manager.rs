@@ -118,22 +118,14 @@ impl<'tcx> ErrorManager<'tcx>
         }
     }
 
-    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
-        self.register_polymorphic(span, error_ctxt, def_id).into()
-    }
-
-    pub fn register_polymorphic<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> PolymorphicPosition {
-        let pos = self.register_polymorphic_span(span);
+    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> PolymorphicPosition {
+        let pos = self.register_span(span);
         debug!("Register error at: {:?}", pos.id());
         self.error_contexts.insert(pos.id(), (error_ctxt, def_id));
         pos
     }
 
-    pub fn register_span<T: Into<MultiSpan>>(&mut self, span: T) -> Position {
-        self.register_polymorphic_span(span).into()
-    }
-
-    pub fn register_polymorphic_span<T: Into<MultiSpan>>(&mut self, span: T) -> PolymorphicPosition {
+    pub fn register_span<T: Into<MultiSpan>>(&mut self, span: T) -> PolymorphicPosition {
         let span = span.into();
         let pos_id = self.next_pos_id;
         self.next_pos_id += 1;

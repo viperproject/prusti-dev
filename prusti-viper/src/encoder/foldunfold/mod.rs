@@ -155,7 +155,7 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
     method_pos: polymorphic_vir::Position,
 ) -> Result<polymorphic_vir::CfgMethod, FoldUnfoldError> {
     let cfg_vars = cfg.get_all_vars();
-    let predicates = encoder.get_used_polymorphic_viper_predicates_map();
+    let predicates = encoder.get_used_viper_predicates_map();
     // Collect all old expressions used in the CFG
     let old_exprs = {
         struct OldExprCollector {
