@@ -20,6 +20,7 @@ use prusti_common::vir::ExprIterator;
 use prusti_common::vir_local;
 use itertools::Itertools;
 use std::fmt;
+use num_integer;
 
 
 /// return expr to be inhaled, stmts to check asymptotic bounds & remaining (non-credit) assertions
@@ -302,6 +303,32 @@ impl VirCreditPowers {
             );
         }
         Self {powers: new_powers}
+    }
+
+    fn remove_power(&mut self, base: vir::Expr) -> Option<u32> {
+        self.powers.remove(&VirBaseExpr { base })
+    }
+
+    fn insert_power(&mut self, base: vir::Expr, exponent: u32) {
+        let vir_base = VirBaseExpr { base };
+        self.powers.entry(vir_base)
+            .and_modify(|exp| *exp += exponent)
+            .or_insert(exponent);
+    }
+
+    fn get_exponent(&self, base: vir::Expr) -> Option<&u32> {
+        self.powers.get(&VirBaseExpr { base })
+    }
+
+    fn set_exponent(&mut self, base: vir::Expr, exponent: u32) -> bool {
+        let opt_exp = self.powers.get_mut(&VirBaseExpr { base });
+        if let Some(exp_ref) = opt_exp {
+            *exp_ref = exponent;
+            true
+        }
+        else {
+            false
+        }
     }
 }
 
@@ -769,33 +796,300 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
     fn substitute(&mut self, target: &Expr, replacement: Expr) -> EncodingResult<()> {
         for (opt_condition, credit_cost) in &mut self.cost {
             *opt_condition = opt_condition.as_ref().map(|cond_expr| cond_expr.clone().replace_place(target, &replacement));      //TODO: avoid cloning?
+
             for coeff_map in credit_cost.values_mut() {
                 // coefficients should only contain constants (& abstract coefficient function calls)
                 // -> only replace in powers, but cannot directly modify the key!
-                let use_target_in_power = coeff_map.keys().any(|powers| powers.uses_place(target));
-                if use_target_in_power {
-                    match replacement {
-                        Expr::Local(..) => {
-                            // simple 1:1-replacement
-                            let mut new_map = BTreeMap::new();
-                            //TODO: avoid cloning
-                            let power_coeffs = coeff_map.into_iter()
-                                .map(|(powers, coeff)|
-                                    (powers.clone().replace_place(target, &replacement), coeff.clone()))        // coeff only contains only constants
-                                .collect::<Vec<(VirCreditPowers, vir::Expr)>>();
-                            add_concrete_costs(          // places may map to the same after replacement
-                                                         &mut new_map,
-                                                         power_coeffs.iter().map(|(a, b)| (a, b))        // convert &(A, B) into (&A, &B)
-                            );
-                            *coeff_map = new_map;
+
+                // used to avoid modification while iterating over the map, which is not allowed
+                let powers_to_replace = coeff_map.keys()
+                    .filter(|powers| powers.uses_place(target))
+                    .map(|powers| powers.clone())
+                    .collect::<Vec<_>>();
+
+                let mut entries_to_replace = vec![];
+                for powers in powers_to_replace {
+                    let coeff = coeff_map.remove(&powers).unwrap();
+                    entries_to_replace.push((powers, coeff));
+                }
+
+                if !entries_to_replace.is_empty() {
+                    if replacement.is_constant() {
+                        /*if const_val < 0 {        //TODO: check here, or enough to let Viper check
+                            return Err(EncodingError::unsupported(
+                                "A negative amount of resource credits is not supported"
+                            ));
+                        }*/
+
+                        // a power is constant -> eliminate from powers & multiply to coefficient
+                        for (mut powers, mut coeff) in entries_to_replace {
+                            if let Some(exp) = powers.remove_power(target.clone()) {
+                                // multiply coeff^exp with constant
+                                for _i in 0..exp {
+                                    coeff = vir::Expr::mul(replacement.clone(), coeff);
+                                }
+                                // could already have a coefficient for these powers after replacement
+                                // if that is the case, we add the coefficients
+                                if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
+                                    *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
+                                } else {
+                                    coeff_map.insert(powers, coeff);
+                                }
+                            } else {
+                                return Err(EncodingError::internal(
+                                    format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
+                                ));
+                            }
                         }
-                        _ => {
-                            unimplemented!("Assignment not supported");     //TODO: better error: do not allow dependence on ...
+                    } else {
+                        match &replacement {
+                            Expr::Local(..) | Expr::Field(..)
+                            | Expr::SnapApp(box (Expr::Local(..) | Expr::Field(..)), _) => {
+                                for (mut powers, coeff) in entries_to_replace {
+                                    powers = powers.replace_place(target, &replacement);
+                                    // could already have a coefficient for these powers after replacement
+                                    // if that is the case, we add the coefficients
+                                    if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
+                                        *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
+                                    } else {
+                                        coeff_map.insert(powers, coeff);
+                                    }
+                                }
+                                //TODO: add fold/unfold if order changes!
+                            }
+                            //TODO: SnapApps needed?
+                            Expr::BinOp(
+                                vir::BinOpKind::Add,
+                                box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
+                                box place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                _,
+                            )
+                            | Expr::BinOp(
+                                vir::BinOpKind::Add,
+                                box place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
+                                _,
+                            ) => {  // sum of constant & var
+                                substitute_sum_place_const(coeff_map, entries_to_replace, target, place, *const_val)?;
+                            }
+
+                            Expr::BinOp(
+                                vir::BinOpKind::Sub,
+                                box place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
+                                _,
+                            ) => {
+                                substitute_sum_place_const(coeff_map, entries_to_replace, target, place, -*const_val)?;
+                            }
+
+                            Expr::BinOp(
+                                vir::BinOpKind::Add,
+                                box place1 @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box place2 @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                _,
+                            ) => {  // sum of two places
+                                for (mut powers, coeff) in entries_to_replace {
+                                    if let Some(exp) = powers.remove_power(target.clone()) {
+                                        if exp > 66 {
+                                            return Err(EncodingError::unsupported(
+                                                "Exponents > 66 will lead to an overflow in the cost inference"
+                                            ))
+                                        }
+
+                                        // compute binomial expansion of (place1 + place2)^exp
+                                        for i in 0u32..=exp {
+                                            let binomial = num_integer::binomial(exp as i64, i as i64);
+                                            let new_coeff = vir::Expr::mul(binomial.into(), coeff.clone());
+
+                                            let mut new_powers = powers.clone();
+                                            // add place1^i * place2^(exp-i)
+                                            let exp2 = exp - i;
+                                            if i == 0 {
+                                                new_powers.insert_power(place2.clone(), exp2);
+                                            } else {
+                                                new_powers.insert_power(place1.clone(), i);
+                                                if exp2 > 0 {
+                                                    new_powers.insert_power(place2.clone(), exp2);
+                                                }
+                                            }
+
+                                            // could already have a coefficient for these powers after replacement
+                                            // if that is the case, we add the coefficients
+                                            if let Some(curr_coeff) = coeff_map.get_mut(&new_powers) {
+                                                *curr_coeff = vir::Expr::add(curr_coeff.clone(), new_coeff);
+                                            } else {
+                                                coeff_map.insert(new_powers, new_coeff);
+                                            }
+                                        }
+                                    } else {
+                                        return Err(EncodingError::internal(
+                                            format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
+                                        ));
+                                    }
+                                }
+                            }
+
+                            Expr::BinOp(
+                                vir::BinOpKind::Mul,
+                                box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
+                                box place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                _,
+                            )
+                            | Expr::BinOp(
+                                vir::BinOpKind::Mul,
+                                box place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
+                                _,
+                            ) => {  // product of constant & place
+                                // just replace target with place & multiply constant to coefficient
+                                for (mut powers, mut coeff) in entries_to_replace {
+                                    if let Some(exp) = powers.remove_power(target.clone()) {
+                                        let multiplier = const_val.checked_pow(exp)
+                                            .ok_or_else(
+                                                || EncodingError::internal(
+                                                    format!("Computation of coefficient in cost inference will overflow for {} = {}", target, replacement)
+                                                )
+                                            )?;
+                                        coeff = vir::Expr::mul(multiplier.into(), coeff);
+
+                                        powers.insert_power(place.clone(), exp);
+                                        // could already have a coefficient for these powers after replacement
+                                        // if that is the case, we add the coefficients
+                                        if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
+                                            *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
+                                        } else {
+                                            coeff_map.insert(powers, coeff);
+                                        }
+                                    } else {
+                                        return Err(EncodingError::internal(
+                                            format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
+                                        ));
+                                    }
+                                }
+                            }
+
+                            Expr::BinOp(
+                                vir::BinOpKind::Mul,
+                                box place1 @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box place2 @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                _,
+                            ) => {
+                                // replace target by two new places in powers
+                                for (mut powers, coeff) in entries_to_replace {
+                                    if let Some(exp) = powers.remove_power(target.clone()) {
+                                        powers.insert_power(place1.clone(), exp);
+                                        powers.insert_power(place2.clone(), exp);
+                                        // could already have a coefficient for these powers after replacement
+                                        // if that is the case, we add the coefficients
+                                        if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
+                                            *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
+                                        } else {
+                                            coeff_map.insert(powers, coeff);
+                                        }
+                                    } else {
+                                        return Err(EncodingError::internal(
+                                            format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
+                                        ));
+                                    }
+                                }
+                            }
+
+                            Expr::BinOp(
+                                vir::BinOpKind::Div,
+                                box lhs_place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(rhs_const_val), _), _),
+                                _
+                            ) => {
+                                // divide coefficient by const & replace by lhs in powers
+                                for (mut powers, mut coeff) in entries_to_replace {
+                                    if let Some(exp) = powers.remove_power(target.clone()) {
+                                        let divisor = rhs_const_val.checked_pow(exp)
+                                            .ok_or_else(
+                                                || EncodingError::internal(
+                                                    format!("Computation of coefficient in cost inference will overflow for {} = {}", target, replacement)
+                                                )
+                                            )?;
+                                        coeff = vir::Expr::div(coeff, divisor.into());
+
+                                        powers.insert_power(lhs_place.clone(), exp);
+                                        // could already have a coefficient for these powers after replacement
+                                        // if that is the case, we add the coefficients
+                                        if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
+                                            *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
+                                        } else {
+                                            coeff_map.insert(powers, coeff);
+                                        }
+                                    } else {
+                                        return Err(EncodingError::internal(
+                                            format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
+                                        ));
+                                    }
+                                }
+                            }
+
+                            /*Expr::UnaryOp(vir::UnaryOpKind::Minus, box expr, _) => {
+                            TODO: allow -place as base of power!? Same for const - place
+                        }*/
+                            _ => {
+                                // TODO: more specific errors per replacement type
+                                return Err(EncodingError::unsupported(
+                                    format!("Credit costs depending on {:?} are not supported", replacement)
+                                ));
+                            }
                         }
                     }
                 }
             }
         }
+
+        fn substitute_sum_place_const(
+            coeff_map: &mut BTreeMap<VirCreditPowers, vir::Expr>,
+            entries_to_replace: Vec<(VirCreditPowers, vir::Expr)>,
+            target: &vir::Expr,
+            place: &vir::Expr,
+            const_val: i64,
+        ) -> EncodingResult<()> {
+            for (mut powers, coeff) in entries_to_replace {
+                if let Some(exp) = powers.remove_power(target.clone()) {
+                    if exp > 66 {
+                        return Err(EncodingError::unsupported(
+                            "Exponents > 66 will lead to an overflow in the cost inference"
+                        ))
+                    }
+
+                    let mut const_power = 1i64;
+                    // compute binomial expansion of (place + const_val)^exp
+                    for i in 0u32..=exp {
+                        let binomial = num_integer::binomial(exp as i64, i as i64);
+                        let multiplier = binomial * const_power;
+                        let new_coeff = vir::Expr::mul(multiplier.into(), coeff.clone());
+
+                        let new_exp = exp - i;
+                        let mut new_powers = powers.clone();
+                        if new_exp > 0u32 {
+                            new_powers.insert_power(place.clone(), new_exp);
+                        }
+
+                        // could already have a coefficient for these powers after replacement
+                        // if that is the case, we add the coefficients
+                        if let Some(curr_coeff) = coeff_map.get_mut(&new_powers) {
+                            *curr_coeff = vir::Expr::add(curr_coeff.clone(), new_coeff);
+                        } else {
+                            coeff_map.insert(new_powers, new_coeff);
+                        }
+
+                        const_power *= const_val;
+                    }
+                }
+                else {
+                    return Err(EncodingError::internal(
+                        format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
+                    ));
+                }
+            }
+            Ok(())
+        }
+
         Ok(())
     }
 
