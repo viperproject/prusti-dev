@@ -4,7 +4,6 @@ use std::convert::TryFrom;
 use viper::silicon_counterexample::*;
 use viper::VerificationError;
 use prusti_interface::data::ProcedureDefId;
-use prusti_common::vir::CfgMethod;
 use crate::encoder::Encoder;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::counterexample::*;
