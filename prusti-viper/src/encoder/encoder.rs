@@ -109,8 +109,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_predicate_types: RefCell<HashMap<ty::TyKind<'tcx>, polymorphic_vir::Type>>,
     type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     type_tag_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
-    predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
-    polymorphic_type_names: RefCell<HashMap<polymorphic_vir::Type, String>>,
+    predicate_types: RefCell<HashMap<polymorphic_vir::Type, ty::Ty<'tcx>>>,
     type_predicates: RefCell<HashMap<String, polymorphic_vir::Predicate>>,
     type_invariants: RefCell<HashMap<String, polymorphic_vir::FunctionIdentifier>>,
     type_tags: RefCell<HashMap<String, polymorphic_vir::FunctionIdentifier>>,
@@ -174,7 +173,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_invariant_names: RefCell::new(HashMap::new()),
             type_tag_names: RefCell::new(HashMap::new()),
             predicate_types: RefCell::new(HashMap::new()),
-            polymorphic_type_names: RefCell::new(HashMap::new()),
             type_predicates: RefCell::new(HashMap::new()),
             type_invariants: RefCell::new(HashMap::new()),
             type_tags: RefCell::new(HashMap::new()),
@@ -808,10 +806,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ))
     }
 
-    pub fn decode_type_predicate(&self, name: &str)
+    pub fn decode_type_predicate(&self, typ: &polymorphic_vir::Type)
         -> EncodingResult<ty::Ty<'tcx>>
     {
-        if let Some(ty) = self.predicate_types.borrow().get(name) {
+        if let Some(ty) = self.predicate_types.borrow().get(typ) {
             Ok(ty)
         } else {
             Err(EncodingError::internal(
@@ -829,13 +827,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.type_predicate_types
                 .borrow_mut()
                 .insert(ty.kind().clone(), encoded_type.clone());
-            let encoded_string = encoded_type.clone().encode_as_string();
             self.predicate_types
                 .borrow_mut()
-                .insert(encoded_string.clone(), ty);
-            self.polymorphic_type_names
-                .borrow_mut()
-                .insert(encoded_type, encoded_string);
+                .insert(encoded_type, ty);
             // Trigger encoding of definition
             self.encode_type_predicate_def(ty)?;
         }

@@ -49,19 +49,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedArrayTypes<'tcx> {
             }
         );
 
-        polymorphic_vir::Expr::func_app( polymorphic_vir::FuncApp {
-            function_name: lookup_pure,
-            arguments: vec![
+        polymorphic_vir::Expr::func_app(
+            lookup_pure,
+            vec![
                 array,
                 idx,
             ],
-            formal_arguments: vec![
+            vec![
                 vir_local!{ self: {self.array_ty.clone()} },
                 vir_local!{ idx: Int },
             ],
-            return_type: ret_ty,
-            position: polymorphic_vir::Position::default(),
-        })
+            ret_ty,
+            polymorphic_vir::Position::default(),
+        )
     }
 }
 
@@ -90,19 +90,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
             }
         );
 
-        polymorphic_vir::Expr::func_app( FuncApp {
-            function_name: lookup_pure,
-            arguments: vec![
+        polymorphic_vir::Expr::func_app( 
+            lookup_pure,
+            vec![
                 slice,
                 idx,
             ],
-            formal_arguments: vec![
+            vec![
                 vir_local!{ self: {self.slice_ty.clone()} },
                 vir_local!{ idx: Int },
             ],
-            return_type: ret_ty,
-            position: polymorphic_vir::Position::default(),
-        })
+            ret_ty,
+            polymorphic_vir::Position::default(),
+        )
     }
 
     pub fn encode_slice_len_call(&self, encoder: &'p Encoder<'v, 'tcx>, slice: polymorphic_vir::Expr) -> polymorphic_vir::Expr {
@@ -113,17 +113,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
             }
         );
 
-        polymorphic_vir::Expr::func_app( polymorphic_vir::FuncApp {
-            function_name: slice_len,
-            arguments: vec![
+        polymorphic_vir::Expr::func_app(
+            slice_len,
+            vec![
                 slice,
             ],
-            formal_arguments: vec![
+            vec![
                 vir_local!{ self: {self.slice_ty.clone()} },
             ],
-            return_type: vir::Type::Int,
-            position: vir::Position::default(),
-        })
+            polymorphic_vir::Type::Int,
+            polymorphic_vir::Position::default(),
+        )
     }
 }
 
@@ -153,14 +153,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
             return Ok(cached.clone());
         }
 
-        let slice_pred = encoder.encode_type_predicate_use(slice_ty_rs)?;
+        let slice_pred = encoder.encode_type_predicate_use(slice_ty_rs)?.encode_as_string();
         let elem_ty_rs = if let ty::TyKind::Slice(elem_ty) = slice_ty_rs.kind() {
             elem_ty
         } else {
             unreachable!()
         };
 
-        let elem_pred = encoder.encode_type_predicate_use(elem_ty_rs)?;
+        let elem_pred = encoder.encode_type_predicate_use(elem_ty_rs)?.encode_as_string();
 
         let slice_ty = encoder.encode_type(slice_ty_rs)?;
         let elem_ty = encoder.encode_type(elem_ty_rs)?;
@@ -189,13 +189,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
         }
 
         // type predicates
-        let array_pred = encoder.encode_type_predicate_use(array_ty_rs)?;
+        let array_pred = encoder.encode_type_predicate_use(array_ty_rs)?.encode_as_string();
         let (elem_ty_rs, len) = if let ty::TyKind::Array(elem_ty, len) = array_ty_rs.kind() {
             (elem_ty, len)
         } else {
             unreachable!()
         };
-        let elem_pred = encoder.encode_type_predicate_use(elem_ty_rs)?;
+        let elem_pred = encoder.encode_type_predicate_use(elem_ty_rs)?.encode_as_string();
 
         // types
         let array_ty = encoder.encode_type(array_ty_rs)?;
