@@ -843,10 +843,10 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                         }
                     } else {
                         match &replacement {
-                            Expr::Local(..) | Expr::Field(..)
-                            | Expr::SnapApp(box (Expr::Local(..) | Expr::Field(..)), _) => {
+                            place @ (Expr::Local(..) | Expr::Field(..))
+                            | Expr::SnapApp(box place @ (Expr::Local(..) | Expr::Field(..)), _) => {            //TODO: patch snapApps or use procedure_encoder encoding instead of pure
                                 for (mut powers, coeff) in entries_to_replace {
-                                    powers = powers.replace_place(target, &replacement);
+                                    powers = powers.replace_place(target, place);
                                     // could already have a coefficient for these powers after replacement
                                     // if that is the case, we add the coefficients
                                     if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
@@ -857,16 +857,16 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 }
                                 //TODO: add fold/unfold if order changes!
                             }
-                            //TODO: SnapApps needed?
+
                             Expr::BinOp(
                                 vir::BinOpKind::Add,
                                 box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
-                                box place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box place @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
                                 _,
                             )
                             | Expr::BinOp(
                                 vir::BinOpKind::Add,
-                                box place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box place @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
                                 box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
                                 _,
                             ) => {  // sum of constant & var
@@ -875,7 +875,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
 
                             Expr::BinOp(
                                 vir::BinOpKind::Sub,
-                                box place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box place @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
                                 box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
                                 _,
                             ) => {
@@ -884,8 +884,8 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
 
                             Expr::BinOp(
                                 vir::BinOpKind::Add,
-                                box place1 @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
-                                box place2 @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box place1 @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box place2 @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
                                 _,
                             ) => {  // sum of two places
                                 for (mut powers, coeff) in entries_to_replace {
@@ -932,12 +932,12 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                             Expr::BinOp(
                                 vir::BinOpKind::Mul,
                                 box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
-                                box place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box place @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
                                 _,
                             )
                             | Expr::BinOp(
                                 vir::BinOpKind::Mul,
-                                box place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box place @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
                                 box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
                                 _,
                             ) => {  // product of constant & place
@@ -970,8 +970,8 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
 
                             Expr::BinOp(
                                 vir::BinOpKind::Mul,
-                                box place1 @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
-                                box place2 @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box place1 @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box place2 @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
                                 _,
                             ) => {
                                 // replace target by two new places in powers
@@ -996,7 +996,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
 
                             Expr::BinOp(
                                 vir::BinOpKind::Div,
-                                box lhs_place @ Expr::SnapApp(box (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box lhs_place @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
                                 box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(rhs_const_val), _), _),
                                 _
                             ) => {
