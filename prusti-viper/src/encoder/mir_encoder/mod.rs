@@ -14,8 +14,8 @@ use crate::encoder::errors::{
 };
 use crate::encoder::Encoder;
 use crate::utils;
-use prusti_common::vir;
 use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::{vir_type, vir_local, vir};
 use prusti_common::config;
 use rustc_target::abi;
 use rustc_hir::def_id::DefId;
@@ -51,7 +51,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         let var_name = self.encode_local_var_name(local);
         let typ = self
             .encoder()
-            .encode_polymorphic_type_predicate_use(self.get_local_ty(local))
+            .encode_type_predicate_use(self.get_local_ty(local))
             .with_span(self.get_local_span(local))?;
         Ok(polymorphic_vir::LocalVar::new(var_name, typ))
     }
@@ -261,7 +261,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             PlaceEncoding::ArrayAccess {
                                 base: box encoded_base,
                                 index,
-                                encoded_elem_ty: self.encoder().encode_polymorphic_type(elem_ty)?,
+                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
                                 rust_array_ty: base_ty,
                             },
                             elem_ty,
@@ -273,7 +273,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             PlaceEncoding::SliceAccess {
                                 base: box encoded_base,
                                 index,
-                                encoded_elem_ty: self.encoder().encode_polymorphic_type(elem_ty)?,
+                                encoded_elem_ty: self.encoder().encode_type(elem_ty)?,
                                 rust_slice_ty: base_ty,
                             },
                             elem_ty,
@@ -310,7 +310,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         polymorphic_vir::Expr::AddrOf( polymorphic_vir::AddrOf {box base, ..} ) => base,
                         _ => {
                             let ref_field = self.encoder()
-                                .encode_polymorphic_dereference_field(ty)?;
+                                .encode_dereference_field(ty)?;
                             encoded_base.field(ref_field)
                         }
                     }
@@ -442,11 +442,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             &mir::Operand::Constant(box mir::Constant {
                 literal: mir::ConstantKind::Ty(ty::Const { ty, val }),
                 ..
-            }) => self.encoder.encode_polymorphic_const_expr(ty, val)?,
+            }) => self.encoder.encode_const_expr(ty, val)?,
             &mir::Operand::Constant(box mir::Constant {
                 literal: mir::ConstantKind::Val(val, ty),
                 ..
-            }) => self.encoder.encode_polymorphic_const_expr(ty, &ty::ConstKind::Value(val))?,
+            }) => self.encoder.encode_const_expr(ty, &ty::ConstKind::Value(val))?,
             &mir::Operand::Copy(ref place) | &mir::Operand::Move(ref place) => {
                 // let val_place = self.eval_place(&place)?;
                 // inlined to do try_into_expr
@@ -726,7 +726,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         .encoder
                         .error_manager()
                         .register(span, ErrorCtxt::TypeCast, self.def_id);
-                    let return_type = self.encoder.encode_polymorphic_snapshot_type(dst_ty).with_span(span)?;
+                    let return_type = self.encoder.encode_snapshot_type(dst_ty).with_span(span)?;
                     return Ok(polymorphic_vir::Expr::func_app(
                         function_name,
                         encoded_args,

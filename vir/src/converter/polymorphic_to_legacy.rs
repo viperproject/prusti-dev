@@ -61,9 +61,9 @@ impl From<polymorphic::Type> for legacy::Type {
             polymorphic::Type::TypedRef(_) | polymorphic::Type::TypeVar(_) => {
                 legacy::Type::TypedRef(typ.encode_as_string())
             }
-            polymorphic::Type::Domain(domain_type) => legacy::Type::Domain(domain_type.label),
-            polymorphic::Type::Snapshot(snapshot_type) => {
-                legacy::Type::Snapshot(snapshot_type.label)
+            polymorphic::Type::Domain(_) => legacy::Type::Domain(typ.encode_as_string()),
+            polymorphic::Type::Snapshot(_) => {
+                legacy::Type::Snapshot(typ.encode_as_string())
             }
         }
     }

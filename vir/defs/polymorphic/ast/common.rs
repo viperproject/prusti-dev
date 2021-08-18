@@ -147,8 +147,8 @@ impl fmt::Display for Type {
             Type::Bool => write!(f, "Bool"),
             Type::Seq(seq) => seq.fmt(f),
             Type::TypedRef(_) => write!(f, "Ref({})", self.encode_as_string()),
-            Type::Domain(domain_type) => domain_type.fmt(f),
-            Type::Snapshot(snapshot_type) => snapshot_type.fmt(f),
+            Type::Domain(_) => write!(f, "Domain({})", self.encode_as_string()),
+            Type::Snapshot(_) => write!(f, "Snapshot({})", self.encode_as_string()),
             Type::TypeVar(type_var) => type_var.fmt(f),
         }
     }
@@ -193,9 +193,7 @@ impl Type {
         match self {
             Type::Bool => "bool".to_string(),
             Type::Int => "int".to_string(),
-            Type::Domain(ref domain) => domain.label.clone(),
-            Type::Snapshot(ref snapshot) => snapshot.label.clone(),
-            Type::TypedRef(_) | Type::TypeVar(_) => {
+            Type::Domain(_) | Type::Snapshot(_) | Type::TypedRef(_) | Type::TypeVar(_) => {
                 self.encode_as_string()
             },
             Type::Seq(SeqType {box ref typ} ) => typ.name(),
@@ -234,6 +232,47 @@ impl Type {
         })
     }
 
+    pub fn domain<S: Into<String>>(name: S) -> Self {
+        Type::Domain(DomainType {
+            label: name.into(),
+            arguments: vec![],
+            variant: String::from(""),
+        })
+    }
+
+    pub fn domain_with_args<S: Into<String>>(name: S, arguments: Vec<Type>) -> Self {
+        Type::Domain(DomainType {
+            label: name.into(),
+            arguments: arguments,
+            variant: String::from(""),
+        })
+    }
+
+    pub fn snapshot<S: Into<String>>(name: S) -> Self {
+        Type::Snapshot(SnapshotType {
+            label: name.into(),
+            arguments: vec![],
+            variant: String::from(""),
+        })
+    }
+
+    pub fn snapshot_with_args<S: Into<String>>(name: S, arguments: Vec<Type>) -> Self {
+        Type::Snapshot(SnapshotType {
+            label: name.into(),
+            arguments: arguments,
+            variant: String::from(""),
+        })
+    }
+
+    // TODO: this is a temporary solution for converting the encoded type in type encoder as a snapshot variant, which ould be cleaner
+    pub fn convert_to_snapshot(&self) -> Self {
+        match self {
+            Type::TypedRef(typed_ref) => Type::Snapshot(typed_ref.clone().into()),
+            Type::TypeVar(type_var) => Type::Snapshot(type_var.clone().into()),
+            _ => unreachable!(),
+        }
+    }
+
     pub fn type_var<S: Into<String>>(name: S) -> Self {
         Type::TypeVar(TypeVar {
             label: name.into(),
@@ -262,7 +301,9 @@ impl Type {
 
     pub fn encode_as_string(&self) -> String {
         match self {
-            Type::TypedRef(TypedRef{label, arguments, variant}) => {
+            Type::TypedRef( TypedRef {label, arguments, variant} )
+            | Type::Domain( DomainType {label, arguments, variant} )
+            | Type::Snapshot( SnapshotType {label, arguments, variant} ) => {
                 let label_str = label.as_str();
                 match label_str {
                     "ref" | "raw_ref" | "Slice"
@@ -287,7 +328,6 @@ impl Type {
                 }
             },
             Type::TypeVar(TypeVar{label}) => format!("__TYPARAM__$_{}$__", label),
-            // could only be encoded as a TypeVar for parameters, or TypedRef for any other cases
             x => unreachable!(x),
         }
     }
@@ -380,6 +420,7 @@ impl Hash for TypedRef {
 pub struct DomainType {
     pub label: String,
     pub arguments: Vec<Type>,
+    pub variant: String,
 }
 
 impl PartialEq for DomainType {
@@ -396,9 +437,23 @@ impl Hash for DomainType {
     }
 }
 
-impl fmt::Display for DomainType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Domain({})", &self.label)
+impl From<TypedRef> for DomainType {
+    fn from(typed_ref: TypedRef) -> DomainType {
+        DomainType {
+            label: typed_ref.label,
+            arguments: typed_ref.arguments,
+            variant: typed_ref.variant,
+        }
+    }
+}
+
+impl From<TypeVar> for DomainType {
+    fn from(type_var: TypeVar) -> DomainType {
+        DomainType {
+            label: type_var.label,
+            arguments: vec![],
+            variant: String::from(""),
+        }
     }
 }
 
@@ -406,6 +461,7 @@ impl fmt::Display for DomainType {
 pub struct SnapshotType {
     pub label: String,
     pub arguments: Vec<Type>,
+    pub variant: String,
 }
 
 impl PartialEq for SnapshotType {
@@ -422,9 +478,23 @@ impl Hash for SnapshotType {
     }
 }
 
-impl fmt::Display for SnapshotType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Snapshot({})", &self.label)
+impl From<TypedRef> for SnapshotType {
+    fn from(typed_ref: TypedRef) -> SnapshotType {
+        SnapshotType {
+            label: typed_ref.label,
+            arguments: typed_ref.arguments,
+            variant: typed_ref.variant,
+        }
+    }
+}
+
+impl From<TypeVar> for SnapshotType {
+    fn from(type_var: TypeVar) -> SnapshotType {
+        SnapshotType {
+            label: type_var.label,
+            arguments: vec![],
+            variant: String::from(""),
+        }
     }
 }
 
