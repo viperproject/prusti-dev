@@ -41,6 +41,9 @@ mod private {
 
     /// A macro for importing prusti specifications
     pub use prusti_contracts_impl::prusti_use;
+
+    /// A macro for specifying trait bound for impl item
+    pub use prusti_contracts_impl::trait_bound;
 }
 
 #[cfg(feature = "prusti")]
@@ -84,6 +87,9 @@ mod private {
 
     /// A macro for importing prusti specification
     pub use prusti_contracts_internal::prusti_use;
+
+    /// A macro for specifying trait bound for impl item
+    pub use prusti_contracts_internal::trait_bound;
 }
 
 

@@ -52,8 +52,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 
 #[proc_macro_attribute]
 pub fn extern_spec(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
-    let callsite_span = Span::call_site();
-    (quote_spanned!(callsite_span=> )).into()
+    TokenStream::new()
 }
 
 #[proc_macro_attribute]
@@ -63,12 +62,15 @@ pub fn predicate(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn export_spec(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
-    let callsite_span = Span::call_site();
-    (quote_spanned!(callsite_span=> )).into()
+    TokenStream::new()
 }
 
 #[proc_macro]
 pub fn prusti_use(_tokens: TokenStream) -> TokenStream {
-    let callsite_span = Span::call_site();
-    (quote_spanned!(callsite_span=> )).into()
+    TokenStream::new()
+}
+
+#[proc_macro_attribute]
+pub fn trait_bound(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
 }

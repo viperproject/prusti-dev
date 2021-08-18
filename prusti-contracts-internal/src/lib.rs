@@ -67,3 +67,8 @@ pub fn export_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn prusti_use(tokens: TokenStream) -> TokenStream {
     prusti_specs::prusti_use(tokens.into()).into()
 }
+
+#[proc_macro_attribute]
+pub fn trait_bound(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    prusti_specs::trait_bound(attr.into(), tokens.into()).into()
+}

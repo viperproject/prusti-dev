@@ -14,13 +14,11 @@ pub fn replace_emitter(
     registry: rustc_errors::registry::Registry,
     dest: Option<Box<dyn Write + std::marker::Send>>,
 ) -> Box<dyn FnOnce(&mut ParseSess) + std::marker::Send> {
-    let callback = |sess: &mut ParseSess| {
+    box |sess: &mut ParseSess| {
         let flags = sopts.debugging_opts.diagnostic_handler_flags(true);
         sess.span_diagnostic =
             build_handler_with_emitter(sopts, registry, dest, sess.clone_source_map(), flags);
-    };
-
-    box callback
+    }
 }
 
 fn build_handler_with_emitter(
@@ -28,10 +26,10 @@ fn build_handler_with_emitter(
     registry: rustc_errors::registry::Registry,
     dest: Option<Box<dyn Write + std::marker::Send>>,
     source_map: Lrc<SourceMap>,
-    flags: HandlerFlags
+    flags: HandlerFlags,
 ) -> Handler {
     Handler::with_emitter_and_flags(
         box ExportErrorEmitter::new(sopts, registry, source_map, dest),
-        flags
+        flags,
     )
 }

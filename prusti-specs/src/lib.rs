@@ -444,18 +444,25 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 }
 
 pub fn export_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    let item: syn::Item = handle_result!(syn::parse2(tokens));
+    let mut item: syn::Item = handle_result!(syn::parse2(tokens));
     let item_span = item.span();
     let path: syn::Path = handle_result!(export_spec_rewriter::parse_valid_export_attr(attr));
-    let macros = handle_result!(export_spec_rewriter::rewrite_export_spec(&path, &item));
+    let macros = handle_result!(export_spec_rewriter::rewrite_export_spec(&path, &mut item));
     parse_quote_spanned!(item_span => 
         #item
         #macros
     )
 }
 
+pub fn trait_bound(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    parse_quote_spanned!(attr.span()=>
+        #[prusti::trait_bound(#attr)]
+        #tokens
+    )
+}
+
 pub fn prusti_use(tokens: TokenStream) -> TokenStream {
-    let path: syn::Path = handle_result!(syn::parse2(tokens.into()));
+    let path: syn::Path = handle_result!(syn::parse2(tokens));
     let macro_path = handle_result!(prusti_use_macro(path));
     parse_quote_spanned!(macro_path.span()=> #macro_path!();) 
 }

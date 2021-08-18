@@ -1,4 +1,3 @@
-use std::io::Write;
 use rustc_data_structures::sync::{self, Lrc};
 use rustc_errors::{
     annotate_snippet_emitter_writer::AnnotateSnippetEmitterWriter,
@@ -7,9 +6,11 @@ use rustc_errors::{
     registry::Registry,
     Diagnostic, DiagnosticId, Handler,
 };
-use rustc_span::source_map::SourceMap;
+/// A set of structs and fns to access the info compiler use to construct a session
 use rustc_session::config;
-
+/// A struct for mapping source code and files
+use rustc_span::source_map::SourceMap;
+use std::io::Write;
 
 pub struct ExportErrorEmitter {
     inner: Box<dyn Emitter>,
@@ -38,7 +39,7 @@ impl ExportErrorEmitter {
 
     fn custom_emit(&mut self, diag: &Diagnostic) {
         if let Some(DiagnosticId::Error(err_code)) = &diag.code {
-            if &err_code == &"E0428"
+            if err_code == "E0428"
                 && diag
                     .message
                     .iter()
@@ -46,14 +47,7 @@ impl ExportErrorEmitter {
             {
                 let mut diag = diag.to_owned();
                 for (msg, _) in diag.message.iter_mut() {
-                    let msg_vec: Vec<&str> = msg.split("_").collect();
-                    let len = msg_vec.len();
-                    if len >= 4 {
-                        *msg = format!(
-                            "[Prusti: invalid specification] duplicate export specification for {}",
-                            msg_vec[2..(len - 1)].join("")
-                        );
-                    }
+                    self.rewrite_error_msg(msg);
                 }
                 self.inner.as_mut().emit_diagnostic(&diag);
             } else {
@@ -63,8 +57,24 @@ impl ExportErrorEmitter {
             self.inner.as_mut().emit_diagnostic(diag);
         }
     }
+
+    /// The fn rewrite the msg stored in diagnostic
+    /// Currently we only target the error msg that is redefinition of prusti-export macro
+    /// Example: "multiple define of prusti_export_ident_hash" -> "duplicate specification for ident"
+    fn rewrite_error_msg(&self, msg: &mut String) {
+        let msg_vec: Vec<&str> = msg.split('_').collect();
+        let len = msg_vec.len();
+        if len >= 4 {
+            *msg = format!(
+                "[Prusti: invalid specification] duplicate export specification for {}",
+                msg_vec[2..(len - 1)].join("")
+            );
+        }
+    }
 }
 
+/// This function is built on rustc src to create default emitter
+/// https://github.com/rust-lang/rust/blob/3d0774d0dc98084d25d95cc1909a8051ebbd9cb1/compiler/rustc_session/src/session.rs#L1129-L1191
 fn build_inner_emitter(
     sopts: &config::Options,
     registry: rustc_errors::registry::Registry,
