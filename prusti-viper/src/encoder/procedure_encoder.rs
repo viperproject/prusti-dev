@@ -62,7 +62,7 @@ use rustc_attr::IntType::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
 use rustc_span::{MultiSpan, Span};
 use prusti_interface::specs::typed;
-use ::log::{trace, debug};
+use ::log::{trace, debug, warn};
 use std::borrow::Borrow as StdBorrow;
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
@@ -1342,7 +1342,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
-    fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> EncodingResult<(vir::Expr, vir::Expr, bool, Vec<vir::Stmt>)> {
+    fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> EncodingResult<(vir::Expr, Option<vir::Expr>, bool, Vec<vir::Stmt>)> {
         debug!("encode_loan_places '{:?}'", loan_places);
 
         // will panic if attempting to encode unsupported type
@@ -1399,7 +1399,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // array access, we don't want that call, as we transfer the permissions ourselves
                 // here already (because we need them for the wand RHS), so transfering them again
                 // would fail.
-                return Ok((expiring_base, regained_array, false, stmts));
+                return Ok((expiring_base, Some(regained_array), false, stmts));
             }
         }
 
@@ -1421,19 +1421,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let array_encode_kind = if is_mut { ArrayAccessKind::Mutable(None, loan_places.location) } else { ArrayAccessKind::Shared };
                 let (expiring, restored, _) = encode(rhs_place, &mut stmts, array_encode_kind)?;
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored, is_mut, stmts)
+                (expiring, Some(restored), is_mut, stmts)
             }
             mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
                 let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts, ArrayAccessKind::Shared)?;
                 let restored = restored_base.clone().field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored, true, stmts)
+                (expiring, Some(restored), true, stmts)
             }
             mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) => {
                 let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts, ArrayAccessKind::Shared)?;
                 let restored = restored_base.clone().field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored, false, stmts)
+                (expiring, Some(restored), false, stmts)
             }
 
             mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
@@ -1446,12 +1446,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let (restored, r_stmts, ..) = self.encode_place(place, ArrayAccessKind::Shared)?;
                 stmts.extend(r_stmts);
 
-                (expiring_base, restored, false, stmts)
+                (expiring_base, Some(restored), false, stmts)
             }
 
             mir::Rvalue::Use(mir::Operand::Constant(box mir::Constant { literal, .. })) => {
                 let (ty, val) = mir_constantkind_to_ty_val(literal);
-                let restored = self.encoder.encode_const_expr(ty, &val)?;
+
+                let restored : Option<vir::Expr> = match ty.kind() {
+                    ty::TyKind::Ref(_, inner, _) if inner.is_str() => None,
+                    _ => Some(
+                        self.encoder.encode_const_expr(ty, &val).unwrap()
+                    )
+                };
 
                 (expiring_base, restored, false, stmts)
             }
@@ -1551,6 +1557,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let mut builder = vir::borrows::DAGBuilder::new();
         for node in mir_dag.iter() {
+            // match node.kind {
+            //     ReborrowingKind::Assignment { loan } => {
+            //         let loan_places = self.polonius_info().get_loan_places(&loan).unwrap().unwrap();
+            //         match loan_places.source {
+            //             mir::Rvalue::Use(mir::Operand::Constant(box mir::Constant { literal, .. })) => {
+            //                 let (ty, _) = mir_constantkind_to_ty_val(literal);
+            //                 match ty.kind() {
+            //                 ty::TyKind::Ref(_, inner, _) if inner.is_str() => continue,
+            //                 _ => {}
+            //                 }
+            //             },
+            //             _ => {}
+            //         };
+            //     },
+            //     _ => {}
+            // }
             let node = match node.kind {
                 ReborrowingKind::Assignment { loan } => self
                     .construct_vir_reborrowing_node_for_assignment(
@@ -1620,13 +1642,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .with_span(span)?.unwrap();
         let (expiring, restored, is_mut, mut stmts) = self.encode_loan_places(&loan_places)
             .with_span(span)?;
-        let borrowed_places = vec![restored.clone()];
+        let borrowed_places = restored.clone().into_iter().collect(); // rvec![restored.clone()];
         trace!("construct_vir_reborrowing_node_for_assignment(loan={:?}, loan_places={:?}, expiring={:?}, restored={:?}, stmts={:?}", loan, loan_places, expiring, restored, stmts);
 
         let mut used_lhs_label = false;
 
         // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
-        if node.incoming_zombies {
+        if node.incoming_zombies && restored.is_some() {
             let lhs_label = self.get_label_after_location(loan_location).to_string();
             for &in_loan in node.reborrowing_loans.iter() {
                 // TODO: Is this the correct span?
@@ -1653,7 +1675,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let rhs_place = match node.zombity {
             ReborrowingZombity::Zombie(rhs_location) if !node_is_leaf => {
                 let rhs_label = self.get_label_after_location(rhs_location);
-                restored.clone().old(rhs_label)
+                restored.clone().map(|r| r.old(rhs_label))
             }
 
             _ => restored,
@@ -1662,7 +1684,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if is_mut {
             stmts.extend(self.encode_transfer_permissions(
                 lhs_place.clone(),
-                rhs_place,
+                rhs_place.unwrap(),
                 loan_location,
                 is_in_package_stmt,
             ));
@@ -4951,16 +4973,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             location,
                             vir::AssignKind::Copy,
                         )?;
-                        // Initialize the constant
-                        let const_val = self.encoder
-                            .encode_const_expr(ty, &val)
-                            .with_span(span)?;
-                        // Initialize value of lhs
-                        stmts.push(vir::Stmt::Assign(
-                            lhs.clone().field(field),
-                            const_val,
-                            vir::AssignKind::Copy,
-                        ));
+                        let is_str = match ty.kind() {
+                            ty::TyKind::Ref(_, inner, _) => inner.is_str(),
+                            _ => false
+                        };
+                        if !is_str {
+                            // warn!("Hey {:?}", ty);
+                            // Initialize the constant
+                            let const_val = self.encoder
+                                .encode_const_expr(ty, &val)
+                                .with_span(span)?;
+                            // Initialize value of lhs
+                            stmts.push(vir::Stmt::Assign(
+                                lhs.clone().field(field),
+                                const_val,
+                                vir::AssignKind::Copy,
+                            ));
+                        }
                         stmts
                     }
                 }
@@ -5584,17 +5613,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if !self.init_info.is_vir_place_accessible(&dst, location) {
             let mut alloc_stmts = self.encode_havoc(&dst);
             let dst_field = dst.clone().field(field.clone());
-            let acc = vir::Expr::acc_permission(dst_field, vir::PermAmount::Write);
+            let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
             alloc_stmts.push(vir::Stmt::Inhale(acc));
             match vir_assign_kind {
                 vir::AssignKind::Copy => {
                     if field.typ.is_ref() {
-                        // TODO: Inhale the predicate rooted at dst_field
-                        return Err(SpannedEncodingError::unsupported(
-                            "the encoding of this reference copy has not \
-                            been implemented",
-                            self.mir_encoder.get_span_of_location(location),
-                        ));
+                        if field.typed_ref_name() == Some("str".to_string()) {
+                            let pred_acc = vir::Expr::predicate_access_predicate("str", dst_field, vir::PermAmount::Read);
+                            alloc_stmts.push(vir::Stmt::Inhale(pred_acc));
+                        } else {
+                            // TODO: Inhale the predicate rooted at dst_field
+                            return Err(SpannedEncodingError::unsupported(
+                                "the encoding of this reference copy has not \
+                                been implemented",
+                                self.mir_encoder.get_span_of_location(location),
+                            ));
+                        }
                     }
                 }
                 vir::AssignKind::Move
