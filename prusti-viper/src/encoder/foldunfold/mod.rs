@@ -14,7 +14,7 @@ use crate::encoder::Encoder;
 use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
 use vir_crate::polymorphic as polymorphic_vir;
-// use prusti_common::vir::ToGraphViz;
+use prusti_common::vir::ToGraphViz;
 use vir_crate::polymorphic::borrows::Borrow;
 use vir_crate::polymorphic::{CfgBlockIndex, CfgReplacer, CheckNoOpAction, PermAmountError};
 use vir_crate::polymorphic::{ExprFolder, FallibleExprFolder, ExprWalker, PermAmount};
@@ -499,8 +499,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> polymorphic_vir::CfgReplacer<PathCtxt<'p>, ActionVec>
         initial_pctxt: &[Option<PathCtxt>],
         _final_pctxt: &[Option<PathCtxt>],
     ) {
-        // TODO polymorphic - update to_graphviz to polymorphic
-        /*
+
         if self.dump_debug_info {
             let source_path = self.encoder.env().source_path();
             let source_filename = source_path.file_name().unwrap().to_str().unwrap();
@@ -509,7 +508,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> polymorphic_vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 "graphviz_method_during_foldunfold",
                 format!("{}.{}.dot", source_filename, method_name),
                 |writer| {
-                    new_cfg.to_graphviz_with_extra(writer, |bb_index| {
+                    // TODO: currently polymorphic vir is cloned and converted to legacy vir to use to_graphviz. Could it be better?
+                    let legacy_vir_new_cfg: vir::CfgMethod = new_cfg.clone().into();
+                    legacy_vir_new_cfg.to_graphviz_with_extra(writer, |bb_index| {
                         initial_pctxt
                             .get(bb_index)
                             .and_then(|opt_pctxt| {
@@ -539,7 +540,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> polymorphic_vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 },
             );
         }
-        */
     }
 
     fn check_compatible_back_edge(_left: &PathCtxt<'p>, _right: &PathCtxt<'p>) {
