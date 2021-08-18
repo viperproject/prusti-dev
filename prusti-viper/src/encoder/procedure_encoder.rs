@@ -2733,6 +2733,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ).with_span(call_site_span)?
         };
         assert_one_magic_wand(procedure_contract.borrow_infos.len()).with_span(call_site_span)?;
+
         // Store a label for the pre state
         let pre_label = self.cfg_method.get_fresh_label_name();
         stmts.push(vir::Stmt::Label(pre_label.clone()));
