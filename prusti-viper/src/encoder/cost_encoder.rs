@@ -290,6 +290,22 @@ impl fmt::Display for VirCreditPowers {
 }
 
 impl VirCreditPowers {
+    fn base_exprs(&self) -> Vec<vir::Expr> {
+        self.powers.iter()
+            .map(|(base, exp)| base.base.clone())
+            .collect()
+    }
+
+    fn exponents(&self) -> Vec<u32> {
+        self.powers.iter()
+            .map(|(base, exp)| exp.clone())
+            .collect()
+    }
+
+    fn get_index(&self, base_expr: &Expr) -> Option<usize> {
+        self.powers.keys().position(|vir_base| vir_base.base == *base_expr)     //TODO: optimization?
+    }
+
     fn uses_place(&self, target: &Expr) -> bool {
         self.powers.keys().any(|base| base.uses_place(target))
     }
@@ -775,6 +791,56 @@ fn add_concrete_costs<'a>(
     }
 }
 
+//TODO: move!?
+#[derive(Clone, Debug)]
+pub(crate) struct CreditConversion {
+    credit_type: String,
+    result_exps: Vec<u32>,
+    result_bases: Vec<vir::Expr>,
+    result_coeff: vir::Expr,
+    // above define resulting CreditAccessPredicate expression
+    assigned_place_idx: usize,
+    conversion_type: CreditConversionType,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) enum CreditConversionType {
+    ConstToPlace {
+        constant: vir::Expr,
+    },
+    Reorder {
+        previous_idx: usize,
+        previous_base: vir::Expr,
+    },
+    SumPlaceConst {
+        place_idx: usize,
+        place_expr: vir::Expr,
+        const_val: i64,
+    },
+    MulPlaceConst {
+        place_idx: usize,
+        place_expr: vir::Expr,
+        multiplier: i64,
+    },
+    DivPlaceConst {     //TODO: summarize with MulPlaceConst
+        place_idx: usize,
+        place_expr: vir::Expr,
+        divisor: i64,
+    },
+    SumPlacePlace {
+        place1_idx: usize,
+        place1_expr: vir::Expr,
+        place2_idx: usize,
+        place2_expr: vir::Expr,
+    },
+    MulPlacePlace {
+        place1_idx: usize,
+        place1_expr: vir::Expr,
+        place2_idx: usize,
+        place2_expr: vir::Expr,
+    },
+}
+
 type CostMap = Vec<(Option<vir::Expr>, BTreeMap<String, BTreeMap<VirCreditPowers, vir::Expr>>)>;        // use ordered sets/maps just for deterministic encoding
 
 #[derive(Clone, Debug)]
@@ -790,14 +856,18 @@ struct CostBackwardInterpreterState {
     /// There might be different asymptotic costs with semantically overlapping conditions,
     /// but their check will be deferred to the verifier level
     cost: CostMap,
+    conversions: HashMap<mir::Location, Vec<CreditConversion>>,
 }
 
 impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
-    fn substitute(&mut self, target: &Expr, replacement: Expr) -> EncodingResult<()> {
+    fn substitute(&mut self, target: &Expr, replacement: Expr, mir_location: mir::Location) -> EncodingResult<()> {
+
+        let mut conversions = vec![];
+
         for (opt_condition, credit_cost) in &mut self.cost {
             *opt_condition = opt_condition.as_ref().map(|cond_expr| cond_expr.clone().replace_place(target, &replacement));      //TODO: avoid cloning?
 
-            for coeff_map in credit_cost.values_mut() {
+            for (credit_type, coeff_map) in credit_cost.iter_mut() {
                 // coefficients should only contain constants (& abstract coefficient function calls)
                 // -> only replace in powers, but cannot directly modify the key!
 
@@ -814,6 +884,72 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                 }
 
                 if !entries_to_replace.is_empty() {
+                    let mut substitute_sum_place_const = |place: &vir::Expr, const_val: i64| {
+                        for (mut powers, coeff) in entries_to_replace.clone() {     //TODO: avoid cloning
+                            let result_exps = powers.exponents();
+                            let result_bases = powers.base_exprs();
+                            let result_coeff = coeff.clone();
+                            let target_idx = powers.get_index(target);
+
+                            if let Some(exp) = powers.remove_power(target.clone()) {
+                                if exp > 66 {
+                                    return Err(EncodingError::unsupported(
+                                        "Exponents > 66 will lead to an overflow in the cost inference"
+                                    ))
+                                }
+
+                                let mut const_power = 1i64;
+                                // compute binomial expansion of (place + const_val)^exp
+                                for i in 0u32..=exp {
+                                    let binomial = num_integer::binomial(exp as i64, i as i64);
+                                    let multiplier = binomial * const_power;
+                                    let new_coeff = vir::Expr::mul(multiplier.into(), coeff.clone());
+
+                                    let new_exp = exp - i;
+                                    let mut new_powers = powers.clone();
+                                    if new_exp > 0u32 {
+                                        new_powers.insert_power(place.clone(), new_exp);
+                                    }
+
+                                    // could already have a coefficient for these powers after replacement
+                                    // if that is the case, we add the coefficients
+                                    if let Some(curr_coeff) = coeff_map.get_mut(&new_powers) {
+                                        *curr_coeff = vir::Expr::add(curr_coeff.clone(), new_coeff);
+                                    } else {
+                                        coeff_map.insert(new_powers, new_coeff);
+                                    }
+
+                                    const_power *= const_val;
+                                }
+
+                                // insert to determine index
+                                powers.insert_power(place.clone(), 1);
+                                let insertion_idx = powers.get_index(place).unwrap();
+                                // insert conversion
+                                conversions.push(
+                                    CreditConversion {
+                                        credit_type: credit_type.clone(),
+                                        result_exps,
+                                        result_bases,
+                                        result_coeff,
+                                        assigned_place_idx: target_idx.unwrap(),
+                                        conversion_type: CreditConversionType::SumPlaceConst {
+                                            place_idx: insertion_idx,
+                                            place_expr: place.clone(),
+                                            const_val,
+                                        }
+                                    }
+                                );
+                            }
+                            else {
+                                return Err(EncodingError::internal(
+                                    format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
+                                ));
+                            }
+                        }
+                        Ok(())
+                    };
+
                     if replacement.is_constant() {
                         /*if const_val < 0 {        //TODO: check here, or enough to let Viper check
                             return Err(EncodingError::unsupported(
@@ -823,7 +959,26 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
 
                         // a power is constant -> eliminate from powers & multiply to coefficient
                         for (mut powers, mut coeff) in entries_to_replace {
+                            let result_exps = powers.exponents();
+                            let result_bases = powers.base_exprs();
+                            let result_coeff = coeff.clone();
+                            let target_idx = powers.get_index(target);
+
                             if let Some(exp) = powers.remove_power(target.clone()) {
+                                // insert conversion
+                                conversions.push(
+                                    CreditConversion {
+                                        credit_type: credit_type.clone(),
+                                        result_exps,
+                                        result_bases,
+                                        result_coeff,
+                                        assigned_place_idx: target_idx.unwrap(),
+                                        conversion_type: CreditConversionType::ConstToPlace {
+                                            constant: replacement.clone(),
+                                        }
+                                    }
+                                );
+
                                 // multiply coeff^exp with constant
                                 for _i in 0..exp {
                                     coeff = vir::Expr::mul(replacement.clone(), coeff);
@@ -846,16 +1001,45 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                             place @ (Expr::Local(..) | Expr::Field(..))
                             | Expr::SnapApp(box place @ (Expr::Local(..) | Expr::Field(..)), _) => {            //TODO: patch snapApps or use procedure_encoder encoding instead of pure
                                 for (mut powers, coeff) in entries_to_replace {
-                                    powers = powers.replace_place(target, place);
-                                    // could already have a coefficient for these powers after replacement
-                                    // if that is the case, we add the coefficients
-                                    if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
-                                        *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
+                                    let result_exps = powers.exponents();
+                                    let result_bases = powers.base_exprs();
+                                    let result_coeff = coeff.clone();
+                                    let target_idx = powers.get_index(target);
+
+                                    // replace base
+                                    if let Some(exp) = powers.remove_power(target.clone()) {
+                                        powers.insert_power(place.clone(), exp);
+                                        let insertion_idx = powers.get_index(place).unwrap();
+
+                                        if target_idx.unwrap() != insertion_idx {    // check if reordering is needed
+                                            conversions.push(
+                                                CreditConversion {
+                                                    credit_type: credit_type.clone(),
+                                                    result_exps,
+                                                    result_bases,
+                                                    result_coeff,
+                                                    assigned_place_idx: target_idx.unwrap(),
+                                                    conversion_type: CreditConversionType::Reorder {
+                                                        previous_idx: insertion_idx,
+                                                        previous_base: place.clone(),
+                                                    }
+                                                }
+                                            );
+                                        }
+
+                                        // could already have a coefficient for these powers after replacement
+                                        // if that is the case, we add the coefficients
+                                        if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
+                                            *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
+                                        } else {
+                                            coeff_map.insert(powers, coeff);
+                                        }
                                     } else {
-                                        coeff_map.insert(powers, coeff);
+                                        return Err(EncodingError::internal(
+                                            format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
+                                        ));
                                     }
                                 }
-                                //TODO: add fold/unfold if order changes!
                             }
 
                             Expr::BinOp(
@@ -870,7 +1054,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
                                 _,
                             ) => {  // sum of constant & var
-                                substitute_sum_place_const(coeff_map, entries_to_replace, target, place, *const_val)?;
+                                substitute_sum_place_const(place, *const_val)?;
                             }
 
                             Expr::BinOp(
@@ -879,7 +1063,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
                                 _,
                             ) => {
-                                substitute_sum_place_const(coeff_map, entries_to_replace, target, place, -*const_val)?;
+                                substitute_sum_place_const(place, -*const_val)?;
                             }
 
                             Expr::BinOp(
@@ -889,6 +1073,11 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 _,
                             ) => {  // sum of two places
                                 for (mut powers, coeff) in entries_to_replace {
+                                    let result_exps = powers.exponents();
+                                    let result_bases = powers.base_exprs();
+                                    let result_coeff = coeff.clone();
+                                    let target_idx = powers.get_index(target);
+
                                     if let Some(exp) = powers.remove_power(target.clone()) {
                                         if exp > 66 {
                                             return Err(EncodingError::unsupported(
@@ -921,6 +1110,28 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                                 coeff_map.insert(new_powers, new_coeff);
                                             }
                                         }
+
+                                        // insert to determine indices
+                                        powers.insert_power(place1.clone(), 1);
+                                        powers.insert_power(place2.clone(), 1);
+                                        let place1_idx = powers.get_index(place1).unwrap();
+                                        let place2_idx = powers.get_index(place2).unwrap();
+                                        // insert conversion
+                                        conversions.push(
+                                            CreditConversion {
+                                                credit_type: credit_type.clone(),
+                                                result_exps,
+                                                result_bases,
+                                                result_coeff,
+                                                assigned_place_idx: target_idx.unwrap(),
+                                                conversion_type: CreditConversionType::SumPlacePlace {
+                                                    place1_idx,
+                                                    place1_expr: place1.clone(),
+                                                    place2_idx,
+                                                    place2_expr: place2.clone(),
+                                                },
+                                            }
+                                        );
                                     } else {
                                         return Err(EncodingError::internal(
                                             format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
@@ -943,6 +1154,11 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                             ) => {  // product of constant & place
                                 // just replace target with place & multiply constant to coefficient
                                 for (mut powers, mut coeff) in entries_to_replace {
+                                    let result_exps = powers.exponents();
+                                    let result_bases = powers.base_exprs();
+                                    let result_coeff = coeff.clone();
+                                    let target_idx = powers.get_index(target);
+
                                     if let Some(exp) = powers.remove_power(target.clone()) {
                                         let multiplier = const_val.checked_pow(exp)
                                             .ok_or_else(
@@ -953,6 +1169,80 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                         coeff = vir::Expr::mul(multiplier.into(), coeff);
 
                                         powers.insert_power(place.clone(), exp);
+                                        let insertion_idx = powers.get_index(place).unwrap();
+
+                                        // insert conversion
+                                        conversions.push(
+                                            CreditConversion {
+                                                credit_type: credit_type.clone(),
+                                                result_exps,
+                                                result_bases,
+                                                result_coeff,
+                                                assigned_place_idx: target_idx.unwrap(),
+                                                conversion_type: CreditConversionType::MulPlaceConst {
+                                                    place_idx: insertion_idx,
+                                                    place_expr: place.clone(),
+                                                    multiplier,
+                                                },
+                                            }
+                                        );
+
+                                        // could already have a coefficient for these powers after replacement
+                                        // if that is the case, we add the coefficients
+                                        if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
+                                            *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
+                                        } else {
+                                            coeff_map.insert(powers, coeff);
+                                        }
+                                    } else {
+                                        return Err(EncodingError::internal(
+                                            format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
+                                        ));
+                                    }
+                                }
+                            }
+
+                            Expr::BinOp(
+                                vir::BinOpKind::Div,
+                                box Expr::SnapApp(box lhs_place @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(rhs_const_val), _), _),
+                                _
+                            ) => {      //TODO: summarize with mul -> times 1/const // differences in Viper?
+                                // divide coefficient by const & replace by lhs in powers
+                                for (mut powers, mut coeff) in entries_to_replace {
+                                    let result_exps = powers.exponents();
+                                    let result_bases = powers.base_exprs();
+                                    let result_coeff = coeff.clone();
+                                    let target_idx = powers.get_index(target);
+
+                                    if let Some(exp) = powers.remove_power(target.clone()) {
+                                        let divisor = rhs_const_val.checked_pow(exp)
+                                            .ok_or_else(
+                                                || EncodingError::internal(
+                                                    format!("Computation of coefficient in cost inference will overflow for {} = {}", target, replacement)
+                                                )
+                                            )?;
+                                        coeff = vir::Expr::div(coeff, divisor.into());
+
+                                        powers.insert_power(lhs_place.clone(), exp);
+                                        let insertion_idx = powers.get_index(lhs_place).unwrap();
+
+                                        // insert conversion
+                                        conversions.push(
+                                            CreditConversion {
+                                                credit_type: credit_type.clone(),
+                                                result_exps,
+                                                result_bases,
+                                                result_coeff,
+                                                assigned_place_idx: target_idx.unwrap(),
+                                                conversion_type: CreditConversionType::DivPlaceConst {
+                                                    place_idx: insertion_idx,
+                                                    place_expr: lhs_place.clone(),
+                                                    divisor,
+                                                },
+                                            }
+                                        );
+
                                         // could already have a coefficient for these powers after replacement
                                         // if that is the case, we add the coefficients
                                         if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
@@ -976,42 +1266,34 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                             ) => {
                                 // replace target by two new places in powers
                                 for (mut powers, coeff) in entries_to_replace {
+                                    let result_exps = powers.exponents();
+                                    let result_bases = powers.base_exprs();
+                                    let result_coeff = coeff.clone();
+                                    let target_idx = powers.get_index(target);
+
                                     if let Some(exp) = powers.remove_power(target.clone()) {
                                         powers.insert_power(place1.clone(), exp);
                                         powers.insert_power(place2.clone(), exp);
-                                        // could already have a coefficient for these powers after replacement
-                                        // if that is the case, we add the coefficients
-                                        if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
-                                            *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
-                                        } else {
-                                            coeff_map.insert(powers, coeff);
-                                        }
-                                    } else {
-                                        return Err(EncodingError::internal(
-                                            format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
-                                        ));
-                                    }
-                                }
-                            }
+                                        let insertion_idx1 = powers.get_index(place1).unwrap();
+                                        let insertion_idx2 = powers.get_index(place2).unwrap();
 
-                            Expr::BinOp(
-                                vir::BinOpKind::Div,
-                                box Expr::SnapApp(box lhs_place @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
-                                box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(rhs_const_val), _), _),
-                                _
-                            ) => {
-                                // divide coefficient by const & replace by lhs in powers
-                                for (mut powers, mut coeff) in entries_to_replace {
-                                    if let Some(exp) = powers.remove_power(target.clone()) {
-                                        let divisor = rhs_const_val.checked_pow(exp)
-                                            .ok_or_else(
-                                                || EncodingError::internal(
-                                                    format!("Computation of coefficient in cost inference will overflow for {} = {}", target, replacement)
-                                                )
-                                            )?;
-                                        coeff = vir::Expr::div(coeff, divisor.into());
+                                        // insert conversion
+                                        conversions.push(
+                                            CreditConversion {
+                                                credit_type: credit_type.clone(),
+                                                result_exps,
+                                                result_bases,
+                                                result_coeff,
+                                                assigned_place_idx: target_idx.unwrap(),
+                                                conversion_type: CreditConversionType::MulPlacePlace {
+                                                    place1_idx: insertion_idx1,
+                                                    place1_expr: place1.clone(),
+                                                    place2_idx: insertion_idx2,
+                                                    place2_expr: place2.clone(),
+                                                },
+                                            }
+                                        );
 
-                                        powers.insert_power(lhs_place.clone(), exp);
                                         // could already have a coefficient for these powers after replacement
                                         // if that is the case, we add the coefficients
                                         if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
@@ -1042,54 +1324,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
             }
         }
 
-        fn substitute_sum_place_const(
-            coeff_map: &mut BTreeMap<VirCreditPowers, vir::Expr>,
-            entries_to_replace: Vec<(VirCreditPowers, vir::Expr)>,
-            target: &vir::Expr,
-            place: &vir::Expr,
-            const_val: i64,
-        ) -> EncodingResult<()> {
-            for (mut powers, coeff) in entries_to_replace {
-                if let Some(exp) = powers.remove_power(target.clone()) {
-                    if exp > 66 {
-                        return Err(EncodingError::unsupported(
-                            "Exponents > 66 will lead to an overflow in the cost inference"
-                        ))
-                    }
-
-                    let mut const_power = 1i64;
-                    // compute binomial expansion of (place + const_val)^exp
-                    for i in 0u32..=exp {
-                        let binomial = num_integer::binomial(exp as i64, i as i64);
-                        let multiplier = binomial * const_power;
-                        let new_coeff = vir::Expr::mul(multiplier.into(), coeff.clone());
-
-                        let new_exp = exp - i;
-                        let mut new_powers = powers.clone();
-                        if new_exp > 0u32 {
-                            new_powers.insert_power(place.clone(), new_exp);
-                        }
-
-                        // could already have a coefficient for these powers after replacement
-                        // if that is the case, we add the coefficients
-                        if let Some(curr_coeff) = coeff_map.get_mut(&new_powers) {
-                            *curr_coeff = vir::Expr::add(curr_coeff.clone(), new_coeff);
-                        } else {
-                            coeff_map.insert(new_powers, new_coeff);
-                        }
-
-                        const_power *= const_val;
-                    }
-                }
-                else {
-                    return Err(EncodingError::internal(
-                        format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
-                    ));
-                }
-            }
-            Ok(())
-        }
-
+        self.conversions.insert(mir_location, conversions);
         Ok(())
     }
 
@@ -1182,9 +1417,9 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
     type Error = SpannedEncodingError;
     type State = CostBackwardInterpreterState;
 
-    fn apply_terminator(&self, _bb: mir::BasicBlock, terminator: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Result<Self::State, Self::Error> {
+    fn apply_terminator(&self, bb: mir::BasicBlock, terminator: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Result<Self::State, Self::Error> {
         let term_span = terminator.source_info.span;
-        //let location = self.mir.terminator_loc(bb);
+        let location = self.mir.terminator_loc(bb);
 
         match terminator.kind {
             TerminatorKind::SwitchInt { switch_ty, ref discr, ref targets } => {//TODO: treat like asignment, but not single assignment! (only when constant?)
@@ -1198,8 +1433,13 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                 let discr_val = self.mir_encoder.encode_operand_expr(discr).with_span(term_span)?;
 
                 let mut new_cost: CostMap = vec![];
+                let mut union_of_conversions = HashMap::new();
                 let mut guard_disjunction = None;
                 for (value, target) in targets.iter() {
+                    let target_state = states[&target];
+                    // there shouldn't be duplicate keys, since locations in different branches should differ
+                    union_of_conversions.extend(target_state.conversions.clone());
+
                     // construct condition (cf. pure function encoder)
                     let viper_guard = match switch_ty.kind() {
                         ty::TyKind::Bool => {
@@ -1225,14 +1465,14 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
 
                     guard_disjunction = Some(guard_disjunction.map_or_else(|| viper_guard.clone(),
                                                                     |curr_guards| vir::Expr::or(viper_guard.clone(), curr_guards)));
-                    self.insert_guarded_cost(&mut new_cost, &states[&target].cost, viper_guard);
+                    self.insert_guarded_cost(&mut new_cost, &target_state.cost, viper_guard);
                 }
 
                 let otherwise_guard = vir::Expr::not(guard_disjunction.unwrap());
                 let otherwise_target = targets.otherwise();
                 self.insert_guarded_cost(&mut new_cost, &states[&otherwise_target].cost, otherwise_guard);
 
-                Ok(CostBackwardInterpreterState { cost: new_cost })
+                Ok(CostBackwardInterpreterState { cost: new_cost, conversions: union_of_conversions })
             }
 
             TerminatorKind::Call {
@@ -1367,7 +1607,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                 ..
             } => {
                 let mut new_state = states[target].clone();
-                new_state.apply_assignment(&self.pure_fn_interpreter, lhs, &mir::Rvalue::Use(value.clone()), term_span, self.proc_def_id)?;
+                new_state.apply_assignment(&self.pure_fn_interpreter, lhs, &mir::Rvalue::Use(value.clone()), location, term_span, self.proc_def_id)?;
                 Ok(new_state)
             }
 
@@ -1377,6 +1617,8 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                 ref target,
                 ..
             } => {
+                let target_state = states[target];
+
                 let cond_val = self.mir_encoder.encode_operand_expr(cond)
                     .with_span(term_span)?;
                 let viper_guard = if expected {
@@ -1387,9 +1629,9 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
 
                 let mut new_cost = vec![];
                 // ignore failure & add condition
-                self.insert_guarded_cost(&mut new_cost, &states[target].cost, viper_guard);
+                self.insert_guarded_cost(&mut new_cost, &target_state.cost, viper_guard);
 
-                Ok(CostBackwardInterpreterState { cost: new_cost })
+                Ok(CostBackwardInterpreterState { cost: new_cost, conversions: target_state.conversions.clone()})
             }
 
             TerminatorKind::Goto { ref target } => {
@@ -1422,23 +1664,23 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
             | TerminatorKind::Unreachable => {
                 // TOOD: error (for some)?
                 // no cost
-                Ok(CostBackwardInterpreterState { cost: vec![(None, BTreeMap::new())] })
+                Ok(CostBackwardInterpreterState { cost: vec![(None, BTreeMap::new())], conversions: HashMap::new() })
             }
 
             _ => unimplemented!("{:?}", terminator.kind),
         }
     }
 
-    fn apply_statement(&self, _bb: mir::BasicBlock, _stmt_index: usize, stmt: &mir::Statement<'tcx>, state: &mut Self::State) -> Result<(), Self::Error> {
+    fn apply_statement(&self, bb: mir::BasicBlock, stmt_index: usize, stmt: &mir::Statement<'tcx>, state: &mut Self::State) -> Result<(), Self::Error> {
         let stmt_span = stmt.source_info.span;
-        /*let location = mir::Location {
+        let location = mir::Location {
             block: bb,
             statement_index: stmt_index,
-        };*/
+        };
 
         match stmt.kind {
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
-                state.apply_assignment(&self.pure_fn_interpreter, lhs, rhs, stmt_span, self.proc_def_id)?;
+                state.apply_assignment(&self.pure_fn_interpreter, lhs, rhs, location, stmt_span, self.proc_def_id)?;
             }
 
             mir::StatementKind::FakeRead(..)

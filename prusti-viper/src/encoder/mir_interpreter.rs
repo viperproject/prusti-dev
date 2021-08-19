@@ -233,6 +233,7 @@ pub(super) trait PureBackwardSubstitutionState {
         pure_fn_interpreter: &PureFunctionBackwardInterpreter<'p, 'v, 'tcx>,
         lhs: &mir::Place<'tcx>,
         rhs: &mir::Rvalue<'tcx>,
+        mir_location: mir::Location,
         span: Span,
         parent_def_id: ProcedureDefId
     ) -> SpannedEncodingResult<()>
@@ -270,7 +271,7 @@ pub(super) trait PureBackwardSubstitutionState {
                 match opt_encoded_rhs {
                     Some(encoded_rhs) => {
                         // Substitute a place
-                        self.substitute_place(&encoded_lhs, encoded_rhs)
+                        self.substitute_place(&encoded_lhs, encoded_rhs, mir_location)
                             .with_span(span)?;
                     }
                     None => {
@@ -280,7 +281,7 @@ pub(super) trait PureBackwardSubstitutionState {
                             let rhs_expr = pure_fn_interpreter.mir_encoder
                                 .encode_operand_expr(operand)
                                 .with_span(span)?;
-                            self.substitute_value(lhs_value_place, rhs_expr)
+                            self.substitute_value(lhs_value_place, rhs_expr, mir_location)
                                 .with_span(span)?;
                         }
                     }
@@ -311,7 +312,7 @@ pub(super) trait PureBackwardSubstitutionState {
                                 Some(encoded_rhs) => {
                                     // Substitute a place
                                     field_exprs.push(encoded_rhs.clone());
-                                    self.substitute_place(&field_place, encoded_rhs)
+                                    self.substitute_place(&field_place, encoded_rhs, mir_location)
                                         .with_span(span)?;
                                 }
                                 None => {
@@ -323,6 +324,7 @@ pub(super) trait PureBackwardSubstitutionState {
                                     self.substitute_value(
                                         &pure_fn_interpreter.encoder.encode_value_expr(field_place, field_ty.expect_ty()).with_span(span)?,
                                         rhs_expr,
+                                        mir_location
                                     ).with_span(span)?;
                                 }
                             }
@@ -331,7 +333,7 @@ pub(super) trait PureBackwardSubstitutionState {
                             ty,
                             field_exprs,
                         ).with_span(span)?;
-                        self.substitute_place(&encoded_lhs, snapshot)
+                        self.substitute_place(&encoded_lhs, snapshot, mir_location)
                             .with_span(span)?;
                     }
 
@@ -344,6 +346,7 @@ pub(super) trait PureBackwardSubstitutionState {
                             self.substitute_value(
                                 &encoded_lhs.clone().field(discr_field),
                                 variant_index.index().into(),
+                                mir_location
                             ).with_span(span)?;
                             encoded_lhs_variant =
                                 encoded_lhs_variant.variant(&variant_def.ident.as_str());
@@ -365,7 +368,7 @@ pub(super) trait PureBackwardSubstitutionState {
                             match encoded_operand {
                                 Some(encoded_rhs) => {
                                     // Substitute a place
-                                    self.substitute_place(&field_place, encoded_rhs)
+                                    self.substitute_place(&field_place, encoded_rhs, mir_location)
                                         .with_span(span)?;
                                 }
                                 None => {
@@ -376,6 +379,7 @@ pub(super) trait PureBackwardSubstitutionState {
                                     self.substitute_value(
                                         &pure_fn_interpreter.encoder.encode_value_expr(field_place, field_ty).with_span(span)?,
                                         rhs_expr,
+                                        mir_location
                                     ).with_span(span)?;
                                 }
                             }
@@ -410,7 +414,7 @@ pub(super) trait PureBackwardSubstitutionState {
                             vec![elems],
                         ).with_span(span)?;
 
-                        self.substitute_place(&encoded_lhs, snapshot)
+                        self.substitute_place(&encoded_lhs, snapshot, mir_location)
                             .with_span(span)?;
                     }
 
@@ -431,7 +435,7 @@ pub(super) trait PureBackwardSubstitutionState {
                 ).with_span(span)?;
 
                 // Substitute a place of a value with an expression
-                self.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value)
+                self.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value, mir_location)
                     .with_span(span)?;
             }
 
@@ -486,9 +490,9 @@ pub(super) trait PureBackwardSubstitutionState {
                     .field(check_field_value);
 
                 // Substitute a place of a value with an expression
-                self.substitute_value(&lhs_value, encoded_value)
+                self.substitute_value(&lhs_value, encoded_value, mir_location)
                     .with_span(span)?;
-                self.substitute_value(&lhs_check, encoded_check)
+                self.substitute_value(&lhs_check, encoded_check, mir_location)
                     .with_span(span)?;
             }
 
@@ -498,7 +502,7 @@ pub(super) trait PureBackwardSubstitutionState {
                 let encoded_value = pure_fn_interpreter.mir_encoder.encode_unary_op_expr(op, encoded_val);
 
                 // Substitute a place of a value with an expression
-                self.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value)
+                self.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value, mir_location)
                     .with_span(span)?;
             }
 
@@ -533,7 +537,7 @@ pub(super) trait PureBackwardSubstitutionState {
                         };
 
                         // Substitute a place of a value with an expression
-                        self.substitute_value(&opt_lhs_value_place.unwrap(), discr_value)
+                        self.substitute_value(&opt_lhs_value_place.unwrap(), discr_value, mir_location)
                             .with_span(span)?;
                     }
                     ref x => {
@@ -560,7 +564,7 @@ pub(super) trait PureBackwardSubstitutionState {
                 };
 
                 // Substitute the place
-                self.substitute_place(&encoded_lhs, encoded_ref)
+                self.substitute_place(&encoded_lhs, encoded_ref, mir_location)
                     .with_span(span)?;
             }
 
@@ -569,7 +573,7 @@ pub(super) trait PureBackwardSubstitutionState {
                     .encode_cast_expr(operand, dst_ty, span)?;
 
                 // Substitute a place of a value with an expression
-                self.substitute_value(&opt_lhs_value_place.unwrap(), encoded_val)
+                self.substitute_value(&opt_lhs_value_place.unwrap(), encoded_val, mir_location)
                     .with_span(span)?;
             }
 
@@ -578,7 +582,7 @@ pub(super) trait PureBackwardSubstitutionState {
                 match place_ty.kind() {
                     ty::TyKind::Array(..) => {
                         let array_types = pure_fn_interpreter.encoder.encode_array_types(place_ty).with_span(span)?;
-                        self.substitute_value(&opt_lhs_value_place.unwrap(), array_types.array_len.into())
+                        self.substitute_value(&opt_lhs_value_place.unwrap(), array_types.array_len.into(), mir_location)
                             .with_span(span)?;
                     }
                     ty::TyKind::Slice(..) => {
@@ -587,7 +591,7 @@ pub(super) trait PureBackwardSubstitutionState {
                             pure_fn_interpreter.encode_place(place).with_span(span)?.0,
                         ).with_span(span)?;
 
-                        self.substitute_value(&opt_lhs_value_place.unwrap(), snap_len)
+                        self.substitute_value(&opt_lhs_value_place.unwrap(), snap_len, mir_location)
                             .with_span(span)?;
                     }
                     _ => span_bug!(span, "length should only be requested on arrays or slices"),
@@ -634,7 +638,7 @@ pub(super) trait PureBackwardSubstitutionState {
 
                 let slice_snap = pure_fn_interpreter.encoder.encode_snapshot_constructor(ty, vec![elems_seq]).with_span(span)?;
 
-                self.substitute_value(&opt_lhs_value_place.unwrap(), slice_snap)
+                self.substitute_value(&opt_lhs_value_place.unwrap(), slice_snap, mir_location)
                     .with_span(span)?;
 
             }
@@ -647,7 +651,12 @@ pub(super) trait PureBackwardSubstitutionState {
         Ok(())
     }
 
-    fn substitute_place(&mut self, sub_target: &vir::Expr, replacement: vir::Expr) -> EncodingResult<()> {
+    fn substitute_place(
+        &mut self,
+        sub_target: &vir::Expr,
+        replacement: vir::Expr,
+        mir_location: mir::Location
+    ) -> EncodingResult<()> {
         trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
 
         // If `replacement` is a reference, simplify also its dereferentiations
@@ -660,19 +669,24 @@ pub(super) trait PureBackwardSubstitutionState {
                 .clone()
                 .field(deref_field.clone())
                 .set_pos(*pos);
-            self.substitute_place(&deref_target, base_replacement.clone())?;
+            self.substitute_place(&deref_target, base_replacement.clone(), mir_location)?;
         }
 
-        self.substitute(sub_target, replacement)
+        self.substitute(sub_target, replacement, mir_location)
     }
 
-    fn substitute_value(&mut self, exact_target: &vir::Expr, replacement: vir::Expr) -> EncodingResult<()> {
+    fn substitute_value(
+        &mut self,
+        exact_target: &vir::Expr,
+        replacement: vir::Expr,
+        mir_location: mir::Location
+    ) -> EncodingResult<()> {
         trace!("substitute_value {:?} --> {:?}", exact_target, replacement);
 
-        self.substitute(exact_target, replacement)
+        self.substitute(exact_target, replacement, mir_location)
     }
 
-    fn substitute(&mut self, target: &vir::Expr, replacement: vir::Expr) -> EncodingResult<()>;
+    fn substitute(&mut self, target: &vir::Expr, replacement: vir::Expr, mir_location: mir::Location) -> EncodingResult<()>;
 
     fn use_place(&self, sub_target: &vir::Expr) -> bool;
 }
@@ -718,7 +732,7 @@ impl MultiExprBackwardInterpreterState {
 }
 
 impl PureBackwardSubstitutionState for MultiExprBackwardInterpreterState {
-    fn substitute(&mut self, target: &vir::Expr, replacement: vir::Expr) -> EncodingResult<()> {
+    fn substitute(&mut self, target: &vir::Expr, replacement: vir::Expr, _mir_location: mir::Location) -> EncodingResult<()> {
         for expr in &mut self.exprs {
             *expr = expr.clone().replace_place(target, &replacement);
         }

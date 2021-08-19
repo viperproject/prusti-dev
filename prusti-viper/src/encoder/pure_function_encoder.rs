@@ -86,6 +86,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mut state = run_backward_interpretation(self.mir, &self.interpreter)?
             .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
 
+        let fn_start_location = mir::Location { block: 0u32.into(), statement_index: 0 };
         // Fix arguments
         for arg in self.mir.args_iter() {
             let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
@@ -99,7 +100,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 arg_ty
             ).with_span(span)?;
             let new_place: vir::Expr = self.encode_local(arg)?.into();
-            state.substitute_place(&target_place, new_place)
+            state.substitute_place(&target_place, new_place, fn_start_location)
                 .with_span(span)?;
         }
 
@@ -822,7 +823,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         PRECONDITION_LABEL,
                                     );
                                 let mut state = states[&target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs)
+                                state.substitute_value(&lhs_value, encoded_rhs, location)
                                     .with_span(span)?;
                                 state
                             }
@@ -834,7 +835,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .mir_encoder
                                     .encode_old_expr(encoded_args[0].clone(), WAND_LHS_LABEL);
                                 let mut state = states[&target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs)
+                                state.substitute_value(&lhs_value, encoded_rhs, location)
                                     .with_span(span)?;
                                 state
                             }
@@ -849,7 +850,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     vir::Expr::snap_app(encoded_args[1].clone()),
                                 );
                                 let mut state = states[&target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs)
+                                state.substitute_value(&lhs_value, encoded_rhs, location)
                                     .with_span(span)?;
                                 state
                             }
@@ -864,7 +865,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     vir::Expr::snap_app(encoded_args[1].clone()),
                                 );
                                 let mut state = states[&target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs)
+                                state.substitute_value(&lhs_value, encoded_rhs, location)
                                     .with_span(span)?;
                                 state
                             }
@@ -876,7 +877,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .with_span(span)?;
 
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, len)
+                                state.substitute_value(&lhs_value, len, location)
                                     .with_span(span)?;
                                 state
                             }
@@ -924,7 +925,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 ).with_span(span)?;
 
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, slice_expr)
+                                state.substitute_value(&lhs_value, slice_expr, location)
                                     .with_span(span)?;
                                 state
                             }
@@ -968,7 +969,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     pos,
                                 );
                                 let mut state = states[&target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs)
+                                state.substitute_value(&lhs_value, encoded_rhs, location)
                                     .with_span(span)?;
                                 state
                             }
@@ -1101,7 +1102,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
-                state.apply_assignment(self, lhs, rhs, span, self.parent_def_id)?;
+                state.apply_assignment(self, lhs, rhs, location, span, self.parent_def_id)?;
             }
 
             ref stmt => unimplemented!("encoding of '{:?}'", stmt),
