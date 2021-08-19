@@ -134,6 +134,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         };
                         let field = &variant_def.fields[field.index()];
                         let field_ty = field.ty(tcx, subst);
+                        if matches!(field_ty.kind(), ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..)) {
+                            return Err(EncodingError::unsupported(
+                                "reference type fields are not supported"
+                            ));
+                        }
                         let encoded_field = self
                             .encoder()
                             .encode_struct_field(
