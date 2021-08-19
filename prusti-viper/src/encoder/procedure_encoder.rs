@@ -72,7 +72,7 @@ use crate::encoder::mir_interpreter::BackwardMirInterpreter;
 use std::cmp::Ordering;
 use prusti_interface::specs::typed::CreditVarPower;
 use num_traits::real::Real;
-use crate::encoder::cost_encoder::encode_credit_preconditions;
+use crate::encoder::cost_encoder::{CostEncoder, CreditConversion};
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -84,6 +84,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     loop_encoder: LoopEncoder<'p, 'tcx>,
     auxiliary_local_vars: HashMap<String, vir::Type>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
+    cost_encoder: CostEncoder<'tcx>,
     check_panics: bool,
     check_foldunfold_state: bool,
     polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
@@ -155,6 +156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             loop_encoder: LoopEncoder::new(procedure, tcx),
             auxiliary_local_vars: HashMap::new(),
             mir_encoder,
+            cost_encoder: CostEncoder::new(),
             check_panics: config::check_panics(),
             check_foldunfold_state: config::check_foldunfold_state(),
             polonius_info: None,
@@ -394,6 +396,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         self.cfg_method
             .set_successor(return_cfg_block, Successor::Return);
+
+        // run cost inference
+        let contract = self.procedure_contract();
+        let encoded_args: Vec<vir::Expr> = contract
+            .args
+            .to_owned()
+            .iter()
+            .map(|local| self.encode_prusti_local(*local).into())
+            .collect();
+        let func_precondition = contract.functional_precondition().to_owned();      //TODO: avoid cloning!?
+        self.cost_encoder.run_inference(
+            func_precondition,
+            &encoded_args,
+            &self.encoder,
+            &self.mir_encoder,
+            &self.locals,
+            &self.mir,
+            self.proc_def_id,
+            true,
+        )?;
 
         // Encode a flag that becomes true the first time a block is executed
         for bbi in self.procedure.get_reachable_nonspec_cfg_blocks() {
@@ -2742,8 +2764,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_mandatory_type_spec,
             pre_invs_spec,
             pre_func_spec,
-            _,
-            _,
             _, // We don't care about verifying that the weakening is valid,
                // since it isn't the task of the caller
         ) = self.encode_precondition_expr(&procedure_contract, None, false)?;
@@ -3137,8 +3157,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// - Type spec containing the read permissions that must be exhaled because they were moved into a magic wand.
     /// - Type invariants
     /// - Functional specification.
-    /// - Credit specification (if any)
-    /// - Statements to be inserted after inhaling the preconditions to check that asymptotic credit bounds are satisfied
     /// - Precondition weakening
     ///
     /// `function_start` – are we encoding the inhale of the precondition
@@ -3153,8 +3171,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Vec<vir::Expr>,
         vir::Expr,
         vir::Expr,
-        Option<vir::Expr>,
-        Vec<vir::Stmt>,
         Option<vir::Expr>,
     )> {
         let borrow_infos = &contract.borrow_infos;
@@ -3212,29 +3228,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .iter()
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
-        let func_precondition = contract.functional_precondition();
-
-        let (credit_pre, asymp_check_stmts, remaining_func_pres) =
-            if function_start {
-                encode_credit_preconditions(
-                    func_precondition,
-                    &encoded_args,
-                    &self.encoder,
-                    &self,
-                    &self.mir_encoder,
-                    &self.mir,
-                    self.proc_def_id,
-                    true
-                )?
-            }
-            else {
-                (None, vec![], func_precondition.iter().collect())
-            };
-
-        for assertion in remaining_func_pres {
+        for assertion in &self.cost_encoder.remaining_func_pres {
             // FIXME
             let value = self.encoder.encode_assertion(
-                &assertion,
+                assertion,
                 &self.mir,
                 None,
                 &encoded_args,
@@ -3248,7 +3245,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             func_spec.push(value);
         }
         let precondition_spans = MultiSpan::from_spans(
-            func_precondition
+            contract.functional_precondition()      // including credit preconditions
                 .iter()
                 .flat_map(|ts| typed::Spanned::get_spans(
                     ts,
@@ -3294,8 +3291,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
             func_spec.into_iter().conjoin(),
-            credit_pre,
-            asymp_check_stmts,
             precondition_weakening,
         ))
     }
@@ -3308,7 +3303,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-        let (type_spec, mandatory_type_spec, invs_spec, func_spec, credit_spec, asymp_check_stmts, weakening_spec) =
+        let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
             self.encode_precondition_expr(
                 self.procedure_contract(),
                 precondition_weakening,
@@ -3341,7 +3336,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             start_cfg_block,
             vir::Stmt::Inhale(func_spec),
         );
-        if let Some(credit_pre) = credit_spec {
+        if let Some(credit_pre) = self.cost_encoder.extract_precondition() {
             self.cfg_method.add_stmt(
                 start_cfg_block,
                 vir::Stmt::Inhale(credit_pre)
@@ -3353,7 +3348,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         self.cfg_method.add_stmts(
             start_cfg_block,
-            asymp_check_stmts,
+            self.cost_encoder.extract_asymp_bound_check_stmts(),
         );
         Ok(())
     }
