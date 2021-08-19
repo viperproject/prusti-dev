@@ -1557,22 +1557,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let mut builder = vir::borrows::DAGBuilder::new();
         for node in mir_dag.iter() {
-            // match node.kind {
-            //     ReborrowingKind::Assignment { loan } => {
-            //         let loan_places = self.polonius_info().get_loan_places(&loan).unwrap().unwrap();
-            //         match loan_places.source {
-            //             mir::Rvalue::Use(mir::Operand::Constant(box mir::Constant { literal, .. })) => {
-            //                 let (ty, _) = mir_constantkind_to_ty_val(literal);
-            //                 match ty.kind() {
-            //                 ty::TyKind::Ref(_, inner, _) if inner.is_str() => continue,
-            //                 _ => {}
-            //                 }
-            //             },
-            //             _ => {}
-            //         };
-            //     },
-            //     _ => {}
-            // }
             let node = match node.kind {
                 ReborrowingKind::Assignment { loan } => self
                     .construct_vir_reborrowing_node_for_assignment(
@@ -1675,7 +1659,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let rhs_place = match node.zombity {
             ReborrowingZombity::Zombie(rhs_location) if !node_is_leaf => {
                 let rhs_label = self.get_label_after_location(rhs_location);
-                restored.clone().map(|r| r.old(rhs_label))
+                restored.map(|r| r.old(rhs_label))
             }
 
             _ => restored,
@@ -4972,12 +4956,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             location,
                             vir::AssignKind::Copy,
                         )?;
+                        // let is_static_str = match ty.kind() {
+                        //     ty::TyKind::Ref(region, inner, _) => {
+                        //        let ok = **region == ty::RegionKind::ReStatic && inner.is_str();
+                        //         if !ok {
+                        //             warn!("{:?} is not a static str {:?}", ty.kind(), **region);
+                        //         }
+                        //         ok
+                        //     }
+                        //     _ => {
+                        //         false
+                        //     }
+                        // };
                         let is_str = match ty.kind() {
                             ty::TyKind::Ref(_, inner, _) => inner.is_str(),
-                            _ => false
+                            _ => {
+                                false
+                            }
                         };
                         if !is_str {
-                            // warn!("Hey {:?}", ty);
                             // Initialize the constant
                             let const_val = self.encoder
                                 .encode_const_expr(ty, &val)
