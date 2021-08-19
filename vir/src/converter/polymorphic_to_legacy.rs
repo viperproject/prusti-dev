@@ -439,7 +439,7 @@ impl From<polymorphic::StructPredicate> for legacy::StructPredicate {
 impl From<polymorphic::EnumPredicate> for legacy::EnumPredicate {
     fn from(enum_predicate: polymorphic::EnumPredicate) -> legacy::EnumPredicate {
         legacy::EnumPredicate {
-            name: enum_predicate.name,
+            name: enum_predicate.typ.name(),
             this: enum_predicate.this.into(),
             discriminant_field: enum_predicate.discriminant_field.into(),
             discriminant_bounds: enum_predicate.discriminant_bounds.into(),

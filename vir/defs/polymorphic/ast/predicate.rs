@@ -84,10 +84,9 @@ impl Predicate {
         discriminant_bounds: Expr,
         variants: Vec<(Expr, String, StructPredicate)>,
     ) -> Predicate {
-        let predicate_name = this.typ.encode_as_string();
         debug_assert!(variants.iter().map(|(_, name, _)| name.to_string()).collect::<HashSet<_>>().len() == variants.len());
         Predicate::Enum(EnumPredicate {
-            name: predicate_name,
+            typ: this.typ.clone(),
             this,
             discriminant_field,
             discriminant_bounds,
@@ -106,7 +105,7 @@ impl Predicate {
     pub fn name(&self) -> String {
         match self {
             Predicate::Struct(p) => p.typ.name(),
-            Predicate::Enum(p) => p.name.clone(),
+            Predicate::Enum(p) => p.typ.name(),
             Predicate::Bodyless(ref name, _) => name.clone(),
         }
     }
@@ -121,6 +120,16 @@ impl Predicate {
             Predicate::Bodyless(_, _) => {
                 None
             }
+        }
+    }
+}
+
+impl WithIdentifier for Predicate {
+    fn get_identifier(&self) -> String {
+        match self {
+            Predicate::Struct(p) => p.get_identifier(),
+            Predicate::Enum(p) => p.get_identifier(),
+            Predicate::Bodyless(name, _) => name.clone(),
         }
     }
 }
@@ -200,7 +209,7 @@ impl WithIdentifier for StructPredicate {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct EnumPredicate {
     /// The predicate name in Viper.
-    pub name: String,
+    pub typ: Type,
     /// The self reference.
     pub this: LocalVar,
     /// The discriminant field.
@@ -237,7 +246,7 @@ impl<'a> Into<EnumVariantIndex> for &'a Field {
 
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "enum_predicate {}({}){{\n", self.name, self.this)?;
+        write!(f, "enum_predicate {}({}){{\n", self.typ.name(), self.this)?;
         write!(f, "  discriminant_field={}\n", self.discriminant_field)?;
         for (guard, name, variant) in self.variants.iter() {
             writeln!(f, "  {}: {} ==> {}\n", name, guard, variant)?;
@@ -277,6 +286,6 @@ impl EnumPredicate {
 
 impl WithIdentifier for EnumPredicate {
     fn get_identifier(&self) -> String {
-        self.name.clone()
+        self.typ.name()
     }
 }

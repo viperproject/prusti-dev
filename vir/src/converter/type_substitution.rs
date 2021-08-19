@@ -3235,7 +3235,7 @@ mod tests {
         let position = Position::new(1, 2, 3);
 
         let source = EnumPredicate {
-            name: String::from("ep1"),
+            typ: Type::typed_ref("ep1"),
             this: LocalVar {
                 name: String::from("_v1"),
                 typ: Type::type_var("T"),
@@ -3304,7 +3304,7 @@ mod tests {
         };
 
         let expected = EnumPredicate {
-            name: String::from("ep1"),
+            typ: Type::typed_ref("ep1"),
             this: LocalVar {
                 name: String::from("_v1"),
                 typ: Type::Int,
@@ -3413,7 +3413,7 @@ mod tests {
 
         // Enum
         source = Predicate::Enum(EnumPredicate {
-            name: String::from("ep1"),
+            typ: Type::typed_ref("ep1"),
             this: LocalVar {
                 name: String::from("_v1"),
                 typ: Type::type_var("T"),
@@ -3481,7 +3481,7 @@ mod tests {
             ],
         });
         expected = Predicate::Enum(EnumPredicate {
-            name: String::from("ep1"),
+            typ: Type::typed_ref("ep1"),
             this: LocalVar {
                 name: String::from("_v1"),
                 typ: Type::Int,
