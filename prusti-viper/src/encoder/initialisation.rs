@@ -6,7 +6,7 @@
 
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 /// Module that allows querying the initialisation information.
-use prusti_common::vir;
+use vir_crate::polymorphic as polymorphic_vir;
 use prusti_interface::environment::mir_analyses::initialization::compute_definitely_initialized;
 use prusti_interface::environment::place_set::PlaceSet;
 use prusti_interface::utils::expand_one_level;
@@ -21,8 +21,8 @@ use crate::encoder::errors::SpannedEncodingResult;
 pub struct InitInfo {
     //mir_acc_before_block: HashMap<mir::BasicBlock, HashSet<mir::Place<'tcx>>>,
     //mir_acc_after_statement: HashMap<mir::Location, HashSet<mir::Place<'tcx>>>,
-    vir_acc_before_block: HashMap<mir::BasicBlock, HashSet<vir::Expr>>,
-    vir_acc_after_statement: HashMap<mir::Location, HashSet<vir::Expr>>,
+    vir_acc_before_block: HashMap<mir::BasicBlock, HashSet<polymorphic_vir::Expr>>,
+    vir_acc_after_statement: HashMap<mir::Location, HashSet<polymorphic_vir::Expr>>,
 }
 
 /// Create a set that contains all places and their prefixes of the original set.
@@ -45,7 +45,7 @@ fn explode<'tcx>(
 }
 
 /// Does the ``set`` contain the ``place`` or its prefix?
-fn contains_prefix(set: &HashSet<vir::Expr>, place: &vir::Expr) -> bool {
+fn contains_prefix(set: &HashSet<polymorphic_vir::Expr>, place: &polymorphic_vir::Expr) -> bool {
     if set.contains(place) {
         true
     } else if let Some(parent) = place.get_parent_ref() {
@@ -58,7 +58,7 @@ fn contains_prefix(set: &HashSet<vir::Expr>, place: &vir::Expr) -> bool {
 fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
     map: &HashMap<T, HashSet<mir::Place<'tcx>>>,
     mir_encoder: &MirEncoder<'_, '_, 'tcx>,
-) -> EncodingResult<HashMap<T, HashSet<vir::Expr>>> {
+) -> EncodingResult<HashMap<T, HashSet<polymorphic_vir::Expr>>> {
     let mut result = HashMap::new();
     for (loc, set) in map.iter() {
         let mut new_set = HashSet::new();
@@ -101,7 +101,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {
 
     /// Is the ``place`` accessible (it is a prefix of a definitely
     /// initalised place) before the statement at given `location`?
-    pub fn is_vir_place_accessible(&self, place: &vir::Expr, location: mir::Location) -> bool {
+    pub fn is_vir_place_accessible(&self, place: &polymorphic_vir::Expr, location: mir::Location) -> bool {
         if location.statement_index == 0 {
             contains_prefix(&self.vir_acc_before_block[&location.block], place)
         } else {
