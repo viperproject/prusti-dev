@@ -1,4 +1,5 @@
 // compile-flags: -Pcounterexample=true
+// normalize-stderr-test: "final value:\s*-?[0-9]+" -> "$(FINAL_VALUE)"
 
 use prusti_contracts::*;
 
