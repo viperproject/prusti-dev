@@ -1452,6 +1452,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Use(mir::Operand::Constant(box mir::Constant { literal, .. })) => {
                 let (ty, val) = mir_constantkind_to_ty_val(literal);
 
+                // Encoding of string literals is not yet supported, so do not return
+                // an expression in restored here.
                 let restored : Option<vir::Expr> = match ty.kind() {
                     ty::TyKind::Ref(_, inner, _) if inner.is_str() => None,
                     _ => Some(
@@ -4956,18 +4958,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             location,
                             vir::AssignKind::Copy,
                         )?;
-                        // let is_static_str = match ty.kind() {
-                        //     ty::TyKind::Ref(region, inner, _) => {
-                        //        let ok = **region == ty::RegionKind::ReStatic && inner.is_str();
-                        //         if !ok {
-                        //             warn!("{:?} is not a static str {:?}", ty.kind(), **region);
-                        //         }
-                        //         ok
-                        //     }
-                        //     _ => {
-                        //         false
-                        //     }
-                        // };
+
+                        // Encoding of string literals is not yet supported, so do not encode
+                        // an assignment if the RHS is a string
                         let is_str = match ty.kind() {
                             ty::TyKind::Ref(_, inner, _) => inner.is_str(),
                             _ => {
