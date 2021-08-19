@@ -270,7 +270,7 @@ impl MultiExprBackwardInterpreterState {
             replacement
         {
             trace!("Substitution of a reference. Simplify its dereferentiations.");
-            let deref_field = vir::Field::new("val_ref", base.get_type().clone());
+            let deref_field = polymorphic_vir::Field::new("val_ref", base.get_type().clone());
             let deref_target = sub_target
                 .clone()
                 .field(deref_field.clone())
