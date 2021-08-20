@@ -1628,7 +1628,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .with_span(span)?.unwrap();
         let (expiring, restored, is_mut, mut stmts) = self.encode_loan_places(&loan_places)
             .with_span(span)?;
-        let borrowed_places = restored.clone().into_iter().collect(); // rvec![restored.clone()];
+        let borrowed_places = restored.clone().into_iter().collect();
         trace!("construct_vir_reborrowing_node_for_assignment(loan={:?}, loan_places={:?}, expiring={:?}, restored={:?}, stmts={:?}", loan, loan_places, expiring, restored, stmts);
 
         let mut used_lhs_label = false;
@@ -4963,9 +4963,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         // an assignment if the RHS is a string
                         let is_str = match ty.kind() {
                             ty::TyKind::Ref(_, inner, _) => inner.is_str(),
-                            _ => {
-                                false
-                            }
+                            _ => false,
                         };
                         if !is_str {
                             // Initialize the constant
