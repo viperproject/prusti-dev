@@ -96,7 +96,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     /// A map containing all functions: identifier → function definition.
     functions: RefCell<HashMap<polymorphic_vir::FunctionIdentifier, polymorphic_vir::Function>>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, polymorphic_vir::BodylessMethod>>,
-    builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::FunctionIdentifier>>,
+    builtin_functions: RefCell<HashMap<BuiltinFunctionKind, polymorphic_vir::FunctionIdentifier>>,
     procedures: RefCell<HashMap<ProcedureDefId, polymorphic_vir::CfgMethod>>,
     programs: Vec<polymorphic_vir::Program>,
     pure_function_bodies: RefCell<HashMap<(ProcedureDefId, String), polymorphic_vir::Expr>>,
@@ -817,7 +817,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             Ok(ty)
         } else {
             Err(EncodingError::internal(
-                format!("type predicate not known: {:?}", name)
+                format!("type predicate not known: {:?}", typ.name())
             ))
         }
     }
@@ -1075,9 +1075,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         encoded_arg: polymorphic_vir::Expr
     ) -> EncodingResult<polymorphic_vir::Expr> {
-        // TODO: adapt whole function to polymorphic
         let type_pred = self.encode_type_predicate_use(ty)
-            .expect("failed to encode unsupported type").into();
+            .expect("failed to encode unsupported type");
         Ok(polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {
             function_name: self.encode_type_invariant_use(ty)?,
             arguments: vec![encoded_arg],
