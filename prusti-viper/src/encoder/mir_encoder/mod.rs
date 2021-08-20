@@ -134,6 +134,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         };
                         let field = &variant_def.fields[field.index()];
                         let field_ty = field.ty(tcx, subst);
+                        if utils::is_reference(field_ty) {
+                            return Err(EncodingError::unsupported(
+                                "access to reference-typed fields is not supported",
+                            ));
+                        }
                         let encoded_field = self
                             .encoder()
                             .encode_struct_field(
@@ -424,11 +429,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir,
             def_id,
         }
-    }
-
-    pub fn is_reference(&self, base_ty: ty::Ty<'tcx>) -> bool {
-        trace!("is_reference {}", base_ty);
-        matches!(base_ty.kind(), ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..))
     }
 
     /// Returns an `vir::Expr` that corresponds to the value of the operand
