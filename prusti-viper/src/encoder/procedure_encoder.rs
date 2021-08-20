@@ -1454,7 +1454,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 // TODO: Encoding of string literals is not yet supported, so
                 // do not return an expression in restored here.
-                let restored : Option<vir::Expr> = match ty.kind() {
+                let restored: Option<vir::Expr> = match ty.kind() {
                     ty::TyKind::Ref(_, inner, _) if inner.is_str() => None,
                     _ => Some(
                         self.encoder.encode_const_expr(ty, &val).unwrap()
