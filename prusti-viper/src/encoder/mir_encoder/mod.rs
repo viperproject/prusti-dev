@@ -136,7 +136,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let field_ty = field.ty(tcx, subst);
                         if utils::is_reference(field_ty) {
                             return Err(EncodingError::unsupported(
-                                "reference type fields are not supported"
+                                "access to reference-typed fields is not supported",
                             ));
                         }
                         let encoded_field = self
