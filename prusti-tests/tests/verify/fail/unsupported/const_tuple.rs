@@ -3,5 +3,5 @@
 const C: (i32, i32) = (0, 0);
 
 fn main() {
-    let _ = C.0;  //~ERROR the encoding of this reference copy has not been implemented
+    let _ = C.0;  //~ERROR unsupported constant value
 }
