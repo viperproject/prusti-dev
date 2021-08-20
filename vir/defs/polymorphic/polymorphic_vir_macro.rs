@@ -24,56 +24,56 @@ macro_rules! vir {
         $crate::polymorphic::Stmt::label($label)
     };
     (assert $exp: tt) => {
-        $crate::polymorphic::Stmt::Assert( Assert {
+        $crate::polymorphic::Stmt::Assert( $crate::polymorphic::Assert {
             expr: vir!($exp),
             position: $crate::polymorphic::Position::default(),
         })
     };
     (inhale $exp: tt) => {
-        $crate::polymorphic::Stmt::Inhale( Inhale {
+        $crate::polymorphic::Stmt::Inhale( $crate::polymorphic::Inhale {
             expr: vir!($exp),
         })
     };
     (exhale $exp: tt) => {
-        $crate::polymorphic::Stmt::Exhale( Exhale {
+        $crate::polymorphic::Stmt::Exhale( $crate::polymorphic::Exhale {
             expr: vir!($exp),
             position: $crate::polymorphic::Position::default(),
         })
     };
     (apply $exp: tt) => {
-        $crate::polymorphic::Stmt::ApplyMagicWand( ApplyMagicWand {
+        $crate::polymorphic::Stmt::ApplyMagicWand( $crate::polymorphic::ApplyMagicWand {
             magic_wand: vir!($exp),
             position: $crate::polymorphic::Position::default(),
         })
     };
     (obtain $exp: tt) => {
-        $crate::polymorphic::Stmt::Obtain( Obtain {
+        $crate::polymorphic::Stmt::Obtain( $crate::polymorphic::Obtain {
             expr: vir!($exp),
             position: $crate::polymorphic::Position::default(),
         })
     };
     (if ($exp: tt) { $($then: tt);* } else { $($elze: tt);* }) => {
-        $crate::polymorphic::Stmt::If( If {
+        $crate::polymorphic::Stmt::If( $crate::polymorphic::If {
             guard: vir!($exp),
             then_stmts: vec![$(vir!($then)),*],
             else_stmts: vec![$(vir!($elze)),*],
         })
     };
     (if ($exp: tt) { $($then: tt);* }) => {
-        $crate::polymorphic::Stmt::If( If {
+        $crate::polymorphic::Stmt::If( $crate::polymorphic::If {
             guard: vir!($exp),
             then_stmts: vec![$(vir!($then)),*],
             else_stmts: vec![],
         })
     };
     (true) => {
-        $crate::polymorphic::Expr::Const( ConstExpr {
+        $crate::polymorphic::Expr::Const( $crate::polymorphic::ConstExpr {
             value: $crate::polymorphic::Const::Bool(true),
             position: $crate::polymorphic::Position::default(),
         })
     };
     (false) => {
-        $crate::polymorphic::Expr::Const( ConstExpr {
+        $crate::polymorphic::Expr::Const( $crate::polymorphic::ConstExpr {
             value: $crate::polymorphic::Const::Bool(false),
             position: $crate::polymorphic::Position::default(),
         })
