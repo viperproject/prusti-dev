@@ -1452,8 +1452,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Use(mir::Operand::Constant(box mir::Constant { literal, .. })) => {
                 let (ty, val) = mir_constantkind_to_ty_val(literal);
 
-                // Encoding of string literals is not yet supported, so do not return
-                // an expression in restored here.
+                // TODO: Encoding of string literals is not yet supported, so
+                // do not return an expression in restored here.
                 let restored : Option<vir::Expr> = match ty.kind() {
                     ty::TyKind::Ref(_, inner, _) if inner.is_str() => None,
                     _ => Some(
@@ -2157,6 +2157,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     ref_field,
                                     location,
                                     vir::AssignKind::Move,
+                                    false
                                 )?
                             );
 
@@ -4880,6 +4881,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             field.clone(),
                             location,
                             vir::AssignKind::Move,
+                            false
                         )?;
                         alloc_stmts.push(vir::Stmt::Assign(
                             lhs.clone().field(field.clone()),
@@ -4924,6 +4926,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             ref_field.clone(),
                             location,
                             vir::AssignKind::SharedBorrow(loan.index().into()),
+                            false
                         )?;
                         stmts.push(vir::Stmt::Assign(
                             lhs.clone().field(ref_field.clone()),
@@ -4957,10 +4960,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             field.clone(),
                             location,
                             vir::AssignKind::Copy,
+                            true
                         )?;
 
-                        // Encoding of string literals is not yet supported, so do not encode
-                        // an assignment if the RHS is a string
+                        // TODO Encoding of string literals is not yet supported,
+                        // so do not encode an assignment if the RHS is a string
                         let is_str = match ty.kind() {
                             ty::TyKind::Ref(_, inner, _) => inner.is_str(),
                             _ => false,
@@ -5189,6 +5193,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ref_field,
                     location,
                     vir::AssignKind::Move,
+                    false
                 )?;
 
                 // Allocate `box_content`
@@ -5311,6 +5316,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 field.clone(),
                 location,
                 vir_assign_kind,
+                false
             )?
         );
         stmts.push(vir::Stmt::Assign(
@@ -5590,6 +5596,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         field: vir::Field,
         location: mir::Location,
         vir_assign_kind: vir::AssignKind,
+        can_copy_reference: bool
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] prepare_assign_target(dst={}, field={}, location={:?})",
@@ -5605,8 +5612,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             match vir_assign_kind {
                 vir::AssignKind::Copy => {
                     if field.typ.is_ref() {
-                        if field.typed_ref_name() == Some("str".to_string()) {
-                            let pred_acc = vir::Expr::predicate_access_predicate("str", dst_field, vir::PermAmount::Read);
+                        if can_copy_reference {
+                            let pred_acc = vir::Expr::predicate_access_predicate(
+                                field.typed_ref_name().unwrap(),
+                                dst_field,
+                                vir::PermAmount::Read
+                            );
                             alloc_stmts.push(vir::Stmt::Inhale(pred_acc));
                         } else {
                             // TODO: Inhale the predicate rooted at dst_field
@@ -5642,7 +5653,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             lhs.clone(),
             field.clone(),
             location,
-            vir::AssignKind::Copy
+            vir::AssignKind::Copy,
+            false
         )?;
         stmts.push(vir::Stmt::Assign(
             lhs.field(field),
