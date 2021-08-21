@@ -160,7 +160,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                 left.get_required_permissions(predicates, old_exprs)
             }
 
-            &polymorphic_vir::Stmt::ExpireBorrows( polymorphic_vir::ExpireBorrows {ref dag} ) => {
+            &polymorphic_vir::Stmt::ExpireBorrows( polymorphic_vir::ExpireBorrows {dag: ref _dag} ) => {
                 HashSet::new() // TODO: #133
             }
 
@@ -219,7 +219,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                 req_places.into_iter().collect()
             }
 
-            polymorphic_vir::Expr::LabelledOld( polymorphic_vir::LabelledOld {ref label, ref base, ..} ) => HashSet::new(),
+            polymorphic_vir::Expr::LabelledOld( polymorphic_vir::LabelledOld {label: ref _label, base: ref _base, ..} ) => HashSet::new(),
 
             polymorphic_vir::Expr::PredicateAccessPredicate( polymorphic_vir::PredicateAccessPredicate { box argument, ..} ) => {
                 debug_assert!(argument.is_place());
@@ -275,7 +275,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                 vec![guard, then_expr, else_expr].get_required_permissions(predicates, old_exprs)
             }
 
-            polymorphic_vir::Expr::LetExpr( polymorphic_vir::LetExpr {variable, def, body, ..} ) => {
+            polymorphic_vir::Expr::LetExpr( polymorphic_vir::LetExpr {variable: _variable, def: _def, body: _body, ..} ) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
 
@@ -302,7 +302,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                 .into_iter()
                 .collect(),
 
-            polymorphic_vir::Expr::MagicWand( polymorphic_vir::MagicWand {ref left, ref right, ref borrow, ..} ) => {
+            polymorphic_vir::Expr::MagicWand( polymorphic_vir::MagicWand {left: ref _left, right: ref _right, borrow: ref _borrow, ..} ) => {
                 // Not exactly Viper's semantics
                 HashSet::new()
             }

@@ -58,7 +58,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Ref(_, ref ty, _) => {
-                let typ = self.encoder.encode_type_predicate_use(ty)?;
+                let typ = self.encoder.encode_type(ty)?;
                 polymorphic_vir::Field::new("val_ref", typ)
             }
 
@@ -68,7 +68,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Closure(_, _)
             | ty::TyKind::FnDef(_, _) => {
-                let typ = self.encoder.encode_type_predicate_use(self.ty)?;
+                let typ = self.encoder.encode_type(self.ty)?;
                 polymorphic_vir::Field::new("val_ref", typ)
             }
 
@@ -222,7 +222,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     pub fn encode_predicate_def(self) -> EncodingResult<Vec<polymorphic_vir::Predicate>> {
         debug!("Encode type predicate '{:?}'", self.ty);
-        let typ = self.encoder.encode_type_predicate_use(self.ty)?;
+        let typ = self.encoder.encode_type(self.ty)?;
 
         Ok(match self.ty.kind() {
             ty::TyKind::Bool => vec![polymorphic_vir::Predicate::new_primitive_value(
@@ -401,7 +401,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_predicate_use(self) -> EncodingResult<String> {
-        let typ = self.encoder.encode_type_predicate_use(self.ty)?;
+        let typ = self.encoder.encode_type(self.ty)?;
         Ok(typ.encode_as_string())
     }
 
@@ -428,16 +428,16 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Char => polymorphic_vir::Type::typed_ref("char"),
 
             ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
-                polymorphic_vir::Type::typed_ref_with_args("raw_ref", vec![self.encoder.encode_type_predicate_use(ty)?])
+                polymorphic_vir::Type::typed_ref_with_args("raw_ref", vec![self.encoder.encode_type(ty)?])
             }
             ty::TyKind::Ref(_, ref ty, _) => {
-                polymorphic_vir::Type::typed_ref_with_args("ref", vec![self.encoder.encode_type_predicate_use(ty)?])
+                polymorphic_vir::Type::typed_ref_with_args("ref", vec![self.encoder.encode_type(ty)?])
             }
 
             ty::TyKind::Adt(adt_def, subst) => {
                 polymorphic_vir::Type::typed_ref_with_args(format!("adt${}", self.encoder.encode_item_name(adt_def.did)), subst.iter().filter_map(|kind|
                     if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                        self.encoder.encode_type_predicate_use(ty).map_or(None, |val| Some(val))
+                        self.encoder.encode_type(ty).map_or(None, |val| Some(val))
                     } else {
                         None
                     }
@@ -446,7 +446,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Tuple(elems) => {
                 polymorphic_vir::Type::typed_ref_with_args("tuple", elems.iter().filter_map(|ty|
-                    self.encoder.encode_type_predicate_use(ty.expect_ty()).map_or(None, |val|Some(val))
+                    self.encoder.encode_type(ty.expect_ty()).map_or(None, |val|Some(val))
                 ).collect())
             }
 
@@ -459,11 +459,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     self.encoder
                         .const_eval_intlike(&size.val).unwrap()
                         .to_u64().unwrap();
-                polymorphic_vir::Type::typed_ref_with_args(format!("Array${}", array_len), vec![self.encoder.encode_type_predicate_use(elem_ty)?])
+                polymorphic_vir::Type::typed_ref_with_args(format!("Array${}", array_len), vec![self.encoder.encode_type(elem_ty)?])
             }
 
             ty::TyKind::Slice(elem_ty) => {
-                polymorphic_vir::Type::typed_ref_with_args("Slice", vec![self.encoder.encode_type_predicate_use(elem_ty)?])
+                polymorphic_vir::Type::typed_ref_with_args("Slice", vec![self.encoder.encode_type(elem_ty)?])
             }
 
             ty::TyKind::Closure(def_id, closure_subst) => {
@@ -471,7 +471,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     format!("closure${}_{}", def_id.krate.as_u32(), def_id.index.as_u32()), 
                     closure_subst.iter().filter_map(|kind|
                         if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                            self.encoder.encode_type_predicate_use(ty).map_or(None, |val| Some(val))
+                            self.encoder.encode_type(ty).map_or(None, |val| Some(val))
                         } else {
                             None
                         }
@@ -486,7 +486,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Projection(ty::ProjectionTy { item_def_id, substs }) => {
                 polymorphic_vir::Type::typed_ref_with_args(self.encoder.encode_item_name(*item_def_id), substs.iter().filter_map(|kind|
                     if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                        self.encoder.encode_type_predicate_use(ty).map_or(None, |val| Some(val))
+                        self.encoder.encode_type(ty).map_or(None, |val| Some(val))
                     } else {
                         None
                     }
@@ -494,23 +494,23 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Dynamic(..) => {
-                polymorphic_vir::Type::typed_ref_with_args("unsupported$dynamic", vec![])
+                polymorphic_vir::Type::typed_ref("unsupported$dynamic")
             }
 
             ty::TyKind::FnPtr(..) => {
-                polymorphic_vir::Type::typed_ref_with_args("unsupported$fnptr", vec![])
+                polymorphic_vir::Type::typed_ref("unsupported$fnptr")
             }
 
             ty::TyKind::FnDef(..) => {
-                polymorphic_vir::Type::typed_ref_with_args("unsupported$fndef", vec![])
+                polymorphic_vir::Type::typed_ref("unsupported$fndef")
             }
 
             ty::TyKind::Foreign(..) => {
-                polymorphic_vir::Type::typed_ref_with_args("unsupported$foreign", vec![])
+                polymorphic_vir::Type::typed_ref("unsupported$foreign")
             }
 
             _ => {
-                polymorphic_vir::Type::typed_ref_with_args("unsupported", vec![])
+                polymorphic_vir::Type::typed_ref("unsupported")
             }
         };
         Ok(result)
@@ -689,7 +689,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         // we need make them to use the regular function encoding mechanism with
         // snapshots. However, that mechanism is currently very hacky and needs
         // proper refactoring, which is blocked by VIR 2.0.
-        let typ = self.encoder.encode_type_predicate_use(self.ty)?;
+        let typ = self.encoder.encode_type(self.ty)?;
         let self_local_var = vir_local!{ self: {typ} };
         Ok(polymorphic_vir::Function {
             name: self.encoder.encode_type_invariant_use(self.ty)?,

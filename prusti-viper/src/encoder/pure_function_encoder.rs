@@ -75,7 +75,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             "Pure function {} has been encoded with expr: {}",
             function_name, body_expr
         );
-        let substs = self.encoder.type_substitution_polymorphic_type_map().with_span(self.mir.span)?;
+        let substs = &self.encoder.type_substitution_polymorphic_type_map().with_span(self.mir.span)?;
         let patched_body_expr = body_expr.patch_types(substs);
         Ok(patched_body_expr)
     }
@@ -183,7 +183,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let contract = self.encoder
             .get_procedure_contract_for_def(self.proc_def_id)
             .with_span(self.mir.span)?;
-        let substs = self.encoder.type_substitution_polymorphic_type_map().with_span(self.mir.span)?;
+        let substs = &self.encoder.type_substitution_polymorphic_type_map().with_span(self.mir.span)?;
 
         let (type_precondition, func_precondition) = self.encode_precondition_expr(&contract)?;
         let patched_type_precondition = type_precondition.patch_types(&substs);

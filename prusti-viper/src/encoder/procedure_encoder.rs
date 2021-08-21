@@ -340,11 +340,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Declare the formal return
         for local in self.mir.local_decls.indices().take(1) {
             let name = self.mir_encoder.encode_local_var_name(local);
-            let type_name = self
+            let typ = self
                 .encoder
-                .encode_type_predicate_use(self.mir_encoder.get_local_ty(local)).unwrap(); // will panic if attempting to encode unsupported type
+                .encode_type(self.mir_encoder.get_local_ty(local)).unwrap(); // will panic if attempting to encode unsupported type
             self.cfg_method
-                .add_formal_return(&name, polymorphic_vir::Type::typed_ref(type_name))
+                .add_formal_return(&name, typ)
         }
 
         // Preprocess loops
@@ -445,10 +445,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .collect();
         for local in local_vars.iter() {
             let local_ty = self.locals.get_type(*local);
-            let type_name = self.encoder.encode_type_predicate_use(local_ty).unwrap(); // will panic if attempting to encode unsupported type
+            let typ = self.encoder.encode_type(local_ty).unwrap(); // will panic if attempting to encode unsupported type
             let var_name = self.locals.get_name(*local);
             self.cfg_method
-                .add_local_var(&var_name, polymorphic_vir::Type::typed_ref(type_name));
+                .add_local_var(&var_name, typ);
         }
 
         self.check_vir()?;
@@ -458,7 +458,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encoder
             .log_vir_program_before_foldunfold(self.cfg_method.to_string());
 
-        let legacy_vir_cfg_method = self.cfg_method.clone().into();
+        let legacy_vir_cfg_method: CfgMethod = self.cfg_method.clone().into();
 
         // Dump initial CFG
         if config::dump_debug_info() {
@@ -510,7 +510,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // TODO polymorphic fix ghost vars
         // Fix variable declarations.
         // let final_method = fix_ghost_vars(method_with_fold_unfold);
-        let final_method: CfgMethod = method_with_fold_unfold.into();
+        let final_method: CfgMethod = method_with_fold_unfold.clone().into();
 
         // Dump final CFG
         if config::dump_debug_info() {
@@ -521,7 +521,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
         }
 
-        Ok(final_method)
+        Ok(method_with_fold_unfold)
     }
 
     /// Encodes a topologically ordered group of blocks.
@@ -2720,7 +2720,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         // Inline or skip usages of constant parameters
                         // See issue #85
                         match orig_expr {
-                            polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {function_name: name, arguments: args, ..} ) => {
+                            polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {function_name: ref name, arguments: ref args, ..} ) => {
                                 if args.len() == 1
                                     && args[0].is_local()
                                     && const_arg_vars.contains(&args[0])
@@ -4464,7 +4464,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for permission in &permissions {
             match permission {
                 polymorphic_vir::Expr::PredicateAccessPredicate( polymorphic_vir::PredicateAccessPredicate {predicate_type, argument, ..}) => {
-                    let ty = self.encoder.decode_type_predicate(predicate_type)?;
+                    let ty = self.encoder.decode_type_predicate_type(predicate_type)?;
                     let inv_func_app = self.encoder.encode_invariant_func_app(
                         ty,
                         (**argument).clone(),
@@ -4711,10 +4711,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
     fn encode_prusti_local(&self, local: Local) -> polymorphic_vir::LocalVar {
         let var_name = self.locals.get_name(local);
-        let type_name = self
+        let typ = self
             .encoder
-            .encode_type_predicate_use(self.locals.get_type(local)).unwrap(); // will panic if attempting to encode unsupported type
-        polymorphic_vir::LocalVar::new(var_name, polymorphic_vir::Type::typed_ref(type_name))
+            .encode_type(self.locals.get_type(local)).unwrap(); // will panic if attempting to encode unsupported type
+        polymorphic_vir::LocalVar::new(var_name, typ)
     }
 
     // /// Returns
@@ -4778,7 +4778,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 use polymorphic_vir::ExprFolder;
                 impl ExprFolder for RootReplacer {
                     fn fold_local(&mut self, _v: polymorphic_vir::LocalVar, p: polymorphic_vir::Position) -> polymorphic_vir::Expr {
-                        Expr::Local(self.new_root.clone(), p)
+                        polymorphic_vir::Expr::Local( polymorphic_vir::Local {
+                            variable: self.new_root.clone(),
+                            position: p,
+                        })
                     }
                 }
                 Ok((RootReplacer { new_root }.fold(expr), ty, variant))
@@ -4900,7 +4903,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         stmts.push(vir!{ inhale [ all_others_unchanged ]});
 
-        let tmp = polymorphic_vir::Expr::from(self.cfg_method.add_fresh_local_var(array_types.elem_ty.clone()));
+        let tmp = polymorphic_vir::Expr::from(self.cfg_method.add_fresh_local_var(array_types.elem_pred_type.clone()));
         stmts.extend(
             self.encode_assign(
                 tmp.clone(),
@@ -5877,7 +5880,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                     let variant_name = &variant_def.ident.as_str();
                     let new_dst_base = dst_base.variant(variant_name);
-                    let variant_field = if let polymorphic_vir::Expr::Variant( polymorphic_vir::Variant {variant_index: field, ..}) = new_dst_base {
+                    let variant_field = if let polymorphic_vir::Expr::Variant( polymorphic_vir::Variant {variant_index: ref field, ..}) = new_dst_base {
                         field.clone()
                     } else {
                         unreachable!()
@@ -6025,7 +6028,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> EncodingResult<(polymorphic_vir::Expr, Vec<polymorphic_vir::Stmt>)> {
         let array_types = self.encoder.encode_array_types(array_ty)?;
 
-        let lookup_res: polymorphic_vir::Expr = self.cfg_method.add_fresh_local_var(array_types.elem_ty.clone()).into();
+        let lookup_res: polymorphic_vir::Expr = self.cfg_method.add_fresh_local_var(array_types.elem_pred_type.clone()).into();
         let val_field = self.encoder.encode_value_field(array_types.elem_ty_rs)?;
         let lookup_res_val_field = lookup_res.clone().field(val_field);
         let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs)?;
@@ -6063,7 +6066,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> EncodingResult<(polymorphic_vir::Expr, Vec<polymorphic_vir::Stmt>)> {
         let array_types = self.encoder.encode_array_types(array_ty)?;
 
-        let res: polymorphic_vir::Expr = self.cfg_method.add_fresh_local_var(array_types.elem_ty.clone()).into();
+        let res: polymorphic_vir::Expr = self.cfg_method.add_fresh_local_var(array_types.elem_pred_type.clone()).into();
         let val_field = self.encoder.encode_value_field(array_types.elem_ty_rs)?;
         let res_val_field = res.clone().field(val_field);
 
@@ -6184,7 +6187,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             PlaceEncoding::SliceAccess { base, index, rust_slice_ty, .. } => {
                 let slice_types = self.encoder.encode_slice_types(rust_slice_ty)?;
 
-                let res = polymorphic_vir::Expr::local(self.cfg_method.add_fresh_local_var(slice_types.elem_ty.clone()));
+                let res = polymorphic_vir::Expr::local(self.cfg_method.add_fresh_local_var(slice_types.elem_pred_type.clone()));
                 let val_field = self.encoder.encode_value_field(slice_types.elem_ty_rs)?;
                 let res_val_field = res.clone().field(val_field);
                 let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types.elem_ty_rs)?;
