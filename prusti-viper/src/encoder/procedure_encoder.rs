@@ -68,6 +68,7 @@ use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
 use crate::encoder::snapshot;
 use std::convert::TryInto;
+use crate::utils::is_reference;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -3476,7 +3477,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir::Expr> {
         for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
             let ty = self.locals.get_type(arg);
-            if self.mir_encoder.is_reference(ty) {
+            if is_reference(ty) {
                 // If the argument is a reference, we wrap _1.val_ref into old.
                 let arg_span = self.mir_encoder.get_local_span(arg.into());
                 let (encoded_deref, ..) = self
@@ -3836,7 +3837,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             for arg_index in self.mir.args_iter() {
                 let arg_ty = self.mir.local_decls[arg_index].ty;
                 let arg_span = self.mir_encoder.get_local_span(arg_index);
-                if self.mir_encoder.is_reference(arg_ty) {
+                if is_reference(arg_ty) {
                     let encoded_arg = self.mir_encoder.encode_local(arg_index)?;
                     let (deref_place, ..) =
                         self.mir_encoder
@@ -3968,7 +3969,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 continue;
             }
             let ty = self.locals.get_type(arg);
-            if self.mir_encoder.is_reference(ty) {
+            if is_reference(ty) {
                 let encoded_arg: vir::Expr = self.encode_prusti_local(arg).into();
                 let arg_span = self.mir_encoder.get_local_span(arg.into());
                 let (encoded_deref, ..) = self
@@ -4028,7 +4029,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let ty = self.locals.get_type(contract.returned_value);
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
         let return_span = self.mir_encoder.get_local_span(contract.returned_value.into());
-        let encoded_return_expr = if self.mir_encoder.is_reference(ty) {
+        let encoded_return_expr = if is_reference(ty) {
             let (encoded_deref, ..) = self.mir_encoder
                 .encode_deref(encoded_return, ty)
                 .with_span(return_span)?;
