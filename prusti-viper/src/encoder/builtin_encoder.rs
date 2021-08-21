@@ -203,7 +203,7 @@ impl BuiltinEncoder {
                 }
             },
             BuiltinFunctionKind::SliceLen { slice_pred_type, .. } => {
-                let self_var = polymorphic_vir::LocalVar::new("self", slice_pred_type);
+                let self_var = polymorphic_vir::LocalVar::new("self", slice_pred_type.clone());
 
                 polymorphic_vir::Function {
                     name: fn_name,
