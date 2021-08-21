@@ -373,7 +373,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 inhale_expr(right, state, predicates)?;
             }
 
-            &polymorphic_vir::Stmt::ExpireBorrows( polymorphic_vir::ExpireBorrows {ref dag} ) => {
+            &polymorphic_vir::Stmt::ExpireBorrows( polymorphic_vir::ExpireBorrows {dag: ref _dag} ) => {
                 // TODO: #133
             }
 

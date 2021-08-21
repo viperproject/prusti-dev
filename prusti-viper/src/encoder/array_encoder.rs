@@ -142,14 +142,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
             return Ok(cached.clone());
         }
 
-        let slice_pred_type = encoder.encode_type_predicate_use(slice_ty_rs)?;
+        let slice_pred_type = encoder.encode_type(slice_ty_rs)?;
         let elem_ty_rs = if let ty::TyKind::Slice(elem_ty) = slice_ty_rs.kind() {
             elem_ty
         } else {
             unreachable!()
         };
 
-        let elem_pred_type = encoder.encode_type_predicate_use(elem_ty_rs)?;
+        let elem_pred_type = encoder.encode_type(elem_ty_rs)?;
 
         let encoded = EncodedSliceTypes {
             slice_pred_type,
@@ -173,13 +173,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
         }
 
         // type predicates
-        let array_pred = encoder.encode_type_predicate_use(array_ty_rs)?.encode_as_string();
         let (elem_ty_rs, len) = if let ty::TyKind::Array(elem_ty, len) = array_ty_rs.kind() {
             (elem_ty, len)
         } else {
             unreachable!()
         };
-        let elem_pred = encoder.encode_type_predicate_use(elem_ty_rs)?.encode_as_string();
 
         // types
         let array_pred_type = encoder.encode_type(array_ty_rs)?;

@@ -51,7 +51,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         let var_name = self.encode_local_var_name(local);
         let typ = self
             .encoder()
-            .encode_type_predicate_use(self.get_local_ty(local))
+            .encode_type(self.get_local_ty(local))
             .with_span(self.get_local_span(local))?;
         Ok(polymorphic_vir::LocalVar::new(var_name, typ))
     }

@@ -210,7 +210,7 @@ fn translate_type(encoder: &Encoder, typ: polymorphic_vir::Type) -> polymorphic_
         | polymorphic_vir::Type::Snapshot(_)
         | polymorphic_vir::Type::Domain(_) => typ,
         polymorphic_vir::Type::TypedRef(_) | polymorphic_vir::Type::TypeVar(_) => {
-            let mir_typ = encoder.decode_type_predicate(&typ).unwrap(); // FIXME: unwrap
+            let mir_typ = encoder.decode_type_predicate_type(&typ).unwrap(); // FIXME: unwrap
             encoder.encode_snapshot_type(mir_typ).unwrap() // FIXME: unwrap
         }
         polymorphic_vir::Type::Seq(_) => unreachable!(),

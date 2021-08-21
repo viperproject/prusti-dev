@@ -40,7 +40,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
     pub fn encode_function(&self) -> SpannedEncodingResult<polymorphic_vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode stub function {}", function_name);
-        let substs = self.encoder.type_substitution_polymorphic_type_map().with_span(self.mir.span)?;
+        let substs = &self.encoder.type_substitution_polymorphic_type_map().with_span(self.mir.span)?;
 
         let formal_args: Vec<_> = self
             .mir

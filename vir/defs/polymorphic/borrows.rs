@@ -12,6 +12,18 @@ use std::fmt;
 #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct Borrow(pub(crate) usize);
 
+impl From<usize> for Borrow {
+    fn from(index: usize) -> Borrow {
+        Borrow(index)
+    }
+}
+
+impl From<Borrow> for usize {
+    fn from(borrow: Borrow) -> Self {
+        borrow.0 as usize
+    }
+}
+
 impl fmt::Debug for Borrow {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "L{}", self.0)
