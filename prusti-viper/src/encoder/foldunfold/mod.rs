@@ -94,7 +94,6 @@ pub fn add_folding_unfolding_to_expr(
     ExprReplacer::new(pctxt.clone(), &pctxt_at_label, false).fallible_fold(expr)
 }
 
-// TODO polymorphic
 pub fn add_folding_unfolding_to_function(
     function: polymorphic_vir::Function,
     predicates: HashMap<String, polymorphic_vir::Predicate>,
@@ -146,7 +145,6 @@ pub fn add_folding_unfolding_to_function(
     Ok(result)
 }
 
-// TODO polymorphic
 pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     cfg: polymorphic_vir::CfgMethod,
@@ -586,9 +584,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> polymorphic_vir::CfgReplacer<PathCtxt<'p>, ActionVec>
 
         // Store state for old[lhs] expressions
         match stmt {
-            polymorphic_vir::Stmt::PackageMagicWand( polymorphic_vir::PackageMagicWand {magic_wand, ..} )
-            | polymorphic_vir::Stmt::ApplyMagicWand( polymorphic_vir::ApplyMagicWand {magic_wand, ..} )
-            | polymorphic_vir::Stmt::Inhale( polymorphic_vir::Inhale {expr: magic_wand, ..} ) => {
+            polymorphic_vir::Stmt::PackageMagicWand( polymorphic_vir::PackageMagicWand {ref magic_wand, ..} )
+            | polymorphic_vir::Stmt::ApplyMagicWand( polymorphic_vir::ApplyMagicWand {ref magic_wand, ..} )
+            | polymorphic_vir::Stmt::Inhale( polymorphic_vir::Inhale {expr: ref magic_wand, ..} ) => {
                 if let polymorphic_vir::Expr::MagicWand (polymorphic_vir::MagicWand {box ref left, ..} ) = magic_wand {
                     // TODO: This should be done also for magic wand expressions inside inhale/exhale.
                     let label = "lhs".to_string();
@@ -908,7 +906,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> polymorphic_vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 .collect();
             for (place, perm_amount) in pred_perms {
                 debug!("pred place: {} {}", place, perm_amount);
-                let predicate_type = place.get_type();
+                let predicate_type = place.get_type().clone();
                 if perm_amount == polymorphic_vir::PermAmount::Write {
                     let access = polymorphic_vir::Expr::PredicateAccessPredicate( polymorphic_vir::PredicateAccessPredicate {
                         predicate_type: predicate_type.clone(),
@@ -926,7 +924,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> polymorphic_vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 let new_place = place.replace_place(source, target);
                 debug!("    new place: {}", new_place);
                 let lhs_read_access = polymorphic_vir::Expr::PredicateAccessPredicate( polymorphic_vir::PredicateAccessPredicate {
-                    predicate_type: predicate_type.clone(),
+                    predicate_type: predicate_type,
                     argument: box new_place,
                     permission: polymorphic_vir::PermAmount::Read,
                     position: polymorphic_vir::Position::default(),

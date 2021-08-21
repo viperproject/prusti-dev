@@ -11,7 +11,7 @@
 /// source code.
 use csv::ReaderBuilder;
 use polonius_engine;
-use prusti_common::vir::borrows::Borrow;
+use vir::polymorphic::borrows::Borrow;
 use regex::Regex;
 use rustc_middle::mir;
 // use rustc_data_structures::indexed_vec::Idx;

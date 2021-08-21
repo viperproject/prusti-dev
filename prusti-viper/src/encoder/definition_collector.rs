@@ -373,7 +373,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
             polymorphic_vir::Type::Seq( polymorphic_vir::SeqType {box typ} ) => {
                 self.walk_type(typ);
             }
-            polymorphic_vir::Type::TypedRef(..) => {
+            polymorphic_vir::Type::TypedRef(..) | polymorphic_vir::Type::TypeVar(..) => {
                 self.used_predicates.insert(typ.name());
             }
             polymorphic_vir::Type::Domain(..) => {

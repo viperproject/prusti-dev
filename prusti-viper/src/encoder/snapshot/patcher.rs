@@ -225,7 +225,7 @@ fn fix_quantifier(
     for var in vars {
         match var.typ {
             polymorphic_vir::Type::TypedRef(_) => {
-                let ty = patcher.encoder.decode_type_predicate(&var.typ)?;
+                let ty = patcher.encoder.decode_type_predicate_type(&var.typ)?;
                 let patched_var = polymorphic_vir::LocalVar::new(
                     &var.name,
                     patcher.snapshot_encoder.encode_type(patcher.encoder, ty)?,

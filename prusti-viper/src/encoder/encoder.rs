@@ -260,8 +260,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         super::definition_collector::collect_definitions(self, name, self.get_used_viper_methods())
     }
 
-    pub fn get_viper_programs(&mut self) -> Vec<polymorphic_vir::Program> {
-        std::mem::replace(&mut self.programs, Vec::new())
+    pub fn get_viper_programs(&mut self) -> Vec<vir::Program> {
+        std::mem::replace(&mut self.programs, Vec::new()).into_iter().map(|program| program.into()).collect()
     }
 
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
@@ -510,7 +510,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         viper_field_name: String,
         ty: ty::Ty<'tcx>
     ) -> EncodingResult<polymorphic_vir::Field> {
-        let typ = self.encode_type_predicate_use(ty)?;
+        let typ = self.encode_type(ty)?;
         self.fields
             .borrow_mut()
             .entry(viper_field_name.clone())
@@ -767,8 +767,20 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_type(&self, ty: ty::Ty<'tcx>)
     -> EncodingResult<polymorphic_vir::Type>
     {
-        let type_encoder = TypeEncoder::new(self, ty);
-        type_encoder.encode_type()
+        if !self.type_predicate_types.borrow().contains_key(ty.kind()) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let encoded_type = type_encoder.encode_type()?;
+            self.type_predicate_types
+                .borrow_mut()
+                .insert(ty.kind().clone(), encoded_type.clone());
+            self.predicate_types
+                .borrow_mut()
+                .insert(encoded_type, ty);
+            // Trigger encoding of definition
+            self.encode_type_predicate_def(ty)?;
+        }
+        let predicate_type = self.type_predicate_types.borrow()[&ty.kind()].clone();
+        Ok(predicate_type)
     }
 
     pub fn encode_type_bounds(&self, var: &polymorphic_vir::Expr, ty: ty::Ty<'tcx>) -> Vec<polymorphic_vir::Expr> {
@@ -806,7 +818,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ))
     }
 
-    pub fn decode_type_predicate(&self, typ: &polymorphic_vir::Type)
+    pub fn decode_type_predicate_type(&self, typ: &polymorphic_vir::Type)
         -> EncodingResult<ty::Ty<'tcx>>
     {
         if let Some(ty) = self.predicate_types.borrow().get(typ) {
@@ -819,22 +831,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>)
-        -> EncodingResult<polymorphic_vir::Type>
+        -> EncodingResult<String>
     {
-        if !self.type_predicate_types.borrow().contains_key(ty.kind()) {
-            let type_encoder = TypeEncoder::new(self, ty);
-            let encoded_type = type_encoder.encode_type()?;
-            self.type_predicate_types
-                .borrow_mut()
-                .insert(ty.kind().clone(), encoded_type.clone());
-            self.predicate_types
-                .borrow_mut()
-                .insert(encoded_type, ty);
-            // Trigger encoding of definition
-            self.encode_type_predicate_def(ty)?;
-        }
-        let predicate_type = self.type_predicate_types.borrow()[&ty.kind()].clone();
-        Ok(predicate_type)
+        Ok(self.encode_type(ty)?.encode_as_string())
     }
 
     pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>)
@@ -1070,7 +1069,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         encoded_arg: polymorphic_vir::Expr
     ) -> EncodingResult<polymorphic_vir::Expr> {
-        let type_pred = self.encode_type_predicate_use(ty)
+        let type_pred = self.encode_type(ty)
             .expect("failed to encode unsupported type");
         Ok(polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {
             function_name: self.encode_type_invariant_use(ty)?,
@@ -1397,14 +1396,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn type_substitution_polymorphic_type_map(&self)
-    -> EncodingResult<&HashMap<polymorphic_vir::TypeVar, polymorphic_vir::Type>>
+    -> EncodingResult<HashMap<polymorphic_vir::TypeVar, polymorphic_vir::Type>>
     {
         self.current_tymap()
             .iter()
             .map(|(typ, subst)| {
                 let typ_encoder = TypeEncoder::new(self, typ);
                 let subst_encoder = TypeEncoder::new(self, subst);
-                transpose((typ_encoder.encode_type()?.get_type_var(), subst_encoder.encode_type()))
+                
+                transpose((Ok(typ_encoder.encode_type()?.get_type_var().unwrap()), subst_encoder.encode_type()))
+                // FIXME: unwrap
             })
             .collect::<Result<_, _>>()
 }
