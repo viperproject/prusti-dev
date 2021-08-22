@@ -86,11 +86,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
             self.encoder
                 .log_vir_program_before_foldunfold(cfg_method.to_string());
 
-            let legacy_vir_cfg_method: CfgMethod = cfg_method.clone().into();
             log::report_with_writer(
                 "graphviz_method_stub",
                 format!("{}.{}.dot", source_filename, method_name),
-                |writer| legacy_vir_cfg_method.to_graphviz(writer),
+                |writer| cfg_method.to_graphviz(writer),
             );
         }
 

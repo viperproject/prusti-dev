@@ -8,7 +8,7 @@
 
 use std::slice;
 
-use crate::vir::{cfg, Stmt};
+use crate::vir::polymorphic_vir::{cfg, ast, Stmt};
 
 /// Remove empty if statements:
 /// * `if (...) {}`
@@ -17,7 +17,7 @@ use crate::vir::{cfg, Stmt};
 pub fn remove_empty_if(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     method.retain_stmts(|stmt| {
         match stmt {
-            Stmt::If(_, _, _) => !is_empty_body(slice::from_ref(stmt)),
+            Stmt::If(_) => !is_empty_body(slice::from_ref(stmt)),
             _ => true, // Keep the rest
         }
     });
@@ -27,8 +27,12 @@ pub fn remove_empty_if(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
 fn is_empty_body(stmts: &[Stmt]) -> bool {
     stmts.iter().all(|stmt| match stmt {
         Stmt::Comment(_) |
-        Stmt::TransferPerm(..) => true,
-        Stmt::If(_, ref then_stmts, ref else_stmts) =>
+        Stmt::TransferPerm(_) => true,
+        Stmt::If( ast::If {
+            ref then_stmts,
+            ref else_stmts,
+            ..
+        }) =>
             is_empty_body(then_stmts) && is_empty_body(else_stmts),
         _ => false
     })

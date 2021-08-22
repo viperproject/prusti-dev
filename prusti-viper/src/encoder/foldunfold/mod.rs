@@ -506,9 +506,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> polymorphic_vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 "graphviz_method_during_foldunfold",
                 format!("{}.{}.dot", source_filename, method_name),
                 |writer| {
-                    // TODO: currently polymorphic vir is cloned and converted to legacy vir to use to_graphviz. Could it be better?
-                    let legacy_vir_new_cfg: vir::CfgMethod = new_cfg.clone().into();
-                    legacy_vir_new_cfg.to_graphviz_with_extra(writer, |bb_index| {
+                    new_cfg.to_graphviz_with_extra(writer, |bb_index| {
                         initial_pctxt
                             .get(bb_index)
                             .and_then(|opt_pctxt| {

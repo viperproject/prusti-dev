@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{vir, config};
+use crate::config;
+use crate::vir::polymorphic_vir as vir;
 use std::collections::HashMap;
 use std::mem;
 use log::debug;
@@ -32,7 +33,7 @@ impl Optimizer {
     }
 
     fn replace_cfg(&mut self, mut cfg: vir::CfgMethod) -> vir::CfgMethod {
-        let mut sentinel_stmt = vir::Stmt::Comment(String::from("moved out stmt"));
+        let mut sentinel_stmt = vir::Stmt::comment("moved out stmt");
         for block in &mut cfg.basic_blocks {
             for stmt in &mut block.stmts {
                 mem::swap(&mut sentinel_stmt, stmt);
@@ -71,18 +72,28 @@ impl vir::StmtFolder for Optimizer {
     ) -> vir::Stmt {
         let pulled_unfodling = self.replace_expr_unfolding(expr);
         let replaced_old = self.replace_expr_old(pulled_unfodling);
-        vir::Stmt::Assert(replaced_old, pos)
+        vir::Stmt::Assert( vir::Assert {
+            expr: replaced_old,
+            position: pos,
+        })
     }
     fn fold_inhale(&mut self, expr: vir::Expr) -> vir::Stmt {
         let pulled_unfodling = self.replace_expr_unfolding(expr);
         let replaced_old = self.replace_expr_old(pulled_unfodling);
-        vir::Stmt::Inhale(replaced_old)
+        vir::Stmt::Inhale( vir::Inhale {
+            expr: replaced_old,
+        })
     }
 }
 
 impl vir::ExprFolder for Optimizer {
     fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>, borrow: Option<vir::borrows::Borrow>, pos: vir::Position) -> vir::Expr {
-        vir::Expr::MagicWand(lhs, rhs, borrow, pos)
+        vir::Expr::MagicWand( vir::MagicWand {
+            left: lhs,
+            right: rhs,
+            borrow,
+            position: pos,
+        })
     }
     fn fold_forall(
         &mut self,
@@ -98,11 +109,19 @@ impl vir::ExprFolder for Optimizer {
         let mut replacer = Replacer::new(&variables, &mut self.counter);
         let replaced_body = replacer.fold_boxed(folded_body);
         debug!("replaced body: {}", replaced_body);
-        let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos);
+        let mut forall = vir::Expr::ForAll( vir::ForAll {
+            variables, triggers,
+            body: replaced_body,
+            position: pos
+        });
 
         if *replacer.counter > old_counter {
             for (expr, variable) in replacer.map {
-                forall = vir::Expr::LetExpr(variable, box expr, box forall, pos);
+                forall = vir::Expr::LetExpr( vir::LetExpr {
+                    variable,
+                    def: box expr,
+                    body: box forall,
+                    position: pos});
             }
             debug!("replaced quantifier: {}", forall);
         }
@@ -137,12 +156,12 @@ impl<'a> Replacer<'a> {
 
     fn replace_expr(&mut self, original_expr: vir::Expr, pos: vir::Position) -> vir::Expr {
         if let Some(local) = self.map.get(&original_expr) {
-            vir::Expr::Local(local.clone(), pos)
+            vir::Expr::Local( vir::Local {variable: local.clone(), position: pos} )
         } else {
             let typ = original_expr.get_type();
             let local = self.construct_fresh_local(&typ);
             self.map.insert(original_expr, local.clone());
-            vir::Expr::Local(local, pos)
+            vir::Expr::Local( vir::Local {variable: local, position: pos} )
         }
     }
 }
@@ -154,15 +173,25 @@ impl<'a> vir::ExprFolder for Replacer<'a> {
         expr: Box<vir::Expr>,
         pos: vir::Position,
     ) -> vir::Expr {
-        let original_expr = vir::Expr::LabelledOld(label, expr.clone(), pos);
+        let original_expr = vir::Expr::LabelledOld( vir::LabelledOld {
+            label,
+            base: expr.clone(),
+            position: pos,
+        });
         if expr.is_place() {
             if let Some(local) = self.map.get(&original_expr) {
-                vir::Expr::Local(local.clone(), pos)
+                vir::Expr::Local( vir::Local {
+                    variable: local.clone(),
+                    position: pos,
+                })
             } else {
                 let ty = expr.get_type();
                 let local = self.construct_fresh_local(ty);
                 self.map.insert(original_expr, local.clone());
-                vir::Expr::Local(local, pos)
+                vir::Expr::Local( vir::Local {
+                    variable: local,
+                    position: pos,
+                })
             }
         } else {
             original_expr
@@ -182,21 +211,39 @@ impl<'a> vir::ExprFolder for Replacer<'a> {
             // The expression contains bounded variables. Cannot pull it out.
             let folded_first = self.fold_boxed(first);
             let folded_second = self.fold_boxed(second);
-            vir::Expr::BinOp(kind, folded_first, folded_second, pos)
+            vir::Expr::BinOp( vir::BinOp {
+                op_kind: kind,
+                left: folded_first,
+                right: folded_second,
+                position: pos,
+            })
         } else {
             // Pull out the expression.
-            let original_expr = vir::Expr::BinOp(kind, first, second, pos);
+            let original_expr = vir::Expr::BinOp( vir::BinOp {
+                op_kind: kind,
+                left: first,
+                right: second,
+                position: pos,
+            });
             self.replace_expr(original_expr, pos)
         }
     }
     fn fold_field(&mut self, receiver: Box<vir::Expr>, field: vir::Field, pos: vir::Position) -> vir::Expr {
         match &*receiver {
-            vir::Expr::Local(..) => {
-                let original_expr = vir::Expr::Field(receiver, field, pos);
+            vir::Expr::Local(_) => {
+                let original_expr = vir::Expr::Field( vir::FieldExpr {
+                    base: receiver,
+                    field,
+                    position: pos,
+                });
                 self.replace_expr(original_expr, pos)
             }
             _ => {
-                vir::Expr::Field(receiver, field, pos)
+                vir::Expr::Field( vir::FieldExpr {
+                    base: receiver,
+                    field,
+                    position: pos,
+                })
             }
         }
     }
@@ -207,7 +254,12 @@ impl<'a> vir::ExprFolder for Replacer<'a> {
         body: Box<vir::Expr>,
         pos: vir::Position,
     ) -> vir::Expr {
-        vir::Expr::ForAll(variables, triggers, body, pos)
+        vir::Expr::ForAll( vir::ForAll {
+            variables,
+            triggers,
+            body,
+            position: pos,
+        })
     }
 }
 
@@ -237,13 +289,25 @@ impl vir::ExprFolder for UnfoldingExtractor {
         let replaced_body = self.fold_boxed(body);
         self.in_quantifier = false;
 
-        let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos);
+        let mut forall = vir::Expr::ForAll( vir::ForAll {
+            variables,
+            triggers,
+            body: replaced_body,
+            position: pos,
+        });
 
         let unfoldings = mem::replace(&mut self.unfoldings, HashMap::new());
 
         for ((name, args), (perm_amount, variant, _)) in unfoldings {
             forall =
-                vir::Expr::Unfolding(name, args, box forall, perm_amount, variant, pos);
+                vir::Expr::Unfolding( vir::Unfolding {
+                    predicate_name: name,
+                    arguments: args,
+                    base: box forall,
+                    permission: perm_amount,
+                    variant,
+                    position: pos,
+                });
         }
         debug!("replaced quantifier: {}", forall);
 
@@ -262,7 +326,14 @@ impl vir::ExprFolder for UnfoldingExtractor {
             self.unfoldings.insert((name, args), (perm, variant, pos));
             self.fold(*expr)
         } else {
-            vir::Expr::Unfolding(name, args, expr, perm, variant, pos)
+            vir::Expr::Unfolding( vir::Unfolding {
+                predicate_name: name,
+                arguments: args,
+                base: expr,
+                permission: perm,
+                variant,
+                position: pos,
+            })
         }
     }
     fn fold_labelled_old(
@@ -271,6 +342,10 @@ impl vir::ExprFolder for UnfoldingExtractor {
         body: Box<vir::Expr>,
         pos: vir::Position,
     ) -> vir::Expr {
-        vir::Expr::LabelledOld(label, body, pos)
+        vir::Expr::LabelledOld( vir::LabelledOld {
+            label,
+            base: body,
+            position: pos,
+        })
     }
 }
