@@ -6,7 +6,7 @@
 
 //! Optimization that removes unused temporary variables.
 
-use crate::vir::{cfg, Const, Expr, Stmt};
+use crate::vir::polymorphic_vir::{ast, cfg, Const};
 
 /// Remove trivial assertions:
 /// * `assert true`
@@ -16,9 +16,21 @@ pub fn remove_trivial_assertions(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     method.retain_stmts(|stmt| {
         // Remove those statements marked with `false`
         match stmt {
-            Stmt::Assert(Expr::Const(Const::Bool(true), _), _) => false,
-            Stmt::Exhale(Expr::Const(Const::Bool(true), _), _) => false,
-            Stmt::Inhale(Expr::Const(Const::Bool(true), _)) => false,
+            ast::Stmt::Assert( ast::Assert {
+                expr: ast::Expr::Const( ast::ConstExpr {
+                    value: Const::Bool(true),
+                    ..}),
+                ..}) => false,
+            ast::Stmt::Exhale( ast::Exhale {
+                expr: ast::Expr::Const( ast::ConstExpr {
+                    value: Const::Bool(true),
+                    ..}),
+                ..}) => false,
+            ast::Stmt::Inhale( ast::Inhale {
+                expr: ast::Expr::Const( ast::ConstExpr {
+                    value: Const::Bool(true),
+                    ..}),
+                }) => false,
             _ => true, // Keep the rest
         }
     });

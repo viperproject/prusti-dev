@@ -7,6 +7,7 @@
 pub use self::to_viper::*;
 pub use self::to_graphviz::ToGraphViz;
 pub use vir::legacy::*;
+pub use vir::polymorphic as polymorphic_vir;
 
 pub mod fixes;
 pub mod optimizations;
