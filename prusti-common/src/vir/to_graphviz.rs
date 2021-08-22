@@ -6,7 +6,7 @@
 
 use crate::config;
 use std::io::Write;
-use crate::vir::{self, cfg::{CfgMethod, CfgBlock, Successor}};
+use crate::vir::polymorphic_vir::{self as vir, cfg::{CfgMethod, CfgBlock, Successor}};
 
 fn escape_html<S: ToString>(s: S) -> String {
     s.to_string()
@@ -174,12 +174,12 @@ impl ToGraphViz for CfgMethod {
             }
             first_row = false;
             match stmt {
-                vir::Stmt::ExpireBorrows(ref dag) => {
+                vir::Stmt::ExpireBorrows( vir::ExpireBorrows {ref dag} ) => {
                     reborrowing_dags.push(dag);
                 }
-                vir::Stmt::PackageMagicWand(_, ref stmts, _, _, _) => {
+                vir::Stmt::PackageMagicWand( vir::PackageMagicWand {package_stmts: ref stmts, ..} ) => {
                     for stmt in stmts {
-                        if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
+                        if let vir::Stmt::ExpireBorrows( vir::ExpireBorrows {ref dag} ) = stmt {
                             reborrowing_dags.push(dag);
                         }
                     }

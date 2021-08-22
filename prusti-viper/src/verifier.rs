@@ -243,15 +243,20 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         self.encoder.process_encoding_queue();
 
         let encoding_errors_count = self.encoder.count_encoding_errors();
-        let mut programs = self.encoder.get_viper_programs();
 
-        if config::simplify_encoding() {
+        let polymorphic_programs = self.encoder.get_viper_programs();
+
+        let programs = if config::simplify_encoding() {
             stopwatch.start_next("optimizing Viper program");
             let source_file_name = self.encoder.env().source_file_name();
-            programs = programs.into_iter().map(
-                |program| optimize_program(program, &source_file_name)
-            ).collect();
-        }
+            polymorphic_programs.into_iter().map(
+                |program| optimize_program(program, &source_file_name).into()
+            ).collect()
+        } else {
+            polymorphic_programs.into_iter().map(
+                |program| program.into()
+            ).collect()
+        };
 
         stopwatch.start_next("verifying Viper program");
         let source_path = self.env.source_path();
