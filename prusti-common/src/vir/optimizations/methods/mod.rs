@@ -14,7 +14,7 @@ mod purifier;
 mod quantifier_fixer;
 
 use crate::config::Optimizations;
-use crate::vir::cfg::CfgMethod;
+use crate::vir::polymorphic_vir::cfg::CfgMethod;
 use super::log_method;
 
 use self::cfg_cleaner::clean_cfg;

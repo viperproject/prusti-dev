@@ -37,7 +37,7 @@ pub struct CfgMethod {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
-    pub(crate) successor: Successor,
+    pub successor: Successor,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -52,7 +52,7 @@ pub enum Successor {
 pub struct CfgBlockIndex {
     #[serde(skip)]
     pub(crate) method_uuid: Uuid,
-    pub(crate) block_index: usize,
+    pub block_index: usize,
 }
 
 impl fmt::Debug for CfgBlockIndex {

@@ -9,8 +9,8 @@
 //!
 //! For example, `_1.val_int` will become `_1i` where `_1i` is of type Int.
 
-use super::super::super::ast;
-use super::super::super::cfg;
+use crate::vir::polymorphic_vir::ast;
+use crate::vir::polymorphic_vir::cfg;
 use crate::config;
 use std::collections::{HashMap, HashSet};
 use std::{self, mem};
@@ -24,7 +24,7 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         replacements: HashMap::new(),
     };
     // Since we cannot purify the return value, mark it as impure.
-    let return_var = ast::LocalVar::new("_0".to_string(), ast::Type::TypedRef("".to_string()));
+    let return_var = ast::LocalVar::new("_0".to_string(), ast::Type::typed_ref(""));
     collector.impure_vars.insert(return_var);
     method.walk_statements(|stmt| {
         ast::StmtWalker::walk(&mut collector, stmt);
@@ -48,7 +48,7 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         pure_vars: pure_vars,
         replacements: collector.replacements,
     };
-    let mut sentinel_stmt = ast::Stmt::Comment(String::from("moved out stmt"));
+    let mut sentinel_stmt = ast::Stmt::comment("moved out stmt");
     for block in &mut method.basic_blocks {
         for stmt in &mut block.stmts {
             mem::swap(&mut sentinel_stmt, stmt);
@@ -102,14 +102,15 @@ impl ast::ExprWalker for VarCollector {
     }
     fn walk_predicate_access_predicate(
         &mut self,
-        name: &str,
+        typ: &ast::Type,
         arg: &ast::Expr,
         _perm_amount: ast::PermAmount,
         _pos: &ast::Position,
     ) {
         let old_pure_context = self.is_pure_context;
+        let name = &typ.name()[..];
         if is_purifiable_predicate(&name) {
-            if let ast::Expr::Local(var, _) = arg {
+            if let ast::Expr::Local( ast::Local {variable: var, ..}) = arg {
                 let mut new_var = var.clone();
                 let original = var.clone();
                 new_var.typ = match name {
@@ -135,7 +136,7 @@ impl ast::ExprWalker for VarCollector {
     ) {
         let old_pure_context = self.is_pure_context;
         if is_purifiable_predicate(&name) {
-            if let ast::Expr::Local(_, _) = args[0] {
+            if let ast::Expr::Local(_) = args[0] {
                 self.is_pure_context = true;
             }
         }
@@ -149,7 +150,7 @@ impl ast::ExprWalker for VarCollector {
         let old_pure_context = self.is_pure_context;
         if field.name == "val_int" {
             self.is_pure_context = true;
-            if let ast::Expr::Local(var, _) = receiver {
+            if let ast::Expr::Local( ast::Local {variable: var, ..} ) = receiver {
                 let mut new_var = var.clone();
                 let original = var.clone();
                 new_var.typ = field.typ.clone();
@@ -218,7 +219,7 @@ impl ast::StmtWalker for VarCollector {
     ) {
         let old_pure_context = self.is_pure_context;
         if is_purifiable_predicate(predicate_name) {
-            if let ast::Expr::Local(_, _) = args[0] {
+            if let ast::Expr::Local(_) = args[0] {
                 self.is_pure_context = true;
             }
         }
@@ -237,7 +238,7 @@ impl ast::StmtWalker for VarCollector {
     ) {
         let old_pure_context = self.is_pure_context;
         if is_purifiable_predicate(predicate_name) {
-            if let ast::Expr::Local(_, _) = args[0] {
+            if let ast::Expr::Local(_) = args[0] {
                 self.is_pure_context = true;
             }
         }
@@ -255,20 +256,20 @@ struct VarPurifier {
 
 impl VarPurifier {
     fn is_pure(&self, expr: &ast::Expr) -> bool {
-        if let ast::Expr::Local(var, _) = expr {
+        if let ast::Expr::Local( ast::Local {variable: var, ..} ) = expr {
             self.pure_vars.contains(var)
         } else {
             false
         }
     }
     fn get_replacement(&self, expr: &ast::Expr) -> ast::Expr {
-        if let ast::Expr::Local(var, pos) = expr {
+        if let ast::Expr::Local( ast::Local {variable: var, position: pos} ) = expr {
             let replacement = self
                 .replacements
                 .get(&var)
                 .expect(&format!("key: {}", var))
                 .clone();
-            ast::Expr::Local(replacement, *pos)
+            ast::Expr::Local( ast::Local {variable: replacement, position: *pos} )
         } else {
             unreachable!()
         }
@@ -306,19 +307,25 @@ impl ast::ExprFolder for VarPurifier {
             "local_var: {}",
             local_var
         );
-        ast::Expr::Local(local_var, pos)
+        ast::Expr::Local( ast::Local {variable: local_var, position: pos })
     }
     fn fold_predicate_access_predicate(
         &mut self,
-        name: String,
+        typ: ast::Type,
         arg: Box<ast::Expr>,
         perm_amount: ast::PermAmount,
         pos: ast::Position,
     ) -> ast::Expr {
+        let name = typ.name();
         if is_purifiable_predicate(&name) && self.is_pure(&arg) {
             self.get_replacement_bounds(&name, &arg)
         } else {
-            ast::Expr::PredicateAccessPredicate(name, self.fold_boxed(arg), perm_amount, pos)
+            ast::Expr::PredicateAccessPredicate( ast::PredicateAccessPredicate {
+                predicate_type: typ,
+                argument: self.fold_boxed(arg),
+                permission: perm_amount,
+                position: pos,
+            })
         }
     }
     fn fold_field_access_predicate(
@@ -327,12 +334,16 @@ impl ast::ExprFolder for VarPurifier {
         perm_amount: ast::PermAmount,
         pos: ast::Position,
     ) -> ast::Expr {
-        if let box ast::Expr::Field(box ast::Expr::Local(var, _), _, _) = &receiver {
+        if let box ast::Expr::Field( ast::FieldExpr {base: box ast::Expr::Local( ast::Local {variable: var, ..} ), ..}) = &receiver {
             if self.pure_vars.contains(var) {
                 return true.into();
             }
         }
-        ast::Expr::FieldAccessPredicate(self.fold_boxed(receiver), perm_amount, pos)
+        ast::Expr::FieldAccessPredicate( ast::FieldAccessPredicate {
+            base: self.fold_boxed(receiver),
+            permission: perm_amount,
+            position: pos,
+        })
     }
     fn fold_unfolding(
         &mut self,
@@ -347,7 +358,14 @@ impl ast::ExprFolder for VarPurifier {
         if is_purifiable_predicate(&name) && self.is_pure(&args[0]) {
             self.fold(*expr)
         } else {
-            ast::Expr::Unfolding(name, args, self.fold_boxed(expr), perm, variant, pos)
+            ast::Expr::Unfolding( ast::Unfolding {
+                predicate_name: name,
+                arguments: args,
+                base: self.fold_boxed(expr),
+                permission: perm,
+                variant,
+                position: pos,
+            })
         }
     }
     fn fold_field(
@@ -359,7 +377,11 @@ impl ast::ExprFolder for VarPurifier {
         if self.is_pure(&receiver) {
             self.get_replacement(&receiver)
         } else {
-            ast::Expr::Field(self.fold_boxed(receiver), field, pos)
+            ast::Expr::Field( ast::FieldExpr {
+                base: self.fold_boxed(receiver),
+                field,
+                position: pos
+            })
         }
     }
 }
@@ -379,14 +401,14 @@ impl ast::StmtFolder for VarPurifier {
         assert!(args.len() == 1);
         if is_purifiable_predicate(&predicate_name) && self.is_pure(&args[0]) {
             let new_expr = self.get_replacement_bounds(&predicate_name, &args[0]);
-            ast::Stmt::Inhale(new_expr)
+            ast::Stmt::Inhale( ast::Inhale {expr: new_expr} )
         } else {
-            ast::Stmt::Unfold(
+            ast::Stmt::Unfold( ast::Unfold {
                 predicate_name,
-                args.into_iter().map(|e| self.fold_expr(e)).collect(),
-                perm_amount,
-                variant,
-            )
+                arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
+                permission: perm_amount,
+                enum_variant: variant,
+            })
         }
     }
 
@@ -401,15 +423,18 @@ impl ast::StmtFolder for VarPurifier {
         assert!(args.len() == 1);
         if is_purifiable_predicate(&predicate_name) && self.is_pure(&args[0]) {
             let new_expr = self.get_replacement_bounds(&predicate_name, &args[0]);
-            ast::Stmt::Assert(new_expr, pos)
+            ast::Stmt::Assert( ast::Assert {
+                expr: new_expr,
+                position: pos,
+            })
         } else {
-            ast::Stmt::Fold(
+            ast::Stmt::Fold( ast::Fold {
                 predicate_name,
-                args.into_iter().map(|e| self.fold_expr(e)).collect(),
-                perm_amount,
-                variant,
-                pos,
-            )
+                arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
+                permission: perm_amount,
+                enum_variant: variant,
+                position: pos,
+            })
         }
     }
 
@@ -431,16 +456,17 @@ impl ast::StmtFolder for VarPurifier {
                 ast::Type::Int => "builtin$havoc_int",
                 ast::Type::Bool => "builtin$havoc_bool",
                 ast::Type::TypedRef(_) => "builtin$havoc_ref",
+                ast::Type::TypeVar(_) => "builtin$havoc_ref",
                 ast::Type::Domain(_)
                 | ast::Type::Snapshot(_)
                 | ast::Type::Seq(_) => unreachable!(),
             }.to_string();
             targets = vec![replacement];
         }
-        ast::Stmt::MethodCall(
-            name,
-            args.into_iter().map(|e| self.fold_expr(e)).collect(),
+        ast::Stmt::MethodCall( ast::MethodCall {
+            method_name: name,
+            arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
             targets,
-        )
+        })
     }
 }

@@ -22,7 +22,7 @@ use prusti_common::{
     config,
     report::log,
     utils::to_string::ToString,
-    vir::{ToGraphViz, CfgMethod},
+    vir::{ToGraphViz, CfgMethod, fixes::fix_ghost_vars},
 };
 use vir_crate::{
     vir, vir_local, vir_type,
@@ -457,14 +457,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encoder
             .log_vir_program_before_foldunfold(self.cfg_method.to_string());
 
-        let legacy_vir_cfg_method: CfgMethod = self.cfg_method.clone().into();
-
         // Dump initial CFG
         if config::dump_debug_info() {
             prusti_common::report::log::report_with_writer(
                 "graphviz_method_before_foldunfold",
                 format!("{}.{}.dot", source_filename, method_name),
-                |writer| legacy_vir_cfg_method.to_graphviz(writer),
+                |writer| self.cfg_method.to_graphviz(writer),
             );
         }
 
@@ -506,17 +504,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         })?;
 
-        // TODO polymorphic fix ghost vars
         // Fix variable declarations.
-        // let final_method = fix_ghost_vars(method_with_fold_unfold);
-        let final_method: CfgMethod = method_with_fold_unfold.clone().into();
+        let method_with_fold_unfold = fix_ghost_vars(method_with_fold_unfold);
 
         // Dump final CFG
         if config::dump_debug_info() {
             prusti_common::report::log::report_with_writer(
                 "graphviz_method_before_viper",
                 format!("{}.{}.dot", source_filename, method_name),
-                |writer| final_method.to_graphviz(writer),
+                |writer| method_with_fold_unfold.to_graphviz(writer),
             );
         }
 

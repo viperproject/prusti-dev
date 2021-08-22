@@ -6,8 +6,8 @@
 
 //! Inliner of pure functions.
 
-use super::super::super::ast;
-use super::super::super::cfg;
+use crate::vir::polymorphic_vir::ast;
+use crate::vir::polymorphic_vir::cfg;
 use std::collections::HashMap;
 use std::mem;
 
@@ -112,13 +112,13 @@ impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
         if self.pure_function_map.contains_key(&name) {
             self.pure_function_map[&name].clone()
         } else {
-            ast::Expr::FuncApp(
-                name,
-                args.into_iter().map(|e| self.fold(e)).collect(),
-                formal_args,
+            ast::Expr::FuncApp( ast::FuncApp {
+                function_name: name,
+                arguments: args.into_iter().map(|e| self.fold(e)).collect(),
+                formal_arguments: formal_args,
                 return_type,
-                pos
-            )
+                position: pos,
+            })
         }
     }
     fn fold_unfolding(
@@ -134,14 +134,14 @@ impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
         if body.is_constant() {
             *body
         } else {
-            ast::Expr::Unfolding(
-                name,
-                args.into_iter().map(|e| self.fold(e)).collect(),
-                body,
-                perm,
+            ast::Expr::Unfolding( ast::Unfolding {
+                predicate_name: name,
+                arguments: args.into_iter().map(|e| self.fold(e)).collect(),
+                base: body,
+                permission: perm,
                 variant,
-                pos,
-            )
+                position: pos,
+            })
         }
     }
 
@@ -157,7 +157,7 @@ fn inline_into_methods(
     methods
         .into_iter()
         .map(|mut method| {
-            let mut sentinel_stmt = ast::Stmt::Comment(String::from("moved out stmt"));
+            let mut sentinel_stmt = ast::Stmt::comment("moved out stmt");
             for block in &mut method.basic_blocks {
                 for stmt in &mut block.stmts {
                     mem::swap(&mut sentinel_stmt, stmt);

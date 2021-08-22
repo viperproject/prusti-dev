@@ -260,8 +260,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         super::definition_collector::collect_definitions(self, name, self.get_used_viper_methods())
     }
 
-    pub fn get_viper_programs(&mut self) -> Vec<vir::Program> {
-        std::mem::replace(&mut self.programs, Vec::new()).into_iter().map(|program| program.into()).collect()
+    pub fn get_viper_programs(&mut self) -> Vec<polymorphic_vir::Program> {
+        std::mem::replace(&mut self.programs, Vec::new())
     }
 
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
