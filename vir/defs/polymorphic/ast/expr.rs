@@ -426,6 +426,24 @@ impl Expr {
         })
     }
 
+    pub fn unfolding_with_pos(
+        pred_name: String,
+        args: Vec<Expr>,
+        expr: Expr,
+        perm: PermAmount,
+        variant: MaybeEnumVariantIndex,
+        position: Position,
+    ) -> Self {
+        Expr::Unfolding(Unfolding {
+            predicate_name: pred_name,
+            arguments: args,
+            base: Box::new(expr),
+            permission: perm,
+            variant: variant,
+            position,
+        })
+    }
+
     /// Create `unfolding T(arg) in body` where `T` is the type of `arg`.
     pub fn wrap_in_unfolding(arg: Expr, body: Expr) -> Expr {
         let type_name = arg.get_type().name();
