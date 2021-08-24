@@ -57,15 +57,9 @@ impl ast::ExprFolder for GhostVarFixer {
     fn fold_local(&mut self, local_var: ast::LocalVar, pos: ast::Position) -> ast::Expr {
         match self.vars {
             Some(ref vars) if vars.contains(&local_var) => {
-                ast::Expr::Local( ast::Local {
-                    variable: self.fix_name(local_var),
-                    position: pos
-                })
+                ast::Expr::local_with_pos(self.fix_name(local_var), pos)
             }
-            _ => ast::Expr::Local( ast::Local {
-                variable: local_var,
-                position: pos
-            })
+            _ => ast::Expr::local_with_pos(local_var, pos)
         }
     }
 }
@@ -92,7 +86,7 @@ impl ast::StmtFolder for GhostVarFixer {
             .map(|var| self.fix_name(var))
             .collect();
         self.package_stmt_count += 1;
-        ast::Stmt::PackageMagicWand( ast::PackageMagicWand {
+        ast::Stmt::PackageMagicWand(ast::PackageMagicWand {
             magic_wand: wand,
             package_stmts: body,
             label,
