@@ -173,9 +173,9 @@ impl Expr {
     pub fn predicate_access_predicate(predicate_type: Type, place: Expr, perm: PermAmount) -> Self {
         let pos = place.pos();
         Expr::PredicateAccessPredicate(PredicateAccessPredicate {
-            predicate_type: predicate_type, 
-            argument: Box::new(place), 
-            permission: perm, 
+            predicate_type: predicate_type,
+            argument: Box::new(place),
+            permission: perm,
             position: pos,
         })
     }
@@ -208,8 +208,8 @@ impl Expr {
 
     pub fn labelled_old(label: &str, expr: Expr) -> Self {
         Expr::LabelledOld(LabelledOld {
-            label: label.to_string(), 
-            base: Box::new(expr), 
+            label: label.to_string(),
+            base: Box::new(expr),
             position: Position::default(),
         })
     }
@@ -380,9 +380,9 @@ impl Expr {
             "A quantifier must have at least one variable."
         );
         Expr::ForAll(ForAll {
-            variables: vars, 
-            triggers: triggers, 
-            body: Box::new(body), 
+            variables: vars,
+            triggers: triggers,
+            body: Box::new(body),
             position: Position::default(),
         })
     }
@@ -393,9 +393,9 @@ impl Expr {
             "A quantifier must have at least one variable."
         );
         Expr::Exists(Exists {
-            variables: vars, 
-            triggers: triggers, 
-            body: Box::new(body), 
+            variables: vars,
+            triggers: triggers,
+            body: Box::new(body),
             position: Position::default(),
         })
     }
@@ -448,10 +448,10 @@ impl Expr {
         pos: Position,
     ) -> Self {
         Expr::FuncApp(FuncApp {
-            function_name: name, 
-            arguments: args, 
-            formal_arguments: internal_args, 
-            return_type: return_type, 
+            function_name: name,
+            arguments: args,
+            formal_arguments: internal_args,
+            return_type: return_type,
             position: pos,
         })
     }
@@ -568,7 +568,7 @@ impl Expr {
                     position: pos,
                 }),
                 PlaceComponent::Field(field, pos) => Expr::Field(FieldExpr {
-                    base: Box::new(acc), 
+                    base: Box::new(acc),
                     field: field,
                     position: pos,
                 }),
@@ -581,6 +581,13 @@ impl Expr {
         Expr::Local( Local {
             variable: local,
             position: Position::default(),
+        })
+    }
+
+    pub fn local_with_pos(variable: LocalVar, position: Position) -> Self {
+        Expr::Local( Local {
+            variable,
+            position,
         })
     }
 
@@ -1500,9 +1507,9 @@ impl Expr {
                 assert!(perm_amount.is_valid_for_specs());
                 match perm_amount {
                     PermAmount::Write => Expr::PredicateAccessPredicate(PredicateAccessPredicate {
-                        predicate_type: typ, 
-                        argument: arg, 
-                        permission: perm_amount, 
+                        predicate_type: typ,
+                        argument: arg,
+                        permission: perm_amount,
                         position: p,
                     }),
                     PermAmount::Read => true.into(),
@@ -1898,7 +1905,7 @@ impl fmt::Display for Seq {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let typ = &self.typ;
         let elems_printed = self.elements.iter().map(|e| format!("{}", e)).collect::<Vec<_>>().join(", ");
-        let elem_ty = if let Type::Seq(seq_type) = typ { 
+        let elem_ty = if let Type::Seq(seq_type) = typ {
             &*seq_type.typ
          } else { unreachable!() };
         write!(f, "Seq[{}]({})", elem_ty, elems_printed)
