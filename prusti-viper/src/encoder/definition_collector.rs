@@ -111,7 +111,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             .extend(self.unfolded_functions.iter().cloned());
     }
     fn get_used_fields(&self) -> Vec<polymorphic_vir::Field> {
-        self.used_fields.iter().cloned().collect()
+        // TODO: Remove the deduplication once we switch to the offset-based
+        // fields.
+        let used_fields: HashMap<_, _> = self.used_fields.iter().map(|field| {
+            (&field.name, field)
+        }).collect();
+        used_fields.values().map(|&field| field.clone()).collect()
     }
     /// The purification optimization that is executed after this assumes that
     /// all bodyless methods are present. That is why we are returning all
