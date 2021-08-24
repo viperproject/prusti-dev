@@ -728,11 +728,12 @@ impl Expr {
 
     /// If self is a MIR reference, dereference it.
     pub fn try_deref(&self) -> Option<Self> {
-        if let Type::TypedRef(TypedRef {label, ..}) = self.get_type() {
+        if let Type::TypedRef(TypedRef {label, arguments, ..}) = self.get_type() {
             // FIXME: We should not rely on string names for type conversions.
-            if label.starts_with("ref$") {
-                let field_predicate_name = label[4..label.len()].to_string();
-                let field = Field::new("val_ref", Type::typed_ref(field_predicate_name));
+            if label == "ref" {
+                assert_eq!(arguments.len(), 1);
+                let field_type = arguments[0].clone();
+                let field = Field::new("val_ref", field_type);
                 let field_place = self.clone().field(field);
                 return Some(field_place);
             }
