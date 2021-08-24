@@ -1074,7 +1074,7 @@ impl Expr {
 
     pub fn typed_ref_name(&self) -> Option<String> {
         match self.get_type() {
-            t @ &Type::TypedRef(..) => Some(t.name()),
+            t @ &Type::TypedRef(..) | t @ &Type::TypeVar(_) => Some(t.name()),
             _ => None,
         }
     }
