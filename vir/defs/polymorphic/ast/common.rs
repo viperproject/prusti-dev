@@ -416,6 +416,16 @@ impl Hash for TypedRef {
     }
 }
 
+impl From<SnapshotType> for TypedRef {
+    fn from(snapshot: SnapshotType) -> Self {
+        Self {
+            label: snapshot.label,
+            arguments: snapshot.arguments,
+            variant: snapshot.variant,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DomainType {
     pub label: String,
