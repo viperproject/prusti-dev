@@ -329,7 +329,7 @@ impl fmt::Display for PackageMagicWand {
                 writeln!(f, "package[{}] {}", self.label, magic_wand_expr.left)?;
                 writeln!(f, "    --* {}", magic_wand_expr.right)?;
             } else {
-                writeln!(f, "package[{}] {}", self.label, self.magic_wand)?;    
+                writeln!(f, "package[{}] {}", self.label, self.magic_wand)?;
             }
         } else {
             writeln!(f, "package[{}] {}", self.label, self.magic_wand)?;
@@ -434,6 +434,10 @@ impl Stmt {
         })
     }
 
+    pub fn inhale(expr: Expr) -> Self {
+        Stmt::Inhale(Inhale { expr })
+    }
+
     pub fn package_magic_wand(
         lhs: Expr,
         rhs: Expr,
@@ -474,7 +478,7 @@ impl Stmt {
 
         // TODO: Potentially add more variants based on how they are used in encoders
     pub fn set_pos(self, position: Position) -> Self {
-        match self {            
+        match self {
             Stmt::PackageMagicWand( PackageMagicWand {magic_wand, package_stmts, label, variables, ..} ) => {
                 Stmt::PackageMagicWand( PackageMagicWand {magic_wand, package_stmts, label, variables, position} )
             }
@@ -609,7 +613,7 @@ pub trait StmtFolder {
     fn fold_transfer_perm(&mut self, a: Expr, b: Expr, unchecked: bool) -> Stmt {
         Stmt::TransferPerm( TransferPerm {
             left: self.fold_expr(a),
-            right: self.fold_expr(b), 
+            right: self.fold_expr(b),
             unchecked,
         })
     }
@@ -784,7 +788,7 @@ pub trait FallibleStmtFolder {
 
     fn fallible_fold_obtain(&mut self, e: Expr, position: Position) -> Result<Stmt, Self::Error> {
         Ok(Stmt::Obtain( Obtain {
-            expr: self.fallible_fold_expr(e)?, 
+            expr: self.fallible_fold_expr(e)?,
             position,
         }))
     }

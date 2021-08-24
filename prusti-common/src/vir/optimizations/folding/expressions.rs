@@ -77,9 +77,7 @@ struct StmtOptimizer {
 
 impl ast::StmtFolder for StmtOptimizer {
     fn fold_inhale(&mut self, expr: ast::Expr) -> ast::Stmt {
-        ast::Stmt::Inhale( ast::Inhale {
-            expr: expr.optimize()
-        })
+        ast::Stmt::inhale(expr.optimize())
     }
 }
 
@@ -132,14 +130,14 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
     });
     for (arg, (name, perm_amount, variant)) in unfoldings {
         let position = expr.pos();
-        expr = ast::Expr::Unfolding( ast::Unfolding {
-            predicate_name: name,
-            arguments: vec![arg],
-            base: box expr,
-            permission: perm_amount,
+        expr = ast::Expr::unfolding_with_pos(
+            name,
+            vec![arg],
+            expr,
+            perm_amount,
             variant,
             position,
-        });
+        );
     }
     expr
 }
