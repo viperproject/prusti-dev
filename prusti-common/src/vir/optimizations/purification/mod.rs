@@ -152,7 +152,7 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
     fn fold_assign(&mut self, target: Expr, mut source: Expr, kind: ast::AssignKind) -> Stmt {
         if let Expr::Local( ast::Local {variable: local, ..}) = &target {
             if self.targets.contains(&local.name) {
-                let source_name = force_matches!(source.get_type(), Type::TypedRef(..) => source.get_type().name().as_str());
+                let source_name = force_matches!(source.get_type(), Type::TypedRef(..) => source.get_type().name());
                 match source_name.as_str() {
                     "bool" => {
                         source = source.field(Field {
