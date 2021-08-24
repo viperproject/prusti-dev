@@ -1,5 +1,3 @@
-#![feature(attr_literals)]
-
 use prusti_contracts::*;
 
 pub struct VecWrapper<T> {
