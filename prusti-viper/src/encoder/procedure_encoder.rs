@@ -1793,7 +1793,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let magic_wand = polymorphic_vir::Expr::MagicWand( polymorphic_vir::MagicWand {
             left: box lhs.clone(),
             right: box rhs.clone(),
-            borrow: Some(loan.into()),
+            borrow: Some(loan.index().into()),
             position: pos,
         });
         stmts.push(polymorphic_vir::Stmt::Inhale( polymorphic_vir::Inhale {
@@ -4992,7 +4992,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             lhs.clone(),
                             ref_field.clone(),
                             location,
-                            polymorphic_vir::AssignKind::SharedBorrow(loan.into()),
+                            polymorphic_vir::AssignKind::SharedBorrow(loan.index().into()),
                         )?;
                         stmts.push(polymorphic_vir::Stmt::Assign( polymorphic_vir::Assign {
                             target: lhs.clone().field(ref_field.clone()),
