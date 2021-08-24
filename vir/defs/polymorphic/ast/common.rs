@@ -591,7 +591,8 @@ impl Field {
 
     pub fn typed_ref_name(&self) -> Option<String> {
         match self.typ {
-            Type::TypedRef(_) => Some(self.typ.encode_as_string()),
+            Type::TypedRef(_) |
+            Type::TypeVar(_) => Some(self.typ.encode_as_string()),
             _ => None,
         }
     }
