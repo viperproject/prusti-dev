@@ -825,12 +825,27 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn decode_type_predicate_type(&self, typ: &polymorphic_vir::Type)
         -> EncodingResult<ty::Ty<'tcx>>
     {
-        if let Some(ty) = self.predicate_types.borrow().get(typ) {
-            Ok(ty)
-        } else {
-            Err(EncodingError::internal(
-                format!("type predicate not known: {:?}", typ.name())
-            ))
+        let check = |typ: &polymorphic_vir::Type| {
+            if let Some(ty) = self.predicate_types.borrow().get(typ) {
+                Ok(*ty)
+            } else {
+                Err(EncodingError::internal(
+                    format!("type predicate not known: {:?}", typ.name())
+                ))
+            }
+        };
+        match typ {
+            polymorphic_vir::Type::TypedRef(_) => {
+                check(typ)
+            },
+            polymorphic_vir::Type::Snapshot(snapshot) => {
+                check(&polymorphic_vir::Type::TypedRef(snapshot.clone().into()))
+            }
+            _ => {
+                Err(EncodingError::internal(
+                    format!("type predicate not known: {:?}", typ.name())
+                ))
+            }
         }
     }
 
