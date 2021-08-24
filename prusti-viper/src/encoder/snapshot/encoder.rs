@@ -224,6 +224,7 @@ impl SnapshotEncoder {
     ) -> EncodingResult<Expr> {
         let vir_ty = expr.get_type();
         match vir_ty {
+            Type::TypeVar(..) |
             Type::TypedRef(..) => {
                 let ty = encoder.decode_type_predicate_type(vir_ty)?;
                 let (ty, expr) = strip_refs_and_boxes_expr(encoder, ty, expr)?;

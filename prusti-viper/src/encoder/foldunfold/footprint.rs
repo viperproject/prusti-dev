@@ -93,7 +93,7 @@ impl ExprFootprintGetter for polymorphic_vir::Expr {
 
             polymorphic_vir::Expr::ForAll( polymorphic_vir::ForAll {variables, box body, ..} )
             | polymorphic_vir::Expr::Exists( polymorphic_vir::Exists {variables, box body, ..} ) => {
-                assert!(variables.iter().all(|var| !var.typ.is_ref()));
+                assert!(variables.iter().all(|var| !var.typ.is_typed_ref_or_type_var()));
                 let vars_places: HashSet<Perm> = variables
                     .iter()
                     .map(|var| Acc(polymorphic_vir::Expr::local(var.clone()), PermAmount::Write))

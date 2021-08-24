@@ -126,7 +126,7 @@ impl Ord for PermAmount {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Type {
     Int,
     Bool,
@@ -154,30 +154,15 @@ impl fmt::Display for Type {
     }
 }
 
-impl PartialEq for Type {
-    fn eq(&self, other: &Self) -> bool {
-        discriminant(self) == discriminant(other) &&
-        match (self, other) {
-            (Type::Seq(seq), Type::Seq(other_seq)) => seq == other_seq,
-            (Type::TypedRef(typed_ref), Type::TypedRef(other_typed_ref)) => typed_ref == other_typed_ref,
-            (Type::Domain(domain_type), Type::Domain(other_domain_type)) => domain_type == other_domain_type,
-            (Type::Snapshot(snapshot_type), Type::Snapshot(other_snapshot_type)) => snapshot_type == other_snapshot_type,
-            (Type::TypeVar(type_var), Type::TypeVar(other_type_var)) => type_var == other_type_var,
-            _ => true,
-        }
-    }
-}
 
-impl Eq for Type {}
 
-impl Hash for Type {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
-    }
-}
 
 impl Type {
-    pub fn is_ref(&self) -> bool {
+    pub fn is_typed_ref_or_type_var(&self) -> bool {
+        self.is_typed_ref() || self.is_type_var()
+    }
+
+    pub fn is_typed_ref(&self) -> bool {
         matches!(self, &Type::TypedRef(_))
     }
 
@@ -187,6 +172,10 @@ impl Type {
 
     pub fn is_snapshot(&self) -> bool {
         matches!(self, &Type::Snapshot(_))
+    }
+
+    pub fn is_type_var(&self) -> bool {
+        matches!(self, &Type::TypeVar(_))
     }
 
     pub fn name(&self) -> String {
@@ -268,7 +257,11 @@ impl Type {
     pub fn convert_to_snapshot(&self) -> Self {
         match self {
             Type::TypedRef(typed_ref) => Type::Snapshot(typed_ref.clone().into()),
-            Type::TypeVar(type_var) => Type::Snapshot(type_var.clone().into()),
+            Type::TypeVar(_) => Type::Snapshot(SnapshotType {
+                label: self.encode_as_string(),
+                arguments: Vec::new(),
+                variant: String::from(""),
+            }),
             _ => unreachable!(),
         }
     }

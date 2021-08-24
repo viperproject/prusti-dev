@@ -281,7 +281,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
 
             polymorphic_vir::Expr::ForAll( polymorphic_vir::ForAll {variables, box body, ..} )
             | polymorphic_vir::Expr::Exists( polymorphic_vir::Exists {variables, box body, ..} ) => {
-                assert!(variables.iter().all(|var| !var.typ.is_ref()));
+                assert!(variables.iter().all(|var| !var.typ.is_typed_ref_or_type_var()));
 
                 let vars_places: HashSet<_> = variables
                     .iter()
@@ -311,7 +311,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
             polymorphic_vir::Expr::DomainFuncApp( polymorphic_vir::DomainFuncApp {ref arguments, ..} )=> {
                 arguments.iter()
                     .map(|arg| {
-                        if arg.is_place() && arg.get_type().is_ref() {
+                        if arg.is_place() && arg.get_type().is_typed_ref_or_type_var() {
                             // FIXME: A hack: have unfolded Rust references in the precondition to
                             // simplify our life. A proper solution would be to look up the
                             // real function precondition.

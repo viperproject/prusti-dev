@@ -5683,7 +5683,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }));
             match vir_assign_kind {
                 polymorphic_vir::AssignKind::Copy => {
-                    if field.typ.is_ref() {
+                    if field.typ.is_typed_ref_or_type_var() {
                         // TODO: Inhale the predicate rooted at dst_field
                         return Err(SpannedEncodingError::unsupported(
                             "the encoding of this reference copy has not \

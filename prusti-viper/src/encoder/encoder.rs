@@ -835,6 +835,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             }
         };
         match typ {
+            polymorphic_vir::Type::TypeVar(_) |
             polymorphic_vir::Type::TypedRef(_) => {
                 check(typ)
             },

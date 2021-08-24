@@ -81,7 +81,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 // Check the state of rhs.
                 if kind != polymorphic_vir::AssignKind::Copy {
                     assert!(source.is_place());
-                    assert!(source.get_type().is_ref());
+                    assert!(source.get_type().is_typed_ref_or_type_var());
 
                     // Check that the rhs contains no moved paths
                     if state.is_prefix_of_some_moved(source) {
@@ -98,7 +98,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 state.remove_acc_matching(|p| p.has_proper_prefix(&target));
 
                 // In case of move or borrowing, move permissions from the `rhs` to the `lhs`
-                if source.is_place() && source.get_type().is_ref() {
+                if source.is_place() && source.get_type().is_typed_ref_or_type_var() {
                     // This is a move assignemnt or the creation of a borrow
                     match kind {
                         polymorphic_vir::AssignKind::Move | polymorphic_vir::AssignKind::MutableBorrow(_) => {
@@ -242,8 +242,8 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                     "The fold/unfold state does not contain the permission for an expiring borrow: {}",
                     lhs_place
                 );*/
-                debug_assert!(left.get_type().is_ref());
-                debug_assert!(right.get_type().is_ref());
+                debug_assert!(left.get_type().is_typed_ref_or_type_var());
+                debug_assert!(right.get_type().is_typed_ref_or_type_var());
                 debug_assert_eq!(left.get_type(), right.get_type());
                 //debug_assert!(!state.is_proper_prefix_of_some_acc(rhs_place));
                 //debug_assert!(!state.is_prefix_of_some_pred(rhs_place));
