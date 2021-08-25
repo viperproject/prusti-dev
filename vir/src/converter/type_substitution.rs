@@ -955,20 +955,13 @@ mod tests {
     #[test]
     // source having no matching type var for substitution
     fn substitution_no_matching_type_var_test() {
-        let mut source = Type::typed_ref_with_args(
-            "CustomStruct",
-            vec![Type::type_var("D")],
-        );
+        let mut source = Type::typed_ref_with_args("CustomStruct", vec![Type::type_var("D")]);
         let mut expected = source.clone();
         test(source, expected, &SUBSTITUTION_MAP);
 
         source = Type::domain_with_args(
             "CustomDomain",
-            vec![
-                Type::type_var("C"),
-                Type::Int,
-                Type::type_var("D"),
-            ],
+            vec![Type::type_var("C"), Type::Int, Type::type_var("D")],
         );
         expected = source.clone();
         test(source, expected, &SUBSTITUTION_MAP);
@@ -977,10 +970,7 @@ mod tests {
             "Custom",
             vec![
                 Type::Bool,
-                Type::typed_ref_with_args(
-                    "vec",
-                    vec![Type::type_var("D")],
-                ),
+                Type::typed_ref_with_args("vec", vec![Type::type_var("D")]),
             ],
         );
         expected = source.clone();
@@ -996,10 +986,7 @@ mod tests {
 
         source = Type::typed_ref_with_args(
             "CustomStruct",
-            vec![
-                Type::type_var("E"),
-                Type::type_var("F"),
-            ],
+            vec![Type::type_var("E"), Type::type_var("F")],
         );
         expected = Type::typed_ref_with_args(
             "CustomStruct",
@@ -1009,10 +996,7 @@ mod tests {
 
         source = Type::domain_with_args(
             "CustomDomain",
-            vec![
-                Type::type_var("E"),
-                Type::type_var("F"),
-            ],
+            vec![Type::type_var("E"), Type::type_var("F")],
         );
         expected = Type::domain_with_args(
             "CustomDomain",
@@ -1022,10 +1006,7 @@ mod tests {
 
         source = Type::snapshot_with_args(
             "CustomSnapshot",
-            vec![
-                Type::type_var("E"),
-                Type::type_var("F"),
-            ],
+            vec![Type::type_var("E"), Type::type_var("F")],
         );
         expected = Type::snapshot_with_args(
             "CustomSnapshot",
@@ -1046,10 +1027,7 @@ mod tests {
                     "CustomDomain",
                     vec![
                         Type::type_var("E"),
-                        Type::snapshot_with_args(
-                            "CustomSnapshot",
-                            vec![Type::type_var("F")],
-                        ),
+                        Type::snapshot_with_args("CustomSnapshot", vec![Type::type_var("F")]),
                     ],
                 ),
             ],
@@ -1081,10 +1059,7 @@ mod tests {
                     "CustomDomain",
                     vec![
                         Type::type_var("H"),
-                        Type::snapshot_with_args(
-                            "CustomSnapshot",
-                            vec![Type::type_var("F")],
-                        ),
+                        Type::snapshot_with_args("CustomSnapshot", vec![Type::type_var("F")]),
                     ],
                 ),
             ],
@@ -1092,10 +1067,7 @@ mod tests {
         let expected = Type::typed_ref_with_args(
             "CustomStruct",
             vec![
-                Type::typed_ref_with_args(
-                    "ComplexRef",
-                    vec![Type::type_var("T")],
-                ),
+                Type::typed_ref_with_args("ComplexRef", vec![Type::type_var("T")]),
                 Type::domain_with_args(
                     "CustomDomain",
                     vec![
@@ -1103,10 +1075,7 @@ mod tests {
                             "ComplexRef2",
                             vec![
                                 Type::type_var("H"),
-                                Type::domain_with_args(
-                                    "ComplexDomain",
-                                    vec![Type::type_var("T")],
-                                ),
+                                Type::domain_with_args("ComplexDomain", vec![Type::type_var("T")]),
                             ],
                         ),
                         Type::snapshot_with_args(
@@ -2835,10 +2804,7 @@ mod tests {
                 name: String::from("_r"),
                 typ: Type::typed_ref_with_args(
                     "CustomStruct",
-                    vec![
-                        Type::type_var("E"),
-                        Type::type_var("F"),
-                    ],
+                    vec![Type::type_var("E"), Type::type_var("F")],
                 ),
             }],
         };
@@ -3003,10 +2969,7 @@ mod tests {
                     domain_name: String::from("dn4"),
                 },
             ],
-            type_vars: vec![
-                Type::type_var("T"),
-                Type::type_var("E"),
-            ],
+            type_vars: vec![Type::type_var("T"), Type::type_var("E")],
         };
 
         let expected = Domain {
