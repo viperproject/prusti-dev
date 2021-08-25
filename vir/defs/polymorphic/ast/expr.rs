@@ -1468,6 +1468,16 @@ impl Expr {
                     position: pos,
                 })
             }
+            fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
+                Expr::Field( FieldExpr {
+                    base: self.fold_boxed(receiver),
+                    field: Field {
+                        name: field.name,
+                        typ: field.typ.substitute(self.substs),
+                    },
+                    position: pos,
+                })
+            }
             fn fold_func_app(
                 &mut self,
                 name: String,

@@ -226,6 +226,7 @@ pub trait ForwardMirInterpreter<'tcx> {
 #[derive(Clone, Debug)]
 pub struct MultiExprBackwardInterpreterState {
     exprs: Vec<polymorphic_vir::Expr>,
+    substs: HashMap<polymorphic_vir::TypeVar, polymorphic_vir::Type>,
 }
 
 impl Display for MultiExprBackwardInterpreterState {
@@ -243,11 +244,18 @@ impl Display for MultiExprBackwardInterpreterState {
 
 impl MultiExprBackwardInterpreterState {
     pub fn new(exprs: Vec<polymorphic_vir::Expr>) -> Self {
-        MultiExprBackwardInterpreterState { exprs }
+        MultiExprBackwardInterpreterState { exprs, substs: HashMap::new() }
     }
 
     pub fn new_single(expr: polymorphic_vir::Expr) -> Self {
-        MultiExprBackwardInterpreterState { exprs: vec![expr] }
+        MultiExprBackwardInterpreterState { exprs: vec![expr], substs: HashMap::new() }
+    }
+
+    pub fn new_single_with_substs(
+        expr: polymorphic_vir::Expr,
+        substs: HashMap<polymorphic_vir::TypeVar, polymorphic_vir::Type>,
+    ) -> Self {
+        MultiExprBackwardInterpreterState { exprs: vec![expr], substs }
     }
 
     pub fn exprs(&self) -> &Vec<polymorphic_vir::Expr> {
@@ -264,6 +272,8 @@ impl MultiExprBackwardInterpreterState {
 
     pub fn substitute_place(&mut self, sub_target: &polymorphic_vir::Expr, replacement: polymorphic_vir::Expr) {
         trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
+        let sub_target = sub_target.clone().patch_types(&self.substs);
+        let replacement = replacement.patch_types(&self.substs);
 
         // If `replacement` is a reference, simplify also its dereferentiations
         if let polymorphic_vir::Expr::AddrOf( polymorphic_vir::AddrOf {box ref base, ref position, ..}) =
@@ -285,13 +295,16 @@ impl MultiExprBackwardInterpreterState {
 
     pub fn substitute_value(&mut self, exact_target: &polymorphic_vir::Expr, replacement: polymorphic_vir::Expr) {
         trace!("substitute_value {:?} --> {:?}", exact_target, replacement);
+        let exact_target = exact_target.clone().patch_types(&self.substs);
+        let replacement = replacement.patch_types(&self.substs);
         for expr in &mut self.exprs {
-            *expr = expr.clone().replace_place(exact_target, &replacement);
+            *expr = expr.clone().replace_place(&exact_target, &replacement);
         }
     }
 
     pub fn use_place(&self, sub_target: &polymorphic_vir::Expr) -> bool {
         trace!("use_place {:?}", sub_target);
-        self.exprs.iter().any(|expr| expr.find(sub_target))
+        let sub_target = sub_target.clone().patch_types(&self.substs);
+        self.exprs.iter().any(|expr| expr.find(&sub_target))
     }
 }
