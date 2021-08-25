@@ -399,7 +399,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             impl<'a> polymorphic_vir::ExprFolder for PlacePatcher<'a> {
                 fn fold(&mut self, e: polymorphic_vir::Expr) -> polymorphic_vir::Expr {
                     match e {
-                        polymorphic_vir::Expr::Field(_) => e.old(self.label),
+                        polymorphic_vir::Expr::Field(polymorphic_vir::FieldExpr {
+                            base: box polymorphic_vir::Expr::Local(_),
+                            ..
+                        }) => e.old(self.label),
                         _ => polymorphic_vir::default_fold_expr(self, e),
                     }
                 }
