@@ -479,6 +479,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mut replacements: Vec<(polymorphic_vir::Expr, polymorphic_vir::Expr)> = vec![];
 
         // Replacement 1: translate a local variable from the closure to a place in the outer MIR
+        let substs = &self.encoder.type_substitution_polymorphic_type_map().with_span(outer_span)?;
         let inner_captured_places: Vec<polymorphic_vir::Expr> = captured_tys
             .iter()
             .enumerate()
@@ -486,9 +487,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 let field_name = format!("closure_{}", index);
                 self.encoder.encode_raw_ref_field(field_name, captured_ty)
                     .with_span(outer_span)
-                    .map(|encoded_field|
-                        deref_closure_var.clone().field(encoded_field)
-                    )
+                    .map(|encoded_field| {
+                        let place = deref_closure_var.clone().field(encoded_field);
+                        place.patch_types(substs)
+                    })
             })
             .collect::<Result<_, _>>()?;
         let outer_captured_places: Vec<_> = captured_operands
@@ -497,7 +499,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             .collect::<Result<Vec<_>, _>>()
             .with_span(outer_span)?
             .into_iter()
-            .map(|x| x.unwrap())
+            .map(|x| x.unwrap().patch_types(substs)
+        )
             .collect();
         for (index, (inner_place, outer_place)) in inner_captured_places
             .iter()
@@ -581,8 +584,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mir = self.encoder.env().local_mir(def_id.expect_local());
 
         // Translate an intermediate state to the state at the beginning of the method
-        let state = MultiExprBackwardInterpreterState::new_single(
-            expr.clone()
+        let substs = self.encoder.type_substitution_polymorphic_type_map().with_span(mir.span)?;
+        let state = MultiExprBackwardInterpreterState::new_single_with_substs(
+            expr.clone(),
+            substs,
         );
         let interpreter = StraightLineBackwardInterpreter::new(
             self.encoder,
@@ -651,6 +656,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
         // Replacements to use the provided `target_args` and `target_return`
         let mut replacements: Vec<(polymorphic_vir::Expr, polymorphic_vir::Expr)> = vec![];
+        let substs = &self.encoder.type_substitution_polymorphic_type_map().with_span(mir.span)?;
 
         // Replacement 1: replace the arguments with the `target_args`.
         replacements.extend(
@@ -671,7 +677,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     } else {
                         spec_local.into()
                     };
-                    Ok((spec_local_place, target_arg.clone()))
+                    Ok((spec_local_place.patch_types(substs), target_arg.clone()))
                 })
                 .collect::<Result<Vec<_>, _>>()?
                 .into_iter()
@@ -692,7 +698,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             } else {
                 spec_fake_return.clone().into()
             };
-            replacements.push((spec_fake_return_place, target_return.clone()));
+            replacements.push((spec_fake_return_place.patch_types(substs), target_return.clone()));
         }
 
         // Do the replacements
