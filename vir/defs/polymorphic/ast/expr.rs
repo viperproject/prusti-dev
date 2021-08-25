@@ -720,7 +720,7 @@ impl Expr {
         if let Expr::Field(FieldExpr {base: box Expr::Local(Local {variable: LocalVar { typ, .. }, ..} ), ..} ) = self {
             if let Type::TypedRef(TypedRef {label, ..}) = typ {
                 // FIXME: We should not rely on string names for detecting types.
-                return label.starts_with("ref$");
+                return label == "ref";
             }
         }
         false
