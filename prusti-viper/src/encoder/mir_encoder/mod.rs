@@ -306,14 +306,9 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     // Simplify `*&<expr>` ==> `<expr>`
                     encoded_base.get_parent().unwrap()
                 } else {
-                    match encoded_base {
-                        polymorphic_vir::Expr::AddrOf( polymorphic_vir::AddrOf {box base, ..} ) => base,
-                        _ => {
-                            let ref_field = self.encoder()
-                                .encode_dereference_field(ty)?;
-                            encoded_base.field(ref_field)
-                        }
-                    }
+                    let ref_field = self.encoder()
+                        .encode_dereference_field(ty)?;
+                    encoded_base.field(ref_field)
                 };
                 (access, ty, None)
             }
