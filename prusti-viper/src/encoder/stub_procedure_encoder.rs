@@ -6,8 +6,8 @@
 
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::Encoder;
-use prusti_common::vir::{self, ToGraphViz};
-use prusti_common::vir::Successor;
+use prusti_common::vir::{CfgMethod, ToGraphViz};
+use vir_crate::polymorphic::{self as polymorphic_vir, Successor};
 use prusti_common::config;
 use prusti_interface::environment::Procedure;
 use prusti_common::report::log;
@@ -40,10 +40,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode(self) -> vir::CfgMethod {
+    pub fn encode(self) -> polymorphic_vir::CfgMethod {
         trace!("Encode stub for procedure {}", self.procedure.get_def_path());
 
-        let mut cfg_method = vir::CfgMethod::new(
+        let mut cfg_method = polymorphic_vir::CfgMethod::new(
             // method name
             self.encoder.encode_item_name(self.def_id),
             // formal args
@@ -59,20 +59,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         // Declare the formal return
         for local in self.mir.local_decls.indices().take(1) {
             let name = self.mir_encoder.encode_local_var_name(local);
-            let type_name = self
+            let typ = self
                 .encoder
-                .encode_type_predicate_use(self.mir_encoder.get_local_ty(local)).unwrap(); // will panic if attempting to encode unsupported type
-            cfg_method.add_formal_return(&name, vir::Type::TypedRef(type_name))
+                .encode_type(self.mir_encoder.get_local_ty(local)).unwrap(); // will panic if attempting to encode unsupported type
+            cfg_method.add_formal_return(&name, typ)
         }
 
         // Initialize a single CFG block
         let stub_cfg_block = cfg_method.add_block(
             "stub",
             vec![
-                vir::Stmt::comment("========== stub =========="),
+                polymorphic_vir::Stmt::comment("========== stub =========="),
                 // vir::Stmt::comment(format!("Name: {:?}", self.procedure.get_name())),
-                vir::Stmt::comment(format!("Def path: {:?}", self.procedure.get_def_path())),
-                vir::Stmt::comment(format!("Span: {:?}", self.procedure.get_span())),
+                polymorphic_vir::Stmt::comment(format!("Def path: {:?}", self.procedure.get_def_path())),
+                polymorphic_vir::Stmt::comment(format!("Span: {:?}", self.procedure.get_span())),
             ],
         );
         cfg_method.set_successor(stub_cfg_block, Successor::Return);

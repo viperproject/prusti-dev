@@ -12,6 +12,7 @@ use crate::encoder::foldunfold::perm::Perm;
 use crate::encoder::foldunfold::FoldUnfoldError;
 use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
+use vir_crate::polymorphic as polymorphic_vir;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use log::trace;
@@ -27,7 +28,7 @@ pub(super) struct EventLog {
     /// Actions performed by the fold-unfold algorithm before the join. We can use a single
     /// CfgBlockIndex because fold-unfold algorithms generates a new basic block for dropped
     /// permissions.
-    prejoin_actions: HashMap<vir::CfgBlockIndex, Rc<RwLock<Vec<Action>>>>,
+    prejoin_actions: HashMap<polymorphic_vir::CfgBlockIndex, Rc<RwLock<Vec<Action>>>>,
 
     /// A list of accessibility predicates for which we inhaled `Read`
     /// permission when creating a borrow and original places from which
@@ -38,14 +39,14 @@ pub(super) struct EventLog {
     /// 1.  The access predicate.
     /// 2.  The rhs of the assignment that created this borrow.
     /// 3.  A unique number.
-    duplicated_reads: HashMap<vir::borrows::Borrow, Vec<(vir::Expr, vir::Expr, u32)>>,
+    duplicated_reads: HashMap<polymorphic_vir::borrows::Borrow, Vec<(polymorphic_vir::Expr, polymorphic_vir::Expr, u32)>>,
 
     /// The place that is blocked by a given borrow.
-    blocked_place: HashMap<vir::borrows::Borrow, vir::Expr>,
+    blocked_place: HashMap<polymorphic_vir::borrows::Borrow, polymorphic_vir::Expr>,
 
     /// A list of accessibility predicates that were converted from
     /// `Write` to `Read` when creating a borrow.
-    converted_to_read_places: HashMap<vir::borrows::Borrow, Vec<vir::Expr>>,
+    converted_to_read_places: HashMap<polymorphic_vir::borrows::Borrow, Vec<polymorphic_vir::Expr>>,
 
     /// A generator of unique IDs.
     id_generator: u32,
@@ -62,7 +63,7 @@ impl EventLog {
         }
     }
 
-    pub fn log_prejoin_action(&mut self, block_index: vir::CfgBlockIndex, action: Action) {
+    pub fn log_prejoin_action(&mut self, block_index: polymorphic_vir::CfgBlockIndex, action: Action) {
         trace!(
             "[enter] log_prejoin_action(block_index={}, action={})",
             block_index,
@@ -79,8 +80,8 @@ impl EventLog {
 
     pub fn collect_dropped_permissions(
         &self,
-        path: &[vir::CfgBlockIndex],
-        dag: &vir::borrows::DAG,
+        path: &[polymorphic_vir::CfgBlockIndex],
+        dag: &polymorphic_vir::borrows::DAG,
     ) -> Vec<Perm> {
         assert!(path.len() > 0);
         let relevant_path = &path[0..path.len() - 1];
@@ -102,9 +103,9 @@ impl EventLog {
     /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
     pub fn log_read_permission_duplication(
         &mut self,
-        borrow: vir::borrows::Borrow,
-        perm: vir::Expr,
-        original_place: vir::Expr,
+        borrow: polymorphic_vir::borrows::Borrow,
+        perm: polymorphic_vir::Expr,
+        original_place: polymorphic_vir::Expr,
     ) {
         let entry = self.duplicated_reads.entry(borrow).or_insert(Vec::new());
         entry.push((perm, original_place, self.id_generator));
@@ -113,8 +114,8 @@ impl EventLog {
 
     pub fn get_duplicated_read_permissions(
         &self,
-        borrow: vir::borrows::Borrow,
-    ) -> Vec<(vir::Expr, vir::Expr)> {
+        borrow: polymorphic_vir::borrows::Borrow,
+    ) -> Vec<(polymorphic_vir::Expr, polymorphic_vir::Expr)> {
         trace!("[enter] get_duplicated_read_permissions({:?})", borrow);
         let mut result = self
             .duplicated_reads
@@ -124,20 +125,20 @@ impl EventLog {
         result.sort_by(
             |(access1, _, id1), (access2, _, id2)| match (access1, access2) {
                 (
-                    vir::Expr::PredicateAccessPredicate(_, _, _, _),
-                    vir::Expr::PredicateAccessPredicate(_, _, _, _),
+                    polymorphic_vir::Expr::PredicateAccessPredicate(..),
+                    polymorphic_vir::Expr::PredicateAccessPredicate(..),
                 ) => Ordering::Equal,
                 (
-                    vir::Expr::PredicateAccessPredicate(_, _, _, _),
-                    vir::Expr::FieldAccessPredicate(_, _, _),
+                    polymorphic_vir::Expr::PredicateAccessPredicate(..),
+                    polymorphic_vir::Expr::FieldAccessPredicate(..),
                 ) => Ordering::Less,
                 (
-                    vir::Expr::FieldAccessPredicate(_, _, _),
-                    vir::Expr::PredicateAccessPredicate(_, _, _, _),
+                    polymorphic_vir::Expr::FieldAccessPredicate(..),
+                    polymorphic_vir::Expr::PredicateAccessPredicate(..),
                 ) => Ordering::Greater,
                 (
-                    vir::Expr::FieldAccessPredicate(box ref place1, _, _),
-                    vir::Expr::FieldAccessPredicate(box ref place2, _, _),
+                    polymorphic_vir::Expr::FieldAccessPredicate( polymorphic_vir::FieldAccessPredicate {base: box ref place1, ..} ),
+                    polymorphic_vir::Expr::FieldAccessPredicate( polymorphic_vir::FieldAccessPredicate {base: box ref place2, ..} ),
                 ) => {
                     let key1 = (place1.place_depth(), id1);
                     let key2 = (place2.place_depth(), id2);
@@ -161,8 +162,8 @@ impl EventLog {
     }
 
     /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
-    pub fn log_convertion_to_read(&mut self, borrow: vir::borrows::Borrow, perm: vir::Expr) {
-        assert!(perm.get_perm_amount() == vir::PermAmount::Remaining);
+    pub fn log_convertion_to_read(&mut self, borrow: polymorphic_vir::borrows::Borrow, perm: polymorphic_vir::Expr) {
+        assert!(perm.get_perm_amount() == polymorphic_vir::PermAmount::Remaining);
         let entry = self
             .converted_to_read_places
             .entry(borrow)
@@ -170,7 +171,7 @@ impl EventLog {
         entry.push(perm);
     }
 
-    pub fn get_converted_to_read_places(&self, borrow: vir::borrows::Borrow) -> Vec<vir::Expr> {
+    pub fn get_converted_to_read_places(&self, borrow: polymorphic_vir::borrows::Borrow) -> Vec<polymorphic_vir::Expr> {
         if let Some(accesses) = self.converted_to_read_places.get(&borrow) {
             accesses.clone()
         } else {
@@ -178,7 +179,7 @@ impl EventLog {
         }
     }
 
-    pub fn log_borrow_expiration(&mut self, borrow: vir::borrows::Borrow) {
+    pub fn log_borrow_expiration(&mut self, borrow: polymorphic_vir::borrows::Borrow) {
         self.duplicated_reads.remove(&borrow);
         self.blocked_place.remove(&borrow);
         self.converted_to_read_places.remove(&borrow);

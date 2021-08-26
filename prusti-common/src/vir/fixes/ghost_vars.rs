@@ -6,8 +6,8 @@
 
 //! Fix ghost variables.
 
-use super::super::ast;
-use super::super::cfg;
+use super::super::polymorphic_vir::ast;
+use super::super::polymorphic_vir::cfg;
 use std::collections::HashSet;
 use std::mem;
 
@@ -25,7 +25,7 @@ pub fn fix_ghost_vars(
         package_stmt_count: 0,
         vars: None,
     };
-    let mut sentinel_stmt = ast::Stmt::Comment(String::from("moved out stmt"));
+    let mut sentinel_stmt = ast::Stmt::comment("moved out stmt");
     for block in &mut method.basic_blocks {
         for stmt in &mut block.stmts {
             mem::swap(&mut sentinel_stmt, stmt);
@@ -57,9 +57,9 @@ impl ast::ExprFolder for GhostVarFixer {
     fn fold_local(&mut self, local_var: ast::LocalVar, pos: ast::Position) -> ast::Expr {
         match self.vars {
             Some(ref vars) if vars.contains(&local_var) => {
-                ast::Expr::Local(self.fix_name(local_var), pos)
+                ast::Expr::local_with_pos(self.fix_name(local_var), pos)
             }
-            _ => ast::Expr::Local(local_var, pos),
+            _ => ast::Expr::local_with_pos(local_var, pos)
         }
     }
 }
@@ -86,6 +86,12 @@ impl ast::StmtFolder for GhostVarFixer {
             .map(|var| self.fix_name(var))
             .collect();
         self.package_stmt_count += 1;
-        ast::Stmt::PackageMagicWand(wand, body, label, vars, pos)
+        ast::Stmt::PackageMagicWand(ast::PackageMagicWand {
+            magic_wand: wand,
+            package_stmts: body,
+            label,
+            variables: vars,
+            position: pos,
+        })
     }
 }
