@@ -133,8 +133,8 @@ impl ExprFootprintGetter for polymorphic_vir::Expr {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
 
-            polymorphic_vir::Expr::Downcast( polymorphic_vir::DowncastExpr {ref enum_place, ..} ) => {
-                enum_place.get_footprint(predicates)
+            polymorphic_vir::Expr::Downcast( polymorphic_vir::DowncastExpr {ref base, ..} ) => {
+                base.get_footprint(predicates)
             }
 
             polymorphic_vir::Expr::SnapApp( polymorphic_vir::SnapApp {ref base, ..} ) => base.get_footprint(predicates),
