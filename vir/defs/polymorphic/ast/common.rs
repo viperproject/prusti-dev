@@ -178,6 +178,15 @@ impl Type {
         matches!(self, &Type::TypeVar(_))
     }
 
+    pub fn is_mir_reference(&self) -> bool {
+        if let Type::TypedRef(TypedRef {label, ..}) = self {
+            // FIXME: We should not rely on string names for type conversions.
+            label == "ref"
+        } else {
+            false
+        }
+    }
+
     pub fn name(&self) -> String {
         match self {
             Type::Bool => "bool".to_string(),

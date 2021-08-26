@@ -718,19 +718,16 @@ impl Expr {
     pub fn is_mir_reference(&self) -> bool {
         debug_assert!(self.is_place());
         if let Expr::Field(FieldExpr {base: box Expr::Local(Local {variable: LocalVar { typ, .. }, ..} ), ..} ) = self {
-            if let Type::TypedRef(TypedRef {label, ..}) = typ {
-                // FIXME: We should not rely on string names for detecting types.
-                return label == "ref";
-            }
+            return typ.is_mir_reference();
         }
         false
     }
 
     /// If self is a MIR reference, dereference it.
     pub fn try_deref(&self) -> Option<Self> {
-        if let Type::TypedRef(TypedRef {label, arguments, ..}) = self.get_type() {
-            // FIXME: We should not rely on string names for type conversions.
-            if label == "ref" {
+        let typ = self.get_type();
+        if typ.is_mir_reference() {
+            if let Type::TypedRef(TypedRef {arguments, ..}) = self.get_type() {
                 assert_eq!(arguments.len(), 1);
                 let field_type = arguments[0].clone();
                 let field = Field::new("val_ref", field_type);
@@ -1103,6 +1100,28 @@ impl Expr {
             }
         }
         OldLabelReplacer { f }.fold(self)
+    }
+
+    /// Simplify `Deref(AddrOf(P))` to `P`.
+    pub fn simplify_addr_of(self) -> Self {
+        struct Simplifier;
+        impl ExprFolder for Simplifier {
+            fn fold_field(&mut self, receiver: Box<Expr>, field: Field, position: Position) -> Expr {
+                if receiver.is_addr_of() && field.typ.is_mir_reference() {
+                    if let Expr::AddrOf(AddrOf { base , .. }) = *receiver {
+                        *base
+                    } else {
+                        unreachable!();
+                    }
+                } else {
+                    let new_receiver = self.fold_boxed(receiver);
+                    Expr::Field(FieldExpr {
+                        base: new_receiver, field, position
+                    })
+                }
+            }
+        }
+        Simplifier.fold(self)
     }
 
     // TODO polymorphic: convert following 2 functions after type substitution is updated
