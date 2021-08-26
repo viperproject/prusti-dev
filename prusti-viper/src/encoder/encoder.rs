@@ -22,8 +22,6 @@ use crate::encoder::type_encoder::{
 };
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
-use prusti_common::{vir, vir_local};
-use prusti_common::vir::{WithIdentifier, ExprIterator};
 use prusti_common::config;
 use prusti_common::report::log;
 use prusti_interface::data::ProcedureDefId;
@@ -33,6 +31,10 @@ use prusti_interface::specs::typed::SpecificationId;
 use prusti_interface::utils::{has_spec_only_attr, read_prusti_attrs};
 use prusti_interface::PrustiError;
 use prusti_specs::specifications::common::SpecIdRef;
+use prusti_common::vir;
+use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::polymorphic::{WithIdentifier, ExprIterator};
+use vir_crate::{vir_type, vir_local};
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
 // use rustc::middle::const_val::ConstVal;
@@ -92,28 +94,28 @@ pub struct Encoder<'v, 'tcx: 'v> {
         EncodingResult<ProcedureContractMirDef<'tcx>>
     >>,
     /// A map containing all functions: identifier → function definition.
-    functions: RefCell<HashMap<vir::FunctionIdentifier, vir::Function>>,
-    builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
-    builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::FunctionIdentifier>>,
-    procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
-    programs: Vec<vir::Program>,
-    pure_function_bodies: RefCell<HashMap<(ProcedureDefId, String), vir::Expr>>,
-    pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::FunctionIdentifier>>,
+    functions: RefCell<HashMap<polymorphic_vir::FunctionIdentifier, polymorphic_vir::Function>>,
+    builtin_methods: RefCell<HashMap<BuiltinMethodKind, polymorphic_vir::BodylessMethod>>,
+    builtin_functions: RefCell<HashMap<BuiltinFunctionKind, polymorphic_vir::FunctionIdentifier>>,
+    procedures: RefCell<HashMap<ProcedureDefId, polymorphic_vir::CfgMethod>>,
+    programs: Vec<polymorphic_vir::Program>,
+    pure_function_bodies: RefCell<HashMap<(ProcedureDefId, String), polymorphic_vir::Expr>>,
+    pure_functions: RefCell<HashMap<(ProcedureDefId, String), polymorphic_vir::FunctionIdentifier>>,
     failed_pure_functions: RefCell<HashSet<(ProcedureDefId, String)>>,
     /// Stub pure functions. Generated when an impure Rust function is invoked
     /// where a pure function is required.
-    stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::FunctionIdentifier>>,
-    spec_functions: RefCell<HashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
-    type_predicate_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
+    stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), polymorphic_vir::FunctionIdentifier>>,
+    spec_functions: RefCell<HashMap<ProcedureDefId, Vec<polymorphic_vir::FunctionIdentifier>>>,
+    type_predicate_types: RefCell<HashMap<ty::TyKind<'tcx>, polymorphic_vir::Type>>,
     type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     type_tag_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
-    predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
-    type_predicates: RefCell<HashMap<String, vir::Predicate>>,
-    type_invariants: RefCell<HashMap<String, vir::FunctionIdentifier>>,
-    type_tags: RefCell<HashMap<String, vir::FunctionIdentifier>>,
-    type_discriminant_funcs: RefCell<HashMap<String, vir::FunctionIdentifier>>,
-    type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
-    fields: RefCell<HashMap<String, vir::Field>>,
+    predicate_types: RefCell<HashMap<polymorphic_vir::Type, ty::Ty<'tcx>>>,
+    type_predicates: RefCell<HashMap<String, polymorphic_vir::Predicate>>,
+    type_invariants: RefCell<HashMap<String, polymorphic_vir::FunctionIdentifier>>,
+    type_tags: RefCell<HashMap<String, polymorphic_vir::FunctionIdentifier>>,
+    type_discriminant_funcs: RefCell<HashMap<String, polymorphic_vir::FunctionIdentifier>>,
+    type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), polymorphic_vir::FunctionIdentifier>>,
+    fields: RefCell<HashMap<String, polymorphic_vir::Field>>,
     snapshot_encoder: RefCell<SnapshotEncoder>,
     mirror_encoder: RefCell<MirrorEncoder>,
     array_types_encoder: RefCell<ArrayTypesEncoder<'tcx>>,
@@ -167,7 +169,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             failed_pure_functions: RefCell::new(HashSet::new()),
             stub_pure_functions: RefCell::new(HashMap::new()),
             spec_functions: RefCell::new(HashMap::new()),
-            type_predicate_names: RefCell::new(HashMap::new()),
+            type_predicate_types: RefCell::new(HashMap::new()),
             type_invariant_names: RefCell::new(HashMap::new()),
             type_tag_names: RefCell::new(HashMap::new()),
             predicate_types: RefCell::new(HashMap::new()),
@@ -254,11 +256,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.error_manager.borrow_mut()
     }
 
-    pub fn finalize_viper_program(&self, name: String) -> vir::Program {
+    pub fn finalize_viper_program(&self, name: String) -> polymorphic_vir::Program {
         super::definition_collector::collect_definitions(self, name, self.get_used_viper_methods())
     }
 
-    pub fn get_viper_programs(&mut self) -> Vec<vir::Program> {
+    pub fn get_viper_programs(&mut self) -> Vec<polymorphic_vir::Program> {
         std::mem::replace(&mut self.programs, Vec::new())
     }
 
@@ -276,7 +278,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
 
-    pub(super) fn get_domain(&self, name: &str) -> vir::Domain {
+    pub(super) fn get_domain(&self, name: &str) -> polymorphic_vir::Domain {
         if let Some(domain) = self.snapshot_encoder.borrow().get_domain(name) {
             domain.clone()
         } else {
@@ -284,17 +286,17 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub(super) fn get_mirror_domain(&self) -> Option<vir::Domain> {
+    pub(super) fn get_mirror_domain(&self) -> Option<polymorphic_vir::Domain> {
         self.mirror_encoder.borrow().get_domain().cloned()
     }
 
-    pub(super) fn insert_function(&self, function: vir::Function) -> vir::FunctionIdentifier {
-        let identifier: vir::FunctionIdentifier = function.get_identifier().into();
+    pub(super) fn insert_function(&self, function: polymorphic_vir::Function) -> polymorphic_vir::FunctionIdentifier {
+        let identifier: polymorphic_vir::FunctionIdentifier = function.get_identifier().into();
         assert!(self.functions.borrow_mut().insert(identifier.clone(), function).is_none());
         identifier
     }
 
-    pub(super) fn get_function<'a>(&'a self, identifier: &vir::FunctionIdentifier) -> Ref<'a, vir::Function> {
+    pub(super) fn get_function<'a>(&'a self, identifier: &polymorphic_vir::FunctionIdentifier) -> Ref<'a, polymorphic_vir::Function> {
         if self.functions.borrow().contains_key(identifier) {
             Ref::map(self.functions.borrow(), |map| {
                 &map[identifier]
@@ -308,21 +310,21 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub fn get_used_viper_predicates_map(&self) -> HashMap<String, vir::Predicate> {
+    pub fn get_used_viper_predicates_map(&self) -> HashMap<String, polymorphic_vir::Predicate> {
         self.type_predicates.borrow().clone()
     }
 
-    pub(super) fn get_viper_predicate(&self, name: &str) -> vir::Predicate {
+    pub(super) fn get_viper_predicate(&self, name: &str) -> polymorphic_vir::Predicate {
         self.type_predicates.borrow()[name].clone()
     }
 
     pub(super) fn get_builtin_methods<'a>(
         &'a self
-    ) -> Ref<'a, HashMap<BuiltinMethodKind, vir::BodylessMethod>> {
+    ) -> Ref<'a, HashMap<BuiltinMethodKind, polymorphic_vir::BodylessMethod>> {
         self.builtin_methods.borrow()
     }
 
-    fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
+    fn get_used_viper_methods(&self) -> Vec<polymorphic_vir::CfgMethod> {
         self.procedures.borrow_mut().drain().map(|(_, value)| value).collect()
     }
 
@@ -479,7 +481,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// Encodes a value in a field if the base expression is a reference or
     /// a primitive types.
     /// For composed data structures, the base expression is returned.
-    pub fn encode_value_expr(&self, base: vir::Expr, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Expr> {
+    pub fn encode_value_expr(&self, base: polymorphic_vir::Expr, ty: ty::Ty<'tcx>) -> EncodingResult<polymorphic_vir::Expr> {
         match ty.kind() {
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Array(..)
@@ -493,7 +495,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Field> {
+    pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<polymorphic_vir::Field> {
         let type_encoder = TypeEncoder::new(self, ty);
         let field = type_encoder.encode_value_field()?;
         self.fields
@@ -507,48 +509,48 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         viper_field_name: String,
         ty: ty::Ty<'tcx>
-    ) -> EncodingResult<vir::Field> {
-        let type_name = self.encode_type_predicate_use(ty)?;
+    ) -> EncodingResult<polymorphic_vir::Field> {
+        let typ = self.encode_type(ty)?;
         self.fields
             .borrow_mut()
             .entry(viper_field_name.clone())
             .or_insert_with(|| {
                 // Do not store the name of the type in self.fields
-                vir::Field::new(
+                polymorphic_vir::Field::new(
                     viper_field_name.clone(),
-                    vir::Type::TypedRef("".to_string()),
+                    polymorphic_vir::Type::typed_ref(""),
                 )
             });
-        Ok(vir::Field::new(viper_field_name, vir::Type::TypedRef(type_name)))
+        Ok(polymorphic_vir::Field::new(viper_field_name, typ))
     }
 
     pub fn encode_dereference_field(&self, ty: ty::Ty<'tcx>)
-        -> EncodingResult<vir::Field>
+    -> EncodingResult<polymorphic_vir::Field>
     {
         self.encode_raw_ref_field("val_ref".to_string(), ty)
     }
 
     pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>)
-        -> EncodingResult<vir::Field>
+    -> EncodingResult<polymorphic_vir::Field>
     {
         let viper_field_name = format!("f${}", field_name);
         self.encode_raw_ref_field(viper_field_name, ty)
     }
 
     /// Creates a field that corresponds to the enum variant ``index``.
-    pub fn encode_enum_variant_field(&self, index: &str) -> vir::Field {
+    pub fn encode_enum_variant_field(&self, index: &str) -> polymorphic_vir::Field {
         let name = format!("enum_{}", index);
         let mut fields = self.fields.borrow_mut();
         if !fields.contains_key(&name) {
-            let field = vir::Field::new(name.clone(), vir::Type::TypedRef("".to_string()));
+            let field = polymorphic_vir::Field::new(name.clone(), polymorphic_vir::Type::typed_ref(""));
             fields.insert(name.clone(), field);
         }
         fields.get(&name).cloned().unwrap()
     }
 
-    pub fn encode_discriminant_field(&self) -> vir::Field {
+    pub fn encode_discriminant_field(&self) -> polymorphic_vir::Field {
         let name = "discriminant";
-        let field = vir::Field::new(name, vir::Type::Int);
+        let field = polymorphic_vir::Field::new(name, polymorphic_vir::Type::Int);
         self.fields
             .borrow_mut()
             .entry(name.to_string())
@@ -558,40 +560,39 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_discriminant_func_app(
         &self,
-        place: vir::Expr,
+        place: polymorphic_vir::Expr,
         adt_def: &'tcx ty::AdtDef,
-    ) -> vir::Expr {
+    ) -> polymorphic_vir::Expr {
         let typ = place.get_type().clone();
         let mut name = typ.name();
         name.push_str("$$discriminant$$");
-        let self_local_var = vir_local!{ self: {typ} };
+        let self_local_var = vir_local!{ self: {typ.clone()} };
         self.type_discriminant_funcs
             .borrow_mut()
             .entry(name.clone())
             .or_insert_with(|| {
-                let predicate_name = place.get_type().name();
-                let precondition = vir::Expr::predicate_access_predicate(
-                    predicate_name.clone(),
+                let precondition = polymorphic_vir::Expr::predicate_access_predicate(
+                    typ,
                     self_local_var.clone().into(),
-                    vir::PermAmount::Read,
+                    polymorphic_vir::PermAmount::Read
                 );
                 let result = vir_local!{ __result: Int };
                 let postcondition = compute_discriminant_bounds(
                     adt_def, self.env.tcx(), &result.clone().into());
 
                 let discr_field = self.encode_discriminant_field();
-                let self_local_var_expr: vir::Expr = self_local_var.clone().into();
-                let function = vir::Function {
+                let self_local_var_expr: polymorphic_vir::Expr = self_local_var.clone().into();
+                let function = polymorphic_vir::Function {
                     name: name.clone(),
                     formal_args: vec![self_local_var.clone()],
-                    return_type: vir::Type::Int,
+                    return_type: polymorphic_vir::Type::Int,
                     pres: vec![precondition],
                     posts: vec![
                         postcondition,
                         self.snapshot_encoder.borrow_mut().encode_discriminant_post(
                             self,
                             self_local_var_expr.clone(),
-                            vir::Expr::local(result),
+                            polymorphic_vir::Expr::local(result),
                         ).unwrap(), // TODO: no unwrap
                     ],
                     body: Some(self_local_var_expr.field(discr_field)),
@@ -605,16 +606,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 );
                 self.insert_function(final_function.unwrap())
             });
-        vir::Expr::FuncApp(
-            name,
-            vec![place],
-            vec![self_local_var],
-            vir::Type::Int,
-            vir::Position::default(),
-        )
+        polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {
+            function_name: name,
+            arguments: vec![place],
+            formal_arguments: vec![self_local_var],
+            return_type: polymorphic_vir::Type::Int,
+            position: polymorphic_vir::Position::default(),
+        })
     }
 
-    pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
+    pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> polymorphic_vir::BodylessMethod {
         trace!("encode_builtin_method_def({:?})", method_kind);
         if !self.builtin_methods.borrow().contains_key(&method_kind) {
             let builtin_encoder = BuiltinEncoder::new();
@@ -668,7 +669,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let mut precondition = self.encode_type_bounds(&arg.clone().into(), src_ty);
             precondition.extend(self.encode_type_bounds(&arg.clone().into(), dst_ty));
             let postcondition = self.encode_type_bounds(&result.into(), dst_ty);
-            let function = vir::Function {
+            let function = polymorphic_vir::Function {
                 name: function_name.clone(),
                 formal_args: vec![arg.clone()],
                 return_type: self.encode_snapshot_type(dst_ty)?,
@@ -682,23 +683,23 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(function_name)
     }
 
-    pub fn patch_snapshots_method(&self, method: vir::CfgMethod)
-        -> EncodingResult<vir::CfgMethod>
+    pub fn patch_snapshots_method(&self, method: polymorphic_vir::CfgMethod)
+        -> EncodingResult<polymorphic_vir::CfgMethod>
     {
         self.snapshot_encoder
             .borrow_mut()
             .patch_snapshots_method(self, method)
     }
 
-    pub fn patch_snapshots_function(&self, function: vir::Function)
-        -> EncodingResult<vir::Function>
+    pub fn patch_snapshots_function(&self, function: polymorphic_vir::Function)
+        -> EncodingResult<polymorphic_vir::Function>
     {
         self.snapshot_encoder
             .borrow_mut()
             .patch_snapshots_function(self, function)
     }
 
-    pub fn patch_snapshots(&self, expr: vir::Expr) -> EncodingResult<vir::Expr> {
+    pub fn patch_snapshots(&self, expr: polymorphic_vir::Expr) -> EncodingResult<polymorphic_vir::Expr> {
         self.snapshot_encoder
             .borrow_mut()
             .patch_snapshots_expr(self, expr)
@@ -750,7 +751,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Encodes the specification functions for the function/closure def_id.
     pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
-        -> SpannedEncodingResult<Vec<vir::FunctionIdentifier>>
+        -> SpannedEncodingResult<Vec<polymorphic_vir::FunctionIdentifier>>
     {
         if !self.env().tcx().is_mir_available(def_id) || self.env().tcx().is_constructor(def_id) {
             return Ok(vec![]);
@@ -768,13 +769,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_type(&self, ty: ty::Ty<'tcx>)
-        -> EncodingResult<vir::Type>
+    -> EncodingResult<polymorphic_vir::Type>
     {
-        let type_encoder = TypeEncoder::new(self, ty);
-        type_encoder.encode_type()
+        if !self.type_predicate_types.borrow().contains_key(ty.kind()) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let encoded_type = type_encoder.encode_type()?;
+            self.type_predicate_types
+                .borrow_mut()
+                .insert(ty.kind().clone(), encoded_type.clone());
+            self.predicate_types
+                .borrow_mut()
+                .insert(encoded_type, ty);
+            // Trigger encoding of definition
+            self.encode_type_predicate_def(ty)?;
+        }
+        let predicate_type = self.type_predicate_types.borrow()[&ty.kind()].clone();
+        Ok(predicate_type)
     }
 
-    pub fn encode_type_bounds(&self, var: &vir::Expr, ty: ty::Ty<'tcx>) -> Vec<vir::Expr> {
+    pub fn encode_type_bounds(&self, var: &polymorphic_vir::Expr, ty: ty::Ty<'tcx>) -> Vec<polymorphic_vir::Expr> {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_bounds(var)
     }
@@ -785,13 +798,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         assertion: &typed::Assertion<'tcx>,
         mir: &mir::Body<'tcx>,
         pre_label: Option<&str>,
-        target_args: &[vir::Expr],
-        target_return: Option<&vir::Expr>,
+        target_args: &[polymorphic_vir::Expr],
+        target_return: Option<&polymorphic_vir::Expr>,
         targets_are_values: bool,
         assertion_location: Option<mir::BasicBlock>,
         error: ErrorCtxt,
         parent_def_id: ProcedureDefId,
-    ) -> SpannedEncodingResult<vir::Expr> {
+    ) -> SpannedEncodingResult<polymorphic_vir::Expr> {
         trace!("encode_assertion {:?}", assertion);
         let encoded_assertion = encode_spec_assertion(
             self,
@@ -809,41 +822,44 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         ))
     }
 
-    pub fn decode_type_predicate(&self, name: &str)
+    pub fn decode_type_predicate_type(&self, typ: &polymorphic_vir::Type)
         -> EncodingResult<ty::Ty<'tcx>>
     {
-        if let Some(ty) = self.predicate_types.borrow().get(name) {
-            Ok(ty)
-        } else {
-            Err(EncodingError::internal(
-                format!("type predicate not known: {:?}", name)
-            ))
+        let check = |typ: &polymorphic_vir::Type| {
+            if let Some(ty) = self.predicate_types.borrow().get(typ) {
+                Ok(*ty)
+            } else {
+                Err(EncodingError::internal(
+                    format!("type predicate not known: {:?}", typ.name())
+                ))
+            }
+        };
+        match typ {
+            polymorphic_vir::Type::TypeVar(_) |
+            polymorphic_vir::Type::TypedRef(_) => {
+                check(typ)
+            },
+            polymorphic_vir::Type::Snapshot(snapshot) => {
+                check(&polymorphic_vir::Type::TypedRef(snapshot.clone().into()))
+            }
+            _ => {
+                Err(EncodingError::internal(
+                    format!("type predicate not known: {:?}", typ.name())
+                ))
+            }
         }
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>)
         -> EncodingResult<String>
     {
-        if !self.type_predicate_names.borrow().contains_key(ty.kind()) {
-            let type_encoder = TypeEncoder::new(self, ty);
-            let name = type_encoder.encode_predicate_use()?;
-            self.type_predicate_names
-                .borrow_mut()
-                .insert(ty.kind().clone(), name.clone());
-            self.predicate_types
-                .borrow_mut()
-                .insert(name, ty);
-            // Trigger encoding of definition
-            self.encode_type_predicate_def(ty)?;
-        }
-        let predicate_name = self.type_predicate_names.borrow()[&ty.kind()].clone();
-        Ok(predicate_name)
+        Ok(self.encode_type(ty)?.encode_as_string())
     }
 
     pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>)
-        -> EncodingResult<vir::Predicate>
+        -> EncodingResult<polymorphic_vir::Predicate>
     {
-        let predicate_name = self.encode_type_predicate_use(ty).unwrap();
+        let predicate_name = self.encode_type_predicate_use(ty)?;
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
             let predicates = type_encoder.encode_predicate_def()?;
@@ -880,7 +896,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_snapshot_type(&self, ty: ty::Ty<'tcx>)
-        -> EncodingResult<vir::Type>
+        -> EncodingResult<polymorphic_vir::Type>
     {
         self.snapshot_encoder.borrow_mut().encode_type(self, ty)
     }
@@ -888,9 +904,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_snapshot_constructor(
         &self,
         ty: ty::Ty<'tcx>,
-        args: Vec<vir::Expr>,
+        args: Vec<polymorphic_vir::Expr>,
     )
-        -> EncodingResult<vir::Expr>
+        -> EncodingResult<polymorphic_vir::Expr>
     {
         self.snapshot_encoder.borrow_mut().encode_constructor(self, ty, args)
     }
@@ -898,37 +914,37 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_snapshot_array_idx(
         &self,
         ty: ty::Ty<'tcx>,
-        array: vir::Expr,
-        idx: vir::Expr,
-    ) -> EncodingResult<vir::Expr> {
+        array: polymorphic_vir::Expr,
+        idx: polymorphic_vir::Expr,
+    ) -> EncodingResult<polymorphic_vir::Expr> {
         self.snapshot_encoder.borrow_mut().encode_array_idx(self, ty, array, idx)
     }
 
     pub fn encode_snapshot_slice_idx(
         &self,
         ty: ty::Ty<'tcx>,
-        slice: vir::Expr,
-        idx: vir::Expr,
-    ) -> EncodingResult<vir::Expr> {
+        slice: polymorphic_vir::Expr,
+        idx: polymorphic_vir::Expr,
+    ) -> EncodingResult<polymorphic_vir::Expr> {
         self.snapshot_encoder.borrow_mut().encode_slice_idx(self, ty, slice, idx)
     }
 
     pub fn encode_snapshot_slice_len(
         &self,
         ty: ty::Ty<'tcx>,
-        slice: vir::Expr,
-    ) -> EncodingResult<vir::Expr> {
+        slice: polymorphic_vir::Expr,
+    ) -> EncodingResult<polymorphic_vir::Expr> {
         self.snapshot_encoder.borrow_mut().encode_slice_len(self, ty, slice)
     }
 
     pub fn encode_snapshot_slicing(
         &self,
         base_ty: ty::Ty<'tcx>,
-        base: vir::Expr,
+        base: polymorphic_vir::Expr,
         slice_ty: ty::Ty<'tcx>,
-        lo: vir::Expr,
-        hi: vir::Expr,
-    ) -> EncodingResult<vir::Expr> {
+        lo: polymorphic_vir::Expr,
+        hi: polymorphic_vir::Expr,
+    ) -> EncodingResult<polymorphic_vir::Expr> {
         self.snapshot_encoder.borrow_mut().encode_slicing(self, base_ty, base, slice_ty, lo, hi)
     }
 
@@ -959,7 +975,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_type_invariant_def(&self, ty: ty::Ty<'tcx>)
-        -> EncodingResult<vir::FunctionIdentifier>
+        -> EncodingResult<polymorphic_vir::FunctionIdentifier>
     {
         let invariant_name = self.encode_type_invariant_use(ty)?;
         if !self.type_invariants.borrow().contains_key(&invariant_name) {
@@ -1002,7 +1018,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         ty: &ty::TyS<'tcx>,
         value: &ty::ConstKind<'tcx>
-    ) -> EncodingResult<vir::Expr> {
+    ) -> EncodingResult<polymorphic_vir::Expr> {
         trace!("encode_const_expr {:?}", value);
         let scalar_value = self.const_eval_intlike(value)?;
 
@@ -1023,7 +1039,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Uint(ty::UintTy::Usize) => scalar_value.to_machine_usize(&self.env().tcx()).unwrap().into(),
             ty::TyKind::FnDef(def_id, _) => {
                 self.encode_spec_funcs(*def_id)?;
-                vir::Expr::Const(vir::Const::FnPtr, vir::Position::default())
+                polymorphic_vir::Expr::Const( polymorphic_vir::ConstExpr {value: polymorphic_vir::Const::FnPtr, position: polymorphic_vir::Position::default()} )
             }
             _ => {
                 return Err(EncodingError::unsupported(
@@ -1035,7 +1051,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Ok(expr)
     }
 
-    pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> vir::Expr {
+    pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> polymorphic_vir::Expr {
         trace!("encode_int_cast {:?} as {:?}", value, ty);
 
         let expr = match ty.kind() {
@@ -1072,31 +1088,31 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_invariant_func_app(
         &self,
         ty: ty::Ty<'tcx>,
-        encoded_arg: vir::Expr
-    ) -> EncodingResult<vir::Expr> {
-        let type_pred = self.encode_type_predicate_use(ty)
+        encoded_arg: polymorphic_vir::Expr
+    ) -> EncodingResult<polymorphic_vir::Expr> {
+        let type_pred = self.encode_type(ty)
             .expect("failed to encode unsupported type");
-        Ok(vir::Expr::FuncApp(
-            self.encode_type_invariant_use(ty)?,
-            vec![encoded_arg],
+        Ok(polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {
+            function_name: self.encode_type_invariant_use(ty)?,
+            arguments: vec![encoded_arg],
             // TODO ?
-            vec![vir_local!{ self: {vir::Type::TypedRef(type_pred)} }],
-            vir::Type::Bool,
+            formal_arguments: vec![vir_local!{ self: { type_pred } }],
+            return_type: polymorphic_vir::Type::Bool,
             // TODO
-            vir::Position::default(),
-        ))
+            position: polymorphic_vir::Position::default(),
+        }))
     }
 
-    pub fn encode_tag_func_app(&self, ty: ty::Ty<'tcx>) -> vir::Expr {
-        vir::Expr::FuncApp(
-            self.encode_type_tag_use(ty),
-            vec![],
+    pub fn encode_tag_func_app(&self, ty: ty::Ty<'tcx>) -> polymorphic_vir::Expr {
+        polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {
+            function_name: self.encode_type_tag_use(ty),
+            arguments: vec![],
             // TODO ?
-            vec![],
-            vir::Type::Int,
+            formal_arguments: vec![],
+            return_type: polymorphic_vir::Type::Int,
             // TODO
-            vir::Position::default(),
-        )
+            position: polymorphic_vir::Position::default(),
+        })
     }
 
     /// Encode the body of the given procedure as a pure expression.
@@ -1104,7 +1120,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
-    ) -> SpannedEncodingResult<vir::Expr> {
+    ) -> SpannedEncodingResult<polymorphic_vir::Expr> {
         let mir_span = self.env.tcx().def_span(proc_def_id);
         let substs_key = self.type_substitution_key().with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
@@ -1206,7 +1222,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
-    ) -> SpannedEncodingResult<(String, vir::Type)> {
+    ) -> SpannedEncodingResult<(String, polymorphic_vir::Type)> {
         let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
         let procedure = self.env.get_procedure(wrapper_def_id);
 
@@ -1239,7 +1255,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_stub_pure_function_use(
         &self,
         proc_def_id: ProcedureDefId,
-    ) -> SpannedEncodingResult<(String, vir::Type)> {
+    ) -> SpannedEncodingResult<(String, polymorphic_vir::Type)> {
         // The stub function may come from an external module.
         let body = self.env.external_mir(proc_def_id);
         let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body);
@@ -1393,18 +1409,27 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.current_tymap()
             .iter()
             .map(|(typ, subst)| {
-                let encoded_typ = self.encode_type(typ).map(|t| match t {
-                    vir::Type::TypedRef(s) => s.clone(),
-                    x => unreachable!("{:?}", x),
-                });
-                let encoded_subst = self.encode_type(subst).map(|s| match s {
-                    vir::Type::TypedRef(s) => s.clone(),
-                    x => unreachable!("{:?}", x),
-                });
-                transpose((encoded_typ, encoded_subst))
+                let typ_encoder = TypeEncoder::new(self, typ);
+                let subst_encoder = TypeEncoder::new(self, subst);
+                transpose((typ_encoder.encode_predicate_use(), subst_encoder.encode_predicate_use()))
             })
             .collect::<Result<_, _>>()
     }
+
+    pub fn type_substitution_polymorphic_type_map(&self)
+    -> EncodingResult<HashMap<polymorphic_vir::TypeVar, polymorphic_vir::Type>>
+    {
+        self.current_tymap()
+            .iter()
+            .map(|(typ, subst)| {
+                let typ_encoder = TypeEncoder::new(self, typ);
+                let subst_encoder = TypeEncoder::new(self, subst);
+                
+                transpose((Ok(typ_encoder.encode_type()?.get_type_var().unwrap()), subst_encoder.encode_type()))
+                // FIXME: unwrap
+            })
+            .collect::<Result<_, _>>()
+}
 
     /// TODO: This is a hack, it generates a String that can be used for uniquely identifying this
     /// type substitution.

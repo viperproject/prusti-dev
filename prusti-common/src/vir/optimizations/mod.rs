@@ -6,7 +6,8 @@
 
 //! A module that contains various VIR optimizations.
 
-use crate::vir::{CfgMethod, Program, ToGraphViz};
+use crate::vir::polymorphic_vir::{CfgMethod, Program};
+use crate::vir::ToGraphViz;
 use crate::config::{self, optimizations, Optimizations};
 
 pub mod folding;

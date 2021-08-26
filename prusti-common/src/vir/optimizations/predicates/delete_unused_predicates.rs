@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::vir::{
+use crate::vir::polymorphic_vir::{
     ast::*,
     cfg,
     cfg::CfgMethod,
@@ -39,14 +39,14 @@ fn get_used_predicates_in_predicate_map(
     for pred in predicates {
         match pred {
             Predicate::Struct(StructPredicate {
-                name,
+                typ,
                 body: Some(e),
                 ..
             }) => {
                 ExprWalker::walk(&mut collector, e);
                 let mut res = BTreeSet::new();
                 std::mem::swap(&mut res, &mut collector.used_predicates);
-                map.insert(name.clone(), res);
+                map.insert(typ.name(), res);
             }
             Predicate::Struct(StructPredicate { body: None, .. }) => { /* ignore */ }
             Predicate::Enum(p) => {
@@ -56,7 +56,7 @@ fn get_used_predicates_in_predicate_map(
 
                 for (e, _, sp) in &p.variants {
                     ExprWalker::walk(&mut collector, e);
-                    collector.used_predicates.insert(sp.name.to_string());
+                    collector.used_predicates.insert(sp.typ.name());
                     sp.body
                         .iter()
                         .for_each(|e| ExprWalker::walk(&mut collector, e))
@@ -64,7 +64,7 @@ fn get_used_predicates_in_predicate_map(
 
                 let mut res = BTreeSet::new();
                 std::mem::swap(&mut res, &mut collector.used_predicates);
-                map.insert(p.name.clone(), res);
+                map.insert(p.typ.name(), res);
             }
             Predicate::Bodyless(_, _) => { /* ignore */ }
         }
@@ -123,8 +123,8 @@ pub fn delete_unused_predicates(
 
     // Remove the bodies of predicats that are never folded or unfolded
     predicates.iter_mut().for_each(|predicate| {
-        let predicate_name = predicate.name().to_string();
-        if !folded_predicates.contains(predicate.name()) {
+        let predicate_name = predicate.name();
+        if !folded_predicates.contains(&predicate_name) {
             if let Predicate::Struct(sp) = predicate {
                 debug!("Removed body of {}", predicate_name);
                 sp.body = None;
@@ -147,7 +147,7 @@ pub fn delete_unused_predicates(
 
     debug!("All the used predicates are {:?}", &reachable_predicates);
 
-    predicates.retain(|p| reachable_predicates.contains(p.name()));
+    predicates.retain(|p| reachable_predicates.contains(&p.name()));
 
     predicates
 }
@@ -171,12 +171,12 @@ impl UsedPredicateCollector {
 impl ExprWalker for UsedPredicateCollector {
     fn walk_predicate_access_predicate(
         &mut self,
-        name: &str,
+        typ: &Type,
         arg: &Expr,
         _perm_amount: PermAmount,
         _pos: &Position,
     ) {
-        self.used_predicates.insert(name.to_string());
+        self.used_predicates.insert(typ.name());
         ExprWalker::walk(self, arg);
     }
 

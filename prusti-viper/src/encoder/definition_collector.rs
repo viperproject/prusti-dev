@@ -3,10 +3,8 @@ use std::{
     hash::Hash,
 };
 
-use prusti_common::{
-    vir::{self, compute_identifier, ExprWalker, FunctionIdentifier, StmtWalker, WithIdentifier},
-    vir_local,
-};
+use vir_crate::{vir_local, vir_type};
+use vir_crate::polymorphic::{self as polymorphic_vir, compute_identifier, ExprWalker, FunctionIdentifier, StmtWalker, WithIdentifier};
 
 use super::Encoder;
 
@@ -29,12 +27,12 @@ use super::Encoder;
 pub(super) fn collect_definitions(
     encoder: &Encoder,
     name: String,
-    methods: Vec<vir::CfgMethod>,
-) -> vir::Program {
+    methods: Vec<polymorphic_vir::CfgMethod>,
+) -> polymorphic_vir::Program {
     let mut unfolded_predicate_collector = UnfoldedPredicateCollector {
         unfolded_predicates: Default::default(),
     };
-    vir::utils::walk_methods(&methods, &mut unfolded_predicate_collector);
+    polymorphic_vir::utils::walk_methods(&methods, &mut unfolded_predicate_collector);
     let mut collector = Collector {
         encoder,
         method_names: methods.iter().map(|method| method.name()).collect(),
@@ -65,28 +63,28 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     /// unfolded in the method.
     unfolded_predicates: HashSet<String>,
     new_unfolded_predicates: HashSet<String>,
-    used_fields: HashSet<vir::Field>,
+    used_fields: HashSet<polymorphic_vir::Field>,
     used_domains: HashSet<String>,
-    used_snap_domain_functions: HashSet<vir::FunctionIdentifier>,
+    used_snap_domain_functions: HashSet<polymorphic_vir::FunctionIdentifier>,
     /// The set of all functions that are mentioned in the method.
-    used_functions: HashSet<vir::FunctionIdentifier>,
+    used_functions: HashSet<polymorphic_vir::FunctionIdentifier>,
     /// The set of all mirror functions that are mentioned in the method.
-    used_mirror_functions: HashSet<vir::FunctionIdentifier>,
+    used_mirror_functions: HashSet<polymorphic_vir::FunctionIdentifier>,
     /// The set of functions whose bodies have to be included because predicates
     /// in their preconditions are unfolded.
-    unfolded_functions: HashSet<vir::FunctionIdentifier>,
+    unfolded_functions: HashSet<polymorphic_vir::FunctionIdentifier>,
     /// Functions that are explicitly called in the program.
-    directly_called_functions: HashSet<vir::FunctionIdentifier>,
+    directly_called_functions: HashSet<polymorphic_vir::FunctionIdentifier>,
     in_directly_calling_state: bool,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
-    fn into_program(mut self, name: String, methods: Vec<vir::CfgMethod>) -> vir::Program {
+    fn into_program(mut self, name: String, methods: Vec<polymorphic_vir::CfgMethod>) -> polymorphic_vir::Program {
         let functions = self.get_used_functions();
         let viper_predicates = self.get_used_predicates();
         let domains = self.get_used_domains();
         let fields = self.get_used_fields();
-        vir::Program {
+        polymorphic_vir::Program {
             name,
             domains,
             fields,
@@ -96,7 +94,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             viper_predicates,
         }
     }
-    fn walk_methods(&mut self, methods: &[vir::CfgMethod]) {
+    fn walk_methods(&mut self, methods: &[polymorphic_vir::CfgMethod]) {
         let predicates: Vec<_> = self
             .unfolded_predicates
             .iter()
@@ -106,26 +104,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             // make sure we include all the fields
             predicate.body().as_ref().map(|body| self.walk_expr(body));
         }
-        vir::utils::walk_methods(&methods, self);
+        polymorphic_vir::utils::walk_methods(&methods, self);
         self.used_predicates
             .extend(self.unfolded_predicates.iter().cloned());
         self.used_functions
             .extend(self.unfolded_functions.iter().cloned());
     }
-    fn get_used_fields(&self) -> Vec<vir::Field> {
-        self.used_fields.iter().cloned().collect()
+    fn get_used_fields(&self) -> Vec<polymorphic_vir::Field> {
+        // TODO: Remove the deduplication once we switch to the offset-based
+        // fields.
+        let used_fields: HashMap<_, _> = self.used_fields.iter().map(|field| {
+            (&field.name, field)
+        }).collect();
+        used_fields.values().map(|&field| field.clone()).collect()
     }
     /// The purification optimization that is executed after this assumes that
     /// all bodyless methods are present. That is why we are returning all
     /// methods here.
-    fn get_all_methods(&self) -> Vec<vir::BodylessMethod> {
+    fn get_all_methods(&self) -> Vec<polymorphic_vir::BodylessMethod> {
         self.encoder
             .get_builtin_methods()
             .values()
             .cloned()
             .collect()
     }
-    fn get_used_predicates(&mut self) -> Vec<vir::Predicate> {
+    fn get_used_predicates(&mut self) -> Vec<polymorphic_vir::Predicate> {
         let mut predicates: Vec<_> = self
             .used_predicates
             .iter()
@@ -139,13 +142,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                 {
                     // The predicate is never unfolded. Make it abstract.
                     match predicate {
-                        vir::Predicate::Struct(mut predicate) => {
+                        polymorphic_vir::Predicate::Struct(mut predicate) => {
                             predicate.body = None;
-                            vir::Predicate::Struct(predicate)
+                            polymorphic_vir::Predicate::Struct(predicate)
                         }
-                        vir::Predicate::Enum(predicate) => {
-                            vir::Predicate::Struct(vir::StructPredicate {
-                                name: predicate.name,
+                        polymorphic_vir::Predicate::Enum(predicate) => {
+                            polymorphic_vir::Predicate::Struct(polymorphic_vir::StructPredicate {
+                                typ: predicate.typ,
                                 this: predicate.this,
                                 body: None,
                             })
@@ -156,7 +159,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                     predicate
                 }
             })
-            .chain(Some(vir::Predicate::Bodyless(
+            .chain(Some(polymorphic_vir::Predicate::Bodyless(
                 "DeadBorrowToken$".to_string(),
                 vir_local! { borrow: Int },
             )))
@@ -164,7 +167,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         predicates.sort_by_key(|f| f.get_identifier());
         predicates
     }
-    fn get_used_functions(&self) -> Vec<vir::Function> {
+    fn get_used_functions(&self) -> Vec<polymorphic_vir::Function> {
         let mut functions: Vec<_> = self
             .used_functions
             .iter()
@@ -191,7 +194,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         functions.sort_by_cached_key(|f| f.get_identifier());
         functions
     }
-    fn get_used_domains(&self) -> Vec<vir::Domain> {
+    fn get_used_domains(&self) -> Vec<polymorphic_vir::Domain> {
         let mut domains: Vec<_> = self
             .used_domains
             .iter()
@@ -227,7 +230,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         domains.sort_by_cached_key(|domain| domain.name.clone());
         domains
     }
-    fn contains_unfolded_predicates(&self, exprs: &[vir::Expr]) -> bool {
+    fn contains_unfolded_predicates(&self, exprs: &[polymorphic_vir::Expr]) -> bool {
         let unfolded_predicate_checker = &mut UnfoldedPredicateChecker {
             unfolded_predicates: &self.unfolded_predicates,
             found: false,
@@ -237,10 +240,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             unfolded_predicate_checker.found
         })
     }
-    fn contains_unfolded_parameters(&self, formal_args: &[vir::LocalVar]) -> bool {
+    fn contains_unfolded_parameters(&self, formal_args: &[polymorphic_vir::LocalVar]) -> bool {
         formal_args.iter().any(|parameter| {
-            if let vir::Type::Snapshot(predicate) = &parameter.typ {
-                self.unfolded_predicates.contains(predicate)
+            if let polymorphic_vir::Type::Snapshot(..) = &parameter.typ {
+                self.unfolded_predicates.contains(&parameter.typ.name())
             } else {
                 false
             }
@@ -249,40 +252,40 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> StmtWalker for Collector<'p, 'v, 'tcx> {
-    fn walk_expr(&mut self, expr: &vir::Expr) {
+    fn walk_expr(&mut self, expr: &polymorphic_vir::Expr) {
         ExprWalker::walk(self, expr);
     }
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
-    fn walk_variant(&mut self, base: &vir::Expr, variant: &vir::Field, _pos: &vir::Position) {
+    fn walk_variant(&mut self, base: &polymorphic_vir::Expr, variant: &polymorphic_vir::Field, _pos: &polymorphic_vir::Position) {
         self.used_fields.insert(variant.clone());
         ExprWalker::walk(self, base);
         ExprWalker::walk_type(self, &variant.typ);
     }
-    fn walk_field(&mut self, receiver: &vir::Expr, field: &vir::Field, _pos: &vir::Position) {
+    fn walk_field(&mut self, receiver: &polymorphic_vir::Expr, field: &polymorphic_vir::Field, _pos: &polymorphic_vir::Position) {
         self.used_fields.insert(field.clone());
         ExprWalker::walk(self, receiver);
         ExprWalker::walk_type(self, &field.typ);
     }
     fn walk_predicate_access_predicate(
         &mut self,
-        name: &str,
-        arg: &vir::Expr,
-        _perm_amount: vir::PermAmount,
-        _pos: &vir::Position,
+        typ: &polymorphic_vir::Type,
+        arg: &polymorphic_vir::Expr,
+        _perm_amount: polymorphic_vir::PermAmount,
+        _pos: &polymorphic_vir::Position,
     ) {
-        self.used_predicates.insert(name.to_string());
+        self.used_predicates.insert(typ.name());
         ExprWalker::walk(self, arg)
     }
     fn walk_unfolding(
         &mut self,
         name: &str,
-        args: &Vec<vir::Expr>,
-        body: &vir::Expr,
-        _perm: vir::PermAmount,
-        _variant: &vir::MaybeEnumVariantIndex,
-        _pos: &vir::Position,
+        args: &Vec<polymorphic_vir::Expr>,
+        body: &polymorphic_vir::Expr,
+        _perm: polymorphic_vir::PermAmount,
+        _variant: &polymorphic_vir::MaybeEnumVariantIndex,
+        _pos: &polymorphic_vir::Position,
     ) {
         if self.new_unfolded_predicates.insert(name.to_string()) {
             let predicate = self.encoder.get_viper_predicate(name);
@@ -297,12 +300,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
     fn walk_func_app(
         &mut self,
         name: &str,
-        args: &Vec<vir::Expr>,
-        formal_args: &Vec<vir::LocalVar>,
-        return_type: &vir::Type,
-        _pos: &vir::Position,
+        args: &Vec<polymorphic_vir::Expr>,
+        formal_args: &Vec<polymorphic_vir::LocalVar>,
+        return_type: &polymorphic_vir::Type,
+        _pos: &polymorphic_vir::Position,
     ) {
-        let identifier: vir::FunctionIdentifier =
+        let identifier: polymorphic_vir::FunctionIdentifier =
             compute_identifier(name, formal_args, return_type).into();
         let have_visited = !self.used_functions.contains(&identifier);
         let have_visited_in_directly_calling_state =
@@ -340,9 +343,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
     }
     fn walk_domain_func_app(
         &mut self,
-        func: &vir::DomainFunc,
-        args: &Vec<vir::Expr>,
-        _pos: &vir::Position,
+        func: &polymorphic_vir::DomainFunc,
+        args: &Vec<polymorphic_vir::Expr>,
+        _pos: &polymorphic_vir::Position,
     ) {
         if func.domain_name.starts_with("Snap$") {
             self.used_snap_domain_functions
@@ -370,21 +373,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
             ExprWalker::walk_local_var(self, arg)
         }
     }
-    fn walk_type(&mut self, typ: &vir::Type) {
+    fn walk_type(&mut self, typ: &polymorphic_vir::Type) {
         match typ {
-            vir::Type::Seq(typ) => {
+            polymorphic_vir::Type::Seq( polymorphic_vir::SeqType {box typ} ) => {
                 self.walk_type(typ);
             }
-            vir::Type::TypedRef(name) => {
-                self.used_predicates.insert(name.clone());
+            polymorphic_vir::Type::TypedRef(..) | polymorphic_vir::Type::TypeVar(..) => {
+                self.used_predicates.insert(typ.name());
             }
-            vir::Type::Domain(name) => {
+            polymorphic_vir::Type::Domain(..) => {
+                let name = typ.name();
                 if name != "UnitDomain" {
                     unreachable!("Unexpected type that is not snapshot: {}", name);
                 }
             }
-            vir::Type::Snapshot(name) => {
-                self.used_domains.insert(format!("Snap${}", name));
+            polymorphic_vir::Type::Snapshot(..) => {
+                self.used_domains.insert(format!("Snap${}", typ.name()));
             }
             _ => {}
         }
@@ -398,17 +402,17 @@ struct UnfoldedPredicateCollector {
 }
 
 impl StmtWalker for UnfoldedPredicateCollector {
-    fn walk_expr(&mut self, expr: &vir::Expr) {
+    fn walk_expr(&mut self, expr: &polymorphic_vir::Expr) {
         ExprWalker::walk(self, expr);
     }
 
     fn walk_fold(
         &mut self,
         predicate_name: &str,
-        args: &Vec<vir::Expr>,
-        _perm: &vir::PermAmount,
-        _variant: &vir::MaybeEnumVariantIndex,
-        _pos: &vir::Position,
+        args: &Vec<polymorphic_vir::Expr>,
+        _perm: &polymorphic_vir::PermAmount,
+        _variant: &polymorphic_vir::MaybeEnumVariantIndex,
+        _pos: &polymorphic_vir::Position,
     ) {
         self.unfolded_predicates.insert(predicate_name.to_string());
         for arg in args {
@@ -419,9 +423,9 @@ impl StmtWalker for UnfoldedPredicateCollector {
     fn walk_unfold(
         &mut self,
         predicate_name: &str,
-        args: &Vec<vir::Expr>,
-        _perm: &vir::PermAmount,
-        _variant: &vir::MaybeEnumVariantIndex,
+        args: &Vec<polymorphic_vir::Expr>,
+        _perm: &polymorphic_vir::PermAmount,
+        _variant: &polymorphic_vir::MaybeEnumVariantIndex,
     ) {
         self.unfolded_predicates.insert(predicate_name.to_string());
         for arg in args {
@@ -434,11 +438,11 @@ impl ExprWalker for UnfoldedPredicateCollector {
     fn walk_unfolding(
         &mut self,
         name: &str,
-        args: &Vec<vir::Expr>,
-        body: &vir::Expr,
-        _perm: vir::PermAmount,
-        _variant: &vir::MaybeEnumVariantIndex,
-        _pos: &vir::Position,
+        args: &Vec<polymorphic_vir::Expr>,
+        body: &polymorphic_vir::Expr,
+        _perm: polymorphic_vir::PermAmount,
+        _variant: &polymorphic_vir::MaybeEnumVariantIndex,
+        _pos: &polymorphic_vir::Position,
     ) {
         self.unfolded_predicates.insert(name.to_string());
         for arg in args {
@@ -456,12 +460,12 @@ struct UnfoldedPredicateChecker<'a> {
 impl<'a> ExprWalker for UnfoldedPredicateChecker<'a> {
     fn walk_predicate_access_predicate(
         &mut self,
-        name: &str,
-        _arg: &vir::Expr,
-        _perm_amount: vir::PermAmount,
-        _pos: &vir::Position,
+        typ: &polymorphic_vir::Type,
+        _arg: &polymorphic_vir::Expr,
+        _perm_amount: polymorphic_vir::PermAmount,
+        _pos: &polymorphic_vir::Position,
     ) {
-        if self.unfolded_predicates.contains(name) {
+        if self.unfolded_predicates.contains(&typ.name()) {
             self.found = true;
         }
     }

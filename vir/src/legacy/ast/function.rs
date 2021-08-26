@@ -111,7 +111,7 @@ impl WithIdentifier for Function {
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub struct FunctionIdentifier(String);
+pub struct FunctionIdentifier(pub(crate) String);
 
 impl From<String> for FunctionIdentifier {
     fn from(string: String) -> Self {

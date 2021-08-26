@@ -58,13 +58,11 @@ impl From<polymorphic::Type> for legacy::Type {
             polymorphic::Type::Int => legacy::Type::Int,
             polymorphic::Type::Bool => legacy::Type::Bool,
             polymorphic::Type::Seq(seq) => legacy::Type::Seq(Box::new((*seq.typ).into())),
-            polymorphic::Type::TypedRef(typed_ref) => legacy::Type::TypedRef(typed_ref.label),
-            polymorphic::Type::Domain(domain_type) => legacy::Type::Domain(domain_type.label),
-            polymorphic::Type::Snapshot(snapshot_type) => {
-                legacy::Type::Snapshot(snapshot_type.label)
+            polymorphic::Type::TypedRef(_) | polymorphic::Type::TypeVar(_) => {
+                legacy::Type::TypedRef(typ.encode_as_string())
             }
-            // Does not happen, unless type substitution is incorrect
-            polymorphic::Type::TypeVar(_) => unreachable!(),
+            polymorphic::Type::Domain(_) => legacy::Type::Domain(typ.encode_as_string()),
+            polymorphic::Type::Snapshot(_) => legacy::Type::Snapshot(typ.encode_as_string()),
         }
     }
 }
@@ -188,7 +186,7 @@ impl From<polymorphic::Expr> for legacy::Expr {
             ),
             polymorphic::Expr::PredicateAccessPredicate(predicate_access_predicate) => {
                 legacy::Expr::PredicateAccessPredicate(
-                    predicate_access_predicate.predicate_name,
+                    predicate_access_predicate.predicate_type.encode_as_string(),
                     Box::new((*predicate_access_predicate.argument).into()),
                     predicate_access_predicate.permission.into(),
                     predicate_access_predicate.position.into(),
@@ -403,6 +401,12 @@ impl From<polymorphic::Function> for legacy::Function {
     }
 }
 
+impl From<polymorphic::FunctionIdentifier> for legacy::FunctionIdentifier {
+    fn from(function_identifier: polymorphic::FunctionIdentifier) -> legacy::FunctionIdentifier {
+        legacy::FunctionIdentifier(function_identifier.0)
+    }
+}
+
 // predicate
 impl From<polymorphic::Predicate> for legacy::Predicate {
     fn from(predicate: polymorphic::Predicate) -> legacy::Predicate {
@@ -423,7 +427,7 @@ impl From<polymorphic::Predicate> for legacy::Predicate {
 impl From<polymorphic::StructPredicate> for legacy::StructPredicate {
     fn from(struct_predicate: polymorphic::StructPredicate) -> legacy::StructPredicate {
         legacy::StructPredicate {
-            name: struct_predicate.name,
+            name: struct_predicate.typ.encode_as_string(),
             this: struct_predicate.this.into(),
             body: struct_predicate.body.map(|body_expr| body_expr.into()),
         }
@@ -433,7 +437,7 @@ impl From<polymorphic::StructPredicate> for legacy::StructPredicate {
 impl From<polymorphic::EnumPredicate> for legacy::EnumPredicate {
     fn from(enum_predicate: polymorphic::EnumPredicate) -> legacy::EnumPredicate {
         legacy::EnumPredicate {
-            name: enum_predicate.name,
+            name: enum_predicate.typ.name(),
             this: enum_predicate.this.into(),
             discriminant_field: enum_predicate.discriminant_field.into(),
             discriminant_bounds: enum_predicate.discriminant_bounds.into(),
@@ -509,7 +513,7 @@ impl From<polymorphic::Stmt> for legacy::Stmt {
                     .map(|enum_variant_index| enum_variant_index.into()),
             ),
             polymorphic::Stmt::Obtain(obtain) => {
-                legacy::Stmt::Obtain(obtain.predicate_name.into(), obtain.position.into())
+                legacy::Stmt::Obtain(obtain.expr.into(), obtain.position.into())
             }
             polymorphic::Stmt::BeginFrame(_) => legacy::Stmt::BeginFrame,
             polymorphic::Stmt::EndFrame(_) => legacy::Stmt::EndFrame,

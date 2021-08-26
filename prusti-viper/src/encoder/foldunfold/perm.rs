@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir;
-use prusti_common::vir::PermAmount;
+use vir_crate::polymorphic::{PermAmount, Position, Expr};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
@@ -15,16 +14,16 @@ use crate::encoder::foldunfold::FoldUnfoldError;
 /// An access or predicate permission to a place
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Perm {
-    Acc(vir::Expr, PermAmount),
-    Pred(vir::Expr, PermAmount),
+    Acc(Expr, PermAmount),
+    Pred(Expr, PermAmount),
 }
 
 impl Perm {
-    pub fn acc(place: vir::Expr, perm_amount: PermAmount) -> Self {
+    pub fn acc(place: Expr, perm_amount: PermAmount) -> Self {
         Perm::Acc(place, perm_amount)
     }
 
-    pub fn pred(place: vir::Expr, perm_amount: PermAmount) -> Self {
+    pub fn pred(place: Expr, perm_amount: PermAmount) -> Self {
         Perm::Pred(place, perm_amount)
     }
 
@@ -65,7 +64,7 @@ impl Perm {
         }
     }
 
-    pub fn get_place(&self) -> &vir::Expr {
+    pub fn get_place(&self) -> &Expr {
         match self {
             &Perm::Acc(ref place, _) | &Perm::Pred(ref place, _) => place,
         }
@@ -73,7 +72,7 @@ impl Perm {
 
     pub fn map_place<F>(self, f: F) -> Self
     where
-        F: Fn(vir::Expr) -> vir::Expr,
+        F: Fn(Expr) -> Expr,
     {
         match self {
             Perm::Acc(place, fr) => Perm::Acc(f(place), fr),
@@ -81,7 +80,7 @@ impl Perm {
         }
     }
 
-    pub fn has_proper_prefix(&self, other: &vir::Expr) -> bool {
+    pub fn has_proper_prefix(&self, other: &Expr) -> bool {
         self.get_place().has_proper_prefix(other)
     }
 
@@ -105,7 +104,7 @@ impl Perm {
         }
     }
 
-    pub fn set_default_pos(self, pos: vir::Position) -> Self {
+    pub fn set_default_pos(self, pos: Position) -> Self {
         match self {
             Perm::Acc(expr, perm) => Perm::Acc(expr.set_default_pos(pos), perm),
             Perm::Pred(expr, perm) => Perm::Pred(expr.set_default_pos(pos), perm),
@@ -134,8 +133,8 @@ impl fmt::Debug for Perm {
 /// A set of permissions
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PermSet {
-    acc_perms: HashMap<vir::Expr, PermAmount>,
-    pred_perms: HashMap<vir::Expr, PermAmount>,
+    acc_perms: HashMap<Expr, PermAmount>,
+    pred_perms: HashMap<Expr, PermAmount>,
 }
 
 impl PermSet {
@@ -210,9 +209,9 @@ where
 /// Note: since this function performs set difference, it does **not**
 /// panic if `left` has less permission than `right`.
 fn place_perm_difference(
-    mut left: HashMap<vir::Expr, PermAmount>,
-    mut right: HashMap<vir::Expr, PermAmount>,
-) -> HashMap<vir::Expr, PermAmount> {
+    mut left: HashMap<Expr, PermAmount>,
+    mut right: HashMap<Expr, PermAmount>,
+) -> HashMap<Expr, PermAmount> {
     for (place, right_perm_amount) in right.drain() {
         match left.get(&place) {
             Some(left_perm_amount) => match (*left_perm_amount, right_perm_amount) {

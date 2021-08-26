@@ -108,20 +108,14 @@ impl From<i64> for Expr {
     }
 }
 
-impl From<i128> for Expr {
-    fn from(val: i128) -> Self {
-        Expr::Const(val.into(), Position::default())
-    }
-}
-
 impl From<i128> for Const {
     fn from(val: i128) -> Self {
         Const::BigInt(val.to_string())
     }
 }
 
-impl From<u8> for Expr {
-    fn from(val: u8) -> Self {
+impl From<i128> for Expr {
+    fn from(val: i128) -> Self {
         Expr::Const(val.into(), Position::default())
     }
 }
@@ -132,8 +126,8 @@ impl From<u8> for Const {
     }
 }
 
-impl From<u16> for Expr {
-    fn from(val: u16) -> Self {
+impl From<u8> for Expr {
+    fn from(val: u8) -> Self {
         Expr::Const(val.into(), Position::default())
     }
 }
@@ -144,8 +138,8 @@ impl From<u16> for Const {
     }
 }
 
-impl From<u32> for Expr {
-    fn from(val: u32) -> Self {
+impl From<u16> for Expr {
+    fn from(val: u16) -> Self {
         Expr::Const(val.into(), Position::default())
     }
 }
@@ -156,8 +150,8 @@ impl From<u32> for Const {
     }
 }
 
-impl From<u64> for Expr {
-    fn from(val: u64) -> Self {
+impl From<u32> for Expr {
+    fn from(val: u32) -> Self {
         Expr::Const(val.into(), Position::default())
     }
 }
@@ -168,8 +162,8 @@ impl From<u64> for Const {
     }
 }
 
-impl From<u128> for Expr {
-    fn from(val: u128) -> Self {
+impl From<u64> for Expr {
+    fn from(val: u64) -> Self {
         Expr::Const(val.into(), Position::default())
     }
 }
@@ -180,8 +174,8 @@ impl From<char> for Const {
     }
 }
 
-impl From<char> for Expr {
-    fn from(val: char) -> Self {
+impl From<u128> for Expr {
+    fn from(val: u128) -> Self {
         Expr::Const(val.into(), Position::default())
     }
 }
@@ -192,8 +186,8 @@ impl From<u128> for Const {
     }
 }
 
-impl<'a> From<&'a str> for Expr {
-    fn from(val: &'a str) -> Self {
+impl From<char> for Expr {
+    fn from(val: char) -> Self {
         Expr::Const(val.into(), Position::default())
     }
 }
@@ -201,5 +195,11 @@ impl<'a> From<&'a str> for Expr {
 impl<'a> From<&'a str> for Const {
     fn from(val: &'a str) -> Self {
         Const::BigInt(val.to_string())
+    }
+}
+
+impl<'a> From<&'a str> for Expr {
+    fn from(val: &'a str) -> Self {
+        Expr::Const(val.into(), Position::default())
     }
 }

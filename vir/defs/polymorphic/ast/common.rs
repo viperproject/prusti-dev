@@ -5,13 +5,18 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::ast::*;
+use crate::converter::type_substitution::Generic;
 use std::{
     cmp::Ordering,
-    collections::HashMap,
+    collections::{HashMap, hash_map::DefaultHasher},
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,
 };
+
+pub trait WithIdentifier {
+    fn get_identifier(&self) -> String;
+}
 
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -37,6 +42,16 @@ impl Position {
     pub fn id(&self) -> u64 {
         self.id
     }
+
+    pub fn is_default(&self) -> bool {
+        self.line == 0 && self.column == 0 && self.id == 0
+    }
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        Position::new(0, 0, 0)
+    }
 }
 
 pub enum PermAmountError {
@@ -51,6 +66,32 @@ pub enum PermAmount {
     Write,
     /// The permission remaining after ``Read`` was subtracted from ``Write``.
     Remaining,
+}
+
+impl PermAmount {
+    /// Can this permission amount be used in specifications?
+    pub fn is_valid_for_specs(&self) -> bool {
+        match self {
+            PermAmount::Read | PermAmount::Write => true,
+            PermAmount::Remaining => false,
+        }
+    }
+
+    pub fn add(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
+        match (self, other) {
+            (PermAmount::Read, PermAmount::Remaining)
+            | (PermAmount::Remaining, PermAmount::Read) => Ok(PermAmount::Write),
+            _ => Err(PermAmountError::InvalidAdd(self, other)),
+        }
+    }
+
+    pub fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
+        match (self, other) {
+            (PermAmount::Write, PermAmount::Read) => Ok(PermAmount::Remaining),
+            (PermAmount::Write, PermAmount::Remaining) => Ok(PermAmount::Read),
+            _ => Err(PermAmountError::InvalidSub(self, other)),
+        }
+    }
 }
 
 impl fmt::Display for PermAmount {
@@ -85,7 +126,7 @@ impl Ord for PermAmount {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Type {
     Int,
     Bool,
@@ -104,32 +145,232 @@ impl fmt::Display for Type {
         match self {
             Type::Int => write!(f, "Int"),
             Type::Bool => write!(f, "Bool"),
-            _ => write!(f, "{}", self),
+            Type::Seq(seq) => seq.fmt(f),
+            Type::TypedRef(_) => write!(f, "Ref({})", self.encode_as_string()),
+            Type::Domain(_) => write!(f, "Domain({})", self.encode_as_string()),
+            Type::Snapshot(_) => write!(f, "Snapshot({})", self.encode_as_string()),
+            Type::TypeVar(type_var) => type_var.fmt(f),
         }
     }
 }
 
-impl PartialEq for Type {
-    fn eq(&self, other: &Self) -> bool {
-        discriminant(self) == discriminant(other) &&
-        match (self, other) {
-            (Type::Seq(seq), Type::Seq(other_seq)) => seq == other_seq,
-            (Type::TypedRef(typed_ref), Type::TypedRef(other_typed_ref)) => typed_ref == other_typed_ref,
-            (Type::Domain(domain_type), Type::Domain(other_domain_type)) => domain_type == other_domain_type,
-            (Type::Snapshot(snapshot_type), Type::Snapshot(other_snapshot_type)) => snapshot_type == other_snapshot_type,
-            (Type::TypeVar(type_var), Type::TypeVar(other_type_var)) => type_var == other_type_var,
-            _ => true,
+
+
+
+impl Type {
+    pub fn is_typed_ref_or_type_var(&self) -> bool {
+        self.is_typed_ref() || self.is_type_var()
+    }
+
+    pub fn is_typed_ref(&self) -> bool {
+        matches!(self, &Type::TypedRef(_))
+    }
+
+    pub fn is_domain(&self) -> bool {
+        matches!(self, &Type::Domain(_))
+    }
+
+    pub fn is_snapshot(&self) -> bool {
+        matches!(self, &Type::Snapshot(_))
+    }
+
+    pub fn is_type_var(&self) -> bool {
+        matches!(self, &Type::TypeVar(_))
+    }
+
+    pub fn is_mir_reference(&self) -> bool {
+        if let Type::TypedRef(TypedRef {label, ..}) = self {
+            // FIXME: We should not rely on string names for type conversions.
+            label == "ref"
+        } else {
+            false
         }
     }
-}
 
-impl Eq for Type {}
+    pub fn name(&self) -> String {
+        match self {
+            Type::Bool => "bool".to_string(),
+            Type::Int => "int".to_string(),
+            Type::Domain(_) | Type::Snapshot(_) | Type::TypedRef(_) | Type::TypeVar(_) => {
+                self.encode_as_string()
+            },
+            Type::Seq(SeqType {box ref typ} ) => typ.name(),
+        }
+    }
 
-impl Hash for Type {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        discriminant(self).hash(state);
+    /// Construct a new VIR type that corresponds to an enum variant.
+    pub fn variant(self, variant: &str) -> Self {
+        match self {
+            Type::TypedRef(mut typed_ref) => {
+                typed_ref.variant = variant.into();
+                Type::TypedRef(typed_ref)
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    /// Replace all generic types with their instantiations by using string substitution.
+    pub fn patch(self, substs: &HashMap<TypeVar, Type>) -> Self {
+        self.substitute(substs)
+    }
+
+    pub fn typed_ref<S: Into<String>>(name: S) -> Self {
+        Type::TypedRef(TypedRef {
+            label: name.into(),
+            arguments: vec![],
+            variant: String::from(""),
+        })
+    }
+
+    pub fn typed_ref_with_args<S: Into<String>>(name: S, arguments: Vec<Type>) -> Self {
+        Type::TypedRef(TypedRef {
+            label: name.into(),
+            arguments: arguments,
+            variant: String::from(""),
+        })
+    }
+
+    pub fn domain<S: Into<String>>(name: S) -> Self {
+        Type::Domain(DomainType {
+            label: name.into(),
+            arguments: vec![],
+            variant: String::from(""),
+        })
+    }
+
+    pub fn domain_with_args<S: Into<String>>(name: S, arguments: Vec<Type>) -> Self {
+        Type::Domain(DomainType {
+            label: name.into(),
+            arguments: arguments,
+            variant: String::from(""),
+        })
+    }
+
+    pub fn snapshot<S: Into<String>>(name: S) -> Self {
+        Type::Snapshot(SnapshotType {
+            label: name.into(),
+            arguments: vec![],
+            variant: String::from(""),
+        })
+    }
+
+    pub fn snapshot_with_args<S: Into<String>>(name: S, arguments: Vec<Type>) -> Self {
+        Type::Snapshot(SnapshotType {
+            label: name.into(),
+            arguments: arguments,
+            variant: String::from(""),
+        })
+    }
+
+    // TODO: this is a temporary solution for converting the encoded type in type encoder as a snapshot variant, which ould be cleaner
+    pub fn convert_to_snapshot(&self) -> Self {
+        match self {
+            Type::TypedRef(typed_ref) => Type::Snapshot(typed_ref.clone().into()),
+            Type::TypeVar(_) => Type::Snapshot(SnapshotType {
+                label: self.encode_as_string(),
+                arguments: Vec::new(),
+                variant: String::from(""),
+            }),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn type_var<S: Into<String>>(name: S) -> Self {
+        Type::TypeVar(TypeVar {
+            label: name.into(),
+        })
+    }
+
+    pub fn get_type_var(&self) -> Option<TypeVar> {
+        if let Type::TypeVar(type_var) = self {
+            Some(type_var.clone())
+        } else {
+            None
+        }
+    }
+
+    pub fn get_id(&self) -> TypeId {
+        match self {
+            Type::Bool => TypeId::Bool,
+            Type::Int => TypeId::Int,
+            Type::TypedRef(_) => TypeId::Ref,
+            Type::Domain(_) => TypeId::Domain,
+            Type::Snapshot(_) => TypeId::Snapshot,
+            Type::Seq(_) => TypeId::Seq,
+            Type::TypeVar(t) => unreachable!(t),
+        }
+    }
+
+    pub fn encode_as_string(&self) -> String {
+        match self {
+            Type::TypedRef( TypedRef {label, arguments, variant} )
+            | Type::Domain( DomainType {label, arguments, variant} )
+            | Type::Snapshot( SnapshotType {label, arguments, variant} ) => {
+                let label_str = label.as_str();
+                match label_str {
+                    "ref" | "raw_ref" | "Slice"
+                        => format!("{}${}", label_str, Self::encode_arguments(arguments)),
+                    // TODO: remove len constraint once encoders are all updated with polymorphic
+                    array if array.starts_with("Array") && arguments.len() > 0
+                        => format!("{}${}", label_str, Self::encode_arguments(arguments)),
+                    "tuple"
+                        => format!("tuple{}${}", arguments.len(), Self::encode_arguments(arguments)),
+                    // TODO: remove len constraint once encoders are all updated with polymorphic
+                    closure if closure.starts_with("closure") && arguments.len() > 0
+                        => format!("{}${}${}", closure, arguments.len(), Self::hash_arguments(arguments)),
+                    adt if adt.starts_with("adt")
+                        => format!("{}${}{}", &adt[4..], Self::encode_substs(arguments), variant),
+                    _label => if arguments.len() > 0 {
+                        // Projection
+                        format!("{}${}", label_str, Self::encode_arguments(arguments))
+                    } else {
+                        // General cases (e.g. bool, isize, never, ...)
+                        String::from(label_str)
+                    }
+                }
+            },
+            Type::TypeVar(TypeVar{label}) => format!("__TYPARAM__$_{}$__", label),
+            x => unreachable!(x),
+        }
+    }
+
+    /// The string to be appended to the encoding of certain types to make generics "less fragile".
+    fn encode_substs(types: &Vec<Type>) -> String {
+        let mut composed_name = vec![
+            "_beg_".to_string(),  // makes generics "less fragile"
+        ];
+        let mut first = true;
+        for typ in types.into_iter() {
+            if first {
+                first = false
+            } else {
+                // makes generics "less fragile"
+                composed_name.push("_sep_".to_string());
+            }
+            composed_name.push(typ.encode_as_string());
+        }
+        composed_name.push("_end_".to_string()); // makes generics "less fragile"
+        composed_name.join("$")
+    }
+
+    /// Converts vector of arguments to string connected with "$".
+    fn encode_arguments(args: &Vec<Type>) -> String {
+        let mut composed_name = vec![];
+
+        for arg in args.into_iter() {
+            composed_name.push(arg.encode_as_string());
+        }
+
+        composed_name.join("$")
+    }
+
+    fn hash_arguments(args: &Vec<Type>) -> u64 {
+        let mut s = DefaultHasher::new();
+        args.hash(&mut s);
+        s.finish()
     }
 }
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SeqType {
@@ -160,11 +401,12 @@ impl fmt::Display for SeqType {
 pub struct TypedRef {
     pub label: String,
     pub arguments: Vec<Type>,
+    pub variant: String,
 }
 
 impl PartialEq for TypedRef {
     fn eq(&self, other: &Self) -> bool {
-        (&self.label, &self.arguments) == (&other.label, &other.arguments)
+        (&self.label, &self.arguments, &self.variant) == (&other.label, &other.arguments, &other.variant)
     }
 }
 
@@ -172,13 +414,17 @@ impl Eq for TypedRef {}
 
 impl Hash for TypedRef {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (&self.label, &self.arguments).hash(state);
+        (&self.label, &self.arguments, &self.variant).hash(state);
     }
 }
 
-impl fmt::Display for TypedRef {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Ref({})", &self.label)
+impl From<SnapshotType> for TypedRef {
+    fn from(snapshot: SnapshotType) -> Self {
+        Self {
+            label: snapshot.label,
+            arguments: snapshot.arguments,
+            variant: snapshot.variant,
+        }
     }
 }
 
@@ -186,6 +432,7 @@ impl fmt::Display for TypedRef {
 pub struct DomainType {
     pub label: String,
     pub arguments: Vec<Type>,
+    pub variant: String,
 }
 
 impl PartialEq for DomainType {
@@ -202,9 +449,23 @@ impl Hash for DomainType {
     }
 }
 
-impl fmt::Display for DomainType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Domain({})", &self.label)
+impl From<TypedRef> for DomainType {
+    fn from(typed_ref: TypedRef) -> DomainType {
+        DomainType {
+            label: typed_ref.label,
+            arguments: typed_ref.arguments,
+            variant: typed_ref.variant,
+        }
+    }
+}
+
+impl From<TypeVar> for DomainType {
+    fn from(type_var: TypeVar) -> DomainType {
+        DomainType {
+            label: type_var.label,
+            arguments: vec![],
+            variant: String::from(""),
+        }
     }
 }
 
@@ -212,6 +473,7 @@ impl fmt::Display for DomainType {
 pub struct SnapshotType {
     pub label: String,
     pub arguments: Vec<Type>,
+    pub variant: String,
 }
 
 impl PartialEq for SnapshotType {
@@ -228,9 +490,23 @@ impl Hash for SnapshotType {
     }
 }
 
-impl fmt::Display for SnapshotType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Snapshot({})", &self.label)
+impl From<TypedRef> for SnapshotType {
+    fn from(typed_ref: TypedRef) -> SnapshotType {
+        SnapshotType {
+            label: typed_ref.label,
+            arguments: typed_ref.arguments,
+            variant: typed_ref.variant,
+        }
+    }
+}
+
+impl From<TypeVar> for SnapshotType {
+    fn from(type_var: TypeVar) -> SnapshotType {
+        SnapshotType {
+            label: type_var.label,
+            arguments: vec![],
+            variant: String::from(""),
+        }
     }
 }
 
@@ -287,6 +563,15 @@ impl fmt::Debug for LocalVar {
     }
 }
 
+impl LocalVar {
+    pub fn new<S: Into<String>>(name: S, typ: Type) -> Self {
+        LocalVar {
+            name: name.into(),
+            typ,
+        }
+    }
+}
+
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
@@ -302,5 +587,28 @@ impl fmt::Display for Field {
 impl fmt::Debug for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}: {}", self.name, self.typ)
+    }
+}
+
+impl Field {
+    pub fn new<S: Into<String>>(name: S, typ: Type) -> Self {
+        Field {
+            name: name.into(),
+            typ,
+        }
+    }
+
+    pub fn typed_ref_name(&self) -> Option<String> {
+        match self.typ {
+            Type::TypedRef(_) |
+            Type::TypeVar(_) => Some(self.typ.encode_as_string()),
+            _ => None,
+        }
+    }
+}
+
+impl WithIdentifier for Field {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
     }
 }

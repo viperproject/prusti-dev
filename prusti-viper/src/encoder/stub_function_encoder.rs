@@ -6,7 +6,7 @@
 
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::Encoder;
-use prusti_common::vir;
+use vir_crate::polymorphic as polymorphic_vir;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use log::{trace, debug};
@@ -37,10 +37,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_function(&self) -> SpannedEncodingResult<vir::Function> {
+    pub fn encode_function(&self) -> SpannedEncodingResult<polymorphic_vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode stub function {}", function_name);
-        let subst_strings = self.encoder.type_substitution_strings().with_span(self.mir.span)?;
+        let substs = &self.encoder.type_substitution_polymorphic_type_map().with_span(self.mir.span)?;
 
         let formal_args: Vec<_> = self
             .mir
@@ -50,8 +50,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
                 let mir_type = self.mir_encoder.get_local_ty(local);
                 self.encoder.encode_snapshot_type(mir_type)
                     .map(|var_type| {
-                        let var_type = var_type.patch(&subst_strings);
-                        vir::LocalVar::new(var_name, var_type)
+                        let var_type = var_type.patch(substs);
+                        polymorphic_vir::LocalVar::new(var_name, var_type)
                     })
             })
             .collect::<Result<_, _>>()
@@ -59,7 +59,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
 
         let return_type = self.encode_function_return_type()?;
 
-        let function = vir::Function {
+        let function = polymorphic_vir::Function {
             name: function_name,
             formal_args,
             return_type,
@@ -84,7 +84,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
         base_name
     }
 
-    pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
+    pub fn encode_function_return_type(&self) -> SpannedEncodingResult<polymorphic_vir::Type> {
         let ty = self.mir.return_ty();
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.mir_encoder.get_local_span(return_local);

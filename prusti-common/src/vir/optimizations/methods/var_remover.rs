@@ -6,8 +6,7 @@
 
 //! Optimization that removes unused temporary variables.
 
-use super::super::super::ast;
-use super::super::super::cfg;
+use crate::vir::polymorphic_vir::{ast, cfg};
 use std::collections::HashSet;
 use std::mem;
 
@@ -42,7 +41,7 @@ pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     let mut remover = UnusedVarRemover {
         unused_vars: unused_vars,
     };
-    let mut sentinel_stmt = ast::Stmt::Comment(String::from("moved out stmt"));
+    let mut sentinel_stmt = ast::Stmt::comment("moved out stmt");
     for block in &mut method.basic_blocks {
         for stmt in &mut block.stmts {
             mem::swap(&mut sentinel_stmt, stmt);
@@ -65,7 +64,7 @@ impl ast::ExprWalker for UsedVarCollector {
     }
     fn walk_predicate_access_predicate(
         &mut self,
-        _predicate_name: &str,
+        _typ: &ast::Type,
         _arg: &ast::Expr,
         _perm_amount: ast::PermAmount,
         _pos: &ast::Position,
@@ -112,20 +111,25 @@ struct UnusedVarRemover {
 impl ast::ExprFolder for UnusedVarRemover {
     fn fold_predicate_access_predicate(
         &mut self,
-        predicate_name: String,
+        typ: ast::Type,
         arg: Box<ast::Expr>,
         perm_amount: ast::PermAmount,
         pos: ast::Position,
     ) -> ast::Expr {
         match arg {
-            box ast::Expr::Local(ref var, _) => {
+            box ast::Expr::Local( ast::Local {variable: ref var, ..} ) => {
                 if self.unused_vars.contains(var) {
                     return true.into();
                 }
             }
             _ => {}
         }
-        ast::Expr::PredicateAccessPredicate(predicate_name, arg, perm_amount, pos)
+        ast::Expr::PredicateAccessPredicate( ast::PredicateAccessPredicate {
+            predicate_type: typ,
+            argument: arg,
+            permission: perm_amount,
+            position: pos,
+        })
     }
     fn fold_field_access_predicate(
         &mut self,
@@ -137,7 +141,11 @@ impl ast::ExprFolder for UnusedVarRemover {
         if self.unused_vars.contains(&var) {
             return true.into();
         }
-        ast::Expr::FieldAccessPredicate(expr, perm_amount, pos)
+        ast::Expr::FieldAccessPredicate( ast::FieldAccessPredicate {
+            base: expr,
+            permission: perm_amount,
+            position: pos,
+        })
     }
 }
 
