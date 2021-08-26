@@ -1456,12 +1456,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 // TODO: Encoding of string literals is not yet supported, so
                 // do not return an expression in restored here.
-                let restored: Option<polymorphic_vir::Expr> = match ty.kind() {
-                    ty::TyKind::Ref(_, inner, _) if inner.is_str() => None,
-                    _ => Some(
-                        self.encoder.encode_const_expr(ty, &val).unwrap()
-                    )
-                };
+                let restored: Option<polymorphic_vir::Expr> =
+                    if is_str(ty) {
+                        None
+                    } else {
+                        Some(self.encoder.encode_const_expr(ty, &val).unwrap())
+                    };
 
                 (expiring_base, restored, false, stmts)
             }
@@ -2636,11 +2636,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // This data structure maps the newly created local variables to the expression that was
         // originally passed as an argument.
         let mut fake_exprs: HashMap<polymorphic_vir::Expr, polymorphic_vir::Expr> = HashMap::new();
+
+        // Spans for fake exprs that cannot be encoded in viper
+        let mut fake_expr_spans: HashMap<Local, Span> = HashMap::new();
+
         let mut arguments = vec![];
 
         let mut const_arg_vars: HashSet<polymorphic_vir::Expr> = HashSet::new();
         let mut type_invs: HashMap<String, polymorphic_vir::Function> = HashMap::new();
         let mut constant_args = vec![];
+
+        let mut stmts = vec![];
+        let mut stmts_after: Vec<polymorphic_vir::Stmt> = vec![];
 
         for (mir_arg, arg, arg_ty, encoded_operand) in operands {
             arguments.push(arg.clone());
@@ -2662,11 +2669,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 None => {
                     // We have a constant.
                     constant_args.push(arg_place.clone());
-                    let arg_val_expr = self.mir_encoder.encode_operand_expr(mir_arg)
-                        .with_span(call_site_span)?;
-                    debug!("arg_val_expr: {} {}", arg_place, arg_val_expr);
                     let val_field = self.encoder.encode_value_field(arg_ty).with_span(call_site_span)?;
-                    fake_exprs.insert(arg_place.clone().field(val_field), arg_val_expr);
+
+                    // TODO: String constants are not being encoded currently,
+                    //       instead just inhale the permission to the value.
+                    if !is_str(arg_ty) {
+                        let arg_val_expr = self.mir_encoder.encode_operand_expr(mir_arg)
+                            .with_span(call_site_span)?;
+                        debug!("arg_val_expr: {} {}", arg_place, arg_val_expr);
+                        fake_exprs.insert(arg_place.clone().field(val_field), arg_val_expr);
+                    } else {
+                        fake_expr_spans.insert(
+                          arg,
+                          call_site_span
+                        );
+                        stmts.push(polymorphic_vir::Stmt::Inhale (
+                            polymorphic_vir::Inhale {
+                                expr: polymorphic_vir::Expr::acc_permission(
+                                    arg_place.clone().field(val_field),
+                                    polymorphic_vir::PermAmount::Read
+                                )
+                            }
+                        ));
+                    }
                     let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
                     if in_loop {
                         const_arg_vars.insert(arg_place);
@@ -2682,9 +2707,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
         }
-
-        let mut stmts = vec![];
-        let mut stmts_after: Vec<polymorphic_vir::Stmt> = vec![];
 
         let (target_local, encoded_target) = {
             match destination.as_ref() {
@@ -2780,7 +2802,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_func_spec,
             _, // We don't care about verifying that the weakening is valid,
                // since it isn't the task of the caller
-        ) = self.encode_precondition_expr(&procedure_contract, None)?;
+        ) = self.encode_precondition_expr(&procedure_contract, None, fake_expr_spans)?;
         let pos = self
             .encoder
             .error_manager()
@@ -3134,7 +3156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode permissions that are implicitly carried by the given local variable.
-    fn encode_local_variable_permission(&self, local: Local)
+    fn encode_local_variable_permission(&self, local: Local, span: Span)
         -> SpannedEncodingResult<polymorphic_vir::Expr>
     {
         Ok(match self.locals.get_type(local).kind() {
@@ -3146,9 +3168,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // Use unfolded references.
                 let encoded_local = self.encode_prusti_local(local);
                 let field = self.encoder.encode_dereference_field(ty)
-                    .with_span(
-                        self.mir_encoder.get_local_span(local.into())
-                    )?;
+                    .with_span(span)?;
                 let place = polymorphic_vir::Expr::from(encoded_local).field(field);
                 let perm_amount = match mutability {
                     Mutability::Mut => polymorphic_vir::PermAmount::Write,
@@ -3177,6 +3197,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &self,
         contract: &ProcedureContract<'tcx>,
         precondition_weakening: Option<typed::Assertion<'tcx>>,
+        override_spans: HashMap<Local, Span> // spans for fake locals
     ) -> SpannedEncodingResult<(
         polymorphic_vir::Expr,
         Vec<polymorphic_vir::Expr>,
@@ -3221,7 +3242,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     type_spec.push(access);
                 }
             };
-            let access = self.encode_local_variable_permission(*local)?;
+            let access = self.encode_local_variable_permission(
+                *local,
+                match override_spans.get(local) {
+                    Some(span) => *span,
+                    None => self.mir_encoder.get_local_span((*local).into())
+                }
+            )?;
             match access {
                 polymorphic_vir::Expr::BinOp( polymorphic_vir::BinOp {op_kind: polymorphic_vir::BinOpKind::And, left: box access1, right: box access2, ..} ) => {
                     add(access1);
@@ -3316,7 +3343,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
             self.encode_precondition_expr(
                 self.procedure_contract(),
-                precondition_weakening
+                precondition_weakening,
+                HashMap::new()
             )?;
         self.cfg_method.add_stmt(
             start_cfg_block,
@@ -3648,7 +3676,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Encode permissions for return type
         // TODO: Clean-up: remove unnecessary Option.
         let return_perm = Some(
-            self.encode_local_variable_permission(contract.returned_value)?
+            self.encode_local_variable_permission(
+                contract.returned_value,
+                self.mir_encoder.get_local_span(contract.returned_value.into())
+            )?
         );
 
         // Encode functional specification
@@ -5041,11 +5072,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         )?;
                         // TODO Encoding of string literals is not yet supported,
                         // so do not encode an assignment if the RHS is a string
-                        let is_str = match ty.kind() {
-                            ty::TyKind::Ref(_, inner, _) => inner.is_str(),
-                            _ => false,
-                        };
-                        if !is_str {
+                        if !is_str(ty) {
                             // Initialize the constant
                             let const_val = self.encoder
                                 .encode_const_expr(ty, &val)
@@ -5689,7 +5716,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         field: polymorphic_vir::Field,
         location: mir::Location,
         vir_assign_kind: polymorphic_vir::AssignKind,
-        can_copy_reference: bool // reference copies are sound if the field is a constant
+        can_copy_reference: bool // reference copies are allowed if the field is a constant
     ) -> SpannedEncodingResult<Vec<polymorphic_vir::Stmt>> {
         trace!(
             "[enter] prepare_assign_target(dst={}, field={}, location={:?})",
@@ -6270,5 +6297,12 @@ fn mir_constantkind_to_ty_val(literal: mir::ConstantKind) -> (ty::Ty, ty::ConstK
     match literal {
         mir::ConstantKind::Ty(&ty::Const { ty, val }) => (ty, val),
         mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(val)),
+    }
+}
+
+fn is_str<'tcx>(ty: &ty::TyS<'tcx>) -> bool {
+    match ty.kind() {
+        ty::TyKind::Ref(_, inner, _) => inner.is_str(),
+        _ => false
     }
 }
