@@ -1107,7 +1107,7 @@ impl Expr {
         struct Simplifier;
         impl ExprFolder for Simplifier {
             fn fold_field(&mut self, receiver: Box<Expr>, field: Field, position: Position) -> Expr {
-                if receiver.is_addr_of() && field.typ.is_mir_reference() {
+                if receiver.is_addr_of() {
                     if let Expr::AddrOf(AddrOf { base , .. }) = *receiver {
                         *base
                     } else {
