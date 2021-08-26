@@ -275,21 +275,10 @@ impl MultiExprBackwardInterpreterState {
         let sub_target = sub_target.clone().patch_types(&self.substs);
         let replacement = replacement.patch_types(&self.substs);
 
-        // If `replacement` is a reference, simplify also its dereferentiations
-        if let polymorphic_vir::Expr::AddrOf( polymorphic_vir::AddrOf {box ref base, ref position, ..}) =
-            replacement
-        {
-            trace!("Substitution of a reference. Simplify its dereferentiations.");
-            let deref_field = polymorphic_vir::Field::new("val_ref", base.get_type().clone());
-            let deref_target = sub_target
-                .clone()
-                .field(deref_field.clone())
-                .set_pos(*position);
-            self.substitute_place(&deref_target, base.clone());
-        }
 
         for expr in &mut self.exprs {
-            *expr = expr.clone().replace_place(&sub_target, &replacement);
+            let new_expr = expr.clone().replace_place(&sub_target, &replacement);
+            *expr = new_expr.simplify_addr_of();
         }
     }
 
