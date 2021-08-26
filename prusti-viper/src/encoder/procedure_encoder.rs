@@ -3156,7 +3156,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode permissions that are implicitly carried by the given local variable.
-    fn encode_local_variable_permission(&self, local: Local, span: Span)
+    /// `override_span` is used for local vars for fake expressions
+    fn encode_local_variable_permission(&self, local: Local, override_span: Option<Span>)
         -> SpannedEncodingResult<polymorphic_vir::Expr>
     {
         Ok(match self.locals.get_type(local).kind() {
@@ -3167,6 +3168,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Ref(_, ref ty, mutability) => {
                 // Use unfolded references.
                 let encoded_local = self.encode_prusti_local(local);
+                let span = override_span.unwrap_or_else(|| self.mir_encoder.get_local_span(local.into()));
                 let field = self.encoder.encode_dereference_field(ty)
                     .with_span(span)?;
                 let place = polymorphic_vir::Expr::from(encoded_local).field(field);
@@ -3244,10 +3246,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             };
             let access = self.encode_local_variable_permission(
                 *local,
-                match override_spans.get(local) {
-                    Some(span) => *span,
-                    None => self.mir_encoder.get_local_span((*local).into())
-                }
+                override_spans.get(local).map(|s| s.clone())
             )?;
             match access {
                 polymorphic_vir::Expr::BinOp( polymorphic_vir::BinOp {op_kind: polymorphic_vir::BinOpKind::And, left: box access1, right: box access2, ..} ) => {
@@ -3678,7 +3677,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let return_perm = Some(
             self.encode_local_variable_permission(
                 contract.returned_value,
-                self.mir_encoder.get_local_span(contract.returned_value.into())
+                None
             )?
         );
 
