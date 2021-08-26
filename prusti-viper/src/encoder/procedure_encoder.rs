@@ -5689,7 +5689,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         field: polymorphic_vir::Field,
         location: mir::Location,
         vir_assign_kind: polymorphic_vir::AssignKind,
-        can_copy_reference: bool
+        can_copy_reference: bool // reference copies are sound if the field is a constant
     ) -> SpannedEncodingResult<Vec<polymorphic_vir::Stmt>> {
         trace!(
             "[enter] prepare_assign_target(dst={}, field={}, location={:?})",
