@@ -180,6 +180,13 @@ impl UsedPredicateCollector {
 }
 
 impl ExprWalker for UsedPredicateCollector {
+    fn walk_predicate_instance(&mut self, name: &str, args: &Vec<Expr>, _pos: &Position) {
+        self.used_predicates.insert(name.to_string());
+        for arg in args {
+            ExprWalker::walk(self, arg)
+        }
+    }
+
     fn walk_predicate_access_predicate(
         &mut self,
         name: &str,
