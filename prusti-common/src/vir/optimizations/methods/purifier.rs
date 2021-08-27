@@ -196,55 +196,37 @@ impl ast::StmtWalker for VarCollector {
     fn walk_local_var(&mut self, local_var: &ast::LocalVar) {
         self.check_local_var(local_var);
     }
-    fn walk_method_call(
-        &mut self,
-        method_name: &str,
-        args: &Vec<ast::Expr>,
-        targets: &Vec<ast::LocalVar>,
-    ) {
+    fn walk_method_call(&mut self, ast::MethodCall {method_name, arguments, targets}: &ast::MethodCall) {
         let old_pure_context = self.is_pure_context;
         if is_purifiable_method(method_name) {
             self.is_pure_context = true;
         }
-        assert!(args.is_empty());
+        assert!(arguments.is_empty());
         for target in targets {
             self.walk_local_var(target);
         }
         self.is_pure_context = old_pure_context;
     }
-    fn walk_unfold(
-        &mut self,
-        predicate_name: &str,
-        args: &Vec<ast::Expr>,
-        _perm: &ast::PermAmount,
-        _variant: &ast::MaybeEnumVariantIndex,
-    ) {
+    fn walk_unfold(&mut self, ast::Unfold {predicate_name, arguments, ..}: &ast::Unfold) {
         let old_pure_context = self.is_pure_context;
         if is_purifiable_predicate(predicate_name) {
-            if let ast::Expr::Local(_) = args[0] {
+            if let ast::Expr::Local(_) = arguments[0] {
                 self.is_pure_context = true;
             }
         }
-        for arg in args {
+        for arg in arguments {
             self.walk_expr(arg);
         }
         self.is_pure_context = old_pure_context;
     }
-    fn walk_fold(
-        &mut self,
-        predicate_name: &str,
-        args: &Vec<ast::Expr>,
-        _perm: &ast::PermAmount,
-        _variant: &ast::MaybeEnumVariantIndex,
-        _pos: &ast::Position,
-    ) {
+    fn walk_fold(&mut self, ast::Fold {predicate_name, arguments, ..}: &ast::Fold) {
         let old_pure_context = self.is_pure_context;
         if is_purifiable_predicate(predicate_name) {
-            if let ast::Expr::Local(_) = args[0] {
+            if let ast::Expr::Local(_) = arguments[0] {
                 self.is_pure_context = true;
             }
         }
-        for arg in args {
+        for arg in arguments {
             self.walk_expr(arg);
         }
         self.is_pure_context = old_pure_context;
@@ -391,59 +373,41 @@ impl ast::StmtFolder for VarPurifier {
         ast::ExprFolder::fold(self, e)
     }
 
-    fn fold_unfold(
-        &mut self,
-        predicate_name: String,
-        args: Vec<ast::Expr>,
-        perm_amount: ast::PermAmount,
-        variant: ast::MaybeEnumVariantIndex,
-    ) -> ast::Stmt {
-        assert!(args.len() == 1);
-        if is_purifiable_predicate(&predicate_name) && self.is_pure(&args[0]) {
-            let new_expr = self.get_replacement_bounds(&predicate_name, &args[0]);
+    fn fold_unfold(&mut self, ast::Unfold {predicate_name, arguments, permission, enum_variant}: ast::Unfold) -> ast::Stmt {
+        assert!(arguments.len() == 1);
+        if is_purifiable_predicate(&predicate_name) && self.is_pure(&arguments[0]) {
+            let new_expr = self.get_replacement_bounds(&predicate_name, &arguments[0]);
             ast::Stmt::Inhale( ast::Inhale {expr: new_expr} )
         } else {
             ast::Stmt::Unfold( ast::Unfold {
                 predicate_name,
-                arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
-                permission: perm_amount,
-                enum_variant: variant,
+                arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
+                permission,
+                enum_variant,
             })
         }
     }
 
-    fn fold_fold(
-        &mut self,
-        predicate_name: String,
-        args: Vec<ast::Expr>,
-        perm_amount: ast::PermAmount,
-        variant: ast::MaybeEnumVariantIndex,
-        pos: ast::Position,
-    ) -> ast::Stmt {
-        assert!(args.len() == 1);
-        if is_purifiable_predicate(&predicate_name) && self.is_pure(&args[0]) {
-            let new_expr = self.get_replacement_bounds(&predicate_name, &args[0]);
+    fn fold_fold(&mut self, ast::Fold {predicate_name, arguments, permission, enum_variant, position}: ast::Fold) -> ast::Stmt {
+        assert!(arguments.len() == 1);
+        if is_purifiable_predicate(&predicate_name) && self.is_pure(&arguments[0]) {
+            let new_expr = self.get_replacement_bounds(&predicate_name, &arguments[0]);
             ast::Stmt::Assert( ast::Assert {
                 expr: new_expr,
-                position: pos,
+                position,
             })
         } else {
             ast::Stmt::Fold( ast::Fold {
                 predicate_name,
-                arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
-                permission: perm_amount,
-                enum_variant: variant,
-                position: pos,
+                arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
+                permission,
+                enum_variant,
+                position,
             })
         }
     }
 
-    fn fold_method_call(
-        &mut self,
-        mut name: String,
-        args: Vec<ast::Expr>,
-        mut targets: Vec<ast::LocalVar>,
-    ) -> ast::Stmt {
+    fn fold_method_call(&mut self, ast::MethodCall {mut method_name, arguments, mut targets}: ast::MethodCall) -> ast::Stmt {
         assert!(targets.len() == 1);
         if self.pure_vars.contains(&targets[0]) {
             let target = &targets[0];
@@ -452,7 +416,7 @@ impl ast::StmtFolder for VarPurifier {
                 .get(target)
                 .expect(&format!("key: {}", target))
                 .clone();
-            name = match replacement.typ {
+                method_name = match replacement.typ {
                 ast::Type::Int => "builtin$havoc_int",
                 ast::Type::Bool => "builtin$havoc_bool",
                 ast::Type::TypedRef(_) => "builtin$havoc_ref",
@@ -464,8 +428,8 @@ impl ast::StmtFolder for VarPurifier {
             targets = vec![replacement];
         }
         ast::Stmt::MethodCall( ast::MethodCall {
-            method_name: name,
-            arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
+            method_name,
+            arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
             targets,
         })
     }

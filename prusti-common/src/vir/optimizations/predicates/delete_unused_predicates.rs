@@ -203,25 +203,12 @@ impl StmtWalker for UsedPredicateCollector {
     fn walk_expr(&mut self, expr: &Expr) {
         ExprWalker::walk(self, expr);
     }
-    fn walk_fold(
-        &mut self,
-        predicate_name: &str,
-        _args: &Vec<Expr>,
-        _perm: &PermAmount,
-        _variant: &MaybeEnumVariantIndex,
-        _pos: &Position,
-    ) {
+    fn walk_fold(&mut self, Fold {predicate_name, ..}: &Fold) {
         self.folded_predicates.insert(predicate_name.to_string());
         self.used_predicates.insert(predicate_name.to_string());
     }
 
-    fn walk_unfold(
-        &mut self,
-        predicate_name: &str,
-        _args: &Vec<Expr>,
-        _perm: &PermAmount,
-        _variant: &MaybeEnumVariantIndex,
-    ) {
+    fn walk_unfold(&mut self, Unfold {predicate_name, ..}: &Unfold) {
         self.folded_predicates.insert(predicate_name.to_string());
         self.used_predicates.insert(predicate_name.to_string());
     }
