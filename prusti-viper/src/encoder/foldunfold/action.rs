@@ -6,9 +6,7 @@
 
 use crate::encoder::foldunfold::perm::*;
 use crate::encoder::foldunfold::FoldUnfoldError;
-use prusti_common::vir;
-use vir_crate::polymorphic as polymorphic_vir;
-use vir_crate::polymorphic::{Fold, Unfold, PermAmount, Stmt, Expr};
+use vir_crate::polymorphic::{self as vir, Fold, Unfold, PermAmount, Stmt, Expr};
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -21,15 +19,15 @@ pub enum Action {
 }
 
 impl Action {
-    pub fn to_stmt(&self) -> polymorphic_vir::Stmt {
+    pub fn to_stmt(&self) -> vir::Stmt {
         match self {
-            Action::Fold(fold) => polymorphic_vir::Stmt::Fold(fold.clone()),
-            Action::Unfold(unfold) => polymorphic_vir::Stmt::Unfold(unfold.clone()),
-            Action::Drop(..) => polymorphic_vir::Stmt::comment(self.to_string()),
+            Action::Fold(fold) => vir::Stmt::Fold(fold.clone()),
+            Action::Unfold(unfold) => vir::Stmt::Unfold(unfold.clone()),
+            Action::Drop(..) => vir::Stmt::comment(self.to_string()),
         }
     }
 
-    pub fn to_expr(&self, inner_expr: polymorphic_vir::Expr) -> Result<polymorphic_vir::Expr, FoldUnfoldError> {
+    pub fn to_expr(&self, inner_expr: vir::Expr) -> Result<vir::Expr, FoldUnfoldError> {
         match self {
             Action::Fold( Fold {predicate_name, arguments, permission, enum_variant, position} ) => {
                 // Currently unsupported in Viper
@@ -42,7 +40,7 @@ impl Action {
                 ))
             }
 
-            Action::Unfold( Unfold {predicate_name, arguments, permission, enum_variant} ) => Ok(polymorphic_vir::Expr::unfolding(
+            Action::Unfold( Unfold {predicate_name, arguments, permission, enum_variant} ) => Ok(vir::Expr::unfolding(
                 predicate_name.clone(),
                 arguments.clone(),
                 inner_expr,

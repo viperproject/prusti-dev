@@ -5,9 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_middle::ty;
-use prusti_common::vir;
-use vir_crate::polymorphic as polymorphic_vir;
-use vir_crate::polymorphic::{Expr, Type};
+use vir_crate::polymorphic::{self as vir, Expr, Type};
 use std::collections::HashMap;
 
 pub mod encoder;
@@ -27,13 +25,13 @@ enum Snapshot {
     Complex {
         predicate_type: Type,
         domain: String,
-        discriminant_func: polymorphic_vir::DomainFunc,
-        snap_func: polymorphic_vir::FunctionIdentifier,
+        discriminant_func: vir::DomainFunc,
+        snap_func: vir::FunctionIdentifier,
         /// [variants] has one entry for tuples, structs, and closures.
         /// For enums, it has as many entries as there are variants.
         /// The first function is the constructor, the hashmap encodes the
         /// field access functions, keyed by their name.
-        variants: Vec<(polymorphic_vir::DomainFunc, HashMap<String, polymorphic_vir::DomainFunc>)>,
+        variants: Vec<(vir::DomainFunc, HashMap<String, vir::DomainFunc>)>,
         /// Mapping of variant names (as used by Prusti) to variant indices
         /// in the [variants] vector. Empty for non-enums.
         variant_names: HashMap<String, usize>,
@@ -42,31 +40,31 @@ enum Snapshot {
     Array {
         predicate_type: Type,
         domain: String,
-        snap_func: polymorphic_vir::FunctionIdentifier,
-        slice_helper: polymorphic_vir::FunctionIdentifier,
-        cons: polymorphic_vir::DomainFunc,
-        read: polymorphic_vir::DomainFunc,
+        snap_func: vir::FunctionIdentifier,
+        slice_helper: vir::FunctionIdentifier,
+        cons: vir::DomainFunc,
+        read: vir::DomainFunc,
     },
     /// Slices
     Slice {
         predicate_type: Type,
         domain: String,
-        snap_func: polymorphic_vir::FunctionIdentifier,
+        snap_func: vir::FunctionIdentifier,
         /// Collect a slice snapshot from an impure context using lookup_pure calls until we have
         /// Slice$len(self) elements in the result Seq[elem_ty]
-        slice_collect_func: polymorphic_vir::FunctionIdentifier,
+        slice_collect_func: vir::FunctionIdentifier,
         /// This slice snapshot is being sliced, so we collect elements using read from self in the
         /// result Seq[elem_ty]
-        slice_helper: polymorphic_vir::FunctionIdentifier,
-        cons: polymorphic_vir::DomainFunc,
-        read: polymorphic_vir::DomainFunc,
-        len: polymorphic_vir::DomainFunc,
+        slice_helper: vir::FunctionIdentifier,
+        cons: vir::DomainFunc,
+        read: vir::DomainFunc,
+        len: vir::DomainFunc,
     },
     /// Type cannot be encoded: type parameters, unsupported types.
     Abstract {
         predicate_type: Type,
         domain: String,
-        snap_func: polymorphic_vir::FunctionIdentifier,
+        snap_func: vir::FunctionIdentifier,
     },
 
     /// A type which will be resolved to a different snapshot kind.

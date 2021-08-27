@@ -7,7 +7,7 @@
 use rustc_hir::def_id::DefId;
 use std::collections::HashSet;
 
-use vir_crate::polymorphic::{self as polymorphic_vir, ExprIterator, WithIdentifier};
+use vir_crate::polymorphic::{self as vir, ExprIterator, WithIdentifier};
 use prusti_interface::environment::borrowck::facts::Loan;
 use crate::encoder::encoder::Encoder;
 use std::collections::HashMap;
@@ -15,7 +15,7 @@ use std::collections::HashMap;
 const MIRROR_DOMAIN_NAME: &str = "MirrorDomain";
 
 pub struct MirrorEncoder {
-    domain: polymorphic_vir::Domain,
+    domain: vir::Domain,
     encoded: HashSet<DefId>,
 }
 
@@ -24,7 +24,7 @@ pub struct MirrorEncoder {
 impl MirrorEncoder {
     pub fn new() -> Self {
         Self {
-            domain: polymorphic_vir::Domain {
+            domain: vir::Domain {
                 name: MIRROR_DOMAIN_NAME.to_string(),
                 functions: vec![],
                 axioms: vec![],
@@ -35,7 +35,7 @@ impl MirrorEncoder {
     }
 
 
-    pub fn get_domain(&self) -> Option<&polymorphic_vir::Domain> {
+    pub fn get_domain(&self) -> Option<&vir::Domain> {
         if self.encoded.is_empty() {
             None
         } else {
@@ -47,7 +47,7 @@ impl MirrorEncoder {
         &mut self,
         // encoder: &Encoder,
         def_id: DefId,
-        function: &mut polymorphic_vir::Function,
+        function: &mut vir::Function,
     ) {
         // don't encode a mirror for the same DefId multiple times
         if self.encoded.contains(&def_id) {
@@ -62,10 +62,10 @@ impl MirrorEncoder {
     fn encode_mirror_simple(
         &mut self,
         _def_id: DefId,
-        function: &mut polymorphic_vir::Function,
+        function: &mut vir::Function,
     ) {
         // create mirror function
-        let mirror_func = polymorphic_vir::DomainFunc {
+        let mirror_func = vir::DomainFunc {
             name: format!("mirror_simple${}", function.name),
             formal_args: function.formal_args.clone(),
             return_type: function.return_type.clone(),
@@ -75,21 +75,21 @@ impl MirrorEncoder {
 
         // add postcondition to the original function
         // [result == mirror(args), true]
-        function.posts.push(polymorphic_vir::Expr::InhaleExhale( polymorphic_vir::InhaleExhale {
-            inhale_expr: box polymorphic_vir::Expr::eq_cmp(
-                polymorphic_vir::Expr::local(
-                    polymorphic_vir::LocalVar::new("__result", function.return_type.clone()),
+        function.posts.push(vir::Expr::InhaleExhale( vir::InhaleExhale {
+            inhale_expr: box vir::Expr::eq_cmp(
+                vir::Expr::local(
+                    vir::LocalVar::new("__result", function.return_type.clone()),
                 ),
-                polymorphic_vir::Expr::domain_func_app(
+                vir::Expr::domain_func_app(
                     mirror_func.clone(),
                     function.formal_args.iter()
                         .cloned()
-                        .map(polymorphic_vir::Expr::local)
+                        .map(vir::Expr::local)
                         .collect(),
                 ),
             ),
             exhale_expr: box true.into(),
-            position: polymorphic_vir::Position::default(),
+            position: vir::Position::default(),
         }));
 
         // add mirror function to mirror domain
@@ -100,7 +100,7 @@ impl MirrorEncoder {
     fn encode_mirror_axiomatized(
         &mut self,
         _def_id: DefId,
-        _function: &mut polymorphic_vir::Function,
+        _function: &mut vir::Function,
     ) {}
 }
 

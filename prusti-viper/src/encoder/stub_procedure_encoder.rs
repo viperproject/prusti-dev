@@ -6,8 +6,8 @@
 
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::Encoder;
-use prusti_common::vir::{CfgMethod, ToGraphViz};
-use vir_crate::polymorphic::{self as polymorphic_vir, Successor};
+use prusti_common::vir::ToGraphViz;
+use vir_crate::polymorphic::{self as vir, Successor};
 use prusti_common::config;
 use prusti_interface::environment::Procedure;
 use prusti_common::report::log;
@@ -40,10 +40,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode(self) -> polymorphic_vir::CfgMethod {
+    pub fn encode(self) -> vir::CfgMethod {
         trace!("Encode stub for procedure {}", self.procedure.get_def_path());
 
-        let mut cfg_method = polymorphic_vir::CfgMethod::new(
+        let mut cfg_method = vir::CfgMethod::new(
             // method name
             self.encoder.encode_item_name(self.def_id),
             // formal args
@@ -69,10 +69,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         let stub_cfg_block = cfg_method.add_block(
             "stub",
             vec![
-                polymorphic_vir::Stmt::comment("========== stub =========="),
+                vir::Stmt::comment("========== stub =========="),
                 // vir::Stmt::comment(format!("Name: {:?}", self.procedure.get_name())),
-                polymorphic_vir::Stmt::comment(format!("Def path: {:?}", self.procedure.get_def_path())),
-                polymorphic_vir::Stmt::comment(format!("Span: {:?}", self.procedure.get_span())),
+                vir::Stmt::comment(format!("Def path: {:?}", self.procedure.get_def_path())),
+                vir::Stmt::comment(format!("Span: {:?}", self.procedure.get_span())),
             ],
         );
         cfg_method.set_successor(stub_cfg_block, Successor::Return);
