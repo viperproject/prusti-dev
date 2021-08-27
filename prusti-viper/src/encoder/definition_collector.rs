@@ -3,7 +3,7 @@ use std::{
     hash::Hash,
 };
 
-use vir_crate::{vir_local, vir_type};
+use prusti_common::vir_local;
 use vir_crate::polymorphic::{self as vir, compute_identifier, ExprWalker, FunctionIdentifier, StmtWalker, WithIdentifier};
 
 use super::Encoder;

@@ -14,7 +14,8 @@ use crate::encoder::errors::{
 };
 use crate::encoder::Encoder;
 use crate::utils;
-use vir_crate::{polymorphic as vir, vir_type, vir_local, vir};
+use prusti_common::vir_expr;
+use vir_crate::{polymorphic as vir};
 use prusti_common::config;
 use rustc_target::abi;
 use rustc_hir::def_id::DefId;
@@ -245,7 +246,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                                     self.encoder(),
                                     encoded_base.clone().try_into_expr()?,
                                 );
-                                vir! { [ slice_len ] - [ vir::Expr::from(offset) ] }
+                                vir_expr! { [ slice_len ] - [ vir::Expr::from(offset) ] }
                             }
                             _ => return Err(EncodingError::unsupported(
                                 format!("pattern matching on the end of '{:?} is not supported", base_ty),

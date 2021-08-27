@@ -14,7 +14,8 @@ use crate::encoder::{
     errors::EncodingResult,
     builtin_encoder::BuiltinFunctionKind,
 };
-use vir_crate::{polymorphic as vir, vir_local, vir_type};
+use prusti_common::vir_local;
+use vir_crate::polymorphic as vir;
 
 
 /// The result of `ArrayEncoder::encode_array_types`. Contains types, type predicates and length of the given array type.

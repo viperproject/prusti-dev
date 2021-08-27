@@ -17,8 +17,8 @@ use crate::encoder::mir_interpreter::{
 };
 use crate::encoder::snapshot;
 use crate::encoder::Encoder;
-use prusti_common::vir::optimizations::functions::Simplifier;
-use vir_crate::{vir, vir_local, vir_type, polymorphic::{self as vir, ExprIterator}};
+use prusti_common::{vir::optimizations::functions::Simplifier, vir_local};
+use vir_crate::polymorphic::{self as vir, ExprIterator};
 use prusti_common::config;
 use prusti_interface::specs::typed;
 use rustc_hir as hir;

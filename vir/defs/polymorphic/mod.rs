@@ -21,5 +21,3 @@ pub mod gather_labels;
 pub mod program;
 pub mod to_string;
 pub mod utils;
-
-pub mod polymorphic_vir_macro;
