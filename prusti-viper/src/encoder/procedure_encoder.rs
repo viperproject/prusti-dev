@@ -3228,7 +3228,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .iter()
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
-        for assertion in &self.cost_encoder.remaining_func_pres {
+        let func_pres_to_encode = if function_start {
+            &self.cost_encoder.remaining_func_pres
+        }
+        else {
+            contract.functional_precondition()
+        };
+        for assertion in func_pres_to_encode {
             // FIXME
             let value = self.encoder.encode_assertion(
                 assertion,
