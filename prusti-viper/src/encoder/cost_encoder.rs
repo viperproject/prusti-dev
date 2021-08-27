@@ -331,26 +331,50 @@ impl VirCreditPowers {
         self.powers.keys().any(|base| base.uses_place(target))
     }
 
-    fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
-        let mut new_powers = BTreeMap::new();       //TODO: too expensive?
-        for (base, exponent) in self.powers {
-            new_powers.insert(
-                base.replace_place(target, replacement),
-                exponent
-            );
+    /// returns new base expressions with replacement//TODO: doc
+    fn replace_place(&mut self, target: &Expr, replacement: &Expr) -> (Vec<usize>, Vec<(Expr, bool)>) {
+        let mut base_replacements = vec![];
+        let mut replaced_indices = vec![];
+        for (idx, base) in self.powers.keys().enumerate() {
+            let base_with_replacement = base.clone().replace_place(target, replacement);
+            if &base_with_replacement != base {
+                replaced_indices.push(idx);
+                base_replacements.push((base.clone(), base_with_replacement));
+            }
         }
-        Self {powers: new_powers}
+
+        let mut res_vec = vec![];
+        for (base, base_with_replacement) in base_replacements {
+            if let Some(exp) = self.powers.remove(&base) {
+                if let Some(curr_exp) = self.powers.get_mut(&base_with_replacement) {
+                    res_vec.push((base_with_replacement.base.clone(), false));
+                    *curr_exp += exp;
+                } else {
+                    res_vec.push((base_with_replacement.base.clone(), true));
+                    self.powers.insert(base_with_replacement, exp);
+                }
+            }
+            else {
+                unreachable!()
+            }
+        }
+        (replaced_indices, res_vec)
     }
 
     fn remove_power(&mut self, base: vir::Expr) -> Option<u32> {
         self.powers.remove(&VirBaseExpr { base })
     }
 
-    fn insert_power(&mut self, base: vir::Expr, exponent: u32) {
+    fn insert_power(&mut self, base: vir::Expr, exponent: u32) -> bool {
         let vir_base = VirBaseExpr { base };
-        self.powers.entry(vir_base)
-            .and_modify(|exp| *exp += exponent)
-            .or_insert(exponent);
+        if let Some(curr_exp) = self.powers.get_mut(&vir_base) {
+            *curr_exp += exponent;
+            false
+        }
+        else {
+            self.powers.insert(vir_base, exponent);
+            true
+        }
     }
 
     fn get_exponent(&self, base: vir::Expr) -> Option<&u32> {
@@ -831,34 +855,34 @@ pub(crate) enum CreditConversionType {
     },
     Reorder {
         previous_idx: usize,
-        previous_base: vir::Expr,
+        previous_base: Option<vir::Expr>,
     },
     SumPlaceConst {
         place_idx: usize,
-        place_expr: vir::Expr,
+        place_expr: Option<vir::Expr>,
         const_val: i64,
     },
     MulPlaceConst {
         place_idx: usize,
-        place_expr: vir::Expr,
-        multiplier: i64,
+        place_expr: Option<vir::Expr>,
+        const_val: i64,
     },
     DivPlaceConst {     //TODO: summarize with MulPlaceConst
         place_idx: usize,
-        place_expr: vir::Expr,
-        divisor: i64,
+        place_expr: Option<vir::Expr>,
+        const_val: i64,
     },
     SumPlacePlace {
         place1_idx: usize,
-        place1_expr: vir::Expr,
+        place1_expr: Option<vir::Expr>,
         place2_idx: usize,
-        place2_expr: vir::Expr,
+        place2_expr: Option<vir::Expr>,
     },
     MulPlacePlace {
         place1_idx: usize,
-        place1_expr: vir::Expr,
+        place1_expr: Option<vir::Expr>,
         place2_idx: usize,
-        place2_expr: vir::Expr,
+        place2_expr: Option<vir::Expr>,
     },
 }
 
@@ -929,7 +953,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                     let new_exp = exp - i;
                                     let mut new_powers = powers.clone();
                                     if new_exp > 0u32 {
-                                        new_powers.insert_power(place.clone(), new_exp);
+                                        new_powers.insert_power(place.clone(), new_exp);        //TODO: improve efficiency by not inserting every time, just change exponent/remove
                                     }
 
                                     // could already have a coefficient for these powers after replacement
@@ -943,9 +967,15 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                     const_power *= const_val;
                                 }
 
-                                // insert to determine index
-                                powers.insert_power(place.clone(), 1);
+                                // insert just to determine index
+                                let newly_inserted = powers.insert_power(place.clone(), 1);
                                 let insertion_idx = powers.get_index(place).unwrap();
+                                let place_expr = if newly_inserted {
+                                    Some(place.clone())
+                                }
+                                else {
+                                    None
+                                };
                                 // insert conversion
                                 conversions.push(
                                     CreditConversion {
@@ -956,7 +986,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                         assigned_place_idx: target_idx.unwrap(),
                                         conversion_type: CreditConversionType::SumPlaceConst {
                                             place_idx: insertion_idx,
-                                            place_expr: place.clone(),
+                                            place_expr,
                                             const_val,
                                         }
                                     }
@@ -1025,40 +1055,41 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                     let result_exps = powers.exponents();
                                     let result_bases = powers.base_exprs();
                                     let result_coeff = coeff.clone();
-                                    let target_idx = powers.get_index(target);
 
-                                    // replace base
-                                    if let Some(exp) = powers.remove_power(target.clone()) {
-                                        powers.insert_power(place.clone(), exp);
-                                        let insertion_idx = powers.get_index(place).unwrap();
+                                    // replace in base
+                                    let (replaced_indices, bases_with_replacement) = powers.replace_place(target, place);
+                                    assert_eq!(bases_with_replacement.len(), 1);         //TODO
+                                    let target_idx = replaced_indices[0];
+                                    let insertion_idx = powers.get_index(&bases_with_replacement[0].0).unwrap();
+                                    let previous_base = if bases_with_replacement[0].1 {
+                                        Some(bases_with_replacement[0].0.clone())
+                                    }
+                                    else {
+                                        None
+                                    };
 
-                                        if target_idx.unwrap() != insertion_idx {    // check if reordering is needed
-                                            conversions.push(
-                                                CreditConversion {
-                                                    credit_type: credit_type.clone(),
-                                                    result_exps,
-                                                    result_bases,
-                                                    result_coeff,
-                                                    assigned_place_idx: target_idx.unwrap(),
-                                                    conversion_type: CreditConversionType::Reorder {
-                                                        previous_idx: insertion_idx,
-                                                        previous_base: place.clone(),
-                                                    }
+                                    if target_idx != insertion_idx {    // check if reordering is needed
+                                        conversions.push(
+                                            CreditConversion {
+                                                credit_type: credit_type.clone(),
+                                                result_exps,
+                                                result_bases,
+                                                result_coeff,
+                                                assigned_place_idx: target_idx,
+                                                conversion_type: CreditConversionType::Reorder {
+                                                    previous_idx: insertion_idx,
+                                                    previous_base,
                                                 }
-                                            );
-                                        }
+                                            }
+                                        );
+                                    }
 
-                                        // could already have a coefficient for these powers after replacement
-                                        // if that is the case, we add the coefficients
-                                        if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
-                                            *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
-                                        } else {
-                                            coeff_map.insert(powers, coeff);
-                                        }
+                                    // could already have a coefficient for these powers after replacement
+                                    // if that is the case, we add the coefficients
+                                    if let Some(curr_coeff) = coeff_map.get_mut(&powers) {
+                                        *curr_coeff = vir::Expr::add(curr_coeff.clone(), coeff);
                                     } else {
-                                        return Err(EncodingError::internal(
-                                            format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
-                                        ));
+                                        coeff_map.insert(powers, coeff);
                                     }
                                 }
                             }
@@ -1133,10 +1164,22 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                         }
 
                                         // insert to determine indices
-                                        powers.insert_power(place1.clone(), 1);
-                                        powers.insert_power(place2.clone(), 1);
+                                        let newly_inserted1 = powers.insert_power(place1.clone(), 1);
+                                        let newly_inserted2 = powers.insert_power(place2.clone(), 1);
                                         let place1_idx = powers.get_index(place1).unwrap();
                                         let place2_idx = powers.get_index(place2).unwrap();
+                                        let place1_expr = if newly_inserted1 {
+                                            Some(place1.clone())
+                                        }
+                                        else {
+                                            None
+                                        };
+                                        let place2_expr = if newly_inserted2 {
+                                            Some(place2.clone())
+                                        }
+                                        else {
+                                            None
+                                        };
                                         // insert conversion
                                         conversions.push(
                                             CreditConversion {
@@ -1147,9 +1190,9 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                                 assigned_place_idx: target_idx.unwrap(),
                                                 conversion_type: CreditConversionType::SumPlacePlace {
                                                     place1_idx,
-                                                    place1_expr: place1.clone(),
+                                                    place1_expr,
                                                     place2_idx,
-                                                    place2_expr: place2.clone(),
+                                                    place2_expr,
                                                 },
                                             }
                                         );
@@ -1189,9 +1232,14 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                             )?;
                                         coeff = vir::Expr::mul(multiplier.into(), coeff);
 
-                                        powers.insert_power(place.clone(), exp);
+                                        let newly_inserted = powers.insert_power(place.clone(), exp);
                                         let insertion_idx = powers.get_index(place).unwrap();
-
+                                        let place_expr = if newly_inserted {
+                                            Some(place.clone())
+                                        }
+                                        else {
+                                            None
+                                        };
                                         // insert conversion
                                         conversions.push(
                                             CreditConversion {
@@ -1202,8 +1250,8 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                                 assigned_place_idx: target_idx.unwrap(),
                                                 conversion_type: CreditConversionType::MulPlaceConst {
                                                     place_idx: insertion_idx,
-                                                    place_expr: place.clone(),
-                                                    multiplier,
+                                                    place_expr,
+                                                    const_val: *const_val,
                                                 },
                                             }
                                         );
@@ -1245,9 +1293,14 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                             )?;
                                         coeff = vir::Expr::div(coeff, divisor.into());
 
-                                        powers.insert_power(lhs_place.clone(), exp);
+                                        let newly_inserted = powers.insert_power(lhs_place.clone(), exp);
                                         let insertion_idx = powers.get_index(lhs_place).unwrap();
-
+                                        let place_expr = if newly_inserted {
+                                            Some(lhs_place.clone())
+                                        }
+                                        else {
+                                            None
+                                        };
                                         // insert conversion
                                         conversions.push(
                                             CreditConversion {
@@ -1258,8 +1311,8 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                                 assigned_place_idx: target_idx.unwrap(),
                                                 conversion_type: CreditConversionType::DivPlaceConst {
                                                     place_idx: insertion_idx,
-                                                    place_expr: lhs_place.clone(),
-                                                    divisor,
+                                                    place_expr,
+                                                    const_val: *rhs_const_val,
                                                 },
                                             }
                                         );
@@ -1293,11 +1346,22 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                     let target_idx = powers.get_index(target);
 
                                     if let Some(exp) = powers.remove_power(target.clone()) {
-                                        powers.insert_power(place1.clone(), exp);
-                                        powers.insert_power(place2.clone(), exp);
+                                        let newly_inserted1 = powers.insert_power(place1.clone(), exp);
+                                        let newly_inserted2 = powers.insert_power(place2.clone(), exp);
                                         let insertion_idx1 = powers.get_index(place1).unwrap();
                                         let insertion_idx2 = powers.get_index(place2).unwrap();
-
+                                        let place1_expr = if newly_inserted1 {
+                                            Some(place1.clone())
+                                        }
+                                        else {
+                                            None
+                                        };
+                                        let place2_expr = if newly_inserted2 {
+                                            Some(place2.clone())
+                                        }
+                                        else {
+                                            None
+                                        };
                                         // insert conversion
                                         conversions.push(
                                             CreditConversion {
@@ -1308,9 +1372,9 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                                 assigned_place_idx: target_idx.unwrap(),
                                                 conversion_type: CreditConversionType::MulPlacePlace {
                                                     place1_idx: insertion_idx1,
-                                                    place1_expr: place1.clone(),
+                                                    place1_expr,
                                                     place2_idx: insertion_idx2,
-                                                    place2_expr: place2.clone(),
+                                                    place2_expr,
                                                 },
                                             }
                                         );
