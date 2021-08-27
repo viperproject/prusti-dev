@@ -69,219 +69,151 @@ pub trait ExprFolder: Sized {
         box self.fold(*e)
     }
 
-    fn fold_local(&mut self, v: LocalVar, p: Position) -> Expr {
-        Expr::Local( Local {
-            variable: v,
-            position: p,
-        })
+    fn fold_local(&mut self, local: Local) -> Expr {
+        Expr::Local(local)
     }
 
-    fn fold_variant(&mut self, base: Box<Expr>, variant: Field, p: Position) -> Expr {
+    fn fold_variant(&mut self, Variant {base, variant_index, position}: Variant) -> Expr {
         Expr::Variant ( Variant {
             base: self.fold_boxed(base),
-            variant_index: variant,
-            position: p,
+            variant_index,
+            position,
         })
     }
 
-    fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
+    fn fold_field(&mut self, FieldExpr {base, field, position}: FieldExpr) -> Expr {
         Expr::Field( FieldExpr {
-            base: self.fold_boxed(receiver),
-            field: field,
-            position: pos,
+            base: self.fold_boxed(base),
+            field,
+            position,
         })
     }
 
-    fn fold_addr_of(&mut self, e: Box<Expr>, t: Type, p: Position) -> Expr {
+    fn fold_addr_of(&mut self, AddrOf {base, addr_type, position}: AddrOf) -> Expr {
         Expr::AddrOf( AddrOf {
-            base: self.fold_boxed(e),
-            addr_type: t,
-            position: p,
+            base: self.fold_boxed(base),
+            addr_type,
+            position,
         })
     }
 
-    fn fold_const(&mut self, x: Const, p: Position) -> Expr {
-        Expr::Const ( ConstExpr {
-            value: x,
-            position: p,
-        })
+    fn fold_const(&mut self, const_expr: ConstExpr) -> Expr {
+        Expr::Const (const_expr)
     }
 
-    fn fold_labelled_old(&mut self, label: String, body: Box<Expr>, pos: Position) -> Expr {
+    fn fold_labelled_old(&mut self, LabelledOld {label, base, position}: LabelledOld) -> Expr {
         Expr::LabelledOld (LabelledOld {
-            label: label,
-            base: self.fold_boxed(body),
-            position: pos,
+            label,
+            base: self.fold_boxed(base),
+            position,
         })
     }
 
-    fn fold_magic_wand(
-        &mut self,
-        lhs: Box<Expr>,
-        rhs: Box<Expr>,
-        borrow: Option<Borrow>,
-        pos: Position,
-    ) -> Expr {
+    fn fold_magic_wand(&mut self, MagicWand {left, right, borrow, position}: MagicWand) -> Expr {
         Expr::MagicWand (MagicWand {
-            left: self.fold_boxed(lhs),
-            right: self.fold_boxed(rhs),
-            borrow: borrow,
-            position: pos,
+            left: self.fold_boxed(left),
+            right: self.fold_boxed(right),
+            borrow,
+            position,
         })
     }
 
-    fn fold_predicate_access_predicate(
-        &mut self,
-        typ: Type,
-        arg: Box<Expr>,
-        perm_amount: PermAmount,
-        pos: Position,
-    ) -> Expr {
+    fn fold_predicate_access_predicate(&mut self, PredicateAccessPredicate {predicate_type, argument, permission, position}: PredicateAccessPredicate) -> Expr {
         Expr::PredicateAccessPredicate( PredicateAccessPredicate {
-            predicate_type: typ,
-            argument: self.fold_boxed(arg),
-            permission: perm_amount,
-            position: pos,
+            predicate_type,
+            argument: self.fold_boxed(argument),
+            permission,
+            position,
         })
     }
 
-    fn fold_field_access_predicate(
-        &mut self,
-        receiver: Box<Expr>,
-        perm_amount: PermAmount,
-        pos: Position,
-    ) -> Expr {
+    fn fold_field_access_predicate(&mut self, FieldAccessPredicate {base, permission, position}: FieldAccessPredicate) -> Expr {
         Expr::FieldAccessPredicate( FieldAccessPredicate {
-            base: self.fold_boxed(receiver),
-            permission: perm_amount,
-            position: pos,
+            base: self.fold_boxed(base),
+            permission,
+            position,
         })
     }
 
-    fn fold_unary_op(&mut self, x: UnaryOpKind, y: Box<Expr>, p: Position) -> Expr {
+    fn fold_unary_op(&mut self, UnaryOp {op_kind, argument, position}: UnaryOp) -> Expr {
         Expr::UnaryOp( UnaryOp {
-            op_kind: x,
-            argument: self.fold_boxed(y),
-            position: p,
+            op_kind,
+            argument: self.fold_boxed(argument),
+            position,
         })
     }
 
-    fn fold_bin_op(
-        &mut self,
-        kind: BinOpKind,
-        first: Box<Expr>,
-        second: Box<Expr>,
-        pos: Position,
-    ) -> Expr {
+    fn fold_bin_op(&mut self, BinOp {op_kind, left, right, position}: BinOp) -> Expr {
         Expr::BinOp( BinOp {
-            op_kind: kind,
-            left: self.fold_boxed(first),
-            right: self.fold_boxed(second),
-            position: pos,
+            op_kind,
+            left: self.fold_boxed(left),
+            right: self.fold_boxed(right),
+            position,
         })
     }
 
-    fn fold_unfolding(
-        &mut self,
-        name: String,
-        args: Vec<Expr>,
-        expr: Box<Expr>,
-        perm: PermAmount,
-        variant: MaybeEnumVariantIndex,
-        pos: Position,
-    ) -> Expr {
+    fn fold_unfolding(&mut self, Unfolding {predicate_name, arguments, base, permission, variant, position}: Unfolding) -> Expr {
         Expr::Unfolding( Unfolding {
-            predicate_name: name,
-            arguments: args.into_iter().map(|e| self.fold(e)).collect(),
-            base: self.fold_boxed(expr),
-            permission: perm,
-            variant: variant,
-            position: pos,
+            predicate_name,
+            arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
+            base: self.fold_boxed(base),
+            permission,
+            variant,
+            position,
         })
     }
 
-    fn fold_cond(
-        &mut self,
-        guard: Box<Expr>,
-        then_expr: Box<Expr>,
-        else_expr: Box<Expr>,
-        pos: Position,
-    ) -> Expr {
+    fn fold_cond(&mut self, Cond {guard, then_expr, else_expr, position}: Cond) -> Expr {
         Expr::Cond( Cond {
             guard: self.fold_boxed(guard),
             then_expr: self.fold_boxed(then_expr),
             else_expr: self.fold_boxed(else_expr),
-            position: pos,
+            position,
         })
     }
 
-    fn fold_forall(
-        &mut self,
-        x: Vec<LocalVar>,
-        y: Vec<Trigger>,
-        z: Box<Expr>,
-        p: Position,
-    ) -> Expr {
+    fn fold_forall(&mut self, ForAll {variables, triggers, body, position}: ForAll) -> Expr {
         Expr::ForAll( ForAll {
-            variables: x,
-            triggers: y,
-            body: self.fold_boxed(z),
-            position: p,
-        })
-    }
-
-    fn fold_exists(
-        &mut self,
-        x: Vec<LocalVar>,
-        y: Vec<Trigger>,
-        z: Box<Expr>,
-        p: Position,
-    ) -> Expr {
-        Expr::ForAll( ForAll {
-            variables: x,
-            triggers: y,
-            body: self.fold_boxed(z),
-            position: p,
-        })
-    }
-
-    fn fold_let_expr(
-        &mut self,
-        var: LocalVar,
-        expr: Box<Expr>,
-        body: Box<Expr>,
-        pos: Position,
-    ) -> Expr {
-        Expr::LetExpr( LetExpr {
-            variable: var,
-            def: self.fold_boxed(expr),
+            variables,
+            triggers,
             body: self.fold_boxed(body),
-            position: pos,
+            position,
         })
     }
 
-    fn fold_func_app(
-        &mut self,
-        name: String,
-        args: Vec<Expr>,
-        formal_args: Vec<LocalVar>,
-        return_type: Type,
-        pos: Position,
-    ) -> Expr {
+    fn fold_exists(&mut self, Exists {variables, triggers, body, position}: Exists) -> Expr {
+        Expr::ForAll( ForAll {
+            variables,
+            triggers,
+            body: self.fold_boxed(body),
+            position,
+        })
+    }
+
+    fn fold_let_expr(&mut self, LetExpr {variable, def, body, position}: LetExpr) -> Expr {
+        Expr::LetExpr( LetExpr {
+            variable,
+            def: self.fold_boxed(def),
+            body: self.fold_boxed(body),
+            position,
+        })
+    }
+
+    fn fold_func_app(&mut self, FuncApp {function_name, arguments, formal_arguments, return_type, position}: FuncApp) -> Expr {
         Expr::FuncApp( FuncApp {
-            function_name: name,
-            arguments: args.into_iter().map(|e| self.fold(e)).collect(),
-            formal_arguments: formal_args,
-            return_type: return_type,
-            position: pos,
+            function_name,
+            arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
+            formal_arguments,
+            return_type,
+            position,
         })
     }
 
-    fn fold_domain_func_app(&mut self, func: DomainFunc, args: Vec<Expr>, pos: Position) -> Expr {
+    fn fold_domain_func_app(&mut self, DomainFuncApp {domain_function, arguments, position}: DomainFuncApp) -> Expr {
         Expr::DomainFuncApp ( DomainFuncApp {
-            domain_function: func,
-            arguments: args.into_iter().map(|e| self.fold(e)).collect(),
-            position: pos,
+            domain_function,
+            arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
+            position,
         })
     }
     /* TODO
@@ -304,88 +236,73 @@ pub trait ExprFolder: Sized {
         )
     }
     */
-    fn fold_inhale_exhale(
-        &mut self,
-        inhale_expr: Box<Expr>,
-        exhale_expr: Box<Expr>,
-        pos: Position,
-    ) -> Expr {
+    fn fold_inhale_exhale(&mut self, InhaleExhale {inhale_expr, exhale_expr, position}: InhaleExhale) -> Expr {
         Expr::InhaleExhale( InhaleExhale {
             inhale_expr: self.fold_boxed(inhale_expr),
             exhale_expr: self.fold_boxed(exhale_expr),
-            position: pos,
+            position,
         })
     }
 
-    fn fold_downcast(&mut self, base: Box<Expr>, enum_place: Box<Expr>, field: Field) -> Expr {
+    fn fold_downcast(&mut self, DowncastExpr {base, enum_place, field}: DowncastExpr) -> Expr {
         Expr::Downcast( DowncastExpr {
             base: self.fold_boxed(base),
             enum_place: self.fold_boxed(enum_place),
-            field: field,
+            field,
         })
     }
 
-    fn fold_snap_app(&mut self, e: Box<Expr>, p: Position) -> Expr {
+    fn fold_snap_app(&mut self, SnapApp {base, position}: SnapApp) -> Expr {
         Expr::SnapApp( SnapApp {
-            base: self.fold_boxed(e),
-            position: p,
+            base: self.fold_boxed(base),
+            position,
         })
     }
 
-    fn fold_container_op(
-        &mut self,
-        kind: ContainerOpKind,
-        l: Box<Expr>,
-        r: Box<Expr>,
-        p: Position,
-    ) -> Expr {
+    fn fold_container_op(&mut self, ContainerOp {op_kind, left, right, position}: ContainerOp) -> Expr {
         Expr::ContainerOp( ContainerOp {
-            op_kind: kind,
-            left: self.fold_boxed(l),
-            right: self.fold_boxed(r),
-            position: p,
+            op_kind,
+            left: self.fold_boxed(left),
+            right: self.fold_boxed(right),
+            position,
         })
     }
 
-    fn fold_seq(&mut self, t: Type, elems: Vec<Expr>, p: Position) -> Expr {
+    fn fold_seq(&mut self, Seq {typ, elements, position}: Seq) -> Expr {
         Expr::Seq( Seq {
-            typ: t,
-            elements: elems.into_iter().map(|e| self.fold(e)).collect(),
-            position: p,
+            typ,
+            elements: elements.into_iter().map(|e| self.fold(e)).collect(),
+            position,
         })
     }
 }
 
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
     match e {
-        Expr::Local( Local {variable, position} ) => this.fold_local(variable, position),
-        Expr::Variant( Variant {base, variant_index, position} ) => this.fold_variant(base, variant_index, position),
-        Expr::Field( FieldExpr {base, field, position} ) => this.fold_field(base, field, position),
-        Expr::AddrOf( AddrOf {base, addr_type, position} ) => this.fold_addr_of(base, addr_type, position),
-        Expr::Const( ConstExpr {value, position} ) => this.fold_const(value, position),
-        Expr::LabelledOld( LabelledOld {label, base, position} ) => this.fold_labelled_old(label, base, position),
-        Expr::MagicWand(MagicWand {left, right, borrow, position} )=> this.fold_magic_wand(left, right, borrow, position),
-        Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_type, argument, permission, position} ) => {
-            this.fold_predicate_access_predicate(predicate_type, argument, permission, position)
-        },
-        Expr::FieldAccessPredicate(FieldAccessPredicate {base, permission, position} ) => this.fold_field_access_predicate(base, permission, position),
-        Expr::UnaryOp(UnaryOp {op_kind, argument, position} ) => this.fold_unary_op(op_kind, argument, position),
-        Expr::BinOp(BinOp {op_kind, left, right, position} ) => this.fold_bin_op(op_kind, left, right, position),
-        Expr::Unfolding(Unfolding {predicate_name, arguments, base, permission, variant, position} ) => {
-            this.fold_unfolding(predicate_name, arguments, base, permission, variant, position)
-        },
-        Expr::Cond(Cond {guard, then_expr, else_expr, position} ) => this.fold_cond(guard, then_expr, else_expr, position),
-        Expr::ForAll(ForAll {variables, triggers, body, position} ) => this.fold_forall(variables, triggers, body, position),
-        Expr::Exists(Exists {variables, triggers, body, position} ) => this.fold_exists(variables, triggers, body, position),
-        Expr::LetExpr(LetExpr {variable, def, body, position} ) => this.fold_let_expr(variable, def, body, position),
-        Expr::FuncApp(FuncApp {function_name, arguments, formal_arguments, return_type, position} ) => this.fold_func_app(function_name, arguments, formal_arguments, return_type, position),
-        Expr::DomainFuncApp(DomainFuncApp {domain_function, arguments, position} ) => this.fold_domain_func_app(domain_function, arguments, position),
+        Expr::Local(local) => this.fold_local(local),
+        Expr::Variant(variant) => this.fold_variant(variant),
+        Expr::Field(field_expr) => this.fold_field(field_expr),
+        Expr::AddrOf(addr_of) => this.fold_addr_of(addr_of),
+        Expr::Const(const_expr) => this.fold_const(const_expr),
+        Expr::LabelledOld(labelled_old) => this.fold_labelled_old(labelled_old),
+        Expr::MagicWand(magic_wand)=> this.fold_magic_wand(magic_wand),
+        Expr::PredicateAccessPredicate(predicate_access_predicate) => this.fold_predicate_access_predicate(predicate_access_predicate),
+        Expr::FieldAccessPredicate(field_access_predicate) => this.fold_field_access_predicate(field_access_predicate),
+        Expr::UnaryOp(unary_op) => this.fold_unary_op(unary_op),
+        Expr::BinOp(bin_op) => this.fold_bin_op(bin_op),
+        Expr::Unfolding(unfolding) => this.fold_unfolding(unfolding),
+        Expr::Cond(cond) => this.fold_cond(cond),
+        Expr::ForAll(forall) => this.fold_forall(forall),
+        Expr::Exists(exists) => this.fold_exists(exists),
+        Expr::LetExpr(let_expr) => this.fold_let_expr(let_expr),
+        Expr::FuncApp(func_app) => this.fold_func_app(func_app),
+        Expr::DomainFuncApp(domain_func_app) => this.fold_domain_func_app(domain_func_app),
         // TODO Expr::DomainFuncApp(u, v, w, x, y, p) => this.fold_domain_func_app(u,v,w,x,y,p),
-        Expr::InhaleExhale(InhaleExhale {inhale_expr, exhale_expr, position} ) => this.fold_inhale_exhale(inhale_expr, exhale_expr, position),
-        Expr::Downcast(DowncastExpr {base, enum_place, field} ) => this.fold_downcast(base, enum_place, field),
-        Expr::SnapApp(SnapApp {base, position} ) => this.fold_snap_app(base, position),
-        Expr::ContainerOp(ContainerOp {op_kind, left, right, position} ) => this.fold_container_op(op_kind, left, right, position),
-        Expr::Seq(Seq {typ, elements, position} ) => this.fold_seq(typ, elements, position),
+        Expr::InhaleExhale(inhale_exhale) => this.fold_inhale_exhale(inhale_exhale),
+        Expr::Downcast(downcast_expr) => this.fold_downcast(downcast_expr),
+        Expr::SnapApp(snap_app) => this.fold_snap_app(snap_app),
+        Expr::ContainerOp(container_op) => this.fold_container_op(container_op),
+        Expr::Seq(seq) => this.fold_seq(seq),
     }
 }
 
@@ -399,131 +316,87 @@ pub trait ExprWalker: Sized {
         self.walk_type(&var.typ);
     }
 
-    fn walk_local(&mut self, var: &LocalVar, _pos: &Position) {
-        self.walk_local_var(var);
+    fn walk_local(&mut self, Local {variable, ..}: &Local) {
+        self.walk_local_var(variable);
     }
-    fn walk_variant(&mut self, base: &Expr, variant: &Field, _pos: &Position) {
+    fn walk_variant(&mut self, Variant {base, variant_index, ..}: &Variant) {
         self.walk(base);
-        self.walk_type(&variant.typ);
+        self.walk_type(&variant_index.typ);
     }
-    fn walk_field(&mut self, receiver: &Expr, field: &Field, _pos: &Position) {
-        self.walk(receiver);
+    fn walk_field(&mut self, FieldExpr {base, field, ..}: &FieldExpr) {
+        self.walk(base);
         self.walk_type(&field.typ);
     }
-    fn walk_addr_of(&mut self, receiver: &Expr, typ: &Type, _pos: &Position) {
-        self.walk(receiver);
-        self.walk_type(typ);
+    fn walk_addr_of(&mut self, AddrOf {base, addr_type, ..}: &AddrOf) {
+        self.walk(base);
+        self.walk_type(addr_type);
     }
-    fn walk_const(&mut self, _const: &Const, _pos: &Position) {}
-    fn walk_labelled_old(&mut self, _label: &str, body: &Expr, _pos: &Position) {
-        self.walk(body);
+    fn walk_const(&mut self, _const_expr: &ConstExpr) {}
+    fn walk_labelled_old(&mut self, LabelledOld {base, ..}: &LabelledOld) {
+        self.walk(base);
     }
-    fn walk_magic_wand(
-        &mut self,
-        lhs: &Expr,
-        rhs: &Expr,
-        _borrow: &Option<Borrow>,
-        _pos: &Position,
-    ) {
-        self.walk(lhs);
-        self.walk(rhs);
+    fn walk_magic_wand(&mut self, MagicWand {left, right, ..}: &MagicWand) {
+        self.walk(left);
+        self.walk(right);
     }
-    fn walk_predicate_access_predicate(
-        &mut self,
-        _typ: &Type,
-        arg: &Expr,
-        _perm_amount: PermAmount,
-        _pos: &Position,
-    ) {
-        self.walk(arg)
+    fn walk_predicate_access_predicate(&mut self, PredicateAccessPredicate {argument, ..}: &PredicateAccessPredicate) {
+        self.walk(argument);
     }
-    fn walk_field_access_predicate(
-        &mut self,
-        receiver: &Expr,
-        _perm_amount: PermAmount,
-        _pos: &Position,
-    ) {
-        self.walk(receiver)
+    fn walk_field_access_predicate(&mut self, FieldAccessPredicate {base, ..}: &FieldAccessPredicate) {
+        self.walk(base);
     }
-    fn walk_unary_op(&mut self, _op: UnaryOpKind, arg: &Expr, _pos: &Position) {
-        self.walk(arg)
+    fn walk_unary_op(&mut self, UnaryOp {argument, ..}: &UnaryOp) {
+        self.walk(argument)
     }
-    fn walk_bin_op(&mut self, _op: BinOpKind, arg1: &Expr, arg2: &Expr, _pos: &Position) {
-        self.walk(arg1);
-        self.walk(arg2);
+    fn walk_bin_op(&mut self, BinOp {left, right, ..}: &BinOp) {
+        self.walk(left);
+        self.walk(right);
     }
-    fn walk_unfolding(
-        &mut self,
-        _name: &str,
-        args: &Vec<Expr>,
-        body: &Expr,
-        _perm: PermAmount,
-        _variant: &MaybeEnumVariantIndex,
-        _pos: &Position,
-    ) {
-        for arg in args {
+    fn walk_unfolding(&mut self, Unfolding {arguments, base, ..}: &Unfolding) {
+        for arg in arguments {
             self.walk(arg);
         }
-        self.walk(body);
+        self.walk(base);
     }
-    fn walk_cond(&mut self, guard: &Expr, then_expr: &Expr, else_expr: &Expr, _pos: &Position) {
+    fn walk_cond(&mut self, Cond {guard, then_expr, else_expr, ..}: &Cond) {
         self.walk(guard);
         self.walk(then_expr);
         self.walk(else_expr);
     }
-    fn walk_forall(
-        &mut self,
-        vars: &Vec<LocalVar>,
-        _triggers: &Vec<Trigger>,
-        body: &Expr,
-        _pos: &Position,
-    ) {
-        for var in vars {
+    fn walk_forall(&mut self, ForAll {variables, body, ..}: &ForAll) {
+        for var in variables {
             self.walk_local_var(var);
         }
         self.walk(body);
     }
-    fn walk_exists(
-        &mut self,
-        vars: &Vec<LocalVar>,
-        _triggers: &Vec<Trigger>,
-        body: &Expr,
-        _pos: &Position,
-    ) {
-        for var in vars {
+    fn walk_exists(&mut self, Exists {variables, body, ..}: &Exists) {
+        for var in variables {
             self.walk_local_var(var);
         }
         self.walk(body);
     }
-    fn walk_let_expr(&mut self, bound_var: &LocalVar, expr: &Expr, body: &Expr, _pos: &Position) {
-        self.walk_local_var(bound_var);
-        self.walk(expr);
+    fn walk_let_expr(&mut self, LetExpr {variable, def, body, ..}: &LetExpr) {
+        self.walk_local_var(variable);
+        self.walk(def);
         self.walk(body);
     }
-    fn walk_func_app(
-        &mut self,
-        _name: &str,
-        args: &Vec<Expr>,
-        formal_args: &Vec<LocalVar>,
-        return_type: &Type,
-        _pos: &Position,
-    ) {
-        for arg in args {
+    fn walk_func_app(&mut self, FuncApp {arguments, formal_arguments, return_type, ..}: &FuncApp) {
+        for arg in arguments {
             self.walk(arg)
         }
-        for arg in formal_args {
+        for arg in formal_arguments {
             self.walk_local_var(arg);
         }
         self.walk_type(return_type);
     }
-    fn walk_domain_func_app(&mut self, func: &DomainFunc, args: &Vec<Expr>, _pos: &Position) {
-        for arg in args {
+    fn walk_domain_func_app(&mut self, DomainFuncApp {domain_function, arguments, ..}: &DomainFuncApp) {
+        for arg in arguments {
             self.walk(arg)
         }
-        for arg in &func.formal_args {
+        for arg in &domain_function.formal_args {
             self.walk_local_var(arg)
         }
-        self.walk_type(&func.return_type);
+        self.walk_type(&domain_function.return_type);
     }
     /* TODO
     fn walk_domain_func_app(
@@ -542,26 +415,26 @@ pub trait ExprWalker: Sized {
         }
     }
     */
-    fn walk_inhale_exhale(&mut self, inhale_expr: &Expr, exhale_expr: &Expr, _pos: &Position) {
+    fn walk_inhale_exhale(&mut self, InhaleExhale {inhale_expr, exhale_expr, ..}: &InhaleExhale) {
         self.walk(inhale_expr);
         self.walk(exhale_expr);
     }
 
-    fn walk_downcast(&mut self, base: &Expr, enum_place: &Expr, _field: &Field) {
+    fn walk_downcast(&mut self, DowncastExpr {base, enum_place, ..}: &DowncastExpr) {
         self.walk(base);
         self.walk(enum_place);
     }
-    fn walk_snap_app(&mut self, expr: &Expr, _pos: &Position) {
-        self.walk(expr);
+    fn walk_snap_app(&mut self, SnapApp {base, ..}: &SnapApp) {
+        self.walk(base);
     }
 
-    fn walk_container_op(&mut self, _kind: &ContainerOpKind, l: &Expr, r: &Expr, _p: &Position) {
-        self.walk(l);
-        self.walk(r);
+    fn walk_container_op(&mut self, ContainerOp {left, right, ..}: &ContainerOp) {
+        self.walk(left);
+        self.walk(right);
     }
 
-    fn walk_seq(&mut self, typ: &Type, elems: &[Expr], _pos: &Position) {
-        for elem in elems {
+    fn walk_seq(&mut self, Seq {typ, elements, ..}: &Seq) {
+        for elem in elements {
             self.walk(elem);
         }
         self.walk_type(typ);
@@ -569,35 +442,31 @@ pub trait ExprWalker: Sized {
 }
 
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
-    match *e {
-        Expr::Local( Local {ref variable, ref position} ) => this.walk_local(variable, position),
-        Expr::Variant( Variant {ref base, ref variant_index, ref position} ) => this.walk_variant(base, variant_index, position),
-        Expr::Field( FieldExpr {ref base, ref field, ref position} ) => this.walk_field(base, field, position),
-        Expr::AddrOf( AddrOf {ref base, ref addr_type, ref position} ) => this.walk_addr_of(base, addr_type, position),
-        Expr::Const( ConstExpr {ref value, ref position} ) => this.walk_const(value, position),
-        Expr::LabelledOld( LabelledOld {ref label, ref base, ref position} ) => this.walk_labelled_old(label, base, position),
-        Expr::MagicWand(MagicWand {ref left, ref right, ref borrow, ref position} ) => this.walk_magic_wand(left, right, borrow, position),
-        Expr::PredicateAccessPredicate(PredicateAccessPredicate {ref predicate_type, ref argument, permission, ref position} ) => {
-            this.walk_predicate_access_predicate(predicate_type, argument, permission, position)
-        },
-        Expr::FieldAccessPredicate(FieldAccessPredicate {ref base, permission, ref position} ) => this.walk_field_access_predicate(base, permission, position),
-        Expr::UnaryOp(UnaryOp {op_kind, ref argument, ref position} ) => this.walk_unary_op(op_kind, argument, position),
-        Expr::BinOp(BinOp {op_kind, ref left, ref right, ref position} ) => this.walk_bin_op(op_kind, left, right, position),
-        Expr::Unfolding(Unfolding {ref predicate_name, ref arguments, ref base, permission, ref variant, ref position} ) => {
-            this.walk_unfolding(predicate_name, arguments, base, permission, variant, position)
-        },
-        Expr::Cond(Cond {ref guard, ref then_expr, ref else_expr, ref position} ) => this.walk_cond(guard, then_expr, else_expr, position),
-        Expr::ForAll(ForAll {ref variables, ref triggers, ref body, ref position} ) => this.walk_forall(variables, triggers, body, position),
-        Expr::Exists(Exists {ref variables, ref triggers, ref body, ref position} ) => this.walk_exists(variables, triggers, body, position),
-        Expr::LetExpr(LetExpr {ref variable, ref def, ref body, ref position} ) => this.walk_let_expr(variable, def, body, position),
-        Expr::FuncApp(FuncApp {ref function_name, ref arguments, ref formal_arguments, ref return_type, ref position} ) => this.walk_func_app(function_name, arguments, formal_arguments, return_type, position),
-        Expr::DomainFuncApp(DomainFuncApp {ref domain_function, ref arguments, ref position} ) => this.walk_domain_func_app(domain_function, arguments, position),
+    match e {
+        Expr::Local(local) => this.walk_local(&local),
+        Expr::Variant(variant) => this.walk_variant(&variant),
+        Expr::Field(field_expr) => this.walk_field(&field_expr),
+        Expr::AddrOf(addr_of) => this.walk_addr_of(&addr_of),
+        Expr::Const(const_expr) => this.walk_const(&const_expr),
+        Expr::LabelledOld(labelled_old) => this.walk_labelled_old(&labelled_old),
+        Expr::MagicWand(magic_wand) => this.walk_magic_wand(&magic_wand),
+        Expr::PredicateAccessPredicate(predicate_access_predicate) => this.walk_predicate_access_predicate(&predicate_access_predicate),
+        Expr::FieldAccessPredicate(field_access_predicate) => this.walk_field_access_predicate(&field_access_predicate),
+        Expr::UnaryOp(unary_op) => this.walk_unary_op(&unary_op),
+        Expr::BinOp(bin_op) => this.walk_bin_op(&bin_op),
+        Expr::Unfolding(unfolding) => this.walk_unfolding(&unfolding),
+        Expr::Cond(cond) => this.walk_cond(&cond),
+        Expr::ForAll(forall) => this.walk_forall(&forall),
+        Expr::Exists(exists) => this.walk_exists(&exists),
+        Expr::LetExpr(let_expr) => this.walk_let_expr(&let_expr),
+        Expr::FuncApp(func_app) => this.walk_func_app(&func_app),
+        Expr::DomainFuncApp(domain_func_app) => this.walk_domain_func_app(&domain_func_app),
         // TODO Expr::DomainFuncApp(ref u, ref v, ref w, ref x, ref y,ref p) => this.walk_domain_func_app(u, v, w, x,y,p),
-        Expr::InhaleExhale(InhaleExhale {ref inhale_expr, ref exhale_expr, ref position} ) => this.walk_inhale_exhale(inhale_expr, exhale_expr, position),
-        Expr::Downcast(DowncastExpr {ref base, ref enum_place, ref field} ) => this.walk_downcast(base, enum_place, field),
-        Expr::SnapApp(SnapApp {ref base, ref position} ) => this.walk_snap_app(base, position),
-        Expr::ContainerOp(ContainerOp {ref op_kind, ref left, ref right, ref position} ) => this.walk_container_op(op_kind, left, right, position),
-        Expr::Seq(Seq {ref typ, ref elements, ref position} ) => this.walk_seq(typ, elements, position),
+        Expr::InhaleExhale(inhale_exhale) => this.walk_inhale_exhale(&inhale_exhale),
+        Expr::Downcast(downcast_expr) => this.walk_downcast(&downcast_expr),
+        Expr::SnapApp(snap_app) => this.walk_snap_app(&snap_app),
+        Expr::ContainerOp(container_op) => this.walk_container_op(&container_op),
+        Expr::Seq(seq) => this.walk_seq(&seq),
     }
 }
 
@@ -612,255 +481,157 @@ pub trait FallibleExprFolder: Sized {
         Ok(box self.fallible_fold(*e)?)
     }
 
-    fn fallible_fold_local(&mut self, v: LocalVar, p: Position) -> Result<Expr, Self::Error> {
-        Ok(Expr::Local( Local {
-            variable: v,
-            position: p,
-        }))
+    fn fallible_fold_local(&mut self, local: Local) -> Result<Expr, Self::Error> {
+        Ok(Expr::Local(local))
     }
 
-    fn fallible_fold_variant(
-        &mut self,
-        base: Box<Expr>,
-        variant: Field,
-        p: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_variant(&mut self, Variant {base, variant_index, position}: Variant) -> Result<Expr, Self::Error> {
         Ok(Expr::Variant( Variant {
             base: self.fallible_fold_boxed(base)?,
-            variant_index: variant,
-            position: p,
+            variant_index,
+            position,
         }))
     }
 
-    fn fallible_fold_field(
-        &mut self,
-        receiver: Box<Expr>,
-        field: Field,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_field(&mut self, FieldExpr {base, field, position}: FieldExpr) -> Result<Expr, Self::Error> {
         Ok(Expr::Field (FieldExpr {
-            base: self.fallible_fold_boxed(receiver)?,
-            field: field,
-            position: pos,
+            base: self.fallible_fold_boxed(base)?,
+            field,
+            position,
         }))
     }
 
-    fn fallible_fold_addr_of(
-        &mut self,
-        e: Box<Expr>,
-        t: Type,
-        p: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_addr_of(&mut self, AddrOf {base, addr_type, position}: AddrOf) -> Result<Expr, Self::Error> {
         Ok(Expr::AddrOf( AddrOf {
-            base: self.fallible_fold_boxed(e)?,
-            addr_type: t,
-            position: p,
+            base: self.fallible_fold_boxed(base)?,
+            addr_type,
+            position,
         }))
     }
 
-    fn fallible_fold_const(&mut self, x: Const, p: Position) -> Result<Expr, Self::Error> {
-        Ok(Expr::Const( ConstExpr {
-            value: x,
-            position: p,
-        }))
+    fn fallible_fold_const(&mut self, const_expr: ConstExpr) -> Result<Expr, Self::Error> {
+        Ok(Expr::Const(const_expr))
     }
 
-    fn fallible_fold_labelled_old(
-        &mut self,
-        label: String,
-        body: Box<Expr>,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_labelled_old(&mut self, LabelledOld {label, base, position}: LabelledOld) -> Result<Expr, Self::Error> {
         Ok(Expr::LabelledOld( LabelledOld {
-            label: label,
-            base: self.fallible_fold_boxed(body)?,
-            position: pos,
+            label,
+            base: self.fallible_fold_boxed(base)?,
+            position,
         }))
     }
 
-    fn fallible_fold_magic_wand(
-        &mut self,
-        lhs: Box<Expr>,
-        rhs: Box<Expr>,
-        borrow: Option<Borrow>,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_magic_wand(&mut self, MagicWand {left, right, borrow, position}: MagicWand) -> Result<Expr, Self::Error> {
         Ok(Expr::MagicWand( MagicWand {
-            left: self.fallible_fold_boxed(lhs)?,
-            right: self.fallible_fold_boxed(rhs)?,
-            borrow: borrow,
-            position: pos,
+            left: self.fallible_fold_boxed(left)?,
+            right: self.fallible_fold_boxed(right)?,
+            borrow,
+            position,
         }))
     }
 
-    fn fallible_fold_predicate_access_predicate(
-        &mut self,
-        typ: Type,
-        arg: Box<Expr>,
-        perm_amount: PermAmount,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_predicate_access_predicate(&mut self, PredicateAccessPredicate {predicate_type, argument, permission, position}: PredicateAccessPredicate) -> Result<Expr, Self::Error> {
         Ok(Expr::PredicateAccessPredicate( PredicateAccessPredicate {
-            predicate_type: typ,
-            argument: self.fallible_fold_boxed(arg)?,
-            permission: perm_amount,
-            position: pos,
+            predicate_type,
+            argument: self.fallible_fold_boxed(argument)?,
+            permission,
+            position,
         }))
     }
 
-    fn fallible_fold_field_access_predicate(
-        &mut self,
-        receiver: Box<Expr>,
-        perm_amount: PermAmount,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_field_access_predicate(&mut self, FieldAccessPredicate {base, permission, position}: FieldAccessPredicate) -> Result<Expr, Self::Error> {
         Ok(Expr::FieldAccessPredicate( FieldAccessPredicate {
-            base: self.fallible_fold_boxed(receiver)?,
-            permission: perm_amount,
-            position: pos,
+            base: self.fallible_fold_boxed(base)?,
+            permission,
+            position,
         }))
     }
 
-    fn fallible_fold_unary_op(
-        &mut self,
-        x: UnaryOpKind,
-        y: Box<Expr>,
-        p: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_unary_op(&mut self, UnaryOp {op_kind, argument, position}: UnaryOp) -> Result<Expr, Self::Error> {
         Ok(Expr::UnaryOp( UnaryOp {
-            op_kind: x,
-            argument: self.fallible_fold_boxed(y)?,
-            position: p,
+            op_kind,
+            argument: self.fallible_fold_boxed(argument)?,
+            position,
         }))
     }
 
-    fn fallible_fold_bin_op(
-        &mut self,
-        kind: BinOpKind,
-        first: Box<Expr>,
-        second: Box<Expr>,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_bin_op(&mut self, BinOp {op_kind, left, right, position}: BinOp) -> Result<Expr, Self::Error> {
         Ok(Expr::BinOp( BinOp {
-            op_kind: kind,
-            left: self.fallible_fold_boxed(first)?,
-            right: self.fallible_fold_boxed(second)?,
-            position: pos,
+            op_kind,
+            left: self.fallible_fold_boxed(left)?,
+            right: self.fallible_fold_boxed(right)?,
+            position,
         }))
     }
 
-    fn fallible_fold_unfolding(
-        &mut self,
-        name: String,
-        args: Vec<Expr>,
-        expr: Box<Expr>,
-        perm: PermAmount,
-        variant: MaybeEnumVariantIndex,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_unfolding(&mut self, Unfolding {predicate_name, arguments, base, permission, variant, position}: Unfolding) -> Result<Expr, Self::Error> {
         Ok(Expr::Unfolding( Unfolding {
-            predicate_name: name,
-            arguments: args.into_iter()
+            predicate_name,
+            arguments: arguments.into_iter()
                 .map(|e| self.fallible_fold(e))
                 .collect::<Result<Vec<_>, Self::Error>>()?,
-            base: self.fallible_fold_boxed(expr)?,
-            permission: perm,
-            variant: variant,
-            position: pos,
+            base: self.fallible_fold_boxed(base)?,
+            permission,
+            variant,
+            position,
         }))
     }
 
-    fn fallible_fold_cond(
-        &mut self,
-        guard: Box<Expr>,
-        then_expr: Box<Expr>,
-        else_expr: Box<Expr>,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_cond(&mut self, Cond {guard, then_expr, else_expr, position}: Cond) -> Result<Expr, Self::Error> {
         Ok(Expr::Cond( Cond {
             guard: self.fallible_fold_boxed(guard)?,
             then_expr: self.fallible_fold_boxed(then_expr)?,
             else_expr: self.fallible_fold_boxed(else_expr)?,
-            position: pos,
+            position,
         }))
     }
 
-    fn fallible_fold_forall(
-        &mut self,
-        x: Vec<LocalVar>,
-        y: Vec<Trigger>,
-        z: Box<Expr>,
-        p: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_forall(&mut self, ForAll {variables, triggers, body, position}: ForAll) -> Result<Expr, Self::Error> {
         Ok(Expr::ForAll( ForAll {
-            variables: x,
-            triggers: y,
-            body: self.fallible_fold_boxed(z)?,
-            position: p,
-        }))
-    }
-
-    fn fallible_fold_exists(
-        &mut self,
-        x: Vec<LocalVar>,
-        y: Vec<Trigger>,
-        z: Box<Expr>,
-        p: Position,
-    ) -> Result<Expr, Self::Error> {
-        Ok(Expr::Exists( Exists {
-            variables: x,
-            triggers: y,
-            body: self.fallible_fold_boxed(z)?,
-            position: p,
-        }))
-    }
-
-    fn fallible_fold_let_expr(
-        &mut self,
-        var: LocalVar,
-        expr: Box<Expr>,
-        body: Box<Expr>,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
-        Ok(Expr::LetExpr( LetExpr {
-            variable: var,
-            def: self.fallible_fold_boxed(expr)?,
+            variables,
+            triggers,
             body: self.fallible_fold_boxed(body)?,
-            position: pos,
+            position,
         }))
     }
 
-    fn fallible_fold_func_app(
-        &mut self,
-        name: String,
-        args: Vec<Expr>,
-        formal_args: Vec<LocalVar>,
-        return_type: Type,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_exists(&mut self, Exists {variables, triggers, body, position}: Exists) -> Result<Expr, Self::Error> {
+        Ok(Expr::Exists( Exists {
+            variables,
+            triggers,
+            body: self.fallible_fold_boxed(body)?,
+            position,
+        }))
+    }
+
+    fn fallible_fold_let_expr(&mut self, LetExpr {variable, def, body, position}: LetExpr) -> Result<Expr, Self::Error> {
+        Ok(Expr::LetExpr( LetExpr {
+            variable,
+            def: self.fallible_fold_boxed(def)?,
+            body: self.fallible_fold_boxed(body)?,
+            position,
+        }))
+    }
+
+    fn fallible_fold_func_app(&mut self, FuncApp {function_name, arguments, formal_arguments, return_type, position}: FuncApp) -> Result<Expr, Self::Error> {
         Ok(Expr::FuncApp( FuncApp {
-            function_name: name,
-            arguments: args.into_iter()
+            function_name,
+            arguments: arguments.into_iter()
                 .map(|e| self.fallible_fold(e))
                 .collect::<Result<Vec<_>, Self::Error>>()?,
-            formal_arguments: formal_args,
-            return_type: return_type,
-            position: pos,
+            formal_arguments,
+            return_type,
+            position,
         }))
     }
 
-    fn fallible_fold_domain_func_app(
-        &mut self,
-        func: DomainFunc,
-        args: Vec<Expr>,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_domain_func_app(&mut self, DomainFuncApp {domain_function, arguments, position}: DomainFuncApp) -> Result<Expr, Self::Error> {
         Ok(Expr::DomainFuncApp( DomainFuncApp {
-            domain_function: func,
-            arguments: args.into_iter()
+            domain_function,
+            arguments: arguments.into_iter()
                 .map(|e| self.fallible_fold(e))
                 .collect::<Result<Vec<_>, Self::Error>>()?,
-            position: pos,
+            position,
         }))
     }
     /* TODO
@@ -885,67 +656,46 @@ pub trait FallibleExprFolder: Sized {
         ))
     }
     */
-    fn fallible_fold_inhale_exhale(
-        &mut self,
-        inhale: Box<Expr>,
-        exhale: Box<Expr>,
-        pos: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_inhale_exhale(&mut self, InhaleExhale {inhale_expr, exhale_expr, position}: InhaleExhale) -> Result<Expr, Self::Error> {
         Ok(Expr::InhaleExhale( InhaleExhale {
-            inhale_expr: self.fallible_fold_boxed(inhale)?,
-            exhale_expr: self.fallible_fold_boxed(exhale)?,
-            position: pos,
+            inhale_expr: self.fallible_fold_boxed(inhale_expr)?,
+            exhale_expr: self.fallible_fold_boxed(exhale_expr)?,
+            position,
         }))
     }
 
-    fn fallible_fold_downcast(
-        &mut self,
-        base: Box<Expr>,
-        enum_expr: Box<Expr>,
-        field: Field,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_downcast(&mut self, DowncastExpr {base, enum_place, field}: DowncastExpr) -> Result<Expr, Self::Error> {
         Ok(Expr::Downcast( DowncastExpr {
             base: self.fallible_fold_boxed(base)?,
-            enum_place: self.fallible_fold_boxed(enum_expr)?,
-            field: field,
+            enum_place: self.fallible_fold_boxed(enum_place)?,
+            field,
         }))
     }
 
-    fn fallible_fold_snap_app(&mut self, e: Box<Expr>, p: Position) -> Result<Expr, Self::Error> {
+    fn fallible_fold_snap_app(&mut self, SnapApp {base, position}: SnapApp) -> Result<Expr, Self::Error> {
         Ok(Expr::SnapApp( SnapApp {
-            base: self.fallible_fold_boxed(e)?,
-            position: p,
+            base: self.fallible_fold_boxed(base)?,
+            position,
         }))
     }
 
-    fn fallible_fold_container_op(
-        &mut self,
-        kind: ContainerOpKind,
-        l: Box<Expr>,
-        r: Box<Expr>,
-        p: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_container_op(&mut self, ContainerOp {op_kind, left, right, position}: ContainerOp) -> Result<Expr, Self::Error> {
         Ok(Expr::ContainerOp( ContainerOp {
-            op_kind: kind,
-            left: self.fallible_fold_boxed(l)?,
-            right: self.fallible_fold_boxed(r)?,
-            position: p,
+            op_kind,
+            left: self.fallible_fold_boxed(left)?,
+            right: self.fallible_fold_boxed(right)?,
+            position,
         }))
     }
 
-    fn fallible_fold_seq(
-        &mut self,
-        ty: Type,
-        elems: Vec<Expr>,
-        p: Position,
-    ) -> Result<Expr, Self::Error> {
+    fn fallible_fold_seq(&mut self, Seq {typ, elements, position}: Seq) -> Result<Expr, Self::Error> {
         Ok(Expr::Seq( Seq {
-            typ: ty,
-            elements: elems
+            typ,
+            elements: elements
                 .into_iter()
                 .map(|e| self.fallible_fold(e))
                 .collect::<Result<_, _>>()?,
-            position: p,
+            position,
         }))
     }
 }
@@ -955,33 +705,29 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
     e: Expr,
 ) -> Result<Expr, U> {
     match e {
-        Expr::Local( Local {variable, position} ) => this.fallible_fold_local(variable, position),
-        Expr::Variant( Variant {base, variant_index, position} ) => this.fallible_fold_variant(base, variant_index, position),
-        Expr::Field( FieldExpr {base, field, position} ) => this.fallible_fold_field(base, field, position),
-        Expr::AddrOf( AddrOf {base, addr_type, position} ) => this.fallible_fold_addr_of(base, addr_type, position),
-        Expr::Const( ConstExpr {value, position} ) => this.fallible_fold_const(value, position),
-        Expr::LabelledOld( LabelledOld {label, base, position} ) => this.fallible_fold_labelled_old(label, base, position),
-        Expr::MagicWand(MagicWand {left, right, borrow, position} ) => this.fallible_fold_magic_wand(left, right, borrow, position),
-        Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_type, argument, permission, position} ) => {
-            this.fallible_fold_predicate_access_predicate(predicate_type, argument, permission, position)
-        },
-        Expr::FieldAccessPredicate(FieldAccessPredicate {base, permission, position} ) => this.fallible_fold_field_access_predicate(base, permission, position),
-        Expr::UnaryOp(UnaryOp {op_kind, argument, position} ) => this.fallible_fold_unary_op(op_kind, argument, position),
-        Expr::BinOp(BinOp {op_kind, left, right, position} ) => this.fallible_fold_bin_op(op_kind, left, right, position),
-        Expr::Unfolding(Unfolding {predicate_name, arguments, base, permission, variant, position} ) => {
-            this.fallible_fold_unfolding(predicate_name, arguments, base, permission, variant, position)
-        },
-        Expr::Cond(Cond {guard, then_expr, else_expr, position} ) => this.fallible_fold_cond(guard, then_expr, else_expr, position),
-        Expr::ForAll(ForAll {variables, triggers, body, position} ) => this.fallible_fold_forall(variables, triggers, body, position),
-        Expr::Exists(Exists {variables, triggers, body, position} ) => this.fallible_fold_exists(variables, triggers, body, position),
-        Expr::LetExpr(LetExpr {variable, def, body, position} ) => this.fallible_fold_let_expr(variable, def, body, position),
-        Expr::FuncApp(FuncApp {function_name, arguments, formal_arguments, return_type, position} ) => this.fallible_fold_func_app(function_name, arguments, formal_arguments, return_type, position),
-        Expr::DomainFuncApp(DomainFuncApp {domain_function, arguments, position} ) => this.fallible_fold_domain_func_app(domain_function, arguments, position),
+        Expr::Local(local) => this.fallible_fold_local(local),
+        Expr::Variant(variant) => this.fallible_fold_variant(variant),
+        Expr::Field(field) => this.fallible_fold_field(field),
+        Expr::AddrOf(addr_of) => this.fallible_fold_addr_of(addr_of),
+        Expr::Const(const_expr) => this.fallible_fold_const(const_expr),
+        Expr::LabelledOld(labelled_old) => this.fallible_fold_labelled_old(labelled_old),
+        Expr::MagicWand(magic_wand) => this.fallible_fold_magic_wand(magic_wand),
+        Expr::PredicateAccessPredicate(predicate_access_predicate) => this.fallible_fold_predicate_access_predicate(predicate_access_predicate),
+        Expr::FieldAccessPredicate(field_access_predicate) => this.fallible_fold_field_access_predicate(field_access_predicate),
+        Expr::UnaryOp(unary_op) => this.fallible_fold_unary_op(unary_op),
+        Expr::BinOp(bin_op) => this.fallible_fold_bin_op(bin_op),
+        Expr::Unfolding(unfolding) => this.fallible_fold_unfolding(unfolding),
+        Expr::Cond(cond) => this.fallible_fold_cond(cond),
+        Expr::ForAll(forall) => this.fallible_fold_forall(forall),
+        Expr::Exists(exists) => this.fallible_fold_exists(exists),
+        Expr::LetExpr(let_expr) => this.fallible_fold_let_expr(let_expr),
+        Expr::FuncApp(func_app) => this.fallible_fold_func_app(func_app),
+        Expr::DomainFuncApp(domain_func_app) => this.fallible_fold_domain_func_app(domain_func_app),
         // TODO Expr::DomainFuncApp(u, v, w, x, y, p) => this.fallible_fold_domain_func_app(u,v,w,x,y,p),
-        Expr::InhaleExhale(InhaleExhale {inhale_expr, exhale_expr, position} ) => this.fallible_fold_inhale_exhale(inhale_expr, exhale_expr, position),
-        Expr::Downcast(DowncastExpr {base, enum_place, field} ) => this.fallible_fold_downcast(base, enum_place, field),
-        Expr::SnapApp(SnapApp {base, position} ) => this.fallible_fold_snap_app(base, position),
-        Expr::ContainerOp(ContainerOp {op_kind, left, right, position} ) => this.fallible_fold_container_op(op_kind, left, right, position),
-        Expr::Seq(Seq {typ, elements, position} ) => this.fallible_fold_seq(typ, elements, position),
+        Expr::InhaleExhale(inhale_exhale) => this.fallible_fold_inhale_exhale(inhale_exhale),
+        Expr::Downcast(downcast_expr) => this.fallible_fold_downcast(downcast_expr),
+        Expr::SnapApp(snap_app) => this.fallible_fold_snap_app(snap_app),
+        Expr::ContainerOp(container_op) => this.fallible_fold_container_op(container_op),
+        Expr::Seq(seq) => this.fallible_fold_seq(seq),
     }
 }

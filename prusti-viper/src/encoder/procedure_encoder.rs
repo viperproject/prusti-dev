@@ -3743,17 +3743,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             cfg_method: &'a mut vir::CfgMethod,
         }
         impl<'a> vir::ExprFolder for OldReplacer<'a> {
-            fn fold_labelled_old(
-                &mut self,
-                label: String,
-                base: Box<vir::Expr>,
-                pos: vir::Position,
-            ) -> vir::Expr {
+            fn fold_labelled_old(&mut self, vir::LabelledOld {label, base, position}: vir::LabelledOld) -> vir::Expr {
                 let base = self.fold_boxed(base);
                 let expr = vir::Expr::LabelledOld( vir::LabelledOld {
                     label: label.clone(),
                     base,
-                    position: pos,
+                    position,
                 });
                 debug!(
                     "replace_old_places_with_ghost_vars({:?}, {})",
@@ -3761,7 +3756,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
                 if self.old_to_ghost_var.contains_key(&expr) {
                     debug!("found={}", self.old_to_ghost_var[&expr]);
-                    self.old_to_ghost_var[&expr].clone().set_pos(pos)
+                    self.old_to_ghost_var[&expr].clone().set_pos(position)
                 } else if self.label == Some(&label) {
                     let mut counter = 0;
                     let mut name = format!("_old${}${}", label, counter);
@@ -4773,11 +4768,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
                 use vir::ExprFolder;
                 impl ExprFolder for RootReplacer {
-                    fn fold_local(&mut self, _v: vir::LocalVar, p: vir::Position) -> vir::Expr {
-                        vir::Expr::Local( vir::Local {
-                            variable: self.new_root.clone(),
-                            position: p,
-                        })
+                    fn fold_local(&mut self, vir::Local {position, ..}: vir::Local) -> vir::Expr {
+                        vir::Expr::local_with_pos(self.new_root.clone(), position)
                     }
                 }
                 Ok((RootReplacer { new_root }.fold(expr), ty, variant))

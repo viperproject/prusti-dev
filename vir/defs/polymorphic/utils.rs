@@ -78,8 +78,8 @@ impl Expr {
         where
             T: Fn(&str, Expr) -> Expr,
         {
-            fn fold_labelled_old(&mut self, x: String, y: Box<Expr>, p: Position) -> Expr {
-                (self.substitutor)(&x, *y).set_pos(p)
+            fn fold_labelled_old(&mut self, LabelledOld {label, base, position}: LabelledOld) -> Expr {
+                (self.substitutor)(&label, *base).set_pos(position)
             }
         }
         ExprOldExprSubstitutor { substitutor }.fold(self)
@@ -103,11 +103,11 @@ impl Expr {
         where
             T: Fn(String) -> String,
         {
-            fn fold_labelled_old(&mut self, x: String, y: Box<Expr>, p: Position) -> Expr {
+            fn fold_labelled_old(&mut self, LabelledOld {label, base, position}: LabelledOld) -> Expr {
                 Expr::LabelledOld( LabelledOld {
-                    label: (self.substitutor)(x),
-                    base: y,
-                    position: p,
+                    label: (self.substitutor)(label),
+                    base,
+                    position,
                 })
             }
         }

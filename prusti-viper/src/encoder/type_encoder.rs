@@ -794,7 +794,7 @@ struct HackyExprFolder {
 }
 
 impl ExprFolder for HackyExprFolder {
-    fn fold_local(&mut self, _var: vir::LocalVar, pos: vir::Position) -> vir::Expr {
-        vir::Expr::local_with_pos(self.saelf.clone(), pos)
+    fn fold_local(&mut self, vir::Local {position, ..}: vir::Local) -> vir::Expr {
+        vir::Expr::local_with_pos(self.saelf.clone(), position)
     }
 }

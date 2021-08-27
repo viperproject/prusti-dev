@@ -133,14 +133,14 @@ impl VarDependencyCollector {
 }
 
 impl ExprWalker for VarDependencyCollector {
-    fn walk_field(&mut self, receiver: &vir::Expr, _field: &vir::Field, _pos: &vir::Position) {
-        match receiver {
+    fn walk_field(&mut self, vir::FieldExpr {box base, ..}: &vir::FieldExpr) {
+        match base {
             // If we have a variable that is accessed two levels down, we assume
             // that it is dereferenced without checking the actual type.
             vir::Expr::Field( vir::FieldExpr {base: box vir::Expr::Local( vir::Local {variable: local_var, ..}), ..} ) => {
                 self.dereferenced_variables.insert(local_var.name.clone());
             }
-            _ => ExprWalker::walk(self, receiver),
+            _ => ExprWalker::walk(self, base),
         }
     }
 }
@@ -196,9 +196,9 @@ struct VariableCollector {
 }
 
 impl ExprWalker for VariableCollector {
-    fn walk_local(&mut self, local_var: &vir::LocalVar, _pos: &vir::Position) {
-        if !self.vars.contains(&local_var.name) {
-            self.vars.insert(local_var.name.clone());
+    fn walk_local(&mut self, vir::Local {variable, ..}: &vir::Local) {
+        if !self.vars.contains(&variable.name) {
+            self.vars.insert(variable.name.clone());
         }
     }
 }
@@ -286,12 +286,7 @@ impl StmtFolder for Purifier<'_, '_, '_> {
 }
 
 impl ExprFolder for Purifier<'_, '_, '_> {
-    fn fold_field_access_predicate(
-        &mut self,
-        receiver: Box<vir::Expr>,
-        perm_amount: vir::PermAmount,
-        pos: vir::Position
-    ) -> vir::Expr {
+    fn fold_field_access_predicate(&mut self, vir::FieldAccessPredicate {base: receiver, permission, position}: vir::FieldAccessPredicate) -> vir::Expr {
         match &*receiver {
             vir::Expr::Field( vir::FieldExpr {base: box vir::Expr::Local ( vir::Local {variable: local_var, ..} ), ..} )
                     if self.vars.contains(&local_var.name) => {
@@ -301,19 +296,13 @@ impl ExprFolder for Purifier<'_, '_, '_> {
         }
         vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {
             base: receiver,
-            permission: perm_amount,
-            position: pos,
+            permission,
+            position,
         })
     }
-    fn fold_predicate_access_predicate(
-        &mut self,
-        typ: vir::Type,
-        arg: Box<vir::Expr>,
-        perm_amount: vir::PermAmount,
-        pos: vir::Position
-    ) -> vir::Expr {
-        let arg = self.fold_boxed(arg);
-        match &*arg {
+    fn fold_predicate_access_predicate(&mut self, vir::PredicateAccessPredicate {predicate_type, argument, permission, position}: vir::PredicateAccessPredicate) -> vir::Expr {
+        let argument = self.fold_boxed(argument);
+        match &*argument {
             vir::Expr::Local( vir::Local {variable: local_var, ..})
                     if self.vars.contains(&local_var.name) ||
                         self.change_var_types.contains_key(&local_var.name) => {
@@ -322,47 +311,31 @@ impl ExprFolder for Purifier<'_, '_, '_> {
             _ => {}
         }
         vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {
-            predicate_type: typ,
-            argument: arg,
-            permission: perm_amount,
-            position: pos,
+            predicate_type,
+            argument,
+            permission,
+            position,
         })
     }
-    fn fold_labelled_old(
-        &mut self,
-        label: String,
-        body: Box<vir::Expr>,
-        pos: vir::Position
-    ) -> vir::Expr {
-        let body = self.fold_boxed(body);
+    fn fold_labelled_old(&mut self, vir::LabelledOld {label, base, position}: vir::LabelledOld) -> vir::Expr {
+        let body = self.fold_boxed(base);
         if !body.is_heap_dependent() {
             return *body;
         }
         vir::Expr::LabelledOld( vir::LabelledOld {
             label,
             base: body,
-            position: pos,
+            position,
         })
     }
     fn fold_local(
-        &mut self,
-        mut var: vir::LocalVar,
-        pos: vir::Position,
-    ) -> vir::Expr {
-        if let Some(new_type) = self.change_var_types.get(&var.name) {
-            var.typ = translate_type(self.encoder, new_type.clone());
+        &mut self, vir::Local {mut variable, position}: vir::Local) -> vir::Expr {
+        if let Some(new_type) = self.change_var_types.get(&variable.name) {
+            variable.typ = translate_type(self.encoder, new_type.clone());
         }
-        vir::Expr::Local( vir::Local {
-            variable: var,
-            position: pos,
-        })
+        vir::Expr::local_with_pos(variable, position)
     }
-    fn fold_field(
-        &mut self,
-        receiver: Box<vir::Expr>,
-        field: vir::Field,
-        pos: vir::Position,
-    ) -> vir::Expr {
+    fn fold_field(&mut self, vir::FieldExpr {base: receiver, field, position}: vir::FieldExpr) -> vir::Expr {
         match receiver {
             box vir::Expr::Local( vir::Local {variable: local_var, ..} ) if self.vars.contains(&local_var.name) => {
                 return vir::LocalVar {
@@ -375,30 +348,23 @@ impl ExprFolder for Purifier<'_, '_, '_> {
         vir::Expr::Field( vir::FieldExpr {
             base: receiver,
             field,
-            position: pos,
+            position,
         })
     }
-    fn fold_func_app(
-        &mut self,
-        name: String,
-        args: Vec<vir::Expr>,
-        formal_args: Vec<vir::LocalVar>,
-        return_type: vir::Type,
-        pos: vir::Position
-    ) -> vir::Expr {
-        let args: Vec<_> = args.into_iter().map(|e| ExprFolder::fold(self, e)).collect();
-        match args.as_slice() {
+    fn fold_func_app(&mut self, vir::FuncApp {function_name, arguments, formal_arguments, return_type, position}: vir::FuncApp) -> vir::Expr {
+        let arguments: Vec<_> = arguments.into_iter().map(|e| ExprFolder::fold(self, e)).collect();
+        match arguments.as_slice() {
             [vir::Expr::Local( vir::Local {variable: local_var, position: local_pos} )] => {
                 if self.vars.contains(&local_var.name) ||
                         self.change_var_types.contains_key(&local_var.name) {
-                    if name.starts_with("snap$") {
+                    if function_name.starts_with("snap$") {
                         return vir::Expr::Local( vir::Local {
                             variable: local_var.clone(),
                             position: local_pos.clone(),
                         });
                     }
-                    if name.ends_with("$$discriminant$$") {
-                        let predicate_name = formal_args[0].typ.name();
+                    if function_name.ends_with("$$discriminant$$") {
+                        let predicate_name = formal_arguments[0].typ.name();
                         let domain_name = format!("Snap${}", predicate_name);
                         let arg_dom_expr = vir::Expr::Local( vir::Local {
                             variable: local_var.clone(),
@@ -418,11 +384,11 @@ impl ExprFolder for Purifier<'_, '_, '_> {
             _ => {}
         }
         vir::Expr::FuncApp( vir::FuncApp {
-            function_name: name,
-            arguments: args,
-            formal_arguments: formal_args,
+            function_name,
+            arguments,
+            formal_arguments,
             return_type,
-            position: pos
+            position
         })
     }
 }

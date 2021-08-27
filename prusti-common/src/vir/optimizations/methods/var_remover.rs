@@ -62,20 +62,9 @@ impl ast::ExprWalker for UsedVarCollector {
     fn walk_local_var(&mut self, local_var: &ast::LocalVar) {
         self.used_vars.insert(local_var.name.clone());
     }
-    fn walk_predicate_access_predicate(
-        &mut self,
-        _typ: &ast::Type,
-        _arg: &ast::Expr,
-        _perm_amount: ast::PermAmount,
-        _pos: &ast::Position,
-    ) {
+    fn walk_predicate_access_predicate(&mut self, _predicate_access_predicate: &ast::PredicateAccessPredicate) {
     }
-    fn walk_field_access_predicate(
-        &mut self,
-        _expr: &ast::Expr,
-        _perm_amount: ast::PermAmount,
-        _pos: &ast::Position,
-    ) {
+    fn walk_field_access_predicate(&mut self, _field_access_predicate: &ast::FieldAccessPredicate) {
     }
 }
 
@@ -102,14 +91,8 @@ struct UnusedVarRemover {
 }
 
 impl ast::ExprFolder for UnusedVarRemover {
-    fn fold_predicate_access_predicate(
-        &mut self,
-        typ: ast::Type,
-        arg: Box<ast::Expr>,
-        perm_amount: ast::PermAmount,
-        pos: ast::Position,
-    ) -> ast::Expr {
-        match arg {
+    fn fold_predicate_access_predicate(&mut self, ast::PredicateAccessPredicate {predicate_type, argument, permission, position}: ast::PredicateAccessPredicate) -> ast::Expr {
+        match argument {
             box ast::Expr::Local( ast::Local {variable: ref var, ..} ) => {
                 if self.unused_vars.contains(var) {
                     return true.into();
@@ -118,26 +101,21 @@ impl ast::ExprFolder for UnusedVarRemover {
             _ => {}
         }
         ast::Expr::PredicateAccessPredicate( ast::PredicateAccessPredicate {
-            predicate_type: typ,
-            argument: arg,
-            permission: perm_amount,
-            position: pos,
+            predicate_type,
+            argument,
+            permission,
+            position,
         })
     }
-    fn fold_field_access_predicate(
-        &mut self,
-        expr: Box<ast::Expr>,
-        perm_amount: ast::PermAmount,
-        pos: ast::Position,
-    ) -> ast::Expr {
-        let var = expr.get_base();
+    fn fold_field_access_predicate(&mut self, ast::FieldAccessPredicate {base, permission, position}: ast::FieldAccessPredicate) -> ast::Expr {
+        let var = base.get_base();
         if self.unused_vars.contains(&var) {
             return true.into();
         }
         ast::Expr::FieldAccessPredicate( ast::FieldAccessPredicate {
-            base: expr,
-            permission: perm_amount,
-            position: pos,
+            base: base,
+            permission,
+            position,
         })
     }
 }
