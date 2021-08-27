@@ -835,27 +835,26 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         -> String           //TODO: use Result type?, removed, because don't ever return an error
     {
         let mut this_pred_name = credit_type.to_string();
-        for exp in exponents.iter() {
-            this_pred_name.push_str(&exp.to_string());
+        if !exponents.is_empty() {
+            this_pred_name.push('_');
+            this_pred_name.push_str(&exponents.iter().join("_"));
         }
 
         // add missing predicate def & sub-predicate defs
         let mut pred_name = this_pred_name.clone();
         while !self.credit_predicates.borrow().contains_key(&pred_name) {
-            //order of sub-predicates: reduce (last) highest exponent by 1      //TODO: simpler order: always reduce first exponent?
-            if let Some(max_idx) = exponents.iter().position_max() {
+            if !exponents.is_empty() {
+                // always reduce last exponent
                 let curr_n_exps = exponents.len();
-                // ==> exponents vector is not empty
-                if exponents[max_idx] > 1 {
-                    exponents[max_idx] -= 1;
-                }
-                else {
-                    exponents.remove(max_idx);
+                let last_exp = exponents.pop().unwrap();
+                if last_exp > 1 {
+                    exponents.push(last_exp - 1);
                 }
                 // sub-predicate name
                 let mut sub_pred_name = credit_type.to_string();
-                for exp in exponents.iter() {
-                    sub_pred_name.push_str(&exp.to_string());
+                if !exponents.is_empty() {
+                    sub_pred_name.push('_');
+                    sub_pred_name.push_str(&exponents.iter().join("_"));
                 }
 
                 // construct predicate
@@ -863,14 +862,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 let mut sub_pred_args = vec![];
                 for i in 0..curr_n_exps {
                     let local_var = vir::LocalVar::new(format!("_{}", i), vir::Type::Int);
-                    pred_args.push(local_var.clone());
-                    if i != max_idx || exponents.len() == curr_n_exps {
-                        sub_pred_args.push(vir::Expr::local(local_var));
+                    if i < exponents.len() {
+                        sub_pred_args.push(vir::Expr::local(local_var.clone()));
                     }
+                    pred_args.push(local_var);
                 }
-                let max_idx_var = vir::Expr::local(vir::LocalVar::new(format!("_{}", max_idx), vir::Type::Int));
-                let var_perm_ge_zero = vir::Expr::ge_cmp(max_idx_var.clone(), 0.into());
-                let perm_amount = vir::FracPermAmount::new(box max_idx_var, box 1.into());
+                let reduced_var = vir::Expr::local(vir::LocalVar::new(format!("_{}", curr_n_exps-1), vir::Type::Int));
+                let var_perm_ge_zero = vir::Expr::ge_cmp(reduced_var.clone(), 0.into());
+                let perm_amount = vir::FracPermAmount::new(box reduced_var, box 1.into());
                 let credit_acc = vir::Expr::credit_access_predicate(&sub_pred_name, sub_pred_args, perm_amount);
                 let pred_body = vir::Expr::and(var_perm_ge_zero, credit_acc);
 
