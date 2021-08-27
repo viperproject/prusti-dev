@@ -801,10 +801,10 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
 
         let method = ast.method(
             &self.name(),
-            &[],
+            &self.viper_formal_args.to_viper_decl(ast),
             &formal_returns_decl,
-            &[],
-            &[],
+            &self.viper_preconditions.to_viper(ast),
+            &self.viper_postconditions.to_viper(ast),
             method_body,
         );
 

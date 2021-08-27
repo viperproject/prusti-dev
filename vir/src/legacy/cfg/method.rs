@@ -20,8 +20,11 @@ pub struct CfgMethod {
     #[serde(skip)]
     pub(crate) uuid: Uuid,
     pub(crate) method_name: String,
-    pub(crate) formal_arg_count: usize,
+    pub(crate) internal_formal_arg_count: usize,
+    pub viper_formal_args: Vec<LocalVar>,           //TODO: getters?
     pub(crate) formal_returns: Vec<LocalVar>,
+    pub viper_preconditions: Vec<Expr>,
+    pub viper_postconditions: Vec<Expr>,
     // FIXME: This should be pub(in super::super). However, the optimization
     // that depends on snapshots needs to modify this field.
     pub local_vars: Vec<LocalVar>,
@@ -143,8 +146,11 @@ impl CfgMethod {
         CfgMethod {
             uuid: Uuid::new_v4(),
             method_name,
-            formal_arg_count,
+            internal_formal_arg_count: formal_arg_count,
+            viper_formal_args: vec![],
             formal_returns,
+            viper_preconditions: vec![],
+            viper_postconditions: vec![],
             local_vars,
             labels: HashSet::new(),
             reserved_labels: HashSet::from_iter(reserved_labels),
@@ -183,6 +189,7 @@ impl CfgMethod {
             && self.local_vars.iter().all(|x| x.name != name)
             && !self.labels.contains(name)
             && self.basic_blocks_labels.iter().all(|x| x != name)
+            && self.viper_formal_args.iter().all(|x| x.name != name)
     }
 
     fn generate_fresh_local_var_name(&mut self) -> String {
@@ -212,6 +219,7 @@ impl CfgMethod {
     /// Returns all formal arguments, formal returns, and local variables
     pub fn get_all_vars(&self) -> Vec<LocalVar> {
         let mut vars: Vec<LocalVar> = vec![];
+        vars.extend(self.viper_formal_args.clone());
         vars.extend(self.formal_returns.clone());
         vars.extend(self.local_vars.clone());
         vars
@@ -240,6 +248,19 @@ impl CfgMethod {
     pub fn add_formal_return(&mut self, name: &str, typ: Type) {
         assert!(self.is_fresh_local_name(name));
         self.formal_returns.push(LocalVar::new(name, typ));
+    }
+
+    pub fn add_viper_formal_arg(&mut self, name: &str, typ: Type) {
+        assert!(self.is_fresh_local_name(name));
+        self.viper_formal_args.push(LocalVar::new(name, typ));
+    }
+
+    pub fn add_viper_precondition(&mut self, precondition: Expr) {
+        self.viper_preconditions.push(precondition);
+    }
+
+    pub fn add_viper_postcondition(&mut self, postcondition: Expr) {
+        self.viper_postconditions.push(postcondition);
     }
 
     pub fn add_stmt(&mut self, index: CfgBlockIndex, stmt: Stmt) {

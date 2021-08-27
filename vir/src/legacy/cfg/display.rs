@@ -6,13 +6,20 @@
 
 use crate::legacy::cfg::method::*;
 use std::fmt;
+use itertools::Itertools;
 
-impl fmt::Display for CfgMethod {
+impl fmt::Display for CfgMethod {       //TODO: add pre/post
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(
             f,
-            "method {}({} args)",
-            self.method_name, self.formal_arg_count
+            "method {}({} internal args{})",
+            self.method_name, self.internal_formal_arg_count,
+            if self.viper_formal_args.is_empty() {
+                "".to_string()
+            }
+            else {
+                format!("; {}", self.viper_formal_args.iter().join(", "))
+            }
         )?;
         writeln!(
             f,

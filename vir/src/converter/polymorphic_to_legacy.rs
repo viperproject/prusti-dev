@@ -591,12 +591,15 @@ impl From<polymorphic::CfgMethod> for legacy::CfgMethod {
         legacy::CfgMethod {
             uuid: cfg_method.uuid,
             method_name: cfg_method.method_name,
-            formal_arg_count: cfg_method.formal_arg_count,
+            internal_formal_arg_count: cfg_method.formal_arg_count,
+            viper_formal_args: vec![],      //TODO
             formal_returns: cfg_method
                 .formal_returns
                 .into_iter()
                 .map(|formal_return| formal_return.into())
                 .collect(),
+            viper_preconditions: vec![], //TODO
+            viper_postconditions: vec![], //TODO
             local_vars: cfg_method
                 .local_vars
                 .into_iter()

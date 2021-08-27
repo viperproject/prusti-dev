@@ -98,11 +98,11 @@ pub trait CfgReplacer<PathCtxt: Debug + Clone, Action: CheckNoOpAction + Debug> 
         // Initialize the variables of the new cfg
         let mut new_cfg = CfgMethod::new(
             cfg.method_name.clone(),
-            cfg.formal_arg_count,
+            cfg.internal_formal_arg_count,
             cfg.formal_returns.clone(),
             cfg.local_vars.clone(),
             cfg.get_all_labels(),
-        );
+        );//TODO: add formal args & pre/postconditions
 
         // Initialize the blocks of the new cfg
         for (index, _block) in cfg.basic_blocks.iter().enumerate() {

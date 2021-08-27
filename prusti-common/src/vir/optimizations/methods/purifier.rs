@@ -66,6 +66,7 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         }
     };
     method.local_vars = method.local_vars.into_iter().map(fix_var).collect();
+//    method.viper_formal_args = method.viper_formal_args.into_iter().map(fix_var).collect();     //TODO: ?
     method
 }
 

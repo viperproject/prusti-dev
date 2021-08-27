@@ -119,6 +119,12 @@ pub fn walk_methods(methods: &[CfgMethod], walker: &mut (impl StmtWalker + ExprW
 }
 
 pub fn walk_method(method: &CfgMethod, walker: &mut (impl StmtWalker + ExprWalker)) {
+    for pre in method.viper_preconditions.iter() {
+        ExprWalker::walk(walker, pre);
+    }
+    for post in method.viper_postconditions.iter() {
+        ExprWalker::walk(walker, post);
+    }
     method.walk_statements(|stmt| {
         StmtWalker::walk(walker, stmt);
     });

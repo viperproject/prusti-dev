@@ -12,7 +12,7 @@ use crate::encoder::Encoder;
 pub fn purify_method(
     encoder: &Encoder,
     method: &mut vir::CfgMethod
-) {
+) {     //TODO: extension needed?
     // A set of candidate references to be purified.
     let mut candidates = HashSet::new();
     debug!("method: {}", method.name());
