@@ -20,6 +20,7 @@ use vir_crate::polymorphic::{
     EnumVariantIndex, ExprIterator, ContainerOpKind, WithIdentifier,
     Type, Expr,
 };
+use crate::encoder::encoder::SubstMap;
 use crate::encoder::{
     Encoder,
     array_encoder::{EncodedArrayTypes, EncodedSliceTypes},
@@ -169,9 +170,11 @@ impl SnapshotEncoder {
         method: vir::CfgMethod,
     ) -> EncodingResult<vir::CfgMethod> {
         debug!("[snap] method: {:?}", method.name());
+        let tymap = HashMap::new();
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
+            tymap: &tymap,
         };
         method.patch_statements(|stmt| FallibleStmtFolder::fallible_fold(&mut patcher, stmt))
     }
@@ -181,11 +184,13 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         mut function: vir::Function,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<vir::Function> {
         debug!("[snap] function: {:?}", function.name);
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
+            tymap,
         };
         function.pres = function.pres.into_iter()
             .map(|e| FallibleExprFolder::fallible_fold(&mut patcher, e))
@@ -204,11 +209,13 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         expr: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
         debug!("[snap] expr: {:?}", expr);
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
+            tymap,
         };
         FallibleExprFolder::fallible_fold(&mut patcher, expr)
     }
@@ -219,6 +226,7 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         expr: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
         let vir_ty = expr.get_type();
         match vir_ty {
@@ -243,7 +251,7 @@ impl SnapshotEncoder {
 
                     // Param(_) | Adt(_) | Tuple(_), arrays and slices and unsupported types
                     _ => {
-                        let snapshot = self.encode_snapshot(encoder, ty)?;
+                        let snapshot = self.encode_snapshot(encoder, ty, tymap)?;
                         self.snap_app_expr(expr, snapshot.get_type())
                     }
                 })
@@ -288,11 +296,12 @@ impl SnapshotEncoder {
         expr: Expr,
         variant: vir::Field,
         field: vir::Field,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
         // TODO: we should not rely on string operations
         assert!(variant.name.starts_with("enum_"));
         let variant_name = &variant.name[5..];
-        let snapshot = self.decode_snapshot(encoder, expr.get_type())?;
+        let snapshot = self.decode_snapshot(encoder, expr.get_type(), tymap)?;
         match snapshot {
             Snapshot::Complex { variants, variant_names, .. } => {
                 let variant_idx = variant_names.get(variant_name)
@@ -320,8 +329,9 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         expr: Expr,
         field: vir::Field,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let snapshot = self.decode_snapshot(encoder, expr.get_type())?;
+        let snapshot = self.decode_snapshot(encoder, expr.get_type(), tymap)?;
         match (field.name.as_str(), snapshot) {
             ("discriminant", Snapshot::Complex { discriminant_func, .. }) => Ok(
                 discriminant_func.apply(vec![expr]),
@@ -343,12 +353,13 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         vir_ty: &Type,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Snapshot> {
         match vir_ty {
             Type::Snapshot(_)
             | Type::TypedRef(_) => {
                 let ty = encoder.decode_type_predicate_type(vir_ty)?;
-                self.encode_snapshot(encoder, ty)
+                self.encode_snapshot(encoder, ty, tymap)
             }
             _ => Err(EncodingError::internal(
                 format!("expected Snapshot type: {:?}", vir_ty),
@@ -367,8 +378,9 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<bool> {
-        self.encode_snapshot(encoder, ty)
+        self.encode_snapshot(encoder, ty, tymap)
             .map(|snapshot| snapshot.supports_equality())
     }
 
@@ -378,8 +390,9 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<bool> {
-        self.encode_snapshot(encoder, ty)
+        self.encode_snapshot(encoder, ty, tymap)
             .map(|snapshot| snapshot.is_quantifiable())
     }
 
@@ -390,8 +403,9 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         expr_self: Expr,
         expr_result: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let snapshot = self.decode_snapshot(encoder, expr_self.get_type())?;
+        let snapshot = self.decode_snapshot(encoder, expr_self.get_type(), tymap)?;
         match snapshot {
             Snapshot::Complex { ref discriminant_func, .. } => Ok(Expr::eq_cmp(
                 discriminant_func.apply(vec![
@@ -412,8 +426,9 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
         args: Vec<Expr>,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let snapshot = self.encode_snapshot(encoder, ty)?;
+        let snapshot = self.encode_snapshot(encoder, ty, tymap)?;
         match snapshot {
             Snapshot::Complex { ref variants, .. } => {
                 assert_eq!(variants.len(), 1);
@@ -447,8 +462,9 @@ impl SnapshotEncoder {
         array_ty: ty::Ty<'tcx>,
         array: Expr,
         idx: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let read_func = if let Snapshot::Array { read, .. } = self.encode_snapshot(encoder, array_ty)? {
+        let read_func = if let Snapshot::Array { read, .. } = self.encode_snapshot(encoder, array_ty, tymap)? {
             read
         } else {
             return Err(EncodingError::internal(
@@ -471,8 +487,9 @@ impl SnapshotEncoder {
         slice_ty: ty::Ty<'tcx>,
         slice: Expr,
         idx: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let read_func = if let Snapshot::Slice { read, .. } = self.encode_snapshot(encoder, slice_ty)? {
+        let read_func = if let Snapshot::Slice { read, .. } = self.encode_snapshot(encoder, slice_ty, tymap)? {
             read
         } else {
             return Err(EncodingError::internal(
@@ -493,8 +510,9 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         slice_ty: ty::Ty<'tcx>,
         slice: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let len_func = if let Snapshot::Slice { len, .. } = self.encode_snapshot(encoder, slice_ty)? {
+        let len_func = if let Snapshot::Slice { len, .. } = self.encode_snapshot(encoder, slice_ty, tymap)? {
             len
         } else {
             return Err(EncodingError::internal(
@@ -513,11 +531,12 @@ impl SnapshotEncoder {
         slice_ty: ty::Ty<'tcx>,
         lo: Expr,
         hi: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        match self.encode_snapshot(encoder, base_ty)? {
+        match self.encode_snapshot(encoder, base_ty, tymap)? {
             Snapshot::Array { slice_helper, .. }
             | Snapshot::Slice { slice_helper, .. } => {
-                let slice_cons = if let Snapshot::Slice { cons, .. } = self.encode_snapshot(encoder, slice_ty)? {
+                let slice_cons = if let Snapshot::Slice { cons, .. } = self.encode_snapshot(encoder, slice_ty, tymap)? {
                     cons
                 } else {
                     return Err(EncodingError::internal(
@@ -539,8 +558,9 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Type> {
-        self.encode_snapshot(encoder, ty)
+        self.encode_snapshot(encoder, ty, tymap)
             .map(|snapshot| snapshot.get_type())
     }
 
@@ -555,8 +575,9 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Snapshot> {
-        let ty = encoder.resolve_typaram(strip_refs_and_boxes(ty));
+        let ty = encoder.resolve_typaram(strip_refs_and_boxes(ty), tymap);
         let predicate_type = encoder.encode_type(ty)?;
 
         // was the snapshot for the type already encoded?
@@ -592,7 +613,7 @@ impl SnapshotEncoder {
 
         // encode snapshot
         let snapshot = self
-            .encode_snapshot_internal(encoder, ty, &predicate_type)
+            .encode_snapshot_internal(encoder, ty, &predicate_type, tymap)
             .or_else(|err| {
                 self.in_progress.remove(&predicate_type);
                 Err(err)
@@ -613,6 +634,7 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
         predicate_type: &Type,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Snapshot> {
         let tcx = encoder.env().tcx();
 
@@ -647,9 +669,9 @@ impl SnapshotEncoder {
                         access: self.snap_app(encoder, Expr::field(
                             arg_expr.clone(),
                             encoder.encode_raw_ref_field(field_name.to_string(), field_ty)?,
-                        ))?,
+                        ), tymap)?,
                         mir_type: field_ty,
-                        typ: self.encode_type(encoder, field_ty)?,
+                        typ: self.encode_type(encoder, field_ty, tymap)?,
                     });
                 }
                 self.encode_complex(encoder, vec![SnapshotVariant {
@@ -667,9 +689,9 @@ impl SnapshotEncoder {
                         access: self.snap_app(encoder, Expr::field(
                             arg_expr.clone(),
                             encoder.encode_struct_field(&field.ident.to_string(), field_ty)?,
-                        ))?,
+                        ), tymap)?,
                         mir_type: field_ty,
-                        typ: self.encode_type(encoder, field_ty)?,
+                        typ: self.encode_type(encoder, field_ty, tymap)?,
                     });
                 }
                 self.encode_complex(encoder, vec![SnapshotVariant {
@@ -703,9 +725,9 @@ impl SnapshotEncoder {
                             access: self.snap_app(encoder, Expr::field(
                                 field_base.clone(),
                                 encoder.encode_struct_field(&field.ident.to_string(), field_ty)?,
-                            ))?,
+                            ), tymap)?,
                             mir_type: field_ty,
-                            typ: self.encode_type(encoder, field_ty)?,
+                            typ: self.encode_type(encoder, field_ty, tymap)?,
                         });
                     }
 
@@ -725,7 +747,7 @@ impl SnapshotEncoder {
             }
 
             ty::TyKind::Array(elem_ty, ..) => {
-                let elem_snap_ty = self.encode_type(encoder, elem_ty)?;
+                let elem_snap_ty = self.encode_type(encoder, elem_ty, tymap)?;
                 let array_types = encoder.encode_array_types(ty)?;
 
                 let domain_name = format!("Snap${}", &array_types.array_pred_type.name());
@@ -901,7 +923,7 @@ impl SnapshotEncoder {
                 let slice_types = encoder.encode_slice_types(ty)?;
                 let domain_name = format!("Snap${}", &slice_types.slice_pred_type.name());
                 let slice_snap_ty = slice_types.slice_pred_type.convert_to_snapshot();
-                let elem_snap_ty = self.encode_type(encoder, elem_ty)?;
+                let elem_snap_ty = self.encode_type(encoder, elem_ty, tymap)?;
                 let seq_type = Type::Seq( vir::SeqType {typ: box elem_snap_ty.clone()} );
 
                 let cons = vir::DomainFunc {
