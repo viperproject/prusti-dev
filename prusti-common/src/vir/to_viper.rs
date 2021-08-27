@@ -779,7 +779,9 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
             // Sort blocks by label, except for the first block
             let mut blocks: Vec<_> = self.basic_blocks.iter().enumerate().skip(1).collect();
             blocks.sort_by_key(|(index, _)| index_to_label(&self.basic_blocks_labels(), *index));
-            blocks.insert(0, (0, &self.basic_blocks[0]));
+            if !self.basic_blocks.is_empty() {
+                blocks.insert(0, (0, &self.basic_blocks[0]));
+            }
 
             for (index, block) in blocks.into_iter() {
                 blocks_ast.push(block_to_viper(ast, &self.basic_blocks_labels(), block, index));
@@ -792,7 +794,12 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
         blocks_ast.push(ast.label(RETURN_LABEL, &[]));
         declarations.push(ast.label(RETURN_LABEL, &[]).into());
 
-        let method_body = Some(ast.seqn(&blocks_ast, &declarations));
+        let method_body = if !self.basic_blocks.is_empty() {
+            Some(ast.seqn(&blocks_ast, &declarations))
+        }
+        else {
+            None
+        };
 
         let mut formal_returns_decl: Vec<viper::LocalVarDecl> = vec![];
         for local_var in self.get_formal_returns() {
