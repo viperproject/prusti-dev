@@ -380,18 +380,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     concrete_terms
                 };
                 for term in terms {
-                    let mut exponents = vec![];
-                    let mut args= vec![];
+                    let mut args_with_exps= vec![];
                     for pow in term.powers.iter() {
-                        exponents.push(pow.exponent);
-
                         let base_expr = self.encode_expression(&typed::Expression {         //TODO: ugly to create an expression
                             spec_id: pow.spec_id,
                             id: pow.id,
                             expr: pow.base
                         })?;
-                        args.push(base_expr);
+                        args_with_exps.push((base_expr, pow.exponent));
                     }
+                    args_with_exps.sort_unstable_by_key(|(base, exp)| base.to_string());        // sort to make unique
+                    let (args, exponents) = args_with_exps.into_iter().unzip();
 
                     let pred_name = self.encoder.encode_credit_predicate_use(credit_type, exponents);
                     let frac_perm = self.encode_credit_perm_amount(&term.coeff_expr)?;

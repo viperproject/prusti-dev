@@ -357,7 +357,6 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 .predicate_access_predicate_with_pos(
                     ast.predicate_access(
                         &args.iter()
-                            .sorted_unstable_by_key(|expr| expr.to_string())        // ensure that arguments are sorted //TODO
                             .map(|arg| arg.to_viper(ast))
                             .collect::<Vec<_>>(),
                         predicate_name),
