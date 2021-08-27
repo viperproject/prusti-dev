@@ -60,6 +60,7 @@ use crate::encoder::snapshot::encoder::SnapshotEncoder;
 use crate::encoder::purifier;
 use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
 use itertools::Itertools;
+use crate::encoder::cost_encoder::{CreditConversion, CreditConversionType};
 
 #[must_use]
 pub struct CleanupTyMapStack<'a, 'tcx> {
@@ -105,6 +106,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     /// where a pure function is required.
     stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::FunctionIdentifier>>,
     spec_functions: RefCell<HashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
+    credit_conversion_methods: RefCell<HashMap<String, vir::CfgMethod>>,
     credit_predicates: RefCell<HashMap<String, vir::Predicate>>,
     type_predicate_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
@@ -169,6 +171,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             failed_pure_functions: RefCell::new(HashSet::new()),
             stub_pure_functions: RefCell::new(HashMap::new()),
             spec_functions: RefCell::new(HashMap::new()),
+            credit_conversion_methods: RefCell::new(HashMap::new()),
             credit_predicates: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
             type_invariant_names: RefCell::new(HashMap::new()),
@@ -331,7 +334,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
-        self.procedures.borrow_mut().drain().map(|(_, value)| value).collect()
+        let mut method_vec: Vec<vir::CfgMethod> = self.procedures.borrow_mut().drain().map(|(_, value)| value).collect();
+        method_vec.extend(self.credit_conversion_methods.borrow_mut().drain().map(|(_, value)| value));
+        method_vec
     }
 
     pub fn get_single_closure_instantiation(
@@ -829,6 +834,607 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 format!("type predicate not known: {:?}", name)
             ))
         }
+    }
+
+    pub(crate) fn encode_credit_conversion_use(&self, mut conversion: CreditConversion) -> String {
+        let mut this_method_name = conversion.credit_type.to_string();
+
+        match &conversion.conversion_type {
+            CreditConversionType::ConstToPlace { .. } => {
+                this_method_name.push_str("_const");
+            }
+            CreditConversionType::Reorder { previous_idx, previous_base } => {
+                this_method_name.push_str(&format!("_reorder_{}", previous_idx));
+                if previous_base.is_none() {
+                    this_method_name.push_str("_partial");
+                }
+            }
+            CreditConversionType::SumPlaceConst { place_idx, place_expr, .. } => {
+                this_method_name.push_str(&format!("_sum_place_{}_const", place_idx));
+                if place_expr.is_none() {
+                    this_method_name.push_str("_partial");
+                }
+            }
+            CreditConversionType::MulPlaceConst { place_idx, place_expr, .. } => {
+                this_method_name.push_str(&format!("_mul_place_{}_const", place_idx));
+                if place_expr.is_none() {
+                    this_method_name.push_str("_partial");
+                }
+            }
+            CreditConversionType::DivPlaceConst { place_idx, place_expr, .. } => {
+                this_method_name.push_str(&format!("_div_place_{}_const", place_idx));
+                if place_expr.is_none() {
+                    this_method_name.push_str("_partial");
+                }
+            }
+            CreditConversionType::SumPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
+                this_method_name.push_str(&format!("_sum_places_{}", place1_idx));
+                if place1_expr.is_none() {
+                    this_method_name.push_str("_partial");
+                }
+                this_method_name.push_str(&format!("_{}", place2_idx));
+                if place2_expr.is_none() {
+                    this_method_name.push_str("_partial");
+                }
+            }
+            CreditConversionType::MulPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
+                this_method_name.push_str(&format!("_mul_places_{}", place1_idx));
+                if place1_expr.is_none() {
+                    this_method_name.push_str("_partial");
+                }
+                this_method_name.push_str(&format!("_{}", place2_idx));
+                if place2_expr.is_none() {
+                    this_method_name.push_str("_partial");
+                }
+            }
+        }
+
+        this_method_name.push_str(&format!(
+            "_to_{}_in_{}",
+            conversion.assigned_place_idx,
+            conversion.result_exps.iter().join("_"),
+        ));
+
+        // add missing method def & defs of called methods
+        if !self.credit_conversion_methods.borrow().contains_key(&this_method_name) {
+            let mut method = vir::CfgMethod::new(
+                this_method_name.clone(),
+                0,
+                vec![],
+                vec![],
+                vec![],
+            );
+
+            let perm_arg_name = "p";
+            let perm_arg_type = vir::Type::Int;     //TODO: use Perm?
+            method.add_viper_formal_arg(perm_arg_name, perm_arg_type.clone());
+            let perm_arg = vir::Expr::local(
+                vir::LocalVar::new(perm_arg_name, perm_arg_type)
+            );
+
+            let mut base_args = vec![];
+            for i in 0..conversion.result_bases.len() {
+                let base_arg_name = format!("base{}", i);
+                let base_arg_type = vir::Type::Int;
+                method.add_viper_formal_arg(&base_arg_name, base_arg_type.clone());
+                let base_arg = vir::Expr::local(
+                    vir::LocalVar::new(base_arg_name, base_arg_type)
+                );
+                base_args.push(base_arg.clone());
+            }
+
+            // ensure permission amounts are above zero
+            method.add_viper_precondition(
+                vir::Expr::ge_cmp(perm_arg.clone(), 0.into())
+            );
+
+            // resulting credits
+            let result_pred_name = self.encode_credit_predicate_use(&conversion.credit_type, conversion.result_exps.clone());
+            let result_pred_args: Vec<vir::Expr> = base_args.clone();
+            let result_pred_perm = vir::FracPermAmount::new(box perm_arg.clone(), box 1.into());
+            method.add_viper_postcondition(
+                vir::Expr::credit_access_predicate(
+                    result_pred_name.clone(),
+                    result_pred_args.clone(),
+                    result_pred_perm.clone(),
+                )
+            );
+
+
+            let generate_const_arg = |method: &mut vir::CfgMethod| -> vir::Expr {
+                let const_arg_name = "c";
+                let const_arg_type = vir::Type::Int;
+                method.add_viper_formal_arg(const_arg_name, const_arg_type.clone());
+                vir::Expr::local(
+                    vir::LocalVar::new(const_arg_name, const_arg_type)
+                )
+            };
+            let generate_place_arg = |method: &mut vir::CfgMethod, name, idx, add_base| -> vir::Expr {
+                if add_base {
+                    let place_arg_type = vir::Type::Int;
+                    method.add_viper_formal_arg(name, place_arg_type.clone());
+                    vir::Expr::local(
+                        vir::LocalVar::new(name, place_arg_type)
+                    )
+                }
+                else {
+                    if conversion.assigned_place_idx <= idx {
+                        base_args[idx + 1].clone()
+                    }
+                    else {
+                        base_args[idx].clone()
+                    }
+                }
+            };
+            let add_required_credits_pre = |method: &mut vir::CfgMethod, previous_idx, prev_arg: &vir::Expr,
+                                            exp_to_add, add_base, frac_perm: vir::FracPermAmount| {
+                let mut pre_args = vec![];
+                let mut pre_exps = vec![];
+                // swap assigned_place_idx & previous_idx
+                let mut pre_idx = 0usize;
+                let mut res_idx = 0usize;
+                while pre_idx < base_args.len() {  // max no. of pre_args
+                    if res_idx == conversion.assigned_place_idx {
+                        // skip
+                        res_idx += 1
+                    }
+                    if pre_idx == previous_idx {
+                        if exp_to_add != 0 {
+                            if add_base {
+                                // insert previous
+                                pre_args.push(prev_arg.clone());
+                                // copy exponent
+                                pre_exps.push(exp_to_add);
+                            } else {
+                                pre_idx += 1;       // skip insertion
+                                // insert res_idx-th from base_args & sum exponents
+                                pre_args.push(base_args[res_idx].clone());
+                                pre_exps.push(conversion.result_exps[res_idx] + exp_to_add);
+                                res_idx += 1;
+                            }
+                        }
+                        // otherwise skip insertion & still increase pre_idx, since counts possible insertions
+                    }
+                    else {
+                        // insert res_idx-th from base_args
+                        pre_args.push(base_args[res_idx].clone());
+                        pre_exps.push(conversion.result_exps[res_idx]);
+                        res_idx += 1;
+                    }
+                    pre_idx += 1;
+                }
+
+                method.add_viper_precondition(
+                    vir::Expr::and(
+                        vir::Expr::ge_cmp(frac_perm.left().clone(), 0.into()), // "work-around" to make nonnegativity check succeed in every case
+                        vir::Expr::credit_access_predicate(
+                            self.encode_credit_predicate_use(&conversion.credit_type, pre_exps),
+                            pre_args,
+                            frac_perm,
+                        )
+                    )
+                );
+            };
+            let add_required_credits_pre2 = |method: &mut vir::CfgMethod, prev_idx1, prev_arg1: &vir::Expr, exp1, add_base1,
+                                             prev_idx2, prev_arg2: &vir::Expr, exp2, add_base2,
+                                             frac_perm: vir::FracPermAmount| {
+                let mut pre_args = vec![];
+                let mut pre_exps = vec![];
+                // swap assigned_place_idx & previous_idx
+                let mut pre_idx = 0usize;
+                let mut res_idx = 0usize;
+                while pre_idx < base_args.len() + 1 {  // max no. of pre_args
+                    if res_idx == conversion.assigned_place_idx {
+                        // skip
+                        res_idx += 1
+                    }
+                    if pre_idx == prev_idx1 {
+                        if exp1 != 0 {
+                            if add_base1 {
+                                // insert previous
+                                pre_args.push(prev_arg1.clone());
+                                // copy exponent
+                                pre_exps.push(exp1);
+                            } else {
+                                // insert res_idx-th from base_args & sum exponents
+                                pre_args.push(base_args[res_idx].clone());
+                                if pre_idx == prev_idx2 {
+                                    // add both exponents (add_base2 must be true)
+                                    pre_exps.push(conversion.result_exps[res_idx] + exp1 + exp2);
+                                    pre_idx += 1; // skipped two insertions
+                                }
+                                else {
+                                    pre_exps.push(conversion.result_exps[res_idx] + exp1);
+                                }
+                                res_idx += 1;
+                                pre_idx += 1;       // skip insertion
+                            }
+                        }
+                        // otherwise skip insertion & still increase pre_idx, since counts possible insertions
+                    }
+                    else if pre_idx == prev_idx2 {
+                        if exp2 != 0 {
+                            if add_base2 {
+                                // insert previous
+                                pre_args.push(prev_arg2.clone());
+                                // copy exponent
+                                pre_exps.push(exp2);
+                            } else {
+                                // insert res_idx-th from base_args & sum exponents
+                                pre_args.push(base_args[res_idx].clone());
+                                pre_exps.push(conversion.result_exps[res_idx] + exp2);
+                                res_idx += 1;
+                                pre_idx += 1;       // skip insertion
+                            }
+                        }
+                        // otherwise skip insertion & still increase pre_idx, since counts possible insertions
+                    }
+                    else {
+                        // insert res_idx-th from base_args
+                        pre_args.push(base_args[res_idx].clone());
+                        pre_exps.push(conversion.result_exps[res_idx]);
+                        res_idx += 1;
+                    }
+                    pre_idx += 1;
+                }
+
+                method.add_viper_precondition(
+                    vir::Expr::and(
+                        vir::Expr::ge_cmp(frac_perm.left().clone(), 0.into()), // "work-around" to make nonnegativity check succeed in every case
+                        vir::Expr::credit_access_predicate(
+                            self.encode_credit_predicate_use(&conversion.credit_type, pre_exps),
+                            pre_args,
+                            frac_perm,
+                        )
+                    )
+                );
+            };
+
+            let mut stmts = vec![];
+            // construct VIR method
+            match &conversion.conversion_type {
+                CreditConversionType::ConstToPlace { .. } => {
+                    let const_arg = generate_const_arg(&mut method);
+
+                    // ensure permission amounts are above zero
+                    method.add_viper_precondition(
+                        vir::Expr::ge_cmp(const_arg.clone(), 0.into())
+                    );
+
+                    // place == const
+                    method.add_viper_precondition(vir::Expr::eq_cmp(
+                        base_args[conversion.assigned_place_idx].clone(),
+                        const_arg.clone()
+                    ));
+
+                    // required credits
+                    // constant^e * perm_arg
+                    let pre_perm: vir::Expr = std::iter::repeat(const_arg.clone())
+                        .take(conversion.result_exps[conversion.assigned_place_idx] as usize)
+                        .fold(perm_arg.clone(), |prod, c|
+                            vir!([c] * [prod]));
+                    let mut pre_args = vec![];
+                    let mut pre_exps = vec![];
+                    // skip assigned_place (is constant)
+                    for i in 0..base_args.len() {
+                        if i != conversion.assigned_place_idx {
+                            pre_args.push(base_args[i].clone());
+                            pre_exps.push(conversion.result_exps[i]);
+                        }
+                    }
+                    method.add_viper_precondition(
+                        vir::Expr::credit_access_predicate(
+                            self.encode_credit_predicate_use(&conversion.credit_type, pre_exps),
+                            pre_args,
+                            vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                        )
+                    );
+
+                    // BODY:
+
+                    if conversion.result_exps[conversion.assigned_place_idx] > 1 {
+                        conversion.result_exps[conversion.assigned_place_idx] -= 1;
+
+                        let mut call_args = vec![];
+                        call_args.push(vir::Expr::mul(const_arg.clone(), perm_arg));
+                        call_args.extend(base_args);
+                        call_args.push(const_arg);
+                        stmts.push(
+                            vir::Stmt::MethodCall(
+                                self.encode_credit_conversion_use(conversion),
+                                call_args,
+                                vec![]
+                            )
+                        )
+                    }
+
+                    stmts.push(
+                        vir::Stmt::FoldCredits(
+                            result_pred_name,
+                            result_pred_args,
+                            result_pred_perm,
+                            vir::Position::default(),       //TODO: remove pos from stmts?
+                        )
+                    );
+
+
+                    let cfg_block = method.add_block("start_of_conversion_method", stmts);
+                    method.set_successor(cfg_block, vir::Successor::Return);
+                }
+                CreditConversionType::Reorder { previous_idx, previous_base } => {
+                    let add_base = previous_base.is_some();
+                    let prev_arg = generate_place_arg(&mut method, "prev", *previous_idx, add_base);
+
+                    // reordered place has the same value as before
+                    method.add_viper_precondition(vir::Expr::eq_cmp(
+                        base_args[conversion.assigned_place_idx].clone(),
+                        prev_arg.clone()
+                    ));
+
+                    // required credits
+                    add_required_credits_pre(
+                        &mut method,
+                        *previous_idx,
+                        &prev_arg,
+                        conversion.result_exps[conversion.assigned_place_idx],
+                        add_base,
+                        result_pred_perm,       // same amount/coefficient
+                    );
+
+                    // BODY:
+                    // unfold once, call submethod & fold again     // problem: may need many conversions until reach common base   // or always translate into one exp less?
+                }
+                CreditConversionType::SumPlaceConst { place_idx, place_expr, .. } => {
+                    let add_base = place_expr.is_some();
+                    let place_arg = generate_place_arg(&mut method, "place", *place_idx, add_base);
+                    let const_arg = generate_const_arg(&mut method);
+
+                    /*// ensure permission amounts are above zero
+                    method.add_viper_precondition(
+                        vir::Expr::ge_cmp(const_arg.clone(), 0.into())
+                    );*/
+
+                    // require sum to have taken place
+                    method.add_viper_precondition(vir::Expr::eq_cmp(
+                        base_args[conversion.assigned_place_idx].clone(),
+                        vir::Expr::add(
+                            place_arg.clone(),
+                            const_arg.clone()
+                        )
+                    ));
+
+                    // required credits
+                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                    let mut const_power: vir::Expr = 1.into();     //TODO: eliminate 1?
+                    // compute binomial expansion of (place + const)^exp
+                    for i in 0u32..=exp {
+                        let binomial = num_integer::binomial(exp as i64, i as i64);
+                        let multiplier = vir::Expr::mul(binomial.into(), const_power.clone());
+                        let pre_perm = vir::Expr::mul(multiplier, perm_arg.clone());
+                        add_required_credits_pre(
+                            &mut method,
+                            *place_idx,
+                            &place_arg,
+                            exp - i,
+                            add_base,
+                            vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                        );
+
+                        // unfold until reach removed base -> mult to coeff for call
+                        // unfold with next binomial
+                        // call with 1 exp less
+                        // fold
+                        // fold all other
+
+                        const_power = vir::Expr::mul(const_arg.clone(), const_power);
+                    }
+                }
+                CreditConversionType::MulPlaceConst { place_idx, place_expr, .. } => {
+                    let add_base = place_expr.is_some();
+                    let place_arg = generate_place_arg(&mut method, "place", *place_idx, add_base);
+                    let const_arg = generate_const_arg(&mut method);
+
+                    /*// ensure permission amounts are above zero
+                    method.add_viper_precondition(
+                        vir::Expr::ge_cmp(const_arg.clone(), 0.into())
+                    );*/
+
+                    // require multiplication to have taken place
+                    method.add_viper_precondition(vir::Expr::eq_cmp(
+                        base_args[conversion.assigned_place_idx].clone(),
+                        vir::Expr::mul(
+                            place_arg.clone(),
+                            const_arg.clone()
+                        )
+                    ));
+
+                    // required credits
+                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                    let multiplier = std::iter::repeat(const_arg.clone())
+                        .take(exp as usize)
+                        .reduce(|left, right| vir::Expr::mul(left, right))
+                        .unwrap();
+                    let pre_perm = vir::Expr::mul(multiplier, perm_arg.clone());
+                    add_required_credits_pre(
+                        &mut method,
+                        *place_idx,
+                        &place_arg,
+                        exp,
+                        add_base,
+                        vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                    );
+
+                    // BODY:
+
+                    /*// unfold all bases > place_idx
+                    let mut curr_exponents = pre_exps;
+                    let mut curr_args = pre_args;
+                    let mut curr_perm = perm_arg;
+                    while curr_args.len()-1 != place_idx {
+                        stmts.push(vir::Stmt::UnfoldCredits(
+                            self.encode_credit_predicate_use(&conversion.credit_type, curr_exponents.clone()),
+                            curr_args.clone(),
+                            vir::FracPermAmount::new(box curr_perm.clone(), box 1.into()),
+                            vir::Position::default(),       //TODO
+                        ));
+
+                        curr_perm = vir::Expr::mul(curr_args.last().unwrap().clone(), curr_perm);
+
+                        let last_exp = curr_exponents.pop().unwrap();
+                        if last_exp > 1 {
+                            curr_exponents.push(last_exp - 1);
+                        }
+                        else {
+                            curr_args.pop()
+                        }
+                    }
+
+                    // unfold place_idx once
+                    stmts.push(vir::Stmt::UnfoldCredits(
+                        self.encode_credit_predicate_use(&conversion.credit_type, curr_exponents.clone()),
+                        curr_args.clone(),
+                        vir::FracPermAmount::new(box curr_perm.clone(), box 1.into()),
+                        vir::Position::default(),       //TODO
+                    ));
+
+                    curr_perm = vir::Expr::mul(curr_args.last().unwrap().clone(), curr_perm);
+
+                    let last_exp = curr_exponents.pop().unwrap();
+                    if last_exp > 1 {
+                        curr_exponents.push(last_exp - 1);
+
+                        // call method for exponent reduced by 1
+                        stmts.push(
+                            vir::Stmt::MethodCall(
+                                self.encode_credit_conversion_use(conversion),      //TODO: change conversion
+                                call_args,
+                                vec![]
+                            )
+                        )
+                    }
+                    else {
+                        curr_args.pop()
+
+                        // unfold until also assigned_place_idx (same as for reorder)
+                    }*/
+                }
+                CreditConversionType::DivPlaceConst { place_idx, place_expr, .. } => {
+                    let add_base = place_expr.is_some();
+                    let place_arg = generate_place_arg(&mut method, "place", *place_idx, add_base);
+                    let const_arg = generate_const_arg(&mut method);
+
+                    // rule out division by zero
+                    method.add_viper_precondition(
+                        vir::Expr::ne_cmp(const_arg.clone(), 0.into())
+                    );
+
+                    // require division to have taken place
+                    method.add_viper_precondition(vir::Expr::eq_cmp(
+                        base_args[conversion.assigned_place_idx].clone(),
+                        vir::Expr::div(
+                            place_arg.clone(),
+                            const_arg.clone()
+                        )
+                    ));
+
+                    // required credits
+                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                    let divisor = std::iter::repeat(const_arg.clone())
+                        .take(exp as usize)
+                        .reduce(|left, right| vir::Expr::mul(left, right))
+                        .unwrap();
+                    let pre_perm = vir::Expr::div(perm_arg.clone(), divisor);
+                    add_required_credits_pre(
+                        &mut method,
+                        *place_idx,
+                        &place_arg,
+                        exp,
+                        add_base,
+                        vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                    );
+
+                    // BODY:
+                }
+                CreditConversionType::SumPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
+                    let add_base1 = place1_expr.is_some();
+                    let place1_arg = generate_place_arg(&mut method, "place1", *place1_idx, add_base1);
+                    let add_base2 = place2_expr.is_some();
+                    let place2_arg = generate_place_arg(&mut method, "place2", *place2_idx, add_base2);
+
+                    // require sum to have taken place
+                    method.add_viper_precondition(vir::Expr::eq_cmp(
+                        base_args[conversion.assigned_place_idx].clone(),
+                        vir::Expr::add(
+                            place1_arg.clone(),
+                            place2_arg.clone()
+                        )
+                    ));
+
+                    // required credits
+                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                    // compute binomial expansion of (place1 + place2)^exp
+                    for exp1 in 0u32..=exp {
+                        let binomial = num_integer::binomial(exp as i64, exp1 as i64);
+                        let pre_perm = vir::Expr::mul(binomial.into(), perm_arg.clone());
+                        let exp2 = exp - exp1;
+                        add_required_credits_pre2(
+                            &mut method,
+                            *place1_idx,
+                            &place1_arg,
+                            exp1,
+                            add_base1,
+                            *place2_idx,
+                            &place2_arg,
+                            exp2,
+                            add_base2,
+                            vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                        );
+
+                        // unfold until reach removed base -> mult to coeff for call
+                        // unfold with next binomial
+                        // call with 1 exp less
+                        // fold
+                        // fold all other
+                    }
+                }
+                CreditConversionType::MulPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
+                    let add_base1 = place1_expr.is_some();
+                    let place1_arg = generate_place_arg(&mut method, "place1", *place1_idx, add_base1);
+                    let add_base2 = place2_expr.is_some();
+                    let place2_arg = generate_place_arg(&mut method, "place2", *place2_idx, add_base2);
+
+                    // require multiplication to have taken place
+                    method.add_viper_precondition(vir::Expr::eq_cmp(
+                        base_args[conversion.assigned_place_idx].clone(),
+                        vir::Expr::mul(
+                            place1_arg.clone(),
+                            place2_arg.clone()
+                        )
+                    ));
+
+                    // required credits (similar to reorder, just with 2 places)
+                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                    add_required_credits_pre2(
+                        &mut method,
+                        *place1_idx,
+                        &place1_arg,
+                        exp,
+                        add_base1,
+                        *place2_idx,
+                        &place2_arg,
+                        exp,
+                        add_base2,
+                        result_pred_perm,
+                    );
+
+                    // BODY:
+                }
+            }
+
+            self.credit_conversion_methods.borrow_mut().insert(this_method_name.clone(), method);
+        }
+
+        this_method_name
     }
 
     pub fn encode_credit_predicate_use(&self, credit_type: &str, mut exponents: Vec<u32>)

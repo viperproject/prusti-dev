@@ -72,7 +72,7 @@ use crate::encoder::mir_interpreter::BackwardMirInterpreter;
 use std::cmp::Ordering;
 use prusti_interface::specs::typed::CreditVarPower;
 use num_traits::real::Real;
-use crate::encoder::cost_encoder::{CostEncoder, CreditConversion};
+use crate::encoder::cost_encoder::{CostEncoder, CreditConversion, CreditConversionType};
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -1115,7 +1115,51 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Intercept encoding error caused by an unsupported feature
         match stmts_succ_res {
-            Ok(stmts_succ) => Ok(stmts_succ),
+            Ok((mut stmts, succ)) => {
+                // add calls to credit conversion functions
+                for conversion in self.cost_encoder.extract_conversions_for(location) {
+                    let mut args = vec![];
+                    args.push(conversion.result_coeff.clone());
+                    args.extend(conversion.result_bases.clone());
+
+                    match &conversion.conversion_type {
+                        CreditConversionType::ConstToPlace { constant } => {
+                            args.push(constant.clone());
+                        }
+                        CreditConversionType::Reorder { previous_base, .. } => {
+                            if let Some(expr) = previous_base {
+                                args.push(expr.clone());
+                            }
+                        }
+                        CreditConversionType::SumPlaceConst { place_expr, const_val, .. }
+                        | CreditConversionType::MulPlaceConst { place_expr, const_val, .. }
+                        | CreditConversionType::DivPlaceConst { place_expr, const_val, .. }=> {
+                            if let Some(expr) = place_expr {
+                                args.push(expr.clone());
+                            }
+                            args.push((*const_val).into());
+                        }
+                        CreditConversionType::SumPlacePlace { place1_expr, place2_expr, .. }
+                        | CreditConversionType::MulPlacePlace { place1_expr, place2_expr, .. } => {
+                            if let Some(expr) = place1_expr {
+                                args.push(expr.clone());
+                            }
+                            if let Some(expr) = place2_expr {
+                                args.push(expr.clone());
+                            }
+                        }
+                    }
+
+                    let conv_method_name = self.encoder.encode_credit_conversion_use(conversion);
+                    stmts.push(vir::Stmt::MethodCall(
+                        conv_method_name,
+                        args,
+                        vec![]
+                    ))
+                }
+
+                Ok((stmts, succ))
+            }
             Err(err) => {
                 let unsupported_msg = match err.kind() {
                     EncodingErrorKind::Unsupported(msg)

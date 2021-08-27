@@ -48,6 +48,10 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
         std::mem::take(&mut self.asymp_bound_check)
     }
 
+    pub(crate) fn extract_conversions_for(&mut self, location: mir::Location) -> Vec<CreditConversion> {
+        self.conversions.remove(&location).unwrap_or_else(|| vec![])
+    }
+
     pub(crate) fn run_inference(
         &mut self,
         preconditions: Vec<typed::Assertion<'tcx>>,
@@ -839,13 +843,13 @@ fn add_concrete_costs<'a>(
 //TODO: move!?
 #[derive(Clone, Debug)]
 pub(crate) struct CreditConversion {
-    credit_type: String,
-    result_exps: Vec<u32>,
-    result_bases: Vec<vir::Expr>,
-    result_coeff: vir::Expr,
+    pub(crate) credit_type: String,
+    pub(crate) result_exps: Vec<u32>,
+    pub(crate) result_bases: Vec<vir::Expr>,
+    pub(crate) result_coeff: vir::Expr,
     // above define resulting CreditAccessPredicate expression
-    assigned_place_idx: usize,
-    conversion_type: CreditConversionType,
+    pub(crate) assigned_place_idx: usize,
+    pub(crate) conversion_type: CreditConversionType,
 }
 
 #[derive(Clone, Debug)]
