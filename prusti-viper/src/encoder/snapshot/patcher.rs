@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir;
-use vir_crate::polymorphic::{self as polymorphic_vir, ExprFolder, FallibleExprFolder, FallibleStmtFolder};
+use vir_crate::polymorphic::{self as vir, ExprFolder, FallibleExprFolder, FallibleStmtFolder};
 use crate::encoder::Encoder;
 use crate::encoder::errors::{EncodingError, EncodingResult};
 use crate::encoder::snapshot::encoder::{UNIT_DOMAIN_NAME, SnapshotEncoder};
@@ -20,9 +19,9 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
 
     fn fallible_fold_snap_app(
         &mut self,
-        e: Box<polymorphic_vir::Expr>,
-        _p: polymorphic_vir::Position
-    ) -> Result<polymorphic_vir::Expr, Self::Error> {
+        e: Box<vir::Expr>,
+        _p: vir::Position
+    ) -> Result<vir::Expr, Self::Error> {
         let e = self.fallible_fold_boxed(e)?;
         self.snapshot_encoder.snap_app(self.encoder, *e)
     }
@@ -30,11 +29,11 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
     fn fallible_fold_func_app(
         &mut self,
         name: String,
-        mut args: Vec<polymorphic_vir::Expr>,
-        formal_args: Vec<polymorphic_vir::LocalVar>,
-        return_type: polymorphic_vir::Type,
-        pos: polymorphic_vir::Position,
-    ) -> Result<polymorphic_vir::Expr, Self::Error> {
+        mut args: Vec<vir::Expr>,
+        formal_args: Vec<vir::LocalVar>,
+        return_type: vir::Type,
+        pos: vir::Position,
+    ) -> Result<vir::Expr, Self::Error> {
         args = args.into_iter()
             .zip(formal_args.iter())
             .map(|(mut arg, formal_arg)| {
@@ -48,7 +47,7 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
                 }
             })
             .collect::<Result<_, _>>()?;
-        Ok(polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {
+        Ok(vir::Expr::FuncApp( vir::FuncApp {
             function_name: name,
             arguments: args,
             formal_arguments: formal_args,
@@ -59,10 +58,10 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
 
     fn fallible_fold_domain_func_app(
         &mut self,
-        func: polymorphic_vir::DomainFunc,
-        args: Vec<polymorphic_vir::Expr>,
-        pos: polymorphic_vir::Position,
-    ) -> Result<polymorphic_vir::Expr, Self::Error> {
+        func: vir::DomainFunc,
+        args: Vec<vir::Expr>,
+        pos: vir::Position,
+    ) -> Result<vir::Expr, Self::Error> {
         let folded_args = args.into_iter()
             .zip(func.formal_args.iter())
             .map(|(arg, formal_arg)| {
@@ -76,7 +75,7 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(polymorphic_vir::Expr::DomainFuncApp( polymorphic_vir::DomainFuncApp {
+        Ok(vir::Expr::DomainFuncApp( vir::DomainFuncApp {
             domain_function: func,
             arguments: folded_args,
             position: pos,
@@ -85,22 +84,22 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
 
     fn fallible_fold_field(
         &mut self,
-        receiver: Box<polymorphic_vir::Expr>,
-        field: polymorphic_vir::Field,
-        pos: polymorphic_vir::Position,
-    ) -> Result<polymorphic_vir::Expr, Self::Error> {
+        receiver: Box<vir::Expr>,
+        field: vir::Field,
+        pos: vir::Position,
+    ) -> Result<vir::Expr, Self::Error> {
         match receiver {
-            box polymorphic_vir::Expr::Variant( polymorphic_vir::Variant {base: receiver, variant_index: variant, position: pos2} ) => {
+            box vir::Expr::Variant( vir::Variant {base: receiver, variant_index: variant, position: pos2} ) => {
                 let receiver = self.fallible_fold_boxed(receiver)?;
                 match receiver.get_type() {
-                    polymorphic_vir::Type::Snapshot(_) => self.snapshot_encoder.snap_variant_field(
+                    vir::Type::Snapshot(_) => self.snapshot_encoder.snap_variant_field(
                         self.encoder,
                         *receiver,
                         variant,
                         field,
                     ),
-                    _ => Ok(polymorphic_vir::Expr::Field( polymorphic_vir::FieldExpr {
-                        base: box polymorphic_vir::Expr::Variant( polymorphic_vir::Variant {base: receiver, variant_index: variant, position: pos2} ),
+                    _ => Ok(vir::Expr::Field( vir::FieldExpr {
+                        base: box vir::Expr::Variant( vir::Variant {base: receiver, variant_index: variant, position: pos2} ),
                         field,
                         position: pos
                     })),
@@ -109,16 +108,16 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
             receiver => {
                 let receiver = self.fallible_fold_boxed(receiver)?;
                 match receiver.get_type() {
-                    polymorphic_vir::Type::Int if field.name == "val_int" => Ok(*receiver),
-                    polymorphic_vir::Type::Bool if field.name == "val_bool" => Ok(*receiver),
-                    polymorphic_vir::Type::Snapshot(_) => {
+                    vir::Type::Int if field.name == "val_int" => Ok(*receiver),
+                    vir::Type::Bool if field.name == "val_bool" => Ok(*receiver),
+                    vir::Type::Snapshot(_) => {
                         let res = match field.name.as_str() {
                             "val_ref" => Ok(*receiver),
                             _ => self.snapshot_encoder.snap_field(self.encoder, *receiver, field),
                         }?;
                         Ok(res)
                     }
-                    _ => Ok(polymorphic_vir::Expr::Field( polymorphic_vir::FieldExpr {base: receiver, field, position: pos} ) ),
+                    _ => Ok(vir::Expr::Field( vir::FieldExpr {base: receiver, field, position: pos} ) ),
                 }
             }
         }
@@ -126,13 +125,13 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
 
     fn fallible_fold_forall(
         &mut self,
-        vars: Vec<polymorphic_vir::LocalVar>,
-        triggers: Vec<polymorphic_vir::Trigger>,
-        expr: Box<polymorphic_vir::Expr>,
-        pos: polymorphic_vir::Position,
-    ) -> Result<polymorphic_vir::Expr, Self::Error> {
+        vars: Vec<vir::LocalVar>,
+        triggers: Vec<vir::Trigger>,
+        expr: Box<vir::Expr>,
+        pos: vir::Position,
+    ) -> Result<vir::Expr, Self::Error> {
         let (patched_vars, triggers, expr) = fix_quantifier(self, vars, triggers, *expr)?;
-        Ok(polymorphic_vir::Expr::ForAll( polymorphic_vir::ForAll {
+        Ok(vir::Expr::ForAll( vir::ForAll {
             variables: patched_vars,
             triggers,
             body: box expr,
@@ -142,13 +141,13 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
 
     fn fallible_fold_exists(
         &mut self,
-        vars: Vec<polymorphic_vir::LocalVar>,
-        triggers: Vec<polymorphic_vir::Trigger>,
-        expr: Box<polymorphic_vir::Expr>,
-        pos: polymorphic_vir::Position,
-    ) -> Result<polymorphic_vir::Expr, Self::Error> {
+        vars: Vec<vir::LocalVar>,
+        triggers: Vec<vir::Trigger>,
+        expr: Box<vir::Expr>,
+        pos: vir::Position,
+    ) -> Result<vir::Expr, Self::Error> {
         let (patched_vars, triggers, expr) = fix_quantifier(self, vars, triggers, *expr)?;
-        Ok(polymorphic_vir::Expr::Exists( polymorphic_vir::Exists {
+        Ok(vir::Expr::Exists( vir::Exists {
             variables: patched_vars,
             triggers,
             body: box expr,
@@ -158,16 +157,16 @@ impl<'v, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'v, 'tcx> {
 
     fn fallible_fold_downcast(
         &mut self,
-        base: Box<polymorphic_vir::Expr>,
-        enum_expr: Box<polymorphic_vir::Expr>,
-        field: polymorphic_vir::Field,
-    ) -> Result<polymorphic_vir::Expr, Self::Error> {
+        base: Box<vir::Expr>,
+        enum_expr: Box<vir::Expr>,
+        field: vir::Field,
+    ) -> Result<vir::Expr, Self::Error> {
         let base = FallibleExprFolder::fallible_fold(self, *base)?;
         let enum_expr = FallibleExprFolder::fallible_fold(self, *enum_expr)?;
         if base.get_type().is_snapshot() || enum_expr.get_type().is_snapshot() {
             Ok(base)
         } else {
-            Ok(polymorphic_vir::Expr::Downcast( polymorphic_vir::DowncastExpr {
+            Ok(vir::Expr::Downcast( vir::DowncastExpr {
                 base: box base,
                 enum_place: box enum_expr,
                 field,
@@ -181,33 +180,33 @@ impl<'v, 'tcx: 'v> FallibleStmtFolder for SnapshotPatcher<'v, 'tcx> {
 
     fn fallible_fold_expr(
         &mut self,
-        expr: polymorphic_vir::Expr
-    ) -> Result<polymorphic_vir::Expr, Self::Error> {
+        expr: vir::Expr
+    ) -> Result<vir::Expr, Self::Error> {
         FallibleExprFolder::fallible_fold(self, expr)
     }
 
     fn fallible_fold_downcast(
         &mut self,
-        e: polymorphic_vir::Expr,
-        f: polymorphic_vir::Field
-    ) -> Result<polymorphic_vir::Stmt, Self::Error> {
+        e: vir::Expr,
+        f: vir::Field
+    ) -> Result<vir::Stmt, Self::Error> {
         if e.get_type().is_snapshot() {
-            Ok(polymorphic_vir::Stmt::comment("patched out Downcast stmt"))
+            Ok(vir::Stmt::comment("patched out Downcast stmt"))
         } else {
-            Ok(polymorphic_vir::Stmt::Downcast( polymorphic_vir::Downcast {base: self.fallible_fold_expr(e)?, field: f} ) )
+            Ok(vir::Stmt::Downcast( vir::Downcast {base: self.fallible_fold_expr(e)?, field: f} ) )
         }
     }
 }
 
 fn fix_quantifier(
     patcher: &mut SnapshotPatcher,
-    vars: Vec<polymorphic_vir::LocalVar>,
-    triggers: Vec<polymorphic_vir::Trigger>,
-    mut expr: polymorphic_vir::Expr,
+    vars: Vec<vir::LocalVar>,
+    triggers: Vec<vir::Trigger>,
+    mut expr: vir::Expr,
 ) -> EncodingResult<(
-    Vec<polymorphic_vir::LocalVar>,
-    Vec<polymorphic_vir::Trigger>,
-    polymorphic_vir::Expr,
+    Vec<vir::LocalVar>,
+    Vec<vir::Trigger>,
+    vir::Expr,
 )> {
     // TODO: check is_quantifiable
     let mut patched_vars = vec![];
@@ -224,9 +223,9 @@ fn fix_quantifier(
 
     for var in vars {
         match var.typ {
-            polymorphic_vir::Type::TypedRef(_) => {
+            vir::Type::TypedRef(_) => {
                 let ty = patcher.encoder.decode_type_predicate_type(&var.typ)?;
-                let patched_var = polymorphic_vir::LocalVar::new(
+                let patched_var = vir::LocalVar::new(
                     &var.name,
                     patcher.snapshot_encoder.encode_type(patcher.encoder, ty)?,
                 );
@@ -259,27 +258,27 @@ fn fix_quantifier(
                 .collect::<Result<Vec<_>, _>>())
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()
-            .map(polymorphic_vir::Trigger::new)
+            .map(vir::Trigger::new)
             .collect(),
         expr,
     ))
 }
 
 struct QuantifierFixer {
-    var: polymorphic_vir::LocalVar,
-    patched_var: polymorphic_vir::LocalVar,
+    var: vir::LocalVar,
+    patched_var: vir::LocalVar,
 }
 
 impl ExprFolder for QuantifierFixer {
     fn fold_local(
         &mut self,
-        v: polymorphic_vir::LocalVar,
-        pos: polymorphic_vir::Position
-    ) -> polymorphic_vir::Expr {
+        v: vir::LocalVar,
+        pos: vir::Position
+    ) -> vir::Expr {
         if v.name == self.var.name {
-            polymorphic_vir::Expr::Local( polymorphic_vir::Local {variable: self.patched_var.clone(), position: pos} )
+            vir::Expr::Local( vir::Local {variable: self.patched_var.clone(), position: pos} )
         } else {
-            polymorphic_vir::Expr::Local( polymorphic_vir::Local {variable: v, position: pos} )
+            vir::Expr::Local( vir::Local {variable: v, position: pos} )
         }
     }
 }

@@ -8,9 +8,7 @@ use super::places_utils::{union, union3};
 use crate::encoder::foldunfold::perm::Perm::*;
 use crate::encoder::foldunfold::perm::*;
 use crate::encoder::foldunfold::footprint::*;
-use prusti_common::vir;
-use vir_crate::polymorphic as polymorphic_vir;
-use vir_crate::polymorphic::PermAmount;
+use vir_crate::polymorphic::{self as vir, PermAmount};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -21,16 +19,16 @@ pub trait RequiredPermissionsGetter {
     /// The result might be an over-approximation, as in the `vir::Expr::FuncApp` case.
     fn get_required_permissions(
         &self,
-        predicates: &HashMap<String, polymorphic_vir::Predicate>,
-        old_exprs: &HashMap<String, Vec<polymorphic_vir::Expr>>,
+        predicates: &HashMap<String, vir::Predicate>,
+        old_exprs: &HashMap<String, Vec<vir::Expr>>,
     ) -> HashSet<Perm>;
 }
 
 impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for &'a A {
     fn get_required_permissions(
         &self,
-        predicates: &HashMap<String, polymorphic_vir::Predicate>,
-        old_exprs: &HashMap<String, Vec<polymorphic_vir::Expr>>,
+        predicates: &HashMap<String, vir::Predicate>,
+        old_exprs: &HashMap<String, Vec<vir::Expr>>,
     ) -> HashSet<Perm> {
         (*self).get_required_permissions(predicates, old_exprs)
     }
@@ -39,8 +37,8 @@ impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for &'a A {
 impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<A> {
     fn get_required_permissions(
         &self,
-        predicates: &HashMap<String, polymorphic_vir::Predicate>,
-        old_exprs: &HashMap<String, Vec<polymorphic_vir::Expr>>,
+        predicates: &HashMap<String, vir::Predicate>,
+        old_exprs: &HashMap<String, Vec<vir::Expr>>,
     ) -> HashSet<Perm> {
         self.iter().fold(HashSet::new(), |res, x| {
             res.union(&x.get_required_permissions(predicates, old_exprs))
@@ -50,16 +48,16 @@ impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<A> {
     }
 }
 
-impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
+impl RequiredPermissionsGetter for vir::Stmt {
     fn get_required_permissions(
         &self,
-        predicates: &HashMap<String, polymorphic_vir::Predicate>,
-        old_exprs: &HashMap<String, Vec<polymorphic_vir::Expr>>,
+        predicates: &HashMap<String, vir::Predicate>,
+        old_exprs: &HashMap<String, Vec<vir::Expr>>,
     ) -> HashSet<Perm> {
         match self {
-            &polymorphic_vir::Stmt::Comment(_) => HashSet::new(),
+            &vir::Stmt::Comment(_) => HashSet::new(),
 
-            &polymorphic_vir::Stmt::Label( polymorphic_vir::Label {ref label} ) => {
+            &vir::Stmt::Label( vir::Label {ref label} ) => {
                 // A label has to ensure that all usages of labelled-old expressions can be
                 // solved by unfolding, and not folding, permissions.
                 if let Some(exprs) = old_exprs.get(label) {
@@ -69,7 +67,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                 }
             },
 
-            &polymorphic_vir::Stmt::Inhale( polymorphic_vir::Inhale {ref expr} ) => {
+            &vir::Stmt::Inhale( vir::Inhale {ref expr} ) => {
                 // footprint = used - inhaled
                 perm_difference(
                     expr.get_required_permissions(predicates, old_exprs),
@@ -77,9 +75,9 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                 )
             }
 
-            &polymorphic_vir::Stmt::Exhale( polymorphic_vir::Exhale {ref expr, ref position} )
-            | &polymorphic_vir::Stmt::Assert( polymorphic_vir::Assert {ref expr, ref position} )
-            | &polymorphic_vir::Stmt::Obtain( polymorphic_vir::Obtain {ref expr, ref position} ) => {
+            &vir::Stmt::Exhale( vir::Exhale {ref expr, ref position} )
+            | &vir::Stmt::Assert( vir::Assert {ref expr, ref position} )
+            | &vir::Stmt::Obtain( vir::Obtain {ref expr, ref position} ) => {
                 let perms = expr.get_required_permissions(predicates, old_exprs);
                 perms
                     .into_iter()
@@ -87,23 +85,23 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                     .collect()
             }
 
-            &polymorphic_vir::Stmt::MethodCall( polymorphic_vir::MethodCall {ref arguments, ref targets, ..} ) => {
+            &vir::Stmt::MethodCall( vir::MethodCall {ref arguments, ref targets, ..} ) => {
                 // Preconditions and postconditions are empty
                 assert!(arguments.is_empty());
                 HashSet::from_iter(
                     targets.iter()
                         .cloned()
-                        .map(|v| Acc(polymorphic_vir::Expr::local(v), PermAmount::Write)),
+                        .map(|v| Acc(vir::Expr::local(v), PermAmount::Write)),
                 )
             }
 
-            &polymorphic_vir::Stmt::Assign( polymorphic_vir::Assign {ref target, ref source, ..} ) => {
+            &vir::Stmt::Assign( vir::Assign {ref target, ref source, ..} ) => {
                 let mut res = source.get_required_permissions(predicates, old_exprs);
                 res.insert(Acc(target.clone(), PermAmount::Write));
                 res
             }
 
-            &polymorphic_vir::Stmt::Fold( polymorphic_vir::Fold {ref arguments, permission, ref enum_variant, ..} ) => {
+            &vir::Stmt::Fold( vir::Fold {ref arguments, permission, ref enum_variant, ..} ) => {
                 assert_eq!(arguments.len(), 1);
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
@@ -112,7 +110,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: polymorphic_vir::Expr = predicate.self_place();
+                let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
                     .get_body_footprint(enum_variant)
                     .into_iter()
@@ -126,7 +124,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                 places_in_pred
             }
 
-            &polymorphic_vir::Stmt::Unfold( polymorphic_vir::Unfold {ref arguments, permission, ..} ) => {
+            &vir::Stmt::Unfold( vir::Unfold {ref arguments, permission, ..} ) => {
                 assert_eq!(arguments.len(), 1);
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
@@ -137,9 +135,9 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                     .collect()
             }
 
-            &polymorphic_vir::Stmt::BeginFrame(_) | &polymorphic_vir::Stmt::EndFrame(_) => HashSet::new(),
+            &vir::Stmt::BeginFrame(_) | &vir::Stmt::EndFrame(_) => HashSet::new(),
 
-            &polymorphic_vir::Stmt::TransferPerm( polymorphic_vir::TransferPerm {ref left, unchecked, ..} ) => {
+            &vir::Stmt::TransferPerm( vir::TransferPerm {ref left, unchecked, ..} ) => {
                 let mut res = HashSet::new();
                 if !unchecked {
                     res.insert(Acc(left.clone(), PermAmount::Read));
@@ -147,24 +145,24 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                 res
             }
 
-            &polymorphic_vir::Stmt::PackageMagicWand(..) => {
+            &vir::Stmt::PackageMagicWand(..) => {
                 // We model the magic wand as "assert lhs; stmts; exhale rhs"
                 HashSet::new()
             }
 
-            &polymorphic_vir::Stmt::ApplyMagicWand( polymorphic_vir::ApplyMagicWand {
-                magic_wand: polymorphic_vir::Expr::MagicWand( polymorphic_vir::MagicWand {ref left, ..} ),
+            &vir::Stmt::ApplyMagicWand( vir::ApplyMagicWand {
+                magic_wand: vir::Expr::MagicWand( vir::MagicWand {ref left, ..} ),
                 ..
             }) => {
                 // We model the magic wand as "assert lhs; inhale rhs"
                 left.get_required_permissions(predicates, old_exprs)
             }
 
-            &polymorphic_vir::Stmt::ExpireBorrows( polymorphic_vir::ExpireBorrows {dag: ref _dag} ) => {
+            &vir::Stmt::ExpireBorrows( vir::ExpireBorrows {dag: ref _dag} ) => {
                 HashSet::new() // TODO: #133
             }
 
-            &polymorphic_vir::Stmt::If( polymorphic_vir::If {ref guard, ref then_stmts, ref else_stmts} ) => {
+            &vir::Stmt::If( vir::If {ref guard, ref then_stmts, ref else_stmts} ) => {
                 let guard_reqs = guard.get_required_permissions(predicates, old_exprs);
                 let then_reqs = then_stmts.get_required_permissions(predicates, old_exprs);
                 let else_reqs = else_stmts.get_required_permissions(predicates, old_exprs);
@@ -172,9 +170,9 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
                 guard_reqs.union(&then_else_reqs).cloned().collect()
             }
 
-            &polymorphic_vir::Stmt::Downcast( polymorphic_vir::Downcast {ref base, ref field} ) => {
+            &vir::Stmt::Downcast( vir::Downcast {ref base, ref field} ) => {
                 // Delegate
-                polymorphic_vir::Expr::downcast(true.into(), base.clone(), field.clone())
+                vir::Expr::downcast(true.into(), base.clone(), field.clone())
                     .get_required_permissions(predicates, old_exprs)
             }
 
@@ -183,17 +181,17 @@ impl RequiredPermissionsGetter for polymorphic_vir::Stmt {
     }
 }
 
-impl RequiredPermissionsGetter for polymorphic_vir::Expr {
+impl RequiredPermissionsGetter for vir::Expr {
     fn get_required_permissions(
         &self,
-        predicates: &HashMap<String, polymorphic_vir::Predicate>,
-        old_exprs: &HashMap<String, Vec<polymorphic_vir::Expr>>,
+        predicates: &HashMap<String, vir::Predicate>,
+        old_exprs: &HashMap<String, Vec<vir::Expr>>,
     ) -> HashSet<Perm> {
         trace!("[enter] get_required_permissions(expr={})", self);
         let permissions = match self {
-            polymorphic_vir::Expr::Const(..) => HashSet::new(),
+            vir::Expr::Const(..) => HashSet::new(),
 
-            polymorphic_vir::Expr::Unfolding( polymorphic_vir::Unfolding {arguments, base, permission, variant, ..} ) => {
+            vir::Expr::Unfolding( vir::Unfolding {arguments, base, permission, variant, ..} ) => {
                 assert_eq!(arguments.len(), 1);
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
@@ -202,7 +200,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: polymorphic_vir::Expr = predicate.self_place();
+                let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
                     .get_body_footprint(variant)
                     .into_iter()
@@ -219,9 +217,9 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                 req_places.into_iter().collect()
             }
 
-            polymorphic_vir::Expr::LabelledOld( polymorphic_vir::LabelledOld {label: ref _label, base: ref _base, ..} ) => HashSet::new(),
+            vir::Expr::LabelledOld( vir::LabelledOld {label: ref _label, base: ref _base, ..} ) => HashSet::new(),
 
-            polymorphic_vir::Expr::PredicateAccessPredicate( polymorphic_vir::PredicateAccessPredicate { box argument, ..} ) => {
+            vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate { box argument, ..} ) => {
                 debug_assert!(argument.is_place());
                 let epsilon = PermAmount::Read;
                 let result = match argument.get_label() {
@@ -252,63 +250,63 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                 result
             }
 
-            polymorphic_vir::Expr::FieldAccessPredicate( polymorphic_vir::FieldAccessPredicate {ref base, ..} ) => base
+            vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {ref base, ..} ) => base
                 .get_required_permissions(predicates, old_exprs)
                 .into_iter()
                 .collect(),
 
-            polymorphic_vir::Expr::UnaryOp( polymorphic_vir::UnaryOp {ref argument, ..} ) => argument.get_required_permissions(predicates, old_exprs),
+            vir::Expr::UnaryOp( vir::UnaryOp {ref argument, ..} ) => argument.get_required_permissions(predicates, old_exprs),
 
-            polymorphic_vir::Expr::BinOp( polymorphic_vir::BinOp {box left, box right, ..} ) => {
+            vir::Expr::BinOp( vir::BinOp {box left, box right, ..} ) => {
                 vec![left, right].get_required_permissions(predicates, old_exprs)
             }
 
-            polymorphic_vir::Expr::ContainerOp( polymorphic_vir::ContainerOp {box left, box right, ..} ) => {
+            vir::Expr::ContainerOp( vir::ContainerOp {box left, box right, ..} ) => {
                 vec![left, right].get_required_permissions(predicates, old_exprs)
             }
 
-            polymorphic_vir::Expr::Seq( polymorphic_vir::Seq {elements, ..} ) => {
+            vir::Expr::Seq( vir::Seq {elements, ..} ) => {
                 elements.get_required_permissions(predicates, old_exprs)
             }
 
-            polymorphic_vir::Expr::Cond( polymorphic_vir::Cond {box guard, box then_expr, box else_expr, ..} ) => {
+            vir::Expr::Cond( vir::Cond {box guard, box then_expr, box else_expr, ..} ) => {
                 vec![guard, then_expr, else_expr].get_required_permissions(predicates, old_exprs)
             }
 
-            polymorphic_vir::Expr::LetExpr( polymorphic_vir::LetExpr {variable: _variable, def: _def, body: _body, ..} ) => {
+            vir::Expr::LetExpr( vir::LetExpr {variable: _variable, def: _def, body: _body, ..} ) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
 
-            polymorphic_vir::Expr::ForAll( polymorphic_vir::ForAll {variables, box body, ..} )
-            | polymorphic_vir::Expr::Exists( polymorphic_vir::Exists {variables, box body, ..} ) => {
+            vir::Expr::ForAll( vir::ForAll {variables, box body, ..} )
+            | vir::Expr::Exists( vir::Exists {variables, box body, ..} ) => {
                 assert!(variables.iter().all(|var| !var.typ.is_typed_ref_or_type_var()));
 
                 let vars_places: HashSet<_> = variables
                     .iter()
-                    .map(|var| Acc(polymorphic_vir::Expr::local(var.clone()), PermAmount::Write))
+                    .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))
                     .collect();
                 perm_difference(body.get_required_permissions(predicates, old_exprs), vars_places)
             }
 
-            polymorphic_vir::Expr::Local(..) => HashSet::new(),
+            vir::Expr::Local(..) => HashSet::new(),
 
-            polymorphic_vir::Expr::AddrOf(..) => unreachable!(),
+            vir::Expr::AddrOf(..) => unreachable!(),
 
-            polymorphic_vir::Expr::Variant(..) => Some(Acc(self.clone(), PermAmount::Read))
+            vir::Expr::Variant(..) => Some(Acc(self.clone(), PermAmount::Read))
                 .into_iter()
                 .collect(),
 
-            polymorphic_vir::Expr::Field(..) => Some(Acc(self.clone(), PermAmount::Read))
+            vir::Expr::Field(..) => Some(Acc(self.clone(), PermAmount::Read))
                 .into_iter()
                 .collect(),
 
-            polymorphic_vir::Expr::MagicWand( polymorphic_vir::MagicWand {left: ref _left, right: ref _right, borrow: ref _borrow, ..} ) => {
+            vir::Expr::MagicWand( vir::MagicWand {left: ref _left, right: ref _right, borrow: ref _borrow, ..} ) => {
                 // Not exactly Viper's semantics
                 HashSet::new()
             }
 
-            polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {ref arguments, ..} ) |
-            polymorphic_vir::Expr::DomainFuncApp( polymorphic_vir::DomainFuncApp {ref arguments, ..} )=> {
+            vir::Expr::FuncApp( vir::FuncApp {ref arguments, ..} ) |
+            vir::Expr::DomainFuncApp( vir::DomainFuncApp {ref arguments, ..} )=> {
                 arguments.iter()
                     .map(|arg| {
                         if arg.is_place() && arg.get_type().is_typed_ref_or_type_var() {
@@ -316,17 +314,17 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                             // simplify our life. A proper solution would be to look up the
                             // real function precondition.
                             if let Some(field_place) = arg.try_deref() {
-                                polymorphic_vir::Expr::and(
-                                    polymorphic_vir::Expr::acc_permission(
+                                vir::Expr::and(
+                                    vir::Expr::acc_permission(
                                         field_place.clone(),
                                         PermAmount::Read,
                                     ),
-                                    polymorphic_vir::Expr::pred_permission(field_place, PermAmount::Read)
+                                    vir::Expr::pred_permission(field_place, PermAmount::Read)
                                         .unwrap(),
                                 )
                             } else {
                                 let typ = arg.get_type();
-                                polymorphic_vir::Expr::predicate_access_predicate(
+                                vir::Expr::predicate_access_predicate(
                                     typ.clone(),
                                     arg.clone().into(),
                                     PermAmount::Read,
@@ -341,12 +339,12 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                     .get_required_permissions(predicates, old_exprs)
             }
 
-            polymorphic_vir::Expr::InhaleExhale(..) => HashSet::new(),
+            vir::Expr::InhaleExhale(..) => HashSet::new(),
 
-            polymorphic_vir::Expr::Downcast( polymorphic_vir::DowncastExpr {ref enum_place, ..} ) => {
+            vir::Expr::Downcast( vir::DowncastExpr {ref enum_place, ..} ) => {
                 let predicate_name = enum_place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
-                if let polymorphic_vir::Predicate::Enum(enum_predicate) = predicate {
+                if let vir::Predicate::Enum(enum_predicate) = predicate {
                     // We want to have the enum unfolded
                     enum_place.clone()
                         .field(enum_predicate.discriminant_field.clone())
@@ -356,7 +354,7 @@ impl RequiredPermissionsGetter for polymorphic_vir::Expr {
                 }
             }
 
-            polymorphic_vir::Expr::SnapApp(..) => {
+            vir::Expr::SnapApp(..) => {
                 unreachable!("Snapshots should be patched before fold/unfold. {:?}", self);
             }
         };

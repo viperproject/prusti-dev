@@ -3,7 +3,7 @@
 // TODO: add a vir::Type::SnapOf(t: Box<vir::Type>) variant to vir::Type to
 // represent types like "snapshot of X". Resolve SnapOf in snapshot patcher.
 
-use vir_crate::polymorphic::{self as polymorphic_vir, ExprWalker, ExprFolder, StmtWalker, StmtFolder};
+use vir_crate::polymorphic::{self as vir, ExprWalker, ExprFolder, StmtWalker, StmtFolder};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use log::{debug, trace};
 use crate::encoder::Encoder;
@@ -11,14 +11,14 @@ use crate::encoder::Encoder;
 /// Replaces shared references to pure Viper variables.
 pub fn purify_method(
     encoder: &Encoder,
-    method: &mut polymorphic_vir::CfgMethod
+    method: &mut vir::CfgMethod
 ) {
     // A set of candidate references to be purified.
     let mut candidates = HashSet::new();
     debug!("method: {}", method.name());
     for var in &method.local_vars {
         match &var.typ {
-            &polymorphic_vir::Type::TypedRef(ref typed_ref) if typed_ref.label.starts_with("ref$") => {
+            &vir::Type::TypedRef(ref typed_ref) if typed_ref.label.starts_with("ref$") => {
                 trace!("  candidate: {}: {}", var.name, var.typ);
                 candidates.insert(var.name.clone());
             }
@@ -31,7 +31,7 @@ pub fn purify_method(
 
     // Collect variables that are dereferenced.
     let mut collector = VarDependencyCollector::default();
-    polymorphic_vir::utils::walk_method(method, &mut collector);
+    vir::utils::walk_method(method, &mut collector);
     debug!(
         "VarDependencyCollector for method {} after collection {:?}",
         method.name(),
@@ -71,7 +71,7 @@ pub fn purify_method(
 
     for var in &mut method.local_vars {
         if purifier.vars.contains(&var.name) {
-            let typ = std::mem::replace(&mut var.typ, polymorphic_vir::Type::Bool);
+            let typ = std::mem::replace(&mut var.typ, vir::Type::Bool);
             var.typ = translate_type(encoder, typ);
         } else if let Some(typ) = purifier.change_var_types.remove(&var.name) {
             var.typ = translate_type(encoder, typ);
@@ -133,11 +133,11 @@ impl VarDependencyCollector {
 }
 
 impl ExprWalker for VarDependencyCollector {
-    fn walk_field(&mut self, receiver: &polymorphic_vir::Expr, _field: &polymorphic_vir::Field, _pos: &polymorphic_vir::Position) {
+    fn walk_field(&mut self, receiver: &vir::Expr, _field: &vir::Field, _pos: &vir::Position) {
         match receiver {
             // If we have a variable that is accessed two levels down, we assume
             // that it is dereferenced without checking the actual type.
-            polymorphic_vir::Expr::Field( polymorphic_vir::FieldExpr {base: box polymorphic_vir::Expr::Local( polymorphic_vir::Local {variable: local_var, ..}), ..} ) => {
+            vir::Expr::Field( vir::FieldExpr {base: box vir::Expr::Local( vir::Local {variable: local_var, ..}), ..} ) => {
                 self.dereferenced_variables.insert(local_var.name.clone());
             }
             _ => ExprWalker::walk(self, receiver),
@@ -146,10 +146,10 @@ impl ExprWalker for VarDependencyCollector {
 }
 
 impl StmtWalker for VarDependencyCollector {
-    fn walk_expr(&mut self, expr: &polymorphic_vir::Expr) {
+    fn walk_expr(&mut self, expr: &vir::Expr) {
         ExprWalker::walk(self, expr);
     }
-    fn walk_assign(&mut self, target: &polymorphic_vir::Expr, source: &polymorphic_vir::Expr, kind: &polymorphic_vir::AssignKind) {
+    fn walk_assign(&mut self, target: &vir::Expr, source: &vir::Expr, kind: &vir::AssignKind) {
         let dependencies = collect_variables(source);
         let dependents = collect_variables(target);
         for dependent in &dependents {
@@ -161,12 +161,12 @@ impl StmtWalker for VarDependencyCollector {
             entry.extend(dependents.iter().cloned());
         }
         match kind {
-            polymorphic_vir::AssignKind::SharedBorrow(_) |
-            polymorphic_vir::AssignKind::MutableBorrow(_) => {
+            vir::AssignKind::SharedBorrow(_) |
+            vir::AssignKind::MutableBorrow(_) => {
                 match target {
-                    polymorphic_vir::Expr::Field( polymorphic_vir::FieldExpr {base: box polymorphic_vir::Expr::Local( polymorphic_vir::Local {variable: local_var, ..} ), ..} ) => {
+                    vir::Expr::Field( vir::FieldExpr {base: box vir::Expr::Local( vir::Local {variable: local_var, ..} ), ..} ) => {
                         match source {
-                            polymorphic_vir::Expr::Field( polymorphic_vir::FieldExpr {base: box polymorphic_vir::Expr::Local(_), field: polymorphic_vir::Field { name, .. }, ..} )
+                            vir::Expr::Field( vir::FieldExpr {base: box vir::Expr::Local(_), field: vir::Field { name, .. }, ..} )
                                 if name == "val_ref" => {
                                 // Reborrowing is fine.
                             }
@@ -185,7 +185,7 @@ impl StmtWalker for VarDependencyCollector {
     }
 }
 
-fn collect_variables(expr: &polymorphic_vir::Expr) -> HashSet<String> {
+fn collect_variables(expr: &vir::Expr) -> HashSet<String> {
     let mut collector = VariableCollector { vars: HashSet::new() };
     ExprWalker::walk(&mut collector, expr);
     collector.vars
@@ -196,32 +196,32 @@ struct VariableCollector {
 }
 
 impl ExprWalker for VariableCollector {
-    fn walk_local(&mut self, local_var: &polymorphic_vir::LocalVar, _pos: &polymorphic_vir::Position) {
+    fn walk_local(&mut self, local_var: &vir::LocalVar, _pos: &vir::Position) {
         if !self.vars.contains(&local_var.name) {
             self.vars.insert(local_var.name.clone());
         }
     }
 }
 
-fn translate_type(encoder: &Encoder, typ: polymorphic_vir::Type) -> polymorphic_vir::Type {
+fn translate_type(encoder: &Encoder, typ: vir::Type) -> vir::Type {
     match typ {
-        polymorphic_vir::Type::Int
-        | polymorphic_vir::Type::Bool
-        | polymorphic_vir::Type::Snapshot(_)
-        | polymorphic_vir::Type::Domain(_) => typ,
-        polymorphic_vir::Type::TypedRef(_) | polymorphic_vir::Type::TypeVar(_) => {
+        vir::Type::Int
+        | vir::Type::Bool
+        | vir::Type::Snapshot(_)
+        | vir::Type::Domain(_) => typ,
+        vir::Type::TypedRef(_) | vir::Type::TypeVar(_) => {
             let mir_typ = encoder.decode_type_predicate_type(&typ).unwrap(); // FIXME: unwrap
             encoder.encode_snapshot_type(mir_typ).unwrap() // FIXME: unwrap
         }
-        polymorphic_vir::Type::Seq(_) => unreachable!(),
+        vir::Type::Seq(_) => unreachable!(),
     }
 }
 
 struct Purifier<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     vars: HashSet<String>,
-    fresh_variables: Vec<polymorphic_vir::LocalVar>,
-    change_var_types: HashMap<String, polymorphic_vir::Type>,
+    fresh_variables: Vec<vir::LocalVar>,
+    change_var_types: HashMap<String, vir::Type>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Purifier<'p, 'v, 'tcx> {
@@ -233,9 +233,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Purifier<'p, 'v, 'tcx> {
             change_var_types: HashMap::new(),
         }
     }
-    fn fresh_variable(&mut self, typ: &polymorphic_vir::Type) -> polymorphic_vir::LocalVar {
+    fn fresh_variable(&mut self, typ: &vir::Type) -> vir::LocalVar {
         let name = format!("havoc${}", self.fresh_variables.len());
-        let var = polymorphic_vir::LocalVar {
+        let var = vir::LocalVar {
             name,
             typ: translate_type(self.encoder, typ.clone()),
         };
@@ -245,29 +245,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> Purifier<'p, 'v, 'tcx> {
 }
 
 impl StmtFolder for Purifier<'_, '_, '_> {
-    fn fold_expr(&mut self, expr: polymorphic_vir::Expr) -> polymorphic_vir::Expr {
+    fn fold_expr(&mut self, expr: vir::Expr) -> vir::Expr {
         ExprFolder::fold(self, expr)
     }
     fn fold_method_call(
         &mut self,
         name: String,
-        args: Vec<polymorphic_vir::Expr>,
-        targets: Vec<polymorphic_vir::LocalVar>
-    ) -> polymorphic_vir::Stmt {
+        args: Vec<vir::Expr>,
+        targets: Vec<vir::LocalVar>
+    ) -> vir::Stmt {
         match targets.as_slice() {
             [local_var] if self.vars.contains(&local_var.name) => {
-                return polymorphic_vir::Stmt::Assign( polymorphic_vir::Assign {
-                    target: polymorphic_vir::LocalVar {
+                return vir::Stmt::Assign( vir::Assign {
+                    target: vir::LocalVar {
                         name: local_var.name.clone(),
                         typ: translate_type(self.encoder, local_var.typ.clone()),
                     }.into(),
                     source: self.fresh_variable(&local_var.typ).into(),
-                    kind: polymorphic_vir::AssignKind::Ghost,
+                    kind: vir::AssignKind::Ghost,
                 });
             }
             _ => {}
         }
-        polymorphic_vir::Stmt::MethodCall( polymorphic_vir::MethodCall {
+        vir::Stmt::MethodCall( vir::MethodCall {
             method_name: name,
             arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
             targets
@@ -275,14 +275,14 @@ impl StmtFolder for Purifier<'_, '_, '_> {
     }
     fn fold_assign(
         &mut self,
-        target: polymorphic_vir::Expr,
-        source: polymorphic_vir::Expr,
-        kind: polymorphic_vir::AssignKind,
-    ) -> polymorphic_vir::Stmt {
+        target: vir::Expr,
+        source: vir::Expr,
+        kind: vir::AssignKind,
+    ) -> vir::Stmt {
         let mut target = self.fold_expr(target);
         let mut source = self.fold_expr(source);
         match (&mut target, &mut source) {
-            (polymorphic_vir::Expr::Local( polymorphic_vir::Local {variable: target_var, ..} ), polymorphic_vir::Expr::Local( polymorphic_vir::Local {variable: source_var, ..} ))
+            (vir::Expr::Local( vir::Local {variable: target_var, ..} ), vir::Expr::Local( vir::Local {variable: source_var, ..} ))
                     if (target_var.name.starts_with("_preserve") ||
                         target_var.name.starts_with("_old$")
                         ) && self.vars.contains(&source_var.name) => {
@@ -291,25 +291,25 @@ impl StmtFolder for Purifier<'_, '_, '_> {
             }
             _ => {}
         }
-        polymorphic_vir::Stmt::Assign( polymorphic_vir::Assign {target, source, kind} )
+        vir::Stmt::Assign( vir::Assign {target, source, kind} )
     }
 }
 
 impl ExprFolder for Purifier<'_, '_, '_> {
     fn fold_field_access_predicate(
         &mut self,
-        receiver: Box<polymorphic_vir::Expr>,
-        perm_amount: polymorphic_vir::PermAmount,
-        pos: polymorphic_vir::Position
-    ) -> polymorphic_vir::Expr {
+        receiver: Box<vir::Expr>,
+        perm_amount: vir::PermAmount,
+        pos: vir::Position
+    ) -> vir::Expr {
         match &*receiver {
-            polymorphic_vir::Expr::Field( polymorphic_vir::FieldExpr {base: box polymorphic_vir::Expr::Local ( polymorphic_vir::Local {variable: local_var, ..} ), ..} )
+            vir::Expr::Field( vir::FieldExpr {base: box vir::Expr::Local ( vir::Local {variable: local_var, ..} ), ..} )
                     if self.vars.contains(&local_var.name) => {
                 return true.into();
             }
             _ => {}
         }
-        polymorphic_vir::Expr::FieldAccessPredicate( polymorphic_vir::FieldAccessPredicate {
+        vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {
             base: receiver,
             permission: perm_amount,
             position: pos,
@@ -317,21 +317,21 @@ impl ExprFolder for Purifier<'_, '_, '_> {
     }
     fn fold_predicate_access_predicate(
         &mut self,
-        typ: polymorphic_vir::Type,
-        arg: Box<polymorphic_vir::Expr>,
-        perm_amount: polymorphic_vir::PermAmount,
-        pos: polymorphic_vir::Position
-    ) -> polymorphic_vir::Expr {
+        typ: vir::Type,
+        arg: Box<vir::Expr>,
+        perm_amount: vir::PermAmount,
+        pos: vir::Position
+    ) -> vir::Expr {
         let arg = self.fold_boxed(arg);
         match &*arg {
-            polymorphic_vir::Expr::Local( polymorphic_vir::Local {variable: local_var, ..})
+            vir::Expr::Local( vir::Local {variable: local_var, ..})
                     if self.vars.contains(&local_var.name) ||
                         self.change_var_types.contains_key(&local_var.name) => {
                 return true.into();
             }
             _ => {}
         }
-        polymorphic_vir::Expr::PredicateAccessPredicate( polymorphic_vir::PredicateAccessPredicate {
+        vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {
             predicate_type: typ,
             argument: arg,
             permission: perm_amount,
@@ -341,14 +341,14 @@ impl ExprFolder for Purifier<'_, '_, '_> {
     fn fold_labelled_old(
         &mut self,
         label: String,
-        body: Box<polymorphic_vir::Expr>,
-        pos: polymorphic_vir::Position
-    ) -> polymorphic_vir::Expr {
+        body: Box<vir::Expr>,
+        pos: vir::Position
+    ) -> vir::Expr {
         let body = self.fold_boxed(body);
         if !body.is_heap_dependent() {
             return *body;
         }
-        polymorphic_vir::Expr::LabelledOld( polymorphic_vir::LabelledOld {
+        vir::Expr::LabelledOld( vir::LabelledOld {
             label,
             base: body,
             position: pos,
@@ -356,33 +356,33 @@ impl ExprFolder for Purifier<'_, '_, '_> {
     }
     fn fold_local(
         &mut self,
-        mut var: polymorphic_vir::LocalVar,
-        pos: polymorphic_vir::Position,
-    ) -> polymorphic_vir::Expr {
+        mut var: vir::LocalVar,
+        pos: vir::Position,
+    ) -> vir::Expr {
         if let Some(new_type) = self.change_var_types.get(&var.name) {
             var.typ = translate_type(self.encoder, new_type.clone());
         }
-        polymorphic_vir::Expr::Local( polymorphic_vir::Local {
+        vir::Expr::Local( vir::Local {
             variable: var,
             position: pos,
         })
     }
     fn fold_field(
         &mut self,
-        receiver: Box<polymorphic_vir::Expr>,
-        field: polymorphic_vir::Field,
-        pos: polymorphic_vir::Position,
-    ) -> polymorphic_vir::Expr {
+        receiver: Box<vir::Expr>,
+        field: vir::Field,
+        pos: vir::Position,
+    ) -> vir::Expr {
         match receiver {
-            box polymorphic_vir::Expr::Local( polymorphic_vir::Local {variable: local_var, ..} ) if self.vars.contains(&local_var.name) => {
-                return polymorphic_vir::LocalVar {
+            box vir::Expr::Local( vir::Local {variable: local_var, ..} ) if self.vars.contains(&local_var.name) => {
+                return vir::LocalVar {
                     name: local_var.name,
                     typ: translate_type(self.encoder, local_var.typ),
                 }.into();
             }
             _ => {}
         }
-        polymorphic_vir::Expr::Field( polymorphic_vir::FieldExpr {
+        vir::Expr::Field( vir::FieldExpr {
             base: receiver,
             field,
             position: pos,
@@ -391,18 +391,18 @@ impl ExprFolder for Purifier<'_, '_, '_> {
     fn fold_func_app(
         &mut self,
         name: String,
-        args: Vec<polymorphic_vir::Expr>,
-        formal_args: Vec<polymorphic_vir::LocalVar>,
-        return_type: polymorphic_vir::Type,
-        pos: polymorphic_vir::Position
-    ) -> polymorphic_vir::Expr {
+        args: Vec<vir::Expr>,
+        formal_args: Vec<vir::LocalVar>,
+        return_type: vir::Type,
+        pos: vir::Position
+    ) -> vir::Expr {
         let args: Vec<_> = args.into_iter().map(|e| ExprFolder::fold(self, e)).collect();
         match args.as_slice() {
-            [polymorphic_vir::Expr::Local( polymorphic_vir::Local {variable: local_var, position: local_pos} )] => {
+            [vir::Expr::Local( vir::Local {variable: local_var, position: local_pos} )] => {
                 if self.vars.contains(&local_var.name) ||
                         self.change_var_types.contains_key(&local_var.name) {
                     if name.starts_with("snap$") {
-                        return polymorphic_vir::Expr::Local( polymorphic_vir::Local {
+                        return vir::Expr::Local( vir::Local {
                             variable: local_var.clone(),
                             position: local_pos.clone(),
                         });
@@ -410,14 +410,14 @@ impl ExprFolder for Purifier<'_, '_, '_> {
                     if name.ends_with("$$discriminant$$") {
                         let predicate_name = formal_args[0].typ.name();
                         let domain_name = format!("Snap${}", predicate_name);
-                        let arg_dom_expr = polymorphic_vir::Expr::Local( polymorphic_vir::Local {
+                        let arg_dom_expr = vir::Expr::Local( vir::Local {
                             variable: local_var.clone(),
                             position: local_pos.clone(),
                         });
-                        let discriminant_func = polymorphic_vir::DomainFunc {
+                        let discriminant_func = vir::DomainFunc {
                             name: "discriminant$".to_string(),
                             formal_args: vec![local_var.clone()],
-                            return_type: polymorphic_vir::Type::Int,
+                            return_type: vir::Type::Int,
                             unique: false,
                             domain_name: domain_name.to_string(),
                         };
@@ -427,7 +427,7 @@ impl ExprFolder for Purifier<'_, '_, '_> {
             }
             _ => {}
         }
-        polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {
+        vir::Expr::FuncApp( vir::FuncApp {
             function_name: name,
             arguments: args,
             formal_arguments: formal_args,
