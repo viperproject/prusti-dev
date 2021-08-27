@@ -1409,7 +1409,9 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
             }
         }
 
-        self.conversions.insert(mir_location, conversions);
+        self.conversions.entry(mir_location)
+            .or_default()
+            .extend(conversions);
         Ok(())
     }
 
