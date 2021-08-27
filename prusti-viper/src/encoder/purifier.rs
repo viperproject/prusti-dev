@@ -149,7 +149,7 @@ impl StmtWalker for VarDependencyCollector {
     fn walk_expr(&mut self, expr: &vir::Expr) {
         ExprWalker::walk(self, expr);
     }
-    fn walk_assign(&mut self, target: &vir::Expr, source: &vir::Expr, kind: &vir::AssignKind) {
+    fn walk_assign(&mut self, vir::Assign {target, source, kind}: &vir::Assign) {
         let dependencies = collect_variables(source);
         let dependents = collect_variables(target);
         for dependent in &dependents {
@@ -248,12 +248,7 @@ impl StmtFolder for Purifier<'_, '_, '_> {
     fn fold_expr(&mut self, expr: vir::Expr) -> vir::Expr {
         ExprFolder::fold(self, expr)
     }
-    fn fold_method_call(
-        &mut self,
-        name: String,
-        args: Vec<vir::Expr>,
-        targets: Vec<vir::LocalVar>
-    ) -> vir::Stmt {
+    fn fold_method_call(&mut self, vir::MethodCall {method_name, arguments, targets}: vir::MethodCall) -> vir::Stmt {
         match targets.as_slice() {
             [local_var] if self.vars.contains(&local_var.name) => {
                 return vir::Stmt::Assign( vir::Assign {
@@ -268,17 +263,12 @@ impl StmtFolder for Purifier<'_, '_, '_> {
             _ => {}
         }
         vir::Stmt::MethodCall( vir::MethodCall {
-            method_name: name,
-            arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
+            method_name,
+            arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
             targets
         })
     }
-    fn fold_assign(
-        &mut self,
-        target: vir::Expr,
-        source: vir::Expr,
-        kind: vir::AssignKind,
-    ) -> vir::Stmt {
+    fn fold_assign(&mut self, vir::Assign {target, source, kind}: vir::Assign) -> vir::Stmt {
         let mut target = self.fold_expr(target);
         let mut source = self.fold_expr(source);
         match (&mut target, &mut source) {
