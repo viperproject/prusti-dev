@@ -29,6 +29,8 @@ use rustc_ast::ast;
 use log::{debug, trace};
 use prusti_interface::utils::read_prusti_attr;
 
+use super::encoder::SubstMap;
+
 /// Encode an assertion coming from a specification to a `vir::Expr`.
 ///
 /// In this documentation, we distinguish the encoding of a _value_ of a Rust expression from
@@ -59,6 +61,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
     targets_are_values: bool,
     assertion_location: Option<mir::BasicBlock>,
     parent_def_id: DefId,
+    tymap: &SubstMap<'tcx>,
 ) -> SpannedEncodingResult<vir::Expr> {
     let spec_encoder = SpecEncoder::new(
         encoder,
@@ -68,6 +71,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
         targets_are_values,
         assertion_location,
         parent_def_id,
+        tymap,
     );
     spec_encoder.encode_assertion(assertion)
 }
@@ -87,6 +91,7 @@ struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// When registering errors, this gives us their
     /// associated function
     parent_def_id: DefId,
+    tymap: &'p SubstMap<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
@@ -98,6 +103,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         targets_are_values: bool,
         assertion_location: Option<mir::BasicBlock>,
         parent_def_id: DefId,
+        tymap: &'p SubstMap<'tcx>,
     ) -> Self {
         trace!("SpecEncoder constructor");
 
@@ -109,6 +115,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             targets_are_values,
             assertion_location,
             parent_def_id,
+            tymap,
         }
     }
 
@@ -216,7 +223,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 let enc = |ty: ty::Ty<'tcx>| -> vir::Expr {
                     // FIXME: this is a hack to support generics. See issue #187.
                     // TODO polymorphic: might remove this step
-                    let ty = self.encoder.resolve_typaram(ty);
+                    let ty = self.encoder.resolve_typaram(ty, self.tymap);
                     self.encoder.encode_tag_func_app(ty)
                 };
                 let typecond =
@@ -241,7 +248,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 let mir = self.encoder.env().local_mir(closure.expr);
                 let result = &mir.local_decls[(0 as u32).into()];
                 let ty = result.ty;
-                if let Some(ty_repl) = self.encoder.current_tymap().get(ty) {
+                if let Some(ty_repl) = self.tymap.get(ty) {
                     debug!("spec ent repl: {:?} -> {:?}", ty, ty_repl);
 
                     match ty_repl.kind() {
@@ -479,7 +486,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mut replacements: Vec<(vir::Expr, vir::Expr)> = vec![];
 
         // Replacement 1: translate a local variable from the closure to a place in the outer MIR
-        let substs = &self.encoder.type_substitution_polymorphic_type_map().with_span(outer_span)?;
+        let substs = &self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(outer_span)?;
         let inner_captured_places: Vec<vir::Expr> = captured_tys
             .iter()
             .enumerate()
@@ -584,7 +591,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mir = self.encoder.env().local_mir(def_id.expect_local());
 
         // Translate an intermediate state to the state at the beginning of the method
-        let substs = self.encoder.type_substitution_polymorphic_type_map().with_span(mir.span)?;
+        let substs = self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(mir.span)?;
         let state = MultiExprBackwardInterpreterState::new_single_with_substs(
             expr.clone(),
             substs,
@@ -593,7 +600,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             self.encoder,
             &mir,
             def_id,
-            self.parent_def_id,
+            self.parent_def_id, self.tymap,
         );
         let initial_state = run_backward_interpretation_point_to_point(
             &mir,
@@ -619,7 +626,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         debug!("encode_expression {:?}", assertion_expr);
 
         let mut curr_def_id = assertion_expr.expr.to_def_id();
-        let mut curr_expr = self.encoder.encode_pure_expression(curr_def_id, self.parent_def_id)?;
+        let mut curr_expr = self.encoder.encode_pure_expression(curr_def_id, self.parent_def_id, self.tymap)?;
 
         loop {
             let done = self.encoder.get_single_closure_instantiation(curr_def_id).is_none();
@@ -656,7 +663,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
         // Replacements to use the provided `target_args` and `target_return`
         let mut replacements: Vec<(vir::Expr, vir::Expr)> = vec![];
-        let substs = &self.encoder.type_substitution_polymorphic_type_map().with_span(mir.span)?;
+        let substs = &self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(mir.span)?;
 
         // Replacement 1: replace the arguments with the `target_args`.
         replacements.extend(
@@ -738,10 +745,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> StraightLineBackwardInterpreter<'p, 'v, 'tcx> {
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
         parent_def_id: DefId,
+        tymap: &'p SubstMap<'tcx>,
     ) -> Self {
         StraightLineBackwardInterpreter {
             interpreter: PureFunctionBackwardInterpreter::new(
-                encoder, mir, def_id, false, parent_def_id
+                encoder, mir, def_id, false, parent_def_id, tymap.clone(),
             ),
         }
     }
