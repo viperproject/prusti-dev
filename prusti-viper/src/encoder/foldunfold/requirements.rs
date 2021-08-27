@@ -87,13 +87,13 @@ impl RequiredPermissionsGetter for vir::Stmt {
             }
 
             &vir::Stmt::MethodCall(_, ref args, ref vars) => {
-                // Preconditions and postconditions are empty
-                assert!(args.is_empty());
-                HashSet::from_iter(
+                let mut result = args.get_required_permissions(predicates, old_exprs);        //TODO: read & write to same location?
+                result.extend(
                     vars.iter()
                         .cloned()
                         .map(|v| Acc(vir::Expr::local(v), PermAmount::Write)),
-                )
+                );
+                result
             }
 
             &vir::Stmt::Assign(ref lhs, ref rhs, _kind) => {

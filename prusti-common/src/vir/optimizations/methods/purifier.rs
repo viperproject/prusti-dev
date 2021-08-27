@@ -205,7 +205,10 @@ impl ast::StmtWalker for VarCollector {
         if is_purifiable_method(method_name) {
             self.is_pure_context = true;
         }
-        assert!(args.is_empty());
+        //assert!(args.is_empty());
+        for arg in args {
+            self.walk_expr(arg);     //TODO: ?
+        }
         for target in targets {
             self.walk_local_var(target);
         }
@@ -419,23 +422,25 @@ impl ast::StmtFolder for VarPurifier {
         args: Vec<ast::Expr>,
         mut targets: Vec<ast::LocalVar>,
     ) -> ast::Stmt {
-        assert!(targets.len() == 1);
-        if self.pure_vars.contains(&targets[0]) {
-            let target = &targets[0];
-            let replacement = self
-                .replacements
-                .get(target)
-                .expect(&format!("key: {}", target))
-                .clone();
-            name = match replacement.typ {
-                ast::Type::Int => "builtin$havoc_int",
-                ast::Type::Bool => "builtin$havoc_bool",
-                ast::Type::TypedRef(_) => "builtin$havoc_ref",
-                ast::Type::Domain(_)
-                | ast::Type::Snapshot(_)
-                | ast::Type::Seq(_) => unreachable!(),
-            }.to_string();
-            targets = vec![replacement];
+        assert!(targets.len() <= 1);
+        if targets.len() == 1 {
+            if self.pure_vars.contains(&targets[0]) {
+                let target = &targets[0];
+                let replacement = self
+                    .replacements
+                    .get(target)
+                    .expect(&format!("key: {}", target))
+                    .clone();
+                name = match replacement.typ {
+                    ast::Type::Int => "builtin$havoc_int",
+                    ast::Type::Bool => "builtin$havoc_bool",
+                    ast::Type::TypedRef(_) => "builtin$havoc_ref",
+                    ast::Type::Domain(_)
+                    | ast::Type::Snapshot(_)
+                    | ast::Type::Seq(_) => unreachable!(),
+                }.to_string();
+                targets = vec![replacement];
+            }
         }
         ast::Stmt::MethodCall(
             name,
