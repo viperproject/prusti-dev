@@ -169,33 +169,19 @@ impl UsedPredicateCollector {
 }
 
 impl ExprWalker for UsedPredicateCollector {
-    fn walk_predicate_access_predicate(
-        &mut self,
-        typ: &Type,
-        arg: &Expr,
-        _perm_amount: PermAmount,
-        _pos: &Position,
-    ) {
-        self.used_predicates.insert(typ.name());
-        ExprWalker::walk(self, arg);
+    fn walk_predicate_access_predicate(&mut self, PredicateAccessPredicate {predicate_type, argument, ..}: &PredicateAccessPredicate) {
+        self.used_predicates.insert(predicate_type.name());
+        ExprWalker::walk(self, argument);
     }
 
-    fn walk_unfolding(
-        &mut self,
-        name: &str,
-        args: &Vec<Expr>,
-        body: &Expr,
-        _perm: PermAmount,
-        _variant: &MaybeEnumVariantIndex,
-        _pos: &Position,
-    ) {
-        self.used_predicates.insert(name.to_string());
-        self.folded_predicates.insert(name.to_string());
+    fn walk_unfolding(&mut self, Unfolding {predicate_name, arguments, base, ..}: &Unfolding) {
+        self.used_predicates.insert(predicate_name.to_string());
+        self.folded_predicates.insert(predicate_name.to_string());
 
-        for arg in args {
+        for arg in arguments {
             ExprWalker::walk(self, arg);
         }
-        ExprWalker::walk(self, body);
+        ExprWalker::walk(self, base);
     }
 }
 
