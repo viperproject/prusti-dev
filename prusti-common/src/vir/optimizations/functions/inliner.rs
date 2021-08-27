@@ -101,50 +101,34 @@ impl<'a> ast::StmtFolder for ConstantFunctionInliner<'a> {
 }
 
 impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
-    fn fold_func_app(
-        &mut self,
-        name: String,
-        args: Vec<ast::Expr>,
-        formal_args: Vec<ast::LocalVar>,
-        return_type: ast::Type,
-        pos: ast::Position,
-    ) -> ast::Expr {
-        if self.pure_function_map.contains_key(&name) {
-            self.pure_function_map[&name].clone()
+    fn fold_func_app(&mut self, ast::FuncApp {function_name, arguments, formal_arguments, return_type, position}: ast::FuncApp) -> ast::Expr {
+        if self.pure_function_map.contains_key(&function_name) {
+            self.pure_function_map[&function_name].clone()
         } else {
             ast::Expr::FuncApp( ast::FuncApp {
-                function_name: name,
-                arguments: args.into_iter().map(|e| self.fold(e)).collect(),
-                formal_arguments: formal_args,
+                function_name,
+                arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
+                formal_arguments,
                 return_type,
-                position: pos,
+                position,
             })
         }
     }
-    fn fold_unfolding(
-        &mut self,
-        name: String,
-        args: Vec<ast::Expr>,
-        expr: Box<ast::Expr>,
-        perm: ast::PermAmount,
-        variant: ast::MaybeEnumVariantIndex,
-        pos: ast::Position,
-    ) -> ast::Expr {
-        let body = self.fold_boxed(expr);
-        if body.is_constant() {
-            *body
+    fn fold_unfolding(&mut self, ast::Unfolding {predicate_name, arguments, mut base, permission, variant, position}: ast::Unfolding) -> ast::Expr {
+        base = self.fold_boxed(base);
+        if base.is_constant() {
+            *base
         } else {
             ast::Expr::Unfolding( ast::Unfolding {
-                predicate_name: name,
-                arguments: args.into_iter().map(|e| self.fold(e)).collect(),
-                base: body,
-                permission: perm,
+                predicate_name,
+                arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
+                base,
+                permission,
                 variant,
-                position: pos,
+                position,
             })
         }
     }
-
 }
 
 fn inline_into_methods(

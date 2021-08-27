@@ -54,12 +54,12 @@ impl GhostVarFixer {
 }
 
 impl ast::ExprFolder for GhostVarFixer {
-    fn fold_local(&mut self, local_var: ast::LocalVar, pos: ast::Position) -> ast::Expr {
+    fn fold_local(&mut self, ast::Local {variable, position}: ast::Local) -> ast::Expr {
         match self.vars {
-            Some(ref vars) if vars.contains(&local_var) => {
-                ast::Expr::local_with_pos(self.fix_name(local_var), pos)
+            Some(ref vars) if vars.contains(&variable) => {
+                ast::Expr::local_with_pos(self.fix_name(variable), position)
             }
-            _ => ast::Expr::local_with_pos(local_var, pos)
+            _ => ast::Expr::local_with_pos(variable, position)
         }
     }
 }

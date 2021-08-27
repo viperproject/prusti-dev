@@ -159,11 +159,11 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
             old_exprs: HashMap<String, Vec<vir::Expr>>,
         }
         impl vir::ExprWalker for OldExprCollector {
-            fn walk_labelled_old(&mut self, label: &str, body: &vir::Expr, _pos: &vir::Position) {
-                trace!("old expr: {:?}: {:?}", label, body);
-                self.old_exprs.entry(label.to_string()).or_default().push(body.clone());
+            fn walk_labelled_old(&mut self, vir::LabelledOld {label, box base, ..}: &vir::LabelledOld) {
+                trace!("old expr: {:?}: {:?}", label, base);
+                self.old_exprs.entry(label.to_string()).or_default().push(base.clone());
                 // Recurse, in case old expressions are nested
-                self.walk(body);
+                self.walk(base);
             }
         }
         let mut old_expr_collector = OldExprCollector {
@@ -405,18 +405,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                         _ => vir::default_fold_expr(self, e),
                     }
                 }
-                fn fold_labelled_old(
-                    &mut self,
-                    label: String,
-                    expr: Box<vir::Expr>,
-                    pos: vir::Position,
-                ) -> vir::Expr {
+                fn fold_labelled_old(&mut self, labelled_old: vir::LabelledOld) -> vir::Expr {
                     // Do not replace places that are already old.
-                    vir::Expr::LabelledOld( vir::LabelledOld {
-                        label,
-                        base: expr,
-                        position: pos,
-                    })
+                    vir::Expr::LabelledOld(labelled_old)
                 }
             }
             fn patch_expr(label: &str, expr: &vir::Expr) -> vir::Expr {
@@ -1128,20 +1119,15 @@ impl<'b, 'a: 'b> ExprReplacer<'b, 'a> {
 impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
     type Error = FoldUnfoldError;
 
-    fn fallible_fold_field(
-        &mut self,
-        expr: Box<vir::Expr>,
-        field: vir::Field,
-        pos: vir::Position,
-    ) -> Result<vir::Expr, Self::Error> {
-        debug!("[enter] fold_field {}, {}", expr, field);
+    fn fallible_fold_field(&mut self, vir::FieldExpr {base, field, position}: vir::FieldExpr) -> Result<vir::Expr, Self::Error> {
+        debug!("[enter] fold_field {}, {}", base, field);
 
         let res = if self.wait_old_expr {
-            vir::Expr::Field( vir::FieldExpr {base: self.fallible_fold_boxed(expr)?, field, position: pos} )
+            vir::Expr::Field( vir::FieldExpr {base: self.fallible_fold_boxed(base)?, field, position} )
         } else {
             // FIXME: we lose positions
-            let (base, mut components) = expr.explode_place();
-            components.push(vir::PlaceComponent::Field(field, pos));
+            let (base, mut components) = base.explode_place();
+            components.push(vir::PlaceComponent::Field(field, position));
             let new_base = self.fallible_fold(base)?;
             debug_assert!(
                 match new_base {
@@ -1158,25 +1144,17 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         Ok(res)
     }
 
-    fn fallible_fold_unfolding(
-        &mut self,
-        predicate_name: String,
-        arguments: Vec<vir::Expr>,
-        expr: Box<vir::Expr>,
-        permission: vir::PermAmount,
-        variant: vir::MaybeEnumVariantIndex,
-        position: vir::Position,
-    ) -> Result<vir::Expr, Self::Error> {
+    fn fallible_fold_unfolding(&mut self, vir::Unfolding {predicate_name, arguments, base, permission, variant, position}: vir::Unfolding) -> Result<vir::Expr, Self::Error> {
         debug!(
             "[enter] fold_unfolding {}, {}, {}, {}",
-            predicate_name, arguments[0], expr, permission
+            predicate_name, arguments[0], base, permission
         );
 
         let res = if self.wait_old_expr {
             vir::Expr::Unfolding( vir::Unfolding {
                 predicate_name,
                 arguments,
-                base: self.fallible_fold_boxed(expr)?,
+                base: self.fallible_fold_boxed(base)?,
                 permission,
                 variant,
                 position,
@@ -1192,33 +1170,34 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             let mut tmp_curr_pctxt = inner_pctxt;
             std::mem::swap(&mut self.curr_pctxt, &mut tmp_curr_pctxt);
 
-            let inner_expr = self.fallible_fold_boxed(expr)?;
+            let inner_expr = self.fallible_fold_boxed(base)?;
 
             // Restore states
             std::mem::swap(&mut self.curr_pctxt, &mut tmp_curr_pctxt);
 
-            vir::Expr::Unfolding( vir::Unfolding {predicate_name, arguments, base: inner_expr, permission, variant, position} )
+            vir::Expr::Unfolding( vir::Unfolding {
+                predicate_name,
+                arguments,
+                base: inner_expr,
+                permission,
+                variant,
+                position,
+            })
         };
 
         debug!("[exit] fold_unfolding = {}", res);
         Ok(res)
     }
 
-    fn fallible_fold_magic_wand(
-        &mut self,
-        lhs: Box<vir::Expr>,
-        rhs: Box<vir::Expr>,
-        borrow: Option<vir::borrows::Borrow>,
-        pos: vir::Position,
-    ) -> Result<vir::Expr, Self::Error> {
-        debug!("[enter] fold_magic_wand {}, {}", lhs, rhs);
+    fn fallible_fold_magic_wand(&mut self, vir::MagicWand {left, right, borrow, position}: vir::MagicWand) -> Result<vir::Expr, Self::Error> {
+        debug!("[enter] fold_magic_wand {}, {}", left, right);
 
         // Compute lhs state
         let mut lhs_pctxt = self.curr_pctxt.clone();
         let lhs_state = lhs_pctxt.mut_state();
         lhs_state.remove_all();
         lhs_state.insert_all_perms(
-            lhs.get_footprint(self.curr_pctxt.predicates())
+            left.get_footprint(self.curr_pctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
@@ -1233,7 +1212,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         std::mem::swap(&mut self.curr_pctxt, &mut lhs_pctxt);
 
         // Rewrite lhs
-        let new_lhs = self.fallible_fold_boxed(lhs)?;
+        let new_lhs = self.fallible_fold_boxed(left)?;
 
         // Restore states
         std::mem::swap(&mut self.curr_pctxt, &mut lhs_pctxt);
@@ -1260,7 +1239,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         let rhs_state = rhs_pctxt.mut_state();
         rhs_state.remove_all();
         rhs_state.insert_all_perms(
-            rhs.get_footprint(self.curr_pctxt.predicates())
+            right.get_footprint(self.curr_pctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p]),
@@ -1272,7 +1251,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         self.lhs_pctxt = Some(new_lhs_pctxt);
 
         // Rewrite rhs
-        let new_rhs = self.fallible_fold_boxed(rhs)?;
+        let new_rhs = self.fallible_fold_boxed(right)?;
 
         // Restore states
         self.lhs_pctxt = None;
@@ -1283,20 +1262,15 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             left: new_lhs,
             right: new_rhs,
             borrow,
-            position: pos
+            position,
         });
 
         debug!("[enter] fold_magic_wand = {}", res);
         Ok(res)
     }
 
-    fn fallible_fold_labelled_old(
-        &mut self,
-        label: String,
-        expr: Box<vir::Expr>,
-        pos: vir::Position,
-    ) -> Result<vir::Expr, Self::Error> {
-        debug!("[enter] fold_labelled_old {}: {}", label, expr);
+    fn fallible_fold_labelled_old(&mut self, vir::LabelledOld {label, base, position}: vir::LabelledOld) -> Result<vir::Expr, Self::Error> {
+        debug!("[enter] fold_labelled_old {}: {}", label, base);
 
         let mut tmp_curr_pctxt = if label == "lhs" && self.lhs_pctxt.is_some() {
             self.lhs_pctxt.as_ref().unwrap().clone()
@@ -1324,32 +1298,31 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         self.wait_old_expr = false;
 
         // Rewrite inner expression
-        let inner_expr = self.fallible_fold_boxed(expr)?;
+        let inner_expr = self.fallible_fold_boxed(base)?;
 
         // Restore states
         std::mem::swap(&mut self.curr_pctxt, &mut tmp_curr_pctxt);
         self.wait_old_expr = old_wait_old_expr;
 
         // Rebuild expression
-        let res = vir::Expr::LabelledOld( vir::LabelledOld {label, base: inner_expr, position: pos} );
+        let res = vir::Expr::LabelledOld( vir::LabelledOld {
+            label,
+            base: inner_expr,
+            position,
+        });
 
         debug!("[exit] fold_labelled_old = {}", res);
         Ok(res)
     }
 
-    fn fallible_fold_downcast(
-        &mut self,
-        base: Box<vir::Expr>,
-        enum_place: Box<vir::Expr>,
-        variant_field: vir::Field,
-    ) -> Result<vir::Expr, Self::Error> {
-        debug!("[enter] fallible_fold_downcast {} -> {} in {}", enum_place, variant_field, base);
+    fn fallible_fold_downcast(&mut self, vir::DowncastExpr {base, enum_place, field}: vir::DowncastExpr) -> Result<vir::Expr, Self::Error> {
+        debug!("[enter] fallible_fold_downcast {} -> {} in {}", enum_place, field, base);
 
         let res = if self.wait_old_expr {
             vir::Expr::Downcast( vir::DowncastExpr {
                 base: self.fallible_fold_boxed(base)?,
                 enum_place,
-                field: variant_field,
+                field,
             })
         } else {
             // Compute inner state
@@ -1357,7 +1330,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             let inner_state = inner_pctxt.mut_state();
             vir::Stmt::Downcast( vir::Downcast {
                 base: enum_place.as_ref().clone(),
-                field: variant_field.clone(),
+                field: field.clone(),
             }).apply_on_state(inner_state, self.curr_pctxt.predicates())?;
 
             // Store states
@@ -1372,7 +1345,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             vir::Expr::Downcast( vir::DowncastExpr {
                 base: inner_base,
                 enum_place,
-                field: variant_field
+                field,
             })
         };
 
@@ -1425,21 +1398,14 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         Ok(res)
     }
 
-    fn fallible_fold_func_app(
-        &mut self,
-        function_name: String,
-        args: Vec<vir::Expr>,
-        formal_args: Vec<vir::LocalVar>,
-        return_type: vir::Type,
-        position: vir::Position,
-    ) -> Result<vir::Expr, Self::Error> {
+    fn fallible_fold_func_app(&mut self, vir::FuncApp {function_name, arguments, formal_arguments, return_type, position}: vir::FuncApp) -> Result<vir::Expr, Self::Error> {
         if self.wait_old_expr {
             Ok(vir::Expr::FuncApp( vir::FuncApp {
                 function_name,
-                arguments: args.into_iter()
+                arguments: arguments.into_iter()
                     .map(|e| self.fallible_fold(e))
                     .collect::<Result<Vec<_>, Self::Error>>()?,
-                formal_arguments: formal_args.clone(),
+                formal_arguments: formal_arguments.clone(),
                 return_type: return_type.clone(),
                 position: position.clone(),
             }))
@@ -1447,8 +1413,8 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             let func_app =
             vir::Expr::FuncApp( vir::FuncApp {
                 function_name,
-                arguments: args,
-                formal_arguments: formal_args,
+                arguments,
+                formal_arguments,
                 return_type,
                 position,
             });

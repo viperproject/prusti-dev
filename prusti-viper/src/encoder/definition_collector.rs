@@ -4,7 +4,7 @@ use std::{
 };
 
 use prusti_common::vir_local;
-use vir_crate::polymorphic::{self as vir, compute_identifier, ExprWalker, FunctionIdentifier, StmtWalker, WithIdentifier};
+use vir_crate::polymorphic::{self as vir, ExprWalker, FunctionIdentifier, PredicateAccessPredicate, StmtWalker, WithIdentifier, compute_identifier};
 
 use super::Encoder;
 
@@ -258,55 +258,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> StmtWalker for Collector<'p, 'v, 'tcx> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
-    fn walk_variant(&mut self, base: &vir::Expr, variant: &vir::Field, _pos: &vir::Position) {
-        self.used_fields.insert(variant.clone());
+    fn walk_variant(&mut self, vir::Variant {base, variant_index, ..}: &vir::Variant) {
+        self.used_fields.insert(variant_index.clone());
         ExprWalker::walk(self, base);
-        ExprWalker::walk_type(self, &variant.typ);
+        ExprWalker::walk_type(self, &variant_index.typ);
     }
-    fn walk_field(&mut self, receiver: &vir::Expr, field: &vir::Field, _pos: &vir::Position) {
+    fn walk_field(&mut self, vir::FieldExpr {base, field, ..}: &vir::FieldExpr) {
         self.used_fields.insert(field.clone());
-        ExprWalker::walk(self, receiver);
+        ExprWalker::walk(self, base);
         ExprWalker::walk_type(self, &field.typ);
     }
-    fn walk_predicate_access_predicate(
-        &mut self,
-        typ: &vir::Type,
-        arg: &vir::Expr,
-        _perm_amount: vir::PermAmount,
-        _pos: &vir::Position,
-    ) {
-        self.used_predicates.insert(typ.name());
-        ExprWalker::walk(self, arg)
+    fn walk_predicate_access_predicate(&mut self, vir::PredicateAccessPredicate {predicate_type, argument, ..}: &vir::PredicateAccessPredicate) {
+        self.used_predicates.insert(predicate_type.name());
+        ExprWalker::walk(self, argument)
     }
-    fn walk_unfolding(
-        &mut self,
-        name: &str,
-        args: &Vec<vir::Expr>,
-        body: &vir::Expr,
-        _perm: vir::PermAmount,
-        _variant: &vir::MaybeEnumVariantIndex,
-        _pos: &vir::Position,
-    ) {
-        if self.new_unfolded_predicates.insert(name.to_string()) {
-            let predicate = self.encoder.get_viper_predicate(name);
+    fn walk_unfolding(&mut self, vir::Unfolding {predicate_name, arguments, base, ..}: &vir::Unfolding) {
+        if self.new_unfolded_predicates.insert(predicate_name.to_string()) {
+            let predicate = self.encoder.get_viper_predicate(predicate_name);
             // make sure we include all the fields
             predicate.body().as_ref().map(|body| self.walk_expr(body));
         }
-        for arg in args {
+        for arg in arguments {
             ExprWalker::walk(self, arg);
         }
-        ExprWalker::walk(self, body);
+        ExprWalker::walk(self, base);
     }
-    fn walk_func_app(
-        &mut self,
-        name: &str,
-        args: &Vec<vir::Expr>,
-        formal_args: &Vec<vir::LocalVar>,
-        return_type: &vir::Type,
-        _pos: &vir::Position,
-    ) {
+    fn walk_func_app(&mut self, vir::FuncApp {function_name, arguments, formal_arguments, return_type, ..}: &vir::FuncApp) {
         let identifier: vir::FunctionIdentifier =
-            compute_identifier(name, formal_args, return_type).into();
+            compute_identifier(function_name, formal_arguments, return_type).into();
         let have_visited = !self.used_functions.contains(&identifier);
         let have_visited_in_directly_calling_state =
             self.in_directly_calling_state && !self.directly_called_functions.contains(&identifier);
@@ -333,43 +312,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
                 self.in_directly_calling_state = old_in_directly_calling_state;
             }
         }
-        for arg in args {
+        for arg in arguments {
             ExprWalker::walk(self, arg)
         }
-        for arg in formal_args {
+        for arg in formal_arguments {
             ExprWalker::walk_local_var(self, arg);
         }
         ExprWalker::walk_type(self, return_type);
     }
-    fn walk_domain_func_app(
-        &mut self,
-        func: &vir::DomainFunc,
-        args: &Vec<vir::Expr>,
-        _pos: &vir::Position,
-    ) {
-        if func.domain_name.starts_with("Snap$") {
+    fn walk_domain_func_app(&mut self, vir::DomainFuncApp {domain_function, arguments, ..}: &vir::DomainFuncApp) {
+        if domain_function.domain_name.starts_with("Snap$") {
             self.used_snap_domain_functions
-                .insert(func.get_identifier().into());
-            self.used_domains.insert(func.domain_name.clone());
+                .insert(domain_function.get_identifier().into());
+            self.used_domains.insert(domain_function.domain_name.clone());
         } else {
-            match func.domain_name.as_str() {
+            match domain_function.domain_name.as_str() {
                 "MirrorDomain" => {
                     // Always included when encoded, do nothing.
                     self.used_mirror_functions
-                        .insert(func.get_identifier().into());
+                        .insert(domain_function.get_identifier().into());
                 }
                 "UnitDomain" => {
-                    self.used_domains.insert(func.domain_name.clone());
+                    self.used_domains.insert(domain_function.domain_name.clone());
                 }
                 name => {
                     unreachable!("Unexpected domain: {}", name);
                 }
             }
         }
-        for arg in args {
+        for arg in arguments {
             ExprWalker::walk(self, arg)
         }
-        for arg in &func.formal_args {
+        for arg in &domain_function.formal_args {
             ExprWalker::walk_local_var(self, arg)
         }
     }
@@ -422,20 +396,12 @@ impl StmtWalker for UnfoldedPredicateCollector {
 }
 
 impl ExprWalker for UnfoldedPredicateCollector {
-    fn walk_unfolding(
-        &mut self,
-        name: &str,
-        args: &Vec<vir::Expr>,
-        body: &vir::Expr,
-        _perm: vir::PermAmount,
-        _variant: &vir::MaybeEnumVariantIndex,
-        _pos: &vir::Position,
-    ) {
-        self.unfolded_predicates.insert(name.to_string());
-        for arg in args {
+    fn walk_unfolding(&mut self, vir::Unfolding {predicate_name, arguments, base, ..}: &vir::Unfolding) {
+        self.unfolded_predicates.insert(predicate_name.to_string());
+        for arg in arguments {
             ExprWalker::walk(self, arg);
         }
-        ExprWalker::walk(self, body);
+        ExprWalker::walk(self, base);
     }
 }
 
@@ -445,14 +411,8 @@ struct UnfoldedPredicateChecker<'a> {
 }
 
 impl<'a> ExprWalker for UnfoldedPredicateChecker<'a> {
-    fn walk_predicate_access_predicate(
-        &mut self,
-        typ: &vir::Type,
-        _arg: &vir::Expr,
-        _perm_amount: vir::PermAmount,
-        _pos: &vir::Position,
-    ) {
-        if self.unfolded_predicates.contains(&typ.name()) {
+    fn walk_predicate_access_predicate(&mut self, vir::PredicateAccessPredicate {predicate_type, ..}: &vir::PredicateAccessPredicate) {
+        if self.unfolded_predicates.contains(&predicate_type.name()) {
             self.found = true;
         }
     }
