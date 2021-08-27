@@ -62,6 +62,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
     {
         let mut extracted_credits = vec![];
         debug_assert!(self.remaining_func_pres.is_empty());
+        let mut credit_assertion_spans = vec![];
         for assertion in preconditions {
             if let Some(cond_credits) = extract_conditional_credits(&assertion, encoded_args, encoder, mir, proc_def_id)? {
                 let cond_credits_no_coeff = (
@@ -72,6 +73,10 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                         .collect::<BTreeSet<VirCreditPowers>>()
                 );
                 extracted_credits.push(cond_credits_no_coeff);
+
+                credit_assertion_spans.extend(
+                    typed::Spanned::get_spans(&assertion, mir, encoder.env().tcx())
+                )
             } else {
                 self.remaining_func_pres.push(assertion);
             }
@@ -95,29 +100,25 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                     conditional,
                 };
             if let Some(result_state) = run_backward_interpretation(mir, &cost_interpreter)? {
-                let mut max_exponents = HashMap::new();
+                self.conversions = result_state.conversions;
+                let mut type_to_exponents = HashMap::new();
                 let mut cond_acc_predicates = vec![];
                 for (opt_cond, credit_type_cost) in result_state.cost {
                     // overapprox e.g. (1, 2) & (2, 1) as (2, 2)        //TODO: make more precise?
                     // store max. exponent per number of exponents
                     let mut acc_predicates = vec![];
                     for (credit_type, coeff_map) in credit_type_cost {
-                        let curr_max_exponents: &mut HashMap<usize, u32> = max_exponents.entry(credit_type.clone()).or_default();
+                        let exponents_set: &mut BTreeSet<Vec<u32>> = type_to_exponents.entry(credit_type.clone()).or_default();
                         // cf. spec_encoder
                         for (vir_powers, coeff_expr) in coeff_map {
                             let mut pred_args = vec![];
                             let mut exponents = vec![];
-                            let mut max_exponent = 0u32;
                             for (vir_base_expr, exp) in vir_powers.powers {
-                                max_exponent = max(max_exponent, exp);
                                 pred_args.push(vir_base_expr.base);
                                 exponents.push(exp);
                             }
-
-                            for i in 1..=exponents.len() {
-                                curr_max_exponents.entry(i)
-                                    .and_modify(|curr_max| *curr_max = max(*curr_max, max_exponent))
-                                    .or_insert(max_exponent);
+                            if !exponents.is_empty() {
+                                exponents_set.insert(exponents.clone());
                             }
 
                             let pred_name = encoder.encode_credit_predicate_use(&credit_type, exponents);
@@ -146,8 +147,8 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                 let bounds_map = compute_bound_combinations(&extracted_credits, conditional);
                 debug_assert!(self.asymp_bound_check.is_empty());
                 for (credit_type, cond_map) in bounds_map {
-                    // only check asymptotic bound if there are credits inhaled of that type
-                    if let Some(max_exps) = max_exponents.get(&credit_type) {
+                    // only check asymptotic bound if there are credits inhaled of that type & only check inhaled exponents
+                    if let Some(exponents_set) = type_to_exponents.get(&credit_type) {
                         self.asymp_bound_check.push(
                             vir::Stmt::comment(format!("Checking asymptotic bounds for {}:", credit_type))
                         );
@@ -172,58 +173,61 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
 
                             // assert that all coefficients that would change the asymptotic bound are zero
                             // == permission amount is zero
+                            // TODO: more fine-grained spans pointing to 1 assertion
+                            let error_pos = encoder
+                                .error_manager()
+                                .register(credit_assertion_spans.clone(), ErrorCtxt::AssertAsymptoticBound, proc_def_id);
                             let mut bound_check_stmts = vec![];
-                            for (n_exps, max_exp) in max_exps {         //TODO: prettier order?
+                            for exponents in exponents_set.iter().rev() {
                                 let mut quantifier_vars = vec![];
-                                for i in 0..*n_exps {
-                                    let var_name = format!("credit_arg_{}", i);     //TODO: naming ok?
+                                for i in 0..exponents.len() {
+                                    let var_name = format!("c_arg_{}", i);     //TODO: naming ok?
                                     quantifier_vars.push(
                                         vir::LocalVar::new(var_name, vir::Type::Int)
                                     );
                                 }
                                 let quantifier_var_exprs: Vec<vir::Expr> = quantifier_vars.iter().map(|var| vir::Expr::local(var.clone())).collect();
-                                for exponents in (1u32..=*max_exp).combinations_with_replacement(*n_exps) {
-                                    let pred_name = encoder.encode_credit_predicate_use(&credit_type, exponents.clone());
-                                    let pred_instance = vir::Expr::predicate_instance(pred_name, quantifier_var_exprs.clone());
-                                    let perm_zero_expr = vir::Expr::perm_equality(
-                                        pred_instance.clone(),
-                                        vir::FracPermAmount::new(box 0.into(), box 1.into())
-                                    );
 
-                                    let quantifier_body = if let Some(base_vecs) = allowed_powers_map.remove(&exponents) {
-                                        let mut lhs_vec = vec![];
-                                        for base_exprs in base_vecs {
-                                            let mut equality_vec = vec![];
-                                            for i in 0..*n_exps {
-                                                equality_vec.push(
-                                                    vir::Expr::eq_cmp(quantifier_var_exprs[i].clone(), base_exprs[i].clone())        //TODO: could avoid clone
-                                                )
-                                            }
-                                            lhs_vec.push(
-                                                vir::Expr::not(
-                                                    equality_vec.into_iter().conjoin()
-                                                )
+                                let pred_name = encoder.encode_credit_predicate_use(&credit_type, exponents.clone());
+                                let pred_instance = vir::Expr::predicate_instance(pred_name, quantifier_var_exprs.clone());
+                                let perm_zero_expr = vir::Expr::perm_equality(
+                                    pred_instance.clone(),
+                                    vir::FracPermAmount::new(box 0.into(), box 1.into())
+                                );
+
+                                let quantifier_body = if let Some(base_vecs) = allowed_powers_map.remove(exponents) {
+                                    let mut lhs_vec = vec![];
+                                    for base_exprs in base_vecs {
+                                        let mut equality_vec = vec![];
+                                        for i in 0..exponents.len() {
+                                            equality_vec.push(
+                                                vir::Expr::eq_cmp(quantifier_var_exprs[i].clone(), base_exprs[i].clone())        //TODO: could avoid clone
                                             )
                                         }
-
-                                        vir::Expr::implies(
-                                            lhs_vec.into_iter().conjoin(),
-                                            perm_zero_expr,
+                                        lhs_vec.push(
+                                            vir::Expr::not(
+                                                equality_vec.into_iter().conjoin()
+                                            )
                                         )
-                                    } else {
-                                        perm_zero_expr
-                                    };
+                                    }
 
-                                    bound_check_stmts.push(
-                                        vir::Stmt::Assert(
-                                            vir::Expr::forall(
-                                                quantifier_vars.clone(),
-                                                vec![vir::Trigger::new(vec![pred_instance])],
-                                                quantifier_body
-                                            ),
-                                            vir::Position::default()            //TODO
-                                        ));
-                                }
+                                    vir::Expr::implies(
+                                        lhs_vec.into_iter().conjoin(),
+                                        perm_zero_expr,
+                                    )
+                                } else {
+                                    perm_zero_expr
+                                };
+
+                                bound_check_stmts.push(
+                                    vir::Stmt::Assert(
+                                        vir::Expr::forall(
+                                            quantifier_vars.clone(),
+                                            vec![vir::Trigger::new(vec![pred_instance])],
+                                            quantifier_body
+                                        ),
+                                        error_pos
+                                    ));
                             }
 
                             if let Some(cond) = opt_condition {

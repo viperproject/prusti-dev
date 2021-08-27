@@ -38,6 +38,8 @@ pub enum ErrorCtxt {
     Panic(PanicCause),
     /// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`
     ExhaleMethodPrecondition,
+    /// A Viper `assert expr` that encodes the check of an asymptotic resource credit bound
+    AssertAsymptoticBound,
     /// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`
     AssertMethodPostcondition,
     /// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`
@@ -310,6 +312,11 @@ impl<'tcx> ErrorManager<'tcx>
                     "implicit type invariant expected by the function call might not hold.",
                     error_span
                 ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertAsymptoticBound) => {
+                PrustiError::verification("The inferred cost does not satisfy the provided asymptotic credit bound", error_span)
+                    .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => {
