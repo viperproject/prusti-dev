@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use vir_crate::{vir_local, vir_type, vir};
+use prusti_common::{vir_local, vir_expr};
 use vir_crate::polymorphic::{self as vir, WithIdentifier};
 
 const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
@@ -154,8 +154,8 @@ impl BuiltinEncoder {
                             vir::PermAmount::Read,
                         ),
                         // 0 <= idx < {len}
-                        vir!{ [vir::Expr::from(0)] <= [vir::Expr::local(idx_var.clone())] },
-                        vir!([vir::Expr::local(idx_var)]  < [vir::Expr::from(array_len)]),
+                        vir_expr!{ [vir::Expr::from(0)] <= [vir::Expr::local(idx_var.clone())] },
+                        vir_expr!([vir::Expr::local(idx_var)]  < [vir::Expr::from(array_len)]),
                     ],
                     posts: vec![],
                     body: None,
@@ -195,8 +195,8 @@ impl BuiltinEncoder {
                             vir::PermAmount::Read,
                         ),
                         // 0 <= idx < Slice${ty}$len(self)
-                        vir!{ [vir::Expr::from(0)] <= [vir::Expr::local(idx_var.clone())] },
-                        vir!{ [vir::Expr::local(idx_var)] < [slice_len_call] },
+                        vir_expr!{ [vir::Expr::from(0)] <= [vir::Expr::local(idx_var.clone())] },
+                        vir_expr!{ [vir::Expr::local(idx_var)] < [slice_len_call] },
                     ],
                     posts: vec![],
                     body: None,
@@ -219,7 +219,7 @@ impl BuiltinEncoder {
                         ),
                     ],
                     posts: vec![
-                        vir!{ [vir::Expr::from(vir_local!{ __result: Int })] >= [vir::Expr::from(0)] }
+                        vir_expr!{ [vir::Expr::from(vir_local!{ __result: Int })] >= [vir::Expr::from(0)] }
                     ],
                     body: None,
                 }

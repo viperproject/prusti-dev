@@ -23,9 +23,9 @@ use prusti_common::{
     report::log,
     utils::to_string::ToString,
     vir::{ToGraphViz, fixes::fix_ghost_vars},
+    vir_local, vir_expr, vir_stmt
 };
 use vir_crate::{
-    vir, vir_local, vir_type,
     polymorphic::{
         self as vir,
         borrows::Borrow,
@@ -1389,11 +1389,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
 
                 let expiring_base_pred = self.mir_encoder.encode_place_predicate_permission(expiring_base.clone(), vir::PermAmount::Write).unwrap();
-                stmts.push(vir!{ exhale [expiring_base_pred] });
+                stmts.push(vir_stmt!{ exhale [expiring_base_pred] });
 
                 let arr_pred = vir::Expr::pred_permission(regained_array.clone(), vir::PermAmount::Write).unwrap();
-                stmts.push(vir!{ inhale [arr_pred] });
-                stmts.push(vir!{ inhale [wand_rhs_patched_lhs] });
+                stmts.push(vir_stmt!{ inhale [arr_pred] });
+                stmts.push(vir_stmt!{ inhale [wand_rhs_patched_lhs] });
 
                 // NOTE: the third tuple elem is called is_mut in
                 // `construct_vir_reborrowing_node_for_assignment`, and is currently only used to
@@ -4240,7 +4240,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let snap_array = vir::Expr::snap_app(array_base);
         let old_snap_array = vir::Expr::old(snap_array.clone(), old_label);
-        vir!{ [snap_array] == [old_snap_array] }
+        vir_expr!{ [snap_array] == [old_snap_array] }
     }
 
     /// Arguments:
@@ -4878,8 +4878,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
 
         // exhale and re-inhale to havoc
-        stmts.push(vir!{ exhale [array_acc_expr] });
-        stmts.push(vir!{ inhale [array_acc_expr] });
+        stmts.push(vir_stmt!{ exhale [array_acc_expr] });
+        stmts.push(vir_stmt!{ inhale [array_acc_expr] });
 
         let old = |e| { vir::Expr::labelled_old(&label, e) };
 
@@ -4887,17 +4887,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // inhale infos about array contents back
         let i_var: vir::Expr = vir_local!{ i: Int }.into();
-        let zero_le_i = vir!{ [vir::Expr::from(0)] <= [ i_var ] };
-        let i_lt_len = vir!{ [ i_var ] < [ vir::Expr::from(array_types.array_len) ] };
-        let i_ne_idx = vir!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
-        let idx_conditions = vir!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
+        let zero_le_i = vir_expr!{ [vir::Expr::from(0)] <= [ i_var ] };
+        let i_lt_len = vir_expr!{ [ i_var ] < [ vir::Expr::from(array_types.array_len) ] };
+        let i_ne_idx = vir_expr!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
+        let idx_conditions = vir_expr!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
         let lookup_ret_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs).with_span(span)?;
         let lookup_array_i = array_types.encode_lookup_pure_call(self.encoder, encoded_array.clone(), i_var, lookup_ret_ty.clone());
-        let lookup_same_as_old = vir!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
-        let forall_body = vir!{ [idx_conditions] ==> [lookup_same_as_old] };
-        let all_others_unchanged = vir!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
+        let lookup_same_as_old = vir_expr!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
+        let forall_body = vir_expr!{ [idx_conditions] ==> [lookup_same_as_old] };
+        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
 
-        stmts.push(vir!{ inhale [ all_others_unchanged ]});
+        stmts.push(vir_stmt!{ inhale [ all_others_unchanged ]});
 
         let tmp = vir::Expr::from(self.cfg_method.add_fresh_local_var(array_types.elem_pred_type.clone()));
         stmts.extend(
@@ -4913,9 +4913,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let indexed_lookup_pure_call = array_types
             .encode_lookup_pure_call(self.encoder, encoded_array, old(idx_val_int), lookup_ret_ty);
-        let indexed_updated = vir!{ [ indexed_lookup_pure_call ] == [ tmp_val_field ] };
+        let indexed_updated = vir_expr!{ [ indexed_lookup_pure_call ] == [ tmp_val_field ] };
 
-        stmts.push(vir!{ inhale [ indexed_updated ] });
+        stmts.push(vir_stmt!{ inhale [ indexed_updated ] });
 
         Ok(stmts)
     }
@@ -5433,7 +5433,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         stmts.extend(self.encode_havoc(&encoded_lhs));
         let val_ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
         let slice_expr = encoded_lhs.field(val_ref_field);
-        stmts.push(vir!{ inhale [vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {
+        stmts.push(vir_stmt!{ inhale [vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {
             base: box slice_expr.clone(),
             permission: vir::PermAmount::Write,
             position: vir::Position::default(),
@@ -5445,7 +5445,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             permission: if is_mut { vir::PermAmount::Write } else { vir::PermAmount::Read },
             position: vir::Position::default(),
         });
-        stmts.push(vir!{ inhale [slice_perm] });
+        stmts.push(vir_stmt!{ inhale [slice_perm] });
 
         let (rhs_place, rhs_ty) = if let mir::Operand::Move(ref place) = operand {
             let (rhs_place, rhs_ty, ..) = self.mir_encoder.encode_place(place).with_span(span)?;
@@ -5467,7 +5467,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let slice_len_call = slice_types.encode_slice_len_call(self.encoder, slice_expr.clone());
 
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir!{ [slice_len_call] == [vir::Expr::from(array_types.array_len)] }
+            expr: vir_expr!{ [slice_len_call] == [vir::Expr::from(array_types.array_len)] }
         }));
 
         let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs).with_span(span)?;
@@ -5488,7 +5488,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
 
             stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                expr: vir!{ [array_lookup_call] == [slice_lookup_call] }
+                expr: vir_expr!{ [array_lookup_call] == [slice_lookup_call] }
             }));
         }
 
@@ -5595,7 +5595,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
 
             stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                expr: vir!{ [lookup_pure_call] == [encoded_operand] }
+                expr: vir_expr!{ [lookup_pure_call] == [encoded_operand] }
             }));
         }
 
@@ -5942,7 +5942,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                     stmts.push(
                         vir::Stmt::Inhale( vir::Inhale {
-                            expr: vir!{ [lookup_pure_call] == [encoded_operand]},
+                            expr: vir_expr!{ [lookup_pure_call] == [encoded_operand]},
                         }),
                     );
                 }
@@ -6047,7 +6047,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }));
 
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir!{ [ lookup_pure_call ] == [ lookup_res_val_field ] }
+            expr: vir_expr!{ [ lookup_pure_call ] == [ lookup_res_val_field ] }
         }));
         Ok((lookup_res, stmts))
     }
@@ -6079,7 +6079,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // exhale preconditions
         stmts.push(vir::Stmt::Assert( vir::Assert {
-            expr: vir!{ [idx_val_int] < [ vir::Expr::from(array_types.array_len) ] },
+            expr: vir_expr!{ [idx_val_int] < [ vir::Expr::from(array_types.array_len) ] },
             position: vir::Position::default(),
         }));
 
@@ -6089,7 +6089,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vir::PermAmount::Write,
         ).unwrap();
 
-        stmts.push(vir!{ exhale [array_access_pred] });
+        stmts.push(vir_stmt!{ exhale [array_access_pred] });
 
         let old = |e| { vir::Expr::labelled_old(&before_label, e) };
         let old_lhs = |e| { vir::Expr::labelled_old("lhs", e) };
@@ -6103,7 +6103,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             lookup_ret_ty.clone(),
         );
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
-            expr: vir!{ [ old(lookup_pure_call) ] == [ res_val_field ] }
+            expr: vir_expr!{ [ old(lookup_pure_call) ] == [ res_val_field ] }
         }));
 
         // inhale magic wand
@@ -6122,28 +6122,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // TODO: de-duplicate with encode_array_direct_assign
         let i_var: vir::Expr = vir_local!{ i: Int }.into();
 
-        let zero_le_i = vir!{ [ vir::Expr::from(0) ] <= [ i_var ] };
-        let i_lt_len = vir!{ [ i_var ] < [ vir::Expr::from(array_types.array_len) ] };
-        let i_ne_idx = vir!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
-        let idx_conditions = vir!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
+        let zero_le_i = vir_expr!{ [ vir::Expr::from(0) ] <= [ i_var ] };
+        let i_lt_len = vir_expr!{ [ i_var ] < [ vir::Expr::from(array_types.array_len) ] };
+        let i_ne_idx = vir_expr!{ [ i_var ] != [ old(idx_val_int.clone()) ] };
+        let idx_conditions = vir_expr!{ [zero_le_i] && ([i_lt_len] && [i_ne_idx]) };
         let lookup_array_i = array_types.encode_lookup_pure_call(
             self.encoder,
             encoded_base_expr.clone(),
             i_var,
             lookup_ret_ty.clone(),
         );
-        let lookup_same_as_old = vir!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
-        let forall_body = vir!{ [idx_conditions] ==> [lookup_same_as_old] };
-        let all_others_unchanged = vir!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
+        let lookup_same_as_old = vir_expr!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
+        let forall_body = vir_expr!{ [idx_conditions] ==> [lookup_same_as_old] };
+        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
         let indexed_lookup_pure = array_types.encode_lookup_pure_call(
             self.encoder,
             encoded_base_expr.clone(),
             old(idx_val_int),
             lookup_ret_ty,
         );
-        let indexed_updated = vir!{ [ indexed_lookup_pure ] == [ old_lhs(res_val_field.clone()) ] };
+        let indexed_updated = vir_expr!{ [ indexed_lookup_pure ] == [ old_lhs(res_val_field.clone()) ] };
 
-        let magic_wand_rhs = vir!{ [all_others_unchanged] && [indexed_updated] };
+        let magic_wand_rhs = vir_expr!{ [all_others_unchanged] && [indexed_updated] };
         self.array_magic_wand_at.insert(
             location,
             (res_val_field, encoded_base_expr, magic_wand_rhs)
@@ -6201,7 +6201,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
 
                 stmts.push(vir::Stmt::Inhale( vir::Inhale {
-                    expr: vir!{ [lookup_pure_call] == [res_val_field] }
+                    expr: vir_expr!{ [lookup_pure_call] == [res_val_field] }
                 }));
 
                 (res, stmts)

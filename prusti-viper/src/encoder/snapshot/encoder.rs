@@ -13,7 +13,8 @@ use std::{
     collections::HashMap,
     convert::TryInto,
 };
-use vir_crate::{polymorphic as vir, vir_local, vir_type, vir};
+use prusti_common::{vir_local, vir_expr};
+use vir_crate::polymorphic as vir;
 use vir_crate::polymorphic::{
     FallibleExprFolder, FallibleStmtFolder, PermAmount,
     EnumVariantIndex, ExprIterator, ContainerOpKind, WithIdentifier,
@@ -785,9 +786,9 @@ impl SnapshotEncoder {
                             i.clone()
                     ]);
 
-                    let indices = vir!{ ([Expr::from(0)] <= [i]) && ([i] < [Expr::from(array_types.array_len)]) };
+                    let indices = vir_expr!{ ([Expr::from(0)] <= [i]) && ([i] < [Expr::from(array_types.array_len)]) };
 
-                    vir!{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
+                    vir_expr!{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
                 };
 
                 let snap_func = vir::Function {
@@ -834,8 +835,8 @@ impl SnapshotEncoder {
                             vec![lhs_arg.clone(), rhs_arg.clone()],
                             vec![vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
                             Expr::implies(
-                                vir!{ [lhs_call] == [rhs_call] },
-                                vir!{ [Expr::from(lhs_arg)] == [Expr::from(rhs_arg)] },
+                                vir_expr!{ [lhs_call] == [rhs_call] },
+                                vir_expr!{ [Expr::from(lhs_arg)] == [Expr::from(rhs_arg)] },
                             )
                         ),
                         domain_name: domain_name.clone(),
@@ -867,7 +868,7 @@ impl SnapshotEncoder {
                                 vir::Trigger::new(vec![read_call.clone()]),
                                 vir::Trigger::new(vec![seq_lookup.clone()]),
                             ],
-                            vir!{ [read_call] == [seq_lookup] },
+                            vir_expr!{ [read_call] == [seq_lookup] },
                         ),
                         domain_name: domain_name.clone(),
                     }
@@ -950,7 +951,7 @@ impl SnapshotEncoder {
                     elements: vec![],
                     position: vir::Position::default()}
                 );
-                let start_lt_len = vir!{ [start_expr] < [slice_len_call] };
+                let start_lt_len = vir_expr!{ [start_expr] < [slice_len_call] };
                 let result_len = Expr::ContainerOp( vir::ContainerOp {
                     op_kind: ContainerOpKind::SeqLen,
                     left: box result_expr.clone(),
@@ -974,7 +975,7 @@ impl SnapshotEncoder {
 
                 // forall i: Int, j: Int :: { slice$lookup_pure(slice, i), result[j] } idx <= i && i < slice$len(slice) && 0 <= j && j < slice$len(slice)-idx && i == j + idx ==> slice$lookup_pure(slice, i) == result[j]
                 let rest_eq_lookup = {
-                    let indices = vir!{ (([start_expr] <= [i_expr]) && ([i_expr] < [slice_len_call]))
+                    let indices = vir_expr!{ (([start_expr] <= [i_expr]) && ([i_expr] < [slice_len_call]))
                         && ((([Expr::from(0)] <= [j_expr]) && ([j_expr] < ([slice_len_call] - [start_expr])))
                         && ([i_expr] == ([j_expr] + [start_expr]))) };
 
@@ -983,7 +984,7 @@ impl SnapshotEncoder {
                         vec![
                             vir::Trigger::new(vec![slice_lookup_i.clone(), result_j.clone()])
                         ],
-                        vir!{ [indices] ==> ([slice_lookup_i] == [result_j]) },
+                        vir_expr!{ [indices] ==> ([slice_lookup_i] == [result_j]) },
                     )
                 };
 
@@ -1000,16 +1001,16 @@ impl SnapshotEncoder {
                             arg_expr.clone(),
                             PermAmount::Read,
                         ),
-                        vir!{ [Expr::from(0)] <= [start_expr] },
+                        vir_expr!{ [Expr::from(0)] <= [start_expr] },
                     ],
                     posts: vec![
-                        vir!{ ([start_expr] >= [slice_len_call]) ==> ([result_expr] == [empty_seq]) },
-                        vir!{ [start_lt_len] ==> ([result_len] == ([slice_len_call] - [start_expr])) },
-                        vir!{ [start_lt_len] ==> ([result_0] == [slice_lookup_start]) },
-                        vir!{ [start_lt_len] ==> [rest_eq_lookup] },
+                        vir_expr!{ ([start_expr] >= [slice_len_call]) ==> ([result_expr] == [empty_seq]) },
+                        vir_expr!{ [start_lt_len] ==> ([result_len] == ([slice_len_call] - [start_expr])) },
+                        vir_expr!{ [start_lt_len] ==> ([result_0] == [slice_lookup_start]) },
+                        vir_expr!{ [start_lt_len] ==> [rest_eq_lookup] },
                     ],
                     body: Some(Expr::ite(
-                        vir!{ [start_expr] >= [slice_len_call] },
+                        vir_expr!{ [start_expr] >= [slice_len_call] },
                         Expr::Seq( vir::Seq {
                             typ: seq_type.clone(),
                             elements: vec![],
@@ -1028,7 +1029,7 @@ impl SnapshotEncoder {
                                 slice_collect_funcname,
                                 vec![
                                     arg_expr.clone(),
-                                    vir!{ [start_expr] + [Expr::from(1)] },
+                                    vir_expr!{ [start_expr] + [Expr::from(1)] },
                                 ],
                                 vec![
                                     vir_local!{ slice: {slice_types.slice_pred_type.clone()} },
@@ -1073,13 +1074,13 @@ impl SnapshotEncoder {
                         i.clone(),
                     ]);
 
-                    let indices = vir!{ ([Expr::from(0)] <= [i]) && ([i] < [slice_len]) };
+                    let indices = vir_expr!{ ([Expr::from(0)] <= [i]) && ([i] < [slice_len]) };
 
-                    vir!{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
+                    vir_expr!{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
                 };
 
                 let snap_len = len.apply(vec![result_expr]);
-                let snap_len_eq_call_len = vir!{ [slice_len] == [snap_len] };
+                let snap_len_eq_call_len = vir_expr!{ [slice_len] == [snap_len] };
 
                 let snap_func = vir::Function {
                     name: SNAP_FUNC_NAME.to_string(),
@@ -1132,8 +1133,8 @@ impl SnapshotEncoder {
                                 vir::Trigger::new(vec![cons_l.clone(), cons_r.clone()]),
                             ],
                             Expr::implies(
-                                vir!{ [cons_l] == [cons_r] },
-                                vir!{ ([Expr::from(data_l)] == [Expr::from(data_r)]) },
+                                vir_expr!{ [cons_l] == [cons_r] },
+                                vir_expr!{ ([Expr::from(data_l)] == [Expr::from(data_r)]) },
                             ),
                         ),
                         domain_name: domain_name.clone(),
@@ -1166,7 +1167,7 @@ impl SnapshotEncoder {
                                 vir::Trigger::new(vec![read_call.clone()]),
                                 vir::Trigger::new(vec![seq_lookup.clone()]),
                             ],
-                            vir!{ [read_call] == [seq_lookup] },
+                            vir_expr!{ [read_call] == [seq_lookup] },
                         ),
                         domain_name: domain_name.clone(),
                     }
@@ -1183,7 +1184,7 @@ impl SnapshotEncoder {
 
                     vir::DomainAxiom {
                         name: format!("{}$len_of_seq", predicate_type.name()),
-                        expr: vir!{ forall data: {seq_type} :: { [len_call], [seq_len] } ([len_call] == [seq_len]) },
+                        expr: vir_expr!{ forall data: {seq_type} :: { [len_call], [seq_len] } ([len_call] == [seq_len]) },
                         domain_name: domain_name.clone(),
                     }
                 };
@@ -1193,7 +1194,7 @@ impl SnapshotEncoder {
 
                     vir::DomainAxiom {
                         name: format!("{}$len_positive", predicate_type.name()),
-                        expr: vir!{ forall slice: {slice_snap_ty} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
+                        expr: vir_expr!{ forall slice: {slice_snap_ty} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
                         domain_name: domain_name.clone(),
                     }
                 };
@@ -1277,7 +1278,7 @@ impl SnapshotEncoder {
         let read_lo = read.apply(vec![self_expr.clone(), lo_expr.clone()]);
 
         let read_eq_seq_lookup = {
-            let indices = vir!{ (([lo_expr] <= [i_expr]) && ([i_expr] < [hi_expr]))
+            let indices = vir_expr!{ (([lo_expr] <= [i_expr]) && ([i_expr] < [hi_expr]))
                 && ((([Expr::from(0)] <= [j_expr]) && ([j_expr] < [hi_expr]))
                 && ([i_expr] == ([j_expr] + [lo_expr]))) };
 
@@ -1286,7 +1287,7 @@ impl SnapshotEncoder {
                 vec![
                     vir::Trigger::new(vec![read_i.clone(), result_j.clone()])
                 ],
-                vir!{ [indices] ==> ([read_i] == [result_j]) },
+                vir_expr!{ [indices] ==> ([read_i] == [result_j]) },
             )
         };
 
@@ -1299,17 +1300,17 @@ impl SnapshotEncoder {
             ],
             return_type: seq_type.clone(),
             pres: vec![
-                vir!{ [Expr::from(0)] <= [lo_expr] },
-                vir!{ [lo_expr] <= [hi_expr] },
-                vir!{ [hi_expr] <= [base_len] },
+                vir_expr!{ [Expr::from(0)] <= [lo_expr] },
+                vir_expr!{ [lo_expr] <= [hi_expr] },
+                vir_expr!{ [hi_expr] <= [base_len] },
             ],
             posts: vec![
-                vir!{ [result_len] == ([hi_expr] - [lo_expr]) },
-                vir!{ ([lo_expr] < [hi_expr]) ==> ([result_0] == [read_lo]) },
+                vir_expr!{ [result_len] == ([hi_expr] - [lo_expr]) },
+                vir_expr!{ ([lo_expr] < [hi_expr]) ==> ([result_0] == [read_lo]) },
                 read_eq_seq_lookup,
             ],
             body: Some(Expr::ite(
-                vir!{ [lo_expr] >= [hi_expr] },
+                vir_expr!{ [lo_expr] >= [hi_expr] },
                 Expr::Seq( vir::Seq {
                     typ: seq_type.clone(),
                     elements: vec![],
@@ -1328,7 +1329,7 @@ impl SnapshotEncoder {
                         slice_helper_name,
                         vec![
                             self_expr,
-                            vir!{ [lo_expr] + [Expr::from(1)] },
+                            vir_expr!{ [lo_expr] + [Expr::from(1)] },
                             hi_expr,
                         ],
                         vec![
