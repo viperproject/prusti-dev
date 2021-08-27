@@ -8,14 +8,13 @@ use crate::encoder::foldunfold::perm::*;
 use crate::encoder::foldunfold::requirements::*;
 use crate::encoder::foldunfold::footprint::*;
 use crate::encoder::foldunfold::state::*;
-use prusti_common::vir;
-use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::polymorphic as vir;
 use std::collections::HashMap;
 use log::{debug, trace};
 use crate::encoder::foldunfold::FoldUnfoldError;
 use crate::encoder::foldunfold::path_ctxt::find_unfolded_variant;
 
-fn inhale_expr(expr: &polymorphic_vir::Expr, state: &mut State, predicates: &HashMap<String, polymorphic_vir::Predicate>)
+fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>)
     -> Result<(), FoldUnfoldError>
 {
     state.insert_all_perms(
@@ -25,7 +24,7 @@ fn inhale_expr(expr: &polymorphic_vir::Expr, state: &mut State, predicates: &Has
     )
 }
 
-fn exhale_expr(expr: &polymorphic_vir::Expr, state: &mut State, predicates: &HashMap<String, polymorphic_vir::Predicate>)
+fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>)
     -> Result<(), FoldUnfoldError>
 {
     state.remove_all_perms(
@@ -39,12 +38,12 @@ fn exhale_expr(expr: &polymorphic_vir::Expr, state: &mut State, predicates: &Has
 }
 
 pub trait ApplyOnState {
-    fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, polymorphic_vir::Predicate>)
+    fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>)
         -> Result<(), FoldUnfoldError>;
 }
 
-impl ApplyOnState for polymorphic_vir::Stmt {
-    fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, polymorphic_vir::Predicate>)
+impl ApplyOnState for vir::Stmt {
+    fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>)
         -> Result<(), FoldUnfoldError>
     {
         debug!("apply_on_state '{}'", self);
@@ -52,20 +51,20 @@ impl ApplyOnState for polymorphic_vir::Stmt {
         trace!("State pred before {{\n{}\n}}", state.display_pred());
         trace!("State moved before {{\n{}\n}}", state.display_moved());
         match self {
-            &polymorphic_vir::Stmt::Comment(_)
-            | &polymorphic_vir::Stmt::Label(_)
-            | &polymorphic_vir::Stmt::Assert(_)
-            | &polymorphic_vir::Stmt::Obtain(_) => {}
+            &vir::Stmt::Comment(_)
+            | &vir::Stmt::Label(_)
+            | &vir::Stmt::Assert(_)
+            | &vir::Stmt::Obtain(_) => {}
 
-            &polymorphic_vir::Stmt::Inhale( polymorphic_vir::Inhale {ref expr} )  => {
+            &vir::Stmt::Inhale( vir::Inhale {ref expr} )  => {
                 inhale_expr(expr, state, predicates)?;
             }
 
-            &polymorphic_vir::Stmt::Exhale( polymorphic_vir::Exhale {ref expr, ..}) => {
+            &vir::Stmt::Exhale( vir::Exhale {ref expr, ..}) => {
                 exhale_expr(expr, state, predicates)?;
             }
 
-            &polymorphic_vir::Stmt::MethodCall( polymorphic_vir::MethodCall {ref targets, ..} ) => {
+            &vir::Stmt::MethodCall( vir::MethodCall {ref targets, ..} ) => {
                 // We know that in Prusti method's preconditions and postconditions are empty
                 state.remove_moved_matching(|p| targets.contains(&p.get_base()));
                 state.remove_pred_matching(|p| p.is_curr() && targets.contains(&p.get_base()));
@@ -74,12 +73,12 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 });
             }
 
-            &polymorphic_vir::Stmt::Assign( polymorphic_vir::Assign {ref target, ref source, kind} ) if kind != polymorphic_vir::AssignKind::Ghost => {
+            &vir::Stmt::Assign( vir::Assign {ref target, ref source, kind} ) if kind != vir::AssignKind::Ghost => {
                 debug_assert!(target.is_place());
                 let original_state = state.clone();
 
                 // Check the state of rhs.
-                if kind != polymorphic_vir::AssignKind::Copy {
+                if kind != vir::AssignKind::Copy {
                     assert!(source.is_place());
                     assert!(source.get_type().is_typed_ref_or_type_var());
 
@@ -101,7 +100,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 if source.is_place() && source.get_type().is_typed_ref_or_type_var() {
                     // This is a move assignemnt or the creation of a borrow
                     match kind {
-                        polymorphic_vir::AssignKind::Move | polymorphic_vir::AssignKind::MutableBorrow(_) => {
+                        vir::AssignKind::Move | vir::AssignKind::MutableBorrow(_) => {
                             // In Prusti, we lose permission on the rhs
                             state.remove_pred_matching(|p| p.has_prefix(&source));
                             state.remove_acc_matching(|p| {
@@ -139,14 +138,14 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                                 state.insert_moved(source.clone());
                             }
                         }
-                        polymorphic_vir::AssignKind::SharedBorrow(_) => {
+                        vir::AssignKind::SharedBorrow(_) => {
                             // We lose permission on the lhs
                             state.remove_pred_matching(|p| p.has_prefix(&target));
                             state.remove_acc_matching(|p| {
                                 p.has_proper_prefix(&target) && !p.is_local()
                             });
                         }
-                        polymorphic_vir::AssignKind::Ghost | polymorphic_vir::AssignKind::Copy => {
+                        vir::AssignKind::Ghost | vir::AssignKind::Copy => {
                             unreachable!();
                         }
                     }
@@ -154,7 +153,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                     // This is not move assignemnt or the creation of a borrow
                     assert!(
                         match kind {
-                            polymorphic_vir::AssignKind::Copy => true,
+                            vir::AssignKind::Copy => true,
                             _ => false,
                         },
                         "Unexpected assignment kind: {:?}",
@@ -163,11 +162,11 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 }
             }
 
-            &polymorphic_vir::Stmt::Assign( polymorphic_vir::Assign {kind: polymorphic_vir::AssignKind::Ghost, ..} )  => {
+            &vir::Stmt::Assign( vir::Assign {kind: vir::AssignKind::Ghost, ..} )  => {
                 // Do nothing.
             }
 
-            &polymorphic_vir::Stmt::Fold( polymorphic_vir::Fold {ref arguments, permission, ref enum_variant, ..} ) => {
+            &vir::Stmt::Fold( vir::Fold {ref arguments, permission, ref enum_variant, ..} ) => {
                 assert_eq!(arguments.len(), 1);
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
@@ -178,7 +177,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: polymorphic_vir::Expr = predicate.self_place();
+                let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<Perm> = predicate
                     .get_body_footprint(enum_variant)
                     .into_iter()
@@ -198,7 +197,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 state.insert_pred(place.clone(), permission)?;
             }
 
-            &polymorphic_vir::Stmt::Unfold( polymorphic_vir::Unfold {ref arguments, permission, ref enum_variant, ..} ) => {
+            &vir::Stmt::Unfold( vir::Unfold {ref arguments, permission, ref enum_variant, ..} ) => {
                 assert_eq!(arguments.len(), 1);
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
@@ -209,7 +208,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: polymorphic_vir::Expr = predicate.self_place();
+                let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<_> = predicate
                     .get_body_footprint(enum_variant)
                     .into_iter()
@@ -225,11 +224,11 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 state.insert_all_perms(places_in_pred.into_iter())?;
             }
 
-            &polymorphic_vir::Stmt::BeginFrame(_) => state.begin_frame(),
+            &vir::Stmt::BeginFrame(_) => state.begin_frame(),
 
-            &polymorphic_vir::Stmt::EndFrame(_) => state.end_frame()?,
+            &vir::Stmt::EndFrame(_) => state.end_frame()?,
 
-            &polymorphic_vir::Stmt::TransferPerm( polymorphic_vir::TransferPerm {ref left, ref right, unchecked} ) => {
+            &vir::Stmt::TransferPerm( vir::TransferPerm {ref left, ref right, unchecked} ) => {
                 let original_state = state.clone();
 
                 debug_assert!(
@@ -284,7 +283,7 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                         // wands/permissions that need to be restored
                         (
                             right.clone(),
-                            polymorphic_vir::PermAmount::Write,
+                            vir::PermAmount::Write,
                         )
                     ]
                 } else {
@@ -353,8 +352,8 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 }
             }
 
-            &polymorphic_vir::Stmt::PackageMagicWand( polymorphic_vir::PackageMagicWand {
-                magic_wand: polymorphic_vir::Expr::MagicWand( polymorphic_vir::MagicWand {ref left, ref right, ..} ),
+            &vir::Stmt::PackageMagicWand( vir::PackageMagicWand {
+                magic_wand: vir::Expr::MagicWand( vir::MagicWand {ref left, ref right, ..} ),
                 ..
             }) => {
                 // The semantics of the statements is handled in `foldunfold/mod.rs`.
@@ -365,19 +364,19 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                 inhale_expr(left, state, predicates)?;
             }
 
-            &polymorphic_vir::Stmt::ApplyMagicWand( polymorphic_vir::ApplyMagicWand {
-                magic_wand: polymorphic_vir::Expr::MagicWand( polymorphic_vir::MagicWand {ref left, ref right, ..}),
+            &vir::Stmt::ApplyMagicWand( vir::ApplyMagicWand {
+                magic_wand: vir::Expr::MagicWand( vir::MagicWand {ref left, ref right, ..}),
                 ..
             }) => {
                 exhale_expr(left, state, predicates)?;
                 inhale_expr(right, state, predicates)?;
             }
 
-            &polymorphic_vir::Stmt::ExpireBorrows( polymorphic_vir::ExpireBorrows {dag: ref _dag} ) => {
+            &vir::Stmt::ExpireBorrows( vir::ExpireBorrows {dag: ref _dag} ) => {
                 // TODO: #133
             }
 
-            &polymorphic_vir::Stmt::Downcast( polymorphic_vir::Downcast {base: ref enum_place, ref field} ) => {
+            &vir::Stmt::Downcast( vir::Downcast {base: ref enum_place, ref field} ) => {
                 if let Some(found_variant) = find_unfolded_variant(state, enum_place) {
                     // The enum has already been downcasted.
                     debug_assert!(field.name.ends_with(found_variant.get_variant_name()));
@@ -386,12 +385,12 @@ impl ApplyOnState for polymorphic_vir::Stmt {
                     debug!("Downcast {} to {}", enum_place, field);
                     let predicate_name = enum_place.typed_ref_name().unwrap();
                     let predicate = predicates.get(&predicate_name).unwrap();
-                    if let polymorphic_vir::Predicate::Enum(enum_predicate) = predicate {
+                    if let vir::Predicate::Enum(enum_predicate) = predicate {
                         let discriminant_place = enum_place.clone()
                             .field(enum_predicate.discriminant_field.clone());
                         if let Some(perm_amount) = state.acc().get(&discriminant_place).copied() {
                             // Add the permissions of the variant
-                            let self_place: polymorphic_vir::Expr = enum_predicate.this.clone().into();
+                            let self_place: vir::Expr = enum_predicate.this.clone().into();
                             let variant_footprint: Vec<_> = enum_predicate.get_variant_footprint(
                                 &field.into()
                             ).into_iter().map(|perm|

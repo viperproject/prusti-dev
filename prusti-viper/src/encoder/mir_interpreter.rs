@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir;
-use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::polymorphic as vir;
 use rustc_middle::mir;
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
@@ -225,8 +224,8 @@ pub trait ForwardMirInterpreter<'tcx> {
 
 #[derive(Clone, Debug)]
 pub struct MultiExprBackwardInterpreterState {
-    exprs: Vec<polymorphic_vir::Expr>,
-    substs: HashMap<polymorphic_vir::TypeVar, polymorphic_vir::Type>,
+    exprs: Vec<vir::Expr>,
+    substs: HashMap<vir::TypeVar, vir::Type>,
 }
 
 impl Display for MultiExprBackwardInterpreterState {
@@ -243,34 +242,34 @@ impl Display for MultiExprBackwardInterpreterState {
 }
 
 impl MultiExprBackwardInterpreterState {
-    pub fn new(exprs: Vec<polymorphic_vir::Expr>) -> Self {
+    pub fn new(exprs: Vec<vir::Expr>) -> Self {
         MultiExprBackwardInterpreterState { exprs, substs: HashMap::new() }
     }
 
-    pub fn new_single(expr: polymorphic_vir::Expr) -> Self {
+    pub fn new_single(expr: vir::Expr) -> Self {
         MultiExprBackwardInterpreterState { exprs: vec![expr], substs: HashMap::new() }
     }
 
     pub fn new_single_with_substs(
-        expr: polymorphic_vir::Expr,
-        substs: HashMap<polymorphic_vir::TypeVar, polymorphic_vir::Type>,
+        expr: vir::Expr,
+        substs: HashMap<vir::TypeVar, vir::Type>,
     ) -> Self {
         MultiExprBackwardInterpreterState { exprs: vec![expr], substs }
     }
 
-    pub fn exprs(&self) -> &Vec<polymorphic_vir::Expr> {
+    pub fn exprs(&self) -> &Vec<vir::Expr> {
         &self.exprs
     }
 
-    pub fn exprs_mut(&mut self) -> &mut Vec<polymorphic_vir::Expr> {
+    pub fn exprs_mut(&mut self) -> &mut Vec<vir::Expr> {
         &mut self.exprs
     }
 
-    pub fn into_expressions(self) -> Vec<polymorphic_vir::Expr> {
+    pub fn into_expressions(self) -> Vec<vir::Expr> {
         self.exprs
     }
 
-    pub fn substitute_place(&mut self, sub_target: &polymorphic_vir::Expr, replacement: polymorphic_vir::Expr) {
+    pub fn substitute_place(&mut self, sub_target: &vir::Expr, replacement: vir::Expr) {
         trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
         let sub_target = sub_target.clone().patch_types(&self.substs);
         let replacement = replacement.patch_types(&self.substs);
@@ -282,7 +281,7 @@ impl MultiExprBackwardInterpreterState {
         }
     }
 
-    pub fn substitute_value(&mut self, exact_target: &polymorphic_vir::Expr, replacement: polymorphic_vir::Expr) {
+    pub fn substitute_value(&mut self, exact_target: &vir::Expr, replacement: vir::Expr) {
         trace!("substitute_value {:?} --> {:?}", exact_target, replacement);
         let exact_target = exact_target.clone().patch_types(&self.substs);
         let replacement = replacement.patch_types(&self.substs);
@@ -291,7 +290,7 @@ impl MultiExprBackwardInterpreterState {
         }
     }
 
-    pub fn use_place(&self, sub_target: &polymorphic_vir::Expr) -> bool {
+    pub fn use_place(&self, sub_target: &vir::Expr) -> bool {
         trace!("use_place {:?}", sub_target);
         let sub_target = sub_target.clone().patch_types(&self.substs);
         self.exprs.iter().any(|expr| expr.find(&sub_target))

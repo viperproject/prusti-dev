@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir;
-use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::polymorphic as vir;
 use std::collections::HashSet;
 use std::hash::Hash;
 
@@ -17,9 +16,9 @@ use std::hash::Hash;
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { b.c.d, b.c.e }
 pub fn filter_proper_extensions_of(
-    left: &HashSet<polymorphic_vir::Expr>,
-    right: &HashSet<polymorphic_vir::Expr>,
-) -> HashSet<polymorphic_vir::Expr> {
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -40,9 +39,9 @@ pub fn filter_proper_extensions_of(
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, d.e }
 pub fn filter_not_proper_extensions_of(
-    left: &HashSet<polymorphic_vir::Expr>,
-    right: &HashSet<polymorphic_vir::Expr>,
-) -> HashSet<polymorphic_vir::Expr> {
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         let mut keep: bool = true;
@@ -65,7 +64,7 @@ pub fn filter_not_proper_extensions_of(
 /// ancestors(
 ///   { a, b.c, b.c.e, d.e.f },
 /// ) = { a, b.c, d.e.f }
-pub fn ancestors(initial: &HashSet<polymorphic_vir::Expr>) -> HashSet<polymorphic_vir::Expr> {
+pub fn ancestors(initial: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     // Filter paths that are an extension of some other path
     // This way, we avoid having both `d` and `d.g`

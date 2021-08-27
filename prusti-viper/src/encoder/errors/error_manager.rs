@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir::Position;
-use vir_crate::polymorphic::Position as PolymorphicPosition;
+use vir_crate::polymorphic::Position;
 use std::collections::HashMap;
 use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
@@ -118,14 +117,14 @@ impl<'tcx> ErrorManager<'tcx>
         }
     }
 
-    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> PolymorphicPosition {
+    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
         let pos = self.register_span(span);
         debug!("Register error at: {:?}", pos.id());
         self.error_contexts.insert(pos.id(), (error_ctxt, def_id));
         pos
     }
 
-    pub fn register_span<T: Into<MultiSpan>>(&mut self, span: T) -> PolymorphicPosition {
+    pub fn register_span<T: Into<MultiSpan>>(&mut self, span: T) -> Position {
         let span = span.into();
         let pos_id = self.next_pos_id;
         self.next_pos_id += 1;
@@ -136,18 +135,18 @@ impl<'tcx> ErrorManager<'tcx>
                 .span_to_lines(primary_span.source_callsite());
             if lines_info_res.is_err() {
                 debug!("Error converting span to lines {:?}", lines_info_res.err());
-                return PolymorphicPosition::new(0, 0, pos_id.clone());
+                return Position::new(0, 0, pos_id.clone());
             }
             let lines_info = lines_info_res.unwrap();
             if let Some(first_line_info) = lines_info.lines.get(0) {
                 let line = first_line_info.line_index as i32 + 1;
                 let column = first_line_info.start_col.0 as i32 + 1;
-                PolymorphicPosition::new(line, column, pos_id.clone())
+                Position::new(line, column, pos_id.clone())
             } else {
-                PolymorphicPosition::new(0, 0, pos_id.clone())
+                Position::new(0, 0, pos_id.clone())
             }
         } else {
-            PolymorphicPosition::new(0, 0, pos_id)
+            Position::new(0, 0, pos_id)
         };
         self.source_span.insert(pos_id, span);
         pos
