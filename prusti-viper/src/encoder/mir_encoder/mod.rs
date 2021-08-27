@@ -32,6 +32,8 @@ use prusti_interface::environment::mir_utils::MirPlace;
 use downcast_detector::detect_downcasts;
 pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};
 
+use super::encoder::SubstMap;
+
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
 
@@ -493,7 +495,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     /// Returns an `vir::Type` that corresponds to the type of the value of the operand
-    pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>)
+    pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>, tymap: &SubstMap<'tcx>)
         -> EncodingResult<vir::Type>
     {
         trace!("Encode operand expr {:?}", operand);
@@ -511,7 +513,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         //     }
         // }
         let ty = operand.ty(self.mir, self.encoder.env().tcx());
-        self.encoder.encode_snapshot_type(ty)
+        self.encoder.encode_snapshot_type(ty, tymap)
     }
 
     pub fn encode_bin_op_expr(
@@ -651,6 +653,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         operand: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
         span: Span,
+        tymap: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<vir::Expr> {
         let src_ty = self.get_operand_ty(operand);
 
@@ -710,18 +713,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                 let encoded_operand = self.encode_operand_expr(operand).with_span(span)?;
                 if config::check_overflows() {
                     // Check the cast
-                    let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty)
+                    let function_name = self.encoder.encode_cast_function_use(src_ty, dst_ty, tymap)
                         .with_span(span)?;
                     let encoded_args = vec![encoded_operand];
                     let formal_args = vec![vir::LocalVar::new(
                         String::from("number"),
-                        self.encode_operand_expr_type(operand).with_span(span)?,
+                        self.encode_operand_expr_type(operand, tymap).with_span(span)?,
                     )];
                     let pos = self
                         .encoder
                         .error_manager()
                         .register(span, ErrorCtxt::TypeCast, self.def_id);
-                    let return_type = self.encoder.encode_snapshot_type(dst_ty).with_span(span)?;
+                    let return_type = self.encoder.encode_snapshot_type(dst_ty, tymap).with_span(span)?;
                     return Ok(vir::Expr::func_app(
                         function_name,
                         encoded_args,
