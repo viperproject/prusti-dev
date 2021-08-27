@@ -22,6 +22,10 @@ pub enum Stmt {
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     /// Target, source, kind
     Assign(Expr, Expr, AssignKind),
+    /// Fold statement for credit predicates: predicate name, args, permission amount, position
+    FoldCredits(String, Vec<Expr>, FracPermAmount, Position),
+    /// Unfold statement for credit predicates: predicate name, args, permission amount, position
+    UnfoldCredits(String, Vec<Expr>, FracPermAmount, Position),
     /// Fold statement: predicate name, predicate args, perm_amount, variant of enum, position.
     Fold(
         String,
@@ -123,6 +127,32 @@ impl fmt::Display for Stmt {
                 }
                 AssignKind::Ghost => write!(f, "{} := ghost {}", lhs, rhs),
             },
+
+            Stmt::FoldCredits(ref pred_name, ref args, ref frac_perm, _) => {
+                write!(
+                    f,
+                    "fold acc({}({}), {})",
+                    pred_name,
+                    args.iter()
+                        .map(|f| f.to_string())
+                        .collect::<Vec<String>>()
+                        .join(", "),
+                    frac_perm,
+                )
+            }
+
+            Stmt::UnfoldCredits(ref pred_name, ref args, ref frac_perm, _) => {
+                write!(
+                    f,
+                    "unfold acc({}({}), {})",
+                    pred_name,
+                    args.iter()
+                        .map(|f| f.to_string())
+                        .collect::<Vec<String>>()
+                        .join(", "),
+                    frac_perm,
+                )
+            }
 
             Stmt::Fold(ref pred_name, ref args, perm, ref variant, _) => write!(
                 f,
@@ -308,6 +338,8 @@ pub trait StmtFolder {
             Stmt::Assert(expr, pos) => self.fold_assert(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fold_assign(p, e, k),
+            Stmt::FoldCredits(s, ve, fperm, p) => self.fold_fold_credits(s, ve, fperm, p),
+            Stmt::UnfoldCredits(s, ve, fperm, p) => self.fold_unfold_credits(s, ve, fperm, p),
             Stmt::Fold(s, ve, perm, variant, p) => self.fold_fold(s, ve, perm, variant, p),
             Stmt::Unfold(s, ve, perm, variant) => self.fold_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.fold_obtain(e, p),
@@ -356,6 +388,46 @@ pub trait StmtFolder {
 
     fn fold_assign(&mut self, p: Expr, e: Expr, k: AssignKind) -> Stmt {
         Stmt::Assign(self.fold_expr(p), self.fold_expr(e), k)
+    }
+
+    fn fold_fold_credits(
+        &mut self,
+        pred_name: String,
+        args: Vec<Expr>,
+        frac_perm: FracPermAmount,
+        pos: Position
+    ) -> Stmt {
+        let FracPermAmount(box left, box right) = frac_perm;
+        let new_perm = FracPermAmount::new(
+            box self.fold_expr(left),
+            box self.fold_expr(right)
+        );
+        Stmt::FoldCredits(
+            pred_name,
+            args.into_iter().map(|e| self.fold_expr(e)).collect(),
+            new_perm,
+            pos,
+        )
+    }
+
+    fn fold_unfold_credits(
+        &mut self,
+        pred_name: String,
+        args: Vec<Expr>,
+        frac_perm: FracPermAmount,
+        pos: Position
+    ) -> Stmt {
+        let FracPermAmount(box left, box right) = frac_perm;
+        let new_perm = FracPermAmount::new(
+            box self.fold_expr(left),
+            box self.fold_expr(right)
+        );
+        Stmt::UnfoldCredits(
+            pred_name,
+            args.into_iter().map(|e| self.fold_expr(e)).collect(),
+            new_perm,
+            pos,
+        )
     }
 
     fn fold_fold(
@@ -456,6 +528,8 @@ pub trait FallibleStmtFolder {
             Stmt::Assert(expr, pos) => self.fallible_fold_assert(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.fallible_fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fallible_fold_assign(p, e, k),
+            Stmt::FoldCredits(s, ve, fperm, p) => self.fallible_fold_fold_credits(s, ve, fperm, p),
+            Stmt::UnfoldCredits(s, ve, fperm, p) => self.fallible_fold_unfold_credits(s, ve, fperm, p),
             Stmt::Fold(s, ve, perm, variant, p) => self.fallible_fold_fold(s, ve, perm, variant, p),
             Stmt::Unfold(s, ve, perm, variant) => self.fallible_fold_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.fallible_fold_obtain(e, p),
@@ -521,6 +595,50 @@ pub trait FallibleStmtFolder {
             self.fallible_fold_expr(p)?,
             self.fallible_fold_expr(e)?,
             k,
+        ))
+    }
+
+    fn fallible_fold_fold_credits(
+        &mut self,
+        pred_name: String,
+        args: Vec<Expr>,
+        frac_perm: FracPermAmount,
+        pos: Position
+    ) -> Result<Stmt, Self::Error> {
+        let FracPermAmount(box left, box right) = frac_perm;
+        let new_perm = FracPermAmount::new(
+            box self.fallible_fold_expr(left)?,
+            box self.fallible_fold_expr(right)?
+        );
+        Ok(Stmt::FoldCredits(
+            pred_name,
+            args.into_iter()
+                .map(|e| self.fallible_fold_expr(e))
+                .collect::<Result<_, _>>()?,
+            new_perm,
+            pos,
+        ))
+    }
+
+    fn fallible_fold_unfold_credits(
+        &mut self,
+        pred_name: String,
+        args: Vec<Expr>,
+        frac_perm: FracPermAmount,
+        pos: Position
+    ) -> Result<Stmt, Self::Error> {
+        let FracPermAmount(box left, box right) = frac_perm;
+        let new_perm = FracPermAmount::new(
+            box self.fallible_fold_expr(left)?,
+            box self.fallible_fold_expr(right)?
+        );
+        Ok(Stmt::UnfoldCredits(
+            pred_name,
+            args.into_iter()
+                .map(|e| self.fallible_fold_expr(e))
+                .collect::<Result<_, _>>()?,
+            new_perm,
+            pos,
         ))
     }
 
@@ -648,6 +766,8 @@ pub trait StmtWalker {
             Stmt::Assert(expr, pos) => self.walk_assert(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.walk_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.walk_assign(p, e, k),
+            Stmt::FoldCredits(s, ve, fperm, p) => self.walk_fold_credits(s, ve, fperm, p),
+            Stmt::UnfoldCredits(s, ve, fperm, p) => self.walk_unfold_credits(s, ve, fperm, p),
             Stmt::Fold(s, ve, perm, variant, pos) => self.walk_fold(s, ve, perm, variant, pos),
             Stmt::Unfold(s, ve, perm, variant) => self.walk_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.walk_obtain(e, p),
@@ -694,6 +814,34 @@ pub trait StmtWalker {
     fn walk_assign(&mut self, target: &Expr, expr: &Expr, _kind: &AssignKind) {
         self.walk_expr(target);
         self.walk_expr(expr);
+    }
+
+    fn walk_fold_credits(
+        &mut self,
+        _pred_name: &str,
+        args: &Vec<Expr>,
+        frac_perm: &FracPermAmount,
+        _pos: &Position
+    ) {
+        self.walk_expr(frac_perm.left());
+        self.walk_expr(frac_perm.right());
+        for arg in args {
+            self.walk_expr(arg)
+        }
+    }
+
+    fn walk_unfold_credits(
+        &mut self,
+        _pred_name: &str,
+        args: &Vec<Expr>,
+        frac_perm: &FracPermAmount,
+        _pos: &Position
+    ) {
+        self.walk_expr(frac_perm.left());
+        self.walk_expr(frac_perm.right());
+        for arg in args {
+            self.walk_expr(arg)
+        }
     }
 
     fn walk_fold(

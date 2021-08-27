@@ -140,6 +140,29 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             Stmt::Assign(ref lhs, ref rhs, _) => {
                 ast.abstract_assign(lhs.to_viper(ast), rhs.to_viper(ast))
             }
+            Stmt::FoldCredits(ref pred_name, ref args, ref frac_perm, ref pos) => ast.fold_with_pos(
+                ast.predicate_access_predicate_with_pos(
+                    ast.predicate_access(       //TODO: with_pos?
+                        &args.iter()
+                            .map(|arg| arg.to_viper(ast))
+                            .collect::<Vec<_>>(),
+                        pred_name),
+                    frac_perm.to_viper(ast),
+                    pos.to_viper(ast),
+                ),
+                pos.to_viper(ast)
+            ),
+            Stmt::UnfoldCredits(ref pred_name, ref args, ref frac_perm, ref pos) => ast.unfold(
+                ast.predicate_access_predicate_with_pos(
+                    ast.predicate_access(       //TODO: with_pos?
+                        &args.iter()
+                            .map(|arg| arg.to_viper(ast))
+                            .collect::<Vec<_>>(),
+                        pred_name),
+                    frac_perm.to_viper(ast),
+                    pos.to_viper(ast),
+                )
+            ),
             Stmt::Fold(ref pred_name, ref args, perm, ref _variant, ref pos) => ast.fold_with_pos(
                 ast.predicate_access_predicate_with_pos(
                     ast.predicate_access_with_pos(
@@ -204,6 +227,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             stmts.push(ast.exhale(expr.to_viper(ast), pos.to_viper(ast)));
                             ast.seqn(stmts.as_slice(), &[])
                         }
+                        //TODO: need to add credit fold/unfold?
                         Stmt::Fold(ref pred_name, ref args, perm, ref _variant, ref pos) => {
                             assert_eq!(args.len(), 1);
                             let place = &args[0];
