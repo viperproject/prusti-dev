@@ -76,7 +76,7 @@ struct StmtOptimizer {
 }
 
 impl ast::StmtFolder for StmtOptimizer {
-    fn fold_inhale(&mut self, expr: ast::Expr) -> ast::Stmt {
+    fn fold_inhale(&mut self, ast::Inhale {expr}: ast::Inhale) -> ast::Stmt {
         ast::Stmt::inhale(expr.optimize())
     }
 }

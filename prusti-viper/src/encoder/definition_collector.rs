@@ -406,29 +406,16 @@ impl StmtWalker for UnfoldedPredicateCollector {
         ExprWalker::walk(self, expr);
     }
 
-    fn walk_fold(
-        &mut self,
-        predicate_name: &str,
-        args: &Vec<vir::Expr>,
-        _perm: &vir::PermAmount,
-        _variant: &vir::MaybeEnumVariantIndex,
-        _pos: &vir::Position,
-    ) {
+    fn walk_fold(&mut self, vir::Fold {predicate_name, arguments, ..}: &vir::Fold) {
         self.unfolded_predicates.insert(predicate_name.to_string());
-        for arg in args {
+        for arg in arguments {
             self.walk_expr(arg);
         }
     }
 
-    fn walk_unfold(
-        &mut self,
-        predicate_name: &str,
-        args: &Vec<vir::Expr>,
-        _perm: &vir::PermAmount,
-        _variant: &vir::MaybeEnumVariantIndex,
-    ) {
+    fn walk_unfold(&mut self, vir::Unfold {predicate_name, arguments, ..}: &vir::Unfold) {
         self.unfolded_predicates.insert(predicate_name.to_string());
-        for arg in args {
+        for arg in arguments {
             self.walk_expr(arg);
         }
     }

@@ -86,19 +86,12 @@ impl ast::StmtWalker for UsedVarCollector {
     fn walk_local_var(&mut self, local_var: &ast::LocalVar) {
         self.used_vars.insert(local_var.name.clone());
     }
-    fn walk_package_magic_wand(
-        &mut self,
-        wand: &ast::Expr,
-        body: &Vec<ast::Stmt>,
-        _label: &str,
-        vars: &[ast::LocalVar],
-        _p: &ast::Position,
-    ) {
-        self.walk_expr(wand);
-        for statement in body {
+    fn walk_package_magic_wand(&mut self, ast::PackageMagicWand {magic_wand, package_stmts, variables, ..}: &ast::PackageMagicWand) {
+        self.walk_expr(magic_wand);
+        for statement in package_stmts {
             self.walk(statement);
         }
-        for var in vars {
+        for var in variables {
             self.used_vars.remove(&var.name);
         }
     }

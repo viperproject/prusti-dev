@@ -185,15 +185,14 @@ impl<'v, 'tcx: 'v> FallibleStmtFolder for SnapshotPatcher<'v, 'tcx> {
         FallibleExprFolder::fallible_fold(self, expr)
     }
 
-    fn fallible_fold_downcast(
-        &mut self,
-        e: vir::Expr,
-        f: vir::Field
-    ) -> Result<vir::Stmt, Self::Error> {
-        if e.get_type().is_snapshot() {
+    fn fallible_fold_downcast(&mut self, vir::Downcast {base, field}: vir::Downcast) -> Result<vir::Stmt, Self::Error> {
+        if base.get_type().is_snapshot() {
             Ok(vir::Stmt::comment("patched out Downcast stmt"))
         } else {
-            Ok(vir::Stmt::Downcast( vir::Downcast {base: self.fallible_fold_expr(e)?, field: f} ) )
+            Ok(vir::Stmt::Downcast( vir::Downcast {
+                base: self.fallible_fold_expr(base)?,
+                field,
+            }))
         }
     }
 }
