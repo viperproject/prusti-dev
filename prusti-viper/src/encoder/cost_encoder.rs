@@ -754,16 +754,16 @@ fn compute_bound_combinations(abstract_credits: &[(String, Option<vir::Expr>, BT
 {
     let mut result_map = BTreeMap::new();
 
-    for (credit_type, opt_cond, abstract_cost) in abstract_credits {
-        let credit_type_map: &mut BTreeMap<BTreeSet<VirCreditPowers>, Option<vir::Expr>>
-            = result_map.entry(credit_type.clone()).or_default();
+    if conditional {
+        for (credit_type, opt_cond, abstract_cost) in abstract_credits {
+            let credit_type_map: &mut BTreeMap<BTreeSet<VirCreditPowers>, Option<vir::Expr>>
+                = result_map.entry(credit_type.clone()).or_default();
 
-        let mut to_remove = vec![];
-        let mut to_insert = vec![];       // or overwrite
-        // combine new cost with all from before, if results in a new asymptotic cost
-        // & add without combination, to generate all possible condition combinations
-        for (curr_abstract_cost, curr_opt_cond) in credit_type_map.iter() {
-            if conditional {
+            let mut to_remove = vec![];
+            let mut to_insert = vec![];       // or overwrite
+            // combine new cost with all from before, if results in a new asymptotic cost
+            // & add without combination, to generate all possible condition combinations
+            for (curr_abstract_cost, curr_opt_cond) in credit_type_map.iter() {
                 match abstract_cost.partial_cmp(curr_abstract_cost) {     // check for asymptotic domination
                     Some(Ordering::Less) => {
                         if opt_cond.is_none() {
@@ -786,40 +786,46 @@ fn compute_bound_combinations(abstract_credits: &[(String, Option<vir::Expr>, BT
                             // conjoin condition
                             let combined_cond = Some(curr_opt_cond.as_ref()
                                 .map_or_else(|| opt_cond.clone().unwrap(),
-                                     |curr_cond| vir::Expr::and(opt_cond.clone().unwrap(), curr_cond.clone())));
+                                             |curr_cond| vir::Expr::and(opt_cond.clone().unwrap(), curr_cond.clone())));
                             to_insert.push((upper_bound, combined_cond));
                         }
                     }
                 }
             }
-            else {      //TODO: don't add & remove, just compute conjunction once
-                debug_assert!(credit_type_map.len() == 1);
-                // no condition => all bounds get combined
-                let mut upper_bound = curr_abstract_cost.clone();
-                upper_bound.extend(abstract_cost.clone());     // union
-                // replace abstract cost
-                to_remove.push(curr_abstract_cost.clone());
-                to_insert.push((upper_bound, None))
+
+            // remove entries
+            for key in to_remove {
+                credit_type_map.remove(&key);
+            }
+
+            // add without conjunction
+            credit_type_map.entry(abstract_cost.clone())
+                .and_modify(|curr_opt_cond| *curr_opt_cond =
+                    curr_opt_cond.as_ref().zip_with(opt_cond.clone(), |curr_cond, cond| vir::Expr::or(cond, curr_cond.clone())))       // disjoin condition
+                .or_insert(opt_cond.clone());
+
+            // add entries
+            for (insert_cost, insert_opt_cond) in to_insert {
+                credit_type_map.entry(insert_cost)
+                    .and_modify(|curr_opt_cond| *curr_opt_cond =
+                        curr_opt_cond.as_ref().zip_with(insert_opt_cond.clone(), |curr_cond, cond| vir::Expr::or(cond, curr_cond.clone())))       // disjoin condition
+                    .or_insert(insert_opt_cond);
             }
         }
-
-        // remove entries
-        for key in to_remove {
-            credit_type_map.remove(&key);
+    }
+    else {
+        let mut upper_bounds: HashMap<String, BTreeSet<VirCreditPowers>> = HashMap::new();
+        for (credit_type, opt_cond, abstract_cost) in abstract_credits {
+            upper_bounds.entry(credit_type.clone())
+                .or_default()
+                .extend(abstract_cost.clone());
         }
 
-        // add without conjunction
-        credit_type_map.entry(abstract_cost.clone())
-            .and_modify(|curr_opt_cond| *curr_opt_cond =
-                curr_opt_cond.as_ref().zip_with(opt_cond.clone(), |curr_cond, cond| vir::Expr::or(cond, curr_cond.clone())))       // disjoin condition
-            .or_insert(opt_cond.clone());
-
-        // add entries
-        for (insert_cost, insert_opt_cond) in to_insert {
-            credit_type_map.entry(insert_cost)
-                .and_modify(|curr_opt_cond| *curr_opt_cond =
-                    curr_opt_cond.as_ref().zip_with(insert_opt_cond.clone(), |curr_cond, cond| vir::Expr::or(cond, curr_cond.clone())))       // disjoin condition
-                .or_insert(insert_opt_cond);
+        for (credit_type, upper_bound) in upper_bounds.drain() {
+            let mut condition_map = BTreeMap::new();
+            // insert upper bounds without condition
+            condition_map.insert(upper_bound, None);
+            result_map.insert(credit_type, condition_map);
         }
     }
 
