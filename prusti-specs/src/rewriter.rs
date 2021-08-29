@@ -114,51 +114,51 @@ impl AstRewriter {
                 mut abstract_terms: Vec<untyped::CreditPolynomialTerm>,
             ) -> untyped::AssertionKind {
 
-                if let syn::Expr::Lit(lit) = &abstract_terms.first().unwrap().coeff_expr.expr {
-                    let user_id = if let syn::Lit::Int(lit_int) = &lit.lit {
+                let polynomial_id = if let syn::Expr::Lit(lit) = &abstract_terms.first().unwrap().coeff_expr.expr {
+                    if let syn::Lit::Int(lit_int) = &lit.lit {
                         lit_int.to_string()
-                    }
-                    else if let syn::Lit::Str(lit_str) = &lit.lit {
+                    } else if let syn::Lit::Str(lit_str) = &lit.lit {
                         lit_str.value()
-                    }
-                    else {
+                    } else {
                         unimplemented!()
-                    };
-
-                    let mut credit_vec = credit_type.split('_').collect::<Vec<&str>>();
-                    credit_vec.remove(credit_vec.len()-1);      // remove "_credits"
-                    let credit_name = credit_vec.join("_");
-
-                    // add function call as abstract coefficient expression
-                    for term in abstract_terms.iter_mut() {
-                        // construct name of coefficient
-                        let mut powers_str = term.powers.iter()  // powers are ordered by var name
-                            .map(|pow| format!("{}{}", pow.base_string(), pow.exponent))
-                            .collect::<Vec<String>>().concat();
-                        if powers_str.is_empty() {
-                            powers_str = "0".to_string();
-                        }
-                        let coeff_name = format!("{}_{}_{}_{}", self.name_prefix, credit_name, user_id, powers_str);
-
-                        let call_str = format!("{}()", coeff_name);
-                        let coeff_expr: syn::Expr = syn::parse_str(&call_str)
-                            .expect("Unexpected error while parsing abstract coefficient function call");             //TODO: proper error? -> handle_result?
-                        term.coeff_expr.expr = coeff_expr;
-
-                        self.added_coeffs.push(coeff_name);
-                    }
-
-
-                    untyped::AssertionKind::CreditPolynomial {
-                        spec_id,
-                        id,
-                        credit_type,
-                        concrete_terms,
-                        abstract_terms
                     }
                 }
                 else {
-                    unimplemented!()
+                    let mut gen_id = id.to_string();
+                    gen_id.push_str("g"); // g to make it differ from all possibly user ids
+                    gen_id
+                };
+
+                let mut credit_vec = credit_type.split('_').collect::<Vec<&str>>();
+                credit_vec.remove(credit_vec.len()-1);      // remove "_credits"
+                let credit_name = credit_vec.join("_");
+
+                // add function call as abstract coefficient expression
+                for term in abstract_terms.iter_mut() {
+                    // construct name of coefficient
+                    let mut powers_str = term.powers.iter()  // powers are ordered by var name
+                        .map(|pow| format!("{}{}", pow.base_string(), pow.exponent))
+                        .collect::<Vec<String>>().concat();
+                    if powers_str.is_empty() {
+                        powers_str = "0".to_string();
+                    }
+                    let coeff_name = format!("{}_{}_{}_{}", self.name_prefix, credit_name, polynomial_id, powers_str);
+
+                    let call_str = format!("{}()", coeff_name);
+                    let coeff_expr: syn::Expr = syn::parse_str(&call_str)
+                        .expect("Unexpected error while parsing abstract coefficient function call");             //TODO: proper error? -> handle_result?
+                    term.coeff_expr.expr = coeff_expr;
+
+                    self.added_coeffs.push(coeff_name);
+                }
+
+
+                untyped::AssertionKind::CreditPolynomial {
+                    spec_id,
+                    id,
+                    credit_type,
+                    concrete_terms,
+                    abstract_terms
                 }
             }
         }
