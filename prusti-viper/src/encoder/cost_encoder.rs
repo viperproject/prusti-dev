@@ -1566,8 +1566,9 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                 }
 
                 let otherwise_guard = vir::Expr::not(guard_disjunction.unwrap());
-                let otherwise_target = targets.otherwise();
-                self.insert_guarded_cost(&mut new_cost, &states[&otherwise_target].cost, otherwise_guard);
+                let otherwise_state = states[&targets.otherwise()];
+                self.insert_guarded_cost(&mut new_cost, &otherwise_state.cost, otherwise_guard);
+                union_of_conversions.extend(otherwise_state.conversions.clone());
 
                 Ok(CostBackwardInterpreterState { cost: new_cost, conversions: union_of_conversions })
             }
