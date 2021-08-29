@@ -124,9 +124,7 @@ impl AstRewriter {
                     }
                 }
                 else {
-                    let mut gen_id = id.to_string();
-                    gen_id.push_str("g"); // g to make it differ from all possibly user ids
-                    gen_id
+                    spec_id.to_string()
                 };
 
                 let mut credit_vec = credit_type.split('_').collect::<Vec<&str>>();

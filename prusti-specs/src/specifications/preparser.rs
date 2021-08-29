@@ -141,10 +141,18 @@ impl Parse for CreditVarPowerVec {     //TODO: maybe generic type parameters?
     fn parse(input: ParseStream) -> syn::Result<Self> {
         //TODO: parse_terminated not working?
         let mut powers = vec![];        // stays empty for constant term
-        powers.push(input.parse::<CreditVarPower<(), syn::Expr>>()?);
-        while input.peek(Token![*]) {
-            input.parse::<Token![*]>()?;
+
+        if let Ok(syn::ExprLit{ lit: syn::Lit::Int(lit_int), ..}) = input.parse::<syn::ExprLit>() {
+            if !(lit_int.base10_parse::<i32>()? == 1) {
+                return Err(syn::Error::new(input.span(), "Expected 1"));    //TODO: better span
+            }
+        }
+        else {
             powers.push(input.parse::<CreditVarPower<(), syn::Expr>>()?);
+            while input.peek(Token![*]) {
+                input.parse::<Token![*]>()?;
+                powers.push(input.parse::<CreditVarPower<(), syn::Expr>>()?);
+            }
         }
 
         // sort powers by var name  // TODO: still needed?
