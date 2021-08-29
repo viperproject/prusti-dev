@@ -49,7 +49,7 @@ use std::ops::AddAssign;
 use std::convert::TryInto;
 use std::borrow::{Borrow, BorrowMut};
 use crate::encoder::specs_closures_collector::SpecsClosuresCollector;
-use rustc_span::MultiSpan;
+use rustc_span::Span;
 use crate::encoder::name_interner::NameInterner;
 use crate::encoder::utils::transpose;
 use crate::encoder::errors::EncodingResult;
@@ -836,7 +836,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
     }
 
-    pub(crate) fn encode_credit_conversion_use(&self, mut conversion: CreditConversion) -> String {
+    pub(crate) fn encode_credit_conversion_use(&self, mut conversion: CreditConversion,
+                                               span: Span, proc_def_id: ProcedureDefId) -> String {
         let mut this_method_name = conversion.credit_type.to_string();
 
         match &conversion.conversion_type {
@@ -1131,7 +1132,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     );
 
                     // BODY:
-
                     if conversion.result_exps[conversion.assigned_place_idx] > 1 {
                         conversion.result_exps[conversion.assigned_place_idx] -= 1;
 
@@ -1141,7 +1141,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         call_args.push(const_arg);
                         stmts.push(
                             vir::Stmt::MethodCall(
-                                self.encode_credit_conversion_use(conversion),
+                                self.encode_credit_conversion_use(conversion, span, proc_def_id),
                                 call_args,
                                 vec![]
                             )
@@ -1156,10 +1156,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                             vir::Position::default(),       //TODO: remove pos from stmts?
                         )
                     );
-
-
-                    let cfg_block = method.add_block("start_of_conversion_method", stmts);
-                    method.set_successor(cfg_block, vir::Successor::Return);
                 }
                 CreditConversionType::Reorder { previous_idx, previous_base } => {
                     let add_base = previous_base.is_some();
@@ -1183,6 +1179,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                     // BODY:
                     // unfold once, call submethod & fold again     // problem: may need many conversions until reach common base   // or always translate into one exp less?
+
+                    let err_ctxt = ErrorCtxt::Unsupported("Verification of credit conversion 'Reorder' is not supported (yet). \
+                    Consider not setting flag 'verify_credit_conversions' to true.".to_string());
+                    let pos = self.error_manager().register(span, err_ctxt, proc_def_id);
+                    stmts.push(vir::Stmt::Assert(false.into(), pos));
                 }
                 CreditConversionType::SumPlaceConst { place_idx, place_expr, .. } => {
                     let add_base = place_expr.is_some();
@@ -1228,6 +1229,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                         const_power = vir::Expr::mul(const_arg.clone(), const_power);
                     }
+
+                    let err_ctxt = ErrorCtxt::Unsupported("Verification of credit conversion 'SumPlaceConst' is not supported (yet). \
+                    Consider not setting flag 'verify_credit_conversions' to true.".to_string());
+                    let pos = self.error_manager().register(span, err_ctxt, proc_def_id);
+                    stmts.push(vir::Stmt::Assert(false.into(), pos));
                 }
                 CreditConversionType::MulPlaceConst { place_idx, place_expr, .. } => {
                     let add_base = place_expr.is_some();
@@ -1265,6 +1271,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     );
 
                     // BODY:
+
+                    let err_ctxt = ErrorCtxt::Unsupported("Verification of credit conversion 'MulPlaceConst' is not supported (yet). \
+                    Consider not setting flag 'verify_credit_conversions' to true.".to_string());
+                    let pos = self.error_manager().register(span, err_ctxt, proc_def_id);
+                    stmts.push(vir::Stmt::Assert(false.into(), pos));
 
                     /*// unfold all bases > place_idx
                     let mut curr_exponents = pre_exps;
@@ -1354,6 +1365,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     );
 
                     // BODY:
+                    let err_ctxt = ErrorCtxt::Unsupported("Verification of credit conversion 'DivPlaceConst' is not supported (yet). \
+                    Consider not setting flag 'verify_credit_conversions' to true.".to_string());
+                    let pos = self.error_manager().register(span, err_ctxt, proc_def_id);
+                    stmts.push(vir::Stmt::Assert(false.into(), pos));
                 }
                 CreditConversionType::SumPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
                     let add_base1 = place1_expr.is_some();
@@ -1389,6 +1404,11 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                             add_base2,
                             vir::FracPermAmount::new(box pre_perm, box 1.into()),
                         );
+
+                        let err_ctxt = ErrorCtxt::Unsupported("Verification of credit conversion 'SumPlacePlace' is not supported (yet). \
+                            Consider not setting flag 'verify_credit_conversions' to true.".to_string());
+                        let pos = self.error_manager().register(span, err_ctxt, proc_def_id);
+                        stmts.push(vir::Stmt::Assert(false.into(), pos));
 
                         // unfold until reach removed base -> mult to coeff for call
                         // unfold with next binomial
@@ -1428,7 +1448,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     );
 
                     // BODY:
+                    let err_ctxt = ErrorCtxt::Unsupported("Verification of credit conversion 'MulPlacePlace' is not supported (yet). \
+                            Consider not setting flag 'verify_credit_conversions' to true.".to_string());
+                    let pos = self.error_manager().register(span, err_ctxt, proc_def_id);
+                    stmts.push(vir::Stmt::Assert(false.into(), pos));
                 }
+            }
+
+            if config::verify_credit_conversions() {
+                let cfg_block = method.add_block("start_of_conversion_method", stmts);
+                method.set_successor(cfg_block, vir::Successor::Return);
             }
 
             self.credit_conversion_methods.borrow_mut().insert(this_method_name.clone(), method);

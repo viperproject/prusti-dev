@@ -95,6 +95,8 @@ lazy_static! {
         settings.set_default("intern_names", true).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();
         settings.set_default("enable_manual_axiomatization", false).unwrap();
+        settings.set_default("verify_credit_conversions", false).unwrap();
+        settings.set_default("conditional_cost_inference", true).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -462,4 +464,15 @@ pub fn full_compilation() -> bool {
 /// Intern Viper identifiers to shorten them when possible.
 pub fn intern_names() -> bool {
     read_setting("intern_names")
+}
+
+/// Verify the conversions of credits by assignments inside Viper.
+pub fn verify_credit_conversions() -> bool {
+    read_setting("verify_credit_conversions")
+}
+
+/// Enable the verification of different asymptotic bounds depending on a condition.
+/// Otherwise, the code will be verified against the highest (combined) asymptotic bound.
+pub fn conditional_cost_inference() -> bool {
+    read_setting("conditional_cost_inference")
 }

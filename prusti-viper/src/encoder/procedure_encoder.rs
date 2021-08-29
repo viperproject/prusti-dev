@@ -414,7 +414,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             &self.locals,
             &self.mir,
             self.proc_def_id,
-            true,
+            config::conditional_cost_inference(),
         )?;
 
         // Encode a flag that becomes true the first time a block is executed
@@ -1150,7 +1150,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
                     }
 
-                    let conv_method_name = self.encoder.encode_credit_conversion_use(conversion);
+                    let span = self.mir_encoder.get_span_of_location(location);
+                    let conv_method_name = self.encoder.encode_credit_conversion_use(conversion, span, self.proc_def_id);
                     stmts.push(vir::Stmt::MethodCall(
                         conv_method_name,
                         args,
