@@ -122,7 +122,7 @@ fn generate_spec_and_assertions(
 
     for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
         let rewriting_result = match attr_kind {
-            SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item), //, &called_functions),
+            SpecAttributeKind::Requires => generate_for_requires(attr_tokens, item),
             SpecAttributeKind::Ensures => generate_for_ensures(attr_tokens, item),
             SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
             SpecAttributeKind::AfterExpiryIf => generate_for_after_expiry_if(attr_tokens, item),
@@ -142,7 +142,7 @@ fn generate_spec_and_assertions(
 }
 
 /// Generate spec items and attributes to typecheck the and later retrieve "requires" annotations.
-fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {         // look here
+fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
