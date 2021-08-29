@@ -1117,46 +1117,58 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         match stmts_succ_res {
             Ok((mut stmts, succ)) => {
                 // add calls to credit conversion functions
-                for conversion in self.cost_encoder.extract_conversions_for(location) {
-                    let mut args = vec![];
-                    args.push(conversion.result_coeff.clone());
-                    args.extend(conversion.result_bases.clone());
+                for (opt_condition, conversions) in self.cost_encoder.extract_conversions_for(location) {
+                    let mut conversion_stmts = vec![];
+                    for conversion in conversions {
+                        let mut args = vec![];
+                        args.push(conversion.result_coeff.clone());
+                        args.extend(conversion.result_bases.clone());
 
-                    match &conversion.conversion_type {
-                        CreditConversionType::ConstToPlace { constant } => {
-                            args.push(constant.clone());
-                        }
-                        CreditConversionType::Reorder { previous_base, .. } => {
-                            if let Some(expr) = previous_base {
-                                args.push(expr.clone());
+                        match &conversion.conversion_type {
+                            CreditConversionType::ConstToPlace { constant } => {
+                                args.push(constant.clone());
+                            }
+                            CreditConversionType::Reorder { previous_base, .. } => {
+                                if let Some(expr) = previous_base {
+                                    args.push(expr.clone());
+                                }
+                            }
+                            CreditConversionType::SumPlaceConst { place_expr, const_val, .. }
+                            | CreditConversionType::MulPlaceConst { place_expr, const_val, .. }
+                            | CreditConversionType::DivPlaceConst { place_expr, const_val, .. } => {
+                                if let Some(expr) = place_expr {
+                                    args.push(expr.clone());
+                                }
+                                args.push((*const_val).into());
+                            }
+                            CreditConversionType::SumPlacePlace { place1_expr, place2_expr, .. }
+                            | CreditConversionType::MulPlacePlace { place1_expr, place2_expr, .. } => {
+                                if let Some(expr) = place1_expr {
+                                    args.push(expr.clone());
+                                }
+                                if let Some(expr) = place2_expr {
+                                    args.push(expr.clone());
+                                }
                             }
                         }
-                        CreditConversionType::SumPlaceConst { place_expr, const_val, .. }
-                        | CreditConversionType::MulPlaceConst { place_expr, const_val, .. }
-                        | CreditConversionType::DivPlaceConst { place_expr, const_val, .. }=> {
-                            if let Some(expr) = place_expr {
-                                args.push(expr.clone());
-                            }
-                            args.push((*const_val).into());
-                        }
-                        CreditConversionType::SumPlacePlace { place1_expr, place2_expr, .. }
-                        | CreditConversionType::MulPlacePlace { place1_expr, place2_expr, .. } => {
-                            if let Some(expr) = place1_expr {
-                                args.push(expr.clone());
-                            }
-                            if let Some(expr) = place2_expr {
-                                args.push(expr.clone());
-                            }
-                        }
+
+                        let span = self.mir_encoder.get_span_of_location(location);
+                        let conv_method_name = self.encoder.encode_credit_conversion_use(conversion, span, self.proc_def_id);
+                        conversion_stmts.push(vir::Stmt::MethodCall(
+                            conv_method_name,
+                            args,
+                            vec![]
+                        ))
                     }
 
-                    let span = self.mir_encoder.get_span_of_location(location);
-                    let conv_method_name = self.encoder.encode_credit_conversion_use(conversion, span, self.proc_def_id);
-                    stmts.push(vir::Stmt::MethodCall(
-                        conv_method_name,
-                        args,
-                        vec![]
-                    ))
+                    if let Some(condition) = opt_condition {
+                        stmts.push(
+                            vir::Stmt::If(condition, conversion_stmts, vec![])
+                        );
+                    }
+                    else {
+                        stmts.extend(conversion_stmts);
+                    }
                 }
 
                 Ok((stmts, succ))

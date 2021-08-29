@@ -26,7 +26,7 @@ pub(crate) struct CostEncoder<'tcx> {
     precondition: Option<vir::Expr>,
     asymp_bound_check: Vec<vir::Stmt>,
     pub(crate) remaining_func_pres: Vec<typed::Assertion<'tcx>>,
-    pub(crate) conversions: HashMap<mir::Location, Vec<CreditConversion>>,
+    pub(crate) conversions: HashMap<mir::Location, Vec<(Option<vir::Expr>, Vec<CreditConversion>)>>,
 }
 
 impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
@@ -48,7 +48,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
         std::mem::take(&mut self.asymp_bound_check)
     }
 
-    pub(crate) fn extract_conversions_for(&mut self, location: mir::Location) -> Vec<CreditConversion> {
+    pub(crate) fn extract_conversions_for(&mut self, location: mir::Location) -> Vec<(Option<vir::Expr>, Vec<CreditConversion>)> {
         self.conversions.remove(&location).unwrap_or_else(|| vec![])
     }
 
@@ -911,17 +911,16 @@ struct CostBackwardInterpreterState {
     /// There might be different asymptotic costs with semantically overlapping conditions,
     /// but their check will be deferred to the verifier level
     cost: CostMap,
-    conversions: HashMap<mir::Location, Vec<CreditConversion>>,
+    conversions: HashMap<mir::Location, Vec<(Option<vir::Expr>, Vec<CreditConversion>)>>,
 }
 
 impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
     fn substitute(&mut self, target: &Expr, replacement: Expr, mir_location: mir::Location) -> EncodingResult<()> {
 
-        let mut conversions = vec![];
+        let mut conditional_conversions = vec![];
 
         for (opt_condition, credit_cost) in &mut self.cost {
-            *opt_condition = opt_condition.as_ref().map(|cond_expr| cond_expr.clone().replace_place(target, &replacement));      //TODO: avoid cloning?
-
+            let mut conversions = vec![];
             for (credit_type, coeff_map) in credit_cost.iter_mut() {
                 // coefficients should only contain constants (& abstract coefficient function calls)
                 // -> only replace in powers, but cannot directly modify the key!
@@ -1417,11 +1416,18 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                     }
                 }
             }
+
+            if !conversions.is_empty() {
+                conditional_conversions.push((opt_condition.clone(), conversions));
+            }
+            *opt_condition = opt_condition.as_ref().map(|cond_expr| cond_expr.clone().replace_place(target, &replacement));      //TODO: avoid cloning?
         }
 
-        self.conversions.entry(mir_location)
-            .or_default()
-            .extend(conversions);
+        if !conditional_conversions.is_empty() {
+            self.conversions.entry(mir_location)
+                .or_default()
+                .extend(conditional_conversions);
+        }
         Ok(())
     }
 
@@ -1520,7 +1526,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
 
         match terminator.kind {
             TerminatorKind::SwitchInt { switch_ty, ref discr, ref targets } => {//TODO: treat like asignment, but not single assignment! (only when constant?)
-            trace!(
+                trace!(
                     "SwitchInt ty '{:?}', discr '{:?}', targets '{:?}'",
                     switch_ty,
                     discr,
