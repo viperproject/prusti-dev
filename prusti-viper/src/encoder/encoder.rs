@@ -477,7 +477,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>)
     -> EncodingResult<vir::Field>
     {
-        let viper_field_name = format!("f${}", field_name);
+        // If the field name is a raw identifier, removing the leading prefix r#
+        let viper_field_name = format!("f${}", field_name.trim_start_matches("r#"));
         self.encode_raw_ref_field(viper_field_name, ty)
     }
 
