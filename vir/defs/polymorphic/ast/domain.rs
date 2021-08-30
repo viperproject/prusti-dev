@@ -5,8 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::ast::*;
-use std::fmt;
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Domain {
@@ -42,7 +41,7 @@ impl fmt::Display for Domain {
         for function in &self.functions {
             writeln!(f, "\t{}", function)?;
         }
-        writeln!(f, "")?;
+        writeln!(f)?;
         for axiom in &self.axioms {
             writeln!(f, "\t{}", axiom)?;
         }
