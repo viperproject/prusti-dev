@@ -116,17 +116,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
         let used_fields: HashMap<_, _> = self.used_fields.iter().map(|field| {
             (&field.name, field)
         }).collect();
-        used_fields.values().map(|&field| field.clone()).collect()
+        let mut used_fields: Vec<_> = used_fields.values().map(|&field| field.clone()).collect();
+        used_fields.sort_by_cached_key(|f| f.get_identifier());
+        used_fields
     }
     /// The purification optimization that is executed after this assumes that
     /// all bodyless methods are present. That is why we are returning all
     /// methods here.
     fn get_all_methods(&self) -> Vec<vir::BodylessMethod> {
-        self.encoder
+        let mut methods: Vec<_> = self.encoder
             .get_builtin_methods()
             .values()
             .cloned()
-            .collect()
+            .collect();
+        methods.sort_by_cached_key(|method| method.name.clone());
+        methods
     }
     fn get_used_predicates(&mut self) -> Vec<vir::Predicate> {
         let mut predicates: Vec<_> = self
