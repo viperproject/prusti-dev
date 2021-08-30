@@ -62,7 +62,7 @@ use rustc_attr::IntType::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
 use rustc_span::{MultiSpan, Span};
 use prusti_interface::specs::typed;
-use ::log::{trace, debug, warn};
+use ::log::{trace, debug};
 use std::borrow::Borrow as StdBorrow;
 use prusti_interface::environment::borrowck::regions::PlaceRegionsError;
 use crate::encoder::errors::EncodingErrorKind;
@@ -3261,7 +3261,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             };
             let access = self.encode_local_variable_permission(
                 *local,
-                override_spans.get(local).map(|s| s.clone())
+                override_spans.get(local).copied()
             )?;
             match access {
                 vir::Expr::BinOp( vir::BinOp {op_kind: vir::BinOpKind::And, left: box access1, right: box access2, ..} ) => {
@@ -6337,7 +6337,7 @@ fn mir_constantkind_to_ty_val(literal: mir::ConstantKind) -> (ty::Ty, ty::ConstK
 }
 
 // Checks if a type is a reference to a string, or a reference to a reference to a string, etc.
-fn is_str<'tcx>(ty: &ty::TyS<'tcx>) -> bool {
+fn is_str(ty: &ty::TyS<'_>) -> bool {
     match ty.kind() {
         ty::TyKind::Ref(_, inner, _) => inner.is_str() || is_str(inner),
         _ => false
