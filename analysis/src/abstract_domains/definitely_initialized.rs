@@ -9,8 +9,8 @@ use crate::abstract_domains::place_utils::*;
 use rustc_middle::mir;
 use std::collections::{HashSet, BTreeSet};
 use rustc_middle::ty::TyCtxt;
-use rustc_middle::ich::StableHashingContextProvider;
-use rustc_data_structures::{fingerprint::Fingerprint, stable_hasher::{HashStable, StableHasher}};
+
+
 use std::mem;
 use std::fmt;
 use serde::{Serialize, Serializer};

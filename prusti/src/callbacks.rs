@@ -73,7 +73,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             compiler.session().abort_if_errors();
 
             let mut spec_collector = specs::SpecCollector::new(&env);
-            intravisit::walk_crate(&mut spec_collector, &krate);
+            intravisit::walk_crate(&mut spec_collector, krate);
             let def_spec = spec_collector.build_def_specs(&env);
             if config::print_typeckd_specs() {
                 let mut values: Vec<_> = def_spec

@@ -70,7 +70,7 @@ impl<'tcx> PlaceSet<'tcx> {
             // prefix in the set, we remove all places for which the given
             // one is a prefix.
             self.places.retain(|other| !is_prefix(other, place));
-            self.places.insert(place.clone());
+            self.places.insert(*place);
             // If all fields of a struct are definitely initialized,
             // just keep info that the struct is definitely initialized.
             utils::collapse(mir, tcx, &mut self.places, place);
@@ -86,7 +86,7 @@ impl<'tcx> PlaceSet<'tcx> {
     ) {
         self.check_invariant();
         let mut places = Vec::new();
-        let old_places = mem::replace(&mut self.places, HashSet::new());
+        let old_places = std::mem::take(&mut self.places);
         // If needed, split the place whose part got uninitialized into
         // multiple places.
         for other in old_places.into_iter() {
@@ -141,7 +141,7 @@ impl<'tcx> PlaceSet<'tcx> {
             for place in place_set1.iter() {
                 for potential_prefix in place_set2.iter() {
                     if is_prefix(place, potential_prefix) {
-                        places.insert(place.clone());
+                        places.insert(*place);
                         break;
                     }
                 }
@@ -149,13 +149,13 @@ impl<'tcx> PlaceSet<'tcx> {
         };
         propage_places(place_set1, place_set2);
         propage_places(place_set2, place_set1);
-        let result = Self { places: places };
+        let result = Self { places };
         result.check_invariant();
         result
     }
     /// This function fixes the invariant.
     pub fn deduplicate(&mut self) {
-        let old_places = mem::replace(&mut self.places, HashSet::new());
+        let old_places = std::mem::take(&mut self.places);
         let places: Vec<_> = old_places.into_iter().collect();
         let mut to_remove = HashSet::new();
         for (i, place) in places.iter().enumerate() {
@@ -186,7 +186,7 @@ impl<'tcx> PlaceSet<'tcx> {
     pub fn union(place_set1: &PlaceSet<'tcx>, place_set2: &PlaceSet<'tcx>) -> PlaceSet<'tcx> {
         let mut places = place_set1.places.clone();
         places.extend(place_set2.iter().cloned());
-        Self { places: places }
+        Self { places }
     }
 }
 

@@ -319,7 +319,7 @@ impl CfgMethod {
             for successor in block.successor.get_following() {
                 let entry = result
                     .entry(successor.block_index)
-                    .or_insert_with(|| Vec::new());
+                    .or_insert_with(Vec::new);
                 entry.push(index);
             }
         }

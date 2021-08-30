@@ -9,7 +9,7 @@ pub trait ArgsForMir<'tcx> {
 impl<'tcx> ArgsForMir<'tcx> for mir::Body<'tcx> {
     fn get_args(&self) -> Vec<(mir::Local, ty::Ty<'tcx>)> {
         (1..=self.arg_count)
-            .map(|i| mir::Local::new(i))
+            .map(mir::Local::new)
             .map(|l| (l, self.local_decls[l].clone().ty))
             .collect()
     }

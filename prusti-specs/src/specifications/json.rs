@@ -155,6 +155,6 @@ pub fn to_json_string(assertion: &untyped::Assertion) -> String {
 
 impl Assertion {
     pub fn from_json_string(json: &str) -> Self {
-        serde_json::from_str(&json).unwrap()
+        serde_json::from_str(json).unwrap()
     }
 }

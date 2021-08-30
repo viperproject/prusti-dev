@@ -17,7 +17,7 @@ pub struct CollectClosureDefsVisitor<'env, 'tcx: 'env> {
 impl<'env, 'tcx> CollectClosureDefsVisitor<'env, 'tcx> {
     pub fn new(env: &'env Environment<'tcx>) -> Self {
         CollectClosureDefsVisitor {
-            env: env,
+            env,
             map: env.tcx().hir(),
             result: Vec::new(),
         }

@@ -40,11 +40,11 @@ impl Viper {
         );
 
         let jar_paths: Vec<String> = fs::read_dir(&viper_home)
-            .expect(&format!("failed to open {:?}", viper_home))
+            .unwrap_or_else(|_| panic!("failed to open {:?}", viper_home))
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
             .collect();
 
-        debug!("Java classpath: {}", jar_paths.clone().join(":"));
+        debug!("Java classpath: {}", jar_paths.join(":"));
 
         let classpath_separator = if cfg!(windows) { ";" } else { ":" };
         let init_args = InitArgsBuilder::new()
@@ -94,9 +94,8 @@ impl Viper {
             info!("Using JVM {}, Java {}", vm_name, java_version);
         }
 
-        let this = Viper { jvm };
 
-        this
+        Viper { jvm }
     }
 
     pub fn new_verification_context(&self) -> VerificationContext {

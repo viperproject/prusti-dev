@@ -178,9 +178,7 @@ pub(crate) fn collapse<'tcx>(
         current_place: mir::Place<'tcx>,
         guide_place: mir::Place<'tcx>,
     ) {
-        if current_place == guide_place {
-            return;
-        } else {
+        if current_place != guide_place {
             let (new_current_place, mut expansion) = expand_one_level(
                 mir, tcx, current_place, guide_place);
             recurse(mir, tcx, places, new_current_place, guide_place);
@@ -190,8 +188,6 @@ pub(crate) fn collapse<'tcx>(
                     places.remove(&place);
                 }
                 places.insert(current_place);
-            } else {
-                return;
             }
         }
     }

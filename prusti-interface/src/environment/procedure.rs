@@ -229,7 +229,7 @@ fn is_spec_basic_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> bool {
             }
         }
     }
-    return false;
+    false
 }
 
 #[derive(Debug)]
@@ -249,7 +249,7 @@ fn _blocks_definitely_leading_to<'a>(bb_graph: &'a HashMap<BasicBlock, BasicBloc
             _blocks_definitely_leading_to(bb_graph, *pred, blocks);
         }
     }
-    return blocks;
+    blocks
 }
 
 fn blocks_definitely_leading_to<'a>(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, target: BasicBlock) -> HashSet<BasicBlock> {
@@ -261,7 +261,7 @@ fn blocks_definitely_leading_to<'a>(bb_graph: &HashMap<BasicBlock, BasicBlockNod
 fn get_nonspec_basic_blocks(bb_graph: HashMap<BasicBlock, BasicBlockNode>, mir: &Mir, tcx: &TyCtxt) -> HashSet<BasicBlock>{
     let mut spec_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     for (bb, _) in bb_graph.iter() {
-        if is_spec_basic_block(&mir[*bb], &tcx) {
+        if is_spec_basic_block(&mir[*bb], tcx) {
             spec_basic_blocks.insert(*bb);
             spec_basic_blocks.extend(blocks_definitely_leading_to(&bb_graph, *bb).into_iter());
         }
@@ -298,12 +298,10 @@ fn build_nonspec_basic_blocks(mir: &Mir, real_edges: &RealEdges, tcx: &TyCtxt) -
             continue;
         }
 
-        if !bb_graph.contains_key(&source) {
-            bb_graph.insert(source, BasicBlockNode {
+        bb_graph.entry(source).or_insert_with(|| BasicBlockNode {
                 successors: HashSet::new(),
                 predecessors: HashSet::new(),
             });
-        }
 
         visited.insert(source);
 
@@ -316,12 +314,10 @@ fn build_nonspec_basic_blocks(mir: &Mir, real_edges: &RealEdges, tcx: &TyCtxt) -
                 to_visit.push(target);
             }
 
-            if !bb_graph.contains_key(&target) {
-                bb_graph.insert(target, BasicBlockNode {
+            bb_graph.entry(target).or_insert_with(|| BasicBlockNode {
                     successors: HashSet::new(),
                     predecessors: HashSet::new(),
                 });
-            }
             bb_graph.get_mut(&target).unwrap().predecessors.insert(source);
             bb_graph.get_mut(&source).unwrap().successors.insert(target);
         }

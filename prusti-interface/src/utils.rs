@@ -195,7 +195,7 @@ pub fn collapse<'a, 'tcx: 'a>(
     places: &mut HashSet<mir::Place<'tcx>>,
     guide_place: &mir::Place<'tcx>,
 ) {
-    let guide_place = guide_place.clone();
+    let guide_place = *guide_place;
     fn recurse<'tcx>(
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
@@ -203,9 +203,7 @@ pub fn collapse<'a, 'tcx: 'a>(
         current_place: mir::Place<'tcx>,
         guide_place: mir::Place<'tcx>,
     ) {
-        if current_place == guide_place {
-            return;
-        } else {
+        if current_place != guide_place {
             let (new_current_place, mut expansion) = expand_one_level(
                 mir, tcx, current_place, guide_place);
             recurse(mir, tcx, places, new_current_place, guide_place);
@@ -215,8 +213,6 @@ pub fn collapse<'a, 'tcx: 'a>(
                     places.remove(&place);
                 }
                 places.insert(current_place);
-            } else {
-                return;
             }
         }
     }
