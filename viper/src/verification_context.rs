@@ -72,7 +72,7 @@ impl<'a> VerificationContext<'a> {
 
         debug!(
             "Verifier arguments: '{}'",
-            verifier_args.iter().cloned().collect::<Vec<_>>().join(" ")
+            verifier_args.to_vec().join(" ")
         );
 
         Verifier::<state::Uninitialized>::new(&self.env, backend, report_path)

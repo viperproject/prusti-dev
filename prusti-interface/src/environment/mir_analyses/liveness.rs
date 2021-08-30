@@ -56,7 +56,7 @@ impl AssignmentSet {
             .collect();
         self.set.insert(Assignment {
             target: local,
-            location: location,
+            location,
         });
     }
     pub fn iter(&self) -> impl Iterator<Item = &Assignment> {
@@ -79,7 +79,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
     fn new(mir: &'a mir::Body<'tcx>) -> Self {
         Self {
             result: LivenessAnalysisResult::new(),
-            mir: mir,
+            mir,
             queue: Vec::new(),
         }
     }
@@ -91,7 +91,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
             for statement_index in 0..statements.len() + 1 {
                 let location = mir::Location {
                     block: bb,
-                    statement_index: statement_index,
+                    statement_index,
                 };
                 self.result
                     .after_statement
@@ -108,7 +108,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
             for statement_index in 0..statements.len() + 1 {
                 let location = mir::Location {
                     block: bb,
-                    statement_index: statement_index,
+                    statement_index,
                 };
                 if statement_index != statements.len() {
                     self.queue.push(WorkItem::ApplyStatementEffects(location));
@@ -218,7 +218,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         if changed {
             self.result.before_block.insert(bb, set);
             let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
-            if statements.len() == 0 {
+            if statements.is_empty() {
                 self.queue.push(WorkItem::ApplyTerminatorEffects(bb));
             } else {
                 let location = mir::Location {
@@ -283,7 +283,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
     /// Return the set before the terminator of the given basic block.
     fn get_set_before_terminator(&self, bb: mir::BasicBlock) -> AssignmentSet {
         let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
-        if statements.len() == 0 {
+        if statements.is_empty() {
             self.result.before_block[&bb].clone()
         } else {
             let location = mir::Location {

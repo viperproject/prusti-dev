@@ -87,7 +87,7 @@ impl ServerSideService {
             .and(warp::path::end())
             .and(warp::body::concat())
             .and_then(|buf: warp::body::FullBody| {
-                bincode::deserialize(&buf.bytes()).map_err(|err| {
+                bincode::deserialize(buf.bytes()).map_err(|err| {
                     info!("request bincode body error: {}", err);
                     warp::reject::custom(err)
                 })

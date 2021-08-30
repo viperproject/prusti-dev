@@ -67,7 +67,7 @@ impl Predicate {
         let body = conjuncts.into_iter().conjoin();
         Predicate::Struct(StructPredicate {
             name: predicate_name,
-            this: this,
+            this,
             body: Some(body),
         })
     }
@@ -169,7 +169,7 @@ impl StructPredicate {
             .into_iter()
             .flat_map(|field| {
                 let predicate_name = field.typed_ref_name().unwrap();
-                let location: Expr = Expr::from(this.clone()).field(field).into();
+                let location: Expr = Expr::from(this.clone()).field(field);
                 let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
                 let pred_perm =
                     Expr::predicate_access_predicate(predicate_name, location, PermAmount::Write);
@@ -178,7 +178,7 @@ impl StructPredicate {
             .conjoin();
         Self {
             name: predicate_name,
-            this: this,
+            this,
             body: Some(body),
         }
     }
@@ -246,8 +246,8 @@ impl<'a> Into<EnumVariantIndex> for &'a Field {
 
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "enum_predicate {}({}){{\n", self.name, self.this)?;
-        write!(f, "  discriminant_field={}\n", self.discriminant_field)?;
+        writeln!(f, "enum_predicate {}({}){{", self.name, self.this)?;
+        writeln!(f, "  discriminant_field={}", self.discriminant_field)?;
         for (guard, name, variant) in self.variants.iter() {
             writeln!(f, "  {}: {} ==> {}\n", name, guard, variant)?;
         }
@@ -272,7 +272,7 @@ impl EnumPredicate {
                 continue;
             }
             let field = Field::new(format!("enum_{}", name), variant.this.typ.clone());
-            let location: Expr = Expr::from(self.this.clone()).field(field).into();
+            let location: Expr = Expr::from(self.this.clone()).field(field);
             let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
             let pred_perm = variant.construct_access(location, PermAmount::Write);
             parts.push(Expr::and(

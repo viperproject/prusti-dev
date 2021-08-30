@@ -173,7 +173,7 @@ impl fmt::Display for Expr {
                     if let Some(variant_index) = variant {
                         format!("{}<variant {}>", pred_name, variant_index)
                     } else {
-                        format!("{}", pred_name)
+                        pred_name.to_string()
                     },
                     args.iter()
                         .map(|x| x.to_string())
@@ -629,7 +629,7 @@ impl Expr {
 
         let mut finder = PredicateFinder {
             predicates: Vec::new(),
-            perm_amount: perm_amount,
+            perm_amount,
         };
         finder.walk(self);
         finder.predicates
@@ -1054,11 +1054,11 @@ impl Expr {
             | Expr::Variant(_, Field { ref typ, .. }, _)
             | Expr::Field(_, Field { ref typ, .. }, _)
             | Expr::AddrOf(_, ref typ, _)
-            | Expr::LetExpr(LocalVar { ref typ, .. }, _, _, _) => &typ,
+            | Expr::LetExpr(LocalVar { ref typ, .. }, _, _, _) => typ,
             Expr::LabelledOld(_, box ref base, _)
             | Expr::Unfolding(_, _, box ref base, _, _, _)
             | Expr::UnaryOp(_, box ref base, _) => base.get_type(),
-            Expr::FuncApp(_, _, _, ref typ, _) => &typ,
+            Expr::FuncApp(_, _, _, ref typ, _) => typ,
             Expr::DomainFuncApp(ref func, _, _) => &func.return_type,
             Expr::Const(constant, ..) => match constant {
                 Const::Bool(..) => &Type::Bool,
@@ -1566,7 +1566,7 @@ impl Expr {
             }
         }
         let mut collector = Collector {
-            perm_amount: perm_amount,
+            perm_amount,
             perms: Vec::new(),
         };
         collector.walk(self);
@@ -1626,7 +1626,7 @@ impl Expr {
                 )
             }
         }
-        let mut patcher = TypePatcher { substs: substs };
+        let mut patcher = TypePatcher { substs };
         patcher.fold(self)
     }
 

@@ -49,7 +49,7 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
 
         let abstract_domain: &str = self.args.iter()
             .filter(|a| a.starts_with("--ADdomain"))
-            .flat_map(|a| a.rsplit("="))
+            .flat_map(|a| a.rsplit('='))
             .next()
             .unwrap();
 

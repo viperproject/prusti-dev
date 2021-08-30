@@ -118,8 +118,8 @@ impl<'tcx> PermissionNode<'tcx> {
                     return &mut children[index];
                 }
                 let child = PermissionNode::OwnedNode {
-                    place: place.clone(),
-                    kind: kind,
+                    place: *place,
+                    kind,
                     children: Vec::new(),
                 };
                 children.push(child);
@@ -237,7 +237,7 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
         let mut place_iter = place.iter().rev();
         let node_permission_kind = target_type.to_permission_kind();
         let mut node = PermissionNode::OwnedNode {
-            place: place_iter.next().unwrap().get_mir_place().clone(),
+            place: *place_iter.next().unwrap().get_mir_place(),
             kind: node_permission_kind,
             children: Vec::new(),
         };
@@ -246,9 +246,9 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
         } else {
             PermissionKind::WriteNode
         };
-        while let Some(component) = place_iter.next() {
+        for component in place_iter {
             node = PermissionNode::OwnedNode {
-                place: component.get_mir_place().clone(),
+                place: *component.get_mir_place(),
                 kind: permission_kind,
                 children: vec![node],
             };
@@ -319,12 +319,12 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
             for child in node.get_children().iter() {
                 to_visit.push(child);
                 if child.get_permission_kind() == PermissionKind::WriteNodeAndSubtree {
-                    visited.push((PermissionKind::WriteNode, child.get_place().clone()));
+                    visited.push((PermissionKind::WriteNode, *child.get_place()));
                     continue;
                 }
                 match kind {
                     PermissionKind::ReadNode | PermissionKind::WriteNode => {
-                        visited.push((kind, child.get_place().clone()));
+                        visited.push((kind, *child.get_place()));
                     }
                     _ => {
                         unreachable!();
@@ -333,10 +333,10 @@ impl<'a, 'tcx: 'a> PermissionTree<'a, 'tcx> {
             }
             match kind {
                 PermissionKind::ReadSubtree => {
-                    visited.push((kind, node.get_place().clone()));
+                    visited.push((kind, *node.get_place()));
                 }
                 PermissionKind::WriteNodeAndSubtree | PermissionKind::WriteSubtree => {
-                    visited.push((PermissionKind::WriteSubtree, node.get_place().clone()));
+                    visited.push((PermissionKind::WriteSubtree, *node.get_place()));
                 }
                 PermissionKind::ReadNode | PermissionKind::WriteNode | PermissionKind::None => {}
             }
@@ -479,7 +479,7 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
             all_places,
         );
         add_paths(mir, tcx, read_paths, &mut trees, TargetType::Read, all_places);
-        Self { trees: trees }
+        Self { trees }
     }
 
     pub fn get_trees(&self) -> &[PermissionTree<'a, 'tcx>] {

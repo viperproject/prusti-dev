@@ -151,7 +151,7 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
         rewriter::SpecItemType::Precondition,
         spec_id,
         assertion,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item],
@@ -171,7 +171,7 @@ fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
         rewriter::SpecItemType::Postcondition,
         spec_id,
         assertion,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item],
@@ -210,7 +210,7 @@ fn generate_for_after_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> Ge
         rewriter::SpecItemType::Postcondition,
         spec_id_rhs,
         pledge.rhs,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item_rhs],
@@ -237,13 +237,13 @@ fn generate_for_after_expiry_if(attr: TokenStream, item: &untyped::AnyFnItem) ->
         rewriter::SpecItemType::Postcondition,
         spec_id_lhs,
         pledge.lhs.unwrap(),
-        &item
+        item
     )?;
     let spec_item_rhs = rewriter.generate_spec_item_fn(
         rewriter::SpecItemType::Postcondition,
         spec_id_rhs,
         pledge.rhs,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item_lhs, spec_item_rhs],
