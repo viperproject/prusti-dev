@@ -137,7 +137,7 @@ impl Parser {
             Ok(PledgeWithoutId {
                 reference,
                 lhs: Some(assertion),
-                rhs: rhs,
+                rhs,
             })
         } else {
             Err(self.error_expected("`,`"))
