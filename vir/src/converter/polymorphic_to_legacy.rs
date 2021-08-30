@@ -607,19 +607,13 @@ impl From<polymorphic::CfgMethod> for legacy::CfgMethod {
                 .map(|local_var| local_var.into())
                 .collect(),
             labels: cfg_method.labels.into_iter().collect(),
-            reserved_labels: cfg_method
-                .reserved_labels
-                .into_iter()
-                .collect(),
+            reserved_labels: cfg_method.reserved_labels.into_iter().collect(),
             basic_blocks: cfg_method
                 .basic_blocks
                 .into_iter()
                 .map(|basic_block| basic_block.into())
                 .collect(),
-            basic_blocks_labels: cfg_method
-                .basic_blocks_labels
-                .into_iter()
-                .collect(),
+            basic_blocks_labels: cfg_method.basic_blocks_labels.into_iter().collect(),
             fresh_var_index: cfg_method.fresh_var_index,
             fresh_label_index: cfg_method.fresh_label_index,
         }

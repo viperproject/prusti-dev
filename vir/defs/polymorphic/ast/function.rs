@@ -5,8 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::ast::*;
-use std::collections::HashMap;
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Function {
@@ -55,7 +54,7 @@ impl Function {
             .collect();
         // TODO: this does not handle let expressions, quantifiers, and so on
         self.body.clone().unwrap().fold_expr(|orig_expr| {
-            if let Expr::Local( Local {ref variable, ..} ) = orig_expr {
+            if let Expr::Local(Local { ref variable, .. }) = orig_expr {
                 subst[variable].clone()
             } else {
                 orig_expr
@@ -99,7 +98,7 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
     }
     for arg in formal_args {
         identifier.push_str(&type_name(&arg.typ));
-        identifier.push_str("$");
+        identifier.push('$');
     }
     identifier.push_str(&type_name(return_type));
     identifier
