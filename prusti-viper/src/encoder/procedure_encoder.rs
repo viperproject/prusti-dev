@@ -3378,8 +3378,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Option<(vir::Expr, vir::Expr)>> {
-        let tymap = HashMap::new();
         // Encode args and return.
         let encoded_args: Vec<vir::Expr> = contract
             .args
@@ -3637,7 +3637,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             location,
             contract,
             pre_label,
-            post_label
+            post_label,
+            &tymap,
         ).with_span(self.mir.span)? {
             if let Some((location, fake_exprs)) = magic_wand_store_info {
                 let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
@@ -3818,6 +3819,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         debug!("encode_package_end_of_method '{:?}'", location);
+        let tymap = HashMap::new();
         let mut stmts = Vec::new();
         let span = self.mir.source_info(location).span;
 
@@ -3826,7 +3828,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             None,
             self.procedure_contract(),
             pre_label,
-            post_label
+            post_label,
+            &tymap,
         ).with_span(span)? {
             let pos = self
                 .encoder
