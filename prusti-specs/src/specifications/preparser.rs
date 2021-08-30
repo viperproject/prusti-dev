@@ -375,29 +375,24 @@ impl Parser {
     /// is there any non-prusti operator following the first thing?
     fn is_part_of_rust_expr(&mut self) -> bool {
         if let Some(token) = self.tokens.pop_front() {
-            if self.peek_operator("|=") ||
+            self.tokens.push_front(token);
+            !(self.peek_operator("|=") ||
                self.peek_operator("&&") ||
                self.peek_operator("==>") ||
-               self.tokens.front().is_none() {
-                self.tokens.push_front(token);
-                false
-            } else {
-                self.tokens.push_front(token);
-                true
-            }
+               self.tokens.front().is_none())
         } else {
             false
         }
     }
     /// does the given operator appear in the stream at top level
     fn contains_operator(&self, stream: &VecDeque<TokenTree>, operator: &str) -> bool {
-        (0..stream.len()).any(|offset: usize| self.peek_operator_stream_offset(&stream, operator, offset))
+        (0..stream.len()).any(|offset: usize| self.peek_operator_stream_offset(stream, operator, offset))
     }
     /// does the given operator appear in the stream anywhere
     fn contains_operator_recursive(&self, stream: &VecDeque<TokenTree>, operator: &str) -> Option<Span> {
         for (offset, token) in stream.iter().enumerate() {
-            if self.peek_operator_stream_offset(&stream, operator, offset) {
-                return Some(self.operator_span_offset(&stream, operator, offset));
+            if self.peek_operator_stream_offset(stream, operator, offset) {
+                return Some(self.operator_span_offset(stream, operator, offset));
             }
             if let TokenTree::Group(group) = token {
                 let nested_stream: VecDeque<TokenTree> = group.stream().into_iter().collect();
@@ -421,11 +416,11 @@ impl Parser {
         let mut or_span: Option<Span> = None;
 
         for (offset, token) in stream.iter().enumerate() {
-            if self.peek_operator_stream_offset(&stream, "&&", offset) {
-                and_span = Some(self.operator_span_offset(&stream, "&&", offset));
-            } else if self.peek_operator_stream_offset(&stream, "||", offset) {
-                or_span = Some(self.operator_span_offset(&stream, "||", offset));
-            } else if self.peek_operator_stream_offset(&stream, "==>", offset) {
+            if self.peek_operator_stream_offset(stream, "&&", offset) {
+                and_span = Some(self.operator_span_offset(stream, "&&", offset));
+            } else if self.peek_operator_stream_offset(stream, "||", offset) {
+                or_span = Some(self.operator_span_offset(stream, "||", offset));
+            } else if self.peek_operator_stream_offset(stream, "==>", offset) {
                 and_span = None;
                 or_span = None;
             } else if let TokenTree::Group(group) = token {
@@ -438,9 +433,8 @@ impl Parser {
                 }
             }
 
-            match (and_span, or_span) {
-                (Some(a_s), Some(o_s)) => return Some(a_s.join(o_s).unwrap()),
-                _ => (),
+            if let (Some(a_s), Some(o_s)) = (and_span, or_span) {
+                return Some(a_s.join(o_s).unwrap());
             }
         }
         None

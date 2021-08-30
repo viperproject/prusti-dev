@@ -204,7 +204,7 @@ impl<'tcx> StructuralToTyped<'tcx, QuantifierVars<'tcx>> for json::QuantifierVar
 
         assert!(body.arg_count-1 == self.count);
         assert_eq!(vars.len(), self.count);
-        return QuantifierVars {
+        QuantifierVars {
             spec_id: self.spec_id,
             id: self.expr_id,
             vars

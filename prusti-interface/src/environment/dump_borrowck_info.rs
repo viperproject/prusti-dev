@@ -72,8 +72,8 @@ impl<'a, 'tcx: 'a> InfoPrinter<'a, 'tcx> {
 
         let mir = procedure.get_mir();
 
-        let real_edges = RealEdges::new(&mir);
-        let loop_info = loops::ProcedureLoops::new(&mir, &real_edges);
+        let real_edges = RealEdges::new(mir);
+        let loop_info = loops::ProcedureLoops::new(mir, &real_edges);
 
         let graph_path = PathBuf::from(config::log_dir())
             .join("nll-facts")
@@ -83,21 +83,21 @@ impl<'a, 'tcx: 'a> InfoPrinter<'a, 'tcx> {
         let graph_file = File::create(graph_path).expect("Unable to create file");
         let graph = BufWriter::new(graph_file);
 
-        let initialization = compute_definitely_initialized(&mir, self.tcx);
-        let liveness = compute_liveness(&mir);
+        let initialization = compute_definitely_initialized(mir, self.tcx);
+        let liveness = compute_liveness(mir);
 
         // FIXME: this computes the wrong loop invariant permission
         let loop_invariant_block = HashMap::new();
 
         super::polonius_info::graphviz(self.env, &def_path, def_id).unwrap();
         let mir_info_printer = MirInfoPrinter {
-            def_path: def_path,
+            def_path,
             tcx: self.tcx,
-            mir: &mir,
+            mir,
             graph: cell::RefCell::new(graph),
             loops: loop_info,
-            initialization: initialization,
-            liveness: liveness,
+            initialization,
+            liveness,
             polonius_info: PoloniusInfo::new(self.env, &procedure, &loop_invariant_block).ok().unwrap(),
         };
         mir_info_printer.print_info().unwrap();
@@ -310,9 +310,9 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
         }
         for (region, point) in interesting_restricts.iter() {
-            if let Some(restricts_map) = self.polonius_info.borrowck_out_facts.origin_contains_loan_at.get(&point)
+            if let Some(restricts_map) = self.polonius_info.borrowck_out_facts.origin_contains_loan_at.get(point)
             {
-                if let Some(loans) = restricts_map.get(&region) {
+                if let Some(loans) = restricts_map.get(region) {
                     for loan in loans.iter() {
                         write_graph!(self, "\"restricts_{:?}_{:?}_{:?}\" [ ", point, region, loan);
                         write_graph!(
@@ -359,7 +359,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             location
         );
         let mut used_regions = HashSet::new();
-        if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+        if let Some(subset) = subset_map.get(&start_point).as_ref() {
             for (source_region, regions) in subset.iter() {
                 used_regions.insert(source_region);
                 for target_region in regions.iter() {
@@ -405,7 +405,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         for (region, loan, point) in self.polonius_info.borrowck_in_facts.loan_issued_at.iter() {
             write_graph!(self, "subgraph cluster_{:?} {{", loan);
             let subset_map = &self.polonius_info.borrowck_out_facts.subset;
-            if let Some(ref subset) = subset_map.get(&point).as_ref() {
+            if let Some(subset) = subset_map.get(point).as_ref() {
                 for (source_region, regions) in subset.iter() {
                     if let Some(local) = self.polonius_info.find_variable(*source_region) {
                         write_graph!(
@@ -498,7 +498,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             // FIXME: this computes the wrong loop invariant permission
             let (write_leaves, mut_borrow_leaves, read_leaves) = self
                 .loops
-                .compute_read_and_write_leaves(bb, self.mir, Some(&definitely_initalised_paths));
+                .compute_read_and_write_leaves(bb, self.mir, Some(definitely_initalised_paths));
             // Construct the permission forest.
             let forest = PermissionForest::new(
                 self.mir,
@@ -506,7 +506,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 &write_leaves,
                 &mut_borrow_leaves,
                 &read_leaves,
-                &definitely_initalised_paths,
+                definitely_initalised_paths,
             );
 
             write_graph!(self, "<tr>");
@@ -532,7 +532,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<td colspan=\"8\">{}</td>", to_html_display!(forest));
             write_graph!(self, "</tr>");
 
-            if let Some(ref magic_wands) = self.polonius_info.loop_magic_wands.get(&bb) {
+            if let Some(magic_wands) = self.polonius_info.loop_magic_wands.get(&bb) {
                 write_graph!(self, "<tr>");
                 write_graph!(self, "<td colspan=\"2\">Magic wands:</td>");
                 write_graph!(
@@ -738,7 +738,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             };
             let start_point = self.get_point(start_location, facts::PointType::Start);
             let restricts_map = &self.polonius_info.borrowck_out_facts.origin_contains_loan_at;
-            if let Some(ref restricts_relation) = restricts_map.get(&start_point).as_ref() {
+            if let Some(restricts_relation) = restricts_map.get(&start_point).as_ref() {
                 for (region, all_loans) in restricts_relation.iter() {
                     // Filter out reborrows.
                     let loans: Vec<_> = all_loans
@@ -791,7 +791,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
                                 // Write out the subset relation at ``point``.
                                 let subset_map = &self.polonius_info.borrowck_out_facts.subset;
-                                if let Some(ref subset) = subset_map.get(&point).as_ref() {
+                                if let Some(subset) = subset_map.get(point).as_ref() {
                                     for (source_region, regions) in subset.iter() {
                                         used_regions.insert(source_region);
                                         for target_region in regions.iter() {
@@ -884,7 +884,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         let mid_point = self.get_point(location, facts::PointType::Mid);
 
         // Loans.
-        if let Some(ref blas) = self
+        if let Some(blas) = self
             .polonius_info
             .borrowck_out_facts
             .loan_live_at
@@ -963,7 +963,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         point_type: facts::PointType,
     ) -> facts::PointIndex {
         let point = facts::Point {
-            location: location,
+            location,
             typ: point_type,
         };
         self.polonius_info.interner.get_point_index(&point)
@@ -1106,7 +1106,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     fn print_subset_at_start(&self, location: mir::Location) -> Result<(), io::Error> {
         let point = self.get_point(location, facts::PointType::Start);
         let subset_map = &self.polonius_info.borrowck_out_facts.subset;
-        if let Some(ref subset) = subset_map.get(&point).as_ref() {
+        if let Some(subset) = subset_map.get(&point).as_ref() {
             write_graph!(self, "subgraph cluster_{:?} {{", point);
             let mut used_regions = HashSet::new();
             for (from_region, to_regions) in subset.iter() {
@@ -1166,7 +1166,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             );
             write_graph!(self, "subgraph cluster_{:?} {{", bb);
             let subset_map = &self.polonius_info.borrowck_out_facts.subset;
-            if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+            if let Some(subset) = subset_map.get(&start_point).as_ref() {
                 if let Some(blocked_regions) = subset.get(&region) {
                     for blocked_region in blocked_regions.iter() {
                         if *blocked_region == region {
@@ -1232,15 +1232,15 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     fn write_mid_point_blas(&self, location: mir::Location) -> Result<(), io::Error> {
         let mid_point = self.get_point(location, facts::PointType::Mid);
         let borrow_live_at_map = &self.polonius_info.borrowck_out_facts.loan_live_at;
-        let mut blas = if let Some(ref blas) = borrow_live_at_map.get(&mid_point).as_ref() {
-            (**blas).clone()
+        let mut blas = if let Some(blas) = borrow_live_at_map.get(&mid_point).as_ref() {
+            (*blas).clone()
         } else {
             Vec::new()
         };
         let zombie_borrow_live_at_map = &self.polonius_info.additional_facts.zombie_borrow_live_at;
         let mut zombie_blas =
-            if let Some(ref zombie_blas) = zombie_borrow_live_at_map.get(&mid_point).as_ref() {
-                (**zombie_blas).clone()
+            if let Some(zombie_blas) = zombie_borrow_live_at_map.get(&mid_point).as_ref() {
+                (*zombie_blas).clone()
             } else {
                 Vec::new()
             };
@@ -1253,8 +1253,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .additional_facts
             .borrow_become_zombie_at
             .get(&mid_point)
-            .cloned()
-            .unwrap_or(Vec::new());
+            .cloned().unwrap_or_default();
 
         // Format the loans and mark the dying ones.
         blas.sort();
@@ -1272,7 +1271,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .collect();
         zombie_blas.sort();
         blas.extend(zombie_blas.iter().map(|loan| {
-            if dying_zombie_loans.contains(&loan) {
+            if dying_zombie_loans.contains(loan) {
                 format!("<b><font color=\"brown\">{:?}</font></b>", loan)
             } else {
                 format!("<b><font color=\"forestgreen\">{:?}</font></b>", loan)
@@ -1318,7 +1317,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Magic wand</td>");
             let subset_map = &self.polonius_info.borrowck_out_facts.subset;
-            if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+            if let Some(subset) = subset_map.get(&start_point).as_ref() {
                 let mut blocked_variables = Vec::new();
                 if let Some(blocked_regions) = subset.get(&region) {
                     for blocked_region in blocked_regions.iter() {

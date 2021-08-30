@@ -175,7 +175,7 @@ impl DAGBuilder {
             nodes: Vec::new(),
             borrowed_places: Vec::new(),
         };
-        Self { dag: dag }
+        Self { dag }
     }
     pub fn add_node(&mut self, node: Node) {
         let borrow = node.borrow;

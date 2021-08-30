@@ -83,7 +83,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn prepare_typed_procedure_specs(&mut self) {
-        let spec_items = std::mem::replace(&mut self.spec_items, vec![]);
+        let spec_items = std::mem::take(&mut self.spec_items);
         self.typed_specs = spec_items
             .into_iter()
             .map(|spec_item| {
@@ -136,20 +136,20 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             for spec_id_ref in &refs.spec_id_refs {
                 match spec_id_ref {
                     SpecIdRef::Precondition(spec_id) => {
-                        pres.push(self.typed_specs.get(&spec_id).unwrap().clone());
+                        pres.push(self.typed_specs.get(spec_id).unwrap().clone());
                     }
                     SpecIdRef::Postcondition(spec_id) => {
-                        posts.push(self.typed_specs.get(&spec_id).unwrap().clone());
+                        posts.push(self.typed_specs.get(spec_id).unwrap().clone());
                     }
                     SpecIdRef::Pledge{ lhs, rhs } => {
                         pledges.push(typed::Pledge {
                             reference: None,    // FIXME: Currently only `result` is supported.
                             lhs: lhs.map(|spec_id| self.typed_specs.get(&spec_id).unwrap().clone()),
-                            rhs: self.typed_specs.get(&rhs).unwrap().clone(),
+                            rhs: self.typed_specs.get(rhs).unwrap().clone(),
                         })
                     }
                     SpecIdRef::Predicate(spec_id) => {
-                        predicate_body = Some(self.typed_specs.get(&spec_id).unwrap().clone());
+                        predicate_body = Some(self.typed_specs.get(spec_id).unwrap().clone());
                     }
                 }
             }
@@ -170,7 +170,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
         for (local_id, spec_ids) in self.loop_specs.iter() {
             let specs = spec_ids.iter()
-                .map(|spec_id| self.typed_specs.get(&spec_id).unwrap().clone())
+                .map(|spec_id| self.typed_specs.get(spec_id).unwrap().clone())
                 .collect();
             def_spec.specs.insert(*local_id, typed::SpecificationSet::Loop(typed::LoopSpecification {
                 invariant: specs
@@ -186,9 +186,7 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     let mut spec_id_refs = vec![];
 
     let parse_spec_id = |spec_id: String| -> SpecificationId {
-        spec_id.try_into().expect(
-            &format!("cannot parse the spec_id attached to {:?}", def_id)
-        )
+        spec_id.try_into().unwrap_or_else(|_| panic!("cannot parse the spec_id attached to {:?}", def_id))
     };
 
     spec_id_refs.extend(
@@ -204,7 +202,7 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     spec_id_refs.extend(
         read_prusti_attrs("pledge_spec_id_ref", attrs).into_iter().map(
             |value| {
-                let mut value = value.splitn(2, ":");
+                let mut value = value.splitn(2, ':');
                 let raw_lhs_spec_id = value.next().unwrap();
                 let raw_rhs_spec_id = value.next().unwrap();
                 let lhs_spec_id = if !raw_lhs_spec_id.is_empty() {
@@ -227,7 +225,7 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
     let pure = has_prusti_attr(attrs, "pure");
     let trusted = has_prusti_attr(attrs, "trusted");
 
-    if pure || trusted || spec_id_refs.len() > 0 {
+    if pure || trusted || !spec_id_refs.is_empty() {
         Some(ProcedureSpecRef {
             spec_id_refs,
             pure,

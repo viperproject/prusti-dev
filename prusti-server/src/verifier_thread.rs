@@ -47,7 +47,7 @@ impl VerifierThread {
             .unwrap();
 
         Self {
-            backend_config: backend_config,
+            backend_config,
             request_sender: Mutex::new(request_sender),
         }
     }

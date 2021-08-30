@@ -130,7 +130,7 @@ impl fmt::Display for Stmt {
                 if let Some(variant_index) = variant {
                     format!("{}<variant {}>", pred_name, variant_index)
                 } else {
-                    format!("{}", pred_name)
+                    pred_name.to_string()
                 },
                 args.iter()
                     .map(|f| f.to_string())
@@ -145,7 +145,7 @@ impl fmt::Display for Stmt {
                 if let Some(variant_index) = variant {
                     format!("{}<variant {}>", pred_name, variant_index)
                 } else {
-                    format!("{}", pred_name)
+                    pred_name.to_string()
                 },
                 args.iter()
                     .map(|f| f.to_string())
@@ -181,7 +181,7 @@ impl fmt::Display for Stmt {
                 }
                 write!(f, "{{")?;
                 if !package_stmts.is_empty() {
-                    write!(f, "\n")?;
+                    writeln!(f)?;
                 }
                 for stmt in package_stmts.iter() {
                     writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
@@ -210,7 +210,7 @@ impl fmt::Display for Stmt {
                 fn write_block(f: &mut fmt::Formatter, stmts: &[Stmt]) -> fmt::Result {
                     write!(f, "{{")?;
                     if !stmts.is_empty() {
-                        write!(f, "\n")?;
+                        writeln!(f)?;
                     }
                     for stmt in stmts.iter() {
                         write_stmt(f, stmt)?;

@@ -40,7 +40,7 @@ fn process(args: Vec<String>) -> Result<(), i32> {
         .expect("Failed to find JVM library. Check JAVA_HOME");
     prusti_launch::add_to_loader_path(vec![libjvm_path], &mut cmd);
 
-    if let None = env::var("VIPER_HOME").ok() {
+    if env::var("VIPER_HOME").ok().is_none() {
         if let Some(viper_home) = find_viper_home(&current_executable_dir) {
             cmd.env("VIPER_HOME", viper_home);
         } else {
@@ -52,7 +52,7 @@ fn process(args: Vec<String>) -> Result<(), i32> {
         }
     };
 
-    if let None = env::var("Z3_EXE").ok() {
+    if env::var("Z3_EXE").ok().is_none() {
         if let Some(z3_exe) = find_z3_exe(&current_executable_dir) {
             cmd.env("Z3_EXE", z3_exe);
         } else {

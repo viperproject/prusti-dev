@@ -99,7 +99,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     ];
 
     for note in &xs {
-        handler.note_without_error(&note);
+        handler.note_without_error(note);
     }
 
     // If backtraces are enabled, also print the query stack

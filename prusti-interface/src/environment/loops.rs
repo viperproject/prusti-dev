@@ -117,8 +117,8 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                 x => unimplemented!("{:?}", x),
             };
             let access = PlaceAccess {
-                location: location,
-                place: place.clone(),
+                location,
+                place: *place,
                 kind: access_kind,
             };
             self.accessed_places.push(access);
@@ -263,7 +263,7 @@ impl ProcedureLoops {
             }
         }
 
-        let loop_heads: HashSet<_> = loop_bodies.keys().map(|k| *k).collect();
+        let loop_heads: HashSet<_> = loop_bodies.keys().copied().collect();
         let mut loop_head_depths = HashMap::new();
         for &loop_head in loop_heads.iter() {
             loop_head_depths.insert(loop_head, enclosing_loop_heads_set[&loop_head].len());
@@ -457,7 +457,7 @@ impl ProcedureLoops {
     ) -> Vec<PlaceAccess<'tcx>> {
         let body = self.loop_bodies.get(&loop_head).unwrap();
         let mut visitor = AccessCollector {
-            body: body,
+            body,
             accessed_places: Vec::new(),
         };
         visitor.visit_body(mir);
@@ -536,7 +536,7 @@ impl ProcedureLoops {
                         && utils::is_prefix(place, potential_prefix)
                 });
                 if !has_prefix && !write_leaves.contains(place) {
-                    write_leaves.push((*place).clone());
+                    write_leaves.push(*(*place));
                 }
             }
         }
@@ -555,7 +555,7 @@ impl ProcedureLoops {
                     && !write_leaves.contains(place)
                     && !mut_borrow_leaves.contains(place)
                 {
-                    mut_borrow_leaves.push((*place).clone());
+                    mut_borrow_leaves.push(*(*place));
                 }
             }
         }
@@ -573,7 +573,7 @@ impl ProcedureLoops {
                     && !write_leaves.contains(place)
                     && !mut_borrow_leaves.contains(place)
                 {
-                    read_leaves.push((*place).clone());
+                    read_leaves.push(*(*place));
                 }
             }
         }

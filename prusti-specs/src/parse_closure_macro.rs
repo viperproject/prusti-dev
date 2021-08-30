@@ -30,7 +30,7 @@ impl Parse for ClosureWithSpec {
             }
         }
 
-        if let None = cl {
+        if cl.is_none() {
             return Err(syn::Error::new(input.span(), "closure specification without closure"));
         }
 

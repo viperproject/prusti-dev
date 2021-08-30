@@ -276,7 +276,7 @@ impl<'tcx> Environment<'tcx> {
         for trait_id in traits.iter() {
             self.tcx().for_each_relevant_impl(*trait_id, ty, |impl_id| {
                 if let Some(relevant_trait_id) = self.tcx().trait_id_of_impl(impl_id) {
-                    res.insert(relevant_trait_id.clone());
+                    res.insert(relevant_trait_id);
                 }
             });
         }
@@ -296,7 +296,7 @@ impl<'tcx> Environment<'tcx> {
         self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
             let item = self.get_assoc_item(impl_id, name);
             if let Some(inner) = item {
-                result.push(inner.clone());
+                result.push(inner);
             }
         });
         result

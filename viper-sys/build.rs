@@ -43,7 +43,7 @@ fn main() {
     println!("cargo:rerun-if-env-changed=VIPER_HOME");
     let viper_home = env::var("VIPER_HOME").expect("failed to get VIPER_HOME");
     let mut viper_jars: Vec<String> = fs::read_dir(&viper_home)
-        .expect(&format!("Could not open VIPER_HOME='{}'", viper_home))
+        .unwrap_or_else(|_| panic!("Could not open VIPER_HOME='{}'", viper_home))
         .map(|x| x.unwrap().path().to_str().unwrap().to_string())
         .collect();
 

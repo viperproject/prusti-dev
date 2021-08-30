@@ -38,7 +38,7 @@ impl<'a, 'tcx> CollectPrustiSpecVisitor<'a, 'tcx> {
 impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     fn visit_item(&mut self, item: &hir::Item) {
         let attrs = self.tcx.get_attrs(item.def_id.to_def_id());
-        if has_spec_only_attr(&attrs) || has_extern_spec_attr(&attrs) {
+        if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }
         if let hir::ItemKind::Fn(..) = item.kind {
