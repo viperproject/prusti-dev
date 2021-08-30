@@ -12,7 +12,7 @@ struct GatherLabels {
 }
 
 impl StmtWalker for GatherLabels {
-    fn walk_label(&mut self, label: &str) {
+    fn walk_label(&mut self, ast::Label {label}: &ast::Label) {
         self.labels.push(label.to_string());
     }
 }

@@ -5,9 +5,7 @@ use log::*;
 
 use prusti_common::report;
 use prusti_common::utils::to_string::ToString;
-use prusti_common::vir;
-use vir_crate::polymorphic as polymorphic_vir;
-use vir_crate::polymorphic::CfgReplacer;
+use vir_crate::polymorphic::{self as vir, CfgReplacer};
 
 use super::action::Action;
 use super::borrows;
@@ -21,12 +19,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     /// been expired.
     pub(super) fn process_expire_borrows(
         &mut self,
-        dag: &polymorphic_vir::borrows::DAG,
+        dag: &vir::borrows::DAG,
         surrounding_pctxt: &mut PathCtxt<'p>,
-        surrounding_block_index: polymorphic_vir::CfgBlockIndex,
-        new_cfg: &polymorphic_vir::CfgMethod,
+        surrounding_block_index: vir::CfgBlockIndex,
+        new_cfg: &vir::CfgMethod,
         label: Option<&str>,
-    ) -> Result<Vec<polymorphic_vir::Stmt>, FoldUnfoldError> {
+    ) -> Result<Vec<vir::Stmt>, FoldUnfoldError> {
         trace!("[enter] process_expire_borrows dag=[{:?}]", dag);
 
         let mut cfg = build_initial_cfg(dag);
@@ -67,14 +65,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     }
 
     fn construct_initial_pctxt(&mut self,
-        dag: &polymorphic_vir::borrows::DAG,
+        dag: &vir::borrows::DAG,
         cfg: &mut borrows::CFG,
         surrounding_pctxt: &mut PathCtxt<'p>,
-        surrounding_block_index: polymorphic_vir::CfgBlockIndex,
-        new_cfg: &polymorphic_vir::CfgMethod,
+        surrounding_block_index: vir::CfgBlockIndex,
+        new_cfg: &vir::CfgMethod,
         curr_block_index: usize,
         final_pctxt: &[Option<PathCtxt<'p>>],
-    ) -> Result<(PathCtxt<'p>, Vec<polymorphic_vir::Stmt>), FoldUnfoldError> {
+    ) -> Result<(PathCtxt<'p>, Vec<vir::Stmt>), FoldUnfoldError> {
         let curr_block = &cfg.basic_blocks[curr_block_index];
         Ok(if curr_block.predecessors.is_empty() {
             self.construct_initial_pctxt_no_predecessors(
@@ -96,13 +94,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     }
 
     fn construct_initial_pctxt_no_predecessors(&mut self,
-        dag: &polymorphic_vir::borrows::DAG,
+        dag: &vir::borrows::DAG,
         cfg: &mut borrows::CFG,
         surrounding_pctxt: &mut PathCtxt<'p>,
-        surrounding_block_index: polymorphic_vir::CfgBlockIndex,
-        new_cfg: &polymorphic_vir::CfgMethod,
+        surrounding_block_index: vir::CfgBlockIndex,
+        new_cfg: &vir::CfgMethod,
         curr_block_index: usize,
-    ) -> Result<(PathCtxt<'p>, Vec<polymorphic_vir::Stmt>), FoldUnfoldError> {
+    ) -> Result<(PathCtxt<'p>, Vec<vir::Stmt>), FoldUnfoldError> {
         let curr_block = &cfg.basic_blocks[curr_block_index];
         let curr_node = &curr_block.node;
         let mut pctxt = surrounding_pctxt.clone();
@@ -125,7 +123,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             );
             for perm in &dropped_permissions {
                 let comment = format!("restored (from log): {}", perm);
-                curr_block_pre_statements.push(polymorphic_vir::Stmt::comment(comment));
+                curr_block_pre_statements.push(vir::Stmt::comment(comment));
             }
             pctxt
                 .mut_state()
@@ -135,11 +133,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     }
 
     fn construct_initial_pctxt_with_predecessors(&mut self,
-        dag: &polymorphic_vir::borrows::DAG,
+        dag: &vir::borrows::DAG,
         cfg: &mut borrows::CFG,
         surrounding_pctxt: &mut PathCtxt<'p>,
-        surrounding_block_index: polymorphic_vir::CfgBlockIndex,
-        new_cfg: &polymorphic_vir::CfgMethod,
+        surrounding_block_index: vir::CfgBlockIndex,
+        new_cfg: &vir::CfgMethod,
         curr_block_index: usize,
         final_pctxt: &[Option<PathCtxt<'p>>],
     ) -> Result<PathCtxt<'p>, FoldUnfoldError> {
@@ -173,7 +171,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     let comment = format!("restored (from log): {}", perm);
                     let key = (predecessor, curr_block_index);
                     let entry = cfg.edges.entry(key).or_insert(Vec::new());
-                    entry.push(polymorphic_vir::Stmt::comment(comment));
+                    entry.push(vir::Stmt::comment(comment));
                 }
                 pctxt
                     .mut_state()
@@ -192,9 +190,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     stmts_to_add.push(a.to_stmt());
                     if let Action::Drop(perm, missing_perm) = a {
                         if dag.in_borrowed_places(missing_perm.get_place())
-                            && perm.get_perm_amount() != polymorphic_vir::PermAmount::Read
+                            && perm.get_perm_amount() != vir::PermAmount::Read
                         {
-                            let comment = polymorphic_vir::Stmt::comment(format!(
+                            let comment = vir::Stmt::comment(format!(
                                 "restored (in branch merge): {} ({})",
                                 perm, missing_perm
                             ));
@@ -213,8 +211,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
 
     fn process_node(&mut self,
         surrounding_pctxt: &mut PathCtxt<'p>,
-        surrounding_block_index: polymorphic_vir::CfgBlockIndex,
-        new_cfg: &polymorphic_vir::CfgMethod,
+        surrounding_block_index: vir::CfgBlockIndex,
+        new_cfg: &vir::CfgMethod,
         curr_block: &mut borrows::BasicBlock,
         curr_block_index: usize,
         label: Option<&str>,
@@ -257,7 +255,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 read_access = read_access.replace_place(&original_place, place);
             }
             maybe_original_place = Some(original_place);
-            let stmt = polymorphic_vir::Stmt::Exhale( polymorphic_vir::Exhale {
+            let stmt = vir::Stmt::Exhale( vir::Exhale {
                 expr: read_access,
                 position: self.method_pos,
             });
@@ -317,7 +315,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     }
 
     fn construct_final_pctxt(&mut self,
-        dag: &polymorphic_vir::borrows::DAG,
+        dag: &vir::borrows::DAG,
         cfg: &mut borrows::CFG,
         final_pctxt: &[Option<PathCtxt<'p>>]
     ) -> Result<PathCtxt<'p>, FoldUnfoldError> {
@@ -340,11 +338,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     stmts_to_add.push(a.to_stmt());
                     if let Action::Drop(perm, missing_perm) = a {
                         if dag.in_borrowed_places(missing_perm.get_place())
-                            && perm.get_perm_amount() != polymorphic_vir::PermAmount::Read
+                            && perm.get_perm_amount() != vir::PermAmount::Read
                         {
                             let comment =
                                 format!("restored (in branch merge): {} ({})", perm, missing_perm);
-                            stmts_to_add.push(polymorphic_vir::Stmt::comment(comment));
+                            stmts_to_add.push(vir::Stmt::comment(comment));
                             final_pctxt.mut_state().restore_dropped_perm(perm.clone())?;
                         }
                     }
@@ -359,21 +357,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     fn generate_final_statements(&mut self,
         cfg: &borrows::CFG,
         label: Option<&str>,
-    ) -> Vec<polymorphic_vir::Stmt> {
+    ) -> Vec<vir::Stmt> {
         let mut stmts = Vec::new();
         for (i, block) in cfg.basic_blocks.iter().enumerate() {
-            stmts.push(polymorphic_vir::Stmt::If( polymorphic_vir::If {
+            stmts.push(vir::Stmt::If( vir::If {
                 guard: block.guard.clone(),
                 then_stmts: self.patch_places(&block.statements, label),
                 else_stmts: vec![]
             }));
             for ((from, to), statements) in &cfg.edges {
                 if *from == i {
-                    let condition = polymorphic_vir::Expr::and(
+                    let condition = vir::Expr::and(
                         block.guard.clone(),
                         cfg.basic_blocks[*to].current_guard.clone(),
                     );
-                    stmts.push(polymorphic_vir::Stmt::If( polymorphic_vir::If {
+                    stmts.push(vir::Stmt::If( vir::If {
                         guard: condition,
                         then_stmts: self.patch_places(statements, label),
                         else_stmts: vec![],
@@ -385,9 +383,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     }
 
     fn dump_debug_info(&self,
-        dag: &polymorphic_vir::borrows::DAG,
+        dag: &vir::borrows::DAG,
         cfg: &borrows::CFG,
-        surrounding_block_index: polymorphic_vir::CfgBlockIndex,
+        surrounding_block_index: vir::CfgBlockIndex,
         curr_block_index: usize
     ) {
         if !self.dump_debug_info { return; }
@@ -406,7 +404,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     }
 }
 
-fn build_initial_cfg(dag: &polymorphic_vir::borrows::DAG) -> borrows::CFG {
+fn build_initial_cfg(dag: &vir::borrows::DAG) -> borrows::CFG {
     let mut cfg = borrows::CFG::new();
     for node in dag.iter() {
         trace!("process_expire_borrows construct cfg node={:?}", node);
@@ -422,7 +420,7 @@ fn build_initial_cfg(dag: &polymorphic_vir::borrows::DAG) -> borrows::CFG {
             .collect();
         let guard = dag.guard(node.borrow);
         let current_guard = node.guard.clone();
-        let statements = vec![polymorphic_vir::Stmt::comment(format!("expire loan {:?}", node.borrow))];
+        let statements = vec![vir::Stmt::comment(format!("expire loan {:?}", node.borrow))];
         let block = borrows::BasicBlock {
             node,
             guard, current_guard,

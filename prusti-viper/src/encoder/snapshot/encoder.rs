@@ -13,15 +13,14 @@ use std::{
     collections::HashMap,
     convert::TryInto,
 };
-use vir_crate::polymorphic as polymorphic_vir;
-use vir_crate::{
-    vir_local, vir_type, vir,
-};
+use prusti_common::{vir_local, vir_expr};
+use vir_crate::polymorphic as vir;
 use vir_crate::polymorphic::{
     FallibleExprFolder, FallibleStmtFolder, PermAmount,
     EnumVariantIndex, ExprIterator, ContainerOpKind, WithIdentifier,
     Type, Expr,
 };
+use crate::encoder::encoder::SubstMap;
 use crate::encoder::{
     Encoder,
     array_encoder::{EncodedArrayTypes, EncodedSliceTypes},
@@ -54,9 +53,9 @@ pub struct SnapshotEncoder {
 
 
     /// Interning table for functions.
-    functions: HashMap<polymorphic_vir::FunctionIdentifier, polymorphic_vir::Function>,
+    functions: HashMap<vir::FunctionIdentifier, vir::Function>,
     /// Interning table for domains.
-    domains: HashMap<String, polymorphic_vir::Domain>,
+    domains: HashMap<String, vir::Domain>,
 }
 
 /// Snapshot encoding flattens references and boxes. This function removes any
@@ -100,8 +99,8 @@ fn strip_refs_and_boxes_expr<'p, 'v: 'p, 'tcx: 'v>(
 /// Returns a `forall` quantifier if `vars` is not empty, otherwise returns
 /// the `body` directly.
 fn forall_or_body(
-    vars: Vec<polymorphic_vir::LocalVar>,
-    triggers: Vec<polymorphic_vir::Trigger>,
+    vars: Vec<vir::LocalVar>,
+    triggers: Vec<vir::Trigger>,
     body: Expr,
 ) -> Expr {
     if vars.is_empty() {
@@ -113,9 +112,9 @@ fn forall_or_body(
 
 impl SnapshotEncoder {
     pub fn new() -> Self {
-        let unit_domain = polymorphic_vir::Domain {
+        let unit_domain = vir::Domain {
             name: UNIT_DOMAIN_NAME.to_string(),
-            functions: vec![polymorphic_vir::DomainFunc {
+            functions: vec![vir::DomainFunc {
                 name: "unit$".to_string(),
                 formal_args: vec![],
                 return_type: Type::domain(UNIT_DOMAIN_NAME.to_string()),
@@ -135,31 +134,31 @@ impl SnapshotEncoder {
         }
     }
 
-    pub fn get_domain(&self, name: &str) -> Option<&polymorphic_vir::Domain> {
+    pub fn get_domain(&self, name: &str) -> Option<&vir::Domain> {
         self.domains.get(name)
     }
 
-    fn insert_domain(&mut self, domain: polymorphic_vir::Domain) -> String {
+    fn insert_domain(&mut self, domain: vir::Domain) -> String {
         let name = domain.name.clone();
         assert!(self.domains.insert(name.clone(), domain).is_none());
         name
     }
 
-    pub fn contains_function(&self, identifier: &polymorphic_vir::FunctionIdentifier) -> bool {
+    pub fn contains_function(&self, identifier: &vir::FunctionIdentifier) -> bool {
         self.functions.contains_key(identifier)
     }
 
-    pub fn get_function(&self, identifier: &polymorphic_vir::FunctionIdentifier) -> &polymorphic_vir::Function {
+    pub fn get_function(&self, identifier: &vir::FunctionIdentifier) -> &vir::Function {
         &self.functions[identifier]
     }
 
-    fn insert_function(&mut self, function: polymorphic_vir::Function) -> polymorphic_vir::FunctionIdentifier {
-        let identifier: polymorphic_vir::FunctionIdentifier = function.get_identifier().into();
+    fn insert_function(&mut self, function: vir::Function) -> vir::FunctionIdentifier {
+        let identifier: vir::FunctionIdentifier = function.get_identifier().into();
         assert!(self.functions.insert(identifier.clone(), function).is_none());
         identifier
     }
 
-    fn apply_function(&self, identifier: &polymorphic_vir::FunctionIdentifier, args: Vec<Expr>) -> Expr {
+    fn apply_function(&self, identifier: &vir::FunctionIdentifier, args: Vec<Expr>) -> Expr {
         self.functions[identifier].apply(args)
     }
 
@@ -168,12 +167,14 @@ impl SnapshotEncoder {
     pub fn patch_snapshots_method<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
-        method: polymorphic_vir::CfgMethod,
-    ) -> EncodingResult<polymorphic_vir::CfgMethod> {
+        method: vir::CfgMethod,
+    ) -> EncodingResult<vir::CfgMethod> {
         debug!("[snap] method: {:?}", method.name());
+        let tymap = HashMap::new();
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
+            tymap: &tymap,
         };
         method.patch_statements(|stmt| FallibleStmtFolder::fallible_fold(&mut patcher, stmt))
     }
@@ -182,12 +183,14 @@ impl SnapshotEncoder {
     pub fn patch_snapshots_function<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
-        mut function: polymorphic_vir::Function,
-    ) -> EncodingResult<polymorphic_vir::Function> {
+        mut function: vir::Function,
+        tymap: &SubstMap<'tcx>,
+    ) -> EncodingResult<vir::Function> {
         debug!("[snap] function: {:?}", function.name);
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
+            tymap,
         };
         function.pres = function.pres.into_iter()
             .map(|e| FallibleExprFolder::fallible_fold(&mut patcher, e))
@@ -206,11 +209,13 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         expr: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
         debug!("[snap] expr: {:?}", expr);
         let mut patcher = SnapshotPatcher {
             snapshot_encoder: self,
             encoder,
+            tymap,
         };
         FallibleExprFolder::fallible_fold(&mut patcher, expr)
     }
@@ -221,6 +226,7 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         expr: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
         let vir_ty = expr.get_type();
         match vir_ty {
@@ -233,11 +239,11 @@ impl SnapshotEncoder {
                     | ty::TyKind::Uint(_)
                     | ty::TyKind::Char => Expr::field(
                         expr.clone(),
-                        polymorphic_vir::Field::new("val_int", Type::Int),
+                        vir::Field::new("val_int", Type::Int),
                     ),
                     ty::TyKind::Bool => Expr::field(
                         expr.clone(),
-                        polymorphic_vir::Field::new("val_bool", Type::Bool),
+                        vir::Field::new("val_bool", Type::Bool),
                     ),
                     ty::TyKind::Tuple(substs) if substs.is_empty() => self.snap_unit(),
                     ty::TyKind::Adt(adt_def, _) if adt_def.variants.is_empty() => self.snap_unit(),
@@ -245,14 +251,14 @@ impl SnapshotEncoder {
 
                     // Param(_) | Adt(_) | Tuple(_), arrays and slices and unsupported types
                     _ => {
-                        let snapshot = self.encode_snapshot(encoder, ty)?;
+                        let snapshot = self.encode_snapshot(encoder, ty, tymap)?;
                         self.snap_app_expr(expr, snapshot.get_type())
                     }
                 })
             }
 
             // handle SnapApp on already patched expressions
-            Type::Domain( polymorphic_vir::DomainType {label, ref arguments, ..} ) if label == UNIT_DOMAIN_NAME && arguments.len() == 0 => Ok(expr),
+            Type::Domain( vir::DomainType {label, ref arguments, ..} ) if label == UNIT_DOMAIN_NAME && arguments.len() == 0 => Ok(expr),
             Type::Snapshot(_)
             | Type::Bool // TODO: restrict to snapshot-produced Bools and Ints
             | Type::Int => Ok(expr),
@@ -276,9 +282,9 @@ impl SnapshotEncoder {
         Expr::func_app(
             SNAP_FUNC_NAME.to_string(),
             vec![expr.clone()],
-            vec![polymorphic_vir::LocalVar::new("_", expr.get_type().clone())],
+            vec![vir::LocalVar::new("_", expr.get_type().clone())],
             ty,
-            polymorphic_vir::Position::default(),
+            vir::Position::default(),
         )
     }
 
@@ -288,13 +294,14 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         expr: Expr,
-        variant: polymorphic_vir::Field,
-        field: polymorphic_vir::Field,
+        variant: vir::Field,
+        field: vir::Field,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
         // TODO: we should not rely on string operations
         assert!(variant.name.starts_with("enum_"));
         let variant_name = &variant.name[5..];
-        let snapshot = self.decode_snapshot(encoder, expr.get_type())?;
+        let snapshot = self.decode_snapshot(encoder, expr.get_type(), tymap)?;
         match snapshot {
             Snapshot::Complex { variants, variant_names, .. } => {
                 let variant_idx = variant_names.get(variant_name)
@@ -321,9 +328,10 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         expr: Expr,
-        field: polymorphic_vir::Field,
+        field: vir::Field,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let snapshot = self.decode_snapshot(encoder, expr.get_type())?;
+        let snapshot = self.decode_snapshot(encoder, expr.get_type(), tymap)?;
         match (field.name.as_str(), snapshot) {
             ("discriminant", Snapshot::Complex { discriminant_func, .. }) => Ok(
                 discriminant_func.apply(vec![expr]),
@@ -345,12 +353,13 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         vir_ty: &Type,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Snapshot> {
         match vir_ty {
             Type::Snapshot(_)
             | Type::TypedRef(_) => {
                 let ty = encoder.decode_type_predicate_type(vir_ty)?;
-                self.encode_snapshot(encoder, ty)
+                self.encode_snapshot(encoder, ty, tymap)
             }
             _ => Err(EncodingError::internal(
                 format!("expected Snapshot type: {:?}", vir_ty),
@@ -369,8 +378,9 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<bool> {
-        self.encode_snapshot(encoder, ty)
+        self.encode_snapshot(encoder, ty, tymap)
             .map(|snapshot| snapshot.supports_equality())
     }
 
@@ -380,8 +390,9 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<bool> {
-        self.encode_snapshot(encoder, ty)
+        self.encode_snapshot(encoder, ty, tymap)
             .map(|snapshot| snapshot.is_quantifiable())
     }
 
@@ -392,8 +403,9 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         expr_self: Expr,
         expr_result: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let snapshot = self.decode_snapshot(encoder, expr_self.get_type())?;
+        let snapshot = self.decode_snapshot(encoder, expr_self.get_type(), tymap)?;
         match snapshot {
             Snapshot::Complex { ref discriminant_func, .. } => Ok(Expr::eq_cmp(
                 discriminant_func.apply(vec![
@@ -414,8 +426,9 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
         args: Vec<Expr>,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let snapshot = self.encode_snapshot(encoder, ty)?;
+        let snapshot = self.encode_snapshot(encoder, ty, tymap)?;
         match snapshot {
             Snapshot::Complex { ref variants, .. } => {
                 assert_eq!(variants.len(), 1);
@@ -449,8 +462,9 @@ impl SnapshotEncoder {
         array_ty: ty::Ty<'tcx>,
         array: Expr,
         idx: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let read_func = if let Snapshot::Array { read, .. } = self.encode_snapshot(encoder, array_ty)? {
+        let read_func = if let Snapshot::Array { read, .. } = self.encode_snapshot(encoder, array_ty, tymap)? {
             read
         } else {
             return Err(EncodingError::internal(
@@ -473,8 +487,9 @@ impl SnapshotEncoder {
         slice_ty: ty::Ty<'tcx>,
         slice: Expr,
         idx: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let read_func = if let Snapshot::Slice { read, .. } = self.encode_snapshot(encoder, slice_ty)? {
+        let read_func = if let Snapshot::Slice { read, .. } = self.encode_snapshot(encoder, slice_ty, tymap)? {
             read
         } else {
             return Err(EncodingError::internal(
@@ -495,8 +510,9 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         slice_ty: ty::Ty<'tcx>,
         slice: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        let len_func = if let Snapshot::Slice { len, .. } = self.encode_snapshot(encoder, slice_ty)? {
+        let len_func = if let Snapshot::Slice { len, .. } = self.encode_snapshot(encoder, slice_ty, tymap)? {
             len
         } else {
             return Err(EncodingError::internal(
@@ -515,11 +531,12 @@ impl SnapshotEncoder {
         slice_ty: ty::Ty<'tcx>,
         lo: Expr,
         hi: Expr,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Expr> {
-        match self.encode_snapshot(encoder, base_ty)? {
+        match self.encode_snapshot(encoder, base_ty, tymap)? {
             Snapshot::Array { slice_helper, .. }
             | Snapshot::Slice { slice_helper, .. } => {
-                let slice_cons = if let Snapshot::Slice { cons, .. } = self.encode_snapshot(encoder, slice_ty)? {
+                let slice_cons = if let Snapshot::Slice { cons, .. } = self.encode_snapshot(encoder, slice_ty, tymap)? {
                     cons
                 } else {
                     return Err(EncodingError::internal(
@@ -541,8 +558,9 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Type> {
-        self.encode_snapshot(encoder, ty)
+        self.encode_snapshot(encoder, ty, tymap)
             .map(|snapshot| snapshot.get_type())
     }
 
@@ -557,8 +575,9 @@ impl SnapshotEncoder {
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Snapshot> {
-        let ty = encoder.resolve_typaram(strip_refs_and_boxes(ty));
+        let ty = encoder.resolve_typaram(strip_refs_and_boxes(ty), tymap);
         let predicate_type = encoder.encode_type(ty)?;
 
         // was the snapshot for the type already encoded?
@@ -594,7 +613,7 @@ impl SnapshotEncoder {
 
         // encode snapshot
         let snapshot = self
-            .encode_snapshot_internal(encoder, ty, &predicate_type)
+            .encode_snapshot_internal(encoder, ty, &predicate_type, tymap)
             .or_else(|err| {
                 self.in_progress.remove(&predicate_type);
                 Err(err)
@@ -615,6 +634,7 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
         predicate_type: &Type,
+        tymap: &SubstMap<'tcx>,
     ) -> EncodingResult<Snapshot> {
         let tcx = encoder.env().tcx();
 
@@ -649,9 +669,9 @@ impl SnapshotEncoder {
                         access: self.snap_app(encoder, Expr::field(
                             arg_expr.clone(),
                             encoder.encode_raw_ref_field(field_name.to_string(), field_ty)?,
-                        ))?,
+                        ), tymap)?,
                         mir_type: field_ty,
-                        typ: self.encode_type(encoder, field_ty)?,
+                        typ: self.encode_type(encoder, field_ty, tymap)?,
                     });
                 }
                 self.encode_complex(encoder, vec![SnapshotVariant {
@@ -669,9 +689,9 @@ impl SnapshotEncoder {
                         access: self.snap_app(encoder, Expr::field(
                             arg_expr.clone(),
                             encoder.encode_struct_field(&field.ident.to_string(), field_ty)?,
-                        ))?,
+                        ), tymap)?,
                         mir_type: field_ty,
-                        typ: self.encode_type(encoder, field_ty)?,
+                        typ: self.encode_type(encoder, field_ty, tymap)?,
                     });
                 }
                 self.encode_complex(encoder, vec![SnapshotVariant {
@@ -687,11 +707,11 @@ impl SnapshotEncoder {
                     let mut fields = vec![];
                     let variant_idx: usize = variant_idx.into();
                     let (field_base, variant_name) = match predicate {
-                        polymorphic_vir::Predicate::Enum(ref enum_predicate) => {
+                        vir::Predicate::Enum(ref enum_predicate) => {
                             let (_, ref variant_name, _) = enum_predicate.variants[variant_idx];
                             (arg_expr.clone().variant(variant_name), Some(variant_name.to_string()))
                         }
-                        polymorphic_vir::Predicate::Struct(..) => {
+                        vir::Predicate::Struct(..) => {
                             (arg_expr.clone(), None)
                         }
                         _ => return Err(EncodingError::internal(
@@ -705,9 +725,9 @@ impl SnapshotEncoder {
                             access: self.snap_app(encoder, Expr::field(
                                 field_base.clone(),
                                 encoder.encode_struct_field(&field.ident.to_string(), field_ty)?,
-                            ))?,
+                            ), tymap)?,
                             mir_type: field_ty,
-                            typ: self.encode_type(encoder, field_ty)?,
+                            typ: self.encode_type(encoder, field_ty, tymap)?,
                         });
                     }
 
@@ -727,14 +747,14 @@ impl SnapshotEncoder {
             }
 
             ty::TyKind::Array(elem_ty, ..) => {
-                let elem_snap_ty = self.encode_type(encoder, elem_ty)?;
+                let elem_snap_ty = self.encode_type(encoder, elem_ty, tymap)?;
                 let array_types = encoder.encode_array_types(ty)?;
 
                 let domain_name = format!("Snap${}", &array_types.array_pred_type.name());
                 let snap_type = array_types.array_pred_type.convert_to_snapshot();
-                let seq_type = Type::Seq( polymorphic_vir::SeqType {typ: box elem_snap_ty.clone()} );
+                let seq_type = Type::Seq( vir::SeqType {typ: box elem_snap_ty.clone()} );
 
-                let cons = polymorphic_vir::DomainFunc {
+                let cons = vir::DomainFunc {
                     name: format!("cons${}$", domain_name),
                     formal_args: vec![
                         vir_local!{ data: {seq_type.clone()} },
@@ -746,7 +766,7 @@ impl SnapshotEncoder {
 
                 let snap_body = cons.apply(
                     vec![
-                        Expr::Seq( polymorphic_vir::Seq {
+                        Expr::Seq( vir::Seq {
                             typ: seq_type.clone(),
                             elements: (0..array_types.array_len)
                                 .into_iter()
@@ -759,12 +779,12 @@ impl SnapshotEncoder {
                                     )
                                 })
                                 .collect(),
-                            position: polymorphic_vir::Position::default(),
+                            position: vir::Position::default(),
                         })
                     ]
                 );
 
-                let read = polymorphic_vir::DomainFunc {
+                let read = vir::DomainFunc {
                     name: format!("read${}$", domain_name),
                     formal_args: vec![
                         vir_local!{ arr: {snap_type.clone()} },
@@ -788,12 +808,12 @@ impl SnapshotEncoder {
                             i.clone()
                     ]);
 
-                    let indices = vir!{ ([Expr::from(0)] <= [i]) && ([i] < [Expr::from(array_types.array_len)]) };
+                    let indices = vir_expr!{ ([Expr::from(0)] <= [i]) && ([i] < [Expr::from(array_types.array_len)]) };
 
-                    vir!{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
+                    vir_expr!{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
                 };
 
-                let snap_func = polymorphic_vir::Function {
+                let snap_func = vir::Function {
                     name: SNAP_FUNC_NAME.to_string(),
                     formal_args: vec![arg_self],
                     return_type: snap_type.clone(),
@@ -808,10 +828,10 @@ impl SnapshotEncoder {
                         // FIXME: this shouldn't be necessary, would want to just use
                         // read_eq_lookup here, but doesn't verify always (for big arrays
                         // especially)
-                        Expr::InhaleExhale( polymorphic_vir::InhaleExhale {
+                        Expr::InhaleExhale( vir::InhaleExhale {
                             inhale_expr: box read_eq_lookup,
                             exhale_expr: box true.into(),
-                            position: polymorphic_vir::Position::default()
+                            position: vir::Position::default()
                         }),
                     ],
                     body: Some(snap_body),
@@ -831,14 +851,14 @@ impl SnapshotEncoder {
                     let lhs_call = cons.apply(vec![lhs_arg.clone().into()]);
                     let rhs_call = cons.apply(vec![rhs_arg.clone().into()]);
 
-                    polymorphic_vir::DomainAxiom {
+                    vir::DomainAxiom {
                         name: format!("{}$injectivity", domain_name),
                         expr: Expr::forall(
                             vec![lhs_arg.clone(), rhs_arg.clone()],
-                            vec![polymorphic_vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
+                            vec![vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
                             Expr::implies(
-                                vir!{ [lhs_call] == [rhs_call] },
-                                vir!{ [Expr::from(lhs_arg)] == [Expr::from(rhs_arg)] },
+                                vir_expr!{ [lhs_call] == [rhs_call] },
+                                vir_expr!{ [Expr::from(lhs_arg)] == [Expr::from(rhs_arg)] },
                             )
                         ),
                         domain_name: domain_name.clone(),
@@ -852,14 +872,14 @@ impl SnapshotEncoder {
                     let cons_call = cons.apply(vec![data.clone().into()]);
                     let read_call = read.apply(vec![cons_call, idx.clone().into()]);
 
-                    let seq_lookup = Expr::ContainerOp( polymorphic_vir::ContainerOp {
+                    let seq_lookup = Expr::ContainerOp( vir::ContainerOp {
                         op_kind: ContainerOpKind::SeqIndex,
                         left: box data.clone().into(),
                         right: box idx.clone().into(),
-                        position: polymorphic_vir::Position::default(),
+                        position: vir::Position::default(),
                     });
 
-                    polymorphic_vir::DomainAxiom {
+                    vir::DomainAxiom {
                         name: format!("{}$read_indices", predicate_type.name()),
                         expr: Expr::forall(
                             vec![
@@ -867,16 +887,16 @@ impl SnapshotEncoder {
                                 idx,
                             ],
                             vec![
-                                polymorphic_vir::Trigger::new(vec![read_call.clone()]),
-                                polymorphic_vir::Trigger::new(vec![seq_lookup.clone()]),
+                                vir::Trigger::new(vec![read_call.clone()]),
+                                vir::Trigger::new(vec![seq_lookup.clone()]),
                             ],
-                            vir!{ [read_call] == [seq_lookup] },
+                            vir_expr!{ [read_call] == [seq_lookup] },
                         ),
                         domain_name: domain_name.clone(),
                     }
                 };
 
-                let domain = polymorphic_vir::Domain {
+                let domain = vir::Domain {
                     name: domain_name,
                     functions: vec![
                         cons.clone(),
@@ -903,10 +923,10 @@ impl SnapshotEncoder {
                 let slice_types = encoder.encode_slice_types(ty)?;
                 let domain_name = format!("Snap${}", &slice_types.slice_pred_type.name());
                 let slice_snap_ty = slice_types.slice_pred_type.convert_to_snapshot();
-                let elem_snap_ty = self.encode_type(encoder, elem_ty)?;
-                let seq_type = Type::Seq( polymorphic_vir::SeqType {typ: box elem_snap_ty.clone()} );
+                let elem_snap_ty = self.encode_type(encoder, elem_ty, tymap)?;
+                let seq_type = Type::Seq( vir::SeqType {typ: box elem_snap_ty.clone()} );
 
-                let cons = polymorphic_vir::DomainFunc {
+                let cons = vir::DomainFunc {
                     name: format!("cons${}$", domain_name),
                     formal_args: vec![
                         vir_local!{ data: {seq_type.clone()} },
@@ -916,7 +936,7 @@ impl SnapshotEncoder {
                     domain_name: domain_name.clone(),
                 };
 
-                let len = polymorphic_vir::DomainFunc {
+                let len = vir::DomainFunc {
                     name: format!("len${}$", domain_name),
                     formal_args: vec![
                         vir_local!{ self: {slice_snap_ty.clone()} },
@@ -926,7 +946,7 @@ impl SnapshotEncoder {
                     domain_name: domain_name.clone(),
                 };
 
-                let read = polymorphic_vir::DomainFunc {
+                let read = vir::DomainFunc {
                     name: format!("read${}$", domain_name),
                     formal_args: vec![
                         vir_local!{ self: {slice_snap_ty.clone()} },
@@ -948,49 +968,49 @@ impl SnapshotEncoder {
                 let j_expr: Expr = j.clone().into();
 
                 let slice_len_call = slice_types.encode_slice_len_call(encoder, arg_expr.clone());
-                let empty_seq = Expr::Seq( polymorphic_vir::Seq {
+                let empty_seq = Expr::Seq( vir::Seq {
                     typ: seq_type.clone(),
                     elements: vec![],
-                    position: polymorphic_vir::Position::default()}
+                    position: vir::Position::default()}
                 );
-                let start_lt_len = vir!{ [start_expr] < [slice_len_call] };
-                let result_len = Expr::ContainerOp( polymorphic_vir::ContainerOp {
+                let start_lt_len = vir_expr!{ [start_expr] < [slice_len_call] };
+                let result_len = Expr::ContainerOp( vir::ContainerOp {
                     op_kind: ContainerOpKind::SeqLen,
                     left: box result_expr.clone(),
                     right: box Expr::from(0),
-                    position: polymorphic_vir::Position::default()
+                    position: vir::Position::default()
                 });
-                let result_0 = Expr::ContainerOp( polymorphic_vir::ContainerOp {
+                let result_0 = Expr::ContainerOp( vir::ContainerOp {
                     op_kind: ContainerOpKind::SeqIndex,
                     left: box result_expr.clone(),
                     right: box Expr::from(0),
-                    position: polymorphic_vir::Position::default()
+                    position: vir::Position::default()
                 });
-                let result_j = Expr::ContainerOp( polymorphic_vir::ContainerOp {
+                let result_j = Expr::ContainerOp( vir::ContainerOp {
                     op_kind: ContainerOpKind::SeqIndex,
                     left: box result_expr.clone(),
                     right: box j_expr.clone(),
-                    position: polymorphic_vir::Position::default()
+                    position: vir::Position::default()
                 });
                 let slice_lookup_i = slice_types.encode_lookup_pure_call(encoder, arg_expr.clone(), i_expr.clone(), elem_snap_ty.clone());
                 let slice_lookup_start = slice_types.encode_lookup_pure_call(encoder, arg_expr.clone(), start_expr.clone(), elem_snap_ty.clone());
 
                 // forall i: Int, j: Int :: { slice$lookup_pure(slice, i), result[j] } idx <= i && i < slice$len(slice) && 0 <= j && j < slice$len(slice)-idx && i == j + idx ==> slice$lookup_pure(slice, i) == result[j]
                 let rest_eq_lookup = {
-                    let indices = vir!{ (([start_expr] <= [i_expr]) && ([i_expr] < [slice_len_call]))
+                    let indices = vir_expr!{ (([start_expr] <= [i_expr]) && ([i_expr] < [slice_len_call]))
                         && ((([Expr::from(0)] <= [j_expr]) && ([j_expr] < ([slice_len_call] - [start_expr])))
                         && ([i_expr] == ([j_expr] + [start_expr]))) };
 
                     Expr::forall(
                         vec![i, j],
                         vec![
-                            polymorphic_vir::Trigger::new(vec![slice_lookup_i.clone(), result_j.clone()])
+                            vir::Trigger::new(vec![slice_lookup_i.clone(), result_j.clone()])
                         ],
-                        vir!{ [indices] ==> ([slice_lookup_i] == [result_j]) },
+                        vir_expr!{ [indices] ==> ([slice_lookup_i] == [result_j]) },
                     )
                 };
 
-                let slice_collect_func = polymorphic_vir::Function {
+                let slice_collect_func = vir::Function {
                     name: slice_collect_funcname.clone(),
                     formal_args: vec![
                         vir_local!{ self: {slice_types.slice_pred_type.clone()} },
@@ -1003,44 +1023,44 @@ impl SnapshotEncoder {
                             arg_expr.clone(),
                             PermAmount::Read,
                         ),
-                        vir!{ [Expr::from(0)] <= [start_expr] },
+                        vir_expr!{ [Expr::from(0)] <= [start_expr] },
                     ],
                     posts: vec![
-                        vir!{ ([start_expr] >= [slice_len_call]) ==> ([result_expr] == [empty_seq]) },
-                        vir!{ [start_lt_len] ==> ([result_len] == ([slice_len_call] - [start_expr])) },
-                        vir!{ [start_lt_len] ==> ([result_0] == [slice_lookup_start]) },
-                        vir!{ [start_lt_len] ==> [rest_eq_lookup] },
+                        vir_expr!{ ([start_expr] >= [slice_len_call]) ==> ([result_expr] == [empty_seq]) },
+                        vir_expr!{ [start_lt_len] ==> ([result_len] == ([slice_len_call] - [start_expr])) },
+                        vir_expr!{ [start_lt_len] ==> ([result_0] == [slice_lookup_start]) },
+                        vir_expr!{ [start_lt_len] ==> [rest_eq_lookup] },
                     ],
                     body: Some(Expr::ite(
-                        vir!{ [start_expr] >= [slice_len_call] },
-                        Expr::Seq( polymorphic_vir::Seq {
+                        vir_expr!{ [start_expr] >= [slice_len_call] },
+                        Expr::Seq( vir::Seq {
                             typ: seq_type.clone(),
                             elements: vec![],
-                            position: polymorphic_vir::Position::default(),
+                            position: vir::Position::default(),
                         }),
-                        Expr::ContainerOp( polymorphic_vir::ContainerOp {
+                        Expr::ContainerOp( vir::ContainerOp {
                             op_kind: ContainerOpKind::SeqConcat,
-                            left: box Expr::Seq( polymorphic_vir::Seq {
+                            left: box Expr::Seq( vir::Seq {
                                 typ: seq_type.clone(),
                                 elements: vec![
                                     slice_types.encode_lookup_pure_call(encoder, arg_expr.clone(), start_expr.clone(), elem_snap_ty.clone())
                                     ],
-                                    position: polymorphic_vir::Position::default(),
+                                    position: vir::Position::default(),
                                 }),
                             right: box Expr::func_app(
                                 slice_collect_funcname,
                                 vec![
                                     arg_expr.clone(),
-                                    vir!{ [start_expr] + [Expr::from(1)] },
+                                    vir_expr!{ [start_expr] + [Expr::from(1)] },
                                 ],
                                 vec![
                                     vir_local!{ slice: {slice_types.slice_pred_type.clone()} },
                                     start,
                                 ],
                                 seq_type.clone(),
-                                polymorphic_vir::Position::default(),
+                                vir::Position::default(),
                                 ),
-                                position: polymorphic_vir::Position::default(),
+                                position: vir::Position::default(),
                             })
                         )
                     ),
@@ -1076,15 +1096,15 @@ impl SnapshotEncoder {
                         i.clone(),
                     ]);
 
-                    let indices = vir!{ ([Expr::from(0)] <= [i]) && ([i] < [slice_len]) };
+                    let indices = vir_expr!{ ([Expr::from(0)] <= [i]) && ([i] < [slice_len]) };
 
-                    vir!{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
+                    vir_expr!{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
                 };
 
                 let snap_len = len.apply(vec![result_expr]);
-                let snap_len_eq_call_len = vir!{ [slice_len] == [snap_len] };
+                let snap_len_eq_call_len = vir_expr!{ [slice_len] == [snap_len] };
 
-                let snap_func = polymorphic_vir::Function {
+                let snap_func = vir::Function {
                     name: SNAP_FUNC_NAME.to_string(),
                     formal_args: vec![arg_self],
                     return_type: slice_snap_ty.clone(),
@@ -1096,15 +1116,15 @@ impl SnapshotEncoder {
                         ),
                     ],
                     posts: vec![
-                        Expr::InhaleExhale( polymorphic_vir::InhaleExhale {
+                        Expr::InhaleExhale( vir::InhaleExhale {
                             inhale_expr: box read_eq_lookup,
                             exhale_expr: box true.into(),
-                            position: polymorphic_vir::Position::default(),
+                            position: vir::Position::default(),
                         }),
-                        Expr::InhaleExhale( polymorphic_vir::InhaleExhale {
+                        Expr::InhaleExhale( vir::InhaleExhale {
                             inhale_expr: box snap_len_eq_call_len,
                             exhale_expr: box true.into(),
-                            position: polymorphic_vir::Position::default(),
+                            position: vir::Position::default(),
                         }),
                     ],
                     body: Some(snap_body),
@@ -1124,7 +1144,7 @@ impl SnapshotEncoder {
                     let cons_l = cons.apply(vec![data_l.clone().into()]);
                     let cons_r = cons.apply(vec![data_r.clone().into()]);
 
-                    polymorphic_vir::DomainAxiom {
+                    vir::DomainAxiom {
                         name: format!("{}$injectivity", domain_name),
                         expr: Expr::forall(
                             vec![
@@ -1132,11 +1152,11 @@ impl SnapshotEncoder {
                                 data_r.clone(),
                             ],
                             vec![
-                                polymorphic_vir::Trigger::new(vec![cons_l.clone(), cons_r.clone()]),
+                                vir::Trigger::new(vec![cons_l.clone(), cons_r.clone()]),
                             ],
                             Expr::implies(
-                                vir!{ [cons_l] == [cons_r] },
-                                vir!{ ([Expr::from(data_l)] == [Expr::from(data_r)]) },
+                                vir_expr!{ [cons_l] == [cons_r] },
+                                vir_expr!{ ([Expr::from(data_l)] == [Expr::from(data_r)]) },
                             ),
                         ),
                         domain_name: domain_name.clone(),
@@ -1151,14 +1171,14 @@ impl SnapshotEncoder {
 
                     let read_call = read.apply(vec![cons_call.clone(), idx.clone().into()]);
 
-                    let seq_lookup = Expr::ContainerOp( polymorphic_vir::ContainerOp {
+                    let seq_lookup = Expr::ContainerOp( vir::ContainerOp {
                         op_kind: ContainerOpKind::SeqIndex,
                         left: box data.clone().into(),
                         right: box idx.clone().into(),
-                        position: polymorphic_vir::Position::default(),
+                        position: vir::Position::default(),
                     });
 
-                    polymorphic_vir::DomainAxiom {
+                    vir::DomainAxiom {
                         name: format!("{}$read_indices", predicate_type.name()),
                         expr: Expr::forall(
                             vec![
@@ -1166,10 +1186,10 @@ impl SnapshotEncoder {
                                 idx,
                             ],
                             vec![
-                                polymorphic_vir::Trigger::new(vec![read_call.clone()]),
-                                polymorphic_vir::Trigger::new(vec![seq_lookup.clone()]),
+                                vir::Trigger::new(vec![read_call.clone()]),
+                                vir::Trigger::new(vec![seq_lookup.clone()]),
                             ],
-                            vir!{ [read_call] == [seq_lookup] },
+                            vir_expr!{ [read_call] == [seq_lookup] },
                         ),
                         domain_name: domain_name.clone(),
                     }
@@ -1177,16 +1197,16 @@ impl SnapshotEncoder {
 
                 let len_of_seq = {
                     let len_call = len.apply(vec![cons_call]);
-                    let seq_len = Expr::ContainerOp( polymorphic_vir::ContainerOp {
+                    let seq_len = Expr::ContainerOp( vir::ContainerOp {
                         op_kind: ContainerOpKind::SeqLen,
                         left: box data.into(),
                         right: box true.into(), // unused
-                        position: polymorphic_vir::Position::default(),
+                        position: vir::Position::default(),
                     });
 
-                    polymorphic_vir::DomainAxiom {
+                    vir::DomainAxiom {
                         name: format!("{}$len_of_seq", predicate_type.name()),
-                        expr: vir!{ forall data: {seq_type} :: { [len_call], [seq_len] } ([len_call] == [seq_len]) },
+                        expr: vir_expr!{ forall data: {seq_type} :: { [len_call], [seq_len] } ([len_call] == [seq_len]) },
                         domain_name: domain_name.clone(),
                     }
                 };
@@ -1194,14 +1214,14 @@ impl SnapshotEncoder {
                 let len_positive = {
                     let len_call = len.apply(vec![vir_local!{ slice: {slice_snap_ty.clone()} }.into()]);
 
-                    polymorphic_vir::DomainAxiom {
+                    vir::DomainAxiom {
                         name: format!("{}$len_positive", predicate_type.name()),
-                        expr: vir!{ forall slice: {slice_snap_ty} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
+                        expr: vir_expr!{ forall slice: {slice_snap_ty} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
                         domain_name: domain_name.clone(),
                     }
                 };
 
-                let domain = polymorphic_vir::Domain {
+                let domain = vir::Domain {
                     name: domain_name,
                     functions: vec![
                         cons.clone(),
@@ -1238,13 +1258,13 @@ impl SnapshotEncoder {
         &self,
         self_snap_ty: Type,
         elem_snap_ty: Type,
-        read: polymorphic_vir::DomainFunc,
+        read: vir::DomainFunc,
         base_len: Expr,
-    ) -> polymorphic_vir::Function {
+    ) -> vir::Function {
         let slice_helper_name = "slice_helper".to_string();
 
         let self_expr: Expr = vir_local!{ self: {self_snap_ty.clone()} }.into();
-        let seq_type = Type::Seq( polymorphic_vir::SeqType {typ: box elem_snap_ty.clone()} );
+        let seq_type = Type::Seq( vir::SeqType {typ: box elem_snap_ty.clone()} );
 
         let lo = vir_local!{ lo: Int };
         let lo_expr: Expr = lo.clone().into();
@@ -1257,43 +1277,43 @@ impl SnapshotEncoder {
         let j = vir_local!{ j: Int };
         let j_expr: Expr = j.clone().into();
 
-        let result_len = Expr::ContainerOp( polymorphic_vir::ContainerOp {
+        let result_len = Expr::ContainerOp( vir::ContainerOp {
             op_kind: ContainerOpKind::SeqLen,
             left: box result_expr.clone(),
             right: box Expr::from(0),
-            position: polymorphic_vir::Position::default()
+            position: vir::Position::default()
         });
-        let result_0 = Expr::ContainerOp( polymorphic_vir::ContainerOp {
+        let result_0 = Expr::ContainerOp( vir::ContainerOp {
             op_kind: ContainerOpKind::SeqIndex,
             left: box result_expr.clone(),
             right: box Expr::from(0),
-            position: polymorphic_vir::Position::default()
+            position: vir::Position::default()
         });
-        let result_j = Expr::ContainerOp( polymorphic_vir::ContainerOp {
+        let result_j = Expr::ContainerOp( vir::ContainerOp {
             op_kind: ContainerOpKind::SeqIndex,
             left: box result_expr.clone(),
             right: box j_expr.clone(),
-            position: polymorphic_vir::Position::default()
+            position: vir::Position::default()
         });
 
         let read_i = read.apply(vec![self_expr.clone(), i_expr.clone()]);
         let read_lo = read.apply(vec![self_expr.clone(), lo_expr.clone()]);
 
         let read_eq_seq_lookup = {
-            let indices = vir!{ (([lo_expr] <= [i_expr]) && ([i_expr] < [hi_expr]))
+            let indices = vir_expr!{ (([lo_expr] <= [i_expr]) && ([i_expr] < [hi_expr]))
                 && ((([Expr::from(0)] <= [j_expr]) && ([j_expr] < [hi_expr]))
                 && ([i_expr] == ([j_expr] + [lo_expr]))) };
 
             Expr::forall(
                 vec![i, j],
                 vec![
-                    polymorphic_vir::Trigger::new(vec![read_i.clone(), result_j.clone()])
+                    vir::Trigger::new(vec![read_i.clone(), result_j.clone()])
                 ],
-                vir!{ [indices] ==> ([read_i] == [result_j]) },
+                vir_expr!{ [indices] ==> ([read_i] == [result_j]) },
             )
         };
 
-        polymorphic_vir::Function {
+        vir::Function {
             name: slice_helper_name.clone(),
             formal_args: vec![
                 vir_local!{ self: {self_snap_ty.clone()} },
@@ -1302,36 +1322,36 @@ impl SnapshotEncoder {
             ],
             return_type: seq_type.clone(),
             pres: vec![
-                vir!{ [Expr::from(0)] <= [lo_expr] },
-                vir!{ [lo_expr] <= [hi_expr] },
-                vir!{ [hi_expr] <= [base_len] },
+                vir_expr!{ [Expr::from(0)] <= [lo_expr] },
+                vir_expr!{ [lo_expr] <= [hi_expr] },
+                vir_expr!{ [hi_expr] <= [base_len] },
             ],
             posts: vec![
-                vir!{ [result_len] == ([hi_expr] - [lo_expr]) },
-                vir!{ ([lo_expr] < [hi_expr]) ==> ([result_0] == [read_lo]) },
+                vir_expr!{ [result_len] == ([hi_expr] - [lo_expr]) },
+                vir_expr!{ ([lo_expr] < [hi_expr]) ==> ([result_0] == [read_lo]) },
                 read_eq_seq_lookup,
             ],
             body: Some(Expr::ite(
-                vir!{ [lo_expr] >= [hi_expr] },
-                Expr::Seq( polymorphic_vir::Seq {
+                vir_expr!{ [lo_expr] >= [hi_expr] },
+                Expr::Seq( vir::Seq {
                     typ: seq_type.clone(),
                     elements: vec![],
-                    position: polymorphic_vir::Position::default(),
+                    position: vir::Position::default(),
                 }),
-                Expr::ContainerOp( polymorphic_vir::ContainerOp {
+                Expr::ContainerOp( vir::ContainerOp {
                     op_kind: ContainerOpKind::SeqConcat,
-                    left: box Expr::Seq( polymorphic_vir::Seq {
+                    left: box Expr::Seq( vir::Seq {
                         typ: seq_type.clone(),
                         elements: vec![
                             read_lo,
                         ],
-                        position: polymorphic_vir::Position::default(),
+                        position: vir::Position::default(),
                     }),
                     right: box Expr::func_app(
                         slice_helper_name,
                         vec![
                             self_expr,
-                            vir!{ [lo_expr] + [Expr::from(1)] },
+                            vir_expr!{ [lo_expr] + [Expr::from(1)] },
                             hi_expr,
                         ],
                         vec![
@@ -1340,9 +1360,9 @@ impl SnapshotEncoder {
                             hi,
                         ],
                         seq_type,
-                        polymorphic_vir::Position::default(),
+                        vir::Position::default(),
                     ),
-                    position: polymorphic_vir::Position::default(),
+                    position: vir::Position::default(),
                 })
             )),
         }
@@ -1355,14 +1375,14 @@ impl SnapshotEncoder {
         let domain_name = format!("Snap${}", predicate_type.name());
         let snapshot_type = predicate_type.convert_to_snapshot();
 
-        let arg_ref_local = polymorphic_vir::LocalVar::new(
+        let arg_ref_local = vir::LocalVar::new(
             "self",
             predicate_type.clone(),
         );
         let arg_ref_expr = Expr::local(arg_ref_local.clone());
 
         // encode snap function
-        let snap_func = polymorphic_vir::Function {
+        let snap_func = vir::Function {
             name: SNAP_FUNC_NAME.to_string(),
             formal_args: vec![arg_ref_local.clone()],
             return_type: snapshot_type.clone(),
@@ -1377,7 +1397,7 @@ impl SnapshotEncoder {
 
         Ok(Snapshot::Abstract {
             predicate_type: predicate_type.convert_to_snapshot(),
-            domain: self.insert_domain(polymorphic_vir::Domain {
+            domain: self.insert_domain(vir::Domain {
                 name: domain_name,
                 functions: vec![],
                 axioms: vec![],
@@ -1407,11 +1427,11 @@ impl SnapshotEncoder {
         let mut variant_names = HashMap::new();
 
         // a local called "self", both as a Ref and as a Snapshot
-        let arg_ref_local = polymorphic_vir::LocalVar::new(
+        let arg_ref_local = vir::LocalVar::new(
             "self",
             predicate_type.clone(),
         );
-        let arg_dom_local = polymorphic_vir::LocalVar::new(
+        let arg_dom_local = vir::LocalVar::new(
             "self",
             snapshot_type.clone(),
         );
@@ -1419,7 +1439,7 @@ impl SnapshotEncoder {
         let arg_dom_expr = Expr::local(arg_dom_local.clone());
 
         // encode discriminant function
-        let discriminant_func = polymorphic_vir::DomainFunc {
+        let discriminant_func = vir::DomainFunc {
             name: "discriminant$".to_string(),
             formal_args: vec![arg_dom_local.clone()],
             return_type: Type::Int,
@@ -1433,11 +1453,11 @@ impl SnapshotEncoder {
             // encode discriminant range axiom
             domain_axioms.push({
                 let disc_call = discriminant_func.apply(vec![arg_dom_expr.clone()]);
-                polymorphic_vir::DomainAxiom {
+                vir::DomainAxiom {
                     name: format!("{}$discriminant_range", domain_name),
                     expr: Expr::forall(
                         vec![arg_dom_local.clone()],
-                        vec![polymorphic_vir::Trigger::new(vec![disc_call.clone()])],
+                        vec![vir::Trigger::new(vec![disc_call.clone()])],
                         range_extract(
                             variants
                                 .iter()
@@ -1486,10 +1506,10 @@ impl SnapshotEncoder {
             let constructor_name = format!("cons${}$", variant_idx);
             let args = variant.fields.iter()
                 .enumerate()
-                .map(|(idx, field)| polymorphic_vir::LocalVar::new(
+                .map(|(idx, field)| vir::LocalVar::new(
                     format!("_{}", idx),
                     field.typ.clone(),
-                )).collect::<Vec<polymorphic_vir::LocalVar>>();
+                )).collect::<Vec<vir::LocalVar>>();
             // TODO: filter out Units to reduce constructor size
             let has_args = !args.is_empty();
 
@@ -1499,7 +1519,7 @@ impl SnapshotEncoder {
             }
 
             // encode constructor
-            let constructor = polymorphic_vir::DomainFunc {
+            let constructor = vir::DomainFunc {
                 name: constructor_name.to_string(),
                 formal_args: args.clone(),
                 return_type: snapshot_type.clone(),
@@ -1508,13 +1528,13 @@ impl SnapshotEncoder {
             };
             domain_funcs.push(constructor.clone());
 
-            let encode_prefixed_args = |prefix: &str| -> Vec<polymorphic_vir::LocalVar> {
-                args.iter().map(|arg| polymorphic_vir::LocalVar::new(
+            let encode_prefixed_args = |prefix: &str| -> Vec<vir::LocalVar> {
+                args.iter().map(|arg| vir::LocalVar::new(
                         format!("{}{}", prefix, arg.name),
                         arg.typ.clone(),
                     )).collect()
             };
-            let encode_constructor_call = |args: &Vec<polymorphic_vir::LocalVar>| -> Expr {
+            let encode_constructor_call = |args: &Vec<vir::LocalVar>| -> Expr {
                 constructor.apply(args.iter().cloned().map(Expr::local).collect())
             };
 
@@ -1535,11 +1555,11 @@ impl SnapshotEncoder {
                     .map(|(l, r)| Expr::eq_cmp(Expr::local(l), Expr::local(r)))
                     .conjoin();
 
-                domain_axioms.push(polymorphic_vir::DomainAxiom {
+                domain_axioms.push(vir::DomainAxiom {
                     name: format!("{}${}$injectivity", domain_name, variant_idx),
                     expr: forall_or_body(
                         forall_vars,
-                        vec![polymorphic_vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
+                        vec![vir::Trigger::new(vec![lhs_call.clone(), rhs_call.clone()])],
                         Expr::implies(
                             Expr::eq_cmp(lhs_call, rhs_call),
                             conjunction,
@@ -1554,11 +1574,11 @@ impl SnapshotEncoder {
                 domain_axioms.push({
                     let args = encode_prefixed_args("");
                     let call = encode_constructor_call(&args);
-                    polymorphic_vir::DomainAxiom {
+                    vir::DomainAxiom {
                         name: format!("{}${}$discriminant_axiom", domain_name, variant_idx),
                         expr: forall_or_body(
                             args.iter().cloned().collect(),
-                            vec![polymorphic_vir::Trigger::new(vec![
+                            vec![vir::Trigger::new(vec![
                                 call.clone(),
                             ])],
                             Expr::eq_cmp(
@@ -1575,9 +1595,9 @@ impl SnapshotEncoder {
 
             for (field_idx, field) in variant.fields.iter().enumerate() {
                 // encode field access function
-                let field_access_func = polymorphic_vir::DomainFunc {
+                let field_access_func = vir::DomainFunc {
                     name: format!("{}${}$field${}", domain_name, variant_idx, field.name),
-                    formal_args: vec![polymorphic_vir::LocalVar::new(
+                    formal_args: vec![vir::LocalVar::new(
                         "self",
                         snapshot_type.clone(),
                     )],
@@ -1594,11 +1614,11 @@ impl SnapshotEncoder {
                     let call = encode_constructor_call(&args);
                     let field_of_cons = field_access_func.apply(vec![call.clone()]);
 
-                    polymorphic_vir::DomainAxiom {
+                    vir::DomainAxiom {
                         name: format!("{}${}$field${}$axiom", domain_name, variant_idx, field.name),
                         expr: forall_or_body(
                             args.clone(),
-                            vec![polymorphic_vir::Trigger::new(vec![
+                            vec![vir::Trigger::new(vec![
                                 field_of_cons.clone(),
                             ])],
                             Expr::eq_cmp(
@@ -1616,18 +1636,18 @@ impl SnapshotEncoder {
                     ty::TyKind::Int(_)
                     | ty::TyKind::Uint(_)
                     | ty::TyKind::Char => domain_axioms.push({
-                        let self_local = polymorphic_vir::LocalVar::new(
+                        let self_local = vir::LocalVar::new(
                             "self",
                             snapshot_type.clone(),
                         );
                         let self_expr = Expr::local(self_local.clone());
                         let field_of_self = field_access_func.apply(vec![self_expr.clone()]);
 
-                        polymorphic_vir::DomainAxiom {
+                        vir::DomainAxiom {
                             name: format!("{}${}$field${}$valid", domain_name, variant_idx, field.name),
                             expr: Expr::forall(
                                 vec![self_local.clone()],
-                                vec![polymorphic_vir::Trigger::new(vec![
+                                vec![vir::Trigger::new(vec![
                                     field_of_self.clone(),
                                 ])],
                                 encoder.encode_type_bounds(&field_of_self, field.mir_type)
@@ -1673,7 +1693,7 @@ impl SnapshotEncoder {
                 );
             }
 
-            polymorphic_vir::Function {
+            vir::Function {
                 name: SNAP_FUNC_NAME.to_string(),
                 formal_args: vec![arg_ref_local.clone()],
                 return_type: snapshot_type.clone(),
@@ -1692,7 +1712,7 @@ impl SnapshotEncoder {
         ).unwrap();
 
         // create domain
-        let domain = polymorphic_vir::Domain {
+        let domain = vir::Domain {
             name: domain_name,
             functions: domain_funcs,
             axioms: domain_axioms,

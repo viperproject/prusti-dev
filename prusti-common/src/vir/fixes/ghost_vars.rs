@@ -54,12 +54,12 @@ impl GhostVarFixer {
 }
 
 impl ast::ExprFolder for GhostVarFixer {
-    fn fold_local(&mut self, local_var: ast::LocalVar, pos: ast::Position) -> ast::Expr {
+    fn fold_local(&mut self, ast::Local {variable, position}: ast::Local) -> ast::Expr {
         match self.vars {
-            Some(ref vars) if vars.contains(&local_var) => {
-                ast::Expr::local_with_pos(self.fix_name(local_var), pos)
+            Some(ref vars) if vars.contains(&variable) => {
+                ast::Expr::local_with_pos(self.fix_name(variable), position)
             }
-            _ => ast::Expr::local_with_pos(local_var, pos)
+            _ => ast::Expr::local_with_pos(variable, position)
         }
     }
 }
@@ -69,29 +69,23 @@ impl ast::StmtFolder for GhostVarFixer {
         ast::ExprFolder::fold(self, e)
     }
 
-    fn fold_package_magic_wand(
-        &mut self,
-        wand: ast::Expr,
-        body: Vec<ast::Stmt>,
-        label: String,
-        vars: Vec<ast::LocalVar>,
-        pos: ast::Position,
-    ) -> ast::Stmt {
-        let wand = self.fold_expr(wand);
-        self.vars = Some(vars.into_iter().collect());
-        let body = body.into_iter().map(|stmt| self.fold(stmt)).collect();
+    fn fold_package_magic_wand(&mut self, ast::PackageMagicWand {magic_wand, package_stmts, label, variables, position}: ast::PackageMagicWand)
+     -> ast::Stmt {
+        let magic_wand = self.fold_expr(magic_wand);
+        self.vars = Some(variables.into_iter().collect());
+        let package_stmts = package_stmts.into_iter().map(|stmt| self.fold(stmt)).collect();
         let unfixed_vars = self.vars.take().unwrap();
-        let vars = unfixed_vars
+        let variables = unfixed_vars
             .into_iter()
             .map(|var| self.fix_name(var))
             .collect();
         self.package_stmt_count += 1;
         ast::Stmt::PackageMagicWand(ast::PackageMagicWand {
-            magic_wand: wand,
-            package_stmts: body,
+            magic_wand,
+            package_stmts,
             label,
-            variables: vars,
-            position: pos,
+            variables,
+            position,
         })
     }
 }
