@@ -6299,9 +6299,10 @@ fn mir_constantkind_to_ty_val(literal: mir::ConstantKind) -> (ty::Ty, ty::ConstK
     }
 }
 
+// Checks if a type is a reference to a string, or a reference to a reference to a string, etc.
 fn is_str<'tcx>(ty: &ty::TyS<'tcx>) -> bool {
     match ty.kind() {
-        ty::TyKind::Ref(_, inner, _) => inner.is_str(),
+        ty::TyKind::Ref(_, inner, _) => inner.is_str() || is_str(inner),
         _ => false
     }
 }
