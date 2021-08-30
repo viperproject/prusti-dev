@@ -39,10 +39,13 @@ pub fn collect_assigned_vars(
 fn check_block(vars: &mut HashSet<LocalVar>, block: &CfgBlock) {
     for stmt in &block.stmts {
         match stmt {
-            Stmt::MethodCall( MethodCall {targets, ..} ) => {
+            Stmt::MethodCall(MethodCall { targets, .. }) => {
                 vars.extend(targets.iter().cloned());
             }
-            Stmt::Assign( Assign {target: Expr::Local( Local {variable, ..} ), ..} ) => {
+            Stmt::Assign(Assign {
+                target: Expr::Local(Local { variable, .. }),
+                ..
+            }) => {
                 vars.insert(variable.clone());
             }
             _ => {}

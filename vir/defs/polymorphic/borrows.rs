@@ -5,8 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::ast::*;
-use std::collections::{HashMap, VecDeque};
-use std::fmt;
+use std::{
+    collections::{HashMap, VecDeque},
+    fmt,
+};
 
 /// The method-unique borrow identifier.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
@@ -169,7 +171,7 @@ impl DAGBuilder {
             nodes: Vec::new(),
             borrowed_places: Vec::new(),
         };
-        Self { dag: dag }
+        Self { dag }
     }
     pub fn add_node(&mut self, node: Node) {
         let borrow = node.borrow;

@@ -78,7 +78,14 @@ impl Expr {
         where
             T: Fn(&str, Expr) -> Expr,
         {
-            fn fold_labelled_old(&mut self, LabelledOld {label, base, position}: LabelledOld) -> Expr {
+            fn fold_labelled_old(
+                &mut self,
+                LabelledOld {
+                    label,
+                    base,
+                    position,
+                }: LabelledOld,
+            ) -> Expr {
                 (self.substitutor)(&label, *base).set_pos(position)
             }
         }
@@ -103,8 +110,15 @@ impl Expr {
         where
             T: Fn(String) -> String,
         {
-            fn fold_labelled_old(&mut self, LabelledOld {label, base, position}: LabelledOld) -> Expr {
-                Expr::LabelledOld( LabelledOld {
+            fn fold_labelled_old(
+                &mut self,
+                LabelledOld {
+                    label,
+                    base,
+                    position,
+                }: LabelledOld,
+            ) -> Expr {
+                Expr::LabelledOld(LabelledOld {
                     label: (self.substitutor)(label),
                     base,
                     position,

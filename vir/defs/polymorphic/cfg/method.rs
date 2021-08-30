@@ -4,11 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::fmt;
-use std::iter::FromIterator;
-use uuid::Uuid;
 use crate::polymorphic::{ast::*, gather_labels::gather_labels};
+use std::{
+    collections::{HashMap, HashSet, VecDeque},
+    fmt,
+    iter::FromIterator,
+};
+use uuid::Uuid;
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
@@ -315,9 +317,7 @@ impl CfgMethod {
         let mut result = HashMap::new();
         for (index, block) in self.basic_blocks.iter().enumerate() {
             for successor in block.successor.get_following() {
-                let entry = result
-                    .entry(successor.block_index)
-                    .or_insert_with(|| Vec::new());
+                let entry = result.entry(successor.block_index).or_insert_with(Vec::new);
                 entry.push(index);
             }
         }

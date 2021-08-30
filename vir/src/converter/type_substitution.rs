@@ -1126,14 +1126,14 @@ mod tests {
                 name: String::from("_v1"),
                 typ: Type::type_var("T"),
             },
-            position: position,
+            position,
         });
         let mut expected = Expr::Local(Local {
             variable: LocalVar {
                 name: String::from("_v1"),
                 typ: Type::Int,
             },
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1144,13 +1144,13 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             variant_index: Field {
                 name: String::from("_f1"),
                 typ: Type::type_var("T"),
             },
-            position: position,
+            position,
         });
         expected = Expr::Variant(Variant {
             base: Box::new(Expr::Local(Local {
@@ -1158,13 +1158,13 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             variant_index: Field {
                 name: String::from("_f1"),
                 typ: Type::Int,
             },
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1175,13 +1175,13 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             field: Field {
                 name: String::from("_f1"),
                 typ: Type::type_var("T"),
             },
-            position: position,
+            position,
         });
         expected = Expr::Field(FieldExpr {
             base: Box::new(Expr::Local(Local {
@@ -1189,13 +1189,13 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             field: Field {
                 name: String::from("_f1"),
                 typ: Type::Int,
             },
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1206,10 +1206,10 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             addr_type: Type::type_var("E"),
-            position: position,
+            position,
         });
         expected = Expr::AddrOf(AddrOf {
             base: Box::new(Expr::Local(Local {
@@ -1217,10 +1217,10 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             addr_type: Type::Bool,
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1232,9 +1232,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         expected = Expr::LabelledOld(LabelledOld {
             label: String::from("l1"),
@@ -1243,20 +1243,20 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
         // Const
         source = Expr::Const(ConstExpr {
             value: Const::Int(123),
-            position: position,
+            position,
         });
         expected = Expr::Const(ConstExpr {
             value: Const::Int(123),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1267,17 +1267,17 @@ mod tests {
                     name: String::from("_left"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             right: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_right"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             })),
             borrow: Some(Borrow(123)),
-            position: position,
+            position,
         });
         expected = Expr::MagicWand(MagicWand {
             left: Box::new(Expr::Local(Local {
@@ -1285,17 +1285,17 @@ mod tests {
                     name: String::from("_left"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             right: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_right"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             })),
             borrow: Some(Borrow(123)),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1307,10 +1307,10 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             permission: PermAmount::Read,
-            position: position,
+            position,
         });
         expected = Expr::PredicateAccessPredicate(PredicateAccessPredicate {
             predicate_type: Type::typed_ref("_p1"),
@@ -1319,10 +1319,10 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             permission: PermAmount::Read,
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1333,10 +1333,10 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             permission: PermAmount::Read,
-            position: position,
+            position,
         });
         expected = Expr::FieldAccessPredicate(FieldAccessPredicate {
             base: Box::new(Expr::Local(Local {
@@ -1344,10 +1344,10 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             permission: PermAmount::Read,
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1359,9 +1359,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         expected = Expr::UnaryOp(UnaryOp {
             op_kind: UnaryOpKind::Minus,
@@ -1370,9 +1370,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1384,16 +1384,16 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             right: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         expected = Expr::BinOp(BinOp {
             op_kind: BinOpKind::Mul,
@@ -1402,16 +1402,16 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             right: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1423,16 +1423,16 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             right: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         expected = Expr::ContainerOp(ContainerOp {
             op_kind: ContainerOpKind::SeqConcat,
@@ -1441,16 +1441,16 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             right: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1463,17 +1463,17 @@ mod tests {
                         name: String::from("_v1"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v2"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
             ],
-            position: position,
+            position,
         });
         expected = Expr::Seq(Seq {
             typ: Type::Int,
@@ -1483,17 +1483,17 @@ mod tests {
                         name: String::from("_v1"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v2"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
             ],
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1506,14 +1506,14 @@ mod tests {
                         name: String::from("_v1"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v2"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
             ],
             base: Box::new(Expr::Local(Local {
@@ -1521,11 +1521,11 @@ mod tests {
                     name: String::from("_v3"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             permission: PermAmount::Write,
             variant: Some(EnumVariantIndex::new(String::from("evi"))),
-            position: position,
+            position,
         });
         expected = Expr::Unfolding(Unfolding {
             predicate_name: String::from("p1"),
@@ -1535,14 +1535,14 @@ mod tests {
                         name: String::from("_v1"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v2"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
             ],
             base: Box::new(Expr::Local(Local {
@@ -1550,11 +1550,11 @@ mod tests {
                     name: String::from("_v3"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             permission: PermAmount::Write,
             variant: Some(EnumVariantIndex::new(String::from("evi"))),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1565,23 +1565,23 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             then_expr: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             })),
             else_expr: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v3"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         expected = Expr::Cond(Cond {
             guard: Box::new(Expr::Local(Local {
@@ -1589,23 +1589,23 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             then_expr: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             })),
             else_expr: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v3"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1627,14 +1627,14 @@ mod tests {
                         name: String::from("_v3"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v4"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
             ])],
             body: Box::new(Expr::Local(Local {
@@ -1642,9 +1642,9 @@ mod tests {
                     name: String::from("_v5"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         expected = Expr::ForAll(ForAll {
             variables: vec![
@@ -1663,14 +1663,14 @@ mod tests {
                         name: String::from("_v3"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v4"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
             ])],
             body: Box::new(Expr::Local(Local {
@@ -1678,9 +1678,9 @@ mod tests {
                     name: String::from("_v5"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1702,14 +1702,14 @@ mod tests {
                         name: String::from("_v3"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v4"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
             ])],
             body: Box::new(Expr::Local(Local {
@@ -1717,9 +1717,9 @@ mod tests {
                     name: String::from("_v5"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         expected = Expr::Exists(Exists {
             variables: vec![
@@ -1738,14 +1738,14 @@ mod tests {
                         name: String::from("_v3"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v4"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
             ])],
             body: Box::new(Expr::Local(Local {
@@ -1753,9 +1753,9 @@ mod tests {
                     name: String::from("_v5"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1770,16 +1770,16 @@ mod tests {
                     name: String::from("_v2"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             })),
             body: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v3"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         expected = Expr::LetExpr(LetExpr {
             variable: LocalVar {
@@ -1791,16 +1791,16 @@ mod tests {
                     name: String::from("_v2"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             })),
             body: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v3"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1813,14 +1813,14 @@ mod tests {
                         name: String::from("_v2"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v3"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
             ],
             formal_arguments: vec![
@@ -1834,7 +1834,7 @@ mod tests {
                 },
             ],
             return_type: Type::type_var("E"),
-            position: position,
+            position,
         });
         expected = Expr::FuncApp(FuncApp {
             function_name: String::from("f1"),
@@ -1844,14 +1844,14 @@ mod tests {
                         name: String::from("_v2"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v3"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
             ],
             formal_arguments: vec![
@@ -1865,7 +1865,7 @@ mod tests {
                 },
             ],
             return_type: Type::Bool,
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1893,17 +1893,17 @@ mod tests {
                         name: String::from("_v2"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v3"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
             ],
-            position: position,
+            position,
         });
         expected = Expr::DomainFuncApp(DomainFuncApp {
             domain_function: DomainFunc {
@@ -1928,17 +1928,17 @@ mod tests {
                         name: String::from("_v2"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v3"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
             ],
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1949,16 +1949,16 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             exhale_expr: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         expected = Expr::InhaleExhale(InhaleExhale {
             inhale_expr: Box::new(Expr::Local(Local {
@@ -1966,16 +1966,16 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             exhale_expr: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             })),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -1986,14 +1986,14 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
             enum_place: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             })),
             field: Field {
                 name: String::from("f1"),
@@ -2006,14 +2006,14 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
             enum_place: Box::new(Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             })),
             field: Field {
                 name: String::from("f1"),
@@ -2054,7 +2054,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
         });
         expected = Stmt::Inhale(Inhale {
@@ -2063,7 +2063,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
         });
         test(source, expected, &SUBSTITUTION_MAP);
@@ -2075,9 +2075,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
-            position: position,
+            position,
         });
         expected = Stmt::Exhale(Exhale {
             expr: Expr::Local(Local {
@@ -2085,9 +2085,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -2098,9 +2098,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
-            position: position,
+            position,
         });
         expected = Stmt::Assert(Assert {
             expr: Expr::Local(Local {
@@ -2108,9 +2108,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -2123,14 +2123,14 @@ mod tests {
                         name: String::from("_v2"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v3"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
             ],
             targets: vec![
@@ -2152,14 +2152,14 @@ mod tests {
                         name: String::from("_v2"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v3"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
             ],
             targets: vec![
@@ -2182,14 +2182,14 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             }),
             source: Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
             kind: AssignKind::SharedBorrow(Borrow(123)),
         });
@@ -2199,14 +2199,14 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             }),
             source: Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
             kind: AssignKind::SharedBorrow(Borrow(123)),
         });
@@ -2221,19 +2221,19 @@ mod tests {
                         name: String::from("_v2"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v3"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
             ],
             permission: PermAmount::Write,
             enum_variant: Some(EnumVariantIndex::new(String::from("evi"))),
-            position: position,
+            position,
         });
         expected = Stmt::Fold(Fold {
             predicate_name: String::from("p1"),
@@ -2243,19 +2243,19 @@ mod tests {
                         name: String::from("_v2"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v3"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
             ],
             permission: PermAmount::Write,
             enum_variant: Some(EnumVariantIndex::new(String::from("evi"))),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -2268,14 +2268,14 @@ mod tests {
                         name: String::from("_v2"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v3"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
             ],
             permission: PermAmount::Write,
@@ -2289,14 +2289,14 @@ mod tests {
                         name: String::from("_v2"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v3"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
             ],
             permission: PermAmount::Write,
@@ -2311,9 +2311,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
-            position: position,
+            position,
         });
         expected = Stmt::Obtain(Obtain {
             expr: Expr::Local(Local {
@@ -2321,9 +2321,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -2344,14 +2344,14 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
             right: Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             }),
             unchecked: true,
         });
@@ -2361,14 +2361,14 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
             right: Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             }),
             unchecked: true,
         });
@@ -2381,7 +2381,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
             package_stmts: vec![
                 Stmt::Inhale(Inhale {
@@ -2390,7 +2390,7 @@ mod tests {
                             name: String::from("_v2"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                 }),
                 Stmt::Exhale(Exhale {
@@ -2399,9 +2399,9 @@ mod tests {
                             name: String::from("_v3"),
                             typ: Type::type_var("E"),
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
             ],
             label: String::from("l1"),
@@ -2415,7 +2415,7 @@ mod tests {
                     typ: Type::type_var("E"),
                 },
             ],
-            position: position,
+            position,
         });
         expected = Stmt::PackageMagicWand(PackageMagicWand {
             magic_wand: Expr::Local(Local {
@@ -2423,7 +2423,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
             package_stmts: vec![
                 Stmt::Inhale(Inhale {
@@ -2432,7 +2432,7 @@ mod tests {
                             name: String::from("_v2"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                 }),
                 Stmt::Exhale(Exhale {
@@ -2441,9 +2441,9 @@ mod tests {
                             name: String::from("_v3"),
                             typ: Type::Bool,
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
             ],
             label: String::from("l1"),
@@ -2457,7 +2457,7 @@ mod tests {
                     typ: Type::Bool,
                 },
             ],
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -2468,9 +2468,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
-            position: position,
+            position,
         });
         expected = Stmt::ApplyMagicWand(ApplyMagicWand {
             magic_wand: Expr::Local(Local {
@@ -2478,9 +2478,9 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
-            position: position,
+            position,
         });
         test(source, expected, &SUBSTITUTION_MAP);
 
@@ -2494,7 +2494,7 @@ mod tests {
                             name: String::from("_v1"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                     borrow: Borrow(123),
                     reborrowing_nodes: vec![Borrow(1), Borrow(2)],
@@ -2506,9 +2506,9 @@ mod tests {
                                     name: String::from("_v2"),
                                     typ: Type::type_var("T"),
                                 },
-                                position: position,
+                                position,
                             }),
-                            position: position,
+                            position,
                         }),
                         Stmt::Obtain(Obtain {
                             expr: Expr::Local(Local {
@@ -2516,9 +2516,9 @@ mod tests {
                                     name: String::from("_v3"),
                                     typ: Type::type_var("E"),
                                 },
-                                position: position,
+                                position,
                             }),
-                            position: position,
+                            position,
                         }),
                     ],
                     borrowed_places: vec![
@@ -2527,14 +2527,14 @@ mod tests {
                                 name: String::from("_v4"),
                                 typ: Type::type_var("T"),
                             },
-                            position: position,
+                            position,
                         }),
                         Expr::Local(Local {
                             variable: LocalVar {
                                 name: String::from("_v5"),
                                 typ: Type::type_var("E"),
                             },
-                            position: position,
+                            position,
                         }),
                     ],
                     conflicting_borrows: vec![Borrow(403), Borrow(404)],
@@ -2544,7 +2544,7 @@ mod tests {
                             name: String::from("_v6"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     })),
                 }],
                 borrowed_places: vec![
@@ -2553,14 +2553,14 @@ mod tests {
                             name: String::from("_v7"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                     Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v8"),
                             typ: Type::type_var("E"),
                         },
-                        position: position,
+                        position,
                     }),
                 ],
             },
@@ -2574,7 +2574,7 @@ mod tests {
                             name: String::from("_v1"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                     borrow: Borrow(123),
                     reborrowing_nodes: vec![Borrow(1), Borrow(2)],
@@ -2586,9 +2586,9 @@ mod tests {
                                     name: String::from("_v2"),
                                     typ: Type::Int,
                                 },
-                                position: position,
+                                position,
                             }),
-                            position: position,
+                            position,
                         }),
                         Stmt::Obtain(Obtain {
                             expr: Expr::Local(Local {
@@ -2596,9 +2596,9 @@ mod tests {
                                     name: String::from("_v3"),
                                     typ: Type::Bool,
                                 },
-                                position: position,
+                                position,
                             }),
-                            position: position,
+                            position,
                         }),
                     ],
                     borrowed_places: vec![
@@ -2607,14 +2607,14 @@ mod tests {
                                 name: String::from("_v4"),
                                 typ: Type::Int,
                             },
-                            position: position,
+                            position,
                         }),
                         Expr::Local(Local {
                             variable: LocalVar {
                                 name: String::from("_v5"),
                                 typ: Type::Bool,
                             },
-                            position: position,
+                            position,
                         }),
                     ],
                     conflicting_borrows: vec![Borrow(403), Borrow(404)],
@@ -2624,7 +2624,7 @@ mod tests {
                             name: String::from("_v6"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     })),
                 }],
                 borrowed_places: vec![
@@ -2633,14 +2633,14 @@ mod tests {
                             name: String::from("_v7"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                     Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v8"),
                             typ: Type::Bool,
                         },
-                        position: position,
+                        position,
                     }),
                 ],
             },
@@ -2654,7 +2654,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
             then_stmts: vec![
                 Stmt::Inhale(Inhale {
@@ -2663,7 +2663,7 @@ mod tests {
                             name: String::from("_v2"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                 }),
                 Stmt::Exhale(Exhale {
@@ -2672,9 +2672,9 @@ mod tests {
                             name: String::from("_v3"),
                             typ: Type::type_var("E"),
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
             ],
             else_stmts: vec![
@@ -2684,7 +2684,7 @@ mod tests {
                             name: String::from("_v4"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                 }),
                 Stmt::Exhale(Exhale {
@@ -2693,9 +2693,9 @@ mod tests {
                             name: String::from("_v5"),
                             typ: Type::type_var("E"),
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
             ],
         });
@@ -2705,7 +2705,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
             then_stmts: vec![
                 Stmt::Inhale(Inhale {
@@ -2714,7 +2714,7 @@ mod tests {
                             name: String::from("_v2"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                 }),
                 Stmt::Exhale(Exhale {
@@ -2723,9 +2723,9 @@ mod tests {
                             name: String::from("_v3"),
                             typ: Type::Bool,
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
             ],
             else_stmts: vec![
@@ -2735,7 +2735,7 @@ mod tests {
                             name: String::from("_v4"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                 }),
                 Stmt::Exhale(Exhale {
@@ -2744,9 +2744,9 @@ mod tests {
                             name: String::from("_v5"),
                             typ: Type::Bool,
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
             ],
         });
@@ -2759,7 +2759,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
             field: Field {
                 name: String::from("f1"),
@@ -2772,7 +2772,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
             field: Field {
                 name: String::from("f1"),
@@ -2881,7 +2881,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
             domain_name: String::from("dn"),
         };
@@ -2893,7 +2893,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
             domain_name: String::from("dn"),
         };
@@ -2950,7 +2950,7 @@ mod tests {
                             name: String::from("_v5"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                     domain_name: String::from("dn3"),
                 },
@@ -2961,7 +2961,7 @@ mod tests {
                             name: String::from("_v6"),
                             typ: Type::type_var("E"),
                         },
-                        position: position,
+                        position,
                     }),
                     domain_name: String::from("dn4"),
                 },
@@ -3013,7 +3013,7 @@ mod tests {
                             name: String::from("_v5"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                     domain_name: String::from("dn3"),
                 },
@@ -3024,7 +3024,7 @@ mod tests {
                             name: String::from("_v6"),
                             typ: Type::Bool,
                         },
-                        position: position,
+                        position,
                     }),
                     domain_name: String::from("dn4"),
                 },
@@ -3059,14 +3059,14 @@ mod tests {
                         name: String::from("_v3"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v4"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
             ],
             posts: vec![
@@ -3075,14 +3075,14 @@ mod tests {
                         name: String::from("_v5"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v6"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
             ],
             body: Some(Expr::Local(Local {
@@ -3090,7 +3090,7 @@ mod tests {
                     name: String::from("_v7"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
         };
 
@@ -3113,14 +3113,14 @@ mod tests {
                         name: String::from("_v3"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v4"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
             ],
             posts: vec![
@@ -3129,14 +3129,14 @@ mod tests {
                         name: String::from("_v5"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v6"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
             ],
             body: Some(Expr::Local(Local {
@@ -3144,7 +3144,7 @@ mod tests {
                     name: String::from("_v7"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
         };
         test(source, expected, &SUBSTITUTION_MAP);
@@ -3167,7 +3167,7 @@ mod tests {
                     name: String::from("_v7"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             })),
         };
 
@@ -3182,7 +3182,7 @@ mod tests {
                     name: String::from("_v7"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             })),
         };
         test(source, expected, &SUBSTITUTION_MAP);
@@ -3209,7 +3209,7 @@ mod tests {
                     name: String::from("_v2"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             }),
             variants: vec![
                 (
@@ -3218,7 +3218,7 @@ mod tests {
                             name: String::from("_v3"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                     String::from("variant1"),
                     StructPredicate {
@@ -3232,7 +3232,7 @@ mod tests {
                                 name: String::from("_v5"),
                                 typ: Type::type_var("T"),
                             },
-                            position: position,
+                            position,
                         })),
                     },
                 ),
@@ -3242,7 +3242,7 @@ mod tests {
                             name: String::from("_v6"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                     String::from("variant1"),
                     StructPredicate {
@@ -3256,7 +3256,7 @@ mod tests {
                                 name: String::from("_v8"),
                                 typ: Type::type_var("T"),
                             },
-                            position: position,
+                            position,
                         })),
                     },
                 ),
@@ -3278,7 +3278,7 @@ mod tests {
                     name: String::from("_v2"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             }),
             variants: vec![
                 (
@@ -3287,7 +3287,7 @@ mod tests {
                             name: String::from("_v3"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                     String::from("variant1"),
                     StructPredicate {
@@ -3301,7 +3301,7 @@ mod tests {
                                 name: String::from("_v5"),
                                 typ: Type::Int,
                             },
-                            position: position,
+                            position,
                         })),
                     },
                 ),
@@ -3311,7 +3311,7 @@ mod tests {
                             name: String::from("_v6"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                     String::from("variant1"),
                     StructPredicate {
@@ -3325,7 +3325,7 @@ mod tests {
                                 name: String::from("_v8"),
                                 typ: Type::Int,
                             },
-                            position: position,
+                            position,
                         })),
                     },
                 ),
@@ -3352,7 +3352,7 @@ mod tests {
                     name: String::from("_v5"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
         });
         let mut expected = Predicate::Struct(StructPredicate {
@@ -3366,7 +3366,7 @@ mod tests {
                     name: String::from("_v5"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
         });
         test(source, expected, &SUBSTITUTION_MAP);
@@ -3387,7 +3387,7 @@ mod tests {
                     name: String::from("_v2"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             }),
             variants: vec![
                 (
@@ -3396,7 +3396,7 @@ mod tests {
                             name: String::from("_v3"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                     String::from("variant1"),
                     StructPredicate {
@@ -3410,7 +3410,7 @@ mod tests {
                                 name: String::from("_v5"),
                                 typ: Type::type_var("T"),
                             },
-                            position: position,
+                            position,
                         })),
                     },
                 ),
@@ -3420,7 +3420,7 @@ mod tests {
                             name: String::from("_v6"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                     String::from("variant1"),
                     StructPredicate {
@@ -3434,7 +3434,7 @@ mod tests {
                                 name: String::from("_v8"),
                                 typ: Type::type_var("T"),
                             },
-                            position: position,
+                            position,
                         })),
                     },
                 ),
@@ -3455,7 +3455,7 @@ mod tests {
                     name: String::from("_v2"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             }),
             variants: vec![
                 (
@@ -3464,7 +3464,7 @@ mod tests {
                             name: String::from("_v3"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                     String::from("variant1"),
                     StructPredicate {
@@ -3478,7 +3478,7 @@ mod tests {
                                 name: String::from("_v5"),
                                 typ: Type::Int,
                             },
-                            position: position,
+                            position,
                         })),
                     },
                 ),
@@ -3488,7 +3488,7 @@ mod tests {
                             name: String::from("_v6"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                     String::from("variant1"),
                     StructPredicate {
@@ -3502,7 +3502,7 @@ mod tests {
                                 name: String::from("_v8"),
                                 typ: Type::Int,
                             },
-                            position: position,
+                            position,
                         })),
                     },
                 ),
@@ -3541,14 +3541,14 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
             Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::type_var("E"),
                 },
-                position: position,
+                position,
             }),
         ]);
         let expected = Trigger::new(vec![
@@ -3557,14 +3557,14 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
             Expr::Local(Local {
                 variable: LocalVar {
                     name: String::from("_v2"),
                     typ: Type::Bool,
                 },
-                position: position,
+                position,
             }),
         ]);
         test(source, expected, &SUBSTITUTION_MAP);
@@ -3624,7 +3624,7 @@ mod tests {
                             name: String::from("_v1"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                     CfgBlockIndex {
                         method_uuid: uuid,
@@ -3637,7 +3637,7 @@ mod tests {
                             name: String::from("_v2"),
                             typ: Type::type_var("E"),
                         },
-                        position: position,
+                        position,
                     }),
                     CfgBlockIndex {
                         method_uuid: uuid,
@@ -3658,7 +3658,7 @@ mod tests {
                             name: String::from("_v1"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                     CfgBlockIndex {
                         method_uuid: uuid,
@@ -3671,7 +3671,7 @@ mod tests {
                             name: String::from("_v2"),
                             typ: Type::Bool,
                         },
-                        position: position,
+                        position,
                     }),
                     CfgBlockIndex {
                         method_uuid: uuid,
@@ -3702,9 +3702,9 @@ mod tests {
                             name: String::from("_v1"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
                 Stmt::Obtain(Obtain {
                     expr: Expr::Local(Local {
@@ -3712,9 +3712,9 @@ mod tests {
                             name: String::from("_v2"),
                             typ: Type::type_var("E"),
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
             ],
             successor: Successor::GotoSwitch(
@@ -3725,7 +3725,7 @@ mod tests {
                                 name: String::from("_v3"),
                                 typ: Type::type_var("T"),
                             },
-                            position: position,
+                            position,
                         }),
                         CfgBlockIndex {
                             method_uuid: uuid,
@@ -3738,7 +3738,7 @@ mod tests {
                                 name: String::from("_v4"),
                                 typ: Type::type_var("E"),
                             },
-                            position: position,
+                            position,
                         }),
                         CfgBlockIndex {
                             method_uuid: uuid,
@@ -3760,9 +3760,9 @@ mod tests {
                             name: String::from("_v1"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
                 Stmt::Obtain(Obtain {
                     expr: Expr::Local(Local {
@@ -3770,9 +3770,9 @@ mod tests {
                             name: String::from("_v2"),
                             typ: Type::Bool,
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
             ],
             successor: Successor::GotoSwitch(
@@ -3783,7 +3783,7 @@ mod tests {
                                 name: String::from("_v3"),
                                 typ: Type::Int,
                             },
-                            position: position,
+                            position,
                         }),
                         CfgBlockIndex {
                             method_uuid: uuid,
@@ -3796,7 +3796,7 @@ mod tests {
                                 name: String::from("_v4"),
                                 typ: Type::Bool,
                             },
-                            position: position,
+                            position,
                         }),
                         CfgBlockIndex {
                             method_uuid: uuid,
@@ -3858,9 +3858,9 @@ mod tests {
                                 name: String::from("_v1"),
                                 typ: Type::type_var("T"),
                             },
-                            position: position,
+                            position,
                         }),
-                        position: position,
+                        position,
                     }),
                     Stmt::Obtain(Obtain {
                         expr: Expr::Local(Local {
@@ -3868,9 +3868,9 @@ mod tests {
                                 name: String::from("_v2"),
                                 typ: Type::type_var("E"),
                             },
-                            position: position,
+                            position,
                         }),
-                        position: position,
+                        position,
                     }),
                 ],
                 successor: Successor::GotoSwitch(
@@ -3881,7 +3881,7 @@ mod tests {
                                     name: String::from("_v3"),
                                     typ: Type::type_var("T"),
                                 },
-                                position: position,
+                                position,
                             }),
                             CfgBlockIndex {
                                 method_uuid: uuid,
@@ -3894,7 +3894,7 @@ mod tests {
                                     name: String::from("_v4"),
                                     typ: Type::type_var("E"),
                                 },
-                                position: position,
+                                position,
                             }),
                             CfgBlockIndex {
                                 method_uuid: uuid,
@@ -3950,9 +3950,9 @@ mod tests {
                                 name: String::from("_v1"),
                                 typ: Type::Int,
                             },
-                            position: position,
+                            position,
                         }),
-                        position: position,
+                        position,
                     }),
                     Stmt::Obtain(Obtain {
                         expr: Expr::Local(Local {
@@ -3960,9 +3960,9 @@ mod tests {
                                 name: String::from("_v2"),
                                 typ: Type::Bool,
                             },
-                            position: position,
+                            position,
                         }),
-                        position: position,
+                        position,
                     }),
                 ],
                 successor: Successor::GotoSwitch(
@@ -3973,7 +3973,7 @@ mod tests {
                                     name: String::from("_v3"),
                                     typ: Type::Int,
                                 },
-                                position: position,
+                                position,
                             }),
                             CfgBlockIndex {
                                 method_uuid: uuid,
@@ -3986,7 +3986,7 @@ mod tests {
                                     name: String::from("_v4"),
                                     typ: Type::Bool,
                                 },
-                                position: position,
+                                position,
                             }),
                             CfgBlockIndex {
                                 method_uuid: uuid,
@@ -4019,7 +4019,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             }),
             borrow: Borrow(123),
             reborrowing_nodes: vec![Borrow(1), Borrow(2)],
@@ -4031,9 +4031,9 @@ mod tests {
                             name: String::from("_v2"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
                 Stmt::Obtain(Obtain {
                     expr: Expr::Local(Local {
@@ -4041,9 +4041,9 @@ mod tests {
                             name: String::from("_v3"),
                             typ: Type::type_var("E"),
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
             ],
             borrowed_places: vec![
@@ -4052,14 +4052,14 @@ mod tests {
                         name: String::from("_v4"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v5"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
             ],
             conflicting_borrows: vec![Borrow(403), Borrow(404)],
@@ -4069,7 +4069,7 @@ mod tests {
                     name: String::from("_v6"),
                     typ: Type::type_var("T"),
                 },
-                position: position,
+                position,
             })),
         };
 
@@ -4079,7 +4079,7 @@ mod tests {
                     name: String::from("_v1"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             }),
             borrow: Borrow(123),
             reborrowing_nodes: vec![Borrow(1), Borrow(2)],
@@ -4091,9 +4091,9 @@ mod tests {
                             name: String::from("_v2"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
                 Stmt::Obtain(Obtain {
                     expr: Expr::Local(Local {
@@ -4101,9 +4101,9 @@ mod tests {
                             name: String::from("_v3"),
                             typ: Type::Bool,
                         },
-                        position: position,
+                        position,
                     }),
-                    position: position,
+                    position,
                 }),
             ],
             borrowed_places: vec![
@@ -4112,14 +4112,14 @@ mod tests {
                         name: String::from("_v4"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v5"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
             ],
             conflicting_borrows: vec![Borrow(403), Borrow(404)],
@@ -4129,7 +4129,7 @@ mod tests {
                     name: String::from("_v6"),
                     typ: Type::Int,
                 },
-                position: position,
+                position,
             })),
         };
 
@@ -4151,7 +4151,7 @@ mod tests {
                         name: String::from("_v1"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
                 borrow: Borrow(123),
                 reborrowing_nodes: vec![Borrow(1), Borrow(2)],
@@ -4163,9 +4163,9 @@ mod tests {
                                 name: String::from("_v2"),
                                 typ: Type::type_var("T"),
                             },
-                            position: position,
+                            position,
                         }),
-                        position: position,
+                        position,
                     }),
                     Stmt::Obtain(Obtain {
                         expr: Expr::Local(Local {
@@ -4173,9 +4173,9 @@ mod tests {
                                 name: String::from("_v3"),
                                 typ: Type::type_var("E"),
                             },
-                            position: position,
+                            position,
                         }),
-                        position: position,
+                        position,
                     }),
                 ],
                 borrowed_places: vec![
@@ -4184,14 +4184,14 @@ mod tests {
                             name: String::from("_v4"),
                             typ: Type::type_var("T"),
                         },
-                        position: position,
+                        position,
                     }),
                     Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v5"),
                             typ: Type::type_var("E"),
                         },
-                        position: position,
+                        position,
                     }),
                 ],
                 conflicting_borrows: vec![Borrow(403), Borrow(404)],
@@ -4201,7 +4201,7 @@ mod tests {
                         name: String::from("_v6"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 })),
             }],
             borrowed_places: vec![
@@ -4210,14 +4210,14 @@ mod tests {
                         name: String::from("_v7"),
                         typ: Type::type_var("T"),
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v8"),
                         typ: Type::type_var("E"),
                     },
-                    position: position,
+                    position,
                 }),
             ],
         };
@@ -4230,7 +4230,7 @@ mod tests {
                         name: String::from("_v1"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 borrow: Borrow(123),
                 reborrowing_nodes: vec![Borrow(1), Borrow(2)],
@@ -4242,9 +4242,9 @@ mod tests {
                                 name: String::from("_v2"),
                                 typ: Type::Int,
                             },
-                            position: position,
+                            position,
                         }),
-                        position: position,
+                        position,
                     }),
                     Stmt::Obtain(Obtain {
                         expr: Expr::Local(Local {
@@ -4252,9 +4252,9 @@ mod tests {
                                 name: String::from("_v3"),
                                 typ: Type::Bool,
                             },
-                            position: position,
+                            position,
                         }),
-                        position: position,
+                        position,
                     }),
                 ],
                 borrowed_places: vec![
@@ -4263,14 +4263,14 @@ mod tests {
                             name: String::from("_v4"),
                             typ: Type::Int,
                         },
-                        position: position,
+                        position,
                     }),
                     Expr::Local(Local {
                         variable: LocalVar {
                             name: String::from("_v5"),
                             typ: Type::Bool,
                         },
-                        position: position,
+                        position,
                     }),
                 ],
                 conflicting_borrows: vec![Borrow(403), Borrow(404)],
@@ -4280,7 +4280,7 @@ mod tests {
                         name: String::from("_v6"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 })),
             }],
             borrowed_places: vec![
@@ -4289,14 +4289,14 @@ mod tests {
                         name: String::from("_v7"),
                         typ: Type::Int,
                     },
-                    position: position,
+                    position,
                 }),
                 Expr::Local(Local {
                     variable: LocalVar {
                         name: String::from("_v8"),
                         typ: Type::Bool,
                     },
-                    position: position,
+                    position,
                 }),
             ],
         };
