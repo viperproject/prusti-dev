@@ -1735,6 +1735,7 @@ impl Expr {
             Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
                 subexpr1.is_constant() && subexpr2.is_constant()
             }
+            Expr::SnapApp(box expr, _) => expr.is_constant(),
             _ => false,
         }
     }
