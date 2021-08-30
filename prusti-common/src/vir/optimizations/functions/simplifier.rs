@@ -182,13 +182,7 @@ impl ExprFolder for ExprSimplifier {
         let folded_expr = ast::default_fold_expr(self, e);
         self.apply_rules(folded_expr)
     }
-    fn fold_cond(
-        &mut self,
-        guard: Box<ast::Expr>,
-        then_expr: Box<ast::Expr>,
-        else_expr: Box<ast::Expr>,
-        pos: ast::Position
-    ) -> ast::Expr {
+    fn fold_cond(&mut self, ast::Cond {guard, then_expr, else_expr, position}: ast::Cond) -> ast::Expr {
         let simplified_guard = self.fold_boxed(guard);
         let simplified_then = self.fold_boxed(then_expr);
         let simplified_else = self.fold_boxed(else_expr);
@@ -199,26 +193,26 @@ impl ExprFolder for ExprSimplifier {
                     op_kind: ast::BinOpKind::Implies,
                     left: simplified_guard.clone(),
                     right: simplified_then,
-                    position: pos,
+                    position,
                 }),
                 right: box ast::Expr::BinOp( ast::BinOp {
                     op_kind: ast::BinOpKind::Implies,
                     left: box ast::Expr::UnaryOp( ast::UnaryOp {
                         op_kind: ast::UnaryOpKind::Not,
                         argument: simplified_guard,
-                        position: pos,
+                        position,
                     }),
                     right: simplified_else,
-                    position: pos,
+                    position,
                 }),
-                position: pos,
+                position,
             })
         } else {
             ast::Expr::Cond( ast::Cond {
                 guard: simplified_guard,
                 then_expr: simplified_then,
                 else_expr: simplified_else,
-                position: pos,
+                position,
             })
         };
         self.apply_rules(result)

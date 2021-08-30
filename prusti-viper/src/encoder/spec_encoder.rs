@@ -17,7 +17,7 @@ use crate::encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
 use crate::encoder::Encoder;
 use prusti_common::config;
 use crate::encoder::SpecFunctionKind;
-use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::polymorphic as vir;
 use vir_crate::polymorphic::ExprIterator;
 use prusti_interface::specs::typed;
 use rustc_hir as hir;
@@ -28,6 +28,8 @@ use std::collections::HashMap;
 use rustc_ast::ast;
 use log::{debug, trace};
 use prusti_interface::utils::read_prusti_attr;
+
+use super::encoder::SubstMap;
 
 /// Encode an assertion coming from a specification to a `vir::Expr`.
 ///
@@ -54,12 +56,13 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
     encoder: &Encoder<'v, 'tcx>,
     assertion: &typed::Assertion<'tcx>,
     pre_label: Option<&str>,
-    target_args: &[polymorphic_vir::Expr],
-    target_return: Option<&polymorphic_vir::Expr>,
+    target_args: &[vir::Expr],
+    target_return: Option<&vir::Expr>,
     targets_are_values: bool,
     assertion_location: Option<mir::BasicBlock>,
     parent_def_id: DefId,
-) -> SpannedEncodingResult<polymorphic_vir::Expr> {
+    tymap: &SubstMap<'tcx>,
+) -> SpannedEncodingResult<vir::Expr> {
     let spec_encoder = SpecEncoder::new(
         encoder,
         pre_label.unwrap_or(""),
@@ -68,6 +71,7 @@ pub fn encode_spec_assertion<'v, 'tcx: 'v>(
         targets_are_values,
         assertion_location,
         parent_def_id,
+        tymap,
     );
     spec_encoder.encode_assertion(assertion)
 }
@@ -77,9 +81,9 @@ struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// The label to encode `old(..)` expressions
     pre_label: &'p str,
     /// The expression that encodes the arguments.
-    target_args: &'p [polymorphic_vir::Expr],
+    target_args: &'p [vir::Expr],
     /// The expression that encodes `return` in a postcondition.
-    target_return: Option<&'p polymorphic_vir::Expr>,
+    target_return: Option<&'p vir::Expr>,
     /// Used to encode pure functions.
     targets_are_values: bool,
     /// Location at which to encode loop invariants.
@@ -87,17 +91,19 @@ struct SpecEncoder<'p, 'v: 'p, 'tcx: 'v> {
     /// When registering errors, this gives us their
     /// associated function
     parent_def_id: DefId,
+    tymap: &'p SubstMap<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     fn new(
         encoder: &'p Encoder<'v, 'tcx>,
         pre_label: &'p str,
-        target_args: &'p [polymorphic_vir::Expr],
-        target_return: Option<&'p polymorphic_vir::Expr>,
+        target_args: &'p [vir::Expr],
+        target_return: Option<&'p vir::Expr>,
         targets_are_values: bool,
         assertion_location: Option<mir::BasicBlock>,
         parent_def_id: DefId,
+        tymap: &'p SubstMap<'tcx>,
     ) -> Self {
         trace!("SpecEncoder constructor");
 
@@ -109,6 +115,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             targets_are_values,
             assertion_location,
             parent_def_id,
+            tymap,
         }
     }
 
@@ -119,32 +126,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         arg: mir::Local,
         arg_ty: ty::Ty<'tcx>,
         quant_id: &str
-    ) -> polymorphic_vir::LocalVar {
+    ) -> vir::LocalVar {
         trace!("encode_quantifier_arg: {:?} {:?} {:?}", arg, arg_ty, quant_id);
         let ty = self.encoder.encode_type(arg_ty).unwrap();
         // FIXME: find a reasonable position when using this function below,
         // change return to EncodingResult<...>, then unwrap with ?
         let var_name = format!("{:?}_quant_{}", arg, quant_id);
-        polymorphic_vir::LocalVar::new(var_name, ty)
+        vir::LocalVar::new(var_name, ty)
     }
 
     fn encode_trigger(
         &self,
         trigger: &typed::Trigger,
-        bounded_vars: &[polymorphic_vir::LocalVar]
-    ) -> SpannedEncodingResult<polymorphic_vir::Trigger> {
+        bounded_vars: &[vir::LocalVar]
+    ) -> SpannedEncodingResult<vir::Trigger> {
         trace!("encode_trigger {:?}", trigger);
         struct TriggerChecker {
             span: rustc_span::MultiSpan,
             error: Option<SpannedEncodingError>,
         }
-        impl polymorphic_vir::ExprWalker for TriggerChecker {
-            fn walk(&mut self, expr: &polymorphic_vir::Expr) {
+        impl vir::ExprWalker for TriggerChecker {
+            fn walk(&mut self, expr: &vir::Expr) {
                 match expr {
-                    polymorphic_vir::Expr::Local(..) |
-                    polymorphic_vir::Expr::Const(..) |
-                    polymorphic_vir::Expr::FuncApp(..) |
-                    polymorphic_vir::Expr::DomainFuncApp(..) => {
+                    vir::Expr::Local(..) |
+                    vir::Expr::Const(..) |
+                    vir::Expr::FuncApp(..) |
+                    vir::Expr::DomainFuncApp(..) => {
                         // Legal triggers.
                     }
                     _ => {
@@ -155,7 +162,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     }
                 }
                 if self.error.is_none() {
-                    polymorphic_vir::default_walk_expr(self, expr);
+                    vir::default_walk_expr(self, expr);
                 }
             }
         }
@@ -168,7 +175,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 error: None,
                 span: self.encoder.env().tcx().def_span(term.expr).into(),
             };
-            polymorphic_vir::ExprWalker::walk(&mut checker, &encoded_expr);
+            vir::ExprWalker::walk(&mut checker, &encoded_expr);
             if let Some(error) = checker.error {
                 return Err(error);
             }
@@ -189,12 +196,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 return Err(SpannedEncodingError::incorrect(msg, span));
             }
         }
-        Ok(polymorphic_vir::Trigger::new(encoded_expressions))
+        Ok(vir::Trigger::new(encoded_expressions))
     }
 
     /// Encode a specification item as a single expression.
     fn encode_assertion(&self, assertion: &typed::Assertion<'tcx>)
-        -> SpannedEncodingResult<polymorphic_vir::Expr>
+        -> SpannedEncodingResult<vir::Expr>
     {
         trace!("encode_assertion {:?}", assertion);
         Ok(match assertion.kind {
@@ -203,25 +210,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             box typed::AssertionKind::And(ref assertions) => assertions
                 .iter()
                 .map(|x| self.encode_assertion(x))
-                .collect::<Result<Vec<polymorphic_vir::Expr>, _>>()?
+                .collect::<Result<Vec<vir::Expr>, _>>()?
                 .into_iter()
                 .conjoin(),
             box typed::AssertionKind::Implies(ref lhs, ref rhs) => {
-                polymorphic_vir::Expr::implies(
+                vir::Expr::implies(
                     self.encode_assertion(lhs)?,
                     self.encode_assertion(rhs)?
                 )
             }
             box typed::AssertionKind::TypeCond(ref vars, ref assertion) => {
-                let enc = |ty: ty::Ty<'tcx>| -> polymorphic_vir::Expr {
+                let enc = |ty: ty::Ty<'tcx>| -> vir::Expr {
                     // FIXME: this is a hack to support generics. See issue #187.
                     // TODO polymorphic: might remove this step
-                    let ty = self.encoder.resolve_typaram(ty);
+                    let ty = self.encoder.resolve_typaram(ty, self.tymap);
                     self.encoder.encode_tag_func_app(ty)
                 };
                 let typecond =
-                    polymorphic_vir::Expr::eq_cmp(enc(vars.vars[0].1), enc(vars.vars[1].1));
-                polymorphic_vir::Expr::implies(
+                    vir::Expr::eq_cmp(enc(vars.vars[0].1), enc(vars.vars[1].1));
+                vir::Expr::implies(
                     typecond,
                     self.encode_assertion(assertion)?
                 )
@@ -241,7 +248,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 let mir = self.encoder.env().local_mir(closure.expr);
                 let result = &mir.local_decls[(0 as u32).into()];
                 let ty = result.ty;
-                if let Some(ty_repl) = self.encoder.current_tymap().get(ty) {
+                if let Some(ty_repl) = self.tymap.get(ty) {
                     debug!("spec ent repl: {:?} -> {:?}", ty, ty_repl);
 
                     match ty_repl.kind() {
@@ -249,7 +256,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                         | ty::TyKind::FnDef(def_id, _substs) => {
                             let encoded_pres = pres.iter()
                                 .map(|x| self.encode_assertion(x))
-                                .collect::<Result<Vec<polymorphic_vir::Expr>, _>>()?
+                                .collect::<Result<Vec<vir::Expr>, _>>()?
                                 .into_iter()
                                 .conjoin();
 
@@ -271,21 +278,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                                 .iter()
                                 .map(|(arg, arg_ty)| self.encode_quantifier_arg(*arg, arg_ty, &format!("{}_{}", vars.spec_id, vars.pre_id)))
                                 .collect();
-                            let pre_conjunct = polymorphic_vir::Expr::forall(
+                            let pre_conjunct = vir::Expr::forall(
                                 qvars_pre.clone(),
                                 vec![], // TODO: encode triggers
-                                polymorphic_vir::Expr::implies(
+                                vir::Expr::implies(
                                     encoded_pres.clone(),
-                                    polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {
+                                    vir::Expr::FuncApp( vir::FuncApp {
                                         function_name: sf_pre_name,
                                         arguments: qvars_pre.iter()
-                                            .map(|x| polymorphic_vir::Expr::local(x.clone()))
+                                            .map(|x| vir::Expr::local(x.clone()))
                                             .collect(),
                                         formal_arguments: (0 .. vars.args.len())
-                                            .map(|i| polymorphic_vir::LocalVar::new(format!("_{}", i), polymorphic_vir::Type::Int))
+                                            .map(|i| vir::LocalVar::new(format!("_{}", i), vir::Type::Int))
                                             .collect(),
-                                        return_type: polymorphic_vir::Type::Bool,
-                                        position: polymorphic_vir::Position::default(),
+                                        return_type: vir::Type::Bool,
+                                        position: vir::Position::default(),
                                     })
                                 )
                             );
@@ -309,32 +316,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                                         &format!("{}_{}", vars.spec_id, vars.post_id))))
                                 .collect();
 
-                            let post_conjunct = polymorphic_vir::Expr::forall(
+                            let post_conjunct = vir::Expr::forall(
                                 qvars_post.clone(),
                                 vec![], // TODO: encode triggers
-                                polymorphic_vir::Expr::implies(
+                                vir::Expr::implies(
                                     // The quantified variables in the precondition have been encoded using
                                     // different IDs (vars.pre_id vs. vars.post_id), so we need to fix them
                                     (0 .. qvars_pre.len())
                                         .fold(encoded_pres, |e, i| {
-                                            e.replace_place(&polymorphic_vir::Expr::local(qvars_pre[i].clone()),
-                                                            &polymorphic_vir::Expr::local(qvars_post[i].clone()))
+                                            e.replace_place(&vir::Expr::local(qvars_pre[i].clone()),
+                                                            &vir::Expr::local(qvars_post[i].clone()))
                                         }),
-                                        polymorphic_vir::Expr::implies(
-                                            polymorphic_vir::Expr::FuncApp( polymorphic_vir::FuncApp {
+                                        vir::Expr::implies(
+                                            vir::Expr::FuncApp( vir::FuncApp {
                                                 function_name: sf_post_name,
                                                 arguments: qvars_post.iter()
-                                                .map(|x| polymorphic_vir::Expr::local(x.clone()))
+                                                .map(|x| vir::Expr::local(x.clone()))
                                                 .collect(),
                                                 formal_arguments: (0 ..= vars.args.len())
-                                                .map(|i| polymorphic_vir::LocalVar::new(format!("_{}", i), polymorphic_vir::Type::Int))
+                                                .map(|i| vir::LocalVar::new(format!("_{}", i), vir::Type::Int))
                                                 .collect(),
-                                                return_type: polymorphic_vir::Type::Bool,
-                                                position: polymorphic_vir::Position::default(),
+                                                return_type: vir::Type::Bool,
+                                                position: vir::Position::default(),
                                             }),
                                         posts.iter()
                                             .map(|x| self.encode_assertion(x))
-                                            .collect::<Result<Vec<polymorphic_vir::Expr>, _>>()?
+                                            .collect::<Result<Vec<vir::Expr>, _>>()?
                                             .into_iter()
                                             .conjoin()
                                     )
@@ -365,7 +372,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         trigger_set: &typed::TriggerSet,
         body: &typed::Assertion<'tcx>,
         exists: bool,
-    ) -> SpannedEncodingResult<polymorphic_vir::Expr> {
+    ) -> SpannedEncodingResult<vir::Expr> {
         let mut encoded_args = vec![];
         let mut bounds = vec![];
         for (arg, ty) in &vars.vars {
@@ -381,7 +388,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                 bounds.extend(self.encoder.encode_type_bounds(&encoded_arg.clone().into(), ty));
             } else if config::encode_unsigned_num_constraint() {
                 if let ty::TyKind::Uint(_) = ty.kind() {
-                    let expr = polymorphic_vir::Expr::le_cmp(0.into(), encoded_arg.clone().into());
+                    let expr = vir::Expr::le_cmp(0.into(), encoded_arg.clone().into());
                     bounds.push(expr);
                 }
             }
@@ -397,19 +404,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             encoded_body
         } else {
             if exists {
-                polymorphic_vir::Expr::and(bounds.into_iter().conjoin(), encoded_body)
+                vir::Expr::and(bounds.into_iter().conjoin(), encoded_body)
             } else {
-                polymorphic_vir::Expr::implies(bounds.into_iter().conjoin(), encoded_body)
+                vir::Expr::implies(bounds.into_iter().conjoin(), encoded_body)
             }
         };
         if exists {
-            Ok(polymorphic_vir::Expr::exists(
+            Ok(vir::Expr::exists(
                 encoded_args,
                 encoded_triggers,
                 final_body,
             ))
         } else {
-            Ok(polymorphic_vir::Expr::forall(
+            Ok(vir::Expr::forall(
                 encoded_args,
                 encoded_triggers,
                 final_body,
@@ -430,9 +437,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     /// * the location at which the closure was defined.
     fn translate_expr_to_closure_def_site(
         &self,
-        expr: polymorphic_vir::Expr,
+        expr: vir::Expr,
         inner_def_id: DefId,
-    ) -> SpannedEncodingResult<(polymorphic_vir::Expr, DefId, mir::Location)> {
+    ) -> SpannedEncodingResult<(vir::Expr, DefId, mir::Location)> {
         debug!("translate_expr_to_closure_def_site {} {:?}", expr, inner_def_id);
         let inner_mir = self.encoder.env().local_mir(inner_def_id.expect_local());
         let inner_mir_encoder = MirEncoder::new(self.encoder, &inner_mir, inner_def_id);
@@ -476,11 +483,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         assert_eq!(captured_tys.len(), captured_operands.len());
 
         // Replacements to translate from the closure to the definition site
-        let mut replacements: Vec<(polymorphic_vir::Expr, polymorphic_vir::Expr)> = vec![];
+        let mut replacements: Vec<(vir::Expr, vir::Expr)> = vec![];
 
         // Replacement 1: translate a local variable from the closure to a place in the outer MIR
-        let substs = &self.encoder.type_substitution_polymorphic_type_map().with_span(outer_span)?;
-        let inner_captured_places: Vec<polymorphic_vir::Expr> = captured_tys
+        let substs = &self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(outer_span)?;
+        let inner_captured_places: Vec<vir::Expr> = captured_tys
             .iter()
             .enumerate()
             .map(|(index, &captured_ty)| {
@@ -544,7 +551,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     ty::TyKind::Char => {
                         let span = inner_mir_encoder.get_local_span(local_arg_index);
                         let value_field = self.encoder.encode_value_field(local_arg.ty).with_span(span)?;
-                        polymorphic_vir::Expr::local(encoded_arg).field(value_field)
+                        vir::Expr::local(encoded_arg).field(value_field)
                     }
                     _ => {
                         encoded_arg.into()
@@ -575,16 +582,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
     /// precedent program point.
     fn translate_expr_to_state(
         &self,
-        expr: polymorphic_vir::Expr,
+        expr: vir::Expr,
         def_id: DefId,
         expr_location: mir::Location,
         target_location: mir::BasicBlock,
-    ) -> SpannedEncodingResult<polymorphic_vir::Expr> {
+    ) -> SpannedEncodingResult<vir::Expr> {
         debug!("translate_expr_to_state {} {:?} {:?}", expr, def_id, expr_location);
         let mir = self.encoder.env().local_mir(def_id.expect_local());
 
         // Translate an intermediate state to the state at the beginning of the method
-        let substs = self.encoder.type_substitution_polymorphic_type_map().with_span(mir.span)?;
+        let substs = self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(mir.span)?;
         let state = MultiExprBackwardInterpreterState::new_single_with_substs(
             expr.clone(),
             substs,
@@ -593,7 +600,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             self.encoder,
             &mir,
             def_id,
-            self.parent_def_id,
+            self.parent_def_id, self.tymap,
         );
         let initial_state = run_backward_interpretation_point_to_point(
             &mir,
@@ -614,12 +621,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
 
     /// Encode the assertion of a contract or loop invariant.
     fn encode_expression(&self, assertion_expr: &typed::Expression)
-        -> SpannedEncodingResult<polymorphic_vir::Expr>
+        -> SpannedEncodingResult<vir::Expr>
     {
         debug!("encode_expression {:?}", assertion_expr);
 
         let mut curr_def_id = assertion_expr.expr.to_def_id();
-        let mut curr_expr = self.encoder.encode_pure_expression(curr_def_id, self.parent_def_id)?;
+        let mut curr_expr = self.encoder.encode_pure_expression(curr_def_id, self.parent_def_id, self.tymap)?;
 
         loop {
             let done = self.encoder.get_single_closure_instantiation(curr_def_id).is_none();
@@ -655,8 +662,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let mir_encoder = MirEncoder::new(self.encoder, &mir, curr_def_id);
 
         // Replacements to use the provided `target_args` and `target_return`
-        let mut replacements: Vec<(polymorphic_vir::Expr, polymorphic_vir::Expr)> = vec![];
-        let substs = &self.encoder.type_substitution_polymorphic_type_map().with_span(mir.span)?;
+        let mut replacements: Vec<(vir::Expr, vir::Expr)> = vec![];
+        let substs = &self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(mir.span)?;
 
         // Replacement 1: replace the arguments with the `target_args`.
         replacements.extend(
@@ -669,9 +676,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     let local_ty = mir.local_decls[local].ty;
                     // will panic if attempting to encode unsupported type
                     let spec_local = mir_encoder.encode_local(local).unwrap();
-                    let spec_local_place: polymorphic_vir::Expr = if self.targets_are_values {
+                    let spec_local_place: vir::Expr = if self.targets_are_values {
                         self.encoder.encode_value_expr(
-                            polymorphic_vir::Expr::local(spec_local),
+                            vir::Expr::local(spec_local),
                             local_ty
                         ).with_span(mir_encoder.get_local_span(local))?
                     } else {
@@ -690,9 +697,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
             let fake_return_ty = mir.local_decls[fake_return_local].ty;
             // will panic if attempting to encode unsupported type
             let spec_fake_return = mir_encoder.encode_local(fake_return_local).unwrap();
-            let spec_fake_return_place: polymorphic_vir::Expr = if self.targets_are_values {
+            let spec_fake_return_place: vir::Expr = if self.targets_are_values {
                 self.encoder.encode_value_expr(
-                    polymorphic_vir::Expr::local(spec_fake_return),
+                    vir::Expr::local(spec_fake_return),
                     fake_return_ty
                 ).with_span(mir_encoder.get_local_span(fake_return_local))?
             } else {
@@ -738,10 +745,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> StraightLineBackwardInterpreter<'p, 'v, 'tcx> {
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
         parent_def_id: DefId,
+        tymap: &'p SubstMap<'tcx>,
     ) -> Self {
         StraightLineBackwardInterpreter {
             interpreter: PureFunctionBackwardInterpreter::new(
-                encoder, mir, def_id, false, parent_def_id
+                encoder, mir, def_id, false, parent_def_id, tymap.clone(),
             ),
         }
     }

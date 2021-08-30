@@ -17,6 +17,8 @@
 //! See: https://github.com/viperproject/silicon/issues/387
 
 
+use vir::polymorphic::FieldAccessPredicate;
+
 use crate::vir::polymorphic_vir::{ast, borrows, cfg};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
@@ -76,7 +78,7 @@ struct StmtOptimizer {
 }
 
 impl ast::StmtFolder for StmtOptimizer {
-    fn fold_inhale(&mut self, expr: ast::Expr) -> ast::Stmt {
+    fn fold_inhale(&mut self, ast::Inhale {expr}: ast::Inhale) -> ast::Stmt {
         ast::Stmt::inhale(expr.optimize())
     }
 }
@@ -352,69 +354,33 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             }
         })
     }
-    fn fallible_fold_unfolding(
-        &mut self,
-        _name: String,
-        _args: Vec<ast::Expr>,
-        _expr: Box<ast::Expr>,
-        _perm: ast::PermAmount,
-        _variant: ast::MaybeEnumVariantIndex,
-        _pos: ast::Position,
-    ) -> Result<ast::Expr, ()> {
+    fn fallible_fold_unfolding(&mut self, _unfolding: ast::Unfolding) -> Result<ast::Expr, ()> {
         unreachable!();
     }
-    fn fallible_fold_labelled_old(
-        &mut self,
-        _label: String,
-        _body: Box<ast::Expr>,
-        _pos: ast::Position
-    ) -> Result<ast::Expr, ()> {
+    fn fallible_fold_labelled_old(&mut self, _labelled_old: ast::LabelledOld) -> Result<ast::Expr, ()> {
         unreachable!();
     }
-    fn fallible_fold_magic_wand(
-        &mut self,
-        _lhs: Box<ast::Expr>,
-        _rhs: Box<ast::Expr>,
-        _borrow: Option<borrows::Borrow>,
-        _pos: ast::Position,
-    ) -> Result<ast::Expr, ()> {
+    fn fallible_fold_magic_wand(&mut self, _magic_wand: ast::MagicWand) -> Result<ast::Expr, ()> {
         Err(())
     }
-    fn fallible_fold_predicate_access_predicate(
-        &mut self,
-        _typ: ast::Type,
-        _arg: Box<ast::Expr>,
-        _perm_amount: ast::PermAmount,
-        _pos: ast::Position,
-    ) -> Result<ast::Expr, ()> {
+    fn fallible_fold_predicate_access_predicate(&mut self, _predicate_access_predicate: ast::PredicateAccessPredicate) -> Result<ast::Expr, ()> {
         Err(())
     }
-    fn fallible_fold_field_access_predicate(
-        &mut self,
-        _receiver: Box<ast::Expr>,
-        _perm_amount: ast::PermAmount,
-        _pos: ast::Position
-    ) -> Result<ast::Expr, ()> {
+    fn fallible_fold_field_access_predicate(&mut self, _field_access_predicate: ast::FieldAccessPredicate) -> Result<ast::Expr, ()> {
         Err(())
     }
-    fn fallible_fold_bin_op(
-        &mut self,
-        kind: ast::BinOpKind,
-        first: Box<ast::Expr>,
-        second: Box<ast::Expr>,
-        pos: ast::Position
-    ) -> Result<ast::Expr, ()> {
-        let f = first.clone();
-        let s = second.clone();
-        let first_folded = self.fallible_fold_boxed(first)?;
+    fn fallible_fold_bin_op(&mut self, ast::BinOp {op_kind, left, right, position}: ast::BinOp) -> Result<ast::Expr, ()> {
+        let f = left.clone();
+        let s = right.clone();
+        let first_folded = self.fallible_fold_boxed(left)?;
         let first_unfoldings = self.get_unfoldings();
         let first_requirements = self.get_requirements();
 
-        let second_folded = self.fallible_fold_boxed(second)?;
+        let second_folded = self.fallible_fold_boxed(right)?;
         let second_unfoldings = self.get_unfoldings();
         let second_requirements = self.get_requirements();
 
-        trace!("fold_bin_op: {} {} {}", kind, f, s);
+        trace!("fold_bin_op: {} {} {}", op_kind, f, s);
 
         let (new_reqs, new_unfoldings, new_first, new_second) = merge_requirements_and_unfoldings2(
             first_folded, first_unfoldings, first_requirements,
@@ -423,19 +389,13 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         self.requirements = new_reqs;
         self.unfoldings = new_unfoldings;
         Ok(ast::Expr::BinOp( ast::BinOp {
-            op_kind: kind,
+            op_kind,
             left: new_first,
             right: new_second,
-            position: pos,
+            position,
         }))
     }
-    fn fallible_fold_cond(
-        &mut self,
-        guard: Box<ast::Expr>,
-        then_expr: Box<ast::Expr>,
-        else_expr: Box<ast::Expr>,
-        pos: ast::Position
-    ) -> Result<ast::Expr, ()> {
+    fn fallible_fold_cond(&mut self, ast::Cond {guard, then_expr, else_expr, position}: ast::Cond) -> Result<ast::Expr, ()> {
         let g = guard.clone();
         let f = then_expr.clone();
         let s = else_expr.clone();
@@ -471,7 +431,7 @@ impl ast::FallibleExprFolder for ExprOptimizer {
                 guard: guard_folded,
                 then_expr: then_folded,
                 else_expr: else_folded,
-                position: pos,
+                position,
             }))
         } else {
 
@@ -508,17 +468,11 @@ impl ast::FallibleExprFolder for ExprOptimizer {
                 guard: guard_restored,
                 then_expr: then_restored,
                 else_expr: else_restored,
-                position: pos,
+                position,
             }))
         }
     }
-    fn fallible_fold_let_expr(
-        &mut self,
-        _var: ast::LocalVar,
-        _expr: Box<ast::Expr>,
-        _body: Box<ast::Expr>,
-        _pos: ast::Position
-    ) -> Result<ast::Expr, ()> {
+    fn fallible_fold_let_expr(&mut self, _let_expr: ast::LetExpr) -> Result<ast::Expr, ()> {
         unreachable!();
     }
 }

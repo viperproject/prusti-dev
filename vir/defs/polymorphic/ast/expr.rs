@@ -537,15 +537,9 @@ impl Expr {
             perm_amount: PermAmount,
         }
         impl ExprWalker for PredicateFinder {
-            fn walk_predicate_access_predicate(
-                &mut self,
-                _typ: &Type,
-                arg: &Expr,
-                perm_amount: PermAmount,
-                _pos: &Position,
-            ) {
-                if perm_amount == self.perm_amount {
-                    self.predicates.push(arg.clone());
+            fn walk_predicate_access_predicate(&mut self, PredicateAccessPredicate {box argument, permission, ..}: &PredicateAccessPredicate) {
+                if *permission == self.perm_amount {
+                    self.predicates.push(argument.clone());
                 }
             }
         }
@@ -806,21 +800,10 @@ impl Expr {
             non_pure: bool,
         }
         impl ExprWalker for PurityFinder {
-            fn walk_predicate_access_predicate(
-                &mut self,
-                _typ: &Type,
-                _arg: &Expr,
-                _perm_amount: PermAmount,
-                _pos: &Position,
-            ) {
+            fn walk_predicate_access_predicate(&mut self, _predicate_access_predicate: &PredicateAccessPredicate) {
                 self.non_pure = true;
             }
-            fn walk_field_access_predicate(
-                &mut self,
-                _receiver: &Expr,
-                _perm_amount: PermAmount,
-                _pos: &Position,
-            ) {
+            fn walk_field_access_predicate(&mut self, _field_access_predicate: &FieldAccessPredicate) {
                 self.non_pure = true;
             }
         }
@@ -833,21 +816,10 @@ impl Expr {
     pub fn purify(self) -> Self {
         struct Purifier;
         impl ExprFolder for Purifier {
-            fn fold_predicate_access_predicate(
-                &mut self,
-                _typ: Type,
-                _arg: Box<Expr>,
-                _perm_amount: PermAmount,
-                _pos: Position,
-            ) -> Expr {
+            fn fold_predicate_access_predicate(&mut self, _predicate_access_predicate: PredicateAccessPredicate) -> Expr {
                 true.into()
             }
-            fn fold_field_access_predicate(
-                &mut self,
-                _receiver: Box<Expr>,
-                _perm_amount: PermAmount,
-                _pos: Position,
-            ) -> Expr {
+            fn fold_field_access_predicate(&mut self, _field_access_predicate: FieldAccessPredicate) -> Expr {
                 true.into()
             }
         }
@@ -859,57 +831,25 @@ impl Expr {
             non_pure: bool,
         }
         impl ExprWalker for HeapAccessFinder {
-            fn walk_predicate_access_predicate(
-                &mut self,
-                _typ: &Type,
-                _arg: &Expr,
-                _perm_amount: PermAmount,
-                _pos: &Position,
-            ) {
+            fn walk_predicate_access_predicate(&mut self, _predicate_access_predicate: &PredicateAccessPredicate) {
                 self.non_pure = true;
             }
-            fn walk_field_access_predicate(
-                &mut self,
-                _receiver: &Expr,
-                _perm_amount: PermAmount,
-                _pos: &Position,
-            ) {
+            fn walk_field_access_predicate(&mut self, _field_access_predicate: &FieldAccessPredicate) {
                 self.non_pure = true;
             }
-            fn walk_field(&mut self, _receiver: &Expr, _field: &Field, _pos: &Position) {
+            fn walk_field(&mut self, _field: &FieldExpr) {
                 self.non_pure = true;
             }
-            fn walk_variant(&mut self, _base: &Expr, _variant: &Field, _pos: &Position) {
+            fn walk_variant(&mut self, _variant: &Variant) {
                 self.non_pure = true;
             }
-            fn walk_magic_wand(
-                &mut self,
-                _lhs: &Expr,
-                _rhs: &Expr,
-                _borrow: &Option<Borrow>,
-                _pos: &Position,
-            ) {
+            fn walk_magic_wand(&mut self, _magic_wand: &MagicWand) {
                 self.non_pure = true;
             }
-            fn walk_unfolding(
-                &mut self,
-                _name: &str,
-                _args: &Vec<Expr>,
-                _body: &Expr,
-                _perm: PermAmount,
-                _variant: &MaybeEnumVariantIndex,
-                _pos: &Position,
-            ) {
+            fn walk_unfolding(&mut self, _unfolding: &Unfolding) {
                 self.non_pure = true;
             }
-            fn walk_func_app(
-                &mut self,
-                _name: &str,
-                _args: &Vec<Expr>,
-                _formal_args: &Vec<LocalVar>,
-                _return_type: &Type,
-                _pos: &Position,
-            ) {
+            fn walk_func_app(&mut self, _func_app: &FuncApp) {
                 self.non_pure = true;
             }
         }
@@ -1092,9 +1032,9 @@ impl Expr {
             f: T,
         }
         impl<T: Fn(String) -> Option<String>> ExprFolder for OldLabelReplacer<T> {
-            fn fold_labelled_old(&mut self, label: String, base: Box<Expr>, pos: Position) -> Expr {
+            fn fold_labelled_old(&mut self, LabelledOld {label, base, position}: LabelledOld) -> Expr {
                 match (self.f)(label) {
-                    Some(new_label) => base.old(new_label).set_pos(pos),
+                    Some(new_label) => base.old(new_label).set_pos(position),
                     None => *base,
                 }
             }
@@ -1106,7 +1046,7 @@ impl Expr {
     pub fn simplify_addr_of(self) -> Self {
         struct Simplifier;
         impl ExprFolder for Simplifier {
-            fn fold_field(&mut self, receiver: Box<Expr>, field: Field, position: Position) -> Expr {
+            fn fold_field(&mut self, FieldExpr {base: receiver, field, position}: FieldExpr) -> Expr {
                 if receiver.is_addr_of() {
                     if let Expr::AddrOf(AddrOf { base , .. }) = *receiver {
                         *base
@@ -1116,7 +1056,9 @@ impl Expr {
                 } else {
                     let new_receiver = self.fold_boxed(receiver);
                     Expr::Field(FieldExpr {
-                        base: new_receiver, field, position
+                        base: new_receiver,
+                        field,
+                        position,
                     })
                 }
             }
@@ -1168,58 +1110,46 @@ impl Expr {
                 }
             }
 
-            fn fold_forall(
-                &mut self,
-                vars: Vec<LocalVar>,
-                triggers: Vec<Trigger>,
-                body: Box<Expr>,
-                pos: Position,
-            ) -> Expr {
-                if vars.contains(&self.target.get_base()) {
+            fn fold_forall(&mut self, ForAll {variables, triggers, body, position}: ForAll) -> Expr {
+                if variables.contains(&self.target.get_base()) {
                     // Do nothing
                     Expr::ForAll( ForAll {
-                        variables: vars,
+                        variables,
                         triggers,
                         body,
-                        position: pos,
+                        position,
                     })
                 } else {
                     Expr::ForAll( ForAll {
-                        variables: vars,
+                        variables,
                         triggers: triggers
                             .into_iter()
                             .map(|x| x.replace_place(self.target, self.replacement))
                             .collect(),
                         body: self.fold_boxed(body),
-                        position: pos,
+                        position,
                     })
                 }
             }
 
-            fn fold_exists(
-                &mut self,
-                vars: Vec<LocalVar>,
-                triggers: Vec<Trigger>,
-                body: Box<Expr>,
-                pos: Position,
-            ) -> Expr {
-                if vars.contains(&self.target.get_base()) {
+            fn fold_exists(&mut self, Exists {variables, triggers, body, position}: Exists) -> Expr {
+                if variables.contains(&self.target.get_base()) {
                     // Do nothing
                     Expr::Exists( Exists {
-                        variables: vars,
+                        variables,
                         triggers,
                         body,
-                        position: pos,
+                        position,
                     })
                 } else {
                     Expr::Exists( Exists {
-                        variables: vars,
+                        variables,
                         triggers: triggers
                             .into_iter()
                             .map(|x| x.replace_place(self.target, self.replacement))
                             .collect(),
                         body: self.fold_boxed(body),
-                        position: pos,
+                        position,
                     })
                 }
             }
@@ -1269,24 +1199,22 @@ impl Expr {
                 default_fold_expr(self, e)
             }
 
-            fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
-                let new_receiver = self.fold_boxed(receiver);
+            fn fold_field(&mut self, FieldExpr {mut base, field, position}: FieldExpr) -> Expr {
+                base = self.fold_boxed(base);
 
-                Expr::Field( FieldExpr {base: new_receiver, field, position: pos} )
+                Expr::Field( FieldExpr {
+                    base,
+                    field,
+                    position,
+                })
             }
 
-            fn fold_forall(
-                &mut self,
-                vars: Vec<LocalVar>,
-                triggers: Vec<Trigger>,
-                body: Box<Expr>,
-                pos: Position,
-            ) -> Expr {
+            fn fold_forall(&mut self, ForAll {variables, triggers, body, position}: ForAll) -> Expr {
                 // TODO: the correct solution is the following:
                 // (1) skip replacements where `src` uses a quantified variable;
                 // (2) rename with a fresh name the quantified variables that conflict with `dst`.
                 for (src, dst) in self.replacements.iter() {
-                    if vars.contains(&src.get_base()) || vars.contains(&dst.get_base()) {
+                    if variables.contains(&src.get_base()) || variables.contains(&dst.get_base()) {
                         unimplemented!(
                             "replace_multiple_places doesn't handle replacements that conflict \
                             with quantified variables"
@@ -1295,28 +1223,22 @@ impl Expr {
                 }
 
                 Expr::ForAll( ForAll {
-                    variables: vars,
+                    variables,
                     triggers: triggers
                         .into_iter()
                         .map(|x| x.replace_multiple_places(self.replacements))
                         .collect(),
                     body: self.fold_boxed(body),
-                    position: pos,
+                    position,
                 })
             }
 
-            fn fold_exists(
-                &mut self,
-                vars: Vec<LocalVar>,
-                triggers: Vec<Trigger>,
-                body: Box<Expr>,
-                pos: Position,
-            ) -> Expr {
+            fn fold_exists(&mut self, Exists {variables, triggers, body, position}: Exists) -> Expr {
                 // TODO: the correct solution is the following:
                 // (1) skip replacements where `src` uses a quantified variable;
                 // (2) rename with a fresh name the quantified variables that conflict with `dst`.
                 for (src, dst) in self.replacements.iter() {
-                    if vars.contains(&src.get_base()) || vars.contains(&dst.get_base()) {
+                    if variables.contains(&src.get_base()) || variables.contains(&dst.get_base()) {
                         unimplemented!(
                             "replace_multiple_places doesn't handle replacements that conflict \
                             with quantified variables"
@@ -1325,13 +1247,13 @@ impl Expr {
                 }
 
                 Expr::Exists( Exists {
-                    variables: vars,
+                    variables,
                     triggers: triggers
                         .into_iter()
                         .map(|x| x.replace_multiple_places(self.replacements))
                         .collect(),
                     body: self.fold_boxed(body),
-                    position: pos,
+                    position,
                 })
             }
         }
@@ -1348,13 +1270,13 @@ impl Expr {
             current_label: Option<String>,
         }
         impl ExprFolder for RedundantOldRemover {
-            fn fold_labelled_old(&mut self, label: String, base: Box<Expr>, pos: Position) -> Expr {
+            fn fold_labelled_old(&mut self, LabelledOld {label, base, position}: LabelledOld) -> Expr {
                 let old_current_label = mem::replace(&mut self.current_label, Some(label.clone()));
                 let new_base = default_fold_expr(self, *base);
                 let new_expr = if Some(label.clone()) == old_current_label {
                     new_base
                 } else {
-                    new_base.old(label).set_pos(pos)
+                    new_base.old(label).set_pos(position)
                 };
                 self.current_label = old_current_label;
                 new_expr
@@ -1375,7 +1297,7 @@ impl Expr {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     Expr::BinOp( BinOp {op_kind: BinOpKind::And, left, right, position} ) => {
-                        self.fold_bin_op(BinOpKind::And, left, right, position)
+                        self.fold_bin_op(BinOp {op_kind: BinOpKind::And, left, right, position})
                     }
 
                     Expr::BinOp(..)
@@ -1426,27 +1348,27 @@ impl Expr {
             perms: Vec<Expr>,
         }
         impl ExprWalker for Collector {
-            fn walk_variant(&mut self, e: &Expr, v: &Field, p: &Position) {
-                self.walk(e);
+            fn walk_variant(&mut self, Variant {box base, variant_index, position}: &Variant) {
+                self.walk(base);
                 let expr = Expr::Variant(Variant {
-                    base: Box::new(e.clone()),
-                    variant_index: v.clone(),
-                    position: *p,
+                    base: Box::new(base.clone()),
+                    variant_index: variant_index.clone(),
+                    position: *position,
                 });
                 let perm = Expr::acc_permission(expr, self.perm_amount);
                 self.perms.push(perm);
             }
-            fn walk_field(&mut self, e: &Expr, f: &Field, p: &Position) {
-                self.walk(e);
+            fn walk_field(&mut self, FieldExpr {box base, field, position}: &FieldExpr) {
+                self.walk(base);
                 let expr = Expr::Field(FieldExpr {
-                    base: Box::new(e.clone()),
-                    field: f.clone(),
-                    position: *p,
+                    base: Box::new(base.clone()),
+                    field: field.clone(),
+                    position: *position,
                 });
                 let perm = Expr::acc_permission(expr, self.perm_amount);
                 self.perms.push(perm);
             }
-            fn walk_labelled_old(&mut self, _label: &str, _expr: &Expr, _pos: &Position) {
+            fn walk_labelled_old(&mut self, _labelled_old: &LabelledOld) {
                 // Stop recursion.
             }
         }
@@ -1466,46 +1388,33 @@ impl Expr {
             substs: &'a HashMap<TypeVar, Type>,
         }
         impl<'a> ExprFolder for TypePatcher<'a> {
-            fn fold_predicate_access_predicate(
-                &mut self,
-                typ: Type,
-                arg: Box<Expr>,
-                perm_amount: PermAmount,
-                pos: Position,
-            ) -> Expr {
+            fn fold_predicate_access_predicate(&mut self, PredicateAccessPredicate {predicate_type, argument, permission, position}: PredicateAccessPredicate) -> Expr {
                 Expr::PredicateAccessPredicate ( PredicateAccessPredicate {
-                    predicate_type: typ.substitute(self.substs),
-                    argument: self.fold_boxed(arg),
-                    permission: perm_amount,
-                    position: pos,
+                    predicate_type: predicate_type.substitute(self.substs),
+                    argument: self.fold_boxed(argument),
+                    permission,
+                    position,
                 })
             }
-            fn fold_local(&mut self, mut var: LocalVar, pos: Position) -> Expr {
-                var.typ = var.typ.substitute(self.substs);
+            fn fold_local(&mut self, Local {mut variable, position}: Local) -> Expr {
+                variable.typ = variable.typ.substitute(self.substs);
                 Expr::Local( Local {
-                    variable: var,
-                    position: pos,
+                    variable,
+                    position,
                 })
             }
-            fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
+            fn fold_field(&mut self, FieldExpr {base, field, position}: FieldExpr) -> Expr {
                 Expr::Field( FieldExpr {
-                    base: self.fold_boxed(receiver),
+                    base: self.fold_boxed(base),
                     field: Field {
                         name: field.name,
                         typ: field.typ.substitute(self.substs),
                     },
-                    position: pos,
+                    position,
                 })
             }
-            fn fold_func_app(
-                &mut self,
-                name: String,
-                args: Vec<Expr>,
-                formal_args: Vec<LocalVar>,
-                return_type: Type,
-                pos: Position,
-            ) -> Expr {
-                let formal_args = formal_args
+            fn fold_func_app(&mut self, FuncApp {function_name, arguments, formal_arguments, return_type, position}: FuncApp) -> Expr {
+                let formal_arguments = formal_arguments
                     .into_iter()
                     .map(|mut var| {
                         var.typ = var.typ.substitute(self.substs);
@@ -1515,11 +1424,11 @@ impl Expr {
                 // FIXME: We do not patch the return_type because pure functions cannot return
                 // generic values.
                 Expr::FuncApp( FuncApp {
-                    function_name: name,
-                    arguments: args.into_iter().map(|e| self.fold(e)).collect(),
-                    formal_arguments: formal_args,
-                    return_type: return_type,
-                    position: pos,
+                    function_name,
+                    arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
+                    formal_arguments,
+                    return_type,
+                    position,
                 })
             }
         }
@@ -1545,37 +1454,26 @@ impl Expr {
     pub fn remove_read_permissions(self) -> Self {
         struct ReadPermRemover {}
         impl ExprFolder for ReadPermRemover {
-            fn fold_predicate_access_predicate(
-                &mut self,
-                typ: Type,
-                arg: Box<Expr>,
-                perm_amount: PermAmount,
-                p: Position,
-            ) -> Expr {
-                assert!(perm_amount.is_valid_for_specs());
-                match perm_amount {
+            fn fold_predicate_access_predicate(&mut self, PredicateAccessPredicate {predicate_type, argument, permission, position}: PredicateAccessPredicate) -> Expr {
+                assert!(permission.is_valid_for_specs());
+                match permission {
                     PermAmount::Write => Expr::PredicateAccessPredicate(PredicateAccessPredicate {
-                        predicate_type: typ,
-                        argument: arg,
-                        permission: perm_amount,
-                        position: p,
+                        predicate_type,
+                        argument,
+                        permission,
+                        position,
                     }),
                     PermAmount::Read => true.into(),
                     _ => unreachable!(),
                 }
             }
-            fn fold_field_access_predicate(
-                &mut self,
-                reference: Box<Expr>,
-                perm_amount: PermAmount,
-                p: Position,
-            ) -> Expr {
-                assert!(perm_amount.is_valid_for_specs());
-                match perm_amount {
+            fn fold_field_access_predicate(&mut self, FieldAccessPredicate {base, permission, position}: FieldAccessPredicate) -> Expr {
+                assert!(permission.is_valid_for_specs());
+                match permission {
                     PermAmount::Write => Expr::FieldAccessPredicate(FieldAccessPredicate {
-                        base: reference,
-                        permission: perm_amount,
-                        position: p,
+                        base,
+                        permission,
+                        position,
                     }),
                     PermAmount::Read => true.into(),
                     _ => unreachable!(),

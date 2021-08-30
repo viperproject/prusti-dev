@@ -10,12 +10,14 @@ use prusti_interface::{
     data::ProcedureDefId,
     specs::typed,
 };
-use vir_crate::polymorphic as polymorphic_vir;
+use vir_crate::polymorphic as vir;
 use vir_crate::polymorphic::ExprIterator;
 use rustc_middle::{ty, mir};
 use rustc_span::Span;
 use log::{debug, trace};
 use rustc_hir as hir;
+
+use super::encoder::SubstMap;
 
 pub enum SpecFunctionKind {
     Pre,
@@ -31,11 +33,12 @@ pub struct SpecFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     is_closure: bool,
     mir: &'p mir::Body<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
+    tymap: &'p SubstMap<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'tcx>,
-               procedure: &'p Procedure<'tcx>) -> Self {
+               procedure: &'p Procedure<'tcx>, tymap: &'p SubstMap<'tcx>,) -> Self {
         Self {
             encoder: encoder,
             procedure: procedure,
@@ -43,11 +46,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             proc_def_id: procedure.get_id(),
             is_closure: encoder.env().tcx().is_closure(procedure.get_id()),
             mir: procedure.get_mir(),
-            mir_encoder: MirEncoder::new(encoder, procedure.get_mir(), procedure.get_id())
+            mir_encoder: MirEncoder::new(encoder, procedure.get_mir(), procedure.get_id()),
+            tymap,
         }
     }
 
-    pub fn encode(&self) -> SpannedEncodingResult<Vec<polymorphic_vir::Function>> {
+    pub fn encode(&self) -> SpannedEncodingResult<Vec<vir::Function>> {
         let _pre_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                           SpecFunctionKind::Pre);
         let _post_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
@@ -63,7 +67,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
             self.proc_def_id,
             self.encoder.env(),
             typed::SpecificationSet::Procedure(specs),
-            Some(&self.encoder.current_tymap())
+            Some(self.tymap)
         ).with_span(self.span)?.to_def_site_contract();
 
         let pre_func = self.encode_pre_spec_func(&contract)?;
@@ -73,10 +77,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_pre_spec_func(&self, contract: &ProcedureContract<'tcx>)
-        -> SpannedEncodingResult<polymorphic_vir::Function> {
-        let mut func_spec: Vec<polymorphic_vir::Expr> = vec![];
+        -> SpannedEncodingResult<vir::Function> {
+        let mut func_spec: Vec<vir::Expr> = vec![];
 
-        let encoded_args: Vec<polymorphic_vir::LocalVar> = contract
+        let encoded_args: Vec<vir::LocalVar> = contract
             .args
             .iter()
             .map(|local| self.encode_local(local.clone().into()).into())
@@ -89,33 +93,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                 None,
                 &encoded_args
                     .iter()
-                    .map(|e| -> polymorphic_vir::Expr { e.into() }).collect::<Vec<_>>(),
+                    .map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 None,
                 true,
                 None,
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
+                self.tymap,
             )?);
         }
 
-        Ok(polymorphic_vir::Function {
+        Ok(vir::Function {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Pre),
             formal_args: encoded_args.into_iter()
                                      .skip(if self.is_closure { 1 } else { 0 }) // FIXME: "self" is skipped, see TypeEncoder
                                      .collect(),
-            return_type: polymorphic_vir::Type::Bool,
+            return_type: vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),
-            body: Some(self.encoder.patch_snapshots(func_spec.into_iter().conjoin()).with_span(self.span)?),
+            body: Some(self.encoder.patch_snapshots(func_spec.into_iter().conjoin(), self.tymap).with_span(self.span)?),
         })
     }
 
     fn encode_post_spec_func(&self, contract: &ProcedureContract<'tcx>)
-        -> SpannedEncodingResult<polymorphic_vir::Function> {
-        let mut func_spec: Vec<polymorphic_vir::Expr> = vec![];
+        -> SpannedEncodingResult<vir::Function> {
+        let mut func_spec: Vec<vir::Expr> = vec![];
 
-        let encoded_args: Vec<polymorphic_vir::LocalVar> = contract
+        let encoded_args: Vec<vir::LocalVar> = contract
             .args
             .iter()
             .map(|local| self.encode_local(local.clone().into()).into())
@@ -133,35 +138,36 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                 None,
                 &encoded_args
                     .iter()
-                    .map(|e| -> polymorphic_vir::Expr { e.into() }).collect::<Vec<_>>(),
+                    .map(|e| -> vir::Expr { e.into() }).collect::<Vec<_>>(),
                 Some(&encoded_return.clone().into()),
                 true,
                 None,
                 ErrorCtxt::GenericExpression,
                 self.proc_def_id,
+                self.tymap,
             )?);
         }
 
-        Ok(polymorphic_vir::Function {
+        Ok(vir::Function {
             name: self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                      SpecFunctionKind::Post),
             formal_args: encoded_args.into_iter()
                                      .skip(if self.is_closure { 1 } else { 0 }) // FIXME: "self" is skipped, see TypeEncoder
                                      .chain(std::iter::once(encoded_return))
                                      .collect(),
-            return_type: polymorphic_vir::Type::Bool,
+            return_type: vir::Type::Bool,
             pres: Vec::new(),
             posts: Vec::new(),
-            body: Some(self.encoder.patch_snapshots(func_spec.into_iter().conjoin()).with_span(self.span)?),
+            body: Some(self.encoder.patch_snapshots(func_spec.into_iter().conjoin(), self.tymap).with_span(self.span)?),
         })
     }
 
-    fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<polymorphic_vir::LocalVar> {
+    fn encode_local(&self, local: mir::Local) -> SpannedEncodingResult<vir::LocalVar> {
         let var_name = self.mir_encoder.encode_local_var_name(local);
         let var_type = self
             .encoder
-            .encode_snapshot_type(self.mir_encoder.get_local_ty(local))
+            .encode_snapshot_type(self.mir_encoder.get_local_ty(local), self.tymap)
             .with_span(self.span)?;
-        Ok(polymorphic_vir::LocalVar::new(var_name, var_type))
+        Ok(vir::LocalVar::new(var_name, var_type))
     }
 }

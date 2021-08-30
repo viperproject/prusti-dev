@@ -14,17 +14,17 @@ use crate::encoder::{
     errors::EncodingResult,
     builtin_encoder::BuiltinFunctionKind,
 };
-use vir_crate::{vir_local, vir_type};
-use vir_crate::polymorphic as polymorphic_vir;
+use prusti_common::vir_local;
+use vir_crate::polymorphic as vir;
 
 
 /// The result of `ArrayEncoder::encode_array_types`. Contains types, type predicates and length of the given array type.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct EncodedArrayTypes<'tcx> {
     /// Array type, e.g. TypedRef(Array$3$i32)
-    pub array_pred_type: polymorphic_vir::Type,
+    pub array_pred_type: vir::Type,
     /// Element type, e.g. TypedRef(i32)
-    pub elem_pred_type: polymorphic_vir::Type,
+    pub elem_pred_type: vir::Type,
     /// The non-encoded element type as passed by rustc
     pub elem_ty_rs: ty::Ty<'tcx>,
     /// The length of the array, e.g. 3
@@ -32,7 +32,7 @@ pub struct EncodedArrayTypes<'tcx> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> EncodedArrayTypes<'tcx> {
-    pub fn encode_lookup_pure_call(&self, encoder: &'p Encoder<'v, 'tcx>, array: polymorphic_vir::Expr, idx: polymorphic_vir::Expr, ret_ty: polymorphic_vir::Type) -> polymorphic_vir::Expr {
+    pub fn encode_lookup_pure_call(&self, encoder: &'p Encoder<'v, 'tcx>, array: vir::Expr, idx: vir::Expr, ret_ty: vir::Type) -> vir::Expr {
         let lookup_pure = encoder.encode_builtin_function_use(
             BuiltinFunctionKind::ArrayLookupPure {
                 array_pred_type: self.array_pred_type.clone(),
@@ -42,7 +42,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedArrayTypes<'tcx> {
             }
         );
 
-        polymorphic_vir::Expr::func_app(
+        vir::Expr::func_app(
             lookup_pure,
             vec![
                 array,
@@ -53,7 +53,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedArrayTypes<'tcx> {
                 vir_local!{ idx: Int },
             ],
             ret_ty,
-            polymorphic_vir::Position::default(),
+            vir::Position::default(),
         )
     }
 }
@@ -62,15 +62,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedArrayTypes<'tcx> {
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct EncodedSliceTypes<'tcx> {
     /// Slice type, e.g. TypedRef(Slice$i32)
-    pub slice_pred_type: polymorphic_vir::Type,
+    pub slice_pred_type: vir::Type,
     /// Element type, e.g. TypedRef(i32)
-    pub elem_pred_type: polymorphic_vir::Type,
+    pub elem_pred_type: vir::Type,
     /// The non-encoded element type as passed by rustc
     pub elem_ty_rs: ty::Ty<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
-    pub fn encode_lookup_pure_call(&self, encoder: &'p Encoder<'v, 'tcx>, slice: polymorphic_vir::Expr, idx: polymorphic_vir::Expr, ret_ty: polymorphic_vir::Type) -> polymorphic_vir::Expr {
+    pub fn encode_lookup_pure_call(&self, encoder: &'p Encoder<'v, 'tcx>, slice: vir::Expr, idx: vir::Expr, ret_ty: vir::Type) -> vir::Expr {
         let lookup_pure = encoder.encode_builtin_function_use(
             BuiltinFunctionKind::SliceLookupPure {
                 slice_pred_type: self.slice_pred_type.clone(),
@@ -79,7 +79,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
             }
         );
 
-        polymorphic_vir::Expr::func_app( 
+        vir::Expr::func_app( 
             lookup_pure,
             vec![
                 slice,
@@ -90,11 +90,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
                 vir_local!{ idx: Int },
             ],
             ret_ty,
-            polymorphic_vir::Position::default(),
+            vir::Position::default(),
         )
     }
 
-    pub fn encode_slice_len_call(&self, encoder: &'p Encoder<'v, 'tcx>, slice: polymorphic_vir::Expr) -> polymorphic_vir::Expr {
+    pub fn encode_slice_len_call(&self, encoder: &'p Encoder<'v, 'tcx>, slice: vir::Expr) -> vir::Expr {
         let slice_len = encoder.encode_builtin_function_use(
             BuiltinFunctionKind::SliceLen {
                 slice_pred_type: self.slice_pred_type.clone(),
@@ -102,7 +102,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
             }
         );
 
-        polymorphic_vir::Expr::func_app(
+        vir::Expr::func_app(
             slice_len,
             vec![
                 slice,
@@ -110,8 +110,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
             vec![
                 vir_local!{ self: {self.slice_pred_type.clone()} },
             ],
-            polymorphic_vir::Type::Int,
-            polymorphic_vir::Position::default(),
+            vir::Type::Int,
+            vir::Position::default(),
         )
     }
 }

@@ -89,23 +89,23 @@ impl PurifiableVariableCollector {
 }
 
 impl ast::ExprWalker for PurifiableVariableCollector {
-    fn walk_local(&mut self, local_var: &LocalVar, _pos: &Position) {
-        if self.vars.remove(&local_var.name) {
-            debug!("Will not purify the variable {:?} ", local_var)
+    fn walk_local(&mut self, ast::Local {variable, ..}: &ast::Local) {
+        if self.vars.remove(&variable.name) {
+            debug!("Will not purify the variable {:?} ", variable)
         }
     }
 
-    fn walk_field(&mut self, receiver: &Expr, _field: &Field, _pos: &Position) {
-        match receiver {
+    fn walk_field(&mut self, ast::FieldExpr {box base, ..}: &ast::FieldExpr) {
+        match base {
             Expr::Local(_) => {}
-            _ => ast::ExprWalker::walk(self, receiver),
+            _ => ast::ExprWalker::walk(self, base),
         }
     }
 }
 
 impl ast::StmtWalker for PurifiableVariableCollector {
-    fn walk_assign(&mut self, _target: &Expr, expr: &Expr, _kind: &ast::AssignKind) {
-        ast::ExprWalker::walk(self, expr);
+    fn walk_assign(&mut self, ast::Assign {source, ..}: &ast::Assign) {
+        ast::ExprWalker::walk(self, source);
     }
 }
 
@@ -149,7 +149,7 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
         ast::ExprFolder::fold(self, expr)
     }
 
-    fn fold_assign(&mut self, target: Expr, mut source: Expr, kind: ast::AssignKind) -> Stmt {
+    fn fold_assign(&mut self, ast::Assign {target, mut source, kind}: ast::Assign) -> Stmt {
         if let Expr::Local( ast::Local {variable: local, ..}) = &target {
             if self.targets.contains(&local.name) {
                 let source_name = force_matches!(source.get_type(), Type::TypedRef(..) => source.get_type().name());
@@ -177,30 +177,23 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
         })
     }
 
-    fn fold_method_call(&mut self, name: String, args: Vec<Expr>, targets: Vec<LocalVar>) -> Stmt {
-        if name.starts_with("builtin$havoc")
+    fn fold_method_call(&mut self, ast::MethodCall {method_name, arguments, targets}: ast::MethodCall) -> Stmt {
+        if method_name.starts_with("builtin$havoc")
             && targets.len() == 1
             && self.targets.contains(&targets[0].name)
         {
             Stmt::comment(format!("replaced havoc call for {:?}", targets))
         } else {
             Stmt::MethodCall( ast::MethodCall {
-                method_name: name,
-                arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
+                method_name,
+                arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
                 targets,
             })
         }
     }
 
-    fn fold_fold(
-        &mut self,
-        predicate_name: String,
-        args: Vec<Expr>,
-        perm_amount: ast::PermAmount,
-        variant: ast::MaybeEnumVariantIndex,
-        pos: Position,
-    ) -> Stmt {
-        if let [Expr::Local( ast::Local {variable: l, ..} )] = args.as_slice() {
+    fn fold_fold(&mut self, ast::Fold {predicate_name, arguments, permission, enum_variant, position}: ast::Fold) -> Stmt {
+        if let [Expr::Local( ast::Local {variable: l, ..} )] = arguments.as_slice() {
             if self.targets.contains(&l.name) {
                 if let Some(predicate) = self.find_predicate(&predicate_name) {
                     let purified_predicate = predicate.clone().replace_place(
@@ -209,7 +202,7 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
                     ).purify();
                     return Stmt::Assert( ast::Assert {
                         expr: self.fold_expr(purified_predicate),
-                        position: pos
+                        position,
                     })
                 } else {
                     return Stmt::comment(format!("replaced fold"));
@@ -219,21 +212,15 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
 
         Stmt::Fold( ast::Fold {
             predicate_name,
-            arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
-            permission: perm_amount,
-            enum_variant: variant,
-            position: pos,
+            arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
+            permission,
+            enum_variant,
+            position,
         })
     }
 
-    fn fold_unfold(
-        &mut self,
-        predicate_name: String,
-        args: Vec<Expr>,
-        perm_amount: ast::PermAmount,
-        variant: ast::MaybeEnumVariantIndex,
-    ) -> Stmt {
-        if let [Expr::Local( ast::Local {variable: l, ..} )] = args.as_slice() {
+    fn fold_unfold(&mut self, ast::Unfold {predicate_name, arguments, permission, enum_variant}: ast::Unfold) -> Stmt {
+        if let [Expr::Local( ast::Local {variable: l, ..} )] = arguments.as_slice() {
             if self.targets.contains(&l.name) {
                 if let Some(predicate) = self.find_predicate(&predicate_name) {
                     let purified_predicate = predicate.clone().replace_place(
@@ -251,66 +238,55 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
 
         Stmt::Unfold( ast::Unfold {
             predicate_name,
-            arguments: args.into_iter().map(|e| self.fold_expr(e)).collect(),
-            permission: perm_amount,
-            enum_variant: variant,
+            arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
+            permission,
+            enum_variant,
         })
     }
 }
 
 impl<'a> ast::ExprFolder for Purifier<'a> {
 
-    fn fold_local(&mut self, local: LocalVar, pos: Position) -> Expr {
-        if self.targets.contains(&local.name) {
-            Expr::Local( ast::Local {variable: LocalVar::new(local.name, translate_type(&local.typ)), position: pos} )
+    fn fold_local(&mut self, ast::Local {variable, position}: ast::Local) -> Expr {
+        if self.targets.contains(&variable.name) {
+            Expr::local_with_pos(LocalVar::new(variable.name, translate_type(&variable.typ)), position)
         } else {
-            Expr::Local( ast::Local {variable: local, position: pos} )
+            Expr::local_with_pos(variable, position)
         }
     }
 
-    fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
-        let rec = self.fold_boxed(receiver);
+    fn fold_field(&mut self, ast::FieldExpr {base, field, position}: ast::FieldExpr) -> Expr {
+        let rec = self.fold_boxed(base);
 
         if let Expr::Local( ast::Local {variable: l, position: lp} ) = *rec.clone() {
             if self.targets.contains(&l.name) {
-                return Expr::Local( ast::Local {variable: LocalVar::new(l.name, translate_type(&l.typ)), position: lp} );
+                return Expr::local_with_pos(LocalVar::new(l.name, translate_type(&l.typ)), lp);
             }
         }
 
         Expr::Field( ast::FieldExpr {
             base: rec,
             field,
-            position: pos,
+            position,
         })
     }
 
-    fn fold_predicate_access_predicate(
-        &mut self,
-        typ: Type,
-        arg: Box<Expr>,
-        perm_amount: ast::PermAmount,
-        pos: Position,
-    ) -> Expr {
-        if let Expr::Local( ast::Local {variable: local, ..} ) = *arg.clone() {
+    fn fold_predicate_access_predicate(&mut self, ast::PredicateAccessPredicate {predicate_type, argument, permission, position}: ast::PredicateAccessPredicate) -> Expr {
+        if let Expr::Local( ast::Local {variable: local, ..} ) = *argument.clone() {
             if self.targets.contains(&local.name) {
                 return true.into();
             }
         }
 
         Expr::PredicateAccessPredicate( ast::PredicateAccessPredicate {
-            predicate_type: typ,
-            argument: self.fold_boxed(arg),
-            permission: perm_amount,
-            position: pos,
+            predicate_type,
+            argument: self.fold_boxed(argument),
+            permission,
+            position,
         })
     }
 
-    fn fold_field_access_predicate(
-        &mut self,
-        receiver: Box<Expr>,
-        perm_amount: ast::PermAmount,
-        pos: Position,
-    ) -> Expr {
+    fn fold_field_access_predicate(&mut self, ast::FieldAccessPredicate {base: receiver, permission, position}: ast::FieldAccessPredicate) -> Expr {
         if let Expr::Field( ast::FieldExpr {base, ..} ) = *receiver.clone() {
             if let Expr::Local( ast::Local {variable: l, ..} ) = *base {
                 if self.targets.contains(&l.name) {
@@ -321,45 +297,37 @@ impl<'a> ast::ExprFolder for Purifier<'a> {
 
         Expr::FieldAccessPredicate( ast::FieldAccessPredicate {
             base: receiver,
-            permission: perm_amount,
-            position: pos,
+            permission,
+            position,
         })
     }
 
-    fn fold_unfolding(
-        &mut self,
-        name: String,
-        args: Vec<Expr>,
-        expr: Box<Expr>,
-        perm: ast::PermAmount,
-        variant: ast::MaybeEnumVariantIndex,
-        pos: Position,
-    ) -> Expr {
-        if let [Expr::Local( ast::Local {variable: local, ..} )] = args.as_slice() {
+    fn fold_unfolding(&mut self, ast::Unfolding {predicate_name, arguments, base, permission, variant, position}: ast::Unfolding) -> Expr {
+        if let [Expr::Local( ast::Local {variable: local, ..} )] = arguments.as_slice() {
             if self.targets.contains(&local.name) {
-                return ast::ExprFolder::fold(self, *expr);
+                return ast::ExprFolder::fold(self, *base);
             }
         }
 
         Expr::Unfolding( ast::Unfolding {
-            predicate_name: name,
-            arguments: args.into_iter()
+            predicate_name,
+            arguments: arguments.into_iter()
                 .map(|e| ast::ExprFolder::fold(self, e))
                 .collect(),
-            base: self.fold_boxed(expr),
-            permission: perm,
+            base: self.fold_boxed(base),
+            permission,
             variant,
-            position: pos,
+            position,
         })
     }
 
-    fn fold_labelled_old(&mut self, label: String, body: Box<Expr>, pos: Position) -> Expr {
-        let folded_body = self.fold_boxed(body);
+    fn fold_labelled_old(&mut self, ast::LabelledOld {label, base, position}: ast::LabelledOld) -> Expr {
+        let folded_body = self.fold_boxed(base);
         if folded_body.is_heap_dependent() {
             Expr::LabelledOld( ast::LabelledOld {
-                label: label,
+                label,
                 base: folded_body,
-                position: pos,
+                position,
             })
         } else {
             *folded_body
