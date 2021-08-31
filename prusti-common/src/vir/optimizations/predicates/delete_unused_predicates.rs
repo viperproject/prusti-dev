@@ -69,7 +69,7 @@ fn get_used_predicates_in_predicate_map(
             Predicate::Bodyless(_, _) => { /* ignore */ }
         }
     }
-    return map;
+    map
 }
 
 /// Return the set of the predicates in the predicate map that are actually
