@@ -547,6 +547,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
     }
 
     /// Replace some statements, mutating the branch context
+    #[allow(clippy::too_many_arguments)]
     fn replace_stmt(
         &mut self,
         stmt_index: usize,

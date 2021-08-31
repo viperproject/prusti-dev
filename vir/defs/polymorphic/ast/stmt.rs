@@ -11,6 +11,8 @@ use super::super::{
 use crate::polymorphic::ast::*;
 use std::{collections::HashMap, fmt};
 
+// TODO: Fix by boxing all `Expr`s.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Stmt {
     Comment(Comment),
@@ -435,10 +437,7 @@ impl fmt::Display for Downcast {
 
 impl Stmt {
     pub fn is_comment(&self) -> bool {
-        match self {
-            Stmt::Comment(_) => true,
-            _ => false,
-        }
+        matches!(self, Stmt::Comment(_))
     }
 
     pub fn comment<S: ToString>(comment: S) -> Self {
