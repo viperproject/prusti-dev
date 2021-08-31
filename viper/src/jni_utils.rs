@@ -116,7 +116,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Calls the "toString" method on a Java object and returns the result as a Rust String
-    pub fn to_string(&self, object: JObject) -> String {
+    pub fn to_string(self, object: JObject) -> String {
         let object_wrapper = java::lang::Object::with(self.env);
         let string_object = self.unwrap_result(object_wrapper.call_toString(object));
         self.get_string(string_object)
@@ -149,7 +149,7 @@ impl<'a> JniUtils<'a> {
         );
         self.seq_to_vec(seq)
     }
-    
+
     /// Converts a Scala Map (using strings! JObjects are not hashable) to a Rust HashMap
     pub fn stringmap_to_hashmap(&self, map: JObject<'a>) -> HashMap<String, JObject<'a>> {
         let iter_wrapper = scala::collection::Iterable::with(self.env);
