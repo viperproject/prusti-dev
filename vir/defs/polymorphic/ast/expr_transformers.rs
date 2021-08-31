@@ -75,12 +75,13 @@ pub trait ExprFolder: Sized {
 
     fn fold_variant(
         &mut self,
-        Variant {
+        expr: Variant,
+    ) -> Expr {
+        let Variant {
             base,
             variant_index,
             position,
-        }: Variant,
-    ) -> Expr {
+        } = expr;
         Expr::Variant(Variant {
             base: self.fold_boxed(base),
             variant_index,
@@ -90,12 +91,13 @@ pub trait ExprFolder: Sized {
 
     fn fold_field(
         &mut self,
-        FieldExpr {
+        expr: FieldExpr,
+    ) -> Expr {
+        let FieldExpr {
             base,
             field,
             position,
-        }: FieldExpr,
-    ) -> Expr {
+        } = expr;
         Expr::Field(FieldExpr {
             base: self.fold_boxed(base),
             field,
@@ -105,12 +107,13 @@ pub trait ExprFolder: Sized {
 
     fn fold_addr_of(
         &mut self,
-        AddrOf {
+        expr: AddrOf,
+    ) -> Expr {
+        let AddrOf {
             base,
             addr_type,
             position,
-        }: AddrOf,
-    ) -> Expr {
+        } = expr;
         Expr::AddrOf(AddrOf {
             base: self.fold_boxed(base),
             addr_type,
@@ -124,12 +127,13 @@ pub trait ExprFolder: Sized {
 
     fn fold_labelled_old(
         &mut self,
-        LabelledOld {
+        expr: LabelledOld,
+    ) -> Expr {
+        let LabelledOld {
             label,
             base,
             position,
-        }: LabelledOld,
-    ) -> Expr {
+        } = expr;
         Expr::LabelledOld(LabelledOld {
             label,
             base: self.fold_boxed(base),
@@ -139,13 +143,14 @@ pub trait ExprFolder: Sized {
 
     fn fold_magic_wand(
         &mut self,
-        MagicWand {
+        expr: MagicWand,
+    ) -> Expr {
+        let MagicWand {
             left,
             right,
             borrow,
             position,
-        }: MagicWand,
-    ) -> Expr {
+        } = expr;
         Expr::MagicWand(MagicWand {
             left: self.fold_boxed(left),
             right: self.fold_boxed(right),
@@ -156,13 +161,14 @@ pub trait ExprFolder: Sized {
 
     fn fold_predicate_access_predicate(
         &mut self,
-        PredicateAccessPredicate {
+        expr: PredicateAccessPredicate,
+    ) -> Expr {
+        let PredicateAccessPredicate {
             predicate_type,
             argument,
             permission,
             position,
-        }: PredicateAccessPredicate,
-    ) -> Expr {
+        } = expr;
         Expr::PredicateAccessPredicate(PredicateAccessPredicate {
             predicate_type,
             argument: self.fold_boxed(argument),
@@ -173,12 +179,13 @@ pub trait ExprFolder: Sized {
 
     fn fold_field_access_predicate(
         &mut self,
-        FieldAccessPredicate {
+        expr: FieldAccessPredicate,
+    ) -> Expr {
+        let FieldAccessPredicate {
             base,
             permission,
             position,
-        }: FieldAccessPredicate,
-    ) -> Expr {
+        } = expr;
         Expr::FieldAccessPredicate(FieldAccessPredicate {
             base: self.fold_boxed(base),
             permission,
@@ -188,12 +195,13 @@ pub trait ExprFolder: Sized {
 
     fn fold_unary_op(
         &mut self,
-        UnaryOp {
+        expr: UnaryOp,
+    ) -> Expr {
+        let UnaryOp {
             op_kind,
             argument,
             position,
-        }: UnaryOp,
-    ) -> Expr {
+        } = expr;
         Expr::UnaryOp(UnaryOp {
             op_kind,
             argument: self.fold_boxed(argument),
@@ -203,13 +211,14 @@ pub trait ExprFolder: Sized {
 
     fn fold_bin_op(
         &mut self,
-        BinOp {
+        expr: BinOp,
+    ) -> Expr {
+        let BinOp {
             op_kind,
             left,
             right,
             position,
-        }: BinOp,
-    ) -> Expr {
+        } = expr;
         Expr::BinOp(BinOp {
             op_kind,
             left: self.fold_boxed(left),
@@ -220,15 +229,16 @@ pub trait ExprFolder: Sized {
 
     fn fold_unfolding(
         &mut self,
-        Unfolding {
+        expr: Unfolding,
+    ) -> Expr {
+        let Unfolding {
             predicate_name,
             arguments,
             base,
             permission,
             variant,
             position,
-        }: Unfolding,
-    ) -> Expr {
+        } = expr;
         Expr::Unfolding(Unfolding {
             predicate_name,
             arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
@@ -241,13 +251,14 @@ pub trait ExprFolder: Sized {
 
     fn fold_cond(
         &mut self,
-        Cond {
+        expr: Cond,
+    ) -> Expr {
+        let Cond {
             guard,
             then_expr,
             else_expr,
             position,
-        }: Cond,
-    ) -> Expr {
+        } = expr;
         Expr::Cond(Cond {
             guard: self.fold_boxed(guard),
             then_expr: self.fold_boxed(then_expr),
@@ -258,13 +269,14 @@ pub trait ExprFolder: Sized {
 
     fn fold_forall(
         &mut self,
-        ForAll {
+        expr: ForAll,
+    ) -> Expr {
+        let ForAll {
             variables,
             triggers,
             body,
             position,
-        }: ForAll,
-    ) -> Expr {
+        } = expr;
         Expr::ForAll(ForAll {
             variables,
             triggers,
@@ -275,13 +287,14 @@ pub trait ExprFolder: Sized {
 
     fn fold_exists(
         &mut self,
-        Exists {
+        expr: Exists,
+    ) -> Expr {
+        let Exists {
             variables,
             triggers,
             body,
             position,
-        }: Exists,
-    ) -> Expr {
+        } = expr;
         Expr::ForAll(ForAll {
             variables,
             triggers,
@@ -292,13 +305,14 @@ pub trait ExprFolder: Sized {
 
     fn fold_let_expr(
         &mut self,
-        LetExpr {
+        expr: LetExpr,
+    ) -> Expr {
+        let LetExpr {
             variable,
             def,
             body,
             position,
-        }: LetExpr,
-    ) -> Expr {
+        } = expr;
         Expr::LetExpr(LetExpr {
             variable,
             def: self.fold_boxed(def),
@@ -309,14 +323,15 @@ pub trait ExprFolder: Sized {
 
     fn fold_func_app(
         &mut self,
-        FuncApp {
+        expr: FuncApp,
+    ) -> Expr {
+        let FuncApp {
             function_name,
             arguments,
             formal_arguments,
             return_type,
             position,
-        }: FuncApp,
-    ) -> Expr {
+        } = expr;
         Expr::FuncApp(FuncApp {
             function_name,
             arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
@@ -328,12 +343,13 @@ pub trait ExprFolder: Sized {
 
     fn fold_domain_func_app(
         &mut self,
-        DomainFuncApp {
+        expr: DomainFuncApp,
+    ) -> Expr {
+        let DomainFuncApp {
             domain_function,
             arguments,
             position,
-        }: DomainFuncApp,
-    ) -> Expr {
+        } = expr;
         Expr::DomainFuncApp(DomainFuncApp {
             domain_function,
             arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
@@ -362,12 +378,13 @@ pub trait ExprFolder: Sized {
     */
     fn fold_inhale_exhale(
         &mut self,
-        InhaleExhale {
+        expr: InhaleExhale,
+    ) -> Expr {
+        let InhaleExhale {
             inhale_expr,
             exhale_expr,
             position,
-        }: InhaleExhale,
-    ) -> Expr {
+        } = expr;
         Expr::InhaleExhale(InhaleExhale {
             inhale_expr: self.fold_boxed(inhale_expr),
             exhale_expr: self.fold_boxed(exhale_expr),
@@ -377,12 +394,13 @@ pub trait ExprFolder: Sized {
 
     fn fold_downcast(
         &mut self,
-        DowncastExpr {
+        expr: DowncastExpr,
+    ) -> Expr {
+        let DowncastExpr {
             base,
             enum_place,
             field,
-        }: DowncastExpr,
-    ) -> Expr {
+        } = expr;
         Expr::Downcast(DowncastExpr {
             base: self.fold_boxed(base),
             enum_place: self.fold_boxed(enum_place),
@@ -390,7 +408,8 @@ pub trait ExprFolder: Sized {
         })
     }
 
-    fn fold_snap_app(&mut self, SnapApp { base, position }: SnapApp) -> Expr {
+    fn fold_snap_app(&mut self, expr: SnapApp) -> Expr {
+        let SnapApp { base, position } = expr;
         Expr::SnapApp(SnapApp {
             base: self.fold_boxed(base),
             position,
@@ -399,13 +418,14 @@ pub trait ExprFolder: Sized {
 
     fn fold_container_op(
         &mut self,
-        ContainerOp {
+        expr: ContainerOp,
+    ) -> Expr {
+        let ContainerOp {
             op_kind,
             left,
             right,
             position,
-        }: ContainerOp,
-    ) -> Expr {
+        } = expr;
         Expr::ContainerOp(ContainerOp {
             op_kind,
             left: self.fold_boxed(left),
@@ -416,12 +436,13 @@ pub trait ExprFolder: Sized {
 
     fn fold_seq(
         &mut self,
-        Seq {
+        expr: Seq,
+    ) -> Expr {
+        let Seq {
             typ,
             elements,
             position,
-        }: Seq,
-    ) -> Expr {
+        } = expr;
         Expr::Seq(Seq {
             typ,
             elements: elements.into_iter().map(|e| self.fold(e)).collect(),
@@ -473,66 +494,77 @@ pub trait ExprWalker: Sized {
         self.walk_type(&var.typ);
     }
 
-    fn walk_local(&mut self, Local { variable, .. }: &Local) {
+    fn walk_local(&mut self, statement: &Local) {
+        let Local { variable, .. } = statement;
         self.walk_local_var(variable);
     }
     fn walk_variant(
         &mut self,
-        Variant {
+        statement: &Variant,
+    ) {
+        let Variant {
             base,
             variant_index,
             ..
-        }: &Variant,
-    ) {
+        } = statement;
         self.walk(base);
         self.walk_type(&variant_index.typ);
     }
-    fn walk_field(&mut self, FieldExpr { base, field, .. }: &FieldExpr) {
+    fn walk_field(&mut self, statement: &FieldExpr) {
+        let FieldExpr { base, field, .. } = statement;
         self.walk(base);
         self.walk_type(&field.typ);
     }
     fn walk_addr_of(
         &mut self,
-        AddrOf {
-            base, addr_type, ..
-        }: &AddrOf,
+        statement: &AddrOf,
     ) {
+        let AddrOf {
+            base, addr_type, ..
+        } = statement;
         self.walk(base);
         self.walk_type(addr_type);
     }
     fn walk_const(&mut self, _const_expr: &ConstExpr) {}
-    fn walk_labelled_old(&mut self, LabelledOld { base, .. }: &LabelledOld) {
+    fn walk_labelled_old(&mut self, statement: &LabelledOld) {
+        let LabelledOld { base, .. } = statement;
         self.walk(base);
     }
-    fn walk_magic_wand(&mut self, MagicWand { left, right, .. }: &MagicWand) {
+    fn walk_magic_wand(&mut self, statement: &MagicWand) {
+        let MagicWand { left, right, .. } = statement;
         self.walk(left);
         self.walk(right);
     }
     fn walk_predicate_access_predicate(
         &mut self,
-        PredicateAccessPredicate { argument, .. }: &PredicateAccessPredicate,
+        statement: &PredicateAccessPredicate,
     ) {
+        let PredicateAccessPredicate { argument, .. } = statement;
         self.walk(argument);
     }
     fn walk_field_access_predicate(
         &mut self,
-        FieldAccessPredicate { base, .. }: &FieldAccessPredicate,
+        statement: &FieldAccessPredicate,
     ) {
+        let FieldAccessPredicate { base, .. } = statement;
         self.walk(base);
     }
-    fn walk_unary_op(&mut self, UnaryOp { argument, .. }: &UnaryOp) {
+    fn walk_unary_op(&mut self, statement: &UnaryOp) {
+        let UnaryOp { argument, .. } = statement;
         self.walk(argument)
     }
-    fn walk_bin_op(&mut self, BinOp { left, right, .. }: &BinOp) {
+    fn walk_bin_op(&mut self, statement: &BinOp) {
+        let BinOp { left, right, .. } = statement;
         self.walk(left);
         self.walk(right);
     }
     fn walk_unfolding(
         &mut self,
-        Unfolding {
-            arguments, base, ..
-        }: &Unfolding,
+        statement: &Unfolding,
     ) {
+        let Unfolding {
+            arguments, base, ..
+        } = statement;
         for arg in arguments {
             self.walk(arg);
         }
@@ -540,23 +572,25 @@ pub trait ExprWalker: Sized {
     }
     fn walk_cond(
         &mut self,
-        Cond {
+        statement: &Cond,
+    ) {
+        let Cond {
             guard,
             then_expr,
             else_expr,
             ..
-        }: &Cond,
-    ) {
+        } = statement;
         self.walk(guard);
         self.walk(then_expr);
         self.walk(else_expr);
     }
     fn walk_forall(
         &mut self,
-        ForAll {
-            variables, body, ..
-        }: &ForAll,
+        statement: &ForAll,
     ) {
+        let ForAll {
+            variables, body, ..
+        } = statement;
         for var in variables {
             self.walk_local_var(var);
         }
@@ -564,10 +598,11 @@ pub trait ExprWalker: Sized {
     }
     fn walk_exists(
         &mut self,
-        Exists {
-            variables, body, ..
-        }: &Exists,
+        statement: &Exists,
     ) {
+        let Exists {
+            variables, body, ..
+        } = statement;
         for var in variables {
             self.walk_local_var(var);
         }
@@ -575,26 +610,28 @@ pub trait ExprWalker: Sized {
     }
     fn walk_let_expr(
         &mut self,
-        LetExpr {
+        statement: &LetExpr,
+    ) {
+        let LetExpr {
             variable,
             def,
             body,
             ..
-        }: &LetExpr,
-    ) {
+        } = statement;
         self.walk_local_var(variable);
         self.walk(def);
         self.walk(body);
     }
     fn walk_func_app(
         &mut self,
-        FuncApp {
+        statement: &FuncApp,
+    ) {
+        let FuncApp {
             arguments,
             formal_arguments,
             return_type,
             ..
-        }: &FuncApp,
-    ) {
+        } = statement;
         for arg in arguments {
             self.walk(arg)
         }
@@ -605,12 +642,13 @@ pub trait ExprWalker: Sized {
     }
     fn walk_domain_func_app(
         &mut self,
-        DomainFuncApp {
+        statement: &DomainFuncApp,
+    ) {
+        let DomainFuncApp {
             domain_function,
             arguments,
             ..
-        }: &DomainFuncApp,
-    ) {
+        } = statement;
         for arg in arguments {
             self.walk(arg)
         }
@@ -638,35 +676,40 @@ pub trait ExprWalker: Sized {
     */
     fn walk_inhale_exhale(
         &mut self,
-        InhaleExhale {
+        statement: &InhaleExhale,
+    ) {
+        let InhaleExhale {
             inhale_expr,
             exhale_expr,
             ..
-        }: &InhaleExhale,
-    ) {
+        } = statement;
         self.walk(inhale_expr);
         self.walk(exhale_expr);
     }
 
     fn walk_downcast(
         &mut self,
-        DowncastExpr {
-            base, enum_place, ..
-        }: &DowncastExpr,
+        statement: &DowncastExpr,
     ) {
+        let DowncastExpr {
+            base, enum_place, ..
+        } = statement;
         self.walk(base);
         self.walk(enum_place);
     }
-    fn walk_snap_app(&mut self, SnapApp { base, .. }: &SnapApp) {
+    fn walk_snap_app(&mut self, statement: &SnapApp) {
+        let SnapApp { base, .. } = statement;
         self.walk(base);
     }
 
-    fn walk_container_op(&mut self, ContainerOp { left, right, .. }: &ContainerOp) {
+    fn walk_container_op(&mut self, statement: &ContainerOp) {
+        let ContainerOp { left, right, .. } = statement;
         self.walk(left);
         self.walk(right);
     }
 
-    fn walk_seq(&mut self, Seq { typ, elements, .. }: &Seq) {
+    fn walk_seq(&mut self, statement: &Seq) {
+        let Seq { typ, elements, .. } = statement;
         for elem in elements {
             self.walk(elem);
         }
@@ -724,12 +767,13 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_variant(
         &mut self,
-        Variant {
+        expr: Variant,
+    ) -> Result<Expr, Self::Error> {
+        let Variant {
             base,
             variant_index,
             position,
-        }: Variant,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::Variant(Variant {
             base: self.fallible_fold_boxed(base)?,
             variant_index,
@@ -739,12 +783,13 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_field(
         &mut self,
-        FieldExpr {
+        expr: FieldExpr,
+    ) -> Result<Expr, Self::Error> {
+        let FieldExpr {
             base,
             field,
             position,
-        }: FieldExpr,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::Field(FieldExpr {
             base: self.fallible_fold_boxed(base)?,
             field,
@@ -754,12 +799,13 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_addr_of(
         &mut self,
-        AddrOf {
+        expr: AddrOf,
+    ) -> Result<Expr, Self::Error> {
+        let AddrOf {
             base,
             addr_type,
             position,
-        }: AddrOf,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::AddrOf(AddrOf {
             base: self.fallible_fold_boxed(base)?,
             addr_type,
@@ -773,12 +819,13 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_labelled_old(
         &mut self,
-        LabelledOld {
+        expr: LabelledOld,
+    ) -> Result<Expr, Self::Error> {
+        let LabelledOld {
             label,
             base,
             position,
-        }: LabelledOld,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::LabelledOld(LabelledOld {
             label,
             base: self.fallible_fold_boxed(base)?,
@@ -788,13 +835,14 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_magic_wand(
         &mut self,
-        MagicWand {
+        expr: MagicWand,
+    ) -> Result<Expr, Self::Error> {
+        let MagicWand {
             left,
             right,
             borrow,
             position,
-        }: MagicWand,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::MagicWand(MagicWand {
             left: self.fallible_fold_boxed(left)?,
             right: self.fallible_fold_boxed(right)?,
@@ -805,13 +853,14 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_predicate_access_predicate(
         &mut self,
-        PredicateAccessPredicate {
+        expr: PredicateAccessPredicate,
+    ) -> Result<Expr, Self::Error> {
+        let PredicateAccessPredicate {
             predicate_type,
             argument,
             permission,
             position,
-        }: PredicateAccessPredicate,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::PredicateAccessPredicate(PredicateAccessPredicate {
             predicate_type,
             argument: self.fallible_fold_boxed(argument)?,
@@ -822,12 +871,13 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_field_access_predicate(
         &mut self,
-        FieldAccessPredicate {
+        expr: FieldAccessPredicate,
+    ) -> Result<Expr, Self::Error> {
+        let FieldAccessPredicate {
             base,
             permission,
             position,
-        }: FieldAccessPredicate,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::FieldAccessPredicate(FieldAccessPredicate {
             base: self.fallible_fold_boxed(base)?,
             permission,
@@ -837,12 +887,13 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_unary_op(
         &mut self,
-        UnaryOp {
+        expr: UnaryOp,
+    ) -> Result<Expr, Self::Error> {
+        let UnaryOp {
             op_kind,
             argument,
             position,
-        }: UnaryOp,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::UnaryOp(UnaryOp {
             op_kind,
             argument: self.fallible_fold_boxed(argument)?,
@@ -852,13 +903,14 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_bin_op(
         &mut self,
-        BinOp {
+        expr: BinOp,
+    ) -> Result<Expr, Self::Error> {
+        let BinOp {
             op_kind,
             left,
             right,
             position,
-        }: BinOp,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::BinOp(BinOp {
             op_kind,
             left: self.fallible_fold_boxed(left)?,
@@ -869,15 +921,16 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_unfolding(
         &mut self,
-        Unfolding {
+        expr: Unfolding,
+    ) -> Result<Expr, Self::Error> {
+        let Unfolding {
             predicate_name,
             arguments,
             base,
             permission,
             variant,
             position,
-        }: Unfolding,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::Unfolding(Unfolding {
             predicate_name,
             arguments: arguments
@@ -893,13 +946,14 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_cond(
         &mut self,
-        Cond {
+        expr: Cond,
+    ) -> Result<Expr, Self::Error> {
+        let Cond {
             guard,
             then_expr,
             else_expr,
             position,
-        }: Cond,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::Cond(Cond {
             guard: self.fallible_fold_boxed(guard)?,
             then_expr: self.fallible_fold_boxed(then_expr)?,
@@ -910,13 +964,14 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_forall(
         &mut self,
-        ForAll {
+        expr: ForAll,
+    ) -> Result<Expr, Self::Error> {
+        let ForAll {
             variables,
             triggers,
             body,
             position,
-        }: ForAll,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::ForAll(ForAll {
             variables,
             triggers,
@@ -927,13 +982,14 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_exists(
         &mut self,
-        Exists {
+        expr: Exists,
+    ) -> Result<Expr, Self::Error> {
+        let Exists {
             variables,
             triggers,
             body,
             position,
-        }: Exists,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::Exists(Exists {
             variables,
             triggers,
@@ -944,13 +1000,14 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_let_expr(
         &mut self,
-        LetExpr {
+        expr: LetExpr,
+    ) -> Result<Expr, Self::Error> {
+        let LetExpr {
             variable,
             def,
             body,
             position,
-        }: LetExpr,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::LetExpr(LetExpr {
             variable,
             def: self.fallible_fold_boxed(def)?,
@@ -961,14 +1018,15 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_func_app(
         &mut self,
-        FuncApp {
+        expr: FuncApp,
+    ) -> Result<Expr, Self::Error> {
+        let FuncApp {
             function_name,
             arguments,
             formal_arguments,
             return_type,
             position,
-        }: FuncApp,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::FuncApp(FuncApp {
             function_name,
             arguments: arguments
@@ -983,12 +1041,13 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_domain_func_app(
         &mut self,
-        DomainFuncApp {
+        expr: DomainFuncApp,
+    ) -> Result<Expr, Self::Error> {
+        let DomainFuncApp {
             domain_function,
             arguments,
             position,
-        }: DomainFuncApp,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::DomainFuncApp(DomainFuncApp {
             domain_function,
             arguments: arguments
@@ -1022,12 +1081,13 @@ pub trait FallibleExprFolder: Sized {
     */
     fn fallible_fold_inhale_exhale(
         &mut self,
-        InhaleExhale {
+        expr: InhaleExhale,
+    ) -> Result<Expr, Self::Error> {
+        let InhaleExhale {
             inhale_expr,
             exhale_expr,
             position,
-        }: InhaleExhale,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::InhaleExhale(InhaleExhale {
             inhale_expr: self.fallible_fold_boxed(inhale_expr)?,
             exhale_expr: self.fallible_fold_boxed(exhale_expr)?,
@@ -1037,12 +1097,13 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_downcast(
         &mut self,
-        DowncastExpr {
+        expr: DowncastExpr,
+    ) -> Result<Expr, Self::Error> {
+        let DowncastExpr {
             base,
             enum_place,
             field,
-        }: DowncastExpr,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::Downcast(DowncastExpr {
             base: self.fallible_fold_boxed(base)?,
             enum_place: self.fallible_fold_boxed(enum_place)?,
@@ -1052,8 +1113,9 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_snap_app(
         &mut self,
-        SnapApp { base, position }: SnapApp,
+        expr: SnapApp,
     ) -> Result<Expr, Self::Error> {
+        let SnapApp { base, position } = expr;
         Ok(Expr::SnapApp(SnapApp {
             base: self.fallible_fold_boxed(base)?,
             position,
@@ -1062,13 +1124,14 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_container_op(
         &mut self,
-        ContainerOp {
+        expr: ContainerOp,
+    ) -> Result<Expr, Self::Error> {
+        let ContainerOp {
             op_kind,
             left,
             right,
             position,
-        }: ContainerOp,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::ContainerOp(ContainerOp {
             op_kind,
             left: self.fallible_fold_boxed(left)?,
@@ -1079,12 +1142,13 @@ pub trait FallibleExprFolder: Sized {
 
     fn fallible_fold_seq(
         &mut self,
-        Seq {
+        expr: Seq,
+    ) -> Result<Expr, Self::Error> {
+        let Seq {
             typ,
             elements,
             position,
-        }: Seq,
-    ) -> Result<Expr, Self::Error> {
+        } = expr;
         Ok(Expr::Seq(Seq {
             typ,
             elements: elements
