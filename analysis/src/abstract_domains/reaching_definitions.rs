@@ -117,7 +117,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         let mut reaching_defs: HashMap<mir::Local, HashSet<DefLocation>> = HashMap::new();
         // insert parameters
         for (idx, local) in mir.args_iter().enumerate() {
-            let location_set = reaching_defs.entry(local).or_insert(HashSet::new());
+            let location_set = reaching_defs.entry(local).or_insert_with(HashSet::new);
             location_set.insert(Parameter(idx));
         }
         Self {
@@ -134,7 +134,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
 
     fn join(&mut self, other: &Self) {
         for (local, other_locations) in other.reaching_defs.iter() {
-            let location_set = self.reaching_defs.entry(*local).or_insert(HashSet::new());
+            let location_set = self.reaching_defs.entry(*local).or_insert_with(HashSet::new);
             location_set.extend(other_locations);
         }
     }
@@ -148,15 +148,12 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
         -> Result<(), AnalysisError> {
 
         let stmt = &self.mir[location.block].statements[location.statement_index];
-        match stmt.kind {
-            mir::StatementKind::Assign(box (ref target, _)) => {
-                if let Some(local) = target.as_local() {
-                    let location_set = self.reaching_defs.entry(local).or_insert(HashSet::new());
-                    location_set.clear();
-                    location_set.insert(Assignment(location));
-                }
+        if let mir::StatementKind::Assign(box (ref target, _)) = stmt.kind {
+            if let Some(local) = target.as_local() {
+                let location_set = self.reaching_defs.entry(local).or_insert_with(HashSet::new);
+                location_set.clear();
+                location_set.insert(Assignment(location));
             }
-            _ => {}
         }
 
         Ok(())
@@ -175,7 +172,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
                     let mut dest_state = self.clone();
                     if let Some(local) = place.as_local() {
                         let location_set = dest_state.reaching_defs.entry(local)
-                            .or_insert(HashSet::new());
+                            .or_insert_with(HashSet::new);
                         location_set.clear();
                         location_set.insert(Assignment(location));
                     }
@@ -189,7 +186,7 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for ReachingDefsState<'a, 'tcx> {
                     if let Some((place, _)) = destination {
                         if let Some(local) = place.as_local() {
                             let location_set = cleanup_state.reaching_defs.entry(local)
-                                .or_insert(HashSet::new());
+                                .or_insert_with(HashSet::new);
                             location_set.insert(Assignment(location));
                         }
                     }
