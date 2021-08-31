@@ -48,7 +48,7 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         .filter(|var| !impure_vars.contains(var))
         .collect();
     let mut purifier = VarPurifier {
-        pure_vars: pure_vars,
+        pure_vars,
         replacements: collector.replacements,
     };
     let mut sentinel_stmt = ast::Stmt::comment("moved out stmt");

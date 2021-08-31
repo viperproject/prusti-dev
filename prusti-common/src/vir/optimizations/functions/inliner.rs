@@ -65,13 +65,12 @@ pub fn inline_constant_functions(
 /// precondition. Returns true if successful.
 fn try_purify(function: &mut ast::Function) -> Option<ast::Expr> {
     trace!("[enter] try_purify(name={})", function.name);
-    if function.has_constant_body() {
-        if function.pres.iter().all(|cond| cond.is_only_permissions()) &&
-            function.posts.is_empty() {
+    if function.has_constant_body() &&
+        function.pres.iter().all(|cond| cond.is_only_permissions()) &&
+        function.posts.is_empty() {
 
-            function.pres.clear();
-            return function.body.clone();
-        }
+        function.pres.clear();
+        return function.body.clone();
     }
     None
 }
