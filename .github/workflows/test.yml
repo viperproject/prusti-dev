@@ -75,10 +75,31 @@ jobs:
         run: python x.py build --all --verbose
       - name: Check and report Clippy errors
         run: |
+          python ./x.py clippy-in analysis
+          # python ./x.py clippy-in prusti
+          python ./x.py clippy-in prusti-common
+          python ./x.py clippy-in prusti-contracts
+          python ./x.py clippy-in prusti-contracts-impl
+          python ./x.py clippy-in prusti-contracts-internal
+          python ./x.py clippy-in prusti-contracts-test
+          # python ./x.py clippy-in prusti-interface
+          python ./x.py clippy-in prusti-launch
+          # python ./x.py clippy-in prusti-server
+          python ./x.py clippy-in prusti-specs
+          python ./x.py clippy-in prusti-tests
+          python ./x.py clippy-in prusti-utils
+          # python ./x.py clippy-in prusti-viper
+          python ./x.py clippy-in viper
+          python ./x.py clippy-in viper-sys
+          python ./x.py clippy-in vir
+          python ./x.py clippy-in vir-gen
           cargo install cargo-diff-tools
           if rustup component add clippy
           then
-            python x.py clippy -- -D warnings
+            # See https://github.com/pytorch/pytorch/blob/49adac65c4228b9fe7ede4e6f99fe9e1ccdc3e16/.github/workflows/clang_format.yml
+            git remote add upstream https://github.com/viperproject/prusti-dev
+            git fetch upstream "$GITHUB_BASE_REF"
+            python x.py exec cargo-clippy-diff --output=github $BASE_SHA HEAD
           fi
 
   # Run rustfmt checks on PRs.
