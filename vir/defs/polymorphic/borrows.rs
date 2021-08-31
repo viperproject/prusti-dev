@@ -114,8 +114,7 @@ impl DAG {
         trace!("[enter] check_integrity dag=[{:?}]", self);
         if let Some(first) = self.nodes.first() {
             assert!(first.reborrowing_nodes.is_empty());
-        }
-        if let Some(last) = self.nodes.last() {
+        } else if let Some(last) = self.nodes.last() {
             assert!(last.reborrowed_nodes.is_empty());
         }
         assert!(self.nodes.len() == self.borrow_indices.len());

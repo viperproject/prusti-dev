@@ -80,6 +80,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn function(
         &self,
         name: &str,
