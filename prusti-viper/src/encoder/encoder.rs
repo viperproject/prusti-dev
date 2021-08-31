@@ -107,6 +107,11 @@ pub struct Encoder<'v, 'tcx: 'v> {
 pub type SubstMap<'tcx> = HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>;
 pub type SubstStack<'tcx> = Vec<SubstMap<'tcx>>;
 
+// If the field name is an identifier, removing the leading prefix r#
+pub fn encode_field_name(field_name: &str) -> String {
+   format!("f${}", field_name.trim_start_matches("r#"))
+}
+
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn new(
         env: &'v Environment<'tcx>,
@@ -477,9 +482,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>)
     -> EncodingResult<vir::Field>
     {
-        // If the field name is a raw identifier, removing the leading prefix r#
-        let viper_field_name = format!("f${}", field_name.trim_start_matches("r#"));
-        self.encode_raw_ref_field(viper_field_name, ty)
+        self.encode_raw_ref_field(encode_field_name(field_name), ty)
     }
 
     /// Creates a field that corresponds to the enum variant ``index``.
