@@ -441,7 +441,37 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                         // self.encode_call_before_expiry()?
                         unimplemented!();
                     }
-                    "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
+                    "std::cmp::PartialEq::eq"
+                    | "core::cmp::PartialEq::eq"
+                    | "std::cmp::PartialEq::ne"
+                    | "core::cmp::PartialEq::ne" => {
+                        assert_eq!(args.len(), 2);
+                        if !self.has_structural_eq_impl(&args[0]).with_span(span)? {
+                            let oper_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                            return Err(SpannedEncodingError::incorrect(
+                                format!(
+                                    "cannot compare values of type {} in specifications, as it has no structural equality",
+                                    oper_ty,
+                                ),
+                                span,
+                            ));
+                        }
+                        let compare = match full_func_proc_name {
+                            "std::cmp::PartialEq::eq"
+                            | "core::cmp::PartialEq::eq" => vir_high::Expression::equals,
+                            "std::cmp::PartialEq::ne"
+                            | "core::cmp::PartialEq::ne" => vir_high::Expression::not_equals,
+                            _ => unreachable!(),
+                        };
+                        let encoded_rhs = compare(
+                            encoded_args[0].clone(),
+                            encoded_args[1].clone(),
+                        );
+                        let mut state = states[target_block].clone();
+                        state.substitute_value(&encoded_lhs, encoded_rhs);
+                        state
+                    }
+                        /*
                         if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
                     {
                         assert_eq!(args.len(), 2);
@@ -453,7 +483,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                         state.substitute_value(&encoded_lhs, encoded_rhs);
                         state
                     }
-                    "std::cmp::PartialEq::ne" | "core::cmp::PartialEq::ne"
                         if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
                     {
                         assert_eq!(args.len(), 2);
@@ -464,7 +493,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                         let mut state = states[target_block].clone();
                         state.substitute_value(&encoded_lhs, encoded_rhs);
                         state
-                    }
+                    }*/
                     "core::slice::<impl [T]>::len" => {
                         assert_eq!(args.len(), 1);
                         self.encode_call_len(

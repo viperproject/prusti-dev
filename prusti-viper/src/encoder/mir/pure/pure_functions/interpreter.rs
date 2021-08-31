@@ -462,33 +462,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state
                             }
 
-                            "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
-                                if self.encoder.has_structural_eq_impl(
-                                    self.mir_encoder.get_operand_ty(&args[0]),
-                                ) =>
-                            {
+                            "std::cmp::PartialEq::eq"
+                            | "core::cmp::PartialEq::eq"
+                            | "std::cmp::PartialEq::ne"
+                            | "core::cmp::PartialEq::ne" => {
                                 assert_eq!(args.len(), 2);
-                                let encoded_rhs = vir::Expr::eq_cmp(
+                                let oper_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                if !self.encoder.has_structural_eq_impl(oper_ty) {
+                                    return Err(SpannedEncodingError::incorrect(
+                                        format!(
+                                            "cannot compare values of type {} in specifications, as it has no structural equality",
+                                            oper_ty,
+                                        ),
+                                        span,
+                                    ));
+                                }
+                                let compare = match full_func_proc_name {
+                                    "std::cmp::PartialEq::eq"
+                                    | "core::cmp::PartialEq::eq" => vir::Expr::eq_cmp,
+                                    "std::cmp::PartialEq::ne"
+                                    | "core::cmp::PartialEq::ne" => vir::Expr::ne_cmp,
+                                    _ => unreachable!(),
+                                };
+                                let encoded_rhs = compare(
                                     vir::Expr::snap_app(encoded_args[0].clone()),
                                     vir::Expr::snap_app(encoded_args[1].clone()),
                                 );
                                 let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs);
-                                state
-                            }
-
-                            "std::cmp::PartialEq::ne" | "core::cmp::PartialEq::ne"
-                                if self.encoder.has_structural_eq_impl(
-                                    self.mir_encoder.get_operand_ty(&args[0]),
-                                ) =>
-                            {
-                                assert_eq!(args.len(), 2);
-                                let encoded_rhs = vir::Expr::ne_cmp(
-                                    vir::Expr::snap_app(encoded_args[0].clone()),
-                                    vir::Expr::snap_app(encoded_args[1].clone()),
-                                );
-                                let mut state = states[target_block].clone();
-                                state.substitute_value(&lhs_value, encoded_rhs);
+                                state.substitute_value(&encoded_lhs, encoded_rhs);
                                 state
                             }
 
