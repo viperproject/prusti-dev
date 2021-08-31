@@ -24,6 +24,7 @@ use self::var_remover::remove_unused_vars;
 use self::purifier::purify_vars;
 use self::quantifier_fixer::fix_quantifiers;
 
+#[allow(clippy::let_and_return)]
 pub fn optimize_method_encoding(cfg: CfgMethod, source_file_name: &str, optimizations: &Optimizations) -> CfgMethod {
     macro_rules! apply {
         ($optimization: ident, $cfg: ident) => {

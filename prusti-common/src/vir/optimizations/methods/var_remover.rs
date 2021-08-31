@@ -92,13 +92,10 @@ struct UnusedVarRemover {
 
 impl ast::ExprFolder for UnusedVarRemover {
     fn fold_predicate_access_predicate(&mut self, ast::PredicateAccessPredicate {predicate_type, argument, permission, position}: ast::PredicateAccessPredicate) -> ast::Expr {
-        match argument {
-            box ast::Expr::Local( ast::Local {variable: ref var, ..} ) => {
-                if self.unused_vars.contains(var) {
-                    return true.into();
-                }
+        if let box ast::Expr::Local( ast::Local {variable: ref var, ..} ) =  argument {
+            if self.unused_vars.contains(var) {
+                return true.into();
             }
-            _ => {}
         }
         ast::Expr::PredicateAccessPredicate( ast::PredicateAccessPredicate {
             predicate_type,
