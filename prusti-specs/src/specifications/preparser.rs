@@ -375,11 +375,12 @@ impl Parser {
     /// is there any non-prusti operator following the first thing?
     fn is_part_of_rust_expr(&mut self) -> bool {
         if let Some(token) = self.tokens.pop_front() {
-            self.tokens.push_front(token);
-            !(self.peek_operator("|=") ||
+            let result = !(self.peek_operator("|=") ||
                self.peek_operator("&&") ||
                self.peek_operator("==>") ||
-               self.tokens.front().is_none())
+               self.tokens.front().is_none());
+            self.tokens.push_front(token);
+            result
         } else {
             false
         }
