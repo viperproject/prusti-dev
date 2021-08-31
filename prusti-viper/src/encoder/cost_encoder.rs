@@ -125,7 +125,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                                 exponents_set.insert(exponents.clone());
                             }
 
-                            let pred_name = encoder.encode_credit_predicate_use(&credit_type, exponents);
+                            let pred_name = encoder.encode_credit_predicate_use(&credit_type, exponents, vir_powers.negative);
                             let frac_perm = vir::FracPermAmount::new(box coeff_expr, box 1.into());          //TODO: fractions?
 
                             acc_predicates.push(vir::Expr::credit_access_predicate(
@@ -192,8 +192,11 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                                 }
                                 let quantifier_var_exprs: Vec<vir::Expr> = quantifier_vars.iter().map(|var| vir::Expr::local(var.clone())).collect();
 
-                                let pred_name = encoder.encode_credit_predicate_use(&credit_type, exponents.clone());
+                                let pred_name = encoder.encode_credit_predicate_use(&credit_type, exponents.clone(), false);
                                 let pred_instance = vir::Expr::predicate_instance(pred_name, quantifier_var_exprs.clone());
+                                /*// TODO: should not be necessary?
+                                let neg_pred_name = encoder.encode_credit_predicate_use(&credit_type, exponents.clone(), true);
+                                let neg_pred_instance = vir::Expr::predicate_instance(neg_pred_name, quantifier_var_exprs.clone());*/
                                 let perm_zero_expr = vir::Expr::perm_equality(
                                     pred_instance.clone(),
                                     vir::FracPermAmount::new(box 0.into(), box 1.into())
@@ -297,6 +300,7 @@ impl VirBaseExpr {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct VirCreditPowers {
+    negative: bool,
     /// Product/vector of variables raised to nonnegative powers
     /// ordered by the base expressions
     powers: BTreeMap<VirBaseExpr, u32>,
@@ -304,6 +308,9 @@ struct VirCreditPowers {
 
 impl fmt::Display for VirCreditPowers {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.negative {
+            write!(f, "-")?;
+        }
         if self.powers.is_empty() {
             write!(f, "1")?;
         }
@@ -410,6 +417,15 @@ impl PartialOrd for VirCreditPowers {
     /// compares by asymptotic dominance
     /// Some(Less) == dominates other
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.negative && !other.negative {
+            // self dominated by other
+            return Some(Ordering::Greater);
+        }
+        else if !self.negative && other.negative {
+            // self dominates other
+            return Some(Ordering::Less);
+        }
+
         let mut possibly_greater = true;
         let mut possibly_less = true;
         let mut self_iter = self.powers.iter();
@@ -467,6 +483,10 @@ impl PartialOrd for VirCreditPowers {
                         return None;
                     }
                     else {
+                        if self.negative && other.negative {
+                            // inverse order
+                            return Some(Ordering::Greater);
+                        }
                         return Some(Ordering::Less);
                     }
                 }
@@ -477,10 +497,11 @@ impl PartialOrd for VirCreditPowers {
                     if possibly_less && possibly_greater {
                         return Some(Ordering::Equal);
                     }
-                    else if possibly_less {
+                    else if (possibly_less && !self.negative && !other.negative)
+                            || (possibly_greater && self.negative && other.negative) {        // inverse order
                         return Some(Ordering::Less);
                     }
-                    else {      // possibly_greater needs to be true, since always check other when setting
+                    else {      // possibly_greater needs to be true, since always check other when setting (or both are negative)
                         return Some(Ordering::Greater);
                     }
                 }
@@ -491,6 +512,10 @@ impl PartialOrd for VirCreditPowers {
                         return None;
                     }
                     else {
+                        if self.negative && other.negative {
+                            // inverse order
+                            return Some(Ordering::Less);
+                        }
                         return Some(Ordering::Greater);
                     }
                 }
@@ -506,6 +531,16 @@ impl Ord for VirCreditPowers {
     fn cmp(&self, other: &Self) -> Ordering {
         // could probably be written in a simpler way, but this way it is easier to make sure
         // that it agrees with PartialOrd
+
+        if self.negative && !other.negative {
+            // self dominated by other
+            return Ordering::Greater;
+        }
+        else if !self.negative && other.negative {
+            // self dominates other
+            return Ordering::Less;
+        }
+
         let mut self_iter = self.powers.iter();
         let mut other_iter = other.powers.iter();
         let mut curr_self = self_iter.next();
@@ -516,18 +551,34 @@ impl Ord for VirCreditPowers {
                     if self_base < other_base {
                         // since the bases are ordered,
                         // this means self contains a variable that isn't part of other
+                        if self.negative && other.negative {
+                            // inverse order
+                            return Ordering::Greater;
+                        }
                         return Ordering::Less;            // dominance == less or non-comparable
                     }
                     else if other_base < self_base {
                         // other contains a variable that isn't part of self
+                        if self.negative && other.negative {
+                            // inverse order
+                            return Ordering::Less;
+                        }
                         return Ordering::Greater;            // dominance == greater or non-comparable
                     }
                     else {
                         // same base ==> compare exponent
                         if self_exp > other_exp {
+                            if self.negative && other.negative {
+                                // inverse order
+                                return Ordering::Greater;
+                            }
                             return Ordering::Less;            // dominance == less or non-comparable
                         }
                         else if self_exp < other_exp {
+                            if self.negative && other.negative {
+                                // inverse order
+                                return Ordering::Less;
+                            }
                             return Ordering::Greater;            // dominance == greater or non-comparable
                         }
 
@@ -538,6 +589,10 @@ impl Ord for VirCreditPowers {
                 }
                 else {
                     // self contains a variable that isn't part of other (& they are equal until now)
+                    if self.negative && other.negative {
+                        // inverse order
+                        return Ordering::Greater;
+                    }
                     return Ordering::Less;            // dominance == less or non-comparable
                 }
             }
@@ -548,6 +603,10 @@ impl Ord for VirCreditPowers {
                 }
                 else {
                     // other contains a variable that isn't part of self (& they are equal until now)
+                    if self.negative && other.negative {
+                        // inverse order
+                        return Ordering::Less;
+                    }
                     return Ordering::Greater;
                 }
             }
@@ -615,7 +674,7 @@ fn extract_credits<'v, 'tcx: 'v>(
                 pow.exponent
             );
         }
-        let vir_credit_powers = VirCreditPowers { powers };
+        let vir_credit_powers = VirCreditPowers { negative: false, powers };     //TODO: add support for negative annotations
 
         let coeff_assertion = typed::Assertion {        // "work-around" to be able to use encoder //TODO
             kind: Box::new(typed::AssertionKind::Expr(term.coeff_expr.clone()))
@@ -850,6 +909,7 @@ fn add_concrete_costs<'a>(
 #[derive(Clone, Debug)]
 pub(crate) struct CreditConversion {
     pub(crate) credit_type: String,
+    pub(crate) result_negative: bool,
     pub(crate) result_exps: Vec<u32>,
     pub(crate) result_bases: Vec<vir::Expr>,
     pub(crate) result_coeff: vir::Expr,
@@ -940,6 +1000,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                 if !entries_to_replace.is_empty() {
                     let mut substitute_sum_place_const = |place: &vir::Expr, const_val: i64| {
                         for (mut powers, coeff) in entries_to_replace.clone() {     //TODO: avoid cloning
+                            let result_negative = powers.negative;
                             let result_exps = powers.exponents();
                             let result_bases = powers.base_exprs();
                             let result_coeff = coeff.clone();
@@ -956,11 +1017,15 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 // compute binomial expansion of (place + const_val)^exp
                                 for i in 0u32..=exp {
                                     let binomial = num_integer::binomial(exp as i64, i as i64);
-                                    let multiplier = binomial * const_power;
+                                    let mut multiplier = binomial * const_power;
+                                    let mut new_powers = powers.clone();
+                                    if multiplier < 0 {
+                                        new_powers.negative = !powers.negative;
+                                        multiplier = -multiplier;   // make coeff/perm amount positive
+                                    }
                                     let new_coeff = vir::Expr::mul(multiplier.into(), coeff.clone());
 
                                     let new_exp = exp - i;
-                                    let mut new_powers = powers.clone();
                                     if new_exp > 0u32 {
                                         new_powers.insert_power(place.clone(), new_exp);        //TODO: improve efficiency by not inserting every time, just change exponent/remove
                                     }
@@ -989,6 +1054,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 conversions.push(
                                     CreditConversion {
                                         credit_type: credit_type.clone(),
+                                        result_negative,
                                         result_exps,
                                         result_bases,
                                         result_coeff,
@@ -1011,14 +1077,9 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                     };
 
                     if replacement.is_constant() {
-                        /*if const_val < 0 {        //TODO: check here, or enough to let Viper check
-                            return Err(EncodingError::unsupported(
-                                "A negative amount of resource credits is not supported"
-                            ));
-                        }*/
-
                         // a power is constant -> eliminate from powers & multiply to coefficient
                         for (mut powers, mut coeff) in entries_to_replace {
+                            let result_negative = powers.negative;
                             let result_exps = powers.exponents();
                             let result_bases = powers.base_exprs();
                             let result_coeff = coeff.clone();
@@ -1029,6 +1090,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 conversions.push(
                                     CreditConversion {
                                         credit_type: credit_type.clone(),
+                                        result_negative,
                                         result_exps,
                                         result_bases,
                                         result_coeff,
@@ -1061,6 +1123,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                             place @ (Expr::Local(..) | Expr::Field(..))
                             | Expr::SnapApp(box place @ (Expr::Local(..) | Expr::Field(..)), _) => {            //TODO: patch snapApps or use procedure_encoder encoding instead of pure
                                 for (mut powers, coeff) in entries_to_replace {
+                                    let result_negative = powers.negative;
                                     let result_exps = powers.exponents();
                                     let result_bases = powers.base_exprs();
                                     let result_coeff = coeff.clone();
@@ -1081,6 +1144,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                         conversions.push(
                                             CreditConversion {
                                                 credit_type: credit_type.clone(),
+                                                result_negative,
                                                 result_exps,
                                                 result_bases,
                                                 result_coeff,
@@ -1134,6 +1198,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 _,
                             ) => {  // sum of two places
                                 for (mut powers, coeff) in entries_to_replace {
+                                    let result_negative = powers.negative;
                                     let result_exps = powers.exponents();
                                     let result_bases = powers.base_exprs();
                                     let result_coeff = coeff.clone();
@@ -1193,6 +1258,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                         conversions.push(
                                             CreditConversion {
                                                 credit_type: credit_type.clone(),
+                                                result_negative,
                                                 result_exps,
                                                 result_bases,
                                                 result_coeff,
@@ -1225,8 +1291,15 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(const_val), _), _),
                                 _,
                             ) => {  // product of constant & place
+                                if *const_val < 0 {
+                                    return Err(EncodingError::unsupported(
+                                        "Multiplications with a negative constant are not supported in the credit cost inference. \
+                                        Multiply with a positive constant and subtract afterwards instead."
+                                    ));
+                                }
                                 // just replace target with place & multiply constant to coefficient
                                 for (mut powers, mut coeff) in entries_to_replace {
+                                    let result_negative = powers.negative;
                                     let result_exps = powers.exponents();
                                     let result_bases = powers.base_exprs();
                                     let result_coeff = coeff.clone();
@@ -1253,6 +1326,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                         conversions.push(
                                             CreditConversion {
                                                 credit_type: credit_type.clone(),
+                                                result_negative,
                                                 result_exps,
                                                 result_bases,
                                                 result_coeff,
@@ -1286,8 +1360,15 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 box Expr::SnapApp(box vir::Expr::Const(vir::Const::Int(rhs_const_val), _), _),
                                 _
                             ) => {      //TODO: summarize with mul -> times 1/const // differences in Viper?
+                                if *rhs_const_val < 0 {
+                                    return Err(EncodingError::unsupported(
+                                        "Divisions by a negative constant are not supported in the credit cost inference. \
+                                        Divide with a positive constant and subtract afterwards instead."
+                                    ));
+                                }
                                 // divide coefficient by const & replace by lhs in powers
                                 for (mut powers, mut coeff) in entries_to_replace {
+                                    let result_negative = powers.negative;
                                     let result_exps = powers.exponents();
                                     let result_bases = powers.base_exprs();
                                     let result_coeff = coeff.clone();
@@ -1314,6 +1395,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                         conversions.push(
                                             CreditConversion {
                                                 credit_type: credit_type.clone(),
+                                                result_negative,
                                                 result_exps,
                                                 result_bases,
                                                 result_coeff,
@@ -1349,6 +1431,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                             ) => {
                                 // replace target by two new places in powers
                                 for (mut powers, coeff) in entries_to_replace {
+                                    let result_negative = powers.negative;
                                     let result_exps = powers.exponents();
                                     let result_bases = powers.base_exprs();
                                     let result_coeff = coeff.clone();
@@ -1375,6 +1458,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                         conversions.push(
                                             CreditConversion {
                                                 credit_type: credit_type.clone(),
+                                                result_negative,
                                                 result_exps,
                                                 result_bases,
                                                 result_coeff,
@@ -1403,9 +1487,12 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 }
                             }
 
-                            /*Expr::UnaryOp(vir::UnaryOpKind::Minus, box expr, _) => {
-                            TODO: allow -place as base of power!? Same for const - place
-                        }*/
+                            Expr::UnaryOp(vir::UnaryOpKind::Minus, box expr, _) => {
+                                return Err(EncodingError::unsupported(
+                                    "Negations of places are not supported. Use Subtraction instead."
+                                ));
+                            }
+
                             _ => {
                                 // TODO: more specific errors per replacement type
                                 return Err(EncodingError::unsupported(

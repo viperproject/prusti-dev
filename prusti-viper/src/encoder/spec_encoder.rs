@@ -392,7 +392,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
                     args_with_exps.sort_unstable_by_key(|(base, exp)| base.to_string());        // sort to make unique
                     let (args, exponents) = args_with_exps.into_iter().unzip();
 
-                    let pred_name = self.encoder.encode_credit_predicate_use(credit_type, exponents);
+                    let pred_name = self.encoder.encode_credit_predicate_use(credit_type, exponents, false); // TODO: support for negative coefficients in annotations?
                     let frac_perm = self.encode_credit_perm_amount(&term.coeff_expr)?;
 
                     acc_predicates.push(vir::Expr::credit_access_predicate(

@@ -838,6 +838,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub(crate) fn encode_credit_conversion_use(&self, mut conversion: CreditConversion,
                                                span: Span, proc_def_id: ProcedureDefId) -> String {
+        //TODO: log_vir_program_before_viper?
         let mut this_method_name = conversion.credit_type.to_string();
 
         match &conversion.conversion_type {
@@ -850,8 +851,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     this_method_name.push_str("_partial");
                 }
             }
-            CreditConversionType::SumPlaceConst { place_idx, place_expr, .. } => {
-                this_method_name.push_str(&format!("_sum_place_{}_const", place_idx));
+            CreditConversionType::SumPlaceConst { place_idx, place_expr, const_val } => {
+                if *const_val < 0 {
+                    this_method_name.push_str(&format!("_sum_place_{}_neg_const", place_idx));
+                }
+                else {
+                    this_method_name.push_str(&format!("_sum_place_{}_const", place_idx));
+                }
                 if place_expr.is_none() {
                     this_method_name.push_str("_partial");
                 }
@@ -891,9 +897,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         }
 
         this_method_name.push_str(&format!(
-            "_to_{}_in_{}",
+            "_to_{}_in_{}{}",
             conversion.assigned_place_idx,
             conversion.result_exps.iter().join("_"),
+            if conversion.result_negative {
+                "_neg"
+            }
+            else {
+                ""
+            }
         ));
 
         // add missing method def & defs of called methods
@@ -930,7 +942,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             );
 
             // resulting credits
-            let result_pred_name = self.encode_credit_predicate_use(&conversion.credit_type, conversion.result_exps.clone());
+            let result_pred_name = self.encode_credit_predicate_use(&conversion.credit_type, conversion.result_exps.clone(), conversion.result_negative);
             let result_pred_args: Vec<vir::Expr> = base_args.clone();
             let result_pred_perm = vir::FracPermAmount::new(box perm_arg.clone(), box 1.into());
             method.add_viper_postcondition(
@@ -968,7 +980,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 }
             };
             let add_required_credits_pre = |method: &mut vir::CfgMethod, previous_idx, prev_arg: &vir::Expr,
-                                            exp_to_add, add_base, frac_perm: vir::FracPermAmount| {
+                                            exp_to_add, add_base, negative, frac_perm: vir::FracPermAmount| {
                 let mut pre_args = vec![];
                 let mut pre_exps = vec![];
                 // swap assigned_place_idx & previous_idx
@@ -1009,7 +1021,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     vir::Expr::and(
                         vir::Expr::ge_cmp(frac_perm.left().clone(), 0.into()), // "work-around" to make nonnegativity check succeed in every case
                         vir::Expr::credit_access_predicate(
-                            self.encode_credit_predicate_use(&conversion.credit_type, pre_exps),
+                            self.encode_credit_predicate_use(&conversion.credit_type, pre_exps, negative),
                             pre_args,
                             frac_perm,
                         )
@@ -1017,7 +1029,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 );
             };
             let add_required_credits_pre2 = |method: &mut vir::CfgMethod, prev_idx1, prev_arg1: &vir::Expr, exp1, add_base1,
-                                             prev_idx2, prev_arg2: &vir::Expr, exp2, add_base2,
+                                             prev_idx2, prev_arg2: &vir::Expr, exp2, add_base2, negative,
                                              frac_perm: vir::FracPermAmount| {
                 let mut pre_args = vec![];
                 let mut pre_exps = vec![];
@@ -1083,7 +1095,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     vir::Expr::and(
                         vir::Expr::ge_cmp(frac_perm.left().clone(), 0.into()), // "work-around" to make nonnegativity check succeed in every case
                         vir::Expr::credit_access_predicate(
-                            self.encode_credit_predicate_use(&conversion.credit_type, pre_exps),
+                            self.encode_credit_predicate_use(&conversion.credit_type, pre_exps, negative),
                             pre_args,
                             frac_perm,
                         )
@@ -1125,7 +1137,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     }
                     method.add_viper_precondition(
                         vir::Expr::credit_access_predicate(
-                            self.encode_credit_predicate_use(&conversion.credit_type, pre_exps),
+                            self.encode_credit_predicate_use(&conversion.credit_type, pre_exps, conversion.result_negative),
                             pre_args,
                             vir::FracPermAmount::new(box pre_perm, box 1.into()),
                         )
@@ -1174,6 +1186,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         &prev_arg,
                         conversion.result_exps[conversion.assigned_place_idx],
                         add_base,
+                        conversion.result_negative,
                         result_pred_perm,       // same amount/coefficient
                     );
 
@@ -1185,15 +1198,20 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     let pos = self.error_manager().register(span, err_ctxt, proc_def_id);
                     stmts.push(vir::Stmt::Assert(false.into(), pos));
                 }
-                CreditConversionType::SumPlaceConst { place_idx, place_expr, .. } => {
+                CreditConversionType::SumPlaceConst { place_idx, place_expr, const_val } => {
                     let add_base = place_expr.is_some();
                     let place_arg = generate_place_arg(&mut method, "place", *place_idx, add_base);
                     let const_arg = generate_const_arg(&mut method);
 
-                    /*// ensure permission amounts are above zero
-                    method.add_viper_precondition(
-                        vir::Expr::ge_cmp(const_arg.clone(), 0.into())
-                    );*/
+                    if *const_val < 0 { //TODO: extra assertion instead? since not really requirement of this conversion + could have better error msg
+                        // ensure total costs are positive
+                        method.add_viper_precondition(
+                            vir::Expr::ge_cmp(
+                                vir::Expr::add(place_arg.clone(), const_arg.clone()),
+                                0.into()
+                            )
+                        );
+                    }
 
                     // require sum to have taken place
                     method.add_viper_precondition(vir::Expr::eq_cmp(
@@ -1210,7 +1228,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     // compute binomial expansion of (place + const)^exp
                     for i in 0u32..=exp {
                         let binomial = num_integer::binomial(exp as i64, i as i64);
-                        let multiplier = vir::Expr::mul(binomial.into(), const_power.clone());
+                        let mut multiplier = vir::Expr::mul(binomial.into(), const_power.clone());
+                        let negative = *const_val < 0 && i % 2 == 1;
+                        if negative {
+                            // make perm amount positive
+                            multiplier = vir::Expr::minus(multiplier);
+                        }
                         let pre_perm = vir::Expr::mul(multiplier, perm_arg.clone());
                         add_required_credits_pre(
                             &mut method,
@@ -1218,6 +1241,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                             &place_arg,
                             exp - i,
                             add_base,
+                            negative ^ conversion.result_negative,
                             vir::FracPermAmount::new(box pre_perm, box 1.into()),
                         );
 
@@ -1267,6 +1291,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         &place_arg,
                         exp,
                         add_base,
+                        conversion.result_negative, // constant cannot be negative
                         vir::FracPermAmount::new(box pre_perm, box 1.into()),
                     );
 
@@ -1361,6 +1386,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         &place_arg,
                         exp,
                         add_base,
+                        conversion.result_negative, // constant cannot be negative
                         vir::FracPermAmount::new(box pre_perm, box 1.into()),
                     );
 
@@ -1402,6 +1428,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                             &place2_arg,
                             exp2,
                             add_base2,
+                            conversion.result_negative, // places cannot be negative
                             vir::FracPermAmount::new(box pre_perm, box 1.into()),
                         );
 
@@ -1444,6 +1471,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         &place2_arg,
                         exp,
                         add_base2,
+                        conversion.result_negative, // places cannot be negative
                         result_pred_perm,
                     );
 
@@ -1466,13 +1494,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         this_method_name
     }
 
-    pub fn encode_credit_predicate_use(&self, credit_type: &str, mut exponents: Vec<u32>)
+    pub fn encode_credit_predicate_use(&self, credit_type: &str, mut exponents: Vec<u32>, negative: bool)
         -> String           //TODO: use Result type?, removed, because don't ever return an error
     {
         let mut this_pred_name = credit_type.to_string();
         if !exponents.is_empty() {
             this_pred_name.push('_');
             this_pred_name.push_str(&exponents.iter().join("_"));
+        }
+        if negative {
+            this_pred_name.push_str("_neg");
         }
 
         // add missing predicate def & sub-predicate defs
@@ -1490,6 +1521,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 if !exponents.is_empty() {
                     sub_pred_name.push('_');
                     sub_pred_name.push_str(&exponents.iter().join("_"));
+                }
+                if negative {   // since all arguments are nonnegative -> stays negative/positive
+                    sub_pred_name.push_str("_neg");
                 }
 
                 // construct predicate
