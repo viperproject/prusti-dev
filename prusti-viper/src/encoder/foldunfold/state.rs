@@ -10,6 +10,8 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::borrow::Borrow;
 use std::fmt;
+use std::ops::Add;
+use std::ops::Sub;
 use log::{trace, debug};
 use crate::encoder::foldunfold::FoldUnfoldError;
 

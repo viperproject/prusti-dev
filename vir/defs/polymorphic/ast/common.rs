@@ -75,8 +75,11 @@ impl PermAmount {
             PermAmount::Remaining => false,
         }
     }
+}
 
-    pub fn add(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
+impl std::ops::Add for PermAmount {
+    type Output = Result<PermAmount, PermAmountError>;
+    fn add(self, other: PermAmount) -> Self::Output {
         match (self, other) {
             (PermAmount::Read, PermAmount::Remaining)
             | (PermAmount::Remaining, PermAmount::Read) => Ok(PermAmount::Write),
@@ -84,7 +87,11 @@ impl PermAmount {
         }
     }
 
-    pub fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
+}
+
+impl std::ops::Sub for PermAmount {
+    type Output = Result<PermAmount, PermAmountError>;
+    fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
         match (self, other) {
             (PermAmount::Write, PermAmount::Read) => Ok(PermAmount::Remaining),
             (PermAmount::Write, PermAmount::Remaining) => Ok(PermAmount::Read),
@@ -354,7 +361,7 @@ impl Type {
     }
 
     /// The string to be appended to the encoding of certain types to make generics "less fragile".
-    fn encode_substs(types: &Vec<Type>) -> String {
+    fn encode_substs(types: &[Type]) -> String {
         let mut composed_name = vec![
             "_beg_".to_string(), // makes generics "less fragile"
         ];
@@ -373,7 +380,7 @@ impl Type {
     }
 
     /// Converts vector of arguments to string connected with "$".
-    fn encode_arguments(args: &Vec<Type>) -> String {
+    fn encode_arguments(args: &[Type]) -> String {
         let mut composed_name = vec![];
 
         for arg in args.iter() {
@@ -383,7 +390,7 @@ impl Type {
         composed_name.join("$")
     }
 
-    fn hash_arguments(args: &Vec<Type>) -> u64 {
+    fn hash_arguments(args: &[Type]) -> u64 {
         let mut s = DefaultHasher::new();
         args.hash(&mut s);
         s.finish()
@@ -529,23 +536,9 @@ impl From<TypeVar> for SnapshotType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct TypeVar {
     pub label: String,
-}
-
-impl PartialEq for TypeVar {
-    fn eq(&self, other: &Self) -> bool {
-        &self.label == &other.label
-    }
-}
-
-impl Eq for TypeVar {}
-
-impl Hash for TypeVar {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        (&self.label).hash(state);
-    }
 }
 
 impl fmt::Display for TypeVar {
