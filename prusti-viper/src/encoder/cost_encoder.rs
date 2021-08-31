@@ -26,7 +26,7 @@ pub(crate) struct CostEncoder<'tcx> {
     precondition: Option<vir::Expr>,
     asymp_bound_check: Vec<vir::Stmt>,
     pub(crate) remaining_func_pres: Vec<typed::Assertion<'tcx>>,
-    pub(crate) conversions: HashMap<mir::Location, Vec<(Option<vir::Expr>, Vec<CreditConversion>)>>,
+    conversions: HashMap<mir::Location, Vec<(Option<vir::Expr>, Vec<CreditConversion>)>>,   //TODO: generate Stmts here & add methods to encoder from here
 }
 
 impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
@@ -105,6 +105,8 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                 };
             if let Some(result_state) = run_backward_interpretation(mir, &cost_interpreter)? {
                 self.conversions = result_state.conversions;
+
+                // Construct precondition
                 let mut type_to_exponents = HashMap::new();
                 let mut cond_acc_predicates = vec![];
                 for (opt_cond, credit_type_cost) in result_state.cost {
@@ -147,7 +149,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                 }
                 self.precondition = Some(cond_acc_predicates.into_iter().conjoin());
 
-                // construct asymptotic cost check
+                // Construct asymptotic cost check
                 let bounds_map = compute_bound_combinations(&extracted_credits, conditional);
                 debug_assert!(self.asymp_bound_check.is_empty());
                 for (credit_type, cond_map) in bounds_map {
@@ -874,7 +876,7 @@ fn compute_bound_combinations(abstract_credits: &[(String, Option<vir::Expr>, BT
     }
     else {
         let mut upper_bounds: HashMap<String, BTreeSet<VirCreditPowers>> = HashMap::new();
-        for (credit_type, opt_cond, abstract_cost) in abstract_credits {
+        for (credit_type, _opt_cond, abstract_cost) in abstract_credits {
             upper_bounds.entry(credit_type.clone())
                 .or_default()
                 .extend(abstract_cost.clone());

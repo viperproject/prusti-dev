@@ -138,7 +138,7 @@ impl AstRewriter {
                         .map(|pow| format!("{}{}", pow.base_string(), pow.exponent))
                         .collect::<Vec<String>>().concat();
                     if powers_str.is_empty() {
-                        powers_str = "0".to_string();
+                        powers_str = "1".to_string();
                     }
                     let coeff_name = format!("{}_{}_{}_{}", self.name_prefix, credit_name, polynomial_id, powers_str);
 
@@ -172,7 +172,6 @@ impl AstRewriter {
         let mut generated_fns = vec![];
         for coeff_name in folder.added_coeffs {
             let coeff_ident = syn::Ident::new(&coeff_name, fn_item.span());      //TODO: correct span
-            //TODO: ensures necessary if use u32?
             //TODO: span correct?
             //TODO: better avoid parsing twice?
             let coeff_fn: syn::ItemFn = parse_quote_spanned! {fn_item.span()=>
