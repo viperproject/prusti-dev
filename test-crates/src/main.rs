@@ -138,7 +138,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         prusti_home: guest_prusti_home.to_path_buf(),
         viper_home: guest_viper_home.to_path_buf(),
         z3_exe: guest_z3_home.to_path_buf(),
-        java_home: Some(guest_java_home.to_path_buf()),
+        java_home: Some(guest_java_home.clone()),
     };
 
     info!("Crate a new workspace...");
@@ -192,7 +192,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let mut storage = LogStorage::new(LevelFilter::Info);
             storage.set_max_size(1024 * 1024);
 
-            let build_status = build_dir.build(&toolchain, &krate, sandbox).run(|build| {
+            let build_status = build_dir.build(&toolchain, krate, sandbox).run(|build| {
                 logging::capture(&storage, || {
                     build.cargo().args(&["check"]).run()?;
                     Ok(())
@@ -217,16 +217,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .memory_limit(Some(4024 * 1024 * 1024))
                 .enable_networking(false)
                 .mount(
-                    &host_prusti_home,
-                    &guest_prusti_home,
+                    host_prusti_home,
+                    guest_prusti_home,
                     cmd::MountKind::ReadOnly,
                 )
                 .mount(
-                    &host_viper_home,
-                    &guest_viper_home,
+                    host_viper_home,
+                    guest_viper_home,
                     cmd::MountKind::ReadOnly,
                 )
-                .mount(&host_z3_home, &guest_z3_home, cmd::MountKind::ReadOnly)
+                .mount(host_z3_home, guest_z3_home, cmd::MountKind::ReadOnly)
                 .mount(&host_java_home, &guest_java_home, cmd::MountKind::ReadOnly);
             for java_policy_path in &host_java_policies {
                 sandbox =
@@ -236,7 +236,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let mut storage = LogStorage::new(LevelFilter::Info);
             storage.set_max_size(1024 * 1024);
 
-            let verification_status = build_dir.build(&toolchain, &krate, sandbox).run(|build| {
+            let verification_status = build_dir.build(&toolchain, krate, sandbox).run(|build| {
                 logging::capture(&storage, || {
                     build
                         .cmd(&cargo_prusti)
