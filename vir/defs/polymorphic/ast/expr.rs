@@ -385,6 +385,7 @@ impl Expr {
         })
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn not(expr: Expr) -> Self {
         Expr::UnaryOp(UnaryOp {
             op_kind: UnaryOpKind::Not,
@@ -450,6 +451,7 @@ impl Expr {
         Expr::not(Expr::eq_cmp(left, right))
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn add(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOp {
             op_kind: BinOpKind::Add,
@@ -459,6 +461,7 @@ impl Expr {
         })
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn sub(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOp {
             op_kind: BinOpKind::Sub,
@@ -468,6 +471,7 @@ impl Expr {
         })
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn mul(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOp {
             op_kind: BinOpKind::Mul,
@@ -477,6 +481,7 @@ impl Expr {
         })
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn div(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOp {
             op_kind: BinOpKind::Div,
@@ -495,6 +500,7 @@ impl Expr {
         })
     }
 
+    #[allow(clippy::should_implement_trait)]
     /// Encode Rust reminder. This is *not* Viper modulo.
     pub fn rem(left: Expr, right: Expr) -> Self {
         let abs_right = Expr::ite(
@@ -1918,7 +1924,7 @@ impl fmt::Display for Local {
 
 impl PartialEq for Local {
     fn eq(&self, other: &Self) -> bool {
-        &self.variable == &other.variable
+        self.variable == other.variable
     }
 }
 
@@ -2042,7 +2048,7 @@ impl fmt::Display for ConstExpr {
 
 impl PartialEq for ConstExpr {
     fn eq(&self, other: &Self) -> bool {
-        &self.value == &other.value
+        self.value == other.value
     }
 }
 
@@ -2612,7 +2618,7 @@ impl fmt::Display for SnapApp {
 
 impl PartialEq for SnapApp {
     fn eq(&self, other: &Self) -> bool {
-        &*self.base == &*other.base
+        self.base == other.base
     }
 }
 

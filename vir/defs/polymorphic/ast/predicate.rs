@@ -42,10 +42,7 @@ impl Predicate {
     }
     /// Is this predicate abstract.
     pub fn is_abstract(&self) -> bool {
-        match self {
-            Predicate::Struct(StructPredicate { body: None, .. }) => true,
-            _ => false,
-        }
+        matches!(self, Predicate::Struct(StructPredicate { body: None, .. }))
     }
 
     /// Construct a new predicate that represents a type that models a primitive
@@ -197,13 +194,10 @@ impl StructPredicate {
     }
     /// Is the predicate's body just `true`?
     pub fn has_empty_body(&self) -> bool {
-        match self.body {
-            Some(Expr::Const(ref const_expr)) => match const_expr.value {
-                Const::Bool(true) => true,
-                _ => false,
-            },
-            _ => false,
-        }
+        matches!(
+            self.body,
+            Some(Expr::Const(ConstExpr { value: Const::Bool(true), ..}))
+        )
     }
 }
 
@@ -244,11 +238,11 @@ impl EnumVariantIndex {
 
 pub type MaybeEnumVariantIndex = Option<EnumVariantIndex>;
 
-impl<'a> Into<EnumVariantIndex> for &'a Field {
-    fn into(self) -> EnumVariantIndex {
+impl<'a> From<&'a Field> for EnumVariantIndex {
+    fn from(field: &'a Field) -> Self {
         // TODO: Refactor to avoid string manipulations.
-        assert!(self.name.starts_with("enum_"));
-        EnumVariantIndex(self.name[5..].to_string())
+        assert!(field.name.starts_with("enum_"));
+        Self(field.name[5..].to_string())
     }
 }
 
