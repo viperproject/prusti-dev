@@ -39,7 +39,7 @@ pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     }
     method.local_vars = used_vars;
     let mut remover = UnusedVarRemover {
-        unused_vars: unused_vars,
+        unused_vars,
     };
     let mut sentinel_stmt = ast::Stmt::comment("moved out stmt");
     for block in &mut method.basic_blocks {
@@ -113,7 +113,7 @@ impl ast::ExprFolder for UnusedVarRemover {
             return true.into();
         }
         ast::Expr::FieldAccessPredicate( ast::FieldAccessPredicate {
-            base: base,
+            base,
             permission,
             position,
         })
