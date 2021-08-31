@@ -449,8 +449,7 @@ impl CfgMethod {
                     }
                     path.reverse();
                     return Some(path);
-                }
-                if !visited[successor_block.block_index] {
+                } else if !visited[successor_block.block_index] {
                     visited[successor_block.block_index] = true;
                     came_from[successor_block.block_index] = Some(curr_block_index);
                     to_visit.push_back(successor_block);
