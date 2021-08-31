@@ -230,10 +230,7 @@ impl fmt::Display for Stmt {
 
 impl Stmt {
     pub fn is_comment(&self) -> bool {
-        match self {
-            Stmt::Comment(_) => true,
-            _ => false,
-        }
+        matches!(self, Stmt::Comment(_))
     }
 
     pub fn comment<S: ToString>(comment: S) -> Self {
@@ -682,7 +679,7 @@ pub trait StmtWalker {
         self.walk_expr(expr);
     }
 
-    fn walk_method_call(&mut self, _method_name: &str, args: &Vec<Expr>, targets: &Vec<LocalVar>) {
+    fn walk_method_call(&mut self, _method_name: &str, args: &[Expr], targets: &[LocalVar]) {
         for arg in args {
             self.walk_expr(arg);
         }
@@ -699,7 +696,7 @@ pub trait StmtWalker {
     fn walk_fold(
         &mut self,
         _predicate_name: &str,
-        args: &Vec<Expr>,
+        args: &[Expr],
         _perm: &PermAmount,
         _variant: &MaybeEnumVariantIndex,
         _pos: &Position,
@@ -712,7 +709,7 @@ pub trait StmtWalker {
     fn walk_unfold(
         &mut self,
         _predicate_name: &str,
-        args: &Vec<Expr>,
+        args: &[Expr],
         _perm: &PermAmount,
         _variant: &MaybeEnumVariantIndex,
     ) {
@@ -743,7 +740,7 @@ pub trait StmtWalker {
     fn walk_package_magic_wand(
         &mut self,
         wand: &Expr,
-        body: &Vec<Stmt>,
+        body: &[Stmt],
         _label: &str,
         vars: &[LocalVar],
         _pos: &Position,
@@ -765,7 +762,7 @@ pub trait StmtWalker {
 
     fn walk_nested_cfg(&mut self, _entry: &CfgBlockIndex, _exit: &CfgBlockIndex) {}
 
-    fn walk_if(&mut self, g: &Expr, t: &Vec<Stmt>, e: &Vec<Stmt>) {
+    fn walk_if(&mut self, g: &Expr, t: &[Stmt], e: &[Stmt]) {
         self.walk_expr(g);
         for s in t {
             self.walk(s);

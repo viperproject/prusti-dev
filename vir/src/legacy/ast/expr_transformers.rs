@@ -68,6 +68,7 @@ pub trait ExprFolder: Sized {
         default_fold_expr(self, e)
     }
 
+    #[allow(clippy::boxed_local)]
     fn fold_boxed(&mut self, e: Box<Expr>) -> Box<Expr> {
         box self.fold(*e)
     }
@@ -360,7 +361,7 @@ pub trait ExprWalker: Sized {
     fn walk_unfolding(
         &mut self,
         _name: &str,
-        args: &Vec<Expr>,
+        args: &[Expr],
         body: &Expr,
         _perm: PermAmount,
         _variant: &MaybeEnumVariantIndex,
@@ -378,8 +379,8 @@ pub trait ExprWalker: Sized {
     }
     fn walk_forall(
         &mut self,
-        vars: &Vec<LocalVar>,
-        _triggers: &Vec<Trigger>,
+        vars: &[LocalVar],
+        _triggers: &[Trigger],
         body: &Expr,
         _pos: &Position,
     ) {
@@ -390,8 +391,8 @@ pub trait ExprWalker: Sized {
     }
     fn walk_exists(
         &mut self,
-        vars: &Vec<LocalVar>,
-        _triggers: &Vec<Trigger>,
+        vars: &[LocalVar],
+        _triggers: &[Trigger],
         body: &Expr,
         _pos: &Position,
     ) {
@@ -408,8 +409,8 @@ pub trait ExprWalker: Sized {
     fn walk_func_app(
         &mut self,
         _name: &str,
-        args: &Vec<Expr>,
-        formal_args: &Vec<LocalVar>,
+        args: &[Expr],
+        formal_args: &[LocalVar],
         return_type: &Type,
         _pos: &Position,
     ) {
@@ -421,7 +422,7 @@ pub trait ExprWalker: Sized {
         }
         self.walk_type(return_type);
     }
-    fn walk_domain_func_app(&mut self, func: &DomainFunc, args: &Vec<Expr>, _pos: &Position) {
+    fn walk_domain_func_app(&mut self, func: &DomainFunc, args: &[Expr], _pos: &Position) {
         for arg in args {
             self.walk(arg)
         }
@@ -513,6 +514,7 @@ pub trait FallibleExprFolder: Sized {
         default_fallible_fold_expr(self, e)
     }
 
+    #[allow(clippy::boxed_local)]
     fn fallible_fold_boxed(&mut self, e: Box<Expr>) -> Result<Box<Expr>, Self::Error> {
         Ok(box self.fallible_fold(*e)?)
     }
