@@ -126,7 +126,7 @@ struct Replacer<'a> {
 impl<'a> Replacer<'a> {
     fn new(bound_vars: &Vec<vir::LocalVar>, counter: &'a mut u32) -> Self {
         Self {
-            counter: counter,
+            counter,
             map: HashMap::new(),
             bound_vars: bound_vars.iter().cloned().map(|v| v.into()).collect(),
         }
@@ -136,7 +136,7 @@ impl<'a> Replacer<'a> {
         let name = format!("_LET_{}", self.counter);
         (*self.counter) += 1;
         vir::LocalVar {
-            name: name,
+            name,
             typ: ty.clone(),
         }
     }

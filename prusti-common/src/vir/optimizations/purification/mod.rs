@@ -27,7 +27,7 @@ fn translate_type(typ: &Type) -> Type {
     }
 }
 
-static SUPPORTED_TYPES: &'static [&str] = &["bool", "i32", "usize", "u32"];
+static SUPPORTED_TYPES: &[&str] = &["bool", "i32", "usize", "u32"];
 
 fn purify_method(method: &mut cfg::CfgMethod, predicates: &[ast::Predicate]) {
     let mut candidates = HashSet::new();
