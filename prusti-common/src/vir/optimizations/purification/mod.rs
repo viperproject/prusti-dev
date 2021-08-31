@@ -33,7 +33,7 @@ fn purify_method(method: &mut cfg::CfgMethod, predicates: &[ast::Predicate]) {
     let mut candidates = HashSet::new();
     for var in &method.local_vars {
         match &var.typ {
-            &Type::TypedRef(..) if SUPPORTED_TYPES.contains(&var.typ.name().as_str()) => {
+            Type::TypedRef(..) if SUPPORTED_TYPES.contains(&var.typ.name().as_str()) => {
                 candidates.insert(var.name.clone());
             }
             _ => {}
@@ -205,7 +205,7 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
                         position,
                     })
                 } else {
-                    return Stmt::comment(format!("replaced fold"));
+                    return Stmt::comment("replaced fold".to_string());
                 }
             }
         }
@@ -231,7 +231,7 @@ impl<'a> ast::StmtFolder for Purifier<'a> {
                         expr: self.fold_expr(purified_predicate),
                     })
                 } else {
-                    return Stmt::comment(format!("replaced unfold"));
+                    return Stmt::comment("replaced unfold".to_string());
                 }
             }
         }
