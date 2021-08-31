@@ -20,7 +20,7 @@ use vir_crate::polymorphic::{
     EnumVariantIndex, ExprIterator, ContainerOpKind, WithIdentifier,
     Type, Expr,
 };
-use crate::encoder::encoder::SubstMap;
+use crate::encoder::encoder::{SubstMap, encode_field_name};
 use crate::encoder::{
     Encoder,
     array_encoder::{EncodedArrayTypes, EncodedSliceTypes},
@@ -685,7 +685,7 @@ impl SnapshotEncoder {
                 for field in adt_def.all_fields() { // or adt_def.variants[0].fields ?
                     let field_ty = field.ty(tcx, subst);
                     fields.push(SnapshotField {
-                        name: format!("f${}", field.ident),
+                        name: encode_field_name(&field.ident.to_string()),
                         access: self.snap_app(encoder, Expr::field(
                             arg_expr.clone(),
                             encoder.encode_struct_field(&field.ident.to_string(), field_ty)?,
@@ -721,7 +721,7 @@ impl SnapshotEncoder {
                     for field in &variant.fields {
                         let field_ty = field.ty(tcx, subst);
                         fields.push(SnapshotField {
-                            name: format!("f${}", field.ident),
+                            name: encode_field_name(&field.ident.to_string()),
                             access: self.snap_app(encoder, Expr::field(
                                 field_base.clone(),
                                 encoder.encode_struct_field(&field.ident.to_string(), field_ty)?,
