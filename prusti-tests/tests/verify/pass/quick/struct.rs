@@ -14,5 +14,10 @@ fn check_bar_fn(foo: &Foo) {
 fn check_rtype_fn(foo: &Foo) {
 }
 
+#[pure]
+fn rtype_same(foo1: &Foo, foo2: &Foo) -> bool {
+    foo1.r#type == foo2.r#type
+}
+
 fn main(){
 }
