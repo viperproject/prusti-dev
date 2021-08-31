@@ -270,31 +270,28 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for DefinitelyInitializedState<'a, 't
 
     fn apply_statement_effect(&mut self, location: mir::Location)-> Result<(), AnalysisError> {
         let statement = &self.mir[location.block].statements[location.statement_index];
-        match statement.kind {
-            mir::StatementKind::Assign(box (ref target, ref source)) => {
-                match source {
-                    mir::Rvalue::Repeat(ref operand, _)
-                    | mir::Rvalue::Cast(_, ref operand, _)
-                    | mir::Rvalue::UnaryOp(_, ref operand)
-                    | mir::Rvalue::Use(ref operand) => {
+        if let mir::StatementKind::Assign(box (ref target, ref source)) = statement.kind {
+            match source {
+                mir::Rvalue::Repeat(ref operand, _)
+                | mir::Rvalue::Cast(_, ref operand, _)
+                | mir::Rvalue::UnaryOp(_, ref operand)
+                | mir::Rvalue::Use(ref operand) => {
+                    self.apply_operand_effect(operand);
+                }
+                mir::Rvalue::BinaryOp(_, box (ref operand1, ref operand2))
+                | mir::Rvalue::CheckedBinaryOp(_, box (ref operand1, ref operand2)) => {
+                    self.apply_operand_effect(operand1);
+                    self.apply_operand_effect(operand2);
+                }
+                mir::Rvalue::Aggregate(_, ref operands) => {
+                    for operand in operands.iter() {
                         self.apply_operand_effect(operand);
                     }
-                    mir::Rvalue::BinaryOp(_, box (ref operand1, ref operand2))
-                    | mir::Rvalue::CheckedBinaryOp(_, box (ref operand1, ref operand2)) => {
-                        self.apply_operand_effect(operand1);
-                        self.apply_operand_effect(operand2);
-                    }
-                    mir::Rvalue::Aggregate(_, ref operands) => {
-                        for operand in operands.iter() {
-                            self.apply_operand_effect(operand);
-                        }
-                    }
-                    _ => {}
                 }
-
-                self.set_place_initialised(target);
+                _ => {}
             }
-            _ => {}
+
+            self.set_place_initialised(target);
         }
 
         Ok(())

@@ -123,7 +123,7 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> PointwiseState<'a, 'tcx, S> {
         &mut self,
         block: mir::BasicBlock,
     ) -> &mut HashMap<mir::BasicBlock, S> {
-        self.state_after_block.entry(block).or_insert(HashMap::new())
+        self.state_after_block.entry(block).or_insert_with(HashMap::new)
     }
 
     /// Update the state before the `location`.

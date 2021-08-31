@@ -29,13 +29,10 @@ pub fn add_to_loader_path(paths: Vec<PathBuf>, cmd: &mut Command) {
 /// Prepend paths to an environment variable
 fn env_prepend_path(name: &str, value: Vec<PathBuf>, cmd: &mut Command) {
     let old_value = env::var_os(name);
-    let mut parts: Vec<PathBuf>;
+    let mut parts = value;
     if let Some(ref v) = old_value {
-        parts = value;
         parts.extend(env::split_paths(v).collect::<Vec<_>>());
-    } else {
-        parts = value;
-    }
+    };
     match env::join_paths(parts) {
         Ok(new_value) => {
             cmd.env(name, new_value);
@@ -144,7 +141,7 @@ fn get_sysroot_from_rustup() -> Option<PathBuf> {
 }
 
 /// Find Viper home
-pub fn find_viper_home(base_dir: &PathBuf) -> Option<PathBuf> {
+pub fn find_viper_home(base_dir: &Path) -> Option<PathBuf> {
     let candidates = vec![
         base_dir.join("viper_tools").join("server"),
         base_dir.join("..").join("..").join("viper_tools").join("server"),
@@ -162,7 +159,7 @@ pub fn find_viper_home(base_dir: &PathBuf) -> Option<PathBuf> {
 }
 
 /// Find Z3 executable
-pub fn find_z3_exe(base_dir: &PathBuf) -> Option<PathBuf> {
+pub fn find_z3_exe(base_dir: &Path) -> Option<PathBuf> {
     let mut candidates = vec![
         base_dir.join("viper_tools").join("z3").join("bin").join("z3"),
         base_dir.join("..").join("..").join("viper_tools").join("z3").join("bin").join("z3"),

@@ -28,7 +28,7 @@ fn process<I>(args: I) -> Result<(), i32>
     // as `cargo prusti` (note the space)
     let clean_args = args.skip_while(|x| x == "prusti");
 
-    let cargo_path = std::env::var("CARGO_PATH").unwrap_or("cargo".to_string());
+    let cargo_path = std::env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
 
     let exit_status = Command::new(cargo_path)
         .arg("check")
