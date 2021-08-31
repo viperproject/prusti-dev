@@ -60,6 +60,7 @@ pub trait CfgReplacer<PathCtxt: Debug + Clone, Action: CheckNoOpAction + Debug> 
     ///     }
     /// }
     /// ```
+    #[allow(clippy::too_many_arguments)]
     fn replace_stmt(
         &mut self,
         stmt_index: usize,

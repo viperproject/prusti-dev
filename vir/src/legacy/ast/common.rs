@@ -87,6 +87,7 @@ impl PermAmount {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn add(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
         match (self, other) {
             (PermAmount::Read, PermAmount::Remaining)
@@ -95,6 +96,7 @@ impl PermAmount {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
         match (self, other) {
             (PermAmount::Write, PermAmount::Read) => Ok(PermAmount::Remaining),

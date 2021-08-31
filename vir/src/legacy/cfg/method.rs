@@ -346,8 +346,8 @@ impl CfgMethod {
         }
 
         let mut queue = VecDeque::new();
-        for index in 0..self.basic_blocks.len() {
-            if in_degree[index] == 0 {
+        for (index, value) in in_degree.iter().enumerate() {
+            if *value == 0 {
                 queue.push_back(index);
             }
         }
