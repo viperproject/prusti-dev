@@ -114,6 +114,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
       - name: Cache cargo
         uses: actions/cache@v2
         with:
@@ -122,6 +127,8 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
+      - name: Build with cargo
+        run: python x.py build --all --verbose
       - name: Check and report formatting warnings
         run: |
           rustup component add rustfmt
