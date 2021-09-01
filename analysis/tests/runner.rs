@@ -2,7 +2,6 @@
 #![test_runner(test_runner)]
 
 /// Source: https://github.com/rust-lang/miri/blob/master/tests/compiletest.rs
-
 use std::env;
 use std::path::PathBuf;
 
@@ -19,21 +18,22 @@ fn get_driver_path() -> PathBuf {
     } else {
         "analysis-driver"
     };
-    let local_driver_path: PathBuf =
-        ["target", target_directory, executable_name].iter().collect();
+    let local_driver_path: PathBuf = ["target", target_directory, executable_name]
+        .iter()
+        .collect();
     if local_driver_path.exists() {
         return local_driver_path;
     }
-    let workspace_driver_path: PathBuf =
-        ["..", "target", target_directory, executable_name].iter().collect();
+    let workspace_driver_path: PathBuf = ["..", "target", target_directory, executable_name]
+        .iter()
+        .collect();
     if workspace_driver_path.exists() {
         return workspace_driver_path;
     }
     panic!(
         "Could not find the {:?} {:?} binary to be used in tests. \
         It might be that the project has not been compiled correctly.",
-        target_directory,
-        executable_name
+        target_directory, executable_name
     );
 }
 
@@ -69,6 +69,14 @@ fn run_tests(mode: &str, path: &str, custom_args: Vec<String>) {
 fn test_runner(_tests: &[&()]) {
     env::set_var("RUST_BACKTRACE", "1");
 
-    run_tests("ui", "tests/test_cases/reaching_definitions", vec!["--ADdomain=ReachingDefsState".into()]);
-    run_tests("ui", "tests/test_cases/definitely_initialized", vec!["--ADdomain=DefinitelyInitializedState".into()]);
+    run_tests(
+        "ui",
+        "tests/test_cases/reaching_definitions",
+        vec!["--ADdomain=ReachingDefsState".into()],
+    );
+    run_tests(
+        "ui",
+        "tests/test_cases/definitely_initialized",
+        vec!["--ADdomain=DefinitelyInitializedState".into()],
+    );
 }

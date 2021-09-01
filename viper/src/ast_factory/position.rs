@@ -2,12 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::structs::Position;
-use ast_factory::AstFactory;
-use jni::strings::JNIString;
-use jni::sys::jint;
-use viper_sys::wrappers::java;
-use viper_sys::wrappers::viper::silver::ast;
+use ast_factory::{structs::Position, AstFactory};
+use jni::{strings::JNIString, sys::jint};
+use viper_sys::wrappers::{java, viper::silver::ast};
 
 impl<'a> AstFactory<'a> {
     pub fn no_position(&self) -> Position<'a> {

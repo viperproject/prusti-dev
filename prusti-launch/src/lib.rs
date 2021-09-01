@@ -6,14 +6,17 @@
 
 #![deny(unused_must_use)]
 
+#[cfg(target_family = "unix")]
+use nix::{
+    sys::signal::{killpg, Signal},
+    unistd::getpgrp,
+};
+use serde::Deserialize;
 use std::{
     env,
     path::{Path, PathBuf},
     process::Command,
 };
-use serde::Deserialize;
-#[cfg(target_family = "unix")]
-use nix::{sys::signal::{Signal, killpg}, unistd::getpgrp};
 
 /// Append paths to the loader environment variable
 pub fn add_to_loader_path(paths: Vec<PathBuf>, cmd: &mut Command) {
@@ -108,8 +111,8 @@ pub fn get_rust_toolchain_channel() -> String {
     // Be ready to accept TOML format
     // See: https://github.com/rust-lang/rustup/pull/2438
     if content.starts_with("[toolchain]") {
-        let rust_toolchain: RustToolchainFile = toml::from_str(content)
-            .expect("failed to parse rust-toolchain file");
+        let rust_toolchain: RustToolchainFile =
+            toml::from_str(content).expect("failed to parse rust-toolchain file");
         rust_toolchain.toolchain.channel
     } else {
         content.trim().to_string()
@@ -120,7 +123,7 @@ pub fn get_rust_toolchain_channel() -> String {
 pub fn prusti_sysroot() -> Option<PathBuf> {
     match env::var("RUST_SYSROOT") {
         Ok(prusti_sysroot) => Some(PathBuf::from(prusti_sysroot)),
-        Err(_) => get_sysroot_from_rustup()
+        Err(_) => get_sysroot_from_rustup(),
     }
 }
 
@@ -144,9 +147,17 @@ fn get_sysroot_from_rustup() -> Option<PathBuf> {
 pub fn find_viper_home(base_dir: &Path) -> Option<PathBuf> {
     let candidates = vec![
         base_dir.join("viper_tools").join("server"),
-        base_dir.join("..").join("..").join("viper_tools").join("server"),
+        base_dir
+            .join("..")
+            .join("..")
+            .join("viper_tools")
+            .join("server"),
         base_dir.join("viper_tools").join("backends"),
-        base_dir.join("..").join("..").join("viper_tools").join("backends"),
+        base_dir
+            .join("..")
+            .join("..")
+            .join("viper_tools")
+            .join("backends"),
     ];
 
     for candidate in candidates.into_iter() {
@@ -161,12 +172,24 @@ pub fn find_viper_home(base_dir: &Path) -> Option<PathBuf> {
 /// Find Z3 executable
 pub fn find_z3_exe(base_dir: &Path) -> Option<PathBuf> {
     let mut candidates = vec![
-        base_dir.join("viper_tools").join("z3").join("bin").join("z3"),
-        base_dir.join("..").join("..").join("viper_tools").join("z3").join("bin").join("z3"),
+        base_dir
+            .join("viper_tools")
+            .join("z3")
+            .join("bin")
+            .join("z3"),
+        base_dir
+            .join("..")
+            .join("..")
+            .join("viper_tools")
+            .join("z3")
+            .join("bin")
+            .join("z3"),
     ];
 
     if cfg!(windows) {
-        candidates.iter_mut().for_each(|x| { x.set_extension("exe"); });
+        candidates.iter_mut().for_each(|x| {
+            x.set_extension("exe");
+        });
     }
 
     for candidate in candidates.into_iter() {

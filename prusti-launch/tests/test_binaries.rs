@@ -5,12 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use glob::glob;
-use std::process::{Command, ExitStatus, Stdio, Child};
-use std::path::PathBuf;
-use std::io::{BufReader, BufRead};
-use std::env;
 use prusti_launch::find_java_home;
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    env,
+    io::{BufRead, BufReader},
+    path::PathBuf,
+    process::{Child, Command, ExitStatus, Stdio},
+};
 
 fn find_executable_path(base_name: &str) -> PathBuf {
     let target_directory = if cfg!(debug_assertions) {
@@ -23,20 +25,15 @@ fn find_executable_path(base_name: &str) -> PathBuf {
     } else {
         base_name.to_string()
     };
-    let local_prusti_rustc_path: PathBuf = [
-        "target",
-        target_directory,
-        &executable_name
-    ].iter().collect();
+    let local_prusti_rustc_path: PathBuf = ["target", target_directory, &executable_name]
+        .iter()
+        .collect();
     if local_prusti_rustc_path.exists() {
         return local_prusti_rustc_path;
     }
-    let workspace_prusti_rustc_path: PathBuf = [
-        "..",
-        "target",
-        target_directory,
-        &executable_name
-    ].iter().collect();
+    let workspace_prusti_rustc_path: PathBuf = ["..", "target", target_directory, &executable_name]
+        .iter()
+        .collect();
     if workspace_prusti_rustc_path.exists() {
         return workspace_prusti_rustc_path;
     }
@@ -48,8 +45,7 @@ fn find_executable_path(base_name: &str) -> PathBuf {
 }
 
 fn run_on_test_files<F: Fn(&PathBuf) -> ExitStatus>(run: F) {
-    let pass_entries = glob("verify/pass/quick/**/*.jpg")
-        .expect("failed to read glob pattern");
+    let pass_entries = glob("verify/pass/quick/**/*.jpg").expect("failed to read glob pattern");
     for entry in pass_entries {
         match entry {
             Err(e) => println!("{:?}", e),
@@ -60,12 +56,11 @@ fn run_on_test_files<F: Fn(&PathBuf) -> ExitStatus>(run: F) {
                     "Test case {:?} unexpectedly failed.",
                     path
                 );
-            },
+            }
         }
     }
 
-    let fail_entries = glob("verify/fail/quick/**/*.jpg")
-        .expect("failed to read glob pattern");
+    let fail_entries = glob("verify/fail/quick/**/*.jpg").expect("failed to read glob pattern");
     for entry in fail_entries {
         match entry {
             Err(e) => println!("{:?}", e),
@@ -76,7 +71,7 @@ fn run_on_test_files<F: Fn(&PathBuf) -> ExitStatus>(run: F) {
                     "Test case {:?} unexpectedly succeeded.",
                     path
                 );
-            },
+            }
         }
     }
 }
@@ -97,7 +92,11 @@ fn test_prusti_rustc() {
     let prusti_rustc = find_executable_path("prusti-rustc");
 
     run_on_test_files(|program: &PathBuf| -> ExitStatus {
-        println!("Running {:?} on {:?}...", prusti_rustc.display(), program.display());
+        println!(
+            "Running {:?} on {:?}...",
+            prusti_rustc.display(),
+            program.display()
+        );
         Command::new(&prusti_rustc)
             .arg("--edition=2018")
             .arg(program)
@@ -116,7 +115,7 @@ fn test_prusti_rustc_with_server() {
 
     // Preserve SYSTEMROOT on Windows.
     // See: https://travis-ci.community/t/socket-the-requested-service-provider-could-not-be-loaded-or-initialized/1127
-    let filtered_env : HashMap<String, String> = env::vars()
+    let filtered_env: HashMap<String, String> = env::vars()
         .filter(|&(ref k, _)| k == "SYSTEMROOT")
         .collect();
 
@@ -144,7 +143,7 @@ fn test_prusti_rustc_with_server() {
                 Ok(line) => {
                     if let Some(port) = line.strip_prefix("port: ") {
                         opt_server_port = Some(port.to_string());
-                        break
+                        break;
                     }
                 }
             }
@@ -155,13 +154,20 @@ fn test_prusti_rustc_with_server() {
     let _server_child_guard = ChildGuard(server_child);
 
     run_on_test_files(|program: &PathBuf| -> ExitStatus {
-        println!("Running {:?} on {:?}...", prusti_rustc.display(), program.display());
+        println!(
+            "Running {:?} on {:?}...",
+            prusti_rustc.display(),
+            program.display()
+        );
         Command::new(&prusti_rustc)
             .arg("--edition=2018")
             .arg(program)
             .env_clear()
             .env("RUST_BACKTRACE", "1")
-            .env("PRUSTI_SERVER_ADDRESS", format!("localhost:{}", server_port))
+            .env(
+                "PRUSTI_SERVER_ADDRESS",
+                format!("localhost:{}", server_port),
+            )
             .status()
             .expect("failed to execute prusti-rustc")
     });

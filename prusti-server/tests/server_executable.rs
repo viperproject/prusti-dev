@@ -25,7 +25,9 @@ fn system_assigned_port() {
 
     let line = stdout.lines().next().expect("at least one line in stdout");
 
-    let port_string = line.strip_prefix("port: ").expect("port message as first stdout line");
+    let port_string = line
+        .strip_prefix("port: ")
+        .expect("port message as first stdout line");
 
     assert_ne!(
         port_string.parse::<u16>().expect("valid port number"),

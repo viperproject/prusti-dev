@@ -11,12 +11,8 @@ extern crate tempdir;
 
 use error_chain::ChainedError;
 use jni_gen::*;
-use std::env;
-use std::fs;
-use std::fs::File;
-use std::io::copy;
+use std::{env, fs, fs::File, io::copy, path::Path};
 use tempdir::TempDir;
-use std::path::Path;
 
 fn main() {
     env_logger::init();

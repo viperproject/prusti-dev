@@ -5,8 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{AbstractState, AnalysisError};
-use rustc_middle::mir;
-use rustc_middle::ty::TyCtxt;
+use rustc_middle::{mir, ty::TyCtxt};
 use serde::{Serialize, Serializer};
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -45,13 +44,14 @@ impl<'a, 'tcx: 'a> AbstractState<'a, 'tcx> for PCSState {
         unimplemented!()
     }
 
-    fn apply_statement_effect(&mut self, location: mir::Location)
-    -> Result<(), AnalysisError> {
+    fn apply_statement_effect(&mut self, location: mir::Location) -> Result<(), AnalysisError> {
         unimplemented!()
     }
 
-    fn apply_terminator_effect(&self, location: mir::Location)
-        -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
+    fn apply_terminator_effect(
+        &self,
+        location: mir::Location,
+    ) -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
         unimplemented!()
     }
 }

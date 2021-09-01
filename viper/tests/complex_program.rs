@@ -33,10 +33,7 @@ fn success_with_complex_program() {
 
     let unwrap_domain_function = ast.domain_func(
         "unwrap",
-        &[ast.local_var_decl(
-            "x",
-            wrapper_type,
-        )],
+        &[ast.local_var_decl("x", wrapper_type)],
         ast.type_var("T"),
         false,
         "Wrapper",

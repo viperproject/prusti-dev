@@ -11,7 +11,11 @@ macro_rules! force_matches {
         if let $patt = $ex {
             $ret
         } else {
-            unreachable!("force_matches: expr {} doesn't match pattern {}", stringify!($ex), stringify!($patt))
+            unreachable!(
+                "force_matches: expr {} doesn't match pattern {}",
+                stringify!($ex),
+                stringify!($patt)
+            )
         }
     };
 }

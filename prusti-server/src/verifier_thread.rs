@@ -15,7 +15,8 @@ use std::{
 };
 use viper::ProgramVerificationResult;
 
-pub type FutVerificationResult = Box<dyn Future<Item = ProgramVerificationResult, Error = Canceled>>;
+pub type FutVerificationResult =
+    Box<dyn Future<Item = ProgramVerificationResult, Error = Canceled>>;
 
 struct VerificationRequest {
     pub programs: Vec<Program>,

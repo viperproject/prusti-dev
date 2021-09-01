@@ -196,7 +196,10 @@ impl StructPredicate {
     pub fn has_empty_body(&self) -> bool {
         matches!(
             self.body,
-            Some(Expr::Const(ConstExpr { value: Const::Bool(true), ..}))
+            Some(Expr::Const(ConstExpr {
+                value: Const::Bool(true),
+                ..
+            }))
         )
     }
 }

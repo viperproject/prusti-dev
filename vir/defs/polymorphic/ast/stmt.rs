@@ -591,10 +591,7 @@ pub trait StmtFolder {
         })
     }
 
-    fn fold_method_call(
-        &mut self,
-        statement: MethodCall,
-    ) -> Stmt {
+    fn fold_method_call(&mut self, statement: MethodCall) -> Stmt {
         let MethodCall {
             method_name,
             arguments,
@@ -607,10 +604,7 @@ pub trait StmtFolder {
         })
     }
 
-    fn fold_assign(
-        &mut self,
-        statement: Assign,
-    ) -> Stmt {
+    fn fold_assign(&mut self, statement: Assign) -> Stmt {
         let Assign {
             target,
             source,
@@ -622,10 +616,7 @@ pub trait StmtFolder {
             kind,
         })
     }
-    fn fold_fold(
-        &mut self,
-        statement: Fold,
-    ) -> Stmt {
+    fn fold_fold(&mut self, statement: Fold) -> Stmt {
         let Fold {
             predicate_name,
             arguments,
@@ -642,10 +633,7 @@ pub trait StmtFolder {
         })
     }
 
-    fn fold_unfold(
-        &mut self,
-        statement: Unfold,
-    ) -> Stmt {
+    fn fold_unfold(&mut self, statement: Unfold) -> Stmt {
         let Unfold {
             predicate_name,
             arguments,
@@ -676,10 +664,7 @@ pub trait StmtFolder {
         Stmt::EndFrame(EndFrame {})
     }
 
-    fn fold_transfer_perm(
-        &mut self,
-        statement: TransferPerm,
-    ) -> Stmt {
+    fn fold_transfer_perm(&mut self, statement: TransferPerm) -> Stmt {
         let TransferPerm {
             left,
             right,
@@ -692,10 +677,7 @@ pub trait StmtFolder {
         })
     }
 
-    fn fold_package_magic_wand(
-        &mut self,
-        statement: PackageMagicWand,
-    ) -> Stmt {
+    fn fold_package_magic_wand(&mut self, statement: PackageMagicWand) -> Stmt {
         let PackageMagicWand {
             magic_wand,
             package_stmts,
@@ -712,10 +694,7 @@ pub trait StmtFolder {
         })
     }
 
-    fn fold_apply_magic_wand(
-        &mut self,
-        statement: ApplyMagicWand,
-    ) -> Stmt {
+    fn fold_apply_magic_wand(&mut self, statement: ApplyMagicWand) -> Stmt {
         let ApplyMagicWand {
             magic_wand,
             position,
@@ -731,10 +710,7 @@ pub trait StmtFolder {
         Stmt::ExpireBorrows(ExpireBorrows { dag })
     }
 
-    fn fold_if(
-        &mut self,
-        statement: If,
-    ) -> Stmt {
+    fn fold_if(&mut self, statement: If) -> Stmt {
         let If {
             guard,
             then_stmts,
@@ -807,10 +783,7 @@ pub trait FallibleStmtFolder {
         }))
     }
 
-    fn fallible_fold_exhale(
-        &mut self,
-        statement: Exhale,
-    ) -> Result<Stmt, Self::Error> {
+    fn fallible_fold_exhale(&mut self, statement: Exhale) -> Result<Stmt, Self::Error> {
         let Exhale { expr, position } = statement;
         Ok(Stmt::Exhale(Exhale {
             expr: self.fallible_fold_expr(expr)?,
@@ -818,10 +791,7 @@ pub trait FallibleStmtFolder {
         }))
     }
 
-    fn fallible_fold_assert(
-        &mut self,
-        statement: Assert,
-    ) -> Result<Stmt, Self::Error> {
+    fn fallible_fold_assert(&mut self, statement: Assert) -> Result<Stmt, Self::Error> {
         let Assert { expr, position } = statement;
         Ok(Stmt::Assert(Assert {
             expr: self.fallible_fold_expr(expr)?,
@@ -829,10 +799,7 @@ pub trait FallibleStmtFolder {
         }))
     }
 
-    fn fallible_fold_method_call(
-        &mut self,
-        statement: MethodCall,
-    ) -> Result<Stmt, Self::Error> {
+    fn fallible_fold_method_call(&mut self, statement: MethodCall) -> Result<Stmt, Self::Error> {
         let MethodCall {
             method_name,
             arguments,
@@ -848,10 +815,7 @@ pub trait FallibleStmtFolder {
         }))
     }
 
-    fn fallible_fold_assign(
-        &mut self,
-        statement: Assign,
-    ) -> Result<Stmt, Self::Error> {
+    fn fallible_fold_assign(&mut self, statement: Assign) -> Result<Stmt, Self::Error> {
         let Assign {
             target,
             source,
@@ -864,10 +828,7 @@ pub trait FallibleStmtFolder {
         }))
     }
 
-    fn fallible_fold_fold(
-        &mut self,
-        statement: Fold,
-    ) -> Result<Stmt, Self::Error> {
+    fn fallible_fold_fold(&mut self, statement: Fold) -> Result<Stmt, Self::Error> {
         let Fold {
             predicate_name,
             arguments,
@@ -887,10 +848,7 @@ pub trait FallibleStmtFolder {
         }))
     }
 
-    fn fallible_fold_unfold(
-        &mut self,
-        statement: Unfold,
-    ) -> Result<Stmt, Self::Error> {
+    fn fallible_fold_unfold(&mut self, statement: Unfold) -> Result<Stmt, Self::Error> {
         let Unfold {
             predicate_name,
             arguments,
@@ -908,10 +866,7 @@ pub trait FallibleStmtFolder {
         }))
     }
 
-    fn fallible_fold_obtain(
-        &mut self,
-        statement: Obtain,
-    ) -> Result<Stmt, Self::Error> {
+    fn fallible_fold_obtain(&mut self, statement: Obtain) -> Result<Stmt, Self::Error> {
         let Obtain { expr, position } = statement;
         Ok(Stmt::Obtain(Obtain {
             expr: self.fallible_fold_expr(expr)?,
@@ -988,10 +943,7 @@ pub trait FallibleStmtFolder {
         Ok(Stmt::ExpireBorrows(ExpireBorrows { dag }))
     }
 
-    fn fallible_fold_if(
-        &mut self,
-        statement: If,
-    ) -> Result<Stmt, Self::Error> {
+    fn fallible_fold_if(&mut self, statement: If) -> Result<Stmt, Self::Error> {
         let If {
             guard,
             then_stmts,
@@ -1010,10 +962,7 @@ pub trait FallibleStmtFolder {
         }))
     }
 
-    fn fallible_fold_downcast(
-        &mut self,
-        statement: Downcast,
-    ) -> Result<Stmt, Self::Error> {
+    fn fallible_fold_downcast(&mut self, statement: Downcast) -> Result<Stmt, Self::Error> {
         let Downcast { base, field } = statement;
         Ok(Stmt::Downcast(Downcast {
             base: self.fallible_fold_expr(base)?,
@@ -1071,10 +1020,7 @@ pub trait StmtWalker {
         self.walk_expr(expr);
     }
 
-    fn walk_method_call(
-        &mut self,
-        statement: &MethodCall,
-    ) {
+    fn walk_method_call(&mut self, statement: &MethodCall) {
         let MethodCall {
             arguments, targets, ..
         } = statement;
@@ -1127,10 +1073,7 @@ pub trait StmtWalker {
         self.walk_expr(right);
     }
 
-    fn walk_package_magic_wand(
-        &mut self,
-        statement: &PackageMagicWand,
-    ) {
+    fn walk_package_magic_wand(&mut self, statement: &PackageMagicWand) {
         let PackageMagicWand {
             magic_wand,
             package_stmts,
@@ -1155,10 +1098,7 @@ pub trait StmtWalker {
 
     fn walk_nested_cfg(&mut self, _entry: &CfgBlockIndex, _exit: &CfgBlockIndex) {}
 
-    fn walk_if(
-        &mut self,
-        statement: &If,
-    ) {
+    fn walk_if(&mut self, statement: &If) {
         let If {
             guard,
             then_stmts,
