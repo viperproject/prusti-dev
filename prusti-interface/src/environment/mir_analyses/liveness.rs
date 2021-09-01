@@ -149,11 +149,8 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         trace!("[enter] apply_statement_effects location={:?}", location);
         let statement = &self.mir[location.block].statements[location.statement_index];
         let mut set = self.get_set_before_statement(location);
-        match statement.kind {
-            mir::StatementKind::Assign(box (ref target, _)) => {
-                self.replace_in_set(&mut set, target, location);
-            }
-            _ => {}
+        if let mir::StatementKind::Assign(box (ref target, _)) = statement.kind {
+            self.replace_in_set(&mut set, target, location);
         }
         self.update_set_after_statement(location, set);
     }
@@ -168,20 +165,15 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
             ..
         } = self.mir[bb];
         let mut set = self.get_set_before_terminator(bb);
-        if let Some(ref terminator) = *terminator {
-            match terminator.kind {
-                mir::TerminatorKind::Call {
-                    ref destination, ..
-                } => {
-                    if let Some((place, _)) = destination {
-                        let location = mir::Location {
-                            block: bb,
-                            statement_index: statements.len(),
-                        };
-                        self.replace_in_set(&mut set, place, location);
-                    }
-                }
-                _ => {}
+        if let Some(terminator) = terminator {
+            if let mir::TerminatorKind::Call {
+                destination: Some((place, _)), ..
+            } = &terminator.kind {
+                let location = mir::Location {
+                    block: bb,
+                    statement_index: statements.len(),
+                };
+                self.replace_in_set(&mut set, place, location);
             }
         }
         let mir::BasicBlockData { ref statements, .. } = self.mir[bb];

@@ -15,16 +15,14 @@ use std::mem;
 /// Invariant: we never have a place and any of its descendants in the
 /// set at the same time. For example, having `x.f` and `x.f.g` in the
 /// set at the same time is illegal.
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct PlaceSet<'tcx> {
     places: HashSet<mir::Place<'tcx>>,
 }
 
 impl<'tcx> PlaceSet<'tcx> {
     pub fn new() -> Self {
-        Self {
-            places: HashSet::new(),
-        }
+        Self::default()
     }
     pub fn contains(&self, place: &mir::Place) -> bool {
         self.places.contains(place)
@@ -52,11 +50,12 @@ impl<'tcx> PlaceSet<'tcx> {
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = &'a mir::Place<'tcx>> {
         self.places.iter()
     }
+    #[allow(clippy::should_implement_trait)]
     pub fn into_iter(self) -> impl Iterator<Item = mir::Place<'tcx>> {
         self.places.into_iter()
     }
     /// Insert `place`.
-    pub fn insert<'a>(
+    pub fn insert(
         &mut self,
         place: &mir::Place<'tcx>,
         mir: &mir::Body<'tcx>,
@@ -78,7 +77,7 @@ impl<'tcx> PlaceSet<'tcx> {
         self.check_invariant();
     }
     /// Remove `place`.
-    pub fn remove<'a>(
+    pub fn remove(
         &mut self,
         place: &mir::Place<'tcx>,
         mir: &mir::Body<'tcx>,

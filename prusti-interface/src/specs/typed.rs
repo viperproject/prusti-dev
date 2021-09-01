@@ -39,6 +39,7 @@ pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
 pub type Pledge<'tcx> = common::Pledge<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 
 /// A map of specifications keyed by crate-local DefIds.
+#[derive(Default)]
 pub struct DefSpecificationMap<'tcx> {
     pub specs: HashMap<LocalDefId, SpecificationSet<'tcx>>,
     pub extern_specs: HashMap<DefId, LocalDefId>,
@@ -46,10 +47,7 @@ pub struct DefSpecificationMap<'tcx> {
 
 impl<'tcx> DefSpecificationMap<'tcx> {
     pub fn new() -> Self {
-        Self {
-            specs: HashMap::new(),
-            extern_specs: HashMap::new(),
-        }
+        Self::default()
     }
     pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet<'tcx>> {
         let id = if let Some(spec_id) = self.extern_specs.get(def_id) {

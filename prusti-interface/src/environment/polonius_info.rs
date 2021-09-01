@@ -318,9 +318,9 @@ pub fn graphviz<'tcx>(
         let from_block = from.location.block;
         let to = interner.get_point(to_index);
         let to_block = to.location.block;
-        let from_points = blocks.entry(from_block).or_insert(HashSet::new());
+        let from_points = blocks.entry(from_block).or_insert_with(HashSet::new);
         from_points.insert(from_index);
-        let to_points = blocks.entry(to_block).or_insert(HashSet::new());
+        let to_points = blocks.entry(to_block).or_insert_with(HashSet::new);
         to_points.insert(to_index);
         if from_block != to_block {
             block_edges.insert((from_block, to_block));
@@ -406,6 +406,7 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
 /// - The list loans that were created due to borrows moved by a function call.
 /// - A list of incompatability sets. Every incompatability set contains loans that cannot be
 ///   reborrows of each other.
+#[allow(clippy::type_complexity)]
 fn add_fake_facts<'a, 'tcx: 'a>(
     all_facts: &mut facts::AllInputFacts,
     interner: &facts::Interner,
@@ -438,7 +439,7 @@ fn add_fake_facts<'a, 'tcx: 'a>(
     let mut outlives_at_point = HashMap::new();
     for &(region1, region2, point) in all_facts.subset_base.iter() {
         if !universal_region.contains(&region1) && !universal_region.contains(&region2) {
-            let subset_base = outlives_at_point.entry(point).or_insert(vec![]);
+            let subset_base = outlives_at_point.entry(point).or_insert_with(Vec::new);
             subset_base.push((region1, region2));
         }
     }
@@ -1019,7 +1020,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                         .get(&point)
                         .map_or(false, |successor_loans| successor_loans.contains(loan))
                 });
-                !alive_in_successor && !(successors.is_empty() && is_return)
+                !(alive_in_successor || (successors.is_empty() && is_return))
             })
             .filter(|loan| !becoming_zombie_loans.contains(loan))
             .collect()
@@ -1392,7 +1393,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         loans: &[facts::Loan],
         zombie_loans: &[facts::Loan],
         location: mir::Location,
-        reborrows_direct: &Vec<(facts::Loan, facts::Loan)>,
+        reborrows_direct: &[(facts::Loan, facts::Loan)],
     ) -> Result<ReborrowingDAG, PoloniusInfoError> {
         trace!(
             "[enter] construct_reborrowing_dag_custom_reborrows\
@@ -1454,10 +1455,11 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let mut sorted_loans = Vec::new();
         let mut permanent_mark = vec![false; loans.len()];
         let mut temporary_mark = vec![false; loans.len()];
+        #[allow(clippy::too_many_arguments)]
         fn visit(
             this: &PoloniusInfo,
             representative_loan: &Option<facts::Loan>,
-            reborrows_direct: &Vec<(facts::Loan, facts::Loan)>,
+            reborrows_direct: &[(facts::Loan, facts::Loan)],
             loans: &[facts::Loan],
             current: usize,
             sorted_loans: &mut Vec<facts::Loan>,
@@ -1540,12 +1542,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             permanent_mark[current] = true;
             sorted_loans.push(loans[current]);
         }
-        loop {
-            let index = if let Some(index) = permanent_mark.iter().position(|x| !*x) {
-                index
-            } else {
-                break;
-            };
+        while let Some(index) = permanent_mark.iter().position(|x| !*x) {
             visit(
                 self,
                 &representative_loan,
@@ -1877,19 +1874,16 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 }
 
 /// Check if the statement is assignment.
-fn is_assignment<'tcx>(mir: &mir::Body<'tcx>, location: mir::Location) -> bool {
+fn is_assignment(mir: &mir::Body<'_>, location: mir::Location) -> bool {
     let mir::BasicBlockData { ref statements, .. } = mir[location.block];
     if statements.len() == location.statement_index {
         return false;
     }
-    match statements[location.statement_index].kind {
-        mir::StatementKind::Assign { .. } => true,
-        _ => false,
-    }
+    matches!(statements[location.statement_index].kind, mir::StatementKind::Assign { .. })
 }
 
 /// Check if the terminator is return.
-fn is_return<'tcx>(mir: &mir::Body<'tcx>, location: mir::Location) -> bool {
+fn is_return(mir: &mir::Body<'_>, location: mir::Location) -> bool {
     let mir::BasicBlockData {
         ref statements,
         ref terminator,
@@ -1898,13 +1892,10 @@ fn is_return<'tcx>(mir: &mir::Body<'tcx>, location: mir::Location) -> bool {
     if statements.len() != location.statement_index {
         return false;
     }
-    match terminator.as_ref().unwrap().kind {
-        mir::TerminatorKind::Return => true,
-        _ => false,
-    }
+    matches!(terminator.as_ref().unwrap().kind, mir::TerminatorKind::Return)
 }
 
-fn is_call<'tcx>(mir: &mir::Body<'tcx>, location: mir::Location) -> bool {
+fn is_call(mir: &mir::Body<'_>, location: mir::Location) -> bool {
     let mir::BasicBlockData {
         ref statements,
         ref terminator,
@@ -1913,10 +1904,7 @@ fn is_call<'tcx>(mir: &mir::Body<'tcx>, location: mir::Location) -> bool {
     if statements.len() != location.statement_index {
         return false;
     }
-    match terminator.as_ref().unwrap().kind {
-        mir::TerminatorKind::Call { .. } => true,
-        _ => false,
-    }
+    matches!(terminator.as_ref().unwrap().kind, mir::TerminatorKind::Call { .. })
 }
 
 /// Extract the call terminator at the location. Otherwise return None.
@@ -1949,7 +1937,7 @@ fn get_call_destination<'tcx>(
 }
 
 /// Extract reference-typed arguments of the call at the given location.
-fn get_call_arguments<'tcx>(mir: &mir::Body<'tcx>, location: mir::Location) -> Vec<mir::Local> {
+fn get_call_arguments(mir: &mir::Body<'_>, location: mir::Location) -> Vec<mir::Local> {
     let mir::BasicBlockData {
         ref statements,
         ref terminator,
@@ -2034,6 +2022,7 @@ pub struct AdditionalFacts {
 
 impl AdditionalFacts {
     /// Derive ``zombie_requires``.
+    #[allow(clippy::type_complexity)]
     fn derive_zombie_requires(
         all_facts: &facts::AllInputFacts,
         output: &facts::AllOutputFacts,
@@ -2176,9 +2165,9 @@ impl AdditionalFacts {
         for (region, loan, point) in &zombie_requires.elements {
             zombie_requires_map
                 .entry(*point)
-                .or_insert(BTreeMap::default())
+                .or_insert_with(BTreeMap::default)
                 .entry(*region)
-                .or_insert(BTreeSet::new())
+                .or_insert_with(BTreeSet::new)
                 .insert(*loan);
         }
 
@@ -2187,7 +2176,7 @@ impl AdditionalFacts {
         for (loan, point) in &zombie_borrow_live_at.elements {
             zombie_borrow_live_at_map
                 .entry(*point)
-                .or_insert(Vec::new())
+                .or_insert_with(Vec::new)
                 .push(*loan);
         }
 
@@ -2196,7 +2185,7 @@ impl AdditionalFacts {
         for (loan, point) in &borrow_become_zombie_at.elements {
             borrow_become_zombie_at_map
                 .entry(*point)
-                .or_insert(Vec::new())
+                .or_insert_with(Vec::new)
                 .push(*loan);
         }
 

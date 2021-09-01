@@ -197,7 +197,7 @@ impl<'tcx> Environment<'tcx> {
     /// Dump various information from the borrow checker.
     ///
     /// Mostly used for experiments and debugging.
-    pub fn dump_borrowck_info(&self, procedures: &Vec<ProcedureDefId>) {
+    pub fn dump_borrowck_info(&self, procedures: &[ProcedureDefId]) {
         if prusti_common::config::dump_borrowck_info() {
             dump_borrowck_info::dump_borrowck_info(self, procedures)
         }

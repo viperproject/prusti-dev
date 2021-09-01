@@ -15,6 +15,7 @@ pub struct AnalysisResult<T> {
 }
 
 impl<T> AnalysisResult<T> {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             before_block: HashMap::new(),
@@ -38,6 +39,7 @@ impl<T> AnalysisResult<T> {
 }
 
 /// A work item used in the fixpoint computation's work queue.
+#[allow(clippy::enum_variant_names)]
 pub(super) enum WorkItem {
     /// Need to apply the effects of the statement.
     ApplyStatementEffects(mir::Location),

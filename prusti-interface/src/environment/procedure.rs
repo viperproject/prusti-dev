@@ -190,8 +190,7 @@ impl<'tcx> Procedure<'tcx> {
 fn build_reachable_basic_blocks(mir: &Mir, real_edges: &RealEdges) -> HashSet<BasicBlock> {
     let mut reachable_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     let mut visited: HashSet<BasicBlock> = HashSet::new();
-    let mut to_visit: Vec<BasicBlock> = vec![];
-    to_visit.push(mir.basic_blocks().indices().next().unwrap());
+    let mut to_visit: Vec<BasicBlock> = vec![mir.basic_blocks().indices().next().unwrap()];
 
     while !to_visit.is_empty() {
         let source = to_visit.pop().unwrap();
@@ -219,13 +218,9 @@ fn is_spec_closure(def_id: def_id::DefId, tcx: &TyCtxt) -> bool {
 
 fn is_spec_basic_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> bool {
     for stmt in &bb_data.statements {
-        if let StatementKind::Assign(box (_, rvalue)) = &stmt.kind {
-            if let Rvalue::Aggregate(box aggr, _) = rvalue {
-                if let AggregateKind::Closure(def_id, _) = aggr {
-                    if is_spec_closure(*def_id, tcx) {
-                        return true;
-                    }
-                }
+        if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _))) = &stmt.kind {
+            if is_spec_closure(*def_id, tcx) {
+                return true;
             }
         }
     }
@@ -252,7 +247,7 @@ fn _blocks_definitely_leading_to<'a>(bb_graph: &'a HashMap<BasicBlock, BasicBloc
     blocks
 }
 
-fn blocks_definitely_leading_to<'a>(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, target: BasicBlock) -> HashSet<BasicBlock> {
+fn blocks_definitely_leading_to(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, target: BasicBlock) -> HashSet<BasicBlock> {
     let mut blocks = HashSet::new();
     _blocks_definitely_leading_to(bb_graph, target, &mut blocks);
     blocks
@@ -286,8 +281,7 @@ fn build_nonspec_basic_blocks(mir: &Mir, real_edges: &RealEdges, tcx: &TyCtxt) -
     }
 
     let mut visited: HashSet<BasicBlock> = HashSet::new();
-    let mut to_visit: Vec<BasicBlock> = vec![];
-    to_visit.push(mir.basic_blocks().indices().next().unwrap());
+    let mut to_visit: Vec<BasicBlock> = vec![mir.basic_blocks().indices().next().unwrap()];
 
     let mut bb_graph: HashMap<BasicBlock, BasicBlockNode> = HashMap::new();
 
