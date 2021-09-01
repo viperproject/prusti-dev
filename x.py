@@ -437,6 +437,10 @@ def clippy_in(cwd):
     """Run cargo clippy in given subproject."""
     run_command(['cargo', 'clippy', '--', '-D', 'warnings'], cwd=cwd)
 
+def fmt_check_in(cwd):
+    """Run cargo clippy in given subproject."""
+    run_command(['cargo', 'fmt', '--', '--check'], cwd=cwd)
+
 def main(argv):
     global verbose
     for i, arg in enumerate(argv):
@@ -463,6 +467,9 @@ def main(argv):
             break
         elif arg == 'clippy-in':
             clippy_in(*argv[i+1:])
+            break
+        elif arg == 'fmt-check':
+            fmt_check_in(*argv[i+1:])
             break
         else:
             cargo(argv[i:])
