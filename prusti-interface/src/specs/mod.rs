@@ -347,7 +347,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if spec_type == SpecType::Invariant {
                 self.loop_specs
                     .entry(local_id)
-                    .or_insert(vec![])
+                    .or_insert_with(Vec::new)
                     .push(spec_id);
             }
         }

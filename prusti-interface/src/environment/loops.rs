@@ -16,7 +16,7 @@ use log::{debug, trace};
 use crate::environment::mir_utils::RealEdges;
 
 /// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
-fn collect_loop_body<'tcx>(
+fn collect_loop_body(
     head: BasicBlockIndex,
     back_edge_source: BasicBlockIndex,
     real_edges: &RealEdges,
@@ -139,6 +139,7 @@ fn order_basic_blocks<'tcx>(
         IndexVec::<BasicBlockIndex, bool>::from_elem_n(false, basic_blocks.len());
     let mut temporary_mark = permanent_mark.clone();
 
+    #[allow(clippy::too_many_arguments)]
     fn visit<'tcx>(
         basic_blocks: &IndexVec<BasicBlockIndex, mir::BasicBlockData<'tcx>>,
         real_edges: &RealEdges,
@@ -185,12 +186,8 @@ fn order_basic_blocks<'tcx>(
         sorted_blocks.push(current);
     }
 
-    loop {
-        let index = if let Some(index) = permanent_mark.iter().position(|x| !*x) {
-            BasicBlockIndex::new(index)
-        } else {
-            break;
-        };
+    while let Some(index) = permanent_mark.iter().position(|x| !*x) {
+        let index = BasicBlockIndex::new(index);
         visit(
             basic_blocks,
             real_edges,
@@ -248,7 +245,7 @@ impl ProcedureLoops {
 
         let mut loop_bodies = HashMap::new();
         for &(source, target) in back_edges.iter() {
-            let body = loop_bodies.entry(target).or_insert(HashSet::new());
+            let body = loop_bodies.entry(target).or_insert_with(HashSet::new);
             collect_loop_body(target, source, real_edges, body);
         }
 
@@ -258,7 +255,7 @@ impl ProcedureLoops {
             for &block in loop_body.iter() {
                 let heads_set = enclosing_loop_heads_set
                     .entry(block)
-                    .or_insert(HashSet::new());
+                    .or_insert_with(HashSet::new);
                 heads_set.insert(loop_head);
             }
         }
@@ -316,10 +313,7 @@ impl ProcedureLoops {
 
                 // Decide if this block has an exit edge
                 let term = mir[curr_bb].terminator();
-                let is_switch_int = match term.kind {
-                    mir::TerminatorKind::SwitchInt { .. } => true,
-                    _ => false
-                };
+                let is_switch_int = matches!(term.kind, mir::TerminatorKind::SwitchInt { .. });
                 let has_exit_edge = real_edges.successors(curr_bb).iter().any(
                     |&bb| get_loop_depth(bb) < loop_head_depth
                 );
