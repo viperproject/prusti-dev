@@ -12,7 +12,9 @@ use prusti_common::{
     vir::{Program, ToViper},
     Stopwatch,
 };
-use viper::{self, ConsistencyError, JavaExceptionWithOrigin, ProgramVerificationResult, VerificationResult};
+use viper::{
+    self, ConsistencyError, JavaExceptionWithOrigin, ProgramVerificationResult, VerificationResult,
+};
 
 pub struct VerifierRunner<'v> {
     verifier: viper::Verifier<'v, viper::state::Started>,
@@ -66,22 +68,22 @@ impl<'v> VerifierRunner<'v> {
             }
             stopwatch.start_next("verification");
             match self.verifier.verify(viper_program) {
-                VerificationResult::Success => {},
+                VerificationResult::Success => {}
                 VerificationResult::Failure(errors) => {
                     results.verification_errors.extend(errors);
                 }
                 VerificationResult::ConsistencyErrors(errors) => {
-                    results.consistency_errors.extend(errors.into_iter().map(|error|
-                        ConsistencyError {
+                    results
+                        .consistency_errors
+                        .extend(errors.into_iter().map(|error| ConsistencyError {
                             method: program.name.clone(),
-                            error
-                        }
-                    ));
+                            error,
+                        }));
                 }
                 VerificationResult::JavaException(exception) => {
                     results.java_exceptions.push(JavaExceptionWithOrigin {
                         method: program.name.clone(),
-                        exception
+                        exception,
                     });
                 }
             }

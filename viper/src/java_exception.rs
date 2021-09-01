@@ -15,7 +15,7 @@ impl JavaException {
     pub fn new(message: String, stack_trace: String) -> Self {
         JavaException {
             message,
-            stack_trace
+            stack_trace,
         }
     }
 
