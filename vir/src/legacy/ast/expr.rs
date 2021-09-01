@@ -1557,6 +1557,146 @@ impl Expr {
         .fold(self)
     }
 
+    /// replaces the sub-expressions given in the first tuple element with the second element
+    pub fn replace_sub_expressions(self, replacements: &[(Expr, Expr)]) -> Self {
+        struct ExpressionReplacer<'a> {
+            replacements: &'a [(Expr, Expr)],
+            // FIXME: this is a hack to support generics. See issue #187.
+            //  When a less-generic function-under-test desugars specs from
+            //  a more-generic function, the vir::Expr contains Local's with __TYPARAM__s,
+            //  but Field's with the function-under-test's concrete types. The purpose is
+            //  to "fix" the (Viper) predicates of the fields, i.e. replace those
+            //  typarams with local (more) concrete types.
+            typaram_substs: Vec<Option<typaram::Substs>>,
+        }
+        impl<'a> ExprFolder for ExpressionReplacer<'a> {
+            fn fold(&mut self, e: Expr) -> Expr {
+                // Check if this matches a substitution.
+                let substitution = self.replacements.iter().find(|(src, _)| src == &e);
+                if let Some((_src, dst)) = substitution {
+                    return dst.clone();
+                }
+
+                // Otherwise, keep folding
+                default_fold_expr(self, e)
+            }
+
+            fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
+                // Check if the base matches a substitution.
+                let base_substitution = if field.typ.is_ref() && receiver.is_place() {
+                    self.replacements
+                        .iter()
+                        .position(|(src, _)| src == &receiver.get_base().into())
+                } else {
+                    None
+                };
+
+                let new_receiver = self.fold_boxed(receiver);
+
+                // Apply the substitution
+                let new_field = if let Some(subst_index) = base_substitution {
+                    assert!(field.typ.is_ref());
+                    if let Some(ts) = &self.typaram_substs[subst_index] {
+                        let inner1 = field.typ.name();
+                        let inner2 = ts.apply(&inner1);
+                        debug!("replacing:\n{}\n{}\n========", &inner1, &inner2);
+                        Field::new(field.name, Type::TypedRef(inner2))
+                    } else {
+                        field
+                    }
+                } else {
+                    field
+                };
+                Expr::Field(new_receiver, new_field, pos)
+            }
+
+            fn fold_forall(
+                &mut self,
+                vars: Vec<LocalVar>,
+                triggers: Vec<Trigger>,
+                body: Box<Expr>,
+                pos: Position,
+            ) -> Expr {
+                // TODO: the correct solution is the following:
+                // (1) skip replacements where `src` uses a quantified variable;
+                // (2) rename with a fresh name the quantified variables that conflict with `dst`.
+                for (src, dst) in self.replacements.iter() {
+                    if vars.contains(&src.get_base()) || vars.contains(&dst.get_base()) {
+                        unimplemented!(
+                            "replace_sub_expressions doesn't handle replacements that conflict \
+                            with quantified variables"
+                        )
+                    }
+                }
+
+                Expr::ForAll(
+                    vars,
+                    triggers
+                        .into_iter()
+                        .map(|x| x.replace_sub_expressions(self.replacements))
+                        .collect(),
+                    self.fold_boxed(body),
+                    pos,
+                )
+            }
+
+            fn fold_exists(
+                &mut self,
+                vars: Vec<LocalVar>,
+                triggers: Vec<Trigger>,
+                body: Box<Expr>,
+                pos: Position,
+            ) -> Expr {
+                // TODO: the correct solution is the following:
+                // (1) skip replacements where `src` uses a quantified variable;
+                // (2) rename with a fresh name the quantified variables that conflict with `dst`.
+                for (src, dst) in self.replacements.iter() {
+                    if vars.contains(&src.get_base()) || vars.contains(&dst.get_base()) {
+                        unimplemented!(
+                            "replace_sub_expressions doesn't handle replacements that conflict \
+                            with quantified variables"
+                        )
+                    }
+                }
+
+                Expr::Exists(
+                    vars,
+                    triggers
+                        .into_iter()
+                        .map(|x| x.replace_sub_expressions(self.replacements))
+                        .collect(),
+                    self.fold_boxed(body),
+                    pos,
+                )
+            }
+        }
+        let typaram_substs = replacements
+            .iter()
+            .map(|(target, replacement)| match (target, replacement) {
+                (Expr::Local(tv, _), Expr::Local(rv, _)) => {
+                    if tv.typ.is_ref() && rv.typ.is_ref() {
+                        debug!(
+                            "learning:\n{}\n{}\n=======",
+                            &target.local_type(),
+                            replacement.local_type()
+                        );
+                        Some(typaram::Substs::learn(
+                            &target.local_type(),
+                            &replacement.local_type(),
+                        ))
+                    } else {
+                        None
+                    }
+                }
+                _ => None,//TODO:?
+            })
+            .collect();
+        ExpressionReplacer {
+            replacements,
+            typaram_substs,
+        }.fold(self)
+    }
+
     /// Replaces expressions like `old[l5](old[l5](_9.val_ref).foo.bar)`
     /// into `old[l5](_9.val_ref.foo.bar)`
     pub fn remove_redundant_old(self) -> Self {

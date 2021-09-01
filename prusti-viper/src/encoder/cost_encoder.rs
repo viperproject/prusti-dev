@@ -1,4 +1,4 @@
-use prusti_common::vir;
+use prusti_common::{vir, config};
 use std::collections::{HashMap, HashSet, BTreeMap, BTreeSet};
 use crate::encoder::places::{Local, LocalVariableManager};
 use ::log::{trace, debug};
@@ -24,6 +24,7 @@ use num_integer;
 #[derive(Clone, Debug)]
 pub(crate) struct CostEncoder<'tcx> {
     precondition: Option<vir::Expr>,
+    recurrence_check: Vec<vir::Stmt>,
     asymp_bound_check: Vec<vir::Stmt>,
     pub(crate) remaining_func_pres: Vec<typed::Assertion<'tcx>>,
     conversions: HashMap<mir::Location, Vec<(Option<vir::Expr>, Vec<CreditConversion>)>>,   //TODO: generate Stmts here & add methods to encoder from here
@@ -34,6 +35,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
     pub(crate) fn new() -> Self {
         Self {
             precondition: None,
+            recurrence_check: vec![],
             asymp_bound_check: vec![],
             remaining_func_pres: vec![],
             conversions: HashMap::new(),
@@ -42,6 +44,10 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
 
     pub(crate) fn extract_precondition(&mut self) -> Option<vir::Expr> {
         self.precondition.take()
+    }
+
+    pub(crate) fn extract_recurrence_check_stmts(&mut self) -> Vec<vir::Stmt> {
+        std::mem::take(&mut self.recurrence_check)
     }
 
     pub(crate) fn extract_asymp_bound_check_stmts(&mut self) -> Vec<vir::Stmt> {
@@ -64,22 +70,37 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
         conditional: bool,
     ) -> SpannedEncodingResult<()>
     {
-        let mut extracted_credits = vec![];
+        let mut extracted_credits: Vec<(String, Option<Expr>, Vec<(VirCreditPowers, Expr)>)> = vec![];
+        let mut abstract_coeff_var_replacements: HashMap<String, Vec<(vir::Expr, vir::Expr)>> = HashMap::new();
+        let mut abstract_coeff_vars: HashMap<String, Vec<vir::LocalVar>> = HashMap::new();
         debug_assert!(self.remaining_func_pres.is_empty());
         let mut credit_assertion_spans = vec![];
         let mut conditional_annotation = false;
         for assertion in preconditions {
-            if let Some(cond_credits) = extract_conditional_credits(&assertion, encoded_args, encoder, mir, proc_def_id)? {
-                let cond_credits_no_coeff = (
-                    cond_credits.0,
-                    cond_credits.1,
-                    cond_credits.2.into_iter()
-                        .map(|(powers, _)| powers)
-                        .collect::<BTreeSet<VirCreditPowers>>()
-                );
-                conditional_annotation = conditional_annotation || cond_credits.1.is_some();
+            if let Some((credit_type, opt_condition, power_coeffs)) = extract_conditional_credits(&assertion, encoded_args, encoder, mir, proc_def_id)? {
+                let mut powers_coeff_var_exprs = vec![];
+                for (powers, coeff) in power_coeffs {
+                    let var_name = if let vir::Expr::FuncApp(name, ..) = &coeff {
+                        format!("{}_v", name)
+                    }
+                    else {
+                        unreachable!()
+                    };
+                    let local_var = vir::LocalVar::new(var_name, vir::Type::Int);
+                    abstract_coeff_vars.entry(credit_type.clone())
+                        .or_default()
+                        .push(local_var.clone());
+                    let var_expr = vir::Expr::local(local_var);
+                    abstract_coeff_var_replacements.entry(credit_type.clone())
+                        .or_default()
+                        .push((coeff, var_expr.clone()));
 
-                extracted_credits.push(cond_credits_no_coeff);
+                    powers_coeff_var_exprs.push((powers, var_expr));
+                }
+
+                conditional_annotation = conditional_annotation || opt_condition.is_some();
+
+                extracted_credits.push((credit_type, opt_condition, powers_coeff_var_exprs));
 
                 credit_assertion_spans.extend(
                     typed::Spanned::get_spans(&assertion, mir, encoder.env().tcx())
@@ -109,42 +130,51 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
             if let Some(result_state) = run_backward_interpretation(mir, &cost_interpreter)? {
                 self.conversions = result_state.conversions;
 
-                // Construct precondition
+                // Construct precondition & cost with recursive coeff replacement from inferred cost
                 let mut type_to_exponents = HashMap::new();
                 let mut cond_acc_predicates = vec![];
-                for (opt_cond, credit_type_cost) in result_state.cost {
+                let mut cost_with_replacements = result_state.cost;
+                let mut is_recursive = false;
+                for (opt_cond, credit_type_cost) in cost_with_replacements.iter_mut() {
                     // overapprox e.g. (1, 2) & (2, 1) as (2, 2)        //TODO: make more precise?
                     // store max. exponent per number of exponents
                     let mut acc_predicates = vec![];
                     for (credit_type, coeff_map) in credit_type_cost {
+                        let coeff_replacements = abstract_coeff_var_replacements.get(credit_type);
                         let exponents_set: &mut BTreeSet<Vec<u32>> = type_to_exponents.entry(credit_type.clone()).or_default();
                         // cf. spec_encoder
                         for (vir_powers, coeff_expr) in coeff_map {
                             let mut pred_args = vec![];
                             let mut exponents = vec![];
-                            for (vir_base_expr, exp) in vir_powers.powers {
-                                pred_args.push(vir_base_expr.base);
-                                exponents.push(exp);
+                            for (vir_base_expr, exp) in &vir_powers.powers {
+                                pred_args.push(vir_base_expr.base.clone());
+                                exponents.push(*exp);
                             }
                             if !exponents.is_empty() {
                                 exponents_set.insert(exponents.clone());
                             }
 
                             let pred_name = encoder.encode_credit_predicate_use(&credit_type, exponents, vir_powers.negative);
-                            let frac_perm = vir::FracPermAmount::new(box coeff_expr, box 1.into());          //TODO: fractions?
+                            let frac_perm = vir::FracPermAmount::new(box coeff_expr.clone(), box 1.into());          //TODO: fractions?
 
                             acc_predicates.push(vir::Expr::credit_access_predicate(
                                 pred_name,
                                 pred_args,
                                 frac_perm,
                             ));
+
+                            if let Some(replacements) = coeff_replacements {
+                                let recurrence_coeff_expr = coeff_expr.clone().replace_sub_expressions(replacements);
+                                is_recursive = is_recursive || (recurrence_coeff_expr != *coeff_expr);
+                                *coeff_expr = recurrence_coeff_expr;
+                            }
                         }
                     }
 
                     let conjoined_accs = acc_predicates.into_iter().conjoin();
                     if let Some(cond) = opt_cond {
                         cond_acc_predicates.push(
-                            vir::Expr::implies(cond, conjoined_accs)
+                            vir::Expr::implies(cond.clone(), conjoined_accs)
                         );
                     } else {
                         cond_acc_predicates.push(conjoined_accs);
@@ -152,8 +182,109 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                 }
                 self.precondition = Some(cond_acc_predicates.into_iter().conjoin());
 
+                if config::verify_finite_credits() && is_recursive {
+                    // Construct conditional recurrence check
+                    let mut type_cond_rec_checks: HashMap<String, Vec<vir::Expr>> = HashMap::new();
+                    // conditions from annotation
+                    for (credit_type, opt_cond, powers_coeff) in &extracted_credits {
+                        let mut inferred_cond_rec_check = vec![];
+                        // inferred conditions
+                        for (inferred_opt_cond, credit_type_cost) in &cost_with_replacements {
+                            if let Some(coeff_map) = credit_type_cost.get(credit_type) {
+                                let mut coeff_comparisons = vec![];
+                                for (powers, coeff_var) in powers_coeff {
+                                    debug_assert!(!powers.negative);
+                                    let opt_inferred_pos_coeff = coeff_map.get(powers);
+                                    let mut neg_powers = powers.clone();
+                                    neg_powers.negative = true;
+                                    let inferred_coeff = if let Some(inferred_neg_coeff) = coeff_map.get(&neg_powers) {
+                                        if let Some(inferred_pos_coeff) = opt_inferred_pos_coeff {
+                                            vir::Expr::sub(inferred_pos_coeff.clone(), inferred_neg_coeff.clone())
+                                        }
+                                        else {
+                                            vir::Expr::minus(inferred_neg_coeff.clone())
+                                        }
+                                    }
+                                    else {
+                                        if let Some(inferred_pos_coeff) = opt_inferred_pos_coeff {
+                                            inferred_pos_coeff.clone()
+                                        }
+                                        else {
+                                            continue; // no inferred coeff for these powers
+                                        }
+                                    };
+
+                                    coeff_comparisons.push(
+                                        vir::Expr::ge_cmp(
+                                            coeff_var.clone(),
+                                            inferred_coeff,
+                                        )
+                                    )
+                                }
+                                if !coeff_comparisons.is_empty() {
+                                    let conjoined_coeff_comparisons = coeff_comparisons.into_iter().conjoin();
+                                    if let Some(cond) = inferred_opt_cond {
+                                        inferred_cond_rec_check.push(
+                                            vir::Expr::implies(cond.clone(), conjoined_coeff_comparisons)
+                                        );
+                                    } else {
+                                        inferred_cond_rec_check.push(conjoined_coeff_comparisons);
+                                    }
+                                }
+                            }
+                        }
+
+                        if !inferred_cond_rec_check.is_empty() {
+                            let conjoined_inferred_cond_rec_check = inferred_cond_rec_check.into_iter().conjoin();
+                            if let Some(cond) = opt_cond {
+                                type_cond_rec_checks.entry(credit_type.clone())
+                                    .or_default()
+                                    .push(
+                                        vir::Expr::implies(cond.clone(), conjoined_inferred_cond_rec_check)
+                                    );
+                            } else {
+                                type_cond_rec_checks.entry(credit_type.clone())
+                                    .or_default()
+                                    .push(conjoined_inferred_cond_rec_check);
+                            }
+                        }
+                    }
+
+                    debug_assert!(self.recurrence_check.is_empty());
+                    for (credit_type, cond_rec_checks) in type_cond_rec_checks {
+                        self.recurrence_check.push(
+                            vir::Stmt::comment(format!("Checking termination of the recursion for {}:", credit_type))
+                        );
+                        let error_pos = encoder
+                            .error_manager()
+                            .register(credit_assertion_spans.clone(), ErrorCtxt::AssertTerminatingRecurrence, proc_def_id);
+                        self.recurrence_check.push(vir::Stmt::Assert(
+                            vir::Expr::exists(
+                                abstract_coeff_vars.remove(&credit_type).unwrap(),
+                                vec![],
+                                cond_rec_checks.into_iter().conjoin(),
+                            ),
+                            error_pos,
+                        ));
+                    }
+                }
+
+                // remove coeffs from extracted_credits
+                let extracted_credits_no_coeff: Vec<(String, Option<Expr>, BTreeSet<VirCreditPowers>)> =
+                    extracted_credits.into_iter()
+                        .map(|(credit_type, opt_cond, power_coeffs)|
+                             (
+                                 credit_type,
+                                 opt_cond,
+                                 power_coeffs.into_iter()
+                                    .map(|(powers, _)| powers)
+                                    .collect(),
+                             )
+                        )
+                        .collect();
+
                 // Construct asymptotic cost check
-                let bounds_map = compute_bound_combinations(&extracted_credits, conditional && conditional_annotation);
+                let bounds_map = compute_bound_combinations(&extracted_credits_no_coeff, conditional && conditional_annotation);
                 debug_assert!(self.asymp_bound_check.is_empty());
                 for (credit_type, cond_map) in bounds_map {
                     // only check asymptotic bound if there are credits inhaled of that type & only check inhaled exponents
@@ -1492,7 +1623,7 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                 }
                             }
 
-                            Expr::UnaryOp(vir::UnaryOpKind::Minus, box expr, _) => {
+                            Expr::UnaryOp(vir::UnaryOpKind::Minus, ..) => {
                                 return Err(EncodingError::unsupported(
                                     "Negations of places are not supported. Use Subtraction instead."
                                 ));

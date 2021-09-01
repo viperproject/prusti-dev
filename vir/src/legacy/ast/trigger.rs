@@ -50,4 +50,13 @@ impl Trigger {
                 .collect(),
         )
     }
+
+    pub fn replace_sub_expressions(self, replacements: &[(Expr, Expr)]) -> Self {
+        Trigger(
+            self.0
+                .into_iter()
+                .map(|x| x.replace_sub_expressions(replacements))
+                .collect(),
+        )
+    }
 }

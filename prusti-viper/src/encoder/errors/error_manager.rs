@@ -40,6 +40,8 @@ pub enum ErrorCtxt {
     ExhaleMethodPrecondition,
     /// A Viper `assert expr` that encodes the check of an asymptotic resource credit bound
     AssertAsymptoticBound,
+    /// A Viper `assert expr` that encodes the check of termination for a recurrence with time credits
+    AssertTerminatingRecurrence,
     /// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`
     AssertMethodPostcondition,
     /// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`
@@ -315,7 +317,14 @@ impl<'tcx> ErrorManager<'tcx>
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertAsymptoticBound) => {
-                PrustiError::verification("The inferred cost does not satisfy the provided asymptotic credit bound", error_span)
+                PrustiError::verification("The inferred cost does not satisfy the provided asymptotic credit bound.", error_span)
+                    .set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertTerminatingRecurrence) => {
+                PrustiError::verification("The verifier could not prove termination of the recursion. \
+                        This is probably due to limitations of the verifier. \
+                        If you are sure that the function terminates, you can set verify_finite_credits=false to turn off the termination check.", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 

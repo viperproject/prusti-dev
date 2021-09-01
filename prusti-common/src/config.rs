@@ -97,6 +97,7 @@ lazy_static! {
         settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default("verify_credit_conversions", false).unwrap();
         settings.set_default("conditional_cost_inference", true).unwrap();
+        settings.set_default("verify_finite_credits", true).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -475,4 +476,9 @@ pub fn verify_credit_conversions() -> bool {
 /// Otherwise, the code will be verified against the highest (combined) asymptotic bound.
 pub fn conditional_cost_inference() -> bool {
     read_setting("conditional_cost_inference")
+}
+
+/// Verify that only a finite amount of credits is consumed.
+pub fn verify_finite_credits() -> bool {
+    read_setting("verify_finite_credits")
 }

@@ -3411,6 +3411,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         self.cfg_method.add_stmts(
             start_cfg_block,
+            self.cost_encoder.extract_recurrence_check_stmts(),
+        );
+        self.cfg_method.add_stmts(
+            start_cfg_block,
             self.cost_encoder.extract_asymp_bound_check_stmts(),
         );
         Ok(())
