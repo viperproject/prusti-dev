@@ -4,11 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_middle::mir;
-use rustc_middle::ty::TyCtxt;
-use std::vec::Vec;
 use crate::AnalysisError;
+use rustc_middle::{mir, ty::TyCtxt};
 use serde::Serialize;
+use std::vec::Vec;
 
 /// Trait to be used to define an abstract domain by defining the type of its elements.
 /// These elements can be used in the ``Analyzer`` to represent an abstraction of the concrete
@@ -89,12 +88,13 @@ pub trait AbstractState<'a, 'tcx: 'a>: Clone + Eq + Sized + Serialize {
     ///
     /// The statement can be extracted using
     /// `self.mir[location.block].statements[location.statement_index]`.
-    fn apply_statement_effect(&mut self, location: mir::Location)
-        -> Result<(), AnalysisError>;
+    fn apply_statement_effect(&mut self, location: mir::Location) -> Result<(), AnalysisError>;
 
     /// Modify the state according to the terminator at `location`
     ///
     /// The statement can be extracted using `self.mir[location.block].terminator()`.
-    fn apply_terminator_effect(&self, location: mir::Location)
-        -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError>;
+    fn apply_terminator_effect(
+        &self,
+        location: mir::Location,
+    ) -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError>;
 }

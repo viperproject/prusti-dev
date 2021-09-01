@@ -86,7 +86,6 @@ impl std::ops::Add for PermAmount {
             _ => Err(PermAmountError::InvalidAdd(self, other)),
         }
     }
-
 }
 
 impl std::ops::Sub for PermAmount {

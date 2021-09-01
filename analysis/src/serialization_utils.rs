@@ -12,7 +12,8 @@ pub fn location_to_stmt_str(location: mir::Location, mir: &mir::Body) -> String 
     if location.statement_index < bb_mir.statements.len() {
         let stmt = &bb_mir.statements[location.statement_index];
         format!("{:?}", stmt)
-    } else { // location = terminator
+    } else {
+        // location = terminator
         let terminator = bb_mir.terminator();
         format!("{:?}", terminator.kind)
     }

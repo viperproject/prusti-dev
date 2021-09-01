@@ -4,10 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{env, path::PathBuf, process::Command};
-use prusti_launch::{find_viper_home, find_z3_exe, sigint_handler};
 #[cfg(target_family = "unix")]
 use nix::unistd::{setpgid, Pid};
+use prusti_launch::{find_viper_home, find_z3_exe, sigint_handler};
+use std::{env, path::PathBuf, process::Command};
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1).collect()) {

@@ -7,11 +7,12 @@
 //! Various helper functions for working with `mir::Place`.
 //! copied from prusti-interface/utils
 
-use std::collections::HashSet;
-use rustc_middle::mir;
-use rustc_middle::ty::{self, TyCtxt};
 use log::trace;
-
+use rustc_middle::{
+    mir,
+    ty::{self, TyCtxt},
+};
+use std::collections::HashSet;
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
 ///
@@ -19,10 +20,16 @@ use log::trace;
 /// +   `is_prefix(x.f.g, x.f) == true`
 /// +   `is_prefix(x.f, x.f.g) == false`
 pub(crate) fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
-    if place.local != potential_prefix.local || place.projection.len() < potential_prefix.projection.len() {
+    if place.local != potential_prefix.local
+        || place.projection.len() < potential_prefix.projection.len()
+    {
         false
     } else {
-        place.projection.iter().zip(potential_prefix.projection.iter()).all(|(e1, e2)| e1 == e2)
+        place
+            .projection
+            .iter()
+            .zip(potential_prefix.projection.iter())
+            .all(|(e1, e2)| e1 == e2)
     }
 }
 
@@ -52,7 +59,8 @@ pub(crate) fn expand_struct_place<'tcx>(
                 for (index, field_def) in variant.fields.iter().enumerate() {
                     if Some(index) != without_field {
                         let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
+                        let field_place =
+                            tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
                         places.push(field_place);
                     }
                 }
@@ -65,13 +73,10 @@ pub(crate) fn expand_struct_place<'tcx>(
                         places.push(field_place);
                     }
                 }
-            },
+            }
             ty::Ref(_region, _ty, _) => match without_field {
                 Some(without_field) => {
-                    assert_eq!(
-                        without_field, 0,
-                        "References have only a single “field”."
-                    );
+                    assert_eq!(without_field, 0, "References have only a single “field”.");
                 }
                 None => {
                     places.push(tcx.mk_place_deref(*place));
@@ -105,17 +110,16 @@ pub(crate) fn expand_one_level<'tcx>(
         mir::ProjectionElem::Downcast(_symbol, variant) => {
             let kind = &current_place.ty(mir, tcx).ty.kind();
             if let ty::TyKind::Adt(adt, _) = kind {
-                (tcx.mk_place_downcast(current_place, adt, variant), Vec::new())
+                (
+                    tcx.mk_place_downcast(current_place, adt, variant),
+                    Vec::new(),
+                )
             } else {
                 unreachable!();
             }
         }
-        mir::ProjectionElem::Deref => {
-            (tcx.mk_place_deref(current_place), Vec::new())
-        }
-        mir::ProjectionElem::Index(idx) => {
-            (tcx.mk_place_index(current_place, idx), Vec::new())
-        }
+        mir::ProjectionElem::Deref => (tcx.mk_place_deref(current_place), Vec::new()),
+        mir::ProjectionElem::Index(idx) => (tcx.mk_place_index(current_place, idx), Vec::new()),
         elem => {
             unimplemented!("elem = {:?}", elem);
         }
@@ -179,8 +183,8 @@ pub(crate) fn collapse<'tcx>(
         guide_place: mir::Place<'tcx>,
     ) {
         if current_place != guide_place {
-            let (new_current_place, mut expansion) = expand_one_level(
-                mir, tcx, current_place, guide_place);
+            let (new_current_place, mut expansion) =
+                expand_one_level(mir, tcx, current_place, guide_place);
             recurse(mir, tcx, places, new_current_place, guide_place);
             expansion.push(new_current_place);
             if expansion.iter().all(|place| places.contains(place)) {

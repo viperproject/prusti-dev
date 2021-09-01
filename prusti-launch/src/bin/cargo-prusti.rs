@@ -4,18 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::process::Command;
 use prusti_launch::get_rust_toolchain_channel;
+use std::process::Command;
 
-fn main(){
+fn main() {
     if let Err(code) = process(std::env::args().skip(1)) {
         std::process::exit(code);
     }
 }
 
 fn process<I>(args: I) -> Result<(), i32>
-    where
-        I: Iterator<Item = String>,
+where
+    I: Iterator<Item = String>,
 {
     let mut prusti_rustc_path = std::env::current_exe()
         .expect("current executable path invalid")

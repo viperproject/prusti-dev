@@ -1,19 +1,15 @@
 //! A module that invokes the verifier `prusti-viper`
 
-use prusti_interface::specs::typed;
 use log::{debug, trace, warn};
+use prusti_common::{config, report::user};
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
     environment::Environment,
+    specs::typed,
 };
 use prusti_viper::verifier::Verifier;
-use prusti_common::config;
-use prusti_common::report::user;
 
-pub fn verify<'tcx>(
-    env: Environment<'tcx>,
-    def_spec: typed::DefSpecificationMap<'tcx>
-) {
+pub fn verify<'tcx>(env: Environment<'tcx>, def_spec: typed::DefSpecificationMap<'tcx>) {
     trace!("[verify] enter");
 
     if env.has_errors() {
@@ -32,9 +28,16 @@ pub fn verify<'tcx>(
         ));
 
         if config::print_collected_verification_items() {
-            println!("Collected verification items {}:", verification_task.procedures.len());
+            println!(
+                "Collected verification items {}:",
+                verification_task.procedures.len()
+            );
             for procedure in &verification_task.procedures {
-                println!("procedure: {} at {:?}", env.get_item_def_path(*procedure), env.get_item_span(*procedure));
+                println!(
+                    "procedure: {} at {:?}",
+                    env.get_item_def_path(*procedure),
+                    env.get_item_span(*procedure)
+                );
             }
         }
 
@@ -54,8 +57,10 @@ pub fn verify<'tcx>(
         match verification_result {
             VerificationResult::Success => {
                 if env.has_errors() {
-                    user::message("Verification result is inconclusive because errors \
-                                       were encountered during encoding.");
+                    user::message(
+                        "Verification result is inconclusive because errors \
+                                       were encountered during encoding.",
+                    );
                 } else {
                     user::message(format!(
                         "Successful verification of {} items",
