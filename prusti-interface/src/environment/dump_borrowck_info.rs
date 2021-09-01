@@ -30,7 +30,7 @@ use log::{trace, debug};
 use prusti_common::config;
 use crate::environment::mir_utils::RealEdges;
 
-pub fn dump_borrowck_info<'a, 'tcx>(env: &'a Environment<'tcx>, procedures: &Vec<ProcedureDefId>) {
+pub fn dump_borrowck_info(env: &Environment<'_>, procedures: &[ProcedureDefId]) {
     trace!("[dump_borrowck_info] enter");
 
     let printer = InfoPrinter { env, tcx: env.tcx() };
@@ -236,13 +236,13 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 }
             }
             for (temp, var) in self.mir.local_decls.iter_enumerated() {
-                let name = var_names.get(&temp).map(|s| s.to_string()).unwrap_or(String::from(""));
+                let name = var_names.get(&temp).map(|s| s.to_string()).unwrap_or_else(|| String::from(""));
                 let region = self
                     .polonius_info
                     .place_regions
                     .for_local(temp)
                     .map(|region| format!("{:?}", region))
-                    .unwrap_or(String::from(""));
+                    .unwrap_or_else(|| String::from(""));
                 let typ = to_html!(var.ty);
                 write_graph!(
                     self,
@@ -1010,7 +1010,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 cleanup,
                 ..
             } => {
-                if let &Some((_, target)) = destination {
+                if let Some((_, target)) = *destination {
                     write_edge!(self, bb, target);
                 }
                 if let Some(target) = cleanup {
@@ -1363,24 +1363,5 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
         }
         Ok(())
-    }
-}
-
-fn get_config_option(name: &str, default: bool) -> bool {
-    match env::var_os(name)
-        .and_then(|value| value.into_string().ok())
-        .as_ref()
-    {
-        Some(value) => match value as &str {
-            "true" => true,
-            "false" => false,
-            "1" => true,
-            "0" => false,
-            _ => unreachable!(
-                "Uknown configuration value “{}” for “{}”.",
-                value, name
-            ),
-        },
-        None => default,
     }
 }

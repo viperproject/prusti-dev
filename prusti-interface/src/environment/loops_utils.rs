@@ -393,9 +393,9 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
     pub fn new(
         mir: &'a mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-        write_paths: &Vec<mir::Place<'tcx>>,
-        mut_borrowed_paths: &Vec<mir::Place<'tcx>>,
-        read_paths: &Vec<mir::Place<'tcx>>,
+        write_paths: &[mir::Place<'tcx>],
+        mut_borrowed_paths: &[mir::Place<'tcx>],
+        read_paths: &[mir::Place<'tcx>],
         all_places: &PlaceSet<'tcx>,
     ) -> Self {
         trace!(
@@ -445,7 +445,7 @@ impl<'a, 'tcx> PermissionForest<'a, 'tcx> {
         fn add_paths<'a, 'tcx>(
             mir: &'a mir::Body<'tcx>,
             tcx: TyCtxt<'tcx>,
-            paths: &Vec<mir::Place<'tcx>>,
+            paths: &[mir::Place<'tcx>],
             trees: &mut Vec<PermissionTree<'a, 'tcx>>,
             target_type: TargetType,
             all_places: &PlaceSet<'tcx>,
