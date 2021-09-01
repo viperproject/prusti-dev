@@ -124,10 +124,28 @@ jobs:
           key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
       - name: Check and report formatting warnings
         run: |
-          if rustup component add rustfmt
-          then
-            cd vir && cargo fmt -- --check
-          fi
+          rustup component add rustfmt
+
+          python ./x.py fmt-check analysis
+          python ./x.py fmt-check prusti
+          #python ./x.py fmt-check prusti-common
+          #python ./x.py fmt-check prusti-contracts
+          python ./x.py fmt-check prusti-contracts-impl
+          python ./x.py fmt-check prusti-contracts-internal
+          python ./x.py fmt-check prusti-contracts-test
+          #python ./x.py fmt-check prusti-interface
+          python ./x.py fmt-check prusti-launch
+          python ./x.py fmt-check prusti-server
+          #python ./x.py fmt-check prusti-specs
+          #python ./x.py fmt-check prusti-tests
+          python ./x.py fmt-check prusti-utils
+          #python ./x.py fmt-check prusti-viper
+          python ./x.py fmt-check viper
+          python ./x.py fmt-check viper-sys
+          python ./x.py fmt-check vir
+          rustfmt --check vir/defs/polymorphic/mod.rs
+          rustfmt --check vir/defs/components/mod.rs
+          python ./x.py fmt-check vir-gen
 
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
