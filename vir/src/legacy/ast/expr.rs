@@ -764,7 +764,18 @@ impl Expr {
     /// Is this place a MIR reference?
     pub fn is_mir_reference(&self) -> bool {
         debug_assert!(self.is_place());
-        if let Expr::Field(box Expr::Local(LocalVar { typ: Type::TypedRef(ref name), .. }, _), _, _) = self {
+        if let Expr::Field(
+            box Expr::Local(
+                LocalVar {
+                    typ: Type::TypedRef(ref name),
+                    ..
+                },
+                _,
+            ),
+            _,
+            _,
+        ) = self
+        {
             // FIXME: We should not rely on string names for detecting types.
             return name.starts_with("ref$");
         }
