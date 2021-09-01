@@ -67,6 +67,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
         let mut extracted_credits = vec![];
         debug_assert!(self.remaining_func_pres.is_empty());
         let mut credit_assertion_spans = vec![];
+        let mut conditional_annotation = false;
         for assertion in preconditions {
             if let Some(cond_credits) = extract_conditional_credits(&assertion, encoded_args, encoder, mir, proc_def_id)? {
                 let cond_credits_no_coeff = (
@@ -76,6 +77,8 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                         .map(|(powers, _)| powers)
                         .collect::<BTreeSet<VirCreditPowers>>()
                 );
+                conditional_annotation = conditional_annotation || cond_credits.1.is_some();
+
                 extracted_credits.push(cond_credits_no_coeff);
 
                 credit_assertion_spans.extend(
@@ -101,7 +104,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                     locals_manager,
                     mir,
                     proc_def_id,
-                    conditional,
+                    conditional: conditional && conditional_annotation,
                 };
             if let Some(result_state) = run_backward_interpretation(mir, &cost_interpreter)? {
                 self.conversions = result_state.conversions;
@@ -150,7 +153,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                 self.precondition = Some(cond_acc_predicates.into_iter().conjoin());
 
                 // Construct asymptotic cost check
-                let bounds_map = compute_bound_combinations(&extracted_credits, conditional);
+                let bounds_map = compute_bound_combinations(&extracted_credits, conditional && conditional_annotation);
                 debug_assert!(self.asymp_bound_check.is_empty());
                 for (credit_type, cond_map) in bounds_map {
                     // only check asymptotic bound if there are credits inhaled of that type & only check inhaled exponents
