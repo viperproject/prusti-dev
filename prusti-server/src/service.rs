@@ -26,6 +26,12 @@ pub struct ServerSideService {
     max_concurrency: usize,
 }
 
+impl Default for ServerSideService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ServerSideService {
     pub fn new() -> Self {
         // FIXME: since viper seems to dislike using verifiers in parallel, this is what we're doing to ensure correctness for now.
