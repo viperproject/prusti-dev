@@ -18,6 +18,7 @@ use rustc_session::Session;
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
 
+#[allow(clippy::needless_lifetimes)]
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
     let body_with_facts = rustc_mir::consumers::get_body_with_borrowck_facts(
         tcx,
