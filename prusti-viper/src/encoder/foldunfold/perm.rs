@@ -4,12 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use vir_crate::polymorphic::{PermAmount, Position, Expr};
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::fmt;
-use log::trace;
 use crate::encoder::foldunfold::FoldUnfoldError;
+use log::trace;
+use std::{
+    collections::{HashMap, HashSet},
+    fmt,
+};
+use vir_crate::polymorphic::{Expr, PermAmount, Position};
 
 /// An access or predicate permission to a place
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -207,14 +208,16 @@ fn place_perm_difference(
     mut right: HashMap<Expr, PermAmount>,
 ) -> HashMap<Expr, PermAmount> {
     for (place, right_perm_amount) in right.drain() {
-        if let Some(left_perm_amount) = left.get(&place) { match (*left_perm_amount, right_perm_amount) {
-            (PermAmount::Read, PermAmount::Read)
-            | (PermAmount::Read, PermAmount::Write)
-            | (PermAmount::Write, PermAmount::Write) => {
-                left.remove(&place);
+        if let Some(left_perm_amount) = left.get(&place) {
+            match (*left_perm_amount, right_perm_amount) {
+                (PermAmount::Read, PermAmount::Read)
+                | (PermAmount::Read, PermAmount::Write)
+                | (PermAmount::Write, PermAmount::Write) => {
+                    left.remove(&place);
+                }
+                _ => unreachable!("left={} right={}", left_perm_amount, right_perm_amount),
             }
-            _ => unreachable!("left={} right={}", left_perm_amount, right_perm_amount),
-        } }
+        }
     }
     left
 }
