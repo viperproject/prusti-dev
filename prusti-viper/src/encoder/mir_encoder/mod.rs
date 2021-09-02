@@ -34,8 +34,8 @@ pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};
 
 use super::encoder::SubstMap;
 
-pub static PRECONDITION_LABEL: &'static str = "pre";
-pub static WAND_LHS_LABEL: &'static str = "lhs";
+pub static PRECONDITION_LABEL: &str = "pre";
+pub static WAND_LHS_LABEL: &str = "lhs";
 
 pub trait PlaceEncoder<'v, 'tcx: 'v> {
 

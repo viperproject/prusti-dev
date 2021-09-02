@@ -636,14 +636,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 .filter(|p| {
                     if !p.is_acc() {
                         false
+                    } else if p.is_curr() {
+                        true
                     } else {
-                        if p.is_curr() {
-                            true
-                        } else {
-                            pred_permissions
-                                .iter()
-                                .any(|pred_p| pred_p.get_place() == p.get_place())
-                        }
+                        pred_permissions
+                            .iter()
+                            .any(|pred_p| pred_p.get_place() == p.get_place())
                     }
                 })
                 .collect();
@@ -849,13 +847,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                     target,
                     pctxt.state().acc().get(target)
                 );
-                if *source == place {
-                    if Some(&vir::PermAmount::Write) == pctxt.state().acc().get(target) {
-                        // We are copying a shared reference, so we do not need to change
-                        // the root of rhs.
-                        debug!("Copy of a shared reference. Ignore.");
-                        continue;
-                    }
+                if *source == place && Some(&vir::PermAmount::Write) == pctxt.state().acc().get(target) {
+                    // We are copying a shared reference, so we do not need to change
+                    // the root of rhs.
+                    debug!("Copy of a shared reference. Ignore.");
+                    continue;
                 }
                 if perm_amount == vir::PermAmount::Write {
                     let access = vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {
@@ -916,7 +912,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 let new_place = place.replace_place(source, target);
                 debug!("    new place: {}", new_place);
                 let lhs_read_access = vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate {
-                    predicate_type: predicate_type,
+                    predicate_type,
                     argument: box new_place,
                     permission: vir::PermAmount::Read,
                     position: vir::Position::default(),

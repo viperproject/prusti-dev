@@ -1268,16 +1268,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     "Trusted procedure will not be encoded or verified: {:?}",
                     proc_def_id
                 );
+            } else if let Err(error) = self.encode_procedure(proc_def_id) {
+                self.register_encoding_error(error);
+                debug!("Error encoding function: {:?}", proc_def_id);
             } else {
-                if let Err(error) = self.encode_procedure(proc_def_id) {
-                    self.register_encoding_error(error);
-                    debug!("Error encoding function: {:?}", proc_def_id);
-                } else {
-                    let program = self.finalize_viper_program(proc_name);
-                    self.programs.push(program);
-                }
+                let program = self.finalize_viper_program(proc_name);
+                self.programs.push(program);
             }
-
         }
     }
 
@@ -1423,12 +1420,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn intern_viper_identifier<S: AsRef<str>>(&self, full_name: S, short_name: S) -> String {
         let result = if config::disable_name_mangling() {
             short_name.as_ref().to_string()
+        } else if config::intern_names() {
+            self.name_interner.borrow_mut().intern(full_name, &[short_name])
         } else {
-            if config::intern_names() {
-                self.name_interner.borrow_mut().intern(full_name, &[short_name])
-            } else {
-                full_name.as_ref().to_string()
-            }
+            full_name.as_ref().to_string()
         };
         result
     }

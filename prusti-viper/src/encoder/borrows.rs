@@ -227,7 +227,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
         let result = ProcedureContract {
             def_id: self.def_id,
             args: args.clone(),
-            returned_refs: returned_refs,
+            returned_refs,
             returned_value: target,
             borrow_infos,
             specification: self.specification.clone(),

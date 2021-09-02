@@ -98,16 +98,14 @@ impl State {
                 if place.is_simple_place()
                     && other_place.is_simple_place()
                     && place.has_proper_prefix(&other_place)
-                {
-                    if !((self.pred[place] == PermAmount::Read
+                    && !((self.pred[place] == PermAmount::Read
                         || self.pred[place] == PermAmount::Remaining)
                         && self.pred[other_place] == PermAmount::Read)
-                    {
-                        panic!(
-                            "Consistency error: state has pred {} ({}), but also pred {} ({})",
-                            place, self.pred[place], other_place, self.pred[other_place]
-                        );
-                    }
+                {
+                    panic!(
+                        "Consistency error: state has pred {} ({}), but also pred {} ({})",
+                        place, self.pred[place], other_place, self.pred[other_place]
+                    );
                 }
             }
         }
@@ -609,10 +607,8 @@ impl State {
     pub fn as_vir_expr(&self) -> vir::Expr {
         let mut exprs: Vec<vir::Expr> = vec![];
         for (place, perm) in self.acc.iter() {
-            if !place.is_local() && place.is_curr() {
-                if !self.is_dropped(&Perm::acc(place.clone(), *perm)) {
-                    exprs.push(vir::Expr::acc_permission(place.clone(), *perm));
-                }
+            if !place.is_local() && place.is_curr() && !self.is_dropped(&Perm::acc(place.clone(), *perm)) {
+                exprs.push(vir::Expr::acc_permission(place.clone(), *perm));
             }
         }
         for (place, perm_amount) in self.pred.iter() {

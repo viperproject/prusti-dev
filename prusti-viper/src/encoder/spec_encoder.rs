@@ -402,12 +402,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecEncoder<'p, 'v, 'tcx> {
         let encoded_body = self.encode_assertion(body)?;
         let final_body = if bounds.is_empty() {
             encoded_body
+        } else if exists {
+            vir::Expr::and(bounds.into_iter().conjoin(), encoded_body)
         } else {
-            if exists {
-                vir::Expr::and(bounds.into_iter().conjoin(), encoded_body)
-            } else {
-                vir::Expr::implies(bounds.into_iter().conjoin(), encoded_body)
-            }
+            vir::Expr::implies(bounds.into_iter().conjoin(), encoded_body)
         };
         if exists {
             Ok(vir::Expr::exists(

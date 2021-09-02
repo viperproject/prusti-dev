@@ -4378,10 +4378,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                             &encoded_place,
                                         ));
                                     }
-                                    if drop_read_references {
-                                        if mutbl == &Mutability::Not {
-                                            continue;
-                                        }
+                                    if drop_read_references && mutbl == &Mutability::Not {
+                                        continue;
                                     }
                                 }
                                 ref x => unreachable!("{:?}", x),

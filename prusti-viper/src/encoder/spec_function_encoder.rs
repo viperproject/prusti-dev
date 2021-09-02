@@ -40,8 +40,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'tcx>,
                procedure: &'p Procedure<'tcx>, tymap: &'p SubstMap<'tcx>,) -> Self {
         Self {
-            encoder: encoder,
-            procedure: procedure,
+            encoder,
+            procedure,
             span: procedure.get_span(),
             proc_def_id: procedure.get_id(),
             is_closure: encoder.env().tcx().is_closure(procedure.get_id()),
