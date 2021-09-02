@@ -28,17 +28,11 @@ impl Perm {
     }
 
     pub fn is_acc(&self) -> bool {
-        match self {
-            Perm::Acc(_, _) => true,
-            _ => false,
-        }
+        matches!(self, Perm::Acc(_, _))
     }
 
     pub fn is_pred(&self) -> bool {
-        match self {
-            Perm::Pred(_, _) => true,
-            _ => false,
-        }
+        matches!(self, Perm::Pred(_, _))
     }
 
     pub fn is_curr(&self) -> bool {
@@ -115,8 +109,8 @@ impl Perm {
 impl fmt::Display for Perm {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Perm::Acc(ref place, perm_amount) => write!(f, "Acc({}, {})", place, perm_amount),
-            &Perm::Pred(ref place, perm_amount) => write!(f, "Pred({}, {})", place, perm_amount),
+            Perm::Acc(ref place, perm_amount) => write!(f, "Acc({}, {})", place, perm_amount),
+            Perm::Pred(ref place, perm_amount) => write!(f, "Pred({}, {})", place, perm_amount),
         }
     }
 }
@@ -124,8 +118,8 @@ impl fmt::Display for Perm {
 impl fmt::Debug for Perm {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Perm::Acc(ref place, perm_amount) => write!(f, "Acc({:?}, {})", place, perm_amount),
-            &Perm::Pred(ref place, perm_amount) => write!(f, "Pred({:?}, {})", place, perm_amount),
+            Perm::Acc(ref place, perm_amount) => write!(f, "Acc({:?}, {})", place, perm_amount),
+            Perm::Pred(ref place, perm_amount) => write!(f, "Pred({:?}, {})", place, perm_amount),
         }
     }
 }
@@ -199,7 +193,7 @@ where
         for perm in self {
             res_perms
                 .entry(perm.get_label().cloned())
-                .or_insert(vec![])
+                .or_insert_with(Vec::new)
                 .push(perm.clone());
         }
         res_perms
@@ -213,17 +207,14 @@ fn place_perm_difference(
     mut right: HashMap<Expr, PermAmount>,
 ) -> HashMap<Expr, PermAmount> {
     for (place, right_perm_amount) in right.drain() {
-        match left.get(&place) {
-            Some(left_perm_amount) => match (*left_perm_amount, right_perm_amount) {
-                (PermAmount::Read, PermAmount::Read)
-                | (PermAmount::Read, PermAmount::Write)
-                | (PermAmount::Write, PermAmount::Write) => {
-                    left.remove(&place);
-                }
-                _ => unreachable!("left={} right={}", left_perm_amount, right_perm_amount),
-            },
-            None => {}
-        }
+        if let Some(left_perm_amount) = left.get(&place) { match (*left_perm_amount, right_perm_amount) {
+            (PermAmount::Read, PermAmount::Read)
+            | (PermAmount::Read, PermAmount::Write)
+            | (PermAmount::Write, PermAmount::Write) => {
+                left.remove(&place);
+            }
+            _ => unreachable!("left={} right={}", left_perm_amount, right_perm_amount),
+        } }
     }
     left
 }

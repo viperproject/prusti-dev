@@ -325,12 +325,12 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let error_manager = self.encoder.error_manager();
         let mut prusti_errors: Vec<_> = verification_errors.iter().map(|verification_error| {
             debug!("Verification error: {:?}", verification_error);
-            let mut prusti_error = error_manager.translate_verification_error(&verification_error);
+            let mut prusti_error = error_manager.translate_verification_error(verification_error);
 
             // annotate with counterexample, if requested
             if config::produce_counterexample() {
                 if let Some(silicon_counterexample) = &verification_error.counterexample {
-                    if let Some(def_id) = error_manager.get_def_id(&verification_error) {
+                    if let Some(def_id) = error_manager.get_def_id(verification_error) {
                         let counterexample = counterexample_translation::backtranslate(
                             &self.encoder,
                             *def_id,

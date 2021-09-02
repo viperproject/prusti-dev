@@ -19,8 +19,8 @@ pub fn purify_method(
     let mut candidates = HashSet::new();
     debug!("method: {}", method.name());
     for var in &method.local_vars {
-        match &var.typ {
-            &vir::Type::TypedRef(ref typed_ref) if typed_ref.label.starts_with("ref$") => {
+        match var.typ {
+            vir::Type::TypedRef(ref typed_ref) if typed_ref.label.starts_with("ref$") => {
                 trace!("  candidate: {}: {}", var.name, var.typ);
                 candidates.insert(var.name.clone());
             }
@@ -156,29 +156,26 @@ impl StmtWalker for VarDependencyCollector {
         let dependencies = collect_variables(source);
         let dependents = collect_variables(target);
         for dependent in &dependents {
-            let entry = self.dependencies.entry(dependent.clone()).or_insert(HashSet::new());
+            let entry = self.dependencies.entry(dependent.clone()).or_insert_with(HashSet::new);
             entry.extend(dependencies.iter().cloned());
         }
         for dependency in dependencies {
-            let entry = self.dependents.entry(dependency).or_insert(HashSet::new());
+            let entry = self.dependents.entry(dependency).or_insert_with(HashSet::new);
             entry.extend(dependents.iter().cloned());
         }
         match kind {
             vir::AssignKind::SharedBorrow(_) |
             vir::AssignKind::MutableBorrow(_) => {
-                match target {
-                    vir::Expr::Field( vir::FieldExpr {base: box vir::Expr::Local( vir::Local {variable: local_var, ..} ), ..} ) => {
-                        match source {
-                            vir::Expr::Field( vir::FieldExpr {base: box vir::Expr::Local(_), field: vir::Field { name, .. }, ..} )
-                                if name == "val_ref" => {
-                                // Reborrowing is fine.
-                            }
-                            _ => {
-                                self.borrowing_variables.insert(local_var.name.clone());
-                            }
+                if let vir::Expr::Field( vir::FieldExpr {base: box vir::Expr::Local( vir::Local {variable: local_var, ..} ), ..} ) = target {
+                    match source {
+                        vir::Expr::Field( vir::FieldExpr {base: box vir::Expr::Local(_), field: vir::Field { name, .. }, ..} )
+                            if name == "val_ref" => {
+                            // Reborrowing is fine.
+                        }
+                        _ => {
+                            self.borrowing_variables.insert(local_var.name.clone());
                         }
                     }
-                    _ => {},
                 }
             }
             _ => {}
@@ -358,35 +355,32 @@ impl ExprFolder for Purifier<'_, '_, '_> {
     }
     fn fold_func_app(&mut self, vir::FuncApp {function_name, arguments, formal_arguments, return_type, position}: vir::FuncApp) -> vir::Expr {
         let arguments: Vec<_> = arguments.into_iter().map(|e| ExprFolder::fold(self, e)).collect();
-        match arguments.as_slice() {
-            [vir::Expr::Local( vir::Local {variable: local_var, position: local_pos} )] => {
-                if self.vars.contains(&local_var.name) ||
-                        self.change_var_types.contains_key(&local_var.name) {
-                    if function_name.starts_with("snap$") {
-                        return vir::Expr::Local( vir::Local {
-                            variable: local_var.clone(),
-                            position: local_pos.clone(),
-                        });
-                    }
-                    if function_name.ends_with("$$discriminant$$") {
-                        let predicate_name = formal_arguments[0].typ.name();
-                        let domain_name = format!("Snap${}", predicate_name);
-                        let arg_dom_expr = vir::Expr::Local( vir::Local {
-                            variable: local_var.clone(),
-                            position: local_pos.clone(),
-                        });
-                        let discriminant_func = vir::DomainFunc {
-                            name: "discriminant$".to_string(),
-                            formal_args: vec![local_var.clone()],
-                            return_type: vir::Type::Int,
-                            unique: false,
-                            domain_name: domain_name.to_string(),
-                        };
-                        return discriminant_func.apply(vec![arg_dom_expr.clone()]);
-                    }
+        if let [vir::Expr::Local( vir::Local {variable: local_var, position: local_pos} )] = arguments.as_slice() {
+            if self.vars.contains(&local_var.name) ||
+                    self.change_var_types.contains_key(&local_var.name) {
+                if function_name.starts_with("snap$") {
+                    return vir::Expr::Local( vir::Local {
+                        variable: local_var.clone(),
+                        position: *local_pos,
+                    });
+                }
+                if function_name.ends_with("$$discriminant$$") {
+                    let predicate_name = formal_arguments[0].typ.name();
+                    let domain_name = format!("Snap${}", predicate_name);
+                    let arg_dom_expr = vir::Expr::Local( vir::Local {
+                        variable: local_var.clone(),
+                        position: *local_pos,
+                    });
+                    let discriminant_func = vir::DomainFunc {
+                        name: "discriminant$".to_string(),
+                        formal_args: vec![local_var.clone()],
+                        return_type: vir::Type::Int,
+                        unique: false,
+                        domain_name,
+                    };
+                    return discriminant_func.apply(vec![arg_dom_expr]);
                 }
             }
-            _ => {}
         }
         vir::Expr::FuncApp( vir::FuncApp {
             function_name,

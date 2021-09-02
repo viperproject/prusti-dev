@@ -22,11 +22,3 @@ include!(concat!(env!("OUT_DIR"), "/vir_gen.rs"));
 
 pub mod converter;
 pub mod legacy;
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}

@@ -17,6 +17,7 @@ pub(super) struct BasicBlock<'a> {
     pub successors: Vec<usize>,
 }
 
+#[allow(clippy::upper_case_acronyms)]
 pub(super) struct CFG<'a> {
     pub basic_blocks: Vec<BasicBlock<'a>>,
     /// Basic blocks that connect a pair of basic blocks. They are needed for performing

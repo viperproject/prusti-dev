@@ -292,7 +292,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 let new_lhs = if unchecked {
                     left
                 } else {
-                    self.replace_expr(&left, &pctxt)?
+                    self.replace_expr(&left, pctxt)?
                 };
 
                 // Rewrite statement
@@ -390,7 +390,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
 
     /// Wrap `_1.val_ref.f.g.` into `old[label](_1.val_ref).f.g`. This is needed
     /// to make `_1.val_ref` reachable inside a package statement of a magic wand.
-    fn patch_places(&self, stmts: &Vec<vir::Stmt>, maybe_label: Option<&str>) -> Vec<vir::Stmt> {
+    fn patch_places(&self, stmts: &[vir::Stmt], maybe_label: Option<&str>) -> Vec<vir::Stmt> {
         if let Some(label) = maybe_label {
             struct PlacePatcher<'a> {
                 label: &'a str,
@@ -413,7 +413,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             fn patch_expr(label: &str, expr: &vir::Expr) -> vir::Expr {
                 PlacePatcher { label }.fold(expr.clone())
             }
-            fn patch_args(label: &str, args: &Vec<vir::Expr>) -> Vec<vir::Expr> {
+            fn patch_args(label: &str, args: &[vir::Expr]) -> Vec<vir::Expr> {
                 args.iter()
                     .map(|arg| {
                         assert!(arg.is_place());
@@ -455,7 +455,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 })
                 .collect()
         } else {
-            stmts.clone()
+            stmts.to_vec()
         }
     }
 }
@@ -509,13 +509,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                                     if !self.foldunfold_state_filter.is_empty() {
                                         let filter = &self.foldunfold_state_filter;
                                         acc = acc
-                                            .split("\n")
+                                            .split('\n')
                                             .filter(|x| x.contains(filter))
                                             .map(|x| x.to_string())
                                             .collect::<Vec<_>>()
                                             .join("\n");
                                         pred = pred
-                                            .split("\n")
+                                            .split('\n')
                                             .filter(|x| x.contains(filter))
                                             .map(|x| x.to_string())
                                             .collect::<Vec<_>>()
@@ -524,7 +524,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                                     vec![format!("Acc:\n{}", acc), format!("Pred:\n{}", pred)]
                                 })
                             })
-                            .unwrap_or_else(|| vec![])
+                            .unwrap_or_else(std::vec::Vec::new)
                     })
                 },
             );
@@ -622,7 +622,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
 
         // 1. Insert "unfolding in" inside old expressions. This handles *old* requirements.
         debug!("[step.1] replace_stmt: {}", stmt);
-        stmt = self.rewrite_stmt_with_unfoldings_in_old(stmt, &pctxt)?;
+        stmt = self.rewrite_stmt_with_unfoldings_in_old(stmt, pctxt)?;
 
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         debug!("[step.2] replace_stmt: {}", stmt);
@@ -708,7 +708,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                                 package_stmts.clone(),
                                 label.clone(),
                                 variables.clone(),
-                                position.clone(),
+                                *position,
                             ),
                         );
                     }
@@ -719,7 +719,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                     package_stmts,
                     label.clone(),
                     variables.clone(),
-                    position.clone(),
+                    *position,
                 )
             }
             stmt => stmt,
@@ -727,7 +727,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
 
         // 4. Add "unfolding" expressions in statement. This handles *old* requirements.
         debug!("[step.4] replace_stmt: Add unfoldings in stmt {}", stmt);
-        stmt = self.rewrite_stmt_with_unfoldings(stmt, &pctxt)?;
+        stmt = self.rewrite_stmt_with_unfoldings(stmt, pctxt)?;
 
         // 5. Apply effect of statement on state
         debug!("[step.5] replace_stmt: {}", stmt);
@@ -820,7 +820,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 })
                 .map(|(place, perm_amount)| {
                     acc_perm_counter += 1;
-                    (place.clone(), perm_amount.clone(), acc_perm_counter)
+                    (place.clone(), *perm_amount, acc_perm_counter)
                 })
                 .collect();
             acc_perms.sort_by(|(place1, _, id1), (place2, _, id2)| {
@@ -862,7 +862,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                     pctxt
                         .log_mut()
                         .log_convertion_to_read(borrow, access.clone());
-                    let stmt = vir::Stmt::Exhale( vir::Exhale {expr: access, position: self.method_pos.clone()} );
+                    let stmt = vir::Stmt::Exhale( vir::Exhale {expr: access, position: self.method_pos} );
                     pctxt.apply_stmt(&stmt)?;
                     stmts.push(stmt);
                 }
@@ -890,7 +890,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                     assert!(perm_amount.is_valid_for_specs());
                     place.has_prefix(source)
                 })
-                .map(|(place, perm_amount)| (place.clone(), perm_amount.clone()))
+                .map(|(place, perm_amount)| (place.clone(), *perm_amount))
                 .collect();
             for (place, perm_amount) in pred_perms {
                 debug!("pred place: {} {}", place, perm_amount);
@@ -929,16 +929,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
         }
 
         // Store state for old expressions
-        match stmt {
-            vir::Stmt::Label( vir::Label {ref label}) => {
-                let mut labelled_pctxt = pctxt.clone();
-                let labelled_state = labelled_pctxt.mut_state();
-                labelled_state.replace_places(|place| place.old(label));
-                self.pctxt_at_label
-                    .insert(label.to_string(), labelled_pctxt);
-            }
-
-            _ => {} // Nothing
+        if let vir::Stmt::Label( vir::Label {ref label}) = stmt {
+            let mut labelled_pctxt = pctxt.clone();
+            let labelled_state = labelled_pctxt.mut_state();
+            labelled_state.replace_places(|place| place.old(label));
+            self.pctxt_at_label
+                .insert(label.to_string(), labelled_pctxt);
         }
 
         // Delete lhs state
@@ -962,11 +958,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
         pctxt: &mut PathCtxt<'p>,
     ) -> Result<(Vec<vir::Stmt>, vir::Successor), Self::Error> {
         debug!("replace_successor: {}", succ);
-        let exprs: Vec<&vir::Expr> = match succ {
-            &vir::Successor::GotoSwitch(ref guarded_targets, _) => {
-                guarded_targets.iter().map(|g| &g.0).collect()
-            }
-            _ => vec![],
+        let exprs: Vec<&vir::Expr> = if let vir::Successor::GotoSwitch(ref guarded_targets, _) = succ {
+            guarded_targets.iter().map(|g| &g.0).collect()
+        } else {
+            vec![]
         };
 
         let grouped_perms: HashMap<_, _> = exprs
@@ -1019,7 +1014,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
                 vir::Successor::GotoSwitch(
                     guarded_targets
                         .iter()
-                        .map(|(cond, targ)| repl_expr(cond).map(|expr| (expr, targ.clone())))
+                        .map(|(cond, targ)| repl_expr(cond).map(|expr| (expr, *targ)))
                         .collect::<Result<Vec<_>, _>>()?,
                     *default_target,
                 )
@@ -1036,7 +1031,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
         bcs: Vec<&PathCtxt<'p>>,
     ) -> Result<(Vec<ActionVec>, PathCtxt<'p>), Self::Error> {
         trace!("[enter] prepend_join(..{})", &bcs.len());
-        assert!(bcs.len() > 0);
+        assert!(!bcs.is_empty());
         if bcs.len() == 1 {
             Ok((vec![ActionVec(vec![])], bcs[0].clone()))
         } else {
@@ -1127,10 +1122,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             components.push(vir::PlaceComponent::Field(field, position));
             let new_base = self.fallible_fold(base)?;
             debug_assert!(
-                match new_base {
-                    vir::Expr::Local(..) | vir::Expr::LabelledOld(..) => true,
-                    _ => false,
-                },
+                matches!(new_base, vir::Expr::Local(..) | vir::Expr::LabelledOld(..)),
                 "new_base = {}",
                 new_base
             );
@@ -1274,7 +1266,7 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         } else {
             self.pctxt_at_label.get(&label).map_or_else(
                 || Err(FoldUnfoldError::MissingLabel(label.clone())),
-                |pctxt| Ok(pctxt),
+                Ok,
             )?.clone()
         };
 
@@ -1402,9 +1394,9 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 arguments: arguments.into_iter()
                     .map(|e| self.fallible_fold(e))
                     .collect::<Result<Vec<_>, Self::Error>>()?,
-                formal_arguments: formal_arguments.clone(),
-                return_type: return_type.clone(),
-                position: position.clone(),
+                formal_arguments,
+                return_type,
+                position,
             }))
         } else {
             let func_app =

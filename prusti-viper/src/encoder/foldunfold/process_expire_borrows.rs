@@ -64,6 +64,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         Ok(self.generate_final_statements(&cfg, label))
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn construct_initial_pctxt(&mut self,
         dag: &vir::borrows::DAG,
         cfg: &mut borrows::CFG,
@@ -132,6 +133,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         Ok((pctxt, curr_block_pre_statements))
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn construct_initial_pctxt_with_predecessors(&mut self,
         dag: &vir::borrows::DAG,
         cfg: &mut borrows::CFG,
@@ -170,7 +172,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 for perm in &dropped_permissions {
                     let comment = format!("restored (from log): {}", perm);
                     let key = (predecessor, curr_block_index);
-                    let entry = cfg.edges.entry(key).or_insert(Vec::new());
+                    let entry = cfg.edges.entry(key).or_insert_with(Vec::new);
                     entry.push(vir::Stmt::comment(comment));
                 }
                 pctxt
@@ -202,13 +204,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     }
                 }
                 let key = (src_index, curr_block_index);
-                let entry = cfg.edges.entry(key).or_insert(Vec::new());
+                let entry = cfg.edges.entry(key).or_insert_with(Vec::new);
                 entry.extend(stmts_to_add);
             }
         }
         Ok(pctxt)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn process_node(&mut self,
         surrounding_pctxt: &mut PathCtxt<'p>,
         surrounding_block_index: vir::CfgBlockIndex,
@@ -231,7 +234,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             );
             let new_stmts = self.replace_stmt(
                 stmt_index,
-                &stmt,
+                stmt,
                 false,
                 pctxt,
                 surrounding_block_index,

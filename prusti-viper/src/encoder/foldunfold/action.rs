@@ -10,6 +10,7 @@ use vir_crate::polymorphic::{self as vir, Fold, Unfold, PermAmount, Stmt, Expr};
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[allow(clippy::large_enum_variant)]
 pub enum Action {
     Fold(Fold),
     Unfold(Unfold),
@@ -36,7 +37,7 @@ impl Action {
                     arguments.clone(),
                     *permission,
                     enum_variant.clone(),
-                    position.clone(),
+                    *position,
                 ))
             }
 

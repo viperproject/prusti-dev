@@ -146,7 +146,7 @@ pub fn run_backward_interpretation_point_to_point<
             HashMap::from_iter(
                 terminator
                     .successors()
-                    .map(|bb| (*bb, heads.get(bb).unwrap_or(&default_state))),
+                    .map(|bb| (*bb, heads.get(bb).unwrap_or(default_state))),
             )
         };
         trace!("States before: {:?}", states);

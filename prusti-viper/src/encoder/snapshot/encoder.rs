@@ -60,10 +60,10 @@ pub struct SnapshotEncoder {
 
 /// Snapshot encoding flattens references and boxes. This function removes any
 /// [Box<...>] or reference (mutable or shared) wrappers.
-fn strip_refs_and_boxes<'tcx>(ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+fn strip_refs_and_boxes(ty: ty::Ty) -> ty::Ty {
     match ty.kind() {
         _ if ty.is_box() => strip_refs_and_boxes(ty.boxed_ty()),
-        ty::TyKind::Ref(_, ref sub_ty, _) => strip_refs_and_boxes(sub_ty),
+        ty::TyKind::Ref(_, sub_ty, _) => strip_refs_and_boxes(sub_ty),
         _ => ty,
     }
 }
@@ -84,7 +84,7 @@ fn strip_refs_and_boxes_expr<'p, 'v: 'p, 'tcx: 'v>(
                 encoder.encode_dereference_field(ty.boxed_ty())?,
             ),
         ),
-        ty::TyKind::Ref(_, ref sub_ty, _) => strip_refs_and_boxes_expr(
+        ty::TyKind::Ref(_, sub_ty, _) => strip_refs_and_boxes_expr(
             encoder,
             sub_ty,
             Expr::field(
@@ -238,11 +238,11 @@ impl SnapshotEncoder {
                     ty::TyKind::Int(_)
                     | ty::TyKind::Uint(_)
                     | ty::TyKind::Char => Expr::field(
-                        expr.clone(),
+                        expr,
                         vir::Field::new("val_int", Type::Int),
                     ),
                     ty::TyKind::Bool => Expr::field(
-                        expr.clone(),
+                        expr,
                         vir::Field::new("val_bool", Type::Bool),
                     ),
                     ty::TyKind::Tuple(substs) if substs.is_empty() => self.snap_unit(),
@@ -258,7 +258,7 @@ impl SnapshotEncoder {
             }
 
             // handle SnapApp on already patched expressions
-            Type::Domain( vir::DomainType {label, ref arguments, ..} ) if label == UNIT_DOMAIN_NAME && arguments.len() == 0 => Ok(expr),
+            Type::Domain( vir::DomainType {label, ref arguments, ..} ) if label == UNIT_DOMAIN_NAME && arguments.is_empty() => Ok(expr),
             Type::Snapshot(_)
             | Type::Bool // TODO: restrict to snapshot-produced Bools and Ints
             | Type::Int => Ok(expr),
@@ -523,6 +523,7 @@ impl SnapshotEncoder {
         Ok(len_func.apply(vec![slice]))
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn encode_slicing<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
@@ -614,9 +615,9 @@ impl SnapshotEncoder {
         // encode snapshot
         let snapshot = self
             .encode_snapshot_internal(encoder, ty, &predicate_type, tymap)
-            .or_else(|err| {
+            .map_err(|err| {
                 self.in_progress.remove(&predicate_type);
-                Err(err)
+                err
             })?;
 
         // remove in-progress encoding
@@ -1368,7 +1369,7 @@ impl SnapshotEncoder {
         }
     }
 
-    fn encode_abstract<'p, 'v: 'p, 'tcx: 'v>(
+    fn encode_abstract(
         &mut self,
         predicate_type: &Type,
     ) -> EncodingResult<Snapshot> {
@@ -1384,11 +1385,11 @@ impl SnapshotEncoder {
         // encode snap function
         let snap_func = vir::Function {
             name: SNAP_FUNC_NAME.to_string(),
-            formal_args: vec![arg_ref_local.clone()],
-            return_type: snapshot_type.clone(),
+            formal_args: vec![arg_ref_local],
+            return_type: snapshot_type,
             pres: vec![Expr::predicate_access_predicate(
                 predicate_type.clone(),
-                arg_ref_expr.clone(),
+                arg_ref_expr,
                 PermAmount::Read,
             )],
             posts: vec![],
@@ -1452,11 +1453,11 @@ impl SnapshotEncoder {
 
             // encode discriminant range axiom
             domain_axioms.push({
-                let disc_call = discriminant_func.apply(vec![arg_dom_expr.clone()]);
+                let disc_call = discriminant_func.apply(vec![arg_dom_expr]);
                 vir::DomainAxiom {
                     name: format!("{}$discriminant_range", domain_name),
                     expr: Expr::forall(
-                        vec![arg_dom_local.clone()],
+                        vec![arg_dom_local],
                         vec![vir::Trigger::new(vec![disc_call.clone()])],
                         range_extract(
                             variants
@@ -1577,7 +1578,7 @@ impl SnapshotEncoder {
                     vir::DomainAxiom {
                         name: format!("{}${}$discriminant_axiom", domain_name, variant_idx),
                         expr: forall_or_body(
-                            args.iter().cloned().collect(),
+                            args.to_vec(),
                             vec![vir::Trigger::new(vec![
                                 call.clone(),
                             ])],
@@ -1695,11 +1696,11 @@ impl SnapshotEncoder {
 
             vir::Function {
                 name: SNAP_FUNC_NAME.to_string(),
-                formal_args: vec![arg_ref_local.clone()],
-                return_type: snapshot_type.clone(),
+                formal_args: vec![arg_ref_local],
+                return_type: snapshot_type,
                 pres: vec![Expr::predicate_access_predicate(
                     predicate_type.clone(),
-                    arg_ref_expr.clone(),
+                    arg_ref_expr,
                     PermAmount::Read,
                 )],
                 posts: vec![],

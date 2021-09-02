@@ -12,7 +12,7 @@ use rustc_middle::mir::{self, VarDebugInfo};
 use rustc_middle::ty::{self, Ty, AdtKind, AdtDef, TyCtxt};
 use rustc_span::Span;
 
-pub fn backtranslate<'tcx>(
+pub fn backtranslate(
     encoder: &Encoder,
     def_id: ProcedureDefId,
     silicon_counterexample: &SiliconCounterexample,
@@ -24,7 +24,7 @@ pub fn backtranslate<'tcx>(
     // function when it fails. But currently most values can not be obtained
     // there because they are folded.
     // Instead, we use the last *labelled* counterexample.
-    let last_label: Option<&String> = silicon_counterexample.label_order.last();
+    let last_label: Option<&str> = silicon_counterexample.label_order.last().map(|label| label.as_str());
 
     let old_impure_label = if silicon_counterexample
         .label_order
@@ -36,7 +36,7 @@ pub fn backtranslate<'tcx>(
     let old_label = if translator.is_pure {
         None
     } else {
-        Some(&old_impure_label)
+        Some(old_impure_label.as_str())
     };
 
     // FIXME: there might be one too many levels of indirection here. Maybe we
@@ -53,7 +53,7 @@ pub fn backtranslate<'tcx>(
     for (rust_name, span, vir_name, typ, is_arg) in entries_to_process {
         if !translator.is_pure {
             let entry = translator.process_variable_at_label(last_label, &vir_name, typ);
-            entries.insert((rust_name.clone(), span.clone()), entry);
+            entries.insert((rust_name.clone(), span), entry);
         }
         if is_arg {
             let arg_entry = translator.process_variable_at_label(old_label, &vir_name, typ);
@@ -163,7 +163,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             let typ = self.local_variable_manager.get_type(var_local);
             let is_arg = index > 0 && index <= self.mir.arg_count;
             let vir_name = self.local_variable_manager.get_name(var_local);
-            entries_to_process.push((rust_name.clone(), span.clone(), vir_name.clone(), typ, is_arg));
+            entries_to_process.push((rust_name.clone(), span, vir_name.clone(), typ, is_arg));
         }
         entries_to_process
     }
@@ -189,8 +189,8 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
 
     fn process_variable_at_label(
         &self,
-        label: Option<&String>,
-        var_name: &String,
+        label: Option<&str>,
+        var_name: &str,
         typ: Ty<'tcx>,
     ) -> Entry {
         let silicon_model = match label {
@@ -279,7 +279,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 let mut variant = None;
                 let mut opt_discriminant = self.translate_int(map.get("discriminant"));
                 //need to find a discriminant to do something
-                if !opt_discriminant.is_some() {
+                if opt_discriminant.is_none() {
                     //try to find disc in the associated local variable
                     let opt_discr_locations = self.disc_info.get(&(self.def_id, vir_name.clone()));
                     if let Some(discr_locations) = opt_discr_locations {
@@ -296,9 +296,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 if let Some(x) = opt_discriminant {
                     // FIXME: should be able to handle larger discriminantes
                     let discriminant = x.parse::<u32>().unwrap();
-                    variant = adt_def.variants.iter()
-                        .filter(|x| get_discriminant_of_vardef(x) == Some(discriminant))
-                        .next();
+                    variant = adt_def.variants.iter().find(|x| get_discriminant_of_vardef(x) == Some(discriminant));
                     if let Some(v) = variant {
                         variant_name = v.ident.name.to_ident_string();
                     }

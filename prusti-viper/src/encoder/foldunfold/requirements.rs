@@ -116,7 +116,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                     .into_iter()
                     .map(|perm| {
                         // TODO polymorphic: add replace_place
-                        perm.map_place(|p| p.replace_place(&pred_self_place, &place))
+                        perm.map_place(|p| p.replace_place(&pred_self_place, place))
                             .init_perm_amount(permission)
                     })
                     .collect();
@@ -326,7 +326,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                                 let typ = arg.get_type();
                                 vir::Expr::predicate_access_predicate(
                                     typ.clone(),
-                                    arg.clone().into(),
+                                    arg.clone(),
                                     PermAmount::Read,
                                 )
                             }
