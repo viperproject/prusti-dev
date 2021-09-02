@@ -312,16 +312,14 @@ impl ApplyOnState for vir::Stmt {
                 state.insert_all_pred(new_pred_places.into_iter())?;
 
                 // Move also the acc permission if the rhs is old.
-                if state.contains_acc(left) && !state.contains_acc(right) {
-                    if right.is_old() {
-                        debug!("Moving acc({}) to acc({}) state.", left, right);
-                        state.insert_acc(
-                            right.clone(),
-                            state.acc().get(left).unwrap().clone(),
-                        )?;
-                        if !left.is_local() && !left.is_curr() {
-                            state.remove_acc_place(left);
-                        }
+                if state.contains_acc(left) && !state.contains_acc(right) && right.is_old() {
+                    debug!("Moving acc({}) to acc({}) state.", left, right);
+                    state.insert_acc(
+                        right.clone(),
+                        state.acc().get(left).unwrap().clone(),
+                    )?;
+                    if !left.is_local() && !left.is_curr() {
+                        state.remove_acc_place(left);
                     }
                 }
 
