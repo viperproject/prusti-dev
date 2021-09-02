@@ -14,7 +14,7 @@
 //!
 //! This transformation is also needed to work around some bugs of Silicon,
 //! when unfolding are used inside a quantifiers and other cases.
-//! See: https://github.com/viperproject/silicon/issues/387
+//! See: <https://github.com/viperproject/silicon/issues/387>
 
 
 use vir::polymorphic::FieldAccessPredicate;
