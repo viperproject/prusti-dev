@@ -71,8 +71,10 @@ impl Drop for TemporaryEnvVar {
 }
 
 fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Option<&str>) {
-    let mut config = Config::default();
-    config.rustc_path = find_prusti_rustc_path();
+    let mut config = Config {
+        rustc_path: find_prusti_rustc_path(),
+        ..Config::default()
+    };
 
     // Filter the tests to run
     if let Some(filter) = filter {
@@ -89,7 +91,7 @@ fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Opti
     if path.exists() {
         config.target_rustcflags = Some(format!(
             "--color=never {}",
-            config.target_rustcflags.unwrap_or("".to_string())
+            config.target_rustcflags.unwrap_or_else(|| "".to_string())
         ));
         config.mode = Mode::Ui;
         config.src_base = path;

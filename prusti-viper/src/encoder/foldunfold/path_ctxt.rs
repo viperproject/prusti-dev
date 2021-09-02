@@ -106,20 +106,9 @@ impl<'a> PathCtxt<'a> {
         let predicate_name = pred_place.typed_ref_name().unwrap();
         let predicate = self.predicates.get(&predicate_name)
             .map(Ok)
-            .unwrap_or(
-                Err(FoldUnfoldError::MissingPredicate(predicate_name.clone()))
-            )?;
+            .unwrap_or_else(|| Err(FoldUnfoldError::MissingPredicate(predicate_name.clone())))?;
 
         let pred_self_place: vir::Expr = predicate.self_place();
-        let places_in_pred: Vec<Perm> = predicate
-            .get_body_footprint(&variant)
-            .into_iter()
-            .map(|perm| {
-                // TODO polymorphic
-                perm.map_place(|p| p.replace_place(&pred_self_place, pred_place))
-                    .update_perm_amount(perm_amount)
-            })
-            .collect();
 
         trace!(
             "Pred state before unfold: {{\n{}\n}}",
@@ -127,8 +116,15 @@ impl<'a> PathCtxt<'a> {
         );
 
         // Simulate unfolding of `pred_place`
-        self.state.remove_pred(&pred_place, perm_amount)?;
-        self.state.insert_all_perms(places_in_pred.into_iter())?;
+        self.state.remove_pred(pred_place, perm_amount)?;
+        self.state.insert_all_perms(predicate
+            .get_body_footprint(&variant)
+            .into_iter()
+            .map(|perm| {
+                // TODO polymorphic
+                perm.map_place(|p| p.replace_place(&pred_self_place, pred_place))
+                    .update_perm_amount(perm_amount)
+            }))?;
 
         debug!("We unfolded {}", pred_place);
 
@@ -143,7 +139,7 @@ impl<'a> PathCtxt<'a> {
 
         Ok(Action::Unfold( vir::Unfold {
             predicate_name: predicate_name.clone(),
-            arguments: vec![pred_place.clone().into()],
+            arguments: vec![pred_place.clone()],
             permission: perm_amount,
             enum_variant: variant,
         }))
@@ -339,8 +335,8 @@ impl<'a> PathCtxt<'a> {
                     "Drop pred {} in left branch (it is moved out in the other branch)",
                     pred_place
                 );
-                assert!(self.state.pred().contains_key(&pred_place));
-                let perm_amount = self.state.remove_pred_place(&pred_place);
+                assert!(self.state.pred().contains_key(pred_place));
+                let perm_amount = self.state.remove_pred_place(pred_place);
                 let perm = Perm::pred(pred_place.clone(), perm_amount);
                 left_actions.push(Action::Drop(perm.clone(), perm));
             }
@@ -350,8 +346,8 @@ impl<'a> PathCtxt<'a> {
                     "Drop pred {} in right branch (it is moved out in the other branch)",
                     pred_place
                 );
-                assert!(other.state.pred().contains_key(&pred_place));
-                let perm_amount = other.state.remove_pred_place(&pred_place);
+                assert!(other.state.pred().contains_key(pred_place));
+                let perm_amount = other.state.remove_pred_place(pred_place);
                 let perm = Perm::pred(pred_place.clone(), perm_amount);
                 right_actions.push(Action::Drop(perm.clone(), perm));
             }
@@ -367,8 +363,8 @@ impl<'a> PathCtxt<'a> {
                     "Drop pred {} in left branch (it is not in the other branch)",
                     pred_place
                 );
-                assert!(self.state.pred().contains_key(&pred_place));
-                let perm_amount = self.state.remove_pred_place(&pred_place);
+                assert!(self.state.pred().contains_key(pred_place));
+                let perm_amount = self.state.remove_pred_place(pred_place);
                 let perm = Perm::pred(pred_place.clone(), perm_amount);
                 left_actions.push(Action::Drop(perm.clone(), perm));
             }
@@ -377,8 +373,8 @@ impl<'a> PathCtxt<'a> {
                     "Drop pred {} in right branch (it is not in the other branch)",
                     pred_place
                 );
-                assert!(other.state.pred().contains_key(&pred_place));
-                let perm_amount = other.state.remove_pred_place(&pred_place);
+                assert!(other.state.pred().contains_key(pred_place));
+                let perm_amount = other.state.remove_pred_place(pred_place);
                 let perm = Perm::pred(pred_place.clone(), perm_amount);
                 right_actions.push(Action::Drop(perm.clone(), perm));
             }
@@ -389,8 +385,8 @@ impl<'a> PathCtxt<'a> {
                     "Drop acc {} in left branch (it is moved out in the other branch)",
                     acc_place
                 );
-                assert!(self.state.acc().contains_key(&acc_place));
-                let perm_amount = self.state.remove_acc_place(&acc_place);
+                assert!(self.state.acc().contains_key(acc_place));
+                let perm_amount = self.state.remove_acc_place(acc_place);
                 let perm = Perm::acc(acc_place.clone(), perm_amount);
                 left_actions.push(Action::Drop(perm.clone(), perm));
             }
@@ -399,8 +395,8 @@ impl<'a> PathCtxt<'a> {
                     "Drop acc {} in right branch (it is moved out in the other branch)",
                     acc_place
                 );
-                assert!(other.state.acc().contains_key(&acc_place));
-                let perm_amount = other.state.remove_acc_place(&acc_place);
+                assert!(other.state.acc().contains_key(acc_place));
+                let perm_amount = other.state.remove_acc_place(acc_place);
                 let perm = Perm::acc(acc_place.clone(), perm_amount);
                 right_actions.push(Action::Drop(perm.clone(), perm));
             }
@@ -415,8 +411,8 @@ impl<'a> PathCtxt<'a> {
                     "Drop acc {} in left branch (not present in the other branch)",
                     acc_place
                 );
-                assert!(self.state.acc().contains_key(&acc_place));
-                let perm_amount = self.state.remove_acc_place(&acc_place);
+                assert!(self.state.acc().contains_key(acc_place));
+                let perm_amount = self.state.remove_acc_place(acc_place);
                 self.state
                     .remove_moved_matching(|moved_place| moved_place.has_prefix(acc_place));
                 let perm = Perm::acc(acc_place.clone(), perm_amount);
@@ -431,8 +427,8 @@ impl<'a> PathCtxt<'a> {
                     "Drop acc {} in right branch (not present in the other branch)",
                     acc_place
                 );
-                assert!(other.state.acc().contains_key(&acc_place));
-                let perm_amount = other.state.remove_acc_place(&acc_place);
+                assert!(other.state.acc().contains_key(acc_place));
+                let perm_amount = other.state.remove_acc_place(acc_place);
                 other
                     .state
                     .remove_moved_matching(|moved_place| moved_place.has_prefix(acc_place));
@@ -498,7 +494,7 @@ impl<'a> PathCtxt<'a> {
         // Merge the event logs
         self.log_mut().join(other.drain_log())?;
 
-        return Ok((left_actions, right_actions));
+        Ok((left_actions, right_actions))
     }
 
     /// Obtain the required permissions, changing the state inplace and returning the statements.
@@ -655,7 +651,7 @@ impl<'a> PathCtxt<'a> {
                 let pos = req.get_place().pos();
                 let fold_action = Action::Fold( vir::Fold {
                     predicate_name: predicate_name.clone(),
-                    arguments: vec![req.get_place().clone().into()],
+                    arguments: vec![req.get_place().clone()],
                     permission: perm_amount,
                     enum_variant: variant,
                     position: pos,
@@ -677,7 +673,7 @@ impl<'a> PathCtxt<'a> {
                 // Done. Continue checking the remaining requirements
                 debug!("We folded {}", req);
                 trace!("[exit] obtain");
-                return Ok(ObtainResult::Success(actions));
+                Ok(ObtainResult::Success(actions))
             } else {
                 debug!(
                     r"It is not possible to obtain {} ({:?}).
@@ -694,12 +690,12 @@ Predicates: {{
                     self.state.display_acc(),
                     self.state.display_pred()
                 );
-                return Ok(ObtainResult::Failure(req.clone()));
+                Ok(ObtainResult::Failure(req.clone()))
             }
         } else if in_join && req.get_perm_amount() == PermAmount::Read {
             // Permissions held by shared references can be dropped
             // without being explicitly moved becauce &T implements Copy.
-            return Ok(ObtainResult::Failure(req.clone()));
+            Ok(ObtainResult::Failure(req.clone()))
         } else {
             // We have no predicate to obtain the access permission `req`
             debug!(
@@ -717,8 +713,8 @@ Predicates: {{
                 self.state.display_acc(),
                 self.state.display_pred()
             );
-            return Ok(ObtainResult::Failure(req.clone()));
-        };
+            Ok(ObtainResult::Failure(req.clone()))
+        }
     }
 
     /// Returns some of the dropped permissions

@@ -97,7 +97,7 @@ impl State {
             for other_place in self.pred.keys() {
                 if place.is_simple_place()
                     && other_place.is_simple_place()
-                    && place.has_proper_prefix(&other_place)
+                    && place.has_proper_prefix(other_place)
                     && !((self.pred[place] == PermAmount::Read
                         || self.pred[place] == PermAmount::Remaining)
                         && self.pred[other_place] == PermAmount::Read)
@@ -113,7 +113,7 @@ impl State {
             for pred_place in self.pred.keys() {
                 if acc_place.is_simple_place()
                     && pred_place.is_simple_place()
-                    && acc_place.has_proper_prefix(&pred_place)
+                    && acc_place.has_proper_prefix(pred_place)
                 {
                     panic!(
                         "Consistency error: state has acc {}, but also pred {}",
@@ -225,18 +225,18 @@ impl State {
     }
 
     pub fn contains_acc(&self, place: &vir::Expr) -> bool {
-        self.acc.contains_key(&place)
+        self.acc.contains_key(place)
     }
 
     pub fn contains_pred(&self, place: &vir::Expr) -> bool {
-        self.pred.contains_key(&place)
+        self.pred.contains_key(place)
     }
 
     /// Note: the permission amount is currently ignored
     pub fn contains_perm(&self, item: &Perm) -> bool {
         match item {
-            &Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
-            &Perm::Pred(ref _place, _) => self.contains_pred(item.get_place()),
+            Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
+            Perm::Pred(ref _place, _) => self.contains_pred(item.get_place()),
         }
     }
 
@@ -487,12 +487,12 @@ impl State {
 
     pub fn remove_perm(&mut self, item: &Perm) -> Result<(), FoldUnfoldError> {
         match item {
-            &Perm::Acc(_, perm) => self.remove_acc(item.get_place(), perm),
-            &Perm::Pred(_, perm) => self.remove_pred(item.get_place(), perm),
+            Perm::Acc(_, perm) => self.remove_acc(item.get_place(), *perm),
+            Perm::Pred(_, perm) => self.remove_pred(item.get_place(), *perm),
         }
     }
 
-    pub fn remove_all_perms<'a, I, P>(&mut self, items: I)
+    pub fn remove_all_perms<I, P>(&mut self, items: I)
        -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = P>,
@@ -550,7 +550,7 @@ impl State {
         }
         if acc_place.is_simple_place() {
             for pred_place in self.pred.keys() {
-                if pred_place.is_simple_place() && acc_place.has_proper_prefix(&pred_place) {
+                if pred_place.is_simple_place() && acc_place.has_proper_prefix(pred_place) {
                     trace!(
                         "restore_acc {}: ignored (predicate already exists: {})",
                         acc_place,

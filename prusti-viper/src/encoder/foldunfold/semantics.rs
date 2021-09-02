@@ -92,9 +92,9 @@ impl ApplyOnState for vir::Stmt {
                 }
 
                 // Remove places that will not have a name
-                state.remove_moved_matching(|p| p.has_prefix(&target));
-                state.remove_pred_matching(|p| p.has_prefix(&target));
-                state.remove_acc_matching(|p| p.has_proper_prefix(&target));
+                state.remove_moved_matching(|p| p.has_prefix(target));
+                state.remove_pred_matching(|p| p.has_prefix(target));
+                state.remove_acc_matching(|p| p.has_proper_prefix(target));
 
                 // In case of move or borrowing, move permissions from the `rhs` to the `lhs`
                 if source.is_place() && source.get_type().is_typed_ref_or_type_var() {
@@ -102,24 +102,24 @@ impl ApplyOnState for vir::Stmt {
                     match kind {
                         vir::AssignKind::Move | vir::AssignKind::MutableBorrow(_) => {
                             // In Prusti, we lose permission on the rhs
-                            state.remove_pred_matching(|p| p.has_prefix(&source));
+                            state.remove_pred_matching(|p| p.has_prefix(source));
                             state.remove_acc_matching(|p| {
-                                p.has_proper_prefix(&source) && !p.is_local()
+                                p.has_proper_prefix(source) && !p.is_local()
                             });
 
                             // We also lose permission on the lhs
-                            state.remove_pred_matching(|p| p.has_prefix(&target));
+                            state.remove_pred_matching(|p| p.has_prefix(target));
                             state.remove_acc_matching(|p| {
-                                p.has_proper_prefix(&target) && !p.is_local()
+                                p.has_proper_prefix(target) && !p.is_local()
                             });
 
                             // And we create permissions for the lhs
                             let new_acc_places = original_state
                                 .acc()
                                 .iter()
-                                .filter(|(p, _)| p.has_proper_prefix(&source))
+                                .filter(|(p, _)| p.has_proper_prefix(source))
                                 .map(|(p, perm_amount)| {
-                                    (p.clone().replace_place(&source, target), *perm_amount)
+                                    (p.clone().replace_place(source, target), *perm_amount)
                                 })
                                 .filter(|(p, _)| !p.is_local());
                             state.insert_all_acc(new_acc_places)?;
@@ -127,9 +127,9 @@ impl ApplyOnState for vir::Stmt {
                             let new_pred_places = original_state
                                 .pred()
                                 .iter()
-                                .filter(|(p, _)| p.has_prefix(&source))
+                                .filter(|(p, _)| p.has_prefix(source))
                                 .map(|(p, perm_amount)| {
-                                    (p.clone().replace_place(&source, target), *perm_amount)
+                                    (p.clone().replace_place(source, target), *perm_amount)
                                 });
                             state.insert_all_pred(new_pred_places)?;
 
@@ -140,9 +140,9 @@ impl ApplyOnState for vir::Stmt {
                         }
                         vir::AssignKind::SharedBorrow(_) => {
                             // We lose permission on the lhs
-                            state.remove_pred_matching(|p| p.has_prefix(&target));
+                            state.remove_pred_matching(|p| p.has_prefix(target));
                             state.remove_acc_matching(|p| {
-                                p.has_proper_prefix(&target) && !p.is_local()
+                                p.has_proper_prefix(target) && !p.is_local()
                             });
                         }
                         vir::AssignKind::Ghost | vir::AssignKind::Copy => {
@@ -152,10 +152,7 @@ impl ApplyOnState for vir::Stmt {
                 } else {
                     // This is not move assignemnt or the creation of a borrow
                     assert!(
-                        match kind {
-                            vir::AssignKind::Copy => true,
-                            _ => false,
-                        },
+                        matches!(kind, vir::AssignKind::Copy),
                         "Unexpected assignment kind: {:?}",
                         kind
                     );
@@ -251,10 +248,10 @@ impl ApplyOnState for vir::Stmt {
                 // Restore permissions from the `lhs` to the `rhs`
 
                 // In Prusti, lose permission from the lhs and rhs
-                state.remove_pred_matching(|p| p.has_prefix(&left));
-                state.remove_acc_matching(|p| p.has_proper_prefix(&left) && !p.is_local());
-                state.remove_pred_matching(|p| p.has_prefix(&right));
-                state.remove_acc_matching(|p| p.has_proper_prefix(&right) && !p.is_local());
+                state.remove_pred_matching(|p| p.has_prefix(left));
+                state.remove_acc_matching(|p| p.has_proper_prefix(left) && !p.is_local());
+                state.remove_pred_matching(|p| p.has_prefix(right));
+                state.remove_acc_matching(|p| p.has_proper_prefix(right) && !p.is_local());
 
                 // The rhs is no longer moved
                 state.remove_moved_matching(|p| p.has_prefix(right));
@@ -271,7 +268,7 @@ impl ApplyOnState for vir::Stmt {
                         .iter()
                         .filter(|(p, _)| p.has_proper_prefix(left))
                         .map(|(p, perm_amount)| {
-                            (p.clone().replace_place(&left, right), *perm_amount)
+                            (p.clone().replace_place(left, right), *perm_amount)
                         })
                         .filter(|(p, _)| !p.is_local())
                         .collect()
@@ -292,7 +289,7 @@ impl ApplyOnState for vir::Stmt {
                         .iter()
                         .filter(|(p, _)| p.has_prefix(left))
                         .map(|(p, perm_amount)| {
-                            (p.clone().replace_place(&left, right), *perm_amount)
+                            (p.clone().replace_place(left, right), *perm_amount)
                         })
                         .collect()
                 };
@@ -316,7 +313,7 @@ impl ApplyOnState for vir::Stmt {
                     debug!("Moving acc({}) to acc({}) state.", left, right);
                     state.insert_acc(
                         right.clone(),
-                        state.acc().get(left).unwrap().clone(),
+                        *state.acc().get(left).unwrap(),
                     )?;
                     if !left.is_local() && !left.is_curr() {
                         state.remove_acc_place(left);
