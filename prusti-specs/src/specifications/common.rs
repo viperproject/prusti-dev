@@ -362,7 +362,7 @@ impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
 impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> ProcedureSpecification<EID, ET, AT> {
     /// Trait implementation method refinement
     /// Choosing alternative C as discussed in
-    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+    /// <https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf>
     /// pp 19-23
     ///
     /// In other words, any pre-/post-condition provided by `other` will overwrite any provided by
