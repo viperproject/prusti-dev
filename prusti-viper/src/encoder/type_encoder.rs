@@ -51,7 +51,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Field::new("val_int", vir::Type::Int)
             }
 
-            ty::TyKind::Ref(_, ref ty, _) => {
+            ty::TyKind::Ref(_, ty, _) => {
                 let typ = self.encoder.encode_type(ty)?;
                 vir::Field::new("val_ref", typ)
             }
@@ -245,7 +245,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )]
             }
 
-            ty::TyKind::Ref(_, ref ty, _) => {
+            ty::TyKind::Ref(_, ty, _) => {
                 vec![vir::Predicate::new_struct(
                     typ,
                     vec![self.encoder.encode_dereference_field(ty)?],
@@ -308,7 +308,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                                 .collect::<Result<_, _>>();
                             let variant_name = &variant_def.ident.as_str();
                             let guard = vir::Expr::eq_cmp(
-                                discriminant_loc.clone().into(),
+                                discriminant_loc.clone(),
                                 variant_index.into(),
                             );
                             let variant_typ = typ.clone().variant(variant_name);
