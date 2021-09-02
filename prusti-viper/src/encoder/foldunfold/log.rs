@@ -7,16 +7,11 @@
 //! The log keeps track of actions performed by the fold-unfold algorithm so that they can be
 //! undone when restoring borrowed permissions.
 
-use crate::encoder::foldunfold::action::Action;
-use crate::encoder::foldunfold::perm::Perm;
-use crate::encoder::foldunfold::FoldUnfoldError;
-use prusti_common::utils::to_string::ToString;
-use vir_crate::polymorphic as vir;
-use std::cmp::Ordering;
-use std::collections::HashMap;
+use crate::encoder::foldunfold::{action::Action, perm::Perm, FoldUnfoldError};
 use log::trace;
-use std::rc::Rc;
-use std::sync::RwLock;
+use prusti_common::utils::to_string::ToString;
+use std::{cmp::Ordering, collections::HashMap, rc::Rc, sync::RwLock};
+use vir_crate::polymorphic as vir;
 
 // Note: Now every PathCtxt has its own EventLog, because a Borrow no longer unique
 // (e.g. we duplicate the evaluation of the loop condition in the encoding of loops).
@@ -119,24 +114,29 @@ impl EventLog {
         let mut result = self
             .duplicated_reads
             .get(&borrow)
-            .cloned().unwrap_or_default();
+            .cloned()
+            .unwrap_or_default();
         result.sort_by(
             |(access1, _, id1), (access2, _, id2)| match (access1, access2) {
                 (
                     vir::Expr::PredicateAccessPredicate(..),
                     vir::Expr::PredicateAccessPredicate(..),
                 ) => Ordering::Equal,
+                (vir::Expr::PredicateAccessPredicate(..), vir::Expr::FieldAccessPredicate(..)) => {
+                    Ordering::Less
+                }
+                (vir::Expr::FieldAccessPredicate(..), vir::Expr::PredicateAccessPredicate(..)) => {
+                    Ordering::Greater
+                }
                 (
-                    vir::Expr::PredicateAccessPredicate(..),
-                    vir::Expr::FieldAccessPredicate(..),
-                ) => Ordering::Less,
-                (
-                    vir::Expr::FieldAccessPredicate(..),
-                    vir::Expr::PredicateAccessPredicate(..),
-                ) => Ordering::Greater,
-                (
-                    vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {base: box ref place1, ..} ),
-                    vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {base: box ref place2, ..} ),
+                    vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate {
+                        base: box ref place1,
+                        ..
+                    }),
+                    vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate {
+                        base: box ref place2,
+                        ..
+                    }),
                 ) => {
                     let key1 = (place1.place_depth(), id1);
                     let key2 = (place2.place_depth(), id2);
@@ -190,7 +190,9 @@ impl EventLog {
         }
         // FIXME: This is not enough if the same borrow is created in two different paths
         for (other_key, other_value) in other.duplicated_reads.drain() {
-            self.duplicated_reads.entry(other_key).or_insert(other_value);
+            self.duplicated_reads
+                .entry(other_key)
+                .or_insert(other_value);
         }
         // FIXME: This is not enough if the same borrow is created in two different paths
         for (other_key, other_value) in other.blocked_place.drain() {
@@ -198,7 +200,9 @@ impl EventLog {
         }
         // FIXME: This is not enough if the same borrow is created in two different paths
         for (other_key, other_value) in other.converted_to_read_places.drain() {
-            self.converted_to_read_places.entry(other_key).or_insert(other_value);
+            self.converted_to_read_places
+                .entry(other_key)
+                .or_insert(other_value);
         }
         self.id_generator = self.id_generator.max(other.id_generator);
         Ok(())

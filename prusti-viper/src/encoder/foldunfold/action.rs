@@ -4,10 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::foldunfold::perm::*;
-use crate::encoder::foldunfold::FoldUnfoldError;
-use vir_crate::polymorphic::{self as vir, Fold, Unfold, PermAmount, Stmt, Expr};
+use crate::encoder::foldunfold::{perm::*, FoldUnfoldError};
 use std::fmt;
+use vir_crate::polymorphic::{self as vir, Expr, Fold, PermAmount, Stmt, Unfold};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[allow(clippy::large_enum_variant)]
@@ -30,7 +29,13 @@ impl Action {
 
     pub fn to_expr(&self, inner_expr: vir::Expr) -> Result<vir::Expr, FoldUnfoldError> {
         match self {
-            Action::Fold( Fold {predicate_name, arguments, permission, enum_variant, position} ) => {
+            Action::Fold(Fold {
+                predicate_name,
+                arguments,
+                permission,
+                enum_variant,
+                position,
+            }) => {
                 // Currently unsupported in Viper
                 Err(FoldUnfoldError::RequiresFolding(
                     predicate_name.clone(),
@@ -41,7 +46,12 @@ impl Action {
                 ))
             }
 
-            Action::Unfold( Unfold {predicate_name, arguments, permission, enum_variant} ) => Ok(vir::Expr::unfolding(
+            Action::Unfold(Unfold {
+                predicate_name,
+                arguments,
+                permission,
+                enum_variant,
+            }) => Ok(vir::Expr::unfolding(
                 predicate_name.clone(),
                 arguments.clone(),
                 inner_expr,
