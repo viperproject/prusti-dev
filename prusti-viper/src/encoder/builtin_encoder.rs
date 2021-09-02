@@ -9,6 +9,7 @@ use vir_crate::polymorphic::{self as vir, WithIdentifier};
 
 const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinMethodKind {
     HavocBool,

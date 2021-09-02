@@ -187,10 +187,7 @@ fn fix_quantifier(
     let mut trigger_exprs = triggers
         .into_iter()
         .map(|trigger| trigger
-            .elements()
-            .iter()
-            .cloned()
-            .collect::<Vec<_>>())
+            .elements().to_vec())
         .collect::<Vec<_>>();
 
     for var in vars {

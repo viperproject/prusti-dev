@@ -108,7 +108,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (encoded_projection, field_ty, None)
                     }
 
-                    ty::TyKind::Adt(ref adt_def, ref subst) if !adt_def.is_box() => {
+                    ty::TyKind::Adt(adt_def, ref subst) if !adt_def.is_box() => {
                         debug!("subst {:?}", subst);
                         let num_variants = adt_def.variants.len();
                         // FIXME: why this can be None?
@@ -314,7 +314,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 };
                 (access, ty, None)
             }
-            ty::TyKind::Adt(ref adt_def, ref _subst) if adt_def.is_box() => {
+            ty::TyKind::Adt(adt_def, _subst) if adt_def.is_box() => {
                 let access = if encoded_base.is_addr_of() {
                     encoded_base.get_parent().unwrap()
                 } else {
@@ -338,7 +338,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         match base_ty.kind() {
             ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..) => true,
 
-            ty::TyKind::Adt(ref adt_def, ..) if adt_def.is_box() => true,
+            ty::TyKind::Adt(adt_def, ..) if adt_def.is_box() => true,
 
             _ => false,
         }

@@ -71,7 +71,7 @@ impl EventLog {
         let entry_rc = self
             .prejoin_actions
             .entry(block_index)
-            .or_insert(Rc::new(RwLock::new(Vec::new())));
+            .or_insert_with(|| Rc::new(RwLock::new(Vec::new())));
         let mut entry = entry_rc.write().unwrap();
         entry.push(action);
         trace!("[exit] log_prejoin_action {}", entry.iter().to_string());
@@ -82,7 +82,7 @@ impl EventLog {
         path: &[vir::CfgBlockIndex],
         dag: &vir::borrows::DAG,
     ) -> Vec<Perm> {
-        assert!(path.len() > 0);
+        assert!(!path.is_empty());
         let relevant_path = &path[0..path.len() - 1];
         let mut dropped_permissions = Vec::new();
         for curr_block_index in relevant_path {
@@ -106,7 +106,7 @@ impl EventLog {
         perm: vir::Expr,
         original_place: vir::Expr,
     ) {
-        let entry = self.duplicated_reads.entry(borrow).or_insert(Vec::new());
+        let entry = self.duplicated_reads.entry(borrow).or_insert_with(Vec::new);
         entry.push((perm, original_place, self.id_generator));
         self.id_generator += 1;
     }
@@ -119,8 +119,7 @@ impl EventLog {
         let mut result = self
             .duplicated_reads
             .get(&borrow)
-            .cloned()
-            .unwrap_or(Vec::new());
+            .cloned().unwrap_or_default();
         result.sort_by(
             |(access1, _, id1), (access2, _, id2)| match (access1, access2) {
                 (
@@ -166,7 +165,7 @@ impl EventLog {
         let entry = self
             .converted_to_read_places
             .entry(borrow)
-            .or_insert(Vec::new());
+            .or_insert_with(Vec::new);
         entry.push(perm);
     }
 
@@ -187,27 +186,19 @@ impl EventLog {
     /// Join `other` into `self`
     pub(super) fn join(&mut self, mut other: Self) -> Result<(), FoldUnfoldError> {
         for (other_key, other_value) in other.prejoin_actions.drain() {
-            if !self.prejoin_actions.contains_key(&other_key) {
-                self.prejoin_actions.insert(other_key, other_value);
-            }
+            self.prejoin_actions.entry(other_key).or_insert(other_value);
         }
         // FIXME: This is not enough if the same borrow is created in two different paths
         for (other_key, other_value) in other.duplicated_reads.drain() {
-            if !self.duplicated_reads.contains_key(&other_key) {
-                self.duplicated_reads.insert(other_key, other_value);
-            }
+            self.duplicated_reads.entry(other_key).or_insert(other_value);
         }
         // FIXME: This is not enough if the same borrow is created in two different paths
         for (other_key, other_value) in other.blocked_place.drain() {
-            if !self.blocked_place.contains_key(&other_key) {
-                self.blocked_place.insert(other_key, other_value);
-            }
+            self.blocked_place.entry(other_key).or_insert(other_value);
         }
         // FIXME: This is not enough if the same borrow is created in two different paths
         for (other_key, other_value) in other.converted_to_read_places.drain() {
-            if !self.converted_to_read_places.contains_key(&other_key) {
-                self.converted_to_read_places.insert(other_key, other_value);
-            }
+            self.converted_to_read_places.entry(other_key).or_insert(other_value);
         }
         self.id_generator = self.id_generator.max(other.id_generator);
         Ok(())

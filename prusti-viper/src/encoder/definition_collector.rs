@@ -102,9 +102,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             .collect();
         for predicate in &predicates {
             // make sure we include all the fields
-            predicate.body().as_ref().map(|body| self.walk_expr(body));
+            if let Some(body) = predicate.body().as_ref() {
+                self.walk_expr(body);
+            }
         }
-        vir::utils::walk_methods(&methods, self);
+        vir::utils::walk_methods(methods, self);
         self.used_predicates
             .extend(self.unfolded_predicates.iter().cloned());
         self.used_functions
@@ -280,7 +282,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExprWalker for Collector<'p, 'v, 'tcx> {
         if self.new_unfolded_predicates.insert(predicate_name.to_string()) {
             let predicate = self.encoder.get_viper_predicate(predicate_name);
             // make sure we include all the fields
-            predicate.body().as_ref().map(|body| self.walk_expr(body));
+            if let Some(body) = predicate.body().as_ref() {
+                self.walk_expr(body)
+            }
         }
         for arg in arguments {
             ExprWalker::walk(self, arg);
