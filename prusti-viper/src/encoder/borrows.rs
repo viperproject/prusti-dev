@@ -50,7 +50,7 @@ impl<P: fmt::Debug> BorrowInfo<P> {
 impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let lifetime = match self.region {
-            None => format!("static"),
+            None => "static".to_string(),
             Some(ty::BoundRegionKind::BrAnon(id)) => format!("#{}", id),
             Some(ty::BoundRegionKind::BrNamed(_, name)) => name.to_string(),
             _ => unimplemented!(),
@@ -151,7 +151,7 @@ impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<'_,
     }
 }
 
-fn get_place_root<'tcx>(place: &mir::Place<'tcx>) -> mir::Local {
+fn get_place_root(place: &mir::Place) -> mir::Local {
     // match place {
     //     &mir::Place::Local(local) => local,
     //     &mir::Place::Projection(ref projection) => get_place_root(&projection.base),
@@ -197,7 +197,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
     /// Specialize to the call site contract.
     pub fn to_call_site_contract(
         &self,
-        args: &Vec<places::Local>,
+        args: &[places::Local],
         target: places::Local,
     ) -> ProcedureContract<'tcx> {
         assert_eq!(self.args.len(), args.len());
@@ -210,7 +210,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             let root = &get_place_root(place);
             let substitute_place = places::Place::SubstitutedPlace {
                 substituted_root: *substitutions.get(root).unwrap(),
-                place: place.clone(),
+                place: *place,
             };
             (substitute_place, *mutability)
         };
@@ -224,15 +224,14 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             })
             .collect();
         let returned_refs = self.returned_refs.iter().map(&substitute).collect();
-        let result = ProcedureContract {
+        ProcedureContract {
             def_id: self.def_id,
-            args: args.clone(),
-            returned_refs: returned_refs,
+            args: args.to_vec(),
+            returned_refs,
             returned_value: target,
             borrow_infos,
             specification: self.specification.clone(),
-        };
-        result
+        }
     }
 }
 
@@ -369,14 +368,14 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         let is_path_blocking = self.is_path_blocking;
         let old_path = self.current_path.take().unwrap();
         let current_path = self.tcx.mk_place_deref(old_path);
-        self.current_path = Some(current_path.clone());
+        self.current_path = Some(current_path);
         let borrow_info = self.get_or_create_borrow_info(bound_region);
         if is_path_blocking {
             borrow_info.blocking_paths.push((current_path, mutability));
         } else {
             borrow_info
                 .blocked_paths
-                .push((current_path.clone(), mutability));
+                .push((current_path, mutability));
             self.references_in.push((current_path, mutability));
         }
         self.is_path_blocking = true;
@@ -395,7 +394,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
             let field = mir::Field::new(i);
             let ty = part.expect_ty();
             self.current_path = Some(
-                self.tcx().mk_place_field(old_path.clone(), field, ty)
+                self.tcx().mk_place_field(old_path, field, ty)
             );
             self.visit_ty(ty)?;
         }

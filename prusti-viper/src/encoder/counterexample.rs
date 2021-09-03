@@ -144,20 +144,20 @@ impl fmt::Debug for Entry {
             }
             Entry::Ref(el) => write!(f, "ref({:#?})", el),
             Entry::Enum { super_name, name, field_entries } => {
-                let named_fields = field_entries.len() > 0 && field_entries[0].0.parse::<usize>().is_err();
+                let named_fields = !field_entries.is_empty() && field_entries[0].0.parse::<usize>().is_err();
                 let enum_name = format!("{}::{}", super_name, name);
                 if named_fields {
                     let mut f1 = f.debug_struct(&enum_name);
                     for (fieldname, entry) in field_entries {
                         f1.field(fieldname, entry);
                     }
-                    return f1.finish();
+                    f1.finish()
                 } else {
                     let mut f1 = f.debug_tuple(&enum_name);
                     for (_, entry) in field_entries {
                         f1.field(entry);
                     }
-                    return f1.finish();
+                    f1.finish()
                 }
             }
             Entry::Struct { name, field_entries } => {
@@ -168,7 +168,7 @@ impl fmt::Debug for Entry {
                 f1.finish()
             }
             Entry::Tuple(fields) => {
-                if fields.len() == 0 {
+                if fields.is_empty() {
                     write!(f, "()")
                 } else {
                     let mut f1 = f.debug_tuple("");

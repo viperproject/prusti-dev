@@ -173,7 +173,7 @@ impl fmt::Display for Expr {
                     if let Some(variant_index) = variant {
                         format!("{}<variant {}>", pred_name, variant_index)
                     } else {
-                        format!("{}", pred_name)
+                        pred_name.to_string()
                     },
                     args.iter()
                         .map(|x| x.to_string())
@@ -426,6 +426,7 @@ impl Expr {
         Expr::LabelledOld(label.to_string(), box expr, Position::default())
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn not(expr: Expr) -> Self {
         Expr::UnaryOp(UnaryOpKind::Not, box expr, Position::default())
     }
@@ -458,18 +459,22 @@ impl Expr {
         Expr::not(Expr::eq_cmp(left, right))
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn add(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Add, box left, box right, Position::default())
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn sub(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Sub, box left, box right, Position::default())
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn mul(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Mul, box left, box right, Position::default())
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn div(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Div, box left, box right, Position::default())
     }
@@ -478,6 +483,7 @@ impl Expr {
         Expr::BinOp(BinOpKind::Mod, box left, box right, Position::default())
     }
 
+    #[allow(clippy::should_implement_trait)]
     /// Encode Rust reminder. This is *not* Viper modulo.
     pub fn rem(left: Expr, right: Expr) -> Self {
         let abs_right = Expr::ite(
@@ -629,7 +635,7 @@ impl Expr {
 
         let mut finder = PredicateFinder {
             predicates: Vec::new(),
-            perm_amount: perm_amount,
+            perm_amount,
         };
         finder.walk(self);
         finder.predicates
@@ -758,11 +764,20 @@ impl Expr {
     /// Is this place a MIR reference?
     pub fn is_mir_reference(&self) -> bool {
         debug_assert!(self.is_place());
-        if let Expr::Field(box Expr::Local(LocalVar { typ, .. }, _), _, _) = self {
-            if let Type::TypedRef(ref name) = typ {
-                // FIXME: We should not rely on string names for detecting types.
-                return name.starts_with("ref$");
-            }
+        if let Expr::Field(
+            box Expr::Local(
+                LocalVar {
+                    typ: Type::TypedRef(ref name),
+                    ..
+                },
+                _,
+            ),
+            _,
+            _,
+        ) = self
+        {
+            // FIXME: We should not rely on string names for detecting types.
+            return name.starts_with("ref$");
         }
         false
     }
@@ -933,7 +948,7 @@ impl Expr {
             fn walk_unfolding(
                 &mut self,
                 _name: &str,
-                _args: &Vec<Expr>,
+                _args: &[Expr],
                 _body: &Expr,
                 _perm: PermAmount,
                 _variant: &MaybeEnumVariantIndex,
@@ -944,8 +959,8 @@ impl Expr {
             fn walk_func_app(
                 &mut self,
                 _name: &str,
-                _args: &Vec<Expr>,
-                _formal_args: &Vec<LocalVar>,
+                _args: &[Expr],
+                _formal_args: &[LocalVar],
                 _return_type: &Type,
                 _pos: &Position,
             ) {
@@ -1054,11 +1069,11 @@ impl Expr {
             | Expr::Variant(_, Field { ref typ, .. }, _)
             | Expr::Field(_, Field { ref typ, .. }, _)
             | Expr::AddrOf(_, ref typ, _)
-            | Expr::LetExpr(LocalVar { ref typ, .. }, _, _, _) => &typ,
+            | Expr::LetExpr(LocalVar { ref typ, .. }, _, _, _) => typ,
             Expr::LabelledOld(_, box ref base, _)
             | Expr::Unfolding(_, _, box ref base, _, _, _)
             | Expr::UnaryOp(_, box ref base, _) => base.get_type(),
-            Expr::FuncApp(_, _, _, ref typ, _) => &typ,
+            Expr::FuncApp(_, _, _, ref typ, _) => typ,
             Expr::DomainFuncApp(ref func, _, _) => &func.return_type,
             Expr::Const(constant, ..) => match constant {
                 Const::Bool(..) => &Type::Bool,
@@ -1142,7 +1157,7 @@ impl Expr {
 
     pub fn typed_ref_name(&self) -> Option<String> {
         match self.get_type() {
-            &Type::TypedRef(ref name) => Some(name.clone()),
+            Type::TypedRef(ref name) => Some(name.clone()),
             _ => None,
         }
     }
@@ -1566,7 +1581,7 @@ impl Expr {
             }
         }
         let mut collector = Collector {
-            perm_amount: perm_amount,
+            perm_amount,
             perms: Vec::new(),
         };
         collector.walk(self);
@@ -1626,7 +1641,7 @@ impl Expr {
                 )
             }
         }
-        let mut patcher = TypePatcher { substs: substs };
+        let mut patcher = TypePatcher { substs };
         patcher.fold(self)
     }
 

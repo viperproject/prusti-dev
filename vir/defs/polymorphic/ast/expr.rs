@@ -5,13 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::super::borrows::Borrow;
-use crate::polymorphic::ast::*;
-use crate::converter::type_substitution::Generic;
-use std::collections::{HashMap};
-use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::mem;
-use std::mem::discriminant;
+use crate::{converter::type_substitution::Generic, polymorphic::ast::*};
+use std::{
+    collections::HashMap,
+    fmt,
+    hash::{Hash, Hasher},
+    mem,
+    mem::discriminant,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Expr {
@@ -75,7 +76,9 @@ impl fmt::Display for Expr {
             Expr::Const(const_expr) => const_expr.fmt(f),
             Expr::LabelledOld(labelled_old) => labelled_old.fmt(f),
             Expr::MagicWand(magic_wand) => magic_wand.fmt(f),
-            Expr::PredicateAccessPredicate(predicate_access_predicate) => predicate_access_predicate.fmt(f),
+            Expr::PredicateAccessPredicate(predicate_access_predicate) => {
+                predicate_access_predicate.fmt(f)
+            }
             Expr::FieldAccessPredicate(field_access_predicate) => field_access_predicate.fmt(f),
             Expr::UnaryOp(unary_op) => unary_op.fmt(f),
             Expr::BinOp(bin_op) => bin_op.fmt(f),
@@ -98,57 +101,225 @@ impl fmt::Display for Expr {
 impl Expr {
     pub fn pos(&self) -> Position {
         match self {
-            Expr::Local( Local {position, ..} )
-            | Expr::Variant( Variant {position, ..} )
-            | Expr::Field( FieldExpr {position, ..} )
-            | Expr::AddrOf( AddrOf {position, ..} )
-            | Expr::Const( ConstExpr {position, ..} )
-            | Expr::LabelledOld( LabelledOld {position, ..} )
-            | Expr::MagicWand(MagicWand {position, ..} )
-            | Expr::PredicateAccessPredicate(PredicateAccessPredicate {position, ..} )
-            | Expr::FieldAccessPredicate(FieldAccessPredicate {position, ..} )
-            | Expr::UnaryOp(UnaryOp {position, ..} )
-            | Expr::BinOp(BinOp {position, ..} )
-            | Expr::Unfolding(Unfolding {position, ..} )
-            | Expr::Cond(Cond {position, ..} )
-            | Expr::ForAll(ForAll {position, ..} )
-            | Expr::Exists(Exists {position, ..} )
-            | Expr::LetExpr(LetExpr {position, ..} )
-            | Expr::FuncApp(FuncApp {position, ..} )
-            | Expr::DomainFuncApp(DomainFuncApp {position, ..} )
-            | Expr::InhaleExhale(InhaleExhale {position, ..} )
-            | Expr::SnapApp(SnapApp {position, ..} )
-            | Expr::ContainerOp(ContainerOp {position, ..} )
-            | Expr::Seq(Seq {position, ..} ) => *position,
-            Expr::Downcast(DowncastExpr {base, ..} ) => base.pos(),
+            Expr::Local(Local { position, .. })
+            | Expr::Variant(Variant { position, .. })
+            | Expr::Field(FieldExpr { position, .. })
+            | Expr::AddrOf(AddrOf { position, .. })
+            | Expr::Const(ConstExpr { position, .. })
+            | Expr::LabelledOld(LabelledOld { position, .. })
+            | Expr::MagicWand(MagicWand { position, .. })
+            | Expr::PredicateAccessPredicate(PredicateAccessPredicate { position, .. })
+            | Expr::FieldAccessPredicate(FieldAccessPredicate { position, .. })
+            | Expr::UnaryOp(UnaryOp { position, .. })
+            | Expr::BinOp(BinOp { position, .. })
+            | Expr::Unfolding(Unfolding { position, .. })
+            | Expr::Cond(Cond { position, .. })
+            | Expr::ForAll(ForAll { position, .. })
+            | Expr::Exists(Exists { position, .. })
+            | Expr::LetExpr(LetExpr { position, .. })
+            | Expr::FuncApp(FuncApp { position, .. })
+            | Expr::DomainFuncApp(DomainFuncApp { position, .. })
+            | Expr::InhaleExhale(InhaleExhale { position, .. })
+            | Expr::SnapApp(SnapApp { position, .. })
+            | Expr::ContainerOp(ContainerOp { position, .. })
+            | Expr::Seq(Seq { position, .. }) => *position,
+            Expr::Downcast(DowncastExpr { base, .. }) => base.pos(),
         }
     }
 
     pub fn set_pos(self, position: Position) -> Self {
         match self {
-            Expr::Local( Local {variable, ..} ) => Expr::Local( Local {variable, position} ),
-            Expr::Variant( Variant {base, variant_index, ..} ) => Expr::Variant( Variant {base, variant_index, position} ),
-            Expr::Field( FieldExpr {base, field, ..} ) => Expr::Field( FieldExpr {base, field, position} ),
-            Expr::AddrOf( AddrOf {base, addr_type, ..} ) => Expr::AddrOf( AddrOf {base, addr_type, position} ),
-            Expr::Const( ConstExpr {value, ..} ) => Expr::Const( ConstExpr {value, position} ),
-            Expr::LabelledOld( LabelledOld {label, base, ..} ) => Expr::LabelledOld( LabelledOld {label, base, position} ),
-            Expr::MagicWand(MagicWand {left, right, borrow, ..} ) => Expr::MagicWand(MagicWand {left, right, borrow, position} ),
-            Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_type, argument, permission, ..} ) => Expr::PredicateAccessPredicate(PredicateAccessPredicate {predicate_type, argument, permission, position} ),
-            Expr::FieldAccessPredicate(FieldAccessPredicate {base, permission, ..} ) => Expr::FieldAccessPredicate(FieldAccessPredicate {base, permission, position} ),
-            Expr::UnaryOp(UnaryOp {op_kind, argument, ..} ) => Expr::UnaryOp(UnaryOp {op_kind, argument, position} ),
-            Expr::BinOp(BinOp {op_kind, left, right, ..} ) => Expr::BinOp(BinOp {op_kind, left, right, position} ),
-            Expr::Unfolding(Unfolding {predicate_name, arguments, base, permission, variant, ..} ) => Expr::Unfolding(Unfolding {predicate_name, arguments, base, permission, variant, position} ),
-            Expr::Cond(Cond {guard, then_expr, else_expr, ..} ) => Expr::Cond(Cond {guard, then_expr, else_expr, position} ),
-            Expr::ForAll(ForAll {variables, triggers, body, ..} ) => Expr::ForAll(ForAll {variables, triggers, body, position} ),
-            Expr::Exists(Exists {variables, triggers, body, ..} ) => Expr::Exists(Exists {variables, triggers, body, position} ),
-            Expr::LetExpr(LetExpr {variable, def, body, ..} ) => Expr::LetExpr(LetExpr {variable, def, body, position} ),
-            Expr::FuncApp(FuncApp {function_name, arguments, formal_arguments, return_type, ..} ) => Expr::FuncApp(FuncApp {function_name, arguments, formal_arguments, return_type, position} ),
-            Expr::DomainFuncApp(DomainFuncApp {domain_function, arguments, ..} ) => Expr::DomainFuncApp(DomainFuncApp {domain_function, arguments, position} ),
-            Expr::InhaleExhale(InhaleExhale {inhale_expr, exhale_expr, ..} ) => Expr::InhaleExhale(InhaleExhale {inhale_expr, exhale_expr, position} ),
-            Expr::SnapApp(SnapApp {base, ..} ) => Expr::SnapApp(SnapApp {base, position} ),
-            Expr::ContainerOp(ContainerOp {op_kind, left, right, ..} ) => Expr::ContainerOp(ContainerOp {op_kind, left, right, position} ),
-            Expr::Seq(Seq {typ, elements, ..} ) => Expr::Seq(Seq {typ, elements, position} ),
-            Expr::Downcast(DowncastExpr {base, enum_place, field} ) => Expr::Downcast(DowncastExpr {base, enum_place, field} ),
+            Expr::Local(Local { variable, .. }) => Expr::Local(Local { variable, position }),
+            Expr::Variant(Variant {
+                base,
+                variant_index,
+                ..
+            }) => Expr::Variant(Variant {
+                base,
+                variant_index,
+                position,
+            }),
+            Expr::Field(FieldExpr { base, field, .. }) => Expr::Field(FieldExpr {
+                base,
+                field,
+                position,
+            }),
+            Expr::AddrOf(AddrOf {
+                base, addr_type, ..
+            }) => Expr::AddrOf(AddrOf {
+                base,
+                addr_type,
+                position,
+            }),
+            Expr::Const(ConstExpr { value, .. }) => Expr::Const(ConstExpr { value, position }),
+            Expr::LabelledOld(LabelledOld { label, base, .. }) => Expr::LabelledOld(LabelledOld {
+                label,
+                base,
+                position,
+            }),
+            Expr::MagicWand(MagicWand {
+                left,
+                right,
+                borrow,
+                ..
+            }) => Expr::MagicWand(MagicWand {
+                left,
+                right,
+                borrow,
+                position,
+            }),
+            Expr::PredicateAccessPredicate(PredicateAccessPredicate {
+                predicate_type,
+                argument,
+                permission,
+                ..
+            }) => Expr::PredicateAccessPredicate(PredicateAccessPredicate {
+                predicate_type,
+                argument,
+                permission,
+                position,
+            }),
+            Expr::FieldAccessPredicate(FieldAccessPredicate {
+                base, permission, ..
+            }) => Expr::FieldAccessPredicate(FieldAccessPredicate {
+                base,
+                permission,
+                position,
+            }),
+            Expr::UnaryOp(UnaryOp {
+                op_kind, argument, ..
+            }) => Expr::UnaryOp(UnaryOp {
+                op_kind,
+                argument,
+                position,
+            }),
+            Expr::BinOp(BinOp {
+                op_kind,
+                left,
+                right,
+                ..
+            }) => Expr::BinOp(BinOp {
+                op_kind,
+                left,
+                right,
+                position,
+            }),
+            Expr::Unfolding(Unfolding {
+                predicate_name,
+                arguments,
+                base,
+                permission,
+                variant,
+                ..
+            }) => Expr::Unfolding(Unfolding {
+                predicate_name,
+                arguments,
+                base,
+                permission,
+                variant,
+                position,
+            }),
+            Expr::Cond(Cond {
+                guard,
+                then_expr,
+                else_expr,
+                ..
+            }) => Expr::Cond(Cond {
+                guard,
+                then_expr,
+                else_expr,
+                position,
+            }),
+            Expr::ForAll(ForAll {
+                variables,
+                triggers,
+                body,
+                ..
+            }) => Expr::ForAll(ForAll {
+                variables,
+                triggers,
+                body,
+                position,
+            }),
+            Expr::Exists(Exists {
+                variables,
+                triggers,
+                body,
+                ..
+            }) => Expr::Exists(Exists {
+                variables,
+                triggers,
+                body,
+                position,
+            }),
+            Expr::LetExpr(LetExpr {
+                variable,
+                def,
+                body,
+                ..
+            }) => Expr::LetExpr(LetExpr {
+                variable,
+                def,
+                body,
+                position,
+            }),
+            Expr::FuncApp(FuncApp {
+                function_name,
+                arguments,
+                formal_arguments,
+                return_type,
+                ..
+            }) => Expr::FuncApp(FuncApp {
+                function_name,
+                arguments,
+                formal_arguments,
+                return_type,
+                position,
+            }),
+            Expr::DomainFuncApp(DomainFuncApp {
+                domain_function,
+                arguments,
+                ..
+            }) => Expr::DomainFuncApp(DomainFuncApp {
+                domain_function,
+                arguments,
+                position,
+            }),
+            Expr::InhaleExhale(InhaleExhale {
+                inhale_expr,
+                exhale_expr,
+                ..
+            }) => Expr::InhaleExhale(InhaleExhale {
+                inhale_expr,
+                exhale_expr,
+                position,
+            }),
+            Expr::SnapApp(SnapApp { base, .. }) => Expr::SnapApp(SnapApp { base, position }),
+            Expr::ContainerOp(ContainerOp {
+                op_kind,
+                left,
+                right,
+                ..
+            }) => Expr::ContainerOp(ContainerOp {
+                op_kind,
+                left,
+                right,
+                position,
+            }),
+            Expr::Seq(Seq { typ, elements, .. }) => Expr::Seq(Seq {
+                typ,
+                elements,
+                position,
+            }),
+            Expr::Downcast(DowncastExpr {
+                base,
+                enum_place,
+                field,
+            }) => Expr::Downcast(DowncastExpr {
+                base,
+                enum_place,
+                field,
+            }),
         }
     }
 
@@ -173,7 +344,7 @@ impl Expr {
     pub fn predicate_access_predicate(predicate_type: Type, place: Expr, perm: PermAmount) -> Self {
         let pos = place.pos();
         Expr::PredicateAccessPredicate(PredicateAccessPredicate {
-            predicate_type: predicate_type,
+            predicate_type,
             argument: Box::new(place),
             permission: perm,
             position: pos,
@@ -214,6 +385,7 @@ impl Expr {
         })
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn not(expr: Expr) -> Self {
         Expr::UnaryOp(UnaryOp {
             op_kind: UnaryOpKind::Not,
@@ -279,6 +451,7 @@ impl Expr {
         Expr::not(Expr::eq_cmp(left, right))
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn add(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOp {
             op_kind: BinOpKind::Add,
@@ -288,6 +461,7 @@ impl Expr {
         })
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn sub(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOp {
             op_kind: BinOpKind::Sub,
@@ -297,6 +471,7 @@ impl Expr {
         })
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn mul(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOp {
             op_kind: BinOpKind::Mul,
@@ -306,6 +481,7 @@ impl Expr {
         })
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn div(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOp {
             op_kind: BinOpKind::Div,
@@ -324,6 +500,7 @@ impl Expr {
         })
     }
 
+    #[allow(clippy::should_implement_trait)]
     /// Encode Rust reminder. This is *not* Viper modulo.
     pub fn rem(left: Expr, right: Expr) -> Self {
         let abs_right = Expr::ite(
@@ -381,7 +558,7 @@ impl Expr {
         );
         Expr::ForAll(ForAll {
             variables: vars,
-            triggers: triggers,
+            triggers,
             body: Box::new(body),
             position: Position::default(),
         })
@@ -394,7 +571,7 @@ impl Expr {
         );
         Expr::Exists(Exists {
             variables: vars,
-            triggers: triggers,
+            triggers,
             body: Box::new(body),
             position: Position::default(),
         })
@@ -421,7 +598,7 @@ impl Expr {
             arguments: args,
             base: Box::new(expr),
             permission: perm,
-            variant: variant,
+            variant,
             position: Position::default(),
         })
     }
@@ -439,7 +616,7 @@ impl Expr {
             arguments: args,
             base: Box::new(expr),
             permission: perm,
-            variant: variant,
+            variant,
             position,
         })
     }
@@ -469,7 +646,7 @@ impl Expr {
             function_name: name,
             arguments: args,
             formal_arguments: internal_args,
-            return_type: return_type,
+            return_type,
             position: pos,
         })
     }
@@ -486,7 +663,7 @@ impl Expr {
         Expr::MagicWand(MagicWand {
             left: Box::new(lhs),
             right: Box::new(rhs),
-            borrow: borrow,
+            borrow,
             position: Position::default(),
         })
     }
@@ -537,7 +714,14 @@ impl Expr {
             perm_amount: PermAmount,
         }
         impl ExprWalker for PredicateFinder {
-            fn walk_predicate_access_predicate(&mut self, PredicateAccessPredicate {box argument, permission, ..}: &PredicateAccessPredicate) {
+            fn walk_predicate_access_predicate(
+                &mut self,
+                PredicateAccessPredicate {
+                    box argument,
+                    permission,
+                    ..
+                }: &PredicateAccessPredicate,
+            ) {
                 if *permission == self.perm_amount {
                     self.predicates.push(argument.clone());
                 }
@@ -546,7 +730,7 @@ impl Expr {
 
         let mut finder = PredicateFinder {
             predicates: Vec::new(),
-            perm_amount: perm_amount,
+            perm_amount,
         };
         finder.walk(self);
         finder.predicates
@@ -555,12 +739,20 @@ impl Expr {
     /// Split place into place components.
     pub fn explode_place(&self) -> (Expr, Vec<PlaceComponent>) {
         match self {
-            Expr::Variant( Variant {base, variant_index, position} ) => {
+            Expr::Variant(Variant {
+                base,
+                variant_index,
+                position,
+            }) => {
                 let (base_base, mut components) = base.explode_place();
                 components.push(PlaceComponent::Variant(variant_index.clone(), *position));
                 (base_base, components)
             }
-            Expr::Field( FieldExpr {base, field, position} ) => {
+            Expr::Field(FieldExpr {
+                base,
+                field,
+                position,
+            }) => {
                 let (base_base, mut components) = base.explode_place();
                 components.push(PlaceComponent::Field(field.clone(), *position));
                 (base_base, components)
@@ -581,7 +773,7 @@ impl Expr {
                 }),
                 PlaceComponent::Field(field, pos) => Expr::Field(FieldExpr {
                     base: Box::new(acc),
-                    field: field,
+                    field,
                     position: pos,
                 }),
             })
@@ -590,17 +782,14 @@ impl Expr {
     // Methods from the old `Place` structure
 
     pub fn local(local: LocalVar) -> Self {
-        Expr::Local( Local {
+        Expr::Local(Local {
             variable: local,
             position: Position::default(),
         })
     }
 
     pub fn local_with_pos(variable: LocalVar, position: Position) -> Self {
-        Expr::Local( Local {
-            variable,
-            position,
-        })
+        Expr::Local(Local { variable, position })
     }
 
     pub fn variant(self, index: &str) -> Self {
@@ -618,7 +807,7 @@ impl Expr {
     pub fn field(self, field: Field) -> Self {
         Expr::Field(FieldExpr {
             base: Box::new(self),
-            field: field,
+            field,
             position: Position::default(),
         })
     }
@@ -627,7 +816,7 @@ impl Expr {
         let addr_type = self.get_type().clone();
         Expr::AddrOf(AddrOf {
             base: Box::new(self),
-            addr_type: addr_type,
+            addr_type,
             position: Position::default(),
         })
     }
@@ -635,9 +824,12 @@ impl Expr {
     pub fn is_only_permissions(&self) -> bool {
         match self {
             Expr::PredicateAccessPredicate(..) | Expr::FieldAccessPredicate(..) => true,
-            Expr::BinOp(BinOp {op_kind: BinOpKind::And, left, right, ..}) => {
-                left.is_only_permissions() && right.is_only_permissions()
-            }
+            Expr::BinOp(BinOp {
+                op_kind: BinOpKind::And,
+                left,
+                right,
+                ..
+            }) => left.is_only_permissions() && right.is_only_permissions(),
             _ => false,
         }
     }
@@ -645,13 +837,11 @@ impl Expr {
     pub fn is_place(&self) -> bool {
         match self {
             &Expr::Local(_) => true,
-            &Expr::Variant(Variant {ref base, ..} )
-            | &Expr::Field(FieldExpr {ref base, ..} )
-            | &Expr::AddrOf(AddrOf {ref base, ..} )
-            | &Expr::LabelledOld(LabelledOld {ref base, ..} )
-            | &Expr::Unfolding(Unfolding {ref base, ..} ) => {
-                base.is_place()
-            }
+            &Expr::Variant(Variant { ref base, .. })
+            | &Expr::Field(FieldExpr { ref base, .. })
+            | &Expr::AddrOf(AddrOf { ref base, .. })
+            | &Expr::LabelledOld(LabelledOld { ref base, .. })
+            | &Expr::Unfolding(Unfolding { ref base, .. }) => base.is_place(),
             _ => false,
         }
     }
@@ -668,13 +858,11 @@ impl Expr {
     pub fn place_depth(&self) -> u32 {
         match self {
             &Expr::Local(_) => 1,
-            &Expr::Variant( Variant {ref base, ..} )
-            | &Expr::Field(FieldExpr {ref base, ..} )
-            | &Expr::AddrOf(AddrOf {ref base, ..} )
-            | &Expr::LabelledOld(LabelledOld {ref base, ..} )
-            | &Expr::Unfolding(Unfolding {ref base, ..} ) => {
-                base.place_depth() + 1
-            },
+            &Expr::Variant(Variant { ref base, .. })
+            | &Expr::Field(FieldExpr { ref base, .. })
+            | &Expr::AddrOf(AddrOf { ref base, .. })
+            | &Expr::LabelledOld(LabelledOld { ref base, .. })
+            | &Expr::Unfolding(Unfolding { ref base, .. }) => base.place_depth() + 1,
             x => unreachable!("{:?}", x),
         }
     }
@@ -682,9 +870,9 @@ impl Expr {
     pub fn is_simple_place(&self) -> bool {
         match self {
             &Expr::Local(_) => true,
-            &Expr::Variant(Variant {ref base, ..} ) | &Expr::Field( FieldExpr {ref base, ..} ) => {
+            &Expr::Variant(Variant { ref base, .. }) | &Expr::Field(FieldExpr { ref base, .. }) => {
                 base.is_simple_place()
-            },
+            }
             _ => false,
         }
     }
@@ -694,9 +882,9 @@ impl Expr {
         debug_assert!(self.is_place());
         match self {
             &Expr::Local(_) => None,
-            &Expr::Variant(Variant {box ref base, ..} )
-            | &Expr::Field(FieldExpr {box ref base, ..} )
-            | &Expr::AddrOf(AddrOf {box ref base, ..} ) => Some(base),
+            &Expr::Variant(Variant { box ref base, .. })
+            | &Expr::Field(FieldExpr { box ref base, .. })
+            | &Expr::AddrOf(AddrOf { box ref base, .. }) => Some(base),
             &Expr::LabelledOld(_) => None,
             &Expr::Unfolding(_) => None,
             ref x => unreachable!("{}", x),
@@ -711,7 +899,15 @@ impl Expr {
     /// Is this place a MIR reference?
     pub fn is_mir_reference(&self) -> bool {
         debug_assert!(self.is_place());
-        if let Expr::Field(FieldExpr {base: box Expr::Local(Local {variable: LocalVar { typ, .. }, ..} ), ..} ) = self {
+        if let Expr::Field(FieldExpr {
+            base:
+                box Expr::Local(Local {
+                    variable: LocalVar { typ, .. },
+                    ..
+                }),
+            ..
+        }) = self
+        {
             return typ.is_mir_reference();
         }
         false
@@ -721,7 +917,7 @@ impl Expr {
     pub fn try_deref(&self) -> Option<Self> {
         let typ = self.get_type();
         if typ.is_mir_reference() {
-            if let Type::TypedRef(TypedRef {arguments, ..}) = self.get_type() {
+            if let Type::TypedRef(TypedRef { arguments, .. }) = self.get_type() {
                 assert_eq!(arguments.len(), 1);
                 let field_type = arguments[0].clone();
                 let field = Field::new("val_ref", field_type);
@@ -763,7 +959,7 @@ impl Expr {
                 */
                 self
             }
-            _ => Expr::LabelledOld (LabelledOld {
+            _ => Expr::LabelledOld(LabelledOld {
                 label: label.to_string(),
                 base: Box::new(self),
                 position: Position::default(),
@@ -781,16 +977,20 @@ impl Expr {
 
     pub fn get_place(&self) -> Option<&Expr> {
         match self {
-            Expr::PredicateAccessPredicate(PredicateAccessPredicate {argument: box arg, ..} ) => Some(arg),
-            Expr::FieldAccessPredicate(FieldAccessPredicate {base: box arg, ..} ) => Some(arg),
+            Expr::PredicateAccessPredicate(PredicateAccessPredicate {
+                argument: box arg, ..
+            }) => Some(arg),
+            Expr::FieldAccessPredicate(FieldAccessPredicate { base: box arg, .. }) => Some(arg),
             _ => None,
         }
     }
 
     pub fn get_perm_amount(&self) -> PermAmount {
         match self {
-            Expr::PredicateAccessPredicate(PredicateAccessPredicate {permission, ..} ) => *permission,
-            Expr::FieldAccessPredicate(FieldAccessPredicate {permission, ..} ) => *permission,
+            Expr::PredicateAccessPredicate(PredicateAccessPredicate { permission, .. }) => {
+                *permission
+            }
+            Expr::FieldAccessPredicate(FieldAccessPredicate { permission, .. }) => *permission,
             x => unreachable!("{}", x),
         }
     }
@@ -800,10 +1000,16 @@ impl Expr {
             non_pure: bool,
         }
         impl ExprWalker for PurityFinder {
-            fn walk_predicate_access_predicate(&mut self, _predicate_access_predicate: &PredicateAccessPredicate) {
+            fn walk_predicate_access_predicate(
+                &mut self,
+                _predicate_access_predicate: &PredicateAccessPredicate,
+            ) {
                 self.non_pure = true;
             }
-            fn walk_field_access_predicate(&mut self, _field_access_predicate: &FieldAccessPredicate) {
+            fn walk_field_access_predicate(
+                &mut self,
+                _field_access_predicate: &FieldAccessPredicate,
+            ) {
                 self.non_pure = true;
             }
         }
@@ -816,10 +1022,16 @@ impl Expr {
     pub fn purify(self) -> Self {
         struct Purifier;
         impl ExprFolder for Purifier {
-            fn fold_predicate_access_predicate(&mut self, _predicate_access_predicate: PredicateAccessPredicate) -> Expr {
+            fn fold_predicate_access_predicate(
+                &mut self,
+                _predicate_access_predicate: PredicateAccessPredicate,
+            ) -> Expr {
                 true.into()
             }
-            fn fold_field_access_predicate(&mut self, _field_access_predicate: FieldAccessPredicate) -> Expr {
+            fn fold_field_access_predicate(
+                &mut self,
+                _field_access_predicate: FieldAccessPredicate,
+            ) -> Expr {
                 true.into()
             }
         }
@@ -831,10 +1043,16 @@ impl Expr {
             non_pure: bool,
         }
         impl ExprWalker for HeapAccessFinder {
-            fn walk_predicate_access_predicate(&mut self, _predicate_access_predicate: &PredicateAccessPredicate) {
+            fn walk_predicate_access_predicate(
+                &mut self,
+                _predicate_access_predicate: &PredicateAccessPredicate,
+            ) {
                 self.non_pure = true;
             }
-            fn walk_field_access_predicate(&mut self, _field_access_predicate: &FieldAccessPredicate) {
+            fn walk_field_access_predicate(
+                &mut self,
+                _field_access_predicate: &FieldAccessPredicate,
+            ) {
                 self.non_pure = true;
             }
             fn walk_field(&mut self, _field: &FieldExpr) {
@@ -862,17 +1080,16 @@ impl Expr {
     pub fn get_base(&self) -> LocalVar {
         debug_assert!(self.is_place());
         match self {
-            Expr::Local( Local {variable, ..} ) => variable.clone(),
-            Expr::LabelledOld( LabelledOld {base, ..} ) | Expr::Unfolding( Unfolding {base, ..} ) => {
-                base.get_base()
-            }
+            Expr::Local(Local { variable, .. }) => variable.clone(),
+            Expr::LabelledOld(LabelledOld { base, .. })
+            | Expr::Unfolding(Unfolding { base, .. }) => base.get_base(),
             _ => self.get_parent().unwrap().get_base(),
         }
     }
 
     pub fn get_label(&self) -> Option<&String> {
         match self {
-            Expr::LabelledOld( LabelledOld {label, ..} ) => Some(label),
+            Expr::LabelledOld(LabelledOld { label, .. }) => Some(label),
             _ => None,
         }
     }
@@ -919,22 +1136,41 @@ impl Expr {
             static ref FN_PTR_TYPE: Type = Type::typed_ref("FnPtr");
         }
         match self {
-            Expr::Local( Local {variable: LocalVar { typ, ..}, ..} )
-            | Expr::Variant( Variant {variant_index: Field { typ, ..}, ..} )
-            | Expr::Field( FieldExpr {field: Field { typ, ..}, ..} )
-            | Expr::AddrOf( AddrOf {addr_type: typ, ..} )
-            | Expr::LetExpr( LetExpr {variable: LocalVar { typ, ..}, ..} ) => &typ,
-            Expr::LabelledOld( LabelledOld {base, ..} )
-            | Expr::Unfolding( Unfolding {base, ..} )
-            | Expr::UnaryOp( UnaryOp {argument: base, ..} ) => base.get_type(),
-            Expr::FuncApp( FuncApp {return_type, ..} ) => &return_type,
-            Expr::DomainFuncApp( DomainFuncApp {domain_function, ..} ) => &domain_function.return_type,
-            Expr::Const( ConstExpr {value, ..} ) => match value {
+            Expr::Local(Local {
+                variable: LocalVar { typ, .. },
+                ..
+            })
+            | Expr::Variant(Variant {
+                variant_index: Field { typ, .. },
+                ..
+            })
+            | Expr::Field(FieldExpr {
+                field: Field { typ, .. },
+                ..
+            })
+            | Expr::AddrOf(AddrOf { addr_type: typ, .. })
+            | Expr::LetExpr(LetExpr {
+                variable: LocalVar { typ, .. },
+                ..
+            }) => typ,
+            Expr::LabelledOld(LabelledOld { base, .. })
+            | Expr::Unfolding(Unfolding { base, .. })
+            | Expr::UnaryOp(UnaryOp { argument: base, .. }) => base.get_type(),
+            Expr::FuncApp(FuncApp { return_type, .. }) => return_type,
+            Expr::DomainFuncApp(DomainFuncApp {
+                domain_function, ..
+            }) => &domain_function.return_type,
+            Expr::Const(ConstExpr { value, .. }) => match value {
                 Const::Bool(..) => &Type::Bool,
                 Const::Int(..) | Const::BigInt(..) => &Type::Int,
                 Const::FnPtr => &FN_PTR_TYPE,
             },
-            Expr::BinOp( BinOp {op_kind, left, right, ..} ) => match op_kind {
+            Expr::BinOp(BinOp {
+                op_kind,
+                left,
+                right,
+                ..
+            }) => match op_kind {
                 BinOpKind::EqCmp
                 | BinOpKind::NeCmp
                 | BinOpKind::GtCmp
@@ -955,7 +1191,11 @@ impl Expr {
                     typ1
                 }
             },
-            Expr::Cond( Cond {then_expr, else_expr, ..} ) => {
+            Expr::Cond(Cond {
+                then_expr,
+                else_expr,
+                ..
+            }) => {
                 let typ1 = then_expr.get_type();
                 let typ2 = else_expr.get_type();
                 assert_eq!(typ1, typ2, "expr: {:?}", self);
@@ -968,15 +1208,20 @@ impl Expr {
             | Expr::InhaleExhale(..) => {
                 unreachable!("Unexpected expression: {:?}", self);
             }
-            Expr::Downcast( DowncastExpr {base, ..} ) => base.get_type(),
+            Expr::Downcast(DowncastExpr { base, .. }) => base.get_type(),
             // Note: SnapApp returns the same type as the wrapped expression,
             // to allow for e.g. field access without special considerations.
             // SnapApps are replaced later in the encoder.
-            Expr::SnapApp( SnapApp {base, ..} ) => base.get_type(),
-            Expr::ContainerOp( ContainerOp {op_kind, left, right, ..} ) => {
+            Expr::SnapApp(SnapApp { base, .. }) => base.get_type(),
+            Expr::ContainerOp(ContainerOp {
+                op_kind,
+                left,
+                right,
+                ..
+            }) => {
                 todo!("get_type container_op({:?}, {}, {})", op_kind, left, right)
             }
-            Expr::Seq( Seq {typ, ..} ) => typ,
+            Expr::Seq(Seq { typ, .. }) => typ,
         }
     }
 
@@ -987,12 +1232,21 @@ impl Expr {
             self.get_type() == &Type::Bool
         } else {
             match self {
-                Expr::Const( ConstExpr {value: Const::Bool(_), ..} )
-                | Expr::UnaryOp( UnaryOp {op_kind: UnaryOpKind::Not, ..} )
-                | Expr::FuncApp( FuncApp {return_type: Type::Bool, ..} )
+                Expr::Const(ConstExpr {
+                    value: Const::Bool(_),
+                    ..
+                })
+                | Expr::UnaryOp(UnaryOp {
+                    op_kind: UnaryOpKind::Not,
+                    ..
+                })
+                | Expr::FuncApp(FuncApp {
+                    return_type: Type::Bool,
+                    ..
+                })
                 | Expr::ForAll(..)
                 | Expr::Exists(..) => true,
-                Expr::BinOp( BinOp {op_kind, ..} ) => {
+                Expr::BinOp(BinOp { op_kind, .. }) => {
                     use self::BinOpKind::*;
                     *op_kind == EqCmp
                         || *op_kind == NeCmp
@@ -1017,7 +1271,12 @@ impl Expr {
     }
 
     pub fn negate(self) -> Self {
-        if let Expr::UnaryOp( UnaryOp {op_kind: UnaryOpKind::Not, box argument, ..} ) = self {
+        if let Expr::UnaryOp(UnaryOp {
+            op_kind: UnaryOpKind::Not,
+            box argument,
+            ..
+        }) = self
+        {
             argument
         } else {
             Expr::not(self)
@@ -1032,7 +1291,14 @@ impl Expr {
             f: T,
         }
         impl<T: Fn(String) -> Option<String>> ExprFolder for OldLabelReplacer<T> {
-            fn fold_labelled_old(&mut self, LabelledOld {label, base, position}: LabelledOld) -> Expr {
+            fn fold_labelled_old(
+                &mut self,
+                LabelledOld {
+                    label,
+                    base,
+                    position,
+                }: LabelledOld,
+            ) -> Expr {
                 match (self.f)(label) {
                     Some(new_label) => base.old(new_label).set_pos(position),
                     None => *base,
@@ -1046,9 +1312,16 @@ impl Expr {
     pub fn simplify_addr_of(self) -> Self {
         struct Simplifier;
         impl ExprFolder for Simplifier {
-            fn fold_field(&mut self, FieldExpr {base: receiver, field, position}: FieldExpr) -> Expr {
+            fn fold_field(
+                &mut self,
+                FieldExpr {
+                    base: receiver,
+                    field,
+                    position,
+                }: FieldExpr,
+            ) -> Expr {
                 if receiver.is_addr_of() {
-                    if let Expr::AddrOf(AddrOf { base , .. }) = *receiver {
+                    if let Expr::AddrOf(AddrOf { base, .. }) = *receiver {
                         *base
                     } else {
                         unreachable!();
@@ -1099,9 +1372,7 @@ impl Expr {
                 } else {
                     let default_expr = default_fold_expr(self, e);
                     match default_expr {
-                        Expr::Field(_) => {
-                            default_expr
-                        }
+                        Expr::Field(_) => default_expr,
                         x => {
                             self.subst = false;
                             x
@@ -1110,17 +1381,25 @@ impl Expr {
                 }
             }
 
-            fn fold_forall(&mut self, ForAll {variables, triggers, body, position}: ForAll) -> Expr {
+            fn fold_forall(
+                &mut self,
+                ForAll {
+                    variables,
+                    triggers,
+                    body,
+                    position,
+                }: ForAll,
+            ) -> Expr {
                 if variables.contains(&self.target.get_base()) {
                     // Do nothing
-                    Expr::ForAll( ForAll {
+                    Expr::ForAll(ForAll {
                         variables,
                         triggers,
                         body,
                         position,
                     })
                 } else {
-                    Expr::ForAll( ForAll {
+                    Expr::ForAll(ForAll {
                         variables,
                         triggers: triggers
                             .into_iter()
@@ -1132,17 +1411,25 @@ impl Expr {
                 }
             }
 
-            fn fold_exists(&mut self, Exists {variables, triggers, body, position}: Exists) -> Expr {
+            fn fold_exists(
+                &mut self,
+                Exists {
+                    variables,
+                    triggers,
+                    body,
+                    position,
+                }: Exists,
+            ) -> Expr {
                 if variables.contains(&self.target.get_base()) {
                     // Do nothing
-                    Expr::Exists( Exists {
+                    Expr::Exists(Exists {
                         variables,
                         triggers,
                         body,
                         position,
                     })
                 } else {
-                    Expr::Exists( Exists {
+                    Expr::Exists(Exists {
                         variables,
                         triggers: triggers
                             .into_iter()
@@ -1199,17 +1486,32 @@ impl Expr {
                 default_fold_expr(self, e)
             }
 
-            fn fold_field(&mut self, FieldExpr {mut base, field, position}: FieldExpr) -> Expr {
+            fn fold_field(
+                &mut self,
+                FieldExpr {
+                    mut base,
+                    field,
+                    position,
+                }: FieldExpr,
+            ) -> Expr {
                 base = self.fold_boxed(base);
 
-                Expr::Field( FieldExpr {
+                Expr::Field(FieldExpr {
                     base,
                     field,
                     position,
                 })
             }
 
-            fn fold_forall(&mut self, ForAll {variables, triggers, body, position}: ForAll) -> Expr {
+            fn fold_forall(
+                &mut self,
+                ForAll {
+                    variables,
+                    triggers,
+                    body,
+                    position,
+                }: ForAll,
+            ) -> Expr {
                 // TODO: the correct solution is the following:
                 // (1) skip replacements where `src` uses a quantified variable;
                 // (2) rename with a fresh name the quantified variables that conflict with `dst`.
@@ -1222,7 +1524,7 @@ impl Expr {
                     }
                 }
 
-                Expr::ForAll( ForAll {
+                Expr::ForAll(ForAll {
                     variables,
                     triggers: triggers
                         .into_iter()
@@ -1233,7 +1535,15 @@ impl Expr {
                 })
             }
 
-            fn fold_exists(&mut self, Exists {variables, triggers, body, position}: Exists) -> Expr {
+            fn fold_exists(
+                &mut self,
+                Exists {
+                    variables,
+                    triggers,
+                    body,
+                    position,
+                }: Exists,
+            ) -> Expr {
                 // TODO: the correct solution is the following:
                 // (1) skip replacements where `src` uses a quantified variable;
                 // (2) rename with a fresh name the quantified variables that conflict with `dst`.
@@ -1246,7 +1556,7 @@ impl Expr {
                     }
                 }
 
-                Expr::Exists( Exists {
+                Expr::Exists(Exists {
                     variables,
                     triggers: triggers
                         .into_iter()
@@ -1257,10 +1567,7 @@ impl Expr {
                 })
             }
         }
-        PlaceReplacer {
-            replacements,
-        }
-        .fold(self)
+        PlaceReplacer { replacements }.fold(self)
     }
 
     /// Replaces expressions like `old[l5](old[l5](_9.val_ref).foo.bar)`
@@ -1270,7 +1577,14 @@ impl Expr {
             current_label: Option<String>,
         }
         impl ExprFolder for RedundantOldRemover {
-            fn fold_labelled_old(&mut self, LabelledOld {label, base, position}: LabelledOld) -> Expr {
+            fn fold_labelled_old(
+                &mut self,
+                LabelledOld {
+                    label,
+                    base,
+                    position,
+                }: LabelledOld,
+            ) -> Expr {
                 let old_current_label = mem::replace(&mut self.current_label, Some(label.clone()));
                 let new_base = default_fold_expr(self, *base);
                 let new_expr = if Some(label.clone()) == old_current_label {
@@ -1296,9 +1610,17 @@ impl Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
-                    Expr::BinOp( BinOp {op_kind: BinOpKind::And, left, right, position} ) => {
-                        self.fold_bin_op(BinOp {op_kind: BinOpKind::And, left, right, position})
-                    }
+                    Expr::BinOp(BinOp {
+                        op_kind: BinOpKind::And,
+                        left,
+                        right,
+                        position,
+                    }) => self.fold_bin_op(BinOp {
+                        op_kind: BinOpKind::And,
+                        left,
+                        right,
+                        position,
+                    }),
 
                     Expr::BinOp(..)
                     | Expr::MagicWand(..)
@@ -1329,7 +1651,7 @@ impl Expr {
 
     pub fn local_type(&self) -> String {
         match &self {
-            Expr::Local( Local {variable, ..} ) => match &variable.typ {
+            Expr::Local(Local { variable, .. }) => match &variable.typ {
                 t @ Type::TypedRef(..) => t.name(),
                 _ => panic!("expected Type::TypedRef"),
             },
@@ -1348,7 +1670,14 @@ impl Expr {
             perms: Vec<Expr>,
         }
         impl ExprWalker for Collector {
-            fn walk_variant(&mut self, Variant {box base, variant_index, position}: &Variant) {
+            fn walk_variant(
+                &mut self,
+                Variant {
+                    box base,
+                    variant_index,
+                    position,
+                }: &Variant,
+            ) {
                 self.walk(base);
                 let expr = Expr::Variant(Variant {
                     base: Box::new(base.clone()),
@@ -1358,7 +1687,14 @@ impl Expr {
                 let perm = Expr::acc_permission(expr, self.perm_amount);
                 self.perms.push(perm);
             }
-            fn walk_field(&mut self, FieldExpr {box base, field, position}: &FieldExpr) {
+            fn walk_field(
+                &mut self,
+                FieldExpr {
+                    box base,
+                    field,
+                    position,
+                }: &FieldExpr,
+            ) {
                 self.walk(base);
                 let expr = Expr::Field(FieldExpr {
                     base: Box::new(base.clone()),
@@ -1373,7 +1709,7 @@ impl Expr {
             }
         }
         let mut collector = Collector {
-            perm_amount: perm_amount,
+            perm_amount,
             perms: Vec::new(),
         };
         collector.walk(self);
@@ -1388,23 +1724,41 @@ impl Expr {
             substs: &'a HashMap<TypeVar, Type>,
         }
         impl<'a> ExprFolder for TypePatcher<'a> {
-            fn fold_predicate_access_predicate(&mut self, PredicateAccessPredicate {predicate_type, argument, permission, position}: PredicateAccessPredicate) -> Expr {
-                Expr::PredicateAccessPredicate ( PredicateAccessPredicate {
+            fn fold_predicate_access_predicate(
+                &mut self,
+                PredicateAccessPredicate {
+                    predicate_type,
+                    argument,
+                    permission,
+                    position,
+                }: PredicateAccessPredicate,
+            ) -> Expr {
+                Expr::PredicateAccessPredicate(PredicateAccessPredicate {
                     predicate_type: predicate_type.substitute(self.substs),
                     argument: self.fold_boxed(argument),
                     permission,
                     position,
                 })
             }
-            fn fold_local(&mut self, Local {mut variable, position}: Local) -> Expr {
-                variable.typ = variable.typ.substitute(self.substs);
-                Expr::Local( Local {
-                    variable,
+            fn fold_local(
+                &mut self,
+                Local {
+                    mut variable,
                     position,
-                })
+                }: Local,
+            ) -> Expr {
+                variable.typ = variable.typ.substitute(self.substs);
+                Expr::Local(Local { variable, position })
             }
-            fn fold_field(&mut self, FieldExpr {base, field, position}: FieldExpr) -> Expr {
-                Expr::Field( FieldExpr {
+            fn fold_field(
+                &mut self,
+                FieldExpr {
+                    base,
+                    field,
+                    position,
+                }: FieldExpr,
+            ) -> Expr {
+                Expr::Field(FieldExpr {
                     base: self.fold_boxed(base),
                     field: Field {
                         name: field.name,
@@ -1413,7 +1767,16 @@ impl Expr {
                     position,
                 })
             }
-            fn fold_func_app(&mut self, FuncApp {function_name, arguments, formal_arguments, return_type, position}: FuncApp) -> Expr {
+            fn fold_func_app(
+                &mut self,
+                FuncApp {
+                    function_name,
+                    arguments,
+                    formal_arguments,
+                    return_type,
+                    position,
+                }: FuncApp,
+            ) -> Expr {
                 let formal_arguments = formal_arguments
                     .into_iter()
                     .map(|mut var| {
@@ -1423,7 +1786,7 @@ impl Expr {
                     .collect();
                 // FIXME: We do not patch the return_type because pure functions cannot return
                 // generic values.
-                Expr::FuncApp( FuncApp {
+                Expr::FuncApp(FuncApp {
                     function_name,
                     arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
                     formal_arguments,
@@ -1432,7 +1795,7 @@ impl Expr {
                 })
             }
         }
-        let mut patcher = TypePatcher { substs: substs };
+        let mut patcher = TypePatcher { substs };
         patcher.fold(self)
     }
 
@@ -1440,10 +1803,8 @@ impl Expr {
     pub fn is_constant(&self) -> bool {
         match self {
             Expr::Const(_) => true,
-            Expr::UnaryOp( UnaryOp {argument, ..} ) => argument.is_constant(),
-            Expr::BinOp( BinOp {left, right, ..} ) => {
-                left.is_constant() && right.is_constant()
-            }
+            Expr::UnaryOp(UnaryOp { argument, .. }) => argument.is_constant(),
+            Expr::BinOp(BinOp { left, right, .. }) => left.is_constant() && right.is_constant(),
             _ => false,
         }
     }
@@ -1454,7 +1815,15 @@ impl Expr {
     pub fn remove_read_permissions(self) -> Self {
         struct ReadPermRemover {}
         impl ExprFolder for ReadPermRemover {
-            fn fold_predicate_access_predicate(&mut self, PredicateAccessPredicate {predicate_type, argument, permission, position}: PredicateAccessPredicate) -> Expr {
+            fn fold_predicate_access_predicate(
+                &mut self,
+                PredicateAccessPredicate {
+                    predicate_type,
+                    argument,
+                    permission,
+                    position,
+                }: PredicateAccessPredicate,
+            ) -> Expr {
                 assert!(permission.is_valid_for_specs());
                 match permission {
                     PermAmount::Write => Expr::PredicateAccessPredicate(PredicateAccessPredicate {
@@ -1467,7 +1836,14 @@ impl Expr {
                     _ => unreachable!(),
                 }
             }
-            fn fold_field_access_predicate(&mut self, FieldAccessPredicate {base, permission, position}: FieldAccessPredicate) -> Expr {
+            fn fold_field_access_predicate(
+                &mut self,
+                FieldAccessPredicate {
+                    base,
+                    permission,
+                    position,
+                }: FieldAccessPredicate,
+            ) -> Expr {
                 assert!(permission.is_valid_for_specs());
                 match permission {
                     PermAmount::Write => Expr::FieldAccessPredicate(FieldAccessPredicate {
@@ -1548,7 +1924,7 @@ impl fmt::Display for Local {
 
 impl PartialEq for Local {
     fn eq(&self, other: &Self) -> bool {
-        &self.variable == &other.variable
+        self.variable == other.variable
     }
 }
 
@@ -1672,7 +2048,7 @@ impl fmt::Display for ConstExpr {
 
 impl PartialEq for ConstExpr {
     fn eq(&self, other: &Self) -> bool {
-        &self.value == &other.value
+        self.value == other.value
     }
 }
 
@@ -1692,7 +2068,11 @@ pub struct MagicWand {
 
 impl fmt::Display for MagicWand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}) {:?} --* ({})", &self.left, &self.borrow, &self.right)
+        write!(
+            f,
+            "({}) {:?} --* ({})",
+            &self.left, &self.borrow, &self.right
+        )
     }
 }
 
@@ -1718,13 +2098,20 @@ pub struct PredicateAccessPredicate {
 
 impl fmt::Display for PredicateAccessPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "acc({}({}), {})", &self.predicate_type.encode_as_string(), &self.argument, self.permission)
+        write!(
+            f,
+            "acc({}({}), {})",
+            &self.predicate_type.encode_as_string(),
+            &self.argument,
+            self.permission
+        )
     }
 }
 
 impl PartialEq for PredicateAccessPredicate {
     fn eq(&self, other: &Self) -> bool {
-        (&self.predicate_type, &self.argument, self.permission) == (&other.predicate_type, &other.argument, other.permission)
+        (&self.predicate_type, &self.argument, self.permission)
+            == (&other.predicate_type, &other.argument, other.permission)
     }
 }
 
@@ -1850,10 +2237,17 @@ pub struct Seq {
 impl fmt::Display for Seq {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let typ = &self.typ;
-        let elems_printed = self.elements.iter().map(|e| format!("{}", e)).collect::<Vec<_>>().join(", ");
+        let elems_printed = self
+            .elements
+            .iter()
+            .map(|e| format!("{}", e))
+            .collect::<Vec<_>>()
+            .join(", ");
         let elem_ty = if let Type::Seq(seq_type) = typ {
             &*seq_type.typ
-         } else { unreachable!() };
+        } else {
+            unreachable!()
+        };
         write!(f, "Seq[{}]({})", elem_ty, elems_printed)
     }
 }
@@ -1888,9 +2282,10 @@ impl fmt::Display for Unfolding {
             if let Some(variant_index) = &self.variant {
                 format!("{}<variant {}>", &self.predicate_name, variant_index)
             } else {
-                format!("{}", &self.predicate_name)
+                (&self.predicate_name).to_string()
             },
-            &(self.arguments).iter()
+            &(self.arguments)
+                .iter()
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>()
                 .join(", "),
@@ -1902,33 +2297,57 @@ impl fmt::Display for Unfolding {
 
 impl PartialEq for Unfolding {
     fn eq(&self, other: &Self) -> bool {
-        (&self.predicate_name, &self.arguments, &*self.base, self.permission, &self.variant) == (&other.predicate_name, &other.arguments, &*other.base, other.permission, &other.variant)
+        (
+            &self.predicate_name,
+            &self.arguments,
+            &*self.base,
+            self.permission,
+            &self.variant,
+        ) == (
+            &other.predicate_name,
+            &other.arguments,
+            &*other.base,
+            other.permission,
+            &other.variant,
+        )
     }
 }
 
 impl Hash for Unfolding {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (&self.predicate_name, &self.arguments, &*self.base, self.permission, &self.variant).hash(state);
+        (
+            &self.predicate_name,
+            &self.arguments,
+            &*self.base,
+            self.permission,
+            &self.variant,
+        )
+            .hash(state);
     }
 }
 
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct Cond {
     pub guard: Box<Expr>,
-    pub then_expr : Box<Expr>,
+    pub then_expr: Box<Expr>,
     pub else_expr: Box<Expr>,
     pub position: Position,
 }
 
 impl fmt::Display for Cond {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({})?({}):({})", &self.guard, &self.then_expr, &self.else_expr)
+        write!(
+            f,
+            "({})?({}):({})",
+            &self.guard, &self.then_expr, &self.else_expr
+        )
     }
 }
 
 impl PartialEq for Cond {
     fn eq(&self, other: &Self) -> bool {
-        (&*self.guard, &*self.then_expr, &*self.else_expr) == (&*other.guard, &*other.then_expr, &*other.else_expr)
+        (&*self.guard, &*self.then_expr, &*self.else_expr)
+            == (&*other.guard, &*other.then_expr, &*other.else_expr)
     }
 }
 
@@ -1951,7 +2370,8 @@ impl fmt::Display for ForAll {
         write!(
             f,
             "forall {} {} :: {}",
-            (&self.variables).iter()
+            (&self.variables)
+                .iter()
                 .map(|x| format!("{:?}", x))
                 .collect::<Vec<String>>()
                 .join(", "),
@@ -1967,7 +2387,8 @@ impl fmt::Display for ForAll {
 
 impl PartialEq for ForAll {
     fn eq(&self, other: &Self) -> bool {
-        (&self.variables, &self.triggers, &*self.body) == (&other.variables, &other.triggers, &*other.body)
+        (&self.variables, &self.triggers, &*self.body)
+            == (&other.variables, &other.triggers, &*other.body)
     }
 }
 
@@ -1990,7 +2411,8 @@ impl fmt::Display for Exists {
         write!(
             f,
             "exists {} {} :: {}",
-            (&self.variables).iter()
+            (&self.variables)
+                .iter()
                 .map(|x| format!("{:?}", x))
                 .collect::<Vec<String>>()
                 .join(", "),
@@ -2006,7 +2428,8 @@ impl fmt::Display for Exists {
 
 impl PartialEq for Exists {
     fn eq(&self, other: &Self) -> bool {
-        (&self.variables, &self.triggers, &*self.body) == (&other.variables, &other.triggers, &*other.body)
+        (&self.variables, &self.triggers, &*self.body)
+            == (&other.variables, &other.triggers, &*other.body)
     }
 }
 
@@ -2069,7 +2492,8 @@ impl fmt::Display for FuncApp {
                 .collect::<Vec<String>>()
                 .join(", "),
             &(self.return_type).to_string(),
-            &(self.arguments).iter()
+            &(self.arguments)
+                .iter()
                 .map(|f| f.to_string())
                 .collect::<Vec<String>>()
                 .join(", "),
@@ -2101,8 +2525,9 @@ impl fmt::Display for DomainFuncApp {
         write!(
             f,
             "{}({})",
-            (&self.domain_function).name,
-            (&self.arguments).iter()
+            self.domain_function.name,
+            (&self.arguments)
+                .iter()
                 .map(|f| f.to_string())
                 .collect::<Vec<String>>()
                 .join(", "),
@@ -2168,7 +2593,8 @@ impl fmt::Display for DowncastExpr {
 
 impl PartialEq for DowncastExpr {
     fn eq(&self, other: &Self) -> bool {
-        (&*self.base, &*self.enum_place, &self.field) == (&*other.base, &*other.enum_place, &other.field)
+        (&*self.base, &*self.enum_place, &self.field)
+            == (&*other.base, &*other.enum_place, &other.field)
     }
 }
 
@@ -2192,7 +2618,7 @@ impl fmt::Display for SnapApp {
 
 impl PartialEq for SnapApp {
     fn eq(&self, other: &Self) -> bool {
-        &*self.base == &*other.base
+        self.base == other.base
     }
 }
 

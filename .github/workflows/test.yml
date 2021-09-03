@@ -74,17 +74,16 @@ jobs:
       - name: Build with cargo
         run: python x.py build --all --verbose
       - name: Check and report Clippy errors
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
+          rustup component add clippy
+
+          python ./x.py clippy
+
           cargo install cargo-diff-tools
-          if rustup component add clippy
-          then
-            # See https://github.com/pytorch/pytorch/blob/49adac65c4228b9fe7ede4e6f99fe9e1ccdc3e16/.github/workflows/clang_format.yml
-            git remote add upstream https://github.com/viperproject/prusti-dev
-            git fetch upstream "$GITHUB_BASE_REF"
-            python x.py exec cargo-clippy-diff --output=github $BASE_SHA HEAD
-          fi
+          # See https://github.com/pytorch/pytorch/blob/49adac65c4228b9fe7ede4e6f99fe9e1ccdc3e16/.github/workflows/clang_format.yml
+          git remote add upstream https://github.com/viperproject/prusti-dev
+          git fetch upstream "$GITHUB_BASE_REF"
+          python x.py exec cargo-clippy-diff --output=github $BASE_SHA HEAD
 
   # Run rustfmt checks on PRs.
   fmt-check:
@@ -98,6 +97,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
       - name: Cache cargo
         uses: actions/cache@v2
         with:
@@ -106,12 +110,33 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
+      - name: Build with cargo
+        run: python x.py build --all --verbose
       - name: Check and report formatting warnings
         run: |
-          if rustup component add rustfmt
-          then
-            cd vir && cargo fmt -- --check
-          fi
+          rustup component add rustfmt
+
+          python ./x.py fmt-check analysis
+          python ./x.py fmt-check prusti
+          #python ./x.py fmt-check prusti-common
+          #python ./x.py fmt-check prusti-contracts
+          python ./x.py fmt-check prusti-contracts-impl
+          python ./x.py fmt-check prusti-contracts-internal
+          python ./x.py fmt-check prusti-contracts-test
+          #python ./x.py fmt-check prusti-interface
+          python ./x.py fmt-check prusti-launch
+          python ./x.py fmt-check prusti-server
+          #python ./x.py fmt-check prusti-specs
+          #python ./x.py fmt-check prusti-tests
+          python ./x.py fmt-check prusti-utils
+          #python ./x.py fmt-check prusti-viper
+          rustfmt --check prusti-viper/src/encoder/foldunfold/mod.rs
+          python ./x.py fmt-check viper
+          python ./x.py fmt-check viper-sys
+          python ./x.py fmt-check vir
+          rustfmt --check vir/defs/polymorphic/mod.rs
+          rustfmt --check vir/defs/components/mod.rs
+          python ./x.py fmt-check vir-gen
 
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.

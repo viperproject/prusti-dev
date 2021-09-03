@@ -1,6 +1,5 @@
 use std::{fs::File, io::Read, mem, path::PathBuf};
-use syn::fold::Fold;
-use syn::spanned::Spanned;
+use syn::{fold::Fold, spanned::Spanned};
 
 mod ast;
 

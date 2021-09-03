@@ -5,8 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::polymorphic::ast::*;
-use std::fmt;
-use std::collections::{HashSet, HashMap};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Predicate {
@@ -40,10 +42,7 @@ impl Predicate {
     }
     /// Is this predicate abstract.
     pub fn is_abstract(&self) -> bool {
-        match self {
-            Predicate::Struct(StructPredicate { body: None, .. }) => true,
-            _ => false,
-        }
+        matches!(self, Predicate::Struct(StructPredicate { body: None, .. }))
     }
 
     /// Construct a new predicate that represents a type that models a primitive
@@ -66,8 +65,8 @@ impl Predicate {
         };
         let body = conjuncts.into_iter().conjoin();
         Predicate::Struct(StructPredicate {
-            typ: typ,
-            this: this,
+            typ,
+            this,
             body: Some(body),
         })
     }
@@ -84,7 +83,14 @@ impl Predicate {
         discriminant_bounds: Expr,
         variants: Vec<(Expr, String, StructPredicate)>,
     ) -> Predicate {
-        debug_assert!(variants.iter().map(|(_, name, _)| name.to_string()).collect::<HashSet<_>>().len() == variants.len());
+        debug_assert!(
+            variants
+                .iter()
+                .map(|(_, name, _)| name.to_string())
+                .collect::<HashSet<_>>()
+                .len()
+                == variants.len()
+        );
         Predicate::Enum(EnumPredicate {
             typ: this.typ.clone(),
             this,
@@ -111,15 +117,9 @@ impl Predicate {
     }
     pub fn body(&self) -> Option<Expr> {
         match self {
-            Predicate::Struct(struct_predicate) => {
-                struct_predicate.body.clone()
-            }
-            Predicate::Enum(enum_predicate) => {
-                Some(enum_predicate.body())
-            }
-            Predicate::Bodyless(_, _) => {
-                None
-            }
+            Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
+            Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
+            Predicate::Bodyless(_, _) => None,
         }
     }
 }
@@ -147,7 +147,12 @@ pub struct StructPredicate {
 
 impl fmt::Display for StructPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "struct_predicate {}({}", self.typ.encode_as_string(), self.this)?;
+        write!(
+            f,
+            "struct_predicate {}({}",
+            self.typ.encode_as_string(),
+            self.this
+        )?;
         match self.body {
             None => writeln!(f, ");"),
             Some(ref body) => {
@@ -165,22 +170,22 @@ impl StructPredicate {
         let body = fields
             .into_iter()
             .flat_map(|field| {
-                let location: Expr = Expr::from(this.clone()).field(field.clone()).into();
+                let location: Expr = Expr::from(this.clone()).field(field.clone());
                 let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
                 let pred_perm =
-                    Expr::predicate_access_predicate(field.typ.clone(), location, PermAmount::Write);
+                    Expr::predicate_access_predicate(field.typ, location, PermAmount::Write);
                 vec![field_perm, pred_perm]
             })
             .conjoin();
         Self {
-            typ: typ,
-            this: this,
+            typ,
+            this,
             body: Some(body),
         }
     }
     /// Construct a predicate access predicate for this predicate.
     pub fn construct_access(&self, this: Expr, perm_amount: PermAmount) -> Expr {
-        Expr::PredicateAccessPredicate( PredicateAccessPredicate {
+        Expr::PredicateAccessPredicate(PredicateAccessPredicate {
             predicate_type: self.typ.clone(),
             argument: Box::new(this),
             permission: perm_amount,
@@ -189,13 +194,13 @@ impl StructPredicate {
     }
     /// Is the predicate's body just `true`?
     pub fn has_empty_body(&self) -> bool {
-        match self.body {
-            Some(Expr::Const(ref const_expr)) => match const_expr.value {
-                Const::Bool(true) => true,
-                _ => false,
-            },
-            _ => false,
-        }
+        matches!(
+            self.body,
+            Some(Expr::Const(ConstExpr {
+                value: Const::Bool(true),
+                ..
+            }))
+        )
     }
 }
 
@@ -236,18 +241,18 @@ impl EnumVariantIndex {
 
 pub type MaybeEnumVariantIndex = Option<EnumVariantIndex>;
 
-impl<'a> Into<EnumVariantIndex> for &'a Field {
-    fn into(self) -> EnumVariantIndex {
+impl<'a> From<&'a Field> for EnumVariantIndex {
+    fn from(field: &'a Field) -> Self {
         // TODO: Refactor to avoid string manipulations.
-        assert!(self.name.starts_with("enum_"));
-        EnumVariantIndex(self.name[5..].to_string())
+        assert!(field.name.starts_with("enum_"));
+        Self(field.name[5..].to_string())
     }
 }
 
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "enum_predicate {}({}){{\n", self.typ.name(), self.this)?;
-        write!(f, "  discriminant_field={}\n", self.discriminant_field)?;
+        writeln!(f, "enum_predicate {}({}){{", self.typ.name(), self.this)?;
+        writeln!(f, "  discriminant_field={}", self.discriminant_field)?;
         for (guard, name, variant) in self.variants.iter() {
             writeln!(f, "  {}: {} ==> {}\n", name, guard, variant)?;
         }
@@ -272,7 +277,7 @@ impl EnumPredicate {
                 continue;
             }
             let field = Field::new(format!("enum_{}", name), variant.this.typ.clone());
-            let location: Expr = Expr::from(self.this.clone()).field(field).into();
+            let location: Expr = Expr::from(self.this.clone()).field(field);
             let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
             let pred_perm = variant.construct_access(location, PermAmount::Write);
             parts.push(Expr::and(

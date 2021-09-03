@@ -4,11 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::polymorphic::ast::*;
-use crate::converter::type_substitution::Generic;
+use crate::{converter::type_substitution::Generic, polymorphic::ast::*};
 use std::{
     cmp::Ordering,
-    collections::{HashMap, hash_map::DefaultHasher},
+    collections::{hash_map::DefaultHasher, HashMap},
     fmt,
     hash::{Hash, Hasher},
     mem::discriminant,
@@ -56,7 +55,7 @@ impl Default for Position {
 
 pub enum PermAmountError {
     InvalidAdd(PermAmount, PermAmount),
-    InvalidSub(PermAmount, PermAmount)
+    InvalidSub(PermAmount, PermAmount),
 }
 
 /// The permission amount.
@@ -76,16 +75,22 @@ impl PermAmount {
             PermAmount::Remaining => false,
         }
     }
+}
 
-    pub fn add(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
+impl std::ops::Add for PermAmount {
+    type Output = Result<PermAmount, PermAmountError>;
+    fn add(self, other: PermAmount) -> Self::Output {
         match (self, other) {
             (PermAmount::Read, PermAmount::Remaining)
             | (PermAmount::Remaining, PermAmount::Read) => Ok(PermAmount::Write),
             _ => Err(PermAmountError::InvalidAdd(self, other)),
         }
     }
+}
 
-    pub fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
+impl std::ops::Sub for PermAmount {
+    type Output = Result<PermAmount, PermAmountError>;
+    fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
         match (self, other) {
             (PermAmount::Write, PermAmount::Read) => Ok(PermAmount::Remaining),
             (PermAmount::Write, PermAmount::Remaining) => Ok(PermAmount::Read),
@@ -119,10 +124,8 @@ impl PartialOrd for PermAmount {
 
 impl Ord for PermAmount {
     fn cmp(&self, other: &PermAmount) -> Ordering {
-        self.partial_cmp(other).expect(&format!(
-            "Undefined comparison between {:?} and {:?}",
-            self, other
-        ))
+        self.partial_cmp(other)
+            .unwrap_or_else(|| panic!("Undefined comparison between {:?} and {:?}", self, other))
     }
 }
 
@@ -154,9 +157,6 @@ impl fmt::Display for Type {
     }
 }
 
-
-
-
 impl Type {
     pub fn is_typed_ref_or_type_var(&self) -> bool {
         self.is_typed_ref() || self.is_type_var()
@@ -179,7 +179,7 @@ impl Type {
     }
 
     pub fn is_mir_reference(&self) -> bool {
-        if let Type::TypedRef(TypedRef {label, ..}) = self {
+        if let Type::TypedRef(TypedRef { label, .. }) = self {
             // FIXME: We should not rely on string names for type conversions.
             label == "ref"
         } else {
@@ -193,8 +193,8 @@ impl Type {
             Type::Int => "int".to_string(),
             Type::Domain(_) | Type::Snapshot(_) | Type::TypedRef(_) | Type::TypeVar(_) => {
                 self.encode_as_string()
-            },
-            Type::Seq(SeqType {box ref typ} ) => typ.name(),
+            }
+            Type::Seq(SeqType { box ref typ }) => typ.name(),
         }
     }
 
@@ -225,7 +225,7 @@ impl Type {
     pub fn typed_ref_with_args<S: Into<String>>(name: S, arguments: Vec<Type>) -> Self {
         Type::TypedRef(TypedRef {
             label: name.into(),
-            arguments: arguments,
+            arguments,
             variant: String::from(""),
         })
     }
@@ -241,7 +241,7 @@ impl Type {
     pub fn domain_with_args<S: Into<String>>(name: S, arguments: Vec<Type>) -> Self {
         Type::Domain(DomainType {
             label: name.into(),
-            arguments: arguments,
+            arguments,
             variant: String::from(""),
         })
     }
@@ -257,7 +257,7 @@ impl Type {
     pub fn snapshot_with_args<S: Into<String>>(name: S, arguments: Vec<Type>) -> Self {
         Type::Snapshot(SnapshotType {
             label: name.into(),
-            arguments: arguments,
+            arguments,
             variant: String::from(""),
         })
     }
@@ -276,9 +276,7 @@ impl Type {
     }
 
     pub fn type_var<S: Into<String>>(name: S) -> Self {
-        Type::TypeVar(TypeVar {
-            label: name.into(),
-        })
+        Type::TypeVar(TypeVar { label: name.into() })
     }
 
     pub fn get_type_var(&self) -> Option<TypeVar> {
@@ -303,44 +301,71 @@ impl Type {
 
     pub fn encode_as_string(&self) -> String {
         match self {
-            Type::TypedRef( TypedRef {label, arguments, variant} )
-            | Type::Domain( DomainType {label, arguments, variant} )
-            | Type::Snapshot( SnapshotType {label, arguments, variant} ) => {
+            Type::TypedRef(TypedRef {
+                label,
+                arguments,
+                variant,
+            })
+            | Type::Domain(DomainType {
+                label,
+                arguments,
+                variant,
+            })
+            | Type::Snapshot(SnapshotType {
+                label,
+                arguments,
+                variant,
+            }) => {
                 let label_str = label.as_str();
                 match label_str {
-                    "ref" | "raw_ref" | "Slice"
-                        => format!("{}${}", label_str, Self::encode_arguments(arguments)),
-                    // TODO: remove len constraint once encoders are all updated with polymorphic
-                    array if array.starts_with("Array") && arguments.len() > 0
-                        => format!("{}${}", label_str, Self::encode_arguments(arguments)),
-                    "tuple"
-                        => format!("tuple{}${}", arguments.len(), Self::encode_arguments(arguments)),
-                    // TODO: remove len constraint once encoders are all updated with polymorphic
-                    closure if closure.starts_with("closure") && arguments.len() > 0
-                        => format!("{}${}${}", closure, arguments.len(), Self::hash_arguments(arguments)),
-                    adt if adt.starts_with("adt")
-                        => format!("{}${}{}", &adt[4..], Self::encode_substs(arguments), variant),
-                    _label => if arguments.len() > 0 {
-                        // Projection
+                    "ref" | "raw_ref" | "Slice" => {
                         format!("{}${}", label_str, Self::encode_arguments(arguments))
-                    } else {
-                        // General cases (e.g. bool, isize, never, ...)
-                        String::from(label_str)
+                    }
+                    // TODO: remove len constraint once encoders are all updated with polymorphic
+                    array if array.starts_with("Array") && !arguments.is_empty() => {
+                        format!("{}${}", label_str, Self::encode_arguments(arguments))
+                    }
+                    "tuple" => format!(
+                        "tuple{}${}",
+                        arguments.len(),
+                        Self::encode_arguments(arguments)
+                    ),
+                    // TODO: remove len constraint once encoders are all updated with polymorphic
+                    closure if closure.starts_with("closure") && !arguments.is_empty() => format!(
+                        "{}${}${}",
+                        closure,
+                        arguments.len(),
+                        Self::hash_arguments(arguments)
+                    ),
+                    adt if adt.starts_with("adt") => format!(
+                        "{}${}{}",
+                        &adt[4..],
+                        Self::encode_substs(arguments),
+                        variant
+                    ),
+                    _label => {
+                        if !arguments.is_empty() {
+                            // Projection
+                            format!("{}${}", label_str, Self::encode_arguments(arguments))
+                        } else {
+                            // General cases (e.g. bool, isize, never, ...)
+                            String::from(label_str)
+                        }
                     }
                 }
-            },
-            Type::TypeVar(TypeVar{label}) => format!("__TYPARAM__$_{}$__", label),
+            }
+            Type::TypeVar(TypeVar { label }) => format!("__TYPARAM__$_{}$__", label),
             x => unreachable!(x),
         }
     }
 
     /// The string to be appended to the encoding of certain types to make generics "less fragile".
-    fn encode_substs(types: &Vec<Type>) -> String {
+    fn encode_substs(types: &[Type]) -> String {
         let mut composed_name = vec![
-            "_beg_".to_string(),  // makes generics "less fragile"
+            "_beg_".to_string(), // makes generics "less fragile"
         ];
         let mut first = true;
-        for typ in types.into_iter() {
+        for typ in types.iter() {
             if first {
                 first = false
             } else {
@@ -354,23 +379,22 @@ impl Type {
     }
 
     /// Converts vector of arguments to string connected with "$".
-    fn encode_arguments(args: &Vec<Type>) -> String {
+    fn encode_arguments(args: &[Type]) -> String {
         let mut composed_name = vec![];
 
-        for arg in args.into_iter() {
+        for arg in args.iter() {
             composed_name.push(arg.encode_as_string());
         }
 
         composed_name.join("$")
     }
 
-    fn hash_arguments(args: &Vec<Type>) -> u64 {
+    fn hash_arguments(args: &[Type]) -> u64 {
         let mut s = DefaultHasher::new();
         args.hash(&mut s);
         s.finish()
     }
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SeqType {
@@ -406,7 +430,8 @@ pub struct TypedRef {
 
 impl PartialEq for TypedRef {
     fn eq(&self, other: &Self) -> bool {
-        (&self.label, &self.arguments, &self.variant) == (&other.label, &other.arguments, &other.variant)
+        (&self.label, &self.arguments, &self.variant)
+            == (&other.label, &other.arguments, &other.variant)
     }
 }
 
@@ -510,23 +535,9 @@ impl From<TypeVar> for SnapshotType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct TypeVar {
     pub label: String,
-}
-
-impl PartialEq for TypeVar {
-    fn eq(&self, other: &Self) -> bool {
-        &self.label == &other.label
-    }
-}
-
-impl Eq for TypeVar {}
-
-impl Hash for TypeVar {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        (&self.label).hash(state);
-    }
 }
 
 impl fmt::Display for TypeVar {
@@ -600,8 +611,7 @@ impl Field {
 
     pub fn typed_ref_name(&self) -> Option<String> {
         match self.typ {
-            Type::TypedRef(_) |
-            Type::TypeVar(_) => Some(self.typ.encode_as_string()),
+            Type::TypedRef(_) | Type::TypeVar(_) => Some(self.typ.encode_as_string()),
             _ => None,
         }
     }

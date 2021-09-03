@@ -95,7 +95,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     mirror_encoder: RefCell<MirrorEncoder>,
     array_types_encoder: RefCell<ArrayTypesEncoder<'tcx>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
-    encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
+    encoding_queue: RefCell<Vec<EncodingTask<'tcx>>>,
     vir_program_before_foldunfold_writer: RefCell<Box<dyn Write>>,
     vir_program_before_viper_writer: RefCell<Box<dyn Write>>,
     encoding_errors_counter: RefCell<usize>,
@@ -104,8 +104,14 @@ pub struct Encoder<'v, 'tcx: 'v> {
     discriminants_info: RefCell<HashMap<(ProcedureDefId, String), Vec<String>>>,
 }
 
+pub type EncodingTask<'tcx> = (ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>);
 pub type SubstMap<'tcx> = HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>;
 pub type SubstStack<'tcx> = Vec<SubstMap<'tcx>>;
+
+// If the field name is an identifier, removing the leading prefix r#
+pub fn encode_field_name(field_name: &str) -> String {
+   format!("f${}", field_name.trim_start_matches("r#"))
+}
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn new(
@@ -220,7 +226,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn get_viper_programs(&mut self) -> Vec<vir::Program> {
-        std::mem::replace(&mut self.programs, Vec::new())
+        std::mem::take(&mut self.programs)
     }
 
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
@@ -277,9 +283,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.type_predicates.borrow()[name].clone()
     }
 
-    pub(super) fn get_builtin_methods<'a>(
-        &'a self
-    ) -> Ref<'a, HashMap<BuiltinMethodKind, vir::BodylessMethod>> {
+    pub(super) fn get_builtin_methods(
+        &self
+    ) -> Ref<'_, HashMap<BuiltinMethodKind, vir::BodylessMethod>> {
         self.builtin_methods.borrow()
     }
 
@@ -330,7 +336,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     {
         let spec = typed::SpecificationSet::Procedure(
             self.get_procedure_specs(proc_def_id)
-                .unwrap_or_else(|| typed::ProcedureSpecification::empty())
+                .unwrap_or_else(typed::ProcedureSpecification::empty)
         );
         compute_procedure_contract(proc_def_id, self.env(), spec, None)
     }
@@ -379,7 +385,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         &self,
         self_ty: Option<&'tcx ty::TyS<'tcx>>,
         proc_def_id: ProcedureDefId,
-        args: &Vec<places::Local>,
+        args: &[places::Local],
         target: places::Local,
         tymap: SubstMap<'tcx>,
     ) -> EncodingResult<ProcedureContract<'tcx>> {
@@ -477,8 +483,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>)
     -> EncodingResult<vir::Field>
     {
-        let viper_field_name = format!("f${}", field_name);
-        self.encode_raw_ref_field(viper_field_name, ty)
+        self.encode_raw_ref_field(encode_field_name(field_name), ty)
     }
 
     /// Creates a field that corresponds to the enum variant ``index``.
@@ -569,7 +574,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.log_vir_program_before_viper(method.to_string());
             self.builtin_methods
                 .borrow_mut()
-                .insert(method_kind.clone(), method);
+                .insert(method_kind, method);
         }
         self.builtin_methods.borrow()[&method_kind].clone()
     }
@@ -590,7 +595,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.log_vir_program_before_viper(function.to_string());
             self.builtin_functions
                 .borrow_mut()
-                .insert(function_kind.clone(), self.insert_function(function));
+                .insert(function_kind, self.insert_function(function));
         }
     }
 
@@ -674,7 +679,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.log_vir_program_before_viper(method.to_string());
 
             if config::enable_purification_optimization() {
-                purifier::purify_method(&self, &mut method);
+                purifier::purify_method(self, &mut method);
             }
 
             self.procedures.borrow_mut().insert(def_id, method);
@@ -730,7 +735,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             // Trigger encoding of definition
             self.encode_type_predicate_def(ty)?;
         }
-        let predicate_type = self.type_predicate_types.borrow()[&ty.kind()].clone();
+        let predicate_type = self.type_predicate_types.borrow()[ty.kind()].clone();
         Ok(predicate_type)
     }
 
@@ -740,6 +745,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// See `spec_encoder::encode_spec_assertion` for a description of the arguments.
+    #[allow(clippy::too_many_arguments)]
     pub fn encode_assertion(
         &self,
         assertion: &typed::Assertion<'tcx>,
@@ -924,7 +930,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             // Trigger encoding of definition
             self.encode_type_invariant_def(ty)?;
         }
-        let invariant_name = self.type_invariant_names.borrow()[&ty.kind()].clone();
+        let invariant_name = self.type_invariant_names.borrow()[ty.kind()].clone();
         Ok(invariant_name)
     }
 
@@ -944,7 +950,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
-        if !self.type_tag_names.borrow().contains_key(&ty.kind()) {
+        if !self.type_tag_names.borrow().contains_key(ty.kind()) {
             let type_encoder = TypeEncoder::new(self, ty);
             let tag_name = type_encoder.encode_tag_use()
                 .expect("failed to encode unsupported type");
@@ -954,7 +960,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             // Trigger encoding of definition
             self.encode_type_tag_def(ty);
         }
-        let tag_name = self.type_tag_names.borrow()[&ty.kind()].clone();
+        let tag_name = self.type_tag_names.borrow()[ty.kind()].clone();
         tag_name
     }
 
@@ -964,7 +970,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let type_encoder = TypeEncoder::new(self, ty);
             let tag = type_encoder.encode_tag_def();
             let identifier = self.insert_function(tag);
-            self.type_tags.borrow_mut().insert(tag_name.clone(), identifier);
+            self.type_tags.borrow_mut().insert(tag_name, identifier);
         }
     }
 
@@ -1034,7 +1040,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let short_name = format!("m_{}", encode_identifier(
             self.env.tcx().opt_item_name(def_id)
                 .map(|s| s.name.to_ident_string())
-                .unwrap_or(self.env.get_item_name(def_id))
+                .unwrap_or_else(|| self.env.get_item_name(def_id))
         ));
         self.intern_viper_identifier(full_name, short_name)
     }
@@ -1077,7 +1083,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         substs: &SubstMap<'tcx>,
     ) -> SpannedEncodingResult<vir::Expr> {
         let mir_span = self.env.tcx().def_span(proc_def_id);
-        let substs_key = self.type_substitution_key(&substs).with_span(mir_span)?;
+        let substs_key = self.type_substitution_key(substs).with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
         if !self.pure_function_bodies.borrow().contains_key(&key) {
             let procedure = self.env.get_procedure(proc_def_id);
@@ -1206,7 +1212,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> SpannedEncodingResult<(String, vir::Type)> {
         // The stub function may come from an external module.
         let body = self.env.external_mir(proc_def_id);
-        let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body, substs);
+        let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, body, substs);
 
         let substs_key = self.type_substitution_key(substs).with_span(body.span)?;
         let key = (proc_def_id, substs_key);
@@ -1264,16 +1270,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     "Trusted procedure will not be encoded or verified: {:?}",
                     proc_def_id
                 );
+            } else if let Err(error) = self.encode_procedure(proc_def_id) {
+                self.register_encoding_error(error);
+                debug!("Error encoding function: {:?}", proc_def_id);
             } else {
-                if let Err(error) = self.encode_procedure(proc_def_id) {
-                    self.register_encoding_error(error);
-                    debug!("Error encoding function: {:?}", proc_def_id);
-                } else {
-                    let program = self.finalize_viper_program(proc_name);
-                    self.programs.push(program);
-                }
+                let program = self.finalize_viper_program(proc_name);
+                self.programs.push(program);
             }
-
         }
     }
 
@@ -1290,7 +1293,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn get_predicate_body(&self, def_id: ProcedureDefId) -> Option<&typed::Assertion<'tcx>> {
-        let result = self.def_spec.get(&def_id).map_or(None, |spec| spec.expect_procedure().predicate_body.as_ref());
+        let result = self.def_spec.get(&def_id).and_then(|spec| spec.expect_procedure().predicate_body.as_ref());
         trace!("get_predicate_body {:?} = {:?}", def_id, result);
         result
     }
@@ -1331,6 +1334,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     /// Merges the stack of type maps into a single map.
+    #[allow(clippy::needless_collect)]  // Clippy false positive.
     pub fn merge_tymaps(&self, stack: SubstStack<'tcx>) -> SubstMap<'tcx> {
         let mut map = HashMap::new();
         for map_frame in stack.iter().rev() {
@@ -1385,7 +1389,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// type substitution.
     pub fn type_substitution_key(&self, tymap: &SubstMap<'tcx>) -> EncodingResult<String> {
         let mut substs: Vec<_> = tymap
-            .into_iter()
+            .iter()
             .filter(|(typ, subst)| typ != subst)
             .map(|(typ, subst)| format!("({},{})", typ, subst))
             .collect();
@@ -1410,7 +1414,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             encode_identifier(
                 self.env.tcx().opt_item_name(def_id)
                     .map(|s| s.name.to_ident_string())
-                    .unwrap_or(self.env.get_item_name(def_id))
+                    .unwrap_or_else(|| self.env.get_item_name(def_id))
             )
         );
         self.intern_viper_identifier(full_name, short_name)
@@ -1419,12 +1423,10 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn intern_viper_identifier<S: AsRef<str>>(&self, full_name: S, short_name: S) -> String {
         let result = if config::disable_name_mangling() {
             short_name.as_ref().to_string()
+        } else if config::intern_names() {
+            self.name_interner.borrow_mut().intern(full_name, &[short_name])
         } else {
-            if config::intern_names() {
-                self.name_interner.borrow_mut().intern(full_name, &[short_name])
-            } else {
-                full_name.as_ref().to_string()
-            }
+            full_name.as_ref().to_string()
         };
         result
     }

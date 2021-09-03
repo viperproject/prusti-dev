@@ -1,8 +1,7 @@
 use crate::ast::{Include, RawBlock};
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::spanned::Spanned;
-use syn::{fold::Fold, parse_quote};
+use syn::{fold::Fold, parse_quote, spanned::Spanned};
 
 pub(crate) fn expand(
     ir: syn::ItemMod,

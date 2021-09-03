@@ -14,7 +14,7 @@ macro_rules! jobject_wrapper {
             pub(crate) fn new(obj: JObject<'a>) -> Self {
                 $name { obj }
             }
-            pub(crate) fn to_jobject(&self) -> JObject<'a> {
+            pub(crate) fn to_jobject(self) -> JObject<'a> {
                 self.obj
             }
         }

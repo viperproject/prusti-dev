@@ -169,11 +169,11 @@ def get_env():
     return env
 
 
-def run_command(args, env=None):
+def run_command(args, env=None, cwd=None):
     """Run a command with the given arguments."""
     if env is None:
         env = get_env()
-    completed = subprocess.run(args, env=env)
+    completed = subprocess.run(args, env=env, cwd=cwd)
     if completed.returncode != 0:
         sys.exit(completed.returncode)
 
@@ -433,6 +433,17 @@ def verify_test(args):
     report("env: PRUSTI_CHECK_OVERFLOWS={}", env['PRUSTI_CHECK_OVERFLOWS'])
     run_command([prusti_path, '--edition=2018', test_path] + compile_flags, env)
 
+def clippy_in(cwd):
+    """Run cargo clippy in given subproject."""
+    run_command(['cargo', 'clippy', '--', '-D', 'warnings'], cwd=cwd)
+
+def fmt_in(cwd):
+    """Run cargo clippy in given subproject."""
+    run_command(['cargo', 'fmt'], cwd=cwd)
+
+def fmt_check_in(cwd):
+    """Run cargo clippy in given subproject."""
+    run_command(['cargo', 'fmt', '--', '--check'], cwd=cwd)
 
 def main(argv):
     global verbose
@@ -457,6 +468,15 @@ def main(argv):
             break
         elif arg == 'exec':
             run_command(argv[i+1:])
+            break
+        elif arg == 'clippy-in':
+            clippy_in(*argv[i+1:])
+            break
+        elif arg == 'fmt-check':
+            fmt_check_in(*argv[i+1:])
+            break
+        elif arg == 'fmt':
+            fmt_in(*argv[i+1:])
             break
         else:
             cargo(argv[i:])

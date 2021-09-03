@@ -192,7 +192,7 @@ impl ToGraphViz for CfgMethod {
                 splitted_stmt_lines.push(
                     sub_strings(stmt_line, 120, 116)
                         .into_iter()
-                        .map(|x| escape_html(x))
+                        .map(escape_html)
                         .collect::<Vec<_>>()
                         .join(" \\ <br/>    "),
                 );
@@ -223,7 +223,7 @@ impl ToGraphViz for CfgMethod {
             lines.push(
                 splitted_successor
                     .into_iter()
-                    .map(|x| escape_html(x))
+                    .map(escape_html)
                     .collect::<Vec<_>>()
                     .join(" \\ <br/>    "),
             );

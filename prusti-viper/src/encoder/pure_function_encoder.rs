@@ -76,7 +76,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         debug!("Encode body of pure function {}", function_name);
 
         let state = run_backward_interpretation(self.mir, &self.interpreter)?
-            .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
+            .unwrap_or_else(|| panic!("Procedure {:?} contains a loop", self.proc_def_id));
         let body_expr = state.into_expressions().remove(0);
         debug!(
             "Pure function {} has been encoded with expr: {}",
@@ -91,7 +91,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let function_name = self.encode_function_name();
         debug!("Encode pure function {}", function_name);
         let mut state = run_backward_interpretation(self.mir, &self.interpreter)?
-            .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
+            .unwrap_or_else(|| panic!("Procedure {:?} contains a loop", self.proc_def_id));
 
         // Fix arguments
         for arg in self.mir.args_iter() {
@@ -152,7 +152,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let encoded_args = contract
             .args
             .iter()
-            .map(|local| self.encode_local(local.clone().into()).map(|l| l.into()))
+            .map(|local| self.encode_local((*local).into()).map(|l| l.into()))
             .collect::<Result<Vec<_>, _>>()?;
 
         let predicate_body_encoded = self.encoder.encode_assertion(
@@ -165,7 +165,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             None,
             ErrorCtxt::GenericExpression,
             self.parent_def_id,
-            &self.tymap,
+            self.tymap,
         )?;
 
         self.encode_function_given_body(Some(predicate_body_encoded))
@@ -194,7 +194,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let substs = &self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(self.mir.span)?;
 
         let (type_precondition, func_precondition) = self.encode_precondition_expr(&contract)?;
-        let patched_type_precondition = type_precondition.patch_types(&substs);
+        let patched_type_precondition = type_precondition.patch_types(substs);
 
         let mut precondition = vec![patched_type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)?];
@@ -209,7 +209,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 .encoder
                 .encode_snapshot_type(mir_type, self.tymap)
                 .with_span(var_span)?;
-            let var_type = var_type.patch(&substs);
+            let var_type = var_type.patch(substs);
             formal_args.push(vir::LocalVar::new(var_name, var_type))
         };
         let return_type = self.encode_function_return_type()?;
@@ -237,7 +237,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 let typ = self.interpreter.mir_encoder().get_local_ty(local);
                 let bounds = self
                     .encoder
-                    .encode_type_bounds(&vir::Expr::local(formal_arg.clone()), &typ);
+                    .encode_type_bounds(&vir::Expr::local(formal_arg.clone()), typ);
                 precondition.extend(bounds);
             }
         } else if config::encode_unsigned_num_constraint() {
@@ -260,7 +260,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         );
 
         let mut function = vir::Function {
-            name: function_name.clone(),
+            name: function_name,
             formal_args,
             return_type,
             pres: precondition,
@@ -322,13 +322,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let encoded_args: Vec<vir::Expr> = contract
             .args
             .iter()
-            .map(|local| self.encode_local(local.clone().into()).map(|l| l.into()))
+            .map(|local| self.encode_local((*local).into()).map(|l| l.into()))
             .collect::<Result<_, _>>()?;
         for item in contract.functional_precondition() {
             debug!("Encode spec item: {:?}", item);
             func_spec.push(self.encoder.encode_assertion(
-                &item,
-                &self.mir,
+                item,
+                self.mir,
                 None,
                 &encoded_args,
                 None,
@@ -336,7 +336,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 None,
                 ErrorCtxt::GenericExpression,
                 self.parent_def_id,
-                &self.tymap,
+                self.tymap,
             )?);
         }
 
@@ -357,15 +357,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let encoded_args: Vec<vir::Expr> = contract
             .args
             .iter()
-            .map(|local| self.encode_local(local.clone().into()).map(|l| l.into()))
+            .map(|local| self.encode_local((*local).into()).map(|l| l.into()))
             .collect::<Result<_, _>>()?;
-        let encoded_return = self.encode_local(contract.returned_value.clone().into())?;
+        let encoded_return = self.encode_local(contract.returned_value.into())?;
         debug!("encoded_return: {:?}", encoded_return);
 
         for item in contract.functional_postcondition() {
             let encoded_postcond = self.encoder.encode_assertion(
-                &item,
-                &self.mir,
+                item,
+                self.mir,
                 None,
                 &encoded_args,
                 Some(&encoded_return.clone().into()),
@@ -373,7 +373,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 None,
                 ErrorCtxt::GenericExpression,
                 self.parent_def_id,
-                &self.tymap,
+                self.tymap,
             )?;
             debug_assert!(!encoded_postcond.pos().is_default());
             func_spec.push(encoded_postcond);
@@ -646,7 +646,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             TerminatorKind::Drop { ref target, .. } => {
-                assert!(1 <= states.len() && states.len() <= 2);
+                assert!(!states.is_empty() && states.len() <= 2);
                 states[target].clone()
             }
 
@@ -676,7 +676,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 let return_var = vir_local!{ _0: {return_type} };
                 MultiExprBackwardInterpreterState::new_single(
                     self.encoder.encode_value_expr(
-                        vir::Expr::local(return_var.into()),
+                        vir::Expr::local(return_var),
                         self.mir.return_ty()
                     ).with_span(span)?
                 )
@@ -702,16 +702,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         ty::TyKind::Bool => {
                             if value == 0 {
                                 // If discr is 0 (false)
-                                vir::Expr::not(discr_val.clone().into())
+                                vir::Expr::not(discr_val.clone())
                             } else {
                                 // If discr is not 0 (true)
-                                discr_val.clone().into()
+                                discr_val.clone()
                             }
                         }
 
                         ty::TyKind::Int(_) | ty::TyKind::Uint(_) => {
                             vir::Expr::eq_cmp(
-                                discr_val.clone().into(),
+                                discr_val.clone(),
                                 self.encoder.encode_int_cast(value, switch_ty),
                             )
                         }
@@ -727,10 +727,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     .as_ref()
                     .unwrap();
                 trace!("default_target_terminator: {:?}", default_target_terminator);
-                let default_is_unreachable = match default_target_terminator.kind {
-                    TerminatorKind::Unreachable => true,
-                    _ => false,
-                };
+                let default_is_unreachable = matches!(default_target_terminator.kind, TerminatorKind::Unreachable);
 
                 trace!("cfg_targets: {:?}", cfg_targets);
 
@@ -751,7 +748,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             cfg_targets.iter().fold(
                                 states[&refined_default_target].exprs()[expr_index].clone(),
                                 |else_expr, (guard, target)| {
-                                    let then_expr = states[&target].exprs()[expr_index].clone();
+                                    let then_expr = states[target].exprs()[expr_index].clone();
                                     if then_expr == else_expr {
                                         // Optimization
                                         else_expr
@@ -811,7 +808,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                         let (encoded_lhs, ty, _) = self.encode_place(lhs_place)
                             .with_span(span)?;
-                        let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty).with_span(span)?;
+                        let lhs_value = self.encoder.encode_value_expr(encoded_lhs, ty).with_span(span)?;
                         let encoded_args: Vec<vir::Expr> = args
                             .iter()
                             .map(|arg| self.mir_encoder.encode_operand_expr(arg))
@@ -838,7 +835,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         vir::Expr::snap_app(encoded_args[0].clone()),
                                         PRECONDITION_LABEL,
                                     );
-                                let mut state = states[&target_block].clone();
+                                let mut state = states[target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state
                             }
@@ -849,7 +846,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let encoded_rhs = self
                                     .mir_encoder
                                     .encode_old_expr(encoded_args[0].clone(), WAND_LHS_LABEL);
-                                let mut state = states[&target_block].clone();
+                                let mut state = states[target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state
                             }
@@ -863,7 +860,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     vir::Expr::snap_app(encoded_args[0].clone()),
                                     vir::Expr::snap_app(encoded_args[1].clone()),
                                 );
-                                let mut state = states[&target_block].clone();
+                                let mut state = states[target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state
                             }
@@ -877,7 +874,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     vir::Expr::snap_app(encoded_args[0].clone()),
                                     vir::Expr::snap_app(encoded_args[1].clone()),
                                 );
-                                let mut state = states[&target_block].clone();
+                                let mut state = states[target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state
                             }
@@ -979,7 +976,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     return_type,
                                     pos,
                                 );
-                                let mut state = states[&target_block].clone();
+                                let mut state = states[target_block].clone();
                                 state.substitute_value(&lhs_value, encoded_rhs);
                                 state
                             }
@@ -1306,8 +1303,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     }
 
                     &mir::Rvalue::CheckedBinaryOp(op, box (ref left, ref right)) => {
-                        let operand_ty = if let ty::TyKind::Tuple(ref types) = ty.kind() {
-                            types[0].clone()
+                        let operand_ty = if let ty::TyKind::Tuple(types) = ty.kind() {
+                            types[0]
                         } else {
                             unreachable!()
                         };
@@ -1369,12 +1366,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value);
                     }
 
-                    &mir::Rvalue::NullaryOp(_op, ref _op_ty) => unimplemented!(),
+                    &mir::Rvalue::NullaryOp(_op, _op_ty) => unimplemented!(),
 
                     &mir::Rvalue::Discriminant(ref src) => {
                         let (encoded_src, src_ty, _) = self.encode_place(src).unwrap();
                         match src_ty.kind() {
-                            ty::TyKind::Adt(ref adt_def, _) if !adt_def.is_box() => {
+                            ty::TyKind::Adt(adt_def, _) if !adt_def.is_box() => {
                                 let num_variants = adt_def.variants.len();
 
                                 let discr_value: vir::Expr = if num_variants == 0 {
@@ -1392,13 +1389,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         vir::Type::Int,
                                         pos,
                                     )
+                                } else if num_variants == 1 {
+                                    0.into()
                                 } else {
-                                    if num_variants == 1 {
-                                        0.into()
-                                    } else {
-                                        let discr_field = self.encoder.encode_discriminant_field();
-                                        encoded_src.field(discr_field).into()
-                                    }
+                                    let discr_field = self.encoder.encode_discriminant_field();
+                                    encoded_src.field(discr_field)
                                 };
 
                                 // Substitute a place of a value with an expression

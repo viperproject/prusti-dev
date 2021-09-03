@@ -51,7 +51,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Field::new("val_int", vir::Type::Int)
             }
 
-            ty::TyKind::Ref(_, ref ty, _) => {
+            ty::TyKind::Ref(_, ty, _) => {
                 let typ = self.encoder.encode_type(ty)?;
                 vir::Field::new("val_ref", typ)
             }
@@ -245,7 +245,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 )]
             }
 
-            ty::TyKind::Ref(_, ref ty, _) => {
+            ty::TyKind::Ref(_, ty, _) => {
                 vec![vir::Predicate::new_struct(
                     typ,
                     vec![self.encoder.encode_dereference_field(ty)?],
@@ -308,7 +308,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                                 .collect::<Result<_, _>>();
                             let variant_name = &variant_def.ident.as_str();
                             let guard = vir::Expr::eq_cmp(
-                                discriminant_loc.clone().into(),
+                                discriminant_loc.clone(),
                                 variant_index.into(),
                             );
                             let variant_typ = typ.clone().variant(variant_name);
@@ -338,7 +338,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 }
             }
 
-            ty::TyKind::Adt(ref adt_def, ref _subst) if adt_def.is_box() => {
+            ty::TyKind::Adt(adt_def, _subst) if adt_def.is_box() => {
                 let num_variants = adt_def.variants.len();
                 assert_eq!(num_variants, 1);
                 let field_ty = self.ty.boxed_ty();
@@ -421,17 +421,17 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Char => vir::Type::typed_ref("char"),
 
-            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
+            ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. }) => {
                 vir::Type::typed_ref_with_args("raw_ref", vec![self.encoder.encode_type(ty)?])
             }
-            ty::TyKind::Ref(_, ref ty, _) => {
+            ty::TyKind::Ref(_, ty, _) => {
                 vir::Type::typed_ref_with_args("ref", vec![self.encoder.encode_type(ty)?])
             }
 
             ty::TyKind::Adt(adt_def, subst) => {
                 vir::Type::typed_ref_with_args(format!("adt${}", self.encoder.encode_item_name(adt_def.did)), subst.iter().filter_map(|kind|
                     if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                        self.encoder.encode_type(ty).map_or(None, |val| Some(val))
+                        self.encoder.encode_type(ty).ok()
                     } else {
                         None
                     }
@@ -440,7 +440,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Tuple(elems) => {
                 vir::Type::typed_ref_with_args("tuple", elems.iter().filter_map(|ty|
-                    self.encoder.encode_type(ty.expect_ty()).map_or(None, |val|Some(val))
+                    self.encoder.encode_type(ty.expect_ty()).ok()
                 ).collect())
             }
 
@@ -462,10 +462,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Closure(def_id, closure_subst) => {
                 vir::Type::typed_ref_with_args(
-                    format!("closure${}_{}", def_id.krate.as_u32(), def_id.index.as_u32()), 
+                    format!("closure${}_{}", def_id.krate.as_u32(), def_id.index.as_u32()),
                     closure_subst.iter().filter_map(|kind|
                         if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                            self.encoder.encode_type(ty).map_or(None, |val| Some(val))
+                            self.encoder.encode_type(ty).ok()
                         } else {
                             None
                         }
@@ -480,7 +480,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Projection(ty::ProjectionTy { item_def_id, substs }) => {
                 vir::Type::typed_ref_with_args(self.encoder.encode_item_name(*item_def_id), substs.iter().filter_map(|kind|
                     if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                        self.encoder.encode_type(ty).map_or(None, |val| Some(val))
+                        self.encoder.encode_type(ty).ok()
                     } else {
                         None
                     }
@@ -719,21 +719,20 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         //    vir::PermAmount::Write,
         //);
 
-        let function = vir::Function {
+        vir::Function {
             name: tag_name,
             formal_args: Vec::new(),
             return_type: vir::Type::Int,
             pres: Vec::new(),
             posts: Vec::new(),
             body,
-        };
+        }
 
         //// Add folding/unfolding
         //foldunfold::add_folding_unfolding_to_function(
         //    function,
         //    self.encoder.get_used_viper_predicates_map()
         //)
-        function
     }
 
     pub fn encode_tag_use(self) -> EncodingResult<String> {

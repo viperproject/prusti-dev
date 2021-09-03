@@ -22,20 +22,20 @@ pub mod errors;
 mod jni_utils;
 #[macro_use]
 pub mod utils;
+mod java_exception;
+pub mod silicon_counterexample;
 mod verification_backend;
 mod verification_context;
 mod verification_result;
 mod verifier;
 mod viper;
-mod java_exception;
-pub mod silicon_counterexample;
 
 pub use ast_factory::*;
 pub use ast_utils::*;
+pub use java_exception::*;
+pub use silicon_counterexample::*;
 pub use verification_backend::*;
 pub use verification_context::*;
 pub use verification_result::*;
 pub use verifier::*;
 pub use viper::*;
-pub use java_exception::*;
-pub use silicon_counterexample::*;

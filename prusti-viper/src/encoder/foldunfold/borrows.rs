@@ -4,9 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::{collections::HashMap, io};
 use vir_crate::polymorphic as vir;
-use std::collections::HashMap;
-use std::io;
 
 pub(super) struct BasicBlock<'a> {
     pub guard: vir::Expr,
@@ -17,6 +16,7 @@ pub(super) struct BasicBlock<'a> {
     pub successors: Vec<usize>,
 }
 
+#[allow(clippy::upper_case_acronyms)]
 pub(super) struct CFG<'a> {
     pub basic_blocks: Vec<BasicBlock<'a>>,
     /// Basic blocks that connect a pair of basic blocks. They are needed for performing

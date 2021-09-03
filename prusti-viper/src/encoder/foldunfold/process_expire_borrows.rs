@@ -1,17 +1,11 @@
-use std::mem;
-use std::ops::Deref;
+use std::{mem, ops::Deref};
 
 use log::*;
 
-use prusti_common::report;
-use prusti_common::utils::to_string::ToString;
+use prusti_common::{report, utils::to_string::ToString};
 use vir_crate::polymorphic::{self as vir, CfgReplacer};
 
-use super::action::Action;
-use super::borrows;
-use super::FoldUnfold;
-use super::FoldUnfoldError;
-use super::path_ctxt::PathCtxt;
+use super::{action::Action, borrows, path_ctxt::PathCtxt, FoldUnfold, FoldUnfoldError};
 
 impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     /// Generates Viper statements that expire all the borrows from the given `dag`. The
@@ -41,7 +35,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 surrounding_block_index,
                 new_cfg,
                 curr_block_index,
-                &final_pctxt)?;
+                &final_pctxt,
+            )?;
 
             let curr_block = &mut cfg.basic_blocks[curr_block_index];
             curr_block.statements.extend(curr_block_pre_statements);
@@ -53,7 +48,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 curr_block,
                 curr_block_index,
                 label,
-                &mut pctxt)?;
+                &mut pctxt,
+            )?;
 
             final_pctxt[curr_block_index] = Some(pctxt);
         }
@@ -64,7 +60,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         Ok(self.generate_final_statements(&cfg, label))
     }
 
-    fn construct_initial_pctxt(&mut self,
+    #[allow(clippy::too_many_arguments)]
+    fn construct_initial_pctxt(
+        &mut self,
         dag: &vir::borrows::DAG,
         cfg: &mut borrows::CFG,
         surrounding_pctxt: &mut PathCtxt<'p>,
@@ -76,24 +74,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         let curr_block = &cfg.basic_blocks[curr_block_index];
         Ok(if curr_block.predecessors.is_empty() {
             self.construct_initial_pctxt_no_predecessors(
-                dag, cfg,
-                surrounding_pctxt,
-                surrounding_block_index,
-                new_cfg,
-                curr_block_index)?
-        } else {
-            let pctxt = self.construct_initial_pctxt_with_predecessors(
-                dag, cfg,
+                dag,
+                cfg,
                 surrounding_pctxt,
                 surrounding_block_index,
                 new_cfg,
                 curr_block_index,
-                final_pctxt)?;
+            )?
+        } else {
+            let pctxt = self.construct_initial_pctxt_with_predecessors(
+                dag,
+                cfg,
+                surrounding_pctxt,
+                surrounding_block_index,
+                new_cfg,
+                curr_block_index,
+                final_pctxt,
+            )?;
             (pctxt, Vec::new())
         })
     }
 
-    fn construct_initial_pctxt_no_predecessors(&mut self,
+    fn construct_initial_pctxt_no_predecessors(
+        &mut self,
         dag: &vir::borrows::DAG,
         cfg: &mut borrows::CFG,
         surrounding_pctxt: &mut PathCtxt<'p>,
@@ -106,8 +109,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         let mut pctxt = surrounding_pctxt.clone();
         let mut curr_block_pre_statements = Vec::new();
         let end_block = surrounding_block_index;
-        let start_block = self.get_cfg_block_of_last_borrow(
-            surrounding_block_index, &curr_node.borrow);
+        let start_block =
+            self.get_cfg_block_of_last_borrow(surrounding_block_index, &curr_node.borrow);
         if !start_block.weak_eq(&end_block) {
             let path = new_cfg.find_path(start_block, end_block).unwrap();
             debug!(
@@ -132,7 +135,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         Ok((pctxt, curr_block_pre_statements))
     }
 
-    fn construct_initial_pctxt_with_predecessors(&mut self,
+    #[allow(clippy::too_many_arguments)]
+    fn construct_initial_pctxt_with_predecessors(
+        &mut self,
         dag: &vir::borrows::DAG,
         cfg: &mut borrows::CFG,
         surrounding_pctxt: &mut PathCtxt<'p>,
@@ -147,12 +152,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         for &predecessor in &curr_block.predecessors {
             let mut pctxt = final_pctxt[predecessor].as_ref().unwrap().clone();
             let predecessor_node = &cfg.basic_blocks[predecessor].node;
-            let end_block = self.get_cfg_block_of_last_borrow(
-                surrounding_block_index,
-                &predecessor_node.borrow,
-            );
-            let start_block = self
-                .get_cfg_block_of_last_borrow(surrounding_block_index, &curr_node.borrow);
+            let end_block = self
+                .get_cfg_block_of_last_borrow(surrounding_block_index, &predecessor_node.borrow);
+            let start_block =
+                self.get_cfg_block_of_last_borrow(surrounding_block_index, &curr_node.borrow);
             if start_block != end_block {
                 let path = new_cfg.find_path(start_block, end_block).unwrap();
                 debug!(
@@ -170,7 +173,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 for perm in &dropped_permissions {
                     let comment = format!("restored (from log): {}", perm);
                     let key = (predecessor, curr_block_index);
-                    let entry = cfg.edges.entry(key).or_insert(Vec::new());
+                    let entry = cfg.edges.entry(key).or_insert_with(Vec::new);
                     entry.push(vir::Stmt::comment(comment));
                 }
                 pctxt
@@ -202,21 +205,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                     }
                 }
                 let key = (src_index, curr_block_index);
-                let entry = cfg.edges.entry(key).or_insert(Vec::new());
+                let entry = cfg.edges.entry(key).or_insert_with(Vec::new);
                 entry.extend(stmts_to_add);
             }
         }
         Ok(pctxt)
     }
 
-    fn process_node(&mut self,
+    #[allow(clippy::too_many_arguments)]
+    fn process_node(
+        &mut self,
         surrounding_pctxt: &mut PathCtxt<'p>,
         surrounding_block_index: vir::CfgBlockIndex,
         new_cfg: &vir::CfgMethod,
         curr_block: &mut borrows::BasicBlock,
         curr_block_index: usize,
         label: Option<&str>,
-        pctxt: &mut PathCtxt<'p>
+        pctxt: &mut PathCtxt<'p>,
     ) -> Result<(), FoldUnfoldError> {
         let curr_node = &curr_block.node;
         trace!("process_node: {:?}", curr_node);
@@ -231,7 +236,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             );
             let new_stmts = self.replace_stmt(
                 stmt_index,
-                &stmt,
+                stmt,
                 false,
                 pctxt,
                 surrounding_block_index,
@@ -255,7 +260,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 read_access = read_access.replace_place(&original_place, place);
             }
             maybe_original_place = Some(original_place);
-            let stmt = vir::Stmt::Exhale( vir::Exhale {
+            let stmt = vir::Stmt::Exhale(vir::Exhale {
                 expr: read_access,
                 position: self.method_pos,
             });
@@ -314,10 +319,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         Ok(())
     }
 
-    fn construct_final_pctxt(&mut self,
+    fn construct_final_pctxt(
+        &mut self,
         dag: &vir::borrows::DAG,
         cfg: &mut borrows::CFG,
-        final_pctxt: &[Option<PathCtxt<'p>>]
+        final_pctxt: &[Option<PathCtxt<'p>>],
     ) -> Result<PathCtxt<'p>, FoldUnfoldError> {
         let final_blocks: Vec<_> = cfg
             .basic_blocks
@@ -354,16 +360,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         Ok(final_pctxt)
     }
 
-    fn generate_final_statements(&mut self,
+    fn generate_final_statements(
+        &mut self,
         cfg: &borrows::CFG,
         label: Option<&str>,
     ) -> Vec<vir::Stmt> {
         let mut stmts = Vec::new();
         for (i, block) in cfg.basic_blocks.iter().enumerate() {
-            stmts.push(vir::Stmt::If( vir::If {
+            stmts.push(vir::Stmt::If(vir::If {
                 guard: block.guard.clone(),
                 then_stmts: self.patch_places(&block.statements, label),
-                else_stmts: vec![]
+                else_stmts: vec![],
             }));
             for ((from, to), statements) in &cfg.edges {
                 if *from == i {
@@ -371,7 +378,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                         block.guard.clone(),
                         cfg.basic_blocks[*to].current_guard.clone(),
                     );
-                    stmts.push(vir::Stmt::If( vir::If {
+                    stmts.push(vir::Stmt::If(vir::If {
                         guard: condition,
                         then_stmts: self.patch_places(statements, label),
                         else_stmts: vec![],
@@ -382,13 +389,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         stmts
     }
 
-    fn dump_debug_info(&self,
+    fn dump_debug_info(
+        &self,
         dag: &vir::borrows::DAG,
         cfg: &borrows::CFG,
         surrounding_block_index: vir::CfgBlockIndex,
-        curr_block_index: usize
+        curr_block_index: usize,
     ) {
-        if !self.dump_debug_info { return; }
+        if !self.dump_debug_info {
+            return;
+        }
         let source_path = self.encoder.env().source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         report::log::report_with_writer(
@@ -423,8 +433,10 @@ fn build_initial_cfg(dag: &vir::borrows::DAG) -> borrows::CFG {
         let statements = vec![vir::Stmt::comment(format!("expire loan {:?}", node.borrow))];
         let block = borrows::BasicBlock {
             node,
-            guard, current_guard,
-            predecessors, successors,
+            guard,
+            current_guard,
+            predecessors,
+            successors,
             statements,
         };
         cfg.add_block(block);

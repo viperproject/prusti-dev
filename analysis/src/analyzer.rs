@@ -4,15 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_middle::ty::TyCtxt;
-use rustc_middle::mir;
-pub use crate::PointwiseState;
-pub use crate::AnalysisError;
-pub use crate::abstract_domains::*;
-use crate::AbstractState;
-use std::collections::{HashMap, BTreeSet};
-use std::iter::FromIterator;
-use crate::analysis_error::AnalysisError::SuccessorWithoutState;
+pub use crate::{abstract_domains::*, AnalysisError, PointwiseState};
+use crate::{analysis_error::AnalysisError::SuccessorWithoutState, AbstractState};
+use rustc_middle::{mir, ty::TyCtxt};
+use std::{
+    collections::{BTreeSet, HashMap},
+    iter::FromIterator,
+};
 
 type Result<T> = std::result::Result<T, AnalysisError>;
 
@@ -22,22 +20,23 @@ pub struct Analyzer<'tcx> {
 
 impl<'a, 'tcx: 'a> Analyzer<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>) -> Self {
-        Analyzer {
-            tcx,
-        }
+        Analyzer { tcx }
     }
 
     /// Produces an abstract state for every program point in `mir` by iterating over all statements
     /// in program order until a fixed point is reached (i.e. by abstract interpretation).
     // TODO: add tracing like in initialization.rs?
-    pub fn run_fwd_analysis<S: AbstractState<'a, 'tcx>>(&self, mir: &'a mir::Body<'tcx>)
-        -> Result<PointwiseState<'a, 'tcx, S>>
-    {
+    pub fn run_fwd_analysis<S: AbstractState<'a, 'tcx>>(
+        &self,
+        mir: &'a mir::Body<'tcx>,
+    ) -> Result<PointwiseState<'a, 'tcx, S>> {
         let mut p_state = PointwiseState::new(mir, self.tcx);
         // use https://crates.io/crates/linked_hash_set for set preserving insertion order?
-        let mut work_set: BTreeSet<mir::BasicBlock> = BTreeSet::from_iter(mir.basic_blocks().indices());
+        let mut work_set: BTreeSet<mir::BasicBlock> =
+            BTreeSet::from_iter(mir.basic_blocks().indices());
 
-        let mut counters: HashMap<mir::BasicBlock, u32> = HashMap::with_capacity(mir.basic_blocks().len());
+        let mut counters: HashMap<mir::BasicBlock, u32> =
+            HashMap::with_capacity(mir.basic_blocks().len());
 
         //'block_loop:
         // extract the bb with the minimal index -> hopefully better performance
@@ -49,8 +48,7 @@ impl<'a, 'tcx: 'a> Analyzer<'tcx> {
             if bb == mir::START_BLOCK {
                 // entry block
                 state_before_block = S::new_initial(mir, self.tcx);
-            }
-            else {
+            } else {
                 state_before_block = S::new_bottom(mir, self.tcx);
             }
 

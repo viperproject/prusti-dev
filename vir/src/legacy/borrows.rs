@@ -57,6 +57,7 @@ pub struct Node {
 }
 
 impl Node {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         guard: Expr,
         borrow: Borrow,
@@ -90,7 +91,7 @@ impl fmt::Debug for Node {
 
 /// Reborrowing directed acyclic graph (DAG). It should not be mutated
 /// after it is constructed. For construction use `DAGBuilder`.
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DAG {
     /// Mapping from borrows to their node indices.
     #[serde(skip)]
@@ -164,18 +165,14 @@ impl DAG {
 }
 
 /// A struct for constructing the reborrowing DAG.
+#[derive(Default)]
 pub struct DAGBuilder {
     dag: DAG,
 }
 
 impl DAGBuilder {
     pub fn new() -> Self {
-        let dag = DAG {
-            borrow_indices: HashMap::new(),
-            nodes: Vec::new(),
-            borrowed_places: Vec::new(),
-        };
-        Self { dag: dag }
+        Self::default()
     }
     pub fn add_node(&mut self, node: Node) {
         let borrow = node.borrow;

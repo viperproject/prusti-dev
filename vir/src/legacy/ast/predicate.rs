@@ -40,10 +40,7 @@ impl Predicate {
     }
     /// Is this predicate abstract.
     pub fn is_abstract(&self) -> bool {
-        match self {
-            Predicate::Struct(StructPredicate { body: None, .. }) => true,
-            _ => false,
-        }
+        matches!(self, Predicate::Struct(StructPredicate { body: None, .. }))
     }
     /// Construct a new predicate that represents a type that models a primitive
     /// value such as an integer or a boolean.
@@ -67,7 +64,7 @@ impl Predicate {
         let body = conjuncts.into_iter().conjoin();
         Predicate::Struct(StructPredicate {
             name: predicate_name,
-            this: this,
+            this,
             body: Some(body),
         })
     }
@@ -169,7 +166,7 @@ impl StructPredicate {
             .into_iter()
             .flat_map(|field| {
                 let predicate_name = field.typed_ref_name().unwrap();
-                let location: Expr = Expr::from(this.clone()).field(field).into();
+                let location: Expr = Expr::from(this.clone()).field(field);
                 let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
                 let pred_perm =
                     Expr::predicate_access_predicate(predicate_name, location, PermAmount::Write);
@@ -178,7 +175,7 @@ impl StructPredicate {
             .conjoin();
         Self {
             name: predicate_name,
-            this: this,
+            this,
             body: Some(body),
         }
     }
@@ -193,10 +190,7 @@ impl StructPredicate {
     }
     /// Is the predicate's body just `true`?
     pub fn has_empty_body(&self) -> bool {
-        match self.body {
-            Some(Expr::Const(Const::Bool(true), _)) => true,
-            _ => false,
-        }
+        matches!(self.body, Some(Expr::Const(Const::Bool(true), _)))
     }
 }
 
@@ -236,18 +230,18 @@ impl EnumVariantIndex {
     }
 }
 
-impl<'a> Into<EnumVariantIndex> for &'a Field {
-    fn into(self) -> EnumVariantIndex {
+impl<'a> From<&'a Field> for EnumVariantIndex {
+    fn from(field: &'a Field) -> Self {
         // TODO: Refactor to avoid string manipulations.
-        assert!(self.name.starts_with("enum_"));
-        EnumVariantIndex(self.name[5..].to_string())
+        assert!(field.name.starts_with("enum_"));
+        EnumVariantIndex(field.name[5..].to_string())
     }
 }
 
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "enum_predicate {}({}){{\n", self.name, self.this)?;
-        write!(f, "  discriminant_field={}\n", self.discriminant_field)?;
+        writeln!(f, "enum_predicate {}({}){{", self.name, self.this)?;
+        writeln!(f, "  discriminant_field={}", self.discriminant_field)?;
         for (guard, name, variant) in self.variants.iter() {
             writeln!(f, "  {}: {} ==> {}\n", name, guard, variant)?;
         }
@@ -272,7 +266,7 @@ impl EnumPredicate {
                 continue;
             }
             let field = Field::new(format!("enum_{}", name), variant.this.typ.clone());
-            let location: Expr = Expr::from(self.this.clone()).field(field).into();
+            let location: Expr = Expr::from(self.this.clone()).field(field);
             let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
             let pred_perm = variant.construct_access(location, PermAmount::Write);
             parts.push(Expr::and(

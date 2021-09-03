@@ -90,10 +90,7 @@ impl Snapshot {
 
     pub fn is_quantifiable(&self) -> bool {
         // TODO: allow more types?
-        match self {
-            Self::Primitive(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::Primitive(_))
     }
 
     pub fn supports_equality(&self) -> bool {

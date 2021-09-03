@@ -41,7 +41,7 @@ impl fmt::Display for Domain {
         for function in &self.functions {
             writeln!(f, "\t{}", function)?;
         }
-        writeln!(f, "")?;
+        writeln!(f)?;
         for axiom in &self.axioms {
             writeln!(f, "\t{}", axiom)?;
         }

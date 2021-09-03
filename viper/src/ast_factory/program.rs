@@ -2,20 +2,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::structs::Domain;
-use ast_factory::structs::NamedDomainAxiom;
-use ast_factory::structs::DomainFunc;
-use ast_factory::structs::Expr;
-use ast_factory::structs::Field;
-use ast_factory::structs::Function;
-use ast_factory::structs::LocalVarDecl;
-use ast_factory::structs::Method;
-use ast_factory::structs::Position;
-use ast_factory::structs::Predicate;
-use ast_factory::structs::Program;
-use ast_factory::structs::Stmt;
-use ast_factory::structs::Type;
-use ast_factory::AstFactory;
+use ast_factory::{
+    structs::{
+        Domain, DomainFunc, Expr, Field, Function, LocalVarDecl, Method, NamedDomainAxiom,
+        Position, Predicate, Program, Stmt, Type,
+    },
+    AstFactory,
+};
 use jni::objects::JObject;
 use viper_sys::wrappers::viper::silver::ast;
 
@@ -80,6 +73,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn function(
         &self,
         name: &str,
@@ -172,15 +166,22 @@ impl<'a> AstFactory<'a> {
         DomainFunc::new(obj)
     }
 
-    pub fn named_domain_axiom(&self, name: &str, expr: Expr, domain_name: &str) -> NamedDomainAxiom<'a> {
-        let obj = self.jni.unwrap_result(ast::NamedDomainAxiom::with(self.env).new(
-            self.jni.new_string(name),
-            expr.to_jobject(),
-            self.no_position().to_jobject(),
-            self.no_info(),
-            self.jni.new_string(domain_name),
-            self.no_trafos(),
-        ));
+    pub fn named_domain_axiom(
+        &self,
+        name: &str,
+        expr: Expr,
+        domain_name: &str,
+    ) -> NamedDomainAxiom<'a> {
+        let obj = self
+            .jni
+            .unwrap_result(ast::NamedDomainAxiom::with(self.env).new(
+                self.jni.new_string(name),
+                expr.to_jobject(),
+                self.no_position().to_jobject(),
+                self.no_info(),
+                self.jni.new_string(domain_name),
+                self.no_trafos(),
+            ));
         NamedDomainAxiom::new(obj)
     }
 }

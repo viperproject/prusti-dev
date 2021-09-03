@@ -124,9 +124,9 @@ struct Replacer<'a> {
 }
 
 impl<'a> Replacer<'a> {
-    fn new(bound_vars: &Vec<vir::LocalVar>, counter: &'a mut u32) -> Self {
+    fn new(bound_vars: &[vir::LocalVar], counter: &'a mut u32) -> Self {
         Self {
-            counter: counter,
+            counter,
             map: HashMap::new(),
             bound_vars: bound_vars.iter().cloned().map(|v| v.into()).collect(),
         }
@@ -136,7 +136,7 @@ impl<'a> Replacer<'a> {
         let name = format!("_LET_{}", self.counter);
         (*self.counter) += 1;
         vir::LocalVar {
-            name: name,
+            name,
             typ: ty.clone(),
         }
     }
@@ -146,7 +146,7 @@ impl<'a> Replacer<'a> {
             vir::Expr::Local( vir::Local {variable: local.clone(), position: pos} )
         } else {
             let typ = original_expr.get_type();
-            let local = self.construct_fresh_local(&typ);
+            let local = self.construct_fresh_local(typ);
             self.map.insert(original_expr, local.clone());
             vir::Expr::Local( vir::Local {variable: local, position: pos} )
         }
@@ -249,7 +249,7 @@ impl vir::ExprFolder for UnfoldingExtractor {
             position,
         });
 
-        let unfoldings = mem::replace(&mut self.unfoldings, HashMap::new());
+        let unfoldings = mem::take(&mut self.unfoldings);
 
         for ((name, args), (perm_amount, variant, _)) in unfoldings {
             forall =

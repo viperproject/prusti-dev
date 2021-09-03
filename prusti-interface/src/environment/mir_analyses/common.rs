@@ -15,6 +15,7 @@ pub struct AnalysisResult<T> {
 }
 
 impl<T> AnalysisResult<T> {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             before_block: HashMap::new(),
@@ -26,20 +27,19 @@ impl<T> AnalysisResult<T> {
     pub fn get_before_block(&self, bb: mir::BasicBlock) -> &T {
         self.before_block
             .get(&bb)
-            .expect(&format!("Missing initialization info for block {:?}", bb))
+            .unwrap_or_else(|| panic!("Missing initialization info for block {:?}", bb))
     }
     /// Get the initialization set after the statement.
     /// If `location.statement_index` is equal to the number of statements,
     /// returns the initialization set after the terminator.
     pub fn get_after_statement(&self, location: mir::Location) -> &T {
-        self.after_statement.get(&location).expect(&format!(
-            "Missing initialization info for location {:?}",
-            location
-        ))
+        self.after_statement.get(&location).unwrap_or_else(|| panic!("Missing initialization info for location {:?}",
+            location))
     }
 }
 
 /// A work item used in the fixpoint computation's work queue.
+#[allow(clippy::enum_variant_names)]
 pub(super) enum WorkItem {
     /// Need to apply the effects of the statement.
     ApplyStatementEffects(mir::Location),

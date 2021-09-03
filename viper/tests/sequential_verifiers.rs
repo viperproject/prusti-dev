@@ -27,19 +27,13 @@ fn sequential_verifier_initialization() {
                     ast.empty_multiset(ast.int_type()),
                 ),
                 ast.eq_cmp(
-                    ast.explicit_set(
-                        &(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>(),
-                    ),
-                    ast.explicit_set(
-                        &(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>(),
-                    ),
+                    ast.explicit_set(&(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>()),
+                    ast.explicit_set(&(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>()),
                 ),
             ),
             ast.eq_cmp(
                 ast.seq_take(
-                    ast.explicit_seq(
-                        &(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>(),
-                    ),
+                    ast.explicit_seq(&(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>()),
                     ast.int_lit(3),
                 ),
                 ast.explicit_seq(&(0..3).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>()),
@@ -54,8 +48,7 @@ fn sequential_verifier_initialization() {
 
         let program = ast.program(&[], &[], &[], &[], &[method]);
 
-        let verifier =
-            verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+        let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
         let verification_result = verifier.verify(program);
 

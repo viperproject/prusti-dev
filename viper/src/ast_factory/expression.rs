@@ -2,18 +2,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::structs::DomainFunc;
-use ast_factory::structs::Expr;
-use ast_factory::structs::Field;
-use ast_factory::structs::LocalVarDecl;
-use ast_factory::structs::Location;
-use ast_factory::structs::Position;
-use ast_factory::structs::Trigger;
-use ast_factory::structs::Type;
-use ast_factory::AstFactory;
+use ast_factory::{
+    structs::{DomainFunc, Expr, Field, LocalVarDecl, Location, Position, Trigger, Type},
+    AstFactory,
+};
 use jni::objects::JObject;
 use viper_sys::wrappers::viper::silver::ast;
-
 
 impl<'a> AstFactory<'a> {
     pub fn add_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
@@ -702,7 +696,7 @@ impl<'a> AstFactory<'a> {
         variables: &[LocalVarDecl],
         triggers: &[Trigger],
         expr: Expr,
-        _pos: Position
+        _pos: Position,
     ) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
@@ -765,7 +759,13 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn result_with_pos(&self, var_type: Type, pos: Position) -> Expr<'a> {
-        build_ast_node_with_pos!(self, Expr, ast::Result, var_type.to_jobject(), pos.to_jobject())
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::Result,
+            var_type.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn empty_seq(&self, elem_type: Type) -> Expr<'a> {
