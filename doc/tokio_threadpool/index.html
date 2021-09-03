@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A work-stealing based thread pool for executing futures."><meta name="keywords" content="rust, rustlang, rust-lang, tokio_threadpool"><title>tokio_threadpool - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../tokio_threadpool/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate tokio_threadpool</h2><div class="block version"><div class="narrow-helper"></div><p>Version 0.1.18</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all tokio_threadpool's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div><div id="sidebar-vars" data-name="tokio_threadpool" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">tokio_threadpool</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/tokio_threadpool/lib.rs.html#1-174" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A work-stealing based thread pool for executing futures.</p>
+<blockquote>
+<p><strong>Note:</strong> This crate is <strong>deprecated in tokio 0.2.x</strong> and has been moved
+and refactored into various places in the <a href="https://docs.rs/tokio/latest/tokio/runtime/index.html"><code>tokio::runtime</code></a> module of the
+<a href="https://docs.rs/tokio/latest/tokio/index.html"><code>tokio</code></a> crate. Note that there is no longer a <code>ThreadPool</code> type, you are
+instead encouraged to make use of the thread pool used by a <code>Runtime</code>
+configured to use the <a href="https://docs.rs/tokio/latest/tokio/runtime/index.html#threaded-scheduler">threaded scheduler</a>.</p>
+</blockquote>
+<p>The Tokio thread pool supports scheduling futures and processing them on
+multiple CPU cores. It is optimized for the primary Tokio use case of many
+independent tasks with limited computation and with most tasks waiting on
+I/O. Usually, users will not create a <code>ThreadPool</code> instance directly, but
+will use one via a <a href="https://docs.rs/tokio/0.1/tokio/runtime/"><code>runtime</code></a>.</p>
+<p>The <code>ThreadPool</code> structure manages two sets of threads:</p>
+<ul>
+<li>Worker threads.</li>
+<li>Backup threads.</li>
+</ul>
+<p>Worker threads are used to schedule futures using a work-stealing strategy.
+Backup threads, on the other hand, are intended only to support the
+<code>blocking</code> API. Threads will transition between the two sets.</p>
+<p>The advantage of the work-stealing strategy is minimal cross-thread
+coordination. The thread pool attempts to make as much progress as possible
+without communicating across threads.</p>
+<h2 id="worker-overview" class="section-header"><a href="#worker-overview">Worker overview</a></h2>
+<p>Each worker has two queues: a deque and a mpsc channel. The deque is the
+primary queue for tasks that are scheduled to run on the worker thread. Tasks
+can only be pushed onto the deque by the worker, but other workers may
+“steal” from that deque. The mpsc channel is used to submit futures while
+external to the pool.</p>
+<p>As long as the thread pool has not been shutdown, a worker will run in a
+loop. Each loop, it consumes all tasks on its mpsc channel and pushes it onto
+the deque. It then pops tasks off of the deque and executes them.</p>
+<p>If a worker has no work, i.e., both queues are empty. It attempts to steal.
+To do this, it randomly scans other workers’ deques and tries to pop a task.
+If it finds no work to steal, the thread goes to sleep.</p>
+<p>When the worker detects that the pool has been shut down, it exits the loop,
+cleans up its state, and shuts the thread down.</p>
+<h2 id="thread-pool-initialization" class="section-header"><a href="#thread-pool-initialization">Thread pool initialization</a></h2>
+<p>Note, users normally will use the threadpool created by a <a href="https://docs.rs/tokio/0.1/tokio/runtime/"><code>runtime</code></a>.</p>
+<p>By default, no threads are spawned on creation. Instead, when new futures are
+spawned, the pool first checks if there are enough active worker threads. If
+not, a new worker thread is spawned.</p>
+<h2 id="spawning-futures" class="section-header"><a href="#spawning-futures">Spawning futures</a></h2>
+<p>The spawning behavior depends on whether a future was spawned from within a
+worker or thread or if it was spawned from an external handle.</p>
+<p>When spawning a future while external to the thread pool, the current
+strategy is to randomly pick a worker to submit the task to. The task is then
+pushed onto that worker’s mpsc channel.</p>
+<p>When spawning a future while on a worker thread, the task is pushed onto the
+back of the current worker’s deque.</p>
+<h2 id="blocking-annotation-strategy" class="section-header"><a href="#blocking-annotation-strategy">Blocking annotation strategy</a></h2>
+<p>The <a href="fn.blocking.html"><code>blocking</code></a> function is used to annotate a section of code that
+performs a blocking operation, either by issuing a blocking syscall or
+performing any long running CPU-bound computation.</p>
+<p>The strategy for handling blocking closures is to hand off the worker to a
+new thread. This implies handing off the <code>deque</code> and <code>mpsc</code>. Once this is
+done, the new thread continues to process the work queue and the original
+thread is able to block. Once it finishes processing the blocking future, the
+thread has no additional work and is inserted into the backup pool. This
+makes it available to other workers that encounter a <a href="fn.blocking.html"><code>blocking</code></a> call.</p>
+</div></details><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="mod" href="park/index.html" title="tokio_threadpool::park mod">park</a></div><div class="item-right docblock-short"><p>Thread parking utilities.</p>
+</div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.BlockingError.html" title="tokio_threadpool::BlockingError struct">BlockingError</a></div><div class="item-right docblock-short"><p>Error raised by <code>blocking</code>.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.Builder.html" title="tokio_threadpool::Builder struct">Builder</a></div><div class="item-right docblock-short"><p>Builds a thread pool with custom configuration values.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.Sender.html" title="tokio_threadpool::Sender struct">Sender</a></div><div class="item-right docblock-short"><p>Submit futures to the associated thread pool for execution.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.Shutdown.html" title="tokio_threadpool::Shutdown struct">Shutdown</a></div><div class="item-right docblock-short"><p>Future that resolves when the thread pool is shutdown.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.SpawnHandle.html" title="tokio_threadpool::SpawnHandle struct">SpawnHandle</a></div><div class="item-right docblock-short"><p>Handle returned from ThreadPool::spawn_handle.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.ThreadPool.html" title="tokio_threadpool::ThreadPool struct">ThreadPool</a></div><div class="item-right docblock-short"><p>Work-stealing based thread pool for executing futures.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.Worker.html" title="tokio_threadpool::Worker struct">Worker</a></div><div class="item-right docblock-short"><p>Thread worker</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.WorkerId.html" title="tokio_threadpool::WorkerId struct">WorkerId</a></div><div class="item-right docblock-short"><p>Identifies a thread pool worker.</p>
+</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.blocking.html" title="tokio_threadpool::blocking fn">blocking</a></div><div class="item-right docblock-short"><p>Enter a blocking section of code.</p>
+</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="tokio_threadpool" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+    <script src="../main.js"></script>
+</body></html>

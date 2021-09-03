@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["compute_definitely_initialized",""]],"type":[["DefinitelyInitializedAnalysisResult","The result of the definitely initialized analysis."]]});

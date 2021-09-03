@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A Futures channel-like utility to signal when a value is wanted."><meta name="keywords" content="rust, rustlang, rust-lang, want"><title>want - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../want/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate want</h2><div class="block version"><div class="narrow-helper"></div><p>Version 0.2.0</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all want's items</p></a><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div><div id="sidebar-vars" data-name="want" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">want</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/want/lib.rs.html#1-566" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A Futures channel-like utility to signal when a value is wanted.</p>
+<p>Futures are supposed to be lazy, and only starting work if <code>Future::poll</code>
+is called. The same is true of <code>Stream</code>s, but when using a channel as
+a <code>Stream</code>, it can be hard to know if the receiver is ready for the next
+value.</p>
+<p>Put another way, given a <code>(tx, rx)</code> from <code>futures::sync::mpsc::channel()</code>,
+how can the sender (<code>tx</code>) know when the receiver (<code>rx</code>) actually wants more
+work to be produced? Just because there is room in the channel buffer
+doesn’t mean the work would be used by the receiver.</p>
+<p>This is where something like <code>want</code> comes in. Added to a channel, you can
+make sure that the <code>tx</code> only creates the message and sends it when the <code>rx</code>
+has <code>poll()</code> for it, and the buffer was empty.</p>
+<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">futures</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">want</span>;
+
+<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Async</span>, <span class="ident">Stream</span>};
+
+<span class="comment">// Some message that is expensive to produce.</span>
+<span class="kw">struct</span> <span class="ident">Expensive</span>;
+
+<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">tx</span>, <span class="kw-2">mut</span> <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">futures::sync::mpsc::channel</span>(<span class="number">0</span>);
+<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">gv</span>, <span class="kw-2">mut</span> <span class="ident">tk</span>) <span class="op">=</span> <span class="ident">want::new</span>();
+
+
+<span class="comment">// Our receiving task...</span>
+<span class="ident">spawn</span>(<span class="ident">futures::future::poll_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="kw">loop</span> {
+
+    <span class="kw">match</span> <span class="ident">rx</span>.<span class="ident">poll</span>() {
+        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">_msg</span>))) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="macro">println!</span>(<span class="string">&quot;got a message&quot;</span>);
+        },
+        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(<span class="prelude-val">None</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="macro">println!</span>(<span class="string">&quot;DONE&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, ()<span class="op">&gt;</span>(<span class="ident">Async::Ready</span>(()));
+        },
+        <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="comment">// Maybe something comes up that prevents us from ever</span>
+            <span class="comment">// using the expensive message.</span>
+            <span class="comment">//</span>
+            <span class="comment">// Without `want`, the &quot;send&quot; task may have started to</span>
+            <span class="comment">// produce the expensive message even though we wouldn&#39;t</span>
+            <span class="comment">// be able to use it.</span>
+            <span class="ident">can_we_print_msg</span>()<span class="question-mark">?</span>;
+
+            <span class="comment">// But we can use it! So tell the `want` channel.</span>
+            <span class="ident">tk</span>.<span class="ident">want</span>();
+        },
+        <span class="prelude-val">Err</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;mpsc doesn&#39;t error&quot;</span>),
+    }
+}));
+
+<span class="comment">// Our sending task</span>
+<span class="ident">spawn</span>(<span class="ident">futures::future::poll_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+    <span class="comment">// It&#39;s expensive to create a new message, so we wait until the</span>
+    <span class="comment">// receiving end truly *wants* the message.</span>
+    <span class="kw">match</span> <span class="ident">gv</span>.<span class="ident">poll_want</span>() {
+        <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(())) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="comment">// They want it, let&#39;s go!</span>
+            <span class="ident">tx</span>.<span class="ident">try_send</span>(<span class="ident">Expensive</span>).<span class="ident">unwrap</span>();
+            <span class="prelude-val">Ok</span>(<span class="ident">Async::Ready</span>(()))
+        },
+        <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async::NotReady</span>),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="comment">// Looks like they will never want it...</span>
+            <span class="prelude-val">Err</span>(())
+        }
+    }
+}));
+</code></pre></div>
+</div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Closed.html" title="want::Closed struct">Closed</a></div><div class="item-right docblock-short"><p>The <code>Taker</code> has canceled its interest in a value.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.Giver.html" title="want::Giver struct">Giver</a></div><div class="item-right docblock-short"><p>An entity that gives a value when wanted.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.SharedGiver.html" title="want::SharedGiver struct">SharedGiver</a></div><div class="item-right docblock-short"><p>A cloneable <code>Giver</code>.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.Taker.html" title="want::Taker struct">Taker</a></div><div class="item-right docblock-short"><p>An entity that wants a value.</p>
+</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.new.html" title="want::new fn">new</a></div><div class="item-right docblock-short"><p>Create a new <code>want</code> channel.</p>
+</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="want" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+    <script src="../main.js"></script>
+</body></html>

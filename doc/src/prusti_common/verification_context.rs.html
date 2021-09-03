@@ -1,0 +1,202 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-common&#x2F;src&#x2F;verification_context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verification_context.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../prusti_common/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+</pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
+<span class="comment">//</span>
+<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
+<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
+<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+
+<span class="kw">use</span> <a class="ident" href="../../src/prusti_common/lib.rs.html#28"><span class="kw">crate</span>::config</a>;
+<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">fs::create_dir_all</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/prusti_common/verification_service.rs.html#23-26"><span class="kw">crate</span>::verification_service::ViperBackendConfig</a>;
+<span class="kw">use</span> <span class="ident">viper</span>::{<a class="self" href="../../viper/index.html">self</a>, <a class="ident" href="../../viper/ast_factory/struct.AstFactory.html">AstFactory</a>, <a class="ident" href="../../viper/verification_backend/enum.VerificationBackend.html">VerificationBackend</a>, <a class="ident" href="../../viper/viper/struct.Viper.html">Viper</a>};
+
+<span class="doccomment">/// A verifier builder is an object that lives entire program&#39;s</span>
+<span class="doccomment">/// lifetime, has no mutable state, and is responsible for constructing</span>
+<span class="doccomment">/// verification context instances. The user of this interface is supposed</span>
+<span class="doccomment">/// to create a new verifier for each crate he or she wants to verify.</span>
+<span class="doccomment">/// The main motivation for having a builder is to be able to cache the JVM</span>
+<span class="doccomment">/// initialization.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VerifierBuilder</span> {
+    <span class="ident">viper</span>: <a class="ident" href="../../viper/viper/struct.Viper.html">Viper</a>,
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#18-20">VerifierBuilder</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">viper</span>: <span class="ident">Viper::new_with_args</span>(<a class="ident" href="../../src/prusti_common/config.rs.html#286">config::extra_jvm_args</a>()),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_verification_context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#45-47">VerificationContext</a> {
+        <span class="kw">let</span> <span class="ident">verification_ctx</span> <span class="op">=</span> <a class="self" href="../../src/prusti_common/verification_context.rs.html#29">self</a>.<span class="ident">viper</span>.<span class="ident">new_verification_context</span>();
+        <span class="ident">VerificationContext::new</span>(<a class="ident" href="../../src/prusti_common/verification_context.rs.html#30">verification_ctx</a>)
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#18-20">VerifierBuilder</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">VerifierBuilder::new</span>()
+    }
+}
+
+<span class="doccomment">/// A verification context is an object that lives entire verification&#39;s lifetime.</span>
+<span class="doccomment">/// Its main purpose is to build verifiers.</span>
+<span class="doccomment">/// The main motivation for having a verification context is to be able to detach the current</span>
+<span class="doccomment">/// thread from the JVM when the verification context goes out of scope.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VerificationContext</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span><span class="op">&gt;</span> {
+    <span class="ident">verification_ctx</span>: <span class="ident">viper::VerificationContext</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">VerificationContext</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">verification_ctx</span>: <span class="ident">viper::VerificationContext</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <a class="ident" href="../../src/prusti_common/verification_context.rs.html#45-47">VerificationContext</a> { <a class="ident" href="../../src/prusti_common/verification_context.rs.html#50">verification_ctx</a> }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_viper_verifier</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">backend_config</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_common/verification_service.rs.html#23-26">ViperBackendConfig</a>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">viper::Verifier</span><span class="op">&lt;</span><a class="ident" href="../../viper/verifier/state/struct.Started.html">viper::state::Started</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#56">backend_config</a>.<span class="ident">verifier_args</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">log_path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<a class="ident" href="../../src/prusti_common/config.rs.html#266">config::log_dir</a>()).<span class="ident">join</span>(<span class="string">&quot;viper_tmp&quot;</span>);
+        <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">create_dir_all</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_common/verification_context.rs.html#59">log_path</a>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">report_path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#59">log_path</a>.<span class="ident">join</span>(<span class="string">&quot;report.csv&quot;</span>);
+        <span class="kw">let</span> <span class="ident">log_dir_str</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#59">log_path</a>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
+        <span class="kw">match</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#56">backend_config</a>.<span class="ident">backend</span> {
+            <span class="ident">VerificationBackend::Silicon</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#58">verifier_args</a>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
+                <span class="string">&quot;--tempDirectory&quot;</span>.<span class="ident">to_string</span>(),
+                <a class="ident" href="../../src/prusti_common/verification_context.rs.html#62">log_dir_str</a>.<span class="ident">to_string</span>(),
+            ]),
+            <span class="ident">VerificationBackend::Carbon</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#58">verifier_args</a>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
+                <span class="string">&quot;--boogieOpt&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="macro">format!</span>(<span class="string">&quot;/logPrefix {}&quot;</span>, <a class="ident" href="../../src/prusti_common/verification_context.rs.html#62">log_dir_str</a>),
+            ]),
+        }
+        <span class="kw">if</span> <a class="ident" href="../../src/prusti_common/config.rs.html#225">config::dump_debug_info</a>() {
+            <span class="kw">match</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#56">backend_config</a>.<span class="ident">backend</span> {
+                <span class="ident">VerificationBackend::Silicon</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#58">verifier_args</a>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
+                    <span class="string">&quot;--printMethodCFGs&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="comment">//&quot;--printTranslatedProgram&quot;.to_string(),</span>
+                ]),
+                <span class="ident">VerificationBackend::Carbon</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../src/prusti_common/verification_context.rs.html#58">verifier_args</a>.<span class="ident">extend</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="macro">vec!</span>[
+                    <span class="comment">//&quot;--print&quot;.to_string(), &quot;./log/boogie_program/program.bpl&quot;.to_string(),</span>
+                ]),
+            }
+        }
+
+        <a class="self" href="../../src/prusti_common/verification_context.rs.html#55">self</a>.<span class="ident">verification_ctx</span>.<span class="ident">new_verifier_with_args</span>(
+            <a class="ident" href="../../src/prusti_common/verification_context.rs.html#56">backend_config</a>.<span class="ident">backend</span>,
+            <a class="ident" href="../../src/prusti_common/verification_context.rs.html#58">verifier_args</a>,
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_common/verification_context.rs.html#61">report_path</a>),
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_ast_factory</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../viper/ast_factory/struct.AstFactory.html">AstFactory</a> {
+        <a class="self" href="../../src/prusti_common/verification_context.rs.html#92">self</a>.<span class="ident">verification_ctx</span>.<span class="ident">new_ast_factory</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_ast_utils</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../viper/ast_utils/struct.AstUtils.html">viper::AstUtils</a> {
+        <a class="self" href="../../src/prusti_common/verification_context.rs.html#96">self</a>.<span class="ident">verification_ctx</span>.<span class="ident">new_ast_utils</span>()
+    }
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_common" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</body></html>

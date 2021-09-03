@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["query","Creates a `Filter` that decodes query parameters to the type `T`."],["raw","Creates a `Filter` that returns the raw query string as type String."]]});

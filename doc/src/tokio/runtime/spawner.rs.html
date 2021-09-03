@@ -1,0 +1,98 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;tokio-1.11.0&#x2F;src&#x2F;runtime&#x2F;spawner.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spawner.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#192"><span class="kw">crate</span>::runtime::basic_scheduler</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#3"><span class="kw">crate</span>::runtime::stats::RuntimeStats</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/task/join.rs.html#144-147"><span class="kw">crate</span>::task::JoinHandle</a>;
+
+<span class="macro">cfg_rt_multi_thread!</span> {
+    <span class="kw">use</span> <a class="ident" href="../../../src/tokio/runtime/mod.rs.html#222"><span class="kw">crate</span>::runtime::thread_pool</a>;
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Spawner</span> {
+    <span class="ident">Basic</span>(<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#57-59">basic_scheduler::Spawner</a>),
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rt-multi-thread&quot;</span>)]</span>
+    <span class="ident">ThreadPool</span>(<a class="ident" href="../../../src/tokio/runtime/thread_pool/mod.rs.html#40-42">thread_pool::Spawner</a>),
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#11-15">Spawner</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rt-multi-thread&quot;</span>)]</span>
+        {
+            <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#14">Spawner::ThreadPool</a>(<span class="ident">spawner</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/runtime/spawner.rs.html#18">self</a> {
+                <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#21">spawner</a>.<a class="ident" href="../../../src/tokio/runtime/thread_pool/mod.rs.html#100">shutdown</a>();
+            }
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="ident">F::Output</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F::Output</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    {
+        <span class="kw">match</span> <a class="self" href="../../../src/tokio/runtime/spawner.rs.html#27">self</a> {
+            <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#12">Spawner::Basic</a>(<span class="ident">spawner</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#33">spawner</a>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#373-376">spawn</a>(<a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#27">future</a>),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rt-multi-thread&quot;</span>)]</span>
+            <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#14">Spawner::ThreadPool</a>(<span class="ident">spawner</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#35">spawner</a>.<a class="ident" href="../../../src/tokio/runtime/thread_pool/mod.rs.html#92-95">spawn</a>(<a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#27">future</a>),
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stats&quot;</span>)), <span class="ident">allow</span>(<span class="ident">dead_code</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stats</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/runtime/stats/mock.rs.html#3">RuntimeStats</a> {
+        <span class="kw">match</span> <a class="self" href="../../../src/tokio/runtime/spawner.rs.html#40">self</a> {
+            <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#12">Spawner::Basic</a>(<span class="ident">spawner</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#42">spawner</a>.<a class="ident" href="../../../src/tokio/runtime/basic_scheduler.rs.html#387">stats</a>(),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rt-multi-thread&quot;</span>)]</span>
+            <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#14">Spawner::ThreadPool</a>(<span class="ident">spawner</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/runtime/spawner.rs.html#44">spawner</a>.<a class="ident" href="../../../src/tokio/runtime/thread_pool/mod.rs.html#104">stats</a>(),
+        }
+    }
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</body></html>

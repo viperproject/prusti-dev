@@ -1,0 +1,74 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="An unsafe trait for implementing custom forms of memory management behind a `Task`."><meta name="keywords" content="rust, rustlang, rust-lang, UnsafeNotify"><title>UnsafeNotify in futures::executor - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../futures/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a><h2 class="location">Trait UnsafeNotify</h2><div class="sidebar-elems"><div class="block items"><h3 class="sidebar-title"><a href="#required-methods">Required Methods</a></h3><div class="sidebar-links"><a href="#tymethod.clone_raw">clone_raw</a><a href="#tymethod.drop_raw">drop_raw</a></div><h3 class="sidebar-title"><a href="#implementors">Implementors</a></h3></div><h2 class="location">Other items in<br><a href="../index.html">futures</a>::<wbr><a href="index.html">executor</a></h2><div id="sidebar-vars" data-name="UnsafeNotify" data-ty="trait" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Trait <a href="../index.html">futures</a>::<wbr><a href="index.html">executor</a>::<wbr><a class="trait" href="#">UnsafeNotify</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../../src/futures/task_impl/mod.rs.html#566-608" title="goto source code">[src]</a></span></h1><div class="docblock type-decl"><pre class="rust trait"><code>pub unsafe trait UnsafeNotify: <a class="trait" href="trait.Notify.html" title="trait futures::executor::Notify">Notify</a> {
+    unsafe fn <a href="#tymethod.clone_raw" class="fnname">clone_raw</a>(&amp;self) -&gt; <a class="struct" href="struct.NotifyHandle.html" title="struct futures::executor::NotifyHandle">NotifyHandle</a>;
+<div class="item-spacer"></div>    unsafe fn <a href="#tymethod.drop_raw" class="fnname">drop_raw</a>(&amp;self);
+}</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>An unsafe trait for implementing custom forms of memory management behind a
+<code>Task</code>.</p>
+<p>The <code>futures</code> critically relies on “notification handles” to extract for
+futures to contain and then later inform that they’re ready to make
+progress. These handles, however, must be cheap to create and cheap
+to clone to ensure that this operation is efficient throughout the
+execution of a program.</p>
+<p>Typically this sort of memory management is done in the standard library
+with the <code>Arc</code> type. An <code>Arc</code> is relatively cheap to allocate an is
+quite cheap to clone and pass around. Plus, it’s 100% safe!</p>
+<p>When working outside the standard library, however, you don’t always have
+and <code>Arc</code> type available to you. This trait, <code>UnsafeNotify</code>, is intended
+to be the “unsafe version” of the <code>Notify</code> trait. This trait encodes the
+memory management operations of a <code>Task</code>’s notification handle, allowing
+custom implementations for the memory management of a notification handle.</p>
+<p>Put another way, the core notification type in this library,
+<code>NotifyHandle</code>, simply internally contains an instance of
+<code>*mut UnsafeNotify</code>. This “unsafe trait object” is then used exclusively
+to operate with, dynamically dispatching calls to clone, drop, and notify.
+Critically though as a raw pointer it doesn’t require a particular form
+of memory management, allowing external implementations.</p>
+<p>A default implementation of the <code>UnsafeNotify</code> trait is provided for the
+<code>Arc</code> type in the standard library. If the <code>use_std</code> feature of this crate
+is not available however, you’ll be required to implement your own
+instance of this trait to pass it into <code>NotifyHandle::new</code>.</p>
+<h1 id="unsafety" class="section-header"><a href="#unsafety">Unsafety</a></h1>
+<p>This trait is manually encoding the memory management of the underlying
+handle, and as a result is quite unsafe to implement! Implementors of
+this trait must guarantee:</p>
+<ul>
+<li>Calls to <code>clone_raw</code> produce uniquely owned handles. It should be safe
+to drop the current handle and have the returned handle still be valid.</li>
+<li>Calls to <code>drop_raw</code> work with <code>self</code> as a raw pointer, deallocating
+resources associated with it. This is a pretty unsafe operation as it’s
+invalidating the <code>self</code> pointer, so extreme care needs to be taken.</li>
+</ul>
+<p>In general it’s recommended to review the trait documentation as well as
+the implementation for <code>Arc</code> in this crate. When in doubt ping the
+<code>futures</code> authors to clarify an unsafety question here.</p>
+</div></details><h2 id="required-methods" class="small-section-header">Required methods<a href="#required-methods" class="anchor"></a></h2><div class="methods"><details class="rustdoc-toggle" open><summary><div id="tymethod.clone_raw" class="method has-srclink"><div class="rightside"><a class="srclink" href="../../src/futures/task_impl/mod.rs.html#582" title="goto source code">[src]</a></div><h4 class="code-header">unsafe fn <a href="#tymethod.clone_raw" class="fnname">clone_raw</a>(&amp;self) -&gt; <a class="struct" href="struct.NotifyHandle.html" title="struct futures::executor::NotifyHandle">NotifyHandle</a></h4></div></summary><div class="docblock"><p>Creates a new <code>NotifyHandle</code> from this instance of <code>UnsafeNotify</code>.</p>
+<p>This function will create a new uniquely owned handle that under the
+hood references the same notification instance. In other words calls
+to <code>notify</code> on the returned handle should be equivalent to calls to
+<code>notify</code> on this handle.</p>
+<h1 id="unsafety-1" class="section-header"><a href="#unsafety-1">Unsafety</a></h1>
+<p>This trait is unsafe to implement, as are all these methods. This
+method is also unsafe to call as it’s asserting the <code>UnsafeNotify</code>
+value is in a consistent state. In general it’s recommended to
+review the trait documentation as well as the implementation for <code>Arc</code>
+in this crate. When in doubt ping the <code>futures</code> authors to clarify
+an unsafety question here.</p>
+</div></details><details class="rustdoc-toggle" open><summary><div id="tymethod.drop_raw" class="method has-srclink"><div class="rightside"><a class="srclink" href="../../src/futures/task_impl/mod.rs.html#607" title="goto source code">[src]</a></div><h4 class="code-header">unsafe fn <a href="#tymethod.drop_raw" class="fnname">drop_raw</a>(&amp;self)</h4></div></summary><div class="docblock"><p>Drops this instance of <code>UnsafeNotify</code>, deallocating resources
+associated with it.</p>
+<p>This method is intended to have a signature such as:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">fn</span> <span class="ident">drop_raw</span>(<span class="self">self</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="self">Self</span>);</code></pre></div>
+<p>Unfortunately in Rust today that signature is not object safe.
+Nevertheless it’s recommended to implement this function <em>as if</em> that
+were its signature. As such it is not safe to call on an invalid
+pointer, nor is the validity of the pointer guaranteed after this
+function returns.</p>
+<h1 id="unsafety-2" class="section-header"><a href="#unsafety-2">Unsafety</a></h1>
+<p>This trait is unsafe to implement, as are all these methods. This
+method is also unsafe to call as it’s asserting the <code>UnsafeNotify</code>
+value is in a consistent state. In general it’s recommended to
+review the trait documentation as well as the implementation for <code>Arc</code>
+in this crate. When in doubt ping the <code>futures</code> authors to clarify
+an unsafety question here.</p>
+</div></details></div><h2 id="implementors" class="small-section-header">Implementors<a href="#implementors" class="anchor"></a></h2><div class="item-list" id="implementors-list"></div><script type="text/javascript" src="../../implementors/futures/executor/trait.UnsafeNotify.js" async></script></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script>
+</body></html>

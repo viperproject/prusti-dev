@@ -1,0 +1,280 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;reqwest-0.9.24&#x2F;src&#x2F;cookie.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cookie.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../reqwest/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The cookies module contains types for working with request and response cookies.</span>
+
+<span class="kw">use</span> <a class="ident" href="../../cookie/index.html">cookie_crate</a>;
+<span class="kw">use</span> <a class="ident" href="../../reqwest/header/index.html">header</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">std::time::SystemTime</a>;
+
+<span class="doccomment">/// Convert a time::Tm time to SystemTime.</span>
+<span class="kw">fn</span> <span class="ident">tm_to_systemtime</span>(<span class="ident">tm</span>: <a class="ident" href="../../time/struct.Tm.html">::time::Tm</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a> {
+    <span class="kw">let</span> <span class="ident">seconds</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/cookie.rs.html#10">tm</a>.<span class="ident">to_timespec</span>().<span class="ident">sec</span>;
+    <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">std::time::Duration::from_secs</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#11">seconds</a>.<span class="ident">abs</span>() <span class="kw">as</span> <span class="ident">u64</span>);
+    <span class="kw">if</span> <a class="ident" href="../../src/reqwest/cookie.rs.html#11">seconds</a> <span class="op">&gt;</span> <span class="number">0</span> {
+        <span class="ident">SystemTime::UNIX_EPOCH</span> <span class="op">+</span> <a class="ident" href="../../src/reqwest/cookie.rs.html#12">duration</a>
+    } <span class="kw">else</span> {
+        <span class="ident">SystemTime::UNIX_EPOCH</span> <span class="op">-</span> <a class="ident" href="../../src/reqwest/cookie.rs.html#12">duration</a>
+    }
+}
+
+<span class="doccomment">/// Error representing a parse failure of a &#39;Set-Cookie&#39; header.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CookieParseError</span>(<a class="ident" href="../../cookie/parse/enum.ParseError.html">cookie::ParseError</a>);
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/cookie.rs.html#21">CookieParseError</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#24">self</a>.<span class="number">0</span>.<span class="ident">fmt</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#24">f</a>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/cookie.rs.html#21">CookieParseError</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#30">self</a>.<span class="number">0</span>.<span class="ident">fmt</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#30">f</a>)
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/cookie.rs.html#21">CookieParseError</a> {}
+
+<span class="doccomment">/// A single HTTP cookie.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">cookie::Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#41">self</a>.<span class="number">0</span>.<span class="ident">fmt</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#41">f</a>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Construct a new cookie with the given name and value.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">value</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <a class="ident" href="../../src/reqwest/cookie.rs.html#38">Cookie</a>(<span class="ident">cookie::Cookie::new</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#48">name</a>, <a class="ident" href="../../src/reqwest/cookie.rs.html#48">value</a>))
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../reqwest/header/struct.HeaderValue.html">::header::HeaderValue</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/reqwest/cookie.rs.html#21">CookieParseError</a><span class="op">&gt;</span> {
+        <span class="ident">std::str::from_utf8</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#58">value</a>.<span class="ident">as_bytes</span>())
+            .<span class="ident">map_err</span>(<span class="ident">cookie::ParseError::from</span>)
+            .<span class="ident">and_then</span>(<span class="ident">cookie::Cookie::parse</span>)
+            .<span class="ident">map_err</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#21">CookieParseError</a>)
+            .<span class="ident">map</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#38">Cookie</a>)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cookie::Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#66">self</a>.<span class="number">0</span>
+    }
+
+    <span class="doccomment">/// The name of the cookie.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#71">self</a>.<span class="number">0</span>.<span class="ident">name</span>()
+    }
+
+    <span class="doccomment">/// The value of the cookie.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#76">self</a>.<span class="number">0</span>.<span class="ident">value</span>()
+    }
+
+    <span class="doccomment">/// Returns true if the &#39;HttpOnly&#39; directive is enabled.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http_only</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#81">self</a>.<span class="number">0</span>.<span class="ident">http_only</span>().<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+    }
+
+    <span class="doccomment">/// Returns true if the &#39;Secure&#39; directive is enabled.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">secure</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#86">self</a>.<span class="number">0</span>.<span class="ident">secure</span>().<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+    }
+
+    <span class="doccomment">/// Returns true if  &#39;SameSite&#39; directive is &#39;Lax&#39;.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_site_lax</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#91">self</a>.<span class="number">0</span>.<span class="ident">same_site</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">cookie_crate::SameSite::Lax</span>)
+    }
+
+    <span class="doccomment">/// Returns true if  &#39;SameSite&#39; directive is &#39;Strict&#39;.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_site_strict</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#96">self</a>.<span class="number">0</span>.<span class="ident">same_site</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">cookie_crate::SameSite::Strict</span>)
+    }
+
+    <span class="doccomment">/// Returns the path directive of the cookie, if set.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#101">self</a>.<span class="number">0</span>.<span class="ident">path</span>()
+    }
+
+    <span class="doccomment">/// Returns the domain directive of the cookie, if set.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">domain</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#106">self</a>.<span class="number">0</span>.<span class="ident">domain</span>()
+    }
+
+    <span class="doccomment">/// Get the Max-Age information.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_age</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#111">self</a>.<span class="number">0</span>.<span class="ident">max_age</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <span class="ident">std::time::Duration::new</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#112">d</a>.<span class="ident">num_seconds</span>() <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">0</span>))
+    }
+
+    <span class="doccomment">/// The cookie expiration time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expires</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.SystemTime.html">SystemTime</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#116">self</a>.<span class="number">0</span>.<span class="ident">expires</span>().<span class="ident">map</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#10">tm_to_systemtime</a>)
+    }
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">extract_response_cookies</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="ident">headers</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../reqwest/header/struct.HeaderMap.html">hyper::HeaderMap</a>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/reqwest/cookie.rs.html#21">CookieParseError</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span> {
+    <a class="ident" href="../../src/reqwest/cookie.rs.html#122">headers</a>
+        .<span class="ident">get_all</span>(<a class="ident" href="../../reqwest/header/constant.SET_COOKIE.html">header::SET_COOKIE</a>)
+        .<span class="ident">iter</span>()
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">Cookie::parse</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#127">value</a>))
+}
+
+<span class="doccomment">/// A persistent cookie store that provides session support.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">CookieStore</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <a class="ident" href="../../cookie_store/cookie_store/struct.CookieStore.html">::cookie_store::CookieStore</a>);
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/reqwest/cookie.rs.html#132">CookieStore</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="self" href="../../src/reqwest/cookie.rs.html#135">self</a>.<span class="number">0</span>.<span class="ident">fmt</span>(<a class="ident" href="../../src/reqwest/cookie.rs.html#135">f</a>)
+    }
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</body></html>

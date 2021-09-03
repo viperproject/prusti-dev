@@ -1,0 +1,92 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Temporary files and directories."><meta name="keywords" content="rust, rustlang, rust-lang, tempfile"><title>tempfile - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;www.rust-lang.org&#x2F;favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../tempfile/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;www.rust-lang.org&#x2F;logos&#x2F;rust-logo-128x128-blk-v2.png' alt='logo'></div></a><h2 class="location">Crate tempfile</h2><div class="block version"><div class="narrow-helper"></div><p>Version 3.2.0</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all tempfile's items</p></a><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div><div id="sidebar-vars" data-name="tempfile" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">tempfile</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/tempfile/lib.rs.html#1-500" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Temporary files and directories.</p>
+<ul>
+<li>Use the <a href="fn.tempfile.html"><code>tempfile()</code></a> function for temporary files</li>
+<li>Use the <a href="fn.tempdir.html"><code>tempdir()</code></a> function for temporary directories.</li>
+</ul>
+<h1 id="design" class="section-header"><a href="#design">Design</a></h1>
+<p>This crate provides several approaches to creating temporary files and directories.
+<a href="fn.tempfile.html"><code>tempfile()</code></a> relies on the OS to remove the temporary file once the last handle is closed.
+<a href="struct.TempDir.html"><code>TempDir</code></a> and <a href="struct.NamedTempFile.html"><code>NamedTempFile</code></a> both rely on Rust destructors for cleanup.</p>
+<p>When choosing between the temporary file variants, prefer <code>tempfile</code>
+unless you either need to know the file’s path or to be able to persist it.</p>
+<h2 id="resource-leaking" class="section-header"><a href="#resource-leaking">Resource Leaking</a></h2>
+<p><code>tempfile</code> will (almost) never fail to cleanup temporary resources, but <code>TempDir</code> and <code>NamedTempFile</code> will if
+their destructors don’t run. This is because <code>tempfile</code> relies on the OS to cleanup the
+underlying file, while <code>TempDir</code> and <code>NamedTempFile</code> rely on their destructors to do so.</p>
+<h2 id="security" class="section-header"><a href="#security">Security</a></h2>
+<p>In the presence of pathological temporary file cleaner, relying on file paths is unsafe because
+a temporary file cleaner could delete the temporary file which an attacker could then replace.</p>
+<p><code>tempfile</code> doesn’t rely on file paths so this isn’t an issue. However, <code>NamedTempFile</code> does
+rely on file paths for <em>some</em> operations. See the security documentation on
+the <code>NamedTempFile</code> type for more information.</p>
+<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
+<p>Create a temporary file and write some data into it:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">tempfile::tempfile</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Write</span>};
+
+<span class="comment">// Create a file inside of `std::env::temp_dir()`.</span>
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">tempfile</span>()<span class="question-mark">?</span>;
+
+<span class="macro">writeln!</span>(<span class="ident">file</span>, <span class="string">&quot;Brian was here. Briefly.&quot;</span>)<span class="question-mark">?</span>;</code></pre></div>
+<p>Create a named temporary file and open an independent file handle:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">tempfile::NamedTempFile</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Write</span>, <span class="ident">Read</span>};
+
+<span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;Brian was here. Briefly.&quot;</span>;
+
+<span class="comment">// Create a file inside of `std::env::temp_dir()`.</span>
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file1</span> <span class="op">=</span> <span class="ident">NamedTempFile::new</span>()<span class="question-mark">?</span>;
+
+<span class="comment">// Re-open it.</span>
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file2</span> <span class="op">=</span> <span class="ident">file1</span>.<span class="ident">reopen</span>()<span class="question-mark">?</span>;
+
+<span class="comment">// Write some test data to the first handle.</span>
+<span class="ident">file1</span>.<span class="ident">write_all</span>(<span class="ident">text</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
+
+<span class="comment">// Read the test data using the second handle.</span>
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
+<span class="ident">file2</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>)<span class="question-mark">?</span>;
+<span class="macro">assert_eq!</span>(<span class="ident">buf</span>, <span class="ident">text</span>);</code></pre></div>
+<p>Create a temporary directory and add a file to it:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">tempfile::tempdir</span>;
+<span class="kw">use</span> <span class="ident">std::fs::File</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Write</span>};
+
+<span class="comment">// Create a directory inside of `std::env::temp_dir()`.</span>
+<span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">tempdir</span>()<span class="question-mark">?</span>;
+
+<span class="kw">let</span> <span class="ident">file_path</span> <span class="op">=</span> <span class="ident">dir</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;my-temporary-note.txt&quot;</span>);
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::create</span>(<span class="ident">file_path</span>)<span class="question-mark">?</span>;
+<span class="macro">writeln!</span>(<span class="ident">file</span>, <span class="string">&quot;Brian was here. Briefly.&quot;</span>)<span class="question-mark">?</span>;
+
+<span class="comment">// By closing the `TempDir` explicitly, we can check that it has</span>
+<span class="comment">// been deleted successfully. If we don&#39;t close it explicitly,</span>
+<span class="comment">// the directory will still be deleted when `dir` goes out</span>
+<span class="comment">// of scope, but we won&#39;t know whether deleting the directory</span>
+<span class="comment">// succeeded.</span>
+<span class="ident">drop</span>(<span class="ident">file</span>);
+<span class="ident">dir</span>.<span class="ident">close</span>()<span class="question-mark">?</span>;</code></pre></div>
+</div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Builder.html" title="tempfile::Builder struct">Builder</a></div><div class="item-right docblock-short"><p>Create a new temporary file or directory with custom parameters.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.NamedTempFile.html" title="tempfile::NamedTempFile struct">NamedTempFile</a></div><div class="item-right docblock-short"><p>A named temporary file.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.PathPersistError.html" title="tempfile::PathPersistError struct">PathPersistError</a></div><div class="item-right docblock-short"><p>Error returned when persisting a temporary file path fails.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.PersistError.html" title="tempfile::PersistError struct">PersistError</a></div><div class="item-right docblock-short"><p>Error returned when persisting a temporary file fails.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.SpooledTempFile.html" title="tempfile::SpooledTempFile struct">SpooledTempFile</a></div><div class="item-right docblock-short"><p>An object that behaves like a regular temporary file, but keeps data in
+memory until it reaches a configured size, at which point the data is
+written to a temporary file on disk, and further operations use the file
+on disk.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.TempDir.html" title="tempfile::TempDir struct">TempDir</a></div><div class="item-right docblock-short"><p>A directory in the filesystem that is automatically deleted when
+it goes out of scope.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.TempPath.html" title="tempfile::TempPath struct">TempPath</a></div><div class="item-right docblock-short"><p>A path to a named temporary file without an open file handle.</p>
+</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.spooled_tempfile.html" title="tempfile::spooled_tempfile fn">spooled_tempfile</a></div><div class="item-right docblock-short"><p>Create a new spooled temporary file.</p>
+</div><div class="item-left module-item"><a class="fn" href="fn.tempdir.html" title="tempfile::tempdir fn">tempdir</a></div><div class="item-right docblock-short"><p>Create a new temporary directory.</p>
+</div><div class="item-left module-item"><a class="fn" href="fn.tempdir_in.html" title="tempfile::tempdir_in fn">tempdir_in</a></div><div class="item-right docblock-short"><p>Create a new temporary directory.</p>
+</div><div class="item-left module-item"><a class="fn" href="fn.tempfile.html" title="tempfile::tempfile fn">tempfile</a></div><div class="item-right docblock-short"><p>Create a new temporary file.</p>
+</div><div class="item-left module-item"><a class="fn" href="fn.tempfile_in.html" title="tempfile::tempfile_in fn">tempfile_in</a></div><div class="item-right docblock-short"><p>Create a new temporary file in the specified directory.</p>
+</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="tempfile" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+    <script src="../main.js"></script>
+</body></html>

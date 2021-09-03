@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["redirect","A simple `301` redirect to a different location."]]});

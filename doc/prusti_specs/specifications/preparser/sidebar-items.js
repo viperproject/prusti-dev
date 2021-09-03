@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Arg","The representation of an argument to `forall` (for example `a: i32`)"],["Parser",""]],"type":[["AssertionWithoutId",""],["ExpressionWithoutId",""],["PledgeWithoutId",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["String","A UTF-8 encoded string with configurable byte storage."]],"trait":[["StableAsRef","Marker trait that indicates that a type is guaranteed safe to use as backing storage for `String`."],["TryFrom","Attempt to construct `Self` via a conversion."]]});

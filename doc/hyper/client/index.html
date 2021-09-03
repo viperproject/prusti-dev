@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="HTTP Client"><meta name="keywords" content="rust, rustlang, rust-lang, client"><title>hyper::client - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../hyper/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a><h2 class="location">Module client</h2><div class="sidebar-elems"><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li></ul></div><div id="sidebar-vars" data-name="client" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Module <a href="../index.html">hyper</a>::<wbr><a class="mod" href="#">client</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../../src/hyper/client/mod.rs.html#1-1134" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>HTTP Client</p>
+<p>There are two levels of APIs provided for construct HTTP clients:</p>
+<ul>
+<li>The higher-level <a href="struct.Client.html"><code>Client</code></a> type.</li>
+<li>The lower-level <a href="client::conn"><code>conn</code></a> module.</li>
+</ul>
+<h1 id="client" class="section-header"><a href="#client">Client</a></h1>
+<p>The <a href="struct.Client.html"><code>Client</code></a> is the main way to send HTTP requests to a server.
+The default <code>Client</code> provides these things on top of the lower-level API:</p>
+<ul>
+<li>A default <strong>connector</strong>, able to resolve hostnames and connect to
+destinations over plain-text TCP.</li>
+<li>A <strong>pool</strong> of existing connections, allowing better performance when
+making multiple requests to the same hostname.</li>
+<li>Automatic setting of the <code>Host</code> header, based on the request <code>Uri</code>.</li>
+<li>Automatic request <strong>retries</strong> when a pooled connection is closed by the
+server before any bytes have been written.</li>
+</ul>
+<p>Many of these features can configured, by making use of
+<a href="struct.Client.html#method.builder"><code>Client::builder</code></a>.</p>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
+<p>For a small example program simply fetching a URL, take a look at the
+<a href="https://github.com/hyperium/hyper/blob/0.12.x/examples/client.rs">full client example</a>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">hyper</span>;
+
+<span class="kw">use</span> <span class="ident">hyper</span>::{<span class="ident">Client</span>, <span class="ident">Uri</span>};
+<span class="kw">use</span> <span class="ident">hyper::rt</span>::{<span class="self">self</span>, <span class="ident">Future</span>, <span class="ident">Stream</span>};
+
+<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Client::new</span>();
+
+<span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">client</span>
+
+    <span class="comment">// Make a GET /ip to &#39;http://httpbin.org&#39;</span>
+    .<span class="ident">get</span>(<span class="ident">Uri::from_static</span>(<span class="string">&quot;http://httpbin.org/ip&quot;</span>))
+
+    <span class="comment">// And then, if the request gets a response...</span>
+    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> {
+        <span class="macro">println!</span>(<span class="string">&quot;status: {}&quot;</span>, <span class="ident">res</span>.<span class="ident">status</span>());
+
+        <span class="comment">// Concatenate the body stream into a single buffer...</span>
+        <span class="comment">// This returns a new future, since we must stream body.</span>
+        <span class="ident">res</span>.<span class="ident">into_body</span>().<span class="ident">concat2</span>()
+    })
+
+    <span class="comment">// And then, if reading the full body succeeds...</span>
+    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">body</span><span class="op">|</span> {
+        <span class="comment">// The body is just bytes, but let&#39;s print a string...</span>
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">::std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;httpbin sends utf-8 JSON&quot;</span>);
+
+        <span class="macro">println!</span>(<span class="string">&quot;body: {}&quot;</span>, <span class="ident">s</span>);
+
+        <span class="comment">// and_then requires we return a new Future, and it turns</span>
+        <span class="comment">// out that Result is a Future that is ready immediately.</span>
+        <span class="prelude-val">Ok</span>(())
+    })
+
+    <span class="comment">// Map any errors that might have happened...</span>
+    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+        <span class="macro">println!</span>(<span class="string">&quot;error: {}&quot;</span>, <span class="ident">err</span>);
+    });
+
+<span class="comment">// A runtime is needed to execute our asynchronous code. In order to</span>
+<span class="comment">// spawn the future into the runtime, it should already have been</span>
+<span class="comment">// started and running before calling this code.</span>
+<span class="ident">rt::spawn</span>(<span class="ident">fut</span>);</code></pre></div>
+</div></details><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="mod" href="conn/index.html" title="hyper::client::conn mod">conn</a></div><div class="item-right docblock-short"><p>Lower-level client connection API.</p>
+</div><div class="item-left module-item"><a class="mod" href="connect/index.html" title="hyper::client::connect mod">connect</a></div><div class="item-right docblock-short"><p>The <code>Connect</code> trait, and supporting types.</p>
+</div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Builder.html" title="hyper::client::Builder struct">Builder</a></div><div class="item-right docblock-short"><p>A builder to configure a new <a href="struct.Client.html"><code>Client</code></a>.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.Client.html" title="hyper::client::Client struct">Client</a></div><div class="item-right docblock-short"><p>A Client to make outgoing HTTP requests.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.HttpConnector.html" title="hyper::client::HttpConnector struct">HttpConnector</a></div><div class="item-right docblock-short"><p>A connector for the <code>http</code> scheme.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.ResponseFuture.html" title="hyper::client::ResponseFuture struct">ResponseFuture</a></div><div class="item-right docblock-short"><p>A <code>Future</code> that will resolve to an HTTP Response.</p>
+</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hyper" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script>
+</body></html>

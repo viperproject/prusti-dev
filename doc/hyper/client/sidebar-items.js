@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["conn","Lower-level client connection API."],["connect","The `Connect` trait, and supporting types."]],"struct":[["Builder","A builder to configure a new `Client`."],["Client","A Client to make outgoing HTTP requests."],["HttpConnector","A connector for the `http` scheme."],["ResponseFuture","A `Future` that will resolve to an HTTP Response."]]});

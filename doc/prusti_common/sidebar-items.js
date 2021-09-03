@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["vir_expr",""],["vir_local",""],["vir_stmt",""],["vir_type",""]],"mod":[["config",""],["report",""],["utils",""],["verification_context",""],["verification_service",""],["vir",""]],"struct":[["Stopwatch",""]]});

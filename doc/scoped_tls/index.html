@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Scoped thread-local storage"><meta name="keywords" content="rust, rustlang, rust-lang, scoped_tls"><title>scoped_tls - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../scoped_tls/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate scoped_tls</h2><div class="block version"><div class="narrow-helper"></div><p>Version 1.0.0</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all scoped_tls's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li></ul></div><div id="sidebar-vars" data-name="scoped_tls" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">scoped_tls</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/scoped_tls/lib.rs.html#11-267" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Scoped thread-local storage</p>
+<p>This module provides the ability to generate <em>scoped</em> thread-local
+variables. In this sense, scoped indicates that thread local storage
+actually stores a reference to a value, and this reference is only placed
+in storage for a scoped amount of time.</p>
+<p>There are no restrictions on what types can be placed into a scoped
+variable, but all scoped variables are initialized to the equivalent of
+null. Scoped thread local storage is useful when a value is present for a known
+period of time and it is not required to relinquish ownership of the
+contents.</p>
+<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">scoped_tls</span>;
+
+<span class="macro">scoped_thread_local!</span>(<span class="kw">static</span> <span class="ident">FOO</span>: <span class="ident">u32</span>);
+
+<span class="comment">// Initially each scoped slot is empty.</span>
+<span class="macro">assert!</span>(<span class="op">!</span><span class="ident">FOO</span>.<span class="ident">is_set</span>());
+
+<span class="comment">// When inserting a value, the value is only in place for the duration</span>
+<span class="comment">// of the closure specified.</span>
+<span class="ident">FOO</span>.<span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="number">1</span>, <span class="op">|</span><span class="op">|</span> {
+    <span class="ident">FOO</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">slot</span><span class="op">|</span> {
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">slot</span>, <span class="number">1</span>);
+    });
+});</code></pre></div>
+</div></details><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="macro" href="macro.scoped_thread_local.html" title="scoped_tls::scoped_thread_local macro">scoped_thread_local</a></div><div class="item-right docblock-short"><p>The macro. See the module level documentation for the description and examples.</p>
+</div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.ScopedKey.html" title="scoped_tls::ScopedKey struct">ScopedKey</a></div><div class="item-right docblock-short"><p>Type representing a thread local storage key corresponding to a reference
+to the type parameter <code>T</code>.</p>
+</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="scoped_tls" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+    <script src="../main.js"></script>
+</body></html>

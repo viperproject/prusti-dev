@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Body","A stream of `Chunk`s, used when receiving bodies."],["Chunk","A piece of a message body."],["Sender","A sender half used with `Body::channel()`."]],"trait":[["Payload","This trait represents a streaming body of a `Request` or `Response`."]]});

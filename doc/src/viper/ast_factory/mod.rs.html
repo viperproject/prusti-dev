@@ -1,0 +1,116 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `viper&#x2F;src&#x2F;ast_factory&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../viper/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+</pre><pre class="rust"><code><span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
+<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
+<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">mod</span> <a class="ident" href="../../../src/viper/ast_factory/macros.rs.html#5-110">macros</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../src/viper/ast_factory/ast_type.rs.html#5-74">ast_type</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../src/viper/ast_factory/expression.rs.html#5-938">expression</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../src/viper/ast_factory/position.rs.html#5-43">position</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../src/viper/ast_factory/program.rs.html#5-187">program</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../src/viper/ast_factory/statement.rs.html#5-223">statement</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../src/viper/ast_factory/structs.rs.html#5-28">structs</a>;
+
+<span class="kw">use</span> <span class="ident">jni</span>::{<a class="ident" href="../../../jni/wrapper/objects/jobject/struct.JObject.html">objects::JObject</a>, <a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>};
+<span class="kw">use</span> <a class="ident" href="../../../src/viper/jni_utils.rs.html#19-21">jni_utils::JniUtils</a>;
+<span class="kw">use</span> <a class="ident" href="../../../viper_sys/wrappers/viper/silver/ast/index.html">viper_sys::wrappers::viper::silver::ast</a>;
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#7">ast_type</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#8">expression</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#9">position</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#10">program</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#11">statement</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#12">structs</a>::<span class="kw-2">*</span>};
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AstFactory</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">JNIEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">jni</span>: <span class="ident">JniUtils</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AstFactory</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">jni</span> <span class="op">=</span> <span class="ident">JniUtils::new</span>(<a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#27">env</a>);
+        <a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#21-24">AstFactory</a> { <a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#27">env</a>, <a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#28">jni</a> }
+    }
+
+    <span class="comment">// === Info ===</span>
+
+    <span class="kw">fn</span> <span class="ident">no_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../jni/wrapper/objects/jobject/struct.JObject.html">JObject</a> {
+        <a class="self" href="../../../src/viper/ast_factory/mod.rs.html#34">self</a>.<span class="ident">jni</span>
+            .<a class="ident" href="../../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<span class="ident">ast::NoInfo_object::with</span>(<a class="self" href="../../../src/viper/ast_factory/mod.rs.html#34">self</a>.<span class="ident">env</span>).<span class="ident">singleton</span>())
+    }
+
+    <span class="kw">fn</span> <span class="ident">simple_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">comments</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../jni/wrapper/objects/jobject/struct.JObject.html">JObject</a> {
+        <a class="self" href="../../../src/viper/ast_factory/mod.rs.html#39">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(
+            <span class="ident">ast::SimpleInfo::with</span>(<a class="self" href="../../../src/viper/ast_factory/mod.rs.html#39">self</a>.<span class="ident">env</span>).<span class="ident">new</span>(
+                <a class="self" href="../../../src/viper/ast_factory/mod.rs.html#39">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../../src/viper/jni_utils.rs.html#100">new_seq</a>(
+                    <span class="kw-2">&amp;</span><a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#39">comments</a>
+                        .<span class="ident">iter</span>()
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="self" href="../../../src/viper/ast_factory/mod.rs.html#39">self</a>.<span class="ident">jni</span>.<a class="ident" href="../../../src/viper/jni_utils.rs.html#76">new_string</a>(<a class="ident" href="../../../src/viper/ast_factory/mod.rs.html#45">x</a>))
+                        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../jni/wrapper/objects/jobject/struct.JObject.html">JObject</a><span class="op">&gt;</span><span class="op">&gt;</span>(),
+                ),
+            ),
+        )
+    }
+
+    <span class="kw">fn</span> <span class="ident">no_trafos</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../jni/wrapper/objects/jobject/struct.JObject.html">JObject</a> {
+        <a class="self" href="../../../src/viper/ast_factory/mod.rs.html#52">self</a>.<span class="ident">jni</span>
+            .<a class="ident" href="../../../src/viper/jni_utils.rs.html#62">unwrap_result</a>(<span class="ident">ast::NoTrafos_object::with</span>(<a class="self" href="../../../src/viper/ast_factory/mod.rs.html#52">self</a>.<span class="ident">env</span>).<span class="ident">singleton</span>())
+    }
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="viper" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</body></html>

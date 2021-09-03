@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ErrorResponse","An error response sent to the client."],["NoCallback","Stub for callback that does nothing."],["Request","Request from the client."],["ServerHandshake","Server handshake role."]],"trait":[["Callback","The callback trait."]],"type":[["ExtraHeaders","Extra headers for responses."]]});

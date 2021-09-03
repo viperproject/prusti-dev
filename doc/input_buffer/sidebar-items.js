@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["MIN_READ","The recommended minimum read size."]],"struct":[["DoRead","The reference to the buffer used for reading."],["InputBuffer","A FIFO buffer for reading packets from network."],["SizeLimit","Size limit error."]]});
