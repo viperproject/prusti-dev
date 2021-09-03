@@ -9,6 +9,7 @@ pub use self::encoder::Encoder;
 mod borrows;
 mod builtin_encoder;
 mod specs_closures_collector;
+#[allow(clippy::module_inception)]
 mod encoder;
 mod errors;
 mod foldunfold;

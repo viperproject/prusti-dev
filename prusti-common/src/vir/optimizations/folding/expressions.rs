@@ -14,7 +14,7 @@
 //!
 //! This transformation is also needed to work around some bugs of Silicon,
 //! when unfolding are used inside a quantifiers and other cases.
-//! See: https://github.com/viperproject/silicon/issues/387
+//! See: <https://github.com/viperproject/silicon/issues/387>
 
 
 use vir::polymorphic::FieldAccessPredicate;
@@ -115,18 +115,12 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
         } else {
             let base_k1 = k1.get_base().name;
             let base_k2 = k2.get_base().name;
-            if base_k1 < base_k2 {
+            if base_k1 < base_k2 || k1.has_prefix(k2) {
                 Ordering::Less
-            } else if base_k1 > base_k2 {
+            } else if base_k1 > base_k2 || k2.has_prefix(k1){
                 Ordering::Greater
             } else {
-                if k2.has_prefix(k1) {
-                    Ordering::Greater
-                } else if k1.has_prefix(k2) {
-                    Ordering::Less
-                } else {
-                    format!("{}", k1).cmp(&format!("{}", k2))
-                }
+                format!("{}", k1).cmp(&format!("{}", k2))
             }
         }
     });

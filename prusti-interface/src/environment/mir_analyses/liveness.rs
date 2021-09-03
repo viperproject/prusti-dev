@@ -56,7 +56,7 @@ impl AssignmentSet {
             .collect();
         self.set.insert(Assignment {
             target: local,
-            location: location,
+            location,
         });
     }
     pub fn iter(&self) -> impl Iterator<Item = &Assignment> {
@@ -79,7 +79,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
     fn new(mir: &'a mir::Body<'tcx>) -> Self {
         Self {
             result: LivenessAnalysisResult::new(),
-            mir: mir,
+            mir,
             queue: Vec::new(),
         }
     }
@@ -91,7 +91,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
             for statement_index in 0..statements.len() + 1 {
                 let location = mir::Location {
                     block: bb,
-                    statement_index: statement_index,
+                    statement_index,
                 };
                 self.result
                     .after_statement
@@ -108,7 +108,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
             for statement_index in 0..statements.len() + 1 {
                 let location = mir::Location {
                     block: bb,
-                    statement_index: statement_index,
+                    statement_index,
                 };
                 if statement_index != statements.len() {
                     self.queue.push(WorkItem::ApplyStatementEffects(location));
@@ -149,11 +149,8 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         trace!("[enter] apply_statement_effects location={:?}", location);
         let statement = &self.mir[location.block].statements[location.statement_index];
         let mut set = self.get_set_before_statement(location);
-        match statement.kind {
-            mir::StatementKind::Assign(box (ref target, _)) => {
-                self.replace_in_set(&mut set, target, location);
-            }
-            _ => {}
+        if let mir::StatementKind::Assign(box (ref target, _)) = statement.kind {
+            self.replace_in_set(&mut set, target, location);
         }
         self.update_set_after_statement(location, set);
     }
@@ -168,20 +165,15 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
             ..
         } = self.mir[bb];
         let mut set = self.get_set_before_terminator(bb);
-        if let Some(ref terminator) = *terminator {
-            match terminator.kind {
-                mir::TerminatorKind::Call {
-                    ref destination, ..
-                } => {
-                    if let Some((place, _)) = destination {
-                        let location = mir::Location {
-                            block: bb,
-                            statement_index: statements.len(),
-                        };
-                        self.replace_in_set(&mut set, place, location);
-                    }
-                }
-                _ => {}
+        if let Some(terminator) = terminator {
+            if let mir::TerminatorKind::Call {
+                destination: Some((place, _)), ..
+            } = &terminator.kind {
+                let location = mir::Location {
+                    block: bb,
+                    statement_index: statements.len(),
+                };
+                self.replace_in_set(&mut set, place, location);
             }
         }
         let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
@@ -218,7 +210,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         if changed {
             self.result.before_block.insert(bb, set);
             let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
-            if statements.len() == 0 {
+            if statements.is_empty() {
                 self.queue.push(WorkItem::ApplyTerminatorEffects(bb));
             } else {
                 let location = mir::Location {
@@ -283,7 +275,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
     /// Return the set before the terminator of the given basic block.
     fn get_set_before_terminator(&self, bb: mir::BasicBlock) -> AssignmentSet {
         let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
-        if statements.len() == 0 {
+        if statements.is_empty() {
             self.result.before_block[&bb].clone()
         } else {
             let location = mir::Location {

@@ -234,7 +234,7 @@ fn generate(
         for i in 0..parameter_names.len() {
             let par_name = &parameter_names[i];
             let par_sign = &parameter_signatures[i];
-            if par_sign.chars().next() == Some('L') {
+            if par_sign.starts_with('L') {
                 let par_class = &par_sign[1..(par_sign.len()-1)];
                 code.push("    debug_assert!(".to_string());
                 code.push(format!(
@@ -293,18 +293,16 @@ fn generate(
     ));
 
     // Generate dynamic type check for the result
-    if cfg!(debug_assertions) {
-        if return_signature.chars().next() == Some('L') {
-            let return_class = &return_signature[1..(return_signature.len()-1)];
-            code.push("    if let Ok(result) = result {".to_string());
-            code.push("        debug_assert!(".to_string());
-            code.push(format!(
-                "            self.env.is_instance_of(result, self.env.find_class(\"{}\")?)?",
-                return_class
-            ));
-            code.push("        );".to_string());
-            code.push("    }".to_string());
-        }
+    if cfg!(debug_assertions) && return_signature.starts_with('L') {
+        let return_class = &return_signature[1..(return_signature.len()-1)];
+        code.push("    if let Ok(result) = result {".to_string());
+        code.push("        debug_assert!(".to_string());
+        code.push(format!(
+            "            self.env.is_instance_of(result, self.env.find_class(\"{}\")?)?",
+            return_class
+        ));
+        code.push("        );".to_string());
+        code.push("    }".to_string());
     }
 
     code.push("    self.env.delete_local_ref(class.into()).unwrap();".to_string());

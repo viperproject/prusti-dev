@@ -40,8 +40,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'tcx>,
                procedure: &'p Procedure<'tcx>, tymap: &'p SubstMap<'tcx>,) -> Self {
         Self {
-            encoder: encoder,
-            procedure: procedure,
+            encoder,
+            procedure,
             span: procedure.get_span(),
             proc_def_id: procedure.get_id(),
             is_closure: encoder.env().tcx().is_closure(procedure.get_id()),
@@ -83,13 +83,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         let encoded_args: Vec<vir::LocalVar> = contract
             .args
             .iter()
-            .map(|local| self.encode_local(local.clone().into()).into())
+            .map(|local| self.encode_local((*local).into()))
             .collect::<Result<Vec<_>, _>>()?;
 
         for item in contract.functional_precondition() {
             func_spec.push(self.encoder.encode_assertion(
-                &item,
-                &self.mir,
+                item,
+                self.mir,
                 None,
                 &encoded_args
                     .iter()
@@ -123,9 +123,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         let encoded_args: Vec<vir::LocalVar> = contract
             .args
             .iter()
-            .map(|local| self.encode_local(local.clone().into()).into())
+            .map(|local| self.encode_local((*local).into()))
             .collect::<Result<Vec<_>, _>>()?;
-        let encoded_return = self.encode_local(contract.returned_value.clone().into())?;
+        let encoded_return = self.encode_local(contract.returned_value.into())?;
         // encoded_args:
         // _1    - closure "self"
         // _2... - additional arguments
@@ -133,8 +133,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
 
         for item in contract.functional_postcondition() {
             func_spec.push(self.encoder.encode_assertion(
-                &item,
-                &self.mir,
+                item,
+                self.mir,
                 None,
                 &encoded_args
                     .iter()

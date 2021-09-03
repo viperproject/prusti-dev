@@ -30,9 +30,9 @@ impl From<mir::Local> for Local {
     }
 }
 
-impl Into<mir::Local> for Local {
-    fn into(self) -> mir::Local {
-        mir::Local::new(self.index())
+impl From<Local> for mir::Local {
+    fn from(val: Local) -> Self {
+        mir::Local::new(val.index())
     }
 }
 
@@ -114,7 +114,7 @@ pub enum Place<'tcx> {
 
 impl<'a, 'tcx: 'a> From<&'a mir::Place<'tcx>> for Place<'tcx> {
     fn from(other: &'a mir::Place<'tcx>) -> Self {
-        Place::NormalPlace(other.clone())
+        Place::NormalPlace(*other)
     }
 }
 

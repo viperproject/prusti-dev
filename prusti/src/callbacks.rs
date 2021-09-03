@@ -1,26 +1,34 @@
-use prusti_interface::{specs, environment::{Environment, mir_storage}};
-use rustc_driver::Compilation;
-use rustc_hir::intravisit;
-use rustc_interface::interface::Compiler;
-use rustc_interface::{Queries, Config};
-use regex::Regex;
-use prusti_common::config;
 use crate::verifier::verify;
-use rustc_middle::ty::query::query_values::mir_borrowck;
-use rustc_middle::ty::query::Providers;
+use prusti_common::config;
+use prusti_interface::{
+    environment::{mir_storage, Environment},
+    specs,
+};
+use regex::Regex;
+use rustc_driver::Compilation;
+use rustc_hir::{def_id::LocalDefId, intravisit};
+use rustc_interface::{interface::Compiler, Config, Queries};
+use rustc_middle::ty::{
+    self,
+    query::{query_values::mir_borrowck, Providers},
+    TyCtxt,
+};
 use rustc_session::Session;
-use rustc_hir::def_id::LocalDefId;
-use rustc_middle::ty::{self, TyCtxt};
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
 
+#[allow(clippy::needless_lifetimes)]
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
     let body_with_facts = rustc_mir::consumers::get_body_with_borrowck_facts(
-        tcx, ty::WithOptConstParam::unknown(def_id));
+        tcx,
+        ty::WithOptConstParam::unknown(def_id),
+    );
     // SAFETY: This is safe because we are feeding in the same `tcx` that is
     // going to be used as a witness when pulling out the data.
-    unsafe { mir_storage::store_mir_body(tcx, def_id, body_with_facts); }
+    unsafe {
+        mir_storage::store_mir_body(tcx, def_id, body_with_facts);
+    }
     let mut providers = Providers::default();
     rustc_mir::provide(&mut providers);
     let original_mir_borrowck = providers.mir_borrowck;
@@ -49,9 +57,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                 compiler.session(),
                 compiler.input(),
                 krate,
-                rustc_session::config::PpMode::Source(
-                    rustc_session::config::PpSourceMode::Normal,
-                ),
+                rustc_session::config::PpMode::Source(rustc_session::config::PpSourceMode::Normal),
                 None,
             );
         }
@@ -73,7 +79,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             compiler.session().abort_if_errors();
 
             let mut spec_collector = specs::SpecCollector::new(&env);
-            intravisit::walk_crate(&mut spec_collector, &krate);
+            intravisit::walk_crate(&mut spec_collector, krate);
             let def_spec = spec_collector.build_def_specs(&env);
             if config::print_typeckd_specs() {
                 let mut values: Vec<_> = def_spec
@@ -82,9 +88,9 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                     .map(|spec| format!("{:?}", spec))
                     .collect();
                 if config::hide_uuids() {
-                    let uuid = Regex::new(
-                        "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}"
-                    ).unwrap();
+                    let uuid =
+                        Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}")
+                            .unwrap();
                     let num_uuid = Regex::new("[a-z0-9]{32}").unwrap();
                     let mut replaced_values: Vec<String> = vec![];
                     for item in values {

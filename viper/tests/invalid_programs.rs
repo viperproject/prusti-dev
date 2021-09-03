@@ -28,17 +28,17 @@ fn runtime_error() {
     let ast = verification_context.new_ast_factory();
 
     // This is an error, as Silicon expects the method body to be a Seqn statement.
-    let method_body = ast.assert(
-        ast.true_lit(),
-        ast.no_position(),
-    );
+    let method_body = ast.assert(ast.true_lit(), ast.no_position());
     let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
     let verification_result = verifier.verify(program);
 
-    assert!(matches!(verification_result, VerificationResult::JavaException(_)));
+    assert!(matches!(
+        verification_result,
+        VerificationResult::JavaException(_)
+    ));
 }
 
 #[test]

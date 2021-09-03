@@ -86,7 +86,7 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
             .collect();
         program.functions = program.functions
             .into_iter()
-            .map(|f| folding::FoldingOptimizer::optimize(f))
+            .map(folding::FoldingOptimizer::optimize)
             .collect();
         log_methods(
             source_file_name,

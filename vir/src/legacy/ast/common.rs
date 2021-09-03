@@ -87,6 +87,7 @@ impl PermAmount {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn add(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
         match (self, other) {
             (PermAmount::Read, PermAmount::Remaining)
@@ -95,6 +96,7 @@ impl PermAmount {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn sub(self, other: PermAmount) -> Result<PermAmount, PermAmountError> {
         match (self, other) {
             (PermAmount::Write, PermAmount::Read) => Ok(PermAmount::Remaining),
@@ -129,10 +131,8 @@ impl PartialOrd for PermAmount {
 
 impl Ord for PermAmount {
     fn cmp(&self, other: &PermAmount) -> Ordering {
-        self.partial_cmp(other).expect(&format!(
-            "Undefined comparison between {:?} and {:?}",
-            self, other
-        ))
+        self.partial_cmp(other)
+            .unwrap_or_else(|| panic!("Undefined comparison between {:?} and {:?}", self, other))
     }
 }
 

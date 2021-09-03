@@ -48,7 +48,7 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         .filter(|var| !impure_vars.contains(var))
         .collect();
     let mut purifier = VarPurifier {
-        pure_vars: pure_vars,
+        pure_vars,
         replacements: collector.replacements,
     };
     let mut sentinel_stmt = ast::Stmt::comment("moved out stmt");
@@ -106,7 +106,7 @@ impl ast::ExprWalker for VarCollector {
     fn walk_predicate_access_predicate(&mut self, ast::PredicateAccessPredicate {predicate_type, box argument, ..}: &ast::PredicateAccessPredicate) {
         let old_pure_context = self.is_pure_context;
         let name = &predicate_type.name()[..];
-        if is_purifiable_predicate(&name) {
+        if is_purifiable_predicate(name) {
             if let ast::Expr::Local( ast::Local {variable: var, ..}) = argument {
                 let mut new_var = var.clone();
                 let original = var.clone();
@@ -124,7 +124,7 @@ impl ast::ExprWalker for VarCollector {
     }
     fn walk_unfolding(&mut self, ast::Unfolding {predicate_name, arguments, base, ..}: &ast::Unfolding) {
         let old_pure_context = self.is_pure_context;
-        if is_purifiable_predicate(&predicate_name) {
+        if is_purifiable_predicate(predicate_name) {
             if let ast::Expr::Local(_) = arguments[0] {
                 self.is_pure_context = true;
             }
@@ -225,8 +225,8 @@ impl VarPurifier {
         force_matches!(expr, ast::Expr::Local(ast::Local {variable: var, position: pos}) => {
             let replacement = self
                 .replacements
-                .get(&var)
-                .expect(&format!("key: {}", var))
+                .get(var)
+                .unwrap_or_else(|| panic!("key: {}", var))
                 .clone();
             ast::Expr::Local(ast::Local {variable: replacement, position: *pos})
         })
@@ -250,7 +250,7 @@ impl VarPurifier {
                 _ => unreachable!()
             }
         } else if config::encode_unsigned_num_constraint() {
-            ast::Expr::ge_cmp(replacement.into(), 0.into())
+            ast::Expr::ge_cmp(replacement, 0.into())
         } else {
             true.into()
         }
@@ -281,7 +281,7 @@ impl ast::ExprFolder for VarPurifier {
     }
     fn fold_field_access_predicate(&mut self, ast::FieldAccessPredicate {base: receiver, permission, position}: ast::FieldAccessPredicate) -> ast::Expr {
         if let box ast::Expr::Field( ast::FieldExpr {base: box ast::Expr::Local( ast::Local {variable: var, ..} ), ..}) = &receiver {
-            if self.pure_vars.contains(&var) {
+            if self.pure_vars.contains(var) {
                 return true.into();
             }
         }
@@ -365,7 +365,7 @@ impl ast::StmtFolder for VarPurifier {
             let replacement = self
                 .replacements
                 .get(target)
-                .expect(&format!("key: {}", target))
+                .unwrap_or_else(|| panic!("key: {}", target))
                 .clone();
                 method_name = match replacement.typ {
                 ast::Type::Int => "builtin$havoc_int",

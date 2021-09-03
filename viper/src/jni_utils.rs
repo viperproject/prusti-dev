@@ -4,15 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use jni::errors::{Result as JniResult, Error};
-use jni::objects::JObject;
-use jni::objects::JString;
-use jni::strings::JNIString;
-use jni::sys::jsize;
-use jni::JNIEnv;
-use viper_sys::wrappers::*;
 use java_exception::JavaException;
+use jni::{
+    errors::{Error, Result as JniResult},
+    objects::{JObject, JString},
+    strings::JNIString,
+    sys::jsize,
+    JNIEnv,
+};
 use std::collections::HashMap;
+use viper_sys::wrappers::*;
 
 #[derive(Clone, Copy)]
 pub struct JniUtils<'a> {
@@ -47,9 +48,7 @@ impl<'a> JniUtils<'a> {
                 // Retrieve information on the Java exception.
                 // The internal calls `unwrap_result` might lead to infinite recursion.
                 let exception_message = self.to_string(*exception);
-                let stack_trace = self.unwrap_result(
-                    self.get_stack_trace(*exception)
-                );
+                let stack_trace = self.unwrap_result(self.get_stack_trace(*exception));
                 JavaException::new(exception_message, stack_trace)
             } else {
                 // This is not a Java exception
@@ -61,9 +60,8 @@ impl<'a> JniUtils<'a> {
 
     /// Unwrap a JniResult<T>.
     pub fn unwrap_result<T>(&self, res: JniResult<T>) -> T {
-        self.unwrap_or_exception(res).unwrap_or_else(
-            |java_exception| panic!("{:?}", java_exception)
-        )
+        self.unwrap_or_exception(res)
+            .unwrap_or_else(|java_exception| panic!("{:?}", java_exception))
     }
 
     /// Converts a Rust Option<JObject> to a Scala Option
@@ -116,7 +114,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Calls the "toString" method on a Java object and returns the result as a Rust String
-    pub fn to_string(&self, object: JObject) -> String {
+    pub fn to_string(self, object: JObject) -> String {
         let object_wrapper = java::lang::Object::with(self.env);
         let string_object = self.unwrap_result(object_wrapper.call_toString(object));
         self.get_string(string_object)
@@ -144,18 +142,17 @@ impl<'a> JniUtils<'a> {
 
     pub fn list_to_vec(&self, list: JObject<'a>) -> Vec<JObject<'a>> {
         let list_wrapper = scala::collection::immutable::List::with(self.env);
-        let seq = self.unwrap_result(
-            list_wrapper.call_toSeq(list)
-        );
+        let seq = self.unwrap_result(list_wrapper.call_toSeq(list));
         self.seq_to_vec(seq)
     }
-    
+
     /// Converts a Scala Map (using strings! JObjects are not hashable) to a Rust HashMap
     pub fn stringmap_to_hashmap(&self, map: JObject<'a>) -> HashMap<String, JObject<'a>> {
         let iter_wrapper = scala::collection::Iterable::with(self.env);
         let product_wrapper = scala::Product::with(self.env);
         let seq = self.unwrap_result(iter_wrapper.call_toSeq(map));
-        self.seq_to_vec(seq).into_iter()
+        self.seq_to_vec(seq)
+            .into_iter()
             .map(|item| {
                 let item1 = self.unwrap_result(product_wrapper.call_productElement(item, 0));
                 let item2 = self.unwrap_result(product_wrapper.call_productElement(item, 1));
@@ -170,7 +167,8 @@ impl<'a> JniUtils<'a> {
         let iter_wrapper = scala::collection::Iterable::with(self.env);
         let product_wrapper = scala::Product::with(self.env);
         let seq = self.unwrap_result(iter_wrapper.call_toSeq(map));
-        self.seq_to_vec(seq).into_iter()
+        self.seq_to_vec(seq)
+            .into_iter()
             .map(|item| {
                 let item = self.unwrap_result(product_wrapper.call_productElement(item, 0));
                 self.to_string(item)

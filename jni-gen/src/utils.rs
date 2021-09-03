@@ -14,7 +14,7 @@ pub fn get_return_signature(signature: &str) -> String {
 }
 
 pub fn generate_jni_type(signature: &str) -> String {
-    match signature.chars().nth(0).unwrap() {
+    match signature.chars().next().unwrap() {
         '[' | 'L' => "JObject".to_string(),
         'B' => "jbyte".to_string(),
         'C' => "jchar".to_string(),
@@ -30,7 +30,7 @@ pub fn generate_jni_type(signature: &str) -> String {
 }
 
 pub fn generate_return_jni_type(signature: &str) -> String {
-    match signature.chars().nth(0).unwrap() {
+    match signature.chars().next().unwrap() {
         '[' | 'L' => "JObject<'a>".to_string(),
         'B' => "jbyte".to_string(),
         'C' => "jchar".to_string(),
@@ -46,14 +46,14 @@ pub fn generate_return_jni_type(signature: &str) -> String {
 }
 
 pub fn generate_jni_type_char(signature: &str) -> String {
-    match signature.chars().nth(0).unwrap() {
+    match signature.chars().next().unwrap() {
         '[' => "l".to_string(),
         x => x.to_lowercase().to_string(),
     }
 }
 
 pub fn generate_jvalue_wrapper(par: &str, signature: &str) -> String {
-    match signature.chars().nth(0).unwrap() {
+    match signature.chars().next().unwrap() {
         '[' | 'L' => format!("JValue::Object({})", par),
         'B' => format!("JValue::Byte({})", par),
         'C' => format!("JValue::Char({})", par),

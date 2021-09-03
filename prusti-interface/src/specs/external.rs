@@ -27,7 +27,7 @@ pub struct ExternSpecResolver<'tcx> {
 impl<'tcx> ExternSpecResolver<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>) -> Self {
         Self {
-            tcx: tcx,
+            tcx,
             extern_fn_map: HashMap::new(),
             spec_duplicates: HashMap::new(),
         }
@@ -101,23 +101,21 @@ struct ExternSpecVisitor<'tcx> {
 }
 
 /// Gets the `DefId` from the given path.
-fn get_impl_type<'tcx>(qself: &rustc_hir::QPath<'tcx>) -> Option<DefId> {
+fn get_impl_type(qself: &rustc_hir::QPath<'_>) -> Option<DefId> {
     if let rustc_hir::QPath::TypeRelative(ty, _) = qself {
-        if let rustc_hir::TyKind::Path(qpath) = &ty.kind {
-            if let rustc_hir::QPath::Resolved(_, path) = qpath {
-                if let rustc_hir::def::Res::Def(_, id) = path.res {
-                    return Some(id);
-                }
+        if let rustc_hir::TyKind::Path(rustc_hir::QPath::Resolved(_, path)) = &ty.kind {
+            if let rustc_hir::def::Res::Def(_, id) = path.res {
+                return Some(id);
             }
         }
     }
-    return None;
+    None
 }
 
 impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
     type Map = Map<'tcx>;
 
-    fn nested_visit_map<'this>(&'this mut self) -> intravisit::NestedVisitorMap<Self::Map> {
+    fn nested_visit_map(&mut self) -> intravisit::NestedVisitorMap<Self::Map> {
         let map = self.tcx.hir();
         intravisit::NestedVisitorMap::All(map)
     }
@@ -126,7 +124,7 @@ impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
         if self.spec_found.is_some() {
             return;
         }
-        if let rustc_hir::ExprKind::Call(ref callee_expr, ref _arguments) = ex.kind {
+        if let rustc_hir::ExprKind::Call(callee_expr, _arguments) = ex.kind {
             if let rustc_hir::ExprKind::Path(ref qself) = callee_expr.kind {
                 let res = self.tcx.typeck(callee_expr.hir_id.owner).qpath_res(qself, callee_expr.hir_id);
                 if let rustc_hir::def::Res::Def(_, def_id) = res {

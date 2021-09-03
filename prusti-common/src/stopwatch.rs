@@ -11,8 +11,8 @@ use std::{
 };
 
 pub trait LogLevel {
-    fn log_start(prefix: &String, name: &String);
-    fn log_finish(prefix: &String, name: &String, duration: Duration);
+    fn log_start(prefix: &str, name: &str);
+    fn log_finish(prefix: &str, name: &str, duration: Duration);
 }
 
 pub struct Stopwatch<Level: LogLevel> {
@@ -85,11 +85,11 @@ pub mod log_level {
             pub struct $name;
 
             impl LogLevel for $name {
-                fn log_start(prefix: &String, name: &String) {
+                fn log_start(prefix: &str, name: &str) {
                     $level!("{}Starting: {}", prefix, name);
                 }
 
-                fn log_finish(prefix: &String, name: &String, duration: Duration) {
+                fn log_finish(prefix: &str, name: &str, duration: Duration) {
                     $level!(
                         "{}Completed: {} ({}.{:03} seconds)",
                         prefix,

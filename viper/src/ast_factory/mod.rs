@@ -11,17 +11,11 @@ mod program;
 mod statement;
 mod structs;
 
-use jni::objects::JObject;
-use jni::JNIEnv;
+use jni::{objects::JObject, JNIEnv};
 use jni_utils::JniUtils;
 use viper_sys::wrappers::viper::silver::ast;
 
-pub use self::ast_type::*;
-pub use self::expression::*;
-pub use self::position::*;
-pub use self::program::*;
-pub use self::statement::*;
-pub use self::structs::*;
+pub use self::{ast_type::*, expression::*, position::*, program::*, statement::*, structs::*};
 
 #[derive(Clone, Copy)]
 pub struct AstFactory<'a> {

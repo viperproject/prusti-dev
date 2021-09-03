@@ -43,7 +43,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
     }
 
     pub fn loops(&self) -> &ProcedureLoops {
-        &self.procedure.loop_info()
+        self.procedure.loop_info()
     }
 
     /// Is the given basic block a loop head?
@@ -105,13 +105,13 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
 
         let mut all_places = PlaceSet::new();
         for place in &read_leaves {
-            all_places.insert(&place, self.mir(), self.tcx)
+            all_places.insert(place, self.mir(), self.tcx)
         }
         for place in &mut_borrow_leaves {
-            all_places.insert(&place, self.mir(), self.tcx)
+            all_places.insert(place, self.mir(), self.tcx)
         }
         for place in &write_leaves {
-            all_places.insert(&place, self.mir(), self.tcx)
+            all_places.insert(place, self.mir(), self.tcx)
         }
 
         // Construct the permission forest.

@@ -62,18 +62,12 @@ impl AstRewriter {
     /// yes, return its span.
     fn check_contains_keyword_in_params(&self, item: &untyped::AnyFnItem, keyword: &str) -> Option<Span> {
         for param in &item.sig().inputs {
-            match param {
-                syn::FnArg::Typed(syn::PatType {
-                    pat,
-                    ..
-                }) => {
-                    if let syn::Pat::Ident(syn::PatIdent { ident, .. }) = &**pat {
-                        if ident == keyword {
-                            return Some(param.span());
-                        }
+            if let syn::FnArg::Typed(syn::PatType { pat, .. }) = param {
+                if let syn::Pat::Ident(syn::PatIdent { ident, .. }) = &**pat {
+                    if ident == keyword {
+                        return Some(param.span());
                     }
                 }
-                _ => {}
             }
         }
         None
@@ -179,7 +173,7 @@ impl AstRewriter {
             let spec_id_str = id.to_string();
             let mut encoded = TokenStream::new();
             assertion.encode_type_check(&mut encoded);
-            let assertion_json = crate::specifications::json::to_json_string(&assertion);
+            let assertion_json = crate::specifications::json::to_json_string(assertion);
             let name = format_ident!("prusti_{}_closure_{}", if is_post { "post" } else { "pre" }, spec_id_str);
             let callsite_span = Span::call_site();
             let result = if is_post && !inputs.empty_or_trailing() {

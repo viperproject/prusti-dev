@@ -317,9 +317,7 @@ impl CfgMethod {
         let mut result = HashMap::new();
         for (index, block) in self.basic_blocks.iter().enumerate() {
             for successor in block.successor.get_following() {
-                let entry = result
-                    .entry(successor.block_index)
-                    .or_insert_with(|| Vec::new());
+                let entry = result.entry(successor.block_index).or_insert_with(Vec::new);
                 entry.push(index);
             }
         }
@@ -348,8 +346,8 @@ impl CfgMethod {
         }
 
         let mut queue = VecDeque::new();
-        for index in 0..self.basic_blocks.len() {
-            if in_degree[index] == 0 {
+        for (index, value) in in_degree.iter().enumerate() {
+            if *value == 0 {
                 queue.push_back(index);
             }
         }

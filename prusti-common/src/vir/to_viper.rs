@@ -8,9 +8,9 @@ use crate::config;
 use std::collections::HashMap;
 use viper::{self, AstFactory};
 use crate::vir::{
-    ast::*, 
+    ast::*,
     cfg::{CfgMethod, CfgBlock, Successor, RETURN_LABEL},
-    borrows::borrow_id, 
+    borrows::borrow_id,
     Program,
 };
 use prusti_utils::force_matches;
@@ -83,7 +83,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::Bool => ast.bool_type(),
             //Type::Ref |
             Type::TypedRef(_) => ast.ref_type(),
-            Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
+            Type::Domain(ref name) => ast.domain_type(name, &[], &[]),
             Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${}", name), &[], &[]),
             Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(ast))
         }
@@ -115,8 +115,8 @@ impl<'v> ToViper<'v, viper::Field<'v>> for Field {
 impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         match self {
-            Stmt::Comment(ref comment) => ast.comment(&comment),
-            Stmt::Label(ref label) => ast.label(&label, &[]),
+            Stmt::Comment(ref comment) => ast.comment(comment),
+            Stmt::Label(ref label) => ast.label(label, &[]),
             Stmt::Inhale(ref expr) => {
                 let fake_position = Position::default();
                 ast.inhale(expr.to_viper(ast), fake_position.to_viper(ast))
@@ -131,7 +131,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             Stmt::MethodCall(ref method_name, ref args, ref targets) => {
                 let fake_position = Position::default();
                 ast.method_call(
-                    &method_name,
+                    method_name,
                     &args.to_viper(ast),
                     &(targets, &fake_position).to_viper(ast),
                 )
@@ -143,7 +143,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 ast.predicate_access_predicate_with_pos(
                     ast.predicate_access_with_pos(
                         &args.to_viper(ast),
-                        &pred_name,
+                        pred_name,
                         pos.to_viper(ast),
                     ),
                     perm.to_viper(ast),
@@ -153,7 +153,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             ),
             Stmt::Unfold(ref pred_name, ref args, perm, ref _variant) => {
                 ast.unfold(ast.predicate_access_predicate(
-                    ast.predicate_access(&args.to_viper(ast), &pred_name),
+                    ast.predicate_access(&args.to_viper(ast), pred_name),
                     perm.to_viper(ast),
                 ))
             }
@@ -212,7 +212,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                                 ast.predicate_access_predicate_with_pos(
                                     ast.predicate_access_with_pos(
                                         &args.to_viper(ast),
-                                        &pred_name,
+                                        pred_name,
                                         pos.to_viper(ast),
                                     ),
                                     perm.to_viper(ast),
@@ -243,7 +243,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
                     .collect();
                 let var_decls: Vec<_> = vars
-                    .into_iter()
+                    .iter()
                     .map(|var| var.to_viper_decl(ast).into())
                     .collect();
                 ast.package(
@@ -336,7 +336,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             }
             Expr::PredicateAccessPredicate(ref predicate_name, ref arg, perm, ref pos) => ast
                 .predicate_access_predicate_with_pos(
-                    ast.predicate_access(&[arg.to_viper(ast)], &predicate_name),
+                    ast.predicate_access(&[arg.to_viper(ast)], predicate_name),
                     perm.to_viper(ast),
                     pos.to_viper(ast),
                 ),
@@ -426,7 +426,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 ref pos,
             ) => ast.unfolding_with_pos(
                 ast.predicate_access_predicate(
-                    ast.predicate_access(&args.to_viper(ast)[..], &predicate_name),
+                    ast.predicate_access(&args.to_viper(ast)[..], predicate_name),
                     perm.to_viper(ast),
                 ),
                 expr.to_viper(ast),
@@ -737,13 +737,13 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
         } else {
             // Sort blocks by label, except for the first block
             let mut blocks: Vec<_> = self.basic_blocks.iter().enumerate().skip(1).collect();
-            blocks.sort_by_key(|(index, _)| index_to_label(&self.basic_blocks_labels(), *index));
+            blocks.sort_by_key(|(index, _)| index_to_label(self.basic_blocks_labels(), *index));
             blocks.insert(0, (0, &self.basic_blocks[0]));
 
             for (index, block) in blocks.into_iter() {
-                blocks_ast.push(block_to_viper(ast, &self.basic_blocks_labels(), block, index));
+                blocks_ast.push(block_to_viper(ast, self.basic_blocks_labels(), block, index));
                 declarations.push(
-                    ast.label(&index_to_label(&self.basic_blocks_labels(), index), &[])
+                    ast.label(&index_to_label(self.basic_blocks_labels(), index), &[])
                         .into(),
                 );
             }
@@ -758,16 +758,14 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
             formal_returns_decl.push(local_var.to_viper_decl(ast));
         }
 
-        let method = ast.method(
+        ast.method(
             &self.name(),
             &[],
             &formal_returns_decl,
             &[],
             &[],
             method_body,
-        );
-
-        method
+        )
     }
 }
 
@@ -785,16 +783,16 @@ fn cfg_method_convert_basic_block_path<'v>(
         .enumerate()
         .map(|(index, block)| {
             (
-                index_to_label(&cfg_method.basic_blocks_labels(), index),
+                index_to_label(cfg_method.basic_blocks_labels(), index),
                 (index, block),
             )
         })
         .collect();
-    let mut current_label = index_to_label(&cfg_method.basic_blocks_labels(), 0);
+    let mut current_label = index_to_label(cfg_method.basic_blocks_labels(), 0);
     while let Some((index, block)) = remaining_blocks.remove(&current_label) {
-        blocks_ast.push(block_to_viper(ast, &cfg_method.basic_blocks_labels(), block, index));
+        blocks_ast.push(block_to_viper(ast, cfg_method.basic_blocks_labels(), block, index));
         declarations.push(
-            ast.label(&index_to_label(&cfg_method.basic_blocks_labels(), index), &[])
+            ast.label(&index_to_label(cfg_method.basic_blocks_labels(), index), &[])
                 .into(),
         );
 
@@ -802,7 +800,7 @@ fn cfg_method_convert_basic_block_path<'v>(
             .successor
             .get_following()
             .into_iter()
-            .map(|ci| index_to_label(&cfg_method.basic_blocks_labels(), ci.index()))
+            .map(|ci| index_to_label(cfg_method.basic_blocks_labels(), ci.index()))
             .collect();
         assert!(!successors.is_empty());
 
@@ -830,14 +828,14 @@ fn cfg_method_convert_basic_block_path<'v>(
                 ast.false_lit_with_pos(fake_position.to_viper(ast)),
                 fake_position.to_viper(ast),
             ),
-            successor_to_viper(ast, index, &cfg_method.basic_blocks_labels(), &block.successor),
+            successor_to_viper(ast, index, cfg_method.basic_blocks_labels(), &block.successor),
         ];
         blocks_ast.push(ast.seqn(&stmts, &[]));
         declarations.push(ast.label(&label, &[]).into());
     }
 
     for (label, (index, block)) in remaining_blocks {
-        blocks_ast.push(block_to_viper(ast, &cfg_method.basic_blocks_labels(), block, index));
+        blocks_ast.push(block_to_viper(ast, cfg_method.basic_blocks_labels(), block, index));
         declarations.push(ast.label(&label, &[]).into());
     }
 }
@@ -848,14 +846,14 @@ impl<'v> ToViper<'v, Vec<viper::Method<'v>>> for Vec<CfgMethod> {
     }
 }
 
-fn index_to_label(basic_block_labels: &Vec<String>, index: usize) -> String {
+fn index_to_label(basic_block_labels: &[String], index: usize) -> String {
     basic_block_labels[index].clone()
 }
 
 fn successor_to_viper<'a>(
     ast: &'a AstFactory,
     index: usize,
-    basic_block_labels: &Vec<String>,
+    basic_block_labels: &[String],
     successor: &Successor,
 ) -> viper::Stmt<'a> {
     match *successor {
@@ -882,13 +880,12 @@ fn successor_to_viper<'a>(
 
 fn block_to_viper<'a>(
     ast: &'a AstFactory,
-    basic_block_labels: &Vec<String>,
+    basic_block_labels: &[String],
     block: &CfgBlock,
     index: usize,
 ) -> viper::Stmt<'a> {
     let label = &basic_block_labels[index];
-    let mut stmts: Vec<viper::Stmt> = vec![];
-    stmts.push(ast.label(label, &[]));
+    let mut stmts: Vec<viper::Stmt> = vec![ast.label(label, &[])];
     stmts.extend(block.stmts.to_viper(ast));
     stmts.push(successor_to_viper(
         ast,

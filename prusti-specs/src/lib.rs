@@ -151,7 +151,7 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
         rewriter::SpecItemType::Precondition,
         spec_id,
         assertion,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item],
@@ -171,7 +171,7 @@ fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
         rewriter::SpecItemType::Postcondition,
         spec_id,
         assertion,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item],
@@ -210,7 +210,7 @@ fn generate_for_after_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> Ge
         rewriter::SpecItemType::Postcondition,
         spec_id_rhs,
         pledge.rhs,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item_rhs],
@@ -237,13 +237,13 @@ fn generate_for_after_expiry_if(attr: TokenStream, item: &untyped::AnyFnItem) ->
         rewriter::SpecItemType::Postcondition,
         spec_id_lhs,
         pledge.lhs.unwrap(),
-        &item
+        item
     )?;
     let spec_item_rhs = rewriter.generate_spec_item_fn(
         rewriter::SpecItemType::Postcondition,
         spec_id_rhs,
         pledge.rhs,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item_lhs, spec_item_rhs],
@@ -394,34 +394,31 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     let mut new_items = Vec::new();
     let mut generated_spec_items = Vec::new();
     for item in impl_block.items {
-        match item {
-            syn::ImplItem::Method(method) => {
-                let mut method_item = untyped::AnyFnItem::ImplMethod(method);
-                let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item);
-                let (spec_items, generated_attributes) = handle_result!(
-                    generate_spec_and_assertions(prusti_attributes, &method_item)
-                );
-                generated_spec_items.extend(spec_items.into_iter().map(|spec_item| {
-                    match spec_item {
-                        syn::Item::Fn(spec_item_fn) => {
-                            syn::ImplItem::Method(syn::ImplItemMethod {
-                                attrs: spec_item_fn.attrs,
-                                vis: spec_item_fn.vis,
-                                defaultness: None,
-                                sig: spec_item_fn.sig,
-                                block: *spec_item_fn.block,
-                            })
-                        }
-                        x => unimplemented!("Unexpected variant: {:?}", x),
+        if let syn::ImplItem::Method(method) = item {
+            let mut method_item = untyped::AnyFnItem::ImplMethod(method);
+            let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item);
+            let (spec_items, generated_attributes) = handle_result!(
+                generate_spec_and_assertions(prusti_attributes, &method_item)
+            );
+            generated_spec_items.extend(spec_items.into_iter().map(|spec_item| {
+                match spec_item {
+                    syn::Item::Fn(spec_item_fn) => {
+                        syn::ImplItem::Method(syn::ImplItemMethod {
+                            attrs: spec_item_fn.attrs,
+                            vis: spec_item_fn.vis,
+                            defaultness: None,
+                            sig: spec_item_fn.sig,
+                            block: *spec_item_fn.block,
+                        })
                     }
-                }));
-                let new_item = parse_quote_spanned! {method_item.span()=>
-                    #(#generated_attributes)*
-                    #method_item
-                };
-                new_items.push(new_item);
-            }
-            _ => {}
+                    x => unimplemented!("Unexpected variant: {:?}", x),
+                }
+            }));
+            let new_item = parse_quote_spanned! {method_item.span()=>
+                #(#generated_attributes)*
+                #method_item
+            };
+            new_items.push(new_item);
         }
     }
     impl_block.items = new_items;

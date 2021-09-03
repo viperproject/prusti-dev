@@ -15,7 +15,7 @@ pub trait Simplifier {
 
 impl Simplifier for ast::Function {
     /// Simplify functions in a way that tries to work-around regressions caused by
-    /// https://bitbucket.org/viperproject/silicon/issues/387/incompleteness-in-morecompleteexhale
+    /// <https://github.com/viperproject/silicon/issues/387>
     fn simplify(mut self) -> Self {
         trace!("[enter] simplify = {}", self);
         let new_body = self.body.map(|b| b.simplify());

@@ -15,7 +15,8 @@ use std::{
 };
 use viper::ProgramVerificationResult;
 
-pub type FutVerificationResult = Box<dyn Future<Item = ProgramVerificationResult, Error = Canceled>>;
+pub type FutVerificationResult =
+    Box<dyn Future<Item = ProgramVerificationResult, Error = Canceled>>;
 
 struct VerificationRequest {
     pub programs: Vec<Program>,
@@ -47,7 +48,7 @@ impl VerifierThread {
             .unwrap();
 
         Self {
-            backend_config: backend_config,
+            backend_config,
             request_sender: Mutex::new(request_sender),
         }
     }

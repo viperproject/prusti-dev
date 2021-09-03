@@ -12,15 +12,26 @@ pub enum VerificationBackend {
     Carbon,
 }
 
-impl VerificationBackend {
-    pub fn from_str(backend: &str) -> Self {
+#[derive(Clone, Debug)]
+pub struct UknownBackendError(String);
+
+impl fmt::Display for UknownBackendError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Invalid verification backend: '{}'. Allowed values are 'Silicon' and 'Carbon'",
+            self.0
+        )
+    }
+}
+
+impl std::str::FromStr for VerificationBackend {
+    type Err = UknownBackendError;
+    fn from_str(backend: &str) -> Result<Self, Self::Err> {
         match backend.to_lowercase().as_str() {
-            "silicon" => VerificationBackend::Silicon,
-            "carbon" => VerificationBackend::Carbon,
-            _ => panic!(
-                "Invalid verification backend: '{}'. Allowed values are 'Silicon' and 'Carbon'",
-                backend
-            ),
+            "silicon" => Ok(VerificationBackend::Silicon),
+            "carbon" => Ok(VerificationBackend::Carbon),
+            _ => Err(UknownBackendError(backend.to_string())),
         }
     }
 }
@@ -28,8 +39,8 @@ impl VerificationBackend {
 impl fmt::Display for VerificationBackend {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &VerificationBackend::Silicon => write!(f, "Silicon"),
-            &VerificationBackend::Carbon => write!(f, "Carbon"),
+            VerificationBackend::Silicon => write!(f, "Silicon"),
+            VerificationBackend::Carbon => write!(f, "Carbon"),
         }
     }
 }

@@ -78,7 +78,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {
         _def_id: DefId,
         mir_encoder: &MirEncoder<'p, 'v, 'tcx>,
     ) -> EncodingResult<Self> {
-        let initialisation = compute_definitely_initialized(&mir, tcx);
+        let initialisation = compute_definitely_initialized(mir, tcx);
         let mir_acc_before_block: HashMap<_, _> = initialisation
             .before_block
             .into_iter()

@@ -4,8 +4,7 @@ extern crate error_chain;
 extern crate lazy_static;
 extern crate viper;
 
-use std::thread;
-use std::thread::JoinHandle;
+use std::{thread, thread::JoinHandle};
 use viper::*;
 
 lazy_static! {
@@ -29,7 +28,8 @@ fn concurrent_verifier_initialization() {
 
             for _ in 0..num_threads {
                 handlers.push(thread::spawn(move || {
-                    let verification_context: VerificationContext = VIPER.new_verification_context();
+                    let verification_context: VerificationContext =
+                        VIPER.new_verification_context();
 
                     let ast = verification_context.new_ast_factory();
 
@@ -55,7 +55,9 @@ fn concurrent_verifier_initialization() {
                                 ),
                                 ast.int_lit(3),
                             ),
-                            ast.explicit_seq(&(0..3).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>()),
+                            ast.explicit_seq(
+                                &(0..3).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>(),
+                            ),
                         ),
                     );
 
@@ -67,8 +69,8 @@ fn concurrent_verifier_initialization() {
 
                     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-                    let verifier =
-                        verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+                    let verifier = verification_context
+                        .new_verifier(viper::VerificationBackend::Silicon, None);
 
                     let verification_result = verifier.verify(program);
 

@@ -21,15 +21,11 @@ fn cargo_prusti_path() -> PathBuf {
     };
     let local_prusti_rustc_path: PathBuf = ["target", target_directory, executable_name].iter().collect();
     if local_prusti_rustc_path.exists() {
-        return fs::canonicalize(&local_prusti_rustc_path).expect(
-            &format!("Failed to canonicalize the path {:?}", local_prusti_rustc_path)
-        );
+        return fs::canonicalize(&local_prusti_rustc_path).unwrap_or_else(|_| panic!("Failed to canonicalize the path {:?}", local_prusti_rustc_path));
     }
     let workspace_prusti_rustc_path: PathBuf = ["..", "target", target_directory, executable_name].iter().collect();
     if workspace_prusti_rustc_path.exists() {
-        return fs::canonicalize(&workspace_prusti_rustc_path).expect(
-            &format!("Failed to canonicalize the path {:?}", workspace_prusti_rustc_path)
-        );
+        return fs::canonicalize(&workspace_prusti_rustc_path).unwrap_or_else(|_| panic!("Failed to canonicalize the path {:?}", workspace_prusti_rustc_path));
     }
     panic!(
         "Could not find the {:?} cargo-prusti binary to be used in tests. \
@@ -86,22 +82,20 @@ error: could not compile `foo` due to previous error
 fn test_local_project<T: Into<PathBuf>>(project_name: T) {
     let mut project_builder = project().no_manifest();
     let relative_project_path = Path::new("tests/cargo_verify").join(project_name.into());
-    let project_path = fs::canonicalize(&relative_project_path).expect(
-        &format!("Failed to canonicalize the path {}", relative_project_path.display())
-    );
+    let project_path = fs::canonicalize(&relative_project_path).unwrap_or_else(|_| panic!("Failed to canonicalize the path {}", relative_project_path.display()));
 
     // Populate the test project with symlinks to the local project
     let project_path_content = fs::read_dir(&project_path)
-        .expect(&format!("Failed to read directory {}", project_path.display()));
+        .unwrap_or_else(|_| panic!("Failed to read directory {}", project_path.display()));
     for entry in project_path_content {
-        let entry = entry.expect(&format!("Failed to read content of {}", project_path.display()));
+        let entry = entry.unwrap_or_else(|_| panic!("Failed to read content of {}", project_path.display()));
         let path = entry.path();
         let file_name = path.as_path().file_name()
-            .expect(&format!("Failed to obtain the name of {}", path.display()));
+            .unwrap_or_else(|| panic!("Failed to obtain the name of {}", path.display()));
         if path.is_dir() {
-            project_builder = project_builder.symlink_dir(path.as_path(), &Path::new(file_name));
+            project_builder = project_builder.symlink_dir(path.as_path(), Path::new(file_name));
         } else {
-            project_builder = project_builder.symlink(path.as_path(), &Path::new(file_name));
+            project_builder = project_builder.symlink(path.as_path(), Path::new(file_name));
         }
     }
 
@@ -111,7 +105,7 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
         .and_then(|p| p.parent())
         .and_then(|p| p.parent())
         .and_then(|p| p.parent())
-        .expect(&format!("Failed to obtain parent folders of {}", project_path.display()));
+        .unwrap_or_else(|| panic!("Failed to obtain parent folders of {}", project_path.display()));
     let prusti_contract_deps = [
         "prusti-utils",
         "prusti-specs",
@@ -122,7 +116,7 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
     for crate_name in &prusti_contract_deps {
         project_builder = project_builder.symlink_dir(
             prusti_dev_path.join(crate_name).as_path(),
-            &Path::new(crate_name)
+            Path::new(crate_name)
         );
     }
 

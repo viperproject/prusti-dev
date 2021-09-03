@@ -183,9 +183,7 @@ impl AssignExpressionId<Option<Assertion>> for Option<common::Assertion<(), syn:
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> Option<Assertion> {
-        if self.is_none() {
-            return None;
-        }
+        self.as_ref()?;
         Some(self.unwrap().assign_id(spec_id, id_generator))
     }
 }
@@ -196,9 +194,7 @@ impl AssignExpressionId<Option<Expression>> for Option<common::Expression<(), sy
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> Option<Expression> {
-        if self.is_none() {
-            return None;
-        }
+        self.as_ref()?;
         Some(self.unwrap().assign_id(spec_id, id_generator))
     }
 }

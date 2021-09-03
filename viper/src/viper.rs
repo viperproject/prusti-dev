@@ -6,11 +6,9 @@
 
 use jni::*;
 use jni_utils::JniUtils;
-use std::env;
-use std::fs;
+use std::{env, fs, path::Path};
 use verification_context::*;
 use viper_sys::wrappers::*;
-use std::path::Path;
 
 pub struct Viper {
     jvm: JavaVM,
@@ -40,27 +38,30 @@ impl Viper {
         );
 
         let jar_paths: Vec<String> = fs::read_dir(&viper_home)
-            .expect(&format!("failed to open {:?}", viper_home))
+            .unwrap_or_else(|_| panic!("failed to open {:?}", viper_home))
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
             .collect();
 
-        debug!("Java classpath: {}", jar_paths.clone().join(":"));
+        debug!("Java classpath: {}", jar_paths.join(":"));
 
         let classpath_separator = if cfg!(windows) { ";" } else { ":" };
         let init_args = InitArgsBuilder::new()
             .version(JNIVersion::V8)
-            .option(&format!("-Djava.class.path={}", jar_paths.join(classpath_separator)))
+            .option(&format!(
+                "-Djava.class.path={}",
+                jar_paths.join(classpath_separator)
+            ))
             // maximum heap size
             .option(&format!("-Xmx{}m", heap_size))
             // stack size
             .option("-Xss512m");
-            //.option("-Xdebug")
-            //.option("-verbose:gc")
-            //.option("-Xcheck:jni")
-            //.option("-XX:+CheckJNICalls")
-            //.option("-Djava.security.debug=all")
-            //.option("-verbose:jni")
-            //.option("-XX:+TraceJNICalls")
+        //.option("-Xdebug")
+        //.option("-verbose:gc")
+        //.option("-Xcheck:jni")
+        //.option("-XX:+CheckJNICalls")
+        //.option("-Djava.security.debug=all")
+        //.option("-verbose:jni")
+        //.option("-XX:+TraceJNICalls")
         let jvm_args = java_args
             .into_iter()
             .fold(init_args, |curr_args, opt| curr_args.option(&opt))
@@ -94,9 +95,7 @@ impl Viper {
             info!("Using JVM {}, Java {}", vm_name, java_version);
         }
 
-        let this = Viper { jvm };
-
-        this
+        Viper { jvm }
     }
 
     pub fn new_verification_context(&self) -> VerificationContext {

@@ -169,7 +169,7 @@ fn rewrite_self(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     new_tokens
 }
 
-fn rewrite_method_inputs(item_ty: &Box<syn::Type>, method: &mut ImplItemMethod) ->
+fn rewrite_method_inputs(item_ty: &syn::Type, method: &mut ImplItemMethod) ->
     syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> {
     let mut args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
         syn::punctuated::Punctuated::new();

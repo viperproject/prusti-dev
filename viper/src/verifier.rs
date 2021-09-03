@@ -4,21 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#![cfg_attr(feature = "cargo-clippy", allow(new_ret_no_self))]
+#![cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
 
 use ast_factory::*;
 use ast_utils::AstUtils;
-use jni::objects::JObject;
-use jni::JNIEnv;
+use jni::{objects::JObject, JNIEnv};
 use jni_utils::JniUtils;
-use std::marker::PhantomData;
-use std::path::PathBuf;
-use verification_backend::VerificationBackend;
-use verification_result::VerificationError;
-use verification_result::VerificationResult;
-use viper_sys::wrappers::viper::*;
-use viper_sys::wrappers::scala;
 use silicon_counterexample::SiliconCounterexample;
+use std::{marker::PhantomData, path::PathBuf};
+use verification_backend::VerificationBackend;
+use verification_result::{VerificationError, VerificationResult};
+use viper_sys::wrappers::{scala, viper::*};
 
 pub mod state {
     pub struct Uninitialized;
@@ -53,12 +49,10 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
         let debug_info = utils.new_seq(&[]);
         let verifier_wrapper = silver::verifier::Verifier::with(env);
         let verifier_instance = jni.unwrap_result(match backend {
-            VerificationBackend::Silicon => {
-                silicon::Silicon::with(env).new(reporter, debug_info)
-            }
+            VerificationBackend::Silicon => silicon::Silicon::with(env).new(reporter, debug_info),
             VerificationBackend::Carbon => {
                 carbon::CarbonVerifier::with(env).new(reporter, debug_info)
-            },
+            }
         });
 
         let name = jni.to_string(jni.unwrap_result(verifier_wrapper.call_name(verifier_instance)));
@@ -212,24 +206,31 @@ impl<'a> Verifier<'a, state::Started> {
                 let option_original_counterexample = self
                     .jni
                     .unwrap_result(verification_error_wrapper.call_counterexample(viper_error));
-                
+
                 let counterexample: Option<SiliconCounterexample> = if !self
                     .jni
                     .is_instance_of(option_original_counterexample, "scala/None$")
                 {
-                    let original_counterexample = self
-                        .jni
-                        .unwrap_result(scala::Some::with(self.env).call_get(option_original_counterexample));
-                    if self.jni.is_instance_of(original_counterexample, "viper/silicon/interfaces/SiliconMappedCounterexample") {
+                    let original_counterexample = self.jni.unwrap_result(
+                        scala::Some::with(self.env).call_get(option_original_counterexample),
+                    );
+                    if self.jni.is_instance_of(
+                        original_counterexample,
+                        "viper/silicon/interfaces/SiliconMappedCounterexample",
+                    ) {
                         // only mapped counterexamples are processed
-                        Some(SiliconCounterexample::new(self.env, self.jni, original_counterexample))
+                        Some(SiliconCounterexample::new(
+                            self.env,
+                            self.jni,
+                            original_counterexample,
+                        ))
                     } else {
                         None
                     }
                 } else {
                     None
                 };
-                
+
                 let reason = self
                     .jni
                     .unwrap_result(verification_error_wrapper.call_reason(viper_error));

@@ -4,11 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::fmt;
-use std::iter::FromIterator;
-use uuid::Uuid;
 use crate::polymorphic::{ast::*, gather_labels::gather_labels};
+use std::{
+    collections::{HashMap, HashSet, VecDeque},
+    fmt,
+    iter::FromIterator,
+};
+use uuid::Uuid;
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
@@ -315,9 +317,7 @@ impl CfgMethod {
         let mut result = HashMap::new();
         for (index, block) in self.basic_blocks.iter().enumerate() {
             for successor in block.successor.get_following() {
-                let entry = result
-                    .entry(successor.block_index)
-                    .or_insert_with(|| Vec::new());
+                let entry = result.entry(successor.block_index).or_insert_with(Vec::new);
                 entry.push(index);
             }
         }
@@ -346,8 +346,8 @@ impl CfgMethod {
         }
 
         let mut queue = VecDeque::new();
-        for index in 0..self.basic_blocks.len() {
-            if in_degree[index] == 0 {
+        for (index, &value) in in_degree.iter().enumerate() {
+            if value == 0 {
                 queue.push_back(index);
             }
         }
@@ -449,8 +449,7 @@ impl CfgMethod {
                     }
                     path.reverse();
                     return Some(path);
-                }
-                if !visited[successor_block.block_index] {
+                } else if !visited[successor_block.block_index] {
                     visited[successor_block.block_index] = true;
                     came_from[successor_block.block_index] = Some(curr_block_index);
                     to_visit.push_back(successor_block);

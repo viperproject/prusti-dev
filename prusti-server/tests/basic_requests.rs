@@ -28,7 +28,7 @@ fn consistency_error() {
     let ProgramVerificationResult {
         verification_errors,
         mut consistency_errors,
-        java_exceptions
+        java_exceptions,
     } = result;
 
     assert!(verification_errors.is_empty());
@@ -45,7 +45,7 @@ fn empty_program() {
     let ProgramVerificationResult {
         verification_errors,
         consistency_errors,
-        java_exceptions
+        java_exceptions,
     } = result;
 
     assert!(verification_errors.is_empty());

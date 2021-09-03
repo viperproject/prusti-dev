@@ -79,7 +79,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> EncodedSliceTypes<'tcx> {
             }
         );
 
-        vir::Expr::func_app( 
+        vir::Expr::func_app(
             lookup_pure,
             vec![
                 slice,
@@ -156,7 +156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
             elem_pred_type,
             elem_ty_rs,
         };
-        self.slice_types_cache.insert(&slice_ty_rs, encoded.clone());
+        self.slice_types_cache.insert(slice_ty_rs, encoded.clone());
 
         Ok(encoded)
     }
@@ -192,7 +192,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ArrayTypesEncoder<'tcx> {
             elem_ty_rs,
             array_len,
         };
-        self.array_types_cache.insert(&array_ty_rs, encoded.clone());
+        self.array_types_cache.insert(array_ty_rs, encoded.clone());
 
         Ok(encoded)
     }

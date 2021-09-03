@@ -4,13 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::polymorphic::ast::{Expr, ConstExpr, Local, LocalVar, Const, Position};
+use crate::polymorphic::ast::{Const, ConstExpr, Expr, Local, LocalVar, Position};
 
 impl From<LocalVar> for Expr {
     fn from(local_var: LocalVar) -> Self {
         Expr::Local(Local {
             variable: local_var,
-            position: Position::default()
+            position: Position::default(),
         })
     }
 }
@@ -19,7 +19,7 @@ impl<'a> From<&'a LocalVar> for Expr {
     fn from(local_var: &'a LocalVar) -> Self {
         Expr::Local(Local {
             variable: local_var.clone(),
-            position: Position::default()
+            position: Position::default(),
         })
     }
 }

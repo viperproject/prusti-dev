@@ -5,14 +5,16 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::places_utils::{union, union3};
-use crate::encoder::foldunfold::perm::Perm::*;
-use crate::encoder::foldunfold::perm::*;
-use crate::encoder::foldunfold::footprint::*;
+use crate::encoder::foldunfold::{
+    footprint::*,
+    perm::{Perm::*, *},
+};
+use log::{debug, trace};
+use std::{
+    collections::{HashMap, HashSet},
+    iter::FromIterator,
+};
 use vir_crate::polymorphic::{self as vir, PermAmount};
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::iter::FromIterator;
-use log::{trace, debug};
 
 pub trait RequiredPermissionsGetter {
     /// Returns the permissions required for the expression/statement to be well-defined.
@@ -57,7 +59,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
         match self {
             &vir::Stmt::Comment(_) => HashSet::new(),
 
-            &vir::Stmt::Label( vir::Label {ref label} ) => {
+            &vir::Stmt::Label(vir::Label { ref label }) => {
                 // A label has to ensure that all usages of labelled-old expressions can be
                 // solved by unfolding, and not folding, permissions.
                 if let Some(exprs) = old_exprs.get(label) {
@@ -65,9 +67,9 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 } else {
                     HashSet::new()
                 }
-            },
+            }
 
-            &vir::Stmt::Inhale( vir::Inhale {ref expr} ) => {
+            &vir::Stmt::Inhale(vir::Inhale { ref expr }) => {
                 // footprint = used - inhaled
                 perm_difference(
                     expr.get_required_permissions(predicates, old_exprs),
@@ -75,9 +77,18 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 )
             }
 
-            &vir::Stmt::Exhale( vir::Exhale {ref expr, ref position} )
-            | &vir::Stmt::Assert( vir::Assert {ref expr, ref position} )
-            | &vir::Stmt::Obtain( vir::Obtain {ref expr, ref position} ) => {
+            &vir::Stmt::Exhale(vir::Exhale {
+                ref expr,
+                ref position,
+            })
+            | &vir::Stmt::Assert(vir::Assert {
+                ref expr,
+                ref position,
+            })
+            | &vir::Stmt::Obtain(vir::Obtain {
+                ref expr,
+                ref position,
+            }) => {
                 let perms = expr.get_required_permissions(predicates, old_exprs);
                 perms
                     .into_iter()
@@ -85,23 +96,37 @@ impl RequiredPermissionsGetter for vir::Stmt {
                     .collect()
             }
 
-            &vir::Stmt::MethodCall( vir::MethodCall {ref arguments, ref targets, ..} ) => {
+            &vir::Stmt::MethodCall(vir::MethodCall {
+                ref arguments,
+                ref targets,
+                ..
+            }) => {
                 // Preconditions and postconditions are empty
                 assert!(arguments.is_empty());
                 HashSet::from_iter(
-                    targets.iter()
+                    targets
+                        .iter()
                         .cloned()
                         .map(|v| Acc(vir::Expr::local(v), PermAmount::Write)),
                 )
             }
 
-            &vir::Stmt::Assign( vir::Assign {ref target, ref source, ..} ) => {
+            &vir::Stmt::Assign(vir::Assign {
+                ref target,
+                ref source,
+                ..
+            }) => {
                 let mut res = source.get_required_permissions(predicates, old_exprs);
                 res.insert(Acc(target.clone(), PermAmount::Write));
                 res
             }
 
-            &vir::Stmt::Fold( vir::Fold {ref arguments, permission, ref enum_variant, ..} ) => {
+            &vir::Stmt::Fold(vir::Fold {
+                ref arguments,
+                permission,
+                ref enum_variant,
+                ..
+            }) => {
                 assert_eq!(arguments.len(), 1);
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
@@ -116,7 +141,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                     .into_iter()
                     .map(|perm| {
                         // TODO polymorphic: add replace_place
-                        perm.map_place(|p| p.replace_place(&pred_self_place, &place))
+                        perm.map_place(|p| p.replace_place(&pred_self_place, place))
                             .init_perm_amount(permission)
                     })
                     .collect();
@@ -124,7 +149,11 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 places_in_pred
             }
 
-            &vir::Stmt::Unfold( vir::Unfold {ref arguments, permission, ..} ) => {
+            &vir::Stmt::Unfold(vir::Unfold {
+                ref arguments,
+                permission,
+                ..
+            }) => {
                 assert_eq!(arguments.len(), 1);
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
@@ -137,7 +166,11 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
             &vir::Stmt::BeginFrame(_) | &vir::Stmt::EndFrame(_) => HashSet::new(),
 
-            &vir::Stmt::TransferPerm( vir::TransferPerm {ref left, unchecked, ..} ) => {
+            &vir::Stmt::TransferPerm(vir::TransferPerm {
+                ref left,
+                unchecked,
+                ..
+            }) => {
                 let mut res = HashSet::new();
                 if !unchecked {
                     res.insert(Acc(left.clone(), PermAmount::Read));
@@ -150,19 +183,23 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 HashSet::new()
             }
 
-            &vir::Stmt::ApplyMagicWand( vir::ApplyMagicWand {
-                magic_wand: vir::Expr::MagicWand( vir::MagicWand {ref left, ..} ),
+            &vir::Stmt::ApplyMagicWand(vir::ApplyMagicWand {
+                magic_wand: vir::Expr::MagicWand(vir::MagicWand { ref left, .. }),
                 ..
             }) => {
                 // We model the magic wand as "assert lhs; inhale rhs"
                 left.get_required_permissions(predicates, old_exprs)
             }
 
-            &vir::Stmt::ExpireBorrows( vir::ExpireBorrows {dag: ref _dag} ) => {
+            &vir::Stmt::ExpireBorrows(vir::ExpireBorrows { dag: ref _dag }) => {
                 HashSet::new() // TODO: #133
             }
 
-            &vir::Stmt::If( vir::If {ref guard, ref then_stmts, ref else_stmts} ) => {
+            &vir::Stmt::If(vir::If {
+                ref guard,
+                ref then_stmts,
+                ref else_stmts,
+            }) => {
                 let guard_reqs = guard.get_required_permissions(predicates, old_exprs);
                 let then_reqs = then_stmts.get_required_permissions(predicates, old_exprs);
                 let else_reqs = else_stmts.get_required_permissions(predicates, old_exprs);
@@ -170,7 +207,10 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 guard_reqs.union(&then_else_reqs).cloned().collect()
             }
 
-            &vir::Stmt::Downcast( vir::Downcast {ref base, ref field} ) => {
+            &vir::Stmt::Downcast(vir::Downcast {
+                ref base,
+                ref field,
+            }) => {
                 // Delegate
                 vir::Expr::downcast(true.into(), base.clone(), field.clone())
                     .get_required_permissions(predicates, old_exprs)
@@ -191,7 +231,13 @@ impl RequiredPermissionsGetter for vir::Expr {
         let permissions = match self {
             vir::Expr::Const(..) => HashSet::new(),
 
-            vir::Expr::Unfolding( vir::Unfolding {arguments, base, permission, variant, ..} ) => {
+            vir::Expr::Unfolding(vir::Unfolding {
+                arguments,
+                base,
+                permission,
+                variant,
+                ..
+            }) => {
                 assert_eq!(arguments.len(), 1);
                 let place = &arguments[0];
                 debug_assert!(place.is_place());
@@ -217,9 +263,16 @@ impl RequiredPermissionsGetter for vir::Expr {
                 req_places.into_iter().collect()
             }
 
-            vir::Expr::LabelledOld( vir::LabelledOld {label: ref _label, base: ref _base, ..} ) => HashSet::new(),
+            vir::Expr::LabelledOld(vir::LabelledOld {
+                label: ref _label,
+                base: ref _base,
+                ..
+            }) => HashSet::new(),
 
-            vir::Expr::PredicateAccessPredicate( vir::PredicateAccessPredicate { box argument, ..} ) => {
+            vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
+                box argument,
+                ..
+            }) => {
                 debug_assert!(argument.is_place());
                 let epsilon = PermAmount::Read;
                 let result = match argument.get_label() {
@@ -227,9 +280,12 @@ impl RequiredPermissionsGetter for vir::Expr {
                         if argument.is_old() {
                             vec![Pred(argument.clone(), epsilon)].into_iter().collect()
                         } else {
-                            vec![Pred(argument.clone(), epsilon), Acc(argument.clone(), epsilon)]
-                                .into_iter()
-                                .collect()
+                            vec![
+                                Pred(argument.clone(), epsilon),
+                                Acc(argument.clone(), epsilon),
+                            ]
+                            .into_iter()
+                            .collect()
                         }
                     }
                     Some(label) => {
@@ -250,42 +306,69 @@ impl RequiredPermissionsGetter for vir::Expr {
                 result
             }
 
-            vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {ref base, ..} ) => base
+            vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate { ref base, .. }) => base
                 .get_required_permissions(predicates, old_exprs)
                 .into_iter()
                 .collect(),
 
-            vir::Expr::UnaryOp( vir::UnaryOp {ref argument, ..} ) => argument.get_required_permissions(predicates, old_exprs),
-
-            vir::Expr::BinOp( vir::BinOp {box left, box right, ..} ) => {
-                vec![left, right].get_required_permissions(predicates, old_exprs)
+            vir::Expr::UnaryOp(vir::UnaryOp { ref argument, .. }) => {
+                argument.get_required_permissions(predicates, old_exprs)
             }
 
-            vir::Expr::ContainerOp( vir::ContainerOp {box left, box right, ..} ) => {
-                vec![left, right].get_required_permissions(predicates, old_exprs)
-            }
+            vir::Expr::BinOp(vir::BinOp {
+                box left,
+                box right,
+                ..
+            }) => vec![left, right].get_required_permissions(predicates, old_exprs),
 
-            vir::Expr::Seq( vir::Seq {elements, ..} ) => {
+            vir::Expr::ContainerOp(vir::ContainerOp {
+                box left,
+                box right,
+                ..
+            }) => vec![left, right].get_required_permissions(predicates, old_exprs),
+
+            vir::Expr::Seq(vir::Seq { elements, .. }) => {
                 elements.get_required_permissions(predicates, old_exprs)
             }
 
-            vir::Expr::Cond( vir::Cond {box guard, box then_expr, box else_expr, ..} ) => {
-                vec![guard, then_expr, else_expr].get_required_permissions(predicates, old_exprs)
-            }
+            vir::Expr::Cond(vir::Cond {
+                box guard,
+                box then_expr,
+                box else_expr,
+                ..
+            }) => vec![guard, then_expr, else_expr].get_required_permissions(predicates, old_exprs),
 
-            vir::Expr::LetExpr( vir::LetExpr {variable: _variable, def: _def, body: _body, ..} ) => {
+            vir::Expr::LetExpr(vir::LetExpr {
+                variable: _variable,
+                def: _def,
+                body: _body,
+                ..
+            }) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
 
-            vir::Expr::ForAll( vir::ForAll {variables, box body, ..} )
-            | vir::Expr::Exists( vir::Exists {variables, box body, ..} ) => {
-                assert!(variables.iter().all(|var| !var.typ.is_typed_ref_or_type_var()));
+            vir::Expr::ForAll(vir::ForAll {
+                variables,
+                box body,
+                ..
+            })
+            | vir::Expr::Exists(vir::Exists {
+                variables,
+                box body,
+                ..
+            }) => {
+                assert!(variables
+                    .iter()
+                    .all(|var| !var.typ.is_typed_ref_or_type_var()));
 
                 let vars_places: HashSet<_> = variables
                     .iter()
                     .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))
                     .collect();
-                perm_difference(body.get_required_permissions(predicates, old_exprs), vars_places)
+                perm_difference(
+                    body.get_required_permissions(predicates, old_exprs),
+                    vars_places,
+                )
             }
 
             vir::Expr::Local(..) => HashSet::new(),
@@ -300,14 +383,20 @@ impl RequiredPermissionsGetter for vir::Expr {
                 .into_iter()
                 .collect(),
 
-            vir::Expr::MagicWand( vir::MagicWand {left: ref _left, right: ref _right, borrow: ref _borrow, ..} ) => {
+            vir::Expr::MagicWand(vir::MagicWand {
+                left: ref _left,
+                right: ref _right,
+                borrow: ref _borrow,
+                ..
+            }) => {
                 // Not exactly Viper's semantics
                 HashSet::new()
             }
 
-            vir::Expr::FuncApp( vir::FuncApp {ref arguments, ..} ) |
-            vir::Expr::DomainFuncApp( vir::DomainFuncApp {ref arguments, ..} )=> {
-                arguments.iter()
+            vir::Expr::FuncApp(vir::FuncApp { ref arguments, .. })
+            | vir::Expr::DomainFuncApp(vir::DomainFuncApp { ref arguments, .. }) => {
+                arguments
+                    .iter()
                     .map(|arg| {
                         if arg.is_place() && arg.get_type().is_typed_ref_or_type_var() {
                             // FIXME: A hack: have unfolded Rust references in the precondition to
@@ -326,7 +415,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                                 let typ = arg.get_type();
                                 vir::Expr::predicate_access_predicate(
                                     typ.clone(),
-                                    arg.clone().into(),
+                                    arg.clone(),
                                     PermAmount::Read,
                                 )
                             }
@@ -341,12 +430,13 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::InhaleExhale(..) => HashSet::new(),
 
-            vir::Expr::Downcast( vir::DowncastExpr {ref enum_place, ..} ) => {
+            vir::Expr::Downcast(vir::DowncastExpr { ref enum_place, .. }) => {
                 let predicate_name = enum_place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
                 if let vir::Predicate::Enum(enum_predicate) = predicate {
                     // We want to have the enum unfolded
-                    enum_place.clone()
+                    enum_place
+                        .clone()
                         .field(enum_predicate.discriminant_field.clone())
                         .get_required_permissions(predicates, old_exprs)
                 } else {

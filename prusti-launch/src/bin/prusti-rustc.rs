@@ -4,10 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{env, path::{Path, PathBuf}, process::Command};
-use prusti_launch::{add_to_loader_path, find_viper_home, find_z3_exe, sigint_handler};
 #[cfg(target_family = "unix")]
 use nix::unistd::{setpgid, Pid};
+use prusti_launch::{add_to_loader_path, find_viper_home, find_z3_exe, sigint_handler};
+use std::{
+    env,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1).collect()) {
@@ -37,7 +41,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         .expect("Failed to find JVM library. Check JAVA_HOME");
 
     let prusti_sysroot = prusti_launch::prusti_sysroot()
-        .expect(&format!("Failed to find Rust's sysroot for Prusti"));
+        .unwrap_or_else(|| panic!("{}", "Failed to find Rust's sysroot for Prusti".to_string()));
 
     let compiler_bin = prusti_sysroot.join("bin");
     let compiler_lib = prusti_sysroot.join("lib");
@@ -50,7 +54,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
     add_to_loader_path(vec![compiler_lib, compiler_bin, libjvm_path], &mut cmd);
 
-    if let None = env::var("VIPER_HOME").ok() {
+    if env::var("VIPER_HOME").ok().is_none() {
         if let Some(viper_home) = find_viper_home(&current_executable_dir) {
             cmd.env("VIPER_HOME", viper_home);
         } else {
@@ -62,7 +66,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         }
     };
 
-    if let None = env::var("Z3_EXE").ok() {
+    if env::var("Z3_EXE").ok().is_none() {
         if let Some(z3_exe) = find_z3_exe(&current_executable_dir) {
             cmd.env("Z3_EXE", z3_exe);
         } else {
@@ -78,7 +82,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
     // We're invoking the compiler programmatically, so we ignore this
-    if args.len() > 0 && Path::new(&args[0]).file_stem() == Some("rustc".as_ref()) {
+    if !args.is_empty() && Path::new(&args[0]).file_stem() == Some("rustc".as_ref()) {
         args.remove(0);
     }
 
@@ -126,8 +130,9 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     // Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
     ctrlc::set_handler(sigint_handler).expect("Error setting Ctrl-C handler");
 
-    let exit_status = cmd.status()
-        .expect(&format!("failed to execute prusti-driver ({:?})", prusti_driver_path));
+    let exit_status = cmd
+        .status()
+        .unwrap_or_else(|_| panic!("failed to execute prusti-driver ({:?})", prusti_driver_path));
 
     if exit_status.success() {
         Ok(())
