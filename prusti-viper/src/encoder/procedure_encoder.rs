@@ -1341,7 +1341,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
-    fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> EncodingResult<(vir::Expr, vir::Expr, bool, Vec<vir::Stmt>)> {
+    fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> EncodingResult<(vir::Expr, Option<vir::Expr>, bool, Vec<vir::Stmt>)> {
         debug!("encode_loan_places '{:?}'", loan_places);
 
         // will panic if attempting to encode unsupported type
@@ -1398,7 +1398,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // array access, we don't want that call, as we transfer the permissions ourselves
                 // here already (because we need them for the wand RHS), so transfering them again
                 // would fail.
-                return Ok((expiring_base, regained_array, false, stmts));
+                return Ok((expiring_base, Some(regained_array), false, stmts));
             }
         }
 
@@ -1420,19 +1420,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let array_encode_kind = if is_mut { ArrayAccessKind::Mutable(None, loan_places.location) } else { ArrayAccessKind::Shared };
                 let (expiring, restored, _) = encode(rhs_place, &mut stmts, array_encode_kind)?;
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored, is_mut, stmts)
+                (expiring, Some(restored), is_mut, stmts)
             }
             mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
                 let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts, ArrayAccessKind::Shared)?;
                 let restored = restored_base.field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored, true, stmts)
+                (expiring, Some(restored), true, stmts)
             }
             mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) => {
                 let (expiring, restored_base, ref_field) = encode(rhs_place, &mut stmts, ArrayAccessKind::Shared)?;
                 let restored = restored_base.field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored, false, stmts)
+                (expiring, Some(restored), false, stmts)
             }
 
             mir::Rvalue::Cast(mir::CastKind::Pointer(ty::adjustment::PointerCast::Unsize), ref operand, ty) => {
@@ -1445,12 +1445,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let (restored, r_stmts, ..) = self.encode_place(place, ArrayAccessKind::Shared)?;
                 stmts.extend(r_stmts);
 
-                (expiring_base, restored, false, stmts)
+                (expiring_base, Some(restored), false, stmts)
             }
 
             mir::Rvalue::Use(mir::Operand::Constant(box mir::Constant { literal, .. })) => {
                 let (ty, val) = mir_constantkind_to_ty_val(literal);
-                let restored = self.encoder.encode_const_expr(ty, &val)?;
+
+                // TODO: Encoding of string literals is not yet supported, so
+                // do not return an expression in restored here.
+                let restored: Option<vir::Expr> =
+                    if is_str(ty) {
+                        None
+                    } else {
+                        Some(self.encoder.encode_const_expr(ty, &val).unwrap())
+                    };
 
                 (expiring_base, restored, false, stmts)
             }
@@ -1629,13 +1637,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .with_span(span)?.unwrap();
         let (expiring, restored, is_mut, mut stmts) = self.encode_loan_places(&loan_places)
             .with_span(span)?;
-        let borrowed_places = vec![restored.clone()];
+        let borrowed_places = restored.clone().into_iter().collect();
         trace!("construct_vir_reborrowing_node_for_assignment(loan={:?}, loan_places={:?}, expiring={:?}, restored={:?}, stmts={:?}", loan, loan_places, expiring, restored, stmts);
 
         let mut used_lhs_label = false;
 
         // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
-        if node.incoming_zombies {
+        if node.incoming_zombies && restored.is_some() {
             let lhs_label = self.get_label_after_location(loan_location).to_string();
             for &in_loan in node.reborrowing_loans.iter() {
                 // TODO: Is this the correct span?
@@ -1662,7 +1670,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let rhs_place = match node.zombity {
             ReborrowingZombity::Zombie(rhs_location) if !node_is_leaf => {
                 let rhs_label = self.get_label_after_location(rhs_location);
-                restored.old(rhs_label)
+                restored.map(|r| r.old(rhs_label))
             }
 
             _ => restored,
@@ -1671,7 +1679,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if is_mut {
             stmts.extend(self.encode_transfer_permissions(
                 lhs_place.clone(),
-                rhs_place,
+                rhs_place.unwrap(),
                 loan_location,
                 is_in_package_stmt,
             ));
@@ -2158,6 +2166,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     ref_field,
                                     location,
                                     vir::AssignKind::Move,
+                                    false
                                 )?
                             );
 
@@ -2630,11 +2639,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // This data structure maps the newly created local variables to the expression that was
         // originally passed as an argument.
         let mut fake_exprs: HashMap<vir::Expr, vir::Expr> = HashMap::new();
+
+        // Spans for fake exprs that cannot be encoded in viper
+        let mut fake_expr_spans: HashMap<Local, Span> = HashMap::new();
+
         let mut arguments = vec![];
 
         let mut const_arg_vars: HashSet<vir::Expr> = HashSet::new();
         let mut type_invs: HashMap<String, vir::Function> = HashMap::new();
         let mut constant_args = vec![];
+
+        let mut stmts = vec![];
+        let mut stmts_after: Vec<vir::Stmt> = vec![];
 
         for (mir_arg, arg, arg_ty, encoded_operand) in operands {
             arguments.push(arg);
@@ -2656,11 +2672,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 None => {
                     // We have a constant.
                     constant_args.push(arg_place.clone());
-                    let arg_val_expr = self.mir_encoder.encode_operand_expr(mir_arg)
-                        .with_span(call_site_span)?;
-                    debug!("arg_val_expr: {} {}", arg_place, arg_val_expr);
                     let val_field = self.encoder.encode_value_field(arg_ty).with_span(call_site_span)?;
-                    fake_exprs.insert(arg_place.clone().field(val_field), arg_val_expr);
+
+                    // TODO: String constants are not being encoded currently,
+                    //       instead just inhale the permission to the value.
+                    if !is_str(arg_ty) {
+                        let arg_val_expr = self.mir_encoder.encode_operand_expr(mir_arg)
+                            .with_span(call_site_span)?;
+                        debug!("arg_val_expr: {} {}", arg_place, arg_val_expr);
+                        fake_exprs.insert(arg_place.clone().field(val_field), arg_val_expr);
+                    } else {
+                        fake_expr_spans.insert(
+                          arg,
+                          call_site_span
+                        );
+                        stmts.push(vir::Stmt::Inhale (
+                            vir::Inhale {
+                                expr: vir::Expr::acc_permission(
+                                    arg_place.clone().field(val_field),
+                                    vir::PermAmount::Read
+                                )
+                            }
+                        ));
+                    }
                     let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
                     if in_loop {
                         const_arg_vars.insert(arg_place);
@@ -2676,9 +2710,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 }
             }
         }
-
-        let mut stmts = vec![];
-        let mut stmts_after: Vec<vir::Stmt> = vec![];
 
         let (target_local, encoded_target) = {
             match destination.as_ref() {
@@ -2775,7 +2806,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_func_spec,
             _, // We don't care about verifying that the weakening is valid,
                // since it isn't the task of the caller
-        ) = self.encode_precondition_expr(&procedure_contract, None, &tymap)?;
+        ) = self.encode_precondition_expr(&procedure_contract, None, &tymap, fake_expr_spans)?;
         let pos = self
             .encoder
             .error_manager()
@@ -3134,7 +3165,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Encode permissions that are implicitly carried by the given local variable.
-    fn encode_local_variable_permission(&self, local: Local)
+    /// `override_span` is used for local vars for fake expressions
+    fn encode_local_variable_permission(&self, local: Local, override_span: Option<Span>)
         -> SpannedEncodingResult<vir::Expr>
     {
         Ok(match self.locals.get_type(local).kind() {
@@ -3145,10 +3177,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Ref(_, ty, mutability) => {
                 // Use unfolded references.
                 let encoded_local = self.encode_prusti_local(local);
+                let span = override_span.unwrap_or_else(|| self.mir_encoder.get_local_span(local.into()));
                 let field = self.encoder.encode_dereference_field(ty)
-                    .with_span(
-                        self.mir_encoder.get_local_span(local.into())
-                    )?;
+                    .with_span(span)?;
                 let place = vir::Expr::from(encoded_local).field(field);
                 let perm_amount = match mutability {
                     Mutability::Mut => vir::PermAmount::Write,
@@ -3179,6 +3210,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         contract: &ProcedureContract<'tcx>,
         precondition_weakening: Option<typed::Assertion<'tcx>>,
         tymap: &SubstMap<'tcx>,
+        override_spans: HashMap<Local, Span> // spans for fake locals
     ) -> SpannedEncodingResult<(
         vir::Expr,
         Vec<vir::Expr>,
@@ -3223,7 +3255,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     type_spec.push(access);
                 }
             };
-            let access = self.encode_local_variable_permission(*local)?;
+            let access = self.encode_local_variable_permission(
+                *local,
+                override_spans.get(local).copied()
+            )?;
             match access {
                 vir::Expr::BinOp( vir::BinOp {op_kind: vir::BinOpKind::And, left: box access1, right: box access2, ..} ) => {
                     add(access1);
@@ -3323,6 +3358,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.procedure_contract(),
                 precondition_weakening,
                 &tymap,
+                HashMap::new()
             )?;
         self.cfg_method.add_stmt(
             start_cfg_block,
@@ -3660,7 +3696,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Encode permissions for return type
         // TODO: Clean-up: remove unnecessary Option.
         let return_perm = Some(
-            self.encode_local_variable_permission(contract.returned_value)?
+            self.encode_local_variable_permission(
+                contract.returned_value,
+                None
+            )?
         );
 
         // Encode functional specification
@@ -4965,6 +5004,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             field.clone(),
                             location,
                             vir::AssignKind::Move,
+                            false
                         )?;
                         alloc_stmts.push(vir::Stmt::Assign( vir::Assign {
                             target: lhs.clone().field(field.clone()),
@@ -5013,6 +5053,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             ref_field.clone(),
                             location,
                             vir::AssignKind::SharedBorrow(loan.index().into()),
+                            false
                         )?;
                         stmts.push(vir::Stmt::Assign( vir::Assign {
                             target: lhs.clone().field(ref_field.clone()),
@@ -5046,17 +5087,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             field.clone(),
                             location,
                             vir::AssignKind::Copy,
+                            true
                         )?;
-                        // Initialize the constant
-                        let const_val = self.encoder
-                            .encode_const_expr(ty, &val)
-                            .with_span(span)?;
-                        // Initialize value of lhs
-                        stmts.push(vir::Stmt::Assign( vir::Assign {
-                            target: lhs.clone().field(field),
-                            source: const_val,
-                            kind: vir::AssignKind::Copy,
-                        }));
+                        // TODO Encoding of string literals is not yet supported,
+                        // so do not encode an assignment if the RHS is a string
+                        if !is_str(ty) {
+                            // Initialize the constant
+                            let const_val = self.encoder
+                                .encode_const_expr(ty, &val)
+                                .with_span(span)?;
+                            // Initialize value of lhs
+                            stmts.push(vir::Stmt::Assign( vir::Assign {
+                                target: lhs.clone().field(field),
+                                source: const_val,
+                                kind: vir::AssignKind::Copy,
+                            }));
+                        }
                         stmts
                     }
                 }
@@ -5269,6 +5315,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ref_field,
                     location,
                     vir::AssignKind::Move,
+                    false
                 )?;
 
                 // Allocate `box_content`
@@ -5394,6 +5441,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 field.clone(),
                 location,
                 vir_assign_kind,
+                false
             )?
         );
         stmts.push(vir::Stmt::Assign( vir::Assign {
@@ -5692,6 +5740,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         field: vir::Field,
         location: mir::Location,
         vir_assign_kind: vir::AssignKind,
+        can_copy_reference: bool // reference copies are allowed if the field is a constant
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         trace!(
             "[enter] prepare_assign_target(dst={}, field={}, location={:?})",
@@ -5702,19 +5751,30 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if !self.init_info.is_vir_place_accessible(&dst, location) {
             let mut alloc_stmts = self.encode_havoc(&dst);
             let dst_field = dst.clone().field(field.clone());
-            let acc = vir::Expr::acc_permission(dst_field, vir::PermAmount::Write);
+            let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
             alloc_stmts.push(vir::Stmt::Inhale( vir::Inhale {
                 expr: acc,
             }));
             match vir_assign_kind {
                 vir::AssignKind::Copy => {
                     if field.typ.is_typed_ref_or_type_var() {
-                        // TODO: Inhale the predicate rooted at dst_field
-                        return Err(SpannedEncodingError::unsupported(
-                            "the encoding of this reference copy has not \
-                            been implemented",
-                            self.mir_encoder.get_span_of_location(location),
-                        ));
+                        if can_copy_reference {
+                            let pred_acc = vir::Expr::predicate_access_predicate(
+                                field.typ,
+                                dst_field,
+                                vir::PermAmount::Read
+                            );
+                            alloc_stmts.push(vir::Stmt::Inhale(
+                                vir::Inhale { expr: pred_acc }
+                            ));
+                        } else {
+                            // TODO: Inhale the predicate rooted at dst_field
+                            return Err(SpannedEncodingError::unsupported(
+                                "the encoding of this reference copy has not \
+                                been implemented",
+                                self.mir_encoder.get_span_of_location(location),
+                            ));
+                        }
                     }
                 }
                 vir::AssignKind::Move
@@ -5741,7 +5801,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             lhs.clone(),
             field.clone(),
             location,
-            vir::AssignKind::Copy
+            vir::AssignKind::Copy,
+            false
         )?;
         stmts.push(vir::Stmt::Assign( vir::Assign {
             target: lhs.field(field),
@@ -6265,5 +6326,13 @@ fn mir_constantkind_to_ty_val(literal: mir::ConstantKind) -> (ty::Ty, ty::ConstK
     match literal {
         mir::ConstantKind::Ty(&ty::Const { ty, val }) => (ty, val),
         mir::ConstantKind::Val(val, ty) => (ty, ty::ConstKind::Value(val)),
+    }
+}
+
+// Checks if a type is a reference to a string, or a reference to a reference to a string, etc.
+fn is_str(ty: &ty::TyS<'_>) -> bool {
+    match ty.kind() {
+        ty::TyKind::Ref(_, inner, _) => inner.is_str() || is_str(inner),
+        _ => false
     }
 }
