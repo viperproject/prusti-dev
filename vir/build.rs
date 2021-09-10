@@ -10,6 +10,7 @@ fn main() {
     }
 
     let root = quote! { components =>
+        pub mod high;
         pub mod polymorphic;
     };
     let tokens = define_vir(root, Path::new("defs/root.rs"));

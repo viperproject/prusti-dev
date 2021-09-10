@@ -69,6 +69,14 @@ impl Parse for Include {
     }
 }
 
+impl Parse for IdentList {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self {
+            idents: syn::punctuated::Punctuated::parse_separated_nonempty(input)?,
+        })
+    }
+}
+
 impl Parse for RawBlock {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let name = input.parse()?;
