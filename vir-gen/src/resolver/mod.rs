@@ -1,4 +1,4 @@
-use crate::ast::{Include, RawBlock};
+use crate::ast::{Include, RawBlock, IdentList};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{fold::Fold, parse_quote, spanned::Spanned};
@@ -10,6 +10,7 @@ pub(crate) fn expand(
     let mut expander = Expander {
         components,
         errors: Vec::new(),
+        new_derives: Vec::new(),
     };
     let expanded_ir = expander.fold_item_mod(ir);
     (expanded_ir, expander.errors)
@@ -18,6 +19,8 @@ pub(crate) fn expand(
 struct Expander<'a> {
     components: &'a syn::ItemMod,
     errors: Vec<syn::Error>,
+    /// A list of things to derive for each type.
+    new_derives: Vec<Vec<syn::Ident>>,
 }
 
 impl<'a> Expander<'a> {
@@ -137,11 +140,42 @@ impl<'a> Expander<'a> {
             .expect("bug (2): expander did not expand all modules");
         Ok(content)
     }
+    /// Add additional `#[derive(...)]` attributes.
+    fn add_derives(&self, attributes: &mut Vec<syn::Attribute>) {
+        for frame in &self.new_derives {
+            for derive in frame {
+                attributes.push(parse_quote!{
+                    #[derive(#derive)]
+                });
+            }
+        }
+    }
 }
 
 impl<'a> Fold for Expander<'a> {
     fn fold_item_mod(&mut self, mut item_mod: syn::ItemMod) -> syn::ItemMod {
         if let Some((brace, content)) = item_mod.content {
+            let mut new_attributes = Vec::new();
+            let mut new_derives = Vec::new();
+            for attribute in item_mod.attrs {
+                match attribute {
+                    syn::Attribute { style: syn::AttrStyle::Inner(_), path, tokens, ..} if path.is_ident("derive_for_all") => {
+                        match syn::parse2::<IdentList>(tokens) {
+                            Ok(list) => {
+                                new_derives.extend(list.idents);
+                            }
+                            Err(error) => {
+                                self.errors.push(error);
+                            }
+                        }
+                    }
+                    _ => {
+                        new_attributes.push(attribute);
+                    }
+                }
+            }
+            item_mod.attrs = new_attributes;
+            self.new_derives.push(new_derives);
             let mut new_content = Vec::new();
             for item in content {
                 match item {
@@ -163,7 +197,16 @@ impl<'a> Fold for Expander<'a> {
                 }
             }
             item_mod.content = Some((brace, new_content));
+            self.new_derives.pop();
         }
         item_mod
+    }
+    fn fold_item_enum(&mut self, mut item: syn::ItemEnum) -> syn::ItemEnum {
+        self.add_derives(&mut item.attrs);
+        syn::fold::fold_item_enum(self, item)
+    }
+    fn fold_item_struct(&mut self, mut item: syn::ItemStruct) -> syn::ItemStruct {
+        self.add_derives(&mut item.attrs);
+        syn::fold::fold_item_struct(self, item)
     }
 }
