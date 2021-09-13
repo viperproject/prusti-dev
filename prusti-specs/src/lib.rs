@@ -478,18 +478,20 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
 
 #[derive(Debug)]
 struct PredicateFn {
+    visibility: Option<syn::Visibility>,
     fn_sig: syn::Signature,
     body: TokenStream,
 }
 
 impl syn::parse::Parse for PredicateFn {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let visibility = input.parse().ok();
         let fn_sig = input.parse()?;
         let brace_content;
         let _brace_token = syn::braced!(brace_content in input);
         let body = brace_content.parse()?;
 
-        Ok(PredicateFn { fn_sig, body })
+        Ok(PredicateFn { visibility, fn_sig, body })
     }
 }
 
@@ -508,9 +510,13 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
     let spec_id = rewriter.generate_spec_id();
     let assertion = handle_result!(rewriter.parse_assertion(spec_id, pred_fn.body));
 
+    let vis = match pred_fn.visibility {
+        Some(vis) => vis.to_token_stream(),
+        None => TokenStream::new(),
+    };
     let sig = pred_fn.fn_sig.to_token_stream();
     let cleaned_fn: untyped::AnyFnItem = parse_quote_spanned! {tokens_span =>
-        #sig {
+        #vis #sig {
             unimplemented!("predicate")
         }
     };
