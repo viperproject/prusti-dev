@@ -16,6 +16,7 @@ use prusti_interface::environment::Environment;
 pub struct SpecsClosuresCollector<'tcx> {
     visited: HashSet<LocalDefId>,
     /// For each instantiation of each closure: DefId, location, operands and types of operands.
+    #[allow(clippy::type_complexity)]
     instantiations: HashMap<
         DefId,
         Vec<(
@@ -78,7 +79,7 @@ impl<'tcx> SpecsClosuresCollector<'tcx> {
                         |operand| operand.ty(&*mir, tcx)
                     ).collect();
                     let instantiations =
-                        self.instantiations.entry(cl_def_id).or_insert(vec![]);
+                        self.instantiations.entry(cl_def_id).or_insert_with(Vec::new);
                     instantiations.push((
                         def_id.to_def_id(),
                         mir::Location {
@@ -93,6 +94,7 @@ impl<'tcx> SpecsClosuresCollector<'tcx> {
         }
     }
 
+    #[allow(clippy::type_complexity)]
     fn get_instantiations(&self, closure_def_id: DefId) -> Option<&[(
         DefId,
         mir::Location,

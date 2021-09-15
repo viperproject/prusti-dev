@@ -13,6 +13,8 @@ use std::collections::HashSet;
 use rustc_ast::ast;
 use log::trace;
 
+use prusti_utils::force_matches;
+
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
 ///
 /// +   `is_prefix(x.f, x.f) == true`
@@ -30,7 +32,7 @@ pub fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
 /// each of the struct's fields `{x.f.g.f, x.f.g.g, x.f.g.h}`. If
 /// `without_field` is not `None`, then omits that field from the final
 /// vector.
-pub fn expand_struct_place<'a, 'tcx: 'a>(
+pub fn expand_struct_place<'tcx>(
     place: &mir::Place<'tcx>,
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
@@ -104,11 +106,9 @@ pub fn expand_one_level<'tcx>(
         }
         mir::ProjectionElem::Downcast(_symbol, variant) => {
             let kind = &current_place.ty(mir, tcx).ty.kind();
-            if let ty::TyKind::Adt(adt, _) = kind {
+            force_matches!(kind, ty::TyKind::Adt(adt, _) =>
                 (tcx.mk_place_downcast(current_place, adt, variant), Vec::new())
-            } else {
-                unreachable!();
-            }
+            )
         }
         mir::ProjectionElem::Deref => {
             (tcx.mk_place_deref(current_place), Vec::new())
@@ -155,7 +155,7 @@ pub fn try_pop_deref<'tcx>(tcx: TyCtxt<'tcx>, place: mir::Place<'tcx>) -> Option
 /// `{x.g, x.h, x.f.f, x.f.h, x.f.g.f, x.f.g.g, x.f.g.h}` and
 /// subtracting `{x.f.g.h}` from it, which results into `{x.g, x.h,
 /// x.f.f, x.f.h, x.f.g.f, x.f.g.g}`.
-pub fn expand<'a, 'tcx: 'a>(
+pub fn expand<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     minuend: &mir::Place<'tcx>,
@@ -189,13 +189,13 @@ pub fn expand<'a, 'tcx: 'a>(
 /// Try to collapse all places in `places` by following the
 /// `guide_place`. This function is basically the reverse of
 /// `expand_struct_place`.
-pub fn collapse<'a, 'tcx: 'a>(
+pub fn collapse<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     places: &mut HashSet<mir::Place<'tcx>>,
     guide_place: &mir::Place<'tcx>,
 ) {
-    let guide_place = guide_place.clone();
+    let guide_place = *guide_place;
     fn recurse<'tcx>(
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
@@ -203,9 +203,7 @@ pub fn collapse<'a, 'tcx: 'a>(
         current_place: mir::Place<'tcx>,
         guide_place: mir::Place<'tcx>,
     ) {
-        if current_place == guide_place {
-            return;
-        } else {
+        if current_place != guide_place {
             let (new_current_place, mut expansion) = expand_one_level(
                 mir, tcx, current_place, guide_place);
             recurse(mir, tcx, places, new_current_place, guide_place);
@@ -215,8 +213,6 @@ pub fn collapse<'a, 'tcx: 'a>(
                     places.remove(&place);
                 }
                 places.insert(current_place);
-            } else {
-                return;
             }
         }
     }
@@ -235,7 +231,7 @@ impl<'tcx> VecPlaceComponent<'tcx> {
 }
 
 /// A different way to represent a place that is more similar to the one
-/// mentioned in the issue https://github.com/rust-lang/rust/issues/52708.
+/// mentioned in the issue <https://github.com/rust-lang/rust/issues/52708>.
 #[derive(Debug)]
 pub struct VecPlace<'tcx> {
     components: Vec<VecPlaceComponent<'tcx>>,
@@ -317,12 +313,10 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             use rustc_ast::tokenstream::{TokenTree, TokenStream};
             use rustc_ast::token::DelimToken;
             fn extract_string(token: &Token) -> String {
-                match &token.kind {
-                    TokenKind::Literal(Lit { symbol, .. }) => {
+                force_matches!(&token.kind, TokenKind::Literal(Lit { symbol, .. }) => {
                         symbol.as_str().replace("\\\"", "\"")
                     }
-                    x => unreachable!("{:?}", x),
-                }
+                )
             }
             strings.push(extract_string(token));
         };

@@ -18,6 +18,7 @@ use crate::{
 
 /// Checker visitor for the specifications. Currently checks that `predicate!`
 /// functions are never used from non-specification code, but more checks may follow.
+#[derive(Default)]
 pub struct SpecChecker {
     /// Map of the `DefID`s to the `Span`s of `predicate!` functions found in the first pass.
     predicates: HashMap<DefId, Span>,
@@ -93,10 +94,13 @@ impl<'v, 'tcx> Visitor<'tcx> for CheckPredicatesVisitor<'v, 'tcx> {
 
     fn visit_expr(&mut self, ex: &'tcx hir::Expr<'tcx>) {
         if let hir::ExprKind::Path(ref path) = ex.kind {
-            let res = self.tcx.typeck(ex.hir_id.owner).qpath_res(path, ex.hir_id);
-            if let hir::def::Res::Def(_, def_id) = res {
-                if let Some(pred_def_span) = self.predicates.get(&def_id) {
-                    self.pred_usages.push((ex.span, *pred_def_span));
+            let def_id = ex.hir_id.owner;
+            if self.tcx.is_mir_available(def_id) && !self.tcx.is_constructor(def_id.to_def_id()) {
+                let res = self.tcx.typeck(def_id).qpath_res(path, ex.hir_id);
+                if let hir::def::Res::Def(_, def_id) = res {
+                    if let Some(pred_def_span) = self.predicates.get(&def_id) {
+                        self.pred_usages.push((ex.span, *pred_def_span));
+                    }
                 }
             }
         }
@@ -124,10 +128,7 @@ impl<'v, 'tcx> Visitor<'tcx> for CheckPredicatesVisitor<'v, 'tcx> {
 
 impl<'tcx> SpecChecker {
     pub fn new() -> Self {
-        Self {
-            predicates: HashMap::new(),
-            pred_usages: Vec::new(),
-        }
+        Self::default()
     }
 
     pub fn check_predicate_usages(&mut self, tcx: TyCtxt<'tcx>, krate: &'tcx hir::Crate<'tcx>) {
@@ -154,7 +155,7 @@ impl<'tcx> SpecChecker {
                 "using predicate from non-specification code is not allowed".to_string(),
                 MultiSpan::from_span(usage_span),
             )
-            .set_note("this is a specification-only predicate function", def_span)
+            .add_note("this is a specification-only predicate function", Some(def_span))
             .emit(env);
         }
     }

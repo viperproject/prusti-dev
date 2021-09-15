@@ -13,14 +13,15 @@ use std::{
     sync::{mpsc, Arc, Mutex},
     thread,
 };
-use viper::VerificationResult;
+use viper::ProgramVerificationResult;
 
-pub type FutVerificationResult = Box<dyn Future<Item = VerificationResult, Error = Canceled>>;
+pub type FutVerificationResult =
+    Box<dyn Future<Item = ProgramVerificationResult, Error = Canceled>>;
 
 struct VerificationRequest {
-    pub program: Program,
+    pub programs: Vec<Program>,
     pub program_name: String,
-    pub sender: oneshot::Sender<VerificationResult>,
+    pub sender: oneshot::Sender<ProgramVerificationResult>,
 }
 
 pub struct VerifierThread {
@@ -47,7 +48,7 @@ impl VerifierThread {
             .unwrap();
 
         Self {
-            backend_config: backend_config,
+            backend_config,
             request_sender: Mutex::new(request_sender),
         }
     }
@@ -57,7 +58,7 @@ impl VerifierThread {
         request_receiver: mpsc::Receiver<VerificationRequest>,
     ) {
         while let Ok(request) = request_receiver.recv() {
-            let result = runner.verify(request.program, request.program_name.as_str());
+            let result = runner.verify(request.programs, request.program_name.as_str());
             request.sender.send(result).unwrap_or_else(|err| {
                 error!(
                     "verifier thread attempting to send result to dropped receiver: {:?}",
@@ -67,13 +68,13 @@ impl VerifierThread {
         }
     }
 
-    pub fn verify(&self, program: Program, program_name: String) -> FutVerificationResult {
+    pub fn verify(&self, programs: Vec<Program>, program_name: String) -> FutVerificationResult {
         let (tx, rx) = oneshot::channel();
         self.request_sender
             .lock()
             .unwrap()
             .send(VerificationRequest {
-                program,
+                programs,
                 program_name,
                 sender: tx,
             })

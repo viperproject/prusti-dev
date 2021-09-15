@@ -5,8 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_middle::ty;
-use prusti_common::vir;
-use prusti_common::vir::{Expr, Type};
+use vir_crate::polymorphic::{self as vir, Expr, Type};
 use std::collections::HashMap;
 
 pub mod encoder;
@@ -24,10 +23,10 @@ enum Snapshot {
     Unit,
     /// Encodes a complex type: tuples, ADTs, or closures.
     Complex {
-        predicate_name: String,
-        domain: vir::Domain,
+        predicate_type: Type,
+        domain: String,
         discriminant_func: vir::DomainFunc,
-        snap_func: vir::Function,
+        snap_func: vir::FunctionIdentifier,
         /// [variants] has one entry for tuples, structs, and closures.
         /// For enums, it has as many entries as there are variants.
         /// The first function is the constructor, the hashmap encodes the
@@ -39,33 +38,33 @@ enum Snapshot {
     }, // TODO: separate variant for enums and one-variant Complexes?
     /// Arrays
     Array {
-        predicate_name: String,
-        domain: vir::Domain,
-        snap_func: vir::Function,
-        slice_helper: vir::Function,
+        predicate_type: Type,
+        domain: String,
+        snap_func: vir::FunctionIdentifier,
+        slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
         read: vir::DomainFunc,
     },
     /// Slices
     Slice {
-        predicate_name: String,
-        domain: vir::Domain,
-        snap_func: vir::Function,
+        predicate_type: Type,
+        domain: String,
+        snap_func: vir::FunctionIdentifier,
         /// Collect a slice snapshot from an impure context using lookup_pure calls until we have
         /// Slice$len(self) elements in the result Seq[elem_ty]
-        slice_collect_func: vir::Function,
+        slice_collect_func: vir::FunctionIdentifier,
         /// This slice snapshot is being sliced, so we collect elements using read from self in the
         /// result Seq[elem_ty]
-        slice_helper: vir::Function,
+        slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
         read: vir::DomainFunc,
         len: vir::DomainFunc,
     },
     /// Type cannot be encoded: type parameters, unsupported types.
     Abstract {
-        predicate_name: String,
-        domain: vir::Domain,
-        snap_func: vir::Function,
+        predicate_type: Type,
+        domain: String,
+        snap_func: vir::FunctionIdentifier,
     },
 
     /// A type which will be resolved to a different snapshot kind.
@@ -77,21 +76,21 @@ impl Snapshot {
     pub fn get_type(&self) -> Type {
         match self {
             Self::Primitive(ty) => ty.clone(),
-            Self::Unit => Type::Domain(encoder::UNIT_DOMAIN_NAME.to_string()),
-            Self::Complex { predicate_name, .. }
-            | Self::Abstract { predicate_name, .. }
-            | Self::Array { predicate_name, .. }
-            | Self::Slice { predicate_name, .. } => Type::Snapshot(predicate_name.to_string()),
+            Self::Unit => Type::domain( encoder::UNIT_DOMAIN_NAME.to_string()),
+            Self::Complex { predicate_type, .. }
+            | Self::Abstract { predicate_type, .. }
+            | Self::Array { predicate_type, .. }
+            | Self::Slice { predicate_type, .. } => {
+                assert!(predicate_type.is_snapshot());
+                predicate_type.clone()
+            },
             Self::Lazy(ty) => ty.clone(),
         }
     }
 
     pub fn is_quantifiable(&self) -> bool {
         // TODO: allow more types?
-        match self {
-            Self::Primitive(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::Primitive(_))
     }
 
     pub fn supports_equality(&self) -> bool {

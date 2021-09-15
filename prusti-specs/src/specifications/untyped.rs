@@ -7,7 +7,7 @@ use syn::spanned::Spanned;
 
 pub use common::{ExpressionId, SpecType, SpecificationId};
 pub use super::preparser::{Parser, Arg};
-use crate::specifications::common::{ForAllVars, SpecEntailmentVars};
+use crate::specifications::common::{QuantifierVars, SpecEntailmentVars};
 
 /// A specification that has no types associated with it.
 pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
@@ -121,7 +121,7 @@ impl Parse for common::Assertion<(), syn::Expr, Arg> {
         // here:
         // https://gitlab.inf.ethz.ch/OU-PMUELLER/prusti-dev/-/commits/new-parser/
         Ok(Self {
-            kind: box common::AssertionKind::Expr(input.parse()?),
+            kind: Box::new(common::AssertionKind::Expr(input.parse()?)),
         })
     }
 }
@@ -183,9 +183,7 @@ impl AssignExpressionId<Option<Assertion>> for Option<common::Assertion<(), syn:
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> Option<Assertion> {
-        if self.is_none() {
-            return None;
-        }
+        self.as_ref()?;
         Some(self.unwrap().assign_id(spec_id, id_generator))
     }
 }
@@ -196,20 +194,18 @@ impl AssignExpressionId<Option<Expression>> for Option<common::Expression<(), sy
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> Option<Expression> {
-        if self.is_none() {
-            return None;
-        }
+        self.as_ref()?;
         Some(self.unwrap().assign_id(spec_id, id_generator))
     }
 }
 
-impl AssignExpressionId<ForAllVars<ExpressionId, Arg>> for common::ForAllVars<(), Arg> {
+impl AssignExpressionId<QuantifierVars<ExpressionId, Arg>> for common::QuantifierVars<(), Arg> {
     fn assign_id(
         self,
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
-    ) -> ForAllVars<ExpressionId, Arg> {
-        ForAllVars {
+    ) -> QuantifierVars<ExpressionId, Arg> {
+        QuantifierVars {
             spec_id,
             id: id_generator.generate(),
             vars: self.vars
@@ -277,6 +273,11 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
                 triggers.assign_id(spec_id, id_generator),
                 body.assign_id(spec_id, id_generator)
             ),
+            Exists(vars, triggers, body) => Exists(
+                vars.assign_id(spec_id, id_generator),
+                triggers.assign_id(spec_id, id_generator),
+                body.assign_id(spec_id, id_generator)
+            ),
             SpecEntailment {closure, arg_binders, pres, posts} => SpecEntailment {
                 closure: closure.assign_id(spec_id, id_generator),
                 arg_binders: arg_binders.assign_id(spec_id, id_generator),
@@ -300,7 +301,7 @@ impl AssignExpressionId<Box<AssertionKind>> for Box<common::AssertionKind<(), sy
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> Box<AssertionKind> {
-        box (*self).assign_id(spec_id, id_generator)
+        Box::new((*self).assign_id(spec_id, id_generator))
     }
 }
 
@@ -378,7 +379,8 @@ impl EncodeTypeCheck for Assertion {
                 lhs.encode_type_check(tokens);
                 rhs.encode_type_check(tokens);
             }
-            AssertionKind::ForAll(vars, triggers, body) => {
+            AssertionKind::ForAll(vars, triggers, body)
+            | AssertionKind::Exists(vars, triggers, body) => {
                 let vec_of_vars = &vars.vars;
                 let span = Span::call_site();
                 let identifier = format!("{}_{}", vars.spec_id, vars.id);

@@ -8,7 +8,7 @@ use syn::spanned::Spanned;
 use quote::quote;
 
 use super::common;
-use crate::specifications::common::{ForAllVars, SpecEntailmentVars, TriggerSet, Trigger};
+use crate::specifications::common::{QuantifierVars, SpecEntailmentVars, TriggerSet, Trigger};
 
 pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
 pub type PledgeWithoutId = common::Pledge<(), syn::Expr, Arg>;
@@ -92,7 +92,7 @@ impl Parser {
     pub fn extract_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
         if self.tokens.is_empty() {
             Ok(AssertionWithoutId {
-                kind: box common::AssertionKind::And(vec![])
+                kind: Box::new(common::AssertionKind::And(vec![]))
             })
         } else {
             if let Some(span) = self.contains_both_and_or(&self.tokens) {
@@ -137,7 +137,7 @@ impl Parser {
             Ok(PledgeWithoutId {
                 reference,
                 lhs: Some(assertion),
-                rhs: rhs,
+                rhs,
             })
         } else {
             Err(self.error_expected("`,`"))
@@ -162,7 +162,7 @@ impl Parser {
         if self.consume_operator("==>") {
             let rhs = self.parse_prusti()?;
             Ok(AssertionWithoutId {
-                kind: box common::AssertionKind::Implies(lhs, rhs),
+                kind: Box::new(common::AssertionKind::Implies(lhs, rhs)),
             })
         } else {
             Ok(lhs)
@@ -177,12 +177,14 @@ impl Parser {
             Ok(conjuncts.pop().unwrap())
         } else {
             Ok(AssertionWithoutId {
-                kind: box common::AssertionKind::And(conjuncts)
+                kind: Box::new(common::AssertionKind::And(conjuncts))
             })
         }
     }
     fn parse_entailment(&mut self) -> syn::Result<AssertionWithoutId> {
-        if (self.peek_group(Delimiter::Parenthesis) && !self.is_part_of_rust_expr()) || self.peek_keyword("forall") {
+        if (self.peek_group(Delimiter::Parenthesis) && !self.is_part_of_rust_expr()) ||
+           self.peek_keyword("forall") ||
+           self.peek_keyword("exists") {
             self.parse_primary()
         } else {
             let lhs = self.parse_rust_until(",")?;
@@ -207,7 +209,7 @@ impl Parser {
                 }
             } else {
                 Ok(AssertionWithoutId {
-                    kind: box common::AssertionKind::Expr(lhs)
+                    kind: Box::new(common::AssertionKind::Expr(lhs))
                 })
             }
         }
@@ -262,15 +264,21 @@ impl Parser {
             self.from_token_stream_last_span(stream).extract_assertion()
         } else if self.consume_keyword("forall") {
             if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
-                self.from_token_stream_last_span(stream).extract_forall_rhs()
+                self.from_token_stream_last_span(stream).extract_quantifier_rhs(false)
+            } else {
+                Err(self.error_expected("`(`"))
+            }
+        } else if self.consume_keyword("exists") {
+            if let Some(stream) = self.consume_group(Delimiter::Parenthesis) {
+                self.from_token_stream_last_span(stream).extract_quantifier_rhs(true)
             } else {
                 Err(self.error_expected("`(`"))
             }
         } else {
-            Err(self.error_expected("`(` or `forall`"))
+            Err(self.error_expected("`(`, `forall` or `exists`"))
         }
     }
-    fn extract_forall_rhs(&mut self) -> syn::Result<AssertionWithoutId> {
+    fn extract_quantifier_rhs(&mut self, exists: bool) -> syn::Result<AssertionWithoutId> {
         if !self.consume_operator("|") {
             return Err(self.error_expected("`|`"));
         }
@@ -323,16 +331,17 @@ impl Parser {
             trigger_set = TriggerSet(vec_of_triggers);
         }
 
+        let vars = QuantifierVars {
+            spec_id: common::SpecificationId::dummy(),
+            id: (),
+            vars,
+        };
         Ok(AssertionWithoutId {
-            kind: box common::AssertionKind::ForAll(
-                ForAllVars {
-                    spec_id: common::SpecificationId::dummy(),
-                    id: (),
-                    vars,
-                },
-                trigger_set,
-                body,
-            )
+            kind: if exists {
+                Box::new(common::AssertionKind::Exists(vars, trigger_set, body))
+            } else {
+                Box::new(common::AssertionKind::ForAll(vars, trigger_set, body))
+            }
         })
     }
 
@@ -366,29 +375,25 @@ impl Parser {
     /// is there any non-prusti operator following the first thing?
     fn is_part_of_rust_expr(&mut self) -> bool {
         if let Some(token) = self.tokens.pop_front() {
-            if self.peek_operator("|=") ||
+            let result = !(self.peek_operator("|=") ||
                self.peek_operator("&&") ||
                self.peek_operator("==>") ||
-               self.tokens.front().is_none() {
-                self.tokens.push_front(token);
-                false
-            } else {
-                self.tokens.push_front(token);
-                true
-            }
+               self.tokens.front().is_none());
+            self.tokens.push_front(token);
+            result
         } else {
             false
         }
     }
     /// does the given operator appear in the stream at top level
     fn contains_operator(&self, stream: &VecDeque<TokenTree>, operator: &str) -> bool {
-        (0..stream.len()).any(|offset: usize| self.peek_operator_stream_offset(&stream, operator, offset))
+        (0..stream.len()).any(|offset: usize| self.peek_operator_stream_offset(stream, operator, offset))
     }
     /// does the given operator appear in the stream anywhere
     fn contains_operator_recursive(&self, stream: &VecDeque<TokenTree>, operator: &str) -> Option<Span> {
         for (offset, token) in stream.iter().enumerate() {
-            if self.peek_operator_stream_offset(&stream, operator, offset) {
-                return Some(self.operator_span_offset(&stream, operator, offset));
+            if self.peek_operator_stream_offset(stream, operator, offset) {
+                return Some(self.operator_span_offset(stream, operator, offset));
             }
             if let TokenTree::Group(group) = token {
                 let nested_stream: VecDeque<TokenTree> = group.stream().into_iter().collect();
@@ -412,11 +417,11 @@ impl Parser {
         let mut or_span: Option<Span> = None;
 
         for (offset, token) in stream.iter().enumerate() {
-            if self.peek_operator_stream_offset(&stream, "&&", offset) {
-                and_span = Some(self.operator_span_offset(&stream, "&&", offset));
-            } else if self.peek_operator_stream_offset(&stream, "||", offset) {
-                or_span = Some(self.operator_span_offset(&stream, "||", offset));
-            } else if self.peek_operator_stream_offset(&stream, "==>", offset) {
+            if self.peek_operator_stream_offset(stream, "&&", offset) {
+                and_span = Some(self.operator_span_offset(stream, "&&", offset));
+            } else if self.peek_operator_stream_offset(stream, "||", offset) {
+                or_span = Some(self.operator_span_offset(stream, "||", offset));
+            } else if self.peek_operator_stream_offset(stream, "==>", offset) {
                 and_span = None;
                 or_span = None;
             } else if let TokenTree::Group(group) = token {
@@ -429,9 +434,8 @@ impl Parser {
                 }
             }
 
-            match (and_span, or_span) {
-                (Some(a_s), Some(o_s)) => return Some(a_s.join(o_s).unwrap()),
-                _ => (),
+            if let (Some(a_s), Some(o_s)) = (and_span, or_span) {
+                return Some(a_s.join(o_s).unwrap());
             }
         }
         None

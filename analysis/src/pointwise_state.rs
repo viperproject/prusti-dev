@@ -4,13 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{BTreeMap, HashMap};
-use std::fmt;
-use serde::{Serialize, Serializer};
-use serde::ser::SerializeMap;
-use rustc_middle::ty::TyCtxt;
-use rustc_middle::mir;
 use crate::AbstractState;
+use rustc_middle::{mir, ty::TyCtxt};
+use serde::{ser::SerializeMap, Serialize, Serializer};
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt,
+};
 
 /// Records the abstract state at every program point and CFG edge of `mir`.
 pub struct PointwiseState<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> {
@@ -24,7 +24,8 @@ pub struct PointwiseState<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> {
 }
 
 impl<'a, 'tcx: 'a, S> fmt::Debug for PointwiseState<'a, 'tcx, S>
-    where S: AbstractState<'a, 'tcx> + fmt::Debug
+where
+    S: AbstractState<'a, 'tcx> + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // ignore tcx
@@ -65,8 +66,9 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 
 
             let new_map = HashMap::new();
             let map_after = self.lookup_after_block(bb).unwrap_or(&new_map);
-            let ordered_succ_map: BTreeMap<_, _> = map_after.iter()
-                .map(|(bb,s)| (format!("{:?}", bb) , ("state:", s)))
+            let ordered_succ_map: BTreeMap<_, _> = map_after
+                .iter()
+                .map(|(bb, s)| (format!("{:?}", bb), ("state:", s)))
                 .collect();
 
             map.serialize_entry(
@@ -76,8 +78,8 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> Serialize for PointwiseState<'a, 
                     "state before terminator:",
                     state_before,
                     terminator_str,
-                    ordered_succ_map
-                )
+                    ordered_succ_map,
+                ),
             )?;
         }
         map.end()
@@ -90,7 +92,7 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> PointwiseState<'a, 'tcx, S> {
             state_before: HashMap::new(),
             state_after_block: HashMap::new(),
             mir,
-            tcx
+            tcx,
         }
     }
 
@@ -111,7 +113,8 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> PointwiseState<'a, 'tcx, S> {
     /// The return value maps all successor blocks to the state on the CFG edge from `block` to
     /// that block.
     pub fn lookup_after_block(
-        &self, block: mir::BasicBlock
+        &self,
+        block: mir::BasicBlock,
     ) -> Option<&HashMap<mir::BasicBlock, S>> {
         self.state_after_block.get(&block)
     }
@@ -123,7 +126,9 @@ impl<'a, 'tcx: 'a, S: AbstractState<'a, 'tcx>> PointwiseState<'a, 'tcx, S> {
         &mut self,
         block: mir::BasicBlock,
     ) -> &mut HashMap<mir::BasicBlock, S> {
-        self.state_after_block.entry(block).or_insert(HashMap::new())
+        self.state_after_block
+            .entry(block)
+            .or_insert_with(HashMap::new)
     }
 
     /// Update the state before the `location`.

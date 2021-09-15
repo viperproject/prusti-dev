@@ -6,7 +6,8 @@
 
 //! A module that contains various VIR optimizations.
 
-use crate::vir::{CfgMethod, Program};
+use crate::vir::polymorphic_vir::{CfgMethod, Program};
+use crate::vir::ToGraphViz;
 use crate::config::{self, optimizations, Optimizations};
 
 pub mod folding;
@@ -46,69 +47,68 @@ fn log_methods(
     }
 }
 
-impl Program {
-    pub fn optimized(mut self, source_file_name: &str) -> Self {
-        let optimizations = config::optimizations();
-        info!("Enabled optimisations: {:?}", optimizations);
+pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
+    let mut program = p;
+    let optimizations = config::optimizations();
+    info!("Enabled optimisations: {:?}", optimizations);
 
-        // can't borrow self because we need to move fields
-        if optimizations.inline_constant_functions {
-            log_methods(
-                source_file_name,
-                &self.methods,
-                "inline_constant_functions",
-                false
-            );
-            let (new_methods, new_functions) =
-                functions::inline_constant_functions(self.methods, self.functions);
-            self.methods = new_methods;
-            self.functions = new_functions;
-            log_methods(
-                source_file_name,
-                &self.methods,
-                "inline_constant_functions",
-                true
-            );
-        }
-        if optimizations.optimize_folding {
-            log_methods(
-                source_file_name,
-                &self.methods,
-                "folding",
-                false
-            );
-            self.methods = self.methods
-                .into_iter()
-                .map(|cfg| {
-                    folding::FoldingOptimizer::optimize(cfg)
-                })
-                .collect();
-            self.functions = self.functions
-                .into_iter()
-                .map(|f| folding::FoldingOptimizer::optimize(f))
-                .collect();
-            log_methods(
-                source_file_name,
-                &self.methods,
-                "folding",
-                true
-            );
-        }
-        self.methods = self.methods.into_iter().map(|method| {
-            methods::optimize_method_encoding(method, source_file_name, &optimizations)
-        }).collect();
-        if optimizations.delete_unused_predicates {
-            self.viper_predicates = predicates::delete_unused_predicates(
-                &self.methods,
-                &self.functions,
-                self.viper_predicates,
-            );
-        }
-
-        if config::enable_purification_optimization() {
-            self.methods=purification::purify_methods(self.methods, &self.viper_predicates);
-        }
-
-        self
+    // can't borrow self because we need to move fields
+    if optimizations.inline_constant_functions {
+        log_methods(
+            source_file_name,
+            &program.methods,
+            "inline_constant_functions",
+            false
+        );
+        let (new_methods, new_functions) =
+            functions::inline_constant_functions(program.methods, program.functions);
+        program.methods = new_methods;
+        program.functions = new_functions;
+        log_methods(
+            source_file_name,
+            &program.methods,
+            "inline_constant_functions",
+            true
+        );
     }
+    if optimizations.optimize_folding {
+        log_methods(
+            source_file_name,
+            &program.methods,
+            "folding",
+            false
+        );
+        program.methods = program.methods
+            .into_iter()
+            .map(|cfg| {
+                folding::FoldingOptimizer::optimize(cfg)
+            })
+            .collect();
+        program.functions = program.functions
+            .into_iter()
+            .map(folding::FoldingOptimizer::optimize)
+            .collect();
+        log_methods(
+            source_file_name,
+            &program.methods,
+            "folding",
+            true
+        );
+    }
+    program.methods = program.methods.into_iter().map(|method| {
+        methods::optimize_method_encoding(method, source_file_name, &optimizations)
+    }).collect();
+    if optimizations.delete_unused_predicates {
+        program.viper_predicates = predicates::delete_unused_predicates(
+            &program.methods,
+            &program.functions,
+            program.viper_predicates,
+        );
+    }
+
+    if config::enable_purification_optimization() {
+        program.methods=purification::purify_methods(program.methods, &program.viper_predicates);
+    }
+
+    program
 }

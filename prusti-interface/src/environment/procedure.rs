@@ -10,6 +10,7 @@ use rustc_middle::mir::{self, Body as Mir, Rvalue, AggregateKind};
 use rustc_middle::mir::{BasicBlock, BasicBlockData, Terminator, TerminatorKind};
 use rustc_middle::ty::{self, Ty, TyCtxt};
 use std::cell::Ref;
+use std::rc::Rc;
 use std::collections::{HashSet, HashMap};
 use rustc_span::Span;
 use log::{trace, debug};
@@ -17,28 +18,29 @@ use rustc_middle::mir::StatementKind;
 use rustc_hir::def_id;
 use std::iter::FromIterator;
 use crate::environment::mir_utils::RealEdges;
+use crate::environment::Environment;
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
 
 /// A facade that provides information about the Rust procedure.
-pub struct Procedure<'a, 'tcx: 'a> {
+pub struct Procedure<'tcx> {
     tcx: TyCtxt<'tcx>,
     proc_def_id: ProcedureDefId,
-    mir: Ref<'a, Mir<'tcx>>,
+    mir: Rc<Mir<'tcx>>,
     real_edges: RealEdges,
     loop_info: loops::ProcedureLoops,
     reachable_basic_blocks: HashSet<BasicBlock>,
     nonspec_basic_blocks: HashSet<BasicBlock>,
 }
 
-impl<'a, 'tcx> Procedure<'a, 'tcx> {
+impl<'tcx> Procedure<'tcx> {
     /// Builds an implementation of the Procedure interface, given a typing context and the
     /// identifier of a procedure
-    pub fn new(tcx: TyCtxt<'tcx>, proc_def_id: ProcedureDefId) -> Self {
+    pub fn new(env: &Environment<'tcx>, proc_def_id: ProcedureDefId) -> Self {
         trace!("Encoding procedure {:?}", proc_def_id);
-        let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
-        let mir = mir.borrow();
+        let tcx = env.tcx();
+        let mir = env.local_mir(proc_def_id.expect_local());
         let real_edges = RealEdges::new(&mir);
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir, &real_edges);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir, &real_edges, &tcx);
@@ -188,8 +190,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 fn build_reachable_basic_blocks(mir: &Mir, real_edges: &RealEdges) -> HashSet<BasicBlock> {
     let mut reachable_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     let mut visited: HashSet<BasicBlock> = HashSet::new();
-    let mut to_visit: Vec<BasicBlock> = vec![];
-    to_visit.push(mir.basic_blocks().indices().next().unwrap());
+    let mut to_visit: Vec<BasicBlock> = vec![mir.basic_blocks().indices().next().unwrap()];
 
     while !to_visit.is_empty() {
         let source = to_visit.pop().unwrap();
@@ -217,17 +218,13 @@ fn is_spec_closure(def_id: def_id::DefId, tcx: &TyCtxt) -> bool {
 
 fn is_spec_basic_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> bool {
     for stmt in &bb_data.statements {
-        if let StatementKind::Assign(box (_, rvalue)) = &stmt.kind {
-            if let Rvalue::Aggregate(box aggr, _) = rvalue {
-                if let AggregateKind::Closure(def_id, _) = aggr {
-                    if is_spec_closure(*def_id, tcx) {
-                        return true;
-                    }
-                }
+        if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _))) = &stmt.kind {
+            if is_spec_closure(*def_id, tcx) {
+                return true;
             }
         }
     }
-    return false;
+    false
 }
 
 #[derive(Debug)]
@@ -247,10 +244,10 @@ fn _blocks_definitely_leading_to<'a>(bb_graph: &'a HashMap<BasicBlock, BasicBloc
             _blocks_definitely_leading_to(bb_graph, *pred, blocks);
         }
     }
-    return blocks;
+    blocks
 }
 
-fn blocks_definitely_leading_to<'a>(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, target: BasicBlock) -> HashSet<BasicBlock> {
+fn blocks_definitely_leading_to(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, target: BasicBlock) -> HashSet<BasicBlock> {
     let mut blocks = HashSet::new();
     _blocks_definitely_leading_to(bb_graph, target, &mut blocks);
     blocks
@@ -259,7 +256,7 @@ fn blocks_definitely_leading_to<'a>(bb_graph: &HashMap<BasicBlock, BasicBlockNod
 fn get_nonspec_basic_blocks(bb_graph: HashMap<BasicBlock, BasicBlockNode>, mir: &Mir, tcx: &TyCtxt) -> HashSet<BasicBlock>{
     let mut spec_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     for (bb, _) in bb_graph.iter() {
-        if is_spec_basic_block(&mir[*bb], &tcx) {
+        if is_spec_basic_block(&mir[*bb], tcx) {
             spec_basic_blocks.insert(*bb);
             spec_basic_blocks.extend(blocks_definitely_leading_to(&bb_graph, *bb).into_iter());
         }
@@ -284,8 +281,7 @@ fn build_nonspec_basic_blocks(mir: &Mir, real_edges: &RealEdges, tcx: &TyCtxt) -
     }
 
     let mut visited: HashSet<BasicBlock> = HashSet::new();
-    let mut to_visit: Vec<BasicBlock> = vec![];
-    to_visit.push(mir.basic_blocks().indices().next().unwrap());
+    let mut to_visit: Vec<BasicBlock> = vec![mir.basic_blocks().indices().next().unwrap()];
 
     let mut bb_graph: HashMap<BasicBlock, BasicBlockNode> = HashMap::new();
 
@@ -296,12 +292,10 @@ fn build_nonspec_basic_blocks(mir: &Mir, real_edges: &RealEdges, tcx: &TyCtxt) -
             continue;
         }
 
-        if !bb_graph.contains_key(&source) {
-            bb_graph.insert(source, BasicBlockNode {
+        bb_graph.entry(source).or_insert_with(|| BasicBlockNode {
                 successors: HashSet::new(),
                 predecessors: HashSet::new(),
             });
-        }
 
         visited.insert(source);
 
@@ -314,12 +308,10 @@ fn build_nonspec_basic_blocks(mir: &Mir, real_edges: &RealEdges, tcx: &TyCtxt) -
                 to_visit.push(target);
             }
 
-            if !bb_graph.contains_key(&target) {
-                bb_graph.insert(target, BasicBlockNode {
+            bb_graph.entry(target).or_insert_with(|| BasicBlockNode {
                     successors: HashSet::new(),
                     predecessors: HashSet::new(),
                 });
-            }
             bb_graph.get_mut(&target).unwrap().predecessors.insert(source);
             bb_graph.get_mut(&source).unwrap().successors.insert(target);
         }

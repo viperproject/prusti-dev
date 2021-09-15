@@ -1,7 +1,3 @@
-#![feature(box_syntax)]
-#![feature(box_patterns)]
-#![feature(drain_filter)]
-
 #![deny(unused_must_use)]
 
 #[macro_use]
@@ -16,29 +12,30 @@ pub mod specifications;
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryInto;
 
 use specifications::untyped;
 use parse_closure_macro::ClosureWithSpec;
 pub use spec_attribute_kind::SpecAttributeKind;
+use prusti_utils::force_matches;
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
         match $parse_result {
             Ok(data) => data,
             Err(err) => return err.to_compile_error(),
-        };
+        }
     };
 }
 
-fn extract_prusti_attributes<'a>(item: &'a mut untyped::AnyFnItem) -> impl Iterator<Item=(SpecAttributeKind, TokenStream)> + 'a {
-    item.attrs_mut().drain_filter(
-        |attr|
-            attr.path.segments.len() == 1
-                && SpecAttributeKind::try_from(attr.path.segments[0].ident.to_string()).is_ok()
-    ).map(
-        |attr| attr.path.segments[0].ident.to_string().try_into().ok().map(
-            |attr_kind| {
+fn extract_prusti_attributes(
+    item: &mut untyped::AnyFnItem
+) -> Vec<(SpecAttributeKind, TokenStream)> {
+    let mut prusti_attributes = Vec::new();
+    let mut regular_attributes = Vec::new();
+    for attr in item.attrs_mut().drain(0..) {
+        if attr.path.segments.len() == 1 {
+            if let Ok(attr_kind) = attr.path.segments[0].ident.to_string().try_into() {
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires
                     | SpecAttributeKind::Ensures
@@ -48,11 +45,7 @@ fn extract_prusti_attributes<'a>(item: &'a mut untyped::AnyFnItem) -> impl Itera
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
                         let mut iter = attr.tokens.into_iter();
-                        let tokens = if let Some(TokenTree::Group(group)) = iter.next() {
-                            group.stream()
-                        } else {
-                            unreachable!()
-                        };
+                        let tokens = force_matches!(iter.next().unwrap(), TokenTree::Group(group) => group.stream());
                         assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
                         tokens
                     }
@@ -64,10 +57,16 @@ fn extract_prusti_attributes<'a>(item: &'a mut untyped::AnyFnItem) -> impl Itera
                         attr.tokens
                     }
                 };
-                (attr_kind, tokens)
+                prusti_attributes.push((attr_kind, tokens));
+            } else {
+                regular_attributes.push(attr);
             }
-        )
-    ).flatten()
+        } else {
+            regular_attributes.push(attr);
+        }
+    }
+    *item.attrs_mut() = regular_attributes;
+    prusti_attributes
 }
 
 /// Rewrite an item as required by *all* its specification attributes.
@@ -152,7 +151,7 @@ fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> Genera
         rewriter::SpecItemType::Precondition,
         spec_id,
         assertion,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item],
@@ -172,7 +171,7 @@ fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
         rewriter::SpecItemType::Postcondition,
         spec_id,
         assertion,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item],
@@ -211,7 +210,7 @@ fn generate_for_after_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -> Ge
         rewriter::SpecItemType::Postcondition,
         spec_id_rhs,
         pledge.rhs,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item_rhs],
@@ -238,13 +237,13 @@ fn generate_for_after_expiry_if(attr: TokenStream, item: &untyped::AnyFnItem) ->
         rewriter::SpecItemType::Postcondition,
         spec_id_lhs,
         pledge.lhs.unwrap(),
-        &item
+        item
     )?;
     let spec_item_rhs = rewriter.generate_spec_item_fn(
         rewriter::SpecItemType::Postcondition,
         spec_id_rhs,
         pledge.rhs,
-        &item
+        item
     )?;
     Ok((
         vec![spec_item_lhs, spec_item_rhs],
@@ -395,34 +394,31 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     let mut new_items = Vec::new();
     let mut generated_spec_items = Vec::new();
     for item in impl_block.items {
-        match item {
-            syn::ImplItem::Method(method) => {
-                let mut method_item = untyped::AnyFnItem::ImplMethod(method);
-                let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item).collect();
-                let (spec_items, generated_attributes) = handle_result!(
-                    generate_spec_and_assertions(prusti_attributes, &method_item)
-                );
-                generated_spec_items.extend(spec_items.into_iter().map(|spec_item| {
-                    match spec_item {
-                        syn::Item::Fn(spec_item_fn) => {
-                            syn::ImplItem::Method(syn::ImplItemMethod {
-                                attrs: spec_item_fn.attrs,
-                                vis: spec_item_fn.vis,
-                                defaultness: None,
-                                sig: spec_item_fn.sig,
-                                block: *spec_item_fn.block,
-                            })
-                        }
-                        x => unimplemented!("Unexpected variant: {:?}", x),
+        if let syn::ImplItem::Method(method) = item {
+            let mut method_item = untyped::AnyFnItem::ImplMethod(method);
+            let prusti_attributes: Vec<_> = extract_prusti_attributes(&mut method_item);
+            let (spec_items, generated_attributes) = handle_result!(
+                generate_spec_and_assertions(prusti_attributes, &method_item)
+            );
+            generated_spec_items.extend(spec_items.into_iter().map(|spec_item| {
+                match spec_item {
+                    syn::Item::Fn(spec_item_fn) => {
+                        syn::ImplItem::Method(syn::ImplItemMethod {
+                            attrs: spec_item_fn.attrs,
+                            vis: spec_item_fn.vis,
+                            defaultness: None,
+                            sig: spec_item_fn.sig,
+                            block: *spec_item_fn.block,
+                        })
                     }
-                }));
-                let new_item = parse_quote_spanned! {method_item.span()=>
-                    #(#generated_attributes)*
-                    #method_item
-                };
-                new_items.push(new_item);
-            }
-            _ => {}
+                    x => unimplemented!("Unexpected variant: {:?}", x),
+                }
+            }));
+            let new_item = parse_quote_spanned! {method_item.span()=>
+                #(#generated_attributes)*
+                #method_item
+            };
+            new_items.push(new_item);
         }
     }
     impl_block.items = new_items;
@@ -482,18 +478,20 @@ pub fn extern_spec(_attr: TokenStream, tokens:TokenStream) -> TokenStream {
 
 #[derive(Debug)]
 struct PredicateFn {
+    visibility: Option<syn::Visibility>,
     fn_sig: syn::Signature,
     body: TokenStream,
 }
 
 impl syn::parse::Parse for PredicateFn {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let visibility = input.parse().ok();
         let fn_sig = input.parse()?;
         let brace_content;
         let _brace_token = syn::braced!(brace_content in input);
         let body = brace_content.parse()?;
 
-        Ok(PredicateFn { fn_sig, body })
+        Ok(PredicateFn { visibility, fn_sig, body })
     }
 }
 
@@ -512,9 +510,13 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
     let spec_id = rewriter.generate_spec_id();
     let assertion = handle_result!(rewriter.parse_assertion(spec_id, pred_fn.body));
 
+    let vis = match pred_fn.visibility {
+        Some(vis) => vis.to_token_stream(),
+        None => TokenStream::new(),
+    };
     let sig = pred_fn.fn_sig.to_token_stream();
     let cleaned_fn: untyped::AnyFnItem = parse_quote_spanned! {tokens_span =>
-        #sig {
+        #vis #sig {
             unimplemented!("predicate")
         }
     };

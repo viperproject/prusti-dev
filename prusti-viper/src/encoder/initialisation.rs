@@ -6,7 +6,7 @@
 
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 /// Module that allows querying the initialisation information.
-use prusti_common::vir;
+use vir_crate::polymorphic as vir;
 use prusti_interface::environment::mir_analyses::initialization::compute_definitely_initialized;
 use prusti_interface::environment::place_set::PlaceSet;
 use prusti_interface::utils::expand_one_level;
@@ -78,7 +78,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> InitInfo {
         _def_id: DefId,
         mir_encoder: &MirEncoder<'p, 'v, 'tcx>,
     ) -> EncodingResult<Self> {
-        let initialisation = compute_definitely_initialized(&mir, tcx);
+        let initialisation = compute_definitely_initialized(mir, tcx);
         let mir_acc_before_block: HashMap<_, _> = initialisation
             .before_block
             .into_iter()

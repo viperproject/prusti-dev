@@ -4,16 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::foldunfold::perm::*;
-use prusti_common::vir;
-use prusti_common::vir::ExprIterator;
-use prusti_common::vir::PermAmount;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::borrow::Borrow;
-use std::fmt;
-use log::{trace, debug};
-use crate::encoder::foldunfold::FoldUnfoldError;
+use crate::encoder::foldunfold::{perm::*, FoldUnfoldError};
+use log::{debug, trace};
+use std::{
+    borrow::Borrow,
+    collections::{HashMap, HashSet},
+    fmt,
+    ops::{Add, Sub},
+};
+use vir_crate::polymorphic::{self as vir, ExprIterator, PermAmount};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {
@@ -97,17 +96,15 @@ impl State {
             for other_place in self.pred.keys() {
                 if place.is_simple_place()
                     && other_place.is_simple_place()
-                    && place.has_proper_prefix(&other_place)
-                {
-                    if !((self.pred[place] == PermAmount::Read
+                    && place.has_proper_prefix(other_place)
+                    && !((self.pred[place] == PermAmount::Read
                         || self.pred[place] == PermAmount::Remaining)
                         && self.pred[other_place] == PermAmount::Read)
-                    {
-                        panic!(
-                            "Consistency error: state has pred {} ({}), but also pred {} ({})",
-                            place, self.pred[place], other_place, self.pred[other_place]
-                        );
-                    }
+                {
+                    panic!(
+                        "Consistency error: state has pred {} ({}), but also pred {} ({})",
+                        place, self.pred[place], other_place, self.pred[other_place]
+                    );
                 }
             }
         }
@@ -115,7 +112,7 @@ impl State {
             for pred_place in self.pred.keys() {
                 if acc_place.is_simple_place()
                     && pred_place.is_simple_place()
-                    && acc_place.has_proper_prefix(&pred_place)
+                    && acc_place.has_proper_prefix(pred_place)
                 {
                     panic!(
                         "Consistency error: state has acc {}, but also pred {}",
@@ -227,18 +224,18 @@ impl State {
     }
 
     pub fn contains_acc(&self, place: &vir::Expr) -> bool {
-        self.acc.contains_key(&place)
+        self.acc.contains_key(place)
     }
 
     pub fn contains_pred(&self, place: &vir::Expr) -> bool {
-        self.pred.contains_key(&place)
+        self.pred.contains_key(place)
     }
 
     /// Note: the permission amount is currently ignored
     pub fn contains_perm(&self, item: &Perm) -> bool {
         match item {
-            &Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
-            &Perm::Pred(ref _place, _) => self.contains_pred(item.get_place()),
+            Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
+            Perm::Pred(ref _place, _) => self.contains_pred(item.get_place()),
         }
     }
 
@@ -349,9 +346,11 @@ impl State {
         info.join(",\n")
     }
 
-    pub fn insert_acc(&mut self, place: vir::Expr, perm: PermAmount)
-        -> Result<(), FoldUnfoldError>
-    {
+    pub fn insert_acc(
+        &mut self,
+        place: vir::Expr,
+        perm: PermAmount,
+    ) -> Result<(), FoldUnfoldError> {
         trace!("insert_acc {}, {}", place, perm);
         if self.acc.contains_key(&place) {
             let new_perm = self.acc[&place].add(perm)?;
@@ -368,8 +367,7 @@ impl State {
         Ok(())
     }
 
-    pub fn insert_all_acc<I>(&mut self, items: I)
-        -> Result<(), FoldUnfoldError>
+    pub fn insert_all_acc<I>(&mut self, items: I) -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = (vir::Expr, PermAmount)>,
     {
@@ -379,9 +377,11 @@ impl State {
         Ok(())
     }
 
-    pub fn insert_pred(&mut self, place: vir::Expr, perm: PermAmount)
-        -> Result<(), FoldUnfoldError>
-    {
+    pub fn insert_pred(
+        &mut self,
+        place: vir::Expr,
+        perm: PermAmount,
+    ) -> Result<(), FoldUnfoldError> {
         trace!("insert_pred {}, {}", place, perm);
         if self.pred.contains_key(&place) {
             let new_perm = self.pred[&place].add(perm)?;
@@ -398,8 +398,7 @@ impl State {
         Ok(())
     }
 
-    pub fn insert_all_pred<I>(&mut self, items: I)
-        -> Result<(), FoldUnfoldError>
+    pub fn insert_all_pred<I>(&mut self, items: I) -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = (vir::Expr, PermAmount)>,
     {
@@ -425,8 +424,7 @@ impl State {
         }
     }
 
-    pub fn insert_all_perms<I>(&mut self, items: I)
-        -> Result<(), FoldUnfoldError>
+    pub fn insert_all_perms<I>(&mut self, items: I) -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = Perm>,
     {
@@ -454,9 +452,11 @@ impl State {
         self.pred.remove(place).unwrap()
     }
 
-    pub fn remove_acc(&mut self, place: &vir::Expr, perm: PermAmount)
-        -> Result<(), FoldUnfoldError>
-    {
+    pub fn remove_acc(
+        &mut self,
+        place: &vir::Expr,
+        perm: PermAmount,
+    ) -> Result<(), FoldUnfoldError> {
         assert!(
             self.acc.contains_key(place),
             "Place {} is not in state (acc), so it can not be removed.",
@@ -470,14 +470,14 @@ impl State {
         Ok(())
     }
 
-    pub fn remove_pred(&mut self, place: &vir::Expr, perm: PermAmount)
-        -> Result<(), FoldUnfoldError>
-    {
+    pub fn remove_pred(
+        &mut self,
+        place: &vir::Expr,
+        perm: PermAmount,
+    ) -> Result<(), FoldUnfoldError> {
         trace!("remove_pred {}, {}", place, perm);
         if !self.pred.contains_key(place) {
-            return Err(
-                FoldUnfoldError::FailedToRemovePred(place.clone())
-            );
+            return Err(FoldUnfoldError::FailedToRemovePred(place.clone()));
         }
         if self.pred[place] == perm {
             self.pred.remove(place).unwrap();
@@ -489,16 +489,15 @@ impl State {
 
     pub fn remove_perm(&mut self, item: &Perm) -> Result<(), FoldUnfoldError> {
         match item {
-            &Perm::Acc(_, perm) => self.remove_acc(item.get_place(), perm),
-            &Perm::Pred(_, perm) => self.remove_pred(item.get_place(), perm),
+            Perm::Acc(_, perm) => self.remove_acc(item.get_place(), *perm),
+            Perm::Pred(_, perm) => self.remove_pred(item.get_place(), *perm),
         }
     }
 
-    pub fn remove_all_perms<'a, I, P>(&mut self, items: I)
-       -> Result<(), FoldUnfoldError>
+    pub fn remove_all_perms<I, P>(&mut self, items: I) -> Result<(), FoldUnfoldError>
     where
         I: Iterator<Item = P>,
-        P: Borrow<Perm>
+        P: Borrow<Perm>,
     {
         for item in items {
             self.remove_perm(item.borrow())?;
@@ -543,16 +542,18 @@ impl State {
         Ok(())
     }
 
-    fn restore_acc(&mut self, acc_place: vir::Expr, mut perm: PermAmount)
-        -> Result<(), FoldUnfoldError>
-    {
+    fn restore_acc(
+        &mut self,
+        acc_place: vir::Expr,
+        mut perm: PermAmount,
+    ) -> Result<(), FoldUnfoldError> {
         trace!("restore_acc {}, {}", acc_place, perm);
         if let Some(curr_perm_amount) = self.acc.get(&acc_place) {
             perm = perm.add(*curr_perm_amount)?;
         }
         if acc_place.is_simple_place() {
             for pred_place in self.pred.keys() {
-                if pred_place.is_simple_place() && acc_place.has_proper_prefix(&pred_place) {
+                if pred_place.is_simple_place() && acc_place.has_proper_prefix(pred_place) {
                     trace!(
                         "restore_acc {}: ignored (predicate already exists: {})",
                         acc_place,
@@ -566,9 +567,11 @@ impl State {
         Ok(())
     }
 
-    fn restore_pred(&mut self, pred_place: vir::Expr, mut perm: PermAmount)
-        -> Result<(), FoldUnfoldError>
-    {
+    fn restore_pred(
+        &mut self,
+        pred_place: vir::Expr,
+        mut perm: PermAmount,
+    ) -> Result<(), FoldUnfoldError> {
         trace!("restore_pred {}, {}", pred_place, perm);
         if let Some(curr_perm_amount) = self.pred.get(&pred_place) {
             perm = perm.add(*curr_perm_amount)?;
@@ -609,10 +612,11 @@ impl State {
     pub fn as_vir_expr(&self) -> vir::Expr {
         let mut exprs: Vec<vir::Expr> = vec![];
         for (place, perm) in self.acc.iter() {
-            if !place.is_local() && place.is_curr() {
-                if !self.is_dropped(&Perm::acc(place.clone(), *perm)) {
-                    exprs.push(vir::Expr::acc_permission(place.clone(), *perm));
-                }
+            if !place.is_local()
+                && place.is_curr()
+                && !self.is_dropped(&Perm::acc(place.clone(), *perm))
+            {
+                exprs.push(vir::Expr::acc_permission(place.clone(), *perm));
             }
         }
         for (place, perm_amount) in self.pred.iter() {

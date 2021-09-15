@@ -67,6 +67,8 @@ def get_linux_env():
         else:
             variables.append(('LD_LIBRARY_PATH', ld_library_path))
     viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/server'))
+    if not os.path.exists(viper_home):
+        viper_home = os.path.abspath('viper_tools/backends')
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
@@ -96,6 +98,8 @@ def get_mac_env():
             variables.append(('LD_LIBRARY_PATH', ld_library_path))
             variables.append(('DYLD_LIBRARY_PATH', ld_library_path))
     viper_home = get_var_or('VIPER_HOME', os.path.abspath('viper_tools/server'))
+    if not os.path.exists(viper_home):
+        viper_home = os.path.abspath('viper_tools/backends')
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
@@ -122,6 +126,9 @@ def get_win_env():
         else:
             variables.append(('PATH', library_path))
     viper_home = get_var_or('VIPER_HOME', os.path.abspath(os.path.join('viper_tools', 'server')))
+    viper_home = get_var_or('VIPER_HOME', os.path.abspath(os.path.join('viper_tools', 'server')))
+    if not os.path.exists(viper_home):
+        viper_home = get_var_or('VIPER_HOME', os.path.abspath(os.path.join('viper_tools', 'backends')))
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
     else:
@@ -162,11 +169,11 @@ def get_env():
     return env
 
 
-def run_command(args, env=None):
+def run_command(args, env=None, cwd=None):
     """Run a command with the given arguments."""
     if env is None:
         env = get_env()
-    completed = subprocess.run(args, env=env)
+    completed = subprocess.run(args, env=env, cwd=cwd)
     if completed.returncode != 0:
         sys.exit(completed.returncode)
 
@@ -298,6 +305,7 @@ def run_benchmarks(args):
     report_name_suffix = ("-" + args[0]) if len(args) > 0 else ''
 
     env = get_env()
+    env['PRUSTI_CHECK_OVERFLOWS'] = 'false' # FIXME: This should not be needed.
     report("Starting prusti-server ({})", prusti_server_exe)
     server_process = subprocess.Popen([prusti_server_exe,"--port",server_port], env=env)
     time.sleep(2)
@@ -425,6 +433,17 @@ def verify_test(args):
     report("env: PRUSTI_CHECK_OVERFLOWS={}", env['PRUSTI_CHECK_OVERFLOWS'])
     run_command([prusti_path, '--edition=2018', test_path] + compile_flags, env)
 
+def clippy_in(cwd):
+    """Run cargo clippy in given subproject."""
+    run_command(['cargo', 'clippy', '--', '-D', 'warnings'], cwd=cwd)
+
+def fmt_in(cwd):
+    """Run cargo clippy in given subproject."""
+    run_command(['cargo', 'fmt'], cwd=cwd)
+
+def fmt_check_in(cwd):
+    """Run cargo clippy in given subproject."""
+    run_command(['cargo', 'fmt', '--', '--check'], cwd=cwd)
 
 def main(argv):
     global verbose
@@ -449,6 +468,15 @@ def main(argv):
             break
         elif arg == 'exec':
             run_command(argv[i+1:])
+            break
+        elif arg == 'clippy-in':
+            clippy_in(*argv[i+1:])
+            break
+        elif arg == 'fmt-check':
+            fmt_check_in(*argv[i+1:])
+            break
+        elif arg == 'fmt':
+            fmt_in(*argv[i+1:])
             break
         else:
             cargo(argv[i:])

@@ -41,20 +41,102 @@ jobs:
           key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
       - name: Build with cargo
         run: python x.py build --all --verbose
-      - name: Check and report Clippy errors
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          cargo install cargo-diff-tools
-          if rustup component add clippy
-          then
-            # See https://github.com/pytorch/pytorch/blob/49adac65c4228b9fe7ede4e6f99fe9e1ccdc3e16/.github/workflows/clang_format.yml
-            git remote add upstream https://github.com/viperproject/prusti-dev
-            git fetch upstream "$GITHUB_BASE_REF"
-            python x.py exec cargo-clippy-diff --output=github $BASE_SHA HEAD
-          fi
       - name: Run "quick" cargo tests
         run: python x.py test --all --verbose quick
+
+  # Run clippy checks on PRs.
+  clippy-check:
+    runs-on: ubuntu-latest
+    # Only run when triggered by a pull request event
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # deep clone, to allow us to use git merge-base
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
+      - name: Build with cargo
+        run: python x.py build --all --verbose
+      - name: Check and report Clippy errors
+        run: |
+          rustup component add clippy
+
+          python ./x.py clippy
+
+          cargo install cargo-diff-tools
+          # See https://github.com/pytorch/pytorch/blob/49adac65c4228b9fe7ede4e6f99fe9e1ccdc3e16/.github/workflows/clang_format.yml
+          git remote add upstream https://github.com/viperproject/prusti-dev
+          git fetch upstream "$GITHUB_BASE_REF"
+          python x.py exec cargo-clippy-diff --output=github $BASE_SHA HEAD
+
+  # Run rustfmt checks on PRs.
+  fmt-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # deep clone, to allow us to use git merge-base
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock', 'rust-toolchain') }}
+      - name: Build with cargo
+        run: python x.py build --all --verbose
+      - name: Check and report formatting warnings
+        run: |
+          rustup component add rustfmt
+
+          python ./x.py fmt-check analysis
+          python ./x.py fmt-check prusti
+          #python ./x.py fmt-check prusti-common
+          #python ./x.py fmt-check prusti-contracts
+          python ./x.py fmt-check prusti-contracts-impl
+          python ./x.py fmt-check prusti-contracts-internal
+          python ./x.py fmt-check prusti-contracts-test
+          #python ./x.py fmt-check prusti-interface
+          python ./x.py fmt-check prusti-launch
+          python ./x.py fmt-check prusti-server
+          #python ./x.py fmt-check prusti-specs
+          #python ./x.py fmt-check prusti-tests
+          python ./x.py fmt-check prusti-utils
+          #python ./x.py fmt-check prusti-viper
+          rustfmt --check prusti-viper/src/encoder/foldunfold/mod.rs
+          python ./x.py fmt-check viper
+          python ./x.py fmt-check viper-sys
+          python ./x.py fmt-check vir
+          rustfmt --check vir/defs/polymorphic/mod.rs
+          rustfmt --check vir/defs/components/mod.rs
+          python ./x.py fmt-check vir-gen
 
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
@@ -87,21 +169,21 @@ jobs:
       - name: Run "quick" cargo tests
         run: |
           python x.py verify-test prusti-tests/tests/verify/pass/rosetta/Knuth_shuffle.rs
-          python x.py test --all --verbose pass/rosetta/Binary_search_shared.rs
-          python x.py test --all --verbose pass/demos/account.rs
-          python x.py test --all --verbose pass/rosetta/Knights_tour.rs
-          python x.py test --all --verbose pass/quick/fold-unfold.rs
-          python x.py test --all --verbose pass/quick/moves.rs
-          python x.py test --all --verbose pass/quick/mut-borrows.rs
-          python x.py test --all --verbose pass/quick/shared-borrows.rs
-          python x.py test --all --verbose pass/quick/trait-contracts-refinement.rs
-          python x.py test --all --verbose pass/quick/fibonacci.rs
-          python x.py test --all --verbose pass/pure-fn/len-lookup.rs
-          python x.py test --all --verbose pass/pure-fn/quantifiers.rs
-          python x.py test --all --verbose pass/pure-fn/recursive-pure-fn.rs
-          python x.py test --all --verbose pass/pure-fn/ref-mut-arg.rs
-          python x.py test --all --verbose pass/rosetta/Ackermann_function.rs
-          python x.py test --all --verbose pass/rosetta/Heapsort.rs
+          # python x.py test --all --verbose pass/rosetta/Binary_search_shared.rs
+          # python x.py test --all --verbose pass/demos/account.rs
+          # python x.py test --all --verbose pass/rosetta/Knights_tour.rs
+          # python x.py test --all --verbose pass/quick/fold-unfold.rs
+          # python x.py test --all --verbose pass/quick/moves.rs
+          # python x.py test --all --verbose pass/quick/mut-borrows.rs
+          # python x.py test --all --verbose pass/quick/shared-borrows.rs
+          # python x.py test --all --verbose pass/quick/trait-contracts-refinement.rs
+          # python x.py test --all --verbose pass/quick/fibonacci.rs
+          # python x.py test --all --verbose pass/pure-fn/len-lookup.rs
+          # python x.py test --all --verbose pass/pure-fn/quantifiers.rs
+          # python x.py test --all --verbose pass/pure-fn/recursive-pure-fn.rs
+          # python x.py test --all --verbose pass/pure-fn/ref-mut-arg.rs
+          # python x.py test --all --verbose pass/rosetta/Ackermann_function.rs
+          # python x.py test --all --verbose pass/rosetta/Heapsort.rs
 
   # Run all the tests.
   all-tests:
@@ -129,7 +211,7 @@ jobs:
       - name: Check prusti-contracts
         run: |
           cd prusti-contracts-test/
-          cargo build
+          cargo +stable build
 
   # Run Prusti on itself. Currently disabled because of many bugs in Prusti.
   test-on-prusti:

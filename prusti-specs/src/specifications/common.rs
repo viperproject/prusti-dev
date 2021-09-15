@@ -219,8 +219,8 @@ impl<EID, ET> IntoIterator for TriggerSet<EID, ET> {
 }
 
 #[derive(Debug, Clone)]
-/// Variables used in a forall.
-pub struct ForAllVars<EID, AT> {
+/// Variables used in a quantifier.
+pub struct QuantifierVars<EID, AT> {
     /// Identifier of the specification to which these variables belongs.
     pub spec_id: SpecificationId,
     /// Unique id for this sequence of variables.
@@ -253,10 +253,16 @@ pub enum AssertionKind<EID, ET, AT> {
     /// Implication ==>
     Implies(Assertion<EID, ET, AT>, Assertion<EID, ET, AT>),
     /// TODO < Even > ==> x % 2 == 0
-    TypeCond(ForAllVars<EID, AT>, Assertion<EID, ET, AT>),
-    /// Quantifier
+    TypeCond(QuantifierVars<EID, AT>, Assertion<EID, ET, AT>),
+    /// Universal quantifier
     ForAll(
-        ForAllVars<EID, AT>,
+        QuantifierVars<EID, AT>,
+        TriggerSet<EID, ET>,
+        Assertion<EID, ET, AT>,
+    ),
+    /// Existential quantifier
+    Exists(
+        QuantifierVars<EID, AT>,
         TriggerSet<EID, ET>,
         Assertion<EID, ET, AT>,
     ),
@@ -356,7 +362,7 @@ impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
 impl<EID: Clone + Debug, ET: Clone + Debug, AT: Clone + Debug> ProcedureSpecification<EID, ET, AT> {
     /// Trait implementation method refinement
     /// Choosing alternative C as discussed in
-    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+    /// <https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf>
     /// pp 19-23
     ///
     /// In other words, any pre-/post-condition provided by `other` will overwrite any provided by

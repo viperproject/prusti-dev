@@ -1,6 +1,10 @@
 // compile-flags: -Pprint_desugared_specs=true -Pprint_typeckd_specs=true -Phide_uuids=true
 // normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
 // normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
+// normalize-stdout-test: "/[[a-z0-9]{4}/]::" -> "[$(CRATE_ID)]::"
+
+
+
 
 
 
@@ -12,6 +16,7 @@
 // this must pass, i.e. the evaluation must not short-circuit if a predicate
 // somewhere down the call stack is false
 
+// Provide an existential witness.
 #![feature(register_tool)]
 #![register_tool(prusti)]
 #[prelude_import]
@@ -26,7 +31,7 @@ fn identity(x: i32) -> i32 { x }
 #[prusti::spec_id = "$(NUM_UUID)"]
 #[prusti::assertion =
   "{/"kind/":{/"ForAll/":[{/"spec_id/":/"$(UUID)/",/"expr_id/":101,/"count/":1},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}},[]]}}"]
-fn prusti_pred_item_true_p_$(NUM_UUID)() {
+fn prusti_pred_item_true_p1_$(NUM_UUID)() {
 
     #[prusti::spec_only]
     #[prusti::expr_id = "$(NUM_UUID)_101"]
@@ -42,21 +47,60 @@ fn prusti_pred_item_true_p_$(NUM_UUID)() {
 #[prusti::pure]
 #[prusti::trusted]
 #[prusti::pred_spec_id_ref = "$(NUM_UUID)"]
-fn true_p() -> bool {
-    ::core::panicking::panic_fmt(::core::fmt::Arguments::new_v1(&["not implemented: "],
-                                                                &match (&::core::fmt::Arguments::new_v1(&["predicate"],
-                                                                                                        &match ()
-                                                                                                             {
-                                                                                                             ()
-                                                                                                             =>
-                                                                                                             [],
-                                                                                                         }),)
-                                                                     {
-                                                                     (arg0,)
-                                                                     =>
-                                                                     [::core::fmt::ArgumentV1::new(arg0,
-                                                                                                   ::core::fmt::Display::fmt)],
-                                                                 }))
+fn true_p1() -> bool {
+    ::core::panicking::panic_fmt(match match (&match match () { () => [], } {
+                                                   ref args => unsafe {
+                                                       ::core::fmt::Arguments::new_v1(&["predicate"],
+                                                                                      args)
+                                                   }
+                                               },) {
+                                           (arg0,) =>
+                                           [::core::fmt::ArgumentV1::new(arg0,
+                                                                         ::core::fmt::Display::fmt)],
+                                       } {
+                                     ref args => unsafe {
+                                         ::core::fmt::Arguments::new_v1(&["not implemented: "],
+                                                                        args)
+                                     }
+                                 })
+}
+#[allow(unused_must_use, unused_variables, dead_code)]
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+#[prusti::assertion =
+  "{/"kind/":{/"Exists/":[{/"spec_id/":/"$(UUID)/",/"expr_id/":101,/"count/":1},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":102}}},[]]}}"]
+fn prusti_pred_item_true_p2_$(NUM_UUID)() {
+
+    #[prusti::spec_only]
+    #[prusti::expr_id = "$(NUM_UUID)_101"]
+    |x: i32|
+        {
+
+            #[prusti::spec_only]
+            #[prusti::expr_id = "$(NUM_UUID)_102"]
+            || -> bool { true };
+        };
+}
+#[allow(unused_must_use, unused_variables, dead_code)]
+#[prusti::pure]
+#[prusti::trusted]
+#[prusti::pred_spec_id_ref = "$(NUM_UUID)"]
+fn true_p2() -> bool {
+    ::core::panicking::panic_fmt(match match (&match match () { () => [], } {
+                                                   ref args => unsafe {
+                                                       ::core::fmt::Arguments::new_v1(&["predicate"],
+                                                                                      args)
+                                                   }
+                                               },) {
+                                           (arg0,) =>
+                                           [::core::fmt::ArgumentV1::new(arg0,
+                                                                         ::core::fmt::Display::fmt)],
+                                       } {
+                                     ref args => unsafe {
+                                         ::core::fmt::Arguments::new_v1(&["not implemented: "],
+                                                                        args)
+                                     }
+                                 })
 }
 #[allow(unused_must_use, unused_variables, dead_code)]
 #[prusti::spec_only]
@@ -80,38 +124,81 @@ fn prusti_pred_item_forall_identity_$(NUM_UUID)() {
 #[prusti::trusted]
 #[prusti::pred_spec_id_ref = "$(NUM_UUID)"]
 fn forall_identity() -> bool {
-    ::core::panicking::panic_fmt(::core::fmt::Arguments::new_v1(&["not implemented: "],
-                                                                &match (&::core::fmt::Arguments::new_v1(&["predicate"],
-                                                                                                        &match ()
-                                                                                                             {
-                                                                                                             ()
-                                                                                                             =>
-                                                                                                             [],
-                                                                                                         }),)
-                                                                     {
-                                                                     (arg0,)
-                                                                     =>
-                                                                     [::core::fmt::ArgumentV1::new(arg0,
-                                                                                                   ::core::fmt::Display::fmt)],
-                                                                 }))
+    ::core::panicking::panic_fmt(match match (&match match () { () => [], } {
+                                                   ref args => unsafe {
+                                                       ::core::fmt::Arguments::new_v1(&["predicate"],
+                                                                                      args)
+                                                   }
+                                               },) {
+                                           (arg0,) =>
+                                           [::core::fmt::ArgumentV1::new(arg0,
+                                                                         ::core::fmt::Display::fmt)],
+                                       } {
+                                     ref args => unsafe {
+                                         ::core::fmt::Arguments::new_v1(&["not implemented: "],
+                                                                        args)
+                                     }
+                                 })
 }
 #[allow(unused_must_use, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 #[prusti::assertion =
-  "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
-fn prusti_pre_item_test_identity_$(NUM_UUID)() {
+  "{/"kind/":{/"Exists/":[{/"spec_id/":/"$(UUID)/",/"expr_id/":101,/"count/":1},{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":103}}},[[{/"spec_id/":/"$(UUID)/",/"expr_id/":102}]]]}}"]
+fn prusti_pred_item_exists_identity_$(NUM_UUID)() {
 
     #[prusti::spec_only]
     #[prusti::expr_id = "$(NUM_UUID)_101"]
-    || -> bool { true_p() };
+    |x: i32|
+        {
+
+            #[prusti::spec_only]
+            #[prusti::expr_id = "$(NUM_UUID)_103"]
+            || -> bool { identity(x) == x };
+
+            #[prusti::spec_only]
+            #[prusti::expr_id = "$(NUM_UUID)_102"]
+            || { identity(x) };
+        };
+}
+#[allow(unused_must_use, unused_variables, dead_code)]
+#[prusti::pure]
+#[prusti::trusted]
+#[prusti::pred_spec_id_ref = "$(NUM_UUID)"]
+fn exists_identity() -> bool {
+    ::core::panicking::panic_fmt(match match (&match match () { () => [], } {
+                                                   ref args => unsafe {
+                                                       ::core::fmt::Arguments::new_v1(&["predicate"],
+                                                                                      args)
+                                                   }
+                                               },) {
+                                           (arg0,) =>
+                                           [::core::fmt::ArgumentV1::new(arg0,
+                                                                         ::core::fmt::Display::fmt)],
+                                       } {
+                                     ref args => unsafe {
+                                         ::core::fmt::Arguments::new_v1(&["not implemented: "],
+                                                                        args)
+                                     }
+                                 })
 }
 #[allow(unused_must_use, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
 #[prusti::assertion =
   "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
-fn prusti_pre_item_test_identity_$(NUM_UUID)() {
+fn prusti_pre_item_test_identity_1_$(NUM_UUID)() {
+
+    #[prusti::spec_only]
+    #[prusti::expr_id = "$(NUM_UUID)_101"]
+    || -> bool { true_p1() };
+}
+#[allow(unused_must_use, unused_variables, dead_code)]
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+#[prusti::assertion =
+  "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
+fn prusti_pre_item_test_identity_1_$(NUM_UUID)() {
 
     #[prusti::spec_only]
     #[prusti::expr_id = "$(NUM_UUID)_101"]
@@ -119,7 +206,32 @@ fn prusti_pre_item_test_identity_$(NUM_UUID)() {
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
-fn test_identity() { }
+fn test_identity_1() { }
+#[allow(unused_must_use, unused_variables, dead_code)]
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+#[prusti::assertion =
+  "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
+fn prusti_pre_item_test_identity_2_$(NUM_UUID)() {
+
+    #[prusti::spec_only]
+    #[prusti::expr_id = "$(NUM_UUID)_101"]
+    || -> bool { true_p2() };
+}
+#[allow(unused_must_use, unused_variables, dead_code)]
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+#[prusti::assertion =
+  "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
+fn prusti_pre_item_test_identity_2_$(NUM_UUID)() {
+
+    #[prusti::spec_only]
+    #[prusti::expr_id = "$(NUM_UUID)_101"]
+    || -> bool { exists_identity() };
+}
+#[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
+#[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
+fn test_identity_2() { }
 #[allow(unused_must_use, unused_variables, dead_code)]
 #[prusti::spec_only]
 #[prusti::spec_id = "$(NUM_UUID)"]
@@ -136,20 +248,21 @@ fn prusti_pred_item_false_p_$(NUM_UUID)() {
 #[prusti::trusted]
 #[prusti::pred_spec_id_ref = "$(NUM_UUID)"]
 fn false_p() -> bool {
-    ::core::panicking::panic_fmt(::core::fmt::Arguments::new_v1(&["not implemented: "],
-                                                                &match (&::core::fmt::Arguments::new_v1(&["predicate"],
-                                                                                                        &match ()
-                                                                                                             {
-                                                                                                             ()
-                                                                                                             =>
-                                                                                                             [],
-                                                                                                         }),)
-                                                                     {
-                                                                     (arg0,)
-                                                                     =>
-                                                                     [::core::fmt::ArgumentV1::new(arg0,
-                                                                                                   ::core::fmt::Display::fmt)],
-                                                                 }))
+    ::core::panicking::panic_fmt(match match (&match match () { () => [], } {
+                                                   ref args => unsafe {
+                                                       ::core::fmt::Arguments::new_v1(&["predicate"],
+                                                                                      args)
+                                                   }
+                                               },) {
+                                           (arg0,) =>
+                                           [::core::fmt::ArgumentV1::new(arg0,
+                                                                         ::core::fmt::Display::fmt)],
+                                       } {
+                                     ref args => unsafe {
+                                         ::core::fmt::Arguments::new_v1(&["not implemented: "],
+                                                                        args)
+                                     }
+                                 })
 }
 #[allow(unused_must_use, unused_variables, dead_code)]
 #[prusti::spec_only]
@@ -164,10 +277,20 @@ fn prusti_pre_item_precond_or_correctly_$(NUM_UUID)() {
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 fn precond_or_correctly() -> bool { true }
-fn main() { test_identity(); precond_or_correctly(); }
+fn main() {
+    if !(identity(5) == 5) {
+        ::core::panicking::panic("assertion failed: identity(5) == 5")
+    };
+    test_identity_1();
+    test_identity_2();
+    precond_or_correctly();
+}
 Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: None, pure: true, trusted: false })
-Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:20 ~ predicate[317d]::prusti_pred_item_false_p_$(NUM_UUID)::{closure#0}) }) }), pure: true, trusted: true })
-Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:23 ~ predicate[317d]::prusti_pre_item_precond_or_correctly_$(NUM_UUID)::{closure#0}) }) }], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
-Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: ForAll(ForAllVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, i32)] }, TriggerSet([]), Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:8 ~ predicate[317d]::prusti_pred_item_true_p_$(NUM_UUID)::{closure#0}::{closure#0}) }) }) }), pure: true, trusted: true })
-Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: ForAll(ForAllVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, i32)] }, TriggerSet([]), Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:12 ~ predicate[317d]::prusti_pred_item_forall_identity_$(NUM_UUID)::{closure#0}::{closure#0}) }) }) }), pure: true, trusted: true })
-Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:15 ~ predicate[317d]::prusti_pre_item_test_identity_$(NUM_UUID)::{closure#0}) }) }, Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:17 ~ predicate[317d]::prusti_pre_item_test_identity_$(NUM_UUID)::{closure#0}) }) }], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:34 ~ predicate[$(CRATE_ID)]::prusti_pred_item_false_p_$(NUM_UUID)::{closure#0}) }) }), pure: true, trusted: true })
+Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:37 ~ predicate[$(CRATE_ID)]::prusti_pre_item_precond_or_correctly_$(NUM_UUID)::{closure#0}) }) }], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: ForAll(QuantifierVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, i32)] }, TriggerSet([]), Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:8 ~ predicate[$(CRATE_ID)]::prusti_pred_item_true_p1_$(NUM_UUID)::{closure#0}::{closure#0}) }) }) }), pure: true, trusted: true })
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: Exists(QuantifierVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, i32)] }, TriggerSet([]), Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:12 ~ predicate[$(CRATE_ID)]::prusti_pred_item_true_p2_$(NUM_UUID)::{closure#0}::{closure#0}) }) }) }), pure: true, trusted: true })
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: ForAll(QuantifierVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, i32)] }, TriggerSet([]), Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:16 ~ predicate[$(CRATE_ID)]::prusti_pred_item_forall_identity_$(NUM_UUID)::{closure#0}::{closure#0}) }) }) }), pure: true, trusted: true })
+Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:24 ~ predicate[$(CRATE_ID)]::prusti_pre_item_test_identity_1_$(NUM_UUID)::{closure#0}) }) }, Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:26 ~ predicate[$(CRATE_ID)]::prusti_pre_item_test_identity_1_$(NUM_UUID)::{closure#0}) }) }], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:29 ~ predicate[$(CRATE_ID)]::prusti_pre_item_test_identity_2_$(NUM_UUID)::{closure#0}) }) }, Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: DefId(0:31 ~ predicate[$(CRATE_ID)]::prusti_pre_item_test_identity_2_$(NUM_UUID)::{closure#0}) }) }], posts: [], pledges: [], predicate_body: None, pure: false, trusted: false })
+Procedure(ProcedureSpecification { pres: [], posts: [], pledges: [], predicate_body: Some(Assertion { kind: Exists(QuantifierVars { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), vars: [(_2, i32)] }, TriggerSet([Trigger([Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(102), expr: DefId(0:21 ~ predicate[$(CRATE_ID)]::prusti_pred_item_exists_identity_$(NUM_UUID)::{closure#0}::{closure#1}) }])]), Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(103), expr: DefId(0:20 ~ predicate[$(CRATE_ID)]::prusti_pred_item_exists_identity_$(NUM_UUID)::{closure#0}::{closure#0}) }) }) }), pure: true, trusted: true })

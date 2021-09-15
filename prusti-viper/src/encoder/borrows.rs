@@ -6,6 +6,7 @@
 
 use crate::encoder::places;
 use prusti_interface::data::ProcedureDefId;
+use prusti_interface::environment::Environment;
 // use prusti_interface::specifications::{
 //     AssertionKind, SpecificationSet, TypedAssertion, TypedExpression, TypedSpecification,
 //     TypedSpecificationSet,
@@ -49,7 +50,7 @@ impl<P: fmt::Debug> BorrowInfo<P> {
 impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let lifetime = match self.region {
-            None => format!("static"),
+            None => "static".to_string(),
             Some(ty::BoundRegionKind::BrAnon(id)) => format!("#{}", id),
             Some(ty::BoundRegionKind::BrNamed(_, name)) => name.to_string(),
             _ => unimplemented!(),
@@ -150,7 +151,7 @@ impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<'_,
     }
 }
 
-fn get_place_root<'tcx>(place: &mir::Place<'tcx>) -> mir::Local {
+fn get_place_root(place: &mir::Place) -> mir::Local {
     // match place {
     //     &mir::Place::Local(local) => local,
     //     &mir::Place::Projection(ref projection) => get_place_root(&projection.base),
@@ -196,7 +197,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
     /// Specialize to the call site contract.
     pub fn to_call_site_contract(
         &self,
-        args: &Vec<places::Local>,
+        args: &[places::Local],
         target: places::Local,
     ) -> ProcedureContract<'tcx> {
         assert_eq!(self.args.len(), args.len());
@@ -209,7 +210,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             let root = &get_place_root(place);
             let substitute_place = places::Place::SubstitutedPlace {
                 substituted_root: *substitutions.get(root).unwrap(),
-                place: place.clone(),
+                place: *place,
             };
             (substitute_place, *mutability)
         };
@@ -223,15 +224,14 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             })
             .collect();
         let returned_refs = self.returned_refs.iter().map(&substitute).collect();
-        let result = ProcedureContract {
+        ProcedureContract {
             def_id: self.def_id,
-            args: args.clone(),
-            returned_refs: returned_refs,
+            args: args.to_vec(),
+            returned_refs,
             returned_value: target,
             borrow_infos,
             specification: self.specification.clone(),
-        };
-        result
+        }
     }
 }
 
@@ -289,6 +289,7 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
             ),
             &ty::RegionKind::ReStatic => None,
             &ty::RegionKind::ReErased => None,
+            &ty::RegionKind::ReVar(_) => None,
             // &ty::RegionKind::ReScope(_scope) => None,
             x => unimplemented!("{:?}", x),
         }
@@ -367,14 +368,14 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
         let is_path_blocking = self.is_path_blocking;
         let old_path = self.current_path.take().unwrap();
         let current_path = self.tcx.mk_place_deref(old_path);
-        self.current_path = Some(current_path.clone());
+        self.current_path = Some(current_path);
         let borrow_info = self.get_or_create_borrow_info(bound_region);
         if is_path_blocking {
             borrow_info.blocking_paths.push((current_path, mutability));
         } else {
             borrow_info
                 .blocked_paths
-                .push((current_path.clone(), mutability));
+                .push((current_path, mutability));
             self.references_in.push((current_path, mutability));
         }
         self.is_path_blocking = true;
@@ -393,7 +394,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
             let field = mir::Field::new(i);
             let ty = part.expect_ty();
             self.current_path = Some(
-                self.tcx().mk_place_field(old_path.clone(), field, ty)
+                self.tcx().mk_place_field(old_path, field, ty)
             );
             self.visit_ty(ty)?;
         }
@@ -419,7 +420,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
 
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
-    tcx: TyCtxt<'tcx>,
+    env: &Environment<'tcx>,
     specification: typed::SpecificationSet<'tcx>,
     maybe_tymap: Option<&HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>>
@@ -432,17 +433,21 @@ where
     let args_ty:Vec<(mir::Local, ty::Ty<'tcx>)>;
     let return_ty;
 
-    if !tcx.is_closure(proc_def_id) {
+    if !env.tcx().is_closure(proc_def_id) {
         // FIXME: "skip_binder" is most likely wrong
         // FIXME: Replace with FakeMirEncoder.
-        let fn_sig: FnSig = tcx.fn_sig(proc_def_id).skip_binder();
+        let fn_sig: FnSig = env.tcx().fn_sig(proc_def_id).skip_binder();
+        if fn_sig.c_variadic {
+            return Err(EncodingError::unsupported(
+                "variadic functions are not supported"
+            ));
+        }
         args_ty = (0usize .. fn_sig.inputs().len())
             .map(|i| (mir::Local::from_usize(i + 1), fn_sig.inputs()[i]))
             .collect();
         return_ty = fn_sig.output(); // FIXME: Shouldn't this also go through maybe_tymap?
     } else {
-        let (mir, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(proc_def_id.expect_local()));
-        let mir = mir.borrow();
+        let mir = env.local_mir(proc_def_id.expect_local());
         // local_decls:
         // _0    - return, with closure's return type
         // _1    - closure's self
@@ -466,7 +471,7 @@ where
         });
     }
 
-    let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
+    let mut visitor = BorrowInfoCollectingVisitor::new(env.tcx());
     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
         visitor.analyse_arg(*arg, arg_ty)?;
     }

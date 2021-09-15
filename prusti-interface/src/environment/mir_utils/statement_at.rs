@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use rustc_middle::mir;
 
 pub trait StatementAt<'tcx> {
@@ -7,15 +9,15 @@ pub trait StatementAt<'tcx> {
 impl<'tcx> StatementAt<'tcx> for mir::Body<'tcx> {
     fn statement_at(&self, location: mir::Location) -> Option<&mir::Statement<'tcx>> {
         let block = &self[location.block];
-        if location.statement_index < block.statements.len() {
-            Some(&block.statements[location.statement_index])
-        } else if location.statement_index == block.statements.len() {
-            None
-        } else {
-            unreachable!(
-                "cannot retrieve statement at {:?}, because the basic block is too short",
-                location
-            );
+        match location.statement_index.cmp(&block.statements.len()) {
+            Ordering::Less => Some(&block.statements[location.statement_index]),
+            Ordering::Equal => None,
+            Ordering::Greater => {
+                unreachable!(
+                    "cannot retrieve statement at {:?}, because the basic block is too short",
+                    location
+                );
+            }
         }
     }
 }

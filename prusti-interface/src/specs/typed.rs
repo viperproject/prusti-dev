@@ -8,6 +8,7 @@ use std::collections::HashMap;
 
 pub use common::{ExpressionId, SpecType, SpecificationId, SpecIdRef};
 use crate::data::ProcedureDefId;
+use crate::environment::Environment;
 
 // FIXME: these comments are not terribly useful and are a copy of the untyped ones...
 /// A specification that has no types associated with it.
@@ -28,8 +29,8 @@ pub type AssertionKind<'tcx> = common::AssertionKind<ExpressionId, LocalDefId, (
 pub type Expression = common::Expression<ExpressionId, LocalDefId>;
 /// A trigger set that has no types associated with it.
 pub type TriggerSet = common::TriggerSet<ExpressionId, LocalDefId>;
-/// For all variables that have no types associated with it.
-pub type ForAllVars<'tcx> = common::ForAllVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
+/// Quantifier variables that have no types associated with it.
+pub type QuantifierVars<'tcx> = common::QuantifierVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
 /// Specification entailment variables that have no types associated.
 pub type SpecEntailmentVars<'tcx> = common::SpecEntailmentVars<ExpressionId, (mir::Local, ty::Ty<'tcx>)>;
 /// A trigger that has no types associated with it.
@@ -38,6 +39,7 @@ pub type Trigger = common::Trigger<ExpressionId, LocalDefId>;
 pub type Pledge<'tcx> = common::Pledge<ExpressionId, LocalDefId, (mir::Local, ty::Ty<'tcx>)>;
 
 /// A map of specifications keyed by crate-local DefIds.
+#[derive(Default)]
 pub struct DefSpecificationMap<'tcx> {
     pub specs: HashMap<LocalDefId, SpecificationSet<'tcx>>,
     pub extern_specs: HashMap<DefId, LocalDefId>,
@@ -45,10 +47,7 @@ pub struct DefSpecificationMap<'tcx> {
 
 impl<'tcx> DefSpecificationMap<'tcx> {
     pub fn new() -> Self {
-        Self {
-            specs: HashMap::new(),
-            extern_specs: HashMap::new(),
-        }
+        Self::default()
     }
     pub fn get(&self, def_id: &DefId) -> Option<&SpecificationSet<'tcx>> {
         let id = if let Some(spec_id) = self.extern_specs.get(def_id) {
@@ -76,7 +75,7 @@ impl<'tcx> Spanned<'tcx> for Expression {
     }
 }
 
-impl<'tcx> Spanned<'tcx> for ForAllVars<'tcx> {
+impl<'tcx> Spanned<'tcx> for QuantifierVars<'tcx> {
     fn get_spans(&self, mir_body: &mir::Body<'tcx>, _tcx: TyCtxt<'tcx>) -> Vec<Span> {
         self.vars
             .iter()
@@ -101,7 +100,8 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
                 spans.extend(rhs.get_spans(mir_body, tcx));
                 spans
             }
-            AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
+            AssertionKind::ForAll(ref vars, ref trigger_set, ref body)
+            | AssertionKind::Exists(ref vars, ref trigger_set, ref body) => {
                 let mut spans = vars.get_spans(mir_body, tcx);
                 spans.extend(trigger_set
                     .triggers()
@@ -139,11 +139,15 @@ impl<'tcx> Spanned<'tcx> for Assertion<'tcx> {
 }
 
 pub trait StructuralToTyped<'tcx, Target> {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> Target;
+    fn to_typed(
+        self,
+        typed_expressions: &HashMap<String, LocalDefId>,
+        env: &Environment<'tcx>,
+    ) -> Target;
 }
 
 impl<'tcx> StructuralToTyped<'tcx, Expression> for json::Expression {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, _tcx: TyCtxt<'tcx>) -> Expression {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, _env: &Environment<'tcx>) -> Expression {
         let local_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
         Expression {
             spec_id: self.spec_id,
@@ -154,32 +158,35 @@ impl<'tcx> StructuralToTyped<'tcx, Expression> for json::Expression {
 }
 
 impl<'tcx> StructuralToTyped<'tcx, TriggerSet> for json::TriggerSet {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> TriggerSet {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, env: &Environment<'tcx>) -> TriggerSet {
         common::TriggerSet(
             self.0
                 .into_iter()
-                .map(|x| x.to_typed(typed_expressions, tcx))
+                .map(|x| x.to_typed(typed_expressions, env))
                 .collect()
         )
     }
 }
 
 impl<'tcx> StructuralToTyped<'tcx, Trigger> for json::Trigger {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> Trigger {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, env: &Environment<'tcx>) -> Trigger {
         common::Trigger(
             self.0
                 .into_iter()
-                .map(|x| x.to_typed(typed_expressions, tcx))
+                .map(|x| x.to_typed(typed_expressions, env))
                 .collect()
         )
     }
 }
 
-impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> ForAllVars<'tcx> {
+impl<'tcx> StructuralToTyped<'tcx, QuantifierVars<'tcx>> for json::QuantifierVars {
+    fn to_typed(
+        self,
+        typed_expressions: &HashMap<String, LocalDefId>,
+        env: &Environment<'tcx>,
+    ) -> QuantifierVars<'tcx> {
         let local_id = typed_expressions[&format!("{}_{}", self.spec_id, self.expr_id)];
-        let (body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_id));
-        let body = body.borrow();
+        let body = env.local_mir(local_id);
 
         // the first argument to the node is the closure itself and the
         // following ones are the variables; therefore, we need to skip
@@ -195,7 +202,7 @@ impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
 
         assert!(body.arg_count-1 == self.count);
         assert_eq!(vars.len(), self.count);
-        return ForAllVars {
+        QuantifierVars {
             spec_id: self.spec_id,
             id: self.expr_id,
             vars
@@ -204,13 +211,15 @@ impl<'tcx> StructuralToTyped<'tcx, ForAllVars<'tcx>> for json::ForAllVars {
 }
 
 impl<'tcx> StructuralToTyped<'tcx, SpecEntailmentVars<'tcx>> for json::SpecEntailmentVars {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> SpecEntailmentVars<'tcx> {
+    fn to_typed(
+        self,
+        typed_expressions: &HashMap<String, LocalDefId>,
+        env: &Environment<'tcx>
+    ) -> SpecEntailmentVars<'tcx> {
         let local_pre_id = typed_expressions[&format!("{}_{}", self.spec_id, self.pre_expr_id)];
         let local_post_id = typed_expressions[&format!("{}_{}", self.spec_id, self.post_expr_id)];
-        let (pre_body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_pre_id));
-        let (post_body, _) = tcx.mir_promoted(ty::WithOptConstParam::unknown(local_post_id));
-        let pre_body = pre_body.borrow();
-        let post_body = post_body.borrow();
+        let pre_body = env.local_mir(local_pre_id);
+        let post_body = env.local_mir(local_post_id);
 
         let pre_args: Vec<(mir::Local, ty::Ty)> = pre_body
             .args_iter()
@@ -244,32 +253,37 @@ impl<'tcx> StructuralToTyped<'tcx, SpecEntailmentVars<'tcx>> for json::SpecEntai
 }
 
 impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> AssertionKind<'tcx> {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, env: &Environment<'tcx>) -> AssertionKind<'tcx> {
         use json::AssertionKind::*;
         match self {
-            Expr(expr) => AssertionKind::Expr(expr.to_typed(typed_expressions, tcx)),
+            Expr(expr) => AssertionKind::Expr(expr.to_typed(typed_expressions, env)),
             And(assertions) => AssertionKind::And(
                 assertions.into_iter()
-                          .map(|assertion| assertion.to_typed(typed_expressions, tcx))
+                          .map(|assertion| assertion.to_typed(typed_expressions, env))
                           .collect()
             ),
             Implies(lhs, rhs) => AssertionKind::Implies(
-                lhs.to_typed(typed_expressions, tcx),
-                rhs.to_typed(typed_expressions, tcx)
+                lhs.to_typed(typed_expressions, env),
+                rhs.to_typed(typed_expressions, env)
             ),
             ForAll(vars, body, triggers) => AssertionKind::ForAll(
-                vars.to_typed(typed_expressions, tcx),
-                triggers.to_typed(typed_expressions, tcx),
-                body.to_typed(typed_expressions, tcx),
+                vars.to_typed(typed_expressions, env),
+                triggers.to_typed(typed_expressions, env),
+                body.to_typed(typed_expressions, env),
+            ),
+            Exists(vars, body, triggers) => AssertionKind::Exists(
+                vars.to_typed(typed_expressions, env),
+                triggers.to_typed(typed_expressions, env),
+                body.to_typed(typed_expressions, env),
             ),
             SpecEntailment {closure, arg_binders, pres, posts} => AssertionKind::SpecEntailment {
-                closure: closure.to_typed(typed_expressions, tcx),
-                arg_binders: arg_binders.to_typed(typed_expressions, tcx),
+                closure: closure.to_typed(typed_expressions, env),
+                arg_binders: arg_binders.to_typed(typed_expressions, env),
                 pres: pres.into_iter()
-                    .map(|pre| pre.to_typed(typed_expressions, tcx))
+                    .map(|pre| pre.to_typed(typed_expressions, env))
                     .collect(),
                 posts: posts.into_iter()
-                    .map(|post| post.to_typed(typed_expressions, tcx))
+                    .map(|post| post.to_typed(typed_expressions, env))
                     .collect(),
             },
         }
@@ -277,9 +291,9 @@ impl<'tcx> StructuralToTyped<'tcx, AssertionKind<'tcx>> for json::AssertionKind 
 }
 
 impl<'tcx> StructuralToTyped<'tcx, Assertion<'tcx>> for json::Assertion {
-    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, tcx: TyCtxt<'tcx>) -> Assertion<'tcx> {
+    fn to_typed(self, typed_expressions: &HashMap<String, LocalDefId>, env: &Environment<'tcx>) -> Assertion<'tcx> {
         Assertion {
-            kind: box self.kind.to_typed(typed_expressions, tcx),
+            kind: box self.kind.to_typed(typed_expressions, env),
         }
     }
 }

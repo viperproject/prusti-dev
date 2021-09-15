@@ -6,8 +6,8 @@
 
 //! Inliner of pure functions.
 
-use super::super::super::ast;
-use super::super::super::cfg;
+use crate::vir::polymorphic_vir::ast;
+use crate::vir::polymorphic_vir::cfg;
 use std::collections::HashMap;
 use std::mem;
 
@@ -65,40 +65,14 @@ pub fn inline_constant_functions(
 /// precondition. Returns true if successful.
 fn try_purify(function: &mut ast::Function) -> Option<ast::Expr> {
     trace!("[enter] try_purify(name={})", function.name);
-    if function.has_constant_body() {
-        if function.pres.iter().all(|cond| cond.is_only_permissions()) &&
-            function.posts.is_empty() {
+    if function.has_constant_body() &&
+        function.pres.iter().all(|cond| cond.is_only_permissions()) &&
+        function.posts.is_empty() {
 
-            function.pres.clear();
-            return function.body.clone();
-        }
+        function.pres.clear();
+        return function.body.clone();
     }
     None
-}
-
-impl ast::Function {
-    /// Does the function has a body that does not depend neither on
-    /// function parameters nor on the heap?
-    fn has_constant_body(&self) -> bool {
-        match self.body {
-            Some(ref expr) => expr.is_constant(),
-            None => false,
-        }
-    }
-}
-
-impl ast::Expr {
-    /// Is this expression a constant?
-    fn is_constant(&self) -> bool {
-        match self {
-            ast::Expr::Const(_, _) => true,
-            ast::Expr::UnaryOp(_, box subexpr, _) => subexpr.is_constant(),
-            ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
-                subexpr1.is_constant() && subexpr2.is_constant()
-            }
-            _ => false,
-        }
-    }
 }
 
 /// Inline all calls to constant functions.
@@ -126,50 +100,34 @@ impl<'a> ast::StmtFolder for ConstantFunctionInliner<'a> {
 }
 
 impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
-    fn fold_func_app(
-        &mut self,
-        name: String,
-        args: Vec<ast::Expr>,
-        formal_args: Vec<ast::LocalVar>,
-        return_type: ast::Type,
-        pos: ast::Position,
-    ) -> ast::Expr {
-        if self.pure_function_map.contains_key(&name) {
-            self.pure_function_map[&name].clone()
+    fn fold_func_app(&mut self, ast::FuncApp {function_name, arguments, formal_arguments, return_type, position}: ast::FuncApp) -> ast::Expr {
+        if self.pure_function_map.contains_key(&function_name) {
+            self.pure_function_map[&function_name].clone()
         } else {
-            ast::Expr::FuncApp(
-                name,
-                args.into_iter().map(|e| self.fold(e)).collect(),
-                formal_args,
+            ast::Expr::FuncApp( ast::FuncApp {
+                function_name,
+                arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
+                formal_arguments,
                 return_type,
-                pos
-            )
+                position,
+            })
         }
     }
-    fn fold_unfolding(
-        &mut self,
-        name: String,
-        args: Vec<ast::Expr>,
-        expr: Box<ast::Expr>,
-        perm: ast::PermAmount,
-        variant: ast::MaybeEnumVariantIndex,
-        pos: ast::Position,
-    ) -> ast::Expr {
-        let body = self.fold_boxed(expr);
-        if body.is_constant() {
-            *body
+    fn fold_unfolding(&mut self, ast::Unfolding {predicate_name, arguments, mut base, permission, variant, position}: ast::Unfolding) -> ast::Expr {
+        base = self.fold_boxed(base);
+        if base.is_constant() {
+            *base
         } else {
-            ast::Expr::Unfolding(
-                name,
-                args.into_iter().map(|e| self.fold(e)).collect(),
-                body,
-                perm,
+            ast::Expr::Unfolding( ast::Unfolding {
+                predicate_name,
+                arguments: arguments.into_iter().map(|e| self.fold(e)).collect(),
+                base,
+                permission,
                 variant,
-                pos,
-            )
+                position,
+            })
         }
     }
-
 }
 
 fn inline_into_methods(
@@ -182,7 +140,7 @@ fn inline_into_methods(
     methods
         .into_iter()
         .map(|mut method| {
-            let mut sentinel_stmt = ast::Stmt::Comment(String::from("moved out stmt"));
+            let mut sentinel_stmt = ast::Stmt::comment("moved out stmt");
             for block in &mut method.basic_blocks {
                 for stmt in &mut block.stmts {
                     mem::swap(&mut sentinel_stmt, stmt);

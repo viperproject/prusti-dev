@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir;
+use vir_crate::polymorphic as vir;
 use rustc_middle::mir;
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
@@ -146,7 +146,7 @@ pub fn run_backward_interpretation_point_to_point<
             HashMap::from_iter(
                 terminator
                     .successors()
-                    .map(|bb| (*bb, heads.get(bb).unwrap_or(&default_state))),
+                    .map(|bb| (*bb, heads.get(bb).unwrap_or(default_state))),
             )
         };
         trace!("States before: {:?}", states);
@@ -225,6 +225,7 @@ pub trait ForwardMirInterpreter<'tcx> {
 #[derive(Clone, Debug)]
 pub struct MultiExprBackwardInterpreterState {
     exprs: Vec<vir::Expr>,
+    substs: HashMap<vir::TypeVar, vir::Type>,
 }
 
 impl Display for MultiExprBackwardInterpreterState {
@@ -242,11 +243,18 @@ impl Display for MultiExprBackwardInterpreterState {
 
 impl MultiExprBackwardInterpreterState {
     pub fn new(exprs: Vec<vir::Expr>) -> Self {
-        MultiExprBackwardInterpreterState { exprs }
+        MultiExprBackwardInterpreterState { exprs, substs: HashMap::new() }
     }
 
     pub fn new_single(expr: vir::Expr) -> Self {
-        MultiExprBackwardInterpreterState { exprs: vec![expr] }
+        MultiExprBackwardInterpreterState { exprs: vec![expr], substs: HashMap::new() }
+    }
+
+    pub fn new_single_with_substs(
+        expr: vir::Expr,
+        substs: HashMap<vir::TypeVar, vir::Type>,
+    ) -> Self {
+        MultiExprBackwardInterpreterState { exprs: vec![expr], substs }
     }
 
     pub fn exprs(&self) -> &Vec<vir::Expr> {
@@ -263,34 +271,28 @@ impl MultiExprBackwardInterpreterState {
 
     pub fn substitute_place(&mut self, sub_target: &vir::Expr, replacement: vir::Expr) {
         trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
+        let sub_target = sub_target.clone().patch_types(&self.substs);
+        let replacement = replacement.patch_types(&self.substs);
 
-        // If `replacement` is a reference, simplify also its dereferentiations
-        if let vir::Expr::AddrOf(box ref base_replacement, ref _dereferenced_type, ref pos) =
-            replacement
-        {
-            trace!("Substitution of a reference. Simplify its dereferentiations.");
-            let deref_field = vir::Field::new("val_ref", base_replacement.get_type().clone());
-            let deref_target = sub_target
-                .clone()
-                .field(deref_field.clone())
-                .set_pos(*pos);
-            self.substitute_place(&deref_target, base_replacement.clone());
-        }
 
         for expr in &mut self.exprs {
-            *expr = expr.clone().replace_place(&sub_target, &replacement);
+            let new_expr = expr.clone().replace_place(&sub_target, &replacement);
+            *expr = new_expr.simplify_addr_of();
         }
     }
 
     pub fn substitute_value(&mut self, exact_target: &vir::Expr, replacement: vir::Expr) {
         trace!("substitute_value {:?} --> {:?}", exact_target, replacement);
+        let exact_target = exact_target.clone().patch_types(&self.substs);
+        let replacement = replacement.patch_types(&self.substs);
         for expr in &mut self.exprs {
-            *expr = expr.clone().replace_place(exact_target, &replacement);
+            *expr = expr.clone().replace_place(&exact_target, &replacement);
         }
     }
 
     pub fn use_place(&self, sub_target: &vir::Expr) -> bool {
         trace!("use_place {:?}", sub_target);
-        self.exprs.iter().any(|expr| expr.find(sub_target))
+        let sub_target = sub_target.clone().patch_types(&self.substs);
+        self.exprs.iter().any(|expr| expr.find(&sub_target))
     }
 }

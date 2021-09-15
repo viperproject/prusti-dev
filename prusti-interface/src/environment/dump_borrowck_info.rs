@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use super::Environment;
 use super::borrowck::facts;
 use super::loops;
 use super::loops_utils::*;
@@ -29,10 +30,10 @@ use log::{trace, debug};
 use prusti_common::config;
 use crate::environment::mir_utils::RealEdges;
 
-pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'tcx>, procedures: &Vec<ProcedureDefId>) {
+pub fn dump_borrowck_info(env: &Environment<'_>, procedures: &[ProcedureDefId]) {
     trace!("[dump_borrowck_info] enter");
 
-    let printer = InfoPrinter { tcx: tcx };
+    let printer = InfoPrinter { env, tcx: env.tcx() };
     //intravisit::walk_crate(&mut printer, tcx.hir.krate());
     //tcx.hir.krate().visit_all_item_likes(&mut printer);
 
@@ -43,11 +44,12 @@ pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'tcx>, procedures: &Vec<Procedur
     trace!("[dump_borrowck_info] exit");
 }
 
-struct InfoPrinter<'tcx> {
-    pub tcx: TyCtxt<'tcx>,
+struct InfoPrinter<'a, 'tcx: 'a> {
+    env: &'a Environment<'tcx>,
+    tcx: TyCtxt<'tcx>,
 }
 
-impl<'tcx> InfoPrinter<'tcx> {
+impl<'a, 'tcx: 'a> InfoPrinter<'a, 'tcx> {
     fn print_info(&self, def_id: ProcedureDefId) {
         trace!("[print_info] enter {:?}", def_id);
 
@@ -60,7 +62,7 @@ impl<'tcx> InfoPrinter<'tcx> {
             _ => {},
         };*/
 
-        let procedure = Procedure::new(self.tcx, def_id);
+        let procedure = Procedure::new(self.env, def_id);
 
         let local_def_id = def_id.expect_local();
         let _ = self.tcx.mir_borrowck(local_def_id);
@@ -68,11 +70,10 @@ impl<'tcx> InfoPrinter<'tcx> {
         // Read Polonius facts.
         let def_path = self.tcx.hir().def_path(local_def_id);
 
-        let (mir, _) = self.tcx.mir_promoted(ty::WithOptConstParam::unknown(local_def_id));
-        let mir = mir.borrow();
+        let mir = procedure.get_mir();
 
-        let real_edges = RealEdges::new(&mir);
-        let loop_info = loops::ProcedureLoops::new(&mir, &real_edges);
+        let real_edges = RealEdges::new(mir);
+        let loop_info = loops::ProcedureLoops::new(mir, &real_edges);
 
         let graph_path = PathBuf::from(config::log_dir())
             .join("nll-facts")
@@ -82,22 +83,22 @@ impl<'tcx> InfoPrinter<'tcx> {
         let graph_file = File::create(graph_path).expect("Unable to create file");
         let graph = BufWriter::new(graph_file);
 
-        let initialization = compute_definitely_initialized(&mir, self.tcx);
-        let liveness = compute_liveness(&mir);
+        let initialization = compute_definitely_initialized(mir, self.tcx);
+        let liveness = compute_liveness(mir);
 
         // FIXME: this computes the wrong loop invariant permission
         let loop_invariant_block = HashMap::new();
 
-        super::polonius_info::graphviz(self.tcx, &def_path, &mir).unwrap();
+        super::polonius_info::graphviz(self.env, &def_path, def_id).unwrap();
         let mir_info_printer = MirInfoPrinter {
-            def_path: def_path,
+            def_path,
             tcx: self.tcx,
-            mir: &mir,
+            mir,
             graph: cell::RefCell::new(graph),
             loops: loop_info,
-            initialization: initialization,
-            liveness: liveness,
-            polonius_info: PoloniusInfo::new(&procedure, &loop_invariant_block).ok().unwrap(),
+            initialization,
+            liveness,
+            polonius_info: PoloniusInfo::new(self.env, &procedure, &loop_invariant_block).ok().unwrap(),
         };
         mir_info_printer.print_info().unwrap();
 
@@ -183,7 +184,7 @@ macro_rules! to_sorted_string {
 impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     pub fn print_info(mut self) -> Result<(), io::Error> {
         //self.dump_to_file("/tmp/requires",
-        //&self.polonius_info.borrowck_out_facts.restricts);
+        //&self.polonius_info.borrowck_out_facts.origin_contains_loan_at);
         //self.dump_to_file("/tmp/zrequires",
         //&self.polonius_info.additional_facts.zombie_requires);
 
@@ -235,13 +236,13 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 }
             }
             for (temp, var) in self.mir.local_decls.iter_enumerated() {
-                let name = var_names.get(&temp).map(|s| s.to_string()).unwrap_or(String::from(""));
+                let name = var_names.get(&temp).map(|s| s.to_string()).unwrap_or_else(|| String::from(""));
                 let region = self
                     .polonius_info
                     .place_regions
                     .for_local(temp)
                     .map(|region| format!("{:?}", region))
-                    .unwrap_or(String::from(""));
+                    .unwrap_or_else(|| String::from(""));
                 let typ = to_html!(var.ty);
                 write_graph!(
                     self,
@@ -257,7 +258,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         Ok(())
     }
 
-    /// Print the restricts relation as a tree of loans.
+    /// Print the origin_contains_loan_at relation as a tree of loans.
     fn print_restricts(&self) -> Result<(), io::Error> {
         if !self.show_restricts() {
             return Ok(());
@@ -265,7 +266,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "subgraph cluster_restricts {{");
         let mut interesting_restricts = Vec::new();
         let mut loans = Vec::new();
-        for &(region, loan, point) in self.polonius_info.borrowck_in_facts.borrow_region.iter() {
+        for &(region, loan, point) in self.polonius_info.borrowck_in_facts.loan_issued_at.iter() {
             write_graph!(
                 self,
                 "\"region_live_at_{:?}_{:?}_{:?}\" [ ",
@@ -309,14 +310,14 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
         }
         for (region, point) in interesting_restricts.iter() {
-            if let Some(restricts_map) = self.polonius_info.borrowck_out_facts.restricts.get(&point)
+            if let Some(restricts_map) = self.polonius_info.borrowck_out_facts.origin_contains_loan_at.get(point)
             {
-                if let Some(loans) = restricts_map.get(&region) {
+                if let Some(loans) = restricts_map.get(region) {
                     for loan in loans.iter() {
                         write_graph!(self, "\"restricts_{:?}_{:?}_{:?}\" [ ", point, region, loan);
                         write_graph!(
                             self,
-                            "label=\"restricts({:?}, {:?}, {:?})\" ];",
+                            "label=\"origin_contains_loan_at({:?}, {:?}, {:?})\" ];",
                             point,
                             region,
                             loan
@@ -358,7 +359,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             location
         );
         let mut used_regions = HashSet::new();
-        if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+        if let Some(subset) = subset_map.get(&start_point).as_ref() {
             for (source_region, regions) in subset.iter() {
                 used_regions.insert(source_region);
                 for target_region in regions.iter() {
@@ -401,10 +402,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             return Ok(());
         }
         write_graph!(self, "subgraph cluster_Loans {{");
-        for (region, loan, point) in self.polonius_info.borrowck_in_facts.borrow_region.iter() {
+        for (region, loan, point) in self.polonius_info.borrowck_in_facts.loan_issued_at.iter() {
             write_graph!(self, "subgraph cluster_{:?} {{", loan);
             let subset_map = &self.polonius_info.borrowck_out_facts.subset;
-            if let Some(ref subset) = subset_map.get(&point).as_ref() {
+            if let Some(subset) = subset_map.get(point).as_ref() {
                 for (source_region, regions) in subset.iter() {
                     if let Some(local) = self.polonius_info.find_variable(*source_region) {
                         write_graph!(
@@ -497,7 +498,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             // FIXME: this computes the wrong loop invariant permission
             let (write_leaves, mut_borrow_leaves, read_leaves) = self
                 .loops
-                .compute_read_and_write_leaves(bb, self.mir, Some(&definitely_initalised_paths));
+                .compute_read_and_write_leaves(bb, self.mir, Some(definitely_initalised_paths));
             // Construct the permission forest.
             let forest = PermissionForest::new(
                 self.mir,
@@ -505,7 +506,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 &write_leaves,
                 &mut_borrow_leaves,
                 &read_leaves,
-                &definitely_initalised_paths,
+                definitely_initalised_paths,
             );
 
             write_graph!(self, "<tr>");
@@ -531,7 +532,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<td colspan=\"8\">{}</td>", to_html_display!(forest));
             write_graph!(self, "</tr>");
 
-            if let Some(ref magic_wands) = self.polonius_info.loop_magic_wands.get(&bb) {
+            if let Some(magic_wands) = self.polonius_info.loop_magic_wands.get(&bb) {
                 write_graph!(self, "<tr>");
                 write_graph!(self, "<td colspan=\"2\">Magic wands:</td>");
                 write_graph!(
@@ -736,8 +737,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 statement_index: 0,
             };
             let start_point = self.get_point(start_location, facts::PointType::Start);
-            let restricts_map = &self.polonius_info.borrowck_out_facts.restricts;
-            if let Some(ref restricts_relation) = restricts_map.get(&start_point).as_ref() {
+            let restricts_map = &self.polonius_info.borrowck_out_facts.origin_contains_loan_at;
+            if let Some(restricts_relation) = restricts_map.get(&start_point).as_ref() {
                 for (region, all_loans) in restricts_relation.iter() {
                     // Filter out reborrows.
                     let loans: Vec<_> = all_loans
@@ -773,8 +774,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                         write_graph!(self, "{:?}_{:?} -> {:?}_{:?}", bb, region, bb, loan);
 
                         write_graph!(self, "subgraph cluster_{:?}_{:?} {{", bb, loan);
-                        let borrow_region = &self.polonius_info.borrowck_in_facts.borrow_region;
-                        for (region, l, point) in borrow_region.iter() {
+                        let loan_issued_at = &self.polonius_info.borrowck_in_facts.loan_issued_at;
+                        for (region, l, point) in loan_issued_at.iter() {
                             if loan == l {
                                 // Write the original loan's region.
                                 write_graph!(
@@ -790,7 +791,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
                                 // Write out the subset relation at ``point``.
                                 let subset_map = &self.polonius_info.borrowck_out_facts.subset;
-                                if let Some(ref subset) = subset_map.get(&point).as_ref() {
+                                if let Some(subset) = subset_map.get(point).as_ref() {
                                     for (source_region, regions) in subset.iter() {
                                         used_regions.insert(source_region);
                                         for target_region in regions.iter() {
@@ -883,10 +884,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         let mid_point = self.get_point(location, facts::PointType::Mid);
 
         // Loans.
-        if let Some(ref blas) = self
+        if let Some(blas) = self
             .polonius_info
             .borrowck_out_facts
-            .borrow_live_at
+            .loan_live_at
             .get(&start_point)
             .as_ref()
         {
@@ -900,7 +901,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         let borrow_regions: Vec<_> = self
             .polonius_info
             .borrowck_in_facts
-            .borrow_region
+            .loan_issued_at
             .iter()
             .filter(|(_, _, point)| *point == start_point)
             .cloned()
@@ -910,7 +911,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         let borrow_regions: Vec<_> = self
             .polonius_info
             .borrowck_in_facts
-            .borrow_region
+            .loan_issued_at
             .iter()
             .filter(|(_, _, point)| *point == mid_point)
             .cloned()
@@ -962,7 +963,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         point_type: facts::PointType,
     ) -> facts::PointIndex {
         let point = facts::Point {
-            location: location,
+            location,
             typ: point_type,
         };
         self.polonius_info.interner.get_point_index(&point)
@@ -1009,7 +1010,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 cleanup,
                 ..
             } => {
-                if let &Some((_, target)) = destination {
+                if let Some((_, target)) = *destination {
                     write_edge!(self, bb, target);
                 }
                 if let Some(target) = cleanup {
@@ -1048,23 +1049,28 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     }
 
     fn show_statement_indices(&self) -> bool {
-        get_config_option("PRUSTI_DUMP_SHOW_STATEMENT_INDICES", true)
+        unimplemented!("Should use SETTINGS.");
+        // get_config_option("PRUSTI_DUMP_SHOW_STATEMENT_INDICES", true)
     }
 
     fn show_temp_variables(&self) -> bool {
-        get_config_option("PRUSTI_DUMP_SHOW_TEMP_VARIABLES", true)
+        unimplemented!("Should use SETTINGS.");
+        // get_config_option("PRUSTI_DUMP_SHOW_TEMP_VARIABLES", true)
     }
 
     fn show_borrow_regions(&self) -> bool {
-        get_config_option("PRUSTI_DUMP_SHOW_BORROW_REGIONS", false)
+        unimplemented!("Should use SETTINGS.");
+        // get_config_option("PRUSTI_DUMP_SHOW_BORROW_REGIONS", false)
     }
 
     fn show_restricts(&self) -> bool {
-        get_config_option("PRUSTI_DUMP_SHOW_RESTRICTS", false)
+        unimplemented!("Should use SETTINGS.");
+        // get_config_option("PRUSTI_DUMP_SHOW_RESTRICTS", false)
     }
 
     fn show_liveness(&self) -> bool {
-        get_config_option("PRUSTI_DUMP_SHOW_LIVENESS", false)
+        unimplemented!("Should use SETTINGS.");
+        // get_config_option("PRUSTI_DUMP_SHOW_LIVENESS", false)
     }
 }
 
@@ -1100,7 +1106,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     fn print_subset_at_start(&self, location: mir::Location) -> Result<(), io::Error> {
         let point = self.get_point(location, facts::PointType::Start);
         let subset_map = &self.polonius_info.borrowck_out_facts.subset;
-        if let Some(ref subset) = subset_map.get(&point).as_ref() {
+        if let Some(subset) = subset_map.get(&point).as_ref() {
             write_graph!(self, "subgraph cluster_{:?} {{", point);
             let mut used_regions = HashSet::new();
             for (from_region, to_regions) in subset.iter() {
@@ -1160,7 +1166,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             );
             write_graph!(self, "subgraph cluster_{:?} {{", bb);
             let subset_map = &self.polonius_info.borrowck_out_facts.subset;
-            if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+            if let Some(subset) = subset_map.get(&start_point).as_ref() {
                 if let Some(blocked_regions) = subset.get(&region) {
                     for blocked_region in blocked_regions.iter() {
                         if *blocked_region == region {
@@ -1225,16 +1231,16 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     /// Print the HTML cell with loans at given location.
     fn write_mid_point_blas(&self, location: mir::Location) -> Result<(), io::Error> {
         let mid_point = self.get_point(location, facts::PointType::Mid);
-        let borrow_live_at_map = &self.polonius_info.borrowck_out_facts.borrow_live_at;
-        let mut blas = if let Some(ref blas) = borrow_live_at_map.get(&mid_point).as_ref() {
-            (**blas).clone()
+        let borrow_live_at_map = &self.polonius_info.borrowck_out_facts.loan_live_at;
+        let mut blas = if let Some(blas) = borrow_live_at_map.get(&mid_point).as_ref() {
+            (*blas).clone()
         } else {
             Vec::new()
         };
         let zombie_borrow_live_at_map = &self.polonius_info.additional_facts.zombie_borrow_live_at;
         let mut zombie_blas =
-            if let Some(ref zombie_blas) = zombie_borrow_live_at_map.get(&mid_point).as_ref() {
-                (**zombie_blas).clone()
+            if let Some(zombie_blas) = zombie_borrow_live_at_map.get(&mid_point).as_ref() {
+                (*zombie_blas).clone()
             } else {
                 Vec::new()
             };
@@ -1247,8 +1253,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .additional_facts
             .borrow_become_zombie_at
             .get(&mid_point)
-            .cloned()
-            .unwrap_or(Vec::new());
+            .cloned().unwrap_or_default();
 
         // Format the loans and mark the dying ones.
         blas.sort();
@@ -1266,7 +1271,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .collect();
         zombie_blas.sort();
         blas.extend(zombie_blas.iter().map(|loan| {
-            if dying_zombie_loans.contains(&loan) {
+            if dying_zombie_loans.contains(loan) {
                 format!("<b><font color=\"brown\">{:?}</font></b>", loan)
             } else {
                 format!("<b><font color=\"forestgreen\">{:?}</font></b>", loan)
@@ -1312,7 +1317,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Magic wand</td>");
             let subset_map = &self.polonius_info.borrowck_out_facts.subset;
-            if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+            if let Some(subset) = subset_map.get(&start_point).as_ref() {
                 let mut blocked_variables = Vec::new();
                 if let Some(blocked_regions) = subset.get(&region) {
                     for blocked_region in blocked_regions.iter() {
@@ -1346,7 +1351,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     &zombie_loans,
                     location,
                 ).ok().unwrap();
-                //let restricts_map = &self.polonius_info.borrowck_out_facts.restricts;
+                //let restricts_map = &self.polonius_info.borrowck_out_facts.origin_contains_loan_at;
                 write_graph!(self, "<tr>");
                 write_graph!(self, "<td colspan=\"2\">Package</td>");
                 write_graph!(self, "<td colspan=\"7\">{}", to_sorted_string!(all_loans));
@@ -1358,24 +1363,5 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
         }
         Ok(())
-    }
-}
-
-fn get_config_option(name: &str, default: bool) -> bool {
-    match env::var_os(name)
-        .and_then(|value| value.into_string().ok())
-        .as_ref()
-    {
-        Some(value) => match value as &str {
-            "true" => true,
-            "false" => false,
-            "1" => true,
-            "0" => false,
-            _ => unreachable!(
-                "Uknown configuration value “{}” for “{}”.",
-                value, name
-            ),
-        },
-        None => default,
     }
 }

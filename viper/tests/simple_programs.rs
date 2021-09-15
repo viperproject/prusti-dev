@@ -34,7 +34,7 @@ fn success_with_empty_program() {
 
     let verification_result = verifier.verify(program);
 
-    assert_eq!(verification_result, VerificationResult::Success());
+    assert!(verification_result.is_success());
 }
 
 #[test]
@@ -68,7 +68,7 @@ fn failure_with_assert_false() {
         );
         assert_eq!(errors[0].pos_id, Some("pos-id:123".to_string()));
     } else {
-        assert!(false)
+        unreachable!()
     }
 }
 
@@ -103,7 +103,7 @@ fn success_with_assert_with_boolean_operations() {
 
     let verification_result = verifier.verify(program);
 
-    assert_eq!(verification_result, VerificationResult::Success());
+    assert!(verification_result.is_success());
 }
 
 #[test]
@@ -132,7 +132,7 @@ fn success_with_assert_false_in_dead_code() {
 
     let verification_result = verifier.verify(program);
 
-    assert_eq!(verification_result, VerificationResult::Success());
+    assert!(verification_result.is_success());
 }
 
 #[test]
@@ -165,7 +165,7 @@ fn success_with_assign_if_and_assert() {
 
     let verification_result = verifier.verify(program);
 
-    assert_eq!(verification_result, VerificationResult::Success());
+    assert!(verification_result.is_success());
 }
 
 #[test]
@@ -212,7 +212,7 @@ fn failure_with_assign_if_and_assert() {
         );
         assert_eq!(errors[0].pos_id, Some("then".to_string()));
     } else {
-        assert!(false)
+        unreachable!()
     }
 }
 
@@ -255,5 +255,5 @@ fn success_with_complex_post_condition() {
 
     let verification_result = verifier.verify(program);
 
-    assert_eq!(verification_result, VerificationResult::Success());
+    assert!(verification_result.is_success());
 }

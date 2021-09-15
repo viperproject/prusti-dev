@@ -1,4 +1,4 @@
-use prusti_common::vir::{CfgBlockIndex, Expr, Successor};
+use vir_crate::polymorphic::{CfgBlockIndex, Expr, Successor};
 use prusti_interface::environment::BasicBlockIndex;
 
 #[derive(Eq, PartialEq, Clone, Debug)]

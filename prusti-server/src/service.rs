@@ -17,13 +17,19 @@ use std::{
     thread,
 };
 use tokio;
-use viper::VerificationResult;
+use viper::ProgramVerificationResult;
 use warp::{self, Buf, Filter};
 
 #[derive(Clone)]
 pub struct ServerSideService {
     server: Arc<PrustiServer>,
     max_concurrency: usize,
+}
+
+impl Default for ServerSideService {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ServerSideService {
@@ -87,7 +93,7 @@ impl ServerSideService {
             .and(warp::path::end())
             .and(warp::body::concat())
             .and_then(|buf: warp::body::FullBody| {
-                bincode::deserialize(&buf.bytes()).map_err(|err| {
+                bincode::deserialize(buf.bytes()).map_err(|err| {
                     info!("request bincode body error: {}", err);
                     warp::reject::custom(err)
                 })
@@ -173,7 +179,7 @@ impl PrustiServerConnection {
 
 impl VerificationService for PrustiServerConnection {
     /// panics if the verification request fails
-    fn verify(&self, request: VerificationRequest) -> VerificationResult {
+    fn verify(&self, request: VerificationRequest) -> ProgramVerificationResult {
         self.verify_checked(request)
             .expect("Verification request to server failed!")
             .expect("Server panicked while processing request!")

@@ -7,7 +7,7 @@
 use rustc_hir::def_id::DefId;
 use std::collections::HashSet;
 
-use prusti_common::vir::{self, ExprIterator, WithIdentifier};
+use vir_crate::polymorphic::{self as vir, ExprIterator, WithIdentifier};
 use prusti_interface::environment::borrowck::facts::Loan;
 use crate::encoder::encoder::Encoder;
 use std::collections::HashMap;
@@ -34,17 +34,13 @@ impl MirrorEncoder {
         }
     }
 
-    /// Returns a list of Viper domains needed by the encoded mirrors.
-    pub fn get_viper_domains(&self) -> Vec<vir::Domain> {
-        if self.encoded.is_empty() {
-            vec![]
-        } else {
-            vec![self.domain.clone()]
-        }
-    }
 
-    pub fn get_viper_functions(&self) -> Vec<vir::Function> {
-        vec![]
+    pub fn get_domain(&self) -> Option<&vir::Domain> {
+        if self.encoded.is_empty() {
+            None
+        } else {
+            Some(&self.domain)
+        }
     }
 
     pub fn encode_mirrors(
@@ -79,8 +75,8 @@ impl MirrorEncoder {
 
         // add postcondition to the original function
         // [result == mirror(args), true]
-        function.posts.push(vir::Expr::InhaleExhale(
-            box vir::Expr::eq_cmp(
+        function.posts.push(vir::Expr::InhaleExhale( vir::InhaleExhale {
+            inhale_expr: box vir::Expr::eq_cmp(
                 vir::Expr::local(
                     vir::LocalVar::new("__result", function.return_type.clone()),
                 ),
@@ -92,9 +88,9 @@ impl MirrorEncoder {
                         .collect(),
                 ),
             ),
-            box true.into(),
-            vir::Position::default(),
-        ));
+            exhale_expr: box true.into(),
+            position: vir::Position::default(),
+        }));
 
         // add mirror function to mirror domain
         self.domain.functions.push(mirror_func);

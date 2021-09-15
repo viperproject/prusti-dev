@@ -4,13 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir::Position;
+use vir_crate::polymorphic::Position;
 use std::collections::HashMap;
 use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
 use log::debug;
+use prusti_interface::data::ProcedureDefId;
 
 /// The cause of a panic!()
 #[derive(Clone, Debug)]
@@ -101,7 +102,7 @@ pub enum ErrorCtxt {
 pub struct ErrorManager<'tcx> {
     codemap: &'tcx SourceMap,
     source_span: HashMap<u64, MultiSpan>,
-    error_contexts: HashMap<u64, ErrorCtxt>,
+    error_contexts: HashMap<u64, (ErrorCtxt, ProcedureDefId)>,
     next_pos_id: u64,
 }
 
@@ -116,9 +117,10 @@ impl<'tcx> ErrorManager<'tcx>
         }
     }
 
-    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt) -> Position {
+    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
         let pos = self.register_span(span);
-        self.register_error(&pos, error_ctxt);
+        debug!("Register error at: {:?}", pos.id());
+        self.error_contexts.insert(pos.id(), (error_ctxt, def_id));
         pos
     }
 
@@ -133,15 +135,15 @@ impl<'tcx> ErrorManager<'tcx>
                 .span_to_lines(primary_span.source_callsite());
             if lines_info_res.is_err() {
                 debug!("Error converting span to lines {:?}", lines_info_res.err());
-                return Position::new(0, 0, pos_id.clone());
+                return Position::new(0, 0, pos_id);
             }
             let lines_info = lines_info_res.unwrap();
             if let Some(first_line_info) = lines_info.lines.get(0) {
                 let line = first_line_info.line_index as i32 + 1;
                 let column = first_line_info.start_col.0 as i32 + 1;
-                Position::new(line, column, pos_id.clone())
+                Position::new(line, column, pos_id)
             } else {
-                Position::new(0, 0, pos_id.clone())
+                Position::new(0, 0, pos_id)
             }
         } else {
             Position::new(0, 0, pos_id)
@@ -150,9 +152,11 @@ impl<'tcx> ErrorManager<'tcx>
         pos
     }
 
-    pub fn register_error(&mut self, pos: &Position, error_ctxt: ErrorCtxt) {
-        debug!("Register error at: {:?}", pos.id());
-        self.error_contexts.insert(pos.id(), error_ctxt);
+    pub fn get_def_id(&self, ver_error: &VerificationError) -> Option<&ProcedureDefId> {
+        ver_error.pos_id.as_ref()
+            .and_then(|id| id.parse().ok())
+            .and_then(|id| self.error_contexts.get(&id))
+            .map(|v| &v.1)
     }
 
     pub fn translate_verification_error(&self, ver_error: &VerificationError) -> PrustiError {
@@ -192,7 +196,9 @@ impl<'tcx> ErrorManager<'tcx>
             None => None
         };
 
-        let opt_error_ctxt = opt_pos_id.and_then(|pos_id| self.error_contexts.get(&pos_id));
+        let opt_error_ctxt = opt_pos_id
+            .and_then(|pos_id| self.error_contexts.get(&pos_id))
+            .map(|v| &v.0);
         let opt_error_span = opt_pos_id.and_then(|pos_id| self.source_span.get(&pos_id));
         let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
             let res = self.source_span.get(&reason_pos_id);
@@ -204,14 +210,14 @@ impl<'tcx> ErrorManager<'tcx>
 
         let (error_span, error_ctxt) = if let Some(error_ctxt) = opt_error_ctxt {
             debug_assert!(opt_error_span.is_some());
-            let error_span = opt_error_span.cloned().unwrap_or_else(|| MultiSpan::new());
+            let error_span = opt_error_span.cloned().unwrap_or_else(MultiSpan::new);
             (error_span, error_ctxt)
         } else {
             debug!("Unregistered verification error: {:?}", ver_error);
             let error_span = if let Some(error_span) = opt_error_span {
                 error_span.clone()
             } else {
-                opt_cause_span.cloned().unwrap_or_else(|| MultiSpan::new())
+                opt_cause_span.cloned().unwrap_or_else(MultiSpan::new)
             };
 
             match opt_pos_id {
@@ -365,7 +371,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Generic),
             ) => {
-                PrustiError::verification("statement in pure function might panic", error_span)
+                PrustiError::disabled_verification("statement in pure function might panic", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
@@ -373,7 +379,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Panic),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "panic!(..) statement in pure function might panic",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -383,7 +389,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Assert),
             ) => {
-                PrustiError::verification("asserted expression might not hold", error_span)
+                PrustiError::disabled_verification("asserted expression might not hold", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
@@ -391,7 +397,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Unreachable),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "unreachable!(..) statement in pure function might be reachable",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -401,7 +407,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Unimplemented),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "unimplemented!(..) statement in pure function might be reachable",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -410,7 +416,7 @@ impl<'tcx> ErrorManager<'tcx>
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) |
             ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     "postcondition of pure function definition might not hold",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -420,7 +426,7 @@ impl<'tcx> ErrorManager<'tcx>
                 "application.precondition:assertion.false",
                 ErrorCtxt::PureFunctionAssertTerminator(ref message),
             ) => {
-                PrustiError::verification(
+                PrustiError::disabled_verification(
                     format!("assertion might fail with \"{}\"", message),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
@@ -439,7 +445,7 @@ impl<'tcx> ErrorManager<'tcx>
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostcondition) => {
-                PrustiError::verification(format!("postcondition might not hold."), error_span)
+                PrustiError::verification("postcondition might not hold.".to_string(), error_span)
                     .push_primary_span(opt_cause_span)
             }
 
@@ -448,7 +454,7 @@ impl<'tcx> ErrorManager<'tcx>
                 ErrorCtxt::AssertMethodPostconditionTypeInvariants,
             ) => {
                 PrustiError::verification(
-                    format!("type invariants might not hold at the end of the method."),
+                    "type invariants might not hold at the end of the method.".to_string(),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             },
@@ -456,22 +462,22 @@ impl<'tcx> ErrorManager<'tcx>
             ("fold.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) |
             ("fold.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionTypeInvariants) => {
                 PrustiError::verification(
-                    format!("implicit type invariants might not hold at the end of the method."),
+                    "implicit type invariants might not hold at the end of the method.".to_string(),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening(impl_span)) => {
-                PrustiError::verification(format!("the method's precondition may not be a valid weakening of the trait's precondition."), error_span)
+                PrustiError::verification("the method's precondition may not be a valid weakening of the trait's precondition.".to_string(), error_span)
                     //.push_primary_span(opt_cause_span)
-                    .push_primary_span(Some(&impl_span))
+                    .push_primary_span(Some(impl_span))
                     .set_help("The trait's precondition should imply the implemented method's precondition.")
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening(impl_span)) => {
-                PrustiError::verification(format!("the method's postcondition may not be a valid strengthening of the trait's postcondition."), error_span)
+                PrustiError::verification("the method's postcondition may not be a valid strengthening of the trait's postcondition.".to_string(), error_span)
                     //.push_primary_span(opt_cause_span)
-                    .push_primary_span(Some(&impl_span))
+                    .push_primary_span(Some(impl_span))
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 
