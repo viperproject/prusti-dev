@@ -7,7 +7,7 @@
 ///! Code for finding `rustc::ty::sty::RegionVid` associated with local
 ///! reference typed variables.
 
-use rustc_mir::consumers::BodyWithBorrowckFacts;
+use rustc_borrowck::BodyWithBorrowckFacts;
 
 use std::collections::HashMap;
 use std::fs::File;

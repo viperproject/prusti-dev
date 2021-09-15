@@ -5325,6 +5325,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 Ok(stmts)
             }
             mir::NullOp::SizeOf => unimplemented!(),
+            mir::NullOp::AlignOf => unimplemented!(),
         }
     }
 

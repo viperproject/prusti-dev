@@ -6,7 +6,7 @@ use prusti_interface::{
 };
 use regex::Regex;
 use rustc_driver::Compilation;
-use rustc_hir::{def_id::LocalDefId, intravisit};
+use rustc_hir::def_id::LocalDefId;
 use rustc_interface::{interface::Compiler, Config, Queries};
 use rustc_middle::ty::{
     self,
@@ -20,7 +20,7 @@ pub struct PrustiCompilerCalls;
 
 #[allow(clippy::needless_lifetimes)]
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
-    let body_with_facts = rustc_mir::consumers::get_body_with_borrowck_facts(
+    let body_with_facts = rustc_borrowck::consumers::get_body_with_borrowck_facts(
         tcx,
         ty::WithOptConstParam::unknown(def_id),
     );
@@ -30,7 +30,7 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tc
         mir_storage::store_mir_body(tcx, def_id, body_with_facts);
     }
     let mut providers = Providers::default();
-    rustc_mir::provide(&mut providers);
+    rustc_borrowck::provide(&mut providers);
     let original_mir_borrowck = providers.mir_borrowck;
     original_mir_borrowck(tcx, def_id)
 }
@@ -79,7 +79,8 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             compiler.session().abort_if_errors();
 
             let mut spec_collector = specs::SpecCollector::new(&env);
-            intravisit::walk_crate(&mut spec_collector, krate);
+            tcx.hir().walk_toplevel_module(&mut spec_collector);
+            tcx.hir().walk_attributes(&mut spec_collector);
             let def_spec = spec_collector.build_def_specs(&env);
             if config::print_typeckd_specs() {
                 let mut values: Vec<_> = def_spec
