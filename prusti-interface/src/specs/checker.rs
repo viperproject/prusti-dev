@@ -136,14 +136,16 @@ impl<'tcx> SpecChecker {
             tcx,
             predicates: &mut self.predicates,
         };
-        intravisit::walk_crate(&mut collect, krate);
+        tcx.hir().walk_toplevel_module(&mut collect);
+        tcx.hir().walk_attributes(&mut collect);
 
         let mut visit = CheckPredicatesVisitor {
             tcx: collect.tcx,
             predicates: &self.predicates,
             pred_usages: &mut self.pred_usages,
         };
-        intravisit::walk_crate(&mut visit, krate);
+        tcx.hir().walk_toplevel_module(&mut visit);
+        tcx.hir().walk_attributes(&mut visit);
 
         debug!("Predicate funcs: {:?}", self.predicates);
         debug!("Predicate usages: {:?}", self.pred_usages);
