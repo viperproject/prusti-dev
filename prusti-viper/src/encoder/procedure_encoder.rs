@@ -1657,7 +1657,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             Some(
                 vir::borrows::Node::new(
                     guard,
-                    node.loan.into(),
+                    node.loan.index().into(),
                     convert_loans_to_borrows(&node.reborrowing_loans),
                     convert_loans_to_borrows(&node.reborrowed_loans),
                     vec![
@@ -2535,7 +2535,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // we need to put a label before, it seems..
         let label = self.cfg_method.get_fresh_label_name();
-        stmts.push(vir::Stmt::Label(label.clone()));
+        stmts.push(vir::Stmt::label(label.clone()));
 
         let (encoded_lhs, encode_stmts, lhs_ty, _) = self.encode_place(
             &destination.as_ref().unwrap().0,
@@ -2545,7 +2545,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         assert!(lhs_ty.is_slice(), "non-slice LHS type '{:?}' not supported yet", lhs_ty);
 
         stmts.extend(self.encode_havoc(&encoded_lhs));
-        stmts.push(vir!{ inhale [vir::Expr::pred_permission(encoded_lhs.clone(), vir::PermAmount::Read).unwrap()] });
+        stmts.push(vir_stmt!{ inhale [vir::Expr::pred_permission(encoded_lhs.clone(), vir::PermAmount::Read).unwrap()] });
 
         let lhs_slice_ty = lhs_ty.peel_refs();
         let lhs_slice_expr = self.encoder.encode_value_expr(encoded_lhs.clone(), lhs_ty).with_span(span)?;
@@ -2598,7 +2598,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let rhs_lookup_j = match base_seq_ty.peel_refs() {
             a if a.is_array() => {
                 let array_types = self.encoder.encode_array_types(a).with_span(span)?;
-                let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs)
+                let tymap = HashMap::new();
+                let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap)
                     .with_span(span)?;
                 array_types.encode_lookup_pure_call(
                     self.encoder,
@@ -2611,7 +2612,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // encode_slice_types expects no ref either)
             s if matches!(s.kind(), ty::TyKind::Slice(..)) => {
                 let slice_types = self.encoder.encode_slice_types(s).with_span(span)?;
-                let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types.elem_ty_rs)
+                let tymap = HashMap::new();
+                let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types.elem_ty_rs, &tymap)
                     .with_span(span)?;
                 slice_types.encode_lookup_pure_call(
                     self.encoder,
@@ -2624,14 +2626,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
 
         let slice_types_lhs = self.encoder.encode_slice_types(lhs_slice_ty).with_span(span)?;
-        let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types_lhs.elem_ty_rs)
+        let tymap = HashMap::new();
+        let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types_lhs.elem_ty_rs, &tymap)
             .with_span(span)?;
 
         // length
-        let length = vir!{ [end] - [start] };
+        let length = vir_expr!{ [end] - [start] };
         let slice_len_call = slice_types_lhs.encode_slice_len_call(self.encoder, lhs_slice_expr.clone());
-        stmts.push(vir!{
-            inhale [vir!{ [slice_len_call] == [length] }]
+        stmts.push(vir_stmt!{
+            inhale [vir_expr!{ [slice_len_call] == [length] }]
         });
 
         // lookup_pure: contents
@@ -2650,16 +2653,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // NOTE: the lhs_ and rhs_ here refer to the moment the slice is created, so lhs_lookup is
         // lookup on the slice currently being created, and rhs_lookup is on the array or slice
         // being sliced
-        let lookup_eq = vir!{ [lhs_lookup_i] == [rhs_lookup_j] };
-        let indices = vir!{
-            [vir!{ [vir::Expr::from(0)] <= [i_var] }] &&
+        let lookup_eq = vir_expr!{ [lhs_lookup_i] == [rhs_lookup_j] };
+        let indices = vir_expr!{
+            [vir_expr!{ [vir::Expr::from(0)] <= [i_var] }] &&
             (
-                [vir!{ [i_var] < [slice_len_call] }] &&
+                [vir_expr!{ [i_var] < [slice_len_call] }] &&
                 (
-                    [vir!{ [j_var] == [vir!{ [i_var] + [start] }] }] &&
+                    [vir_expr!{ [j_var] == [vir_expr!{ [i_var] + [start] }] }] &&
                     (
-                        [vir!{ [start] <= [j_var] }] &&
-                        [vir!{ [j_var] < [end] }]
+                        [vir_expr!{ [start] <= [j_var] }] &&
+                        [vir_expr!{ [j_var] < [end] }]
                     )
                 )
             )
@@ -2667,8 +2670,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // TODO: maybe don't bother with a complicated forall if the array length is less than some
         // reasonable bound
-        stmts.push(vir!{
-            inhale [vir!{ forall i: Int, j: Int :: {} ([indices] ==> [lookup_eq]) }]
+        stmts.push(vir_stmt!{
+            inhale [vir_expr!{ forall i: Int, j: Int :: {} ([indices] ==> [lookup_eq]) }]
         });
 
         self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
