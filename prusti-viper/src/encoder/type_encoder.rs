@@ -53,7 +53,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Adt(_, _)
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Never
-            | ty::TyKind::Param(_) => true,
+            | ty::TyKind::Param(_)
             | ty::TyKind::Float(_) => true,
             _ => false,
         }

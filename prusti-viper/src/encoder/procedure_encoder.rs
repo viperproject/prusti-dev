@@ -502,10 +502,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Fix variable declarations.
         let after_ghost_var_fix_method = fix_ghost_vars(method_with_fold_unfold);
 
-        // Run Bitvector Analysis to determine variables affected by bitwise operation
-        // and replace them with the Bitvector type.
-        let mut analysis = BVAnalysis::new(after_ghost_var_fix_method);
-        let final_method = analysis.get_new_method();
+        // If the method contains a bitwise operation, run Bitvector Analysis 
+        // to determine variables and fields affected by bitwise operations,
+        // and replace them with the Bitvector type.        
+        let final_method =
+            if BVAnalysis::method_contains_bitwise_op(after_ghost_var_fix_method.clone()) {
+                let mut analysis = BVAnalysis::new();
+                let method_after_bv_analysis = analysis.get_new_method(after_ghost_var_fix_method, false);
+                self.encoder.bitvector_analysis.borrow_mut().push(analysis);
+                method_after_bv_analysis                
+            } else {
+                after_ghost_var_fix_method
+            };
 
         // Dump final CFG
         if config::dump_debug_info() {

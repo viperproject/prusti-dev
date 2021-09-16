@@ -510,6 +510,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd => vir::Expr::bit_and(left, right),
             mir::BinOp::BitOr => vir::Expr::bit_or(left, right),
             mir::BinOp::BitXor => vir::Expr::bit_xor(left, right),
+            mir::BinOp::Shl => vir::Expr::shl(left, right),
+            mir::BinOp::Shr => {
+                match ty.kind() {
+                    ty::TyKind::Int(_) => vir::Expr::ashr(left, right),
+                    ty::TyKind::Uint(_) => vir::Expr::lshr(left, right),
+                    _ => unreachable!()
+                }                
+            }
             unsupported_op => {
                 return Err(EncodingError::unsupported(format!(
                     "operation '{:?}' is not supported",

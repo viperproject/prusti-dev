@@ -95,7 +95,8 @@ pub enum BinOpKind {
     BitOr,
     BitXor,
     Shl,
-    Shr,
+    LShr,
+    AShr,
     Min,
     Max,
     Implies,
@@ -114,11 +115,20 @@ pub enum FloatConst {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum BVConst {
+    BV8(u8),
+    BV16(u16),
+    BV32(u32),
+    BV64(u64),
+    BV128(u128),
+}
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Const {
     Bool(bool),
     Int(i64),
     BigInt(String),
     Float(FloatConst),
+    Bitvector(BVConst),
     /// All function pointers share the same constant, because their function
     /// is determined by the type system.
     FnPtr,
@@ -292,7 +302,7 @@ impl fmt::Display for BinOpKind {
             BinOpKind::BitOr => write!(f, "|"),
             BinOpKind::BitXor => write!(f, "^"),
             BinOpKind::Shl => write!(f, "<<"),
-            BinOpKind::Shr => write!(f, ">>"),           
+            BinOpKind::LShr| BinOpKind::AShr => write!(f, ">>"),           
         }
     }
 }
@@ -305,6 +315,15 @@ impl fmt::Display for Const {
             Const::BigInt(ref val) => write!(f, "{}", val),
             Const::Float(FloatConst::FloatConst32(val)) => write!(f, "{}", val),
             Const::Float(FloatConst::FloatConst64(val)) => write!(f, "{}", val),
+            Const::Bitvector(const_t) => {
+                match const_t {
+                    BVConst::BV8(val)=> write!(f, "{}", val),
+                    BVConst::BV16(val)=> write!(f, "{}", val),
+                    BVConst::BV32(val)=> write!(f, "{}", val),
+                    BVConst::BV64(val) => write!(f, "{}", val),
+                    BVConst::BV128(val) => write!(f, "{}", val),
+                }
+            }
             Const::FnPtr => write!(f, "FnPtr"),
         }
     }
@@ -509,7 +528,19 @@ impl Expr {
     }
 
     pub fn bit_xor(left: Expr, right: Expr) -> Self {
-        Expr::not(Expr::eq_cmp(left, right))
+        Expr::BinOp(BinOpKind::BitXor, box left, box right, Position::default())
+    }
+
+    pub fn shl(left:Expr, right:Expr) -> Self {
+        Expr::BinOp(BinOpKind::Shl, box left, box right, Position::default())
+    }
+
+    pub fn lshr(left:Expr, right:Expr) -> Self {
+        Expr::BinOp(BinOpKind::LShr, box left, box right, Position::default())
+    }
+
+    pub fn ashr(left:Expr, right:Expr) -> Self {
+        Expr::BinOp(BinOpKind::AShr, box left, box right, Position::default())
     }
 
     pub fn min(e1: Expr, e2: Expr) -> Self{
@@ -1082,6 +1113,15 @@ impl Expr {
                     Const::Int(..) | Const::BigInt(..) => &Type::Int,
                     Const::Float(FloatConst::FloatConst32(_)) => &Type::Float(F32),
                     Const::Float(FloatConst::FloatConst64(_)) => &Type::Float(F64),
+                    Const::Bitvector(const_ty) => {
+                        match const_ty {
+                            BVConst::BV8(_) => &Type::Bitvector(BVSize::BV8),
+                            BVConst::BV16(_) => &Type::Bitvector(BVSize::BV16),
+                            BVConst::BV32(_) => &Type::Bitvector(BVSize::BV32),
+                            BVConst::BV64(_) => &Type::Bitvector(BVSize::BV64),
+                            BVConst::BV128(_) => &Type::Bitvector(BVSize::BV128),
+                        }
+                    }
                     Const::FnPtr => &FN_PTR_TYPE,
                 }
             }
@@ -1107,7 +1147,8 @@ impl Expr {
                     BinOpKind::BitOr |
                     BinOpKind::BitXor |
                     BinOpKind::Shl |
-                    BinOpKind::Shr => {
+                    BinOpKind::LShr |
+                    BinOpKind::AShr => {
                         let typ1 = base1.get_type();
                         let typ2 = base2.get_type();
                         assert_eq!(typ1, typ2, "expr: {:?}", self);

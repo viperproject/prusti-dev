@@ -198,6 +198,20 @@ impl<'a> AstFactory<'a> {
     }
 
     // Backend Bitvectors
+    pub fn backend_bv8_lit(&self, bits: u8) -> Expr<'a> {   
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 8).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV8")).unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn backend_bv16_lit(&self, bits: u16) -> Expr<'a> {   
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 16).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV16")).unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
     pub fn backend_bv32_lit(&self, bits: u32) -> Expr<'a> {   
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 32).unwrap();
@@ -209,6 +223,13 @@ impl<'a> AstFactory<'a> {
         let bv_factory_ = ast::utility::BVFactory::with(self.env);
         let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 64).unwrap();
         let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV64")).unwrap();
+        self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
+    }
+
+    pub fn backend_bv128_lit(&self, bits: u128) -> Expr<'a> {
+        let bv_factory_ = ast::utility::BVFactory::with(self.env);
+        let bv_factory = ast::utility::BVFactory::new(&bv_factory_, 128).unwrap();
+        let from_int = ast::utility::BVFactory::call_from__int(&bv_factory_, bv_factory, self.jni.new_string("toBV128")).unwrap();
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
     }
 
@@ -228,12 +249,28 @@ impl<'a> AstFactory<'a> {
             BinOpBv::BvAdd => ast::utility::BVFactory::call_add(&factory_, factory, self.jni.new_string("add")),
             BinOpBv::BvMul => ast::utility::BVFactory::call_mul(&factory_, factory, self.jni.new_string("mul")),
             BinOpBv::BvShl => ast::utility::BVFactory::call_shl(&factory_, factory, self.jni.new_string("shl")),
-            BinOpBv::BvShr => ast::utility::BVFactory::call_shr(&factory_, factory, self.jni.new_string("shr")),
+            BinOpBv::BvLShr => ast::utility::BVFactory::call_lshr(&factory_, factory, self.jni.new_string("lshr")),
+            BinOpBv::BvAShr => ast::utility::BVFactory::call_ashr(&factory_, factory, self.jni.new_string("rshr")),
         }.unwrap();
         self.backend_func_app(op, &[left, right], self.no_position())
     }
 
-
+    pub fn bv_unnop(&self, op_kind: UnOpBv, bv_size: BvSize, arg: Expr) -> Expr<'a> {
+        let factory_ = ast::utility::BVFactory::with(self.env); // FloatFactory
+        let factory = match bv_size { //
+            BvSize::BV8 => ast::utility::BVFactory::new(&factory_,8),
+            BvSize::BV16 => ast::utility::BVFactory::new(&factory_,16),
+            BvSize::BV32 => ast::utility::BVFactory::new(&factory_,32),
+            BvSize::BV64 => ast::utility::BVFactory::new(&factory_,64),
+            BvSize::BV128 => ast::utility::BVFactory::new(&factory_,128),
+        }.unwrap();
+        let op = match op_kind {
+            UnOpBv::Not => ast::utility::BVFactory::call_not(&factory_, factory, self.jni.new_string("not")),
+            UnOpBv::Neg => ast::utility::BVFactory::call_neg(&factory_, factory, self.jni.new_string("neg")),
+            _ => unreachable!("unimplemented unop for bitvectors")
+        }.unwrap();
+        self.backend_func_app(op, &[arg], self.no_position())
+    }
     
     // Backend Floating-Points    
     pub fn float_binop(&self, op_kind: BinOpFloat, f_size: FloatSizeViper, left: Expr, right: Expr) -> Expr<'a> {
@@ -1096,7 +1133,7 @@ pub enum UnOpBv {
 
 pub enum BinOpBv {
     BitAnd, BitOr, BitXor,
-    BvAdd, BvMul, BvShl, BvShr,
+    BvAdd, BvMul, BvShl, BvLShr, BvAShr,
 }
 pub enum BvSize {
     BV8, BV16, BV32, BV64, BV128,

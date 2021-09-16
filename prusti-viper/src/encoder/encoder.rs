@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use ::log::{info, debug, trace};
+use prusti_common::vir::optimizations::bitvector_analysis::BVAnalysis;
 use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
@@ -110,7 +111,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
     /// The procedure that is currently being encoded.
-    pub current_proc: RefCell<Option<ProcedureDefId>>
+    pub current_proc: RefCell<Option<ProcedureDefId>>,
+    pub bitvector_analysis: RefCell<Vec<BVAnalysis>>,
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -171,6 +173,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             encoding_errors_counter: RefCell::new(0),
             name_interner: RefCell::new(NameInterner::new()),
             current_proc: RefCell::new(None),
+            bitvector_analysis: RefCell::new(Vec::new()),
         }
     }
 
@@ -270,8 +273,22 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
         let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
+        fields.extend(self.get_used_bitvector_fields());
         fields.sort_by_key(|f| f.get_identifier());
+
         fields
+    }
+
+    fn get_used_bitvector_fields(&self) -> Vec<vir::Field> {
+        let mut bv_fields = HashSet::new();
+        for analysis in self.bitvector_analysis.clone().into_inner() {
+            for field in analysis.new_fields {
+                if field.name.starts_with("val"){
+                    bv_fields.insert(field.clone());
+                }                
+            }
+        }
+        bv_fields.into_iter().collect()
     }
 
     fn get_used_viper_functions(&self) -> Vec<vir::Function> {
@@ -316,6 +333,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             "DeadBorrowToken$".to_string(),
             vir_local!{ borrow: Int },
         ));
+
+        // add bitvector predicates
+        let mut bitvector_predicates: HashSet<vir::Predicate> = HashSet::new();
+        let analyses = self.bitvector_analysis.borrow();
+        for analysis in analyses.iter() {
+            bitvector_predicates.extend(analysis.used_predicates());
+        }
+        predicates.extend(bitvector_predicates.clone().into_iter());
 
         predicates.sort_by_key(|f| f.get_identifier());
         predicates
