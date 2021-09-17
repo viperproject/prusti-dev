@@ -286,40 +286,21 @@ impl ApplyOnState for vir::Stmt {
                 // The rhs is no longer moved
                 state.remove_moved_matching(|p| p.has_prefix(right));
 
-                let rhs_is_array = right.get_type().name().starts_with("Array$");
-
                 // And we create permissions for the rhs
-                let new_acc_places: Vec<_> = if rhs_is_array {
-                    // all permissions are on the pred
-                    vec![]
-                } else {
-                    original_state
-                        .acc()
-                        .iter()
-                        .filter(|(p, _)| p.has_proper_prefix(left))
-                        .map(|(p, perm_amount)| {
-                            (p.clone().replace_place(left, right), *perm_amount)
-                        })
-                        .filter(|(p, _)| !p.is_local())
-                        .collect()
-                };
+                let new_acc_places: Vec<_> = original_state
+                    .acc()
+                    .iter()
+                    .filter(|(p, _)| p.has_proper_prefix(left))
+                    .map(|(p, perm_amount)| (p.clone().replace_place(left, right), *perm_amount))
+                    .filter(|(p, _)| !p.is_local())
+                    .collect();
 
-                let new_pred_places: Vec<_> = if rhs_is_array {
-                    vec![
-                        // arrays regained here are always write, read-only does not generate
-                        // wands/permissions that need to be restored
-                        (right.clone(), vir::PermAmount::Write),
-                    ]
-                } else {
-                    original_state
-                        .pred()
-                        .iter()
-                        .filter(|(p, _)| p.has_prefix(left))
-                        .map(|(p, perm_amount)| {
-                            (p.clone().replace_place(left, right), *perm_amount)
-                        })
-                        .collect()
-                };
+                let new_pred_places: Vec<_> = original_state
+                    .pred()
+                    .iter()
+                    .filter(|(p, _)| p.has_prefix(left))
+                    .map(|(p, perm_amount)| (p.clone().replace_place(left, right), *perm_amount))
+                    .collect();
 
                 // assert!(
                 //     (lhs_place == rhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
