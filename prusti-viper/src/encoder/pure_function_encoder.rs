@@ -280,19 +280,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .with_span(self.mir.span)?;
 
         // Add folding/unfolding
-        foldunfold::add_folding_unfolding_to_function(
-            function,
-            self.encoder.get_used_viper_predicates_map(),
-        )
-        .map_err(|foldunfold_error| {
-            SpannedEncodingError::internal(
-                format!(
-                    "generating unfolding Viper expressions failed ({:?})",
-                    foldunfold_error
-                ),
-                self.mir.span,
-            )
-        })
+        Ok(function)
     }
 
     /// Encode the precondition with two expressions:
