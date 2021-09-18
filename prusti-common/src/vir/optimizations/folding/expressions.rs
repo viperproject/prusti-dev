@@ -147,7 +147,9 @@ fn check_requirements_conflict(
 ) -> HashSet<ast::Expr> {
     let mut conflict_set = HashSet::new();
     for place1 in reqs1 {
+        debug_assert!(reqs1.iter().all(|p| !p.has_proper_prefix(place1)));
         for place2 in reqs2 {
+            debug_assert!(reqs2.iter().all(|p| !p.has_proper_prefix(place2)));
             // Check if we require the same place to be unfolded at a different depth.
             let (base1, components1) = place1.explode_place();
             let (base2, components2) = place2.explode_place();
@@ -328,6 +330,7 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         Ok(match expr {
             ast::Expr::LabelledOld(..) => {
                 if expr.is_place() {
+                    debug_assert!(self.requirements.iter().all(|p| !p.has_proper_prefix(&expr) && !expr.has_proper_prefix(p)));
                     self.requirements.insert(expr.clone());
                 }
                 expr
@@ -338,8 +341,12 @@ impl ast::FallibleExprFolder for ExprOptimizer {
                 self.unfoldings.insert(args.pop().unwrap(), (name, perm, variant));
                 new_expr
             }
+            ast::Expr::Downcast(ast::DowncastExpr { base, enum_place, field}) => {
+                ast::Expr::Downcast(ast::DowncastExpr { base: self.fallible_fold_boxed(base)?, enum_place, field})
+            }
             _ => {
                 if expr.is_place() {
+                    debug_assert!(self.requirements.iter().all(|p| !p.has_proper_prefix(&expr) && !expr.has_proper_prefix(p)));
                     self.requirements.insert(expr.clone());
                     expr
                 } else {
