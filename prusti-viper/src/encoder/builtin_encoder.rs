@@ -220,7 +220,9 @@ impl BuiltinEncoder {
                         ),
                     ],
                     posts: vec![
-                        vir_expr!{ [vir::Expr::from(vir_local!{ __result: Int })] >= [vir::Expr::from(0)] }
+                        vir_expr!{ [vir::Expr::from(vir_local!{ __result: Int })] >= [vir::Expr::from(0)] },
+                        // TODO: We should use a symbolic value for usize::MAX.
+                        vir_expr!{ [vir::Expr::from(vir_local!{ __result: Int })] <= [vir::Expr::from(usize::MAX)] },
                     ],
                     body: None,
                 }
