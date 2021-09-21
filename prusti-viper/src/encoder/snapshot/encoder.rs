@@ -912,8 +912,8 @@ impl SnapshotEncoder {
 
                 Ok(Snapshot::Array {
                     predicate_type: predicate_type.convert_to_snapshot(),
-                    domain: self.insert_domain(domain),
-                    snap_func: self.insert_function(snap_func),
+                    _domain: self.insert_domain(domain),
+                    _snap_func: self.insert_function(snap_func),
                     slice_helper: self.insert_function(slice_helper),
                     cons,
                     read,
@@ -1240,9 +1240,9 @@ impl SnapshotEncoder {
 
                 Ok(Snapshot::Slice {
                     predicate_type: predicate_type.convert_to_snapshot(),
-                    domain: self.insert_domain(domain),
-                    snap_func: self.insert_function(snap_func),
-                    slice_collect_func: self.insert_function(slice_collect_func),
+                    _domain: self.insert_domain(domain),
+                    _snap_func: self.insert_function(snap_func),
+                    _slice_collect_func: self.insert_function(slice_collect_func),
                     slice_helper: self.insert_function(slice_helper),
                     cons,
                     read,
@@ -1398,13 +1398,13 @@ impl SnapshotEncoder {
 
         Ok(Snapshot::Abstract {
             predicate_type: predicate_type.convert_to_snapshot(),
-            domain: self.insert_domain(vir::Domain {
+            _domain: self.insert_domain(vir::Domain {
                 name: domain_name,
                 functions: vec![],
                 axioms: vec![],
                 type_vars: vec![],
             }),
-            snap_func: self.insert_function(snap_func),
+            _snap_func: self.insert_function(snap_func),
         })
     }
 
@@ -1722,9 +1722,9 @@ impl SnapshotEncoder {
 
         Ok(Snapshot::Complex {
             predicate_type: predicate_type.convert_to_snapshot(),
-            domain: self.insert_domain(domain),
+            _domain: self.insert_domain(domain),
             discriminant_func,
-            snap_func: self.insert_function(snap_func),
+            _snap_func: self.insert_function(snap_func),
             variants: variant_domain_funcs,
             variant_names,
         })

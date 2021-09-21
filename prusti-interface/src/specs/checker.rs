@@ -131,7 +131,7 @@ impl<'tcx> SpecChecker {
         Self::default()
     }
 
-    pub fn check_predicate_usages(&mut self, tcx: TyCtxt<'tcx>, krate: &'tcx hir::Crate<'tcx>) {
+    pub fn check_predicate_usages(&mut self, tcx: TyCtxt<'tcx>) {
         let mut collect = CollectPredicatesVisitor {
             tcx,
             predicates: &mut self.predicates,
