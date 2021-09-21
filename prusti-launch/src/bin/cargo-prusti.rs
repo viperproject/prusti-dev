@@ -30,7 +30,8 @@ where
 
     let cargo_path = std::env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
 
-    let original_target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+    let original_target =
+        std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
 
     let exit_status = Command::new(cargo_path)
         .arg("check")
