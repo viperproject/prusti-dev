@@ -34,9 +34,11 @@ where
         .arg("check")
         .args(clean_args)
         .env("RUST_TOOLCHAIN", get_rust_toolchain_channel())
+        .env("RUSTC_WRAPPER", prusti_rustc_path)
+        .env("CARGO_TARGET_DIR", "target/verify")
         .env("PRUSTI_QUIET", "true")
         .env("PRUSTI_FULL_COMPILATION", "true")
-        .env("RUSTC_WRAPPER", prusti_rustc_path)
+        .env("PRUSTI_LOG_DIR", "target/verify/log")
         .status()
         .expect("could not run cargo");
 
