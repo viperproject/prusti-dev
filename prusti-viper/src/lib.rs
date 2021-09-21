@@ -7,6 +7,7 @@
 #![feature(rustc_private)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
+#![feature(bool_to_option)]
 
 #![allow(unused_imports)]
 #![deny(unused_must_use)]
