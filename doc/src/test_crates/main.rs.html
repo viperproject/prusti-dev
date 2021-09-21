@@ -289,8 +289,6 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -451,13 +449,11 @@
     <span class="macro">info!</span>(<span class="string">&quot;Read lists of crates...&quot;</span>);
     <span class="comment">// TODO: do something to freeze the version of the dependencies.</span>
     <span class="kw">let</span> <span class="ident">crates_list</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../rustwide/crates/struct.Crate.html">Crate</a><span class="op">&gt;</span> <span class="op">=</span>
-        <span class="ident">csv::Reader::from_reader</span>(<span class="ident">fs::File::open</span>(<span class="string">&quot;test-crates/crates.csv&quot;</span>)<span class="question-mark">?</span>)
+        <span class="ident">csv::Reader::from_reader</span>(<span class="ident">fs::File::open</span>(<span class="string">&quot;test-crates/successful_crates.csv&quot;</span>)<span class="question-mark">?</span>)
             .<span class="ident">deserialize</span>()
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/test_crates/main.rs.html#20-23">CrateRecord</a><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
             .<span class="ident">into_iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../src/test_crates/main.rs.html#165">c</a>.<span class="ident">into</span>())
-            <span class="comment">// For the moment, test only a few of the crates.</span>
-            .<span class="ident">take</span>(<span class="number">2</span>)
             .<span class="ident">collect</span>();
 
     <span class="comment">// List of crates that don&#39;t compile with the standard compiler.</span>
@@ -469,42 +465,42 @@
 
     <span class="macro">info!</span>(<span class="string">&quot;Iterate over all {} crates...&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#160">crates_list</a>.<span class="ident">len</span>());
     <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">krate</span>) <span class="kw">in</span> <a class="ident" href="../../src/test_crates/main.rs.html#160">crates_list</a>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="macro">info!</span>(<span class="string">&quot;Crate {}/{}: {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#178">index</a> <span class="op">+</span> <span class="number">1</span>, <a class="ident" href="../../src/test_crates/main.rs.html#160">crates_list</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/test_crates/main.rs.html#178">krate</a>);
+        <span class="macro">info!</span>(<span class="string">&quot;Crate {}/{}: {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#176">index</a> <span class="op">+</span> <span class="number">1</span>, <a class="ident" href="../../src/test_crates/main.rs.html#160">crates_list</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>);
 
         <span class="macro">info!</span>(<span class="string">&quot;Fetch crate...&quot;</span>);
-        <a class="ident" href="../../src/test_crates/main.rs.html#178">krate</a>.<span class="ident">fetch</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>)<span class="question-mark">?</span>;
+        <a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>.<span class="ident">fetch</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>)<span class="question-mark">?</span>;
 
         <span class="macro">info!</span>(<span class="string">&quot;Build crate...&quot;</span>);
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">build_dir</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>.<span class="ident">build_dir</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;build_{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#178">index</a>));
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">build_dir</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>.<span class="ident">build_dir</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;build_{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#176">index</a>));
 
             <span class="kw">let</span> <span class="ident">sandbox</span> <span class="op">=</span> <span class="ident">cmd::SandboxBuilder::new</span>()
                 .<span class="ident">memory_limit</span>(<span class="prelude-val">Some</span>(<span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>))
                 .<span class="ident">enable_networking</span>(<span class="bool-val">false</span>);
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">storage</span> <span class="op">=</span> <span class="ident">LogStorage::new</span>(<span class="ident">LevelFilter::Info</span>);
-            <a class="ident" href="../../src/test_crates/main.rs.html#192">storage</a>.<span class="ident">set_max_size</span>(<span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>);
+            <a class="ident" href="../../src/test_crates/main.rs.html#190">storage</a>.<span class="ident">set_max_size</span>(<span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>);
 
-            <span class="kw">let</span> <span class="ident">build_status</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#186">build_dir</a>.<span class="ident">build</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#150">toolchain</a>, <a class="ident" href="../../src/test_crates/main.rs.html#178">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#188">sandbox</a>).<span class="ident">run</span>(<span class="op">|</span><span class="ident">build</span><span class="op">|</span> {
-                <span class="ident">logging::capture</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#192">storage</a>, <span class="op">|</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/test_crates/main.rs.html#195">build</a>.<span class="ident">cargo</span>().<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;check&quot;</span>]).<span class="ident">run</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">build_status</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#184">build_dir</a>.<span class="ident">build</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#150">toolchain</a>, <a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#186">sandbox</a>).<span class="ident">run</span>(<span class="op">|</span><span class="ident">build</span><span class="op">|</span> {
+                <span class="ident">logging::capture</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#190">storage</a>, <span class="op">|</span><span class="op">|</span> {
+                    <a class="ident" href="../../src/test_crates/main.rs.html#193">build</a>.<span class="ident">cargo</span>().<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;check&quot;</span>]).<span class="ident">run</span>()<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(())
                 })
             });
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#195">build_status</a> {
-                <span class="macro">warn!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#202">err</a>);
-                <span class="macro">warn!</span>(<span class="string">&quot;Output:\n{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#192">storage</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#193">build_status</a> {
+                <span class="macro">warn!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#200">err</a>);
+                <span class="macro">warn!</span>(<span class="string">&quot;Output:\n{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#190">storage</a>);
 
                 <span class="comment">// Do not try to verify this crate</span>
-                <a class="ident" href="../../src/test_crates/main.rs.html#171">skipped_crates</a>.<span class="ident">push</span>(<a class="ident" href="../../src/test_crates/main.rs.html#178">krate</a>);
+                <a class="ident" href="../../src/test_crates/main.rs.html#169">skipped_crates</a>.<span class="ident">push</span>(<a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>);
                 <span class="kw">continue</span>;
             }
         }
 
         <span class="macro">info!</span>(<span class="string">&quot;Verify crate...&quot;</span>);
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">build_dir</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>.<span class="ident">build_dir</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;verify_{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#178">index</a>));
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">build_dir</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#145">workspace</a>.<span class="ident">build_dir</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;verify_{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#176">index</a>));
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sandbox</span> <span class="op">=</span> <span class="ident">cmd::SandboxBuilder::new</span>()
                 .<span class="ident">memory_limit</span>(<span class="prelude-val">Some</span>(<span class="number">4024</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>))
@@ -521,17 +517,17 @@
                 )
                 .<span class="ident">mount</span>(<a class="ident" href="../../src/test_crates/main.rs.html#123">host_z3_home</a>, <a class="ident" href="../../src/test_crates/main.rs.html#132">guest_z3_home</a>, <span class="ident">cmd::MountKind::ReadOnly</span>)
                 .<span class="ident">mount</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#124">host_java_home</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#134">guest_java_home</a>, <span class="ident">cmd::MountKind::ReadOnly</span>);
-            <span class="kw">for</span> <a class="ident" href="../../src/test_crates/main.rs.html#231">java_policy_path</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#129">host_java_policies</a> {
-                <a class="ident" href="../../src/test_crates/main.rs.html#216">sandbox</a> <span class="op">=</span>
-                    <a class="ident" href="../../src/test_crates/main.rs.html#216">sandbox</a>.<span class="ident">mount</span>(<a class="ident" href="../../src/test_crates/main.rs.html#231">java_policy_path</a>, <a class="ident" href="../../src/test_crates/main.rs.html#231">java_policy_path</a>, <span class="ident">cmd::MountKind::ReadOnly</span>);
+            <span class="kw">for</span> <a class="ident" href="../../src/test_crates/main.rs.html#229">java_policy_path</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#129">host_java_policies</a> {
+                <a class="ident" href="../../src/test_crates/main.rs.html#214">sandbox</a> <span class="op">=</span>
+                    <a class="ident" href="../../src/test_crates/main.rs.html#214">sandbox</a>.<span class="ident">mount</span>(<a class="ident" href="../../src/test_crates/main.rs.html#229">java_policy_path</a>, <a class="ident" href="../../src/test_crates/main.rs.html#229">java_policy_path</a>, <span class="ident">cmd::MountKind::ReadOnly</span>);
             }
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">storage</span> <span class="op">=</span> <span class="ident">LogStorage::new</span>(<span class="ident">LevelFilter::Info</span>);
-            <a class="ident" href="../../src/test_crates/main.rs.html#236">storage</a>.<span class="ident">set_max_size</span>(<span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>);
+            <a class="ident" href="../../src/test_crates/main.rs.html#234">storage</a>.<span class="ident">set_max_size</span>(<span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>);
 
-            <span class="kw">let</span> <span class="ident">verification_status</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#214">build_dir</a>.<span class="ident">build</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#150">toolchain</a>, <a class="ident" href="../../src/test_crates/main.rs.html#178">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#216">sandbox</a>).<span class="ident">run</span>(<span class="op">|</span><span class="ident">build</span><span class="op">|</span> {
-                <span class="ident">logging::capture</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#236">storage</a>, <span class="op">|</span><span class="op">|</span> {
-                    <a class="ident" href="../../src/test_crates/main.rs.html#239">build</a>
+            <span class="kw">let</span> <span class="ident">verification_status</span> <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#212">build_dir</a>.<span class="ident">build</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#150">toolchain</a>, <a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>, <a class="ident" href="../../src/test_crates/main.rs.html#214">sandbox</a>).<span class="ident">run</span>(<span class="op">|</span><span class="ident">build</span><span class="op">|</span> {
+                <span class="ident">logging::capture</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#234">storage</a>, <span class="op">|</span><span class="op">|</span> {
+                    <a class="ident" href="../../src/test_crates/main.rs.html#237">build</a>
                         .<span class="ident">cmd</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#137">cargo_prusti</a>)
                         .<span class="ident">env</span>(<span class="string">&quot;RUST_BACKTRACE&quot;</span>, <span class="string">&quot;1&quot;</span>)
                         .<span class="ident">env</span>(<span class="string">&quot;PRUSTI_ASSERT_TIMEOUT&quot;</span>, <span class="string">&quot;60000&quot;</span>)
@@ -545,41 +541,41 @@
                 })
             });
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#239">verification_status</a> {
-                <span class="macro">error!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#255">err</a>);
-                <span class="macro">error!</span>(<span class="string">&quot;Output:\n{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#236">storage</a>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <a class="ident" href="../../src/test_crates/main.rs.html#237">verification_status</a> {
+                <span class="macro">error!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#253">err</a>);
+                <span class="macro">error!</span>(<span class="string">&quot;Output:\n{}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#234">storage</a>);
 
                 <span class="comment">// Report the failure</span>
-                <a class="ident" href="../../src/test_crates/main.rs.html#173">failed_crates</a>.<span class="ident">push</span>(<a class="ident" href="../../src/test_crates/main.rs.html#178">krate</a>);
+                <a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a>.<span class="ident">push</span>(<a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>);
             } <span class="kw">else</span> {
-                <a class="ident" href="../../src/test_crates/main.rs.html#175">successful_crates</a>.<span class="ident">push</span>(<a class="ident" href="../../src/test_crates/main.rs.html#178">krate</a>);
+                <a class="ident" href="../../src/test_crates/main.rs.html#173">successful_crates</a>.<span class="ident">push</span>(<a class="ident" href="../../src/test_crates/main.rs.html#176">krate</a>);
             }
         }
     }
 
     <span class="comment">// Report summary</span>
-    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#175">successful_crates</a>.<span class="ident">is_empty</span>() {
-        <span class="macro">info!</span>(<span class="string">&quot;Successfully verified {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#175">successful_crates</a>.<span class="ident">len</span>());
-        <span class="kw">for</span> <a class="ident" href="../../src/test_crates/main.rs.html#270">krate</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#175">successful_crates</a> {
-            <span class="macro">info!</span>(<span class="string">&quot; - {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#270">krate</a>);
+    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#173">successful_crates</a>.<span class="ident">is_empty</span>() {
+        <span class="macro">info!</span>(<span class="string">&quot;Successfully verified {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#173">successful_crates</a>.<span class="ident">len</span>());
+        <span class="kw">for</span> <a class="ident" href="../../src/test_crates/main.rs.html#268">krate</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#173">successful_crates</a> {
+            <span class="macro">info!</span>(<span class="string">&quot; - {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#268">krate</a>);
         }
     }
-    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#171">skipped_crates</a>.<span class="ident">is_empty</span>() {
-        <span class="macro">warn!</span>(<span class="string">&quot;Skipped {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#171">skipped_crates</a>.<span class="ident">len</span>());
-        <span class="kw">for</span> <a class="ident" href="../../src/test_crates/main.rs.html#276">krate</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#171">skipped_crates</a> {
-            <span class="macro">warn!</span>(<span class="string">&quot; - {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#276">krate</a>);
+    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#169">skipped_crates</a>.<span class="ident">is_empty</span>() {
+        <span class="macro">warn!</span>(<span class="string">&quot;Skipped {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#169">skipped_crates</a>.<span class="ident">len</span>());
+        <span class="kw">for</span> <a class="ident" href="../../src/test_crates/main.rs.html#274">krate</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#169">skipped_crates</a> {
+            <span class="macro">warn!</span>(<span class="string">&quot; - {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#274">krate</a>);
         }
     }
-    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#173">failed_crates</a>.<span class="ident">is_empty</span>() {
-        <span class="macro">error!</span>(<span class="string">&quot;Failed to verify {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#173">failed_crates</a>.<span class="ident">len</span>());
-        <span class="kw">for</span> <a class="ident" href="../../src/test_crates/main.rs.html#282">krate</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#173">failed_crates</a> {
-            <span class="macro">error!</span>(<span class="string">&quot; - {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#282">krate</a>);
+    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a>.<span class="ident">is_empty</span>() {
+        <span class="macro">error!</span>(<span class="string">&quot;Failed to verify {} crates:&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a>.<span class="ident">len</span>());
+        <span class="kw">for</span> <a class="ident" href="../../src/test_crates/main.rs.html#280">krate</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a> {
+            <span class="macro">error!</span>(<span class="string">&quot; - {}&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#280">krate</a>);
         }
     }
 
     <span class="comment">// Panic</span>
-    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#173">failed_crates</a>.<span class="ident">is_empty</span>() {
-        <span class="macro">panic!</span>(<span class="string">&quot;Failed to verify {} crates&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#173">failed_crates</a>.<span class="ident">len</span>());
+    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a>.<span class="ident">is_empty</span>() {
+        <span class="macro">panic!</span>(<span class="string">&quot;Failed to verify {} crates&quot;</span>, <a class="ident" href="../../src/test_crates/main.rs.html#171">failed_crates</a>.<span class="ident">len</span>());
     }
 
     <span class="prelude-val">Ok</span>(())
