@@ -96,8 +96,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     array_types_encoder: RefCell<ArrayTypesEncoder<'tcx>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
     encoding_queue: RefCell<Vec<EncodingTask<'tcx>>>,
-    vir_program_before_foldunfold_writer: RefCell<Box<dyn Write>>,
-    vir_program_before_viper_writer: RefCell<Box<dyn Write>>,
+    vir_program_before_foldunfold_writer: Option<RefCell<Box<dyn Write>>>,
+    vir_program_before_viper_writer: Option<RefCell<Box<dyn Write>>>,
     encoding_errors_counter: RefCell<usize>,
     name_interner: RefCell<NameInterner>,
     /// Maps locals to the local of their discriminant.
@@ -120,21 +120,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> Self {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-        let vir_program_before_foldunfold_writer = RefCell::new(
-            log::build_writer(
-                "vir_program_before_foldunfold",
-                format!("{}.vir", source_filename),
+        let vir_program_before_foldunfold_writer = config::dump_debug_info().then_some(
+            RefCell::new(
+                log::build_writer(
+                    "vir_program_before_foldunfold",
+                    format!("{}.vir", source_filename),
+                )
+                .ok()
+                .unwrap(),
             )
-            .ok()
-            .unwrap(),
         );
-        let vir_program_before_viper_writer = RefCell::new(
-            log::build_writer(
-                "vir_program_before_viper",
-                format!("{}.vir", source_filename),
+        let vir_program_before_viper_writer = config::dump_debug_info().then_some(
+            RefCell::new(
+                log::build_writer(
+                    "vir_program_before_viper",
+                    format!("{}.vir", source_filename),
+                )
+                .ok()
+                .unwrap(),
             )
-            .ok()
-            .unwrap(),
         );
 
         Encoder {
@@ -176,29 +180,33 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn log_vir_program_before_foldunfold<S: ToString>(&self, program: S) {
-        let mut writer = self.vir_program_before_foldunfold_writer.borrow_mut();
-        writer
-            .write_all(program.to_string().as_bytes())
-            .ok()
-            .unwrap();
-        writer
-            .write_all("\n\n".to_string().as_bytes())
-            .ok()
-            .unwrap();
-        writer.flush().ok().unwrap();
+        if let Some(shared_writer) = &self.vir_program_before_foldunfold_writer {
+            let mut writer = shared_writer.borrow_mut();
+            writer
+                .write_all(program.to_string().as_bytes())
+                .ok()
+                .unwrap();
+            writer
+                .write_all("\n\n".to_string().as_bytes())
+                .ok()
+                .unwrap();
+            writer.flush().ok().unwrap();
+        }
     }
 
     pub fn log_vir_program_before_viper<S: ToString>(&self, program: S) {
-        let mut writer = self.vir_program_before_viper_writer.borrow_mut();
-        writer
-            .write_all(program.to_string().as_bytes())
-            .ok()
-            .unwrap();
-        writer
-            .write_all("\n\n".to_string().as_bytes())
-            .ok()
-            .unwrap();
-        writer.flush().ok().unwrap();
+        if let Some(shared_writer) = &self.vir_program_before_viper_writer {
+            let mut writer = shared_writer.borrow_mut();
+            writer
+                .write_all(program.to_string().as_bytes())
+                .ok()
+                .unwrap();
+            writer
+                .write_all("\n\n".to_string().as_bytes())
+                .ok()
+                .unwrap();
+            writer.flush().ok().unwrap();
+        }
     }
 
     fn initialize(&mut self) {
