@@ -162,7 +162,9 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let mut stopwatch = Stopwatch::start("prusti-viper", "encoding to Viper");
 
         // Dump the configuration
-        log::report("config", "prusti", config::dump());
+        if config::dump_debug_info() {
+            log::report("config", "prusti", config::dump());
+        }
 
         for &proc_id in &task.procedures {
             let proc_name = self.env.get_absolute_item_name(proc_id);

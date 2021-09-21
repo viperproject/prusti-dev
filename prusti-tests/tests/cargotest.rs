@@ -92,6 +92,9 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
         let path = entry.path();
         let file_name = path.as_path().file_name()
             .unwrap_or_else(|| panic!("Failed to obtain the name of {}", path.display()));
+        if file_name == "target" {
+            continue;
+        }
         if path.is_dir() {
             project_builder = project_builder.symlink_dir(path.as_path(), Path::new(file_name));
         } else {
@@ -120,9 +123,9 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
         );
     }
 
-    // Fetch dependencies
+    // Fetch dependencies using the same target folder of cargo-prusti
     let project = project_builder.build();
-    project.process("cargo").arg("build").run();
+    project.process("cargo").arg("build").env("CARGO_TARGET_DIR", "target/verify").run();
 
     // Set the expected exit status, stdout and stderr
     let mut test_builder = project.process(cargo_prusti_path());

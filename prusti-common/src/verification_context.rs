@@ -56,36 +56,38 @@ impl<'v> VerificationContext<'v> {
         backend_config: &ViperBackendConfig,
     ) -> viper::Verifier<viper::state::Started> {
         let mut verifier_args: Vec<String> = backend_config.verifier_args.clone();
-        let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
-        create_dir_all(&log_path).unwrap();
-        let report_path: PathBuf = log_path.join("report.csv");
-        let log_dir_str = log_path.to_str().unwrap();
-        match backend_config.backend {
-            VerificationBackend::Silicon => verifier_args.extend(vec![
-                "--tempDirectory".to_string(),
-                log_dir_str.to_string(),
-            ]),
-            VerificationBackend::Carbon => verifier_args.extend(vec![
-                "--boogieOpt".to_string(),
-                format!("/logPrefix {}", log_dir_str),
-            ]),
-        }
+        let report_path: Option<PathBuf>;
         if config::dump_debug_info() {
+            let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
+            create_dir_all(&log_path).unwrap();
+            report_path = Some(log_path.join("report.csv"));
+            let log_dir_str = log_path.to_str().unwrap();
             match backend_config.backend {
                 VerificationBackend::Silicon => verifier_args.extend(vec![
+                    "--tempDirectory".to_string(),
+                    log_dir_str.to_string(),
                     "--printMethodCFGs".to_string(),
                     //"--printTranslatedProgram".to_string(),
                 ]),
-                VerificationBackend::Carbon => verifier_args.extend::<Vec<_>>(vec![
+                VerificationBackend::Carbon => verifier_args.extend(vec![
+                    "--boogieOpt".to_string(),
+                    format!("/logPrefix {}", log_dir_str),
                     //"--print".to_string(), "./log/boogie_program/program.bpl".to_string(),
                 ]),
+            }
+        } else {
+            report_path = None;
+            if backend_config.backend == VerificationBackend::Silicon {
+                verifier_args.extend(vec![
+                    "--disableTempDirectory".to_string(),
+                ]);
             }
         }
 
         self.verification_ctx.new_verifier_with_args(
             backend_config.backend,
             verifier_args,
-            Some(report_path),
+            report_path,
         )
     }
 
