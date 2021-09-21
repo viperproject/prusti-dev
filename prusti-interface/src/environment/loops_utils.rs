@@ -45,15 +45,15 @@ impl PermissionKind {
     }
 }
 
-#[derive(Debug)]
-pub struct Loan<'tcx> {
-    /// ID used in Polonius.
-    id: facts::Loan,
-    /// The location where the borrow starts.
-    location: mir::Location,
-    /// The borrowed place.
-    place: mir::Place<'tcx>,
-}
+// #[derive(Debug)]
+// pub struct Loan<'tcx> {
+//     /// ID used in Polonius.
+//     id: facts::Loan,
+//     /// The location where the borrow starts.
+//     location: mir::Location,
+//     /// The borrowed place.
+//     place: mir::Place<'tcx>,
+// }
 
 //#[derive(Clone, Copy, Debug)]
 //enum BorrowKind {
@@ -73,9 +73,9 @@ pub enum PermissionNode<'tcx> {
         place: mir::Place<'tcx>,
         kind: PermissionKind,
         child: Box<PermissionNode<'tcx>>,
-        /// A list of locations from where this borrow may be borrowing.
+        // / A list of locations from where this borrow may be borrowing.
         // TODO: Is this needed?
-        may_borrow_from: Vec<Loan<'tcx>>,
+        // may_borrow_from: Vec<Loan<'tcx>>,
     },
 }
 

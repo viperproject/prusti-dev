@@ -24,9 +24,9 @@ enum Snapshot {
     /// Encodes a complex type: tuples, ADTs, or closures.
     Complex {
         predicate_type: Type,
-        domain: String,
+        _domain: String,
         discriminant_func: vir::DomainFunc,
-        snap_func: vir::FunctionIdentifier,
+        _snap_func: vir::FunctionIdentifier,
         /// [variants] has one entry for tuples, structs, and closures.
         /// For enums, it has as many entries as there are variants.
         /// The first function is the constructor, the hashmap encodes the
@@ -39,8 +39,8 @@ enum Snapshot {
     /// Arrays
     Array {
         predicate_type: Type,
-        domain: String,
-        snap_func: vir::FunctionIdentifier,
+        _domain: String,
+        _snap_func: vir::FunctionIdentifier,
         slice_helper: vir::FunctionIdentifier,
         cons: vir::DomainFunc,
         read: vir::DomainFunc,
@@ -48,11 +48,11 @@ enum Snapshot {
     /// Slices
     Slice {
         predicate_type: Type,
-        domain: String,
-        snap_func: vir::FunctionIdentifier,
+        _domain: String,
+        _snap_func: vir::FunctionIdentifier,
         /// Collect a slice snapshot from an impure context using lookup_pure calls until we have
         /// Slice$len(self) elements in the result Seq[elem_ty]
-        slice_collect_func: vir::FunctionIdentifier,
+        _slice_collect_func: vir::FunctionIdentifier,
         /// This slice snapshot is being sliced, so we collect elements using read from self in the
         /// result Seq[elem_ty]
         slice_helper: vir::FunctionIdentifier,
@@ -63,8 +63,8 @@ enum Snapshot {
     /// Type cannot be encoded: type parameters, unsupported types.
     Abstract {
         predicate_type: Type,
-        domain: String,
-        snap_func: vir::FunctionIdentifier,
+        _domain: String,
+        _snap_func: vir::FunctionIdentifier,
     },
 
     /// A type which will be resolved to a different snapshot kind.
