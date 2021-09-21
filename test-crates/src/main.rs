@@ -243,6 +243,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .env("RUST_BACKTRACE", "1")
                         .env("PRUSTI_ASSERT_TIMEOUT", "60000")
                         .env("PRUSTI_CHECK_PANICS", "false")
+                        .env("PRUSTI_CHECK_OVERFLOWS", "false")
                         // Do not report errors for unsupported language features
                         .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true")
                         .env("PRUSTI_LOG_DIR", "/tmp/prusti_log")
