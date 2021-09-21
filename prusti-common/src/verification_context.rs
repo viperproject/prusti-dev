@@ -77,6 +77,11 @@ impl<'v> VerificationContext<'v> {
             }
         } else {
             report_path = None;
+            if backend_config.backend == VerificationBackend::Silicon {
+                verifier_args.extend(vec![
+                    "--disableTempDirectory".to_string(),
+                ]);
+            }
         }
 
         self.verification_ctx.new_verifier_with_args(
