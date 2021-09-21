@@ -124,7 +124,7 @@
 <span id="124">124</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/mod.rs.html#10"><span class="kw">super</span>::path_offset</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/imp/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
 <span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/ascii/index.html">ascii</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
 
@@ -141,23 +141,23 @@
     <span class="ident">socklen</span>: <a class="ident" href="../../../../../libc/unix/linux_like/linux/type.socklen_t.html">libc::socklen_t</a>,
 }
 
-<span class="kw">struct</span> <span class="ident">AsciiEscaped</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]);
+<span class="kw">struct</span> <span class="ident">AsciiEscaped</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
 
 <span class="kw">enum</span> <span class="ident">AddressKind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">Unnamed</span>,
     <span class="ident">Pathname</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>),
-    <span class="ident">Abstract</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]),
+    <span class="ident">Abstract</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]),
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#15-18">SocketAddr</a> {
     <span class="kw">fn</span> <span class="ident">address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AddressKind</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/mod.rs.html#10">path_offset</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">self</a>.<span class="ident">sockaddr</span>);
         <span class="comment">// Don&#39;t underflow in `len` below.</span>
-        <span class="kw">if</span> (<a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">self</a>.<span class="ident">socklen</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#30">offset</a> {
+        <span class="kw">if</span> (<a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">self</a>.<span class="ident">socklen</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">&lt;</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#30">offset</a> {
             <span class="kw">return</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#23">AddressKind::Unnamed</a>;
         }
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">self</a>.<span class="ident">socklen</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#30">offset</a>;
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">self</a>.<span class="ident">sockaddr</span>.<span class="ident">sun_path</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">libc::c_char</span>] <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u8</span>]) };
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">self</a>.<span class="ident">socklen</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">-</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#30">offset</a>;
+        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">self</a>.<span class="ident">sockaddr</span>.<span class="ident">sun_path</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">libc::c_char</span>] <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) };
 
         <span class="comment">// macOS seems to return a len of 16 and a zeroed sun_path for unnamed addresses</span>
         <span class="kw">if</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#35">len</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
@@ -204,7 +204,7 @@
         <span class="doccomment">/// [`SocketAddr`]: std::os::unix::net::SocketAddr</span>
         <span class="comment">// FIXME: The matches macro requires rust 1.42.0 and we still support 1.39.0</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::match_like_matches_macro</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unnamed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unnamed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
             <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#23">AddressKind::Unnamed</a> <span class="op">=</span> <a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#83">self</a>.<a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#29">address</a>() {
                 <span class="bool-val">true</span>
             } <span class="kw">else</span> {
@@ -241,7 +241,7 @@
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="macro">write!</span>(<a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#117">fmt</a>, <span class="string">&quot;\&quot;&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">for</span> <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#119">byte</a> <span class="kw">in</span> <a class="self" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#117">self</a>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">flat_map</span>(<span class="ident">ascii::escape_default</span>) {
-            <span class="macro">write!</span>(<a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#117">fmt</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#119">byte</a> <span class="kw">as</span> <span class="ident">char</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#117">fmt</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#119">byte</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)<span class="question-mark">?</span>;
         }
         <span class="macro">write!</span>(<a class="ident" href="../../../../../src/mio/sys/unix/uds/socketaddr.rs.html#117">fmt</a>, <span class="string">&quot;\&quot;&quot;</span>)
     }

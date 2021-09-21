@@ -898,7 +898,7 @@
 <span class="comment">// that way the one deallocating is the modification routine, outside of the signal handler.</span>
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ActionId</span>(<span class="ident">u128</span>);
+<span class="kw">struct</span> <span class="ident">ActionId</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>);
 
 <span class="doccomment">/// An ID of registered action.</span>
 <span class="doccomment">///</span>
@@ -940,7 +940,7 @@
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">signal</span>: <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">Error</a><span class="op">&gt;</span> {
         <span class="comment">// C data structure, expected to be zeroed out.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new</span>: <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.sigaction.html">libc::sigaction</a> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() };
-        <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#160">new</a>.<span class="ident">sa_sigaction</span> <span class="op">=</span> <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#342">handler</a> <span class="kw">as</span> <span class="ident">usize</span>;
+        <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#160">new</a>.<span class="ident">sa_sigaction</span> <span class="op">=</span> <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#342">handler</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="comment">// Android is broken and uses different int types than the rest (and different depending on</span>
         <span class="comment">// the pointer width). This converts the flags to the proper type no matter what it is on</span>
         <span class="comment">// the given platform.</span>
@@ -966,7 +966,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">struct</span> <span class="ident">SignalData</span> {
     <span class="ident">signals</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#137-142">Slot</a><span class="op">&gt;</span>,
-    <span class="ident">next_id</span>: <span class="ident">u128</span>,
+    <span class="ident">next_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
@@ -1027,11 +1027,11 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">siginfo</span> <span class="op">=</span> <a class="self" href="../../src/signal_hook_registry/lib.rs.html#234">self</a>.<span class="ident">info</span>.<span class="ident">sa_flags</span>;
             <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#245">siginfo</a> <span class="op">=</span> <span class="ident">libc::SA_SIGINFO</span> <span class="kw">as</span> <span class="kw">_</span>;
             <span class="kw">if</span> <a class="self" href="../../src/signal_hook_registry/lib.rs.html#234">self</a>.<span class="ident">info</span>.<span class="ident">sa_flags</span> <span class="op">&amp;</span> <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#245">siginfo</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="kw">let</span> <span class="ident">action</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>)<span class="op">&gt;</span>(<a class="ident" href="../../src/signal_hook_registry/lib.rs.html#235">fptr</a>);
+                <span class="kw">let</span> <span class="ident">action</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>)<span class="op">&gt;</span>(<a class="ident" href="../../src/signal_hook_registry/lib.rs.html#235">fptr</a>);
                 <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#248">action</a>(<a class="ident" href="../../src/signal_hook_registry/lib.rs.html#234">sig</a>);
             } <span class="kw">else</span> {
                 <span class="kw">type</span> <span class="ident">SigAction</span> <span class="op">=</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>, <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/struct.siginfo_t.html">siginfo_t</a>, <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>);
-                <span class="kw">let</span> <span class="ident">action</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#251">SigAction</a><span class="op">&gt;</span>(<a class="ident" href="../../src/signal_hook_registry/lib.rs.html#235">fptr</a>);
+                <span class="kw">let</span> <span class="ident">action</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#251">SigAction</a><span class="op">&gt;</span>(<a class="ident" href="../../src/signal_hook_registry/lib.rs.html#235">fptr</a>);
                 <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#252">action</a>(<a class="ident" href="../../src/signal_hook_registry/lib.rs.html#234">sig</a>, <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#234">info</a>, <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#234">data</a>);
             }
         }
@@ -1137,7 +1137,7 @@
             <span class="comment">// aborting. We try to write a message what happens, but using the libc stuff</span>
             <span class="comment">// (`eprintln` is not guaranteed to be async-signal-safe).</span>
             <span class="kw">unsafe</span> {
-                <span class="kw">const</span> <span class="ident">MSG</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span>
+                <span class="kw">const</span> <span class="ident">MSG</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] <span class="op">=</span>
                     <span class="string">b&quot;Platform broken, got NULL as siginfo to signal handler. Aborting&quot;</span>;
                 <span class="ident">libc::write</span>(<span class="number">2</span>, <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#358-359">MSG</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>, <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#358-359">MSG</a>.<span class="ident">len</span>());
                 <span class="ident">libc::abort</span>();
@@ -1411,7 +1411,7 @@
 <span class="doccomment">/// but it is not recommended to remove termination actions during the normal runtime of</span>
 <span class="doccomment">/// application (unless the desired effect is to create something that can be terminated only by</span>
 <span class="doccomment">/// SIGKILL).</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unregister</span>(<span class="ident">id</span>: <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#126-129">SigId</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unregister</span>(<span class="ident">id</span>: <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#126-129">SigId</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">GlobalData::ensure</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replace</span> <span class="op">=</span> <span class="bool-val">false</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#633">globals</a>.<span class="ident">data</span>.<a class="ident" href="../../src/signal_hook_registry/half_lock.rs.html#194">write</a>();
@@ -1433,7 +1433,7 @@
     <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Don&#39;t use. Can influence unrelated parts of program / unknown actions&quot;</span>
 )]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unregister_signal</span>(<span class="ident">signal</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unregister_signal</span>(<span class="ident">signal</span>: <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">GlobalData::ensure</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replace</span> <span class="op">=</span> <span class="bool-val">false</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <a class="ident" href="../../src/signal_hook_registry/lib.rs.html#655">globals</a>.<span class="ident">data</span>.<a class="ident" href="../../src/signal_hook_registry/half_lock.rs.html#194">write</a>();

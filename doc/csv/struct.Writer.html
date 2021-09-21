@@ -118,7 +118,7 @@ categories: scalars, non-struct containers, and structs.</p>
 <p>Single values with no field names are written like the following. Note
 that some of the outputs may be quoted, according to the selected
 quoting style.</p>
-<table><thead><tr><th>Name</th><th>Example Type</th><th>Example Value</th><th>Output</th></tr></thead><tbody>
+<div><table><thead><tr><th>Name</th><th>Example Type</th><th>Example Value</th><th>Output</th></tr></thead><tbody>
 <tr><td>boolean</td><td><code>bool</code></td><td><code>true</code></td><td><code>true</code></td></tr>
 <tr><td>integers</td><td><code>i8</code>, <code>i16</code>, <code>i32</code>, <code>i64</code>, <code>i128</code>, <code>u8</code>, <code>u16</code>, <code>u32</code>, <code>u64</code>, <code>u128</code></td><td><code>5</code></td><td><code>5</code></td></tr>
 <tr><td>floats</td><td><code>f32</code>, <code>f64</code></td><td><code>3.14</code></td><td><code>3.14</code></td></tr>
@@ -133,6 +133,7 @@ quoting style.</p>
 <tr><td>newtype struct</td><td><code>struct Foo(u8);</code></td><td><code>Foo(5)</code></td><td><code>5</code></td></tr>
 <tr><td>newtype enum variant</td><td><code>enum E { A(u8) }</code></td><td><code>E::A(5)</code></td><td><code>5</code></td></tr>
 </tbody></table>
+</div>
 <p>Note that this table includes simple structs and enums. For example, to
 serialize a field from either an integer or a float type, one can do
 this:</p>
@@ -176,7 +177,7 @@ bar,3.14
 <h2 id="non-struct-containers" class="section-header"><a href="#non-struct-containers">Non-Struct Containers</a></h2>
 <p>Nested containers are flattened to their scalar components, with the
 exception of a few types that are not allowed:</p>
-<table><thead><tr><th>Name</th><th>Example Type</th><th>Example Value</th><th>Output</th></tr></thead><tbody>
+<div><table><thead><tr><th>Name</th><th>Example Type</th><th>Example Value</th><th>Output</th></tr></thead><tbody>
 <tr><td>sequence</td><td><code>Vec&lt;u8&gt;</code></td><td><code>vec![1, 2, 3]</code></td><td><code>1,2,3</code></td></tr>
 <tr><td>tuple</td><td><code>(u8, bool)</code></td><td><code>(5, true)</code></td><td><code>5,true</code></td></tr>
 <tr><td>tuple struct</td><td><code>Foo(u8, bool)</code></td><td><code>Foo(5, true)</code></td><td><code>5,true</code></td></tr>
@@ -184,12 +185,13 @@ exception of a few types that are not allowed:</p>
 <tr><td>struct enum variant</td><td><code>enum E { V { a: u8, b: bool } }</code></td><td><code>E::V { a: 5, b: true }</code></td><td><em>error</em></td></tr>
 <tr><td>map</td><td><code>BTreeMap&lt;K, V&gt;</code></td><td><code>BTreeMap::new()</code></td><td><em>error</em></td></tr>
 </tbody></table>
-<h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+</div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
 <p>Like the other containers, structs are flattened to their scalar
 components:</p>
-<table><thead><tr><th>Name</th><th>Example Type</th><th>Example Value</th><th>Output</th></tr></thead><tbody>
+<div><table><thead><tr><th>Name</th><th>Example Type</th><th>Example Value</th><th>Output</th></tr></thead><tbody>
 <tr><td>struct</td><td><code>struct Foo { a: u8, b: bool }</code></td><td><code>Foo { a: 5, b: true }</code></td><td><code>5,true</code></td></tr>
 </tbody></table>
+</div>
 <p>If <code>has_headers</code> is <code>false</code>, then there are no additional restrictions;
 types can be nested arbitrarily. For example:</p>
 
@@ -232,7 +234,7 @@ serialization would return an error. Specifically, when <code>has_headers</code>
 </ol>
 <p>Other than these two restrictions, types can be nested arbitrarily.
 Here are a few examples:</p>
-<table><thead><tr><th>Value</th><th>Header</th><th>Record</th></tr></thead><tbody>
+<div><table><thead><tr><th>Value</th><th>Header</th><th>Record</th></tr></thead><tbody>
 <tr><td><code>(Foo { x: 5, y: 6 }, Bar { z: true })</code></td><td><code>x,y,z</code></td><td><code>5,6,true</code></td></tr>
 <tr><td><code>vec![Foo { x: 5, y: 6 }, Foo { x: 7, y: 8 }]</code></td><td><code>x,y,x,y</code></td><td><code>5,6,7,8</code></td></tr>
 <tr><td><code>(Foo { x: 5, y: 6 }, vec![Bar { z: Baz(true) }])</code></td><td><code>x,y,z</code></td><td><code>5,6,true</code></td></tr>
@@ -240,7 +242,7 @@ Here are a few examples:</p>
 <tr><td><code>(5, Foo { x: 6, y: 7 }</code></td><td><em>error: restriction 2</em></td><td><code>5,6,7</code></td></tr>
 <tr><td><code>(Foo { x: 5, y: 6 }, true)</code></td><td><em>error: restriction 2</em></td><td><code>5,6,true</code></td></tr>
 </tbody></table>
-</div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.write_record" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/csv/writer.rs.html#893-902" title="goto source code">[src]</a></div><a href="#method.write_record" class="anchor"></a><h4 class="code-header">pub fn <a href="#method.write_record" class="fnname">write_record</a>&lt;I, T&gt;(&amp;mut self, record: I) -&gt; <a class="type" href="type.Result.html" title="type csv::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;I: <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html" title="trait core::iter::traits::collect::IntoIterator">IntoIterator</a>&lt;Item = T&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;T: <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html" title="trait core::convert::AsRef">AsRef</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">[</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>&gt;,&nbsp;</span></h4></div></summary><div class="docblock"><p>Write a single record.</p>
+</div></div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.write_record" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/csv/writer.rs.html#893-902" title="goto source code">[src]</a></div><a href="#method.write_record" class="anchor"></a><h4 class="code-header">pub fn <a href="#method.write_record" class="fnname">write_record</a>&lt;I, T&gt;(&amp;mut self, record: I) -&gt; <a class="type" href="type.Result.html" title="type csv::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;I: <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html" title="trait core::iter::traits::collect::IntoIterator">IntoIterator</a>&lt;Item = T&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;T: <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html" title="trait core::convert::AsRef">AsRef</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">[</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>&gt;,&nbsp;</span></h4></div></summary><div class="docblock"><p>Write a single record.</p>
 <p>This method accepts something that can be turned into an iterator that
 yields elements that can be represented by a <code>&amp;[u8]</code>.</p>
 <p>This may be called with an empty iterator, which will cause a record

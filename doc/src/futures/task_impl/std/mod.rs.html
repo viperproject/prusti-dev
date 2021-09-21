@@ -746,17 +746,17 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../../src/futures/task_impl/core.rs.html#134">task_impl::core::init</a>;
 
-<span class="macro">thread_local!</span>(<span class="kw">static</span> <span class="ident">CURRENT_TASK</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Cell::new</span>(<span class="ident">ptr::null_mut</span>()));
+<span class="macro">thread_local!</span>(<span class="kw">static</span> <span class="ident">CURRENT_TASK</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Cell::new</span>(<span class="ident">ptr::null_mut</span>()));
 
 <span class="doccomment">/// Return whether the caller is running in a task (and so can use task_local!).</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_in_task</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_in_task</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#30">CURRENT_TASK</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">task</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#34">task</a>.<span class="ident">get</span>().<span class="ident">is_null</span>())
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 <span class="kw">static</span> <span class="ident">INIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/once/struct.Once.html">Once</a> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/once/constant.ONCE_INIT.html">ONCE_INIT</a>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ptr</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ptr</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
     <span class="comment">// Since this condition will always return true when TLS task storage is</span>
     <span class="comment">// used (the default), the branch predictor will be able to optimize the</span>
     <span class="comment">// branching and a dynamic dispatch will be avoided, which makes the</span>
@@ -768,7 +768,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">tls_slot</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">tls_slot</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
     <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#30">CURRENT_TASK</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#53">c</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>)
 }
 
@@ -780,14 +780,14 @@
     <span class="comment">// Note that we won&#39;t actually use these functions ever, we&#39;ll instead be</span>
     <span class="comment">// testing the pointer&#39;s value elsewhere and calling our own functions.</span>
     <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#38">INIT</a>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="number">0x1</span>);
-        <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="number">0x2</span>);
+        <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="number">0x1</span>);
+        <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="number">0x2</span>);
         <a class="ident" href="../../../../src/futures/task_impl/core.rs.html#134">init</a>(<a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#64">get</a>, <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#65">set</a>);
     });
 
     <span class="comment">// Same as above.</span>
     <span class="kw">if</span> <a class="ident" href="../../../../src/futures/task_impl/core.rs.html#162">core::is_get_ptr</a>(<span class="number">0x1</span>) {
-        <span class="kw">struct</span> <span class="ident">Reset</span>(<span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span><span class="op">&gt;</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>);
+        <span class="kw">struct</span> <span class="ident">Reset</span>(<span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
 
         <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#71">Reset</a> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -801,7 +801,7 @@
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#52">tls_slot</a>();
             <span class="kw">let</span> <span class="ident">_reset</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#71">Reset</a>(<a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#83">slot</a>, (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#83">slot</a>).<span class="ident">get</span>());
-            (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#83">slot</a>).<span class="ident">set</span>(<a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#56">task</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>);
+            (<span class="kw-2">*</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#83">slot</a>).<span class="ident">set</span>(<a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#56">task</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>);
             <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#56">f</a>()
         }
     } <span class="kw">else</span> {
@@ -840,7 +840,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">BorrowedUnpark</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/futures/task_impl/mod.rs.html#633-635">NotifyHandle</a>, <span class="ident">id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BorrowedUnpark</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/futures/task_impl/mod.rs.html#633-635">NotifyHandle</a>, <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BorrowedUnpark</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#97">BorrowedUnpark::New</a>(<span class="ident">core::BorrowedUnpark::new</span>(<a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#124">f</a>, <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#124">id</a>))
     }
 
@@ -898,7 +898,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">will_notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">events</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#102-105">BorrowedEvents</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">will_notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">events</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#102-105">BorrowedEvents</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// Pessimistically assume that any unpark events mean that we&#39;re not</span>
         <span class="comment">// equivalent to the current task.</span>
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../../../src/futures/task_impl/std/mod.rs.html#182">self</a> {
@@ -924,7 +924,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">will_notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">unpark</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#95-98">BorrowedUnpark</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">will_notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">unpark</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#95-98">BorrowedUnpark</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">match</span> (<a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#208">unpark</a>, <a class="self" href="../../../../src/futures/task_impl/std/mod.rs.html#208">self</a>) {
             (<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#96">BorrowedUnpark::Old</a>(<span class="ident">old1</span>), <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#110">TaskUnpark::Old</a>(<span class="kw-2">ref</span> <span class="ident">old2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#210">old1</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#376-383">Unpark</a> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#210">old2</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#376-383">Unpark</a>
@@ -1170,7 +1170,7 @@
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 <span class="kw">impl</span> <a class="ident" href="../../../../src/futures/task_impl/mod.rs.html#426-480">Notify</a> <span class="kw">for</span> <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#410-413">RunInner</a> {
-    <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_id</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="kw">match</span> <a class="self" href="../../../../src/futures/task_impl/std/mod.rs.html#454">self</a>.<span class="ident">mutex</span>.<a class="ident" href="../../../../src/futures/task_impl/std/unpark_mutex.rs.html#59">notify</a>() {
             <span class="prelude-val">Ok</span>(<span class="ident">run</span>) <span class="op">=</span><span class="op">&gt;</span> <a class="self" href="../../../../src/futures/task_impl/std/mod.rs.html#454">self</a>.<span class="ident">exec</span>.<a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#398">execute</a>(<a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#456">run</a>),
             <span class="prelude-val">Err</span>(()) <span class="op">=</span><span class="op">&gt;</span> {}
@@ -1186,9 +1186,9 @@
     <span class="ident">condvar</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>,
 }
 
-<span class="kw">const</span> <span class="ident">IDLE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
-<span class="kw">const</span> <span class="ident">NOTIFY</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
-<span class="kw">const</span> <span class="ident">SLEEP</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">const</span> <span class="ident">IDLE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">const</span> <span class="ident">NOTIFY</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">const</span> <span class="ident">SLEEP</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">2</span>;
 
 <span class="macro">thread_local!</span> {
     <span class="kw">static</span> <span class="ident">CURRENT_THREAD_NOTIFY</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#464-468">ThreadNotify</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#464-468">ThreadNotify</a> {
@@ -1243,7 +1243,7 @@
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/futures/task_impl/mod.rs.html#426-480">Notify</a> <span class="kw">for</span> <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#464-468">ThreadNotify</a> {
-    <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_unpark_id</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_unpark_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="comment">// First, try transitioning from IDLE -&gt; NOTIFY, this does not require a</span>
         <span class="comment">// lock.</span>
         <span class="kw">match</span> <a class="self" href="../../../../src/futures/task_impl/std/mod.rs.html#527">self</a>.<span class="ident">state</span>.<span class="ident">compare_and_swap</span>(<a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#470">IDLE</a>, <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#471">NOTIFY</a>, <span class="ident">Ordering::SeqCst</span>) {
@@ -1318,7 +1318,7 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnparkEvent</span> {
     <span class="ident">set</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#637-640">EventSet</a><span class="op">&gt;</span>,
-    <span class="ident">item</span>: <span class="ident">usize</span>,
+    <span class="ident">item</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
@@ -1326,7 +1326,7 @@
     <span class="doccomment">/// Construct an unpark event that will insert `id` into `set` when</span>
     <span class="doccomment">/// triggered.</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;recommended to use `FuturesUnordered` instead&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">set</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#637-640">EventSet</a><span class="op">&gt;</span>, <span class="ident">id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#600-603">UnparkEvent</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">set</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#637-640">EventSet</a><span class="op">&gt;</span>, <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#600-603">UnparkEvent</a> {
         <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#600-603">UnparkEvent</a> {
             <span class="ident">set</span>: <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#610">set</a>,
             <span class="ident">item</span>: <a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#610">id</a>,
@@ -1355,7 +1355,7 @@
 <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span><span class="op">=</span><span class="string">&quot;0.1.18&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;recommended to use `FuturesUnordered` instead&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">EventSet</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
     <span class="doccomment">/// Insert the given ID into the set</span>
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">usize</span>);
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 }
 
 <span class="comment">// Safe implementation of `UnsafeNotify` for `Arc` in the standard library.</span>
@@ -1378,7 +1378,7 @@
 <span class="kw">struct</span> <span class="ident">ArcWrapped</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../../src/futures/task_impl/mod.rs.html#426-480">Notify</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/futures/task_impl/mod.rs.html#426-480">Notify</a> <span class="kw">for</span> <span class="ident">ArcWrapped</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">me</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ArcWrapped</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../../src/futures/task_impl/std/mod.rs.html#662">self</a>;
             <span class="ident">T::notify</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#664">me</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ArcWrapped</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
@@ -1386,7 +1386,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">clone_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">clone_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">me</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ArcWrapped</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../../src/futures/task_impl/std/mod.rs.html#670">self</a>;
             <span class="ident">T::clone_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#672">me</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ArcWrapped</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
@@ -1394,7 +1394,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">drop_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">drop_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">me</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ArcWrapped</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../../src/futures/task_impl/std/mod.rs.html#678">self</a>;
             <span class="ident">T::drop_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/futures/task_impl/std/mod.rs.html#680">me</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ArcWrapped</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),

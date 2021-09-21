@@ -66,7 +66,7 @@
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/c_str/struct.CString.html">std::ffi::CString</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">std::ffi::OsStr</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/imp/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">std::os::unix::ffi::OsStrExt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
@@ -95,15 +95,15 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_noattr</span>(<span class="ident">result</span>: <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_noattr</span>(<span class="ident">result</span>: <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <a class="ident" href="../../src/xattr/util.rs.html#33">result</a>.<span class="ident">map</span>(<span class="prelude-val">Some</span>).<span class="ident">or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/xattr/util.rs.html#34">e</a>.<span class="ident">raw_os_error</span>() {
         <span class="prelude-val">Some</span>(<a class="ident" href="../../src/xattr/sys/mod.rs.html#37-40">ENOATTR</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/xattr/util.rs.html#34">e</a>),
     })
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">allocate_loop</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ssize_t</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">allocate_loop</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ssize_t</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">loop</span> {
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> (<a class="ident" href="../../src/xattr/util.rs.html#40">f</a>)(<span class="ident">ptr::null_mut</span>(), <span class="number">0</span>);
         <span class="kw">if</span> <a class="ident" href="../../src/xattr/util.rs.html#43">ret</a> <span class="op">&lt;</span> <span class="number">0</span> {
@@ -111,11 +111,11 @@
         } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/xattr/util.rs.html#43">ret</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">break</span>;
         }
-        <a class="ident" href="../../src/xattr/util.rs.html#41">vec</a>.<span class="ident">reserve_exact</span>(<a class="ident" href="../../src/xattr/util.rs.html#43">ret</a> <span class="kw">as</span> <span class="ident">usize</span>);
+        <a class="ident" href="../../src/xattr/util.rs.html#41">vec</a>.<span class="ident">reserve_exact</span>(<a class="ident" href="../../src/xattr/util.rs.html#43">ret</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> (<a class="ident" href="../../src/xattr/util.rs.html#40">f</a>)(<a class="ident" href="../../src/xattr/util.rs.html#41">vec</a>.<span class="ident">as_mut_ptr</span>(), <a class="ident" href="../../src/xattr/util.rs.html#41">vec</a>.<span class="ident">capacity</span>());
         <span class="kw">if</span> <a class="ident" href="../../src/xattr/util.rs.html#51">ret</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-            <a class="ident" href="../../src/xattr/util.rs.html#41">vec</a>.<span class="ident">set_len</span>(<a class="ident" href="../../src/xattr/util.rs.html#51">ret</a> <span class="kw">as</span> <span class="ident">usize</span>);
+            <a class="ident" href="../../src/xattr/util.rs.html#41">vec</a>.<span class="ident">set_len</span>(<a class="ident" href="../../src/xattr/util.rs.html#51">ret</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
             <span class="kw">break</span>;
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">io::Error::last_os_error</span>();

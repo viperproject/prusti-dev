@@ -212,7 +212,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIGNALFD_NEW</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIGNALFD_SIGINFO_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">128</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIGNALFD_SIGINFO_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">128</span>;
 
 <span class="doccomment">/// Creates a new file descriptor for reading signals.</span>
 <span class="doccomment">///</span>
@@ -276,13 +276,13 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_signal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../nix/sys/signalfd/struct.siginfo.html">siginfo</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit</span>::<span class="op">&lt;</span>[<span class="ident">u8</span>; <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#37">SIGNALFD_SIGINFO_SIZE</a>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit</span>::<span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#37">SIGNALFD_SIGINFO_SIZE</a>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Errno::result</span>(<span class="kw">unsafe</span> {
             <span class="ident">libc::read</span>(<a class="self" href="../../../src/nix/sys/signalfd.rs.html#100">self</a>.<span class="number">0</span>,
                        <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#101">buffer</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>,
                        <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#37">SIGNALFD_SIGINFO_SIZE</a> <span class="kw">as</span> <a class="ident" href="../../../libc/unix/type.size_t.html">libc::size_t</a>)
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#107">r</a> <span class="kw">as</span> <span class="ident">usize</span>);
+        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#107">r</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
         <span class="kw">match</span> <a class="ident" href="../../../src/nix/sys/signalfd.rs.html#103">res</a> {
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/nix/sys/signalfd.rs.html#37">SIGNALFD_SIGINFO_SIZE</a>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">mem::transmute</span>(<a class="ident" href="../../../src/nix/sys/signalfd.rs.html#101">buffer</a>.<span class="ident">assume_init</span>()) })),
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;partial read on signalfd&quot;</span>),

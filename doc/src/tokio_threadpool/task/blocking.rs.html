@@ -565,31 +565,31 @@
 <span class="doccomment">/// Decorates the `usize` value of `Blocking::state`, providing fns to</span>
 <span class="doccomment">/// manipulate the state instead of requiring bit ops.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">struct</span> <span class="ident">State</span>(<span class="ident">usize</span>);
+<span class="kw">struct</span> <span class="ident">State</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
 
 <span class="doccomment">/// Flag differentiating between remaining capacity and task pointers.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// If we assume pointers are properly aligned, then the least significant bit</span>
 <span class="doccomment">/// will always be zero. So, we use that bit to track if the value represents a</span>
 <span class="doccomment">/// number.</span>
-<span class="kw">const</span> <span class="ident">NUM_FLAG</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">const</span> <span class="ident">NUM_FLAG</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="doccomment">/// When representing &quot;numbers&quot;, the state has to be shifted this much (to get</span>
 <span class="doccomment">/// rid of the flag bit).</span>
-<span class="kw">const</span> <span class="ident">NUM_SHIFT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">const</span> <span class="ident">NUM_SHIFT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="comment">// ====== impl Blocking =====</span>
 <span class="comment">//</span>
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#19-48">Blocking</a> {
     <span class="doccomment">/// Create a new `Blocking`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#19-48">Blocking</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#19-48">Blocking</a> {
         <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#89">capacity</a> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;blocking capacity must be greater than zero&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">stub</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">Task::stub</span>());
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#92">stub</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
 
         <span class="comment">// Allocations are aligned</span>
-        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#93">ptr</a> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#79">NUM_FLAG</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#93">ptr</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#79">NUM_FLAG</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
 
         <span class="comment">// The initial state value. This starts at the max capacity.</span>
         <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">State::new</span>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#89">capacity</a>);
@@ -722,7 +722,7 @@
         <span class="comment">// Update the head to point to the new node. We need to see the previous</span>
         <span class="comment">// node in order to update the next pointer as well as release `task`</span>
         <span class="comment">// to any other threads calling `push`.</span>
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#218">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#219">task</a> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">AcqRel</span>);
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#218">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#219">task</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">AcqRel</span>);
 
         <span class="comment">// The stub is only pushed when there are pending tasks. Because of</span>
         <span class="comment">// this, the state must *always* be in pointer mode.</span>
@@ -780,7 +780,7 @@
     <span class="doccomment">/// `rem` represents the remaining number of times the caller will pop. If</span>
     <span class="doccomment">/// there are no more tasks to pop, `rem` is used to set the remaining</span>
     <span class="doccomment">/// capacity.</span>
-    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rem</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rem</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop</span> {
             <span class="kw">unsafe</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#287">self</a>.<span class="ident">tail</span>.<span class="ident">get</span>();
@@ -855,7 +855,7 @@
                 <span class="comment">// This must always be a pointer</span>
                 <span class="macro">debug_assert!</span>(<span class="ident">State::from</span>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#357">state</a>).<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#453">is_ptr</a>());
 
-                <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#357">state</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#290">tail</a> <span class="kw">as</span> <span class="ident">usize</span> {
+                <span class="kw">if</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#357">state</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#290">tail</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
                     <span class="comment">// Try again</span>
                     <span class="ident">thread::yield_now</span>();
                     <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
@@ -883,11 +883,11 @@
 <span class="kw">impl</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a> {
     <span class="doccomment">/// Return a new `State` representing the remaining capacity at the maximum</span>
     <span class="doccomment">/// value.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a> {
         <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a>((<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#390">capacity</a> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#83">NUM_SHIFT</a>) <span class="op">|</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#79">NUM_FLAG</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">remaining_capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">remaining_capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#394">self</a>.<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#402">has_remaining_capacity</a>() {
             <span class="kw">return</span> <span class="number">0</span>;
         }
@@ -895,16 +895,16 @@
         <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#394">self</a>.<span class="number">0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">has_remaining_capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">has_remaining_capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#402">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#79">NUM_FLAG</a> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#79">NUM_FLAG</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">has_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">has_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="op">!</span>(<a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#406">self</a>.<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#402">has_remaining_capacity</a>() <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#406">self</a>.<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#410">is_stub</a>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#406">stub</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">is_stub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#410">self</a>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#410">stub</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>
+    <span class="kw">fn</span> <span class="ident">is_stub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#410">self</a>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#410">stub</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     }
 
     <span class="doccomment">/// Try to claim blocking capacity.</span>
@@ -914,7 +914,7 @@
     <span class="doccomment">/// Returns `true` if the capacity was claimed, `false` otherwise. If</span>
     <span class="doccomment">/// `false` is returned, it can be assumed that `State` represents the head</span>
     <span class="doccomment">/// pointer in the mpsc channel.</span>
-    <span class="kw">fn</span> <span class="ident">claim_capacity</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">claim_capacity</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#421">self</a>.<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#402">has_remaining_capacity</a>() {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
@@ -925,14 +925,14 @@
 
         <span class="kw">if</span> <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#421">self</a>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#79">NUM_FLAG</a> {
             <span class="comment">// Set the state to the stub pointer.</span>
-            <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#421">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#421">stub</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>;
+            <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#421">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#421">stub</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         }
 
         <span class="bool-val">true</span>
     }
 
     <span class="doccomment">/// Add blocking capacity.</span>
-    <span class="kw">fn</span> <span class="ident">add_capacity</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">capacity</span>: <span class="ident">usize</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">add_capacity</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#439">capacity</a> <span class="op">&gt;</span> <span class="number">0</span>);
 
         <span class="kw">if</span> <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#439">self</a>.<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#410">is_stub</a>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#439">stub</a>) {
@@ -946,7 +946,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#453">self</a>.<span class="number">0</span> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#79">NUM_FLAG</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
     }
 
@@ -959,20 +959,20 @@
     }
 
     <span class="kw">fn</span> <span class="ident">set_ptr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <a class="ident" href="../../../src/tokio_threadpool/task/mod.rs.html#25-54">Task</a>) {
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#465">ptr</a> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#465">ptr</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#466">ptr</a> <span class="op">&amp;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#79">NUM_FLAG</a> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
         <a class="self" href="../../../src/tokio_threadpool/task/blocking.rs.html#465">self</a>.<span class="number">0</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#466">ptr</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a> {
         <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a>(<a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#473">src</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">usize</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#72">State</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <a class="ident" href="../../../src/tokio_threadpool/task/blocking.rs.html#479">src</a>.<span class="number">0</span>
     }
 }

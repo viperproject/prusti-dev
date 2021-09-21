@@ -146,16 +146,16 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Three words should be enough for the majority of cases. For example, you can fit inside it the</span>
 <span class="doccomment">/// function pointer together with a fat pointer representing an object that needs to be destroyed.</span>
-<span class="kw">const</span> <span class="ident">DATA_WORDS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="kw">const</span> <span class="ident">DATA_WORDS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">3</span>;
 
 <span class="doccomment">/// Some space to keep a `FnOnce()` object on the stack.</span>
-<span class="kw">type</span> <span class="ident">Data</span> <span class="op">=</span> [<span class="ident">usize</span>; <a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#13">DATA_WORDS</a>];
+<span class="kw">type</span> <span class="ident">Data</span> <span class="op">=</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>; <a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#13">DATA_WORDS</a>];
 
 <span class="doccomment">/// A `FnOnce()` that is stored inline if small, or otherwise boxed on the heap.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This is a handy way of keeping an unsized `FnOnce()` within a sized structure.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Deferred</span> {
-    <span class="ident">call</span>: <span class="kw">unsafe</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>),
+    <span class="ident">call</span>: <span class="kw">unsafe</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>),
     <span class="ident">data</span>: <a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#16">Data</a>,
     <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> ()<span class="op">&gt;</span>, <span class="comment">// !Send + !Sync</span>
 }
@@ -177,7 +177,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span><a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#16">Data</a><span class="op">&gt;</span><span class="ident">::uninit</span>();
                 <span class="ident">ptr::write</span>(<a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#41">data</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">F</span>, <a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#35">f</a>);
 
-                <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">call</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>()<span class="op">&gt;</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) {
+                <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">call</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>()<span class="op">&gt;</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
                     <span class="kw">let</span> <span class="ident">f</span>: <span class="ident">F</span> <span class="op">=</span> <span class="ident">ptr::read</span>(<a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#44">raw</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">F</span>);
                     <a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#45">f</a>();
                 }
@@ -192,7 +192,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span><a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#16">Data</a><span class="op">&gt;</span><span class="ident">::uninit</span>();
                 <span class="ident">ptr::write</span>(<a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#56">data</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>, <a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#55">b</a>);
 
-                <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">call</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>()<span class="op">&gt;</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) {
+                <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">call</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>()<span class="op">&gt;</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
                     <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ptr::read</span>(<a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#59">raw</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>);
                     (<span class="kw-2">*</span><a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#60">b</a>)();
                 }
@@ -210,7 +210,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <a class="self" href="../../src/crossbeam_epoch/deferred.rs.html#75">self</a>.<span class="ident">call</span>;
-        <span class="kw">unsafe</span> { <a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#76">call</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../src/crossbeam_epoch/deferred.rs.html#75">self</a>.<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#16">Data</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) };
+        <span class="kw">unsafe</span> { <a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#76">call</a>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="self" href="../../src/crossbeam_epoch/deferred.rs.html#75">self</a>.<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="../../src/crossbeam_epoch/deferred.rs.html#16">Data</a> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) };
     }
 }
 

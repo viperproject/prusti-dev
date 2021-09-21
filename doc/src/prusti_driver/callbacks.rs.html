@@ -119,7 +119,6 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
-<span id="122">122</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../src/prusti_driver/verifier.rs.html#12"><span class="kw">crate</span>::verifier::verify</a>;
 <span class="kw">use</span> <a class="ident" href="../../prusti_common/config/index.html">prusti_common::config</a>;
 <span class="kw">use</span> <span class="ident">prusti_interface</span>::{
@@ -128,7 +127,7 @@
 };
 <span class="kw">use</span> <a class="ident" href="../../regex/re_unicode/struct.Regex.html">regex::Regex</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">rustc_driver::Compilation</a>;
-<span class="kw">use</span> <span class="ident">rustc_hir</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">def_id::LocalDefId</a>, <span class="ident">intravisit</span>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">rustc_hir::def_id::LocalDefId</a>;
 <span class="kw">use</span> <span class="ident">rustc_interface</span>::{<span class="ident">interface::Compiler</span>, <span class="ident">Config</span>, <span class="ident">Queries</span>};
 <span class="kw">use</span> <span class="ident">rustc_middle::ty</span>::{
     <a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">self</a>,
@@ -142,7 +141,7 @@
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::needless_lifetimes</span>)]</span>
 <span class="kw">fn</span> <span class="ident">mir_borrowck</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(<span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">mir_borrowck</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">body_with_facts</span> <span class="op">=</span> <span class="ident">rustc_mir::consumers::get_body_with_borrowck_facts</span>(
+    <span class="kw">let</span> <span class="ident">body_with_facts</span> <span class="op">=</span> <span class="ident">rustc_borrowck::consumers::get_body_with_borrowck_facts</span>(
         <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#22">tcx</a>,
         <span class="ident">ty::WithOptConstParam::unknown</span>(<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#22">def_id</a>),
     );
@@ -152,7 +151,7 @@
         <span class="ident">mir_storage::store_mir_body</span>(<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#22">tcx</a>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#22">def_id</a>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#23">body_with_facts</a>);
     }
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">providers</span> <span class="op">=</span> <span class="ident">Providers::default</span>();
-    <span class="ident">rustc_mir::provide</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#32">providers</a>);
+    <span class="ident">rustc_borrowck::provide</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#32">providers</a>);
     <span class="kw">let</span> <span class="ident">original_mir_borrowck</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#32">providers</a>.<span class="ident">mir_borrowck</span>;
     <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#34">original_mir_borrowck</a>(<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#22">tcx</a>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#22">def_id</a>)
 }
@@ -192,22 +191,21 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">Compilation</a> {
         <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#68">compiler</a>.<span class="ident">session</span>().<span class="ident">abort_if_errors</span>();
         <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#69">queries</a>.<span class="ident">global_ctxt</span>().<span class="ident">unwrap</span>().<span class="ident">peek_mut</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">tcx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">hir</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#72">tcx</a>.<span class="ident">hir</span>();
-            <span class="kw">let</span> <span class="ident">krate</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#73">hir</a>.<span class="ident">krate</span>();
             <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">Environment::new</span>(<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#72">tcx</a>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spec_checker</span> <span class="op">=</span> <span class="ident">specs::checker::SpecChecker::new</span>();
-            <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#76">spec_checker</a>.<span class="ident">check_predicate_usages</span>(<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#72">tcx</a>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#74">krate</a>);
-            <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#76">spec_checker</a>.<span class="ident">report_errors</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/callbacks.rs.html#75">env</a>);
+            <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#74">spec_checker</a>.<span class="ident">check_predicate_usages</span>(<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#72">tcx</a>);
+            <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#74">spec_checker</a>.<span class="ident">report_errors</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/callbacks.rs.html#73">env</a>);
             <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#68">compiler</a>.<span class="ident">session</span>().<span class="ident">abort_if_errors</span>();
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spec_collector</span> <span class="op">=</span> <span class="ident">specs::SpecCollector::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/callbacks.rs.html#75">env</a>);
-            <span class="ident">intravisit::walk_crate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#81">spec_collector</a>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#74">krate</a>);
-            <span class="kw">let</span> <span class="ident">def_spec</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#81">spec_collector</a>.<span class="ident">build_def_specs</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/callbacks.rs.html#75">env</a>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spec_collector</span> <span class="op">=</span> <span class="ident">specs::SpecCollector::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/callbacks.rs.html#73">env</a>);
+            <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#72">tcx</a>.<span class="ident">hir</span>().<span class="ident">walk_toplevel_module</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#79">spec_collector</a>);
+            <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#72">tcx</a>.<span class="ident">hir</span>().<span class="ident">walk_attributes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#79">spec_collector</a>);
+            <span class="kw">let</span> <span class="ident">def_spec</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#79">spec_collector</a>.<span class="ident">build_def_specs</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/callbacks.rs.html#73">env</a>);
             <span class="kw">if</span> <span class="ident">config::print_typeckd_specs</span>() {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#83">def_spec</a>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#82">def_spec</a>
                     .<span class="ident">specs</span>
                     .<span class="ident">values</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">spec</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#88">spec</a>))
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">spec</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#87">spec</a>))
                     .<span class="ident">collect</span>();
                 <span class="kw">if</span> <span class="ident">config::hide_uuids</span>() {
                     <span class="kw">let</span> <span class="ident">uuid</span> <span class="op">=</span>
@@ -215,22 +213,22 @@
                             .<span class="ident">unwrap</span>();
                     <span class="kw">let</span> <span class="ident">num_uuid</span> <span class="op">=</span> <span class="ident">Regex::new</span>(<span class="string">&quot;[a-z0-9]{32}&quot;</span>).<span class="ident">unwrap</span>();
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replaced_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-                    <span class="kw">for</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#96">item</a> <span class="kw">in</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#85">values</a> {
-                        <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#94">num_uuid</a>.<span class="ident">replace_all</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/callbacks.rs.html#96">item</a>, <span class="string">&quot;$(NUM_UUID)&quot;</span>);
-                        <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#91">uuid</a>.<span class="ident">replace_all</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/callbacks.rs.html#97">item</a>, <span class="string">&quot;$(UUID)&quot;</span>);
-                        <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#95">replaced_values</a>.<span class="ident">push</span>(<span class="ident">String::from</span>(<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#98">item</a>));
+                    <span class="kw">for</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#95">item</a> <span class="kw">in</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#84">values</a> {
+                        <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#93">num_uuid</a>.<span class="ident">replace_all</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/callbacks.rs.html#95">item</a>, <span class="string">&quot;$(NUM_UUID)&quot;</span>);
+                        <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#90">uuid</a>.<span class="ident">replace_all</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/callbacks.rs.html#96">item</a>, <span class="string">&quot;$(UUID)&quot;</span>);
+                        <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#94">replaced_values</a>.<span class="ident">push</span>(<span class="ident">String::from</span>(<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#97">item</a>));
                     }
-                    <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#85">values</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#95">replaced_values</a>;
+                    <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#84">values</a> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#94">replaced_values</a>;
                 }
                 <span class="comment">// We sort in this strange way so that the output is</span>
                 <span class="comment">// determinstic enough to be used in tests.</span>
-                <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#85">values</a>.<span class="ident">sort_by_key</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#105">v</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#105">v</a>.<span class="ident">to_string</span>()));
-                <span class="kw">for</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#106">value</a> <span class="kw">in</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#85">values</a> {
-                    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#106">value</a>);
+                <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#84">values</a>.<span class="ident">sort_by_key</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#104">v</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#104">v</a>.<span class="ident">to_string</span>()));
+                <span class="kw">for</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#105">value</a> <span class="kw">in</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#84">values</a> {
+                    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#105">value</a>);
                 }
             }
             <span class="kw">if</span> <span class="op">!</span><span class="ident">config::no_verify</span>() {
-                <a class="ident" href="../../src/prusti_driver/verifier.rs.html#12">verify</a>(<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#75">env</a>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#83">def_spec</a>);
+                <a class="ident" href="../../src/prusti_driver/verifier.rs.html#12">verify</a>(<a class="ident" href="../../src/prusti_driver/callbacks.rs.html#73">env</a>, <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#82">def_spec</a>);
             }
         });
 

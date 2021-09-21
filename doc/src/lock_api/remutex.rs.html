@@ -789,14 +789,14 @@
 
 <span class="kw">struct</span> <span class="ident">RawReentrantMutex</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">G</span><span class="op">&gt;</span> {
     <span class="ident">owner</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
-    <span class="ident">lock_count</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="ident">lock_count</span>: <span class="ident">Cell</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
     <span class="ident">mutex</span>: <span class="ident">R</span>,
     <span class="ident">get_thread_id</span>: <span class="ident">G</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/lock_api/mutex.rs.html#29-49">RawMutex</a>, <span class="ident">G</span>: <a class="ident" href="../../src/lock_api/remutex.rs.html#38-48">GetThreadId</a><span class="op">&gt;</span> <span class="ident">RawReentrantMutex</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">G</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">lock_internal</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">try_lock</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">lock_internal</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">try_lock</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="self" href="../../src/lock_api/remutex.rs.html#59">self</a>.<span class="ident">get_thread_id</span>.<a class="ident" href="../../src/lock_api/remutex.rs.html#47">nonzero_thread_id</a>().<span class="ident">get</span>();
         <span class="kw">if</span> <a class="self" href="../../src/lock_api/remutex.rs.html#59">self</a>.<span class="ident">owner</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <a class="ident" href="../../src/lock_api/remutex.rs.html#60">id</a> {
             <a class="self" href="../../src/lock_api/remutex.rs.html#59">self</a>.<span class="ident">lock_count</span>.<span class="ident">set</span>(
@@ -825,7 +825,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/lock_api/remutex.rs.html#88">self</a>.<a class="ident" href="../../src/lock_api/remutex.rs.html#59">lock_internal</a>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../src/lock_api/remutex.rs.html#88">self</a>.<span class="ident">mutex</span>.<a class="ident" href="../../src/lock_api/mutex.rs.html#45">try_lock</a>())
     }
 
@@ -864,12 +864,12 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../src/lock_api/mutex.rs.html#76-88">RawMutexTimed</a>, <span class="ident">G</span>: <a class="ident" href="../../src/lock_api/remutex.rs.html#38-48">GetThreadId</a><span class="op">&gt;</span> <span class="ident">RawReentrantMutex</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">G</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">R::Instant</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_lock_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">R::Instant</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/lock_api/remutex.rs.html#127">self</a>.<a class="ident" href="../../src/lock_api/remutex.rs.html#59">lock_internal</a>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../src/lock_api/remutex.rs.html#127">self</a>.<span class="ident">mutex</span>.<a class="ident" href="../../src/lock_api/mutex.rs.html#87">try_lock_until</a>(<a class="ident" href="../../src/lock_api/remutex.rs.html#127">timeout</a>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_lock_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">R::Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_lock_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">R::Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../src/lock_api/remutex.rs.html#132">self</a>.<a class="ident" href="../../src/lock_api/remutex.rs.html#59">lock_internal</a>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../src/lock_api/remutex.rs.html#132">self</a>.<span class="ident">mutex</span>.<a class="ident" href="../../src/lock_api/mutex.rs.html#84">try_lock_for</a>(<a class="ident" href="../../src/lock_api/remutex.rs.html#132">timeout</a>))
     }
 }
