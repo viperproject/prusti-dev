@@ -29,19 +29,21 @@ where
     let clean_args = args.skip_while(|x| x == "prusti");
 
     let cargo_path = std::env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
-
-    let original_target =
+    let original_cargo_target =
         std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+    let cargo_target = format!("{}/verify", original_cargo_target);
+    let prusti_log_dir =
+        std::env::var("PRUSTI_LOG_DIR").unwrap_or_else(|_| format!("{}/log", cargo_target));
 
     let exit_status = Command::new(cargo_path)
         .arg("check")
         .args(clean_args)
         .env("RUST_TOOLCHAIN", get_rust_toolchain_channel())
         .env("RUSTC_WRAPPER", prusti_rustc_path)
-        .env("CARGO_TARGET_DIR", format!("{}/verify", original_target))
+        .env("CARGO_TARGET_DIR", cargo_target)
         .env("PRUSTI_QUIET", "true")
         .env("PRUSTI_FULL_COMPILATION", "true")
-        .env("PRUSTI_LOG_DIR", format!("{}/verify/log", original_target))
+        .env("PRUSTI_LOG_DIR", prusti_log_dir)
         .status()
         .expect("could not run cargo");
 
