@@ -147,10 +147,6 @@ fn run_verification_no_overflow(group_name: &str, filter: &Option<String>) {
 }
 
 fn run_verification_overflow(group_name: &str, filter: &Option<String>) {
-    let _temporary_env_vars = (
-        TemporaryEnvVar::set("PRUSTI_CHECK_OVERFLOWS", "true"),
-    );
-
     run_verification_base(group_name, filter);
 }
 
