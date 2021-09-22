@@ -192,7 +192,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let build_status = build_dir.build(&toolchain, krate, sandbox).run(|build| {
                 logging::capture(&storage, || {
-                    build.cargo().args(&["check"]).run()?;
+                    build.cargo().args(&["check"])
+                        // Reuse the build cache in the following Prusti runs.
+                        .env("CARGO_TARGET_DIR", "/opt/rustwide/target/verify")
+                        .run()?;
                     Ok(())
                 })
             });
