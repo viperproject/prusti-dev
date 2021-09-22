@@ -1,8 +1,8 @@
 name: Deploy
 
-on:
-  push:
-    branches: 'master'
+on: [push, workflow_dispatch]
+  # push:
+  #   branches: 'master'
 
 env:
   RUST_BACKTRACE: 1
@@ -28,6 +28,8 @@ jobs:
           java-version: '15'
       - name: Set up the environment
         run: python x.py setup
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v1.3.0
       - name: Build with cargo --release
         run: python x.py build --release --all --verbose
       - name: Run cargo tests --release
