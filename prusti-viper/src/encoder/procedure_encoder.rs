@@ -2333,8 +2333,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     destination,
                                     args,
                                     location,
-                                    span,
-                                )?
+                                ).with_span(span)?
                             );
                         }
 
@@ -2523,8 +2522,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         args: &[mir::Operand<'tcx>],
         location: mir::Location,
-        span: Span,
-    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+    ) -> EncodingResult<Vec<vir::Stmt>> {
         trace!("encode_sequence_index_call(destination={:?}, args={:?})", destination, args);
         // args[0] is the base array/slice, args[1] is the index
         // index is not specified exactly, as std::ops::Index::index is a trait method, so all we
@@ -2540,27 +2538,54 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (encoded_lhs, encode_stmts, lhs_ty, _) = self.encode_place(
             &destination.as_ref().unwrap().0,
             ArrayAccessKind::Mutable(None, location),
-        ).with_span(span)?;
+        )?;
         stmts.extend(encode_stmts);
-        assert!(lhs_ty.is_slice(), "non-slice LHS type '{:?}' not supported yet", lhs_ty);
+        if !lhs_ty.is_slice() { return Err(EncodingError::unsupported(
+            format!("Non-slice LHS type '{:?}' not supported yet", lhs_ty)
+        ))}
 
         stmts.extend(self.encode_havoc(&encoded_lhs));
         stmts.push(vir_stmt!{ inhale [vir::Expr::pred_permission(encoded_lhs.clone(), vir::PermAmount::Read).unwrap()] });
 
         let lhs_slice_ty = lhs_ty.peel_refs();
-        let lhs_slice_expr = self.encoder.encode_value_expr(encoded_lhs.clone(), lhs_ty).with_span(span)?;
+        let lhs_slice_expr = self.encoder.encode_value_expr(encoded_lhs.clone(), lhs_ty)?;
 
-        let base_seq = self.mir_encoder.encode_operand_place(&args[0]).with_span(span)?.unwrap();
+        let base_seq = self.mir_encoder.encode_operand_place(&args[0])?.unwrap();
         let base_seq_ty = self.mir_encoder.get_operand_ty(&args[0]);
-        assert!(base_seq_ty.peel_refs().is_array() || base_seq_ty.is_slice(),
-            "slicing is only supported for arrays/slices currently, not {:?}",
-            base_seq_ty);
 
         // base_seq is expected to be ref$Array$.. or ref$Slice$.., but lookup_pure wants the
         // contained Array$../Slice$..
-        let base_seq_expr = self.encoder.encode_value_expr(base_seq, base_seq_ty).with_span(span)?;
+        let base_seq_expr = self.encoder.encode_value_expr(base_seq, base_seq_ty)?;
 
-        let encoded_idx = self.mir_encoder.encode_operand_place(&args[1]).with_span(span)?.unwrap();
+        let j = vir_local!{ j: Int };
+        let tymap = HashMap::new();
+        let rhs_lookup_j = match base_seq_ty {
+            a if a.peel_refs().is_array() => {
+                let enc_array_types = self.encoder.encode_array_types(a.peel_refs())?;
+                let elem_snap_ty = self.encoder.encode_snapshot_type(enc_array_types.elem_ty_rs, &tymap)?;
+                enc_array_types.encode_lookup_pure_call(
+                    self.encoder,
+                    base_seq_expr.clone(),
+                    j.clone().into(),
+                    elem_snap_ty,
+                )
+            }
+            s if s.is_slice() => {
+                let enc_slice_types = self.encoder.encode_slice_types(s.peel_refs())?;
+                let elem_snap_ty = self.encoder.encode_snapshot_type(enc_slice_types.elem_ty_rs, &tymap)?;
+                enc_slice_types.encode_lookup_pure_call(
+                    self.encoder,
+                    base_seq_expr.clone(),
+                    j.clone().into(),
+                    elem_snap_ty,
+                )
+            }
+            _ => return Err(EncodingError::unsupported(
+                format!("Slicing is only supported for arrays/slices currently, not '{:?}'", base_seq_ty)
+            ))
+        };
+
+        let encoded_idx = self.mir_encoder.encode_operand_place(&args[1])?.unwrap();
         trace!("idx: {:?}", encoded_idx);
         let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);
         let idx_ident = self.encoder.env().tcx().def_path_str(idx_ty.ty_adt_def().unwrap().did);
@@ -2569,66 +2594,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.slice_created_at.insert(location, encoded_lhs);
 
         // TODO: what do we actually do here? this seems a littly hacky.
-        let (start, end) = match &*idx_ident {
-            "std::ops::Range" => {
-                // there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
-                // manually re-do them here when we probably just encoded the type and the
-                // construction of the fields..
-                let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
-                let start = encoded_idx.clone()
-                    .field(self.encoder.encode_struct_field("start", usize_ty).with_span(span)?);
-                let start_expr = self.encoder.encode_value_expr(start, usize_ty).with_span(span)?;
-
-                let end = encoded_idx
-                    .field(self.encoder.encode_struct_field("end", usize_ty).with_span(span)?);
-                let end_expr = self.encoder.encode_value_expr(end, usize_ty).with_span(span)?;
-
-                (start_expr, end_expr)
-            },
-            // other things like RangeFull, RangeFrom, RangeTo, RangeInclusive could be added here
-            // relatively easily
-            _ => todo!("{}", idx_ident),
+        // there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
+        // manually re-do them here when we probably just encoded the type and the
+        // construction of the fields..
+        let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
+        let start = match &*idx_ident {
+            "std::ops::Range" |
+            "std::ops::RangeFrom" => self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty)?,
+            // RangeInclusive is wierdly differnet to all of the other Range*s in that the struct fields are private
+            // and it is created with a new() fn and start/end are accessed with getter fns
+            // See https://github.com/rust-lang/rust/issues/67371 for why this is the case...
+            "std::ops::RangeInclusive" => return Err(
+                EncodingError::unsupported("RangeInclusive currently not supported".to_string())
+            ),
+            "std::ops::RangeTo" |
+            "std::ops::RangeFull" |
+            "std::ops::RangeToInclusive" => vir::Expr::from(0),
+            _ => unreachable!("{}", idx_ident)
+        };
+        let end = match &*idx_ident {
+            "std::ops::Range" |
+            "std::ops::RangeTo" => self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty)?,
+            "std::ops::RangeInclusive" => return Err(
+                EncodingError::unsupported("RangeInclusive currently not supported".to_string())
+            ),
+            "std::ops::RangeToInclusive" => {
+                let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty)?;
+                vir_expr!{ [end_expr] + [vir::Expr::from(1)] }
+            }
+            "std::ops::RangeFrom" |
+            "std::ops::RangeFull" => {
+                if base_seq_ty.peel_refs().is_array() {
+                    let array_len = self.encoder.encode_array_types(base_seq_ty.peel_refs())?.array_len;
+                    vir::Expr::from(array_len)
+                } else if base_seq_ty.is_slice() {
+                    let slice_types_base = self.encoder.encode_slice_types(base_seq_ty.peel_refs())?;
+                    slice_types_base.encode_slice_len_call(self.encoder, base_seq_expr)
+                } else { todo!("Get last idx for {}", base_seq_ty) }
+            }
+            _ => unreachable!("{}", idx_ident)
         };
 
         trace!("start: {}, end: {}", start, end);
 
 
-        let j = vir_local!{ j: Int };
-        let j_var: vir::Expr = j.clone().into();
-        let rhs_lookup_j = match base_seq_ty.peel_refs() {
-            a if a.is_array() => {
-                let array_types = self.encoder.encode_array_types(a).with_span(span)?;
-                let tymap = HashMap::new();
-                let elem_snap_ty = self.encoder.encode_snapshot_type(array_types.elem_ty_rs, &tymap)
-                    .with_span(span)?;
-                array_types.encode_lookup_pure_call(
-                    self.encoder,
-                    base_seq_expr,
-                    vir::Expr::from(j),
-                    elem_snap_ty,
-                )
-            }
-            // ty::is_slice() expects a Ref(Slice(..)) but we already peeled refs (and
-            // encode_slice_types expects no ref either)
-            s if matches!(s.kind(), ty::TyKind::Slice(..)) => {
-                let slice_types = self.encoder.encode_slice_types(s).with_span(span)?;
-                let tymap = HashMap::new();
-                let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types.elem_ty_rs, &tymap)
-                    .with_span(span)?;
-                slice_types.encode_lookup_pure_call(
-                    self.encoder,
-                    base_seq_expr,
-                    vir::Expr::from(j),
-                    elem_snap_ty,
-                )
-            }
-            _ => unreachable!(),  // checked the type above already
-        };
 
-        let slice_types_lhs = self.encoder.encode_slice_types(lhs_slice_ty).with_span(span)?;
+
+        let slice_types_lhs = self.encoder.encode_slice_types(lhs_slice_ty)?;
         let tymap = HashMap::new();
-        let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types_lhs.elem_ty_rs, &tymap)
-            .with_span(span)?;
+        let elem_snap_ty = self.encoder.encode_snapshot_type(slice_types_lhs.elem_ty_rs, &tymap)?;
 
         // length
         let length = vir_expr!{ [end] - [start] };
@@ -2640,6 +2654,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // lookup_pure: contents
         let i = vir_local!{ i: Int };
         let i_var: vir::Expr = i.clone().into();
+        let j_var: vir::Expr = j.clone().into();
 
         let lhs_lookup_i = {
             slice_types_lhs.encode_lookup_pure_call(

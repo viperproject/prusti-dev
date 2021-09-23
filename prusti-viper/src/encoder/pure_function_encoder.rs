@@ -900,28 +900,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let idx_ident = self.encoder.env().tcx().def_path_str(idx_ty.ty_adt_def().unwrap().did);
                                 let encoded_idx = &encoded_args[1];
 
-                                let (start, end) = match &*idx_ident {
-                                    "std::ops::Range" => {
-                                        // there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
-                                        // manually re-do them here when we probably just encoded the type and the
-                                        // construction of the fields..
-                                        let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
-                                        let start = encoded_idx.clone()
-                                            .field(self.encoder.encode_struct_field("start", usize_ty).with_span(span)?);
-                                        let start_expr = self.encoder.encode_value_expr(start, usize_ty).with_span(span)?;
-
-                                        let end = encoded_idx.clone()
-                                            .field(self.encoder.encode_struct_field("end", usize_ty).with_span(span)?);
-                                        let end_expr = self.encoder.encode_value_expr(end, usize_ty).with_span(span)?;
-
-                                        (start_expr, end_expr)
-                                    },
-                                    // other things like RangeFull, RangeFrom, RangeTo, RangeInclusive could be added here
-                                    // relatively easily
-                                    _ => return Err(SpannedEncodingError::unsupported(
-                                        format!("slicing with {} as index/range type is not supported yet", idx_ident),
-                                        span,
-                                    )),
+                                // TODO: what do we actually do here? this seems a littly hacky.
+                                // there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
+                                // manually re-do them here when we probably just encoded the type and the
+                                // construction of the fields..
+                                // Also, duplication with procedure_encoder.rs
+                                let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
+                                let start = match &*idx_ident {
+                                    "std::ops::Range" |
+                                    "std::ops::RangeFrom" => self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty).with_span(span)?,
+                                    // See procedure_encoder.rs
+                                    "std::ops::RangeInclusive" => return Err(
+                                        SpannedEncodingError::unsupported("RangeInclusive currently not supported".to_string(), span)
+                                    ),
+                                    "std::ops::RangeTo" |
+                                    "std::ops::RangeFull" |
+                                    "std::ops::RangeToInclusive" => vir::Expr::from(0),
+                                    _ => unreachable!("{}", idx_ident)
+                                };
+                                let end = match &*idx_ident {
+                                    "std::ops::Range" |
+                                    "std::ops::RangeTo" => self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?,
+                                    "std::ops::RangeInclusive" => return Err(
+                                        SpannedEncodingError::unsupported("RangeInclusive currently not supported".to_string(), span)
+                                    ),
+                                    "std::ops::RangeToInclusive" => {
+                                        let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?;
+                                        vir::Expr::add(end_expr, vir::Expr::from(1))
+                                    }
+                                    "std::ops::RangeFrom" |
+                                    "std::ops::RangeFull" => {
+                                        if base_ty.peel_refs().is_array() {
+                                            let array_len = self.encoder.encode_array_types(base_ty.peel_refs()).with_span(span)?.array_len;
+                                            vir::Expr::from(array_len)
+                                        } else if base_ty.is_slice() {
+                                            let base = self.mir_encoder.encode_operand_place(&args[0]).with_span(span)?.unwrap();
+                                            let base_expr = self.encoder.encode_value_expr(base, base_ty).with_span(span)?;
+                                            let slice_types_base = self.encoder.encode_slice_types(base_ty.peel_refs()).with_span(span)?;
+                                            slice_types_base.encode_slice_len_call(self.encoder, base_expr)
+                                        } else { todo!("Get last idx for {}", base_ty) }
+                                    }
+                                    _ => unreachable!("{}", idx_ident)
                                 };
 
                                 let slice_expr = self.encoder.encode_snapshot_slicing(
