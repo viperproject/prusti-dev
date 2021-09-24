@@ -9,20 +9,20 @@ fn main() {
 
 
 predicate! {
-    fn sorted3(a: [i32; 3]) -> bool {
+    fn sorted3(a: &[i32; 3]) -> bool {
         forall(|i: usize, j: usize| (0 <= i && i < j && j < 3) ==> a[i] <= a[j])
     }
 }
 
 predicate! {
-    fn sorted6(a: [i32; 6]) -> bool {
+    fn sorted6(a: &[i32; 6]) -> bool {
         forall(|i: usize, j: usize| (0 <= i && i < j && j < 6) ==> a[i] <= a[j])
     }
 }
 
 
-#[requires(sorted3(a) && sorted3(b))]
-#[ensures(sorted6(result))]
+#[requires(sorted3(&a) && sorted3(&b))]
+#[ensures(sorted6(&result))]
 fn merge(a: [i32; 3], b: [i32; 3]) -> [i32; 6] {
     let mut a_pos = 0;
     let mut b_pos = 0;
@@ -38,8 +38,8 @@ fn merge(a: [i32; 3], b: [i32; 3]) -> [i32; 6] {
         body_invariant!(a_pos + b_pos == res_pos);
 
         // subsequences and partial result sorted
-        body_invariant!(sorted3(a));
-        body_invariant!(sorted3(b));
+        body_invariant!(sorted3(&a));
+        body_invariant!(sorted3(&b));
         body_invariant!(forall(|i: usize, j: usize| (0 <= i && i < j && j < res_pos) ==> res[i] <= res[j]));
 
         // all already sorted are smaller than remaining in a, b
