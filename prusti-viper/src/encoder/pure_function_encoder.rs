@@ -907,29 +907,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 // Also, duplication with procedure_encoder.rs
                                 let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
                                 let start = match &*idx_ident {
-                                    "std::ops::Range" |
-                                    "std::ops::RangeFrom" => self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty).with_span(span)?,
+                                    "std::ops::Range" | "core::ops::Range" |
+                                    "std::ops::RangeFrom" | "core::ops::RangeFrom" =>
+                                        self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty).with_span(span)?,
                                     // See procedure_encoder.rs
-                                    "std::ops::RangeInclusive" => return Err(
+                                    "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
                                         SpannedEncodingError::unsupported("RangeInclusive currently not supported".to_string(), span)
                                     ),
-                                    "std::ops::RangeTo" |
-                                    "std::ops::RangeFull" |
-                                    "std::ops::RangeToInclusive" => vir::Expr::from(0),
+                                    "std::ops::RangeTo" | "core::ops::RangeTo" |
+                                    "std::ops::RangeFull" | "core::ops::RangeFull" |
+                                    "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => vir::Expr::from(0),
                                     _ => unreachable!("{}", idx_ident)
                                 };
                                 let end = match &*idx_ident {
-                                    "std::ops::Range" |
-                                    "std::ops::RangeTo" => self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?,
-                                    "std::ops::RangeInclusive" => return Err(
+                                    "std::ops::Range" | "core::ops::Range" |
+                                    "std::ops::RangeTo" | "core::ops::RangeTo" =>
+                                        self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?,
+                                    "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
                                         SpannedEncodingError::unsupported("RangeInclusive currently not supported".to_string(), span)
                                     ),
                                     "std::ops::RangeToInclusive" => {
                                         let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?;
                                         vir::Expr::add(end_expr, vir::Expr::from(1))
                                     }
-                                    "std::ops::RangeFrom" |
-                                    "std::ops::RangeFull" => {
+                                    "std::ops::RangeFrom" | "core::ops::RangeFrom" |
+                                    "std::ops::RangeFull" | "core::ops::RangeFull" => {
                                         if base_ty.peel_refs().is_array() {
                                             let array_len = self.encoder.encode_array_types(base_ty.peel_refs()).with_span(span)?.array_len;
                                             vir::Expr::from(array_len)

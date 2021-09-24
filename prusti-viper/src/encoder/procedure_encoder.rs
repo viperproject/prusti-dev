@@ -2599,31 +2599,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // construction of the fields..
         let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
         let start = match &*idx_ident {
-            "std::ops::Range" |
-            "std::ops::RangeFrom" => self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty)?,
+            "std::ops::Range" | "core::ops::Range" |
+            "std::ops::RangeFrom" | "core::ops::RangeFrom" =>
+                self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty)?,
             // RangeInclusive is wierdly differnet to all of the other Range*s in that the struct fields are private
             // and it is created with a new() fn and start/end are accessed with getter fns
             // See https://github.com/rust-lang/rust/issues/67371 for why this is the case...
-            "std::ops::RangeInclusive" => return Err(
+            "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
                 EncodingError::unsupported("RangeInclusive currently not supported".to_string())
             ),
-            "std::ops::RangeTo" |
-            "std::ops::RangeFull" |
-            "std::ops::RangeToInclusive" => vir::Expr::from(0),
+            "std::ops::RangeTo" | "core::ops::RangeTo" |
+            "std::ops::RangeFull" | "core::ops::RangeFull" |
+            "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => vir::Expr::from(0),
             _ => unreachable!("{}", idx_ident)
         };
         let end = match &*idx_ident {
-            "std::ops::Range" |
-            "std::ops::RangeTo" => self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty)?,
-            "std::ops::RangeInclusive" => return Err(
+            "std::ops::Range" | "core::ops::Range" |
+            "std::ops::RangeTo" | "core::ops::RangeTo" =>
+                self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty)?,
+            "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
                 EncodingError::unsupported("RangeInclusive currently not supported".to_string())
             ),
-            "std::ops::RangeToInclusive" => {
+            "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => {
                 let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty)?;
                 vir_expr!{ [end_expr] + [vir::Expr::from(1)] }
             }
-            "std::ops::RangeFrom" |
-            "std::ops::RangeFull" => {
+            "std::ops::RangeFrom" | "core::ops::RangeFrom" |
+            "std::ops::RangeFull" | "core::ops::RangeFull" => {
                 if base_seq_ty.peel_refs().is_array() {
                     let array_len = self.encoder.encode_array_types(base_seq_ty.peel_refs())?.array_len;
                     vir::Expr::from(array_len)
