@@ -415,7 +415,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // Return an error for unsupported return types
         if !self.encoder.env().type_is_copy(ty) {
             return Err(SpannedEncodingError::incorrect(
-                "invalid return type of pure function",
+                "return type of pure function does not implement Copy",
                 return_span,
             ));
         }

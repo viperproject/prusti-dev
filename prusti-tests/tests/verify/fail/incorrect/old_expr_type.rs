@@ -10,7 +10,7 @@ impl<T> Foo<T> {
         unimplemented!()
     }
 
-    #[ensures(self.len() == old(self).len() - 1)] //~ ERROR the type of the old expression is invalid
+    #[ensures(self.len() == old(self).len() - 1)] //~ ERROR postcondition might not hold.
     pub fn foo(&mut self) -> i32 {
         42
     }
