@@ -15,21 +15,21 @@ struct List {
 
 #[pure]
 #[ensures(result > 0)]
-fn len(head: &mut List) -> usize {
+fn len(head: &List) -> usize {
     match head.next {
         None => 1,
-        Some(box ref mut tail) => 1 + len(tail)
+        Some(box ref tail) => 1 + len(tail)
     }
 }
 
 #[pure]
 #[requires(0 <= index && index < len(head))]
-fn lookup(head: &mut List, index: usize) -> u32 {
+fn lookup(head: &List, index: usize) -> u32 {
     if index == 0 {
         head.value
     } else {
         match head.next {
-            Some(box ref mut tail) => lookup(tail, index - 1),
+            Some(box ref tail) => lookup(tail, index - 1),
             None => unreachable!()
         }
     }

@@ -5,7 +5,7 @@ struct T {
 }
 
 #[pure]
-fn get_x(t: &mut T) -> u32 {
+fn get_x(t: &T) -> u32 {
     t.x
 }
 
