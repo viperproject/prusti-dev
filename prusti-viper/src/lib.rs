@@ -8,6 +8,7 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(bool_to_option)]
+#![feature(try_blocks)]
 
 #![allow(unused_imports)]
 #![deny(unused_must_use)]
