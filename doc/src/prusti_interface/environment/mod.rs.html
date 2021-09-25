@@ -408,6 +408,23 @@
 <span id="408">408</span>
 <span id="409">409</span>
 <span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -715,7 +732,22 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_is_copy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">copy_trait</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#305">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>().<span class="ident">copy_trait</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">copy_trait_def_id</span>) <span class="op">=</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#306">copy_trait</a> {
-            <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#305">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">type_implements_trait</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#305">ty</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#307">copy_trait_def_id</a>)
+            <span class="comment">// FIXME: We need this match because type_implements_trait</span>
+            <span class="comment">// does not handle all cases correctly. For example, it</span>
+            <span class="comment">// treats shared references as non-copy.</span>
+            <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#305">ty</a>.<span class="ident">kind</span>() {
+                <span class="ident">ty::TyKind::Ref</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">mir::Mutability::Not</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// Shared references are copy.</span>
+                    <span class="bool-val">true</span>
+                }
+                <span class="ident">ty::TyKind::Array</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">|</span> <span class="ident">ty::TyKind::Slice</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// Arrays and slices are not copy.</span>
+                    <span class="bool-val">false</span>
+                }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#305">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">type_implements_trait</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#305">ty</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#307">copy_trait_def_id</a>)
+                }
+            }
         } <span class="kw">else</span> {
             <span class="bool-val">false</span>
         }
@@ -723,83 +755,85 @@
 
     <span class="doccomment">/// Checks whether the given type implements the trait with the given DefId.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_implements_trait</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">trait_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">assert!</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<span class="ident">tcx</span>.<span class="ident">is_trait</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">trait_def_id</a>));
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">ty</a>.<span class="ident">kind</span>() {
+        <span class="macro">assert!</span>(<a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<span class="ident">tcx</span>.<span class="ident">is_trait</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">trait_def_id</a>));
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">ty</a>.<span class="ident">kind</span>() {
             <span class="ident">ty::TyKind::Adt</span>(<span class="kw">_</span>, <span class="ident">subst</span>)
             <span class="op">|</span> <span class="ident">ty::TyKind::FnDef</span>(<span class="kw">_</span>, <span class="ident">subst</span>)
             <span class="op">|</span> <span class="ident">ty::TyKind::Closure</span>(<span class="kw">_</span>, <span class="ident">subst</span>)
             <span class="op">|</span> <span class="ident">ty::TyKind::Opaque</span>(<span class="kw">_</span>, <span class="ident">subst</span>)
             <span class="op">|</span> <span class="ident">ty::TyKind::Generator</span>(<span class="kw">_</span>, <span class="ident">subst</span>, <span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">ty::TyKind::Tuple</span>(<span class="ident">subst</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<span class="ident">tcx</span>.<span class="ident">infer_ctxt</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span>
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#324">infcx</a>
-                        .<span class="ident">type_implements_trait</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">trait_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">ty</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#318">subst</a>, <span class="ident">ParamEnv::empty</span>())
+                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<span class="ident">tcx</span>.<span class="ident">infer_ctxt</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span>
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#339">infcx</a>
+                        .<span class="ident">type_implements_trait</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">trait_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">ty</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#333">subst</a>, <span class="ident">ParamEnv::empty</span>())
                         .<span class="ident">must_apply_considering_regions</span>()
                 )
             }
             <span class="ident">ty::TyKind::Bool</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#397-402">primitive_type_implements_trait</a>(
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">ty</a>,
-                    <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>().<span class="ident">bool_impl</span>(),
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">trait_def_id</a>
+                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#414-419">primitive_type_implements_trait</a>(
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">ty</a>,
+                    <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>().<span class="ident">bool_impl</span>(),
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">trait_def_id</a>
                 )
             }
             <span class="ident">ty::TyKind::Char</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#397-402">primitive_type_implements_trait</a>(
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">ty</a>,
-                    <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>().<span class="ident">char_impl</span>(),
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">trait_def_id</a>
+                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#414-419">primitive_type_implements_trait</a>(
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">ty</a>,
+                    <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>().<span class="ident">char_impl</span>(),
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">trait_def_id</a>
                 )
             }
             <span class="ident">ty::TyKind::Int</span>(<span class="ident">int_ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">lang_items</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>();
-                <span class="kw">let</span> <span class="ident">impl_def</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#344">int_ty</a> {
-                    <span class="ident">ty::IntTy::Isize</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#345">lang_items</a>.<span class="ident">isize_impl</span>(),
-                    <span class="ident">ty::IntTy::I8</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#345">lang_items</a>.<span class="ident">i8_impl</span>(),
-                    <span class="ident">ty::IntTy::I16</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#345">lang_items</a>.<span class="ident">i16_impl</span>(),
-                    <span class="ident">ty::IntTy::I32</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#345">lang_items</a>.<span class="ident">i32_impl</span>(),
-                    <span class="ident">ty::IntTy::I64</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#345">lang_items</a>.<span class="ident">i64_impl</span>(),
-                    <span class="ident">ty::IntTy::I128</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#345">lang_items</a>.<span class="ident">i128_impl</span>(),
+                <span class="kw">let</span> <span class="ident">lang_items</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>();
+                <span class="kw">let</span> <span class="ident">impl_def</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#359">int_ty</a> {
+                    <span class="ident">ty::IntTy::Isize</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#360">lang_items</a>.<span class="ident">isize_impl</span>(),
+                    <span class="ident">ty::IntTy::I8</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#360">lang_items</a>.<span class="ident">i8_impl</span>(),
+                    <span class="ident">ty::IntTy::I16</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#360">lang_items</a>.<span class="ident">i16_impl</span>(),
+                    <span class="ident">ty::IntTy::I32</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#360">lang_items</a>.<span class="ident">i32_impl</span>(),
+                    <span class="ident">ty::IntTy::I64</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#360">lang_items</a>.<span class="ident">i64_impl</span>(),
+                    <span class="ident">ty::IntTy::I128</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#360">lang_items</a>.<span class="ident">i128_impl</span>(),
                 };
-                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#397-402">primitive_type_implements_trait</a>(
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">ty</a>,
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#346">impl_def</a>,
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">trait_def_id</a>
+                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#414-419">primitive_type_implements_trait</a>(
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">ty</a>,
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#361">impl_def</a>,
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">trait_def_id</a>
                 )
             }
             <span class="ident">ty::TyKind::Uint</span>(<span class="ident">uint_ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">lang_items</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>();
-                <span class="kw">let</span> <span class="ident">impl_def</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#360">uint_ty</a> {
-                    <span class="ident">ty::UintTy::Usize</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#361">lang_items</a>.<span class="ident">usize_impl</span>(),
-                    <span class="ident">ty::UintTy::U8</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#361">lang_items</a>.<span class="ident">u8_impl</span>(),
-                    <span class="ident">ty::UintTy::U16</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#361">lang_items</a>.<span class="ident">u16_impl</span>(),
-                    <span class="ident">ty::UintTy::U32</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#361">lang_items</a>.<span class="ident">u32_impl</span>(),
-                    <span class="ident">ty::UintTy::U64</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#361">lang_items</a>.<span class="ident">u64_impl</span>(),
-                    <span class="ident">ty::UintTy::U128</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#361">lang_items</a>.<span class="ident">u128_impl</span>(),
+                <span class="kw">let</span> <span class="ident">lang_items</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>();
+                <span class="kw">let</span> <span class="ident">impl_def</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#375">uint_ty</a> {
+                    <span class="ident">ty::UintTy::Usize</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#376">lang_items</a>.<span class="ident">usize_impl</span>(),
+                    <span class="ident">ty::UintTy::U8</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#376">lang_items</a>.<span class="ident">u8_impl</span>(),
+                    <span class="ident">ty::UintTy::U16</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#376">lang_items</a>.<span class="ident">u16_impl</span>(),
+                    <span class="ident">ty::UintTy::U32</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#376">lang_items</a>.<span class="ident">u32_impl</span>(),
+                    <span class="ident">ty::UintTy::U64</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#376">lang_items</a>.<span class="ident">u64_impl</span>(),
+                    <span class="ident">ty::UintTy::U128</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#376">lang_items</a>.<span class="ident">u128_impl</span>(),
                 };
-                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#397-402">primitive_type_implements_trait</a>(
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">ty</a>,
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#362">impl_def</a>,
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">trait_def_id</a>
+                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#414-419">primitive_type_implements_trait</a>(
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">ty</a>,
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#377">impl_def</a>,
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">trait_def_id</a>
                 )
             }
             <span class="ident">ty::TyKind::Float</span>(<span class="ident">float_ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">lang_items</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>();
-                <span class="kw">let</span> <span class="ident">impl_def</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#376">float_ty</a> {
-                    <span class="ident">ty::FloatTy::F32</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#377">lang_items</a>.<span class="ident">f32_impl</span>(),
-                    <span class="ident">ty::FloatTy::F64</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#377">lang_items</a>.<span class="ident">f64_impl</span>(),
+                <span class="kw">let</span> <span class="ident">lang_items</span> <span class="op">=</span> <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<span class="ident">tcx</span>.<span class="ident">lang_items</span>();
+                <span class="kw">let</span> <span class="ident">impl_def</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#391">float_ty</a> {
+                    <span class="ident">ty::FloatTy::F32</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#392">lang_items</a>.<span class="ident">f32_impl</span>(),
+                    <span class="ident">ty::FloatTy::F64</span> <span class="op">=</span><span class="op">&gt;</span> <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#392">lang_items</a>.<span class="ident">f64_impl</span>(),
                 };
-                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#397-402">primitive_type_implements_trait</a>(
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">ty</a>,
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#378">impl_def</a>,
-                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">trait_def_id</a>
+                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#414-419">primitive_type_implements_trait</a>(
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">ty</a>,
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#393">impl_def</a>,
+                    <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">trait_def_id</a>
                 )
             }
             <span class="ident">ty::TyKind::Ref</span>(<span class="kw">_</span>, <span class="ident">ref_ty</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#315">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">type_implements_trait</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#388">ref_ty</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#315">trait_def_id</a>)
+                <span class="comment">// FIXME: This is incorrect. Whether some X implements</span>
+                <span class="comment">// T, says nothing about whether &amp;X implements T.</span>
+                <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#330">self</a>.<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">type_implements_trait</a>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#403">ref_ty</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">trait_def_id</a>)
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">unimplemented!</span>() <span class="comment">// none of the remaining types should be supported yet</span>
+                <span class="macro">unimplemented!</span>(<span class="string">&quot;ty: {:?}&quot;</span>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#330">ty</a>) <span class="comment">// none of the remaining types should be supported yet</span>
             }
         }
     }
@@ -810,10 +844,10 @@
         <span class="ident">impl_def</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span>,
         <span class="ident">trait_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>
     ) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#400">impl_def</a>.<span class="ident">is_some</span>());
-        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#398">self</a>.<span class="ident">tcx</span>.<span class="ident">infer_ctxt</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span>
-            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#404">infcx</a>
-                .<span class="ident">type_implements_trait</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#401">trait_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#399">ty</a>, <span class="ident">ty::List::empty</span>(), <span class="ident">ParamEnv::empty</span>())
+        <span class="macro">assert!</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#417">impl_def</a>.<span class="ident">is_some</span>());
+        <a class="self" href="../../../src/prusti_interface/environment/mod.rs.html#415">self</a>.<span class="ident">tcx</span>.<span class="ident">infer_ctxt</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span>
+            <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#421">infcx</a>
+                .<span class="ident">type_implements_trait</span>(<a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#418">trait_def_id</a>, <a class="ident" href="../../../src/prusti_interface/environment/mod.rs.html#416">ty</a>, <span class="ident">ty::List::empty</span>(), <span class="ident">ParamEnv::empty</span>())
                 .<span class="ident">must_apply_considering_regions</span>()
         )
     }
