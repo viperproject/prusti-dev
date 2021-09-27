@@ -8,6 +8,7 @@ use std::{collections::HashMap, fmt::Debug};
 pub enum SpecificationSet {
     Procedure(ProcedureSpecification),
     Loop(LoopSpecification),
+    Struct(StructSpecification),
 }
 
 impl SpecificationSet {
@@ -62,6 +63,22 @@ impl SpecificationSet {
     #[track_caller]
     pub fn as_loop(&self) -> Option<&LoopSpecification> {
         if let SpecificationSet::Loop(spec) = self {
+            return Some(spec);
+        }
+        None
+    }
+
+    #[track_caller]
+    pub fn expect_struct(&self) -> &StructSpecification {
+        if let SpecificationSet::Struct(spec) = self {
+            return spec;
+        }
+        unreachable!("expected Struct: {:?}", self);
+    }
+
+    #[track_caller]
+    pub fn as_struct(&self) -> Option<&StructSpecification> {
+        if let SpecificationSet::Struct(spec) = self {
             return Some(spec);
         }
         None
@@ -213,6 +230,20 @@ impl Refinable for SpecificationSet {
             return SpecificationSet::Procedure(refined);
         }
         self
+    }
+}
+
+/// Specification of a struct.
+#[derive(Debug, Clone)]
+pub struct StructSpecification {
+    pub invariant: SpecificationItem<Vec<LocalDefId>>,
+}
+
+impl StructSpecification {
+    pub fn empty() -> Self {
+        StructSpecification {
+            invariant: SpecificationItem::Empty,
+        }
     }
 }
 

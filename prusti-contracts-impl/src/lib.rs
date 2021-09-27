@@ -9,6 +9,11 @@ pub fn requires(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+pub fn invariant(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
+}
+
+#[proc_macro_attribute]
 pub fn ensures(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens
 }

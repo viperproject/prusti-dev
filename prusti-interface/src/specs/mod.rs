@@ -44,6 +44,9 @@ pub struct SpecCollector<'a, 'tcx: 'a> {
     /// Map from functions/loops and their specifications.
     procedure_specs: HashMap<LocalDefId, ProcedureSpecRefs>,
     loop_specs: Vec<LocalDefId>, // HashMap<LocalDefId, Vec<SpecificationId>>,
+
+    /// Map from structs to their invariants.
+    struct_specs: HashMap<LocalDefId, Vec<LocalDefId>>,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -56,6 +59,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             spec_functions: HashMap::new(),
             procedure_specs: HashMap::new(),
             loop_specs: vec![],
+            struct_specs: HashMap::new(),
         }
     }
 
@@ -162,8 +166,14 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
-    // TODO: struct specs
-    fn determine_struct_specs(&self, _def_spec: &mut typed::DefSpecificationMap) {}
+    fn determine_struct_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for (struct_id, spec_ids) in self.struct_specs.iter() {
+            def_spec.specs.insert(*struct_id, typed::SpecificationSet::Struct(typed::StructSpecification {
+                // TODO: handle Empty case
+                invariant: SpecificationItem::Inherent(spec_ids.clone()),
+            }));
+        }
+    }
 }
 
 fn parse_spec_id(spec_id: String, def_id: DefId) -> SpecificationId {
@@ -271,6 +281,18 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if has_prusti_attr(attrs, "loop_body_invariant_spec") {
                 self.loop_specs.push(local_id);
             }
+
+            // Collect type invariants
+            if has_prusti_attr(attrs, "type_invariant_spec") {
+                let self_id = fn_decl.inputs[0].hir_id;
+                let hir = self.tcx.hir();
+                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                let struct_id = get_struct_id_from_impl_node(hir.get(impl_id)).unwrap();
+                self.struct_specs
+                    .entry(struct_id.as_local().unwrap())
+                    .or_default()
+                    .push(local_id);
+            }
         } else {
             // Don't collect specs "for" spec items
 
@@ -309,4 +331,27 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
         }
     }
+}
+
+fn get_struct_id_from_impl_node(node: rustc_hir::Node) -> Option<DefId> {
+  let item_kind = if let rustc_hir::Node::Item(item) = node {
+    Some(&item.kind)
+  } else {
+     None
+  }?;
+  let item_self_ty_kind = if let rustc_hir::ItemKind::Impl(item_impl) = item_kind {
+     Some(&item_impl.self_ty.kind)
+  } else {
+    None
+  }?;
+  let path_res = if let rustc_hir::TyKind::Path(rustc_hir::QPath::Resolved(_, path)) = item_self_ty_kind {
+    Some(path.res)
+  } else {
+    None
+  }?;
+  if let rustc_hir::def::Res::Def(_, def_id) = path_res {
+    Some(def_id)
+  } else {
+    None
+  }
 }
