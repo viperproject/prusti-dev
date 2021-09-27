@@ -2540,9 +2540,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ArrayAccessKind::Mutable(None, location),
         )?;
         stmts.extend(encode_stmts);
-        if !lhs_ty.is_slice() { return Err(EncodingError::unsupported(
-            format!("Non-slice LHS type '{:?}' not supported yet", lhs_ty)
-        ))}
+        if !lhs_ty.is_slice() {
+            return Err(EncodingError::unsupported(
+                format!("Non-slice LHS type '{:?}' not supported yet", lhs_ty)
+            ));
+        }
 
         stmts.extend(self.encode_havoc(&encoded_lhs));
         stmts.push(vir_stmt!{ inhale [vir::Expr::pred_permission(encoded_lhs.clone(), vir::PermAmount::Read).unwrap()] });
@@ -2593,10 +2595,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         self.slice_created_at.insert(location, encoded_lhs);
 
-        // TODO: what do we actually do here? this seems a littly hacky.
-        // there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
-        // manually re-do them here when we probably just encoded the type and the
-        // construction of the fields..
+        // TODO: there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
+        // manually re-do and hardcode them here when we probably just encoded the type
+        // and the construction of the fields.
         let usize_ty = self.encoder.env().tcx().mk_ty(ty::TyKind::Uint(ty::UintTy::Usize));
         let start = match &*idx_ident {
             "std::ops::Range" | "core::ops::Range" |
@@ -2606,7 +2607,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // and it is created with a new() fn and start/end are accessed with getter fns
             // See https://github.com/rust-lang/rust/issues/67371 for why this is the case...
             "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
-                EncodingError::unsupported("RangeInclusive currently not supported".to_string())
+                EncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string())
             ),
             "std::ops::RangeTo" | "core::ops::RangeTo" |
             "std::ops::RangeFull" | "core::ops::RangeFull" |
@@ -2618,7 +2619,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "std::ops::RangeTo" | "core::ops::RangeTo" =>
                 self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty)?,
             "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
-                EncodingError::unsupported("RangeInclusive currently not supported".to_string())
+                EncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string())
             ),
             "std::ops::RangeToInclusive" | "core::ops::RangeToInclusive" => {
                 let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty)?;
@@ -2703,7 +2704,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         //
         // [x] inhale Array$lookup_pure == Slice$lookup_pure with quantifier from start to end
         // [?] label, encode_transfer_permissions?
-        // [ ] look at the other range types (at least those from the stdlib?
+        // [x] look at the other range types (at least those from the stdlib?
         // [ ] what if the index is not a range? should support Index<usize> for arrays and slices maybe, mostly implemented anyway i guess
 
         Ok(stmts)

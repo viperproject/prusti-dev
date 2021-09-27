@@ -912,7 +912,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         self.encoder.encode_struct_field_value(encoded_idx.clone(), "start", usize_ty).with_span(span)?,
                                     // See procedure_encoder.rs
                                     "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
-                                        SpannedEncodingError::unsupported("RangeInclusive currently not supported".to_string(), span)
+                                        SpannedEncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string(), span)
                                     ),
                                     "std::ops::RangeTo" | "core::ops::RangeTo" |
                                     "std::ops::RangeFull" | "core::ops::RangeFull" |
@@ -924,7 +924,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     "std::ops::RangeTo" | "core::ops::RangeTo" =>
                                         self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?,
                                     "std::ops::RangeInclusive" | "core::ops::RangeInclusive" => return Err(
-                                        SpannedEncodingError::unsupported("RangeInclusive currently not supported".to_string(), span)
+                                        SpannedEncodingError::unsupported("slicing with RangeInclusive (e.g. [x..=y]) currently not supported".to_string(), span)
                                     ),
                                     "std::ops::RangeToInclusive" => {
                                         let end_expr = self.encoder.encode_struct_field_value(encoded_idx.clone(), "end", usize_ty).with_span(span)?;
