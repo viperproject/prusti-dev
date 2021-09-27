@@ -126,12 +126,13 @@ fn main() {
     // We assume that prusti-rustc already removed the first "rustc" argument
     // added by RUSTC_WRAPPER and all command line arguments -P<arg>=<val>
     // have been filtered out.
-    let mut rustc_args = config::get_filtered_args();
+    let original_rustc_args = config::get_filtered_args();
 
     // If the environment asks us to actually be rustc, or if lints have been disabled (which
     // indicates that an upstream dependency is being compiled), then run `rustc` instead of Prusti.
     let prusti_be_rustc = config::be_rustc();
-    let are_lints_disabled = arg_value(&rustc_args, "--cap-lints", |val| val == "allow").is_some();
+    let are_lints_disabled =
+        arg_value(&original_rustc_args, "--cap-lints", |val| val == "allow").is_some();
     let is_prusti_package = env::var("CARGO_PKG_NAME")
         .map(|name| PRUSTI_PACKAGES.contains(&name.as_str()))
         .unwrap_or(false);
@@ -141,6 +142,25 @@ fn main() {
 
     lazy_static::initialize(&ICE_HOOK);
     init_loggers();
+
+    // Disable incremental compilation because it causes mir_borrowck not to
+    // be called.
+    let mut rustc_args = Vec::new();
+    let mut is_codegen = false;
+    for arg in original_rustc_args {
+        if arg == "--codegen" || arg == "-C" {
+            is_codegen = true;
+        } else if is_codegen && arg.starts_with("incremental=") {
+            // Just drop the argument.
+            is_codegen = false;
+        } else {
+            if is_codegen {
+                rustc_args.push("-C".to_owned());
+                is_codegen = false;
+            }
+            rustc_args.push(arg);
+        }
+    }
 
     let exit_code = rustc_driver::catch_with_exit_code(move || {
         user::message(format!(

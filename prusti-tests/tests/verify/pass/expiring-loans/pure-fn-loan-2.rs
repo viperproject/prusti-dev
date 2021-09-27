@@ -16,7 +16,7 @@ fn get_v_imm(x: &T, y: &T) -> i32 {
 }
 
 #[pure]
-fn get_v_mut_pure(x: &mut T, y: &mut T) -> i32 {
+fn get_v_mut_pure(x: &T, y: &T) -> i32 {
     x.v
 }
 
