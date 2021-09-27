@@ -62,6 +62,7 @@ fn extract_prusti_attributes(
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
                         attr.tokens
                     }
+                    SpecAttributeKind::Invariant => unreachable!("type invariant on function"),
                 };
                 prusti_attributes.push((attr_kind, tokens));
             } else {
@@ -138,6 +139,7 @@ fn generate_spec_and_assertions(
             // only exists so we successfully parse it and emit an error in
             // `check_incompatible_attrs`; so we'll never reach here.
             SpecAttributeKind::Predicate => unreachable!(),
+            SpecAttributeKind::Invariant => unreachable!(),
         };
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
@@ -413,6 +415,40 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     quote_spanned! {impl_block.span()=>
         #spec_impl_block
         #impl_block
+    }
+}
+
+pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+
+    let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
+    let item_span = item.span();
+    let item_ident = item.ident.clone();
+    let item_name = syn::Ident::new(
+        &format!("prusti_invariant_item_{}_{}", item_ident.to_string(), spec_id),
+        item_span,
+    );
+
+    // TODO: move some of this to AstRewriter?
+    // see AstRewriter::generate_spec_item_fn for explanation of syntax below
+    let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+        #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
+        #[prusti::spec_only]
+        #[prusti::type_invariant_spec]
+        #[prusti::spec_id = #spec_id_str]
+        fn #item_name(self) -> bool {
+            !!((#attr) : bool)
+        }
+    };
+
+    spec_item.sig.generics = item.generics.clone();
+    quote_spanned! {item_span=>
+        #item
+        impl #item_ident {
+            #spec_item
+        }
     }
 }
 

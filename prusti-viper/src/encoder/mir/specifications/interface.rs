@@ -35,6 +35,9 @@ pub(crate) trait SpecificationsInterface {
     /// Get the specifications attached to the `def_id` function.
     fn get_procedure_specs(&self, def_id: DefId) -> Option<typed::ProcedureSpecification>;
 
+    /// Get the specifications attached to the `def_id` struct.
+    fn get_struct_specs(&self, def_id: DefId) -> Option<typed::StructSpecification>;
+
     /// Get a local wrapper `DefId` for functions that have external specs.
     /// Return the original `DefId` for everything else.
     fn get_wrapper_def_id(&self, def_id: DefId) -> DefId;
@@ -105,6 +108,14 @@ impl<'v, 'tcx: 'v> SpecificationsInterface for super::super::super::Encoder<'v, 
         let mut specs = self.specifications_state.specs.borrow_mut();
         let spec = specs.get_and_refine_proc_spec(self.env(), def_id)?;
         Some(spec.clone())
+    }
+
+    fn get_struct_specs(&self, def_id: DefId) -> Option<typed::StructSpecification> {
+        self.specifications_state
+            .specs
+            .borrow()
+            .get_struct_spec(def_id)
+            .cloned()
     }
 
     fn get_wrapper_def_id(&self, def_id: DefId) -> DefId {

@@ -60,11 +60,11 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
         substs: ty::subst::SubstsRef<'tcx>,
         variant_index: Option<rustc_target::abi::VariantIdx>,
     ) -> SpannedEncodingResult<vir_high::TypeDecl>;
-    fn encode_type_invariant_def_high(
+    fn encode_type_invariant_def_poly(
         &self,
         ty: ty::Ty<'tcx>,
         invariant_name: &str,
-    ) -> EncodingResult<vir_high::FunctionDecl>;
+    ) -> EncodingResult<vir_crate::polymorphic::Function>;
     fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String;
     fn encode_type_tag_def(&self, ty: ty::Ty<'tcx>);
     fn encode_type_bounds_high(
@@ -246,12 +246,12 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     ) -> SpannedEncodingResult<vir_high::TypeDecl> {
         super::encoder::encode_adt_def(self, adt_def, substs, variant_index)
     }
-    fn encode_type_invariant_def_high(
+    fn encode_type_invariant_def_poly(
         &self,
         ty: ty::Ty<'tcx>,
         invariant_name: &str,
-    ) -> EncodingResult<vir_high::FunctionDecl> {
-        trace!("encode_type_invariant_def_high: {:?}", ty.kind());
+    ) -> EncodingResult<vir_crate::polymorphic::Function> {
+        trace!("encode_type_invariant_def_poly: {:?}", ty.kind());
         let type_encoder = TypeEncoder::new(self, ty);
         let invariant = type_encoder.encode_invariant_def(invariant_name)?;
         Ok(invariant)

@@ -1,7 +1,7 @@
 use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
-    specs::typed::{DefSpecificationMap, LoopSpecification, ProcedureSpecification, Refinable},
+    specs::typed::{DefSpecificationMap, LoopSpecification, ProcedureSpecification, StructSpecification, Refinable},
 };
 use rustc_hash::FxHashMap;
 use rustc_hir::def_id::{DefId, LocalDefId};
@@ -33,6 +33,12 @@ impl Specifications {
         trace!("Get loop specs of {:?}", def_id);
         let spec = self.get_user_typed_specs().get(&def_id)?;
         spec.as_loop()
+    }
+
+    pub(super) fn get_struct_spec(&self, def_id: DefId) -> Option<&StructSpecification> {
+        trace!("Get struct specs of {:?}", def_id);
+        let spec = self.get_user_typed_specs().get(&def_id)?;
+        spec.as_struct()
     }
 
     pub(super) fn get_and_refine_proc_spec<'tcx>(
