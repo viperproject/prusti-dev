@@ -1,9 +1,8 @@
 //! Encoder of pure functions.
 
-mod interface;
 mod encoder;
+mod interface;
 mod interpreter;
 
-pub(crate) use interface::{PureFunctionEncoderState, PureFunctionEncoderInterface};
+pub(crate) use interface::{PureFunctionEncoderInterface, PureFunctionEncoderState};
 pub(crate) use interpreter::PureFunctionBackwardInterpreter;
-
