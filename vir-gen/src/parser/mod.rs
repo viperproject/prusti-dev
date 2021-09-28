@@ -23,6 +23,10 @@ impl Fold for Expander {
         if item.content.is_none() {
             match load_file(self.current_path.clone(), &item.ident) {
                 Ok((new_path, file)) => {
+                    item.attrs.extend(file.attrs.into_iter().map(|mut attr| {
+                        attr.style = syn::AttrStyle::Outer;
+                        attr
+                    }));
                     item.content = Some((syn::token::Brace(item.span()), file.items));
                     let old_path = mem::replace(&mut self.current_path, new_path);
                     let new_item = self.fold_item_mod(item);

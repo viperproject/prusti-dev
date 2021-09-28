@@ -159,7 +159,7 @@ impl<'a> Fold for Expander<'a> {
             let mut new_derives = Vec::new();
             for attribute in item_mod.attrs {
                 match attribute {
-                    syn::Attribute { style: syn::AttrStyle::Inner(_), path, tokens, ..} if path.is_ident("derive_for_all") => {
+                    syn::Attribute { style: syn::AttrStyle::Outer, path, tokens, ..} if path.is_ident("derive_for_all") => {
                         match syn::parse2::<IdentList>(tokens) {
                             Ok(list) => {
                                 new_derives.extend(list.idents);
