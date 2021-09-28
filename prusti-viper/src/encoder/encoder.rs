@@ -14,7 +14,6 @@ use crate::encoder::errors::{ErrorCtxt, ErrorManager, SpannedEncodingError, Enco
 use crate::encoder::foldunfold;
 use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
-use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 use crate::encoder::spec_encoder::encode_spec_assertion;
 use crate::encoder::type_encoder::{
@@ -59,6 +58,7 @@ use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::encoder::SnapshotEncoder;
 use crate::encoder::purifier;
 use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
+use super::pure_functions::{PureFunctionEncoderState, PureFunctionEncoderInterface};
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -74,11 +74,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::FunctionIdentifier>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
     programs: Vec<vir::Program>,
-    pure_function_bodies: RefCell<HashMap<(ProcedureDefId, String), vir::Expr>>,
-    pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::FunctionIdentifier>>,
-    /// Pure functions whose encoding started (and potentially already
-    /// finished). This is used to break recursion.
-    pure_functions_encoding_started: RefCell<HashSet<(ProcedureDefId, String)>>,
+    pub(super) pure_function_encoder_state: PureFunctionEncoderState,
     spec_functions: RefCell<HashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_predicate_types: RefCell<HashMap<ty::TyKind<'tcx>, vir::Type>>,
     type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
@@ -90,8 +86,8 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_discriminant_funcs: RefCell<HashMap<String, vir::FunctionIdentifier>>,
     type_cast_functions: RefCell<HashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
     fields: RefCell<HashMap<String, vir::Field>>,
-    snapshot_encoder: RefCell<SnapshotEncoder>,
-    mirror_encoder: RefCell<MirrorEncoder>,
+    pub(super) snapshot_encoder: RefCell<SnapshotEncoder>,
+    pub(super) mirror_encoder: RefCell<MirrorEncoder>,
     array_types_encoder: RefCell<ArrayTypesEncoder<'tcx>>,
     closures_collector: RefCell<SpecsClosuresCollector<'tcx>>,
     encoding_queue: RefCell<Vec<EncodingTask<'tcx>>>,
@@ -150,9 +146,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             builtin_functions: RefCell::new(HashMap::new()),
             programs: Vec::new(),
             procedures: RefCell::new(HashMap::new()),
-            pure_function_bodies: RefCell::new(HashMap::new()),
-            pure_functions: RefCell::new(HashMap::new()),
-            pure_functions_encoding_started: RefCell::new(HashSet::new()),
+            pure_function_encoder_state: Default::default(),
             spec_functions: RefCell::new(HashMap::new()),
             type_predicate_types: RefCell::new(HashMap::new()),
             type_invariant_names: RefCell::new(HashMap::new()),
@@ -331,7 +325,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     /// Get a local wrapper `DefId` for functions that have external specs.
     /// Return the original `DefId` for everything else.
-    fn get_wrapper_def_id(&self, def_id: DefId) -> DefId {
+    pub(super) fn get_wrapper_def_id(&self, def_id: DefId) -> DefId {
         self.def_spec.extern_specs.get(&def_id)
             .map(|local_id| local_id.to_def_id())
             .unwrap_or(def_id)
@@ -1081,142 +1075,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         })
     }
 
-    /// Encode the body of the given procedure as a pure expression.
-    pub fn encode_pure_expression(
-        &self,
-        proc_def_id: ProcedureDefId,
-        parent_def_id: ProcedureDefId,
-        substs: &SubstMap<'tcx>,
-    ) -> SpannedEncodingResult<vir::Expr> {
-        let mir_span = self.env.tcx().def_span(proc_def_id);
-        let substs_key = self.type_substitution_key(substs).with_span(mir_span)?;
-        let key = (proc_def_id, substs_key);
-        if !self.pure_function_bodies.borrow().contains_key(&key) {
-            let procedure = self.env.get_procedure(proc_def_id);
-            let pure_function_encoder = PureFunctionEncoder::new(
-                self,
-                proc_def_id,
-                procedure.get_mir(),
-                true,
-                parent_def_id,
-                substs,
-            );
-            let body = pure_function_encoder.encode_body()?;
-            self.pure_function_bodies
-                .borrow_mut()
-                .insert(key.clone(), body);
-        }
-        Ok(self.pure_function_bodies.borrow()[&key].clone())
-    }
-
-    pub fn encode_pure_function_def(
-        &self,
-        proc_def_id: ProcedureDefId,
-        tymap: &SubstMap<'tcx>,
-    ) -> SpannedEncodingResult<()> {
-        trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
-        assert!(
-            self.is_pure(proc_def_id),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
-        );
-
-        // FIXME: Using substitutions as a key is most likely wrong.
-        let mir_span = self.env.tcx().def_span(proc_def_id);
-        let substs_key = self.type_substitution_key(&tymap).with_span(mir_span)?;
-        let key = (proc_def_id, substs_key);
-
-        if !self.pure_functions.borrow().contains_key(&key) &&
-                !self.pure_functions_encoding_started.borrow().contains(&key) {
-            trace!("not encoded: {:?}", key);
-
-            self.pure_functions_encoding_started.borrow_mut().insert(key.clone());
-
-            let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
-            let procedure = self.env.get_procedure(wrapper_def_id);
-            let pure_function_encoder =
-                PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false, proc_def_id, &tymap);
-
-            let maybe_identifier: SpannedEncodingResult<vir::FunctionIdentifier> = try {
-                let (mut function, needs_patching) = if let Some(predicate_body) = self.get_predicate_body(proc_def_id) {
-                    (pure_function_encoder.encode_predicate_function(predicate_body)?, false)
-                } else if self.is_trusted(proc_def_id) {
-                    (pure_function_encoder.encode_bodyless_function()?, false)
-                } else {
-                    (pure_function_encoder.encode_function()?, true)
-                };
-
-                if needs_patching {
-                    self.mirror_encoder
-                        .borrow_mut()
-                        .encode_mirrors(proc_def_id, &mut function);
-                }
-
-                function = self.snapshot_encoder
-                    .borrow_mut()
-                    .patch_snapshots_function(self, function, &tymap)
-                    .with_span(procedure.get_span())?;
-
-                self.log_vir_program_before_viper(function.to_string());
-                self.insert_function(function)
-
-            };
-            match maybe_identifier {
-                Ok(identifier) => {
-                    self.pure_functions.borrow_mut().insert(key, identifier);
-                }
-                Err(error) => {
-                    self.register_encoding_error(error.clone());
-                    debug!("Error encoding pure function: {:?} wrapper_def_id={:?}", proc_def_id, wrapper_def_id);
-                    let body = self.env.external_mir(wrapper_def_id);
-                    let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, body, &tymap);
-                    let function = stub_encoder.encode_function()?;
-                    self.log_vir_program_before_viper(function.to_string());
-                    let identifier = self.insert_function(function);
-                    self.pure_functions.borrow_mut().insert(key, identifier);
-                }
-            }
-        }
-
-        trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
-        Ok(())
-    }
-
     pub fn get_item_name(&self, proc_def_id: ProcedureDefId) -> String {
         self.env.get_item_name(proc_def_id)
     }
-
-    /// Encode the use (call) of a pure function, returning the name of the
-    /// function and its type.
-    ///
-    /// The called function must be marked as pure. It should be local unless
-    /// there is an external specification defined.
-    pub fn encode_pure_function_use(
-        &self,
-        proc_def_id: ProcedureDefId,
-        parent_def_id: ProcedureDefId,
-        substs: &SubstMap<'tcx>,
-    ) -> SpannedEncodingResult<(String, vir::Type)> {
-        let wrapper_def_id = self.get_wrapper_def_id(proc_def_id);
-        let procedure = self.env.get_procedure(wrapper_def_id);
-
-        assert!(
-            self.is_pure(proc_def_id),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
-        );
-
-        self.encode_pure_function_def(proc_def_id, substs)?;
-
-        let pure_function_encoder =
-            PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false, parent_def_id, &substs);
-
-        Ok((
-            pure_function_encoder.encode_function_name(),
-            pure_function_encoder.encode_function_return_type()?,
-        ))
-    }
-
 
     pub fn queue_procedure_encoding(&self, proc_def_id: ProcedureDefId) {
         self.encoding_queue
