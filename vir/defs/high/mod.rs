@@ -2,5 +2,6 @@
 
 pub mod typ;
 pub mod function;
+pub mod position;
 pub mod variable;
 pub mod expression;
