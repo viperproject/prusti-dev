@@ -1,6 +1,4 @@
-use super::variable::VariableDecl;
-use super::expression::Expression;
-use super::typ::Type;
+use super::{expression::Expression, typ::Type, variable::VariableDecl};
 
 pub struct FunctionDecl {
     pub name: String,

@@ -1,6 +1,8 @@
-use super::typ::{Type, VariantIndex};
-use super::position::Position;
-use super::variable::VariableDecl;
+use super::{
+    position::Position,
+    typ::{Type, VariantIndex},
+    variable::VariableDecl,
+};
 
 pub enum Expression {
     /// A local variable.

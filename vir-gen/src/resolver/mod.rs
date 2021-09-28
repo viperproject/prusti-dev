@@ -1,4 +1,4 @@
-use crate::ast::{Include, RawBlock, IdentList};
+use crate::ast::{IdentList, Include, RawBlock};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{fold::Fold, parse_quote, spanned::Spanned};
@@ -144,7 +144,7 @@ impl<'a> Expander<'a> {
     fn add_derives(&self, attributes: &mut Vec<syn::Attribute>) {
         for frame in &self.new_derives {
             for derive in frame {
-                attributes.push(parse_quote!{
+                attributes.push(parse_quote! {
                     #[derive(#derive)]
                 });
             }
@@ -159,7 +159,12 @@ impl<'a> Fold for Expander<'a> {
             let mut new_derives = Vec::new();
             for attribute in item_mod.attrs {
                 match attribute {
-                    syn::Attribute { style: syn::AttrStyle::Outer, path, tokens, ..} if path.is_ident("derive_for_all") => {
+                    syn::Attribute {
+                        style: syn::AttrStyle::Outer,
+                        path,
+                        tokens,
+                        ..
+                    } if path.is_ident("derive_for_all") => {
                         match syn::parse2::<IdentList>(tokens) {
                             Ok(list) => {
                                 new_derives.extend(list.idents);
