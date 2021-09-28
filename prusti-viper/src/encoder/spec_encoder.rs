@@ -13,7 +13,7 @@ use crate::encoder::mir_interpreter::{
     run_backward_interpretation_point_to_point, BackwardMirInterpreter,
     MultiExprBackwardInterpreterState,
 };
-use crate::encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
+use crate::encoder::pure_functions::{PureFunctionBackwardInterpreter, PureFunctionEncoderInterface};
 use crate::encoder::Encoder;
 use prusti_common::config;
 use crate::encoder::SpecFunctionKind;
