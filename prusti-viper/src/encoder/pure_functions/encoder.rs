@@ -1,37 +1,33 @@
-
 // © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::mem;
-use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract};
-use crate::encoder::builtin_encoder::BuiltinFunctionKind;
-use crate::encoder::errors::{SpannedEncodingError, EncodingError, ErrorCtxt, WithSpan, PanicCause};
-use crate::encoder::foldunfold;
-use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
-use crate::encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
-use crate::encoder::mir_interpreter::{
-    run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+use super::{super::encoder::SubstMap, interpreter::PureFunctionBackwardInterpreter};
+use crate::encoder::{
+    borrows::{compute_procedure_contract, ProcedureContract},
+    builtin_encoder::BuiltinFunctionKind,
+    errors::{
+        EncodingError, EncodingResult, ErrorCtxt, PanicCause, SpannedEncodingError,
+        SpannedEncodingResult, WithSpan,
+    },
+    foldunfold,
+    mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
+    mir_interpreter::{
+        run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+    },
+    snapshot, Encoder,
 };
-use crate::encoder::snapshot;
-use crate::encoder::Encoder;
-use prusti_common::{vir::optimizations::functions::Simplifier, vir_local};
-use vir_crate::polymorphic::{self as vir, ExprIterator};
-use prusti_common::config;
-use prusti_interface::specs::typed;
+use log::{debug, trace};
+use prusti_common::{config, vir::optimizations::functions::Simplifier, vir_local};
+use prusti_interface::{specs::typed, PrustiError};
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty, span_bug};
-use std::collections::HashMap;
-use log::{debug, trace};
-use prusti_interface::PrustiError;
+use rustc_middle::{mir, span_bug, ty};
 use rustc_span::Span;
-use crate::encoder::errors::EncodingResult;
-use crate::encoder::errors::SpannedEncodingResult;
-use super::super::encoder::SubstMap;
-use super::interpreter::PureFunctionBackwardInterpreter;
+use std::{collections::HashMap, mem};
+use vir_crate::polymorphic::{self as vir, ExprIterator};
 
 pub(super) struct PureFunctionEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -82,7 +78,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             "Pure function {} has been encoded with expr: {}",
             function_name, body_expr
         );
-        let substs = &self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(self.mir.span)?;
+        let substs = &self
+            .encoder
+            .type_substitution_polymorphic_type_map(self.tymap)
+            .with_span(self.mir.span)?;
         let patched_body_expr = body_expr.patch_types(substs);
         Ok(patched_body_expr)
     }
@@ -97,14 +96,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         for arg in self.mir.args_iter() {
             let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
             let span = self.get_local_span(arg);
-            let target_place = self.encoder.encode_value_expr(
-                vir::Expr::local(
-                    self.interpreter
-                        .mir_encoder()
-                        .encode_local(arg)?
-                ),
-                arg_ty
-            ).with_span(span)?;
+            let target_place = self
+                .encoder
+                .encode_value_expr(
+                    vir::Expr::local(self.interpreter.mir_encoder().encode_local(arg)?),
+                    arg_ty,
+                )
+                .with_span(span)?;
             let new_place: vir::Expr = self.encode_local(arg)?.into();
             state.substitute_place(&target_place, new_place);
         }
@@ -117,7 +115,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         // if the function returns a snapshot, we take a snapshot of the body
         if self.encode_function_return_type()?.is_snapshot() {
-            let ty = self.encoder.resolve_typaram(self.mir.return_ty(), self.tymap);
+            let ty = self
+                .encoder
+                .resolve_typaram(self.mir.return_ty(), self.tymap);
             let return_span = self.get_local_span(mir::RETURN_PLACE);
 
             if !self.encoder.env().type_is_copy(ty) {
@@ -132,23 +132,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.encode_function_given_body(Some(body_expr))
     }
 
-    pub fn encode_bodyless_function(&self)
-        -> SpannedEncodingResult<vir::Function>
-    {
+    pub fn encode_bodyless_function(&self) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode trusted (bodyless) pure function {}", function_name);
 
         self.encode_function_given_body(None)
     }
 
-    pub fn encode_predicate_function(&self, predicate_body: &typed::Assertion<'tcx>)
-        -> SpannedEncodingResult<vir::Function>
-    {
+    pub fn encode_predicate_function(
+        &self,
+        predicate_body: &typed::Assertion<'tcx>,
+    ) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         debug!("Encode predicate function {}", function_name);
 
         let mir_span = self.encoder.env().tcx().def_span(self.proc_def_id);
-        let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id).with_span(mir_span)?;
+        let contract = self
+            .encoder
+            .get_procedure_contract_for_def(self.proc_def_id)
+            .with_span(mir_span)?;
         let encoded_args = contract
             .args
             .iter()
@@ -173,9 +175,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     // Private
 
-    fn encode_function_given_body(&self, body: Option<vir::Expr>)
-        -> SpannedEncodingResult<vir::Function>
-    {
+    fn encode_function_given_body(
+        &self,
+        body: Option<vir::Expr>,
+    ) -> SpannedEncodingResult<vir::Function> {
         let function_name = self.encode_function_name();
         let is_bodyless = body.is_none();
         if is_bodyless {
@@ -188,10 +191,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             );
         }
 
-        let contract = self.encoder
+        let contract = self
+            .encoder
             .get_procedure_contract_for_def(self.proc_def_id)
             .with_span(self.mir.span)?;
-        let substs = &self.encoder.type_substitution_polymorphic_type_map(self.tymap).with_span(self.mir.span)?;
+        let substs = &self
+            .encoder
+            .type_substitution_polymorphic_type_map(self.tymap)
+            .with_span(self.mir.span)?;
 
         let (type_precondition, func_precondition) = self.encode_precondition_expr(&contract)?;
         let patched_type_precondition = type_precondition.patch_types(substs);
@@ -217,7 +224,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 .with_span(var_span)?;
             let var_type = var_type.patch(substs);
             formal_args.push(vir::LocalVar::new(var_name, var_type))
-        };
+        }
         let return_type = self.encode_function_return_type()?;
 
         let res_value_range_pos = self.encoder.error_manager().register(
@@ -225,7 +232,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             ErrorCtxt::PureFunctionPostconditionValueRangeOfResult,
             self.parent_def_id,
         );
-        let pure_fn_return_variable = vir_local!{ __result: {return_type.clone()} };
+        let pure_fn_return_variable = vir_local! { __result: {return_type.clone()} };
         // Add value range of the arguments and return value to the pre/postconditions
         if config::check_overflows() {
             let return_bounds: Vec<_> = self
@@ -282,7 +289,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         }
 
         // Patch snapshots
-        function = self.encoder.patch_snapshots_function(function, self.tymap)
+        function = self
+            .encoder
+            .patch_snapshots_function(function, self.tymap)
             .with_span(self.mir.span)?;
 
         // Add folding/unfolding
@@ -304,12 +313,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             } else {
                 vir::PermAmount::Write
             };
-            let opt_pred_perm = self.interpreter.mir_encoder()
-                .encode_place_predicate_permission(self.encode_local(local.into())?.into(), fraction);
+            let opt_pred_perm = self
+                .interpreter
+                .mir_encoder()
+                .encode_place_predicate_permission(
+                    self.encode_local(local.into())?.into(),
+                    fraction,
+                );
             if let Some(spec) = opt_pred_perm {
                 type_spec.push(spec)
             }
-        };
+        }
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         // Encode functional specification
@@ -342,9 +356,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
     /// Encode the postcondition with one expression just for the functional specification (no
     /// type encoding).
-    fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>)
-        -> SpannedEncodingResult<vir::Expr>
-    {
+    fn encode_postcondition_expr(
+        &self,
+        contract: &ProcedureContract<'tcx>,
+    ) -> SpannedEncodingResult<vir::Expr> {
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         // Encode functional specification
@@ -376,15 +391,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let post = func_spec.into_iter().conjoin();
 
         // TODO: use a better span
-        let postcondition_pos = self
-            .encoder
-            .error_manager()
-            .register(self.mir.span, ErrorCtxt::GenericExpression, self.parent_def_id);
+        let postcondition_pos = self.encoder.error_manager().register(
+            self.mir.span,
+            ErrorCtxt::GenericExpression,
+            self.parent_def_id,
+        );
 
         // Fix return variable
-        let pure_fn_return_variable = vir_local!{ __result: {self.encode_function_return_type()?} };
+        let pure_fn_return_variable =
+            vir_local! { __result: {self.encode_function_return_type()?} };
 
-        let post = post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
+        let post = post
+            .replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
             .set_default_pos(postcondition_pos);
 
         Ok(post)
@@ -394,8 +412,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mir_encoder = self.interpreter.mir_encoder();
         let var_name = mir_encoder.encode_local_var_name(local);
         let var_span = mir_encoder.get_local_span(local);
-        let var_type = self.encoder
-            .encode_snapshot_type(self.interpreter.mir_encoder().get_local_ty(local), self.tymap)
+        let var_type = self
+            .encoder
+            .encode_snapshot_type(
+                self.interpreter.mir_encoder().get_local_ty(local),
+                self.tymap,
+            )
             .with_span(var_span)?;
         Ok(vir::LocalVar::new(var_name, var_type))
     }
@@ -409,7 +431,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_function_return_type(&self) -> SpannedEncodingResult<vir::Type> {
-        let ty = self.encoder.resolve_typaram(self.mir.return_ty(), self.tymap);
+        let ty = self
+            .encoder
+            .resolve_typaram(self.mir.return_ty(), self.tymap);
         let return_span = self.get_local_span(mir::RETURN_PLACE);
 
         // Return an error for unsupported return types
@@ -422,7 +446,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         let return_local = mir::Place::return_place().as_local().unwrap();
         let span = self.interpreter.mir_encoder().get_local_span(return_local);
-        self.encoder.encode_snapshot_type(ty, self.tymap).with_span(span)
+        self.encoder
+            .encode_snapshot_type(ty, self.tymap)
+            .with_span(span)
     }
 }
-
