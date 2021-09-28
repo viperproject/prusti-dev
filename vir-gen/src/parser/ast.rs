@@ -1,4 +1,8 @@
-use syn::{Token, parenthesized, parse::{Parse, ParseStream}, parse_quote};
+use syn::{
+    parenthesized,
+    parse::{Parse, ParseStream},
+    parse_quote, Token,
+};
 
 use crate::ast::*;
 
