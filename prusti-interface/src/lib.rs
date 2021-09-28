@@ -25,9 +25,9 @@
 // #![feature(map_get_key_value)]
 
 extern crate config as config_crate;
+extern crate rustc_borrowck;
 extern crate rustc_hir;
 extern crate rustc_middle;
-extern crate rustc_mir;
 extern crate rustc_span;
 extern crate rustc_ast;
 extern crate rustc_attr;

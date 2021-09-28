@@ -305,7 +305,22 @@ impl<'tcx> Environment<'tcx> {
     pub fn type_is_copy(&self, ty: ty::Ty<'tcx>) -> bool {
         let copy_trait = self.tcx.lang_items().copy_trait();
         if let Some(copy_trait_def_id) = copy_trait {
-            self.type_implements_trait(ty, copy_trait_def_id)
+            // FIXME: We need this match because type_implements_trait
+            // does not handle all cases correctly. For example, it
+            // treats shared references as non-copy.
+            match ty.kind() {
+                ty::TyKind::Ref(_, _, mir::Mutability::Not) => {
+                    // Shared references are copy.
+                    true
+                }
+                ty::TyKind::Array(_, _) | ty::TyKind::Slice(_) => {
+                    // Arrays and slices are not copy.
+                    false
+                }
+                _ => {
+                    self.type_implements_trait(ty, copy_trait_def_id)
+                }
+            }
         } else {
             false
         }
@@ -386,10 +401,12 @@ impl<'tcx> Environment<'tcx> {
                 )
             }
             ty::TyKind::Ref(_, ref_ty, _) => {
+                // FIXME: This is incorrect. Whether some X implements
+                // T, says nothing about whether &X implements T.
                 self.type_implements_trait(ref_ty, trait_def_id)
             }
             _ => {
-                unimplemented!() // none of the remaining types should be supported yet
+                unimplemented!("ty: {:?}", ty) // none of the remaining types should be supported yet
             }
         }
     }

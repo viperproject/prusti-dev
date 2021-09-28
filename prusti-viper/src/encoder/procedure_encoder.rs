@@ -2345,7 +2345,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                 self.proc_def_id != def_id;
                             if is_pure_function {
                                 let (function_name, _) = self.encoder
-                                    .encode_pure_function_use(def_id, self.proc_def_id, tymap.clone())
+                                    .encode_pure_function_use(def_id, self.proc_def_id, &tymap)
                                     .with_span(term.source_info.span)?;
                                 debug!("Encoding pure function call '{}'", function_name);
                                 assert!(destination.is_some());
@@ -3205,7 +3205,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         called_def_id: ProcedureDefId,
         tymap: SubstMap<'tcx>
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id, self.proc_def_id, tymap.clone())
+        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id, self.proc_def_id, &tymap)
             .with_span(call_site_span)?;
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
@@ -5585,6 +5585,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 Ok(stmts)
             }
             mir::NullOp::SizeOf => unimplemented!(),
+            mir::NullOp::AlignOf => unimplemented!(),
         }
     }
 

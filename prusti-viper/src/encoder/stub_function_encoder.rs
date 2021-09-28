@@ -83,9 +83,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubFunctionEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode_function_name(&self) -> String {
-        let mut base_name = self.encoder.encode_item_name(self.proc_def_id);
-        base_name.push_str("_stub");
-
+        let base_name = self.encoder.encode_item_name(self.proc_def_id);
+        // TODO: It would be nice to somehow mark that this function is a stub
+        // in the encoding.
         base_name
     }
 

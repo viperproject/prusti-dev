@@ -7,7 +7,7 @@
 use std::panic::Location;
 
 use polonius_engine::FactTypes;
-use rustc_mir::consumers::{RustcFacts, LocationTable, RichLocation};
+use rustc_borrowck::consumers::{RustcFacts, LocationTable, RichLocation};
 use rustc_middle::mir;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -18,8 +18,8 @@ pub type PointIndex = <RustcFacts as FactTypes>::Point;
 pub type Variable = <RustcFacts as FactTypes>::Variable;
 pub type Path = <RustcFacts as FactTypes>::Path;
 
-pub type AllInputFacts = rustc_mir::consumers::PoloniusInput;
-pub type AllOutputFacts = rustc_mir::consumers::PoloniusOutput;
+pub type AllInputFacts = rustc_borrowck::consumers::PoloniusInput;
+pub type AllOutputFacts = rustc_borrowck::consumers::PoloniusOutput;
 
 trait LocationTableExt {
     fn to_mir_location(self, point: PointIndex) -> mir::Location;

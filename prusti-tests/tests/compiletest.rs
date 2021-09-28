@@ -111,11 +111,6 @@ fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Opti
         config.src_base = path;
         run_tests(&config);
     }
-
-    // Delete the nll-facts directory to avoid running out of hard drive
-    // space. Ignore any errors that may occur.
-    let _ = std::fs::remove_dir_all("nll-facts");
-    let _ = std::fs::remove_dir_all("log/nll-facts");
 }
 
 fn run_no_verification(group_name: &str, filter: &Option<String>) {
@@ -147,10 +142,6 @@ fn run_verification_no_overflow(group_name: &str, filter: &Option<String>) {
 }
 
 fn run_verification_overflow(group_name: &str, filter: &Option<String>) {
-    let _temporary_env_vars = (
-        TemporaryEnvVar::set("PRUSTI_CHECK_OVERFLOWS", "true"),
-    );
-
     run_verification_base(group_name, filter);
 }
 
