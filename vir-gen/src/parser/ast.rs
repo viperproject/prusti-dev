@@ -1,7 +1,4 @@
-use syn::{
-    parse::{Parse, ParseStream},
-    parse_quote, Token,
-};
+use syn::{Token, parenthesized, parse::{Parse, ParseStream}, parse_quote};
 
 use crate::ast::*;
 
@@ -71,8 +68,10 @@ impl Parse for Include {
 
 impl Parse for IdentList {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let content;
+        parenthesized!(content in input);
         Ok(Self {
-            idents: syn::punctuated::Punctuated::parse_separated_nonempty(input)?,
+            idents: syn::punctuated::Punctuated::parse_separated_nonempty(&content)?,
         })
     }
 }
