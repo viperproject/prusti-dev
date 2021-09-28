@@ -20,12 +20,16 @@ pub struct Struct {
     pub arguments: Vec<Type>,
 }
 
+pub struct VariantIndex {
+    pub index: String,
+}
+
 pub struct Enum {
     pub name: String,
     /// Type arguments.
     pub arguments: Vec<Type>,
     /// A specific variant of the enum that this type represents.
-    pub variant: Option<String>,
+    pub variant: Option<VariantIndex>,
 }
 
 pub struct Array {
