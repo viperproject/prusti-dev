@@ -29,6 +29,11 @@ struct ProcedureSpecRefs {
     trusted: bool,
 }
 
+#[derive(Debug)]
+struct StructSpecRefs {
+    invariants: Vec<LocalDefId>,
+}
+
 /// Specification collector, intended to be applied as a visitor over the crate
 /// HIR. After the visit, [SpecCollector::build_def_specs] can be used to get back
 /// a mapping of DefIds (which may not be local due to extern specs) to their
@@ -46,7 +51,7 @@ pub struct SpecCollector<'a, 'tcx: 'a> {
     loop_specs: Vec<LocalDefId>, // HashMap<LocalDefId, Vec<SpecificationId>>,
 
     /// Map from structs to their invariants.
-    struct_specs: HashMap<LocalDefId, Vec<LocalDefId>>,
+    struct_specs: HashMap<LocalDefId, StructSpecRefs>,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -167,10 +172,10 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn determine_struct_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for (struct_id, spec_ids) in self.struct_specs.iter() {
+        for (struct_id, refs) in self.struct_specs.iter() {
             def_spec.specs.insert(*struct_id, typed::SpecificationSet::Struct(typed::StructSpecification {
                 // TODO: handle Empty case
-                invariant: SpecificationItem::Inherent(spec_ids.clone()),
+                invariant: SpecificationItem::Inherent(refs.invariants.clone()),
             }));
         }
     }
@@ -290,7 +295,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 let struct_id = get_struct_id_from_impl_node(hir.get(impl_id)).unwrap();
                 self.struct_specs
                     .entry(struct_id.as_local().unwrap())
-                    .or_default()
+                    .or_insert(StructSpecRefs { invariants: vec![] })
+                    .invariants
                     .push(local_id);
             }
         } else {
@@ -334,24 +340,14 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 }
 
 fn get_struct_id_from_impl_node(node: rustc_hir::Node) -> Option<DefId> {
-  let item_kind = if let rustc_hir::Node::Item(item) = node {
-    Some(&item.kind)
-  } else {
-     None
-  }?;
-  let item_self_ty_kind = if let rustc_hir::ItemKind::Impl(item_impl) = item_kind {
-     Some(&item_impl.self_ty.kind)
-  } else {
+    if let rustc_hir::Node::Item(item) = node {
+        if let rustc_hir::ItemKind::Impl(item_impl) = &item.kind {
+            if let rustc_hir::TyKind::Path(rustc_hir::QPath::Resolved(_, path)) = item_impl.self_ty.kind {
+                if let rustc_hir::def::Res::Def(_, def_id) = path.res {
+                    return Some(def_id);
+                }
+            }
+        }
+    }
     None
-  }?;
-  let path_res = if let rustc_hir::TyKind::Path(rustc_hir::QPath::Resolved(_, path)) = item_self_ty_kind {
-    Some(path.res)
-  } else {
-    None
-  }?;
-  if let rustc_hir::def::Res::Def(_, def_id) = path_res {
-    Some(def_id)
-  } else {
-    None
-  }
 }
