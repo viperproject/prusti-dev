@@ -1119,6 +1119,205 @@ pub trait StmtWalker {
     }
 }
 
+pub trait FallibleStmtWalker {
+    type Error;
+
+    fn fallible_walk(&mut self, e: &Stmt) -> Result<(), Self::Error> {
+        match e {
+            Stmt::Comment(comment) => self.fallible_walk_comment(comment),
+            Stmt::Label(label) => self.fallible_walk_label(label),
+            Stmt::Inhale(inhale) => self.fallible_walk_inhale(inhale),
+            Stmt::Exhale(exhale) => self.fallible_walk_exhale(exhale),
+            Stmt::Assert(assert) => self.fallible_walk_assert(assert),
+            Stmt::MethodCall(method_call) => self.fallible_walk_method_call(method_call),
+            Stmt::Assign(assign) => self.fallible_walk_assign(assign),
+            Stmt::Fold(fold) => self.fallible_walk_fold(fold),
+            Stmt::Unfold(unfold) => self.fallible_walk_unfold(unfold),
+            Stmt::Obtain(obtain) => self.fallible_walk_obtain(obtain),
+            Stmt::BeginFrame(_) => self.fallible_walk_begin_frame(),
+            Stmt::EndFrame(_) => self.fallible_walk_end_frame(),
+            Stmt::TransferPerm(transfer_perm) => self.fallible_walk_transfer_perm(transfer_perm),
+            Stmt::PackageMagicWand(package_magic_wand) => {
+                self.fallible_walk_package_magic_wand(package_magic_wand)
+            }
+            Stmt::ApplyMagicWand(apply_magic_wand) => {
+                self.fallible_walk_apply_magic_wand(apply_magic_wand)
+            }
+            Stmt::ExpireBorrows(expire_borrows) => {
+                self.fallible_walk_expire_borrows(expire_borrows)
+            }
+            Stmt::If(if_stmt) => self.fallible_walk_if(if_stmt),
+            Stmt::Downcast(downcast) => self.fallible_walk_downcast(downcast),
+        }
+    }
+
+    fn fallible_walk_expr(&mut self, _expr: &Expr) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn fallible_walk_local_var(&mut self, _local_var: &LocalVar) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn fallible_walk_comment(&mut self, _comment: &Comment) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn fallible_walk_label(&mut self, _label: &Label) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn fallible_walk_inhale(&mut self, statement: &Inhale) -> Result<(), Self::Error> {
+        let Inhale { expr } = statement;
+        self.fallible_walk_expr(expr)?;
+        Ok(())
+    }
+
+    fn fallible_walk_exhale(&mut self, statement: &Exhale) -> Result<(), Self::Error> {
+        let Exhale { expr, .. } = statement;
+        self.fallible_walk_expr(expr)?;
+        Ok(())
+    }
+
+    fn fallible_walk_assert(&mut self, statement: &Assert) -> Result<(), Self::Error> {
+        let Assert { expr, .. } = statement;
+        self.fallible_walk_expr(expr)?;
+        Ok(())
+    }
+
+    fn fallible_walk_method_call(&mut self, statement: &MethodCall) -> Result<(), Self::Error> {
+        let MethodCall {
+            arguments, targets, ..
+        } = statement;
+        for arg in arguments {
+            self.fallible_walk_expr(arg)?;
+        }
+        for target in targets {
+            self.fallible_walk_local_var(target)?;
+        }
+        Ok(())
+    }
+
+    fn fallible_walk_assign(&mut self, statement: &Assign) -> Result<(), Self::Error> {
+        let Assign { target, source, .. } = statement;
+        self.fallible_walk_expr(target)?;
+        self.fallible_walk_expr(source)?;
+        Ok(())
+    }
+
+    fn fallible_walk_fold(&mut self, statement: &Fold) -> Result<(), Self::Error> {
+        let Fold { arguments, .. } = statement;
+        for arg in arguments {
+            self.fallible_walk_expr(arg)?;
+        }
+        Ok(())
+    }
+
+    fn fallible_walk_unfold(&mut self, statement: &Unfold) -> Result<(), Self::Error> {
+        let Unfold { arguments, .. } = statement;
+        for arg in arguments {
+            self.fallible_walk_expr(arg)?;
+        }
+        Ok(())
+    }
+
+    fn fallible_walk_obtain(&mut self, statement: &Obtain) -> Result<(), Self::Error> {
+        let Obtain { expr, .. } = statement;
+        self.fallible_walk_expr(expr)?;
+        Ok(())
+    }
+
+    fn fallible_walk_weak_obtain(&mut self, expr: &Expr) -> Result<(), Self::Error> {
+        self.fallible_walk_expr(expr)?;
+        Ok(())
+    }
+
+    fn fallible_walk_havoc(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn fallible_walk_begin_frame(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn fallible_walk_end_frame(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn fallible_walk_transfer_perm(&mut self, statement: &TransferPerm) -> Result<(), Self::Error> {
+        let TransferPerm { left, right, .. } = statement;
+        self.fallible_walk_expr(left)?;
+        self.fallible_walk_expr(right)?;
+        Ok(())
+    }
+
+    fn fallible_walk_package_magic_wand(
+        &mut self,
+        statement: &PackageMagicWand,
+    ) -> Result<(), Self::Error> {
+        let PackageMagicWand {
+            magic_wand,
+            package_stmts,
+            variables,
+            ..
+        } = statement;
+        self.fallible_walk_expr(magic_wand)?;
+        for var in variables {
+            self.fallible_walk_local_var(var)?;
+        }
+        for statement in package_stmts {
+            self.fallible_walk(statement)?;
+        }
+        Ok(())
+    }
+
+    fn fallible_walk_apply_magic_wand(
+        &mut self,
+        statement: &ApplyMagicWand,
+    ) -> Result<(), Self::Error> {
+        let ApplyMagicWand { magic_wand, .. } = statement;
+        self.fallible_walk_expr(magic_wand)?;
+        Ok(())
+    }
+
+    fn fallible_walk_expire_borrows(
+        &mut self,
+        _expire_borrows: &ExpireBorrows,
+    ) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn fallible_walk_nested_cfg(
+        &mut self,
+        _entry: &CfgBlockIndex,
+        _exit: &CfgBlockIndex,
+    ) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn fallible_walk_if(&mut self, statement: &If) -> Result<(), Self::Error> {
+        let If {
+            guard,
+            then_stmts,
+            else_stmts,
+        } = statement;
+        self.fallible_walk_expr(guard)?;
+        for s in then_stmts {
+            self.fallible_walk(s)?;
+        }
+        for s in else_stmts {
+            self.fallible_walk(s)?;
+        }
+        Ok(())
+    }
+
+    fn fallible_walk_downcast(&mut self, statement: &Downcast) -> Result<(), Self::Error> {
+        let Downcast { base, .. } = statement;
+        self.fallible_walk_expr(base)?;
+        Ok(())
+    }
+}
+
 pub fn stmts_to_str(stmts: &[Stmt]) -> String {
     stmts
         .iter()

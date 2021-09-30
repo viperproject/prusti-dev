@@ -9,6 +9,7 @@ use prusti_specs::predicate;
 use rustc_middle::ty;
 use rustc_middle::ty::layout::IntegerExt;
 use rustc_target::abi::Integer;
+use std::rc::Rc;
 use std::{
     collections::HashMap,
     convert::TryInto,
@@ -53,7 +54,7 @@ pub struct SnapshotEncoder {
 
 
     /// Interning table for functions.
-    functions: HashMap<vir::FunctionIdentifier, vir::Function>,
+    functions: HashMap<vir::FunctionIdentifier, Rc<vir::Function>>,
     /// Interning table for domains.
     domains: HashMap<String, vir::Domain>,
 }
@@ -148,13 +149,13 @@ impl SnapshotEncoder {
         self.functions.contains_key(identifier)
     }
 
-    pub fn get_function(&self, identifier: &vir::FunctionIdentifier) -> &vir::Function {
-        &self.functions[identifier]
+    pub fn get_function(&self, identifier: &vir::FunctionIdentifier) -> Rc<vir::Function> {
+        self.functions[identifier].clone()
     }
 
     fn insert_function(&mut self, function: vir::Function) -> vir::FunctionIdentifier {
         let identifier: vir::FunctionIdentifier = function.get_identifier().into();
-        assert!(self.functions.insert(identifier.clone(), function).is_none());
+        assert!(self.functions.insert(identifier.clone(), Rc::new(function)).is_none());
         identifier
     }
 

@@ -166,3 +166,33 @@ pub fn walk_functions(functions: &[Function], walker: &mut impl ExprWalker) {
         }
     }
 }
+
+/// Walks all Statements and Expressions in the provided methods
+pub fn fallible_walk_methods<E>(
+    methods: &[CfgMethod],
+    walker: &mut (impl FallibleStmtWalker<Error = E> + FallibleExprWalker<Error = E>),
+) -> Result<(), E> {
+    for method in methods {
+        fallible_walk_method(method, walker)?;
+    }
+    Ok(())
+}
+
+pub fn fallible_walk_method<E>(
+    method: &CfgMethod,
+    walker: &mut (impl FallibleStmtWalker<Error = E> + FallibleExprWalker<Error = E>),
+) -> Result<(), E> {
+    method.fallible_walk_statements(|stmt| FallibleStmtWalker::fallible_walk(walker, stmt))?;
+    method.fallible_walk_successors(|successor| {
+        match successor {
+            cfg::Successor::Undefined | cfg::Successor::Return | cfg::Successor::Goto(_) => {}
+            cfg::Successor::GotoSwitch(conditional_targets, _) => {
+                for (ref expr, _) in conditional_targets {
+                    FallibleExprWalker::fallible_walk(walker, expr)?;
+                }
+            }
+        }
+        Ok(())
+    })?;
+    Ok(())
+}

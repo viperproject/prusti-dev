@@ -42,6 +42,7 @@ use std::cell::{RefCell, RefMut, Ref};
 use std::collections::{HashMap, HashSet};
 use std::io::Write;
 use std::mem;
+use std::rc::Rc;
 // use viper;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
@@ -69,12 +70,12 @@ pub struct Encoder<'v, 'tcx: 'v> {
         EncodingResult<ProcedureContractMirDef<'tcx>>
     >>,
     /// A map containing all functions: identifier → function definition.
-    functions: RefCell<HashMap<vir::FunctionIdentifier, vir::Function>>,
+    functions: RefCell<HashMap<vir::FunctionIdentifier, Rc<vir::Function>>>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::FunctionIdentifier>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
     programs: Vec<vir::Program>,
-    pub(super) pure_function_encoder_state: PureFunctionEncoderState,
+    pub(super) pure_function_encoder_state: PureFunctionEncoderState<'tcx>,
     spec_functions: RefCell<HashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_predicate_types: RefCell<HashMap<ty::TyKind<'tcx>, vir::Type>>,
     type_invariant_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
@@ -221,7 +222,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.error_manager.borrow_mut()
     }
 
-    pub fn finalize_viper_program(&self, name: String) -> vir::Program {
+    pub fn finalize_viper_program(&self, name: String) -> SpannedEncodingResult<vir::Program> {
         super::definition_collector::collect_definitions(self, name, self.get_used_viper_methods())
     }
 
@@ -257,19 +258,18 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub(super) fn insert_function(&self, function: vir::Function) -> vir::FunctionIdentifier {
         let identifier: vir::FunctionIdentifier = function.get_identifier().into();
-        assert!(self.functions.borrow_mut().insert(identifier.clone(), function).is_none());
+        assert!(self.functions.borrow_mut().insert(identifier.clone(), Rc::new(function)).is_none());
         identifier
     }
 
-    pub(super) fn get_function<'a>(&'a self, identifier: &vir::FunctionIdentifier) -> Ref<'a, vir::Function> {
+    pub(super) fn get_function<'a>(&'a self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<Rc<vir::Function>> {
+        self.ensure_pure_function_encoded(identifier)?;
         if self.functions.borrow().contains_key(identifier) {
-            Ref::map(self.functions.borrow(), |map| {
-                &map[identifier]
-            })
+            let map = self.functions.borrow();
+            Ok(map[identifier].clone())
         } else if self.snapshot_encoder.borrow().contains_function(identifier) {
-            Ref::map(self.snapshot_encoder.borrow(), |encoder| {
-                encoder.get_function(identifier)
-            })
+            let encoder = self.snapshot_encoder.borrow();
+            Ok(encoder.get_function(identifier).clone())
         } else {
             unreachable!("Not found function: {:?}", identifier)
         }
@@ -1123,8 +1123,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 self.register_encoding_error(error);
                 debug!("Error encoding function: {:?}", proc_def_id);
             } else {
-                let program = self.finalize_viper_program(proc_name);
-                self.programs.push(program);
+                match self.finalize_viper_program(proc_name) {
+                    Ok(program) => self.programs.push(program),
+                    Err(error) => {
+                        self.register_encoding_error(error);
+                        debug!("Error finalizing program: {:?}", proc_def_id);
+                    }
+                }
             }
         }
     }
