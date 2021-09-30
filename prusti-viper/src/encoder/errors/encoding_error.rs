@@ -51,6 +51,13 @@ impl EncodingError {
             EncodingError::Spanned(error) => error.with_span(span),
         }
     }
+
+    pub fn with_default_span<S: Into<MultiSpan>>(self, span: S) -> SpannedEncodingError {
+        match self {
+            EncodingError::Positionless(error) => SpannedEncodingError::new(error, span),
+            EncodingError::Spanned(error) => error,
+        }
+    }
 }
 
 impl From<SpannedEncodingError> for EncodingError {

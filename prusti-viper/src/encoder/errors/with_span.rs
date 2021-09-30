@@ -12,6 +12,7 @@ use log::trace;
 /// `Result<T, SpannedEncodingError>`.
 pub trait WithSpan<T> {
     fn with_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, SpannedEncodingError>;
+    fn with_default_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, SpannedEncodingError>;
 }
 
 impl<T> WithSpan<T> for Result<T, EncodingError> {
@@ -19,6 +20,12 @@ impl<T> WithSpan<T> for Result<T, EncodingError> {
         self.map_err(|err| {
             trace!("Converting a EncodingError to SpannedEncodingError in a Result");
             err.with_span(span)
+        })
+    }
+    fn with_default_span<S: Into<MultiSpan>>(self, span: S) -> Result<T, SpannedEncodingError> {
+        self.map_err(|err| {
+            trace!("Converting a EncodingError to SpannedEncodingError in a Result");
+            err.with_default_span(span)
         })
     }
 }
@@ -29,5 +36,9 @@ impl<T> WithSpan<T> for Result<T, SpannedEncodingError> {
             trace!("Replacing the span of an SpannedEncodingError in a Result");
             err.with_span(span)
         })
+    }
+    fn with_default_span<S: Into<MultiSpan>>(self, _span: S) -> Result<T, SpannedEncodingError> {
+        trace!("Ignoring the span because the error already has one.");
+        self
     }
 }
