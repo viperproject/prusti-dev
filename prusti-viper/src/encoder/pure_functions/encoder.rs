@@ -195,10 +195,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .encoder
             .get_procedure_contract_for_def(self.proc_def_id)
             .with_span(self.mir.span)?;
-        let substs = &self
-            .encoder
-            .type_substitution_polymorphic_type_map(self.tymap)
-            .with_span(self.mir.span)?;
+        let substs = &self.encode_substs()?;
 
         let (type_precondition, func_precondition) = self.encode_precondition_expr(&contract)?;
         let patched_type_precondition = type_precondition.patch_types(substs);
@@ -206,25 +203,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mut precondition = vec![patched_type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)?];
 
-        let mut formal_args = vec![];
-        for local in self.mir.args_iter() {
-            let mir_encoder = self.interpreter.mir_encoder();
-            let var_name = mir_encoder.encode_local_var_name(local);
-            let var_span = mir_encoder.get_local_span(local);
-            let mir_type = mir_encoder.get_local_ty(local);
-            if !self.encoder.env().type_is_copy(mir_type) {
-                return Err(SpannedEncodingError::incorrect(
-                    "pure function parameters must be Copy",
-                    var_span,
-                ));
-            }
-            let var_type = self
-                .encoder
-                .encode_snapshot_type(mir_type, self.tymap)
-                .with_span(var_span)?;
-            let var_type = var_type.patch(substs);
-            formal_args.push(vir::LocalVar::new(var_name, var_type))
-        }
+        let formal_args = self.encode_formal_args()?;
         let return_type = self.encode_function_return_type()?;
 
         let res_value_range_pos = self.encoder.error_manager().register(
@@ -449,5 +428,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         self.encoder
             .encode_snapshot_type(ty, self.tymap)
             .with_span(span)
+    }
+
+    fn encode_substs(&self) -> SpannedEncodingResult<HashMap<vir::TypeVar, vir::Type>> {
+        self.encoder
+            .type_substitution_polymorphic_type_map(self.tymap)
+            .with_span(self.mir.span)
+    }
+
+    fn encode_formal_args(&self) -> SpannedEncodingResult<Vec<vir::LocalVar>> {
+        let substs = self.encode_substs()?;
+        let mut formal_args = vec![];
+        for local in self.mir.args_iter() {
+            let mir_encoder = self.interpreter.mir_encoder();
+            let var_name = mir_encoder.encode_local_var_name(local);
+            let var_span = mir_encoder.get_local_span(local);
+            let mir_type = mir_encoder.get_local_ty(local);
+            if !self.encoder.env().type_is_copy(mir_type) {
+                return Err(SpannedEncodingError::incorrect(
+                    "pure function parameters must be Copy",
+                    var_span,
+                ));
+            }
+            let var_type = self
+                .encoder
+                .encode_snapshot_type(mir_type, self.tymap)
+                .with_span(var_span)?;
+            let var_type = var_type.patch(&substs);
+            formal_args.push(vir::LocalVar::new(var_name, var_type))
+        }
+        Ok(formal_args)
+    }
+
+    pub fn encode_function_call_info(&self) -> SpannedEncodingResult<FunctionCallInfo> {
+        Ok(FunctionCallInfo {
+            name: self.encode_function_name(),
+            formal_args: self.encode_formal_args()?,
+            return_type: self.encode_function_return_type()?,
+        })
+    }
+}
+
+pub(super) struct FunctionCallInfo {
+    pub name: String,
+    pub formal_args: Vec<vir::LocalVar>,
+    pub return_type: vir::Type,
+}
+
+impl vir::WithIdentifier for FunctionCallInfo {
+    fn get_identifier(&self) -> String {
+        vir::compute_identifier(&self.name, &self.formal_args, &self.return_type)
     }
 }

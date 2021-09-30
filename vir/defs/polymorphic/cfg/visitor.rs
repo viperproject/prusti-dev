@@ -350,6 +350,18 @@ impl CfgMethod {
         }
     }
 
+    pub fn fallible_walk_statements<E, F: FnMut(&Stmt) -> Result<(), E>>(
+        &self,
+        mut walker: F,
+    ) -> Result<(), E> {
+        for block in self.basic_blocks.iter() {
+            for stmt in block.stmts.iter() {
+                walker(stmt)?;
+            }
+        }
+        Ok(())
+    }
+
     // TODO: maybe just let basic_blocks be public and modify those directly?
     pub fn patch_statements<E, F: FnMut(Stmt) -> Result<Stmt, E>>(
         mut self,
@@ -369,6 +381,16 @@ impl CfgMethod {
         for block in self.basic_blocks.iter() {
             walker(&block.successor);
         }
+    }
+
+    pub fn fallible_walk_successors<E, F: FnMut(&Successor) -> Result<(), E>>(
+        &self,
+        mut walker: F,
+    ) -> Result<(), E> {
+        for block in self.basic_blocks.iter() {
+            walker(&block.successor)?;
+        }
+        Ok(())
     }
 
     /// Visit each expression used in a statement or successor.
