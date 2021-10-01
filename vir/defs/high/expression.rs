@@ -4,6 +4,7 @@ use super::{
     variable::VariableDecl,
 };
 
+#[derive_helpers]
 pub enum Expression {
     /// A local variable.
     Local(Local),
@@ -16,7 +17,7 @@ pub enum Expression {
     /// The inverse of Deref.
     AddrOf(AddrOf),
     LabelledOld(LabelledOld),
-    Const(Const),
+    Constant(Constant),
     UnaryOp(UnaryOp),
     BinOp(BinOp),
     /// Container Operation on a Viper container (e.g. Seq index)
@@ -73,12 +74,12 @@ pub struct LabelledOld {
     pub position: Position,
 }
 
-pub struct Const {
-    pub value: ConstValue,
+pub struct Constant {
+    pub value: ConstantValue,
     pub position: Position,
 }
 
-pub enum ConstValue {
+pub enum ConstantValue {
     Bool(bool),
     Int(i64),
     BigInt(String),

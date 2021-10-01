@@ -5,3 +5,5 @@ pub mod function;
 pub mod position;
 pub mod typ;
 pub mod variable;
+
+pub use self::expression::Expression;
