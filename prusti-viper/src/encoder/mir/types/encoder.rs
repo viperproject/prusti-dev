@@ -473,11 +473,14 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let self_local_var = vir_local!{ self: {vir::Type::typed_ref(predicate_name)} };
 
         let field_invariants = match self.ty.kind(){
-            ty::TyKind::Ref(_, ref ty, _) => {
+            ty::TyKind::Ref(_, ref ty, _) if should_encode_typ_invariant(ty) => {
                 let elem_field = self.encoder.encode_dereference_field(ty)?;
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 Some(vec![
-                    self.encoder.encode_invariant_func_app(ty, elem_loc)?
+                    vir::Expr::wrap_in_unfolding(
+                        elem_loc.clone(),
+                        self.encoder.encode_invariant_func_app(ty, elem_loc)?,
+                    ),
                 ])
             },
             ty::TyKind::Adt(ref adt_def, ref subst) if !adt_def.is_box() => {
@@ -602,7 +605,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::PermAmount::Read,
             ),
         };
-        let function0 = vir::Function {
+        let function = vir::Function {
             name: self.encoder.encode_type_invariant_use(self.ty)?,
             type_arguments: vec![], // TODO: generics
             formal_args: vec![self_local_var],
@@ -612,7 +615,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             body: field_invariants.map(|invs| invs.into_iter().conjoin()),
         };
         // // Patch snapshots
-        let function = self.encoder.patch_snapshots_function(function0, &FxHashMap::default())?;
+        let function = self.encoder.patch_snapshots_function(function, &FxHashMap::default())?;
 
         self.encoder
           .log_vir_program_before_foldunfold(function.to_string());
@@ -620,15 +623,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let predicates_map = self.encoder.get_used_viper_predicates_map();
 
         // Add folding/unfolding
-        let final_function = function; /* foldunfold::add_folding_unfolding_to_function(
+        let function = function; /* foldunfold::add_folding_unfolding_to_function(
             function,
             predicates_map
         ).unwrap(); // TODO: generate a stub function in case of error */
         debug!(
           "[exit] encode_invariant_def({:?}):\n{}",
-          self.ty, final_function
+          self.ty, function
         );
-        Ok(final_function)
+        Ok(function)
     }
 
     // pub fn encode_invariant_use(self) -> EncodingResult<String> {
@@ -771,5 +774,13 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
             format!("unexpected variant of adt_def: {:?}", adt_def),
             encoder.env().get_def_span(adt_def.did),
         ))
+    }
+}
+
+fn should_encode_typ_invariant(ty: ty::Ty<'_>) -> bool {
+    match ty.kind() {
+        ty::TyKind::Ref(_, ty, _) => should_encode_typ_invariant(ty),
+        ty::TyKind::Adt(ref adt_def, _) => !adt_def.is_box(),
+        _ => false
     }
 }
