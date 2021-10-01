@@ -19,6 +19,6 @@ extern crate serde;
 mod gen;
 pub use gen::*;
 
+pub mod common;
 pub mod converter;
 pub mod legacy;
-pub mod common;
