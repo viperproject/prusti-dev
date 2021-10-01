@@ -477,10 +477,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 let elem_field = self.encoder.encode_dereference_field(ty)?;
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 Some(vec![
-                    vir::Expr::wrap_in_unfolding(
-                        elem_loc.clone(),
-                        self.encoder.encode_invariant_func_app(ty, elem_loc)?,
-                    ),
+                    self.encoder.encode_invariant_func_app(ty, elem_loc)?,
                 ])
             },
             ty::TyKind::Adt(ref adt_def, ref subst) if !adt_def.is_box() => {
