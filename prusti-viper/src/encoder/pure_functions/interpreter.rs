@@ -453,6 +453,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             }
 
                             "std::cmp::PartialEq::eq"
+                            | "core::cmp::PartialEq::eq"
                                 if self.encoder.has_structural_eq_impl(
                                     self.mir_encoder.get_operand_ty(&args[0]),
                                 ) =>
@@ -468,6 +469,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             }
 
                             "std::cmp::PartialEq::ne"
+                            | "core::cmp::PartialEq::ne"
                                 if self.encoder.has_structural_eq_impl(
                                     self.mir_encoder.get_operand_ty(&args[0]),
                                 ) =>
@@ -499,7 +501,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state
                             }
 
-                            "std::ops::Index::index" => {
+                            "std::ops::Index::index"
+                            | "core::ops::Index::index" => {
                                 assert_eq!(args.len(), 2);
                                 trace!("slice::index(args={:?}, encoded_args={:?}, ty={:?}, lhs_value={:?})", args, encoded_args, ty, lhs_value);
 
@@ -514,7 +517,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let encoded_idx = &encoded_args[1];
 
                                 let (start, end) = match &*idx_ident {
-                                    "std::ops::Range" => {
+                                    "std::ops::Range"
+                                    | "core::ops::Range" => {
                                         // there's fields like _5.f$start.val_int on `encoded_idx`, it just feels hacky to
                                         // manually re-do them here when we probably just encoded the type and the
                                         // construction of the fields..
