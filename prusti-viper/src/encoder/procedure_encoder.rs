@@ -2146,7 +2146,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             }
                         }
 
-                        "std::boxed::Box::<T>::new" => {
+                        "std::boxed::Box::<T>::new"
+                        | "alloc::boxed::Box::<T>::new" => {
                             // This is the initialization of a box
                             // args[0]: value to put in the box
                             assert_eq!(args.len(), 1);
@@ -2226,7 +2227,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             );
                         }
 
-                        "std::ops::Fn::call" => {
+                        "std::ops::Fn::call"
+                        | "core::ops::Fn::call" => {
                             let cl_type: ty::Ty = substs[0].expect_ty();
                             match cl_type.kind() {
                                 ty::TyKind::Closure(cl_def_id, _) => {
