@@ -1,6 +1,6 @@
 use syn::{parse_quote, spanned::Spanned};
 
-use crate::helpers::method_name_from_camel;
+use crate::helpers::{method_name_from_camel, unbox_type};
 
 pub(super) struct DeriveInfo {
     enum_ident: syn::Ident,
@@ -86,22 +86,24 @@ pub(super) fn derive(
             let method_name = method_name_from_camel(&variant.ident);
             let variant_ident = &variant.ident;
             let variant_struct_ident = &variant_struct.ident;
-            let parameters: Vec<syn::FnArg> = variant_struct
-                .fields
-                .iter()
-                .map(|field| {
-                    let name = field.ident.as_ref().unwrap();
-                    let ty = &field.ty;
-                    parse_quote!(
-                        #name: #ty
-                    )
-                })
-                .collect();
-            let fields: Vec<syn::Ident> = variant_struct
-                .fields
-                .iter()
-                .map(|field| field.ident.as_ref().unwrap().clone())
-                .collect();
+            let mut parameters: Vec<syn::FnArg> = Vec::new();
+            let mut fields: Vec<syn::FieldValue> = Vec::new();
+            for field in &variant_struct.fields {
+                let name = field.ident.as_ref().unwrap();
+                let parameter_type = unbox_type(&field.ty);
+                parameters.push(parse_quote!(
+                    #name: #parameter_type
+                ));
+                if parameter_type == field.ty {
+                    fields.push(parse_quote!(
+                        #name: #name
+                    ));
+                } else {
+                    fields.push(parse_quote!(
+                        #name: Box::new(#name)
+                    ));
+                }
+            }
             let method = parse_quote! {
                 pub fn #method_name(#(#parameters),*) -> #enum_ident {
                     #enum_ident::#variant_ident(#variant_struct_ident {

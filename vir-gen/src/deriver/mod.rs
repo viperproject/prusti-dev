@@ -1,4 +1,4 @@
-use syn::{fold::Fold, parse_quote, spanned::Spanned};
+use syn::fold::Fold;
 
 mod helpers;
 
@@ -14,7 +14,6 @@ struct Expander {
 
 impl Fold for Expander {
     fn fold_item_mod(&mut self, mut item_mod: syn::ItemMod) -> syn::ItemMod {
-        eprintln!("mod: {:?}", item_mod.ident);
         if let Some((brace, mut content)) = item_mod.content {
             let helpers_to_derive = self::helpers::collect(&mut content);
             let content = match self::helpers::derive(content, helpers_to_derive) {

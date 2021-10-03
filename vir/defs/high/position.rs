@@ -1,4 +1,5 @@
 #[derive(Copy)]
+#[display(fmt = "({}, {})", line, column)]
 pub struct Position {
     line: i32,
     column: i32,

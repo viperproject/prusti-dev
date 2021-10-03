@@ -30,6 +30,6 @@ pub(crate) struct RawBlock {
 }
 
 /// A list of identifiers
-pub(crate) struct IdentList {
-    pub(crate) idents: syn::punctuated::Punctuated<syn::Ident, syn::Token![,]>,
+pub(crate) struct PathList {
+    pub(crate) paths: syn::punctuated::Punctuated<syn::Path, syn::Token![,]>,
 }
