@@ -3,6 +3,7 @@ use super::{
     typ::{Type, VariantIndex},
     variable::VariableDecl,
 };
+use crate::common::display;
 
 #[derive_helpers]
 pub enum Expression {
@@ -38,17 +39,20 @@ pub enum Expression {
     Downcast(Downcast),
 }
 
+#[display(fmt = "{}", "variable.name")]
 pub struct Local {
     pub variable: VariableDecl,
     pub position: Position,
 }
 
+#[display(fmt = "{}[{}]", base, variant_index)]
 pub struct Variant {
     pub base: Box<Expression>,
     pub variant_index: VariantIndex,
     pub position: Position,
 }
 
+#[display(fmt = "{}.{}", base, name)]
 pub struct Field {
     pub base: Box<Expression>,
     pub name: String,
@@ -56,24 +60,28 @@ pub struct Field {
     pub position: Position,
 }
 
+#[display(fmt = "{}.*", base)]
 pub struct Deref {
     pub base: Box<Expression>,
     pub typ: Type,
     pub position: Position,
 }
 
+#[display(fmt = "{}.&", base)]
 pub struct AddrOf {
     pub base: Box<Expression>,
     pub typ: Type,
     pub position: Position,
 }
 
+#[display(fmt = "old[{}]({})", label, base)]
 pub struct LabelledOld {
     pub label: String,
     pub base: Box<Expression>,
     pub position: Position,
 }
 
+#[display(fmt = "{}", value)]
 pub struct Constant {
     pub value: ConstantValue,
     pub position: Position,
@@ -93,6 +101,7 @@ pub enum UnaryOpKind {
     Minus,
 }
 
+#[display(fmt = "{}{}", op_kind, argument)]
 pub struct UnaryOp {
     pub op_kind: UnaryOpKind,
     pub argument: Box<Expression>,
@@ -116,6 +125,7 @@ pub enum BinOpKind {
     Implies,
 }
 
+#[display(fmt = "{}{}{}", left, op_kind, right)]
 pub struct BinOp {
     pub op_kind: BinOpKind,
     pub left: Box<Expression>,
@@ -129,6 +139,7 @@ pub enum ContainerOpKind {
     SeqLen,
 }
 
+#[display(fmt = "{}{}{}", left, op_kind, right)]
 pub struct ContainerOp {
     pub op_kind: ContainerOpKind,
     pub left: Box<Expression>,
@@ -136,12 +147,14 @@ pub struct ContainerOp {
     pub position: Position,
 }
 
+#[display(fmt = "Seq({})", "display::cjoin(elements)")]
 pub struct Seq {
     pub typ: Type,
     pub elements: Vec<Expression>,
     pub position: Position,
 }
 
+#[display(fmt = "({} ? {} : {})", guard, then_expr, else_expr)]
 pub struct Conditional {
     pub guard: Box<Expression>,
     pub then_expr: Box<Expression>,
@@ -149,6 +162,7 @@ pub struct Conditional {
     pub position: Position,
 }
 
+#[display(fmt = "{}", "display::cjoin(terms)")]
 pub struct Trigger {
     pub terms: Vec<Expression>,
 }
@@ -158,6 +172,13 @@ pub enum QuantifierKind {
     Exists,
 }
 
+#[display(
+    fmt = "{}(|{}| {}, triggers=[{}])",
+    kind,
+    "display::cjoin(variables)",
+    body,
+    "display::join(\"; \", triggers)"
+)]
 pub struct Quantifier {
     pub kind: QuantifierKind,
     pub variables: Vec<VariableDecl>,
@@ -166,6 +187,7 @@ pub struct Quantifier {
     pub position: Position,
 }
 
+#[display(fmt = "let {} = {} in {}", variable, def, body)]
 pub struct LetExpr {
     pub variable: VariableDecl,
     pub def: Box<Expression>,
@@ -173,6 +195,7 @@ pub struct LetExpr {
     pub position: Position,
 }
 
+#[display(fmt = "{}({})", function_name, "display::cjoin(arguments)")]
 pub struct FuncApp {
     pub function_name: String,
     pub arguments: Vec<Expression>,
@@ -181,6 +204,7 @@ pub struct FuncApp {
     pub position: Position,
 }
 
+#[display(fmt = "(downcast {} to {} in {})", enum_place, field, base)]
 pub struct Downcast {
     pub base: Box<Expression>,
     pub enum_place: Box<Expression>,

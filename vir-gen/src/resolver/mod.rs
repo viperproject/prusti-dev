@@ -1,4 +1,4 @@
-use crate::ast::{IdentList, Include, RawBlock};
+use crate::ast::{Include, PathList, RawBlock};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{fold::Fold, parse_quote, spanned::Spanned};
@@ -20,7 +20,7 @@ struct Expander<'a> {
     components: &'a syn::ItemMod,
     errors: Vec<syn::Error>,
     /// A list of things to derive for each type.
-    new_derives: Vec<Vec<syn::Ident>>,
+    new_derives: Vec<Vec<syn::Path>>,
 }
 
 impl<'a> Expander<'a> {
@@ -142,13 +142,16 @@ impl<'a> Expander<'a> {
     }
     /// Add additional `#[derive(...)]` attributes.
     fn add_derives(&self, attributes: &mut Vec<syn::Attribute>) {
+        let mut new_attributes: Vec<syn::Attribute> = Vec::new();
         for frame in &self.new_derives {
             for derive in frame {
-                attributes.push(parse_quote! {
+                new_attributes.push(parse_quote! {
                     #[derive(#derive)]
                 });
             }
         }
+        new_attributes.extend(attributes.drain(..));
+        *attributes = new_attributes;
     }
 }
 
@@ -164,16 +167,14 @@ impl<'a> Fold for Expander<'a> {
                         path,
                         tokens,
                         ..
-                    } if path.is_ident("derive_for_all") => {
-                        match syn::parse2::<IdentList>(tokens) {
-                            Ok(list) => {
-                                new_derives.extend(list.idents);
-                            }
-                            Err(error) => {
-                                self.errors.push(error);
-                            }
+                    } if path.is_ident("derive_for_all") => match syn::parse2::<PathList>(tokens) {
+                        Ok(list) => {
+                            new_derives.extend(list.paths);
                         }
-                    }
+                        Err(error) => {
+                            self.errors.push(error);
+                        }
+                    },
                     _ => {
                         new_attributes.push(attribute);
                     }
