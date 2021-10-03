@@ -1,3 +1,5 @@
+use syn::TypePath;
+
 fn append(s: &mut String, iter: impl Iterator<Item = char>) {
     for c in iter {
         s.push(c);
@@ -19,4 +21,34 @@ pub fn method_name_from_camel(ident: &syn::Ident) -> syn::Ident {
         }
     }
     syn::Ident::new(&new_ident, ident.span())
+}
+
+/// If `ty` is `Box<T>`, return `T`.
+pub fn unbox_type(ty: &syn::Type) -> syn::Type {
+    match ty {
+        syn::Type::Path(syn::TypePath {
+            qself: None,
+            path:
+                syn::Path {
+                    leading_colon: None,
+                    segments,
+                },
+        }) if segments.len() == 1 => match &segments[0] {
+            syn::PathSegment {
+                ident,
+                arguments:
+                    syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
+                        args, ..
+                    }),
+            } if ident == "Box" && args.len() == 1 => match &args[0] {
+                syn::GenericArgument::Type(inner_ty) => {
+                    return inner_ty.clone();
+                }
+                _ => {}
+            },
+            _ => {}
+        },
+        _ => {}
+    }
+    ty.clone()
 }

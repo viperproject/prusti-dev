@@ -70,12 +70,12 @@ impl Parse for Include {
     }
 }
 
-impl Parse for IdentList {
+impl Parse for PathList {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let content;
         parenthesized!(content in input);
         Ok(Self {
-            idents: syn::punctuated::Punctuated::parse_separated_nonempty(&content)?,
+            paths: syn::punctuated::Punctuated::parse_separated_nonempty(&content)?,
         })
     }
 }
