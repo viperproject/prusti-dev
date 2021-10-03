@@ -19,6 +19,7 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
         let (expanded_components, errors) =
             parser::expand(declarations.components, source_file.to_owned());
         for error in errors {
+            eprintln!("error: {}", error);
             error_tokens.extend(error.to_compile_error());
         }
         expanded_components
@@ -28,6 +29,7 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
         let (new_item, errors) = parser::expand(sentinel_item, source_file.to_owned());
         sentinel_item = new_item;
         for error in errors {
+            eprintln!("error: {}", error);
             error_tokens.extend(error.to_compile_error());
         }
         mem::swap(ir, &mut sentinel_item);
@@ -38,9 +40,13 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
         let (new_item_with_derives, derive_errors) = deriver::expand(new_item);
         sentinel_item = new_item_with_derives;
         for error in errors.into_iter().chain(derive_errors.into_iter()) {
+            eprintln!("error: {}", error);
             error_tokens.extend(error.to_compile_error());
         }
         mem::swap(ir, &mut sentinel_item);
+    }
+    if !error_tokens.is_empty() {
+        unreachable!();
     }
 
     quote! { #declarations #error_tokens }
