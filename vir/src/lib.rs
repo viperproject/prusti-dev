@@ -14,11 +14,9 @@ extern crate lazy_static;
 #[macro_use]
 extern crate serde;
 
-// https://github.com/rust-analyzer/rust-analyzer/issues/1964
-//
-// To enable autocompletion of the generated code, please add
-// `"rust-analyzer.cargo.loadOutDirsFromCheck": true` to your VS Code settings.
-include!(concat!(env!("OUT_DIR"), "/vir_gen.rs"));
+#[path = "../gen/vir_gen.rs"]
+mod gen;
+pub use gen::*;
 
 pub mod converter;
 pub mod legacy;
