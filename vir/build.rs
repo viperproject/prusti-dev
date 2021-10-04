@@ -1,15 +1,20 @@
-use quote::quote;
-use std::{env, io::Write, path::Path};
-use vir_gen::define_vir;
-use std::process::{Command, Stdio};
 use proc_macro2::TokenStream;
+use quote::quote;
+use std::{
+    env,
+    io::Write,
+    path::Path,
+    process::{Command, Stdio},
+};
+use vir_gen::define_vir;
 
 /// Try to pretty-print a tokenstream by piping it through `rustfmt`.
 fn pretty_print_tokenstream(tokens: &TokenStream) -> Option<Vec<u8>> {
     let mut child = Command::new("rustfmt")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .spawn().ok()?;
+        .spawn()
+        .ok()?;
     {
         let stdin = child.stdin.as_mut()?;
         stdin.write_all(tokens.to_string().as_bytes()).ok()?;
