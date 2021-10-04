@@ -6,6 +6,7 @@ use super::{
 use crate::common::display;
 
 #[derive_helpers]
+#[derive_visitors]
 pub enum Expression {
     /// A local variable.
     Local(Local),

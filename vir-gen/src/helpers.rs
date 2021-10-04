@@ -1,16 +1,19 @@
-use syn::TypePath;
-
 fn append(s: &mut String, iter: impl Iterator<Item = char>) {
     for c in iter {
         s.push(c);
     }
 }
 
-/// Converts CamelCase to camel_case
+/// Converts `CamelCase` to `camel_case`
 pub fn method_name_from_camel(ident: &syn::Ident) -> syn::Ident {
+    prefixed_method_name_from_camel("", ident)
+}
+
+/// Converts `CamelCase` to `<prefix>camel_case`
+pub fn prefixed_method_name_from_camel(prefix: &str, ident: &syn::Ident) -> syn::Ident {
     let string = ident.to_string();
     let mut iterator = string.chars();
-    let mut new_ident = String::new();
+    let mut new_ident = String::from(prefix);
     append(&mut new_ident, iterator.next().unwrap().to_lowercase());
     for c in iterator {
         if c.is_uppercase() {
@@ -21,6 +24,11 @@ pub fn method_name_from_camel(ident: &syn::Ident) -> syn::Ident {
         }
     }
     syn::Ident::new(&new_ident, ident.span())
+}
+
+pub fn append_ident(ident: &syn::Ident, suffix: &str) -> syn::Ident {
+    let name = format!("{}{}", ident, suffix);
+    syn::Ident::new(&name, ident.span())
 }
 
 /// If `ty` is `Box<T>`, return `T`.
