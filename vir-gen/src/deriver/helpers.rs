@@ -1,4 +1,4 @@
-use syn::{parse_quote, spanned::Spanned};
+use syn::parse_quote;
 
 use super::common::DeriveInfo;
 use crate::{

@@ -1,4 +1,4 @@
-use syn::{parse_quote, spanned::Spanned};
+use syn::spanned::Spanned;
 
 pub(super) struct DeriveInfo {
     pub(super) enum_ident: syn::Ident,
