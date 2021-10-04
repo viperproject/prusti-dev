@@ -37,7 +37,7 @@ impl Fold for Expander {
                     }
                 })
                 .collect();
-            content.push(visitors);
+            content.extend(visitors);
             item_mod.content = Some((brace, content));
         }
         item_mod
