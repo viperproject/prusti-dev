@@ -24,6 +24,7 @@ use log::{trace, debug};
 use crate::encoder::errors::EncodingError;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
+use crate::utils::is_reference;
 
 #[derive(Clone, Debug)]
 pub struct BorrowInfo<P>
@@ -488,6 +489,7 @@ where
                 .any(|(blocked_place, _)| blocked_place == place)
         })
     };
+
     let returned_refs: Vec<_> = visitor
         .references_in
         .into_iter()
