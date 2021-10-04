@@ -194,6 +194,13 @@
 <span id="194">194</span>
 <span id="195">195</span>
 <span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -236,7 +243,7 @@
 <span class="kw">use</span> <span class="ident">log::info</span>;
 <span class="kw">use</span> <span class="ident">prusti_common</span>::{<a class="ident" href="../../prusti_common/config/index.html">config</a>, <a class="ident" href="../../prusti_common/report/user/index.html">report::user</a>};
 <span class="kw">use</span> <span class="ident">rustc_interface::interface::try_print_query_stack</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">borrow::Cow</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/env/index.html">env</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/panic/index.html">panic</a>};
+<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">borrow::Cow</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/env/index.html">env</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/panic/index.html">panic</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>};
 
 <span class="doccomment">/// Link to report Prusti bugs</span>
 <span class="kw">const</span> <span class="ident">BUG_REPORT_URL</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;https://github.com/viperproject/prusti-dev/issues/new&quot;</span>;
@@ -380,13 +387,20 @@
         }
 
         <span class="kw">if</span> <span class="ident">config::dump_debug_info</span>() {
+            <a class="ident" href="../../src/prusti_driver/driver.rs.html#148">rustc_args</a>.<span class="ident">push</span>(<span class="macro">format!</span>(
+                <span class="string">&quot;-Zdump-mir-dir={}&quot;</span>,
+                <span class="ident">PathBuf::from</span>(<span class="ident">config::log_dir</span>())
+                    .<span class="ident">join</span>(<span class="string">&quot;mir&quot;</span>)
+                    .<span class="ident">to_str</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;failed to configure dump-mir-dir&quot;</span>)
+            ));
             <a class="ident" href="../../src/prusti_driver/driver.rs.html#148">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zdump-mir=all&quot;</span>.<span class="ident">to_owned</span>());
             <a class="ident" href="../../src/prusti_driver/driver.rs.html#148">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zdump-mir-graphviz&quot;</span>.<span class="ident">to_owned</span>());
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callbacks</span> <span class="op">=</span> <span class="ident">PrustiCompilerCalls::default</span>();
 
-        <span class="ident">rustc_driver::RunCompiler::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/driver.rs.html#148">rustc_args</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/prusti_driver/driver.rs.html#191">callbacks</a>).<span class="ident">run</span>()
+        <span class="ident">rustc_driver::RunCompiler::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/driver.rs.html#148">rustc_args</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/prusti_driver/driver.rs.html#198">callbacks</a>).<span class="ident">run</span>()
     });
     <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a class="ident" href="../../src/prusti_driver/driver.rs.html#165">exit_code</a>)
 }
