@@ -116,7 +116,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> Self {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-        let vir_program_before_foldunfold_writer = config::dump_debug_info().then_some(
+        let vir_program_before_foldunfold_writer = config::dump_debug_info().then_some(()).map(|_|
             RefCell::new(
                 log::build_writer(
                     "vir_program_before_foldunfold",
@@ -126,14 +126,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 .unwrap(),
             )
         );
-        let vir_program_before_viper_writer = config::dump_debug_info().then_some(
+        let vir_program_before_viper_writer = config::dump_debug_info().then_some(()).map(|_|
             RefCell::new(
                 log::build_writer(
                     "vir_program_before_viper",
                     format!("{}.vir", source_filename),
                 )
-                .ok()
-                .unwrap(),
+                    .ok()
+                    .unwrap(),
             )
         );
 
@@ -821,6 +821,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             for predicate in predicates {
                 self.log_vir_program_before_viper(predicate.to_string());
                 let predicate_name = predicate.name();
+                if config::dump_debug_info() {
+                    log::report(
+                        "vir_predicates",
+                        format!("{}.vir", predicate_name),
+                        predicate.to_string(),
+                    );
+                }
                 self.type_predicates
                     .borrow_mut()
                     .insert(predicate_name.to_string(), predicate);
