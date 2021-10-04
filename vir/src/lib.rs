@@ -14,6 +14,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate serde;
 
+#[rustfmt::skip]
 #[path = "../gen/vir_gen.rs"]
 mod gen;
 pub use gen::*;
