@@ -255,7 +255,8 @@ impl<'a> PathCtxt<'a> {
                         ObtainResult::Failure(missing_perm) => {
                             trace!(
                                 "Failed to obtain: {} because of {}",
-                                pred_perm, missing_perm
+                                pred_perm,
+                                missing_perm
                             );
                             let remove_places = |ctxt: &mut PathCtxt, actions: &mut Vec<_>| {
                                 ctxt.state.remove_moved_matching(|moved_place| {
@@ -267,7 +268,8 @@ impl<'a> PathCtxt<'a> {
                                         let perm = Perm::acc(acc_place, perm_amount);
                                         trace!(
                                             "dropping perm={} missing_perm={}",
-                                            perm, missing_perm
+                                            perm,
+                                            missing_perm
                                         );
                                         actions.push(Action::Drop(perm, missing_perm.clone()));
                                     }
@@ -278,7 +280,8 @@ impl<'a> PathCtxt<'a> {
                                         let perm = Perm::pred(place, perm_amount);
                                         trace!(
                                             "dropping perm={} missing_perm={}",
-                                            perm, missing_perm
+                                            perm,
+                                            missing_perm
                                         );
                                         actions.push(Action::Drop(perm, missing_perm.clone()));
                                     }

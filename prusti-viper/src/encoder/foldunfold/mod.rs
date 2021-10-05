@@ -459,13 +459,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
 
         if let vir::Stmt::ExpireBorrows(vir::ExpireBorrows { ref dag }) = stmt {
             let mut stmts = vec![vir::Stmt::comment(format!("{}", stmt))];
-            let expire_borrow_statements = self.process_expire_borrows(
-                dag,
-                pctxt,
-                curr_block_index,
-                new_cfg,
-                label,
-            )?;
+            let expire_borrow_statements =
+                self.process_expire_borrows(dag, pctxt, curr_block_index, new_cfg, label)?;
             stmts.extend(expire_borrow_statements);
             return Ok(stmts);
         }
@@ -1123,7 +1118,10 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
     ) -> Result<vir::Expr, Self::Error> {
         trace!(
             "[enter] fold_unfolding {}, {}, {}, {}",
-            predicate_name, arguments[0], base, permission
+            predicate_name,
+            arguments[0],
+            base,
+            permission
         );
 
         let res = if self.wait_old_expr {
@@ -1322,7 +1320,9 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
     ) -> Result<vir::Expr, Self::Error> {
         trace!(
             "[enter] fallible_fold_downcast {} -> {} in {}",
-            enum_place, field, base
+            enum_place,
+            field,
+            base
         );
 
         let res = if self.wait_old_expr {
