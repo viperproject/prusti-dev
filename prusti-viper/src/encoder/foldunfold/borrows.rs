@@ -70,8 +70,15 @@ impl<'a> CFG<'a> {
             write!(graph, "<table>")?;
             write!(
                 graph,
-                "<tr><td>borrow:</td><td>{:?}</td></tr>",
-                block.node.borrow
+                "<tr><td>borrow:</td><td>{:?}<br/>{}</td></tr>",
+                block.node.borrow,
+                block
+                    .node
+                    .stmts
+                    .iter()
+                    .map(|s| escape_html(s.to_string()))
+                    .collect::<Vec<_>>()
+                    .join("<br/>"),
             )?;
             for (i, stmt) in block.statements.iter().enumerate() {
                 write!(
