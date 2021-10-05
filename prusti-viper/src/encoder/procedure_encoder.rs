@@ -2873,7 +2873,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             post_invs_spec,
             post_func_spec,
             magic_wands,
-            read_transfer,
+            _,
             _, // We don't care about verifying that the strengthening is valid,
                // since it isn't the task of the caller
         ) = self.encode_postcondition_expr(
@@ -2904,13 +2904,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if let Some(access) = return_type_spec {
             stmts.push(vir::Stmt::Inhale( vir::Inhale {
                 expr: replace_fake_exprs(access),
-            }));
-        }
-        for (from_place, to_place) in read_transfer {
-            stmts.push(vir::Stmt::TransferPerm( vir::TransferPerm {
-                left: replace_fake_exprs(from_place),
-                right: replace_fake_exprs(to_place),
-                unchecked: true,
             }));
         }
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
@@ -3456,11 +3449,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ).with_span(span)?;
                 let vir_access =
                     vir::Expr::pred_permission(place_expr.clone().old(label), perm_amount).unwrap();
-                self
+                let inv = self
                     .encoder
                     .encode_invariant_func_app(place_ty, place_expr.old(label))
-                    .with_span(span)
-                    .map(|inv| vir::Expr::and(vir_access, inv))
+                    .with_span(span)?;
+                Ok(vir::Expr::and(vir_access, inv))
             };
             let mut lhs: Vec<_> = borrow_info
                 .blocking_paths
@@ -3470,8 +3463,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let mut rhs: Vec<_> = borrow_info
                 .blocked_paths
                 .iter()
+                .filter(|(_, mutability)| matches!(mutability, mir::Mutability::Mut))
                 .map(|(place, mutability)| encode_place_perm(place, *mutability, pre_label))
                 .collect::<SpannedEncodingResult<_>>()?;
+            // If the RHS of the magic wand is empty, no magic wand should be generated
+            if rhs.is_empty() {
+                return Ok(None);
+            }
             if let Some(typed::Pledge { reference, lhs: body_lhs, rhs: body_rhs}) = pledges.first() {
                 debug!(
                     "pledge reference={:?} lhs={:?} rhs={:?}",
