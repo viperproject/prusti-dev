@@ -261,7 +261,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 stmt
             );
             let new_stmts = self.replace_stmt(
-                // EXTERNAL
                 stmt_index,
                 stmt,
                 false,
@@ -294,7 +293,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 position: method_pos,
             });
             let new_stmts = self.replace_stmt(
-                // EXTERNAL
                 curr_block.statements.len(),
                 &stmt,
                 false,
