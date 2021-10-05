@@ -53,7 +53,7 @@ impl ApplyOnState for vir::Stmt {
         state: &mut State,
         predicates: &HashMap<String, vir::Predicate>,
     ) -> Result<(), FoldUnfoldError> {
-        debug!("apply_on_state '{}'", self);
+        trace!("apply_on_state '{}'", self);
         trace!("State acc before {{\n{}\n}}", state.display_acc());
         trace!("State pred before {{\n{}\n}}", state.display_pred());
         trace!("State moved before {{\n{}\n}}", state.display_moved());
@@ -337,7 +337,7 @@ impl ApplyOnState for vir::Stmt {
 
                 // Move also the acc permission if the rhs is old.
                 if state.contains_acc(left) && !state.contains_acc(right) && right.is_old() {
-                    debug!("Moving acc({}) to acc({}) state.", left, right);
+                    trace!("Moving acc({}) to acc({}) state.", left, right);
                     state.insert_acc(right.clone(), *state.acc().get(left).unwrap())?;
                     if !left.is_local() && !left.is_curr() {
                         state.remove_acc_place(left);
@@ -352,7 +352,7 @@ impl ApplyOnState for vir::Stmt {
                 /*
                 // Hack: Move also the acc permission
                 if state.contains_acc(lhs_place) && !state.contains_acc(rhs_place) {
-                    debug!("Moving acc({}) to acc({}) state.", lhs_place, rhs_place);
+                    trace!("Moving acc({}) to acc({}) state.", lhs_place, rhs_place);
                     state.insert_acc(
                         rhs_place.clone(),
                         state.acc().get(lhs_place).unwrap().clone()
@@ -412,12 +412,12 @@ impl ApplyOnState for vir::Stmt {
                 if let Some(found_variant) = find_unfolded_variant(state, enum_place) {
                     // The enum has already been downcasted.
                     debug_assert!(field.name.ends_with(found_variant.get_variant_name()));
-                    debug!(
+                    trace!(
                         "Place {} has already been downcasted to {}",
                         enum_place, field
                     );
                 } else {
-                    debug!("Downcast {} to {}", enum_place, field);
+                    trace!("Downcast {} to {}", enum_place, field);
                     let predicate_name = enum_place.typed_ref_name().unwrap();
                     let predicate = predicates.get(&predicate_name).unwrap();
                     if let vir::Predicate::Enum(enum_predicate) = predicate {
@@ -437,7 +437,7 @@ impl ApplyOnState for vir::Stmt {
                             trace!("Downcast adds variant's footprint {:?}", variant_footprint);
                             state.insert_all_perms(variant_footprint.into_iter())?;
                         } else {
-                            debug!("Place {} has not been unfolded yet", discriminant_place);
+                            trace!("Place {} has not been unfolded yet", discriminant_place);
                         }
                     } else {
                         unreachable!()
