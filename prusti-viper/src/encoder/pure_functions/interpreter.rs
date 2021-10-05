@@ -506,11 +506,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let base_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
                                 let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);
+                                let idx_ty_did = match idx_ty.ty_adt_def() {
+                                    Some(def) => def.did,
+                                    None => return Err(SpannedEncodingError::unsupported(
+                                        format!("Using {} as index/range type for {} is not supported yet", idx_ty, base_ty),
+                                        span,
+                                    ))
+                                };
                                 let idx_ident = self
                                     .encoder
                                     .env()
                                     .tcx()
-                                    .def_path_str(idx_ty.ty_adt_def().unwrap().did);
+                                    .def_path_str(idx_ty_did);
                                 let encoded_idx = &encoded_args[1];
 
                                 let (start, end) = match &*idx_ident {
