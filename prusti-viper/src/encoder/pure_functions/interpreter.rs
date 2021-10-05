@@ -513,11 +513,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         span,
                                     ))
                                 };
-                                let idx_ident = self
-                                    .encoder
-                                    .env()
-                                    .tcx()
-                                    .def_path_str(idx_ty_did);
+                                let idx_ident = self.encoder.env().tcx().def_path_str(idx_ty_did);
                                 let encoded_idx = &encoded_args[1];
 
                                 let (start, end) = match &*idx_ident {
