@@ -1059,7 +1059,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Encode statements to inform fold-unfold of the downcasts
         let mut downcast_stmts = vec![];
         for (place, variant_idx) in self.mir_encoder.get_downcasts_at_location(location).into_iter() {
-            let span = self.mir_encoder.get_span_of_location(location);
             let (encoded_place, pre_stmts, place_ty, _) = self
                     // TODO: may need to look at place to decide the arrayaccesskind here
                     .encode_projection(place.local, &place.projection, ArrayAccessKind::Shared, location)?;
@@ -3456,11 +3455,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ).with_span(span)?;
                 let vir_access =
                     vir::Expr::pred_permission(place_expr.clone().old(label), perm_amount).unwrap();
-                self
+                let inv = self
                     .encoder
                     .encode_invariant_func_app(place_ty, place_expr.old(label))
-                    .with_span(span)
-                    .map(|inv| vir::Expr::and(vir_access, inv))
+                    .with_span(span)?;
+                Ok(vir::Expr::and(vir_access, inv))
             };
             let mut lhs: Vec<_> = borrow_info
                 .blocking_paths
