@@ -1,11 +1,12 @@
-use std::{mem, ops::Deref};
+use super::{action::Action, borrows, path_ctxt::PathCtxt, FoldUnfold, FoldUnfoldError};
+use crate::encoder::{
+    foldunfold::{prepend_join, Perm},
+    Encoder,
+};
 use log::*;
 use prusti_common::{report, utils::to_string::ToString};
-use vir_crate::polymorphic::{self as vir, CfgReplacer};
-use super::{action::Action, borrows, path_ctxt::PathCtxt, FoldUnfold, FoldUnfoldError};
-use crate::encoder::foldunfold::{Perm, prepend_join};
-use vir_crate::polymorphic::ExprFolder;
-use crate::encoder::Encoder;
+use std::{mem, ops::Deref};
+use vir_crate::polymorphic::{self as vir, CfgReplacer, ExprFolder};
 
 impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
     /// Generates Viper statements that expire all the borrows from the given `dag`. The
@@ -27,7 +28,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
 
         for curr_block_index in 0..cfg.basic_blocks.len() {
             if self.dump_debug_info {
-                dump_borrows_cfg(self.encoder, dag, &cfg, surrounding_block_index, curr_block_index);
+                dump_borrows_cfg(
+                    self.encoder,
+                    dag,
+                    &cfg,
+                    surrounding_block_index,
+                    curr_block_index,
+                );
             }
 
             let (mut pctxt, curr_block_pre_statements) = self.construct_initial_pctxt(
@@ -39,7 +46,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 curr_block_index,
                 &final_pctxt,
             )?;
-            cfg.basic_blocks[curr_block_index].statements.extend(curr_block_pre_statements);
+            cfg.basic_blocks[curr_block_index]
+                .statements
+                .extend(curr_block_pre_statements);
 
             let curr_block = &mut cfg.basic_blocks[curr_block_index];
             self.process_node(
@@ -62,7 +71,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         let final_statements = generate_final_statements(&cfg, label);
         debug!(
             "[exit] process_expire_borrows = [\n{}\n]",
-            final_statements.iter().map(|s| s.to_string()).collect::<Vec<_>>().join("\n  ")
+            final_statements
+                .iter()
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>()
+                .join("\n  ")
         );
         Ok(final_statements)
     }
@@ -122,14 +135,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             let path = new_cfg.find_path(start_block, end_block).unwrap();
             trace!(
                 "process_expire_borrows borrow={:?} path={:?}",
-                curr_node.borrow, path
+                curr_node.borrow,
+                path
             );
             let dropped_permissions = surrounding_pctxt
                 .log()
                 .collect_dropped_permissions(&path, dag);
             trace!(
                 "process_expire_borrows borrow={:?} dropped_permissions={:?}",
-                curr_node.borrow, dropped_permissions
+                curr_node.borrow,
+                dropped_permissions
             );
             for perm in &dropped_permissions {
                 let comment = format!("restored (from log): {}", perm);
@@ -167,7 +182,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 let path = new_cfg.find_path(start_block, end_block).unwrap();
                 trace!(
                     "process_expire_borrows borrow={:?} path={:?}",
-                    curr_node.borrow, path
+                    curr_node.borrow,
+                    path
                 );
                 let dropped_permissions = surrounding_pctxt
                     .log()
@@ -240,16 +256,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
         for (stmt_index, stmt) in curr_node.stmts.iter().enumerate() {
             trace!(
                 "process_expire_borrows block={} ({:?}) stmt={}",
-                curr_block_index, curr_node.borrow, stmt
+                curr_block_index,
+                curr_node.borrow,
+                stmt
             );
-            let new_stmts = self.replace_stmt( // EXTERNAL
-                   stmt_index,
-                   stmt,
-                   false,
-                   pctxt,
-                   surrounding_block_index,
-                   new_cfg,
-                   label,
+            let new_stmts = self.replace_stmt(
+                // EXTERNAL
+                stmt_index,
+                stmt,
+                false,
+                pctxt,
+                surrounding_block_index,
+                new_cfg,
+                label,
             )?;
             curr_block.statements.extend(new_stmts);
         }
@@ -263,7 +282,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
             if let Some(ref place) = curr_node.place {
                 trace!(
                     "place={} original_place={} read_access={}",
-                    place, original_place, read_access
+                    place,
+                    original_place,
+                    read_access
                 );
                 read_access = read_access.replace_place(&original_place, place);
             }
@@ -272,14 +293,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> FoldUnfold<'p, 'v, 'tcx> {
                 expr: read_access,
                 position: method_pos,
             });
-            let new_stmts = self.replace_stmt( // EXTERNAL
-                   curr_block.statements.len(),
-                   &stmt,
-                   false,
-                   pctxt,
-                   surrounding_block_index,
-                   new_cfg,
-                   label,
+            let new_stmts = self.replace_stmt(
+                // EXTERNAL
+                curr_block.statements.len(),
+                &stmt,
+                false,
+                pctxt,
+                surrounding_block_index,
+                new_cfg,
+                label,
             )?;
             curr_block.statements.extend(new_stmts);
         }
@@ -389,10 +411,7 @@ fn dump_borrows_cfg(
     );
 }
 
-fn generate_final_statements(
-    cfg: &borrows::CFG,
-    label: Option<&str>,
-) -> Vec<vir::Stmt> {
+fn generate_final_statements(cfg: &borrows::CFG, label: Option<&str>) -> Vec<vir::Stmt> {
     let mut stmts = Vec::new();
     for (i, block) in cfg.basic_blocks.iter().enumerate() {
         stmts.push(vir::Stmt::If(vir::If {
@@ -428,9 +447,9 @@ fn patch_places(stmts: &[vir::Stmt], maybe_label: Option<&str>) -> Vec<vir::Stmt
             fn fold(&mut self, e: vir::Expr) -> vir::Expr {
                 match e {
                     vir::Expr::Field(vir::FieldExpr {
-                                         base: box vir::Expr::Local(_),
-                                         ..
-                                     }) => e.old(self.label),
+                        base: box vir::Expr::Local(_),
+                        ..
+                    }) => e.old(self.label),
                     _ => vir::default_fold_expr(self, e),
                 }
             }
@@ -467,12 +486,12 @@ fn patch_places(stmts: &[vir::Stmt], maybe_label: Option<&str>) -> Vec<vir::Stmt
                     })
                 }
                 vir::Stmt::Fold(vir::Fold {
-                                    ref predicate_name,
-                                    ref arguments,
-                                    permission,
-                                    enum_variant,
-                                    position,
-                                }) => vir::Stmt::Fold(vir::Fold {
+                    ref predicate_name,
+                    ref arguments,
+                    permission,
+                    enum_variant,
+                    position,
+                }) => vir::Stmt::Fold(vir::Fold {
                     predicate_name: predicate_name.clone(),
                     arguments: patch_args(label, arguments),
                     permission: *permission,
@@ -480,11 +499,11 @@ fn patch_places(stmts: &[vir::Stmt], maybe_label: Option<&str>) -> Vec<vir::Stmt
                     position: *position,
                 }),
                 vir::Stmt::Unfold(vir::Unfold {
-                                      ref predicate_name,
-                                      ref arguments,
-                                      permission,
-                                      enum_variant,
-                                  }) => vir::Stmt::Unfold(vir::Unfold {
+                    ref predicate_name,
+                    ref arguments,
+                    permission,
+                    enum_variant,
+                }) => vir::Stmt::Unfold(vir::Unfold {
                     predicate_name: predicate_name.clone(),
                     arguments: patch_args(label, arguments),
                     permission: *permission,
@@ -509,18 +528,18 @@ fn restore_write_permissions(
         trace!("restore_write_permissions access={}", access);
         let perm = match access {
             vir::Expr::PredicateAccessPredicate(vir::PredicateAccessPredicate {
-                                                    box ref argument,
-                                                    permission,
-                                                    ..
-                                                }) => {
+                box ref argument,
+                permission,
+                ..
+            }) => {
                 assert!(permission == vir::PermAmount::Remaining);
                 Perm::pred(argument.clone(), vir::PermAmount::Read)
             }
             vir::Expr::FieldAccessPredicate(vir::FieldAccessPredicate {
-                                                box ref base,
-                                                permission,
-                                                ..
-                                            }) => {
+                box ref base,
+                permission,
+                ..
+            }) => {
                 assert!(permission == vir::PermAmount::Remaining);
                 Perm::acc(base.clone(), vir::PermAmount::Read)
             }

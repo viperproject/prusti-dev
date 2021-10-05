@@ -414,7 +414,8 @@ impl ApplyOnState for vir::Stmt {
                     debug_assert!(field.name.ends_with(found_variant.get_variant_name()));
                     trace!(
                         "Place {} has already been downcasted to {}",
-                        enum_place, field
+                        enum_place,
+                        field
                     );
                 } else {
                     trace!("Downcast {} to {}", enum_place, field);
