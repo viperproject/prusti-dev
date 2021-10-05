@@ -17,7 +17,7 @@ fn outer(field: &u32) -> bool {
 
 #[pure]
 fn pred(m: &Struct) -> bool {
-    outer(inner(&m)) //~ ERROR There is no procedure contract for loan bw6. This could happen if you are chaining pure functions, which is not fully supported.
+    outer(inner(&m)) //~ ERROR There is no procedure contract for loan
 }
 
 fn main(){}
