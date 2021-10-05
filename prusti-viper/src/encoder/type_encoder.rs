@@ -295,34 +295,30 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         compute_discriminant_bounds(adt_def, tcx, &discriminant_loc);
 
                     let discriminant_values = compute_discriminant_values(adt_def, tcx);
-                    let variants: Vec<_> = adt_def
-                        .variants
-                        .iter()
-                        .zip(discriminant_values)
-                        .map(|(variant_def, variant_index)| {
-                            let fields_res = variant_def
-                                .fields
-                                .iter()
-                                .map(|field| {
-                                    debug!("Encoding field {:?}", field);
-                                    let field_name = &field.ident.as_str();
-                                    let field_ty = field.ty(tcx, subst);
-                                    self.encoder.encode_struct_field(field_name, field_ty)
-                                })
-                                .collect::<Result<_, _>>();
-                            let variant_name = &variant_def.ident.as_str();
-                            let guard = vir::Expr::eq_cmp(
-                                discriminant_loc.clone(),
-                                variant_index.into(),
+                    let mut variants: Vec<_> = vec![];
+                    for (variant_def, variant_index) in adt_def.variants.iter().zip(discriminant_values) {
+                        let mut fields = vec![];
+                        for field in &variant_def.fields {
+                            debug!("Encoding field {:?}", field);
+                            let field_name = &field.ident.as_str();
+                            let field_ty = field.ty(tcx, subst);
+                            fields.push(
+                                self.encoder.encode_struct_field(field_name, field_ty)?
                             );
-                            let variant_typ = typ.clone().variant(variant_name);
-                            fields_res.map(|fields| (
-                                guard,
-                                variant_name.to_string(),
-                                vir::StructPredicate::new(variant_typ, fields),
-                            ))
-                        })
-                        .collect::<Result<_, _>>()?;
+                        }
+                        let variant_name = &variant_def.ident.as_str();
+                        let guard = vir::Expr::eq_cmp(
+                            discriminant_loc.clone(),
+                            variant_index.into(),
+                        );
+                        let variant_typ = typ.clone().variant(variant_name);
+                        let struct_predicate = vir::StructPredicate::new(variant_typ, fields);
+                        variants.push((
+                            guard,
+                            variant_name.to_string(),
+                            struct_predicate,
+                        ));
+                    }
                     for (_, name, _) in &variants {
                         self.encoder.encode_enum_variant_field(name);
                     }
