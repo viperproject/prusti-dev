@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_span::MultiSpan;
-use log::trace;
+use log::debug;
 use crate::encoder::errors::SpannedEncodingError;
 use crate::encoder::errors::EncodingErrorKind;
 use backtrace::Backtrace;
@@ -22,19 +22,19 @@ pub type EncodingResult<T> = Result<T, EncodingError>;
 impl EncodingError {
     /// Usage of an unsupported Rust feature (e.g. dereferencing raw pointers)
     pub fn unsupported<M: ToString>(message: M) -> Self {
-        trace!("Constructing unsupported error at:\n{:?}", Backtrace::new());
+        debug!("Constructing unsupported error at:\n{:?}", Backtrace::new());
         EncodingError::Positionless(EncodingErrorKind::unsupported(message))
     }
 
     /// An incorrect usage of Prusti (e.g. call an impure function in a contract)
     pub fn incorrect<M: ToString>(message: M) -> Self {
-        trace!("Constructing incorrect error at:\n{:?}", Backtrace::new());
+        debug!("Constructing incorrect error at:\n{:?}", Backtrace::new());
         EncodingError::Positionless(EncodingErrorKind::incorrect(message))
     }
 
     /// An internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<M: ToString>(message: M) -> Self {
-        trace!("Constructing internal error at:\n{:?}", Backtrace::new());
+        debug!("Constructing internal error at:\n{:?}", Backtrace::new());
         EncodingError::Positionless(EncodingErrorKind::internal(message))
     }
 

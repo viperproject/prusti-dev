@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc_middle::ty;
+use rustc_middle::mir;
 
 pub mod to_string;
 pub mod type_visitor;
@@ -42,4 +43,8 @@ pub fn ty_to_string(typ: &ty::TyKind) -> String {
 
 pub fn is_reference(base_ty: ty::Ty) -> bool {
     matches!(base_ty.kind(), ty::TyKind::RawPtr(..) | ty::TyKind::Ref(..))
+}
+
+pub fn is_shared_reference(base_ty: ty::Ty) -> bool {
+    matches!(base_ty.kind(), ty::TyKind::Ref(_, _, mir::Mutability::Not))
 }
