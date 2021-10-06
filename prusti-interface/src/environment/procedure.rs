@@ -151,36 +151,6 @@ impl<'tcx> Procedure<'tcx> {
         self.reachable_basic_blocks.contains(&bbi)
     }
 
-    pub fn is_panic_block(&self, bbi: BasicBlockIndex) -> bool {
-        if let TerminatorKind::Call {
-            args: ref _args,
-            destination: ref _destination,
-            func:
-                mir::Operand::Constant(box mir::Constant {
-                    literal: mir::ConstantKind::Ty(
-                        ty::Const {
-                            ty,
-                            ..
-                        },
-                    ),
-                    ..
-                }),
-            ..
-        } = self.mir[bbi].terminator().kind {
-            if let ty::TyKind::FnDef(def_id, ..) = ty.kind() {
-                // let func_proc_name = self.tcx.absolute_item_path_str(def_id);
-                let func_proc_name = self.tcx.def_path_str(*def_id);
-                &func_proc_name == "std::rt::begin_panic"
-                    || &func_proc_name == "core::panicking::panic"
-                    || &func_proc_name == "core::panicking::panic_fmt"
-            } else {
-                false
-            }
-        } else {
-            false
-        }
-    }
-
     pub fn successors(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
         self.real_edges.successors(bbi)
     }
