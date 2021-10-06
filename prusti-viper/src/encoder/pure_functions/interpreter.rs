@@ -509,7 +509,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let idx_ty_did = match idx_ty.ty_adt_def() {
                                     Some(def) => def.did,
                                     None => return Err(SpannedEncodingError::unsupported(
-                                        format!("Using {} as index/range type for {} is not supported yet", idx_ty, base_ty),
+                                        format!("Using {} as index/range type for {} is not currently supported in pure functions", idx_ty, base_ty),
                                         span,
                                     ))
                                 };
