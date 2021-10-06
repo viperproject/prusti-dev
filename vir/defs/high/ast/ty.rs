@@ -10,6 +10,7 @@ pub enum Type {
     Slice(Slice),
     Reference(Reference),
     Pointer(Pointer),
+    FnPointer,
 }
 
 pub struct TypeVar {

@@ -1,6 +1,7 @@
 use syn::fold::Fold;
 
 mod common;
+mod constructors;
 mod helpers;
 mod visitors;
 
@@ -19,12 +20,16 @@ impl Fold for Expander {
         if let Some((brace, mut content)) = item_mod.content {
             let helpers_to_derive = self::common::collect(&mut content, "derive_helpers");
             let visitors_to_derive = self::common::collect(&mut content, "derive_visitors");
-            let content = match self::helpers::derive(content, helpers_to_derive) {
+            let mut content = match self::helpers::derive(content, helpers_to_derive) {
                 Ok(content) => content,
                 Err(error) => unimplemented!("error: {:?}", error),
             };
             let visitors = match self::visitors::derive(&content, visitors_to_derive) {
                 Ok(content) => content,
+                Err(error) => unimplemented!("error: {:?}", error),
+            };
+            match self::constructors::derive(&mut content) {
+                Ok(()) => {}
                 Err(error) => unimplemented!("error: {:?}", error),
             };
             let mut content: Vec<syn::Item> = content

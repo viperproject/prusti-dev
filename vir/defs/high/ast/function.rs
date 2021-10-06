@@ -1,4 +1,4 @@
-use super::{expression::Expression, typ::Type, variable::VariableDecl};
+use super::{expression::Expression, ty::Type, variable::VariableDecl};
 use crate::common::display;
 
 #[display(

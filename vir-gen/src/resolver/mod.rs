@@ -11,6 +11,7 @@ pub(crate) fn expand(
         components,
         errors: Vec::new(),
         new_derives: Vec::new(),
+        new_struct_derives: Vec::new(),
     };
     let expanded_ir = expander.fold_item_mod(ir);
     (expanded_ir, expander.errors)
@@ -21,6 +22,8 @@ struct Expander<'a> {
     errors: Vec<syn::Error>,
     /// A list of things to derive for each type.
     new_derives: Vec<Vec<syn::Path>>,
+    /// A list of things to derive for each struct.
+    new_struct_derives: Vec<Vec<syn::Path>>,
 }
 
 impl<'a> Expander<'a> {
@@ -141,13 +144,22 @@ impl<'a> Expander<'a> {
         Ok(content)
     }
     /// Add additional `#[derive(...)]` attributes.
-    fn add_derives(&self, attributes: &mut Vec<syn::Attribute>) {
+    fn add_derives(&self, attributes: &mut Vec<syn::Attribute>, is_struct: bool) {
         let mut new_attributes: Vec<syn::Attribute> = Vec::new();
         for frame in &self.new_derives {
             for derive in frame {
                 new_attributes.push(parse_quote! {
                     #[derive(#derive)]
                 });
+            }
+        }
+        if is_struct {
+            for frame in &self.new_struct_derives {
+                for derive in frame {
+                    new_attributes.push(parse_quote! {
+                        #[derive(#derive)]
+                    });
+                }
             }
         }
         new_attributes.extend(attributes.drain(..));
@@ -160,6 +172,7 @@ impl<'a> Fold for Expander<'a> {
         if let Some((brace, content)) = item_mod.content {
             let mut new_attributes = Vec::new();
             let mut new_derives = Vec::new();
+            let mut new_struct_derives = Vec::new();
             for attribute in item_mod.attrs {
                 match attribute {
                     syn::Attribute {
@@ -167,14 +180,22 @@ impl<'a> Fold for Expander<'a> {
                         path,
                         tokens,
                         ..
-                    } if path.is_ident("derive_for_all") => match syn::parse2::<PathList>(tokens) {
-                        Ok(list) => {
-                            new_derives.extend(list.paths);
+                    } if path.is_ident("derive_for_all")
+                        || path.is_ident("derive_for_all_structs") =>
+                    {
+                        match syn::parse2::<PathList>(tokens) {
+                            Ok(list) => {
+                                if path.is_ident("derive_for_all") {
+                                    new_derives.extend(list.paths);
+                                } else {
+                                    new_struct_derives.extend(list.paths);
+                                }
+                            }
+                            Err(error) => {
+                                self.errors.push(error);
+                            }
                         }
-                        Err(error) => {
-                            self.errors.push(error);
-                        }
-                    },
+                    }
                     _ => {
                         new_attributes.push(attribute);
                     }
@@ -182,6 +203,7 @@ impl<'a> Fold for Expander<'a> {
             }
             item_mod.attrs = new_attributes;
             self.new_derives.push(new_derives);
+            self.new_struct_derives.push(new_struct_derives);
             let mut new_content = Vec::new();
             for item in content {
                 match item {
@@ -204,15 +226,16 @@ impl<'a> Fold for Expander<'a> {
             }
             item_mod.content = Some((brace, new_content));
             self.new_derives.pop();
+            self.new_struct_derives.pop();
         }
         item_mod
     }
     fn fold_item_enum(&mut self, mut item: syn::ItemEnum) -> syn::ItemEnum {
-        self.add_derives(&mut item.attrs);
+        self.add_derives(&mut item.attrs, false);
         syn::fold::fold_item_enum(self, item)
     }
     fn fold_item_struct(&mut self, mut item: syn::ItemStruct) -> syn::ItemStruct {
-        self.add_derives(&mut item.attrs);
+        self.add_derives(&mut item.attrs, true);
         syn::fold::fold_item_struct(self, item)
     }
 }

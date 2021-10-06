@@ -1,21 +1,12 @@
-#![derive_for_all(
-    Debug,
-    derive_more::Display,
-    Clone,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Hash
-)]
-
-pub mod expression;
-pub mod function;
-pub mod position;
-pub mod typ;
-pub mod variable;
+pub mod ast;
+pub mod operations;
 
 pub use self::{
-    expression::Expression,
-    typ::{Type, TypeVar},
+    ast::{
+        expression::Expression,
+        field::FieldDecl,
+        ty::{Type, TypeVar},
+        variable::VariableDecl,
+    },
+    operations::ty::Generic,
 };
