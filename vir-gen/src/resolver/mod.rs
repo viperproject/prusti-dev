@@ -162,7 +162,7 @@ impl<'a> Expander<'a> {
                 }
             }
         }
-        new_attributes.extend(attributes.drain(..));
+        new_attributes.append(attributes);
         *attributes = new_attributes;
     }
 }

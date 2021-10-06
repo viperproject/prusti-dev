@@ -38,7 +38,7 @@ pub(super) fn derive(
             all_created_methods.insert(enum_ident.clone());
 
             for variant in &variants {
-                let ty = extract_variant_type(&variant)?;
+                let ty = extract_variant_type(variant)?;
                 all_created_methods.insert(ty.clone());
                 if deriver.kind.is_folder() {
                     deriver.create_walk_method(ty, Some(variant));
@@ -61,6 +61,7 @@ pub(super) fn derive(
         Ok(None)
     } else {
         Ok(Some(parse_quote! {
+            #[allow(clippy::unused_unit, clippy::ptr_arg)]
             pub mod visitors {
                 use super::*;
                 #(#module_items)*
@@ -161,6 +162,7 @@ impl Deriver {
             }
         };
         let method = parse_quote! {
+            #[allow(clippy::boxed_local)]
             pub fn #method_name(&mut self, #parameter_name: Box<#parameter_type>) -> #result_type {
                 #body
             }
@@ -232,6 +234,7 @@ impl Deriver {
             }
         };
         let default_function = parse_quote! {
+            #[allow(clippy::unit_arg)]
             pub fn #default_method_name<T: #trait_ident>(this: &mut T, #parameter_name: #parameter_type) -> #result_type {
                 #result
             }
@@ -244,8 +247,8 @@ impl Deriver {
         variant: &syn::Variant,
     ) -> Result<Vec<syn::Ident>, syn::Error> {
         let trait_ident = &self.trait_ident;
-        let variant_type = extract_variant_type(&variant)?;
-        let variant_struct = find_variant_struct(&items, variant_type)?;
+        let variant_type = extract_variant_type(variant)?;
+        let variant_struct = find_variant_struct(items, variant_type)?;
         let parameter_name = method_name_from_camel(variant_type);
         let default_method_name = self.create_default_method_name(variant_type);
         let mut field_names = Vec::<syn::Ident>::new();
