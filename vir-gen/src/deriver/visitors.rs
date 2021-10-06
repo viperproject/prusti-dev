@@ -27,7 +27,10 @@ pub(super) fn derive(
         ];
 
         for mut deriver in derivers {
-            deriver.create_walk_method(&enum_ident);
+            deriver.create_walk_method(&enum_ident, None);
+            if deriver.kind.is_folder() {
+                deriver.create_boxed_walk_method(&enum_ident);
+            }
             deriver.create_default_enum_function(&variants);
 
             let mut all_walked_types = HashSet::new();
@@ -37,7 +40,12 @@ pub(super) fn derive(
             for variant in &variants {
                 let ty = extract_variant_type(&variant)?;
                 all_created_methods.insert(ty.clone());
-                deriver.create_walk_method(ty);
+                if deriver.kind.is_folder() {
+                    deriver.create_walk_method(ty, Some(variant));
+                    deriver.create_boxed_walk_method(ty);
+                } else {
+                    deriver.create_walk_method(ty, None);
+                }
                 let walked_types = deriver.create_default_struct_function(items, variant)?;
                 all_walked_types.extend(walked_types);
             }
@@ -106,15 +114,55 @@ impl Deriver {
             kind,
         }
     }
-    fn create_walk_method(&mut self, ty: &syn::Ident) {
+    fn create_walk_method(&mut self, ty: &syn::Ident, variant: Option<&syn::Variant>) {
         let method_name = self.create_method_name(ty);
         let parameter_name = method_name_from_camel(ty);
         let default_method_name = self.create_default_method_name(ty);
         let parameter_type = self.create_parameter_type(ty);
-        let result_type = self.create_result_type(ty, false);
+        let result_type = self.create_result_type(&self.enum_ident, false);
+        let call: syn::Expr = parse_quote! {
+            #default_method_name(self, #parameter_name)
+        };
+        let body: syn::Expr = if let Some(variant) = variant {
+            let enum_ident = &self.enum_ident;
+            let variant_ident = &variant.ident;
+            if self.kind.is_fallible() {
+                parse_quote! {
+                    #call.map(#enum_ident::#variant_ident)
+                }
+            } else {
+                parse_quote! {
+                    #enum_ident::#variant_ident(#call)
+                }
+            }
+        } else {
+            call
+        };
         let method = parse_quote! {
             pub fn #method_name(&mut self, #parameter_name: #parameter_type) -> #result_type {
-                #default_method_name(self, #parameter_name)
+                #body
+            }
+        };
+        self.trait_items.push(method);
+    }
+    fn create_boxed_walk_method(&mut self, ty: &syn::Ident) {
+        let method_name = append_ident(&self.create_method_name(ty), "_boxed");
+        let parameter_name = method_name_from_camel(ty);
+        let default_method_name = self.create_default_method_name(ty);
+        let parameter_type = self.create_parameter_type(ty);
+        let result_type = self.create_boxed_result_type(ty, false);
+        let body: syn::Expr = if self.kind.is_fallible() {
+            parse_quote! {
+                #default_method_name(self, *#parameter_name).map(Box::new)
+            }
+        } else {
+            parse_quote! {
+                Box::new(#default_method_name(self, *#parameter_name))
+            }
+        };
+        let method = parse_quote! {
+            pub fn #method_name(&mut self, #parameter_name: Box<#parameter_type>) -> #result_type {
+                #body
             }
         };
         self.trait_items.push(method);
@@ -163,15 +211,8 @@ impl Deriver {
             let variant_ident = &variant.ident;
             let variant_name = method_name_from_camel(variant_ident);
             let method_call = self.create_method_call(&variant_name, variant_ident, false);
-            let call_expr: syn::Expr = if self.kind.is_folder() {
-                parse_quote! {
-                    #enum_ident::#variant_ident(#method_call)
-                }
-            } else {
-                method_call
-            };
             let arm = parse_quote! {
-                #enum_ident::#variant_ident(#variant_name) => #call_expr,
+                #enum_ident::#variant_ident(#variant_name) => #method_call,
             };
             arms.push(arm);
         }
@@ -210,21 +251,10 @@ impl Deriver {
         let mut field_names = Vec::<syn::Ident>::new();
         let mut visit_fields = Vec::<syn::Stmt>::new();
         let mut walked_types = Vec::new();
-        let mut fields = Vec::<syn::FieldValue>::new();
         for field in &variant_struct.fields {
             let name = field.ident.as_ref().unwrap();
             let parameter_type = unbox_type(&field.ty);
             field_names.push(name.clone());
-
-            if parameter_type == field.ty {
-                fields.push(parse_quote!(
-                    #name: #name
-                ));
-            } else {
-                fields.push(parse_quote!(
-                    #name: Box::new(#name)
-                ));
-            }
 
             let statement = if let Some(inner_type) = get_vec_type_arg(&parameter_type) {
                 let element = syn::Ident::new("element", Span::call_site());
@@ -284,14 +314,14 @@ impl Deriver {
             DeriverKind::Folder => {
                 parse_quote! {
                     #variant_type {
-                        #(#fields),*
+                        #(#field_names),*
                     }
                 }
             }
             DeriverKind::FallibleFolder => {
                 parse_quote! {
                     Ok(#variant_type {
-                        #(#fields),*
+                        #(#field_names),*
                     })
                 }
             }
@@ -323,19 +353,15 @@ impl Deriver {
         unbox_arg: bool,
     ) -> syn::Expr {
         let method_name = self.create_method_name(ty);
-        let argument: syn::Expr = if unbox_arg {
-            parse_quote! {
-                *#element
-            }
+        let method_name = if unbox_arg {
+            append_ident(&method_name, "_boxed")
         } else {
-            parse_quote! {
-                #element
-            }
+            method_name
         };
         if self.kind.is_fallible() {
-            parse_quote! { this.#method_name(#argument)? }
+            parse_quote! { this.#method_name(#element)? }
         } else {
-            parse_quote! { this.#method_name(#argument) }
+            parse_quote! { this.#method_name(#element) }
         }
     }
     fn create_default_method_name(&self, ty: &syn::Ident) -> syn::Ident {
@@ -351,6 +377,12 @@ impl Deriver {
         }
     }
     fn create_result_type(&self, ty: &syn::Ident, in_default: bool) -> syn::Type {
+        self.create_result_type_with(syn::parse_quote! { #ty }, in_default)
+    }
+    fn create_boxed_result_type(&self, ty: &syn::Ident, in_default: bool) -> syn::Type {
+        self.create_result_type_with(syn::parse_quote! { Box<#ty> }, in_default)
+    }
+    fn create_result_type_with(&self, ty: syn::Type, in_default: bool) -> syn::Type {
         match self.kind {
             DeriverKind::Walker => {
                 parse_quote! {
