@@ -8,22 +8,19 @@ pub(super) struct DeriveInfo {
 pub(super) fn collect(items: &mut [syn::Item], macro_name: &str) -> Vec<DeriveInfo> {
     let mut helpers_to_derive = Vec::new();
     for item in items {
-        match item {
-            syn::Item::Enum(enum_item) => {
-                if let Some(pos) = enum_item
-                    .attrs
-                    .iter()
-                    .position(|attr| attr.path.is_ident(macro_name))
-                {
-                    enum_item.attrs.remove(pos);
-                    let info = DeriveInfo {
-                        enum_ident: enum_item.ident.clone(),
-                        variants: enum_item.variants.iter().cloned().collect(),
-                    };
-                    helpers_to_derive.push(info);
-                }
+        if let syn::Item::Enum(enum_item) = item {
+            if let Some(pos) = enum_item
+                .attrs
+                .iter()
+                .position(|attr| attr.path.is_ident(macro_name))
+            {
+                enum_item.attrs.remove(pos);
+                let info = DeriveInfo {
+                    enum_ident: enum_item.ident.clone(),
+                    variants: enum_item.variants.iter().cloned().collect(),
+                };
+                helpers_to_derive.push(info);
             }
-            _ => {}
         }
     }
     helpers_to_derive
