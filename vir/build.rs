@@ -9,17 +9,20 @@ use std::{
 use vir_gen::define_vir;
 
 /// Try to pretty-print a tokenstream by piping it through `rustfmt`.
-fn pretty_print_tokenstream(tokens: &TokenStream) -> Option<Vec<u8>> {
+fn pretty_print_tokenstream(tokens: &TokenStream) -> Vec<u8> {
     let mut child = Command::new("rustfmt")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
-        .ok()?;
+        .unwrap();
     {
-        let stdin = child.stdin.as_mut()?;
-        stdin.write_all(tokens.to_string().as_bytes()).ok()?;
+        let stdin = child.stdin.as_mut().unwrap();
+        stdin.write_all(tokens.to_string().as_bytes()).unwrap();
     }
-    child.wait_with_output().ok().map(|o| o.stdout)
+    match child.wait_with_output() {
+        Ok(output) => output.stdout,
+        Err(error) => unreachable!("Generation of vir failed: {}", error),
+    }
 }
 
 fn main() {
@@ -39,9 +42,6 @@ fn main() {
     std::fs::create_dir_all(&out_dir).unwrap();
     let dest_path = Path::new(&out_dir).join("vir_gen.rs");
     let mut file = std::fs::File::create(dest_path).unwrap();
-    if let Some(gen_code) = pretty_print_tokenstream(&tokens) {
-        file.write_all(&gen_code).unwrap();
-    } else {
-        file.write_all(tokens.to_string().as_bytes()).unwrap();
-    }
+    let gen_code = pretty_print_tokenstream(&tokens);
+    file.write_all(&gen_code).unwrap();
 }
