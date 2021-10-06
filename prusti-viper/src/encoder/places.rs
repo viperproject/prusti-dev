@@ -6,7 +6,7 @@
 
 use rustc_middle::mir;
 use rustc_middle::ty::Ty;
-use rustc_index::vec::{Idx, IndexVec, IntoIdx};
+use rustc_index::vec::{Idx, IndexVec};
 use std::{iter, ops};
 
 /// A local variable used as an abstraction over both real Rust MIR local
@@ -90,7 +90,7 @@ impl<'tcx> LocalVariableManager<'tcx> {
         }
     }
 
-    pub fn iter(&self) -> iter::Map<ops::Range<usize>, IntoIdx<Local>> {
+    pub fn iter(&self) -> impl iter::Iterator<Item = Local> + 'tcx {
         self.variables.indices()
     }
 }
