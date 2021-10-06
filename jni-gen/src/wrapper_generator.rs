@@ -17,18 +17,10 @@ use std::io::prelude::*;
 use std::path::Path;
 use wrapper_spec::*;
 
+#[derive(Default)]
 pub struct WrapperGenerator {
     jars: Vec<String>,
     classes: Vec<ClassWrapperSpec>,
-}
-
-impl Default for WrapperGenerator {
-    fn default() -> Self {
-        WrapperGenerator {
-            jars: vec![],
-            classes: vec![],
-        }
-    }
 }
 
 impl WrapperGenerator {
