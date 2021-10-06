@@ -1729,6 +1729,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             "Location {:?} has not yet been encoded",
             loan_location
         );
+        if !self.procedure_contracts.contains_key(&loan_location) {
+            return Err(SpannedEncodingError::internal(
+                format!("There is no procedure contract for loan {:?}. This could happen if you \
+                         are chaining pure functions, which is not fully supported.", loan),
+                span
+            ));
+        }
         let (contract, fake_exprs) = self.procedure_contracts[&loan_location].clone();
         let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
             for (fake_arg, arg_expr) in fake_exprs.iter() {
