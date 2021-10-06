@@ -1,6 +1,7 @@
 use super::{
+    field::FieldDecl,
     position::Position,
-    typ::{Type, VariantIndex},
+    ty::{Type, VariantIndex},
     variable::VariableDecl,
 };
 use crate::common::display;
@@ -50,28 +51,29 @@ pub struct Local {
 pub struct Variant {
     pub base: Box<Expression>,
     pub variant_index: VariantIndex,
+    // invariant: variant_index == typ.variant_index
+    pub ty: Type,
     pub position: Position,
 }
 
-#[display(fmt = "{}.{}", base, name)]
+#[display(fmt = "{}.{}", base, "field.name")]
 pub struct Field {
     pub base: Box<Expression>,
-    pub name: String,
-    pub typ: Type,
+    pub field: FieldDecl,
     pub position: Position,
 }
 
 #[display(fmt = "{}.*", base)]
 pub struct Deref {
     pub base: Box<Expression>,
-    pub typ: Type,
+    pub ty: Type,
     pub position: Position,
 }
 
 #[display(fmt = "{}.&", base)]
 pub struct AddrOf {
     pub base: Box<Expression>,
-    pub typ: Type,
+    pub ty: Type,
     pub position: Position,
 }
 
@@ -88,6 +90,7 @@ pub struct Constant {
     pub position: Position,
 }
 
+#[derive(derive_more::From)]
 pub enum ConstantValue {
     Bool(bool),
     Int(i64),
@@ -205,9 +208,11 @@ pub struct FuncApp {
     pub position: Position,
 }
 
-#[display(fmt = "(downcast {} to {} in {})", enum_place, field, base)]
+#[display(fmt = "(downcast {} to {} in {})", enum_place, field_name, base)]
 pub struct Downcast {
     pub base: Box<Expression>,
     pub enum_place: Box<Expression>,
-    pub field: Field,
+    pub field_name: String,
+    pub ty: Type,
+    pub position: Position,
 }
