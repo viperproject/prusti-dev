@@ -5,40 +5,36 @@ use crate::{ast::PathList, helpers::unbox_type};
 pub(super) fn derive(items: &mut Vec<syn::Item>) -> Result<(), syn::Error> {
     let mut derived_items = Vec::new();
     for item in items.iter_mut() {
-        match item {
-            syn::Item::Struct(struct_item) => {
-                let mut new_attributes = Vec::new();
-                for attribute in struct_item.attrs.drain(..) {
-                    if attribute.style == syn::AttrStyle::Outer && attribute.path.is_ident("derive")
+        if let syn::Item::Struct(struct_item) = item {
+            let mut new_attributes = Vec::new();
+            for attribute in struct_item.attrs.drain(..) {
+                if attribute.style == syn::AttrStyle::Outer && attribute.path.is_ident("derive") {
+                    let paths = syn::parse2::<PathList>(attribute.tokens.clone())?.paths;
+                    if paths.len() == 1
+                        && (paths[0].is_ident("new") || paths[0].is_ident("new_with_pos"))
                     {
-                        let paths = syn::parse2::<PathList>(attribute.tokens.clone())?.paths;
-                        if paths.len() == 1
-                            && (paths[0].is_ident("new") || paths[0].is_ident("new_with_pos"))
-                        {
-                            let constructor = if paths[0].is_ident("new") {
-                                derive_new(
-                                    "new",
-                                    &struct_item.ident,
-                                    struct_item.fields.iter(),
-                                    Some("position"),
-                                )
-                            } else {
-                                derive_new(
-                                    "new_with_pos",
-                                    &struct_item.ident,
-                                    struct_item.fields.iter(),
-                                    None,
-                                )
-                            };
-                            derived_items.push(constructor);
-                            continue;
-                        }
+                        let constructor = if paths[0].is_ident("new") {
+                            derive_new(
+                                "new",
+                                &struct_item.ident,
+                                struct_item.fields.iter(),
+                                Some("position"),
+                            )
+                        } else {
+                            derive_new(
+                                "new_with_pos",
+                                &struct_item.ident,
+                                struct_item.fields.iter(),
+                                None,
+                            )
+                        };
+                        derived_items.push(constructor);
+                        continue;
                     }
-                    new_attributes.push(attribute);
                 }
-                struct_item.attrs = new_attributes;
+                new_attributes.push(attribute);
             }
-            _ => {}
+            struct_item.attrs = new_attributes;
         }
     }
     items.extend(derived_items);

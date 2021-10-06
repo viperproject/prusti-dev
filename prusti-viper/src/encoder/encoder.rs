@@ -262,14 +262,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         identifier
     }
 
-    pub(super) fn get_function<'a>(&'a self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<Rc<vir::Function>> {
+    pub(super) fn get_function(&self, identifier: &vir::FunctionIdentifier) -> SpannedEncodingResult<Rc<vir::Function>> {
         self.ensure_pure_function_encoded(identifier)?;
         if self.functions.borrow().contains_key(identifier) {
             let map = self.functions.borrow();
             Ok(map[identifier].clone())
         } else if self.snapshot_encoder.borrow().contains_function(identifier) {
             let encoder = self.snapshot_encoder.borrow();
-            Ok(encoder.get_function(identifier).clone())
+            Ok(encoder.get_function(identifier))
         } else {
             unreachable!("Not found function: {:?}", identifier)
         }

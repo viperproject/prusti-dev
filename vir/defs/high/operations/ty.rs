@@ -126,7 +126,7 @@ impl Typed for AddrOf {
 
 impl Typed for LabelledOld {
     fn get_type(&self) -> &Type {
-        &self.base.get_type()
+        self.base.get_type()
     }
 }
 
@@ -142,7 +142,7 @@ impl Typed for Constant {
 
 impl Typed for UnaryOp {
     fn get_type(&self) -> &Type {
-        &self.argument.get_type()
+        self.argument.get_type()
     }
 }
 
@@ -209,6 +209,6 @@ impl Typed for FuncApp {
 
 impl Typed for Downcast {
     fn get_type(&self) -> &Type {
-        &self.base.get_type()
+        self.base.get_type()
     }
 }

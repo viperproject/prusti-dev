@@ -32,7 +32,7 @@ pub(super) fn derive(
                 ));
                 if parameter_type == field.ty {
                     fields.push(parse_quote!(
-                        #name: #name
+                        #name
                     ));
                 } else {
                     fields.push(parse_quote!(

@@ -123,7 +123,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx> for super::super::Encoder<
 
         // FIXME: Using substitutions as a key is most likely wrong.
         let mir_span = self.env().tcx().def_span(proc_def_id);
-        let substs_key = self.type_substitution_key(&tymap).with_span(mir_span)?;
+        let substs_key = self.type_substitution_key(tymap).with_span(mir_span)?;
         let key = (proc_def_id, substs_key);
 
         if !self
@@ -152,7 +152,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx> for super::super::Encoder<
                 procedure.get_mir(),
                 false,
                 proc_def_id,
-                &tymap,
+                tymap,
             );
 
             let maybe_identifier: SpannedEncodingResult<vir::FunctionIdentifier> = (|| {
@@ -177,7 +177,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx> for super::super::Encoder<
                 function = self
                     .snapshot_encoder
                     .borrow_mut()
-                    .patch_snapshots_function(self, function, &tymap)
+                    .patch_snapshots_function(self, function, tymap)
                     .with_span(procedure.get_span())?;
 
                 self.log_vir_program_before_viper(function.to_string());
@@ -191,13 +191,13 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx> for super::super::Encoder<
                         .insert(key, identifier);
                 }
                 Err(error) => {
-                    self.register_encoding_error(error.clone());
+                    self.register_encoding_error(error);
                     debug!(
                         "Error encoding pure function: {:?} wrapper_def_id={:?}",
                         proc_def_id, wrapper_def_id
                     );
                     let body = self.env().external_mir(wrapper_def_id);
-                    let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, body, &tymap);
+                    let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, body, tymap);
                     let function = stub_encoder.encode_function()?;
                     self.log_vir_program_before_viper(function.to_string());
                     let identifier = self.insert_function(function);
@@ -264,7 +264,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx> for super::super::Encoder<
                 procedure.get_mir(),
                 false,
                 parent_def_id,
-                &substs,
+                substs,
             );
             let function_call_info = pure_function_encoder.encode_function_call_info()?;
 

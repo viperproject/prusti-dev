@@ -48,12 +48,11 @@ pub fn unbox_type(ty: &syn::Type) -> syn::Type {
                     syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
                         args, ..
                     }),
-            } if ident == "Box" && args.len() == 1 => match &args[0] {
-                syn::GenericArgument::Type(inner_ty) => {
+            } if ident == "Box" && args.len() == 1 => {
+                if let syn::GenericArgument::Type(inner_ty) = &args[0] {
                     return inner_ty.clone();
                 }
-                _ => {}
-            },
+            }
             _ => {}
         },
         _ => {}
