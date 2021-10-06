@@ -51,10 +51,8 @@ use prusti_interface::utils;
 use rustc_middle::mir::Mutability;
 use rustc_middle::mir;
 use rustc_middle::mir::{TerminatorKind, AssertKind};
-use rustc_middle::ty;
-use rustc_middle::ty::layout;
+use rustc_middle::ty::{self, layout, layout::IntegerExt, ParamEnv};
 use rustc_target::abi::Integer;
-use rustc_middle::ty::layout::IntegerExt;
 use rustc_index::vec::Idx;
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
@@ -1336,6 +1334,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 return Err(EncodingError::unsupported(
                     "references to thread-local storage are not supported"
                 )).with_span(span);
+            }
+            mir::Rvalue::ShallowInitBox(_, op_ty) => {
+                self.encode_assign_box_init(
+                    op_ty,
+                    encoded_lhs,
+                    ty,
+                    location,
+                )?
             }
         })
     }
@@ -5322,31 +5328,77 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             op_ty
         );
         match op {
-            mir::NullOp::Box => {
-                assert_eq!(op_ty, ty.boxed_ty());
-                let ref_field = self.encoder.encode_dereference_field(op_ty)
-                    .with_span(
-                        self.mir_encoder.get_span_of_location(location)
-                    )?;
-                let box_content = encoded_lhs.clone().field(ref_field.clone());
-
-                let mut stmts = self.prepare_assign_target(
+            mir::NullOp::Box => self.encode_assign_box_init(
+                op_ty,
+                encoded_lhs,
+                ty,
+                location,
+            ),
+            mir::NullOp::SizeOf => {
+                // TODO: ParamEnv::empty() should probably be tyctxt.param_env(def_id_of_method)
+                let bytes = self.encoder.env().tcx()
+                    .layout_of(ParamEnv::empty().and(op_ty))
+                    .unwrap().layout
+                    .size
+                    .bytes();
+                let bytes_vir = vir::Expr::from(bytes);
+                self.encode_copy_value_assign(
                     encoded_lhs,
-                    ref_field,
+                    bytes_vir,
+                    ty,
                     location,
-                    vir::AssignKind::Move,
-                    false
-                )?;
-
-                // Allocate `box_content`
-                stmts.extend(self.encode_havoc_and_allocation(&box_content));
-
-                // Leave `box_content` uninitialized
-                Ok(stmts)
-            }
-            mir::NullOp::SizeOf => unimplemented!(),
-            mir::NullOp::AlignOf => unimplemented!(),
+                )
+            },
+            mir::NullOp::AlignOf => {
+                // TODO: ParamEnv::empty() should probably be tyctxt.param_env(def_id_of_method)
+                let bytes = self.encoder.env().tcx()
+                    .layout_of(ParamEnv::empty().and(op_ty))
+                    .unwrap().layout
+                    .align.abi // FIXME: abi or pref?
+                    .bytes();
+                let bytes_vir = vir::Expr::from(bytes);
+                self.encode_copy_value_assign(
+                    encoded_lhs,
+                    bytes_vir,
+                    ty,
+                    location,
+                )
+            },
         }
+    }
+
+    fn encode_assign_box_init(
+        &mut self,
+        op_ty: ty::Ty<'tcx>,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+        location: mir::Location,
+    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
+        println!("assign box init into {:?}", encoded_lhs);
+        assert_eq!(op_ty, ty.boxed_ty());
+        let ref_field = self.encoder.encode_dereference_field(op_ty)
+            .with_span(
+                self.mir_encoder.get_span_of_location(location)
+            )?;
+        let box_content = encoded_lhs.clone().field(ref_field.clone());
+
+        let mut stmts = self.prepare_assign_target(
+            encoded_lhs,
+            ref_field,
+            location,
+            vir::AssignKind::Move,
+            false
+        )?;
+
+        println!("res1: {:#?}", stmts);
+
+        // Allocate `box_content`
+        stmts.extend(self.encode_havoc_and_allocation(&box_content));
+
+        println!("res2: {:#?}", stmts);
+
+        // Leave `box_content` uninitialized
+        Ok(stmts)
     }
 
     /// Assignment with the RHS being the discriminant value of an enum

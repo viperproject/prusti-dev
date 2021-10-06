@@ -178,10 +178,10 @@ impl<'tcx> Environment<'tcx> {
     pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
         let tcx = self.tcx;
         let mut visitor = CollectPrustiSpecVisitor::new(self);
-        tcx.hir().krate().visit_all_item_likes(&mut visitor);
+        tcx.hir().visit_all_item_likes(&mut visitor);
 
         let mut cl_visitor = CollectClosureDefsVisitor::new(self);
-        tcx.hir().krate().visit_all_item_likes(&mut cl_visitor.as_deep_visitor());
+        tcx.hir().visit_all_item_likes(&mut cl_visitor.as_deep_visitor());
 
         let mut result: Vec<_> = visitor.get_annotated_procedures();
         result.extend(cl_visitor.get_closure_defs());

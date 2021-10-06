@@ -12,7 +12,7 @@ use rustc_data_structures::{
     fingerprint::Fingerprint,
     stable_hasher::{HashStable, StableHasher},
 };
-use rustc_middle::{ich::StableHashingContextProvider, mir, ty::TyCtxt};
+use rustc_middle::{mir, ty::TyCtxt};
 use rustc_span::def_id::DefId;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::{
@@ -126,7 +126,7 @@ impl<'mir, 'tcx: 'mir> PartialEq for ReachingDefsState<'mir, 'tcx> {
             {
                 let mut stable_hasher = StableHasher::new();
                 self.mir.hash_stable(
-                    &mut self.tcx.get_stable_hashing_context(),
+                    &mut self.tcx.create_stable_hashing_context(),
                     &mut stable_hasher,
                 );
                 stable_hasher.finish::<Fingerprint>()
@@ -134,7 +134,7 @@ impl<'mir, 'tcx: 'mir> PartialEq for ReachingDefsState<'mir, 'tcx> {
             {
                 let mut stable_hasher = StableHasher::new();
                 other.mir.hash_stable(
-                    &mut other.tcx.get_stable_hashing_context(),
+                    &mut other.tcx.create_stable_hashing_context(),
                     &mut stable_hasher,
                 );
                 stable_hasher.finish::<Fingerprint>()
