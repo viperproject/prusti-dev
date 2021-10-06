@@ -12,6 +12,7 @@ pub enum ModuleTree {
     Leaf,
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for ModuleTree {
     fn default() -> Self {
         ModuleTree::Node(HashMap::new())
