@@ -1119,46 +1119,569 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 // add calls to credit conversion functions
                 for (opt_condition, conversions) in self.cost_encoder.extract_conversions_for(location) {
                     let mut conversion_stmts = vec![];
-                    for conversion in conversions {
-                        let mut args = vec![];
-                        args.push(conversion.result_coeff.clone());
-                        args.extend(conversion.result_bases.clone());
+                    if config::verify_credit_conversions() {
+                        for conversion in conversions {
+                            let mut args = vec![];
+                            args.push(conversion.result_coeff.clone());
+                            args.extend(conversion.result_bases.clone());
 
-                        match &conversion.conversion_type {
-                            CreditConversionType::ConstToPlace { constant } => {
-                                args.push(constant.clone());
-                            }
-                            CreditConversionType::Reorder { previous_base, .. } => {
-                                if let Some(expr) = previous_base {
-                                    args.push(expr.clone());
+                            match &conversion.conversion_type {
+                                CreditConversionType::ConstToPlace { constant } => {
+                                    args.push(constant.clone());
+                                }
+                                CreditConversionType::Reorder { previous_base, .. } => {
+                                    if let Some(expr) = previous_base {
+                                        args.push(expr.clone());
+                                    }
+                                }
+                                CreditConversionType::SumPlaceConst { place_expr, const_val, .. }
+                                | CreditConversionType::MulPlaceConst { place_expr, const_val, .. }
+                                | CreditConversionType::DivPlaceConst { place_expr, const_val, .. } => {
+                                    if let Some(expr) = place_expr {
+                                        args.push(expr.clone());
+                                    }
+                                    args.push((*const_val).into());
+                                }
+                                CreditConversionType::SumPlacePlace { place1_expr, place2_expr, .. }
+                                | CreditConversionType::SubPlacePlace { place1_expr, place2_expr, .. }
+                                | CreditConversionType::MulPlacePlace { place1_expr, place2_expr, .. } => {
+                                    if let Some(expr) = place1_expr {
+                                        args.push(expr.clone());
+                                    }
+                                    if let Some(expr) = place2_expr {
+                                        args.push(expr.clone());
+                                    }
                                 }
                             }
-                            CreditConversionType::SumPlaceConst { place_expr, const_val, .. }
-                            | CreditConversionType::MulPlaceConst { place_expr, const_val, .. }
-                            | CreditConversionType::DivPlaceConst { place_expr, const_val, .. } => {
-                                if let Some(expr) = place_expr {
-                                    args.push(expr.clone());
-                                }
-                                args.push((*const_val).into());
-                            }
-                            CreditConversionType::SumPlacePlace { place1_expr, place2_expr, .. }
-                            | CreditConversionType::MulPlacePlace { place1_expr, place2_expr, .. } => {
-                                if let Some(expr) = place1_expr {
-                                    args.push(expr.clone());
-                                }
-                                if let Some(expr) = place2_expr {
-                                    args.push(expr.clone());
-                                }
-                            }
+
+                            let span = self.mir_encoder.get_span_of_location(location);
+                            let conv_method_name = self.encoder.encode_credit_conversion_use(conversion, span, self.proc_def_id);
+                            conversion_stmts.push(vir::Stmt::MethodCall(
+                                conv_method_name,
+                                args,
+                                vec![]
+                            ))
                         }
-
+                    }
+                    else {//TODO: move assignments might be problematic, since don't have access to rhs anymore -> use snap or old?
                         let span = self.mir_encoder.get_span_of_location(location);
-                        let conv_method_name = self.encoder.encode_credit_conversion_use(conversion, span, self.proc_def_id);
-                        conversion_stmts.push(vir::Stmt::MethodCall(
-                            conv_method_name,
-                            args,
-                            vec![]
-                        ))
+                        let err_ctxt = ErrorCtxt::Unsupported("Conversion failed".to_string()); //TODO
+                        let pos = self.encoder.error_manager().register(span, err_ctxt, self.proc_def_id);
+                        for conversion in conversions {
+                            let perm_arg = conversion.result_coeff.clone();
+                            let result_pred_perm = vir::FracPermAmount::new(box perm_arg.clone(), box 1.into());
+                            let mut base_args = conversion.result_bases.clone();
+
+                            let generate_place_arg = |idx, place_expr: &Option<vir::Expr>| -> vir::Expr {
+                                if place_expr.is_some() {
+                                    place_expr.clone().unwrap()
+                                }
+                                else {
+                                    if conversion.assigned_place_idx <= idx {
+                                        base_args[idx + 1].clone()
+                                    }
+                                    else {
+                                        base_args[idx].clone()
+                                    }
+                                }
+                            };
+                            let add_required_credits_pre = |conversion_stmts: &mut Vec<vir::Stmt>, previous_idx, prev_arg: &vir::Expr,
+                                                            exp_to_add, add_base, negative, frac_perm: vir::FracPermAmount| {
+                                let mut pre_args = vec![];
+                                let mut pre_exps = vec![];
+                                // swap assigned_place_idx & previous_idx
+                                let mut pre_idx = 0usize;
+                                let mut res_idx = 0usize;
+                                while pre_idx < base_args.len() {  // max no. of pre_args
+                                    if res_idx == conversion.assigned_place_idx {
+                                        // skip
+                                        res_idx += 1
+                                    }
+                                    if pre_idx == previous_idx {
+                                        if exp_to_add != 0 {
+                                            if add_base {
+                                                // insert previous
+                                                pre_args.push(prev_arg.clone());
+                                                // copy exponent
+                                                pre_exps.push(exp_to_add);
+                                            } else {
+                                                pre_idx += 1;       // skip insertion
+                                                // insert res_idx-th from base_args & sum exponents
+                                                pre_args.push(base_args[res_idx].clone());
+                                                pre_exps.push(conversion.result_exps[res_idx] + exp_to_add);
+                                                res_idx += 1;
+                                            }
+                                        }
+                                        // otherwise skip insertion & still increase pre_idx, since counts possible insertions
+                                    }
+                                    else {
+                                        // insert res_idx-th from base_args
+                                        pre_args.push(base_args[res_idx].clone());
+                                        pre_exps.push(conversion.result_exps[res_idx]);
+                                        res_idx += 1;
+                                    }
+                                    pre_idx += 1;
+                                }
+
+                                conversion_stmts.push(
+                                    vir::Stmt::Exhale(vir::Expr::and(
+                                        vir::Expr::ge_cmp(frac_perm.left().clone(), 0.into()), // "work-around" to make nonnegativity check succeed in every case
+                                        vir::Expr::credit_access_predicate(
+                                            self.encoder.encode_credit_predicate_use(&conversion.credit_type, pre_exps, negative),
+                                            pre_args,
+                                            frac_perm,
+                                        )
+                                    ), pos)        //TODO
+                                );
+                            };
+                            let add_required_credits_pre2 = |conversion_stmts: &mut Vec<vir::Stmt>, prev_idx1, prev_arg1: &vir::Expr, exp1, add_base1,
+                                                             prev_idx2, prev_arg2: &vir::Expr, exp2, add_base2, negative,
+                                                             frac_perm: vir::FracPermAmount| {
+                                let mut pre_args = vec![];
+                                let mut pre_exps = vec![];
+                                // swap assigned_place_idx & previous_idx
+                                let mut pre_idx = 0usize;
+                                let mut res_idx = 0usize;
+                                while pre_idx < base_args.len() + 1 {  // max no. of pre_args
+                                    if res_idx == conversion.assigned_place_idx {
+                                        // skip
+                                        res_idx += 1
+                                    }
+                                    if pre_idx == prev_idx1 {
+                                        if exp1 != 0 {
+                                            if add_base1 {
+                                                // insert previous
+                                                pre_args.push(prev_arg1.clone());
+                                                // copy exponent
+                                                pre_exps.push(exp1);
+                                            } else {
+                                                // insert res_idx-th from base_args & sum exponents
+                                                pre_args.push(base_args[res_idx].clone());
+                                                if pre_idx == prev_idx2 {
+                                                    // add both exponents (add_base2 must be true)
+                                                    pre_exps.push(conversion.result_exps[res_idx] + exp1 + exp2);
+                                                    pre_idx += 1; // skipped two insertions
+                                                }
+                                                else {
+                                                    pre_exps.push(conversion.result_exps[res_idx] + exp1);
+                                                }
+                                                res_idx += 1;
+                                                pre_idx += 1;       // skip insertion
+                                            }
+                                        }
+                                        // otherwise skip insertion & still increase pre_idx, since counts possible insertions
+                                    }
+                                    else if pre_idx == prev_idx2 {
+                                        if exp2 != 0 {
+                                            if add_base2 {
+                                                // insert previous
+                                                pre_args.push(prev_arg2.clone());
+                                                // copy exponent
+                                                pre_exps.push(exp2);
+                                            } else {
+                                                // insert res_idx-th from base_args & sum exponents
+                                                pre_args.push(base_args[res_idx].clone());
+                                                pre_exps.push(conversion.result_exps[res_idx] + exp2);
+                                                res_idx += 1;
+                                                pre_idx += 1;       // skip insertion
+                                            }
+                                        }
+                                        // otherwise skip insertion & still increase pre_idx, since counts possible insertions
+                                    }
+                                    else {
+                                        // insert res_idx-th from base_args
+                                        pre_args.push(base_args[res_idx].clone());
+                                        pre_exps.push(conversion.result_exps[res_idx]);
+                                        res_idx += 1;
+                                    }
+                                    pre_idx += 1;
+                                }
+
+                                conversion_stmts.push(
+                                    vir::Stmt::Exhale(
+                                        vir::Expr::and(
+                                            vir::Expr::ge_cmp(frac_perm.left().clone(), 0.into()), // "work-around" to make nonnegativity check succeed in every case
+                                            vir::Expr::credit_access_predicate(
+                                                self.encoder.encode_credit_predicate_use(&conversion.credit_type, pre_exps, negative),
+                                                pre_args,
+                                                frac_perm,
+                                            )
+                                        ),
+                                        pos    //TODO
+                                    )
+                                );
+                            };
+
+                            match &conversion.conversion_type {
+                                CreditConversionType::ConstToPlace { constant  } => {
+                                    let const_arg = constant.clone();
+
+                                    // place == const
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::eq_cmp(
+                                                base_args[conversion.assigned_place_idx].clone(),
+                                                const_arg.clone(),
+                                            ),
+                                            pos
+                                        )
+                                    );
+
+                                    // required credits
+                                    // constant^e * perm_arg
+                                    let pre_perm: vir::Expr = std::iter::repeat(const_arg.clone())
+                                        .take(conversion.result_exps[conversion.assigned_place_idx] as usize)
+                                        .fold(perm_arg.clone(), |prod, c|
+                                            vir!([c] * [prod]));
+                                    let mut pre_args = vec![];
+                                    let mut pre_exps = vec![];
+                                    // skip assigned_place (is constant)
+                                    for i in 0..base_args.len() {
+                                        if i != conversion.assigned_place_idx {
+                                            pre_args.push(base_args[i].clone());
+                                            pre_exps.push(conversion.result_exps[i]);
+                                        }
+                                    }
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::credit_access_predicate(
+                                                self.encoder.encode_credit_predicate_use(&conversion.credit_type, pre_exps, conversion.result_negative),
+                                                pre_args,
+                                                vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                                            ),
+                                            pos
+                                        )
+                                    );
+                                }
+                                CreditConversionType::Reorder { previous_idx, previous_base } => {
+                                    let add_base = previous_base.is_some();
+                                    let prev_arg = generate_place_arg(*previous_idx, previous_base);
+                                    // reordered place has the same value as before
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::eq_cmp(
+                                                base_args[conversion.assigned_place_idx].clone(),
+                                                prev_arg.clone()
+                                            ),
+                                            pos
+                                        )
+                                    );
+
+                                    // required credits
+                                    add_required_credits_pre(
+                                        &mut conversion_stmts,
+                                        *previous_idx,
+                                        &prev_arg,
+                                        conversion.result_exps[conversion.assigned_place_idx],
+                                        add_base,
+                                        conversion.result_negative,
+                                        result_pred_perm.clone(),       // same amount/coefficient
+                                    );
+                                }
+                                CreditConversionType::SumPlaceConst { place_idx, place_expr, const_val } => {
+                                    let add_base = place_expr.is_some();
+                                    let place_arg = generate_place_arg(*place_idx, place_expr);
+                                    let const_arg = vir::Expr::from(*const_val);
+
+                                    if *const_val < 0 { //TODO: extra assertion instead? since not really requirement of this conversion + could have better error msg
+                                        // ensure total costs are positive
+                                        conversion_stmts.push(
+                                            vir::Stmt::Exhale(
+                                                vir::Expr::ge_cmp(
+                                                    vir::Expr::add(place_arg.clone(), const_arg.clone()),
+                                                    0.into()
+                                                ),
+                                                pos
+                                            )
+                                        );
+                                    }
+
+                                    // require sum to have taken place
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::eq_cmp(
+                                            base_args[conversion.assigned_place_idx].clone(),
+                                            vir::Expr::add(
+                                                place_arg.clone(),
+                                                const_arg.clone()
+                                                ),
+                                            ),
+                                            pos
+                                        )
+                                    );
+
+                                    // required credits
+                                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                                    let mut const_power: vir::Expr = 1.into();     //TODO: eliminate 1?
+                                    // compute binomial expansion of (place + const)^exp
+                                    for i in 0u32..=exp {
+                                        let binomial = num_integer::binomial(exp as i64, i as i64);
+                                        let mut multiplier = vir::Expr::mul(binomial.into(), const_power.clone());
+                                        let negative = *const_val < 0 && i % 2 == 1;
+                                        if negative {
+                                            // make perm amount positive
+                                            multiplier = vir::Expr::minus(multiplier);
+                                        }
+                                        let pre_perm = vir::Expr::mul(multiplier, perm_arg.clone());
+                                        add_required_credits_pre(
+                                            &mut conversion_stmts,
+                                            *place_idx,
+                                            &place_arg,
+                                            exp - i,
+                                            add_base,
+                                            negative ^ conversion.result_negative,
+                                            vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                                        );
+
+                                        // unfold until reach removed base -> mult to coeff for call
+                                        // unfold with next binomial
+                                        // call with 1 exp less
+                                        // fold
+                                        // fold all other
+
+                                        const_power = vir::Expr::mul(const_arg.clone(), const_power);
+                                    }
+                                }
+                                CreditConversionType::MulPlaceConst { place_idx, place_expr, const_val } => {
+                                    let add_base = place_expr.is_some();
+                                    let place_arg = generate_place_arg(*place_idx, place_expr);
+                                    let const_arg = vir::Expr::from(*const_val);
+
+                                    /*// ensure permission amounts are above zero
+                                    method.add_viper_precondition(
+                                        vir::Expr::ge_cmp(const_arg.clone(), 0.into())
+                                    );*/
+
+                                    // require multiplication to have taken place
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::eq_cmp(
+                                            base_args[conversion.assigned_place_idx].clone(),
+                                            vir::Expr::mul(
+                                                place_arg.clone(),
+                                                const_arg.clone()
+                                                )
+                                            ),
+                                            pos,
+                                        )
+                                    );
+
+                                    // required credits
+                                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                                    let multiplier = std::iter::repeat(const_arg.clone())
+                                        .take(exp as usize)
+                                        .reduce(|left, right| vir::Expr::mul(left, right))
+                                        .unwrap();
+                                    let pre_perm = vir::Expr::mul(multiplier, perm_arg.clone());
+                                    add_required_credits_pre(
+                                        &mut conversion_stmts,
+                                        *place_idx,
+                                        &place_arg,
+                                        exp,
+                                        add_base,
+                                        conversion.result_negative, // constant cannot be negative
+                                        vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                                    );
+                                }
+                                CreditConversionType::DivPlaceConst { place_idx, place_expr, const_val } => {
+                                    let add_base = place_expr.is_some();
+                                    let place_arg = generate_place_arg(*place_idx, place_expr);
+                                    let const_arg = vir::Expr::from(*const_val);
+
+                                    // rule out division by zero
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::ne_cmp(const_arg.clone(), 0.into()),
+                                            pos
+                                        )
+                                    );
+
+                                    // require division to have taken place
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::eq_cmp(
+                                                base_args[conversion.assigned_place_idx].clone(),
+                                                vir::Expr::div(
+                                                    place_arg.clone(),
+                                                    const_arg.clone()
+                                                )
+                                            ),
+                                            pos
+                                        )
+                                    );
+
+                                    // required credits
+                                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                                    let divisor = std::iter::repeat(const_arg.clone())
+                                        .take(exp as usize)
+                                        .reduce(|left, right| vir::Expr::mul(left, right))
+                                        .unwrap();
+                                    let pre_perm = vir::Expr::div(perm_arg.clone(), divisor);
+                                    add_required_credits_pre(
+                                        &mut conversion_stmts,
+                                        *place_idx,
+                                        &place_arg,
+                                        exp,
+                                        add_base,
+                                        conversion.result_negative, // constant cannot be negative
+                                        vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                                    );
+                                }
+                                CreditConversionType::SumPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
+                                    let add_base1 = place1_expr.is_some();
+                                    let place1_arg = generate_place_arg(*place1_idx, place1_expr);
+                                    let add_base2 = place2_expr.is_some();
+                                    let place2_arg = generate_place_arg(*place2_idx, place2_expr);
+
+                                    // require sum to have taken place
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::eq_cmp(
+                                            base_args[conversion.assigned_place_idx].clone(),
+                                            vir::Expr::add(
+                                                place1_arg.clone(),
+                                                place2_arg.clone()
+                                                )
+                                            ),
+                                            pos
+                                        )
+                                    );
+
+                                    // required credits
+                                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                                    // compute binomial expansion of (place1 + place2)^exp
+                                    for exp1 in 0u32..=exp {
+                                        let binomial = num_integer::binomial(exp as i64, exp1 as i64);
+                                        let pre_perm = vir::Expr::mul(binomial.into(), perm_arg.clone());
+                                        let exp2 = exp - exp1;
+                                        add_required_credits_pre2(
+                                            &mut conversion_stmts,
+                                            *place1_idx,
+                                            &place1_arg,
+                                            exp1,
+                                            add_base1,
+                                            *place2_idx,
+                                            &place2_arg,
+                                            exp2,
+                                            add_base2,
+                                            conversion.result_negative, // places cannot be negative
+                                            vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                                        );
+                                    }
+                                }
+                                CreditConversionType::SubPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
+                                    let add_base1 = place1_expr.is_some();
+                                    let place1_arg = generate_place_arg(*place1_idx, place1_expr);
+                                    let add_base2 = place2_expr.is_some();
+                                    let place2_arg = generate_place_arg(*place2_idx, place2_expr);
+
+                                    // ensure total costs are positive by ensuring subtraction result is positive   //TODO: unnecessary for u32
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::ge_cmp(
+                                                vir::Expr::sub(
+                                                    place1_arg.clone(),
+                                                    place2_arg.clone()
+                                                ),
+                                                0.into()
+                                            ),
+                                            pos
+                                        )
+                                    );
+
+                                    // require subtraction to have taken place
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::eq_cmp(
+                                                base_args[conversion.assigned_place_idx].clone(),
+                                                vir::Expr::sub(
+                                                    place1_arg.clone(),
+                                                    place2_arg.clone()
+                                                )
+                                            ),
+                                            pos
+                                        )
+                                    );
+
+                                    // required credits
+                                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                                    // compute binomial expansion of (place1 - place2)^exp
+                                    for exp1 in 0u32..=exp {
+                                        let binomial = num_integer::binomial(exp as i64, exp1 as i64);
+                                        let pre_perm = vir::Expr::mul(binomial.into(), perm_arg.clone());
+                                        let exp2 = exp - exp1;
+                                        let negative = if exp2 % 2 == 1 { // odd exponent ==> "multiply by (-1)"
+                                            !conversion.result_negative
+                                        }
+                                        else {
+                                            conversion.result_negative
+                                        };
+                                        add_required_credits_pre2(
+                                            &mut conversion_stmts,
+                                            *place1_idx,
+                                            &place1_arg,
+                                            exp1,
+                                            add_base1,
+                                            *place2_idx,
+                                            &place2_arg,
+                                            exp2,
+                                            add_base2,
+                                            negative,
+                                            vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                                        );
+                                    }
+                                }
+                                CreditConversionType::MulPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
+                                    let add_base1 = place1_expr.is_some();
+                                    let place1_arg = generate_place_arg(*place1_idx, place1_expr);
+                                    let add_base2 = place2_expr.is_some();
+                                    let place2_arg = generate_place_arg(*place2_idx, place2_expr);
+
+                                    // require multiplication to have taken place
+                                    conversion_stmts.push(
+                                        vir::Stmt::Exhale(
+                                            vir::Expr::eq_cmp(
+                                                base_args[conversion.assigned_place_idx].clone(),
+                                                vir::Expr::mul(
+                                                    place1_arg.clone(),
+                                                    place2_arg.clone()
+                                                )
+                                            ),
+                                            pos
+                                        )
+                                    );
+
+                                    // required credits (similar to reorder, just with 2 places)
+                                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                                    add_required_credits_pre2(
+                                        &mut conversion_stmts,
+                                        *place1_idx,
+                                        &place1_arg,
+                                        exp,
+                                        add_base1,
+                                        *place2_idx,
+                                        &place2_arg,
+                                        exp,
+                                        add_base2,
+                                        conversion.result_negative, // places cannot be negative
+                                        result_pred_perm.clone(),
+                                    );
+                                }
+                            }
+
+                            // resulting credits
+                            let result_pred_name = self.encoder.encode_credit_predicate_use(&conversion.credit_type, conversion.result_exps.clone(), conversion.result_negative);
+                            let result_pred_args: Vec<vir::Expr> = base_args.clone();
+                            conversion_stmts.push(
+                                vir::Stmt::Inhale(
+                                    vir::Expr::credit_access_predicate(
+                                        result_pred_name.clone(),
+                                        result_pred_args.clone(),
+                                        result_pred_perm,
+                                    )
+                                )
+                            );
+                        }
                     }
 
                     if let Some(condition) = opt_condition {

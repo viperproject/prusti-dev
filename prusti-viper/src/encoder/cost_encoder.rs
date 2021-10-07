@@ -1086,6 +1086,12 @@ pub(crate) enum CreditConversionType {
         place2_idx: usize,
         place2_expr: Option<vir::Expr>,
     },
+    SubPlacePlace {
+        place1_idx: usize,
+        place1_expr: Option<vir::Expr>,
+        place2_idx: usize,
+        place2_expr: Option<vir::Expr>,
+    },
     MulPlacePlace {
         place1_idx: usize,
         place1_expr: Option<vir::Expr>,
@@ -1402,6 +1408,97 @@ impl PureBackwardSubstitutionState for CostBackwardInterpreterState {
                                                 result_coeff,
                                                 assigned_place_idx: target_idx.unwrap(),
                                                 conversion_type: CreditConversionType::SumPlacePlace {
+                                                    place1_idx,
+                                                    place1_expr,
+                                                    place2_idx,
+                                                    place2_expr,
+                                                },
+                                            }
+                                        );
+                                    } else {
+                                        return Err(EncodingError::internal(
+                                            format!("Substitution target {} should occur as single expression in base of powers {}", target, powers)
+                                        ));
+                                    }
+                                }
+                            }
+
+                            Expr::BinOp(
+                                vir::BinOpKind::Sub,
+                                box Expr::SnapApp(box place1 @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                box Expr::SnapApp(box place2 @ (vir::Expr::Local(..) | vir::Expr::Field(..)), _),
+                                _,
+                            ) => {  // subtraction of two places
+                                for (mut powers, coeff) in entries_to_replace {
+                                    let result_negative = powers.negative;
+                                    let result_exps = powers.exponents();
+                                    let result_bases = powers.base_exprs();
+                                    let result_coeff = coeff.clone();
+                                    let target_idx = powers.get_index(target);
+
+                                    if let Some(exp) = powers.remove_power(target.clone()) {
+                                        if exp > 66 {
+                                            return Err(EncodingError::unsupported(
+                                                "Exponents > 66 will lead to an overflow in the cost inference"
+                                            ))
+                                        }
+
+                                        // compute binomial expansion of (place1 - place2)^exp
+                                        for i in 0u32..=exp {
+                                            let binomial = num_integer::binomial(exp as i64, i as i64);
+                                            let new_coeff = vir::Expr::mul(binomial.into(), coeff.clone());
+
+                                            let mut new_powers = powers.clone();
+                                            // add place1^i * place2^(exp-i)
+                                            let exp2 = exp - i;
+                                            if exp2 % 2 == 1 { // odd exponent ==> multiply by (-1)
+                                                new_powers.negative = !result_negative;
+                                            }
+                                            if i == 0 {
+                                                new_powers.insert_power(place2.clone(), exp2);
+                                            } else {
+                                                new_powers.insert_power(place1.clone(), i);
+                                                if exp2 > 0 {
+                                                    new_powers.insert_power(place2.clone(), exp2);
+                                                }
+                                            }
+
+                                            // could already have a coefficient for these powers after replacement
+                                            // if that is the case, we add the coefficients
+                                            if let Some(curr_coeff) = coeff_map.get_mut(&new_powers) {
+                                                *curr_coeff = vir::Expr::add(curr_coeff.clone(), new_coeff);
+                                            } else {
+                                                coeff_map.insert(new_powers, new_coeff);
+                                            }
+                                        }
+
+                                        // insert to determine indices
+                                        let newly_inserted1 = powers.insert_power(place1.clone(), 1);
+                                        let newly_inserted2 = powers.insert_power(place2.clone(), 1);
+                                        let place1_idx = powers.get_index(place1).unwrap();
+                                        let place2_idx = powers.get_index(place2).unwrap();
+                                        let place1_expr = if newly_inserted1 {
+                                            Some(place1.clone())
+                                        }
+                                        else {
+                                            None
+                                        };
+                                        let place2_expr = if newly_inserted2 {
+                                            Some(place2.clone())
+                                        }
+                                        else {
+                                            None
+                                        };
+                                        // insert conversion
+                                        conversions.push(
+                                            CreditConversion {
+                                                credit_type: credit_type.clone(),
+                                                result_negative,
+                                                result_exps,
+                                                result_bases,
+                                                result_coeff,
+                                                assigned_place_idx: target_idx.unwrap(),
+                                                conversion_type: CreditConversionType::SubPlacePlace {
                                                     place1_idx,
                                                     place1_expr,
                                                     place2_idx,

@@ -884,6 +884,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     this_method_name.push_str("_partial");
                 }
             }
+            CreditConversionType::SubPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
+                this_method_name.push_str(&format!("_sub_places_{}", place1_idx));
+                if place1_expr.is_none() {
+                    this_method_name.push_str("_partial");
+                }
+                this_method_name.push_str(&format!("_{}", place2_idx));
+                if place2_expr.is_none() {
+                    this_method_name.push_str("_partial");
+                }
+            }
             CreditConversionType::MulPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
                 this_method_name.push_str(&format!("_mul_places_{}", place1_idx));
                 if place1_expr.is_none() {
@@ -1429,6 +1439,69 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                             exp2,
                             add_base2,
                             conversion.result_negative, // places cannot be negative
+                            vir::FracPermAmount::new(box pre_perm, box 1.into()),
+                        );
+
+                        let err_ctxt = ErrorCtxt::Unsupported("Verification of credit conversion 'SumPlacePlace' is not supported (yet). \
+                            Consider not setting flag 'verify_credit_conversions' to true.".to_string());
+                        let pos = self.error_manager().register(span, err_ctxt, proc_def_id);
+                        stmts.push(vir::Stmt::Assert(false.into(), pos));
+
+                        // unfold until reach removed base -> mult to coeff for call
+                        // unfold with next binomial
+                        // call with 1 exp less
+                        // fold
+                        // fold all other
+                    }
+                }
+                CreditConversionType::SubPlacePlace { place1_idx, place2_idx, place1_expr, place2_expr } => {
+                    let add_base1 = place1_expr.is_some();
+                    let place1_arg = generate_place_arg(&mut method, "place1", *place1_idx, add_base1);
+                    let add_base2 = place2_expr.is_some();
+                    let place2_arg = generate_place_arg(&mut method, "place2", *place2_idx, add_base2);
+
+                    // ensure total costs are positive by ensuring subtraction result is positive   //TODO: unnecessary for u32
+                    method.add_viper_precondition(vir::Expr::ge_cmp(
+                        vir::Expr::sub(
+                            place1_arg.clone(),
+                            place2_arg.clone()
+                        ),
+                        0.into()
+                    ));
+
+                    // require subtraction to have taken place
+                    method.add_viper_precondition(vir::Expr::eq_cmp(
+                        base_args[conversion.assigned_place_idx].clone(),
+                        vir::Expr::sub(
+                            place1_arg.clone(),
+                            place2_arg.clone()
+                        )
+                    ));
+
+                    // required credits
+                    let exp = conversion.result_exps[conversion.assigned_place_idx];
+                    // compute binomial expansion of (place1 - place2)^exp
+                    for exp1 in 0u32..=exp {
+                        let binomial = num_integer::binomial(exp as i64, exp1 as i64);
+                        let pre_perm = vir::Expr::mul(binomial.into(), perm_arg.clone());
+                        let exp2 = exp - exp1;
+                        let negative = if exp2 % 2 == 1 { // odd exponent ==> "multiply by (-1)"
+                            !conversion.result_negative
+                        }
+                        else {
+                            conversion.result_negative
+                        };
+                        add_required_credits_pre2(
+                            &mut method,
+                            *place1_idx,
+                            &place1_arg,
+                            exp1,
+                            add_base1,
+                            *place2_idx,
+                            &place2_arg,
+                            exp2,
+                            add_base2,
+                            negative,
                             vir::FracPermAmount::new(box pre_perm, box 1.into()),
                         );
 
