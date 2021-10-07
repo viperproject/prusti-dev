@@ -28,6 +28,7 @@ use std::{
     convert::TryInto,
 };
 use prusti_interface::environment::mir_utils::MirPlace;
+use crate::encoder::mir::types::TypeEncoderInterface;
 
 use downcast_detector::detect_downcasts;
 pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};

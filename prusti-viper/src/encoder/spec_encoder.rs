@@ -28,6 +28,7 @@ use std::collections::HashMap;
 use rustc_ast::ast;
 use log::{debug, trace};
 use prusti_interface::utils::read_prusti_attr;
+use crate::encoder::mir::types::TypeEncoderInterface;
 
 use super::encoder::SubstMap;
 

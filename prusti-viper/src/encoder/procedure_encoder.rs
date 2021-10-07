@@ -70,7 +70,7 @@ use crate::encoder::snapshot;
 use std::convert::TryInto;
 use crate::utils::is_reference;
 use crate::encoder::mir::pure_functions::PureFunctionEncoderInterface;
-
+use crate::encoder::mir::types::TypeEncoderInterface;
 use super::encoder::SubstMap;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {

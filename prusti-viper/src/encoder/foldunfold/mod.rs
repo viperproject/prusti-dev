@@ -11,6 +11,7 @@ use crate::encoder::{
 };
 #[rustfmt::skip]
 use ::log::{debug, trace};
+use crate::encoder::mir::types::TypeEncoderInterface;
 use prusti_common::{config, report, utils::to_string::ToString, vir::ToGraphViz};
 use rustc_middle::mir;
 use std::{
