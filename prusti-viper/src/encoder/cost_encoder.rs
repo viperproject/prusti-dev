@@ -127,6 +127,8 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                     proc_def_id,
                     conditional: conditional && conditional_annotation,
                 };
+
+            trace!("Running credit inference backward interpretation");
             if let Some(result_state) = run_backward_interpretation(mir, &cost_interpreter)? {
                 self.conversions = result_state.conversions;
 
@@ -1747,6 +1749,12 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
         let term_span = terminator.source_info.span;
         let location = self.mir.terminator_loc(bb);
 
+        trace!("Apply terminator with span {:?};\n\
+                states before: {:?}",
+                term_span,
+                states,
+        );
+
         match terminator.kind {
             TerminatorKind::SwitchInt { switch_ty, ref discr, ref targets } => {//TODO: treat like asignment, but not single assignment! (only when constant?)
                 trace!(
@@ -1763,7 +1771,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                 let mut guard_disjunction = None;
                 for (value, target) in targets.iter() {
                     let target_state = states[&target];
-                    // there shouldn't be duplicate keys, since locations in different branches should differ
+                    // there shouldn't be duplicate keys with different conversions, since locations in different branches should differ
                     union_of_conversions.extend(target_state.conversions.clone());
 
                     // construct condition (cf. pure function encoder)
@@ -1799,7 +1807,9 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                 self.insert_guarded_cost(&mut new_cost, &otherwise_state.cost, otherwise_guard);
                 union_of_conversions.extend(otherwise_state.conversions.clone());
 
-                Ok(CostBackwardInterpreterState { cost: new_cost, conversions: union_of_conversions })
+                let result_state = CostBackwardInterpreterState { cost: new_cost, conversions: union_of_conversions };
+                trace!("Result state: {:?}", result_state);
+                Ok(result_state)
             }
 
             TerminatorKind::Call {
@@ -1898,10 +1908,18 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                                 ).with_span(term_span)?
                             };
 
+                            trace!(
+                                "Function call: def_id '{:?}', contract '{:?}', target_local '{:?}', target_block: '{:?}'",
+                                def_id,
+                                procedure_contract,
+                                target_local,
+                                target_block,
+                            );
+
                             let encoded_args: Vec<vir::Expr> = procedure_contract
                                 .args
                                 .iter()
-                                .map(|local| {      // cf. ProcedureEncoder.encode_prusti_locala
+                                .map(|local| {      // cf. ProcedureEncoder.encode_prusti_local
                                     let var_name = self.locals_manager.get_name(*local);
                                     let type_name = self
                                         .encoder
@@ -1920,6 +1938,8 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                                     self.add_cost(curr_cost, credit_type, opt_condition, power_coeffs);     //TODO: better (more efficient) to add all in one go?
                                 }
                             }
+
+                            trace!("Result state: {:?}", new_state);
                         }
                     }
 
@@ -1939,8 +1959,15 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                 ref value,
                 ..
             } => {
+                trace!(
+                    "DropAndReplace target '{:?}', place '{:?}', value '{:?}'",
+                    target,
+                    lhs,
+                    value,
+                );
                 let mut new_state = states[target].clone();
                 new_state.apply_assignment(&self.pure_fn_interpreter, lhs, &mir::Rvalue::Use(value.clone()), location, term_span, self.proc_def_id)?;
+                trace!("Result state: {:?}", new_state);
                 Ok(new_state)
             }
 
@@ -1950,6 +1977,13 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                 ref target,
                 ..
             } => {
+                trace!(
+                    "Assert cond '{:?}', expected '{:?}', target '{:?}'",
+                    cond,
+                    expected,
+                    target,
+                );
+
                 let target_state = states[target];
 
                 let cond_val = self.mir_encoder.encode_operand_expr(cond)
@@ -1964,7 +1998,9 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                 // ignore failure & add condition
                 self.insert_guarded_cost(&mut new_cost, &target_state.cost, viper_guard);
 
-                Ok(CostBackwardInterpreterState { cost: new_cost, conversions: target_state.conversions.clone()})
+                let result_state = CostBackwardInterpreterState { cost: new_cost, conversions: target_state.conversions.clone()};
+                trace!("Result state: {:?}", result_state);
+                Ok(result_state)
             }
 
             TerminatorKind::Goto { ref target } => {
@@ -1995,7 +2031,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
             | TerminatorKind::Abort
             | TerminatorKind::Return
             | TerminatorKind::Unreachable => {
-                // TOOD: error (for some)?
+                // TODO: error (for some)?
                 // no cost
                 Ok(CostBackwardInterpreterState { cost: vec![(None, BTreeMap::new())], conversions: HashMap::new() })
             }
@@ -2013,7 +2049,10 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
 
         match stmt.kind {
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
+                trace!("State before: {:?}", state);
+                trace!("Assign lhs '{:?}', rhs '{:?}'", lhs, rhs);
                 state.apply_assignment(&self.pure_fn_interpreter, lhs, rhs, location, stmt_span, self.proc_def_id)?;
+                trace!("Result state: {:?}", state);
             }
 
             mir::StatementKind::FakeRead(..)
