@@ -13,7 +13,6 @@ use super::TypeEncoder;
 
 #[derive(Default)]
 pub(crate) struct TypeEncoderState<'tcx> {
-    fields: RefCell<HashMap<String, vir::Field>>,
     type_predicate_types: RefCell<HashMap<ty::TyKind<'tcx>, vir::Type>>,
     predicate_types: RefCell<HashMap<vir::Type, ty::Ty<'tcx>>>,
     type_predicates: RefCell<HashMap<String, vir::Predicate>>,
@@ -55,11 +54,6 @@ impl<'v, 'tcx: 'v> TypeEncoderInterface<'tcx> for super::super::super::Encoder<'
     fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Field> {
         let type_encoder = TypeEncoder::new(self, ty);
         let field = type_encoder.encode_value_field()?;
-        self.type_encoder_state
-            .fields
-            .borrow_mut()
-            .entry(field.name.clone())
-            .or_insert_with(|| field.clone());
         Ok(field)
     }
     fn encode_raw_ref_field(
@@ -68,34 +62,16 @@ impl<'v, 'tcx: 'v> TypeEncoderInterface<'tcx> for super::super::super::Encoder<'
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<vir::Field> {
         let typ = self.encode_type(ty)?;
-        self.type_encoder_state
-            .fields
-            .borrow_mut()
-            .entry(viper_field_name.clone())
-            .or_insert_with(|| {
-                // Do not store the name of the type in self.fields
-                vir::Field::new(viper_field_name.clone(), vir::Type::typed_ref(""))
-            });
         Ok(vir::Field::new(viper_field_name, typ))
     }
     /// Creates a field that corresponds to the enum variant ``index``.
     fn encode_enum_variant_field(&self, index: &str) -> vir::Field {
         let name = format!("enum_{}", index);
-        let mut fields = self.type_encoder_state.fields.borrow_mut();
-        if !fields.contains_key(&name) {
-            let field = vir::Field::new(name.clone(), vir::Type::typed_ref(""));
-            fields.insert(name.clone(), field);
-        }
-        fields.get(&name).cloned().unwrap()
+        vir::Field::new(name.clone(), vir::Type::typed_ref(""))
     }
     fn encode_discriminant_field(&self) -> vir::Field {
         let name = "discriminant";
         let field = vir::Field::new(name, vir::Type::Int);
-        self.type_encoder_state
-            .fields
-            .borrow_mut()
-            .entry(name.to_string())
-            .or_insert_with(|| field.clone());
         field
     }
     fn encode_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir::Type> {
