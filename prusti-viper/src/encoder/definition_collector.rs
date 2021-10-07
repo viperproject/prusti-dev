@@ -3,11 +3,17 @@ use std::{
     hash::Hash,
 };
 
-use prusti_common::vir_local;
-use vir_crate::polymorphic::{self as vir, ExprWalker, FallibleExprWalker, FallibleStmtWalker, FunctionIdentifier, PredicateAccessPredicate, StmtWalker, WithIdentifier, compute_identifier};
 use crate::encoder::mir::types::TypeEncoderInterface;
+use prusti_common::vir_local;
+use vir_crate::polymorphic::{
+    self as vir, compute_identifier, ExprWalker, FallibleExprWalker, FallibleStmtWalker,
+    FunctionIdentifier, PredicateAccessPredicate, StmtWalker, WithIdentifier,
+};
 
-use super::{Encoder, errors::{SpannedEncodingError, SpannedEncodingResult}};
+use super::{
+    errors::{SpannedEncodingError, SpannedEncodingResult},
+    Encoder,
+};
 
 /// Determining which of the collected functions should have bodies works as
 /// follows:
@@ -80,7 +86,11 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
-    fn into_program(mut self, name: String, methods: Vec<vir::CfgMethod>) -> SpannedEncodingResult<vir::Program> {
+    fn into_program(
+        mut self,
+        name: String,
+        methods: Vec<vir::CfgMethod>,
+    ) -> SpannedEncodingResult<vir::Program> {
         let functions = self.get_used_functions()?;
         let viper_predicates = self.get_used_predicates();
         let domains = self.get_used_domains();
@@ -117,9 +127,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     fn get_used_fields(&self) -> Vec<vir::Field> {
         // TODO: Remove the deduplication once we switch to the offset-based
         // fields.
-        let used_fields: HashMap<_, _> = self.used_fields.iter().map(|field| {
-            (&field.name, field)
-        }).collect();
+        let used_fields: HashMap<_, _> = self
+            .used_fields
+            .iter()
+            .map(|field| (&field.name, field))
+            .collect();
         let mut used_fields: Vec<_> = used_fields.values().map(|&field| field.clone()).collect();
         used_fields.sort_by_cached_key(|f| f.get_identifier());
         used_fields
@@ -128,7 +140,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
     /// all bodyless methods are present. That is why we are returning all
     /// methods here.
     fn get_all_methods(&self) -> Vec<vir::BodylessMethod> {
-        let mut methods: Vec<_> = self.encoder
+        let mut methods: Vec<_> = self
+            .encoder
             .get_builtin_methods()
             .values()
             .cloned()
@@ -266,24 +279,52 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleStmtWalker for Collector<'p, 'v, 'tcx> {
 
 impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
     type Error = SpannedEncodingError;
-    fn fallible_walk_variant(&mut self, vir::Variant {base, variant_index, ..}: &vir::Variant) -> SpannedEncodingResult<()> {
+    fn fallible_walk_variant(
+        &mut self,
+        vir::Variant {
+            base,
+            variant_index,
+            ..
+        }: &vir::Variant,
+    ) -> SpannedEncodingResult<()> {
         self.used_fields.insert(variant_index.clone());
         FallibleExprWalker::fallible_walk(self, base)?;
         FallibleExprWalker::fallible_walk_type(self, &variant_index.typ)?;
         Ok(())
     }
-    fn fallible_walk_field(&mut self, vir::FieldExpr {base, field, ..}: &vir::FieldExpr) -> SpannedEncodingResult<()> {
+    fn fallible_walk_field(
+        &mut self,
+        vir::FieldExpr { base, field, .. }: &vir::FieldExpr,
+    ) -> SpannedEncodingResult<()> {
         self.used_fields.insert(field.clone());
         FallibleExprWalker::fallible_walk(self, base)?;
         FallibleExprWalker::fallible_walk_type(self, &field.typ)?;
         Ok(())
     }
-    fn fallible_walk_predicate_access_predicate(&mut self, vir::PredicateAccessPredicate {predicate_type, argument, ..}: &vir::PredicateAccessPredicate) -> SpannedEncodingResult<()> {
+    fn fallible_walk_predicate_access_predicate(
+        &mut self,
+        vir::PredicateAccessPredicate {
+            predicate_type,
+            argument,
+            ..
+        }: &vir::PredicateAccessPredicate,
+    ) -> SpannedEncodingResult<()> {
         self.used_predicates.insert(predicate_type.name());
         FallibleExprWalker::fallible_walk(self, argument)
     }
-    fn fallible_walk_unfolding(&mut self, vir::Unfolding {predicate_name, arguments, base, ..}: &vir::Unfolding) -> SpannedEncodingResult<()> {
-        if self.new_unfolded_predicates.insert(predicate_name.to_string()) {
+    fn fallible_walk_unfolding(
+        &mut self,
+        vir::Unfolding {
+            predicate_name,
+            arguments,
+            base,
+            ..
+        }: &vir::Unfolding,
+    ) -> SpannedEncodingResult<()> {
+        if self
+            .new_unfolded_predicates
+            .insert(predicate_name.to_string())
+        {
             let predicate = self.encoder.get_viper_predicate(predicate_name);
             // make sure we include all the fields
             if let Some(body) = predicate.body().as_ref() {
@@ -296,7 +337,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
         FallibleExprWalker::fallible_walk(self, base)?;
         Ok(())
     }
-    fn fallible_walk_func_app(&mut self, vir::FuncApp {function_name, arguments, formal_arguments, return_type, ..}: &vir::FuncApp) -> SpannedEncodingResult<()> {
+    fn fallible_walk_func_app(
+        &mut self,
+        vir::FuncApp {
+            function_name,
+            arguments,
+            formal_arguments,
+            return_type,
+            ..
+        }: &vir::FuncApp,
+    ) -> SpannedEncodingResult<()> {
         let identifier: vir::FunctionIdentifier =
             compute_identifier(function_name, formal_arguments, return_type).into();
         let have_visited = !self.used_functions.contains(&identifier);
@@ -334,11 +384,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
         FallibleExprWalker::fallible_walk_type(self, return_type)?;
         Ok(())
     }
-    fn fallible_walk_domain_func_app(&mut self, vir::DomainFuncApp {domain_function, arguments, ..}: &vir::DomainFuncApp) -> SpannedEncodingResult<()> {
+    fn fallible_walk_domain_func_app(
+        &mut self,
+        vir::DomainFuncApp {
+            domain_function,
+            arguments,
+            ..
+        }: &vir::DomainFuncApp,
+    ) -> SpannedEncodingResult<()> {
         if domain_function.domain_name.starts_with("Snap$") {
             self.used_snap_domain_functions
                 .insert(domain_function.get_identifier().into());
-            self.used_domains.insert(domain_function.domain_name.clone());
+            self.used_domains
+                .insert(domain_function.domain_name.clone());
         } else {
             match domain_function.domain_name.as_str() {
                 "MirrorDomain" => {
@@ -347,7 +405,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
                         .insert(domain_function.get_identifier().into());
                 }
                 "UnitDomain" => {
-                    self.used_domains.insert(domain_function.domain_name.clone());
+                    self.used_domains
+                        .insert(domain_function.domain_name.clone());
                 }
                 name => {
                     unreachable!("Unexpected domain: {}", name);
@@ -364,7 +423,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
     }
     fn fallible_walk_type(&mut self, typ: &vir::Type) -> SpannedEncodingResult<()> {
         match typ {
-            vir::Type::Seq( vir::SeqType {box typ} ) => {
+            vir::Type::Seq(vir::SeqType { box typ }) => {
                 self.fallible_walk_type(typ)?;
             }
             vir::Type::TypedRef(..) | vir::Type::TypeVar(..) => {
@@ -396,14 +455,28 @@ impl StmtWalker for UnfoldedPredicateCollector {
         ExprWalker::walk(self, expr);
     }
 
-    fn walk_fold(&mut self, vir::Fold {predicate_name, arguments, ..}: &vir::Fold) {
+    fn walk_fold(
+        &mut self,
+        vir::Fold {
+            predicate_name,
+            arguments,
+            ..
+        }: &vir::Fold,
+    ) {
         self.unfolded_predicates.insert(predicate_name.to_string());
         for arg in arguments {
             self.walk_expr(arg);
         }
     }
 
-    fn walk_unfold(&mut self, vir::Unfold {predicate_name, arguments, ..}: &vir::Unfold) {
+    fn walk_unfold(
+        &mut self,
+        vir::Unfold {
+            predicate_name,
+            arguments,
+            ..
+        }: &vir::Unfold,
+    ) {
         self.unfolded_predicates.insert(predicate_name.to_string());
         for arg in arguments {
             self.walk_expr(arg);
@@ -412,7 +485,15 @@ impl StmtWalker for UnfoldedPredicateCollector {
 }
 
 impl ExprWalker for UnfoldedPredicateCollector {
-    fn walk_unfolding(&mut self, vir::Unfolding {predicate_name, arguments, base, ..}: &vir::Unfolding) {
+    fn walk_unfolding(
+        &mut self,
+        vir::Unfolding {
+            predicate_name,
+            arguments,
+            base,
+            ..
+        }: &vir::Unfolding,
+    ) {
         self.unfolded_predicates.insert(predicate_name.to_string());
         for arg in arguments {
             ExprWalker::walk(self, arg);
@@ -427,7 +508,10 @@ struct UnfoldedPredicateChecker<'a> {
 }
 
 impl<'a> ExprWalker for UnfoldedPredicateChecker<'a> {
-    fn walk_predicate_access_predicate(&mut self, vir::PredicateAccessPredicate {predicate_type, ..}: &vir::PredicateAccessPredicate) {
+    fn walk_predicate_access_predicate(
+        &mut self,
+        vir::PredicateAccessPredicate { predicate_type, .. }: &vir::PredicateAccessPredicate,
+    ) {
         if self.unfolded_predicates.contains(&predicate_type.name()) {
             self.found = true;
         }
