@@ -125,7 +125,7 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> CostEncoder<'tcx> {
                     locals_manager,
                     mir,
                     proc_def_id,
-                    conditional: conditional && conditional_annotation,
+                    conditional: conditional //&& conditional_annotation,
                 };
 
             trace!("Running credit inference backward interpretation");
