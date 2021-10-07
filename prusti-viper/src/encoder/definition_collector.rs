@@ -1,18 +1,16 @@
+use super::{
+    errors::{SpannedEncodingError, SpannedEncodingResult},
+    Encoder,
+};
+use crate::encoder::mir::types::TypeEncoderInterface;
+use prusti_common::vir_local;
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
 };
-
-use crate::encoder::mir::types::TypeEncoderInterface;
-use prusti_common::vir_local;
 use vir_crate::polymorphic::{
     self as vir, compute_identifier, ExprWalker, FallibleExprWalker, FallibleStmtWalker,
     FunctionIdentifier, PredicateAccessPredicate, StmtWalker, WithIdentifier,
-};
-
-use super::{
-    errors::{SpannedEncodingError, SpannedEncodingResult},
-    Encoder,
 };
 
 /// Determining which of the collected functions should have bodies works as
