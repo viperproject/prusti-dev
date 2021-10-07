@@ -42,46 +42,64 @@
 <span id="42">42</span>
 <span id="43">43</span>
 <span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
 <span class="kw">use</span> <span class="ident">quote::quote</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use</span> <span class="ident">syn::parse_quote</span>;
 
 <span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/ast/mod.rs.html#1-35">ast</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/deriver/mod.rs.html#1-50">deriver</a>;
 <span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/generator/mod.rs.html#1-13">generator</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/helpers.rs.html#1-61">helpers</a>;
 <span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/parser/mod.rs.html#1-70">parser</a>;
-<span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/resolver/mod.rs.html#1-217">resolver</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/vir_gen/resolver/mod.rs.html#1-241">resolver</a>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">define_vir</span>(<span class="ident">input</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">source_file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>) <span class="op">-</span><span class="op">&gt;</span> <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">declarations</span>: <a class="ident" href="../../src/vir_gen/ast/mod.rs.html#1-6">ast::Declarations</a> <span class="op">=</span> <span class="ident">syn::parse2</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#11">input</a>)
-        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Failed to parse {:?}: {}&quot;</span>, <a class="ident" href="../../src/vir_gen/lib.rs.html#11">source_file</a>, <a class="ident" href="../../src/vir_gen/lib.rs.html#13">error</a>));
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">declarations</span>: <a class="ident" href="../../src/vir_gen/ast/mod.rs.html#1-6">ast::Declarations</a> <span class="op">=</span> <span class="ident">syn::parse2</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#13">input</a>)
+        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Failed to parse {:?}: {}&quot;</span>, <a class="ident" href="../../src/vir_gen/lib.rs.html#13">source_file</a>, <a class="ident" href="../../src/vir_gen/lib.rs.html#15">error</a>));
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sentinel_item</span> <span class="op">=</span> <span class="macro">parse_quote!</span> { <span class="kw">mod</span> <span class="ident">stub</span>; };
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">error_tokens</span> <span class="op">=</span> <span class="ident">proc_macro2::TokenStream::new</span>();
-    <a class="ident" href="../../src/vir_gen/lib.rs.html#12">declarations</a>.<span class="ident">components</span> <span class="op">=</span> {
+    <a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">components</span> <span class="op">=</span> {
         <span class="kw">let</span> (<span class="ident">expanded_components</span>, <span class="ident">errors</span>) <span class="op">=</span>
-            <a class="ident" href="../../src/vir_gen/parser/mod.rs.html#7">parser::expand</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#12">declarations</a>.<span class="ident">components</span>, <a class="ident" href="../../src/vir_gen/lib.rs.html#11">source_file</a>.<span class="ident">to_owned</span>());
-        <span class="kw">for</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#19">error</a> <span class="kw">in</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#17">errors</a> {
-            <a class="ident" href="../../src/vir_gen/lib.rs.html#15">error_tokens</a>.<span class="ident">extend</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#19">error</a>.<span class="ident">to_compile_error</span>());
+            <a class="ident" href="../../src/vir_gen/parser/mod.rs.html#7">parser::expand</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">components</span>, <a class="ident" href="../../src/vir_gen/lib.rs.html#13">source_file</a>.<span class="ident">to_owned</span>());
+        <span class="kw">for</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#21">error</a> <span class="kw">in</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#19">errors</a> {
+            <span class="macro">eprintln!</span>(<span class="string">&quot;error: {}&quot;</span>, <a class="ident" href="../../src/vir_gen/lib.rs.html#21">error</a>);
+            <a class="ident" href="../../src/vir_gen/lib.rs.html#17">error_tokens</a>.<span class="ident">extend</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#21">error</a>.<span class="ident">to_compile_error</span>());
         }
-        <a class="ident" href="../../src/vir_gen/lib.rs.html#17">expanded_components</a>
+        <a class="ident" href="../../src/vir_gen/lib.rs.html#19">expanded_components</a>
     };
-    <span class="kw">for</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#24">ir</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#12">declarations</a>.<span class="ident">irs</span> {
-        <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#24">ir</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#14">sentinel_item</a>);
-        <span class="kw">let</span> (<span class="ident">new_item</span>, <span class="ident">errors</span>) <span class="op">=</span> <a class="ident" href="../../src/vir_gen/parser/mod.rs.html#7">parser::expand</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#14">sentinel_item</a>, <a class="ident" href="../../src/vir_gen/lib.rs.html#11">source_file</a>.<span class="ident">to_owned</span>());
-        <a class="ident" href="../../src/vir_gen/lib.rs.html#14">sentinel_item</a> <span class="op">=</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#26">new_item</a>;
-        <span class="kw">for</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#28">error</a> <span class="kw">in</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#26">errors</a> {
-            <a class="ident" href="../../src/vir_gen/lib.rs.html#15">error_tokens</a>.<span class="ident">extend</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#28">error</a>.<span class="ident">to_compile_error</span>());
+    <span class="kw">for</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#27">ir</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">irs</span> {
+        <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#27">ir</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>);
+        <span class="kw">let</span> (<span class="ident">new_item</span>, <span class="ident">errors</span>) <span class="op">=</span> <a class="ident" href="../../src/vir_gen/parser/mod.rs.html#7">parser::expand</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>, <a class="ident" href="../../src/vir_gen/lib.rs.html#13">source_file</a>.<span class="ident">to_owned</span>());
+        <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a> <span class="op">=</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#29">new_item</a>;
+        <span class="kw">for</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#31">error</a> <span class="kw">in</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#29">errors</a> {
+            <span class="macro">eprintln!</span>(<span class="string">&quot;error: {}&quot;</span>, <a class="ident" href="../../src/vir_gen/lib.rs.html#31">error</a>);
+            <a class="ident" href="../../src/vir_gen/lib.rs.html#17">error_tokens</a>.<span class="ident">extend</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#31">error</a>.<span class="ident">to_compile_error</span>());
         }
-        <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#24">ir</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#14">sentinel_item</a>);
+        <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#27">ir</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>);
     }
-    <span class="kw">for</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#33">ir</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#12">declarations</a>.<span class="ident">irs</span> {
-        <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#33">ir</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#14">sentinel_item</a>);
-        <span class="kw">let</span> (<span class="ident">new_item</span>, <span class="ident">errors</span>) <span class="op">=</span> <a class="ident" href="../../src/vir_gen/resolver/mod.rs.html#6-9">resolver::expand</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#14">sentinel_item</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/vir_gen/lib.rs.html#12">declarations</a>.<span class="ident">components</span>);
-        <a class="ident" href="../../src/vir_gen/lib.rs.html#14">sentinel_item</a> <span class="op">=</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#35">new_item</a>;
-        <span class="kw">for</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#37">error</a> <span class="kw">in</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#35">errors</a> {
-            <a class="ident" href="../../src/vir_gen/lib.rs.html#15">error_tokens</a>.<span class="ident">extend</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#37">error</a>.<span class="ident">to_compile_error</span>());
+    <span class="kw">for</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#37">ir</a> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">irs</span> {
+        <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#37">ir</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>);
+        <span class="kw">let</span> (<span class="ident">new_item</span>, <span class="ident">errors</span>) <span class="op">=</span> <a class="ident" href="../../src/vir_gen/resolver/mod.rs.html#6-9">resolver::expand</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/vir_gen/lib.rs.html#14">declarations</a>.<span class="ident">components</span>);
+        <span class="kw">let</span> (<span class="ident">new_item_with_derives</span>, <span class="ident">derive_errors</span>) <span class="op">=</span> <a class="ident" href="../../src/vir_gen/deriver/mod.rs.html#8">deriver::expand</a>(<a class="ident" href="../../src/vir_gen/lib.rs.html#39">new_item</a>);
+        <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a> <span class="op">=</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#40">new_item_with_derives</a>;
+        <span class="kw">for</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#42">error</a> <span class="kw">in</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#39">errors</a>.<span class="ident">into_iter</span>().<span class="ident">chain</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#40">derive_errors</a>.<span class="ident">into_iter</span>()) {
+            <span class="macro">eprintln!</span>(<span class="string">&quot;error: {}&quot;</span>, <a class="ident" href="../../src/vir_gen/lib.rs.html#42">error</a>);
+            <a class="ident" href="../../src/vir_gen/lib.rs.html#17">error_tokens</a>.<span class="ident">extend</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#42">error</a>.<span class="ident">to_compile_error</span>());
         }
-        <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#33">ir</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#14">sentinel_item</a>);
+        <span class="ident">mem::swap</span>(<a class="ident" href="../../src/vir_gen/lib.rs.html#37">ir</a>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <a class="ident" href="../../src/vir_gen/lib.rs.html#16">sentinel_item</a>);
+    }
+    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/vir_gen/lib.rs.html#17">error_tokens</a>.<span class="ident">is_empty</span>() {
+        <span class="macro">unreachable!</span>();
     }
 
     <span class="macro">quote!</span> { #<span class="ident">declarations</span> #<span class="ident">error_tokens</span> }
