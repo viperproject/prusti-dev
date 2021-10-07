@@ -31,6 +31,7 @@ use crate::encoder::{
     snapshot::{Snapshot, patcher::SnapshotPatcher},
     builtin_encoder::BuiltinFunctionKind,
 };
+use crate::encoder::mir::types::TypeEncoderInterface;
 
 type PredicateType = Type;
 
