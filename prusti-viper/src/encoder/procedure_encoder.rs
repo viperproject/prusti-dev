@@ -69,7 +69,7 @@ use crate::encoder::errors::EncodingErrorKind;
 use crate::encoder::snapshot;
 use std::convert::TryInto;
 use crate::utils::is_reference;
-use crate::encoder::pure_functions::PureFunctionEncoderInterface;
+use crate::encoder::mir::pure_functions::PureFunctionEncoderInterface;
 
 use super::encoder::SubstMap;
 

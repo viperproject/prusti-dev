@@ -75,7 +75,7 @@ pub(crate) trait PureFunctionEncoderInterface<'tcx> {
     ) -> SpannedEncodingResult<(String, vir::Type)>;
 }
 
-impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx> for super::super::Encoder<'v, 'tcx> {
+impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
     fn encode_pure_expression(
         &self,
         proc_def_id: ProcedureDefId,

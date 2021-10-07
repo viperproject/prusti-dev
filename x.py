@@ -43,7 +43,7 @@ RUSTFMT_CRATES = [
 
 RUSTFMT_PATHS = [
     'prusti-viper/src/encoder/foldunfold/mod.rs',
-    'prusti-viper/src/encoder/pure_functions/mod.rs',
+    'prusti-viper/src/encoder/mir/mod.rs',
     'vir/defs/high/mod.rs',
     'vir/defs/polymorphic/mod.rs',
     'vir/defs/components/mod.rs',

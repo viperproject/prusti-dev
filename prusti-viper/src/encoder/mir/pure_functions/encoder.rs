@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::{super::encoder::SubstMap, interpreter::PureFunctionBackwardInterpreter};
+use super::{super::super::encoder::SubstMap, interpreter::PureFunctionBackwardInterpreter};
 use crate::encoder::{
     borrows::{compute_procedure_contract, ProcedureContract},
     builtin_encoder::BuiltinFunctionKind,

@@ -1,4 +1,4 @@
-use super::{super::encoder::SubstMap, interface::PureFunctionEncoderInterface};
+use super::{super::super::encoder::SubstMap, interface::PureFunctionEncoderInterface};
 use crate::encoder::{
     borrows::{compute_procedure_contract, ProcedureContract},
     builtin_encoder::BuiltinFunctionKind,
