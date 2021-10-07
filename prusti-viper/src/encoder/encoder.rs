@@ -59,7 +59,7 @@ use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::encoder::SnapshotEncoder;
 use crate::encoder::purifier;
 use crate::encoder::array_encoder::{ArrayTypesEncoder, EncodedArrayTypes, EncodedSliceTypes};
-use super::pure_functions::{PureFunctionEncoderState, PureFunctionEncoderInterface};
+use super::mir::pure_functions::{PureFunctionEncoderState, PureFunctionEncoderInterface};
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
