@@ -174,7 +174,6 @@ impl<'v, 'tcx: 'v> TypeEncoderInterface<'tcx> for super::super::super::Encoder<'
         }
         Ok(self.type_encoder_state.type_predicates.borrow()[&predicate_name].clone())
     }
-
     fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String> {
         // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
         if !self
@@ -198,7 +197,6 @@ impl<'v, 'tcx: 'v> TypeEncoderInterface<'tcx> for super::super::super::Encoder<'
             self.type_encoder_state.type_invariant_names.borrow()[ty.kind()].clone();
         Ok(invariant_name)
     }
-
     fn encode_type_invariant_def(
         &self,
         ty: ty::Ty<'tcx>,
@@ -220,7 +218,6 @@ impl<'v, 'tcx: 'v> TypeEncoderInterface<'tcx> for super::super::super::Encoder<'
         }
         Ok(self.type_encoder_state.type_invariants.borrow()[&invariant_name].clone())
     }
-
     fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
         if !self
             .type_encoder_state
@@ -242,7 +239,6 @@ impl<'v, 'tcx: 'v> TypeEncoderInterface<'tcx> for super::super::super::Encoder<'
         let tag_name = self.type_encoder_state.type_tag_names.borrow()[ty.kind()].clone();
         tag_name
     }
-
     fn encode_type_tag_def(&self, ty: ty::Ty<'tcx>) {
         let tag_name = self.encode_type_tag_use(ty);
         if !self
@@ -263,7 +259,6 @@ impl<'v, 'tcx: 'v> TypeEncoderInterface<'tcx> for super::super::super::Encoder<'
     fn get_used_viper_predicates_map(&self) -> HashMap<String, vir::Predicate> {
         self.type_encoder_state.type_predicates.borrow().clone()
     }
-
     fn get_viper_predicate(&self, name: &str) -> vir::Predicate {
         self.type_encoder_state.type_predicates.borrow()[name].clone()
     }
