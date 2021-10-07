@@ -16,6 +16,7 @@ use crate::encoder::{
 };
 use prusti_common::vir_local;
 use vir_crate::polymorphic as vir;
+use crate::encoder::mir::types::TypeEncoderInterface;
 
 
 /// The result of `ArrayEncoder::encode_array_types`. Contains types, type predicates and length of the given array type.

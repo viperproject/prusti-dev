@@ -5,6 +5,7 @@ use std::{
 
 use prusti_common::vir_local;
 use vir_crate::polymorphic::{self as vir, ExprWalker, FallibleExprWalker, FallibleStmtWalker, FunctionIdentifier, PredicateAccessPredicate, StmtWalker, WithIdentifier, compute_identifier};
+use crate::encoder::mir::types::TypeEncoderInterface;
 
 use super::{Encoder, errors::{SpannedEncodingError, SpannedEncodingResult}};
 
