@@ -2039,6 +2039,47 @@ impl<'a, 'p: 'a, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx> for CostBackward
                             trace!("Result state: {:?}", new_state);
                         }
                     }
+                    else { // substitute pure function call in condition
+                        let (ref lhs_place, target_block) = destination.as_ref().unwrap();      // t
+                        let (encoded_lhs, ty, _) = self.pure_fn_interpreter.encode_place(lhs_place)
+                            .with_span(term_span)?;
+                        let lhs_value = self.encoder.encode_value_expr(encoded_lhs.clone(), ty).with_span(term_span)?;
+
+                        let (function_name, return_type) = self.encoder.encode_pure_function_use(*def_id, self.proc_def_id)
+                                .with_span(term_span)?;
+
+                        trace!("Encoding pure function call '{}'", function_name);
+
+                        let encoded_args: Vec<vir::Expr> = args
+                            .iter()
+                            .map(|arg| self.mir_encoder.encode_operand_expr(arg))
+                            .collect::<Result<_, _>>()
+                            .with_span(term_span)?;
+
+                        let formal_args: Vec<vir::LocalVar> = args
+                            .iter()
+                            .enumerate()
+                            .map(|(i, arg)| {
+                                self.mir_encoder.encode_operand_expr_type(arg)
+                                    .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
+                            })
+                            .collect::<Result<_, _>>()
+                            .with_span(term_span)?;
+
+                        let pos = self
+                            .encoder
+                            .error_manager()
+                            .register(term_span, ErrorCtxt::PureFunctionCall, self.proc_def_id);
+                        let encoded_rhs = vir::Expr::func_app(
+                            function_name,
+                            encoded_args,
+                            formal_args,
+                            return_type,
+                            pos,
+                        );
+                        new_state.substitute_value(&lhs_value, encoded_rhs, location)
+                            .with_span(term_span)?;
+                    }
 
                     Ok(new_state)
                 } else {
