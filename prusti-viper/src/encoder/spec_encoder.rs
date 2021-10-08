@@ -7,6 +7,7 @@
 use crate::encoder::errors::{
     ErrorCtxt, SpannedEncodingResult, SpannedEncodingError, EncodingError, WithSpan
 };
+use crate::encoder::high::types::HighTypeEncoderInterface;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding};
 use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_interpreter::{
@@ -28,7 +29,7 @@ use std::collections::HashMap;
 use rustc_ast::ast;
 use log::{debug, trace};
 use prusti_interface::utils::read_prusti_attr;
-use crate::encoder::mir::types::TypeEncoderInterface;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
 
 use super::encoder::SubstMap;
 

@@ -31,7 +31,8 @@ use crate::encoder::{
     snapshot::{Snapshot, patcher::SnapshotPatcher},
     builtin_encoder::BuiltinFunctionKind,
 };
-use crate::encoder::mir::types::TypeEncoderInterface;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
+use crate::encoder::high::types::HighTypeEncoderInterface;
 
 type PredicateType = Type;
 
@@ -1711,7 +1712,7 @@ impl SnapshotEncoder {
         };
         let snap_func = foldunfold::add_folding_unfolding_to_function(
             snap_func,
-            encoder.get_used_viper_predicates_map(),
+            encoder.get_used_viper_predicates_map()?,
         ).unwrap();
 
         // create domain

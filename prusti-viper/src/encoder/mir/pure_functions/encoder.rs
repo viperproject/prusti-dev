@@ -13,7 +13,7 @@ use crate::encoder::{
         SpannedEncodingResult, WithSpan,
     },
     foldunfold,
-    mir::types::TypeEncoderInterface,
+    mir::types::MirTypeEncoderInterface,
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
     mir_interpreter::{
         run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,

@@ -14,7 +14,7 @@ use crate::encoder::errors::SpannedEncodingError;
 use crate::encoder::errors::WithSpan;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
-use crate::encoder::mir::types::TypeEncoderInterface;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
 
 use super::encoder::SubstMap;
 

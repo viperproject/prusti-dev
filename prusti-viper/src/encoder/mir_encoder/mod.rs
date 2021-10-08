@@ -28,12 +28,13 @@ use std::{
     convert::TryInto,
 };
 use prusti_interface::environment::mir_utils::MirPlace;
-use crate::encoder::mir::types::TypeEncoderInterface;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
 
 use downcast_detector::detect_downcasts;
 pub use place_encoding::{PlaceEncoding, ExprOrArrayBase};
 
 use super::encoder::SubstMap;
+use super::high::types::HighTypeEncoderInterface;
 
 pub static PRECONDITION_LABEL: &str = "pre";
 pub static WAND_LHS_LABEL: &str = "lhs";

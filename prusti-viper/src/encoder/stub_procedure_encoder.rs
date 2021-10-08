@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::encoder::high::types::HighTypeEncoderInterface;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::Encoder;
 use prusti_common::vir::ToGraphViz;
@@ -14,7 +15,7 @@ use prusti_common::report::log;
 use rustc_hir::def_id::DefId;
 use rustc_middle::mir;
 use ::log::trace;
-use crate::encoder::mir::types::TypeEncoderInterface;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
 
 pub struct StubProcedureEncoder<'p, 'v: 'p, 'tcx: 'v>
  {

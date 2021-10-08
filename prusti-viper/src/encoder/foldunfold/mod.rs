@@ -11,7 +11,7 @@ use crate::encoder::{
 };
 #[rustfmt::skip]
 use ::log::{debug, trace};
-use crate::encoder::mir::types::TypeEncoderInterface;
+use crate::encoder::{high::types::HighTypeEncoderInterface, mir::types::MirTypeEncoderInterface};
 use prusti_common::{config, report, utils::to_string::ToString, vir::ToGraphViz};
 use rustc_middle::mir;
 use std::{
@@ -27,6 +27,8 @@ use vir_crate::{
         FallibleExprFolder, PermAmount, PermAmountError,
     },
 };
+
+use super::errors::SpannedEncodingError;
 
 mod action;
 mod borrows;
@@ -63,6 +65,8 @@ pub enum FoldUnfoldError {
     FailedToRemovePred(vir::Expr),
     /// The algorithm tried to lookup a never-seen-before label
     MissingLabel(String),
+    /// Other encoding error.
+    SpannedEncodingError(SpannedEncodingError),
     /// Unsupported feature
     Unsupported(String),
 }
@@ -78,6 +82,12 @@ impl From<PermAmountError> for FoldUnfoldError {
                 a, b
             )),
         }
+    }
+}
+
+impl From<SpannedEncodingError> for FoldUnfoldError {
+    fn from(err: SpannedEncodingError) -> Self {
+        Self::SpannedEncodingError(err)
     }
 }
 
@@ -151,7 +161,7 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
     method_pos: vir::Position,
 ) -> Result<vir::CfgMethod, FoldUnfoldError> {
     let cfg_vars = cfg.get_all_vars();
-    let predicates = encoder.get_used_viper_predicates_map();
+    let predicates = encoder.get_used_viper_predicates_map()?;
     // Collect all old expressions used in the CFG
     let old_exprs = {
         struct OldExprCollector {
