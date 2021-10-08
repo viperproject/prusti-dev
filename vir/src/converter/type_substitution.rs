@@ -1499,7 +1499,7 @@ mod tests {
 
         // Unfolding
         source = Expr::Unfolding(Unfolding {
-            predicate_name: String::from("p1"),
+            predicate: Type::typed_ref("p1"),
             arguments: vec![
                 Expr::Local(Local {
                     variable: LocalVar {
@@ -1528,7 +1528,7 @@ mod tests {
             position,
         });
         expected = Expr::Unfolding(Unfolding {
-            predicate_name: String::from("p1"),
+            predicate: Type::typed_ref("p1"),
             arguments: vec![
                 Expr::Local(Local {
                     variable: LocalVar {
@@ -2214,7 +2214,7 @@ mod tests {
 
         // Fold
         source = Stmt::Fold(Fold {
-            predicate_name: String::from("p1"),
+            predicate: Type::typed_ref("p1"),
             arguments: vec![
                 Expr::Local(Local {
                     variable: LocalVar {
@@ -2236,7 +2236,7 @@ mod tests {
             position,
         });
         expected = Stmt::Fold(Fold {
-            predicate_name: String::from("p1"),
+            predicate: Type::typed_ref("p1"),
             arguments: vec![
                 Expr::Local(Local {
                     variable: LocalVar {
@@ -2261,7 +2261,7 @@ mod tests {
 
         // Unfold
         source = Stmt::Unfold(Unfold {
-            predicate_name: String::from("p1"),
+            predicate: Type::typed_ref("p1"),
             arguments: vec![
                 Expr::Local(Local {
                     variable: LocalVar {
@@ -2282,7 +2282,7 @@ mod tests {
             enum_variant: Some(EnumVariantIndex::new(String::from("evi"))),
         });
         expected = Stmt::Unfold(Unfold {
-            predicate_name: String::from("p1"),
+            predicate: Type::typed_ref("p1"),
             arguments: vec![
                 Expr::Local(Local {
                     variable: LocalVar {
@@ -3512,7 +3512,7 @@ mod tests {
 
         // Bodyless
         source = Predicate::Bodyless(
-            String::from("b1"),
+            Type::type_var("b1"),
             LocalVar {
                 name: String::from("_v1"),
                 typ: Type::type_var("T"),
@@ -3520,7 +3520,7 @@ mod tests {
         );
 
         expected = Predicate::Bodyless(
-            String::from("b1"),
+            Type::type_var("b1"),
             LocalVar {
                 name: String::from("_v1"),
                 typ: Type::Int,

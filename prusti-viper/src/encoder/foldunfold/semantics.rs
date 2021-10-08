@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use super::Predicates;
 use crate::encoder::foldunfold::{
     footprint::*, path_ctxt::find_unfolded_variant, perm::*, requirements::*, state::*,
     FoldUnfoldError,
@@ -15,7 +16,7 @@ use vir_crate::polymorphic as vir;
 fn inhale_expr(
     expr: &vir::Expr,
     state: &mut State,
-    predicates: &HashMap<String, vir::Predicate>,
+    predicates: &Predicates,
 ) -> Result<(), FoldUnfoldError> {
     state.insert_all_perms(
         expr.get_footprint(predicates)
@@ -27,7 +28,7 @@ fn inhale_expr(
 fn exhale_expr(
     expr: &vir::Expr,
     state: &mut State,
-    predicates: &HashMap<String, vir::Predicate>,
+    predicates: &Predicates,
 ) -> Result<(), FoldUnfoldError> {
     state.remove_all_perms(
         expr.get_footprint(predicates)
@@ -43,7 +44,7 @@ pub trait ApplyOnState {
     fn apply_on_state(
         &self,
         state: &mut State,
-        predicates: &HashMap<String, vir::Predicate>,
+        predicates: &Predicates,
     ) -> Result<(), FoldUnfoldError>;
 }
 
@@ -51,7 +52,7 @@ impl ApplyOnState for vir::Stmt {
     fn apply_on_state(
         &self,
         state: &mut State,
-        predicates: &HashMap<String, vir::Predicate>,
+        predicates: &Predicates,
     ) -> Result<(), FoldUnfoldError> {
         trace!("apply_on_state '{}'", self);
         trace!("State acc before {{\n{}\n}}", state.display_acc());
@@ -192,8 +193,8 @@ impl ApplyOnState for vir::Stmt {
                 assert!(!state.is_prefix_of_some_moved(place));
 
                 // We want to fold place
-                let predicate_name = place.typed_ref_name().unwrap();
-                let predicate = predicates.get(&predicate_name).unwrap();
+                let predicate_type = place.get_type();
+                let predicate = predicates.get(&predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<Perm> = predicate
@@ -228,8 +229,8 @@ impl ApplyOnState for vir::Stmt {
                 assert!(!state.is_prefix_of_some_moved(place));
 
                 // We want to unfold place
-                let predicate_name = place.typed_ref_name().unwrap();
-                let predicate = predicates.get(&predicate_name).unwrap();
+                let predicate_type = place.get_type();
+                let predicate = predicates.get(&predicate_type).unwrap();
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<_> = predicate
@@ -419,8 +420,8 @@ impl ApplyOnState for vir::Stmt {
                     );
                 } else {
                     trace!("Downcast {} to {}", enum_place, field);
-                    let predicate_name = enum_place.typed_ref_name().unwrap();
-                    let predicate = predicates.get(&predicate_name).unwrap();
+                    let predicate_type = enum_place.get_type();
+                    let predicate = predicates.get(&predicate_type).unwrap();
                     if let vir::Predicate::Enum(enum_predicate) = predicate {
                         let discriminant_place = enum_place
                             .clone()

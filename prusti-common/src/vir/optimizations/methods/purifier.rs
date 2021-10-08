@@ -71,8 +71,8 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     method
 }
 
-fn is_purifiable_predicate(name: &str) -> bool {
-    name == "usize" || name == "isize"
+fn is_purifiable_predicate(typ: &ast::Type) -> bool {
+    typ.name() == "usize" || typ.name() == "isize"
 }
 
 fn is_purifiable_method(name: &str) -> bool {
@@ -105,11 +105,11 @@ impl ast::ExprWalker for VarCollector {
     }
     fn walk_predicate_access_predicate(&mut self, ast::PredicateAccessPredicate {predicate_type, box argument, ..}: &ast::PredicateAccessPredicate) {
         let old_pure_context = self.is_pure_context;
-        let name = &predicate_type.name()[..];
-        if is_purifiable_predicate(name) {
+        if is_purifiable_predicate(&predicate_type) {
             if let ast::Expr::Local( ast::Local {variable: var, ..}) = argument {
                 let mut new_var = var.clone();
                 let original = var.clone();
+                let name = &predicate_type.name()[..];
                 new_var.typ = match name {
                     "usize" => ast::Type::Int,
                     "isize" => ast::Type::Int,
@@ -122,9 +122,9 @@ impl ast::ExprWalker for VarCollector {
         self.walk(argument);
         self.is_pure_context = old_pure_context;
     }
-    fn walk_unfolding(&mut self, ast::Unfolding {predicate_name, arguments, base, ..}: &ast::Unfolding) {
+    fn walk_unfolding(&mut self, ast::Unfolding {predicate, arguments, base, ..}: &ast::Unfolding) {
         let old_pure_context = self.is_pure_context;
-        if is_purifiable_predicate(predicate_name) {
+        if is_purifiable_predicate(predicate) {
             if let ast::Expr::Local(_) = arguments[0] {
                 self.is_pure_context = true;
             }
@@ -182,9 +182,9 @@ impl ast::StmtWalker for VarCollector {
         }
         self.is_pure_context = old_pure_context;
     }
-    fn walk_unfold(&mut self, ast::Unfold {predicate_name, arguments, ..}: &ast::Unfold) {
+    fn walk_unfold(&mut self, ast::Unfold {predicate, arguments, ..}: &ast::Unfold) {
         let old_pure_context = self.is_pure_context;
-        if is_purifiable_predicate(predicate_name) {
+        if is_purifiable_predicate(predicate) {
             if let ast::Expr::Local(_) = arguments[0] {
                 self.is_pure_context = true;
             }
@@ -194,9 +194,9 @@ impl ast::StmtWalker for VarCollector {
         }
         self.is_pure_context = old_pure_context;
     }
-    fn walk_fold(&mut self, ast::Fold {predicate_name, arguments, ..}: &ast::Fold) {
+    fn walk_fold(&mut self, ast::Fold {predicate, arguments, ..}: &ast::Fold) {
         let old_pure_context = self.is_pure_context;
-        if is_purifiable_predicate(predicate_name) {
+        if is_purifiable_predicate(predicate) {
             if let ast::Expr::Local(_) = arguments[0] {
                 self.is_pure_context = true;
             }
@@ -231,10 +231,10 @@ impl VarPurifier {
             ast::Expr::Local(ast::Local {variable: replacement, position: *pos})
         })
     }
-    fn get_replacement_bounds(&self, predicate_name: &str, var_expr: &ast::Expr) -> ast::Expr {
+    fn get_replacement_bounds(&self, predicate: &ast::Type, var_expr: &ast::Expr) -> ast::Expr {
         let replacement = self.get_replacement(var_expr);
         if config::check_overflows() {
-            match predicate_name {
+            match predicate.name().as_ref() {
                 "usize" => {
                     ast::Expr::and(
                         ast::Expr::ge_cmp(replacement.clone(), std::usize::MIN.into()),
@@ -267,9 +267,8 @@ impl ast::ExprFolder for VarPurifier {
         ast::Expr::local_with_pos(variable, position)
     }
     fn fold_predicate_access_predicate(&mut self, ast::PredicateAccessPredicate {predicate_type, argument, permission, position}: ast::PredicateAccessPredicate) -> ast::Expr {
-        let name = predicate_type.name();
-        if is_purifiable_predicate(&name) && self.is_pure(&argument) {
-            self.get_replacement_bounds(&name, &argument)
+        if is_purifiable_predicate(&predicate_type) && self.is_pure(&argument) {
+            self.get_replacement_bounds(&predicate_type, &argument)
         } else {
             ast::Expr::PredicateAccessPredicate( ast::PredicateAccessPredicate {
                 predicate_type,
@@ -281,7 +280,7 @@ impl ast::ExprFolder for VarPurifier {
     }
     fn fold_field_access_predicate(&mut self, ast::FieldAccessPredicate {base: receiver, permission, position}: ast::FieldAccessPredicate) -> ast::Expr {
         if let box ast::Expr::Field( ast::FieldExpr {base: box ast::Expr::Local( ast::Local {variable: var, ..} ), ..}) = &receiver {
-            if self.pure_vars.contains(var) {
+            if self.pure_vars.contains(&var) {
                 return true.into();
             }
         }
@@ -291,13 +290,13 @@ impl ast::ExprFolder for VarPurifier {
             position,
         })
     }
-    fn fold_unfolding(&mut self, ast::Unfolding {predicate_name, arguments, base, permission, variant, position}: ast::Unfolding) -> ast::Expr {
+    fn fold_unfolding(&mut self, ast::Unfolding {predicate, arguments, base, permission, variant, position}: ast::Unfolding) -> ast::Expr {
         assert!(arguments.len() == 1);
-        if is_purifiable_predicate(&predicate_name) && self.is_pure(&arguments[0]) {
+        if is_purifiable_predicate(&predicate) && self.is_pure(&arguments[0]) {
             self.fold(*base)
         } else {
             ast::Expr::Unfolding( ast::Unfolding {
-                predicate_name,
+                predicate,
                 arguments,
                 base: self.fold_boxed(base),
                 permission,
@@ -324,14 +323,14 @@ impl ast::StmtFolder for VarPurifier {
         ast::ExprFolder::fold(self, e)
     }
 
-    fn fold_unfold(&mut self, ast::Unfold {predicate_name, arguments, permission, enum_variant}: ast::Unfold) -> ast::Stmt {
+    fn fold_unfold(&mut self, ast::Unfold {predicate, arguments, permission, enum_variant}: ast::Unfold) -> ast::Stmt {
         assert!(arguments.len() == 1);
-        if is_purifiable_predicate(&predicate_name) && self.is_pure(&arguments[0]) {
-            let new_expr = self.get_replacement_bounds(&predicate_name, &arguments[0]);
+        if is_purifiable_predicate(&predicate) && self.is_pure(&arguments[0]) {
+            let new_expr = self.get_replacement_bounds(&predicate, &arguments[0]);
             ast::Stmt::Inhale( ast::Inhale {expr: new_expr} )
         } else {
             ast::Stmt::Unfold( ast::Unfold {
-                predicate_name,
+                predicate,
                 arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
                 permission,
                 enum_variant,
@@ -339,17 +338,17 @@ impl ast::StmtFolder for VarPurifier {
         }
     }
 
-    fn fold_fold(&mut self, ast::Fold {predicate_name, arguments, permission, enum_variant, position}: ast::Fold) -> ast::Stmt {
+    fn fold_fold(&mut self, ast::Fold {predicate, arguments, permission, enum_variant, position}: ast::Fold) -> ast::Stmt {
         assert!(arguments.len() == 1);
-        if is_purifiable_predicate(&predicate_name) && self.is_pure(&arguments[0]) {
-            let new_expr = self.get_replacement_bounds(&predicate_name, &arguments[0]);
+        if is_purifiable_predicate(&predicate) && self.is_pure(&arguments[0]) {
+            let new_expr = self.get_replacement_bounds(&predicate, &arguments[0]);
             ast::Stmt::Assert( ast::Assert {
                 expr: new_expr,
                 position,
             })
         } else {
             ast::Stmt::Fold( ast::Fold {
-                predicate_name,
+                predicate,
                 arguments: arguments.into_iter().map(|e| self.fold_expr(e)).collect(),
                 permission,
                 enum_variant,

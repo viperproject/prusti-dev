@@ -484,25 +484,25 @@ fn patch_places(stmts: &[vir::Stmt], maybe_label: Option<&str>) -> Vec<vir::Stmt
                     })
                 }
                 vir::Stmt::Fold(vir::Fold {
-                    ref predicate_name,
+                    ref predicate,
                     ref arguments,
                     permission,
                     enum_variant,
                     position,
                 }) => vir::Stmt::Fold(vir::Fold {
-                    predicate_name: predicate_name.clone(),
+                    predicate: predicate.clone(),
                     arguments: patch_args(label, arguments),
                     permission: *permission,
                     enum_variant: enum_variant.clone(),
                     position: *position,
                 }),
                 vir::Stmt::Unfold(vir::Unfold {
-                    ref predicate_name,
+                    ref predicate,
                     ref arguments,
                     permission,
                     enum_variant,
                 }) => vir::Stmt::Unfold(vir::Unfold {
-                    predicate_name: predicate_name.clone(),
+                    predicate: predicate.clone(),
                     arguments: patch_args(label, arguments),
                     permission: *permission,
                     enum_variant: enum_variant.clone(),

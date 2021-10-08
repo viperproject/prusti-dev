@@ -14,7 +14,7 @@ use std::{
 pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
-    Bodyless(String, LocalVar),
+    Bodyless(Type, LocalVar),
 }
 
 impl fmt::Display for Predicate {
@@ -107,12 +107,20 @@ impl Predicate {
             Predicate::Bodyless(_, this) => this.clone().into(),
         }
     }
+    /// The predicate type getter.
+    pub fn get_type(&self) -> &Type {
+        match self {
+            Predicate::Struct(p) => &p.typ,
+            Predicate::Enum(p) => &p.typ,
+            Predicate::Bodyless(typ, _) => typ,
+        }
+    }
     /// The predicate name getter.
     pub fn name(&self) -> String {
         match self {
             Predicate::Struct(p) => p.typ.name(),
             Predicate::Enum(p) => p.typ.name(),
-            Predicate::Bodyless(ref name, _) => name.clone(),
+            Predicate::Bodyless(ref typ, _) => typ.name(),
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -129,7 +137,7 @@ impl WithIdentifier for Predicate {
         match self {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
-            Predicate::Bodyless(name, _) => name.clone(),
+            Predicate::Bodyless(typ, _) => typ.encode_as_string(),
         }
     }
 }

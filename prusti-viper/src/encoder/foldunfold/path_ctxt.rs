@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use super::Predicates;
 use crate::encoder::foldunfold::{
     action::*, footprint::*, log::EventLog, perm::*, places_utils::*, requirements::*,
     semantics::ApplyOnState, state::*, FoldUnfoldError, FoldUnfoldError::FailedToObtain,
@@ -21,7 +22,7 @@ use vir_crate::polymorphic::{self as vir, PermAmount};
 pub struct PathCtxt<'a> {
     state: State,
     /// The definition of the predicates
-    predicates: &'a HashMap<String, vir::Predicate>,
+    predicates: &'a Predicates,
     /// All usages of old expressions to consider
     old_exprs: &'a HashMap<String, Vec<vir::Expr>>,
     /// A log of some of the relevant actions that lead to this fold-unfold context
@@ -31,7 +32,7 @@ pub struct PathCtxt<'a> {
 impl<'a> PathCtxt<'a> {
     pub fn new(
         local_vars: Vec<vir::LocalVar>,
-        predicates: &'a HashMap<String, vir::Predicate>,
+        predicates: &'a Predicates,
         old_exprs: &'a HashMap<String, Vec<vir::Expr>>,
     ) -> Self {
         PathCtxt {
@@ -70,7 +71,7 @@ impl<'a> PathCtxt<'a> {
         &mut self.state
     }
 
-    pub fn predicates(&self) -> &HashMap<String, vir::Predicate> {
+    pub fn predicates(&self) -> &Predicates {
         self.predicates
     }
 
@@ -98,12 +99,12 @@ impl<'a> PathCtxt<'a> {
             "Invalid permission amount."
         );
 
-        let predicate_name = pred_place.typed_ref_name().unwrap();
+        let predicate_type = pred_place.get_type();
         let predicate = self
             .predicates
-            .get(&predicate_name)
+            .get(&predicate_type)
             .map(Ok)
-            .unwrap_or_else(|| Err(FoldUnfoldError::MissingPredicate(predicate_name.clone())))?;
+            .unwrap_or_else(|| Err(FoldUnfoldError::MissingPredicate(predicate_type.clone())))?;
 
         let pred_self_place: vir::Expr = predicate.self_place();
 
@@ -138,7 +139,7 @@ impl<'a> PathCtxt<'a> {
         );
 
         Ok(Action::Unfold(vir::Unfold {
-            predicate_name: predicate_name.clone(),
+            predicate: predicate_type.clone(),
             arguments: vec![pred_place.clone()],
             permission: perm_amount,
             enum_variant: variant,
@@ -576,11 +577,11 @@ impl<'a> PathCtxt<'a> {
         if req.is_pred() {
             // We want to fold `req`
             trace!("We want to fold {}", req);
-            let predicate_name = req.typed_ref_name().unwrap();
+            let predicate_type = req.get_type();
             let predicate = self
                 .predicates
-                .get(&predicate_name)
-                .unwrap_or_else(|| panic!("not found: {}", predicate_name));
+                .get(&predicate_type)
+                .unwrap_or_else(|| panic!("not found: {}", predicate_type));
 
             let variant = find_unfolded_variant(&self.state, req.get_place());
 
@@ -654,7 +655,7 @@ impl<'a> PathCtxt<'a> {
 
                 let pos = req.get_place().pos();
                 let fold_action = Action::Fold(vir::Fold {
-                    predicate_name: predicate_name.clone(),
+                    predicate: predicate_type.clone(),
                     arguments: vec![req.get_place().clone()],
                     permission: perm_amount,
                     enum_variant: variant,
