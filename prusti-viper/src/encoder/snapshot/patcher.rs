@@ -9,7 +9,7 @@ use crate::encoder::Encoder;
 use crate::encoder::encoder::SubstMap;
 use crate::encoder::errors::{EncodingError, EncodingResult};
 use crate::encoder::snapshot::encoder::{UNIT_DOMAIN_NAME, SnapshotEncoder};
-use crate::encoder::mir::types::TypeEncoderInterface;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
 
 pub(super) struct SnapshotPatcher<'v, 'tcx: 'v> {
     pub(super) snapshot_encoder: &'v mut SnapshotEncoder,

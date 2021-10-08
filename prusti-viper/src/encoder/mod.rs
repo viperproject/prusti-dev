@@ -30,6 +30,7 @@ mod utils;
 mod snapshot;
 mod mirror_function_encoder;
 mod mir;
+mod high;
 mod purifier;
 mod array_encoder;
 pub mod counterexample;
