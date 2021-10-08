@@ -11,6 +11,7 @@ use crate::encoder::errors::{
     EncodingResult, SpannedEncodingResult
 };
 use crate::encoder::foldunfold;
+use crate::encoder::high::types::HighTypeEncoderInterface;
 use crate::encoder::initialisation::InitInfo;
 use crate::encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
 use crate::encoder::mir_encoder::{MirEncoder, FakeMirEncoder, PlaceEncoder, PlaceEncoding, ExprOrArrayBase};
@@ -70,7 +71,7 @@ use crate::encoder::snapshot;
 use std::convert::TryInto;
 use crate::utils::is_reference;
 use crate::encoder::mir::pure_functions::PureFunctionEncoderInterface;
-use crate::encoder::mir::types::TypeEncoderInterface;
+use crate::encoder::mir::types::MirTypeEncoderInterface;
 use super::encoder::SubstMap;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -5384,7 +5385,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         encoded_src,
                         adt_def,
                         &substs,
-                    );
+                    )?;
                     self.encode_copy_value_assign(
                         encoded_lhs,
                         encoded_rhs,
@@ -5976,7 +5977,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     // dst was havocked, so it is safe to assume the equality here.
                     let discriminant = self
                         .encoder
-                        .encode_discriminant_func_app(dst.clone(), adt_def, &tymap);
+                        .encode_discriminant_func_app(dst.clone(), adt_def, &tymap)?;
                     stmts.push(vir::Stmt::Inhale( vir::Inhale {
                         expr: vir::Expr::eq_cmp(discriminant, discr_value),
                     }));

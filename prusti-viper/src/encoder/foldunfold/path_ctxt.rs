@@ -577,7 +577,10 @@ impl<'a> PathCtxt<'a> {
             // We want to fold `req`
             trace!("We want to fold {}", req);
             let predicate_name = req.typed_ref_name().unwrap();
-            let predicate = self.predicates.get(&predicate_name).unwrap();
+            let predicate = self
+                .predicates
+                .get(&predicate_name)
+                .unwrap_or_else(|| panic!("not found: {}", predicate_name));
 
             let variant = find_unfolded_variant(&self.state, req.get_place());
 

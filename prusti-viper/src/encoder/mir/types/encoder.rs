@@ -6,6 +6,7 @@
 
 use crate::encoder::{
     foldunfold,
+    high::types::HighTypeEncoderInterface,
     utils::{range_extract, PlusOne},
     Encoder,
 };
@@ -19,7 +20,7 @@ use rustc_target::abi;
 // use std;
 use super::{
     helpers::{compute_discriminant_bounds, compute_discriminant_values},
-    interface::TypeEncoderInterface,
+    interface::MirTypeEncoderInterface,
 };
 use crate::encoder::{
     builtin_encoder::BuiltinFunctionKind,
@@ -60,7 +61,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Ref(_, ty, _) => {
-                let typ = self.encoder.encode_type(ty)?;
+                let typ = self.encoder.encode_type_high(ty)?;
                 vir::Field::new("val_ref", typ)
             }
 
@@ -70,7 +71,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Closure(_, _)
             | ty::TyKind::FnDef(_, _) => {
-                let typ = self.encoder.encode_type(self.ty)?;
+                let typ = self.encoder.encode_type_high(self.ty)?;
                 vir::Field::new("val_ref", typ)
             }
 
